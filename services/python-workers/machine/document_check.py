@@ -105,10 +105,11 @@ def bounded_fetch(http: ModuleType, *args: Any, **kwargs: Any) -> Any:
 
 
 def retrieve_context(query: str, timeout: int, limit: int, receipts: list[dict[str, Any]]) -> str:
-    """One bounded public-context retrieval shared by both check dimensions."""
+    """Retrieve only an independently supplied, bounded public query."""
+    if not isinstance(query, str) or not query.strip() or len(query) > 1000 or len(query.encode("utf8")) > 4000:
+        raise CheckExecutionError("invalid_search_query")
     material = ""
     http = donor("safe_http")
-    query = query[:1000]
     began = time.monotonic()
     response = bounded_fetch(
         http,
@@ -291,7 +292,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         "retrieval_receipts": [],
     }
     try:
-        allowed = {"schema", *IDENTITY, "text", "original", "recognition", "config"}
+        allowed = {"schema", *IDENTITY, "text", "original", "recognition", "config", "search_query"}
         if set(req) - allowed or req.get("schema") != "archeaxis.document-check.request/v1":
             raise CheckExecutionError("invalid_request")
         if any(
@@ -310,6 +311,14 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         config = req.get("config")
         if not isinstance(text, str) or not text.strip() or len(text.encode()) > 64_000:
             raise CheckExecutionError("invalid_text")
+        search_query = req.get("search_query")
+        if search_query is not None and (
+            not isinstance(search_query, str) or not search_query.strip()
+            or len(search_query) > 1000 or len(search_query.encode("utf8")) > 4000
+        ):
+            raise CheckExecutionError("invalid_search_query")
+        if req["dimension"] == "professional_basis" and search_query is None:
+            raise CheckExecutionError("search_query_required")
         if not isinstance(config, dict) or set(config) - {
             "provider",
             "model",
@@ -399,7 +408,10 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
                 raise CheckExecutionError("invalid_recognition_digest")
             material = "ORIGINAL:\n" + material + "\nRECOGNITION:\n" + recognition["text"]
             try:
-                auxiliary = retrieve_context(text, timeout, limit, result["retrieval_receipts"])
+                auxiliary = (
+                    retrieve_context(search_query, timeout, limit, result["retrieval_receipts"])
+                    if search_query is not None else "No public background requested; compare only the immutable original."
+                )
                 if any(row.get("truncated") is True for row in result["retrieval_receipts"]):
                     raise CheckExecutionError("retrieval_truncated")
             except CheckExecutionError as exc:
@@ -420,7 +432,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
             )
             statuses = ["faithful", "mismatch", "uncertain", "original_unclear", "conflicting"]
         else:
-            material = retrieve_context(text, timeout, limit, result["retrieval_receipts"])
+            material = retrieve_context(search_query, timeout, limit, result["retrieval_receipts"])
             statuses = ["supported", "refuted", "uncertain", "conflicting"]
         if req["dimension"] == "professional_basis" and any(row.get("truncated") is True for row in result["retrieval_receipts"]):
             result["status"] = "uncertain"
@@ -473,8 +485,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
             and isinstance(answer.actual_finish_reason, str)
             and 0 < len(answer.actual_finish_reason) <= 64
             and answer.actual_finish_reason not in ("unknown", "unverified")
-            and type(answer.tokens_used) is int
-            and answer.tokens_used >= 0
+            and (answer.tokens_used is None or (type(answer.tokens_used) is int and answer.tokens_used >= 0))
         ):
             result["engine_receipt"] = {
                 "provider": provider,
@@ -497,8 +508,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
             or not answer.actual_finish_reason
             or not isinstance(answer.model, str)
             or not answer.model
-            or type(answer.tokens_used) is not int
-            or answer.tokens_used < 0
+            or (answer.tokens_used is not None and (type(answer.tokens_used) is not int or answer.tokens_used < 0))
         ):
             raise CheckExecutionError("invalid_engine_receipt")
         if answer.actual_finish_reason == "length":

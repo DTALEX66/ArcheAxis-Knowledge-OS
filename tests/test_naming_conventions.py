@@ -379,7 +379,7 @@ def test_product_naming_contract_v2_has_one_default_display_identity() -> None:
     product = registry["product"]
     assert product["name"] == {
         "en-US": "ArcheAxis Knowledge",
-        "zh-CN": "星环知识平台",
+        "zh-CN": "星环知识系统",
         "class": "display",
     }
     assert registry["rules"]["default_ui_product_name"] == "ArcheAxis Knowledge"
@@ -390,7 +390,7 @@ def test_product_naming_contract_v2_has_one_default_display_identity() -> None:
 
     ui = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
     assert "ArcheAxis Knowledge" in ui
-    assert "星环知识平台" in ui
+    assert "星环知识系统" in ui
     assert "元枢工作台" not in ui
     assert "元枢·观心" not in ui
     assert "全局命令入口尚未接入" not in ui

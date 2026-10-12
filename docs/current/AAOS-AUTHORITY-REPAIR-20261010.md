@@ -2,7 +2,7 @@
 
 状态：IMPLEMENTED_LOCAL / TESTED_LOCAL / BRANCH_PUBLISHED。治理载荷与两端readback见下文；latest元数据SHA动态读取Git。上次G01完成主要入口与定向门禁，但未覆盖全部直接阅读入口；不把上次PASS推导为本轮全面无漂移。
 
-当前产品 PAUSED_BY_OWNER / PARTIAL，仅治理维护执行。六项核心能力增量 FROZEN_BY_OWNER，不加入当前任务。TaskPack原字节、历史证据SHA、失败记录及冻结能力保留；未修改UI配色、业务代码、私人Agent配置或任何其他项目。
+2026-10-10 本治理载荷执行时产品 PAUSED_BY_OWNER / PARTIAL，仅治理维护执行；Owner 2026-10-11 已恢复产品范围，当前状态以活动指针为准。六项核心能力增量 FROZEN_BY_OWNER，不加入当前任务。TaskPack原字节、历史证据SHA、失败记录及冻结能力保留；未修改UI配色、业务代码、私人Agent配置或任何其他项目。
 
 ## 已修复
 

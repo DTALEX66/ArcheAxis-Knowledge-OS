@@ -1,0 +1,19 @@
+{
+  "schema": "archeaxis.working-state-integration/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "implementation": "Formal desktop App, Library and DocumentEditor now connect Core-owned working-state read/write/clear/recover; no browser business storage.",
+  "qualification": "LOCAL_FRONTEND_ONLY_NOT_ACTUAL_CORE_OR_INSTALLED_RUNTIME",
+  "checks": [
+    {"scope": "Full frontend", "status": "PASS", "files": 111, "tests": 1034, "max_workers": 4, "evidence_level": "SIMULATED", "receipt": ".project-local/runs/be268a2d33/9f6c48743688/artifacts/execution.json"},
+    {"scope": "Mounted Library journal regression after test type narrowing", "status": "PASS", "tests": 4, "evidence_level": "SIMULATED", "receipt": ".project-local/runs/be268a2d33/f913e1474c31/artifacts/execution.json"},
+    {"scope": "Final frontend TypeScript", "status": "PASS", "receipt": ".project-local/runs/be268a2d33/c40f72d2c6d3/artifacts/execution.json"},
+    {"scope": "CI format patch review", "status": "PASS", "scope_limit": "11 task-owned files, matching baseline blobs, whitespace and equivalent single-expression formatting only"},
+    {"scope": "OCR declaration selection Rust regression", "status": "NOT_EXECUTED", "reason": "Local dependency build script failed LNK1181 kernel32.lib; no bypass or escalation"}
+  ],
+  "regressions": ["Independent drafts and frozen original request survive a new frontend session against a simulated journal", "Known document ACK retains version when journal clear fails", "Journal-only retry and stale debounce cannot duplicate the confirmed body version", "Late input is retained", "Malformed working-state readback never replaces local drafts"],
+  "ci_baseline": {"sha": "7458281da0d24d07eb96e348bd16a145331aa78e", "run_id": "38071837781", "status": "FAIL", "failures": ["root Rust format", "Native Rust format", "old deterministic-create frontend fixture"], "installer_lifecycle": "SKIPPED"},
+  "historical_failures_retained": ["ace0b7f2a86f", "a31d7d490b95", "0b1e55a957e0", "51df6e19c2d6"],
+  "remaining": ["New candidate exact-SHA complete CI", "Actual Core journal, restore fence and cross-restart verification", "Actual common-format OCR/ASR/content and locator qualification", "Same-object full current UI journey", "Isolated installed runtime and Owner acceptance"],
+  "whole_goal": "NOT_QUALIFIED"
+}

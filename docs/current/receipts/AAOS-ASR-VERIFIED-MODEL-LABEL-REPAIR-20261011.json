@@ -1,0 +1,27 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "failed_candidate": "e5b57a8b48773c1ebbacfe9bf620a35272be9208",
+  "ci_run": 38122358640,
+  "job": 114419658714,
+  "artifact": 11696395457,
+  "observed": "WAV actual Core job succeeded and produced selected speech with located cues; qualification failed at validate_asr line 153 because params.model was model rather than hardcoded faster-whisper-large-v3-turbo",
+  "cause": "Prepared pinned model directory is named model; worker truthfully reports model_dir.name. Resource ID and pinned component identity are separately recorded",
+  "repair": "After exact declared_model validation derive directory label from selected resolved path; pass exact label to first/reparse jobs and WAV/MP3/MP4 validation. Preserve resource/component pins and end-of-run identity readback",
+  "independent_static_review": "PASS",
+  "local_checks": {
+    "initial_run": "408ee688ac7f",
+    "initial_result": "6 failed, 33 passed, 3 deselected: new synthetic fixture omitted its own expected phrase selection",
+    "run": "bdf1aec6e90e",
+    "passed": 39,
+    "actual_local_asr_deselected": 3,
+    "source_commit": "fed23b450f04a2ba55aa498fdc1b186396e3f00c",
+    "source_patch_sha256": "b8f0f88443ed81cd0e1581a2fe5d895e46ddbad91bb316e31eff219e77573529",
+    "source_consistent": true,
+    "evidence": "SIMULATED_PROTOCOL_AND_PIN_GUARDS",
+    "warning": "Existing pyreadline destructor WinError retained"
+  },
+  "qualification": "SUCCESSOR_EXACT_SHA_CORE_EXECUTION_REQUIRED",
+  "limits": ["Original failure retained; no assertion or pin relaxed", "MP3 MP4 and time/reparse/restart qualification not inferred from WAV worker output", "Current installer candidate remains live; no cancellation or duplicate dispatch"]
+}

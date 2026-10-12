@@ -1,3 +1,4 @@
+import {CanonicalControlledAiSpace} from "./CanonicalControlledAiSpace";
 import { findUiPage } from "../presentation/uiPages";
 import { CanonicalWorkspaceSpace } from "./CanonicalWorkspaceSpace";
 import { SpaceId } from "./spaces";
@@ -5,18 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
 import { CanonicalKnowledgeSpace } from "./CanonicalKnowledgeSpace";
 import { CanonicalLearningJourneySpace } from "./CanonicalLearningJourneySpace";
+import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import { CanonicalTeachingSpace } from "./CanonicalTeachingSpace";
 import { CanonicalExchangeSpace } from "./CanonicalExchangeSpace";
 import { CanonicalExpressionSpace } from "./CanonicalExpressionSpace";
 import { CanonicalResearchSpace } from "./CanonicalResearchSpace";
 import { CanonicalRelationSpace } from "./CanonicalRelationSpace";
-import { CanonicalMachineReceiptsSpace } from "./CanonicalMachineReceiptsSpace";
-import { CanonicalContextSpace } from "./CanonicalContextSpace";
-import { CanonicalAiAssetsSpace } from "./CanonicalAiAssetsSpace";
-import { parseAiAsset, parseAssetGrant, prepareAssetPacket } from "../api/aiAssets";
-import type { AssetPacketRequest } from "../api/generated/ai-asset-contract";
-import { CanonicalAiJourneySpace } from "./CanonicalAiJourneySpace";
-import type { ContextConsumptionDto } from "../api/generated/core-contract";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 import { CollectionPanel } from "../components/CollectionPanel";
 import type { ObjectReference } from "../api/generated/research-contract";
@@ -49,6 +44,8 @@ export function canonicalSurface(spaceId: SpaceId, desktop: boolean): CanonicalS
   }
 }
 
+import type { SourceJourneyTarget, CandidateJourneyTarget } from "../presentation/sourceJourney";
+
 export type SpaceNavigation = { spaceId: SpaceId; section: string; sequence: number };
 
 function navigationFor(spaceId: SpaceId, navigation?: SpaceNavigation) {
@@ -79,10 +76,22 @@ export function SpaceView({
   onTrail?: (levels: readonly ObjectTrailLevel[]) => void;
   initialLearningItemKey?: string; onReviewItem?: (key:string)=>void;
 }) {
+  const [sourceTarget,setSourceTarget]=useState<SourceJourneyTarget>();
+  const working=useOptionalCoreWorkingState();
+  const pendingReviews=Object.values(working?.state.pending_reviews??{});
+  const recoveredReview=useRef<{scope:string;itemKey?:string}>({scope:""});
+  const reviewScope=working?.server?`${working.server.workspace_id}:${working.server.restore_epoch}`:"";
+  if(recoveredReview.current.scope!==reviewScope)recoveredReview.current={scope:reviewScope};
+  if(pendingReviews.length===1)recoveredReview.current.itemKey=pendingReviews[0].item_key;
+  const pendingReviewItemKey=recoveredReview.current.itemKey;
+  const [candidateTarget,setCandidateTarget]=useState<CandidateJourneyTarget>();
+  const externalDocument=useRef(initialDocumentId);
+  useEffect(()=>{if(externalDocument.current!==initialDocumentId){externalDocument.current=initialDocumentId;setSourceTarget(undefined);}},[initialDocumentId]);
+  const openJourneyDocument=(id:string)=>{setSourceTarget(undefined);onOpenDocument?.(id);};
+  const candidateReview=(target?:CandidateJourneyTarget)=>{if(target)setCandidateTarget(target);else onNavigate("vault");};
+  useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed){setSourceTarget(undefined);setCandidateTarget(undefined);}};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[]);
   const view = useRef<HTMLDivElement>(null);
   const [pinnedReference,setPinnedReference]=useState<ObjectReference|null>(null);
-  const [selectedContext,setSelectedContext]=useState<ContextConsumptionDto>();
-  const [selectedAsset,setSelectedAsset]=useState<AssetPacketRequest>();
   useEffect(()=>{setPinnedReference(null);},[uiPageId,spaceId]);
   useEffect(() => {
     // Reuse the Avalonia AaosTheme route opacity transition (180ms), keeping
@@ -111,20 +120,18 @@ export function SpaceView({
   if (selectedCapabilityId) {
     return <CanonicalCapabilitiesSpace onNavigate={onNavigate} selectedCapabilityId={selectedCapabilityId} navigation={navigation} onTrail={onTrail} />;
   }
-  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace purpose={uiPageId === "02" ? "library" : "reader"} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={()=>onNavigate("vault")} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
+  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
   if (uiPageId === "21") return <CanonicalExpressionSpace onTrail={onTrail} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "04") return <CanonicalRelationSpace onOpenReference={setPinnedReference} renderCollection={(document,envelope,change,pending,readOnly)=>{
     const attrs=envelope.attrs && typeof envelope.attrs==="object" && !Array.isArray(envelope.attrs) ? envelope.attrs as Record<string,unknown> : {};
     return <CollectionPanel document={document} value={attrs.archeaxis_collection} readOnly={readOnly} onPendingEditChange={pending} onOpenReference={setPinnedReference} onChange={value=>change({...envelope,attrs:{...attrs,archeaxis_collection:value}})}/>;
   }}/>;
   if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onTrail={onTrail}/>;
-  if (uiPageId === "22") return <CanonicalMachineReceiptsSpace/>;
-  if (uiPageId === "13") return <><CanonicalAiAssetsSpace onUseAsset={value=>{setSelectedAsset(structuredClone(value));onOpenPage?.("14");}} parseAsset={parseAiAsset} parseGrant={parseAssetGrant} packetCommand={prepareAssetPacket} onOpenReference={setPinnedReference}/><CanonicalContextSpace onOpenReference={setPinnedReference} onUse={value=>{setSelectedContext(value);onOpenPage?.("14");}}/></>;
-  if (uiPageId === "14") return <CanonicalAiJourneySpace initialAssetConsumption={selectedAsset} initialConsumption={selectedContext} onOpenContext={()=>onOpenPage?.("13")}/>;
+  if(uiPageId&&["13","14","22"].includes(uiPageId))return <CanonicalControlledAiSpace pageId={uiPageId} initialLearningItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onOpenReference={setPinnedReference}/>;
   if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
-  if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
-  if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} onOpenPage={onOpenPage} onTrail={onTrail}/>;
-  if (uiPageId === "16") return <CanonicalExchangeSpace initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+  if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+  if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+  if (uiPageId === "16") return <CanonicalExchangeSpace onReadSource={target=>{setSourceTarget(target);setCandidateTarget(undefined);onOpenPage?.("03");}} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   const semanticPage = uiPageId ? findUiPage(uiPageId) : undefined;
   if (semanticPage && !semanticPage.implemented) return <section className="ui-pending-page" aria-label={semanticPage.label}><h2>此页面尚未接通</h2><p>能力意图和页面入口已保留；当前没有此页面的完整真实用户路径。</p><p>承接任务 {semanticPage.task} · UI / {semanticPage.id}</p><button onClick={()=>onNavigate("settings")}>查看能力、依赖与系统状态</button></section>;
   if (spaceId === "workspace") return <CanonicalWorkspaceSpace onNavigate={id=>{if(uiPageId === "01" && onOpenPage && (id === "library" || id === "settings")) onOpenPage(id === "library" ? "02" : "17"); else onNavigate(id);}} onOpenDocument={onOpenDocument} onReviewItem={onReviewItem}/>;
@@ -136,7 +143,7 @@ export function SpaceView({
   if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onTrail={onTrail}/>;
   switch (spaceId) {
     case "library": case "intake": case "exchange":
-      return <CanonicalLibrarySpace initialDocumentId={initialDocumentId} onKnowledge={()=>onNavigate("vault")} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
+      return <CanonicalLibrarySpace initialDocumentId={initialDocumentId} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
     case "vault": case "evidence": case "ai-assets":
       return <CanonicalKnowledgeSpace onLearning={()=>onNavigate("learning")} onTrail={onTrail}/>;
     case "learning": return <CanonicalLearningJourneySpace onOpenPage={onOpenPage} onTrail={onTrail}/>;
@@ -144,5 +151,5 @@ export function SpaceView({
   }
   })();
 
-  return <div ref={view} className="space-view" data-motion="enter">{content}{pinnedReference && <PinnedReferencePanel reference={pinnedReference} onClose={()=>setPinnedReference(null)} onOpenReference={setPinnedReference}/>}</div>;
+  return <div ref={view} className="space-view" data-motion="enter">{content}{candidateTarget?<section aria-label="同源候选审核"><button onClick={()=>setCandidateTarget(undefined)}>关闭候选审核</button><CanonicalKnowledgeSpace key={candidateTarget.knowledge_id} initialCandidate={candidateTarget} showMachine={false} onLearning={key=>{if(key)onReviewItem?.(key);else onOpenPage?.("06");}}/></section>:null}{pinnedReference && <PinnedReferencePanel reference={pinnedReference} onClose={()=>setPinnedReference(null)} onOpenReference={setPinnedReference}/>}</div>;
 }

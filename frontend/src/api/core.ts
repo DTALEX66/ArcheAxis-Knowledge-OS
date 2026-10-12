@@ -1,9 +1,12 @@
 // Native finite business commands only. No URL, method or credential reaches UI.
 import { ApiError } from "./client";
+import { jobAdmissionRefusal } from "./jobAdmission";
+import { readMachineAdmissionRefusal } from "./machineAdmission";
 import { assertCoreDto, type CoreOperation } from "./generated/core-contract";
 import { assertAiAssetDto } from "./generated/ai-asset-contract";
 import { assertTeachingDto } from "./generated/teaching-contract";
 import { assertCollectionDto } from "./generated/collection-contract";
+import { assertUiWorkingState } from "./generated/ui-working-state-contract";
 export type { CoreOperation } from "./generated/core-contract";
 const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_list:"RecordPage",teaching_get:"RecordView",teaching_create:"WriteReceipt",
@@ -11,11 +14,14 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  machine_configuration: "MachineConfigurationDto",
+  machine_inventory: "MachineInventoryDto",
+  ui_state_machine_status: "MachineJournalStatusDto",
   document_graph: "RelationProjectionDto",
   sources_list: "SourcesListDto", source_jobs: "SourceJobsDto", source_members: "SourceMembersDto", source_pages: "SourcePagesDto", source_original: "OriginalDto", documents_list: "DocumentsListDto",
   document_create: "DocumentDto", document_get: "DocumentDto", document_draft: "DocumentDto",
   document_checks: "DocumentChecksDto", document_check_record: "DocumentCheckDto", document_check_execute: "DocumentCheckDto",
-  document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto",
+  document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto", anchor_resolve: "AnchorResolutionDto",
   search: "SearchDto", knowledge_get: "KnowledgeDto", learning_items: "LearningItemsDto",
   learning_state: "LearningStateDto", document_export: "DocumentExportDto",
   machine_retest: "MachineRetestDto",
@@ -36,7 +42,33 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
   const response = result as { status?: unknown; body?: unknown };
   if (typeof response.status !== "number" || !Number.isInteger(response.status)) throw new ApiError(502, "本地核心状态无效。", "incompatible");
   if (response.status < 200 || response.status >= 300) {
+    if (operation === "job_execute" && response.status === 409) {
+      const p = payload as { job_id: string; request_id: string; body: { deadline_ms: number; split: boolean; words: boolean } };
+      const admission = p.body && jobAdmissionRefusal(response.body, p);
+      if (admission) throw new ApiError(409, "能力已禁用，原请求未受理；启用后可显式同请求重试。", "unavailable", undefined, admission);
+    }
     const refusal = response.body as Record<string,unknown> | null;
+    if (["machine_answer","machine_retest"].includes(operation) && response.status === 503
+      && refusal?.schema === "archeaxis.machine-call-failure/v1"
+      && refusal.operation === (operation === "machine_answer" ? "answer" : "retest")
+      && refusal.execution_state === "UNVERIFIED" && refusal.answer_published === false) {
+      const reasons:Record<string,string> = {
+        MODEL_CALL_FAILED:"模型服务调用失败", NO_FINAL_ANSWER:"模型未返回最终答案",
+        EMPTY_ANSWER:"模型答案为空", WORKER_TIMEOUT:"模型执行超时", OUTPUT_LIMIT:"模型输出超过限额",
+        INVALID_OUTPUT:"模型输出格式无效", PIPE_DRAIN_FAILED:"模型进程输出收尾未确认", WORKER_FAILED:"模型执行失败",
+      };
+      if(typeof refusal.reason_code === "string" && Object.prototype.hasOwnProperty.call(reasons,refusal.reason_code)) {
+        throw new ApiError(503,`${reasons[refusal.reason_code]}；执行状态未确认，保留原请求。`,"unavailable",undefined,undefined,undefined,
+          {reason_code:refusal.reason_code,execution_state:"UNVERIFIED",answer_published:false});
+      }
+    }
+    if (["machine_answer","machine_retest"].includes(operation) && refusal?.schema === "archeaxis.context-admission-refusal/v1") {
+      const body=payload.body;
+      const admission=response.status===403&&body&&typeof body==="object"&&!Array.isArray(body)
+        ?await readMachineAdmissionRefusal(refusal,operation==="machine_answer"?"answer":"retest",body as Record<string,unknown>):undefined;
+      if(!admission)throw new ApiError(502,"授权拒绝回执未绑定当前请求；保留冻结身份并核对历史。","incompatible");
+      throw new ApiError(403,"恢复后的旧授权已隔离；本次调用未执行，历史请求执行仍未验证。","unauthorized",undefined,undefined,admission);
+    }
     if (["machine_answer","machine_retest"].includes(operation) && refusal?.schema === "archeaxis.machine-execution-refusal/v1"
       && refusal.execution_state === "EXECUTED_BUT_WITHHELD" && refusal.answer_published === false
       && ((response.status === 403 && refusal.audit_status === "RECORDED" && typeof refusal.audit_task_id === "string" && /^withheld_[a-f0-9]{64}$/.test(refusal.audit_task_id))
@@ -57,6 +89,10 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
     throw new ApiError(response.status, reason, response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
   }
   const schema = responseSchemas[operation];
+  if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_clear_machine", "ui_state_recover"].includes(operation)) {
+    try { return assertUiWorkingState<T>("Read", response.body); }
+    catch { throw new ApiError(502, "工作草稿保全回读格式无效，当前编辑内容仍保留。", "incompatible"); }
+  }
   try { return operation === "ai_assets_list" || operation === "ai_asset_packet" ? assertAiAssetDto<T>(operation === "ai_assets_list" ? "AiAssetsPage" : "AssetPacketResponse",response.body) : operation === "collection_query" ? assertCollectionDto<T>("CollectionQueryDto",response.body) : teachingResponses[operation] ? assertTeachingDto<T>(teachingResponses[operation]!,response.body) : schema ? assertCoreDto<T>(schema, response.body) : response.body as T; }
   catch { throw new ApiError(502, "本地核心内容合同不兼容。", "incompatible"); }
 }

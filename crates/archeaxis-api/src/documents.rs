@@ -415,6 +415,8 @@ pub(crate) async fn record_check(
             &id,
             actor,
             document::CheckInput {
+                local_only: body.local_only,
+                search_query: body.search_query,
                 version: body.version,
                 dimension: body.dimension,
                 provider_mode: body.provider_mode,
@@ -438,6 +440,8 @@ pub(crate) async fn record_check(
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct CheckBody {
+    local_only: Option<bool>,
+    search_query: Option<String>,
     version: i64,
     dimension: String,
     provider_mode: String,
@@ -454,6 +458,10 @@ pub(crate) struct CheckBody {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct CheckExecuteBody {
+    withdraw: Option<bool>,
+    selected_text: Option<String>,
+    preview: Option<bool>,
+    confirmed_egress_sha256: Option<String>,
     check_id: String,
     expected_content_sha256: String,
     retry_of_task_id: Option<String>,
@@ -468,6 +476,30 @@ pub(crate) async fn execute_check(
         Ok("human") => {}
         Ok(_) => return StatusCode::FORBIDDEN.into_response(),
         Err(status) => return status.into_response(),
+    }
+    if body.withdraw == Some(true) {
+        if body.preview == Some(true)
+            || body.confirmed_egress_sha256.is_some()
+            || body.selected_text.is_some()
+            || body.retry_of_task_id.is_some()
+        {
+            return StatusCode::BAD_REQUEST.into_response();
+        }
+        return crate::with_store(state, move |conn| {
+            match document::withdraw_check_request(
+                conn,
+                &id,
+                &body.check_id,
+                &body.expected_content_sha256,
+            ) {
+                Ok(event) => Json(event).into_response(),
+                Err(error) => failure(error),
+            }
+        })
+        .await;
+    }
+    if body.preview == Some(true) {
+        return StatusCode::SERVICE_UNAVAILABLE.into_response();
     }
     crate::with_store(
         state,
@@ -496,7 +528,19 @@ pub(crate) async fn execute_runtime_check(
         Ok(_) => return StatusCode::FORBIDDEN.into_response(),
         Err(status) => return status.into_response(),
     }
+    if body.withdraw == Some(true) {
+        return execute_check(
+            State(executor.store().clone()),
+            Path(id),
+            headers,
+            Json(body),
+        )
+        .await;
+    }
     let Some(config) = executor.document_check_config() else {
+        if body.preview == Some(true) {
+            return StatusCode::SERVICE_UNAVAILABLE.into_response();
+        }
         if let Some(reason) = executor.document_check_config_error() {
             let result = executor
                 .store()
@@ -533,16 +577,61 @@ pub(crate) async fn execute_runtime_check(
         .await;
     };
     let document_id = id.clone();
+    if body.preview == Some(true) {
+        let value = serde_json::to_value(&config).unwrap();
+        return crate::with_store(executor.store().clone(), move |conn| {
+            match document::preview_check_egress(
+                conn,
+                &id,
+                &body.check_id,
+                &body.expected_content_sha256,
+                &value,
+                body.selected_text.as_deref(),
+            ) {
+                Ok(plan) => Json(plan).into_response(),
+                Err(error) => failure(error),
+            }
+        })
+        .await;
+    }
+    let config_value = serde_json::to_value(&config).unwrap();
     let attempt = executor
         .store()
         .submit_wait(move |conn| {
-            document::begin_check(
+            let plan = match document::preview_check_egress(
+                conn,
+                &document_id,
+                &body.check_id,
+                &body.expected_content_sha256,
+                &config_value,
+                body.selected_text.as_deref(),
+            ) {
+                Ok(plan) => plan,
+                Err(document::Error::Invalid("cloud snapshot exceeds bound")) => {
+                    return document::begin_check(
+                        conn,
+                        &document_id,
+                        &body.check_id,
+                        &body.expected_content_sha256,
+                        body.retry_of_task_id.as_deref(),
+                    );
+                }
+                Err(error) => return Err(error),
+            };
+            if body.confirmed_egress_sha256.as_deref() != plan["egress_sha256"].as_str() {
+                return Err(document::Error::Invalid(
+                    "explicit matching egress confirmation required",
+                ));
+            }
+            let execution = document::begin_confirmed_check(
                 conn,
                 &document_id,
                 &body.check_id,
                 &body.expected_content_sha256,
                 body.retry_of_task_id.as_deref(),
-            )
+                &plan,
+            )?;
+            Ok(execution)
         })
         .await;
     let attempt = match attempt {
@@ -551,7 +640,7 @@ pub(crate) async fn execute_runtime_check(
         Err(_) => return StatusCode::SERVICE_UNAVAILABLE.into_response(),
     };
     let preparation_error = attempt.preparation_error;
-    let mut request = json!({"schema":"archeaxis.document-check.request/v1","text":attempt.text,"config":config,"recognition":attempt.recognition,"original":null});
+    let mut request = json!({"schema":"archeaxis.document-check.request/v1","text":attempt.text,"config":config,"recognition":attempt.recognition,"original":null,"search_query":attempt.running["search_query"],"egress_sha256":attempt.running["egress_sha256"]});
     for key in [
         "attempt_id",
         "request_check_id",

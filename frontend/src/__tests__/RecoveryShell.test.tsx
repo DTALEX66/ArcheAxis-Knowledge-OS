@@ -45,7 +45,7 @@ function deferred<T>() {
 describe("Recovery Shell", () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(coreCommand).mockImplementation(async (operation) => (operation === "sources_list" ? { sources: [] } : operation === "learning_items" ? {items:[],count:0} : { documents: [],next_cursor:null,snapshot_count:0 }) as never);
+    vi.mocked(coreCommand).mockImplementation(async (operation) => (operation === "ui_state_read" ? {schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false} : operation === "sources_list" ? { sources: [] } : operation === "learning_items" ? {items:[],count:0} : { documents: [],next_cursor:null,snapshot_count:0 }) as never);
     recovery.getRecoveryStatus.mockResolvedValue(failedRecovery);
     recovery.getRecoveryLogTail.mockResolvedValue({ lines: ["Core startup is unavailable"] });
     recovery.enterRecoverySafeMode.mockResolvedValue({ ...failedRecovery, safe_mode: true });

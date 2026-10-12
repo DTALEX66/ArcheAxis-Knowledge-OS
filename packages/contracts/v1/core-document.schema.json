@@ -2,6 +2,17 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "archeaxis/core-document/v1",
   "$defs": {
+    "MachineJournalStatusDto": {
+      "type":"object", "additionalProperties":false,
+      "required":["schema","journal_id","status","can_clear","task_id","attempt","max_attempts","provider_stop_state"],
+      "properties": {
+        "schema":{"const":"archeaxis.machine-journal-status/v1"},
+        "journal_id":{"type":"string"}, "status":{"enum":["UNKNOWN","FAILED"]},
+        "can_clear":{"type":"boolean"}, "task_id":{"type":["string","null"]},
+        "attempt":{"type":["integer","null"],"minimum":1,"maximum":3},
+        "max_attempts":{"const":3}, "provider_stop_state":{"const":"UNKNOWN"}
+      }
+    },
     "SourceDto": {
       "type": "object",
       "properties": {
@@ -142,6 +153,60 @@
         "blocks"
       ],
       "additionalProperties": true
+    },
+    "AnchorResolutionDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "anchor_id",
+        "status",
+        "reason",
+        "source_revision",
+        "current_source_revision",
+        "position",
+        "scope"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string"
+        },
+        "anchor_id": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "CURRENT",
+            "STALE",
+            "UNSUPPORTED",
+            "MISSING"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "current_source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "position": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "const": "locator_provenance_only"
+        }
+      }
     },
     "AnchorDto": {
       "type": "object",
@@ -703,6 +768,32 @@
         "execution_state"
       ],
       "properties": {
+        "local_only": {
+          "type": "boolean"
+        },
+        "event_kind": {
+          "type": "string"
+        },
+        "control": {
+          "type": "string"
+        },
+        "target_request_check_id": {
+          "type": "string"
+        },
+        "egress_plan": {
+          "type": "object"
+        },
+        "egress_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "search_query": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000
+        },
         "check_id": {
           "type": "string"
         },
@@ -2017,6 +2108,176 @@
         "cancel_requested"
       ],
       "additionalProperties": true
+    },
+    "MachineConfigurationDto": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "const": "archeaxis.machine-configuration/v1"
+        },
+        "worker_registered": {
+          "type": "boolean"
+        },
+        "selection_source": {
+          "enum": [
+            "EXPLICIT_LAUNCH",
+            "DECLARED_LOCAL_DISCOVERY"
+          ]
+        },
+        "availability": {
+          "enum": [
+            "CONFIGURED_UNVERIFIED",
+            "UNAVAILABLE"
+          ]
+        },
+        "model_identity": {
+          "type": "null"
+        },
+        "destination": {
+          "const": "LOCAL_LOOPBACK_ONLY"
+        },
+        "material_scope": {
+          "const": "AUTHORIZED_KNOWLEDGE_AND_EXPLICIT_QUESTION"
+        },
+        "inference_status": {
+          "const": "NOT_EXECUTED"
+        },
+        "loaded_status": {
+          "const": "UNKNOWN"
+        },
+        "usage": {
+          "type": "null"
+        },
+        "cost": {
+          "type": "null"
+        },
+        "network_performed": {
+          "const": false
+        },
+        "evidence_scope": {
+          "const": "LAUNCH_POLICY_ONLY"
+        }
+      },
+      "required": [
+        "schema",
+        "worker_registered",
+        "selection_source",
+        "availability",
+        "model_identity",
+        "destination",
+        "material_scope",
+        "inference_status",
+        "loaded_status",
+        "usage",
+        "cost",
+        "network_performed",
+        "evidence_scope"
+      ],
+      "additionalProperties": false
+    },
+    "MachineInventoryDto": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "schema": {
+              "const": "archeaxis.machine-inventory/v1"
+            },
+            "status": {
+              "const": "READ_VERIFIED"
+            },
+            "model_choices": {
+              "type": "array",
+              "maxItems": 256,
+              "items": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[^\\u0000-\\u001f\\u007f]+$"}
+            },
+            "listed_model_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 256
+            },
+            "selected_model_listed": {
+              "type": "boolean"
+            },
+            "loaded_status": {
+              "const": "UNKNOWN"
+            },
+            "inference_status": {
+              "const": "NOT_EXECUTED"
+            },
+            "usage": {
+              "type": "null"
+            },
+            "cost": {
+              "type": "null"
+            },
+            "evidence_scope": {
+              "const": "MODEL_INVENTORY_ONLY"
+            }
+          },
+          "required": [
+            "schema",
+            "status",
+            "listed_model_count",
+            "selected_model_listed",
+            "loaded_status",
+            "inference_status",
+            "usage",
+            "cost",
+            "evidence_scope"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "schema": {
+              "const": "archeaxis.machine-inventory/v1"
+            },
+            "status": {
+              "enum": [
+                "READ_FAILED",
+                "DISABLED",
+                "UNAVAILABLE",
+                "BUSY"
+              ]
+            },
+            "listed_model_count": {
+              "type": "null"
+            },
+            "selected_model_listed": {
+              "type": "null"
+            },
+            "loaded_status": {
+              "const": "UNKNOWN"
+            },
+            "inference_status": {
+              "const": "NOT_EXECUTED"
+            },
+            "usage": {
+              "type": "null"
+            },
+            "cost": {
+              "type": "null"
+            },
+            "evidence_scope": {
+              "const": "MODEL_INVENTORY_ONLY"
+            }
+          },
+          "required": [
+            "schema",
+            "status",
+            "listed_model_count",
+            "selected_model_listed",
+            "loaded_status",
+            "inference_status",
+            "usage",
+            "cost",
+            "evidence_scope"
+          ],
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

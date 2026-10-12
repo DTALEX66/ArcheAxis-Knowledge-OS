@@ -1,0 +1,46 @@
+{
+  "schema": "archeaxis.machine-retry-barrier/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "SYNTHETIC_WORKER_WITH_ACTUAL_LOCAL_CORE_API",
+  "max_total_attempts": 3,
+  "runs": [
+    {
+      "run": "b0b59b0ea337",
+      "scope": "API full regression before final fail-closed allowlist",
+      "source_patch_sha256": "9d27d5da544d09ac6cb5c6976603b76e6804e369fa221cf9e0292770356cf313",
+      "source_consistent": true,
+      "tests_passed": 335,
+      "suite_results": 73,
+      "execution_receipt_sha256": "35c18e8e53904ea2d0bfffde7ae3dffe519ad787a9466fc6369e94bab8cbad49"
+    },
+    {
+      "run": "cfb4f74f5a85",
+      "scope": "Final claim and answer API targeted regression",
+      "source_patch_sha256": "3a9676c0cdad35fcf4f7c8cc6ec4afe7f74ed6ee404a1ef52559a199fa57264f",
+      "source_consistent": true,
+      "tests_passed": 20,
+      "suite_results": 2,
+      "execution_receipt_sha256": "7837ee66fb4f9a35b38e4dbe40e4142da981ffcfe7daf86034df62aeec0557f5"
+    }
+  ],
+  "invariants": [
+    "Unknown executor errors, cleanup incomplete, task loss and pipe-drain failure retain IN_FLIGHT; no repeat inference admitted",
+    "Confirmed local-worker failure permits only explicit same-request retry within durable budget",
+    "Attempt count persists across SQLite reopen; legacy unknown attempt count never resets",
+    "Fourth formal answer API request is refused before worker invocation; synthetic worker count remains three, no success task written"
+  ],
+  "files": [
+    "crates/archeaxis-api/src/runtime/execution_claim.rs",
+    "crates/archeaxis-api/src/runtime/colearning.rs",
+    "crates/archeaxis-api/tests/contract_machine_answer.rs",
+    "packages/contracts/v1/openapi-outline.yaml"
+  ],
+  "limits": [
+    "No real model process crash or provider-side cancellation verification",
+    "Formal machine cancel/status and failure-terminal cold recovery remain unimplemented",
+    "No UI/native qualification of this latest Core increment",
+    "Existing successful or withheld task receipts remain separate from failed worker responses",
+    "No Owner acceptance, Green replacement or publication"
+  ]
+}

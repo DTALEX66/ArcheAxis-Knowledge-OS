@@ -1,0 +1,95 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "review_recovery_status": "PASS",
+  "evidence_level": "INTEGRATED_WITH_SYNTHETIC_ACK_LOSS_AND_REAL_LOCAL_MODEL",
+  "materials": "SYNTHETIC_ONLY",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-59b324851a0e\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "cd40a2ec41fdc60108a9ba5d591b912a09b0c3f956acb730f5a5981c974d059d",
+  "tested_source_patch_sha256": "ee8158b010205e4f2b8e7c98a6bafd0f277bb738766ef5689c827e5528f9eafe",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "review_recovery": {
+    "status": "PASS",
+    "evidence_level": "INTEGRATED_WITH_SYNTHETIC_ACK_LOSS",
+    "freeze_ack": {
+      "faults": 1,
+      "rows": [
+        {
+          "duplicate": null,
+          "event_id": null,
+          "operation": "ui_state_write",
+          "status": 200
+        }
+      ]
+    },
+    "review_ack": {
+      "faults": 1,
+      "rows": [
+        {
+          "duplicate": false,
+          "event_id": 1,
+          "operation": "learning_review",
+          "status": 201,
+          "body_sha256": "08cb91f8e1628d9e0bf8be2247003f8efa965db661405182fba7711f95bef292"
+        }
+      ]
+    },
+    "explicit_retry": {
+      "faults": 0,
+      "rows": [
+        {
+          "duplicate": true,
+          "event_id": 1,
+          "operation": "learning_review",
+          "status": 200,
+          "body_sha256": "08cb91f8e1628d9e0bf8be2247003f8efa965db661405182fba7711f95bef292"
+        }
+      ]
+    }
+  },
+  "stages": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "limitations": [
+    "ACK faults are synthetic after real persistence.",
+    "AI correction is authored engineering material, not independently measured accuracy.",
+    "27B, cloud, Green and Owner acceptance remain unverified."
+  ]
+}

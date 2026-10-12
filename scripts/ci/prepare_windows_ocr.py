@@ -70,11 +70,35 @@ def run(command, env=None):
     return result
 
 
+def language_pins(require_chinese=False):
+    names=('eng','chi_sim') if require_chinese else ('eng',)
+    return {name:{'url':PIN[name+'_url'],'sha256':PIN[name+'_sha256'],'bytes':PIN[name+'_bytes']} for name in names}
+
+
+def prepare_languages(tessdata, require_chinese=False):
+    assets={}
+    for name,pin in language_pins(require_chinese).items():
+        path=tessdata/(name+'.traineddata')
+        no_link(path)
+        download(pin['url'],path,pin['sha256'],5*1024*1024)
+        if path.stat().st_size!=pin['bytes'] or sha(path)!=pin['sha256']:
+            raise ValueError('Language data bytes/SHA mismatch: '+name)
+        assets[name]={'bytes':path.stat().st_size,'sha256':sha(path)}
+    return assets
+
+
+def require_languages(listing, required):
+    available={line.strip() for line in listing.splitlines()}
+    if not set(required).issubset(available):
+        raise ValueError('Required OCR language not available: '+','.join(sorted(set(required)-available)))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--sevenzip", type=Path, required=True)
     parser.add_argument("--project-root", type=Path, required=True)
+    parser.add_argument("--require-chinese", action="store_true", help="Require pinned chi_sim in addition to the existing English baseline")
     args = parser.parse_args()
     project = args.project_root.absolute()
     root = args.root.absolute()
@@ -149,10 +173,8 @@ def main():
             raise ValueError("Extracted payload budget/members mismatch")
         tessdata = engine / "tessdata"
         tessdata.mkdir()
-        eng = tessdata / "eng.traineddata"
-        download(PIN["eng_url"], eng, PIN["eng_sha256"], 5 * 1024 * 1024)
-        if eng.stat().st_size != PIN["eng_bytes"]:
-            raise ValueError("Language data bytes mismatch")
+        language_assets=prepare_languages(tessdata,args.require_chinese)
+        eng=tessdata/'eng.traineddata'
         executable = engine / "tesseract.exe"
         env = dict(os.environ)
         env["TESSDATA_PREFIX"] = str(tessdata)
@@ -160,8 +182,7 @@ def main():
         if not re.search(r"^tesseract v?5\.5\.0\.20241111\s*$", version, re.MULTILINE):
             raise ValueError("Actual version mismatch")
         langs = run([str(executable), "--list-langs", "--tessdata-dir", str(tessdata)], env).stdout
-        if "eng" not in langs.splitlines():
-            raise ValueError("English language not available")
+        require_languages(langs,language_assets)
         fixture = project / "tests/fixtures/golden/golden-screenshot-ocr.png"
         no_link(fixture)
         if sha(fixture) != FIXTURE_SHA:
@@ -187,6 +208,9 @@ def main():
             actual_version=version.strip(),
             engine_files=extracted,
             language_sha256=sha(eng),
+            language_assets=language_assets,
+            required_languages=list(language_assets),
+            chinese_content_qualification="NOT_EXECUTED_IN_PREPARATION",
             fixture_sha256=FIXTURE_SHA,
             ocr_exit_code=0,
             actual_text_sha256=hashlib.sha256(actual.encode()).hexdigest(),

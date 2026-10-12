@@ -1,0 +1,63 @@
+{
+  "schema": "archeaxis.native-machine-journal/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "REAL",
+  "materials": "SYNTHETIC",
+  "raw_receipt": ".project-local/runs/be268a2d33/webdriver-1d247c4c47d6/tmp/journey/receipt.json",
+  "raw_sha256": "57709d60b68ee3b58383177b225342beb387be755e3fcb726eda42ff75952dfa",
+  "source_patch_sha256": "504314f0f0a346b56e599609c5c0ea19a8ac69a63b2baaab2e25a04017db476a",
+  "host": {
+    "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\cargo\\release\\ArcheAxis.exe",
+    "sha256": "b8c458d558cc5a79c173ac45049300b7dbe332121fc95d5476ca7f4b41fe87d4",
+    "bytes": 13536768
+  },
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\9d1f0e39b8da\\artifacts\\native-build-binding.json",
+      "sha256": "b59ef634e86728be7e3d1f903e5dcaaca0294bb02e9617ea4143b15e345fed6f",
+      "bytes": 1399
+    },
+    "core_sha256": "d656953a8a507b7e1e0f57139de1001fa2f3c6bcf0e1a7f5cb1abf749d654c6e"
+  },
+  "engineering_status": "PASS",
+  "owner_acceptance": "NOT_EXECUTED",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "explicit_model_selection": {
+    "status": "PASS",
+    "model": "qwen3.5-4b",
+    "surface": "TRUSTED_NATIVE_UI",
+    "retest_bound": true
+  },
+  "original_metering": {
+    "usage": {
+      "input_tokens": 155,
+      "output_tokens": 1219,
+      "total_tokens": 1374
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "retest_metering": {
+    "usage": {
+      "input_tokens": 173,
+      "output_tokens": 2192,
+      "total_tokens": 2365
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "persisted_pending_machine_after_loop": 1,
+  "persisted_execution_claim_count": 2,
+  "limits": [
+    "Actual inference, engineering authored correction/adoption, retest, save and full restart verified by existing formal probe",
+    "Does not exercise machine journal crash/ACK loss during actual inference",
+    "Review ACK loss is a separate exercised branch, not machine ACK-loss proof",
+    "Not Owner acceptance or installed Green qualification",
+    "Persisted claim is a conservative replay barrier, not an exactly-once execution guarantee"
+  ]
+}

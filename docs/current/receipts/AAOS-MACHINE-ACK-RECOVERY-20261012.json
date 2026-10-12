@@ -1,0 +1,40 @@
+{
+  "schema": "archeaxis.machine-ack-recovery/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "REAL_MODEL_WITH_SYNTHETIC_BRIDGE_ACK_LOSS",
+  "initial_native_run": "webdriver-64dc7e3929b5",
+  "observed": [
+    "Actual qwen3.5-4b answer persisted before one successful bridge ACK was discarded",
+    "Frozen journal survived a cold application restart",
+    "Exact positive history restored and journal cleared without a completed inference response during that history action",
+    "Actual answer and task collection unchanged"
+  ],
+  "initial_evidence_limits": [
+    "Initial observer covered history action after hydration and recorded completed calls only; zero inference attempts during hydration is not proven",
+    "This initial run is historical; stronger qualification is recorded separately below"
+  ],
+  "qualified_native": {
+    "run": "webdriver-1dcc0980bce0",
+    "raw_receipt": ".project-local/runs/be268a2d33/webdriver-1dcc0980bce0/tmp/journey/receipt.json",
+    "source_patch_sha256": "142f56c1abb4d3a6a82499de77d8810610da6390e924779f9379391b7c0e8336",
+    "core_sha256": "3dcc868bff005ab2dbbca3bf33ee44bcafd97365416a7983316c12329dd653e3",
+    "model": "qwen3.5-4b",
+    "max_tokens": 4096,
+    "initial_inference_attempts": 1,
+    "synthetic_success_ack_losses": 1,
+    "cold_restart": true,
+    "observer_scope": "Before selecting saved grant through hydration and exact history recovery; attempts recorded before invoke",
+    "recovery_answer_or_retest_attempts": 0,
+    "successful_exact_journal_clear_calls": 1,
+    "task_unchanged": true,
+    "actual_answer_and_independent_retest_model_binding": "PASS",
+    "source_consistent": true,
+    "owned_ports_released": true
+  },
+  "guard_regression": {"run": "c0a98918c3ea", "status": "PASS", "scope": "SIMULATED required-model qualification and unfinished inference attempt rejection"},
+  "not_proven": [
+    "Real transport failure or process crash during actual inference",
+    "Owner acceptance or installed Green qualification"
+  ]
+}

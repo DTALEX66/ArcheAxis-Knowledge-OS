@@ -213,6 +213,31 @@ def test_node_protected_paths_rejected_before_filesystem_probe():
     assert result.returncode == 0, result.stderr
 
 
+def test_node_explicit_python_precedes_stale_managed_environment():
+    node = node_binary()
+    module = (RUNTIME / "frontend_paths.mjs").as_uri()
+    root = RUNTIME.parents[1]
+    script = f'import {{projectPython}} from {json.dumps(module)}; console.log(projectPython({json.dumps(str(root))}));'
+    interpreter = Path(sys.executable).resolve()
+    env = dict(os.environ, ARCHEAXIS_PYTHON=str(interpreter))
+    # An explicit interpreter must not depend on Git/PATH or a managed .venv.
+    env["PATH"] = ""
+    result = subprocess.run([node, "--input-type=module", "-e", script], env=env,
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert Path(result.stdout.strip()) == interpreter
+
+
+def test_node_explicit_python_keeps_protected_path_guard():
+    node = node_binary()
+    module = (RUNTIME / "frontend_paths.mjs").as_uri()
+    script = f'import {{projectPython}} from {json.dumps(module)}; try{{projectPython({json.dumps(str(RUNTIME.parents[1]))});process.exit(3)}}catch(error){{if(!error.message.includes("protected drive or UNC"))throw error;}}'
+    result = subprocess.run([node, "--input-type=module", "-e", script],
+                            env=dict(os.environ, ARCHEAXIS_PYTHON="E:/protected/python.exe"),
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+
+
 @pytest.mark.parametrize("override", ["environment", "cli"])
 def test_direct_vite_rejects_foreign_environment_or_cli_output_before_clear(tmp_path, monkeypatch, override):
     node = node_binary()

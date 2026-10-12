@@ -1,0 +1,48 @@
+{
+  "schema": "archeaxis.installed-lifecycle-readback/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "candidate": "3bc85fc3cb3e3ef6727a2c029f3f7d29f4d175e1",
+  "ci_run": 38124304699,
+  "full_ci": "SUCCESS",
+  "installer_job": 114428210635,
+  "installer_job_conclusion": "success",
+  "artifact_id": 11697501221,
+  "evidence_root": ".project-local/runs/be268a2d33/ci-3bc-readback-20261011/installed",
+  "installer_sha256": "3ed33bbabcd0ad32d7882782bb7b9e37daec8a512461cada60436d8398aabeb1",
+  "parent_identity": "Preflight exact candidate/run/attempt and installer identity match all three journeys. Child compiled_source_binding remains UNVERIFIED by design; parent candidate commit/GITHUB_SHA comparison, installer hash and RequireCandidateIdentity provide installation qualification.",
+  "lifecycle": {
+    "complete_lifecycle_verified": true,
+    "graceful_shutdown": true,
+    "in_place_upgrade": true,
+    "clean_uninstall": true,
+    "uninstall_retains_data": true,
+    "reinstall_readback": true,
+    "installed_document_conflict_loop": "PASS",
+    "pyc_growth": 0
+  },
+  "journeys": {
+    "compat_48cf16b66811": "ok=true; source_consistent=true; owned ports released",
+    "conflict_d2a7b4cb8146": "ok=true; source_consistent=true; owned ports released",
+    "grouped_03c8a14f4356": {
+      "status": "PARTIAL",
+      "passed_stages": ["import", "read", "anchor", "claim", "learn", "practice", "review", "recover"],
+      "distill": "NOT_EXECUTED",
+      "actual_answer_correction_retest": "NOT_EXECUTED",
+      "restored_ai_grant_refusal": "NOT_EXECUTED",
+      "capability_toggle": "PASS",
+      "frozen_request": "Disabled text.extract persistence, frozen journal restart, enable without execution, same original request one committed attempt, second restart readback verified",
+      "source_consistent": true,
+      "closed_loop_verified": false
+    }
+  },
+  "receipt_sha256": {
+    "lifecycle": "2d3a07867086f42f75bd25e462b0519f4154ba4d00153338369c5bdbecaedc8c",
+    "compat": "2b15ecdb43ba4f9dbe61fcdec5b78345fc8e28669db4b05fdf41dbe94e6a211e",
+    "conflict": "65e99565e9909194272bc231529636a67f785f3d627624a49a8871d32a7670b4",
+    "grouped": "34fd8ac8e170f48e38e93d6b43242a055497e530cd8cbaf83d1f98b8adff4520"
+  },
+  "verification": "Root metadata/hash inspection and independent read-only parent identity, journey, shutdown, conflict and frozen-request audit",
+  "successor": {"candidate": "d22b9c7bc750131e2f856e74a4dbf5bc78b95af4", "ci_run": 38126070564, "status_at_readback": "IN_PROGRESS"},
+  "limits": ["Qualification is exact 3bc85fc3 only, not successor source", "Synthetic engineering actors are not Owner acceptance", "Actual AI nine-step completion and Owner interaction remain absent", "No release, merge, Green replacement or user-data overwrite authorized"]
+}

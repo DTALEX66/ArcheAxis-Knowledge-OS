@@ -4,6 +4,7 @@ import { AAOS_THEME_REGISTRY, BRAND_MARK_SLOT } from "../design-system/theme";
 import { CAPABILITY_CATALOG } from "../api/generated/capability-catalog";
 import { CommandPalette } from "./CommandPalette";
 import { ThemePicker } from "./ThemePicker";
+import type { ObjectReference } from "../api/generated/research-contract";
 export type BackendDisplayState = "checking" | "available" | "unavailable" | "web";
 
 interface StatusBarProps {
@@ -11,6 +12,7 @@ interface StatusBarProps {
   backendState: BackendDisplayState;
   externalDev?: boolean;
   onPage?: (id:string)=>void;
+  onOpenObject?: (reference:ObjectReference,contentSha?:string)=>void;
   onNavigate?: (id: SpaceId) => void;
   onOpenCapability?: (id: string) => void;
   selectedCapabilityId?: string | null;
@@ -31,7 +33,7 @@ export function StatusBar({
   activeSpace,
   backendState,
   externalDev = false,
-  onNavigate = () => {}, onPage,
+  onNavigate = () => {}, onPage, onOpenObject,
   onOpenCapability,
   selectedCapabilityId,
   onCommandPaletteOpenChange,
@@ -50,10 +52,10 @@ export function StatusBar({
     <header className="status-bar" role="banner">
       <div className="status-bar-brand">
         <img className="brand-mark" src={AAOS_THEME_REGISTRY[theme].brandMark} width={BRAND_MARK_SLOT.width} height={BRAND_MARK_SLOT.height} alt="" aria-hidden="true" />
-        <span>星环知识平台</span>
+        <span>星环知识系统</span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
-      <CommandPalette onPage={onPage} onNavigate={onNavigate} onOpenCapability={onOpenCapability} onOpenChange={onCommandPaletteOpenChange} />
+      <CommandPalette onPage={onPage} onOpenObject={onOpenObject} onNavigate={onNavigate} onOpenCapability={onOpenCapability} onOpenChange={onCommandPaletteOpenChange} />
       <ThemePicker />
       <div className="status-bar-center">
         <span

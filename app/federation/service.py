@@ -144,6 +144,9 @@ def submit_candidates(db: str | Path, submission: CandidateSubmissionV1) -> Subm
     items_hash = _items_hash(submission)
     now = _now()
     with _connect(db) as conn:
+        # Serialize the read/insert decision so concurrent retries cannot both
+        # observe an unused key and append different receipts.
+        conn.execute("BEGIN IMMEDIATE")
         existing = conn.execute(
             "SELECT submission_id FROM federation_receipts_v1 WHERE idempotency_key=?",
             (submission.idempotency_key,),
@@ -153,6 +156,12 @@ def submit_candidates(db: str | Path, submission: CandidateSubmissionV1) -> Subm
                 "SELECT * FROM federation_receipts_v1 WHERE submission_id=?",
                 (existing["submission_id"],),
             ).fetchone()
+            owners = conn.execute(
+                "SELECT DISTINCT submitter FROM federation_candidates_v1 WHERE submission_id=?",
+                (existing["submission_id"],),
+            ).fetchall()
+            if row["items_hash"] != items_hash or {owner["submitter"] for owner in owners} != {submission.submitter}:
+                raise FederationError("idempotency key was already used for a different submission")
             return SubmissionResult(receipt=_row_to_receipt(row), duplicate=True)
 
         submission_id = _stable_id("fedsub", submission.idempotency_key, now)

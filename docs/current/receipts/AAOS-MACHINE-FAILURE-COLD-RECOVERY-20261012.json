@@ -1,0 +1,69 @@
+{
+  "schema": "archeaxis.machine-failure-cold-recovery-receipt/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "SYNTHETIC_WORKER_WITH_ACTUAL_LOCAL_CORE_API_AND_SIMULATED_UI",
+  "verification": {
+    "rust_workspace": {
+      "run": "0334da7bb06a",
+      "source_patch_sha256": "43b726c512709ea528bf66a7e7f571968d5cb3a0320c0cf80fa719efb7d6e050",
+      "execution_receipt_sha256": "7265de5e9cce65bd85f9c64ac401cd67285bc15597cd1b3d496f3eb1c86f001c",
+      "source_consistent": true,
+      "status": "PASS",
+      "tests_passed": 766,
+      "suite_results": 165
+    },
+    "frontend": {
+      "run": "5f4b761dd65e",
+      "source_patch_sha256": "43b726c512709ea528bf66a7e7f571968d5cb3a0320c0cf80fa719efb7d6e050",
+      "execution_receipt_sha256": "06cb3d7790804cc4ac31bfe1403c25943af66fc759c00b61f6921df4b88231d8",
+      "source_consistent": true,
+      "status": "PASS",
+      "test_files": 127,
+      "tests_passed": 1230
+    },
+    "typescript": {
+      "run": "c763b6f78614",
+      "source_patch_sha256": "43b726c512709ea528bf66a7e7f571968d5cb3a0320c0cf80fa719efb7d6e050",
+      "execution_receipt_sha256": "35f7e9bbf8ab3eb182d9cc9a9c31fbec57a7a60ce915e045818a1147f6627aa1",
+      "source_consistent": true,
+      "status": "PASS"
+    },
+    "contracts": {
+      "run": "3a94507e7974",
+      "source_patch_sha256": "43b726c512709ea528bf66a7e7f571968d5cb3a0320c0cf80fa719efb7d6e050",
+      "execution_receipt_sha256": "b83465cd81ac146ed04fc76e75375a2c401efd06728c8baea35a724bafd4be5e",
+      "source_consistent": true,
+      "status": "PASS"
+    },
+    "targeted_status_context": {
+      "run": "55e80d65b6dd",
+      "source_patch_sha256": "43b726c512709ea528bf66a7e7f571968d5cb3a0320c0cf80fa719efb7d6e050",
+      "execution_receipt_sha256": "41d847b55a0c907828f1464d5a3ea4f1d19cf09aaab59cbdcf694753982dcea6",
+      "source_consistent": true,
+      "status": "PASS"
+    }
+  },
+  "invariants": [
+    "Human-only read-only journal status binds workspace, epoch, revision, journal and exact current failure attempt",
+    "Confirmed failure clears only its own journal; immutable claim and audit survive SQLite reopen",
+    "UNKNOWN remains frozen and cannot repeat inference; clear ACK loss reconciles without another model call",
+    "Owner admission rejects new identity or changed input that bypasses a frozen machine journal",
+    "Retest cache binds execution timeout; missing historical budget is read-only and refuses new inference",
+    "All newly executed retest responses validate execution schema, request and timeout"
+  ],
+  "retained_failed_runs": [
+    "a7b21c818f1d",
+    "c6a8038769e8",
+    "22a1bc8b9873",
+    "dbd97cb2685b",
+    "b2debf915847"
+  ],
+  "limits": [
+    "Machine cancellation remains unimplemented; provider stop, missing usage and cost remain UNKNOWN",
+    "This increment has no native Tauri runtime qualification or real model failure injection",
+    "Bridge tests used synthetic frontend fixture; not a native application build qualification",
+    "Documentation written after the tested source snapshot",
+    "No Owner acceptance, installed qualification, release, Green replacement, commit or push"
+  ]
+}

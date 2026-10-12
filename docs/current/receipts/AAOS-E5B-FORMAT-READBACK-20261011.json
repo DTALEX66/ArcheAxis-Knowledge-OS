@@ -1,0 +1,17 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "candidate": "e5b57a8b48773c1ebbacfe9bf620a35272be9208",
+  "ci_run": 38122358640,
+  "method": "Independent read-only JSON audit; complete JSON and stable file stats; exact candidate, clean tree and source_consistent checked",
+  "office_and_text_pdf": {"artifact": 11696190766, "run": "0f4125af5f4b", "formats": ["docx", "xlsx", "pptx", "pdf-text"], "different_successful_jobs": 8, "derived_output_hashes_and_utf8_bytes_recomputed": 24, "current_locations": 16, "reparse_content_and_structure_equal": 4, "probe_restart_equal": 4, "original_bytes": "No raw bytes in JSON; matching input/source/original digest chain only"},
+  "light_and_ocr": {"artifact": 11695869496, "run": "4deb8dab3d54", "formats": ["txt", "md", "csv", "json", "html", "png", "jpeg", "pdf-scanned", "srt", "vtt", "canvas"], "original_bytes_and_hashes_recomputed": 11, "different_successful_jobs_including_pdf_pages": 26, "derived_output_hashes_and_utf8_bytes_recomputed": 78, "current_locations": 24, "reparse_content_and_structure_equal": 11, "probe_restart_equal": 11},
+  "qualified_scope": {"format_rows": 15, "successful_jobs_including_page_jobs": 34, "derived_outputs_recomputed": 102, "current_locations": 40},
+  "including_additional_chinese_fixtures": {"format_categories": 15, "test_rows": 18, "unique_original_byte_identities": 16, "successful_main_jobs": 36, "successful_pdf_page_jobs": 8, "derived_outputs_recomputed": 132, "current_locations": 48, "raw_original_test_rows_recomputed": 14, "deduplication": "Chinese wrapper and light rows identical, counted once; English/Chinese PNG and JPEG use identical respective bytes; scanned PDFs differ"},
+  "chinese_ocr": {"run": "1fd09bb8d74d", "formats": ["png", "jpeg", "pdf-scanned"], "originals_recomputed": 3, "successful_jobs_including_page_jobs": 10, "derived_outputs_recomputed": 30, "current_locations": 8, "result": "PASS_DUPLICATE_FORMAT_CATEGORIES_NOT_ADDED_TO_15"},
+  "standalone_office_loop": {"artifact": 11696390172, "observed": "Two normal and two corrupted fixture outcomes, four restart equalities and six output digests verified", "source_consistent": "MISSING_NO_QUALIFICATION_UPGRADE"},
+  "material": "SYNTHETIC_AUTHORED",
+  "execution": "INTEGRATED_ACTUAL_CANDIDATE_CORE",
+  "limits": ["WAV MP3 MP4 qualification remains incomplete due separately recorded failed speech assertion", "No arbitrary-file or universal fidelity claim", "Current candidate evidence does not qualify successor source", "No installed UI, actual AI or Owner acceptance inferred"]
+}

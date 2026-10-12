@@ -100,7 +100,7 @@ describe("Core job content",()=>{
  expect(bridge.call).toHaveBeenCalledWith("job_enqueue",{body:{job_id:expect.any(String),kind:"office",input_ref:"src_office"}});
  const selection=screen.getByLabelText("选择实际引文");fireEvent.select(selection,{target:{selectionStart:0,selectionEnd:6}});
  await userEvent.setup().type(screen.getByLabelText("知识候选正文"),"真实候选正文");await userEvent.setup().click(screen.getByRole("button",{name:"创建知识候选"}));
- await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("knowledge_from_transform",{body:{knowledge_type:"source_note",body:"真实候选正文",source_id:"src_office",job_id:expect.any(String),transform_id:42,selection_start_utf16:0,selection_end_utf16:6,quote:"Sheet1"}}));
+ await waitFor(()=>expect(bridge.call).toHaveBeenCalledWith("knowledge_from_transform",{body:{knowledge_type:"NOTE",body:"真实候选正文",source_id:"src_office",job_id:expect.any(String),transform_id:42,selection_start_utf16:0,selection_end_utf16:6,quote:"Sheet1"}}));
  });
  it("shows readable native structure with Unicode scalar ranges and keeps loss diagnostics folded",async()=>{
  const content="😀 A1=已知值";

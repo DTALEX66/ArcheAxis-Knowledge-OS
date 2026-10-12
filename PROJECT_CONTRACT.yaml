@@ -57,6 +57,21 @@ content_policy:
     judgment_basis: original
     empty_search: not-proof-of-falsehood
     online_answers: never-overwrite-original
+  knowledge_admission:
+    final_choice: human-only
+    source_authority_annotation: independent-of-admission
+    factual_verification: independent-of-admission
+    model_conclusion: never-permission-or-mandatory-preapproval
+    originals_and_staging: not-formal-knowledge-admission
+  egress:
+    consent: explicit-purpose-material-destination
+    public_query: independent-no-document-fallback
+    local_authorization: never-implies-cloud-authorization
+    local_only: no-silent-cloud-fallback
+    withdrawal: deny-subsequent-starts-and-retries
+    already_sent_material: cannot-be-recalled
+    after_workspace_restore: fresh-preview-and-confirmation
+    unreported_usage_and_cost: unknown-never-fabricated-zero
   ai_use:
     state: visible
     hypotheses: allow-exploration
@@ -130,7 +145,7 @@ delivery:
   release_candidate_week: 6
   supported_product_platform_initially:
     - windows-11-x64
-  mandatory_journey: tests/journey/v01-owner-loop.yaml
+  mandatory_journey: tests/journey/tauri-common-format-owner-loop.yaml
 agent_protocol:
   project_contract_schema: .project/schemas/project-contract.schema.json
   directory_authority_schema: .project/schemas/directory-authority.schema.json

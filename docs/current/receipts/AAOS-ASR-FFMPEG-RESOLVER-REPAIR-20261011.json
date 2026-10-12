@@ -1,0 +1,37 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "baseline": "e15b96a990a374e0215d7aa6b7f460457ea8e17a",
+  "observed_candidate": "b75be83e73e03e5829dbb13ab471955b43999265",
+  "ci_run": 38118757115,
+  "ci_job": 114409056063,
+  "artifact": 11693599189,
+  "local_artifacts": ".project-local/runs/be268a2d33/ci-b75-readback-20261011/speech",
+  "observed_failure": {
+    "step": "Verify actual speech Core content time location reparse and restart",
+    "error": "AssertionError: Project-declared ffmpeg is unavailable",
+    "formats": [],
+    "core_execution": "NOT_EXECUTED",
+    "candidate_imports": "CANDIDATE_IMPORTS_VERIFIED_CORE_NOT_EXECUTED",
+    "source_consistent": false,
+    "source_consistency_reason": "Failure precedes source identity collection; no current media qualification"
+  },
+  "diagnosis": "declared_location ignores explicit FFMPEG_CMD; candidate environment preserves it and CI tool preparation succeeded",
+  "repair": "Speech probe uses formal declared_path resolver; exact CLI versus declared path equality remains mandatory",
+  "verification": {
+    "red": {"passed": 1, "failed": 2, "deselected": 12, "run": ".project-local/runs/be268a2d33/6ea7fca7a133"},
+    "intermediate": {"passed": 43, "deselected": 3, "run": ".project-local/runs/be268a2d33/d3a1f5a91377"},
+    "final": {"passed": 44, "failed": 0, "deselected": 3, "source_consistent": true, "run": ".project-local/runs/be268a2d33/e56d7e42fa54"},
+    "excluded": "Three actual local ASR cases excluded explicitly; existing local Core/SAPI denial was not retried",
+    "controls": ["existing explicit CI tool without external root", "argument mismatch refusal", "invalid override refusal", "PATH-only refusal"],
+    "architecture": "PASS",
+    "critical_ruff": "PASS",
+    "diff_check": "PASS",
+    "evidence": "SYNTHETIC tool files and resolver behavior; not actual decoding or Core qualification",
+    "warning": "Existing pyreadline3 destructor Windows handle warning retained"
+  },
+  "current_candidate_rust": {"job": 114409055991, "status": "PASS", "cargo_fmt": "PASS", "cargo_test": "PASS", "journey_receipt_check": "PASS"},
+  "limits": ["Full CI still live at observation", "No installed runtime or full same-object AI qualification", "No model/provider/global configuration change", "MP4 audio qualification is separate from visual understanding"],
+  "rollback": "Revert only this repair commit; preserve original failed CI receipts"
+}

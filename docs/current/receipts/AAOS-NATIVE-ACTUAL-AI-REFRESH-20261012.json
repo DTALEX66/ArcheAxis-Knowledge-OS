@@ -1,0 +1,94 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL",
+  "materials": "SYNTHETIC_ONLY",
+  "runtime": "ISOLATED_WINDOWS_TAURI_CORE",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-25003f3fe9e7\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "a8f1d8dabbf5ff73e5fdac5acffdc932be0eec3243a7ee34ef7c69e277a6b22c",
+  "source_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+  "tested_source_patch_sha256": "a7ae82f5035e9443afc39b9b1391fa82119846126e99658f325968aa7e6bbcbf",
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\2a0fa6d02a59\\artifacts\\native-build-binding.json",
+      "sha256": "d50d464f02c18930a595cfe18b79e92cefbe40e1f09da3e0593f687b96a6d21c",
+      "bytes": 1399
+    },
+    "core_sha256": "23d9279dbcb7dc4612cd2642f0cfd251b75f2fe5213b21696ba63c9f1feaa168"
+  },
+  "stages": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "actual_ai_requirement": "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN",
+  "model": "qwen3.5-4b",
+  "original_task_id": "answer_req_7f543b75c96d1a930cdf27be9156939c802d888b1b941e457d2660636d474357",
+  "retest_task_id": "retest_4037e886468099a884c4a76a010cb9ed",
+  "first_retest_failure": {
+    "status": "OBSERVED",
+    "panel_present": true,
+    "answer_visible": true,
+    "retest_visible": false,
+    "unknown": false,
+    "retest_incomplete": true,
+    "retest_refused": false,
+    "retest_withheld": false,
+    "same_request_retry": true,
+    "failure": {
+      "phase": "invoke",
+      "status": 503,
+      "code": "unavailable"
+    }
+  },
+  "same_frozen_request_retry_limit": 1,
+  "retest_readback_confirmed": true,
+  "full_host_restart_readback": true,
+  "old_grant_refusal_status": "PASS",
+  "capability_toggle_status": "PASS",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "limitations": [
+    "Engineering-authored correction is not independent evidence that the model answer was wrong.",
+    "Answer and retest candidates remain unmeasured; no accuracy or weight-training claim.",
+    "Navigation uses native keyboard activation; earlier pointer navigation failure remains unverified.",
+    "Durable pending review restart/unknown-response recovery is covered by simulated/integrated tests, not this native success-only review run.",
+    "27B inference, paid cloud calls, Green replacement and Owner acceptance are not executed.",
+    "Runtime launcher UTF-8 fix was made after this runtime run and has separate regression evidence."
+  ]
+}

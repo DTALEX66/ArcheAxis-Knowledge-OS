@@ -1,0 +1,44 @@
+{
+  "schema": "archeaxis.working-state-core-readback/v1",
+  "date": "2026-10-11",
+  "status": "SCOPED_CORE_EVIDENCE_VERIFIED_NOT_INSTALLED_UI",
+  "run_id": 38081667307,
+  "artifact_id": 11680662711,
+  "source": {
+    "commit": "a8f93be52cf08ed4f0cac1c9689561ef5b9d961e",
+    "dirty": false,
+    "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "changes": []
+  },
+  "receipt_sha256": "d59dcf71a6f0e8bf719bbe82e7b66a9aede5503839e4add68d208359ea9ff45f",
+  "execution": "ACTUAL_CANDIDATE_CORE_HTTP",
+  "materials": "SYNTHETIC_AUTHORED_NOTES",
+  "qualification": "INTEGRATED_CORE_JOURNAL_RESTART_EXPLICIT_RESTORE",
+  "source_consistent": true,
+  "call_count": 47,
+  "owned_processes_stopped": 6,
+  "checks": {
+    "journal_restart": "PASS",
+    "saved_document_restart": "PASS",
+    "independent_document_restart": "PASS",
+    "fixed_original_identity_call_15": "PASS",
+    "fixed_original_identity_call_16": "PASS",
+    "fixed_original_identity_call_28": "PASS",
+    "fixed_original_identity_call_37": "PASS",
+    "fixed_original_identity_call_46": "PASS",
+    "preserve_recovery_candidates": "PASS",
+    "preserve_explicit_state": "PASS",
+    "preserve_restart": "PASS",
+    "discard_recovery_candidates": "PASS",
+    "discard_explicit_state": "PASS",
+    "discard_restart": "PASS",
+    "permission_conflict_pending_and_repeat_recovery_rejections": "PASS"
+  },
+  "limits": [
+    "No installed UI or physical IME",
+    "No human knowledge or mastery claim",
+    "Lost ACK is deliberate client injection, not actual network failure"
+  ],
+  "current_successor_run": 38083440673,
+  "whole_goal": "PARTIAL"
+}

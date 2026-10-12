@@ -2,10 +2,43 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import shutil
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+
+
+def test_simulated_native_journal_is_explicit_and_rejects_stale_or_frozen_writes():
+    """Execute the actual browser stub JS; this is fixture qualification only."""
+    smoke = _load_smoke_module()
+    node = shutil.which("node")
+    assert node is not None, "declared Node runtime required for browser fixture validation"
+    script = "import {webcrypto} from 'node:crypto'; import assert from 'node:assert/strict'; globalThis.window={}; if(!globalThis.crypto)Object.defineProperty(globalThis,'crypto',{value:webcrypto});\n"
+    script += smoke.host_bridge_stub(stateful_documents=True)
+    script += """
+const command=(operation,body)=>window.__TAURI__.core.invoke('core_command',{request:{operation,payload:body?{body}:{}}});
+const initial=await command('ui_state_read');
+assert.equal(initial.status,200);assert.equal(initial.body.schema,'archeaxis.ui-working-state/v1');
+assert.deepEqual(initial.body.state.drafts,{});
+const {workspace_id,restore_epoch,state_revision}=initial.body;
+const state={...initial.body.state,pending_original:{create_request_id:'fixed-request',title:'中文',editor_json:{type:'doc',content:[]}}};
+const body={workspace_id,restore_epoch,state_revision,state};
+const written=await command('ui_state_write',body);assert.equal(written.status,200);
+assert.equal(written.body.state_revision,state_revision+1);assert.match(written.body.pending_document_id,/^doc_req_[a-f0-9]{64}$/);
+assert.equal((await command('ui_state_write',body)).status,409);
+const changed=structuredClone(body);changed.state_revision=written.body.state_revision;changed.state.pending_original.title='different';
+assert.equal((await command('ui_state_write',changed)).status,422);
+assert.deepEqual((await command('ui_state_read')).body,written.body);
+assert.equal((await command('ui_state_recover',{workspace_id,restore_epoch,state_revision:written.body.state_revision,action:'discard'})).status,409);
+const unsupported=await command('ui_state_clear_saved',{workspace_id,restore_epoch,state_revision:written.body.state_revision,document_id:'absent',base_version:1,saved_version:2,content_sha256:'b'.repeat(64)});
+assert.equal(unsupported.status,409);console.log('SIMULATED_JOURNAL_FIXTURE_PASS');
+"""
+    result = subprocess.run([node, "--input-type=module"], input=script, text=True,
+                            capture_output=True, timeout=20, encoding="utf-8")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "SIMULATED_JOURNAL_FIXTURE_PASS"
 
 def _load_smoke_module():
     path = Path(__file__).resolve().parents[1] / "scripts" / "a0_browser_smoke.py"

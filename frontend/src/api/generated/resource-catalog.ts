@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "e6b53b1699dabd6894f1e250a3aad0a5453816e003edc095102b7a3ec680af2b"
+      "sha256": "b42aa04a8007befd04c427dc3d53138b542da552ae1c03f71c106e9009c088ea"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -193,7 +193,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
   },
   "qualification_metadata": {
     "schema": "archeaxis.resource-qualification-overlay/v1",
-    "observed_at": "2026-10-09T22:02:38.098939+00:00",
+    "observed_at": "2026-10-10T06:02:38.098939+08:00",
     "selected_scope": [
       "archeaxiscoreknowledge",
       "capcoreknowledge",
@@ -254,10 +254,36 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "CoreDocument does not introduce an invented 69th donor",
       "Public official HEAD readback is not exact locked-package license byte validation"
     ],
-    "source_readback_updated_at": "2026-10-09T22:12:34.749092+00:00",
+    "source_readback_updated_at": "2026-10-10T06:12:34.749092+08:00",
     "readback_boundary": "Source SHA refreshed after current template validator integration; runtime/model/installed qualification is not promoted.",
     "source_refresh": {
-      "observed_at": "2026-10-10T15:15:54.369562+00:00",
+      "observed_at": "2026-10-10T17:03:43.5402953+00:00",
+      "previous_git_commit": "6c5fcc3affc012109ced6d2e96fca2ddada4153b",
+      "reason": "Refresh generated finite capability-enable and anchor-resolution contract identity; qualification states remain unchanged.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359",
+          "current_sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c"
+        }
+      ]
+    },
+    "pending_journal_source_refresh": {
+      "observed_on": "2026-10-11",
+      "source_change_commit": "9d6bcde82fc1821b3579c62c44dfd4473a1ba629",
+      "reason": "Reviewed generated contract change only adds finite ui_state_clear_job operation; CoreDocument DTO, donor entries, activation and qualification states are unchanged.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "7ae3622193a59a9ab2864b85a1837e1b6ef646d34f11b14ff7aa47a8cf70683c",
+          "current_sha256": "d55ef7b687669e427c35a14c49aa75454c3476614d1b872c67ef8958e158a938"
+        }
+      ]
+    },
+    "previous_source_refresh": {
+      "observed_at": "2026-10-10T23:15:54.369562+08:00",
       "previous_git_commit": "febdcfdd743de3e2e44836b87c87b9d76a4bd7a4",
       "previous_path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
       "reason": "Update stale core-contract reference and formatting-only Rust source bytes; original surface/conflicts/activation and qualification states preserved.",
@@ -274,6 +300,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "current_sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
         }
       ]
+    },
+    "source_binding_refresh": {
+      "date": "2026-10-12",
+      "basis": "Current committed public Git blobs; source navigation binding only",
+      "qualification_change": "NONE; no runtime or Owner qualification inferred"
     }
   },
   "freeze_register": {
@@ -1261,11 +1292,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "9197e9314d7395a7a0f31c8f20daec9c55940cf8387cfad12bbd49caa6eed15b"
+                "sha256": "95c22566814795592250175e4f990897c2dd60dc3d8d84d8dcee1692544b05a3"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
+                "sha256": "5f2d133c9590393135847ce8f62361f856e6d5a5e5d7ef42c5ba8ce6ec55bb6a"
               }
             ]
           },
@@ -1687,11 +1718,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "9197e9314d7395a7a0f31c8f20daec9c55940cf8387cfad12bbd49caa6eed15b"
+                "sha256": "95c22566814795592250175e4f990897c2dd60dc3d8d84d8dcee1692544b05a3"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
+                "sha256": "5f2d133c9590393135847ce8f62361f856e6d5a5e5d7ef42c5ba8ce6ec55bb6a"
               }
             ]
           },

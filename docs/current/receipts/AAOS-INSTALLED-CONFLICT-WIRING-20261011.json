@@ -1,0 +1,49 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "status": "IMPLEMENTED_LOCAL_INSTALLED_QUALIFICATION_PENDING",
+  "files": ["scripts/probes/aaos01_tauri_webdriver_loop.py", "desktop/scripts/verify_nsis_install.ps1", "tests/test_installed_conflict_wiring.py"],
+  "patch_sha256": "2c824169f20a12270c2f038ce5d088b5eeb2f2181ddb4b7b1a18197e3f59ec43",
+  "integration": {
+    "preimages": "Exact root hashes/ABSENT and patch digest checked before application",
+    "native_and_nsis_postimages": "EXACT_MATCH",
+    "test_postimage": "40cf089e9c6545dcf7c4128d48606a09e5e1faa5622cebbed86fdb32f20c1ea3",
+    "postimage_first_check": "FAIL_TEST_EOL_ONLY",
+    "test_eol_difference": "Isolated test had only final line CRLF; git apply produced canonical LF. Independent byte diff proves no code/content change; actual root hash recorded rather than claiming original manifest equality"
+  },
+  "contract": {
+    "entry": "--installed-draft-conflict-loop",
+    "mutual_exclusion": "Grouped, compatibility synthetic and actual-AI fixtures cannot mix with this branch",
+    "initializer": "Existing installed start-backend.py/Core HTTP human session; fresh owned portable root/archeaxis.sqlite, workspace readback before host launch",
+    "initializer_cleanup": "Existing owned launcher terminate/reap with actual exitcode and stopped readback; no graceful Core exit claim",
+    "native_ui": "Restore/preserve, A manual 409, full JSON three-way comparison, explicit version rebind/save, B independent retention and full host restart",
+    "alerts": "Trusted WebDriver alert text/accept; only explicit no-such-alert is allowed without acceptance, transport/protocol errors propagate",
+    "restart": "Product exit0, new host PID/new WebDriver session, same portable root and source identity",
+    "bridge": "Adapter restricts to four read operations; no bridge/DOM product writes",
+    "nsis": "Required independent branch after compatibility; nonzero fails lifecycle; existing grouped journey remains required when selected",
+    "receipt": "Independent child JSON and lifecycle installed_document_conflict_loop field"
+  },
+  "verification": {
+    "count": 54,
+    "result": "PASS_NO_SKIP",
+    "level": "SIMULATED_HELPER_AND_STRUCTURE",
+    "execution": ".project-local/runs/be268a2d33/0d563724fb7a/artifacts/execution.json",
+    "source_commit": "37e933011d3c55e36efd04cd8686bd06662221b1",
+    "source_patch_sha256": "8d47a479fbb1b32f8f25c9399eb6ee80953d1c477d022d14a4251ba98d0380cd",
+    "source_consistent": true,
+    "architecture": "PASS",
+    "critical_ruff": "PASS",
+    "powershell_parser": "PASS",
+    "actual_core": "NOT_EXECUTED",
+    "actual_installed_ui": "NOT_EXECUTED",
+    "pyreadline_destructor_warning": "WinError 0xc0000008 retained after pytest exit0"
+  },
+  "ci": {
+    "current_run": 38086620115,
+    "sha": "29ab6d0c8d9057cd1c3edf3fcf59971e91603e8a",
+    "contains_this_wiring": false,
+    "qualification": "Successor exact-SHA installed execution required; retain currently useful live run"
+  },
+  "limits": ["No physical IME", "Synthetic initialization is not UI draft creation", "No Owner/full-nine-step acceptance", "No immutable pre-merge draft archive", "No release, Green replacement or real-user overwrite"]
+}

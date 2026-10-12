@@ -1,4 +1,4 @@
-"""archeaxis — 星环知识平台根包（新规划 §一：Python 根包目标）。
+"""archeaxis — 星环知识系统根包（新规划 §一：Python 根包目标）。
 
 当前实现为转发层：把既有的 app 包通过 sys.modules 别名挂到 archeaxis.* 命名空间，
 使新根包名可用（from archeaxis.app.main import app）而无需一次性高风险重命名。
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 __version__ = "0.6.9"
-__product__ = "ArcheAxis Knowledge / 星环知识平台"
+__product__ = "ArcheAxis Knowledge / 星环知识系统"
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:

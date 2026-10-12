@@ -1,0 +1,86 @@
+# Current mandatory journey register, not an acceptance receipt.
+# Historical R5 requirements and evidence remain in the inherited file unchanged.
+journey: aaos-tauri-common-format-owner-loop
+revision: 2
+declared_at: "2026-10-11"
+declared_by: Owner-current-goal
+formal_host: frontend/ + src-tauri/
+canonical_writer: Rust Core SQLite/CAS
+active_pointer: docs/current/AAOS-ACTIVE-EXECUTION.json
+inherits:
+  - tests/journey/v01-owner-loop.yaml
+acceptance_status: PARTIAL
+owner_acceptance: NOT_EXECUTED
+acceptance_reason: >-
+  The current Tauri/React implementation has scoped engineering evidence. A single
+  current-source journey and Owner interaction have not yet been qualified.
+  Historical Q00/R14 outcomes do not decide the current source's status.
+common_format_scope: docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json
+evidence_index:
+  - docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md
+  - docs/current/AAOS-AUTHORITY-CLOSEOUT-20261010.md
+  - docs/current/AAOS-FORMAT-QUALIFICATION-20261010.json
+  - docs/current/receipts/AAOS-AI-STAGE-20261010.json
+qualification_rules:
+  - Bind all stages to one source snapshot and explicit workspace/object/version identities.
+  - Record original bytes, derived content, structure, losses and locator qualification separately.
+  - Keep actual model inference distinct from synthetic model fixtures and human validity.
+  - Check capability disable/refusal, enable/readback and restart persistence in the formal host.
+  - Native compatibility journeys do not qualify the new grouped UI's complete journey.
+  - Failed, required skipped, missing or cancelled checks cannot qualify a stage.
+  - Current run receipts remain outside this register; no installed-user-machine or release claim.
+steps:
+  - id: import
+    surface: page-16
+    status: PARTIAL
+    implemented: Raw CAS, finite worker jobs and separate original/derived outputs.
+    not_verified: Current common-format content fidelity and native source navigation remain scoped gaps.
+    evidence: [docs/current/AAOS-FORMAT-QUALIFICATION-20261010.json]
+  - id: read
+    surface: page-02-page-03
+    status: PARTIAL
+    implemented: Formal document reader/editor and ordinary content save pipeline.
+    not_verified: Cross-restart independent drafts, conflict recovery and physical IME need qualification.
+    evidence: [frontend/src/components/DocumentEditor.tsx]
+  - id: anchor
+    surface: source-inspector
+    status: PARTIAL
+    implemented: Version-bound checksummed source and format locator creation.
+    not_verified: Independent revalidation and actual original-view navigation need current-source evidence.
+    evidence: [crates/archeaxis-api/tests/format_location_anchor_api.rs]
+  - id: claim
+    surface: human-knowledge-review
+    status: PARTIAL
+    implemented: Ordinary saving and explicit human knowledge adoption have separate permissions.
+    not_verified: Same-object human adoption within the current complete journey has not been qualified.
+    evidence: [PROJECT_CONTRACT.yaml]
+  - id: learn
+    surface: page-06-page-07
+    status: PARTIAL
+    implemented: Version-bound knowledge, course and learning-path projections.
+    not_verified: Current installed grouped-UI course journey and actual human learning remain unqualified.
+    evidence: [frontend/src/spaces/CanonicalLearningJourneySpace.tsx]
+  - id: practice
+    surface: page-11
+    status: PARTIAL
+    implemented: Assessment submission, feedback and persisted learning events.
+    not_verified: Same-item practice and restart readback in the current complete journey remain pending.
+    evidence: [frontend/src/spaces/CanonicalLearningSpace.tsx]
+  - id: review
+    surface: page-12
+    status: PARTIAL
+    implemented: Feedback, revision and review scheduling retain version identities.
+    not_verified: Engineering receipts cannot establish actual mastery or long-term effects.
+    evidence: [docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md]
+  - id: distill
+    surface: page-13-page-14-page-22
+    status: PARTIAL
+    implemented: Controlled AI assets, correction/retest and bounded-task receipts.
+    not_verified: Current same-knowledge actual inference, correction and retest must be qualified together.
+    evidence: [docs/current/receipts/AAOS-AI-STAGE-20261010.json]
+  - id: recover
+    surface: page-19-page-20
+    status: PARTIAL
+    implemented: Core backup/restore with explicit scope, identity, integrity and grant invalidation.
+    not_verified: Current complete-journey state restoration and Owner acceptance remain pending.
+    evidence: [frontend/src/__tests__/WorkspaceRestore.test.tsx]

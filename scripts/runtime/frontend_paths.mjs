@@ -24,6 +24,11 @@ export function safePath(raw) {
 
 export function projectPython(root) {
   safePath(root);
+  if (process.env.ARCHEAXIS_PYTHON) {
+    const explicit = safePath(process.env.ARCHEAXIS_PYTHON);
+    if (!lstatSync(explicit).isFile()) throw new Error("declared frontend Python is not a regular file");
+    return explicit;
+  }
   const common = safePath(execFileSync("git", ["-C", root, "rev-parse", "--path-format=absolute", "--git-common-dir"], { encoding: "utf8" }).trim());
   const managed = safePath(join(dirname(common), ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python"));
   return existsSync(managed) ? managed : "python";

@@ -16,7 +16,10 @@ function canonical(value: unknown): unknown { return Array.isArray(value) ? valu
 function equal(a: unknown, b: unknown) { return JSON.stringify(canonical(a)) === JSON.stringify(canonical(b)); }
 function requestedEditor(frozen: Attempt) { return record(frozen.payload.body).editor_json; }
 
-export function CanonicalContextSpace({ onUse, onOpenReference }: {
+import {resolveLearningJourney} from "../presentation/learningJourney";
+
+export function CanonicalContextSpace({ onUse, onOpenReference, initialLearningItemKey, proposedKnowledgeId, onKnowledgeBound }: {
+  initialLearningItemKey?:string;proposedKnowledgeId?:string;onKnowledgeBound?:(id:string)=>void;
   onUse?: (value: ContextConsumptionDto, grant: ContextGrantDto) => void; onOpenReference?: (reference: ObjectReference) => void;
 }) {
   const draft = useRef<Draft>(blank()); const attempt = useRef<Attempt | null>(null);
@@ -117,9 +120,15 @@ export function CanonicalContextSpace({ onUse, onOpenReference }: {
       edit({ knowledge_id: id, provenance: [{ kind: "knowledge", knowledge_id: id }] });
     } catch (reason) { if (seq === searchEpoch.current && mounted.current) setError(failureMessage(reason)); }
   }
+  async function prepareJourneyContext(){
+    if(blocked())return;const seq=++searchEpoch.current,serial=draft.current.serial;setBusy(true);setError(null);
+    try{const target=proposedKnowledgeId??(initialLearningItemKey?(await resolveLearningJourney(initialLearningItemKey)).knowledge_id:null);if(!target)throw new Error("missing selected knowledge");const knowledge=await coreCommand<KnowledgeDto>("knowledge_get",{id:target});if(knowledge.knowledge_id!==target||knowledge.status!=="accepted"||typeof knowledge.body!=="string"||typeof knowledge.version!=="string")throw new Error("knowledge binding changed");if(seq!==searchEpoch.current||!mounted.current)return;if(draft.current.serial!==serial||draft.current.dirty){setMessage("读取期间的编辑已保留；指定知识未覆盖当前草稿。");return;}epoch.current++;draft.current=blank();draft.current.value={...draft.current.value,operations:[],knowledge_id:target,provenance:[{kind:"knowledge",knowledge_id:target}]};draft.current.dirty=true;setUnsupported(null);onKnowledgeBound?.(target);publish();setMessage("指定知识当前正文与接受状态已读回；仅建立上下文候选，用途、操作与授权仍需明确决定。");}
+    catch(reason){if(seq===searchEpoch.current&&mounted.current)setError(failureMessage(reason));}finally{if(seq===searchEpoch.current&&mounted.current)setBusy(false);}
+  }
   const current = draft.current, grant = current.value;
   return <section aria-label="项目记忆与上下文" className="ui-content-main-side">
     <div><h2>项目记忆与上下文</h2><p>保存产品内的上下文与明确授权，来源固定到实际对象。候选可先保存；用途、允许操作与时效由你决定。</p>
+      {initialLearningItemKey||proposedKnowledgeId?<button disabled={busy} onClick={()=>void prepareJourneyContext()}>读取指定知识并建立上下文候选</button>:null}
       <button disabled={busy || listing} onClick={() => void list()}>刷新上下文</button>
       <button disabled={busy} onClick={() => { if (!blocked()) { epoch.current++; searchEpoch.current++; draft.current = blank(); setUnsupported(null); publish(); } }}>新建上下文候选</button>
       {listing ? <p role="status">正在读取上下文…</p> : null}

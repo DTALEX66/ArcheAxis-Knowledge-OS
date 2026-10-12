@@ -9,7 +9,7 @@ import { MachineEvaluationPanel } from "../components/MachineEvaluationPanel";
 import { failureMessage } from "../presentation/labels";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 
-type Selection = { document: DocumentDto; grant: ContextGrantDto; snapshot: ContextConsumptionDto; current: boolean };
+type Selection = { document: DocumentDto; grant: ContextGrantDto; snapshot: ContextConsumptionDto; current: boolean;knowledge?:Record<string,unknown> };
 const record = (value: unknown): Record<string,unknown> => { if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("上下文格式不兼容"); return value as Record<string,unknown>; };
 function readGrant(document: DocumentDto): ContextGrantDto { return assertCoreDto<ContextGrantDto>("ContextGrantDto",record(record(document.editor_json).attrs).archeaxis_context_grant); }
 function snapshot(document: DocumentDto, grant: ContextGrantDto): ContextConsumptionDto { return {document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,purpose:grant.purpose}; }
@@ -21,9 +21,9 @@ function eligible(selection: Selection | null, operation: "answer"|"retest", kno
 }
 
 /** No inferred knowledge/permission/model: only exact persisted consumption snapshots. */
-export function CanonicalAiJourneySpace({ initialConsumption, initialAssetConsumption, onTask, onCandidate, onOpenContext }: {
-  initialConsumption?: ContextConsumptionDto; initialAssetConsumption?:AssetPacketRequest; onTask?: (id:string)=>void; onCandidate?: (id:string)=>void;
-  onOpenContext?: ()=>void;
+export function CanonicalAiJourneySpace({ initialConsumption, initialRetestConsumption, initialAssetConsumption, onTask, onCandidate, onOpenContext, onOpenReceipts }: {
+  initialConsumption?: ContextConsumptionDto;initialRetestConsumption?:ContextConsumptionDto; initialAssetConsumption?:AssetPacketRequest; onTask?: (id:string)=>void; onCandidate?: (id:string)=>void;
+  onOpenContext?: (slot?:"original"|"corrected",knowledgeId?:string)=>void;onOpenReceipts?:(taskId:string)=>void;
 }) {
   const [rows,setRows]=useState<MachineDocumentSummaryDto[]>([]),[cursor,setCursor]=useState<string|null>(null);
   const [loaded,setLoaded]=useState(false),[listing,setListing]=useState(false),[reading,setReading]=useState(false);
@@ -33,6 +33,7 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialAssetConsum
   const [latestTask,setLatestTask]=useState<string>();
   const [assetAnswer,setAssetAnswer]=useState<AssetConsumption|null>(null),[assetRetest,setAssetRetest]=useState<AssetConsumption|null>(null);
   const mounted=useRef(true),listEpoch=useRef(0),readEpoch=useRef(0),dirty=useRef(new Set<string>());
+  const retestKey=initialRetestConsumption?JSON.stringify(initialRetestConsumption):"";
   const initialKey=initialConsumption ? JSON.stringify(initialConsumption) : "";
   function blocked() { if (dirty.current.size) { setMessage("当前回答或纠正草稿尚未确认；请先提交或核对，再切换授权。"); return true; } return false; }
   async function list(next?:string) {
@@ -56,12 +57,14 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialAssetConsum
       if(expected && !same(expected,actual))throw new Error("消费快照已变化；请在项目记忆页核对当前版本后重新选择");
       if(!mounted.current || seq!==readEpoch.current)return;
       if(!refresh && blocked())return;
-      const value:Selection={document,grant,snapshot:actual,current:true};
+      let knowledgeCurrent=true;let knowledge:Record<string,unknown>|undefined;if(grant.knowledge_id){knowledge=record(await coreCommand("knowledge_get",{id:grant.knowledge_id}));if(knowledge.knowledge_id!==grant.knowledge_id||typeof knowledge.body!=="string"||typeof knowledge.version!=="string"||!knowledge.version)throw new Error("知识当前正文与修订未核对");knowledgeCurrent=knowledge.status==="accepted";}
+      if(!mounted.current||seq!==readEpoch.current)return;
+      const value:Selection={document,grant,snapshot:actual,current:knowledgeCurrent,knowledge};
       if(which==="original"){setOriginal(value);if(original?.grant.knowledge_id!==grant.knowledge_id){setCandidateId(null);setCorrected(null);}}
       else setCorrected(value);
       setMessage(grant.state==="revoked"?"授权已撤回；历史仍可读取，新推理不可执行。":"已读取实际对象及消费快照；是否允许执行仍由 Core 校验。");
     } catch(reason) {
-      if(mounted.current && seq===readEpoch.current){setError(failureMessage(reason));if(refresh){if(which==="original")setOriginal(old=>old?{...old,current:false}:null);else setCorrected(old=>old?{...old,current:false}:null);}}
+      if(mounted.current && seq===readEpoch.current){setError(failureMessage(reason));if(which==="original")setOriginal(old=>old?.document.document_id===id?{...old,current:false}:old);else setCorrected(old=>old?.document.document_id===id?{...old,current:false}:old);}
     } finally {if(mounted.current && seq===readEpoch.current)setReading(false);}
   }
   useEffect(()=>{
@@ -70,7 +73,7 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialAssetConsum
     window.addEventListener("archeaxis-draft-dirty",listener);
     return ()=>{mounted.current=false;listEpoch.current++;readEpoch.current++;window.removeEventListener("archeaxis-draft-dirty",listener);};
   },[]);
-  useEffect(()=>{if(initialConsumption)void select("original",initialConsumption.document_id,initialConsumption);},[initialKey]);
+  useEffect(()=>{void(async()=>{if(initialConsumption)await select("original",initialConsumption.document_id,initialConsumption);if(initialRetestConsumption)await select("corrected",initialRetestConsumption.document_id,initialRetestConsumption);})();},[initialKey,retestKey]);
   const knowledgeId=original?.grant.knowledge_id??null;
   const answerPermission=eligible(original,"answer",knowledgeId)?original!.snapshot:undefined;
   const retestPermission=eligible(corrected,"retest",candidateId)?corrected!.snapshot:undefined;
@@ -78,7 +81,9 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialAssetConsum
   function receiveTask(id:string){setLatestTask(id);onTask?.(id);}
   return <section aria-label="纠正、评测与复测" data-section="ai-journey">
     <h2>纠正、评测与复测</h2><p>原问题、机器回答和纠正候选分别保留；采用或调用成功都不等于独立评测通过。缺模型时保留草稿与历史，不自动下载。</p>
-    {onOpenContext?<button onClick={onOpenContext}>返回项目记忆与授权</button>:null}
+    {onOpenContext?<button onClick={()=>onOpenContext("original",knowledgeId??undefined)}>返回项目记忆与授权</button>:null}
+    {candidateId&&onOpenContext?<button onClick={()=>onOpenContext("corrected",candidateId)}>为此纠正知识建立独立复测授权</button>:null}
+    {latestTask&&onOpenReceipts?<button onClick={()=>onOpenReceipts(latestTask)}>读取此机器旅程的持久化回执</button>:null}
     <section aria-label="实际上下文授权">
       <h3>选择已保存授权</h3><button disabled={listing} onClick={()=>void list()}>刷新上下文列表</button>
       {listing?<p role="status">正在读取实际上下文…</p>:null}
@@ -91,6 +96,7 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialAssetConsum
       <h3>{index===0?"原知识授权":"纠正候选授权"}</h3>{selection?<>
         <p>{selection.document.title} · v{selection.document.version} · {selection.grant.state}</p><p>用途：{selection.grant.purpose}</p>
         <p>知识：{selection.grant.knowledge_id??"尚未绑定"}；授权依据：{selection.grant.authorization_basis||"未填写"}</p>
+        {selection.knowledge?<><p>知识当前修订：{String(selection.knowledge.version)} · 来源 {String(selection.knowledge.source_id??"未绑定")} · 锚点 {String(selection.knowledge.anchor_id??"未绑定")}</p><pre aria-label={index===0?"原知识当前正文":"纠正知识当前正文"}>{String(selection.knowledge.body)}</pre></>:null}
         <p>有效期：{selection.grant.expires_at===null?"未设置到期时间":String(selection.grant.expires_at)}；范围：local-machine；操作：{selection.grant.operations.join(" / ")}</p>
         <p>{(index===0?answerPermission:retestPermission)?"当前快照可提交 Core 核验":"当前快照不允许该项新推理；历史只读保留。"}</p>
         <button disabled={reading} onClick={()=>void select(index===0?"original":"corrected",selection.document.document_id,selection.snapshot,true)}>核对此授权当前快照</button>

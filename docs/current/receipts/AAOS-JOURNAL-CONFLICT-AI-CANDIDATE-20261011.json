@@ -1,0 +1,44 @@
+{
+  "schema": "archeaxis.candidate-ci-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "branch": "codex/Audit",
+  "candidate_sha": "10852bc158b0f1a3d23616108e70559b2db412d0",
+  "local_and_native_github_ref_match": true,
+  "working_tree_after_payload_delivery": "CLEAN",
+  "includes": ["Core-owned pending-job journal", "Mandatory independent installed document-conflict journey", "Strict grouped AI receipt identity and frozen retest context"],
+  "previous_run": {
+    "id": 38086620115,
+    "sha": "29ab6d0c8d9057cd1c3edf3fcf59971e91603e8a",
+    "status": "COMPLETED_FAILURE",
+    "installer_job": 114317398155,
+    "installer_conclusion": "FAILURE",
+    "speech_conclusion": "FAILURE",
+    "detailed_failure": "UNVERIFIED; earlier log/artifact permission refusal and automatic-review rejection preserved; no retry without explicit authorization",
+    "rust_os_and_desktop_build": "PASS_AT_PREVIOUS_SHA_ONLY"
+  },
+  "current_run": {
+    "id": 38088242528,
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38088242528",
+    "workflow": "ci.yml",
+    "event": "workflow_dispatch",
+    "force_full": true,
+    "head_sha_independently_verified": true,
+    "observed_status": "QUEUED",
+    "conclusion": "UNVERIFIED",
+    "dispatch_after_previous_terminal": true
+  },
+  "local_verification": {
+    "tests": 82,
+    "result": "PASS_NO_SKIP",
+    "execution": ".project-local/runs/be268a2d33/7ea220b97d2c/artifacts/execution.json",
+    "source_commit": "9d6bcde82fc1821b3579c62c44dfd4473a1ba629",
+    "source_patch_sha256": "37d00c0ce8510038d302d2dab0abe8403828abc357d963aeab3b18551b913e15",
+    "source_consistent": true,
+    "architecture": "PASS",
+    "critical_ruff": "PASS",
+    "meaning": "SIMULATED receipt/native helper qualification; not actual model execution or installed-runtime acceptance"
+  },
+  "remaining": ["Actual Core WAV/MP3/MP4 qualification", "Current-source installed conflict and cross-restart pending-job recovery", "Actual declared text-model service and same-knowledge inference/correction/retest", "Complete nine-step grouped UI journey and Owner acceptance"],
+  "release_green_replacement_real_user_overwrite": "NOT_EXECUTED_NOT_GRANTED"
+}

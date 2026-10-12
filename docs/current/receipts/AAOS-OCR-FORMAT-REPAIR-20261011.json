@@ -1,0 +1,21 @@
+{
+  "schema": "archeaxis.candidate-format-repair/v1",
+  "date": "2026-10-11",
+  "source_commit": "4193028b35449132a02f7117d70a392c3b8f06b3",
+  "ci_run": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38076103471",
+  "status": "APPLIED_LOCAL_PENDING_CANDIDATE",
+  "rust_vnext": "FAIL_FORMATTING",
+  "whole_ci_at_inspection": "IN_PROGRESS_NOT_QUALIFIED",
+  "artifact": "rustfmt-repair-4193028b35449132a02f7117d70a392c3b8f06b3",
+  "patch_sha256": "2887717ba66b875cc4e0c17a6056db18e8ec0fdc04435b5899678ceaed4737a2",
+  "files": [
+    "crates/archeaxis-api/src/anchor_resolution.rs",
+    "crates/archeaxis-api/src/ocr_locator.rs",
+    "crates/archeaxis-api/tests/ocr_locator_api.rs"
+  ],
+  "review": "Patch applied only after matching clean current source and git apply --check. Quoted strings and normalized code match after whitespace/trailing-comma normalization plus explicitly reviewed closure block removal and single-expression match-arm block insertion. This is review evidence, not a Rust compiler or formal AST proof.",
+  "local_review_receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/format-419/review-receipt.json",
+  "local_rust_compile_and_fmt": "NOT_EXECUTED_PREVIOUS_ACCESS_DENIAL_NOT_BYPASSED",
+  "next": "Retain useful running candidate checks; publish a repaired candidate after current CI becomes terminal and combined task changes are reviewed",
+  "whole_goal": "NOT_QUALIFIED"
+}

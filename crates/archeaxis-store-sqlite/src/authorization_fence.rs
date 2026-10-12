@@ -30,6 +30,17 @@ pub fn install_after_restore(conn: &Connection) -> rusqlite::Result<()> {
 /// created by an explicit trusted human action after restore may authorize anew.
 /// Removing a namespace, modifying state or restoring old versions cannot clear this fence.
 pub fn assert_grant_not_fenced(conn: &Connection, document_id: &str) -> rusqlite::Result<()> {
+    if grant_is_fenced(conn, document_id)? {
+        return Err(rusqlite::Error::InvalidParameterName(
+            "restored grant requires a new explicit human authorization object".into(),
+        ));
+    }
+    Ok(())
+}
+
+/// A precise reporting query using the same policy as enforcement. An unreadable or corrupt
+/// fence is an error, never evidence that a particular old grant is in the blocked set.
+fn validated_fence(conn: &Connection) -> rusqlite::Result<Option<String>> {
     let raw: Option<String> = conn
         .query_row(
             "SELECT value FROM workspace_meta WHERE key=?1",
@@ -38,12 +49,13 @@ pub fn assert_grant_not_fenced(conn: &Connection, document_id: &str) -> rusqlite
         )
         .optional()?;
     let Some(raw) = raw else {
-        return Ok(());
+        return Ok(None);
     }; // Existing ordinary workspace compatibility.
     let valid:bool=conn.query_row(
         "SELECT CASE WHEN json_valid(?1) THEN
            json_extract(?1,'$.schema')=?2 AND json_type(?1,'$.blocked_grant_ids')='array'
            AND json_type(?1,'$.epoch')='text' AND length(json_extract(?1,'$.epoch'))=32
+           AND json_extract(?1,'$.epoch') NOT GLOB '*[^0-9a-f]*'
            AND NOT EXISTS(SELECT 1 FROM json_each(?1,'$.blocked_grant_ids') WHERE type!='text' OR length(value)=0)
          ELSE 0 END",rusqlite::params![raw,SCHEMA],|r|r.get(0),
     )?;
@@ -52,17 +64,27 @@ pub fn assert_grant_not_fenced(conn: &Connection, document_id: &str) -> rusqlite
             "unknown or corrupt restore authorization fence; deny consumption".into(),
         ));
     }
+    Ok(Some(raw))
+}
+
+/// Bind external-call confirmations to the existing restore-owned epoch.
+/// A corrupt fence denies preview/admission rather than becoming a legacy null.
+pub fn authorization_epoch(conn: &Connection) -> rusqlite::Result<Option<String>> {
+    validated_fence(conn)?
+        .map(|raw| conn.query_row("SELECT json_extract(?1,'$.epoch')", [raw], |r| r.get(0)))
+        .transpose()
+}
+
+pub fn grant_is_fenced(conn: &Connection, document_id: &str) -> rusqlite::Result<bool> {
+    let Some(raw) = validated_fence(conn)? else {
+        return Ok(false);
+    };
     let blocked: bool = conn.query_row(
         "SELECT EXISTS(SELECT 1 FROM json_each(?1,'$.blocked_grant_ids') WHERE value=?2)",
         rusqlite::params![raw, document_id],
         |r| r.get(0),
     )?;
-    if blocked {
-        return Err(rusqlite::Error::InvalidParameterName(
-            "restored grant requires a new explicit human authorization object".into(),
-        ));
-    }
-    Ok(())
+    Ok(blocked)
 }
 
 #[cfg(test)]
@@ -76,6 +98,24 @@ mod tests {
         )
         .unwrap();
         c
+    }
+    #[test]
+    fn epoch_is_absent_only_for_legacy_workspace_and_corruption_denies() {
+        let mut c = fixture();
+        assert_eq!(authorization_epoch(&c).unwrap(), None);
+        let tx = c.transaction().unwrap();
+        install_after_restore(&tx).unwrap();
+        tx.commit().unwrap();
+        let epoch = authorization_epoch(&c).unwrap().unwrap();
+        assert_eq!(epoch.len(), 32);
+        assert!(epoch.bytes().all(|b| b.is_ascii_hexdigit()));
+        c.execute(
+            "UPDATE workspace_meta SET value=json_set(value,'$.epoch',?1) WHERE key=?2",
+            rusqlite::params!["z".repeat(32), KEY],
+        )
+        .unwrap();
+        assert!(authorization_epoch(&c).is_err());
+        assert!(grant_is_fenced(&c, "ordinary").is_err());
     }
     fn grant(c: &Connection, id: &str, version: i64, namespace: &str, state: &str) {
         c.execute("INSERT INTO document_versions VALUES(?1,?2,json_object('attrs',json_object(?3,json_object('state',?4))))",
@@ -101,10 +141,13 @@ mod tests {
             )
             .unwrap();
         assert_grant_not_fenced(&c, "old").unwrap();
+        assert!(!grant_is_fenced(&c, "old").unwrap());
         let tx = c.transaction().unwrap();
         install_after_restore(&tx).unwrap();
         tx.commit().unwrap();
         assert!(assert_grant_not_fenced(&c, "old").is_err());
+        assert!(grant_is_fenced(&c, "old").unwrap());
+        assert!(!grant_is_fenced(&c, "unlisted").unwrap());
         assert!(assert_grant_not_fenced(&c, "asset-old").is_err());
         grant(&c, "old", 3, "archeaxis_context_grant", "granted");
         assert!(assert_grant_not_fenced(&c, "old").is_err());
@@ -159,6 +202,7 @@ mod tests {
             )
             .unwrap();
             assert!(assert_grant_not_fenced(&c, "new").is_err());
+            assert!(grant_is_fenced(&c, "new").is_err());
         }
     }
 }

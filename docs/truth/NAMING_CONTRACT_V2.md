@@ -2,6 +2,7 @@
 
 > 权威来源：`ArcheAxis_Knowledge_Naming_Audit_and_HERMES_TaskPack_v1_2026-08-12`（只读审计交付）
 > 状态：**binding（定死，不可漂移）**。更新需 Owner 明确决策 + 本契约修订记录。
+> **2026-10-11 Owner 修订（V2.2）**：对外中文名改为「星环知识系统」。Owner 理由：英文仓库身份包含 OS，中文用「系统」表达。英文产品名、仓库／包／协议标识保持现状；此前「星环知识平台」仅作历史名称保留。
 > 关联：`NAMING_CONTRACT_V1.md`（已 SUPERSEDED，仅历史）、`AXW-NAMING-2026-08-12-v1` 任务图
 > 审计基线（**HISTORICAL SNAPSHOT**，2026-08-12 记录，不随当前状态改写）：`DTALEX66/archeaxis-workspace` @ `2694d86`。旧值与旧 SHA 一律保留；当前事实见下方「CURRENT REMOTE SNAPSHOT」。
 
@@ -24,7 +25,7 @@
 | 项 | V1（SUPERSEDED） | V2（当前 binding） |
 |---|---|---|
 | 对外英文产品名 | ArcheAxis Learning Workspace | **ArcheAxis Knowledge** |
-| 对外中文产品名 | 星轨学习工作台 | **星环知识平台** |
+| 对外中文产品名 | 星轨学习工作台 | **星环知识系统** |
 | 内部工作台视图 | （未区分） | **ArcheAxis Learning Workspace**（仅内部视图） |
 | 品牌词根 | ArcheAxis | ArcheAxis（不变） |
 | 机器身份 | archeaxis-workspace | archeaxis-workspace（不变） |
@@ -37,8 +38,8 @@ V1 由 Owner 决策（2026-08-12）降级为历史记录；历史文档保留旧
 |---|---|---|
 | 品牌词根 | `ArcheAxis` | 固定拼写；禁止任何变形（Archeaxis/Arche Axis/Arche-Axis/ArcheAXIS 等） |
 | 对外英文产品名 | `ArcheAxis Knowledge` | README 标题、Release、商店、About、安装器、窗口标题、公开版本——禁止被 `Learning Workspace`/`OS`/`Runtime`/`Platform`/`Star` 替代 |
-| 对外中文产品名 | `星环知识平台` | 中文 UI 品牌区、中文文档、官网、商店、白皮书；禁止对外裸用"星环" |
-| 中文首次出现 | `星环知识平台（ArcheAxis Knowledge）` | 中文正式文档第一次出现强制使用完整形式 |
+| 对外中文产品名 | `星环知识系统` | 中文 UI 品牌区、中文文档、官网、商店、白皮书；禁止对外裸用"星环" |
+| 中文首次出现 | `星环知识系统（ArcheAxis Knowledge）` | 中文正式文档第一次出现强制使用完整形式 |
 | 内部工作台视图 | `ArcheAxis Learning Workspace` | 软件内部工作台 header、Tab、视图元数据；禁止用于 README 标题、Release、安装包、About 主产品名、商店名 |
 | 标准版本展示 | `ArcheAxis Knowledge vX.Y.Z` | Release、About、更新日志、构建产物；禁止显示 `ArcheAxis OS v...` 或 `Learning Workspace v...` |
 | 项目状态 | `Personal Research Project / 个人研究项目` | 不等同于许可证；许可证独立声明 |
@@ -76,7 +77,7 @@ V1 由 Owner 决策（2026-08-12）降级为历史记录；历史文档保留旧
 ## 4. 中文风险控制
 
 - 禁止"星环"裸用为独立对外品牌/商店名/一级标题/无障碍标签。
-- 公开中文必须用完整词"星环知识平台"。
+- 公开中文必须用完整词"星环知识系统"。
 - 图标可无文字；窗口标题、无障碍标签、下载名、元数据必须用完整产品名。
 - 原"元枢""元枢工作台"只留在历史、迁移与兼容说明中。
 
@@ -88,6 +89,7 @@ V1 由 Owner 决策（2026-08-12）降级为历史记录；历史文档保留旧
 | archeaxis-workspace | 仍有效的 Machine/Python distribution 名（不再是 GitHub 仓库名） | 包元数据、CLI 发布、任务 ID 语境 |
 | 星轨学习工作台 / ArcheAxis Learning Workspace | V1 产品名（已降级为内部视图） | 内部视图、历史、迁移、兼容说明 |
 | 元枢 / 元枢工作台 | 已弃用 | 历史、迁移、兼容说明 |
+| 星环知识平台 | 2026-10-11 由 Owner 改为「星环知识系统」 | 历史记录、既有证据、迁移说明；不再作为当前默认中文展示名 |
 | ArcheAxis OS | 旧产品名（曾用于 GitHub 描述/安装器） | 历史记录、测试用例（拒绝场景） |
 
 ## 6. 修订记录
@@ -98,3 +100,4 @@ V1 由 Owner 决策（2026-08-12）降级为历史记录；历史文档保留旧
 | V1.1 | 2026-08-12 | §4 迁移状态更新（#131 Step 1） | Owner 授权 |
 | V2 | 2026-08-12 | 新体系：对外 ArcheAxis Knowledge/星环知识平台；Learning Workspace 降为内部视图（AXW-1302） | Owner 明确决策（2026-08-12） |
 | V2.1 | 2026-09-18 | 真值修正：§0a 增加 CURRENT REMOTE SNAPSHOT；§2 GitHub 仓库行与 §5 映射改为 `DTALEX66/ArcheAxis-Knowledge-OS`（`archeaxis-workspace` 仅保留为 Machine/Python distribution 名）；旧审计基线标注 HISTORICAL SNAPSHOT。未新增权威、未删旧 SHA | DSH 安全执行包（仅真值修正） |
+| V2.2 | 2026-10-11 | 中文对外名改为「星环知识系统」；当前界面与展示契约同步；历史名称／原始证据保留；英文产品名与技术身份保持现状 | Owner 明确决定「改成星环知识系统，修改」，理由「英文都是 OS 了」 |

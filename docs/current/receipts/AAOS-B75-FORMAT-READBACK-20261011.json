@@ -1,0 +1,31 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "candidate": "b75be83e73e03e5829dbb13ab471955b43999265",
+  "ci_run": 38118757115,
+  "artifacts": [11693723740, 11694088139, 11694658447],
+  "local_artifacts": ".project-local/runs/be268a2d33/ci-b75-readback-20261011/formats",
+  "method": "Independent read-only subagent recomputed digests and byte lengths from downloaded current-candidate JSON; no historical a2 receipts used",
+  "materials": "SYNTHETIC_AUTHORED",
+  "execution": "INTEGRATED_CANDIDATE_CORE",
+  "qualified_rows": 15,
+  "source": {"exact_candidate": true, "dirty": false, "changes": [], "source_consistent": true},
+  "checks": {
+    "distinct_successful_first_and_reparse_main_jobs": 30,
+    "derived_text_structure_loss_sha256_and_utf8_bytes_recomputed": 102,
+    "current_locators": 40,
+    "equal_first_reparse_text_structure_rows": 15,
+    "reported_restart_equal_rows": 15,
+    "independently_recomputed_original_base64_bytes_rows": 11,
+    "original_digest_chain_only_rows": 4
+  },
+  "limits": [
+    "Office/text-PDF four rows contain input/source/original SHA equality but not raw originals; original bytes cannot be independently reconstructed from downloaded JSON",
+    "Restart equality is the actual probe's reported assertion, not a new local Core restart",
+    "Additional Chinese and base/light repeated rows do not add new format classes",
+    "Separate office-loop two normal and two corrupt cases lack final source_consistent and independent reparse; do not use them to broaden source qualification",
+    "WAV/MP3/MP4 Core NOT_EXECUTED after explicit-tool resolver failure; prepared models/tools and standalone text inference do not qualify those formats",
+    "Not arbitrary-file fidelity, installed UI, full CI, current successor source or Owner acceptance"
+  ]
+}

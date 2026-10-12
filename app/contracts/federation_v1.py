@@ -54,6 +54,11 @@ class CandidateSubmissionItemV1(BaseModel):
 
 
 class CandidateSubmissionV1(BaseModel):
+    """A key freezes submitter and ordered items; conflicts are refused.
+
+    ``note`` is caller commentary, not persisted candidate content or receipt identity.
+    """
+
     model_config = ConfigDict(extra="forbid")
 
     idempotency_key: str = Field(min_length=1)

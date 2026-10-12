@@ -143,10 +143,10 @@ def _validate_address(address: str) -> None:
     except ValueError as exc:
         raise SafeHTTPError(f"invalid resolved address: {address}") from exc
 
-    # is_global excludes private, loopback, link-local, multicast, unspecified,
-    # reserved and documentation-only ranges. Explicitly name metadata for the
+    # is_global alone does not exclude multicast addresses. Explicitly reject
+    # multicast as well as non-global and reserved destinations. Name metadata for the
     # security contract because it is a high-signal SSRF target.
-    if address == "169.254.169.254" or not parsed.is_global:
+    if address == "169.254.169.254" or not parsed.is_global or parsed.is_multicast or parsed.is_reserved:
         raise SafeHTTPError(f"blocked address: {address}")
 
 
@@ -303,10 +303,22 @@ def fetch(
                 raise SafeHTTPError("redirect response has no Location")
             if redirect_count >= active_policy.max_redirects:
                 raise SafeHTTPError("redirect limit exceeded")
+            next_url = urljoin(current_url, location)
+            target, target_host, target_port = _validate_url(next_url, active_policy)
+            if parsed.scheme == "https" and target.scheme != "https":
+                raise SafeHTTPError("redirect HTTPS downgrade blocked")
+            current_origin = (parsed.scheme, hostname, _port)
+            target_origin = (target.scheme, target_host, target_port)
+            public_headers = {"accept", "accept-language", "user-agent", "content-type", "content-length"}
+            sensitive_headers = any(name.lower() not in public_headers for name in request_headers)
+            if current_origin != target_origin and (body is not None or sensitive_headers):
+                raise SafeHTTPError("redirect sensitive cross-origin request blocked")
             if response.status in {301, 302, 303} and method == "POST":
                 method = "GET"
                 body = None
-            current_url = urljoin(current_url, location)
+                request_headers = {key: value for key, value in request_headers.items()
+                                   if key.lower() not in {"content-type", "content-length", "transfer-encoding"}}
+            current_url = next_url
             continue
 
         if not 200 <= response.status < 300:

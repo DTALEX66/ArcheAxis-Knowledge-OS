@@ -1,0 +1,70 @@
+{
+  "schema": "archeaxis.machine-restore-native/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "owner_acceptance": "NOT_EXECUTED",
+  "evidence_level": "REAL_LOCAL_MODEL_WITH_SYNTHETIC_ACK_LOSS_AND_INTEGRATED_RESTORE",
+  "native_run": "webdriver-e53abf84cbf8",
+  "raw_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-e53abf84cbf8/tmp/journey/receipt.json",
+    "sha256": "41dd307e2de4dd1054c8b7f087d4bf039a87b655fe1c793bba8d1107fc2d4981"
+  },
+  "source_patch_sha256": "002dc867b54139616be037afffee7843dd15f4b82bec069b7a5db90e43e215e0",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "machine_restore_recovery": {
+    "status": "JOURNAL_RECOVERY_VERIFIED",
+    "discard_disabled": true,
+    "origin_retained": true,
+    "task_unchanged": true,
+    "recovery": {
+      "faults": 0,
+      "rows": [
+        {
+          "completed": true,
+          "operation": "ui_state_clear_machine",
+          "status": 200,
+          "task_id": null
+        }
+      ]
+    },
+    "recovery_inference_calls": 0
+  },
+  "machine_ack_recovery": {
+    "status": "PASS",
+    "evidence_level": "REAL_MODEL_WITH_SYNTHETIC_BRIDGE_ACK_LOSS",
+    "initial": {
+      "faults": 1,
+      "rows": [
+        {
+          "completed": true,
+          "operation": "machine_answer",
+          "status": 200,
+          "task_id": "answer_req_b134e4b7758700ad78466e447412afae8c21245dde78935785ba8f01beca5e21"
+        }
+      ]
+    },
+    "recovery": {
+      "faults": 0,
+      "rows": [
+        {
+          "completed": true,
+          "operation": "ui_state_clear_machine",
+          "status": 200,
+          "task_id": null
+        }
+      ]
+    },
+    "cold_restart": true,
+    "task_unchanged": true,
+    "recovery_inference_calls": 0,
+    "journal_id": "machine_6a6f4173-9271-49ed-b018-53c945f57063"
+  },
+  "actual_ai_requirement": "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN",
+  "limits": [
+    "Core direct discard refusal remains SYNTHETIC test evidence; native UI disabled discard and explicit preserve are verified",
+    "Observer covers inference and journal clear; no broader claim about all authorization writes",
+    "Synthetic materials and injected bridge acknowledgment loss; not an actual model process crash",
+    "No accuracy or learning effectiveness claim; no Owner acceptance or installed Green qualification"
+  ]
+}

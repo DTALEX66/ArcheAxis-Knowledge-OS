@@ -30,7 +30,10 @@ fn assessment_is_append_only_stable_and_survives_reopen() {
         let retry = learning::create_assessment(&mut conn, "card-fsrs", &knowledge_id).unwrap();
         assert_eq!(first.assessment_id, retry.assessment_id);
         assert_eq!(first.knowledge_id, knowledge_id);
-        assert!(first.question.contains("请回答"));
+        assert!(!first.question.trim().is_empty());
+        assert_ne!(first.question, first.content);
+        assert!(!first.question.contains(&first.content));
+        assert_eq!(first.question, retry.question);
         assert_eq!(
             first.content,
             "FSRS uses review history to schedule a next review."

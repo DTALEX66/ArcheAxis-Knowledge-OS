@@ -1,0 +1,36 @@
+{
+  "schema": "archeaxis.prior-epoch-review-retry/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "SIMULATED_UI_WITH_REAL_WORKING_STATE_SESSION",
+  "problem": "Explicitly preserved Core review journals retained their original epoch, but frontend incorrectly rejected all prior-epoch retries",
+  "rule": "Permit prior-origin review only when both current Core-read state and local state contain the exact immutable entry; new or modified entries still require current epoch",
+  "files": [
+    "frontend/src/presentation/coreWorkingState.ts",
+    "frontend/src/__tests__/CoreWorkingState.test.ts",
+    "frontend/src/__tests__/CanonicalReviewLearning.test.tsx"
+  ],
+  "tests": {
+    "run": "c460314476c2",
+    "passed": 44,
+    "source_patch_sha256": "c6307c2b15cef180a3f8972e14175dc9201b2a87f4190ff8868a6f7d65092c59",
+    "typescript_run": "d7ccacdf7ab1",
+    "typescript_exit_code": 0
+  },
+  "boundaries": [
+    "No origin, event or body rewriting",
+    "No machine reinference authorization change",
+    "Core canonical assessment and event hash checks retained"
+  ],
+  "limits": [
+    "Exact preserved old-origin first submission and duplicate retry now native qualified on followup patch",
+    "Multiple concurrent review selection remains separate qualification",
+    "Each historical test and native receipt retains its tested source patch"
+  ],
+  "native_followup": {
+    "status": "PASS",
+    "run": "webdriver-7ac9dc0fa967",
+    "receipt": "AAOS-PRIOR-EPOCH-REVIEW-NATIVE-20261012.json",
+    "source_patch_sha256": "227a74f85b71e93a7de574eb67d8c9f781e214f3fe610d195caad3f6eded4e96"
+  }
+}

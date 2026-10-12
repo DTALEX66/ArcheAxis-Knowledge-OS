@@ -116,6 +116,80 @@ async fn source_bound_candidate_checks_unicode_selection_and_commits_anchor_atom
     assert_eq!(v3["owner"], "human");
     assert_eq!(v3["requires_human_review"], true);
 
+    let anchor_id = created["anchor_id"].as_str().unwrap();
+    let resolve_path = format!("/api/v1/sources/{source_id}/anchors/{anchor_id}/resolve");
+    let stored_position: String = init_workspace(db.to_str().unwrap())
+        .unwrap()
+        .query_row(
+            "SELECT position FROM anchors WHERE anchor_id=?1",
+            [anchor_id],
+            |row| row.get(0),
+        )
+        .unwrap();
+    // Reopening the actual Core route must qualify transform UTF-16 offsets,
+    // even though the raw source is different and has no such selected quote.
+    drop(router);
+    let router = app(db.to_str().unwrap()).unwrap();
+    let reopened = router.clone();
+    let (resolved_status, resolved) = get(&reopened, &resolve_path).await;
+    assert_eq!(resolved_status, StatusCode::OK, "{resolved}");
+    assert_eq!(resolved["status"], "CURRENT");
+    assert_eq!(resolved["reason"], "transform_selection_revalidated");
+    assert_eq!(resolved["scope"], "locator_provenance_only");
+    assert_eq!(resolved["position"], stored_position);
+
+    let baseline: Value = serde_json::from_str(&stored_position).unwrap();
+    for (field, value) in [
+        ("quote", json!("not B")),
+        ("selection_start_utf16", json!(2)),
+        ("selection_end_utf16", json!(1000)),
+        ("transform_id", json!(transform_id + 1)),
+        ("job_id", json!("different-job")),
+    ] {
+        let mut invalid = baseline.clone();
+        invalid[field] = value;
+        let position = invalid.to_string();
+        init_workspace(db.to_str().unwrap())
+            .unwrap()
+            .execute(
+                "UPDATE anchors SET position=?1 WHERE anchor_id=?2",
+                rusqlite::params![position, anchor_id],
+            )
+            .unwrap();
+        let (status, result) = get(&reopened, &resolve_path).await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(result["status"], "STALE", "{field}: {result}");
+        assert_eq!(result["position"], position);
+    }
+    init_workspace(db.to_str().unwrap())
+        .unwrap()
+        .execute(
+            "UPDATE anchors SET position=?1 WHERE anchor_id=?2",
+            rusqlite::params![stored_position, anchor_id],
+        )
+        .unwrap();
+    assert_eq!(get(&reopened, &resolve_path).await.1["status"], "CURRENT");
+    let conn = init_workspace(db.to_str().unwrap()).unwrap();
+    conn.execute("UPDATE jobs SET state='failed' WHERE job_id='job-1'", [])
+        .unwrap();
+    assert_eq!(get(&reopened, &resolve_path).await.1["status"], "STALE");
+    conn.execute("UPDATE jobs SET state='succeeded' WHERE job_id='job-1'", [])
+        .unwrap();
+    conn.execute(
+        "UPDATE sources SET sha256='changed-revision' WHERE source_id=?1",
+        [&source_id],
+    )
+    .unwrap();
+    let (_, changed_revision) = get(&reopened, &resolve_path).await;
+    assert_eq!(changed_revision["status"], "STALE");
+    assert_eq!(changed_revision["reason"], "source_revision_changed");
+    conn.execute(
+        "UPDATE sources SET sha256=?1 WHERE source_id=?2",
+        rusqlite::params![raw_sha256, source_id],
+    )
+    .unwrap();
+    assert_eq!(get(&reopened, &resolve_path).await.1["status"], "CURRENT");
+
     let response = router
         .oneshot(
             Request::get("/api/v1/evidence/anchors")

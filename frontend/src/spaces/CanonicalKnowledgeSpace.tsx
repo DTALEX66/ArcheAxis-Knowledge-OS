@@ -16,7 +16,9 @@ function records(value: unknown): Record<string, unknown>[] {
   if (!Array.isArray(value)) throw new Error("invalid list");
   return value.map(record);
 }
-export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>void;onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+import type { CandidateJourneyTarget } from "../presentation/sourceJourney";
+
+export function CanonicalKnowledgeSpace({initialCandidate,showMachine=true,onLearning,onTrail}:{initialCandidate?:CandidateJourneyTarget;showMachine?:boolean;onLearning?:(itemKey?:string)=>void;onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<Record<string, unknown>[]>([]);
   const [documents,setDocuments]=useState<Record<string,unknown>[]>([]);
@@ -24,6 +26,7 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
   const [transforms, setTransforms] = useState<Record<string, unknown>[]>([]);
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
   const [qualification, setQualification] = useState<unknown>(null);
+  const [qualificationState, setQualificationState] = useState<"pending"|"ready"|"unavailable">("pending");
   const [reviewer, setReviewer] = useState("");
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
@@ -31,6 +34,7 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
   const [busy, setBusy] = useState(false);
   const epoch = useRef(0);
   const draftDirty = useRef(false);
+  const noteOwner = useRef<string|null>(null);
   function selectDocument(id:string|null) {
     if(id===documentId)return;
     if(draftDirty.current&&!window.confirm("草稿尚未保存，请先保留文字。仍要关闭或切换文档吗？"))return;
@@ -47,21 +51,33 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
     } catch (error) {setMessage("搜索失败，请重试。不会将失败显示为空结果。");setFailureReason(coreFailureReason(error));}
   }
   async function open(id: string) {
-    const current = ++epoch.current; setSelected(null); setQualification(null); setNote(""); setFailureReason(null);
+    const current = ++epoch.current; setSelected(null); setQualification(null); setQualificationState("pending"); setFailureReason(null);
+    if(noteOwner.current!==id){noteOwner.current=id;setNote("");}
+    // Annotation reads cannot grant or veto the user's version-bound review.
+    // Attach the rejection handler immediately, including if the object read fails.
+    const proofRequest = coreCommand("knowledge_qualification",{id}).then(
+      value => ({state:"ready" as const,value}),
+      () => ({state:"unavailable" as const,value:null}),
+    );
     try {
-      const [detail, proof] = await Promise.all([coreCommand("knowledge_get",{id}),coreCommand("knowledge_qualification",{id})]);
+      const detail = await coreCommand("knowledge_get",{id});
       const data = record(detail);
       if (data.knowledge_id !== id || typeof data.body !== "string" || typeof data.version !== "string" || !data.version) throw new Error("invalid knowledge fields");
-      if (current === epoch.current) {setSelected(data);setQualification(proof);setMessage("");}
-    } catch (error) {setMessage("候选与证据读取失败，审核按钮不可用。");setFailureReason(coreFailureReason(error));}
+      if(initialCandidate){if(data.knowledge_id!==initialCandidate.knowledge_id||data.source_id!==initialCandidate.source_id||data.anchor_id!==initialCandidate.anchor_id)throw new Error("candidate identity mismatch");const anchor=record(await coreCommand("anchor_resolve",{source_id:initialCandidate.source_id,anchor_id:initialCandidate.anchor_id}));if(anchor.source_id!==initialCandidate.source_id||anchor.anchor_id!==initialCandidate.anchor_id||anchor.source_revision!==initialCandidate.source_revision||anchor.current_source_revision!==initialCandidate.source_revision||anchor.status!=="CURRENT"||anchor.scope!=="locator_provenance_only")throw new Error("candidate source version mismatch");}
+      if (current === epoch.current) {
+        setSelected(data);setMessage("");
+        void proofRequest.then(proof=>{if(current===epoch.current){setQualification(proof.value);setQualificationState(proof.state);}});
+      }
+    } catch (error) {setMessage("候选或来源绑定读取失败，审核按钮不可用。");setFailureReason(coreFailureReason(error));}
   }
+  useEffect(()=>{if(initialCandidate)void open(initialCandidate.knowledge_id);return()=>{epoch.current++;};},[initialCandidate]);
   async function review(action: "accepted"|"rejected"|"deprecated") {
     if (!selected || !reviewer.trim() || busy) return;
     const current = epoch.current; setBusy(true);
     try {
       const receipt = record(await coreCommand("knowledge_review",{id:selected.knowledge_id,body:{action,reviewer:reviewer.trim(),note,expected_version:selected.version}}));
-      if (typeof receipt.knowledge_id !== "string" || typeof receipt.version !== "string") throw new Error("invalid review receipt");
-      if (current === epoch.current) {await open(receipt.knowledge_id);setMessage("审核决定已由本地核心记录。");}
+      if (typeof receipt.knowledge_id !== "string" || receipt.knowledge_id !== selected.knowledge_id || typeof receipt.version !== "string") throw new Error("invalid review receipt");
+      if (current === epoch.current) {setNote(value=>value===note?"":value);await open(receipt.knowledge_id);setMessage("审核决定已由本地核心记录。");}
     } catch (error) {setMessage("审核未完成，可能版本已变化。保留备注并重新读取候选后再决定。");setFailureReason(coreFailureReason(error));}
     finally {setBusy(false);}
   }
@@ -74,7 +90,7 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
       const assessment = record(await coreCommand("assessment_create", {item_key,body:{knowledge_id:selected.knowledge_id}}));
       if (assessment.item_key !== item_key || typeof assessment.assessment_id !== "string" || typeof assessment.question !== "string") throw new Error("invalid assessment");
       setMessage("已创建绑定此知识版本的问题，请在学习队列打开。");
-      onLearning?.();
+      onLearning?.(item_key);
     } catch {setMessage("学习问题创建失败；Core 仅允许当前有效、已接受的知识。");}
     finally {setBusy(false);}
   }
@@ -94,13 +110,13 @@ export function CanonicalKnowledgeSpace({onLearning,onTrail}:{onLearning?:()=>vo
     <h4>来源提取文本</h4><ul tabIndex={-1} data-section="transforms" aria-label="来源提取文本列表">{transforms.map(item=><li key={String(item.transform_id)}>{String(item.head)} · 来源 {String(item.source_id)} · 引擎 {String(item.engine)}</li>)}</ul>
     <h4>普通文档</h4><p>原创与未核验内容可读取编辑；搜索命中不等同知识接受或核验通过。</p><ul tabIndex={-1} data-section="documents" aria-label="普通文档列表">{documents.map(item=><li key={String(item.document_id)}><button onClick={()=>selectDocument(String(item.document_id))}>{String(item.title)} · 版本 {String(item.version)}</button><p>{String(item.head)}</p></li>)}</ul>
     {documentId?<div><button onClick={()=>selectDocument(null)}>关闭搜索文档</button><CanonicalLibrarySpace key={documentId} initialDocumentId={documentId} onDirtyChange={value=>{draftDirty.current=value;}}/></div>:null}
-    {selected ? <article aria-label="候选对照"><h4>类型 {String(selected.title)}</h4><pre>{String(selected.body)}</pre><p>状态 {String(selected.status)} · 版本 {String(selected.version)}</p><RawReceiptButton label="Core 证据与资格回执" payload={qualification} />
+    {selected ? <article aria-label="候选对照"><h4>类型 {String(selected.title)}</h4><pre>{String(selected.body)}</pre><p>状态 {String(selected.status)} · 版本 {String(selected.version)}</p><p>{qualificationState==="ready"?"来源与核验标注已读取；采用仍由使用者决定。":qualificationState==="pending"?"来源与核验标注尚未读回；可独立作出采用选择。":"来源与核验标注读取失败，可重新读取；未将失败写成核验通过，也不替代采用选择。"}</p>{qualificationState==="ready"?<RawReceiptButton label="Core 证据与资格回执" payload={qualification} />:null}
       <label>审核者 <input value={reviewer} onChange={event=>setReviewer(event.target.value)} /></label><label>审核备注 <textarea value={note} onChange={event=>setNote(event.target.value)} /></label>
       <button disabled={!reviewer.trim()||busy} onClick={()=>void review("accepted")}>接受当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("rejected")}>拒绝当前候选</button><button disabled={!reviewer.trim()||busy} onClick={()=>void review("deprecated")}>降级为弃用</button>
       <button disabled={busy} onClick={()=>void open(String(selected.knowledge_id))}>重新读取候选</button><button disabled={busy||selected.status!=="accepted"} onClick={()=>void study()}>由当前知识建立学习问题</button></article>:null}
     {selected?.status === "accepted" ? <>
       <KnowledgeCoursePanel key={`course:${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} onLearning={onLearning} />
-      <MachineAnswerPanel key={`${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} />
+      {showMachine?<MachineAnswerPanel key={`${String(selected.knowledge_id)}:${String(selected.version)}`} knowledgeId={String(selected.knowledge_id)} />:null}
     </> : null}
     {message?<p role="status">{message}</p>:null}
     {failureReason?<p className="state-reason">{failureReason}</p>:null}</Section>;

@@ -1,0 +1,84 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "INTEGRATED_WITH_REAL_LOCAL_MODEL_AND_SYNTHETIC_ACK_FAULTS",
+  "materials": "SYNTHETIC_ONLY",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-7971a9cc0626\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "9d7e5a7faced5e6a2fbeb94593f0239680550d413756ff9ad07a892f35c8cf1f",
+  "tested_source_patch_sha256": "1b03b295939921a50b130c71cce62b4264d2b19f980c66f131993087e897137f",
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\66918b71b1d8\\artifacts\\native-build-binding.json",
+      "sha256": "dbc69b1763675cc70fc26bc51fc5de37f09d3b0e4d5d0fe8f04756c71c991b58",
+      "bytes": 1399
+    },
+    "core_sha256": "046d08763b4dc63a3b900eb3ba8c033eef1c7bd220383e00b91acd8d6a11c790"
+  },
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "configuration_read": {
+    "status": "PASS",
+    "configuration": {
+      "availability": "CONFIGURED_UNVERIFIED",
+      "cost": null,
+      "destination": "LOCAL_LOOPBACK_ONLY",
+      "evidence_scope": "LAUNCH_POLICY_ONLY",
+      "inference_status": "NOT_EXECUTED",
+      "loaded_status": "UNKNOWN",
+      "material_scope": "AUTHORIZED_KNOWLEDGE_AND_EXPLICIT_QUESTION",
+      "model_identity": null,
+      "network_performed": false,
+      "schema": "archeaxis.machine-configuration/v1",
+      "selection_source": "DECLARED_LOCAL_DISCOVERY",
+      "usage": null,
+      "worker_registered": true
+    },
+    "machine_tasks_unchanged": true
+  },
+  "review_recovery_status": "PASS",
+  "stages": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "limitations": [
+    "Configuration read is launch-policy evidence only, not model inventory/loading/inference verification.",
+    "Actual model calls remain candidate outputs, not accuracy or Owner acceptance.",
+    "27B/cloud/Green qualification remain unverified."
+  ]
+}

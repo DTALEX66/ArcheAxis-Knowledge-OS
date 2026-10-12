@@ -96,6 +96,15 @@ async fn revoke_race(dir: &Path, router: &Router, id: &str) -> (u16, Value, Valu
     let request = json!({"client_request_id":"withheld-race-answer","knowledge_id":id,"question":"SECRET SYNTHETIC QUESTION",
         "context_grant":{"document_id":doc["document_id"],"version":doc["version"],
             "content_sha256":doc["content_sha256"],"purpose":"owned withheld race fixture"}});
+    let (status, working) = call(router, "GET", "/api/v1/workspace/ui-state", Value::Null).await;
+    assert_eq!(status, 200, "{working}");
+    let mut state = working["state"].clone();
+    let mut frozen = request.clone();
+    frozen["max_tokens"] = json!(2048);
+    frozen["timeout_s"] = json!(120);
+    state["pending_machine"] = json!({"withheld-race-answer":{"journal_id":"withheld-race-answer","owner_knowledge_id":id,"operation":"answer","origin_restore_epoch":working["restore_epoch"],"body":frozen}});
+    let (status,saved)=call(router,"PUT","/api/v1/workspace/ui-state",json!({"workspace_id":working["workspace_id"],"restore_epoch":working["restore_epoch"],"state_revision":working["state_revision"],"state":state})).await;
+    assert_eq!(status, 200, "{saved}");
     let active = router.clone();
     let task =
         tokio::spawn(
@@ -171,6 +180,25 @@ async fn revoked_during_actual_worker_execution_records_redacted_failed_audit() 
             .await
             .0,
         403
+    );
+    let (_, working) = call(&router, "GET", "/api/v1/workspace/ui-state", Value::Null).await;
+    let (status,cleared)=call(&router,"POST","/api/v1/workspace/ui-state/clear-machine",json!({"workspace_id":working["workspace_id"],"restore_epoch":working["restore_epoch"],"state_revision":working["state_revision"],"journal_id":"withheld-race-answer","task_id":audit})).await;
+    assert_eq!(status, 200, "{cleared}");
+    assert!(cleared["state"].get("pending_machine").is_none());
+    let (_, after) = call(
+        &router,
+        "GET",
+        &format!("/api/v1/machine/tasks/{audit}"),
+        Value::Null,
+    )
+    .await;
+    assert_eq!(
+        after, receipt,
+        "terminal audit must survive explicit journal retirement"
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
     );
 }
 

@@ -1,0 +1,37 @@
+{
+  "schema": "archeaxis.caption-local-transport/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "run": "065981915604",
+  "source_patch_sha256": "6ff2e41276629216e36830a27bdb2226f040ca9cdfc5843149e81e92220d63ce",
+  "source_consistent": true,
+  "tests_passed": 38,
+  "evidence_level": "INTEGRATED_SYNTHETIC_LOOPBACK_AND_WORKER_REGRESSION",
+  "scope": "Caption inventory and image POST use numeric loopback transport with no inherited proxy or redirect. Video frames delegate the same boundary. Reasoning-only text is not a final description.",
+  "redirect_matrix": {
+    "status_codes": [
+      301,
+      302,
+      303,
+      307,
+      308
+    ],
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "each_source_calls": 1,
+    "each_target_calls": 0
+  },
+  "changes": [
+    "services/python-workers/local_http.py",
+    "services/python-workers/vision/worker_caption.py",
+    "tests/test_caption_local_transport.py"
+  ],
+  "limits": [
+    "No evidence of past private material leakage",
+    "No actual visual model inference in this test; current native staged host predates transport fix",
+    "Caption ordinary extraction observed model identity enforcement remains a separate gap",
+    "Cloud research and paid API not invoked"
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.active-execution/v1",
   "selected_at": "2026-10-09",
-  "authorization": "Owner explicitly requested parallel handoff execution, new layout/architecture, palette preservation/uniformity, then G01 authority/index/description alignment; Owner explicitly prioritized G01; Owner requested comprehensive execution prioritizing governance and UI",
+  "authorization": "Owner explicitly requested parallel handoff execution, new layout/architecture, palette preservation/uniformity, then G01 authority/index/description alignment; Owner explicitly prioritized G01; Owner requested comprehensive execution prioritizing governance and UI; Owner 2026-10-11 explicitly resumed complete core framework, common formats and shortest closed loop",
   "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
   "plan_id": "AAOS-UI-FIRST-PLAN-20261009",
   "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
@@ -65,20 +65,16 @@
     "commit": "NOT_GRANTED_BY_THIS_POINTER",
     "push": "NOT_GRANTED_BY_THIS_POINTER",
     "merge": "NOT_GRANTED",
-    "cloud_ci": "V01_PAUSED",
+    "cloud_ci": "OWNER_REQUESTED_CURRENT_SCOPE_QUALIFICATION; independent V01 remains paused",
     "release": "NOT_GRANTED",
     "bulk_delete": "EXACT_PATH_GRANT_REQUIRED"
   },
   "priority_tasks": [
-    "G01",
-    "H01",
-    "UF05",
-    "UF07",
-    "UF12",
-    "UF08",
+    "UF03",
+    "CB04",
+    "UF11",
     "UF09",
     "UF10",
-    "UF11",
     "UF13"
   ],
   "freeze_register": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.md",
@@ -86,13 +82,20 @@
     "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.json"
   ],
   "execution_control": {
-    "state": "PAUSED_BY_OWNER",
-    "stopped_after": "UF13 started local slice",
-    "instruction": "完成当天跑的任务就停止任务",
+    "state": "RUNNING_BY_OWNER",
+    "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
     "whole_scope": "PARTIAL",
-    "receipt": "docs/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
-    "resume_requires": "new Owner instruction",
-    "automatic_continuation": false
+    "owner_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
+    "automatic_continuation": true,
+    "previous_stop": {
+      "state": "PAUSED_BY_OWNER",
+      "stopped_after": "UF13 started local slice",
+      "instruction": "完成当天跑的任务就停止任务",
+      "whole_scope": "PARTIAL",
+      "receipt": "docs/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
+      "resume_requires": "new Owner instruction",
+      "automatic_continuation": false
+    }
   },
   "delivery_authorization": {
     "date": "2026-10-10",
@@ -132,7 +135,7 @@
   "governance_maintenance": {
     "owner_request": "先更新修复所有权威，防止本地/云端按旧文档旧路径旧权威访问审计",
     "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
-    "product_execution": "REMAINS_PAUSED",
+    "product_execution": "RESUMED_BY_OWNER_20261011",
     "scope": "public project authority/navigation/aliases and anti-drift checks only"
   },
   "governance_delivery": {

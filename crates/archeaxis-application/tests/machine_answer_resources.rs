@@ -87,6 +87,51 @@ fn assert_owned_child_stopped(dir: &Path) {
 }
 
 #[tokio::test]
+async fn inventory_settings_failure_refuses_before_owned_child_spawn() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(dir.path(), "raise AssertionError('must not start')").await;
+    executor
+        .store()
+        .submit_wait(|conn| conn.execute("DROP TABLE capability_settings", []))
+        .await
+        .unwrap()
+        .unwrap();
+    let result = executor.machine_inventory().await;
+    assert_eq!(result["status"], "UNAVAILABLE");
+    assert!(result["listed_model_count"].is_null());
+    assert!(!dir.path().join("machine_resource_fixture.pid").exists());
+}
+
+#[tokio::test]
+async fn inventory_overflow_is_unknown_and_owned_worker_is_reaped() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(dir.path(), "assert sys.argv[1:] == ['--probe']\nsys.stdout.write('x'*1000001)\nsys.stdout.flush()\ntime.sleep(60)").await;
+    let started = Instant::now();
+    let result = executor.machine_inventory().await;
+    assert!(started.elapsed() < Duration::from_secs(18));
+    assert_eq!(result["status"], "READ_FAILED");
+    assert!(result["listed_model_count"].is_null());
+    assert!(result["selected_model_listed"].is_null());
+    assert_owned_child_stopped(dir.path());
+}
+
+#[tokio::test]
+async fn inventory_timeout_is_unknown_and_owned_worker_is_reaped() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(
+        dir.path(),
+        "assert sys.argv[1:] == ['--probe']\ntime.sleep(60)",
+    )
+    .await;
+    let started = Instant::now();
+    let result = executor.machine_inventory().await;
+    assert!(started.elapsed() < Duration::from_secs(18));
+    assert_eq!(result["status"], "READ_FAILED");
+    assert!(result["selected_model_listed"].is_null());
+    assert_owned_child_stopped(dir.path());
+}
+
+#[tokio::test]
 async fn stdout_over_128k_is_rejected_and_direct_owned_child_is_reaped() {
     let dir = tempfile::tempdir().unwrap();
     let executor = fixture(
@@ -286,4 +331,26 @@ async fn environment_probe_child() {
     }
     assert_owned_child_stopped(dir.path());
     println!("ENVIRONMENT_PROBE_CHILD_EXECUTED");
+}
+
+#[tokio::test]
+async fn nonzero_worker_keeps_only_allowlisted_reason_and_never_accepts_answer() {
+    for (code, expected) in [
+        ("NO_FINAL_ANSWER", "NO_FINAL_ANSWER"),
+        ("SYNTHETIC_PRIVATE", "WORKER_FAILED"),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let executor=fixture(dir.path(), &format!("print(json.dumps({{\"schema\":\"archeaxis.machine-worker-failure/v1\",\"reason_code\":\"{code}\",\"answer\":\"SYNTHETIC_PRIVATE\",\"error\":\"SYNTHETIC_PRIVATE\"}}))\nsys.exit(1)")).await;
+        let error = executor
+            .machine_answer(
+                "SYNTHETIC context".into(),
+                "SYNTHETIC question".into(),
+                128,
+                Duration::from_secs(10),
+            )
+            .await
+            .unwrap_err();
+        assert_eq!(error, format!("machine failure: {expected}"));
+        assert_owned_child_stopped(dir.path());
+    }
 }

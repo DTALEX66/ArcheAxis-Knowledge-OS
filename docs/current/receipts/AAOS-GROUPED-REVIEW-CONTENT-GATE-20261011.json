@@ -1,0 +1,19 @@
+{
+  "schema": "archeaxis.grouped-review-readback/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "source_base": "85479b97cb4a062e33698bbaf43385ac11edbfb8",
+  "change": "Practice verifies actual textarea answer and revealed assessment snapshot. Review compares pre-submit history with exactly one new persisted event, preserved prior events, answer/assessment/knowledge revision, counts and latest-review projection. Restore rechecks the same assessment and latest event; unscheduled next_review=null remains valid.",
+  "local_validation": {
+    "run": "6fc343a816c7",
+    "source_patch_sha256": "06e8e73af79fe70eca1420d328c5a169b357745385ac52bc65f297bfd0978380",
+    "source_consistent": true,
+    "passed": 70,
+    "subtests_passed": 103,
+    "evidence_level": "SIMULATED",
+    "checks": ["Critical Ruff PASS", "git diff --check PASS"],
+    "warning": "Existing pyreadline3 destructor invalid-handle warning after successful pytest exit retained"
+  },
+  "limits": ["No human mastery, professional truth or learning effectiveness claim", "No actual Core/installed execution of new checks yet", "Older 3bc85fc3 installer job remains independently live; no replacement or cancellation"],
+  "rollback": "Revert this scoped probe/test commit; no product or database behavior changed"
+}

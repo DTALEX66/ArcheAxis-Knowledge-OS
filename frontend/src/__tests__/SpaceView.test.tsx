@@ -25,6 +25,31 @@ vi.mock("../spaces/CanonicalLearningJourneySpace", () => ({ CanonicalLearningJou
 
 const noop = () => {};
 const props = { onInspect: noop, onNavigate: noop };
+const recovery=vi.hoisted(()=>({value:null as null|{state:{pending_reviews:Record<string,{item_key:string}>};server?:{workspace_id:string;restore_epoch:string}}}));
+vi.mock("../presentation/useCoreWorkingState",()=>({useOptionalCoreWorkingState:()=>recovery.value}));
+vi.mock("../spaces/CanonicalTeachingSpace",()=>({CanonicalTeachingSpace:({initialItemKey}:{initialItemKey?:string})=><div>TEACHING {initialItemKey??"unselected"}</div>}));
+vi.mock("../spaces/CanonicalControlledAiSpace",()=>({CanonicalControlledAiSpace:({initialLearningItemKey}:{initialLearningItemKey?:string})=><div>CONTROLLED-AI {initialLearningItemKey??"unselected"}</div>}));
+it("restores the unique frozen review identity through the actual page 12 route",()=>{
+  recovery.value={state:{pending_reviews:{e:{item_key:"durable-review"}}}};
+  try {
+    render(<SpaceView {...props} spaceId="learning" uiPageId="12"/>);
+    expect(screen.getByText("TEACHING durable-review")).toBeInTheDocument();
+  } finally {recovery.value=null;}
+});
+it("keeps the recovered scene after journal clearance but drops it on restore epoch change",()=>{
+  recovery.value={state:{pending_reviews:{e:{item_key:"durable-review"}}},server:{workspace_id:"workspace",restore_epoch:"epoch1"}};
+  try {
+    const view=render(<SpaceView {...props} spaceId="learning" uiPageId="12"/>);
+    recovery.value={state:{pending_reviews:{}},server:{workspace_id:"workspace",restore_epoch:"epoch1"}};
+    view.rerender(<SpaceView {...props} spaceId="learning" uiPageId="12"/>);
+    expect(screen.getByText("TEACHING durable-review")).toBeInTheDocument();
+    view.rerender(<SpaceView {...props} spaceId="ai-assets" uiPageId="13"/>);
+    expect(screen.getByText("CONTROLLED-AI durable-review")).toBeInTheDocument();
+    recovery.value.server!.restore_epoch="epoch2";
+    view.rerender(<SpaceView {...props} spaceId="learning" uiPageId="12"/>);
+    expect(screen.getByText("TEACHING unselected")).toBeInTheDocument();
+  } finally {recovery.value=null;}
+});
 
 function webMode() {
   delete (window as { __TAURI__?: unknown }).__TAURI__;

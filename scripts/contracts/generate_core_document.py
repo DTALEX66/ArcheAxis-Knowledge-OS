@@ -38,14 +38,22 @@ function validate(node: any, value: unknown): boolean {
   if ("const" in node) return value === node.const;
   if (node.anyOf) return node.anyOf.some((child: any) => validate(child, value));
   if (node.enum) return node.enum.includes(value);
-  if (Array.isArray(node.type)) return node.type.some((type: string) => validate({type}, value));
+  if (Array.isArray(node.type)) return node.type.some((type: string) => validate({...node, type}, value));
   switch (node.type) {
-    case "string": return typeof value === "string";
-    case "integer": return typeof value === "number" && Number.isInteger(value);
-    case "number": return typeof value === "number" && Number.isFinite(value);
+    case "string": return typeof value === "string"
+      && (node.minLength === undefined || [...value].length >= node.minLength)
+      && (node.maxLength === undefined || [...value].length <= node.maxLength)
+      && (node.pattern === undefined || new RegExp(node.pattern).test(value));
+    case "integer": return typeof value === "number" && Number.isInteger(value)
+      && (node.minimum === undefined || value >= node.minimum) && (node.maximum === undefined || value <= node.maximum);
+    case "number": return typeof value === "number" && Number.isFinite(value)
+      && (node.minimum === undefined || value >= node.minimum) && (node.maximum === undefined || value <= node.maximum);
     case "boolean": return typeof value === "boolean";
     case "null": return value === null;
-    case "array": return Array.isArray(value) && value.every(item => validate(node.items, item));
+    case "array": return Array.isArray(value)
+      && (node.minItems === undefined || value.length >= node.minItems)
+      && (node.maxItems === undefined || value.length <= node.maxItems)
+      && value.every(item => validate(node.items, item));
     case "object": {
       if (!value || typeof value !== "object" || Array.isArray(value)) return false;
       const record = value as Record<string, unknown>;

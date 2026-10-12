@@ -1,0 +1,48 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL_LOCAL_MODEL_WITH_SYNTHETIC_MATERIALS_AND_ACK_FAULTS",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-9058ca0c19e2\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "6f9fd6c712234f0629a1963842a300cb1da7761e72e90f3f53b712729fa0b383",
+  "tested_source_patch_sha256": "dd43ba186a8c5354f83634707c5fcfd32787b311fce6a38e3b2989f61169d3b6",
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\7ebd2f2548cb\\artifacts\\native-build-binding.json",
+      "sha256": "9b990b7650d54fca644b251f5517867db34f22b744837b561bbc8c8f37c744ae",
+      "bytes": 1399
+    },
+    "core_sha256": "046d08763b4dc63a3b900eb3ba8c033eef1c7bd220383e00b91acd8d6a11c790"
+  },
+  "model": "qwen3.5-4b",
+  "original_metering": {
+    "usage": {
+      "input_tokens": 154,
+      "output_tokens": 1359,
+      "total_tokens": 1513
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "retest_metering": {
+    "usage": {
+      "input_tokens": 172,
+      "output_tokens": 1299,
+      "total_tokens": 1471
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "scope": "Formal isolated Tauri/Core local model full loop after no-proxy and no-redirect transport changes; saved tasks survive full host restarts.",
+  "limitations": [
+    "Synthetic test materials and injected ACK loss; not real user acceptance.",
+    "Native success does not independently prove redirect rejection; loopback HTTP integration tests cover rejection.",
+    "No 27B, cloud, Green replacement, sustained availability or accuracy qualification.",
+    "Service-reported usage; costs remain unknown."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "archeaxis.grouped-quote-selection-progress/v1",
+  "date": "2026-10-11",
+  "basis_commit": "2cd1552d45e1d6d795f09c51f96bb700ee634a4e",
+  "status": "IMPLEMENTED_TESTED_LOCAL_INSTALLED_PENDING",
+  "previous_ci": {
+    "grouped_failure": "Create knowledge candidate disabled; screenshot selected-quote display empty; exact old keyboard sequence cause UNVERIFIED",
+    "grouped_import_read_anchor": "PASS_SCOPED_REAL_INSTALLED_CANDIDATE",
+    "artifact_id": 11681586595,
+    "head_sha": "a8f93be52cf08ed4f0cac1c9689561ef5b9d961e",
+    "conclusion": "FAILURE",
+    "anchor_focus_range_full_original": "PASS",
+    "run_id": 38081667307,
+    "grouped_receipt_sha256": "9bb3b7e926ff18bc90822a69649483c3c84b3d7f7c20e165900846c42450b62b",
+    "compatibility_child": "PASS_NOT_FULL_GROUPED_JOURNEY"
+  },
+  "change": "Trusted Ctrl+A replaces multi-chord selection; read-only actual textarea focus/value/UTF16 range and React displayed quote must match full authored source; failed selection records diagnostics; no DOM/event/bridge mutation and no weakening candidate gate",
+  "checks": {
+    "source_patch_sha256": "0f20bed468f43e4eb410eb342f6f6d2f885e2441a23f61fde16ad13811c622a5",
+    "architecture": "PASS after replacing XPath literal mistaken by path guard; original failure retained in execution transcript",
+    "critical_ruff": "PASS",
+    "teardown": "pyreadline3 destructor WinError 0xc0000008; test process exit 0; not product runtime qualification",
+    "source_consistent": true,
+    "receipt": ".project-local/runs/be268a2d33/c58db259b95e/artifacts/execution.json",
+    "helper": "20 PASS SIMULATED"
+  },
+  "qualification": "NOT_QUALIFIED new installed selection, Core ASR, actual AI and whole nine-step journey",
+  "whole_goal": "PARTIAL"
+}

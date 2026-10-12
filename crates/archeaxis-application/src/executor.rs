@@ -3,6 +3,7 @@
 use crate::attempts;
 mod derived;
 mod health;
+mod inventory;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
 };
@@ -59,6 +60,25 @@ pub struct Executor {
     derived_slots: Arc<tokio::sync::Semaphore>,
 }
 impl Executor {
+    /// Read launch policy only. No network, inventory probe or inference.
+    pub fn machine_configuration(&self) -> serde_json::Value {
+        let registered = self.worker_for("machine.answer").is_some();
+        let explicit = std::env::var_os("ARCHEAXIS_MACHINE_ENDPOINT").is_some();
+        serde_json::json!({
+            "schema":"archeaxis.machine-configuration/v1",
+            "worker_registered":registered,
+            "selection_source":if explicit {"EXPLICIT_LAUNCH"} else {"DECLARED_LOCAL_DISCOVERY"},
+            "availability":if registered {"CONFIGURED_UNVERIFIED"} else {"UNAVAILABLE"},
+            "model_identity":null,
+            "destination":"LOCAL_LOOPBACK_ONLY",
+            "material_scope":"AUTHORIZED_KNOWLEDGE_AND_EXPLICIT_QUESTION",
+            "inference_status":"NOT_EXECUTED",
+            "loaded_status":"UNKNOWN",
+            "usage":null,"cost":null,
+            "network_performed":false,
+            "evidence_scope":"LAUNCH_POLICY_ONLY"
+        })
+    }
     pub async fn open(
         db: &Path,
         staging: &Path,
@@ -145,6 +165,19 @@ impl Executor {
         max_tokens: u64,
         timeout: Duration,
     ) -> Result<serde_json::Value, String> {
+        self.machine_answer_selected(context, question, max_tokens, timeout, None)
+            .await
+    }
+
+    /// Explicit choices are checked against the fixed local lane; never endpoint input.
+    pub async fn machine_answer_selected(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+        model: Option<String>,
+    ) -> Result<serde_json::Value, String> {
         const MAX_CONTEXT: usize = 128_000;
         // Keep the existing --question argv protocol inside Windows command-line bounds.
         const MAX_QUESTION: usize = 8_192;
@@ -158,8 +191,31 @@ impl Executor {
             || !(128..=4096).contains(&max_tokens)
             || timeout < Duration::from_secs(1)
             || timeout > Duration::from_secs(120)
+            || model.as_ref().is_some_and(|m| {
+                m.trim().is_empty()
+                    || m != m.trim()
+                    || m.len() > 256
+                    || m.chars().any(char::is_control)
+            })
         {
             return Err("invalid machine answer budget or input".into());
+        }
+        let deadline = Instant::now() + timeout;
+        if let Some(selected) = &model {
+            let inventory = tokio::time::timeout(timeout, self.machine_inventory())
+                .await
+                .map_err(|_| "machine selection verification timed out")?;
+            if inventory["status"] != "READ_VERIFIED"
+                || !inventory["model_choices"]
+                    .as_array()
+                    .is_some_and(|choices| {
+                        choices
+                            .iter()
+                            .any(|choice| choice.as_str() == Some(selected.as_str()))
+                    })
+            {
+                return Err("machine selection is not verified in local inventory".into());
+            }
         }
         let worker = self
             .worker_for("machine.answer")
@@ -168,7 +224,9 @@ impl Executor {
         let python = self.python.clone();
         let staging = self.staging.clone();
         tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
-            let deadline = Instant::now() + timeout;
+            if Instant::now() >= deadline {
+                return Err("machine selection budget exhausted".into());
+            }
             let dir = tempfile::tempdir_in(&staging).map_err(|_| "machine staging unavailable")?;
             let context_path = dir.path().join("context.txt");
             std::fs::write(&context_path, context.as_bytes())
@@ -201,13 +259,26 @@ impl Executor {
                 command.env(key, dir.path());
             }
             command.env("NO_PROXY", "127.0.0.1,localhost,::1");
+            if let Some(selected) = &model {
+                command
+                    .arg("-I")
+                    .arg("-B")
+                    .arg("-X")
+                    .arg("utf8")
+                    .arg(&worker)
+                    .arg(&context_path)
+                    .arg("--model")
+                    .arg(selected);
+            } else {
+                command
+                    .arg("-I")
+                    .arg("-B")
+                    .arg("-X")
+                    .arg("utf8")
+                    .arg(&worker)
+                    .arg(&context_path);
+            }
             command
-                .arg("-I")
-                .arg("-B")
-                .arg("-X")
-                .arg("utf8")
-                .arg(&worker)
-                .arg(&context_path)
                 .arg("--question")
                 .arg(&question)
                 .arg("--max-tokens")
@@ -255,6 +326,7 @@ impl Executor {
                 let mut out = None;
                 let mut errors_finished = false;
                 let mut exit_status = None;
+                let mut drain_deadline = None;
                 loop {
                     while let Ok((is_stdout, result)) = receive.try_recv() {
                         let bytes = result?;
@@ -273,11 +345,35 @@ impl Executor {
                             .map_err(|_| "machine status unavailable")?;
                     }
                     if let Some(status) = exit_status {
-                        if !status.success() {
-                            return Err("machine worker failed".into());
-                        }
+                        let drain = *drain_deadline
+                            .get_or_insert_with(|| Instant::now() + Duration::from_secs(1));
                         if errors_finished && out.is_some() {
+                            if !status.success() {
+                                let failure = serde_json::from_slice::<serde_json::Value>(
+                                    out.as_ref().unwrap(),
+                                )
+                                .ok();
+                                let code = failure
+                                    .as_ref()
+                                    .filter(|value| {
+                                        value["schema"] == "archeaxis.machine-worker-failure/v1"
+                                    })
+                                    .and_then(|value| value["reason_code"].as_str())
+                                    .filter(|code| {
+                                        matches!(
+                                            *code,
+                                            "MODEL_CALL_FAILED"
+                                                | "NO_FINAL_ANSWER"
+                                                | "EMPTY_ANSWER"
+                                        )
+                                    })
+                                    .unwrap_or("WORKER_FAILED");
+                                return Err(format!("machine failure: {code}"));
+                            }
                             break;
+                        }
+                        if Instant::now() >= drain {
+                            return Err("machine worker pipe drain unavailable".into());
                         }
                     }
                     if Instant::now() >= deadline {
@@ -293,6 +389,12 @@ impl Executor {
                         .is_some_and(|s| !s.trim().is_empty())
                 {
                     return Err("machine worker returned no candidate answer".into());
+                }
+                if model.as_ref().is_some_and(|selected| {
+                    value["requested_model"].as_str() != Some(selected.as_str())
+                        || value["model"].as_str() != Some(selected.as_str())
+                }) {
+                    return Err("machine worker model selection mismatch".into());
                 }
                 Ok(value)
             })();
@@ -1099,7 +1201,12 @@ impl Executor {
             .map(|(path, _)| path)
             .ok_or("worker_not_configured")?;
         let python = self.python.clone();
-        let bytes = serde_json::to_vec(&request).map_err(|_| "invalid_request")?;
+        let mut wire_request = request.clone();
+        wire_request
+            .as_object_mut()
+            .ok_or("invalid_request")?
+            .remove("egress_sha256");
+        let bytes = serde_json::to_vec(&wire_request).map_err(|_| "invalid_request")?;
         if bytes.len() > 512000 {
             return Err("input_exceeds_bound".into());
         }
@@ -1109,9 +1216,47 @@ impl Executor {
             .acquire_owned()
             .await
             .map_err(|_| "execution_unavailable")?;
+        let pending_request = request.clone();
+        self.store
+            .submit_wait(move |conn| {
+                archeaxis_domain::document::check_egress_before_worker(conn, &pending_request)
+            })
+            .await
+            .map_err(|_| "execution_unavailable".to_owned())?
+            .map_err(|error| match error {
+                archeaxis_domain::document::Error::Invalid(reason)
+                    if matches!(
+                        reason,
+                        "local_only"
+                            | "egress_withdrawn"
+                            | "confirmed_plan_changed"
+                            | "attempt_already_terminal"
+                    ) =>
+                {
+                    reason.to_owned()
+                }
+                _ => "egress_revalidation_failed".to_owned(),
+            })?;
+        let check_store = self.store.clone();
+        let runtime = tokio::runtime::Handle::current();
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
             let deadline = Instant::now() + Duration::from_secs(config.timeout_seconds + 20);
+            let revalidate = || -> Result<(), String> {
+                let pending = request.clone();
+                runtime
+                    .block_on(check_store.submit_wait(move |conn| {
+                        archeaxis_domain::document::check_egress_before_worker(conn, &pending)
+                    }))
+                    .map_err(|_| "execution_unavailable".to_owned())?
+                    .map_err(|error| match error {
+                        archeaxis_domain::document::Error::Invalid("egress_withdrawn") => {
+                            "egress_withdrawn".to_owned()
+                        }
+                        _ => "egress_revalidation_failed".to_owned(),
+                    })
+            };
+            revalidate()?;
             let mut command = Command::new(&python);
             command
                 .arg("-B")
@@ -1150,14 +1295,42 @@ impl Executor {
                 let _ = written_send.send(result);
             });
             let result = (|| -> Result<serde_json::Value, String> {
-                written_receive
-                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
-                    .map_err(|_| "worker_timeout")?
-                    .map_err(str::to_owned)?;
-                let bytes = receive
-                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
-                    .map_err(|_| "worker_timeout")?
-                    .map_err(str::to_owned)?;
+                loop {
+                    revalidate()?;
+                    if Instant::now() >= deadline {
+                        return Err("worker_timeout".into());
+                    }
+                    match written_receive.recv_timeout(
+                        Duration::from_millis(50)
+                            .min(deadline.saturating_duration_since(Instant::now())),
+                    ) {
+                        Ok(result) => {
+                            result.map_err(str::to_owned)?;
+                            break;
+                        }
+                        Err(mpsc::RecvTimeoutError::Timeout) => continue,
+                        Err(mpsc::RecvTimeoutError::Disconnected) => {
+                            return Err("worker_write_failed".into());
+                        }
+                    }
+                }
+                let bytes = loop {
+                    revalidate()?;
+                    if Instant::now() >= deadline {
+                        return Err("worker_timeout".into());
+                    }
+                    match receive.recv_timeout(
+                        Duration::from_millis(50)
+                            .min(deadline.saturating_duration_since(Instant::now())),
+                    ) {
+                        Ok(result) => break result.map_err(str::to_owned)?,
+                        Err(mpsc::RecvTimeoutError::Timeout) => continue,
+                        Err(mpsc::RecvTimeoutError::Disconnected) => {
+                            return Err("worker_read_failed".into());
+                        }
+                    }
+                };
+                revalidate()?;
                 if bytes.len() > 128000 {
                     return Err("output_exceeds_bound".into());
                 }
@@ -1167,6 +1340,7 @@ impl Executor {
                     return Err("invalid_worker_response".into());
                 }
                 loop {
+                    revalidate()?;
                     match child.0.try_wait().map_err(|_| "worker_wait_failed")? {
                         Some(status) => {
                             if (value["outcome"] == "succeeded") != status.success() {

@@ -1,0 +1,10 @@
+{
+  "schema": "archeaxis.prior-epoch-review-native-attempt/v1",
+  "status": "PARTIAL",
+  "native_run": "webdriver-7e617af1eb0e",
+  "source_patch_sha256": "382d7babae83af376cfc82274347b8eaf3ad1413f7fef370f8072838b95dd422",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "reason": "Freeze ACK loss leaves live working-state session blocked; navigation alone does not reconcile it. Native original-review submission remained unconfirmed before restore. Probe now cold-reopens the same durable journal before explicit submission; no restore safety bypass.",
+  "qualification": "NOT_COMPLETED"
+}

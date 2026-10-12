@@ -1,0 +1,50 @@
+{
+  "schema": "archeaxis.chinese-base-pin-txt-rust-progress/v1",
+  "date": "2026-10-11",
+  "basis_commit": "fbfb6c846fcd9c1d3de5e2296cf5998688949657",
+  "whole_goal": "PARTIAL",
+  "pin_repair": {
+    "reviewed_change": "Base diff since99 only adds TXT kind/markers/authored fixture/immutable UTF8 span; Chinese wrapper still overrides OCR kinds/markers/chi_sim generator",
+    "old_lf_sha256": "bfdc7be40bdbc0991d1de2cbb3bb39714c3bd3c8b45c958dff64829a11058a80",
+    "new_lf_sha256": "93bbfebef845ebabd89c09d77245c84c05fcf375509765305188b14c843feb0d",
+    "guard": "Exact reviewed base hash retained; LF/CRLF accepted, source edit rejected; test imports own checkout only; no cross-checkout fallback"
+  },
+  "local": {
+    "status": "23 PASS NO_SKIP",
+    "scope": "Includes actual local Chinese PNG/JPEG/scanned-PDF OCR and light parser/guard checks; not candidate Core or installed",
+    "receipt_sha256": "4d2b3b21281d712de15109eccfb4ee0f43009a690676efe7000052ea86c09bb9",
+    "source_patch_sha256": "40eb3804601425e0a9466c121b70c8143c55eeb9005f03a16633dfab9403ded3",
+    "source_consistent": true,
+    "critical_ruff": "PASS",
+    "architecture": "PASS",
+    "teardown": "pyreadline3 destructor0xc0000008 retained; process exit0"
+  },
+  "current_ci": {
+    "run_id": 38083440673,
+    "source_commit": "3ffbe73c791a53b150e3ce3a1c1224085abdc98c",
+    "os_tests": "4694 passed /87 skipped /5 errors old base preimage; not PASS",
+    "desktop_fast": "Chinese wrapper old preimage FAIL; ASR prepare/Core/upload required SKIPPED",
+    "rust_job_id": 114305012318,
+    "rust": "PASS including both new NOT_ADMITTED/durable-running/replay regressions",
+    "rust_log_sha256": "4cd6932110cc9a2d475d173bbe33f6aa5edf0eea191fc4e90c9b851ebc7211c8",
+    "installer": "Pending live run; no complete CI PASS"
+  },
+  "txt": {
+    "artifact_id": 11681755128,
+    "receipt_sha256": "5fa9da1793b794bf76c1d3acf837622182fef053bfa8959a4d585a79af51e286",
+    "qualification": "INTEGRATED_SELECTED_TXT_CORE_ORIGINAL_CONTENT_UTF8_LOCATION_REPARSE_RESTART",
+    "materials": "SYNTHETIC_AUTHORED",
+    "source_consistent": true,
+    "source_sha256": "489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58",
+    "first_job_id": "light-1314d5f03b7842cfbc21df1b2f33f464",
+    "reparse_job_id": "light-80b76d43390547f889d6b09406e03939",
+    "restart_equal": true,
+    "full_content_and_output_digests": "PASS",
+    "immutable_span_after_astral_character": "PASS"
+  },
+  "limitations": [
+    "No repaired-wrapper Core CI result yet",
+    "ASR Core remains NOT_EXECUTED",
+    "No installed whole nine-step, physical IME, Owner learning acceptance, release or Green replacement"
+  ]
+}

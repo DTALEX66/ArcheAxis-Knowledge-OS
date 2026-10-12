@@ -17,6 +17,18 @@ SPEC.loader.exec_module(dev)
 
 
 class DevelopmentPaths(unittest.TestCase):
+    def test_launcher_streams_preserve_unicode_with_inherited_gbk(self):
+        script = ("import importlib.util; "
+                  f"s=importlib.util.spec_from_file_location('dev_stream_test',{str(LAUNCHER)!r}); "
+                  "m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
+                  "m.configure_console_streams(); print('\\u2713 星环'); "
+                  "print('\\u2713 诊断',file=m.sys.stderr)")
+        child_env = {**os.environ, "PYTHONUTF8": "0", "PYTHONIOENCODING": "gbk"}
+        result = subprocess.run([sys.executable, "-B", "-c", script], env=child_env, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8", errors="replace"))
+        self.assertEqual(result.stdout.decode("utf-8").strip(), "✓ 星环")
+        self.assertEqual(result.stderr.decode("utf-8").strip(), "✓ 诊断")
+
     def test_identity_rejects_link_before_reading_target(self):
         target = self.repo.parent / 'private-target.txt'
         target.write_text('fixture-only', encoding='utf-8')

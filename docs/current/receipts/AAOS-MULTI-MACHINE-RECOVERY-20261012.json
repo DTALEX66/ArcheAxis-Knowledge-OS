@@ -1,0 +1,30 @@
+{
+  "schema": "archeaxis.multi-machine-recovery/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "SIMULATED_UI_WITH_SEPARATE_REAL_NATIVE_ENGINEERING_JOURNEY",
+  "changes": [
+    "Select exact journal identity when multiple frozen requests share an owner or fingerprint",
+    "Retire only the selected request after exact positive or withheld historical verification",
+    "Confirmed external removal drops stale local request references and restores the remaining request"
+  ],
+  "verification": {
+    "frontend_run": "001ab54509a9",
+    "frontend_passed": 60,
+    "typescript_run": "a4f2c8dd6cfe",
+    "typescript_exit_code": 0,
+    "earlier_typescript_failure": "180d504edf77: numeric budget not assignable to UI budget union; fixed and reran",
+    "native_run": "webdriver-ffdf9a654f76",
+    "native_raw_receipt": ".project-local/runs/be268a2d33/webdriver-ffdf9a654f76/tmp/journey/receipt.json",
+    "native_source_patch_sha256": "4a2b3d1f7d8333a2420ed05898e60062f31733cc65e3bb64b01d495445255c13",
+    "native_core_sha256": "3dcc868bff005ab2dbbca3bf33ee44bcafd97365416a7983316c12329dd653e3",
+    "native_ok": true,
+    "native_source_consistent": true,
+    "native_owned_ports_released": true
+  },
+  "limits": [
+    "Native journey preceded the final external-clear UI fix and does not qualify that later fix",
+    "Multi-journal recovery and external-clear branches are simulated, not actual model fault injection",
+    "No Owner acceptance, release, Green replacement, commit or push"
+  ]
+}

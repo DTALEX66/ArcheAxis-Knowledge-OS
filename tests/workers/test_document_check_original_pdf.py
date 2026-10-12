@@ -160,6 +160,7 @@ def test_auxiliary_failure_is_not_professional_support(
     calls = []
     req = f.request()
     req["dimension"] = dimension
+    req["search_query"] = "public background terminology"
 
     def retrieval(*a, **k):
         raise p.CheckExecutionError(reason, fields)
@@ -210,7 +211,9 @@ def test_model_failure_stays_failed_after_auxiliary_failure(worker, monkeypatch)
 
     monkeypatch.setattr(p, "retrieve_context", retrieval)
     monkeypatch.setitem(sys.modules, "litellm", SimpleNamespace(completion=complete))
-    result = p.execute(f.request())
+    req = f.request()
+    req["search_query"] = "public background terminology"
+    result = p.execute(req)
     assert result["outcome"] == "failed" and result["engine_receipt"] is None
     assert any(r["kind"] == "auxiliary_unavailable" for r in result["retrieval_receipts"])
     assert "SECRET" not in json.dumps(result)

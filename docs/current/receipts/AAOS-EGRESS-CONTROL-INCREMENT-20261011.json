@@ -1,0 +1,147 @@
+{
+  "schema": "archeaxis.egress-control-progress/v1",
+  "date": "2026-10-11",
+  "overall": "PARTIAL",
+  "scope": "DOT A03 incremental document-check material confirmation and durable request controls",
+  "implemented": [
+    "Confirmed excerpts are prepared inside the claim transaction; full oversized saved text remains intact.",
+    "Core rejects inconsistent plans before claiming an attempt.",
+    "Terminal history and executed verdicts retain selected-excerpt applicability.",
+    "Immutable per-request local_only prohibits cloud previews and starts, including unconfigured paths.",
+    "Human-only idempotent withdrawal appends a control event without an attempt identity.",
+    "Waiting workers re-read the original request, running attempt, configuration and material plan after acquiring a slot.",
+    "Core-only egress fingerprint is removed from worker wire requests.",
+    "Existing restore-owned authorization epoch invalidates pre-restore confirmation fingerprints; corrupt fences deny admission.",
+    "Product contract records independent human admission and controlled egress as requirements, not completion evidence."
+  ],
+  "verification": [
+    {
+      "run": "b262a6002474",
+      "status": "PASS",
+      "evidence_level": "SYNTHETIC",
+      "counts": {
+        "domain": 13,
+        "api_owned_worker": 7,
+        "authorization_fence": 3
+      },
+      "source_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+      "source_patch_sha256": "118dda09b6bed72f09d8e89489be41cb889520e09033855bcdb13c3c47adf7e1",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/b262a6002474/artifacts/execution.json"
+    },
+    {
+      "run": "4f1d5f4b3b15",
+      "status": "PASS",
+      "evidence_level": "SIMULATED",
+      "counts": {
+        "frontend": 26
+      },
+      "source_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+      "source_patch_sha256": "118dda09b6bed72f09d8e89489be41cb889520e09033855bcdb13c3c47adf7e1",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/4f1d5f4b3b15/artifacts/execution.json"
+    },
+    {
+      "run": "f7ca83f5acbb",
+      "status": "PASS",
+      "evidence_level": "STRUCTURAL",
+      "counts": {
+        "contract": 22
+      },
+      "source_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+      "source_patch_sha256": "ceb1be987d663e4b0c1581921b13fd24acad12550dc365e58d285d5aefb7ae34",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/f7ca83f5acbb/artifacts/execution.json"
+    },
+    {
+      "run": "fda0d2112e11",
+      "status": "PASS",
+      "evidence_level": "STRUCTURAL",
+      "counts": {
+        "architecture_guard": 1
+      },
+      "source_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+      "source_patch_sha256": "ceb1be987d663e4b0c1581921b13fd24acad12550dc365e58d285d5aefb7ae34",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/fda0d2112e11/artifacts/execution.json"
+    },
+    {
+      "run": "3d759a77bb63",
+      "status": "PASS",
+      "evidence_level": "STRUCTURAL",
+      "counts": {
+        "rust_fmt_check": 1
+      },
+      "source_commit": "d6c2bbeef722f82a02a3f18e1b4296ad5e37c58b",
+      "source_patch_sha256": "118dda09b6bed72f09d8e89489be41cb889520e09033855bcdb13c3c47adf7e1",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/3d759a77bb63/artifacts/execution.json"
+    }
+  ],
+  "frontend_build": {
+    "run": "a9d15ad36cb5",
+    "status": "PASS",
+    "source_consistent": true,
+    "source_patch_sha256": "118dda09b6bed72f09d8e89489be41cb889520e09033855bcdb13c3c47adf7e1",
+    "acceptance": "BUILD_ONLY"
+  },
+  "red_evidence": [
+    {
+      "run": "39bfc0569102",
+      "issue": "local-only and withdrawal did not block preflight"
+    },
+    {
+      "run": "5a9ec04717cd",
+      "issue": "queued withdrawn worker still started"
+    },
+    {
+      "run": "1e2ea26e3595",
+      "issue": "local-only and durable withdrawal UI absent"
+    },
+    {
+      "run": "c281fda39669",
+      "issue": "restore did not invalidate old confirmation fingerprint"
+    }
+  ],
+  "intermediate_failures": [
+    {
+      "run": "36ca835b4a4c",
+      "issue": "restore regression fixture initially missed workspace_meta; not qualifying evidence of the product issue"
+    },
+    {
+      "run": "21f1f4218875",
+      "issue": "legacy-like root lacked execution_verified; withdrawal now explicitly sets false"
+    }
+  ],
+  "limits": [
+    "No real cloud/provider call or paid API call.",
+    "Withdrawal cannot recall already sent material.",
+    "Active-worker cancellation and the interval between final Core revalidation and first network I/O remain incomplete.",
+    "The restore test installs the actual restore fence in synthetic SQLite; it is not a complete archive roundtrip.",
+    "Windows native Tauri actual-AI full closed loop and Owner acceptance remain incomplete."
+  ],
+  "not_executed": [
+    "commit",
+    "push",
+    "merge",
+    "release",
+    "Green replacement",
+    "real user data overwrite",
+    "model download"
+  ],
+  "modified_files": [
+    "PROJECT_CONTRACT.yaml",
+    ".project/schemas/project-contract.schema.json",
+    "crates/archeaxis-api/src/documents.rs",
+    "crates/archeaxis-api/tests/document_cloud_loop.rs",
+    "crates/archeaxis-domain/src/document.rs",
+    "crates/archeaxis-application/src/executor.rs",
+    "crates/archeaxis-store-sqlite/src/authorization_fence.rs",
+    "frontend/src/components/CheckPanel.tsx",
+    "frontend/src/__tests__/CheckPanel.test.tsx",
+    "packages/contracts/v1/core-document.schema.json",
+    "frontend/src/api/generated/core-contract.ts",
+    "packages/contracts/v1/openapi-outline.yaml",
+    "services/python-workers/README.md"
+  ]
+}

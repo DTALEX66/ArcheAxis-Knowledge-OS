@@ -394,7 +394,7 @@ tasks:
     task_kind: integration
     risk: R3
     depends_on: [PR-19, PR-20, PR-21, PR-22]
-    allowed_paths: [tests/integration/closed-loop/**, tests/journey/v01-owner-loop.yaml]
+    allowed_paths: [tests/integration/closed-loop/**, tests/journey/v01-owner-loop.yaml, tests/journey/tauri-common-format-owner-loop.yaml]
     acceptance: [import, anchor, personal-and-machine-knowledge, review, search, learning, restart, backup, restore, failure-safety]
     evidence: [closed-loop-receipt, db-cas-hashes]
     rollback: restore_pre_run_snapshot

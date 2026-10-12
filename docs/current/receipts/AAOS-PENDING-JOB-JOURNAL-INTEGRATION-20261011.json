@@ -1,0 +1,74 @@
+{
+  "schema": "archeaxis.execution-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL",
+  "status": "IMPLEMENTED_LOCAL_RUNTIME_QUALIFICATION_PENDING",
+  "integration": {
+    "files": 21,
+    "manifest": ".project-local/runs/job-journal-delivery-20261011/manifest.json",
+    "patch_sha256": "699109653c2a8a8de29770678e813fa1e5b340c01575cabdb6bab6362ba4a1bb",
+    "preimages": "All 21 exact existing/ABSENT preimages independently verified",
+    "first_postimage_check": "FAILED_EOL_ONLY_ON_16_FILES",
+    "postimages": "Independent normalized byte comparison proved only CRLF/LF differences; copied the reviewed isolated bytes only after exact manifest hash and normalized equality checks; all original 21 postimages then matched",
+    "helper_fix_patch_sha256": "5937f2cf731f7df5451dd90f821bc10354415fa2298f2ab0f4634ed0a7af12e9",
+    "helper_fix": "Exact test preimage and patch checked; postimage CRLF/LF difference independently checked and exact reviewed bytes preserved"
+  },
+  "behavior": {
+    "journal": "Optional typed pending_jobs in existing Core-owned workspace_meta, 64 entries and existing 1 MiB state budget; no SQL migration",
+    "identity": "Source ID/revision, job/request/kind, full deadline/split/words budget, entry surface/mode, optional folder relative display and origin restore epoch",
+    "admission": "Core journal CAS ACK required before enqueue/execute; unknown ACK retained and reread, no new request substitution",
+    "recovery": "Three actual entry components explicitly hydrate frozen scene after remount/new App session; no automatic enqueue/execute/cancel/enable",
+    "clear": "Runtime admission and active guards plus one Store transaction; exact terminal ledger/budget binding, or same-epoch proven unadmitted abandonment",
+    "abandonment": "Atomic durable request tombstone rejects late key before worker admission; existing exact durable ledger replay remains first; 256 full/corrupt record refuses and retains journal, no eviction",
+    "old_clients": "Omission/replacement of existing pending identities rejected",
+    "late_ack": "Clearance preserves newer local state/drafts and freezes unconfirmed cleanup",
+    "native_probe": "Frozen NOT_ADMITTED journal readback, whole host restart, explicit same identity hydration, still-disabled same-key proof refresh, explicit enable/readback, same-key retry, result restart readback"
+  },
+  "verification": {
+    "frontend": {
+      "files": 121,
+      "tests": 1111,
+      "result": "PASS_NO_SKIP",
+      "evidence_level": "SIMULATED",
+      "execution": ".project-local/runs/be268a2d33/7cdf7a189dfc/artifacts/execution.json",
+      "source_commit": "1f1b1549e64b2d17005323f5f206fc62b23da9ec",
+      "source_patch_sha256": "275dad7eadd78ebc6cd4fd22e0624900d680ab731c555d8f35aad7e8ee002584",
+      "source_consistent": true,
+      "scope": "Final production/frontend source; later helper-only fix changes Python tests, not these frontend files"
+    },
+    "typescript_and_build": {
+      "result": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/b7b781d8985b/artifacts/frontend-build.json",
+      "source_patch_sha256": "275dad7eadd78ebc6cd4fd22e0624900d680ab731c555d8f35aad7e8ee002584",
+      "source_consistent": true
+    },
+    "native_helpers": {
+      "first_result": "53_PASS_2_FAIL_OLD_FIXTURE_MISSING_NEW_JOURNAL_READ",
+      "first_execution": ".project-local/runs/be268a2d33/9e59007efbd6/artifacts/execution.json",
+      "fix": "Complete mocked journal/hydration contract; retained automatic execution and identity negative assertions, added budget/restart execution/journal mutation negatives",
+      "final_result": "55_PASS_NO_SKIP",
+      "execution": ".project-local/runs/be268a2d33/506b33756560/artifacts/execution.json",
+      "source_patch_sha256": "b7a1e68994ba60027e2aff9730ef4705601f3fe2a7d8d33f6989c90787414490",
+      "source_consistent": true,
+      "evidence_level": "SIMULATED_HELPER"
+    },
+    "ui_working_state_projection": "PASS_CHECK",
+    "architecture": "PASS",
+    "critical_ruff": "PASS",
+    "rust_compile_tests_and_format": "NOT_EXECUTED",
+    "actual_core_journal": "NOT_EXECUTED",
+    "actual_installed_restart": "NOT_EXECUTED",
+    "warnings": ["Pyreadline3 destructor WinError after pytest exit0 retained", "Vite large chunk warning retained", "Isolated direct pytest legacy fixture permission failure retained; no test result or retry"]
+  },
+  "ci": {
+    "run": 38086620115,
+    "sha": "29ab6d0c8d9057cd1c3edf3fcf59971e91603e8a",
+    "rust_and_os_jobs": "PASS_AT_THAT_SHA_ONLY",
+    "desktop_build": "IN_PROGRESS_AT_OBSERVATION",
+    "speech_step": "FAIL",
+    "speech_error_and_core_start": "UNVERIFIED",
+    "speech_download": "HTTP401/403 then automatic approval rejected normal-auth retry; Owner text authorization requested and pending, no further download attempt",
+    "contains_this_journal": false
+  },
+  "limits": ["Old-epoch entries are quarantined candidates and cannot prove historical non-execution", "Old-origin replay/abandon refused; explicit discard is a user decision, not execution proof", "Restoring a backup predating a tombstone cannot retain future timeline evidence", "Folder File bytes and browser batch queue are not persisted by this journal", "No physical IME/Owner/full-nine-step/release qualification"]
+}

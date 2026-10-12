@@ -1,0 +1,34 @@
+{
+  "schema": "archeaxis.ai-receipt-observation-repair/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "source_base": "53a1bbe27b906b2d227f9ec8ff48505f1fe9760b",
+  "implementation": "Worker separately retains requested_model, observed_model and answer_source in answer, extraction and loss receipt params. Missing or malformed response identity remains null; never inferred from request. Strict grouped actual-AI gate rejects unobserved/different model or reasoning-only source for original answer and independent retest.",
+  "historical_compatibility": "Old model remains requested declaration; receipt binding helper unchanged and continues NOT_PROVEN_BY_RECEIPT_HELPER. Historical fixtures not retroactively supplied with observed identities.",
+  "local_tests": {
+    "execution": "SIMULATED",
+    "run": "f2566c415856",
+    "passed": 80,
+    "subtests_passed": 94,
+    "source_patch_sha256": "b312de46bcf7a67a0c1466069ce48fb1d36b16b196f529cabfd26b629b6cf3c1",
+    "source_consistent": true,
+    "first_run": "c81e0c33c743: 79 passed / 1 failed / 78 subtests passed; strict test incorrectly labelled Ollama response as content; fixture corrected according to protocol",
+    "additional": ["Critical Ruff PASS", "architecture guard PASS", "git diff --check PASS", "Read-only independent caller/serialization review found no blocking issue"],
+    "after_test_change": "Only _call docstring wording updated; no behavioral change"
+  },
+  "real_worker_sample": {
+    "execution": "REAL_WORKER_DIRECT_SYNTHETIC_MATERIAL_NOT_CORE",
+    "path": ".project-local/runs/be268a2d33/model-selection-20261011/worker-observed-identity.json",
+    "sha256": "c78c5d749e3d66de937c1eb4add710b247da50a775e0f03e655736a44f086c9c",
+    "requested_model": "qwen3.5-4b",
+    "observed_model": "qwen3.5-4b",
+    "answer_source": "content",
+    "finish_reason": "stop",
+    "truncated": false,
+    "elapsed_s": 7.48,
+    "expected_literal_present": true,
+    "limits": "Narrow synthetic fact only; no answer/reasoning retained; direct invocation without Core request/grant or installed UI. Docstring-only edit while invocation running; no source-consistency qualification claimed for this direct sample."
+  },
+  "remaining": ["Successor exact-SHA CI and actual installed Core original/correction/retest/restore chain", "Owner actual interaction and professional truth acceptance", "Strict CLI upfront authored-intervention precondition remains separate work"],
+  "rollback": "Revert this scoped commit; no model weights, provider, endpoint, auth or global configuration changed"
+}

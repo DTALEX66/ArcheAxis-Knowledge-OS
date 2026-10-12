@@ -1,0 +1,31 @@
+{
+  "schema": "archeaxis.machine-terminal-recovery/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "INTEGRATED_WITH_SYNTHETIC_WORKERS_AND_SIMULATED_UI",
+  "changes": [
+    "Withheld audit retains separate admitted transport and execution fingerprints",
+    "Exact human terminal clearance removes only the pending journal, preserving audit and execution barrier",
+    "Failed audits and historical audits without admitted input fingerprint cannot clear unknown execution",
+    "Retest journal owner and question bind to the actual failed journey",
+    "UI can inspect withheld history and resolve confirmed clear ACK loss without invoking inference"
+  ],
+  "tests": [
+    {"run": "7fbc48ff8fcd", "suite": "domain/ui_working_state", "passed": 13},
+    {"run": "7fbc48ff8fcd", "suite": "api/withheld unit", "passed": 3},
+    {"run": "7fbc48ff8fcd", "suite": "api/machine_withheld_api", "passed": 5},
+    {"run": "7fbc48ff8fcd", "suite": "api/contract_machine_answer", "passed": 15},
+    {"run": "5ab2ea4aacb3", "suite": "frontend/journal scoped answer working state", "passed": 58},
+    {"run": "dd744b714c6a", "suite": "TypeScript", "exit_code": 0}
+  ],
+  "failed_attempt": {
+    "run": "3fa1c7b2ece4",
+    "status": "FAIL",
+    "reason": "Two new UI fixtures serialized an empty journal map instead of the Core omitted-map representation; corrected fixture and reran all selected suites"
+  },
+  "limits": [
+    "This increment has not yet been rebuilt or qualified through the native Tauri host",
+    "No actual model crash or withheld race qualification",
+    "No Owner acceptance, installed Green replacement, release, commit or push"
+  ]
+}

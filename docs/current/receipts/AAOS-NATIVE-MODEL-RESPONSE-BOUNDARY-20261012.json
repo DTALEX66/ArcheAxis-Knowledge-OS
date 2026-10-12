@@ -1,0 +1,47 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL_LOCAL_MODEL_WITH_SYNTHETIC_MATERIALS_AND_ACK_FAULTS",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-97c2bb10f140\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "06f7cc2f09939eba4a57a3597cb7f669785a85f6bc267d1ca1e67a8b716aad97",
+  "tested_source_patch_sha256": "63c72dd6c61e68cab5e9a793e75895db53f659702da657f58db9ec1661e111c2",
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\25f9e58ebd11\\artifacts\\native-build-binding.json",
+      "sha256": "88772d6706ae0e76f7d6eb5f63c28e318c80cf49ffc36760d6283e60e377e98b",
+      "bytes": 1399
+    },
+    "core_sha256": "046d08763b4dc63a3b900eb3ba8c033eef1c7bd220383e00b91acd8d6a11c790"
+  },
+  "model": "qwen3.5-4b",
+  "original_metering": {
+    "usage": {
+      "input_tokens": 159,
+      "output_tokens": 1756,
+      "total_tokens": 1915
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "retest_metering": {
+    "usage": {
+      "input_tokens": 177,
+      "output_tokens": 1617,
+      "total_tokens": 1794
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "scope": "Actual local-model answer/retest/save/full-host-restart journey with bounded 4 MiB response reader.",
+  "limitations": [
+    "Synthetic materials and injected ACK faults.",
+    "Oversized rejection is proven by scoped regression, not this normal model response.",
+    "No 27B, cloud, installed Green, sustained reliability or Owner acceptance."
+  ]
+}

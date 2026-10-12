@@ -436,6 +436,9 @@ def test_selective_heavy_jobs_gate_on_gateplan() -> None:
         assert "needs.gateplan.result != 'success'" not in jobs[job]["if"]
     assert "workflow_dispatch" in jobs["installer-lifecycle"]["if"]
     assert "inputs.force_full" in jobs["installer-lifecycle"]["if"]
+    lifecycle_condition = jobs["installer-lifecycle"]["if"]
+    assert "needs.desktop-build.result == 'success'" in lifecycle_condition
+    assert "|| contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle')" in lifecycle_condition
     # Missing/failed GatePlan stays red in the stable summary, without launching
     # the heavy matrix just to obtain a red result.
     assert 'if [ "${{ needs.gateplan.result }}" != "success" ]' in WORKFLOW.read_text(encoding="utf-8")

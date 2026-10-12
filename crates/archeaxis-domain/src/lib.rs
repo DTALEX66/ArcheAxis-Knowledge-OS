@@ -26,6 +26,7 @@ pub mod search;
 pub mod source;
 pub mod teaching;
 pub mod template_binding;
+pub mod ui_state;
 pub mod vault;
 pub mod vault_members;
 

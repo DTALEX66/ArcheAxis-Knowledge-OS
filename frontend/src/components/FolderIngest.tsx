@@ -1,6 +1,9 @@
+import { useJobJournal, JobJournalRecovery } from "../presentation/useJobJournal";
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
-import { ApiError } from "../api/client";
+import { ApiError, type JobAdmissionRefusal } from "../api/client";
+import { FrozenCapabilityRecovery } from "./FrozenCapabilityRecovery";
+import { recoverableJobRefusal } from "../api/jobAdmission";
 import { conversionKindFor } from "../api/conversionKinds";
 import type { BoundedJobCommand, JobStatus } from "./BoundedJobPanel";
 import { freezeFolderAttempt, folderCancelAck, folderExecutionAck, freshAttemptEligible, jobState, pollFolderAttempt, readFolderStatus, terminalJobState, type FolderAttempt, type JobState } from "../presentation/folderIngestExecution";
@@ -18,7 +21,7 @@ type Refusal = { relative: string; bytes: number; state: RefusalState; detail: s
 type RowState = JobState | RefusalState | "UNKNOWN" | "ORIGINAL_ONLY" | "IMPORT_FAILED" | "ENQUEUE_FAILED" | "IDENTITY_CONFLICT";
 type Row = { key: string; batch_id: string; relative: string; bytes: number; state: RowState; detail: string;
   source_id?: string; sha256?: string; job_id?: string; kind?: string; status?: JobStatus;
-  attempt?: FolderAttempt; cancelPending?: boolean; executionRefused?: boolean };
+  attempt?: FolderAttempt; cancelPending?: boolean; executionRefused?: boolean; admissionProof?:JobAdmissionRefusal; capabilityBusy?:boolean };
 const LABEL: Record<RowState, string> = {
   queued:"已入队", pending:"已入队", running:"作业运行中", leased:"作业运行中", starting:"作业运行中",
   succeeded:"已成功", failed:"失败待重试", cancelled:"已取消", rejected:"已拒绝",
@@ -76,12 +79,14 @@ function refuseBeforeUpload(relative: string, bytes: number): Refusal | null {
 }
 
 export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: string, jobId?: string) => void }) {
+  const journal=useJobJournal("folder");
   const [rows, setRows] = useState<Row[]>([]), [folder, setFolder] = useState<string | null>(null);
   const [batchId, setBatchId] = useState<string | null>(null), [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false), [remaining, setRemaining] = useState(0), [cancelBusy, setCancelBusy] = useState(false);
   const rowsRef = useRef<Row[]>([]), queue = useRef(new Map<string, File>()), handled = useRef(new Set<string>());
   const folderRef = useRef<string | null>(null), batchRef = useRef<string | null>(null);
   const running = useRef(false), stopAfter = useRef(false), cancelFlight = useRef(false);
+  const capabilityFlight = useRef(false);
   const mounted = useRef(true), epoch = useRef(0), active = useRef<{ key: string; attempt: FolderAttempt } | null>(null);
   const timers = useRef(new Map<number, () => void>()), callback = useRef(onOpenSource); callback.current = onOpenSource;
   const owner = `folder-ingest-${useId()}`;
@@ -143,7 +148,7 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     }
   }
   function lock(): number | null {
-    if (running.current) return null; running.current = true; stopAfter.current = false; setBusy(true); publish(); return epoch.current;
+    if (capabilityFlight.current || running.current) return null; running.current = true; stopAfter.current = false; setBusy(true); publish(); return epoch.current;
   }
   function unlock(generation: number) { if (!current(generation)) return; running.current = false; setBusy(false); active.current = null; publish(); }
   async function runBatch() {
@@ -162,9 +167,13 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     } finally { unlock(generation); }
   }
   function statusPatch(key: string, status: JobStatus) {
+    const frozen=rowsRef.current.find(row=>row.key===key)?.attempt;
+    if(journal.available&&frozen&&terminalJobState(status.state)&&status.request_id===frozen.request_id){
+      void journal.clear(frozen.request_id).then(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{attempt:undefined,cancelPending:false,executionRefused:false,admissionProof:undefined});}).catch(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{detail:"终态已记录，但执行保全清理未确认；冻结身份保留，请再核对状态。"});});
+    }
     const terminal = terminalJobState(status.state);
     patch(key, { status, state: jobState(status.state), detail: terminal ? `转换终态 ${status.state}；原件保留，成功产物可按真实来源定位。${status.error ? ` ${status.error}` : ""}` : `转换仍为 ${status.state}；终态未确认。`,
-      ...(terminal ? { attempt: undefined, cancelPending: false, executionRefused: false } : {}) });
+      ...(terminal && !journal.available ? { attempt: undefined, cancelPending: false, executionRefused: false, admissionProof:undefined, capabilityBusy:false } : {}) });
   }
   async function executeOne(key: string, mode: "queued" | "fresh" | "same", generation: number) {
     let row = rowsRef.current.find(item => item.key === key);
@@ -186,8 +195,11 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     if (!attempt || mode === "same" && row.executionRefused) return;
     const source = row.source_id!;
     const belongs = () => current(generation) && rowsRef.current.some(item => item.key === key && item.attempt?.request_id === attempt.request_id);
-    patch(key, { attempt, state: "UNKNOWN", detail: "执行请求已冻结；等待真实回执，90s 单次预算。", executionRefused: false }); active.current = { key, attempt };
+    patch(key, { attempt, state: "UNKNOWN", detail: "执行请求已冻结；等待真实回执，90s 单次预算。", executionRefused: false, admissionProof:undefined }); active.current = { key, attempt };
     try {
+      if(!row.sha256||!row.kind)throw new Error("来源与种类身份缺失；未执行。");
+      await journal.stage({source_id:source,source_revision:row.sha256,kind:row.kind,job_id:attempt.job_id,request_id:attempt.request_id,body:attempt.body,mode:"single",relative:row.relative});
+      if(!belongs())return;
       const receipt = await folderCommand("job_execute", { job_id: attempt.job_id, request_id: attempt.request_id, body: attempt.body });
       if (!belongs()) return;
       folderExecutionAck(receipt, attempt); // An ACK is not a terminal readback.
@@ -195,8 +207,10 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
       if (current(generation)) window.dispatchEvent(new Event("archeaxis-job-changed"));
     } catch (error) {
       if (belongs()) {
-        patch(key, { state: "UNKNOWN", executionRefused: error instanceof ApiError && error.status >= 400 && error.status < 500,
-          detail: `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留冻结身份，仅同请求重试或读取状态，不产生新尝试。` });
+        const recovery = recoverableJobRefusal(error, attempt, source, row.kind);
+        patch(key, { state: "UNKNOWN", executionRefused: error instanceof ApiError && error.status >= 400 && error.status < 500 && !recoverableJobRefusal(error, attempt, source, row.kind),
+          admissionProof:recovery?(error as ApiError).jobAdmission:undefined,
+          detail: recovery ? "Core 已确认原请求未受理；能力禁用。可在此启用，原冻结身份保留；之后另点同请求重试。" : `执行未确认：${error instanceof Error ? error.message : "未知原因"}；保留冻结身份，仅同请求重试或读取状态，不产生新尝试。` });
         stopAfter.current = true;
       }
     } finally { if (active.current?.attempt.request_id === attempt.request_id) active.current = null; }
@@ -227,7 +241,7 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
   }
   async function cancel(key: string) {
     const row = rowsRef.current.find(item => item.key === key), attempt = row?.attempt;
-    if (!row?.source_id || !attempt || cancelFlight.current) return;
+    if (!row?.source_id || !attempt || cancelFlight.current || capabilityFlight.current) return;
     const generation = epoch.current; cancelFlight.current = true; setCancelBusy(true); stopAfter.current = true;
     const belongs = () => current(generation) && rowsRef.current.some(item => item.key === key && item.attempt?.request_id === attempt.request_id);
     patch(key, { cancelPending: true, detail: "取消待确认；继续读回当前转换，202 不等于已取消。" });
@@ -241,12 +255,13 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     finally { cancelFlight.current = false; if (current(generation)) setCancelBusy(false); }
   }
   function open(row: Row) {
-    if (running.current || rowsRef.current.some(item => item.attempt || item.cancelPending)) { setMessage("仍有运行或冻结请求，请先核对状态再打开来源；批次与原件保留。"); return; }
+    if (capabilityFlight.current || running.current || rowsRef.current.some(item => item.attempt || item.cancelPending)) { setMessage("仍有运行或冻结请求，请先核对状态再打开来源；批次与原件保留。"); return; }
     if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined);
   }
-  return <section aria-label="文件夹导入"><h4>文件夹导入</h4>
+  const capabilityBusy = rows.some(row=>row.capabilityBusy);
+  return <section aria-label="文件夹导入"><h4>文件夹导入</h4><JobJournalRecovery entries={journal.entries} disabled={busy||cancelBusy||capabilityFlight.current||journal.blocked} onRestore={entry=>{const key=`recovered:${entry.request_id}`;replace({key,batch_id:"recovered",relative:entry.relative??entry.source_id,bytes:0,source_id:entry.source_id,sha256:entry.source_revision,job_id:entry.job_id,kind:entry.kind,attempt:{job_id:entry.job_id,request_id:entry.request_id,body:entry.body},state:"UNKNOWN",detail:"Core 保全现场已恢复；本地文件待上传队列未恢复。先核对原冻结状态，未自动执行。"});}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");update(old=>old.filter(row=>row.attempt?.request_id!==entry.request_id));}}/>
     <label className="content-import">选择一个文件夹<input type="file" aria-label="选择文件夹" disabled={busy || rows.some(row => !!row.attempt)} {...({ webkitdirectory: "", directory: "" } as Record<string, string>)} multiple onChange={event => {
-      if (running.current || rowsRef.current.some(row => !!row.attempt)) return;
+      if (capabilityFlight.current || running.current || rowsRef.current.some(row => !!row.attempt)) return;
       const files = Array.from(event.target.files ?? []); event.target.value = "";
       if (!files.length) { setMessage("没有收到任何文件；浏览器可能拒绝了此选择。"); return; }
       const root = folderOf(files); if (!root) { setMessage("所选内容不像是同一个文件夹，未开始导入。"); return; }
@@ -264,10 +279,10 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     {rows.length ? <><p aria-label="批次真实统计">{tally(rows)}</p><p>表格可横向滚动查看操作列。</p><div className="folder-ingest-table-scroll" role="region" aria-label="批次明细与操作，可横向滚动" tabIndex={0}><table className="data-table"><thead><tr>{["文件夹内路径","字节","原件","转换结果","说明","操作"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>
       <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保管 · {row.source_id}<br/>SHA-256 {row.sha256}</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
       <td>{row.detail}{row.job_id ? <><br/>job {row.job_id}</> : null}{row.attempt ? <><br/>冻结请求 {row.attempt.request_id} · {row.attempt.body.deadline_ms}ms</> : row.status?.request_id ? <><br/>实际请求 {row.status.request_id}</> : null}</td>
-      <td><div>{row.job_id ? <button disabled={busy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "核对冻结请求状态" : "读取转换状态"}</button> : null}
-        {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy} onClick={() => void rowAction(row.key,"same")}>同请求重试</button> : null}
-        {!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy} onClick={() => void rowAction(row.key,"fresh")}>重试失败项（新请求）</button> : null}
-        {row.attempt ? <button disabled={cancelBusy} onClick={() => void cancel(row.key)}>请求取消当前转换</button> : null}
+      <td><div>{row.job_id ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "核对冻结请求状态" : "读取转换状态"}</button> : null}
+        {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"same")}>同请求重试</button> : null}
+        {row.attempt&&row.admissionProof&&row.source_id?<FrozenCapabilityRecovery key={row.attempt.request_id} proof={row.admissionProof} attempt={row.attempt} source={row.source_id} kind={row.kind} disabled={busy||cancelBusy||capabilityBusy} current={()=>mounted.current&&!running.current&&!cancelFlight.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)} onBusyChange={value=>{if(mounted.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)){capabilityFlight.current=value;patch(row.key,{capabilityBusy:value});}}}/>:null}{!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"fresh")}>重试失败项（新请求）</button> : null}
+        {row.attempt ? <button disabled={cancelBusy||capabilityBusy} onClick={() => void cancel(row.key)}>请求取消当前转换</button> : null}
         {row.source_id && onOpenSource ? <button disabled={busy || rows.some(item => !!item.attempt)} onClick={() => open(row)}>{row.state === "succeeded" ? "打开成功产物与来源" : "打开保留原件"}</button> : null}</div></td>
     </tr>)}</tbody></table></div><p>执行终态不等同识别核验或专业依据已确认；成功产物须按真实 source_id/job_id 从持久化记录读取。</p></> : null}
   </section>;

@@ -1,0 +1,20 @@
+{
+  "schema": "archeaxis.actual-ai-preflight/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "source_base": "2b5afa26351ef8269b0b7557f207b7301a2f1c36",
+  "change": "Strict actual-AI qualification requires explicit grouped loop, actual model and authored intervention before any host/installer operation. Missing options rejected; no implicit enabling or route change.",
+  "validation": {
+    "run": "f416e1cd896d",
+    "passed": 100,
+    "subtests_passed": 94,
+    "source_patch_sha256": "1dd223bb42216cef5ff1cd20248feeaf3fb0d4bcf0a1caa7584fe14cc6c843ee",
+    "source_consistent": true,
+    "evidence_level": "SIMULATED",
+    "regression": "Five missing-opt-in combinations exit argparse code 2 with a fake host, before resolving/launching it",
+    "checks": ["PowerShell AST syntax PASS", "Critical Ruff PASS", "diff check PASS", "Independent read-only order/caller review PASS"],
+    "warning": "Existing pyreadline3 destructor invalid-handle warning after successful pytest exit retained"
+  },
+  "limits": ["No actual Core, installation or Owner signoff from these tests", "Default cloud grouped path remains partial without actual-model opt-in", "Current older 3bc85fc3 CI remains independently running; not cancelled or duplicated"],
+  "rollback": "Revert this scoped commit"
+}

@@ -134,7 +134,20 @@ fn handshake(
             }
             Ok(hello.worker.name)
         });
+    // Windows venv launchers may own a second Python process. Close the
+    // input-free handshake normally before killing the launcher: EOF lets the
+    // actual worker exit and release its staging directory too.
+    drop(child.0.stdin.take());
+    let exit_deadline = Instant::now() + Duration::from_millis(500);
+    while Instant::now() < exit_deadline {
+        match child.0.try_wait() {
+            Ok(Some(_)) | Err(_) => break,
+            Ok(None) => thread::sleep(Duration::from_millis(10)),
+        }
+    }
     drop(child);
     let _ = reader.join();
+    dir.close()
+        .map_err(|e| format!("worker health staging cleanup unverified: {e}"))?;
     result
 }

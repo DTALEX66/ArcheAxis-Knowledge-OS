@@ -386,6 +386,39 @@ HOST_BRIDGE_STUB_TEMPLATE = """
   // can read what the surface claims when a Core read cannot be finished.
   const faults = __A0_FAULTS__;
   __A0_STATEFUL_DOCUMENTS__
+  // Explicit SIMULATED journal: new desktop startup must read a valid Core
+  // working-state contract. An absent fixture is not a product persistence ACK.
+  const copyJournal=value=>JSON.parse(JSON.stringify(value));
+  const emptyJournal=()=>({drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null});
+  let journal={schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,
+    state:emptyJournal(),draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false};
+  async function journalHash(value) {
+    const hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));
+    return [...new Uint8Array(hash)].map(n=>n.toString(16).padStart(2,"0")).join("");
+  }
+  async function journalFixture(operation,payload) {
+    if(operation==="ui_state_read")return {status:200,body:copyJournal(journal)};
+    if(!["ui_state_write","ui_state_clear_saved","ui_state_recover"].includes(operation))return null;
+    const body=payload.body;
+    if(!body||body.workspace_id!==journal.workspace_id||body.restore_epoch!==journal.restore_epoch||body.state_revision!==journal.state_revision)
+      return {status:409,body:{error:"UI_STATE_CONFLICT",workspace_id:journal.workspace_id,restore_epoch:journal.restore_epoch,state_revision:journal.state_revision}};
+    if(operation==="ui_state_recover")return {status:409,body:{error:"NO_SIMULATED_RECOVERY_CANDIDATE"}};
+    let state;
+    if(operation==="ui_state_write") {
+      state=copyJournal(body.state);
+      if(journal.state.pending_original&&state.pending_original&&JSON.stringify(journal.state.pending_original)!==JSON.stringify(state.pending_original))return {status:422,body:{error:"FROZEN_ORIGINAL_CHANGED"}};
+    } else {
+      const draft=journal.state.drafts[body.document_id];
+      const saved=window.__A0_DOCUMENT_FIXTURE__?.snapshot().find(doc=>doc.document_id===body.document_id);
+      if(!draft||!saved||draft.base_version!==body.base_version||body.saved_version!==body.base_version+1||saved.version!==body.saved_version
+        ||journal.draft_digests[body.document_id]!==body.content_sha256||JSON.stringify(saved.editor_json)!==JSON.stringify(draft.editor_json))return {status:409,body:{error:"SIMULATED_CLEAR_REFUSED"}};
+      state=copyJournal(journal.state);delete state.drafts[body.document_id];
+    }
+    const digests={};for(const [id,draft] of Object.entries(state.drafts))digests[id]=await journalHash(JSON.stringify(draft.editor_json));
+    journal={...journal,state_revision:journal.state_revision+1,state,draft_digests:digests,
+      pending_document_id:state.pending_original?"doc_req_"+await journalHash(state.pending_original.create_request_id):null};
+    return {status:200,body:copyJournal(journal)};
+  }
   window.__TAURI__ = {
     core: {
       invoke: async (command, request) => {
@@ -398,6 +431,8 @@ HOST_BRIDGE_STUB_TEMPLATE = """
           if (Object.prototype.hasOwnProperty.call(faults, operation)) {
             return { status: faults[operation], body: {} };
           }
+          const journalAnswer=await journalFixture(operation,request?.request?.payload??{});
+          if(journalAnswer)return journalAnswer;
           if (documentFixture) {
             const answer = await documentFixture(operation, request?.request?.payload ?? {});
             if (answer) return answer;

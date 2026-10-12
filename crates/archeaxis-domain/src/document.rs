@@ -480,6 +480,8 @@ fn validate_basis(conn: &Connection, id: &str, expected: i64, basis: &Value) -> 
 }
 
 pub struct CheckInput {
+    pub local_only: Option<bool>,
+    pub search_query: Option<String>,
     pub version: i64,
     pub dimension: String,
     pub provider_mode: String,
@@ -537,6 +539,20 @@ pub fn record_check(
 ) -> Result<Value, Error> {
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     let snapshot = read(&tx, id, Some(input.version))?;
+    if input.local_only.is_some() && (actor != "human" || input.provider_mode != "cloud") {
+        return Err(Error::Invalid(
+            "local-only scope requires a human cloud request",
+        ));
+    }
+    if input.search_query.as_ref().is_some_and(|query| {
+        input.provider_mode != "cloud"
+            || actor != "human"
+            || query.trim().is_empty()
+            || query.chars().count() > 1000
+            || query.len() > 4000
+    }) {
+        return Err(Error::Invalid("invalid independent search query"));
+    }
     if !["recognition_fidelity", "professional_basis"].contains(&input.dimension.as_str()) {
         return Err(Error::Invalid("unsupported check dimension"));
     }
@@ -675,10 +691,10 @@ pub fn record_check(
     })?;
     let at: String = tx.query_row("SELECT datetime('now')", [], |r| r.get(0))?;
     let record = json!({"check_id":check_id,"document_id":id,"version":input.version,"content_sha256":snapshot["content_sha256"],
-        "dimension":input.dimension,"status":status,"actor":actor,"provider_mode":input.provider_mode,
+        "dimension":input.dimension,"status":status,"actor":actor,"provider_mode":input.provider_mode,"local_only":input.local_only.unwrap_or(false),
         "execution_verified":false,"execution_state":if input.provider_mode=="cloud"{"not_executed"}else{"reported_manual"},
         "source_id":snapshot["source_id"],"source_revision":snapshot["source_revision"],"position":input.position,
-        "recognition_job_id":input.recognition_job_id,"recognition_result_sha256":input.recognition_result_sha256,
+        "recognition_job_id":input.recognition_job_id,"recognition_result_sha256":input.recognition_result_sha256,"search_query":input.search_query,
         "basis":input.basis,"reason":if input.provider_mode=="cloud"{Some("worker_not_configured".to_owned())}else{input.reason},"recorded_at":at});
     tx.execute("INSERT INTO document_checks(check_id,document_id,version,dimension,receipt_json) VALUES(?1,?2,?3,?4,?5)",params![check_id,id,input.version,record["dimension"].as_str(),record.to_string()])?;
     tx.commit()?;
@@ -705,7 +721,182 @@ pub fn search(conn: &Connection, query: &str) -> Result<Vec<Value>, Error> {
     Ok(rows)
 }
 
-/// Explicit execution preflight. No provider is configured by this product path yet.
+/// Enforce immutable request scope and append-only withdrawal at every preflight.
+pub fn check_egress_allowed(conn: &Connection, request: &Value) -> Result<(), Error> {
+    if !request["local_only"].is_null() && request["local_only"].as_bool() != Some(false) {
+        return Err(Error::Invalid("local_only"));
+    }
+    let withdrawn: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM document_checks WHERE document_id=?1 AND json_extract(receipt_json,'$.event_kind')='egress_control' AND json_extract(receipt_json,'$.control')='withdraw_request' AND json_extract(receipt_json,'$.target_request_check_id')=?2)",
+        params![request["document_id"].as_str(), request["check_id"].as_str()], |r|r.get(0))?;
+    if withdrawn {
+        return Err(Error::Invalid("egress_withdrawn"));
+    }
+    Ok(())
+}
+
+/// Re-read the original request after waiting for a worker slot. A running row's
+/// check_id is an attempt identity, never the withdrawal target.
+pub fn check_egress_before_worker(conn: &Connection, execution: &Value) -> Result<(), Error> {
+    let id = execution["document_id"]
+        .as_str()
+        .ok_or(Error::Invalid("invalid_egress_identity"))?;
+    let root_id = execution["request_check_id"]
+        .as_str()
+        .ok_or(Error::Invalid("invalid_egress_identity"))?;
+    let raw: String = conn.query_row(
+        "SELECT receipt_json FROM document_checks WHERE document_id=?1 AND check_id=?2",
+        params![id, root_id],
+        |r| r.get(0),
+    )?;
+    let root: Value =
+        serde_json::from_str(&raw).map_err(|_| Error::Invalid("invalid_egress_identity"))?;
+    if root["check_id"] != root_id
+        || root["document_id"] != id
+        || root["provider_mode"] != "cloud"
+        || root["status"] != "pending"
+        || !root["request_check_id"].is_null()
+    {
+        return Err(Error::Invalid("invalid_egress_identity"));
+    }
+    check_egress_allowed(conn, &root)?;
+    let raw: String = conn.query_row("SELECT receipt_json FROM document_checks WHERE document_id=?1 AND json_extract(receipt_json,'$.attempt_id')=?2 AND json_extract(receipt_json,'$.execution_state')='running'", params![id,execution["attempt_id"].as_str()], |r|r.get(0))?;
+    let running: Value =
+        serde_json::from_str(&raw).map_err(|_| Error::Invalid("invalid_egress_identity"))?;
+    for key in [
+        "document_id",
+        "version",
+        "content_sha256",
+        "dimension",
+        "request_check_id",
+        "attempt_id",
+    ] {
+        if running[key] != execution[key] {
+            return Err(Error::Invalid("invalid_egress_identity"));
+        }
+    }
+    let terminal: bool = conn.query_row("SELECT EXISTS(SELECT 1 FROM document_checks WHERE document_id=?1 AND json_extract(receipt_json,'$.attempt_id')=?2 AND json_extract(receipt_json,'$.execution_state')!='running')", params![id,execution["attempt_id"].as_str()], |r|r.get(0))?;
+    if terminal {
+        return Err(Error::Invalid("attempt_already_terminal"));
+    }
+    let selected = if running["egress_plan"]["scope"] == "selected_text" {
+        execution["text"].as_str()
+    } else {
+        None
+    };
+    let plan = preview_check_egress(
+        conn,
+        id,
+        root_id,
+        execution["content_sha256"]
+            .as_str()
+            .ok_or(Error::Invalid("invalid_egress_identity"))?,
+        &execution["config"],
+        selected,
+    )?;
+    if running["egress_plan"] != plan["egress_plan"]
+        || running["egress_sha256"] != plan["egress_sha256"]
+        || execution["egress_sha256"] != plan["egress_sha256"]
+        || execution["text"] != plan["egress_plan"]["document_text"]["text"]
+    {
+        return Err(Error::Invalid("confirmed_plan_changed"));
+    }
+    let recognition = &plan["egress_plan"]["recognition"];
+    let expected_recognition = if recognition.is_null() {
+        Value::Null
+    } else {
+        json!({"job_id":recognition["job_id"],"result_sha256":recognition["sha256"],"text":recognition["text"]})
+    };
+    let original = &plan["egress_plan"]["original"];
+    if execution["search_query"] != plan["egress_plan"]["search_query"]
+        || execution["recognition"] != expected_recognition
+        || (original.is_null() && !execution["original"].is_null())
+        || (!original.is_null() && execution["original"]["sha256"] != original["source_revision"])
+    {
+        return Err(Error::Invalid("confirmed_plan_changed"));
+    }
+    Ok(())
+}
+
+/// Withdrawal blocks subsequent starts/retries; previously sent data cannot be recalled.
+/// Control events never impersonate worker attempts or conclusions.
+pub fn withdraw_check_request(
+    conn: &mut Connection,
+    id: &str,
+    check_id: &str,
+    expected_sha: &str,
+) -> Result<Value, Error> {
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let raw: Option<String> = tx
+        .query_row(
+            "SELECT receipt_json FROM document_checks WHERE document_id=?1 AND check_id=?2",
+            params![id, check_id],
+            |r| r.get(0),
+        )
+        .optional()?;
+    let request: Value = serde_json::from_str(&raw.ok_or(Error::NotFound)?)
+        .map_err(|_| Error::Invalid("invalid stored check"))?;
+    if request["check_id"] != check_id
+        || request["document_id"] != id
+        || request["provider_mode"] != "cloud"
+        || request["status"] != "pending"
+        || !request["request_check_id"].is_null()
+        || !request["event_kind"].is_null()
+    {
+        return Err(Error::Invalid("withdrawal requires original cloud request"));
+    }
+    let version = request["version"]
+        .as_i64()
+        .ok_or(Error::Invalid("invalid check version"))?;
+    let snapshot = read(&tx, id, Some(version))?;
+    if request["content_sha256"] != expected_sha || snapshot["content_sha256"] != expected_sha {
+        return Err(Error::Invalid("check snapshot digest mismatch"));
+    }
+    let existing: Option<(String,i64,String,String)> = tx.query_row("SELECT check_id,version,dimension,receipt_json FROM document_checks WHERE document_id=?1 AND json_extract(receipt_json,'$.event_kind')='egress_control' AND json_extract(receipt_json,'$.control')='withdraw_request' AND json_extract(receipt_json,'$.target_request_check_id')=?2", params![id,check_id], |r|Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).optional()?;
+    if let Some((event_id, event_version, dimension, raw)) = existing {
+        let event: Value =
+            serde_json::from_str(&raw).map_err(|_| Error::Invalid("invalid stored withdrawal"))?;
+        if event["check_id"] != event_id
+            || event["document_id"] != id
+            || event["version"] != version
+            || event_version != version
+            || event["content_sha256"] != expected_sha
+            || event["dimension"] != request["dimension"]
+            || event["dimension"] != dimension
+            || event["actor"] != "human"
+            || event["provider_mode"] != "cloud"
+            || event["status"] != "unverified"
+            || event["reason"] != "egress_withdrawn"
+            || event["execution_verified"] != false
+            || event["execution_state"] != "withdrawn"
+            || !event["attempt_id"].is_null()
+            || !event["request_check_id"].is_null()
+        {
+            return Err(Error::Invalid("invalid stored withdrawal"));
+        }
+        return Ok(event);
+    }
+    let event_id: String = tx.query_row("SELECT 'chk_'||lower(hex(randomblob(16)))", [], |r| {
+        r.get(0)
+    })?;
+    let at: String = tx.query_row("SELECT datetime('now')", [], |r| r.get(0))?;
+    let mut event = request;
+    event["check_id"] = json!(event_id);
+    event["status"] = json!("unverified");
+    event["actor"] = json!("human");
+    event["execution_verified"] = json!(false);
+    event["event_kind"] = json!("egress_control");
+    event["control"] = json!("withdraw_request");
+    event["target_request_check_id"] = json!(check_id);
+    event["execution_state"] = json!("withdrawn");
+    event["reason"] = json!("egress_withdrawn");
+    event["recorded_at"] = json!(at);
+    tx.execute("INSERT INTO document_checks(check_id,document_id,version,dimension,receipt_json) VALUES(?1,?2,?3,?4,?5)",params![event_id,id,version,event["dimension"].as_str(),event.to_string()])?;
+    tx.commit()?;
+    Ok(event)
+}
+
+/// Explicit execution preflight for the unconfigured provider path.
 /// Preserve each failed attempt and permit only an explicit retry of that attempt.
 pub fn execute_check_unconfigured(
     conn: &mut Connection,
@@ -729,6 +920,7 @@ pub fn execute_check_unconfigured(
             "execution requires original cloud pending request",
         ));
     }
+    check_egress_allowed(&tx, &request)?;
     let version = request["version"]
         .as_i64()
         .ok_or(Error::Invalid("invalid check version"))?;
@@ -852,6 +1044,109 @@ mod execution_preflight_tests {
 }
 
 /// Snapshot-bound claim for one explicit cloud attempt. No network occurs here.
+pub fn preview_check_egress(
+    conn: &Connection,
+    id: &str,
+    check_id: &str,
+    expected_sha: &str,
+    config: &Value,
+    selected_text: Option<&str>,
+) -> Result<Value, Error> {
+    let raw: String = conn.query_row(
+        "SELECT receipt_json FROM document_checks WHERE document_id=?1 AND check_id=?2",
+        params![id, check_id],
+        |row| row.get(0),
+    )?;
+    let mut request: Value =
+        serde_json::from_str(&raw).map_err(|_| Error::Invalid("invalid stored check"))?;
+    if request["provider_mode"] != "cloud"
+        || request["status"] != "pending"
+        || !request["request_check_id"].is_null()
+    {
+        return Err(Error::Invalid("preview requires original cloud request"));
+    }
+    check_egress_allowed(conn, &request)?;
+    let snapshot = read(conn, id, request["version"].as_i64())?;
+    if snapshot["content_sha256"] != expected_sha || request["content_sha256"] != expected_sha {
+        return Err(Error::Invalid("check snapshot digest mismatch"));
+    }
+    let endpoint = config["endpoint"]
+        .as_str()
+        .ok_or(Error::Invalid("explicit destination required"))?;
+    if !endpoint.starts_with("https://")
+        || endpoint.contains(['@', '?', '#'])
+        || endpoint.chars().any(char::is_whitespace)
+    {
+        return Err(Error::Invalid("explicit destination required"));
+    }
+    let full_text = snapshot["text_projection"]
+        .as_str()
+        .ok_or(Error::Invalid("missing document text"))?;
+    let text = match selected_text {
+        Some(selected)
+            if request["dimension"] == "professional_basis"
+                && !selected.trim().is_empty()
+                && full_text.contains(selected) =>
+        {
+            selected
+        }
+        Some(_) => {
+            return Err(Error::Invalid(
+                "selected material must be an exact professional-basis excerpt",
+            ));
+        }
+        None => full_text,
+    };
+    if text.len() > 64000 {
+        return Err(Error::Invalid("cloud snapshot exceeds bound"));
+    }
+    let query = request["search_query"].as_str();
+    if request["dimension"] == "professional_basis" && query.is_none() {
+        return Err(Error::Invalid("independent search query required"));
+    }
+    let mut original = Value::Null;
+    let mut recognition = Value::Null;
+    if request["dimension"] == "recognition_fidelity" {
+        let source_id = snapshot["source_id"]
+            .as_str()
+            .ok_or(Error::Invalid("original unavailable"))?;
+        let revision = snapshot["source_revision"]
+            .as_str()
+            .ok_or(Error::Invalid("original unavailable"))?;
+        let name: String = conn.query_row(
+            "SELECT original_name FROM sources WHERE source_id=?1 AND sha256=?2",
+            params![source_id, revision],
+            |row| row.get(0),
+        )?;
+        let bytes = archeaxis_store_sqlite::raw_objects::read(conn, revision)?;
+        if bytes.len() > 64000 || hex::encode(Sha256::digest(&bytes)) != revision {
+            return Err(Error::Invalid("original bound or digest mismatch"));
+        }
+        original = json!({"source_id":source_id,"source_revision":revision,"name":name,"bytes":bytes.len(),"scope":"complete_original"});
+        let job = request["recognition_job_id"]
+            .as_str()
+            .ok_or(Error::Invalid("recognition unavailable"))?;
+        let digest = request["recognition_result_sha256"]
+            .as_str()
+            .ok_or(Error::Invalid("recognition unavailable"))?;
+        let output: String = conn.query_row("SELECT o.content FROM jobs j JOIN job_outputs o ON j.job_id=o.job_id JOIN job_attempts a ON a.job_id=o.job_id AND a.attempt=o.attempt WHERE j.job_id=?1 AND j.input_ref=?2 AND j.state='succeeded' AND a.state='succeeded' AND o.kind='text' AND json_extract(o.metadata_json,'$.sha256')=?3 ORDER BY o.attempt DESC LIMIT 1",params![job,source_id,digest],|row|row.get(0))?;
+        if output.len() > 64000 || hex::encode(Sha256::digest(output.as_bytes())) != digest {
+            return Err(Error::Invalid("recognition bound or digest mismatch"));
+        }
+        recognition = json!({"job_id":job,"sha256":digest,"bytes":output.len(),"text":output});
+    }
+    let restore_epoch = archeaxis_store_sqlite::authorization_fence::authorization_epoch(conn)?;
+    let plan = json!({"schema":"archeaxis.document-check-egress/v1","document_id":id,"version":snapshot["version"],"content_sha256":expected_sha,"restore_epoch":restore_epoch,
+        "request_check_id":check_id,"purpose":request["dimension"],"configuration":config,"scope":if selected_text.is_some(){"selected_text"}else{"full_saved_snapshot"},
+        "model_destination":endpoint,"search_destination":if query.is_some(){json!("https://lite.duckduckgo.com/lite/")}else{Value::Null},
+        "document_text":{"text":text,"bytes":text.len(),"sha256":hex::encode(Sha256::digest(text.as_bytes()))},
+        "original":original,"recognition":recognition,"search_query":query,"usage":"unknown","cost":"unknown"});
+    // serde_json's ordered object representation provides deterministic UTF-8 JSON.
+    request["egress_sha256"] = json!(hex::encode(Sha256::digest(plan.to_string().as_bytes())));
+    request["egress_plan"] = plan;
+    Ok(request)
+}
+
 pub struct CheckExecution {
     pub preparation_error: Option<&'static str>,
     pub running: Value,
@@ -866,6 +1161,28 @@ pub fn begin_check(
     check_id: &str,
     expected_sha: &str,
     retry_of: Option<&str>,
+) -> Result<CheckExecution, Error> {
+    begin_check_inner(conn, id, check_id, expected_sha, retry_of, None)
+}
+
+pub fn begin_confirmed_check(
+    conn: &mut Connection,
+    id: &str,
+    check_id: &str,
+    expected_sha: &str,
+    retry_of: Option<&str>,
+    plan: &Value,
+) -> Result<CheckExecution, Error> {
+    begin_check_inner(conn, id, check_id, expected_sha, retry_of, Some(plan))
+}
+
+fn begin_check_inner(
+    conn: &mut Connection,
+    id: &str,
+    check_id: &str,
+    expected_sha: &str,
+    retry_of: Option<&str>,
+    plan: Option<&Value>,
 ) -> Result<CheckExecution, Error> {
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     let raw: Option<String> = tx
@@ -883,12 +1200,35 @@ pub fn begin_check(
     {
         return Err(Error::Invalid("execution requires original cloud request"));
     }
+    check_egress_allowed(&tx, &request)?;
     let version = request["version"]
         .as_i64()
         .ok_or(Error::Invalid("invalid version"))?;
     let snapshot = read(&tx, id, Some(version))?;
     if snapshot["content_sha256"] != expected_sha || request["content_sha256"] != expected_sha {
         return Err(Error::Invalid("check snapshot digest mismatch"));
+    }
+    if let Some(plan) = plan {
+        let selection = if plan["egress_plan"]["scope"] == "selected_text" {
+            Some(
+                plan["egress_plan"]["document_text"]["text"]
+                    .as_str()
+                    .ok_or(Error::Invalid("missing confirmed material"))?,
+            )
+        } else {
+            None
+        };
+        let verified = preview_check_egress(
+            &tx,
+            id,
+            check_id,
+            expected_sha,
+            &plan["egress_plan"]["configuration"],
+            selection,
+        )?;
+        if verified != *plan {
+            return Err(Error::Invalid("confirmed plan identity mismatch"));
+        }
     }
     let previous:Option<String>=tx.query_row(
         "SELECT receipt_json FROM document_checks WHERE document_id=?1 AND version=?2 AND json_extract(receipt_json,'$.request_check_id')=?3 ORDER BY rowid DESC LIMIT 1",
@@ -907,7 +1247,10 @@ pub fn begin_check(
     // Identity/version/retry checks above reject before any attempt is claimed.
     // Material failures below become a terminal attempt without invoking a worker.
     let material = (|| -> Result<CheckExecution, Error> {
-        let text = snapshot["text_projection"]
+        let text_value = plan
+            .map(|p| &p["egress_plan"]["document_text"]["text"])
+            .unwrap_or(&snapshot["text_projection"]);
+        let text = text_value
             .as_str()
             .ok_or(Error::Invalid("missing document text"))?
             .to_owned();
@@ -937,8 +1280,12 @@ pub fn begin_check(
             None
         };
         let recognition = if let (Some(job), Some(digest)) = (
-            request["recognition_job_id"].as_str(),
-            request["recognition_result_sha256"].as_str(),
+            request["recognition_job_id"]
+                .as_str()
+                .filter(|_| request["dimension"] == "recognition_fidelity"),
+            request["recognition_result_sha256"]
+                .as_str()
+                .filter(|_| request["dimension"] == "recognition_fidelity"),
         ) {
             let output:Option<String>=tx.query_row("SELECT o.content FROM jobs j JOIN job_outputs o ON j.job_id=o.job_id JOIN job_attempts a ON a.job_id=o.job_id AND a.attempt=o.attempt WHERE j.job_id=?1 AND j.input_ref=?2 AND j.state='succeeded' AND a.state='succeeded' AND o.kind='text' AND json_extract(o.metadata_json,'$.sha256')=?3 ORDER BY o.attempt DESC LIMIT 1",params![job,snapshot["source_id"].as_str(),digest],|r|r.get(0)).optional()?;
             let output = output.ok_or(Error::Invalid("recognition output unavailable"))?;
@@ -969,6 +1316,10 @@ pub fn begin_check(
         })?;
     let at: String = tx.query_row("SELECT datetime('now')", [], |r| r.get(0))?;
     let mut running = request;
+    if let Some(plan) = plan {
+        running["egress_plan"] = plan["egress_plan"].clone();
+        running["egress_sha256"] = plan["egress_sha256"].clone();
+    }
     running["check_id"] = json!(running_id);
     running["request_check_id"] = json!(check_id);
     running["attempt_id"] = json!(attempt);
@@ -1138,7 +1489,7 @@ pub fn finish_check(
         }
         let engine = &response["engine_receipt"];
         if basis.trim().is_empty()
-            || engine["tokens_used"].as_u64().is_none()
+            || (!engine["tokens_used"].is_null() && engine["tokens_used"].as_u64().is_none())
             || engine["provider"] != provider
             || engine["requested_model"] != model
             || engine["model"]
@@ -1154,6 +1505,19 @@ pub fn finish_check(
             return Err(Error::Invalid("successful execution evidence mismatch"));
         }
     }
+    // Serialize terminal admission with withdrawal in the same writer transaction.
+    // Preserve returned provider evidence even when the owner's withdrawal wins.
+    let withdrawn: bool = tx.query_row(
+        "SELECT EXISTS(SELECT 1 FROM document_checks WHERE document_id=?1 AND json_extract(receipt_json,'$.event_kind')='egress_control' AND json_extract(receipt_json,'$.control')='withdraw_request' AND json_extract(receipt_json,'$.target_request_check_id')=?2)",
+        params![running["document_id"].as_str(), running["request_check_id"].as_str()],
+        |row| row.get(0),
+    )?;
+    let success = success && !withdrawn;
+    let reason = if withdrawn {
+        Some("egress_withdrawn")
+    } else {
+        reason
+    };
     let mut result = running.clone();
     result["check_id"] = tx
         .query_row("SELECT 'chk_'||lower(hex(randomblob(16)))", [], |r| {
@@ -1167,7 +1531,7 @@ pub fn finish_check(
     };
     result["reported_status"] = response["status"].clone();
     result["basis"] = json!(basis);
-    result["reason"] = response["reason"].clone();
+    result["reason"] = reason.map_or(Value::Null, |value| json!(value));
     result["raw_response"] = json!(raw_response);
     result["engine_receipt"] = response["engine_receipt"].clone();
     result["retrieval_receipts"] = response["retrieval_receipts"].clone();
@@ -1207,7 +1571,19 @@ pub fn finish_check(
 }
 
 pub fn failed_check_response(running: &Value, reason: &str) -> Value {
-    let mut result = running.clone();
+    // The worker response is bounded independently of the durable egress plan.
+    // Keep large confirmed materials only in the running/terminal receipt.
+    let mut result = json!({});
+    for key in [
+        "attempt_id",
+        "request_check_id",
+        "document_id",
+        "version",
+        "content_sha256",
+        "dimension",
+    ] {
+        result[key] = running[key].clone();
+    }
     result["schema"] = json!("archeaxis.document-check.response/v1");
     result["outcome"] = json!("failed");
     result["status"] = json!("failed");
@@ -1249,7 +1625,8 @@ mod cloud_execution_tests {
     use super::*;
     fn setup() -> Connection {
         let c = Connection::open_in_memory().unwrap();
-        c.execute_batch("CREATE TABLE documents(document_id TEXT PRIMARY KEY,source_id TEXT,source_revision TEXT,title TEXT,current_version INTEGER);
+        c.execute_batch("CREATE TABLE workspace_meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
+            CREATE TABLE documents(document_id TEXT PRIMARY KEY,source_id TEXT,source_revision TEXT,title TEXT,current_version INTEGER);
             CREATE TABLE document_versions(document_id TEXT,version INTEGER,editor_json TEXT,text_projection TEXT,content_sha256 TEXT,revision_basis TEXT);
             CREATE TABLE document_blocks(document_id TEXT,version INTEGER,block_id TEXT,kind TEXT,ordinal INTEGER,node_json TEXT,text_projection TEXT,codec_status TEXT);
             CREATE TABLE document_checks(check_id TEXT PRIMARY KEY,document_id TEXT,version INTEGER,dimension TEXT,receipt_json TEXT);
@@ -1264,6 +1641,229 @@ mod cloud_execution_tests {
         .unwrap();
         c
     }
+    #[test]
+    fn withdrawal_before_terminal_commit_preserves_response_without_success() {
+        let mut c = setup();
+        c.execute("UPDATE document_checks SET dimension='recognition_fidelity',receipt_json=json_set(receipt_json,'$.dimension','recognition_fidelity')", []).unwrap();
+        let a = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        let raw = r#"{"status":"faithful","basis":"SIMULATED original comparison"}"#;
+        let mut response = failed_check_response(&a.running, "unused");
+        response["outcome"] = json!("succeeded");
+        response["status"] = json!("faithful");
+        response["basis"] = json!("SIMULATED original comparison");
+        response["reason"] = Value::Null;
+        response["raw_response"] = json!(raw);
+        response["engine_receipt"] = json!({"provider":"explicit","requested_model":"explicit/model","model":"SIMULATED-model","finish_reason":"stop","tokens_used":null,"prompt_sha256":"a".repeat(64),"response_sha256":hex::encode(Sha256::digest(raw.as_bytes()))});
+        withdraw_check_request(&mut c, "d", "request", "old-sha").unwrap();
+        let terminal =
+            finish_check(&mut c, &a.running, &response, "explicit", "explicit/model").unwrap();
+        assert_eq!(terminal["status"], "failed");
+        assert_eq!(terminal["reason"], "egress_withdrawn");
+        assert_eq!(terminal["execution_verified"], false);
+        assert_eq!(terminal["reported_status"], "faithful");
+        assert_eq!(terminal["raw_response"], raw);
+        assert_eq!(terminal["engine_receipt"], response["engine_receipt"]);
+        assert!(finish_check(&mut c, &a.running, &response, "explicit", "explicit/model").is_err());
+        assert!(
+            begin_check(
+                &mut c,
+                "d",
+                "request",
+                "old-sha",
+                Some(a.running["attempt_id"].as_str().unwrap())
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn withdrawal_is_idempotent_survives_reopen_and_never_creates_attempt() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("checks.sqlite");
+        let mut c = setup();
+        let event = withdraw_check_request(&mut c, "d", "request", "old-sha").unwrap();
+        assert_eq!(
+            withdraw_check_request(&mut c, "d", "request", "old-sha").unwrap(),
+            event
+        );
+        assert!(event["attempt_id"].is_null());
+        assert!(event["request_check_id"].is_null());
+        assert_eq!(event["target_request_check_id"], "request");
+        assert!(withdraw_check_request(&mut c, "d", "request", "wrong").is_err());
+        c.execute("VACUUM INTO ?1", [path.to_str().unwrap()])
+            .unwrap();
+        drop(c);
+        let mut c = Connection::open(&path).unwrap();
+        assert_eq!(
+            withdraw_check_request(&mut c, "d", "request", "old-sha").unwrap(),
+            event
+        );
+        assert!(begin_check(&mut c, "d", "request", "old-sha", None).is_err());
+        c.execute("UPDATE document_checks SET receipt_json=json_set(receipt_json,'$.version',99) WHERE check_id=?1",[event["check_id"].as_str()]).unwrap();
+        assert!(withdraw_check_request(&mut c, "d", "request", "old-sha").is_err());
+        assert!(begin_check(&mut c, "d", "request", "old-sha", None).is_err());
+        assert_eq!(
+            c.query_row("SELECT count(*) FROM document_checks", [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            2
+        );
+    }
+
+    #[test]
+    fn restoring_workspace_invalidates_old_egress_confirmation() {
+        let mut c = setup();
+        c.execute("UPDATE document_checks SET receipt_json=json_set(receipt_json,'$.search_query','public synthetic query') WHERE check_id='request'", []).unwrap();
+        let config = json!({"endpoint":"https://fixture.invalid/v1"});
+        let old = preview_check_egress(&c, "d", "request", "old-sha", &config, None).unwrap();
+        let tx = c.transaction().unwrap();
+        archeaxis_store_sqlite::authorization_fence::install_after_restore(&tx).unwrap();
+        tx.commit().unwrap();
+        let new = preview_check_egress(&c, "d", "request", "old-sha", &config, None).unwrap();
+        assert_ne!(old["egress_sha256"], new["egress_sha256"]);
+        assert!(
+            new["egress_plan"]["restore_epoch"]
+                .as_str()
+                .is_some_and(|epoch| epoch.len() == 32)
+        );
+        assert!(begin_confirmed_check(&mut c, "d", "request", "old-sha", None, &old).is_err());
+        assert!(begin_confirmed_check(&mut c, "d", "request", "old-sha", None, &new).is_ok());
+    }
+
+    #[test]
+    fn local_only_and_withdrawal_block_every_cloud_preflight_without_claiming() {
+        for local_only in [true, false] {
+            let mut c = setup();
+            c.execute("UPDATE document_checks SET receipt_json=json_set(receipt_json,'$.search_query','public synthetic query','$.local_only',json(?1)) WHERE check_id='request'", [if local_only {"true"} else {"false"}]).unwrap();
+            if !local_only {
+                c.execute("INSERT INTO document_checks VALUES('withdrawal','d',1,'professional_basis',?1)",
+                    [json!({"event_kind":"egress_control","control":"withdraw_request","target_request_check_id":"request","document_id":"d"}).to_string()]).unwrap();
+            }
+            let config = json!({"endpoint":"https://fixture.invalid/v1"});
+            assert!(preview_check_egress(&c, "d", "request", "old-sha", &config, None).is_err());
+            assert!(begin_check(&mut c, "d", "request", "old-sha", None).is_err());
+            assert!(execute_check_unconfigured(&mut c, "d", "request", "old-sha", None).is_err());
+            assert_eq!(
+                c.query_row("SELECT count(*) FROM document_checks", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                if local_only { 1 } else { 2 }
+            );
+            assert_eq!(read(&c, "d", None).unwrap()["text_projection"], "new");
+        }
+    }
+
+    #[test]
+    fn confirmed_excerpt_of_large_document_is_prepared_inside_claim_transaction() {
+        let mut c = setup();
+        let text = format!(
+            "{}exact excerpt{}",
+            "private ".repeat(5000),
+            "private ".repeat(5000)
+        );
+        c.execute(
+            "UPDATE document_versions SET text_projection=?1 WHERE document_id='d' AND version=1",
+            [&text],
+        )
+        .unwrap();
+        c.execute("UPDATE document_checks SET receipt_json=json_set(receipt_json,'$.search_query','public synthetic query') WHERE check_id='request'", []).unwrap();
+        let config = json!({"endpoint":"https://fixture.invalid/v1","provider":"fixture","model":"fixture/model"});
+        assert!(preview_check_egress(&c, "d", "request", "old-sha", &config, None).is_err());
+        let plan = preview_check_egress(
+            &c,
+            "d",
+            "request",
+            "old-sha",
+            &config,
+            Some("exact excerpt"),
+        )
+        .unwrap();
+        assert_eq!(
+            c.query_row("SELECT count(*) FROM document_checks", [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            1
+        );
+        let attempt =
+            begin_confirmed_check(&mut c, "d", "request", "old-sha", None, &plan).unwrap();
+        assert_eq!(attempt.text, "exact excerpt");
+        assert!(attempt.preparation_error.is_none());
+        assert_eq!(attempt.running["egress_plan"], plan["egress_plan"]);
+        assert_eq!(read(&c, "d", Some(1)).unwrap()["text_projection"], text);
+    }
+
+    #[test]
+    fn altered_confirmation_plan_never_claims_attempt() {
+        let mut c = setup();
+        c.execute("UPDATE document_checks SET receipt_json=json_set(receipt_json,'$.search_query','public synthetic query') WHERE check_id='request'", []).unwrap();
+        let plan = preview_check_egress(
+            &c,
+            "d",
+            "request",
+            "old-sha",
+            &json!({"endpoint":"https://fixture.invalid/v1"}),
+            Some("old"),
+        )
+        .unwrap();
+        for (pointer, changed) in [
+            ("/document_id", json!("foreign")),
+            ("/egress_sha256", json!("0".repeat(64))),
+            ("/egress_plan/purpose", json!("recognition_fidelity")),
+            ("/egress_plan/document_text/text", json!("new")),
+            ("/egress_plan/scope", json!("unrecognized_scope")),
+            (
+                "/egress_plan/configuration/endpoint",
+                json!("https://changed.invalid/v1"),
+            ),
+        ] {
+            let mut altered = plan.clone();
+            *altered.pointer_mut(pointer).unwrap() = changed;
+            assert!(
+                begin_confirmed_check(&mut c, "d", "request", "old-sha", None, &altered).is_err(),
+                "{pointer}"
+            );
+            assert_eq!(
+                c.query_row("SELECT count(*) FROM document_checks", [], |r| r
+                    .get::<_, i64>(0))
+                    .unwrap(),
+                1
+            );
+        }
+        assert!(begin_confirmed_check(&mut c, "d", "request", "old-sha", None, &plan).is_ok());
+    }
+
+    #[test]
+    fn large_egress_plan_failure_survives_restart_without_reexecution() {
+        let mut c = setup();
+        let mut attempt = begin_check(&mut c, "d", "request", "old-sha", None).unwrap();
+        attempt.running["egress_plan"] = json!({
+            "document_text":{"text":"x".repeat(64000)},
+            "recognition":{"text":"y".repeat(64000)}});
+        c.execute(
+            "UPDATE document_checks SET receipt_json=?1 WHERE check_id=?2",
+            params![
+                attempt.running.to_string(),
+                attempt.running["check_id"].as_str()
+            ],
+        )
+        .unwrap();
+        let response = failed_check_response(&attempt.running, "process_interrupted");
+        assert!(response.to_string().len() < 2000);
+        assert!(response.get("egress_plan").is_none());
+        recover_interrupted_checks(&mut c).unwrap();
+        recover_interrupted_checks(&mut c).unwrap();
+        let raw: String = c.query_row("SELECT receipt_json FROM document_checks WHERE json_extract(receipt_json,'$.execution_state')='failed'", [], |r|r.get(0)).unwrap();
+        let terminal: Value = serde_json::from_str(&raw).unwrap();
+        assert_eq!(terminal["egress_plan"], attempt.running["egress_plan"]);
+        assert_eq!(terminal["reason"], "process_interrupted");
+        assert_eq!(
+            c.query_row("SELECT count(*) FROM document_checks", [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            3
+        );
+    }
+
     #[test]
     fn failed_provider_output_survives_retry_and_database_reopen() {
         // SIMULATED worker response; this verifies storage, never cloud execution.
@@ -1481,7 +2081,7 @@ mod cloud_execution_tests {
         response["retrieval_receipts"] = json!([
             {"kind":"retrieval_failure","reason":"retrieval_failed","failure_code":"dns","failure_stage":"dns"},
             {"kind":"auxiliary_unavailable","reason":"retrieval_failed","failure_code":"dns","failure_stage":"dns"}]);
-        response["engine_receipt"] = json!({"provider":"explicit","requested_model":"explicit/model","model":"SIMULATED-model","finish_reason":"stop","tokens_used":9,"prompt_sha256":"a".repeat(64),"response_sha256":hex::encode(Sha256::digest(raw.as_bytes())),"original_pdf":{"sha256":"b".repeat(64),"renderer_version":"fixture","pdfium_version":"fixture","coverage":"all_pages","covered_pages":[1],"pages":[{"page":1,"sha256":"c".repeat(64)}]}});
+        response["engine_receipt"] = json!({"provider":"explicit","requested_model":"explicit/model","model":"SIMULATED-model","finish_reason":"stop","tokens_used":null,"prompt_sha256":"a".repeat(64),"response_sha256":hex::encode(Sha256::digest(raw.as_bytes())),"original_pdf":{"sha256":"b".repeat(64),"renderer_version":"fixture","pdfium_version":"fixture","coverage":"all_pages","covered_pages":[1],"pages":[{"page":1,"sha256":"c".repeat(64)}]}});
         let terminal = finish_check(
             &mut c,
             &execution.running,

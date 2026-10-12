@@ -43,4 +43,23 @@ describe("versioned content editor", () => {
     expect(editor).toHaveTextContent("未送达的修改");
     expect(onDirtyChange).not.toHaveBeenCalledWith(false);
   });
+  it("keeps an acknowledged body version when working-state cleanup fails and retries only the journal", async()=>{
+    const save=vi.fn().mockResolvedValue({content,version:2,workingStateConfirmed:false});
+    const dirty=vi.fn();
+    const retry=vi.fn().mockRejectedValueOnce(new Error("403 journal refused")).mockResolvedValueOnce(true);
+    render(<DocumentEditor content={content} version={1} onSave={save} onDirtyChange={dirty} onRetryWorkingState={retry}/>);
+    fireEvent.click(await screen.findByRole("button",{name:"保存草稿"}));
+    expect(await screen.findByRole("alert")).toHaveTextContent("正文已保存");
+    expect(screen.getByRole("button",{name:"保存草稿"})).toBeDisabled();
+    fireEvent.click(screen.getByRole("button",{name:"仅核对工作草稿保全"}));
+    await waitFor(()=>expect(retry).toHaveBeenCalledTimes(1));
+    expect(await screen.findByRole("alert")).toHaveTextContent("正文版本不会重复写入");
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(dirty).not.toHaveBeenCalledWith(false);
+    fireEvent.click(screen.getByRole("button",{name:"仅核对工作草稿保全"}));
+    await waitFor(()=>expect(dirty).toHaveBeenCalledWith(false));
+    fireEvent.click(screen.getByRole("button",{name:"保存草稿"}));
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status")).toHaveTextContent("当前持久化版本 2");
+  });
 });

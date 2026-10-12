@@ -1,0 +1,26 @@
+{
+  "schema": "archeaxis.machine-failure-audit-receipt/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "SYNTHETIC_WORKER_WITH_ACTUAL_LOCAL_CORE_API",
+  "run": "863ed9c30542",
+  "tests_passed": 338,
+  "suite_results": 73,
+  "source_patch_sha256": "506f7159f0f01258d76e7056dcc1473d7e81ee318cbc53c76a2749f8c39f84f5",
+  "source_consistent": true,
+  "execution_receipt_sha256": "72f73988266b86582ac138f0e6d035543f243be0a6bc102f5c04387ddf2fc386",
+  "invariants": [
+    "Confirmed failure audit and KNOWN_FAILURE terminal_task_id commit in one Core savepoint",
+    "Audit persistence failure rolls back retry release and preserves IN_FLIGHT",
+    "Distinct attempts produce distinct immutable audit tasks that survive SQLite reopen",
+    "Formal answer API produces three failed audits and no successful task; fourth request never invokes worker",
+    "No question, answer or stderr is persisted in failure audit; provider stop UNKNOWN, usage and cost null"
+  ],
+  "limits": [
+    "Dedicated machine_execution_status, failure clear and frontend cold recovery remain unimplemented",
+    "Cancellation and provider-side stop remain unverified",
+    "No native host qualification of this increment or real model failure injection",
+    "Public documentation updated after the tested code snapshot; this receipt does not claim those bytes were tested",
+    "No Owner acceptance, release, Green replacement, commit or push"
+  ]
+}

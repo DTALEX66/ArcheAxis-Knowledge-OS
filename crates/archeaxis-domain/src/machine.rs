@@ -114,7 +114,7 @@ pub fn record_machine_task(conn: &mut Connection, task: &MachineTask<'_>) -> rus
 }
 
 /// Core-internal writer under an existing transaction; never independently commits.
-pub(crate) fn record_machine_task_in_transaction(
+pub fn record_machine_task_in_transaction(
     conn: &Connection,
     task: &MachineTask<'_>,
 ) -> rusqlite::Result<()> {

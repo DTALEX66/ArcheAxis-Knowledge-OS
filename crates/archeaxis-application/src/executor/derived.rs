@@ -77,9 +77,42 @@ pub(super) fn run(
     input: Option<Vec<u8>>,
     timeout: Duration,
 ) -> Result<Value, String> {
+    run_mode(staging, python, worker, site, input, timeout, false)
+}
+
+pub(super) fn inventory(
+    staging: &Path,
+    python: &Path,
+    worker: &Path,
+    site: bool,
+    timeout: Duration,
+) -> Result<Value, String> {
+    run_mode(staging, python, worker, site, None, timeout, true)
+}
+
+fn run_mode(
+    staging: &Path,
+    python: &Path,
+    worker: &Path,
+    site: bool,
+    input: Option<Vec<u8>>,
+    timeout: Duration,
+    inventory: bool,
+) -> Result<Value, String> {
     let dir = tempfile::tempdir_in(staging).map_err(|_| "derived staging unavailable")?;
     let mut command = Command::new(python);
     command.env_clear();
+    if inventory {
+        for key in [
+            "ARCHEAXIS_MACHINE_ENDPOINT",
+            "ARCHEAXIS_MACHINE_MODEL",
+            "ARCHEAXIS_MACHINE_PROTOCOL",
+        ] {
+            if let Some(value) = std::env::var_os(key) {
+                command.env(key, value);
+            }
+        }
+    }
     for key in ["SystemRoot", "WINDIR", "SYSTEMDRIVE"] {
         if let Some(value) = std::env::var_os(key) {
             command.env(key, value);
@@ -103,7 +136,7 @@ pub(super) fn run(
     }
     command.arg(worker);
     if input.is_none() {
-        command.arg("--hello");
+        command.arg(if inventory { "--probe" } else { "--hello" });
     }
     command
         .current_dir(dir.path())
@@ -138,16 +171,28 @@ pub(super) fn run(
             Ok(data)
         })
     }
-    let stdout = reader(
-        child.0.stdout.take().ok_or("derived stdout unavailable")?,
-        MAX_OUTPUT,
-        overflow.clone(),
-    );
-    let stderr = reader(
-        child.0.stderr.take().ok_or("derived stderr unavailable")?,
-        MAX_ERROR,
-        overflow.clone(),
-    );
+    let out_stream = child.0.stdout.take().ok_or("derived stdout unavailable")?;
+    let err_stream = child.0.stderr.take().ok_or("derived stderr unavailable")?;
+    #[cfg(windows)]
+    let pipe_cancel_handles = {
+        use std::os::windows::io::AsHandle;
+        if inventory {
+            Some((
+                out_stream
+                    .as_handle()
+                    .try_clone_to_owned()
+                    .map_err(|_| "inventory stdout cancellation handle unavailable")?,
+                err_stream
+                    .as_handle()
+                    .try_clone_to_owned()
+                    .map_err(|_| "inventory stderr cancellation handle unavailable")?,
+            ))
+        } else {
+            None
+        }
+    };
+    let stdout = reader(out_stream, MAX_OUTPUT, overflow.clone());
+    let stderr = reader(err_stream, MAX_ERROR, overflow.clone());
     let started = Instant::now();
     let status = loop {
         if overflow.load(Ordering::Relaxed) {
@@ -163,6 +208,73 @@ pub(super) fn run(
         }
     };
     drop(child);
+    if inventory {
+        let drain_deadline = Instant::now() + Duration::from_secs(1);
+        while !(writer.is_finished() && stdout.is_finished() && stderr.is_finished()) {
+            if Instant::now() >= drain_deadline {
+                #[cfg(windows)]
+                {
+                    use std::os::windows::io::AsRawHandle;
+                    unsafe extern "system" {
+                        fn CancelSynchronousIo(thread: *mut std::ffi::c_void) -> i32;
+                        fn GetThreadId(thread: *mut std::ffi::c_void) -> u32;
+                        fn OpenThread(access: u32, inherit: i32, id: u32) -> *mut std::ffi::c_void;
+                        fn CloseHandle(handle: *mut std::ffi::c_void) -> i32;
+                        fn CancelIoEx(
+                            file: *mut std::ffi::c_void,
+                            overlapped: *mut std::ffi::c_void,
+                        ) -> i32;
+                    }
+                    if let Some((out_handle, err_handle)) = &pipe_cancel_handles {
+                        unsafe {
+                            CancelIoEx(out_handle.as_raw_handle(), std::ptr::null_mut());
+                            CancelIoEx(err_handle.as_raw_handle(), std::ptr::null_mut());
+                        }
+                    }
+                    for handle in [
+                        writer.as_raw_handle(),
+                        stdout.as_raw_handle(),
+                        stderr.as_raw_handle(),
+                    ] {
+                        // JoinHandle may not carry THREAD_TERMINATE, required for
+                        // CancelSynchronousIo. Open only this owned thread's handle.
+                        unsafe {
+                            let id = GetThreadId(handle);
+                            if id != 0 {
+                                let cancellable = OpenThread(0x0001, 0, id);
+                                if !cancellable.is_null() {
+                                    CancelSynchronousIo(cancellable);
+                                    CloseHandle(cancellable);
+                                }
+                            }
+                        }
+                    }
+                }
+                let cancel_deadline = Instant::now() + Duration::from_millis(100);
+                while !(writer.is_finished() && stdout.is_finished() && stderr.is_finished())
+                    && Instant::now() < cancel_deadline
+                {
+                    thread::sleep(Duration::from_millis(5));
+                }
+                let all_finished =
+                    writer.is_finished() && stdout.is_finished() && stderr.is_finished();
+                if writer.is_finished() {
+                    let _ = writer.join();
+                }
+                if stdout.is_finished() {
+                    let _ = stdout.join();
+                }
+                if stderr.is_finished() {
+                    let _ = stderr.join();
+                }
+                if !all_finished {
+                    return Err("inventory reader cleanup unverified".into());
+                }
+                return Err("inventory worker pipe drain timed out".into());
+            }
+            thread::sleep(Duration::from_millis(5));
+        }
+    }
     let written = writer.join();
     let out = stdout.join();
     let err = stderr.join();
@@ -191,4 +303,47 @@ pub(super) fn run(
         return Err("derived worker failed with unexpected exit code".into());
     }
     Ok(json!({"exit_code":exit_code,"document":document}))
+}
+
+#[cfg(all(test, windows))]
+mod inventory_pipe_tests {
+    use super::*;
+
+    #[test]
+    fn held_descendant_pipes_cancel_and_join_owned_readers() {
+        let dir = tempfile::tempdir().unwrap();
+        let worker = dir.path().join("inventory.py");
+        let holder = dir.path().join("holder.py");
+        // Owned fixture descendant exits by itself; never touches a shared process.
+        std::fs::write(&holder, "import time\nfrom pathlib import Path\nPath(__file__).with_suffix('.ready').write_text('ready')\ntime.sleep(4)\nPath(__file__).with_suffix('.done').write_text('done')\n").unwrap();
+        std::fs::write(&worker, "import subprocess,sys,time,json\nfrom pathlib import Path\np=Path(__file__).with_name('holder.py')\nsubprocess.Popen([sys.executable,'-I','-B',str(p)],stdout=sys.stdout,stderr=sys.stderr,creationflags=0x08000000)\ndeadline=time.monotonic()+2\nwhile not p.with_suffix('.ready').exists():\n assert time.monotonic()<deadline\n time.sleep(.005)\nprint(json.dumps({'synthetic':'candidate'}))\n").unwrap();
+        let python: PathBuf = std::env::var_os("ARCHEAXIS_PYTHON")
+            .expect("canonical Python required")
+            .into();
+        let started = Instant::now();
+        let result = inventory(dir.path(), &python, &worker, false, Duration::from_secs(3));
+        let completed_before_holder = !holder.with_extension("done").exists();
+        let deadline = Instant::now() + Duration::from_secs(6);
+        while !holder.with_extension("done").exists() && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(10));
+        }
+        assert!(
+            holder.with_extension("ready").exists(),
+            "holder never started"
+        );
+        assert!(
+            holder.with_extension("done").exists(),
+            "owned holder did not finish"
+        );
+        assert!(
+            completed_before_holder,
+            "fixture must hold pipes beyond inventory return"
+        );
+        assert!(started.elapsed() < Duration::from_secs(7));
+        assert_eq!(
+            result.unwrap_err(),
+            "inventory worker pipe drain timed out",
+            "this outcome requires cancellation and joining of every owned reader"
+        );
+    }
 }

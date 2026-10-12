@@ -1,0 +1,56 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL_LOCAL_INVENTORY_AND_MODEL_WITH_SYNTHETIC_MATERIALS_AND_ACK_FAULTS",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-93238de29428\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "7c7ca8dffc6a4d7ea04cc69a09cdb2a2839aaf4f50f361866a8924b2e76653c2",
+  "tested_source_patch_sha256": "c359c9c31353acb57eab0ae275b8e0421e3de167f8d7ff6811a90c5f97de7df7",
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ca30788e768e\\artifacts\\native-build-binding.json",
+      "sha256": "36f59e913ee95fbc1ebd23699271e66b7ab63b095fe88d6e3f40f04d21a8bea8",
+      "bytes": 1399
+    },
+    "core_sha256": "ab2de084ebf5a8337a5a9f8eaedb9e1bb4fd3ea48aed6efeadaf8aff09ec2178"
+  },
+  "inventory_read": {
+    "status": "PASS",
+    "evidence_scope": "FORMAL_UI_LOCAL_INVENTORY_ONLY",
+    "listed_model_count": 6,
+    "selected_model_listed": true,
+    "loaded_status": "UNKNOWN",
+    "inference_status": "NOT_EXECUTED",
+    "machine_tasks_unchanged": true
+  },
+  "original_metering": {
+    "usage": {
+      "input_tokens": 156,
+      "output_tokens": 1001,
+      "total_tokens": 1157
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "retest_metering": {
+    "usage": {
+      "input_tokens": 174,
+      "output_tokens": 1049,
+      "total_tokens": 1223
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "limitations": [
+    "Inventory result observed through formal UI, not raw worker payload.",
+    "Inventory presence never proves loading or inference.",
+    "Separate actual local 4B inference is one run only.",
+    "No 27B, cloud, installed Green or Owner qualification.",
+    "Descendant-held-pipe thread cleanup regression remains pending."
+  ]
+}

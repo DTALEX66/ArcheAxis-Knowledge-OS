@@ -14,8 +14,12 @@ use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 
 mod colearning;
+mod context_refusal;
 mod courses;
+mod execution_claim;
 mod execution_status_projection;
+mod job_journal;
+mod machine_journal;
 mod semantic;
 mod withheld;
 use colearning::{machine_answer, record_correction, run_retest};
@@ -24,6 +28,31 @@ struct Active {
     request_id: String,
     cancel: Cancellation,
     faulted: bool,
+}
+async fn machine_configuration(State(runtime): State<Runtime>) -> Json<Value> {
+    Json(runtime.executor.machine_configuration())
+}
+async fn machine_inventory(State(runtime): State<Runtime>, Json(payload): Json<Value>) -> Response {
+    if !payload.as_object().is_some_and(|v| v.is_empty()) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error":"EMPTY_PAYLOAD_REQUIRED"})),
+        )
+            .into_response();
+    }
+    let Ok(_permit) = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        runtime.colearning_admission.lock(),
+    )
+    .await
+    else {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({"error":"MODEL_PROBE_BUSY"})),
+        )
+            .into_response();
+    };
+    Json(runtime.executor.machine_inventory().await).into_response()
 }
 #[derive(Clone)]
 struct Runtime {
@@ -35,6 +64,18 @@ struct Runtime {
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
     Router::new()
+        .route(
+            "/api/v1/workspace/ui-state/clear-machine",
+            post(machine_journal::clear),
+        )
+        .route(
+            "/api/v1/workspace/ui-state/machine-status",
+            post(machine_journal::status),
+        )
+        .route(
+            "/api/v1/workspace/ui-state/clear-job",
+            post(job_journal::clear),
+        )
         .route(
             "/api/v1/documents/:document_id/checks/execute",
             post(execute_document_check),
@@ -62,6 +103,8 @@ pub fn router(executor: Executor) -> Router {
         // needs the executor, and the executor is this router's state; the projection builder holds
         // only the store and cannot reach a worker.
         .route("/api/v1/machine/answers", post(machine_answer))
+        .route("/api/v1/machine/configuration", get(machine_configuration))
+        .route("/api/v1/machine/inventory", post(machine_inventory))
         // G2: Ask with citations. It needs the store and the domain search matcher, both reachable
         // from the executor, and it answers over the same material the search route answers over.
         .route("/api/v1/ask", post(ask))
@@ -360,6 +403,8 @@ struct CapabilityEnabledBody {
 #[serde(deny_unknown_fields)]
 struct MachineAnswerBody {
     #[serde(default)]
+    model: Option<String>,
+    #[serde(default)]
     client_request_id: Option<String>,
     knowledge_id: String,
     question: String,
@@ -458,6 +503,8 @@ struct VaultLinksBody {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RetestBody {
+    #[serde(default)]
+    model: Option<String>,
     /// The machine task being retested.
     retest_of: String,
     /// The knowledge the retest answers from - usually the corrected item, which is why it is named
@@ -526,17 +573,6 @@ async fn start(
     words: bool,
 ) -> Response {
     let _admission = runtime.admission.lock().await;
-    // R7/G1: name a disabled capability instead of letting it fall into the generic "cannot start in
-    // its current state". The authoritative refusal is inside the claim transaction, which is what
-    // guarantees no attempt row is created; this is here because `Executor::start` reports failures
-    // as strings, so without it the caller is told the job cannot start and not why.
-    if let Some(capability) = runtime.executor.disabled_capability_for(&job).await {
-        return error(
-            409,
-            "AAK-CAP-001",
-            &format!("capability {capability} is disabled in this workspace"),
-        );
-    }
     if runtime
         .active
         .lock()
@@ -602,6 +638,23 @@ async fn start(
         Ok(Ok(None)) => (),
         _ => return unavailable(),
     }
+    let abandoned_id = id.clone();
+    match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| archeaxis_domain::ui_state::job_abandoned(conn, &abandoned_id))
+        .await
+    {
+        Ok(Ok(false)) => (),
+        Ok(Ok(true)) => {
+            return (
+                StatusCode::GONE,
+                "request explicitly abandoned; do not replay it",
+            )
+                .into_response();
+        }
+        _ => return unavailable(),
+    }
     {
         let active = runtime.active.lock().await;
         if active.contains_key(&job) {
@@ -609,6 +662,39 @@ async fn start(
         }
         if active.len() >= 2 {
             return unavailable();
+        }
+        // A disabled route cannot hide an already consumed idempotency key. Only an exact,
+        // consistent negative lookup plus no active/durable execution proves non-admission.
+        // Keep the admission and active guards until the Store-owned snapshot is complete.
+        let query_job = job.clone();
+        let query_id = id.clone();
+        let refusal = runtime.executor.store().submit_wait(move |conn| -> rusqlite::Result<Option<Value>> {
+            let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+            let row: Option<(String, String, String)> = tx.query_row(
+                "SELECT state,kind,input_ref FROM jobs WHERE job_id=?1", [&query_job],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            ).optional()?;
+            let Some((state, kind, source)) = row else { return Ok(None); };
+            let Some((capability, _)) = archeaxis_application::attempts::route_for_kind(&kind) else { return Ok(None); };
+            if archeaxis_store_sqlite::capability_settings::is_enabled(&tx, capability)? { return Ok(None); }
+            let occupied: bool = tx.query_row(
+                "SELECT EXISTS(SELECT 1 FROM job_attempts WHERE request_id=?1 OR (job_id=?2 AND state='running'))",
+                rusqlite::params![query_id, query_job], |r| r.get(0),
+            )?;
+            if occupied || !matches!(state.as_str(), "queued" | "failed" | "cancelled") {
+                return Ok(Some(json!({"code":"AAK-CAP-001","message":"capability disabled; admission not proven","retryable":false})));
+            }
+            Ok(Some(json!({"schema":"archeaxis.job-admission-refusal/v1","code":"AAK-CAP-001",
+                "job_id":query_job,"request_id":query_id,"input_ref":source,"kind":kind,
+                "budget":{"deadline_ms":deadline,"split":split,"words":words},
+                "admission_state":"NOT_ADMITTED","request_consumed":false,"active_execution":false,
+                "capability":capability,"enabled":false,"same_request_retry_allowed":true,
+                "message":"capability disabled; exact request not admitted"})))
+        }).await;
+        match refusal {
+            Ok(Ok(Some(body))) => return (StatusCode::CONFLICT, Json(body)).into_response(),
+            Ok(Ok(None)) => (),
+            _ => return unavailable(),
         }
     }
     let cancel = Cancellation::new();

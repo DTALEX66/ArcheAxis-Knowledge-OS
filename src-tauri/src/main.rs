@@ -1037,7 +1037,7 @@ fn main() {
             };
             let mut window =
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-                    .title("星环知识平台（ArcheAxis Knowledge）")
+                    .title("星环知识系统（ArcheAxis Knowledge）")
                     .inner_size(1280.0, 800.0)
                     // The formal host had no minimum while the recovery entry declared one, so
                     // the product window could be dragged below the shell's layout floor: at a

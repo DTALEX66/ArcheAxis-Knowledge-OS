@@ -92,6 +92,7 @@ def test_fidelity_public_background_never_replaces_original(monkeypatch, mode, r
         "content_sha256": "a" * 64,
         "dimension": "recognition_fidelity",
         "text": original,
+        "search_query": "public background terminology",
         "original": {
             "media_type": "text/plain",
             "sha256": hashlib.sha256(original.encode()).hexdigest(),

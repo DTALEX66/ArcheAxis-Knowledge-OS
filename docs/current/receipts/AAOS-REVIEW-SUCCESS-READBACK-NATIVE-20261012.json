@@ -1,0 +1,66 @@
+{
+  "schema": "archeaxis.review-success-readback-native/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "REAL_LOCAL_MODEL_AND_NATIVE_CORE_WITH_SYNTHETIC_MATERIAL_AND_ACK_LOSS",
+  "native_run": "webdriver-48350ebe84f6",
+  "raw_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-48350ebe84f6/tmp/journey/receipt.json",
+    "sha256": "26463db9f00962f89e591198a15c0e4181e8a0dad62a5bc22c6d95a9f7425fd3"
+  },
+  "source_patch_sha256": "bf6c6fd413245631fcd4db2b7f51428d9caa2d472b573b3e513e32e2b7c21ebe",
+  "source_consistent": true,
+  "engineering_status": "PASS",
+  "owner_acceptance": "NOT_EXECUTED",
+  "stages": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "machine_ack_recovery": {
+    "status": "PASS",
+    "recovery_inference_calls": 0,
+    "cold_restart": true,
+    "task_unchanged": true
+  },
+  "owned_ports_released": true,
+  "limits": [
+    "Multiple concurrent review selection remains simulated UI qualification",
+    "Post-restore discard guard with pending journals not yet native qualified",
+    "No model-process crash or matched MTP optimization qualification",
+    "No installed Green, Owner acceptance or external cloud calls"
+  ]
+}

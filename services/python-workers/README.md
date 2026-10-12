@@ -1,6 +1,8 @@
 # services/python-workers（隔离 capability worker）
 
-> **2026-10-10 当前路由与状态**：产品执行 PAUSED_BY_OWNER，整体 PARTIAL；当前请求仅授权归档和权威/引用治理修复。旧“下一队列/未发布/两树不同”属于历史日期快照；上次源码已发布，本轮最新状态读 [修复回读](../../docs/current/AAOS-AUTHORITY-REPAIR-20261010.md)。读取任何旧路径前先按 [路径身份路由](../../docs/current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER，不自动排队；V01暂停、FT01–04冻结。
+> **2026-10-12 当前路由与状态**：2026-10-11 Owner 已恢复完整框架、常见格式与最短闭环实施，RUNNING_BY_OWNER / PARTIAL，读 [活动指针](../../docs/current/AAOS-ACTIVE-EXECUTION.json) 与 [文档身份路由](../../docs/current/AAOS-AUTHORITY-ROUTES.json)。2026-10-10 暂停为历史时点。六项核心能力增量 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实资料覆盖未授权。
+
+本地回答与复测可在正式请求中显式携带 `model`。Core 将其绑定到请求、拒绝摘要和缓存；Executor 在固定本机 lane 的清单验证后传 `--model`，并核对 worker 返回的 `model/requested_model`。选模回答必须提供冻结 `client_request_id`；模型绑定的原回答复测不能省略模型。显式模型复测同时冻结 timeout；未指定模型的旧请求与历史缓存形状保留。清单列出仅证明身份存在，未证明加载或推理；所选模型不存在时拒绝，不替换默认模型或转云。解析、OCR、ASR 仍调用各自专用 worker，云检索仍遵守独立外发授权。前端当前冻结请求为内存状态；未确认请求跨退出持久恢复尚未完成，不能宣称该能力已验收。
 
 > DIRECTORY_AUTHORITY：`services/python-workers/**` 为 worker 执行域，**无主库权限**
 > （may_open_main_database=false）。语言边界：正式 worker 经 Core 管理的 NDJSON
@@ -54,3 +56,24 @@
 独立校验三份输出、原子落库、直接子进程超时/取消及重启恢复。尚未接入完整
 HTTP/UI 调度、多格式子进程树隔离和自动重试；不能据此声称全格式闭环完成。
 envelope 契约与通道映射见 `packages/contracts/v1/protocol-mapping.md`。
+
+### Document check independent search query (2026-10-11)
+
+Document-check engine receipts preserve missing provider `total_tokens` as JSON `null` (unknown), independently of execution success. A provider-reported integer zero remains zero. Boolean, negative, fractional and string token counts are invalid; missing usage must never be coerced into zero. Core persists the unknown value and the UI accepts it without treating it as a known cost. Actual fee accounting remains unqualified.
+
+`document_check.py` accepts an optional `search_query` in its version-bound worker request. The query must contain non-whitespace text, at most 1000 characters and 4000 UTF-8 bytes; the worker rejects invalid queries before loading the search transport and never truncates or substitutes document text. Recognition fidelity does not search by default. Professional-basis checks require this independent query and otherwise return `search_query_required` without calling search or model transport. This worker boundary is not user egress approval. Core/UI now preview and confirm the actual material/destination/configuration plan, retain immutable per-request local_only, and append durable withdrawal events in the existing document_checks store. Admission rechecks the original request and full plan after waiting for a worker slot. Confirmation fingerprints include the existing authorization restore epoch; restore requires a fresh preview and confirmation. Core-only admission fingerprints are removed from worker wire requests, so they do not alter the worker protocol or prompt. Withdrawal blocks subsequent starts/retries and cannot recall materials already sent; Core now revalidates while waiting for worker stdin, response and exit, terminating its owned child after withdrawal; this has a synthetic no-network worker regression. Terminal receipt admission checks withdrawal in the same SQLite writer transaction: a prior withdrawal prevents a successful terminal outcome while preserving the returned verdict and engine evidence. Complete active-network cancellation, child-tree isolation and the final recheck-to-first-network race remain unqualified. Core/UI now register, persist and forward an independent query; requests without it remain unavailable instead of silently searching document contents. Query registration is not complete egress approval. Ordinary content saving and human knowledge selection remain independent.
+
+### Machine-call failure diagnostics (2026-10-12)
+
+The CLI machine worker emits only `archeaxis.machine-worker-failure/v1` plus an allowlisted `reason_code` on failure, then exits nonzero. Known classifications are `MODEL_CALL_FAILED`, `NO_FINAL_ANSWER`, `EMPTY_ANSWER`; unknown exceptions become `WORKER_FAILED`. Exception strings, stderr, prompts and model text are excluded. Executor drains bounded stdout/stderr after terminal exit for at most one second, still within the existing overall deadline and owned-child cleanup; a nonzero worker never supplies a successful answer even if stdout includes one. Core rebuilds HTTP503 `archeaxis.machine-call-failure/v1` with operation `answer`/`retest`, reason code, `execution_state=UNVERIFIED`, `answer_published=false`. Additional executor reasons are `WORKER_TIMEOUT`, `OUTPUT_LIMIT`, `INVALID_OUTPUT`, `PIPE_DRAIN_FAILED`; unknown errors remain `WORKER_FAILED`. Frontend displays only these classifications, retains the original request, and never treats a 503 as proof of non-execution. Existing historical generic503 failures cannot be retroactively classified. The worker's own HTTP timeout and Core's stricter process budget remain distinct; this change does not alter endpoints, models or budgets.
+
+Machine answer --probe reads model inventory only. Legacy capability=true means the selected model ID is listed; it does not prove loaded state or successful inference. Consumers must use evidence_scope=MODEL_INVENTORY_ONLY, availability=MODEL_LISTED_INFERENCE_UNVERIFIED, inference_status=NOT_EXECUTED and loaded_status=UNKNOWN; inventory failure remains UNVERIFIED, and a missing selected ID is MODEL_NOT_LISTED. No prompt is sent by this probe.
+
+Local answer receipts preserve only provider-reported nonnegative integer token counts: OpenAI usage prompt/completion/total tokens, or Ollama prompt_eval_count/eval_count. Missing/invalid fields remain absent, never synthesized as zero or total. usage_status is REPORTED or UNKNOWN; cost remains null/UNKNOWN without verifiable pricing. Inventory probes do not return inference usage.
+
+The local answer/discovery transport accepts HTTP numeric loopback only; localhost is normalized to 127.0.0.1 without DNS discovery. Inherited proxies are disabled, redirects are refused, URL userinfo/fragments and remote/unspecified destinations are rejected before open. This lane has no remote fallback. Inventory listing still does not establish loaded or inference status.
+
+
+Core 在回答与复测的 worker 调用前，将请求摘要与 IN_FLIGHT 执行记录持久化到 canonical workspace_meta。既有 positive/withheld 回执优先重放；无终态的旧执行记录阻止同身份再次推理，并将历史执行标为 UNVERIFIED。只有已返回的 worker 失败且 KNOWN_FAILURE 写入确认后，才允许显式同请求重试。记录不存材料正文。此机制不是完整 exactly-once：没有 client_request_id 的 legacy 回答缺少跨请求稳定键，UI pending_machine 已由 Core 持久化冻结请求，并等待写入 ACK 才执行；恢复只读核对，尚未进行真实模型执行中杀进程恢复验收。
+
+复测 claim 身份绑定有限 normalized 请求，实际材料摘要保留在执行记录中；材料变化不能用新的派生身份绕过未完成屏障。扣留审计同时保存 admission_request_sha256（冻结 transport 输入）与 request_sha256（实际执行 envelope），二者不混用。只有精确匹配的 RECORDED 终态可由 human clear-machine 明确清理 pending_machine；该操作不删除审计、执行 claim 或更新模型/授权。FAILED 和旧无输入指纹的审计不能作为清理凭据。复测 journal owner、问题绑定既有 runtime.evaluation.failed 旅程；历史核对不消费当前授权。

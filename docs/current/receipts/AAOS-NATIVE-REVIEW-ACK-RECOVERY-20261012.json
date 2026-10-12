@@ -1,0 +1,58 @@
+{
+  "schema": "archeaxis.engineering-acceptance/v1",
+  "status": "PARTIAL",
+  "review_recovery_status": "PASS",
+  "full_journey_status": "FAIL",
+  "evidence_level": "INTEGRATED_WITH_SYNTHETIC_ACK_LOSS",
+  "materials": "SYNTHETIC_ONLY",
+  "runtime": "ISOLATED_WINDOWS_TAURI_CORE",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-132cc461ee71\\tmp\\journey\\receipt.json",
+  "raw_receipt_sha256": "aa9ecf79038e12aa87292f4bc00ece6ffef7a59162009c2bc3bef53aad5907bd",
+  "tested_source_patch_sha256": "3816cc14bc60ae8c5adb73ef19a58541b6d67c1b75cd2ef7b1dae3da040d574e",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "review_recovery": {
+    "status": "PASS",
+    "evidence_level": "INTEGRATED_WITH_SYNTHETIC_ACK_LOSS",
+    "freeze_ack": {
+      "faults": 1,
+      "rows": [
+        {
+          "duplicate": null,
+          "event_id": null,
+          "operation": "ui_state_write",
+          "status": 200
+        }
+      ]
+    },
+    "review_ack": {
+      "faults": 1,
+      "rows": [
+        {
+          "duplicate": false,
+          "event_id": 1,
+          "operation": "learning_review",
+          "status": 201,
+          "body_sha256": "36e7719cd0cae2372df3c3e8b1b2dee5f90c6c3f36782bb3adb4bc551be41a6b"
+        }
+      ]
+    },
+    "explicit_retry": {
+      "faults": 0,
+      "rows": [
+        {
+          "duplicate": true,
+          "event_id": 1,
+          "operation": "learning_review",
+          "status": 200,
+          "body_sha256": "36e7719cd0cae2372df3c3e8b1b2dee5f90c6c3f36782bb3adb4bc551be41a6b"
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "ACK loss is an injected synthetic transport fault after real Core success, not a real network failure.",
+    "Subsequent AI UI entry lookup failed; the full journey did not pass.",
+    "No Green replacement or Owner acceptance."
+  ]
+}

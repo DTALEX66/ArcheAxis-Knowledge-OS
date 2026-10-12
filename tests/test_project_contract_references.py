@@ -122,11 +122,13 @@ def test_the_declared_journey_registers_only_real_statuses_and_evidence() -> Non
     journey_path = ROOT / _load_contract()["delivery"]["mandatory_journey"]
     journey = yaml.safe_load(journey_path.read_text(encoding="utf-8"))
 
-    assert journey["journey"] == "v01-owner-loop"
+    assert journey["journey"] == "aaos-tauri-common-format-owner-loop"
     assert journey["acceptance_status"] in {"IMPLEMENTED", "PARTIAL", "BLOCKED"}
-    assert journey["acceptance_status"] == "BLOCKED", (
-        "an executor may not record owner acceptance; Q00/Q01 are still blocked"
+    assert journey["owner_acceptance"] == "NOT_EXECUTED", (
+        "engineering implementation and CI cannot grant Owner acceptance"
     )
+    assert journey["formal_host"] == "frontend/ + src-tauri/"
+    assert journey["inherits"] == ["tests/journey/v01-owner-loop.yaml"]
 
     steps = journey["steps"]
     assert [step["id"] for step in steps] == ["import", "read", "anchor", "claim",

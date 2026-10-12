@@ -1,0 +1,1361 @@
+"""SIMULATED probe guard checks. No host, browser, model or business database."""
+
+import ast
+import copy
+import hashlib
+import importlib.util
+import json
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_probe():
+    path = ROOT / "scripts/probes/aaos01_grouped_owner_loop.py"
+    spec = importlib.util.spec_from_file_location("grouped_native_probe_contract", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class GroupedNativeProbeTests(unittest.TestCase):
+    def test_trusted_pending_review_navigation_confirms_parent_and_child_without_replaying_clicks(self):
+        probe=load_probe();actions=[]
+        def js(source):
+            return '#page=19' if source=='return location.hash' else False
+        ui=probe.GroupedUI(js,lambda source:None,lambda *args:'node',lambda *args:actions.append('child'),[],lambda:actions.append('confirm'))
+        ui.find=lambda *args:'node'
+        ui.click_selector=lambda *args:actions.append('parent')
+        ui.page('12',confirm_navigation=True)
+        self.assertEqual(actions,['parent','confirm','child','confirm'])
+
+    def test_machine_ack_qualification_rejects_missing_model_and_unfinished_inference_attempt(self):
+        probe=load_probe()
+        good={"status":"EXECUTED_CANDIDATE_NOT_EVALUATED","machine_ack_recovery":{"status":"PASS","cold_restart":True,"task_unchanged":True,"recovery_inference_calls":0,"initial":{"faults":1,"rows":[{"operation":"machine_answer","completed":True}]},"recovery":{"rows":[{"operation":"ui_state_clear_machine","completed":True}]}}}
+        probe.require_machine_ack_recovery(good)
+        for change in ('missing','model','attempt','unfinished'):
+            candidate=copy.deepcopy(good)
+            if change=='missing':candidate.pop('machine_ack_recovery')
+            elif change=='model':candidate['status']='UNVERIFIED'
+            elif change=='attempt':candidate['machine_ack_recovery']['recovery']['rows'].append({'operation':'machine_answer','completed':False,'status':None})
+            else:candidate['machine_ack_recovery']['initial']['rows'][0]['completed']=False
+            with self.subTest(change=change),self.assertRaises(AssertionError):probe.require_machine_ack_recovery(candidate)
+    def test_selected_retest_failure_preserves_missing_task_instead_of_keyerror(self):
+        probe = load_probe()
+        self.assertFalse(probe.selected_retest_binding({"retest": "NOT_EXECUTED"}, "m1"))
+        task = {"conditions": json.dumps({"request": {"model": "m1"}, "answer": {"model": "m1", "requested_model": "m1"}})}
+        self.assertTrue(probe.selected_retest_binding({"retest_task": task}, "m1"))
+        with self.assertRaises(AssertionError):
+            probe.selected_retest_binding({"retest_task": task}, "m2")
+
+    def test_metering_keeps_unknown_and_rejects_invented_or_invalid_counts(self):
+        probe=load_probe()
+        base={"cost":None,"cost_status":"UNKNOWN","usage":None,"usage_status":"UNKNOWN"}
+        self.assertEqual(probe.assert_reported_metering(base)["usage"],None)
+        self.assertEqual(probe.assert_reported_metering({**base,"usage_status":"REPORTED","usage":{"output_tokens":0}})["usage"],{"output_tokens":0})
+        for values in ({"cost":0},{"usage_status":"REPORTED","usage":{}},{"usage_status":"REPORTED","usage":{"input_tokens":True}}):
+            with self.assertRaises(AssertionError):probe.assert_reported_metering({**base,**values})
+    def test_retest_retry_requires_explicit_503_and_retained_payload(self):
+        probe = load_probe()
+        observed = {"status": "OBSERVED", "retest_incomplete": True, "same_request_retry": True, "unknown": False, "retest_withheld": False, "retest_refused": False, "failure": {"phase": "invoke", "status": 503, "code": "unavailable"}}
+        self.assertTrue(probe.retryable_retest_failure(observed))
+        for key, value in (("unknown", True), ("retest_withheld", True), ("retest_refused", True), ("same_request_retry", False), ("failure", {"phase": "invoke", "status": None, "code": "offline"}), ("failure", {"phase": "task_readback", "status": 503, "code": "unavailable"})):
+            with self.subTest(key=key, value=value):
+                self.assertFalse(probe.retryable_retest_failure({**observed, key: value}))
+
+    def test_pointer_proof_rejects_neighbour_untrusted_and_route_rebound(self):
+        probe=load_probe()
+        trace={"events":[{"type":kind,"phase":"capture","trusted":True,"targetPage":"06"} for kind in ("pointerdown","pointerup","click")],"samples":[{"phase":"click+1000","hashPage":"06","renderPage":"06","currentPages":["06"]}]}
+        probe.assert_pointer_navigation(trace,"06")
+        for field,value in (("targetPage","13"),("trusted",False)):
+            wrong=copy.deepcopy(trace);wrong["events"][-1][field]=value
+            with self.assertRaises(AssertionError):probe.assert_pointer_navigation(wrong,"06")
+        wrong=copy.deepcopy(trace);wrong["samples"][0]["renderPage"]="13"
+        with self.assertRaises(AssertionError):probe.assert_pointer_navigation(wrong,"06")
+
+    def test_native_click_retries_only_explicit_stale_refusal(self):
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(encoding="utf-8")
+        nodes = [node for node in ast.parse(source).body if isinstance(node, (ast.FunctionDef, ast.ClassDef)) and node.name in {"WebDriverProtocolError", "click_current_element"}]
+        namespace = {}
+        exec(compile(ast.Module(body=nodes, type_ignores=[]), "native_click", "exec"), namespace)
+        for error, failures, expected in (("stale element reference", 1, 2), ("stale element reference", 3, 3), ("timeout", 1, 1), ("unknown error", 1, 1)):
+            with self.subTest(error=error, failures=failures):
+                calls = []; finds = []
+                def find(*args):
+                    finds.append(args)
+                    return str(len(finds))
+                def request(*args):
+                    calls.append(args)
+                    if len(calls) <= failures: raise namespace["WebDriverProtocolError"]({"error": error})
+                    return "clicked"
+                if error == "stale element reference" and failures == 1:
+                    self.assertEqual(namespace["click_current_element"](request, find, "session", "selector"), "clicked")
+                else:
+                    with self.assertRaises(namespace["WebDriverProtocolError"]): namespace["click_current_element"](request, find, "session", "selector")
+                self.assertEqual(len(calls), expected)
+                self.assertEqual(len(finds), expected)
+
+    def test_ui_original_restart_readback_rejects_changed_bytes(self):
+        import base64
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(encoding="utf-8")
+        node = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == "ui_original_import_readback")
+        namespace = {"base64": base64, "hashlib": hashlib}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), "original_readback", "exec"), namespace)
+        raw = b"synthetic retained original"
+        digest = hashlib.sha256(raw).hexdigest()
+        for changed in (False, True):
+            with self.subTest(changed=changed):
+                proofs = [{"source_id": "source", "sha256": digest, "bytes": len(raw)}]
+                def bridge(operation, payload):
+                    self.assertEqual(operation, "source_original")
+                    self.assertEqual(payload, {"source_id": "source"})
+                    return {"sha256": digest, "content_base64": base64.b64encode(raw + (b" changed" if changed else b"")).decode()}
+                if changed:
+                    with self.assertRaises(AssertionError): namespace[node.name](bridge, proofs)
+                    self.assertNotIn("host_restart_original_readback", proofs[0])
+                else:
+                    namespace[node.name](bridge, proofs)
+                    self.assertEqual(proofs[0]["host_restart_original_readback"], "PASS")
+
+    def test_recovery_observer_requires_exact_ack_and_only_scene_followup(self):
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(encoding="utf-8")
+        node = next(n for n in ast.parse(source).body if isinstance(n, ast.FunctionDef) and n.name == "confirm_restored_working_state")
+        namespace = {}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), "recovery_observer", "exec"), namespace)
+        run = namespace[node.name]
+        candidate = {"drafts": {}, "opened_documents": [], "active_document": None, "page_id": None, "pending_original": None}
+        before = {"schema": "archeaxis.ui-working-state/v1", "workspace_id": "workspace", "restore_epoch": "epoch", "state_revision": 4, "state": {}, "recovery_candidates": candidate, "recovery_requires_confirmation": True}
+        ack = {**before, "state_revision": 5, "state": candidate, "recovery_candidates": None, "recovery_requires_confirmation": False}
+        after = {**ack, "state_revision": 6, "state": {**candidate, "page_id": "01"}}
+        for mutation in (None, "ack_revision", "ack_content", "followup_content", "after_identity"):
+            with self.subTest(mutation=mutation):
+                a, last = copy.deepcopy(ack), copy.deepcopy(after)
+                if mutation == "ack_revision": a["state_revision"] = 6
+                if mutation == "ack_content": a["state"]["drafts"] = {"lost": {}}
+                if mutation == "followup_content": last["state"]["drafts"] = {"unexpected": {}}
+                if mutation == "after_identity": last["workspace_id"] = "different"
+                observed = [{"operation": "ui_state_recover", "value": {"status": 200, "body": a}}, {"operation": "ui_state_write", "value": {"status": 200, "body": last}}]
+                reads = iter([copy.deepcopy(before), last]); actions = []
+                def js(script):
+                    actions.append(script)
+                    return observed if script == "return window.__aaosRecoveryReplies" else None
+                invoke = lambda: run(lambda *_: next(reads), actions.append, lambda *_: None, js)
+                if mutation is None:
+                    self.assertEqual(invoke()["acknowledged"], ack)
+                else:
+                    with self.assertRaises(AssertionError): invoke()
+                self.assertIn("保留恢复候选", actions)
+                self.assertTrue(any("delete window.__aaosRecoveryOriginal" in action for action in actions))
+
+    def test_machine_diagnostic_is_bounded_and_does_not_copy_private_text(self):
+        probe = load_probe()
+        keys = ("panel_present", "answer_visible", "retest_visible", "unknown",
+                "retest_incomplete", "retest_refused", "retest_withheld", "same_request_retry")
+        class UI:
+            def js(self, script):
+                return {**dict.fromkeys(keys, True), "private_question": "must not copy"}
+        result = probe.machine_ui_diagnostic(UI())
+        self.assertEqual(set(result), {"status", *keys})
+        self.assertEqual(result["status"], "OBSERVED")
+        class Invalid:
+            def js(self, script):
+                return {"panel_present": "true"}
+        self.assertEqual(probe.machine_ui_diagnostic(Invalid()), {"status": "INVALID_OBSERVATION"})
+
+    def test_frozen_job_journal_binds_all_original_fields_and_refuses_old_restore_epoch(self):
+        frozen = {"job_id": "job", "request_id": "request", "body": {"deadline_ms": 60000, "split": False, "words": False}}
+        entry = {**frozen, "source_id": "source", "source_revision": "a" * 64, "kind": "text", "surface": "manual", "mode": "single", "relative": None, "origin_restore_epoch": "initial"}
+        read = {"schema": "archeaxis.ui-working-state/v1", "restore_epoch": "initial", "recovery_requires_confirmation": False, "state": {"pending_jobs": {"request": entry}}}
+        self.assertEqual(self.probe.frozen_job_journal(read, frozen, "source", "a" * 64, "text"), entry)
+        for field in ("job_id", "source_id", "source_revision", "kind", "body", "origin_restore_epoch"):
+            bad = copy.deepcopy(read)
+            bad["state"]["pending_jobs"]["request"][field] = "wrong"
+            with self.assertRaises(AssertionError):
+                self.probe.frozen_job_journal(bad, frozen, "source", "a" * 64, "text")
+
+    def setUp(self):
+        self.probe = load_probe()
+
+    def test_review_requires_new_persisted_bound_answer_and_matching_projection(self):
+        pin = {"item_key": "course:one:artifact:two", "assessment_id": "assessment", "knowledge_version": "knowledge"}
+        before = {"item_key": pin["item_key"], "count": 0, "events": []}
+        event = {"event_id": 7, "kind": "review", "next_review": None,
+                 "outcome": json.dumps({"answer": "answer", "assessment_id": "assessment", "outcome": "correct",
+                                        "review_evidence": {"knowledge_version": "knowledge"}})}
+        after = {"item_key": pin["item_key"], "count": 1, "events": [event]}
+        state = {"item_key": pin["item_key"], "learner": {"event_count": 1, "latest_review": {
+            "event_id": 7, "kind": "review", "next_review": None, "answer": "answer", "assessment_id": "assessment"}}}
+        self.probe.assert_review_readback(before, after, state, pin, " answer ")
+        for target, field, value in (("history", "count", 0), ("state", "event_count", 0),
+                                     ("latest", "answer", "wrong"), ("latest", "assessment_id", "wrong"),
+                                     ("latest", "event_id", 8)):
+            bad_history, bad_state = copy.deepcopy(after), copy.deepcopy(state)
+            obj = bad_history if target == "history" else bad_state["learner"] if target == "state" else bad_state["learner"]["latest_review"]
+            obj[field] = value
+            with self.subTest(target=target, field=field), self.assertRaises(AssertionError):
+                self.probe.assert_review_readback(before, bad_history, bad_state, pin, "answer")
+        with self.assertRaises(AssertionError):
+            self.probe.assert_review_readback(after, after, state, pin, "answer")
+        for field, value in (("answer", "wrong"), ("assessment_id", "wrong"), ("outcome", "incorrect"),
+                             ("review_evidence", {"knowledge_version": "wrong"})):
+            bad = copy.deepcopy(after)
+            outcome = json.loads(bad["events"][-1]["outcome"])
+            outcome[field] = value
+            bad["events"][-1]["outcome"] = json.dumps(outcome)
+            with self.subTest(outcome=field), self.assertRaises(AssertionError):
+                self.probe.assert_review_readback(before, bad, state, pin, "answer")
+        prior = {"item_key": pin["item_key"], "count": 1, "events": [{**event, "event_id": 6}]}
+        changed = {"item_key": pin["item_key"], "count": 2, "events": [{**event, "event_id": 5}, event]}
+        with self.assertRaises(AssertionError):
+            self.probe.assert_review_readback(prior, changed, state, pin, "answer")
+
+    def test_mutations_refused(self):
+        operations = [
+            "source_import",
+            "document_create",
+            "document_draft",
+            "anchor_create",
+            "knowledge_from_transform",
+            "knowledge_review",
+            "course_from_knowledge",
+            "learning_reference",
+            "assessment_create",
+            "learning_review",
+            "machine_answer",
+            "machine_correction",
+            "machine_retest",
+            "job_execute",
+            "job_enqueue",
+            "workspace_backup",
+            "ui_state_write",
+            "ui_state_recover",
+            "capability_set_enabled",
+        ]
+        for operation in operations:
+            with self.subTest(operation=operation):
+                calls = []
+                read = self.probe.readonly_bridge(
+                    lambda op, payload, calls=calls: calls.append((op, payload))
+                )
+                with self.assertRaisesRegex(ValueError, "forbids bridge mutation"):
+                    read(operation, {"body": {}})
+                self.assertEqual(calls, [])
+
+    def test_read_identity_preserved(self):
+        calls = []
+        read = self.probe.readonly_bridge(
+            lambda op, payload, calls=calls: (
+                calls.append((op, payload)) or {"document_id": payload["document_id"]}
+            )
+        )
+        self.assertEqual(read("document_get", {"document_id": "exact"}), {"document_id": "exact"})
+        self.assertEqual(calls, [("document_get", {"document_id": "exact"})])
+
+    def test_assessment_same_object(self):
+        pin = {
+            "item_key": "course:c:artifact:a",
+            "assessment_id": "assessment",
+            "knowledge_id": "knowledge",
+            "knowledge_version": "knowledge",
+            "source_id": "source",
+            "anchor_id": "anchor",
+        }
+        self.probe.assert_assessment(dict(pin), pin)
+        for field in pin:
+            with self.subTest(field=field), self.assertRaisesRegex(AssertionError, field):
+                self.probe.assert_assessment({**pin, field: "another"}, pin)
+
+    def test_selectors_quote_and_hidden_boundary(self):
+        self.assertTrue(self.probe.xpath_literal("one'quoted\"name").startswith("concat("))
+        self.assertIn("ancestor-or-self::*[@hidden]", self.probe.button_selector("保存草稿"))
+        self.assertTrue(
+            self.probe.label_selector("学习项目键").endswith(
+                "/input[not(ancestor-or-self::*[@hidden])]"
+            )
+        )
+        with self.assertRaises(AssertionError):
+            self.probe.one(
+                [{"id": "same"}, {"id": "same"}], lambda row: row["id"] == "same", "duplicate"
+            )
+
+    def test_webdriver_only_interactions(self):
+        commands, observations, actions = [], [], []
+        ui = self.probe.GroupedUI(
+            lambda script: observations.append(script) or "#page=13",
+            lambda script, **_: observations.append(script),
+            lambda using, selector: "actual-element",
+            lambda element, action, body: commands.append((element, action, body)),
+            actions,
+        )
+        ui.click("保存草稿")
+        ui.type("知识候选正文", "authored fixture", "textarea")
+        ui.keys(self.probe.label_selector("选择实际引文", "textarea"), "\ue009\ue008\ue010\ue000")
+        folder = ROOT / ".project-local" / "artifacts" / "unittest-fixture-no-files-written"
+        ui.upload_directory(folder)
+        self.assertEqual(
+            [row[1] for row in commands], ["click", "clear", "value", "click", "value", "value"]
+        )
+        self.assertTrue(all(row[0] == "actual-element" for row in commands))
+        self.assertEqual(commands[-1][2]["text"], str(folder.resolve()))
+        self.assertFalse(
+            any(
+                ".click(" in script or "dispatchEvent(" in script or ".value=" in script
+                for script in observations
+            )
+        )
+        self.assertEqual(
+            {row["action"] for row in actions},
+            {"trusted_click", "trusted_type", "trusted_keys", "trusted_directory_upload"},
+        )
+
+    def test_unconfirmed_route_never_grants_or_invokes(self):
+        class ForbiddenUI:
+            def __getattr__(self, _):
+                raise AssertionError("No UI model/grant mutation allowed without confirmed route")
+
+        for enabled, health in [(False, "healthy"), (True, "declared"), (True, "worker_missing")]:
+            with self.subTest(enabled=enabled, health=health):
+                calls = []
+
+                def read(op, calls=calls, enabled=enabled, health=health):
+                    calls.append(op)
+                    return {
+                        "capabilities": [
+                            {"capability": "machine.answer", "enabled": enabled, "health": health}
+                        ]
+                    }
+
+                stage = self.probe.run_ai_stage(ForbiddenUI(), read, None, None, {}, {}, True)
+                self.assertEqual(
+                    [stage["status"], stage["correction"], stage["retest"]], ["NOT_EXECUTED"] * 3
+                )
+                self.assertEqual(calls, ["capabilities_list"])
+
+    def test_quote_selection_requires_native_range_and_react_display(self):
+        text = "中文🌌\n尾行\n"
+        proof = {
+            "focused": True,
+            "value": text,
+            "start": 0,
+            "end": len(text.encode("utf-16-le")) // 2,
+            "displayed": "已选引文：" + text,
+        }
+        self.probe.assert_quote_selection(proof, text)
+        for field, wrong in [
+            ("focused", False),
+            ("start", 1),
+            ("end", proof["end"] - 1),
+            ("value", text.rstrip()),
+            ("displayed", "已选引文："),
+        ]:
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_quote_selection({**proof, field: wrong}, text)
+        commands, scripts, result = [], [], {}
+        ui = self.probe.GroupedUI(
+            lambda _: proof,
+            lambda script: scripts.append(script),
+            lambda *_: "quote",
+            lambda element, action, body: commands.append((action, body)),
+            [],
+        )
+        self.probe.select_full_quote(
+            ui, lambda _: proof, lambda script: scripts.append(script), text, result
+        )
+        self.assertEqual(commands, [("click", {}), ("value", {"text": "\ue009a\ue000"})])
+        self.assertEqual(result["quote_selection"]["status"], "PASS")
+        self.assertFalse(
+            any(
+                token in script
+                for script in scripts
+                for token in ["setSelectionRange(", "dispatchEvent(", ".focus("]
+            )
+        )
+        failed = {}
+
+        def timeout(_):
+            raise TimeoutError("native selection missing")
+
+        with self.assertRaises(TimeoutError):
+            self.probe.select_full_quote(ui, lambda _: {**proof, "end": 0}, timeout, text, failed)
+        self.assertEqual(failed["quote_selection"]["status"], "FAIL")
+        self.assertEqual(failed["quote_selection"]["selection"]["end"], 0)
+
+    def test_answer_does_not_become_correctness_claim(self):
+        task = {
+            "scope": "runtime.answer",
+            "outcome": "unmeasured",
+            "conditions": json.dumps(
+                {"answer": {**self.probe.ai_receipt_contract()[1][0], "answer": "correct answer"}}
+            ),
+        }
+        self.assertEqual(self.probe.inference_status(task), "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        self.assertEqual(
+            self.probe.inference_status(
+                {**task, "conditions": json.dumps({"answer": {"model": "SIMULATED-model"}})}
+            ),
+            "UNVERIFIED",
+        )
+        self.assertEqual(self.probe.inference_status({**task, "outcome": "failed"}), "NOT_EXECUTED")
+
+    def test_harness_separate_branch_retains_finally(self):
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(
+            encoding="utf-8"
+        )
+        tree = ast.parse(source)
+        main = next(
+            node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "main"
+        )
+        branch = next(
+            node
+            for node in ast.walk(main)
+            if isinstance(node, ast.If)
+            and ast.unparse(node.test) == "args.grouped_common_owner_loop"
+            and any(isinstance(child, ast.Raise) for child in node.body)
+        )
+        code = ast.unparse(branch)
+        self.assertIn("run_grouped_loop", code)
+        for forbidden in [
+            "navigate_compatibility_space",
+            "synthetic_course_loop(",
+            "native_command(",
+        ]:
+            self.assertNotIn(forbidden, code)
+        self.assertIn("grouped_run_ai", code)
+        self.assertIn("report=receipt['grouped_common_owner_loop']", code)
+        self.assertIn("compatibility fixtures", source)
+        enclosing = next(
+            node for node in ast.walk(main) if isinstance(node, ast.Try) and branch in node.body
+        )
+        self.assertTrue(enclosing.finalbody)
+        self.assertTrue(
+            any(
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "close_session"
+                for node in ast.walk(enclosing)
+            )
+        )
+
+    def test_declared_route_with_explicit_optin_attempts_ui_without_claiming_model_health(self):
+        class FirstUIActionError(Exception):
+            pass
+
+        class ActualUI:
+            def page(self, page):
+                if page != "13":
+                    raise AssertionError("wrong page")
+                raise FirstUIActionError
+
+        capability = {
+            "capability": "machine.answer",
+            "enabled": True,
+            "registered": True,
+            "health": "declared",
+            "provider": {"worker_present": True, "interpreter_present": True},
+        }
+        with self.assertRaises(FirstUIActionError):
+            self.probe.run_ai_stage(
+                ActualUI(),
+                lambda op, *_: (
+                    {"capabilities": [capability]}
+                    if op == "capabilities_list"
+                    else {"knowledge_id": "exact", "status": "accepted"}
+                ),
+                None,
+                None,
+                {"knowledge_id": "exact"},
+                {},
+                True,
+            )
+        # No explicit opt-in means no route or grant is consulted.
+        self.assertEqual(
+            self.probe.run_ai_stage(None, None, None, None, {}, {}, False)["status"], "NOT_EXECUTED"
+        )
+
+    def test_persisted_task_conditions_requires_exact_json_text(self):
+        self.assertEqual(
+            self.probe.task_conditions({"conditions": '{"answer_id":"exact"}'}),
+            {"answer_id": "exact"},
+        )
+        for invalid in [{"answer_id": "exact"}, None, "[]", "null", "bad-json"]:
+            with (
+                self.subTest(invalid=invalid),
+                self.assertRaises((AssertionError, json.JSONDecodeError)),
+            ):
+                self.probe.task_conditions({"conditions": invalid})
+
+    def ai_fixture(self):
+        grant = {
+            "document_id": "original-grant",
+            "version": 1,
+            "content_sha256": "a" * 64,
+            "purpose": "original",
+        }
+        original = {
+            "schema": "archeaxis.machine-answer/v1",
+            "answer_id": "answer",
+            "knowledge_id": "original-knowledge",
+            "question": "question",
+            "answer": {
+                "answer": "A correct actual-answer-shaped test value",
+                **self.probe.ai_receipt_contract()[1][0],
+            },
+            "authority": "candidate",
+            "request": {"context_grant": grant, "knowledge_id": "original-knowledge", "question": "question", "context_sha256": hashlib.sha256(b"Original accepted body").hexdigest()},
+        }
+        task = {
+            "task_id": "answer",
+            "scope": "runtime.answer",
+            "outcome": "unmeasured",
+            "knowledge_version": "original-knowledge@v1",
+            "model_version": self.probe.ai_receipt_contract()[1][0]["model"],
+            "retest_of": None,
+            "conditions": json.dumps(original),
+        }
+        authored = {
+            "actor": "ENGINEERING_AUTHORED_INTERVENTION_NOT_OWNER",
+            "body": "Authored clarification",
+            "note": "Not independent model-error evidence",
+        }
+        correction = {
+            "answer_id": "answer",
+            "failed_task_id": "evaluation_answer",
+            "corrects_knowledge_id": "original-knowledge",
+            "question": "question",
+            "machine_answer": original["answer"]["answer"],
+            "corrected_answer": authored["body"],
+            "error_note": authored["note"],
+            "reviewer": authored["actor"],
+            "correction_candidate_id": "corrected-knowledge",
+        }
+        failed = {
+            "task_id": "evaluation_answer",
+            "scope": "runtime.evaluation.failed",
+            "outcome": "failed",
+            "conditions": json.dumps({**original, "correction": correction}),
+        }
+        candidate = {
+            "knowledge_id": "corrected-knowledge",
+            "body": authored["body"],
+            "source_id": None,
+            "anchor_id": None,
+            "status": "candidate",
+        }
+        return grant, original, task, authored, failed, candidate
+
+    def test_original_task_and_corrected_lineage_preserve_correct_answer(self):
+        grant, original, task, authored, failed, candidate = self.ai_fixture()
+        self.assertEqual(
+            self.probe.assert_inference_task(task, "original-knowledge", "question", grant),
+            original,
+        )
+        self.probe.assert_correction_lineage(original, failed, candidate, authored)
+        self.assertIn("correct actual", original["answer"]["answer"])
+        self.assertEqual(self.probe.inference_status(task), "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        for field in [
+            "answer_id",
+            "corrects_knowledge_id",
+            "question",
+            "machine_answer",
+            "corrected_answer",
+            "error_note",
+            "reviewer",
+            "correction_candidate_id",
+        ]:
+            changed = copy.deepcopy(failed)
+            body = json.loads(changed["conditions"])
+            body["correction"][field] = "another"
+            changed["conditions"] = json.dumps(body)
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_correction_lineage(original, changed, candidate, authored)
+        for field in ["source_id", "anchor_id"]:
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_correction_lineage(
+                    original, failed, {**candidate, field: "invented-source"}, authored
+                )
+
+    def test_retest_requires_new_exact_grant_and_failed_ancestor(self):
+        grant, original, task, _, failed, candidate = self.ai_fixture()
+        new_grant = {**grant, "document_id": "independent-retest-grant", "purpose": "retest"}
+        retest = {
+            **original,
+            "schema": "archeaxis.machine-retest/v1",
+            "answer_id": "retest",
+            "retest_task_id": "retest",
+            "knowledge_id": "corrected-knowledge",
+            "retest_of": "evaluation_answer",
+            "request": {"knowledge_id": "corrected-knowledge", "question": "question", "retest_of": "evaluation_answer", "max_tokens": 2048, "context_grant": new_grant},
+            "prior": {"conditions": json.loads(failed["conditions"])},
+        }
+        retest["execution_request"] = {"schema": "archeaxis.machine-retest-execution/v1",
+            "request": copy.deepcopy(retest["request"]),
+            "context_sha256": hashlib.sha256(candidate["body"].encode("utf-8")).hexdigest()}
+        proof = {
+            **task,
+            "task_id": "retest",
+            "scope": "runtime.retest",
+            "knowledge_version": "corrected-knowledge@v1",
+            "retest_of": "evaluation_answer",
+            "conditions": json.dumps(retest),
+        }
+        self.probe.assert_inference_task(
+            proof, "corrected-knowledge", "question", new_grant, "runtime.retest"
+        )
+        self.assertEqual(self.probe.inference_status(proof), "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        binding = self.probe.receipt_binding(proof, {**candidate, "status": "accepted"}, "question", new_grant, prior_failed_task=failed)
+        self.assertEqual(binding["status"], "RECEIPT_BINDINGS_VALIDATED")
+        with self.assertRaises(AssertionError):
+            self.probe.assert_inference_task(
+                proof, "corrected-knowledge", "question", grant, "runtime.retest"
+            )
+        with self.assertRaises(AssertionError):
+            self.probe.assert_inference_task(
+                {**proof, "retest_of": "other-failure"},
+                "corrected-knowledge",
+                "question",
+                new_grant,
+                "runtime.retest",
+            )
+
+    def test_authored_intervention_requires_explicit_actual_model(self):
+        with self.assertRaisesRegex(AssertionError, "actual-model"):
+            self.probe.run_ai_stage(None, None, None, None, {}, {}, False, True)
+        source = (ROOT / "scripts/probes/aaos01_tauri_webdriver_loop.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("args.grouped_authored_intervention and not args.grouped_run_ai", source)
+        self.assertIn("authored_intervention=args.grouped_authored_intervention", source)
+
+    def test_restored_old_grant_refusal_observed_only_through_ui_without_new_task(self):
+        grant, original, task, _, _, _ = self.ai_fixture()
+        document = {
+            **grant,
+            "title": "original",
+            "editor_json": {"attrs": {"archeaxis_context_grant": {"purpose": "original"}}},
+        }
+        stage = {
+            "original_grant": document,
+            "original_answer": original,
+            "status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+            "knowledge_before": {"knowledge_id": "original-knowledge", "status": "accepted"},
+        }
+        actions, reads, waits = [], [], []
+
+        normalized = {"operation": "answer", "request": {
+            "knowledge_id": "original-knowledge", "question": "question", "max_tokens": 2048, "timeout_s": 120,
+            "context_grant": self.probe.grant_snapshot(document), "asset_context_grant": None,
+            "client_request_id": "machine_new_fixture", "retest_of": None,
+        }}
+        receipt = {"schema": "archeaxis.context-admission-refusal/v1", "reason_code": "RESTORED_GRANT_FENCED",
+            "execution_state": "NOT_EXECUTED", "execution_scope": "CURRENT_INVOCATION", "prior_request_execution": "UNVERIFIED",
+            "answer_published": False, "operation": "answer", "knowledge_id": "original-knowledge", "retest_of": None,
+            "client_request_id": "machine_new_fixture", "grant": {k: document[k] for k in ("document_id", "version", "content_sha256")},
+            "request_sha256": hashlib.sha256(json.dumps(normalized, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()}
+
+        class UI:
+            def js(self, script):
+                self_script = script
+                assert "contextAdmissionRefusal" in self_script
+                return copy.deepcopy(receipt)
+
+            def page(self, page):
+                actions.append(("page", page))
+
+            def click(self, label):
+                actions.append(("click", label))
+
+            def type(self, label, text, tag):
+                actions.append(("type", label, text, tag))
+
+        def read(op, payload=None):
+            reads.append((op, payload))
+            if op == "machine_tasks_list":
+                return {"items": [{"task_id": "answer"}], "next_cursor": None}
+            if op == "machine_task_get":
+                return copy.deepcopy(task)
+            if op == "document_get":
+                return copy.deepcopy(document)
+            if op == "knowledge_get":
+                return copy.deepcopy(stage["knowledge_before"])
+            if op == "capabilities_list":
+                return {
+                    "capabilities": [
+                        {"capability": "machine.answer", "enabled": True, "registered": True}
+                    ]
+                }
+            raise AssertionError("Unexpected write or read " + op)
+
+        observed = self.probe.restored_grant_refusal(
+            UI(), read, lambda script, **_: waits.append(script), stage
+        )
+        self.assertEqual(observed["status"], "PASS")
+        self.assertTrue(observed["tasks_unchanged"])
+        self.assertEqual(observed["exact_core_reason"], "RESTORED_GRANT_FENCED")
+        self.assertEqual(observed["execution_scope"], "CURRENT_INVOCATION")
+        self.assertEqual(observed["prior_request_execution"], "UNVERIFIED")
+        for field in ("reason_code", "execution_scope", "prior_request_execution", "knowledge_id", "request_sha256", "grant"):
+            bad = {**receipt, field: "mismatch"}
+            with self.assertRaises(AssertionError):
+                self.probe.restored_admission_receipt(bad, document, "original-knowledge", "question")
+        with self.assertRaises(AssertionError):
+            self.probe.restored_admission_receipt(None, document, "original-knowledge", "question")
+        self.assertIn(("type", "实际问题", "question", "textarea"), actions)
+        self.assertIn(("click", "执行本地机器回答"), actions)
+        self.assertTrue(any("Core 明确拒绝此回答请求" in script for script in waits))
+        self.assertTrue(all(op in self.probe.READ_OPERATIONS for op, _ in reads))
+        self.assertEqual(
+            self.probe.restored_grant_refusal(None, None, None, {})["status"], "NOT_EXECUTED"
+        )
+        task_reads = [0]
+
+        def changed_task_read(op, payload=None):
+            value = read(op, payload)
+            if op == "machine_task_get":
+                task_reads[0] += 1
+                if task_reads[0] > 1:
+                    return {**value, "model_version": "changed-after-request"}
+            return value
+
+        with self.assertRaisesRegex(AssertionError, "created/changed"):
+            self.probe.restored_grant_refusal(UI(), changed_task_read, lambda *_, **__: None, stage)
+
+        with self.assertRaisesRegex(AssertionError, "partial page"):
+            self.probe.machine_tasks(lambda *_: {"items": [], "next_cursor": "next-page"})
+
+    def test_simulated_full_helper_actual_shaped_answer_adoption_new_grant_retest(self):
+        self.exercise_simulated_ai(False)
+        self.exercise_simulated_ai(True)
+
+    def test_grouped_rejects_undeclared_stub_mock_and_wrong_frozen_request(self):
+        for mutation in ("undeclared_model", "stub_model", "mock_model", "wrong_original_request"):
+            with self.subTest(mutation=mutation):
+                self.exercise_simulated_ai(True, mutation)
+
+    def test_grouped_retest_without_exact_execution_body_is_unverified(self):
+        for mutation in ("missing_retest_context", "wrong_retest_body"):
+            with self.subTest(mutation=mutation):
+                self.exercise_simulated_ai(True, mutation)
+
+    def exercise_simulated_ai(self, intervention, mutation=None):
+        docs, tasks, actions, reads, fields = {}, {}, [], [], {}
+        knowledge = {
+            "knowledge_id": "original-knowledge",
+            "body": "Preserved original bytes differ from document revisions",
+            "status": "accepted",
+        }
+        candidate = {}
+        bound = [knowledge["knowledge_id"]]
+        probe = self.probe
+
+        class UI:
+            def page(self, page):
+                actions.append(("page", page))
+
+            def js(self, script):
+                assert '本地模型清单探测结果' in script
+                return '清单已读取，共 1 项；声明模型已列出。加载状态未知，推理尚未验证。'
+
+            def click_selector(self, selector):
+                actions.append(("checkbox", selector))
+                fields["operation"] = "retest" if "允许本地复测" in selector else "answer"
+
+            def type(self, label, text, tag="input", scope=""):
+                actions.append(("type", label, tag, scope))
+                fields[label] = text
+
+            def click(self, label, scope=""):
+                actions.append(("click", label, scope))
+                if label == "明确授权并保存":
+                    ident = "grant-" + str(len(docs) + 1)
+                    grant = {
+                        "purpose": fields["用途"],
+                        "consumer": "local-machine",
+                        "operations": [fields["operation"]],
+                        "state": "granted",
+                        "knowledge_id": bound[0],
+                    }
+                    docs[ident] = {
+                        "document_id": ident,
+                        "title": fields["用途"],
+                        "version": 1,
+                        "content_sha256": "a" * 64,
+                        "editor_json": {"attrs": {"archeaxis_context_grant": grant}},
+                    }
+                elif label == "执行本地机器回答":
+                    body = {
+                        "schema": "archeaxis.machine-answer/v1",
+                        "answer_id": "actual-shaped-answer",
+                        "question": fields["实际问题"],
+                        "knowledge_id": knowledge["knowledge_id"],
+                        "authority": "candidate",
+                        "answer": {
+                            **probe.ai_receipt_contract()[1][0],
+                            "answer": "A correct explanation; no actual error claimed",
+                            "usage": None, "usage_status":"UNKNOWN", "cost":None, "cost_status":"UNKNOWN",
+                            "finish_reason": "stop",
+                            "truncated": False,
+                        },
+                        "request": {
+                            "knowledge_id": knowledge["knowledge_id"],
+                            "question": fields["实际问题"],
+                            "context_grant": probe.grant_snapshot(docs["grant-1"]),
+                            "context_sha256": hashlib.sha256(
+                                knowledge["body"].encode()
+                            ).hexdigest(),
+                        },
+                    }
+                    if mutation in ("undeclared_model", "stub_model", "mock_model"):
+                        body["answer"]["model"] = {"undeclared_model": "configured-model", "stub_model": "local-stub", "mock_model": "mock-qwen"}[mutation]
+                    if mutation == "wrong_original_request":
+                        body["request"]["knowledge_id"] = "other-knowledge"
+                    tasks[body["answer_id"]] = {
+                        "task_id": body["answer_id"],
+                        "scope": "runtime.answer",
+                        "outcome": "unmeasured",
+                        "knowledge_version": knowledge["knowledge_id"] + "@v1",
+                        "model_version": body["answer"]["model"],
+                        "retest_of": None,
+                        "conditions": json.dumps(body),
+                    }
+                elif label == "记录使用者纠正候选":
+                    original = json.loads(tasks["actual-shaped-answer"]["conditions"])
+                    candidate.update(
+                        knowledge_id="corrected-knowledge",
+                        body=fields["正确答案"],
+                        status="candidate",
+                        source_id=None,
+                        anchor_id=None,
+                    )
+                    correction = {
+                        "answer_id": original["answer_id"],
+                        "failed_task_id": "evaluation_" + original["answer_id"],
+                        "corrects_knowledge_id": original["knowledge_id"],
+                        "question": original["question"],
+                        "machine_answer": original["answer"]["answer"],
+                        "corrected_answer": fields["正确答案"],
+                        "error_note": fields["具体错误依据"],
+                        "reviewer": fields["纠正提交者"],
+                        "correction_candidate_id": candidate["knowledge_id"],
+                    }
+                    tasks[correction["failed_task_id"]] = {
+                        "task_id": correction["failed_task_id"],
+                        "scope": "runtime.evaluation.failed",
+                        "outcome": "failed",
+                        "conditions": json.dumps({**original, "correction": correction}),
+                    }
+                elif label == "接受纠正知识":
+                    candidate["status"] = "accepted"
+                elif label == "为此纠正知识建立独立复测授权":
+                    bound[0] = candidate["knowledge_id"]
+                elif label == "以已接受纠正知识运行独立复测":
+                    original = json.loads(tasks["actual-shaped-answer"]["conditions"])
+                    failed_id = "evaluation_" + original["answer_id"]
+                    body = {
+                        **original,
+                        "schema": "archeaxis.machine-retest/v1",
+                        "answer_id": "actual-shaped-retest",
+                        "retest_task_id": "actual-shaped-retest",
+                        "knowledge_id": candidate["knowledge_id"],
+                        "retest_of": failed_id,
+                        "request": {"knowledge_id": candidate["knowledge_id"], "question": original["question"],
+                                    "retest_of": failed_id, "max_tokens": 2048,
+                                    "context_grant": probe.grant_snapshot(docs["grant-2"])},
+                        "prior": {"conditions": json.loads(tasks[failed_id]["conditions"])},
+                    }
+                    body["execution_request"] = {"schema": "archeaxis.machine-retest-execution/v1",
+                        "request": copy.deepcopy(body["request"]),
+                        "context_sha256": hashlib.sha256(candidate["body"].encode("utf-8")).hexdigest()}
+                    if mutation == "missing_retest_context":
+                        del body["execution_request"]
+                    if mutation == "wrong_retest_body":
+                        body["execution_request"]["context_sha256"] = hashlib.sha256(knowledge["body"].encode("utf-8")).hexdigest()
+                    tasks[body["answer_id"]] = {
+                        "task_id": body["answer_id"],
+                        "scope": "runtime.retest",
+                        "outcome": "unmeasured",
+                        "knowledge_version": candidate["knowledge_id"] + "@v1",
+                        "model_version": body["answer"]["model"],
+                        "retest_of": failed_id,
+                        "conditions": json.dumps(body),
+                    }
+
+        def read(op, payload=None):
+            self.assertIn(op, probe.READ_OPERATIONS)
+            reads.append(op)
+            payload = payload or {}
+            if op == "machine_configuration":
+                return {"schema":"archeaxis.machine-configuration/v1","availability":"CONFIGURED_UNVERIFIED","network_performed":False,"inference_status":"NOT_EXECUTED","loaded_status":"UNKNOWN","model_identity":None,"usage":None,"cost":None}
+            if op == "capabilities_list":
+                return {
+                    "capabilities": [
+                        {
+                            "capability": "machine.answer",
+                            "enabled": True,
+                            "registered": True,
+                            "health": "declared",
+                            "provider": {
+                                "worker_present": True,
+                                "interpreter_present": True,
+                            },
+                        }
+                    ]
+                }
+            if op == "knowledge_get":
+                return copy.deepcopy(
+                    knowledge if payload["id"] == knowledge["knowledge_id"] else candidate
+                )
+            if op == "machine_contexts_list":
+                return {
+                    "items": [
+                        {k: d[k] for k in ["document_id", "title", "version", "content_sha256"]}
+                        for d in docs.values()
+                    ],
+                    "next_cursor": None,
+                }
+            if op == "document_get":
+                return copy.deepcopy(docs[payload["document_id"]])
+            if op == "machine_tasks_list":
+                return {"items": [{"task_id": key} for key in tasks], "next_cursor": None}
+            if op == "machine_task_get":
+                return copy.deepcopy(tasks[payload["task_id"]])
+            raise AssertionError("Unexpected op " + op)
+
+        result = {}
+        stage = probe.run_ai_stage(
+            UI(),
+            read,
+            lambda _: "",
+            lambda *_, **__: None,
+            {"knowledge_id": knowledge["knowledge_id"]},
+            result,
+            True,
+            intervention,
+        )
+        if mutation in ("undeclared_model", "stub_model", "mock_model", "wrong_original_request"):
+            self.assertEqual(stage["status"], "UNVERIFIED")
+            self.assertEqual(stage["receipt_binding"]["status"], "UNVERIFIED")
+            self.assertEqual(stage["correction"], "NOT_EXECUTED")
+            self.assertFalse(any(action[1] == "记录使用者纠正候选" for action in actions))
+            return
+        self.assertEqual(stage["status"], "EXECUTED_CANDIDATE_NOT_EVALUATED")
+        self.assertEqual(stage["receipt_binding"]["status"], "RECEIPT_BINDINGS_VALIDATED")
+        self.assertEqual(stage["receipt_binding"]["actual_model_execution"], "NOT_PROVEN_BY_RECEIPT_HELPER")
+        self.assertIn(("type", "实际问题", "textarea", ""), actions)
+        self.assertEqual(
+            json.loads(tasks["actual-shaped-answer"]["conditions"])["answer"]["answer"],
+            "A correct explanation; no actual error claimed",
+        )
+        if intervention:
+            self.assertEqual(
+                stage["correction"], "EXECUTED_AUTHORED_INTERVENTION_NOT_INDEPENDENT_ERROR"
+            )
+            self.assertEqual(stage["retest"], "UNVERIFIED" if mutation in ("missing_retest_context", "wrong_retest_body") else "EXECUTED_CANDIDATE_NOT_EVALUATED")
+            self.assertEqual(stage["retest_receipt_binding"]["status"], "UNVERIFIED" if mutation in ("missing_retest_context", "wrong_retest_body") else "RECEIPT_BINDINGS_VALIDATED")
+            self.assertFalse(stage["authored_intervention"]["independent_error_adjudication"])
+            self.assertIn("not independent model-failure evidence", stage["semantic_limitation"])
+            self.assertNotEqual(
+                stage["original_grant"]["document_id"], stage["retest_grant"]["document_id"]
+            )
+            self.assertEqual(len(result["actual_tasks"]), 3)
+        else:
+            self.assertEqual(stage["correction"], "NOT_EXECUTED")
+            self.assertEqual(stage["retest"], "NOT_EXECUTED")
+            self.assertEqual(len(tasks), 1)
+            self.assertFalse(any(action[1] == "记录使用者纠正候选" for action in actions))
+
+        return result
+
+    def test_required_actual_ai_chain_revalidates_tasks_and_rejects_incomplete_execution(self):
+        result = self.exercise_simulated_ai(True)
+        result["restored_grant_refusal"] = {"status": "PASS"}
+        result["capability_toggle"] = {"status": "PASS"}
+        # Explicit SIMULATED observation for this strict-gate fixture only.
+        for task in (result["ai_progress"]["task"], result["ai_progress"]["retest_task"]):
+            conditions = json.loads(task["conditions"])
+            answer = conditions["answer"]
+            answer.update(requested_model=answer["model"], observed_model=answer["model"],
+                          answer_source={"openai": "content", "ollama": "response"}[answer["protocol"]])
+            task["conditions"] = json.dumps(conditions)
+        self.probe.assert_actual_ai_chain(result)
+        for task_key in ("task", "retest_task"):
+            for key, changed in (("observed_model", None), ("observed_model", "different"), ("requested_model", None), ("answer_source", "reasoning_content")):
+                bad = copy.deepcopy(result)
+                task = bad["ai_progress"][task_key]
+                conditions = json.loads(task["conditions"])
+                conditions["answer"][key] = changed
+                task["conditions"] = json.dumps(conditions)
+                with self.subTest(task=task_key, field=key, value=changed), self.assertRaises(AssertionError):
+                    self.probe.assert_actual_ai_chain(bad)
+        for field in ("status", "retest"):
+            bad = copy.deepcopy(result)
+            bad["ai_progress"][field] = "NOT_EXECUTED"
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_actual_ai_chain(bad)
+        for key, value in (("truncated", True), ("finish_reason", "length"), ("finish_reason", None), ("model", "mock")):
+            bad = copy.deepcopy(result)
+            task = bad["ai_progress"]["retest_task"]
+            conditions = json.loads(task["conditions"])
+            conditions["answer"][key] = value
+            task["conditions"] = json.dumps(conditions)
+            with self.subTest(key=key, value=value), self.assertRaises(AssertionError):
+                self.probe.assert_actual_ai_chain(bad)
+        for field in ("restored_grant_refusal", "capability_toggle"):
+            bad = copy.deepcopy(result)
+            bad[field]["status"] = "NOT_EXECUTED"
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_actual_ai_chain(bad)
+
+    def capability_fixture(self):
+        frozen = {
+            "job_id": "read_exact",
+            "request_id": "read_run_exact",
+            "body": {"deadline_ms": 60000, "split": False, "words": False},
+        }
+        refused = {
+            "job_id": "read_exact",
+            "input_ref": "source-exact",
+            "kind": "text",
+            "state": "queued",
+            "attempt": None,
+            "request_id": None,
+            "attempts": [],
+            "attempts_capped": False,
+        }
+        succeeded = {
+            **refused,
+            "state": "succeeded",
+            "attempt": 1,
+            "request_id": "read_run_exact",
+            "attempts": [
+                {
+                    "attempt": 1,
+                    "request_id": "read_run_exact",
+                    "state": "succeeded",
+                    "budget": {**frozen["body"], "capability": "text.extract"},
+                    "steps": {
+                        "durable_claim": "RECORDED",
+                        "worker_response_commit": "RECORDED",
+                        "terminal_write": "RECORDED",
+                    },
+                    "checkpoint": {"status": "CORE_COMMITTED"},
+                }
+            ],
+        }
+        return frozen, refused, succeeded
+
+    def test_refusal_empty_attempts_and_retry_full_identity_negative_guards(self):
+        frozen, refused, succeeded = self.capability_fixture()
+        self.probe.assert_unadmitted(refused, frozen["job_id"], "source-exact")
+        self.probe.assert_single_attempt(succeeded, frozen, "source-exact")
+        for field, changed in [
+            ("attempt", 1),
+            ("request_id", "consumed"),
+            ("state", "running"),
+            ("attempts", [succeeded["attempts"][0]]),
+            ("input_ref", "another-source"),
+            ("attempts_capped", True),
+        ]:
+            with self.subTest(refusal=field), self.assertRaises(AssertionError):
+                self.probe.assert_unadmitted(
+                    {**refused, field: changed}, frozen["job_id"], "source-exact"
+                )
+        for field, changed in [
+            ("request_id", "another-request"),
+            ("attempt", 2),
+            ("state", "failed"),
+            ("input_ref", "another-source"),
+            ("attempts_capped", True),
+            ("attempts", succeeded["attempts"] * 2),
+        ]:
+            with self.subTest(retry=field), self.assertRaises(AssertionError):
+                self.probe.assert_single_attempt(
+                    {**succeeded, field: changed}, frozen, "source-exact"
+                )
+        changed = copy.deepcopy(succeeded)
+        changed["attempts"][0]["budget"]["split"] = True
+        with self.assertRaises(AssertionError):
+            self.probe.assert_single_attempt(changed, frozen, "source-exact")
+        text = "Authored source text\n"
+        output = {
+            "content": text,
+            "metadata": {
+                "kind": "text",
+                "sha256": hashlib.sha256(text.encode()).hexdigest(),
+                "byte_length": len(text.encode()),
+            },
+        }
+        self.probe.assert_text_output(output, text)
+        with self.assertRaises(AssertionError):
+            self.probe.assert_text_output({**output, "content": "other"}, text)
+        with self.assertRaises(AssertionError):
+            self.probe.assert_text_output(
+                {**output, "metadata": {**output["metadata"], "sha256": "bad"}}, text
+            )
+
+    def test_simulated_native_capability_controls_recover_exact_frozen_request(self):
+        result, actions, restarts = self.exercise_capability_probe()
+        self.assertEqual(
+            [
+                result[key]
+                for key in [
+                    "status",
+                    "execution_refusal",
+                    "frozen_intent_restart",
+                    "enable_without_execution",
+                    "same_request_retry",
+                    "host_restart_result",
+                ]
+            ],
+            ["PASS"] * 6,
+        )
+        self.assertEqual(restarts, [False, False, True])
+        enable_index = actions.index(
+            ("click", "启用 text.extract", "//section[@aria-label='冻结请求的能力恢复']")
+        )
+        retries = [i for i, action in enumerate(actions) if action ==
+                   ("click", "同请求重试转换", "//section[@aria-label='真实转换产物']")]
+        self.assertEqual(len(retries), 2)
+        self.assertLess(retries[0], enable_index, "disabled same-key proof refresh is a separate action")
+        retry_index = retries[1]
+        self.assertGreater(retry_index, enable_index)
+        self.assertFalse(any(action[0] == "page" for action in actions[enable_index:retry_index]))
+
+    def test_simulated_enable_must_not_autoexecute_and_retry_cannot_change_identity(self):
+        with self.assertRaisesRegex(AssertionError, "automatically"):
+            self.exercise_capability_probe(autoexecute=True)
+        with self.assertRaises(AssertionError):
+            self.exercise_capability_probe(wrong_retry=True)
+        with self.assertRaises(AssertionError):
+            self.exercise_capability_probe(wrong_budget=True)
+        with self.assertRaisesRegex(AssertionError, "Restart silently executed"):
+            self.exercise_capability_probe(restart_execute=True)
+        with self.assertRaises(AssertionError):
+            self.exercise_capability_probe(changed_journal=True)
+
+    def exercise_capability_probe(self, autoexecute=False, wrong_retry=False, wrong_budget=False, restart_execute=False, changed_journal=False):
+        frozen, refused, succeeded = self.capability_fixture()
+        # Match the native UUID-shaped request text; pure tests never execute a host or model.
+        frozen["request_id"] = "read_run_1234-abcd"
+        succeeded["request_id"] = frozen["request_id"]
+        succeeded["attempts"][0]["request_id"] = frozen["request_id"]
+        state = {
+            "enabled": True,
+            "new_job": False,
+            "status": copy.deepcopy(refused),
+            "page": "#page=06",
+            "finished": False,
+            "hydrated": False,
+            "journal": None,
+        }
+        actions, restarts = [], []
+        text = "Authored source text\n"
+        output = {
+            "content": text,
+            "metadata": {
+                "kind": "text",
+                "sha256": hashlib.sha256(text.encode()).hexdigest(),
+                "byte_length": len(text.encode()),
+            },
+        }
+        document = {
+            "title": "source.txt",
+            "document_id": "document-exact",
+            "source_revision": "a" * 64,
+        }
+        transform = {
+            "source_id": "source-exact",
+            "job_id": frozen["job_id"],
+            "raw_sha256": document["source_revision"],
+            "content": text,
+        }
+        quality = {
+            "job_id": frozen["job_id"],
+            "state": "succeeded",
+            "engine": "actual-shaped-test-engine",
+        }
+
+        class UI:
+            def page(self, page):
+                state["page"] = "#page=" + page
+                actions.append(("page", page))
+
+            def click_selector(self, selector):
+                actions.append(("selector", selector))
+                if "禁用 text.extract" in selector:
+                    state["enabled"] = False
+                elif "打开文档" in selector:
+                    assert state["page"] == "#page=02", "document selection requires library page"
+                    state["page"] = "#page=03"
+                else:
+                    raise AssertionError("unexpected selector")
+
+            def click(self, label, scope=""):
+                actions.append(("click", label, scope))
+                if label == "执行真实内容转换":
+                    state["new_job"] = True
+                    state["journal"] = {**copy.deepcopy(frozen), "source_id": "source-exact",
+                        "source_revision": document["source_revision"], "kind": "text",
+                        "surface": "manual", "mode": "single", "relative": None,
+                        "origin_restore_epoch": "initial"}
+                elif label == "启用 text.extract":
+                    state["enabled"] = True
+                    if autoexecute:
+                        state["status"] = copy.deepcopy(succeeded)
+                elif label == "同请求重试转换":
+                    self_test.assertTrue(state["hydrated"], "retry needs explicit restored scene")
+                    if not state["enabled"]:
+                        self_test.assertEqual(state["status"], refused)
+                        return  # Fresh bound NOT_ADMITTED, still no durable attempt.
+                    state["status"] = copy.deepcopy(succeeded)
+                    if wrong_budget:
+                        state["status"]["attempts"][0]["budget"]["deadline_ms"] = 1
+                    if wrong_retry:
+                        state["status"]["request_id"] = "another-request"
+                    state["finished"] = True
+                elif label == "恢复冻结现场 " + frozen["request_id"]:
+                    self_test.assertIsNotNone(state["journal"])
+                    state["hydrated"] = True
+                elif label not in {"重新读取当前宿主能力", "整理此来源为知识候选"}:
+                    raise AssertionError("unexpected click " + label)
+
+        self_test = self
+        def read(op, payload=None):
+            self.assertIn(op, self.probe.READ_OPERATIONS)
+            if op == "ui_state_read":
+                self.assertIsNotNone(state["journal"])
+                return {"schema": "archeaxis.ui-working-state/v1", "workspace_id": "b" * 32,
+                    "restore_epoch": "initial", "state_revision": 1,
+                    "state": {"drafts": {}, "opened_documents": [], "active_document": None,
+                        "page_id": "03", "pending_jobs": {frozen["request_id"]: copy.deepcopy(state["journal"])}},
+                    "draft_digests": {}, "pending_document_id": None,
+                    "recovery_requires_confirmation": False, "recovery_candidates": None}
+            if op == "capabilities_list":
+                return {
+                    "capabilities": [{"capability": "text.extract", "enabled": state["enabled"]}]
+                }
+            if op == "source_jobs":
+                return {
+                    "source_id": "source-exact",
+                    "jobs_capped": False,
+                    "jobs": [{"job_id": "folder-original"}]
+                    + (
+                        [{"job_id": frozen["job_id"], "state": state["status"]["state"]}]
+                        if state["new_job"]
+                        else []
+                    ),
+                }
+            if op == "job_execution_status":
+                return copy.deepcopy(state["status"])
+            if op == "job_output":
+                return copy.deepcopy(output)
+            if op == "job_quality":
+                return copy.deepcopy(quality)
+            if op == "source_job_transform":
+                return copy.deepcopy(transform)
+            if op == "document_get":
+                return copy.deepcopy(document)
+            raise AssertionError("unexpected operation")
+
+        def js(script):
+            if "const root=" in script:
+                return {
+                    "page": state["page"],
+                    "frozen": "执行请求已冻结："
+                    + frozen["request_id"]
+                    + "；单次预算 60s。未知结果不会产生新作业。",
+                    "latest": "最新任务 " + frozen["job_id"],
+                    "recovery": "Core 已证明原请求未受理",
+                }
+            return text
+
+        def restart():
+            restarts.append(state["enabled"])
+            state["hydrated"] = False
+            state["page"] = ""
+            if state["journal"] is not None and not state["finished"]:
+                if restart_execute:
+                    state["status"] = copy.deepcopy(succeeded)
+                if changed_journal:
+                    state["journal"]["body"]["deadline_ms"] = 1
+
+        def wait(script, *args, **kwargs):
+            if script == "return location.hash==='#page=03'":
+                assert state["page"] == "#page=03", "hydrated scene needs real same-page URL navigation"
+
+        with patch.object(self.probe.time, "sleep", lambda _: None):
+            result = self.probe.capability_refusal_recovery(
+                UI(),
+                read,
+                js,
+                wait,
+                restart,
+                {"source_id": "source-exact"},
+                document,
+                text,
+            )
+        return result, actions, restarts
+
+    def test_full_dom_range_including_lf_not_rendered_selection_serialization(self):
+        text = "Line one.\nLine two.\n"
+        proof = {
+            "region_count": 1,
+            "focused": True,
+            "node_type": 3,
+            "child_nodes": 1,
+            "range_count": 1,
+            "start_same": True,
+            "end_same": True,
+            "start_offset": 0,
+            "end_offset": len(text),
+            "node_length": len(text),
+            "source_text": text,
+            "node_text": text,
+            "range_text": text,
+            "cloned_text": text,
+            "rendered_selection": text[:-1],
+        }
+        self.probe.assert_full_text_selection(proof, text)
+        # A missing final LF in the DOM range is still a real failure, not trimmed away.
+        for field, value in [
+            ("focused", False),
+            ("region_count", 2),
+            ("range_count", 2),
+            ("start_same", False),
+            ("end_same", False),
+            ("start_offset", 1),
+            ("end_offset", len(text) - 1),
+            ("node_length", len(text) - 1),
+            ("source_text", text[:-1]),
+            ("node_text", text[:-1]),
+            ("range_text", text[:-1]),
+            ("cloned_text", text[:-1]),
+        ]:
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.probe.assert_full_text_selection({**proof, field: value}, text)
+        script = self.probe.full_text_selection_wait_script(text)
+        self.assertIn("document.activeElement===region", script)
+        self.assertIn("range?.startContainer===node", script)
+        self.assertIn("range?.endContainer===node", script)
+        self.assertIn("proof.end_offset===proof.node_length", script)
+        self.assertIn("proof.range_text===", script)
+        self.assertIn("proof.cloned_text===", script)
+        self.assertNotIn(".trim(", script)
+        self.assertNotIn("proof.rendered_selection===", script)
+        self.assertNotIn(".focus(", script)
+        self.assertNotIn("addRange(", script)
+        self.assertNotIn("removeAllRanges(", script)
+        astral = "Astral \U0001f30c\n"
+        self.probe.assert_full_text_selection(
+            {
+                **proof,
+                "source_text": astral,
+                "node_text": astral,
+                "range_text": astral,
+                "cloned_text": astral,
+                "node_length": len(astral.encode("utf-16-le")) // 2,
+                "end_offset": len(astral.encode("utf-16-le")) // 2,
+            },
+            astral,
+        )

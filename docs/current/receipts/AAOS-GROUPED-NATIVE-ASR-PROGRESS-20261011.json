@@ -1,0 +1,66 @@
+{
+  "schema": "archeaxis.grouped-native-asr-progress/v1",
+  "date": "2026-10-11",
+  "base_commit": "1fc323595173b205253b006171565805b401ca20",
+  "whole_goal": "NOT_QUALIFIED",
+  "current_cloud_candidate": {
+    "sha": "fc940dc89c431d275eec1e9b748dbfab02b0288f",
+    "run": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38077876660",
+    "whole_ci_at_inspection": "IN_PROGRESS_INSTALLER_LIFECYCLE",
+    "passed": ["rust-vnext", "browser-smoke", "desktop-fast", "desktop-build", "desktop-vnext", "test (3.12)", "lint", "contracts-vnext"],
+    "actual_light_ocr": {
+      "status": "PASS",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-fc/runs/fd2a08c715/755c107903d7/artifacts/common-light-ocr.json",
+      "clean_source": true,
+      "source_consistent": true,
+      "restart_equal": ["md", "csv", "json", "html", "srt", "vtt", "canvas", "png", "jpeg", "pdf"],
+      "limits": "Authored selected samples; OCR engine qualification here is English, not Chinese"
+    }
+  },
+  "grouped_native_probe": {
+    "status": "TESTED_LOCAL_NATIVE_NOT_EXECUTED",
+    "implementation": "Explicit current-grouped branch uses trusted WebDriver controls and a finite read-only Core whitelist; separate installed-lifecycle invocation in a fresh owned workspace",
+    "local_checks": "26 helper/native contract tests PASS; PowerShell AST syntax PASS; architecture PASS",
+    "receipt": ".project-local/runs/be268a2d33/d107fc4d1644/artifacts/execution.json",
+    "source_patch_sha256": "e37c2562ccd0092e1045bb92b5683b1e38aedcb412155a54f3bab9fe18c9b7c7",
+    "source_consistent": true,
+    "scope": "Same-source import/read/anchor/engineering candidate adoption/course/practice/review, explicit restore and host restart, capability toggles and restart readback",
+    "limits": ["No Owner signoff or physical IME", "Actual model requires explicit opt-in and actual response evidence", "Correction/retest, old-grant refusal and disabled execution refusal remain NOT_EXECUTED", "Engineering PASS does not mark the complete nine-step goal achieved"]
+  },
+  "actual_local_asr": {
+    "status": "PASS_SELECTED_ENGLISH_PHRASES",
+    "execution": "ACTUAL_LOCAL_WORKER_ASR",
+    "materials": "PUBLIC_RECORDED_SPEECH",
+    "formats": ["wav", "mp3", "mp4"],
+    "engine": "Existing declared faster-whisper-large-v3-turbo, CPU, offline; existing transcribe/video workers",
+    "source": {
+      "repository": "SYSTRAN/faster-whisper",
+      "commit": "65882eee9f5cdbeeb2d877f1131d48cf241b327d",
+      "path": "tests/data/jfk.flac",
+      "git_blob": "e44b7c13897eae7f78beb220c61fe77429a3961d",
+      "bytes": 1152693,
+      "sha256": "63a4b1e4c1dc655ac70961ffbf518acd249df237e5a0152faae9a4a836949715",
+      "rights_source": "https://www.jfklibrary.org/asset-viewer/archives/jfkwha-001",
+      "rights_scope": "Official original speech recording marked Public Domain; downloaded test excerpt independently pinned by Git blob and SHA, not byte-identical to the library download",
+      "archive": ".project-local/runs/be268a2d33/closedloop-integration-20261011/public-speech/",
+      "distribution": "Original audio, upstream LICENSE and test text remain project-local; no private audio or model weights uploaded"
+    },
+    "selected_phrases": ["fellow Americans", "ask not", "do for your country"],
+    "duration_ms": 11000,
+    "model_component_hashes_unchanged": true,
+    "actual_receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/public-speech/local-asr.json",
+    "clean_source_run": ".project-local/runs/be268a2d33/5631e937d349/artifacts/execution.json",
+    "canonical_regression": ".project-local/runs/be268a2d33/1633f3e173b6/artifacts/execution.json",
+    "regression_scope": "12 PASS, no required skips; three actual audio formats plus refusal/cue bounds/Unicode helpers. Explicit project-owned input avoids SAPI generation.",
+    "limits": ["No actual Core job/CAS/time resolver/reparse/restart qualification", "Contract job envelope is synthetic; worker output and cues are actual", "Chinese ASR and full transcript accuracy unmeasured", "MP4 audio decoded, visual model disabled"]
+  },
+  "retained_attempts": [
+    "GitHub raw binary channel failed short source buffer; curl raw download reset; Git blob base64 read succeeded and blob SHA1/FLAC header/SHA256 independently verified",
+    "Initial dev invocation treated a .py path as Windows executable and failed WinError193; explicit existing Python invocation succeeded",
+    "Helper invocation named a nonexistent extra test file and collected zero: be268a2d33/5452964312ab; corrected 26-test scope passed",
+    "Two inline XPath strings triggered the architecture external-path detector; shared selector serialization removed those ambiguous literals, gate then passed",
+    "Pyreadline interpreter destructor warning retained after successful ASR pytest exit 0"
+  ],
+  "delivery": "PENDING_NEXT_CANDIDATE_PRESERVE_RUNNING_FC940DC_CI"
+}

@@ -542,7 +542,15 @@ def parse(raw, media):
     text = raw.decode("utf-8-sig", "strict")
     if media in ("text/csv", "text/tab-separated-values"):
         rows = list(csv.reader(io.StringIO(text), delimiter="\t" if media.endswith("values") else ","))
-        locations = [{"kind": "table_cell", "row": row, "column": col, "value": value}
+        name = "tsv" if media.endswith("values") else "csv"
+        def coordinate(column, row):
+            letters = ""
+            while column:
+                column, remainder = divmod(column - 1, 26)
+                letters = chr(65 + remainder) + letters
+            return f"{letters}{row}"
+        locations = [{"kind": "table_cell", "row": row, "column": col, "value": value,
+                      "coordinate": coordinate(col, row), "path": f"{name}!{coordinate(col, row)}"}
                      for row, values in enumerate(rows, 1) for col, value in enumerate(values, 1)]
         capped = len(locations) > MAX_LOCATIONS
         locations = locations[:MAX_LOCATIONS]

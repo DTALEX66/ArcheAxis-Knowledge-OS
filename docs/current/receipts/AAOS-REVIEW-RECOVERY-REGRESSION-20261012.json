@@ -1,0 +1,22 @@
+{
+  "schema": "archeaxis.targeted-regression/v1",
+  "status": "PASS",
+  "evidence_level": "SIMULATED",
+  "test_files": 8,
+  "tests_passed": 91,
+  "log_path": ".project-local\\runs\\be268a2d33\\6f6938253676\\logs\\execution.log",
+  "log_sha256": "1f08d5eca7e7bbc1905bb4a26483a456c0e0490937a75eb2c4175cfa6ffa5c8d",
+  "scope": [
+    "SpaceView",
+    "CanonicalLearningJourney",
+    "CanonicalTeachingSpace",
+    "CanonicalReviewLearning",
+    "CoreWorkingState",
+    "AppSceneNavigationGuard",
+    "CanonicalContextSpace",
+    "ControlledAiJourney"
+  ],
+  "limitations": [
+    "Does not qualify installed Green, real cloud, model accuracy or 27B performance."
+  ]
+}

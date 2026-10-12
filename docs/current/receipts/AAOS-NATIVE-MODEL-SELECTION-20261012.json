@@ -1,0 +1,101 @@
+{
+  "schema": "archeaxis.native-model-selection-acceptance/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "REAL",
+  "materials": "SYNTHETIC",
+  "raw_receipt": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-92f32dd16f1a\\tmp\\journey\\receipt.json",
+  "raw_sha256": "15621c337c247f350452ad62d85b7bee35ecf45bfedc2ac4548a93647c9e3d12",
+  "source_patch_sha256": "018e8503502b3c74fada9eaf12eeb1b966230edd3a162feeefaa9987be288357",
+  "host": {
+    "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\cargo\\release\\ArcheAxis.exe",
+    "sha256": "b7a35e2545ca2622e688861f2ba0da94f30cd38c3b1c9943877e6d1e9a3a2865",
+    "bytes": 13532160
+  },
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\7d176c82be57\\artifacts\\native-build-binding.json",
+      "sha256": "0826aeb4ae04b1dc1e55e099986c5474815ec1436a0fb60355815bb4d8a95bad",
+      "bytes": 1399
+    },
+    "core_sha256": "38a02d3cfe9230fdb35798b7ae4667bd8c4bb17e4857b183217c878aded45ea4"
+  },
+  "explicit_model_selection": {
+    "status": "PASS",
+    "model": "qwen3.5-4b",
+    "surface": "TRUSTED_NATIVE_UI",
+    "retest_bound": true
+  },
+  "max_tokens": 4096,
+  "original_metering": {
+    "usage": {
+      "input_tokens": 158,
+      "output_tokens": 1065,
+      "total_tokens": 1223
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "retest_metering": {
+    "usage": {
+      "input_tokens": 176,
+      "output_tokens": 1179,
+      "total_tokens": 1355
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN"
+  },
+  "stage_statuses": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "owner_acceptance": "NOT_EXECUTED",
+  "limitations": [
+    "Candidate executable, not NSIS installed journey",
+    "Programmatic Chinese text, not physical native IME",
+    "No human signoff; optional authored course fixture uses an explicitly synthetic review actor only",
+    "One engineering run, not whole UI P95 acceptance",
+    "Core machine_correction records runtime.evaluation.failed for every intervention. That stored label is not independent model-failure evidence in this engineering probe.",
+    "Actual answer and retest preserved; authored adoption is not independent error evidence or proof of improvement.",
+    "Unconfirmed machine requests are not yet durably restored across application exit."
+  ]
+}

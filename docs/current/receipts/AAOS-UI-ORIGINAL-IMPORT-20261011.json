@@ -1,0 +1,182 @@
+{
+  "schema": "archeaxis.ui-original-import-qualification/v1",
+  "status": "PASS",
+  "whole_scope": "PARTIAL",
+  "execution": "REAL_CANDIDATE_HOST",
+  "materials": "SYNTHETIC_AUTHORED",
+  "wrapper": "5d03443a4f53",
+  "build": "7bb82f6c7d40",
+  "raw_receipt": ".project-local\\runs\\be268a2d33\\webdriver-8e727bfb461b\\tmp\\journey\\receipt.json",
+  "raw_sha256": "7e864de113eae88797248ba95987c9c9c7238b073f12ba8fd9cae32ff6d569b7",
+  "source_patch_sha256": "1c57536e1a9b23e27169d30ae11c8d220b9addd0d17469cc9e3ba7f6723cd2db",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "proofs": [
+    {
+      "format": "txt",
+      "source_id": "src_82cebe57d49d956b4078f161",
+      "name": "ui-original-txt.txt",
+      "sha256": "489ddfc8eca9fcde65d43ee1237cb425044f04704c149d5d8c72ef16892cff58",
+      "bytes": 55,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "md",
+      "source_id": "src_4df9b5bbbcdede36a271bd1a",
+      "name": "ui-original-md.md",
+      "sha256": "5c166f1f54841e39a09d47f41dd2bf8d22caa0c9dca5c7e713cd5150e26cfdf1",
+      "bytes": 134,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "csv",
+      "source_id": "src_253f94303c08b55c3460bc01",
+      "name": "ui-original-csv.csv",
+      "sha256": "fbf1ac4ca9068015de2ae905df030499536aa75ce52e46f5d3e409a0e702a20e",
+      "bytes": 94,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "json",
+      "source_id": "src_1a2c55a80e3f14335c6a108c",
+      "name": "ui-original-json.json",
+      "sha256": "08a8f3c4e21f4041a2dff960bcae50a344c1ec3376dcbc11a7cfbf122e48ff9f",
+      "bytes": 108,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "html",
+      "source_id": "src_28e63fd102d0e25dc95b348a",
+      "name": "ui-original-html.html",
+      "sha256": "538c3dbcb8fa3521f3cc286194f50ea91621d19dd5b187657f41f55dd600910c",
+      "bytes": 221,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "srt",
+      "source_id": "src_c6f0caf511bf180f0e3eee21",
+      "name": "ui-original-srt.srt",
+      "sha256": "84ec756e3482a7969b9d5668e2986820609d83c10c15d9b5154f6278167553b6",
+      "bytes": 118,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "vtt",
+      "source_id": "src_02ee787ca68ce7c8e648c641",
+      "name": "ui-original-vtt.vtt",
+      "sha256": "6737427535e18e5e749eb7e6ce5d6a4b41930f440455d4c50e7fef508da49303",
+      "bytes": 186,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "canvas",
+      "source_id": "src_631dab091b32f781ea026b12",
+      "name": "ui-original-canvas.canvas",
+      "sha256": "1502f0e4d715de343855168cbe1a47372e0325cab005d7b362050f37fe47423c",
+      "bytes": 471,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "png",
+      "source_id": "src_e1cbd2821bc1d3527d4510a5",
+      "name": "ui-original-png.png",
+      "sha256": "583d6e737cd0a4953d49d79d23e5eb5d62914cac373c635d5b900140e3349751",
+      "bytes": 16352,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "jpeg",
+      "source_id": "src_0dc2f8e530f0b0b8dafeef21",
+      "name": "ui-original-jpeg.jpeg",
+      "sha256": "b5155900e5e214ec7975b0fc2cfeb5008c2b01b0f4b656b53c32d37a9dcb567d",
+      "bytes": 26693,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "pdf-scanned",
+      "source_id": "src_afd49d05699b40bf4b60dbe7",
+      "name": "ui-original-pdf-scanned.pdf",
+      "sha256": "8d00f0bdc7ff46b3b8e3ef77b38deee4da88c1c8abb8c77a9e9c8715bc60353b",
+      "bytes": 4564915,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "wav",
+      "source_id": "src_24f5c773775fe914a667125b",
+      "name": "ui-original-wav.wav",
+      "sha256": "77dbae1526621abe87979b37f0add45931fc5c586f88af1548ddf9846c941e7c",
+      "bytes": 375566,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "mp3",
+      "source_id": "src_f703970cc9ec39974aa09857",
+      "name": "ui-original-mp3.mp3",
+      "sha256": "e97e41451c6234f19d41c38a79aa9a90c7cf9404125cecf303ad7e46cc3ea12c",
+      "bytes": 62901,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "mp4",
+      "source_id": "src_37749747e31a98977ac00f48",
+      "name": "ui-original-mp4.mp4",
+      "sha256": "0221117ecce817987fe849743b4cd7628c3b48e61ca6f5f15be0aef02f185f48",
+      "bytes": 94506,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "docx",
+      "source_id": "src_fe06e5310c41a3dc7a72a157",
+      "name": "ui-original-docx.docx",
+      "sha256": "6356fbba83f683723a3d202a443af2d10ad5957dc2b7be2d275be0247349855b",
+      "bytes": 968,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "xlsx",
+      "source_id": "src_6a2a542624eb21e991d5f544",
+      "name": "ui-original-xlsx.xlsx",
+      "sha256": "c70fd35b6cb3d18a6a8779c1fab21c312ba03fc07893ccaff422a5ea9be0466a",
+      "bytes": 4889,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "pptx",
+      "source_id": "src_ddaa599c5281d567b78806cf",
+      "name": "ui-original-pptx.pptx",
+      "sha256": "461e7fac8132e74ae142e35b77acf434ca90e8892a71f97b27230e6f69325eeb",
+      "bytes": 28284,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    },
+    {
+      "format": "pdf-text",
+      "source_id": "src_f4eee107088575eabd4e19a7",
+      "name": "ui-original-pdf-text.pdf",
+      "sha256": "0f0ffc50c79d9d977efb925351ca1d64a063184e4bdd71507b9ac44992f7adcf",
+      "bytes": 1120,
+      "scope": "UI_ORIGINAL_IMPORT_ONLY",
+      "host_restart_original_readback": "PASS"
+    }
+  ],
+  "limits": [
+    "Original import/persistence only; not all UI conversion actions or complete fidelity",
+    "No recognition accuracy, MP4 visual understanding, installed qualification or Owner acceptance"
+  ]
+}

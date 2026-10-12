@@ -51,6 +51,44 @@ def test_idempotency_duplicate(tmp_path):
     assert second.receipt.submission_id == first.receipt.submission_id
 
 
+@pytest.mark.parametrize("change", ["claim", "submitter"])
+def test_submission_key_cannot_replay_different_request(tmp_path, change):
+    db = tmp_path / "fed.sqlite"
+    first = service.submit_candidates(db, _submission("frozen-request"))
+    changed = _submission("frozen-request")
+    if change == "claim":
+        changed.items[0].claim = "不同的合成候选正文"
+    else:
+        changed.submitter = "different-agent"
+    with pytest.raises(service.FederationError, match="idempotency key"):
+        service.submit_candidates(db, changed)
+    assert service.get_receipt(db, first.receipt.submission_id) == first.receipt
+    replay = service.submit_candidates(db, _submission("frozen-request"))
+    assert replay.duplicate is True
+    assert replay.receipt == first.receipt
+    assert service.query_verified(db, KnowledgeQueryV1(kind="all")).total == 2
+
+
+def test_concurrent_submission_retries_share_one_receipt(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    db = tmp_path / "fed.sqlite"
+    # Initialize the compatibility schema before exercising concurrent writes.
+    service.query_verified(db, KnowledgeQueryV1(kind="all"))
+    ready = Barrier(2)
+
+    def submit():
+        ready.wait(timeout=5)
+        return service.submit_candidates(db, _submission("concurrent-request"))
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda _: submit(), range(2)))
+    assert sorted(result.duplicate for result in results) == [False, True]
+    assert results[0].receipt == results[1].receipt
+    assert service.query_verified(db, KnowledgeQueryV1(kind="all")).total == 2
+
+
 def test_verified_query_and_promotion_gate(tmp_path):
     db = tmp_path / "fed.sqlite"
     res = service.submit_candidates(db, _submission("sub-q"))

@@ -1,0 +1,59 @@
+{
+  "schema": "archeaxis.native-compatibility-qualification/v1",
+  "date": "2026-10-11",
+  "status": "PASS",
+  "project_status": "PARTIAL",
+  "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+  "fixture_material": "SYNTHETIC",
+  "human_signoff": false,
+  "owner_acceptance": "NOT_EXECUTED",
+  "installed_qualification": "NOT_EXECUTED",
+  "cloud_actual_call": "NOT_EXECUTED",
+  "source_patch_sha256": "05750f4401b54fbd7d32fc24888cf7e5647fb0b50b36dcb4d054cf81a31c3e25",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "evidence": [
+    {
+      "path": ".project-local\\runs\\be268a2d33\\webdriver-df5a0dbac94d\\tmp\\journey\\receipt.json",
+      "sha256": "53dd63a4b9d18f62b13760b980e88cdb810d0f2e3e4a1646b33457884184d26c"
+    },
+    {
+      "path": ".project-local\\runs\\be268a2d33\\64b848f5487a\\artifacts\\execution.json",
+      "sha256": "5efdafb5587bf946ecac8c89451846c217b0d0dd92d5a516c94f981861848aa0"
+    }
+  ],
+  "steps": [
+    "Real Tauri WebDriver session/window",
+    "UI same-space source/document/anchor/version navigation focuses actual regions without creating objects",
+    "Finite system_version bridge",
+    "Import/read original bytes and rendered Chinese reader",
+    "Finite bridge document save",
+    "Session close/relaunch persisted document",
+    "Product consistent backup and list readback",
+    "Native backup restore/retry and actual version rollback with original CAS readback",
+    "UI original note without source/review/model prerequisites saved by canonical writer",
+    "Trusted native Ctrl+Alt+J expands/collapses activity dock without losing editor focus or issuing API writes",
+    "UI original note close/relaunch readback equals persisted version",
+    "UI search finds ordinary unverified document and opens existing editor without knowledge acceptance",
+    "UI separately records both manual uncertain checks and cloud pending requests; cloud remains not executed",
+    "UI unconfigured previews fail without attempts, fabricated plans, cloud success or human approval; saved annotations remain intact",
+    "UI explicitly selected revision basis persists with next ordinary document save",
+    "Actual EPUB Reader chapter/paragraph, UI citation, source revision and persisted result-bound locator; no visual pagination claim",
+    "Known XLSX/PPTX/CSV/TAR through finite installed/candidate host bridge with actual worker, locators, loss and automatic TAR member",
+    "Remaining canonical A/B format rows and four malformed inputs use real host jobs; media probe only, missing engines fail",
+    "Full host restart reads every host matrix source/output/quality/origin and negative error state from Core",
+    "Full host restart restores actual EPUB Reader and persisted reference navigation to known paragraph",
+    "Full host close/relaunch preserves known format originals, worker outputs, locators and loss byte hashes"
+  ],
+  "format_proof_count": 6,
+  "matrix_proof_count": 21,
+  "limitations": [
+    "Candidate executable, not NSIS installed journey",
+    "Programmatic Chinese text, not physical native IME",
+    "No human signoff; optional authored course fixture uses an explicitly synthetic review actor only",
+    "One engineering run, not whole UI P95 acceptance",
+    "Media rows are probes, not ASR or visual fidelity qualification.",
+    "Finite bridge format imports do not qualify every UI import path.",
+    "Final model selection, real cloud research and learning outcome improvement remain unqualified."
+  ]
+}

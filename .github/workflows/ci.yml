@@ -813,7 +813,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: cargo test (vNext workspace)
         shell: bash
-        run: cargo test --workspace
+        run: cargo test --workspace -- --test-threads=2
       - name: Verify current-run journey receipt
         run: python -B scripts/ci/check_vnext_receipt.py
 
@@ -1038,6 +1038,7 @@ jobs:
       - name: Install locked Python runtime
         run: uv sync --frozen
       - name: Prepare the installed Python runtime
+        id: desktop_runtime
         working-directory: ${{ github.workspace }}
         run: |
           cargo build -p archeaxis-api --bin archeaxis-api --release --locked
@@ -1068,6 +1069,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Assert the staged runtime carries the format engines
+        id: desktop_engines
         working-directory: ${{ github.workspace }}
         run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
       - name: Verify real XLSX and PPTX persistence
@@ -1089,6 +1091,100 @@ jobs:
         id: content_policy_loop
         working-directory: ${{ github.workspace }}
         run: python -B scripts/probes/aaos01_content_policy_runtime_loop.py --candidate .project-local/rt
+      - name: Verify common-format content, locations and independent reparse
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_common_formats_runtime_loop.py --candidate .project-local/rt
+      - name: Verify actual Core working-state journal, restart and explicit recovery
+        id: working_state_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_working_state_runtime_loop.py --candidate .project-local/rt
+      - name: Upload Core working-state qualification receipt
+        if: ${{ always() && steps.working_state_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-working-state-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/runs/**/artifacts/working-state.json
+          if-no-files-found: error
+      - name: Prepare pinned project-local OCR for common content qualification
+        id: common_ocr_tools
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+          if (-not $sevenzip) { $sevenzip = 'C:/Program Files/7-Zip/7z.exe' }
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/common-light-ocr-tools --sevenzip $sevenzip --require-chinese
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual common light content, OCR, locations and reparse
+        id: common_light_ocr_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_common_light_ocr_runtime_loop.py --candidate .project-local/rt
+      - name: Verify actual Chinese PNG JPEG and scanned PDF content with source locations
+        id: common_chinese_ocr_loop
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/probes/aaos01_common_chinese_ocr_runtime_loop.py --candidate .project-local/rt --tesseract $env:TESSERACT_CMD --tessdata $env:ARCHEAXIS_OCR_TESSDATA
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload common light and OCR qualification evidence
+        if: ${{ always() && steps.common_ocr_tools.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-light-ocr-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/runs/**/artifacts/common-light-ocr.json
+            .project-local/runs/**/artifacts/common-chinese-ocr.json
+            .project-local/task-runtime/common-light-ocr-tools/ocr-receipt.json
+          if-no-files-found: error
+      - name: Prepare exact public assets for the existing ASR model
+        id: common_asr_assets
+        # Independent OCR/Office failures stay fatal but do not hide speech evidence.
+        # Host failure can generate a formatting patch; never qualify that changed tree.
+        if: ${{ !cancelled() && steps.desktop_runtime.outcome == 'success' && steps.desktop_shell.outcome == 'success' && steps.desktop_engines.outcome == 'success' }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          $prerequisiteReceipt = '.project-local/task-runtime/common-asr-prerequisites.json'
+          @{ok=$false; qualification='NOT_EXECUTED'; stage='CI_TOOL_PREPARATION'; scope='CI-only; no runtime fallback or global PATH change'} | ConvertTo-Json | Out-File -FilePath $prerequisiteReceipt -Encoding utf8
+          python -B scripts/ci/prepare_windows_ffmpeg.py --root .project-local/task-runtime/ci-ffmpeg
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $toolReceipt = Get-Content -LiteralPath '.project-local/task-runtime/ci-ffmpeg/receipt.json' -Raw | ConvertFrom-Json
+          if (-not $toolReceipt.ok -or $toolReceipt.qualification -ne 'CI_TOOL_VERSION_ENCODERS_VERIFIED_NOT_MEDIA_ASR_CORE') { throw 'Pinned CI ffmpeg preparation not qualified' }
+          $ffmpeg = $toolReceipt.ffmpeg
+          $env:FFMPEG_CMD = $ffmpeg
+          "FFMPEG_CMD=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $ffmpegVersion = & $ffmpeg -version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $ffmpegIdentity = @{path=$ffmpeg; sha256=(Get-FileHash -LiteralPath $ffmpeg -Algorithm SHA256).Hash.ToLower(); bytes=(Get-Item -LiteralPath $ffmpeg).Length; version=$ffmpegVersion[0]; selection='Explicit pinned project-local CI tool; binaries excluded from distribution'; license=$toolReceipt.license; tool_pin_sha256=$toolReceipt.pin_sha256}
+          $ffmpegIdentity | ConvertTo-Json | Out-File -FilePath .project-local/task-runtime/common-asr-ffmpeg.json -Encoding utf8
+          @{ok=$true; qualification='CI_TOOL_PREPARED_ASR_CORE_NOT_EXECUTED'; stage='PUBLIC_ASR_ASSET_PREPARATION'; tool_receipt='.project-local/task-runtime/ci-ffmpeg/receipt.json'} | ConvertTo-Json | Out-File -FilePath $prerequisiteReceipt -Encoding utf8
+          python -B scripts/ci/prepare_common_asr.py --root .project-local/task-runtime/common-asr-assets
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Path .project-local/task-runtime/common-asr-derived -ErrorAction Stop | Out-Null
+          & $ffmpeg -nostdin -hide_banner -loglevel error -i .project-local/task-runtime/common-asr-assets/fixture/jfk.flac -ar 16000 -ac 1 .project-local/task-runtime/common-asr-derived/selected.wav
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual speech Core content time location reparse and restart
+        id: common_speech_loop
+        if: ${{ !cancelled() && steps.desktop_runtime.outcome == 'success' && steps.desktop_shell.outcome == 'success' && steps.desktop_engines.outcome == 'success' && steps.common_asr_assets.outcome == 'success' }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/ci/run_common_speech_candidate.py --candidate .project-local/rt --model-dir .project-local/task-runtime/common-asr-assets/model --ffmpeg $env:FFMPEG_CMD --speech-wav .project-local/task-runtime/common-asr-derived/selected.wav --speech-transcript .project-local/task-runtime/common-asr-assets/fixture/transcript.txt --language en --expected-phrase "fellow Americans" --expected-phrase "ask not" --expected-phrase "do for your country"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload speech qualification receipts without model or audio assets
+        if: ${{ always() && steps.common_asr_assets.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-speech-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/runs/**/artifacts/common-speech.json
+            .project-local/runs/**/artifacts/common-speech-preflight.json
+            .project-local/task-runtime/common-asr-assets/receipt.json
+            .project-local/task-runtime/common-asr-ffmpeg.json
+            .project-local/task-runtime/common-asr-prerequisites.json
+            .project-local/task-runtime/ci-ffmpeg/receipt.json
+          if-no-files-found: error
+      - name: Upload common-format qualification receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-formats-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/runs/**/artifacts/common-formats.json
+          if-no-files-found: warn
       - name: Upload content policy runtime receipt
         if: ${{ always() && steps.content_policy_loop.outcome != 'skipped' }}
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
@@ -1189,6 +1285,8 @@ jobs:
           uv run --frozen python -B scripts/contracts/generate_core_document.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           uv run --frozen python -B scripts/contracts/generate_capability_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv run --frozen python -B scripts/contracts/generate_ui_working_state.py --check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           git diff --exit-code -- frontend/src/api/generated/core-contract.ts
       - name: Prepare the installed Python runtime
@@ -1309,9 +1407,9 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 45
     needs: [gateplan, desktop-build]
-    # Lifecycle qualification requires an explicitly selected candidate. A PR
-    # requiring this gate remains blocked until that qualification is supplied.
-    if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.force_full && needs.desktop-build.result == 'success' }}
+    # Required PR checks must execute on the PR event: dispatch-only checks do
+    # not satisfy branch rulesets. Always use this run's hash-bound candidate.
+    if: ${{ always() && needs.desktop-build.result == 'success' && ((github.event_name == 'workflow_dispatch' && inputs.force_full) || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle')) }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
@@ -1346,7 +1444,7 @@ jobs:
           if ($candidate.schema -ne 'archeaxis/release-candidate/v1' -or $candidate.commit -ne $env:GITHUB_SHA) { throw 'candidate provenance commit mismatch' }
           $installer = Join-Path $candidateRoot $candidate.installer.name
           if (-not (Test-Path -LiteralPath $installer) -or (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'candidate installer SHA-256 mismatch' }
-          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity -NativeToolsReceipt .project-local/task-runtime/aaos01-native-tools/receipt.json
+          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity -NativeToolsReceipt .project-local/task-runtime/aaos01-native-tools/receipt.json -GroupedOwnerLoop
       - name: Upload installed native journey evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a

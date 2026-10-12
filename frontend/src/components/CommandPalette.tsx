@@ -3,11 +3,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AaosButton, AaosDialog, AaosField } from "../design-system/AaosPrimitives";
 import { canNavigateToCapability, EFFECTIVE_NAVIGATION_ENTRIES, navigationEntryMatches, type EffectiveNavigationEntry } from "../presentation/navigation";
 import type { SpaceId } from "../spaces/spaces";
+import { GlobalObjectSearch } from "./GlobalObjectSearch";
+import type { ObjectReference } from "../api/generated/research-contract";
 
-export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onPage }: { onNavigate: (id: SpaceId) => void; onOpenCapability?: (id: string) => void; onOpenChange?: (open: boolean) => void; onPage?: (id:string)=>void }) {
+export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onPage, onOpenObject }: { onNavigate: (id: SpaceId) => void; onOpenCapability?: (id: string) => void; onOpenChange?: (open: boolean) => void; onPage?: (id:string)=>void; onOpenObject?:(reference:ObjectReference,contentSha?:string)=>void }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [composing,setComposing]=useState(false);
   const openRef = useRef(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,6 +33,7 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
     openRef.current = false;
     setOpen(false);
     setQuery("");
+    setComposing(false);
     setActiveIndex(-1);
   }, []);
 
@@ -116,6 +120,8 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
           aria-controls="command-options"
           placeholder="搜索页面与能力…"
           value={query}
+          onCompositionStart={()=>setComposing(true)}
+          onCompositionEnd={()=>setComposing(false)}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => {
             if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || event.repeat || event.getModifierState("AltGraph")) return;
@@ -165,5 +171,6 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
         </button>)}
         {matches.length === 0 ? <p className="command-empty">没有匹配的可用空间</p> : null}
       </div>
+      {onOpenObject&&open?<GlobalObjectSearch query={query} composing={composing} onOpen={(reference,sha)=>{onOpenObject(reference,sha);closePalette();}}/>:null}
   </AaosDialog>;
 }

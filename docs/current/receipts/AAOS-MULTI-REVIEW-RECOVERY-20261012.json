@@ -1,0 +1,38 @@
+{
+  "schema": "archeaxis.multi-review-recovery/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "SIMULATED_UI_WITH_REAL_WORKING_STATE_SESSION",
+  "problem": "Multiple durable review journals were arbitrarily restored as the first item, preventing explicit recovery of another item on the learning page",
+  "behavior": [
+    "Without explicit item selection, auto-recover only a unique pending review",
+    "Explicit selection restores the existing frozen body and event identity",
+    "Switching between retained journals preserves other pending entries",
+    "Unpersisted UNKNOWN request still blocks switching; no automatic review submission",
+    "Confirmed submission reads updated Core state and history before releasing its busy state"
+  ],
+  "files": [
+    "frontend/src/spaces/CanonicalLearningSpace.tsx",
+    "frontend/src/__tests__/CanonicalReviewLearning.test.tsx"
+  ],
+  "tests": {
+    "run": "7ec69a2ed6bd",
+    "passed": 15,
+    "source_patch_sha256": "efefa41052a3e0a9397680ba47ddd4338ee564b96aa41359f9c10d4dbd423f89",
+    "source_consistent": true,
+    "typescript_run": "7fec72b5321e",
+    "typescript_exit_code": 0
+  },
+  "limits": [
+    "Native multiple-review cold recovery not yet qualified",
+    "Later UI changes do not inherit previous 27B native patch qualification"
+  ],
+  "canonical_contract_gate": {
+    "run": "7f990494f885",
+    "status": "PASS",
+    "scope": "Schema structure and cross-language protocol boundary, not runtime behavior"
+  },
+  "historical_test_runs": [
+    "785b0a068021"
+  ]
+}

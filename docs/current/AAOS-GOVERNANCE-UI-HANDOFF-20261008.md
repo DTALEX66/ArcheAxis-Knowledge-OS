@@ -502,3 +502,7 @@ CORE-R16-EXPANSION-DEDUP-20261009执行读回PASS：严格三现行文档SHA/引
 真实隔离Core路由集成3 tests PASS：0/101/500边界、501两页、同秒新插入排除、跨router重启、摘要旧版本读回、迁移旧ID恰在第500项、非法cursor；收据 `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/template-pagination-core3-20261009/artifacts/receipt.json`，source c1dc2f0569c94e470b4d7b194e652f2662d13fbb56bdce5c45adabd07cda61d8且source_consistent=true。有限桥接14 tests PASS，收据 `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/template-pagination-bridge2-20261009/artifacts/receipt.json` 对应811b4b05…（后续UI失败状态/兼容cursor修复发生在其后，不能当最终全树原生证据）。最终前端60 files/499 tests PASS，包含101/501末项反链与关系、旧合同/后页失败/重复/计数/版本及刷新失败回归；canonical run `未跟踪 D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/f714401b40/template-pagination-frontend-final2-20261009`，source51925cf53f8dd3e8363f5a271b1ab8708d665448f6da749f9512d959992c7b98。schema矩阵8、tsc与生成check、diff检查PASS。frontend-final1因启动器cwd为repo而相对node_modules路径错误FAIL保留，final2修正显式frontend root后才通过；旧fixture缺分页字段及旧文案断言的失败亦不改写。
 
 证据级别：Core API工程集成为INTEGRATED，模板前端合成数据为SYNTHETIC；新Core exe＋正式Tauri全量501/跨页关系/重启旅程与当前课时阅读视觉门仍NOT_EXECUTED，旧Core73278候选不含分页，不复用其PASS。下一步需串行构建新的Core和宿主、绑定运行时清单后验收；本目标仍ACTIVE/PARTIAL，无commit/push/merge/release。旧tauri/release/deps另有1,038,520,462 B公开缓存候选，但既有恢复覆盖0且旧源码缺失，暂保留，不以可重编译替代原字节可恢复证据。
+
+## 2026-10-11 命名裁决更新
+
+Owner 已明确将当前中文产品名改为「星环知识系统」，命名契约 V2.2 已同步。本文 2026-10-08 关于母版「系统」与旧契约「平台」的冲突及待裁决记录属于历史时点，现已解决；不再作为当前命名阻塞。见 `docs/truth/NAMING_CONTRACT_V2.md` 与 `workspace/intake/AAOS-CHINESE-NAME-20261011.md`。

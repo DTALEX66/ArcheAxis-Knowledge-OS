@@ -83,6 +83,126 @@ fn consumption(doc: &Value) -> Value {
 }
 
 #[tokio::test]
+async fn restored_grant_receipt_binds_request_but_never_claims_prior_execution_did_not_happen() {
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let (router, id) = fixture(dir.path()).await;
+    let (status, doc) = call(
+        &router,
+        "POST",
+        "/api/v1/documents",
+        "human",
+        json!({"title":"restore test grant","editor_json":editor(&id,"granted")}),
+    )
+    .await;
+    assert_eq!(status, 201);
+    let request = json!({"client_request_id":"restore_receipt_original","knowledge_id":id,
+        "question":"SYNTHETIC secret question","context_grant":consumption(&doc)});
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/machine/answers",
+            "human",
+            request.clone()
+        )
+        .await
+        .0,
+        200
+    );
+    drop(router);
+    let mut conn =
+        archeaxis_store_sqlite::init_workspace(dir.path().join("db.sqlite").to_str().unwrap())
+            .unwrap();
+    let tx = conn.transaction().unwrap();
+    archeaxis_store_sqlite::authorization_fence::install_after_restore(&tx).unwrap();
+    tx.commit().unwrap();
+    drop(conn);
+    let (router, _) = fixture(dir.path()).await;
+    let (status, receipt) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/answers",
+        "human",
+        request.clone(),
+    )
+    .await;
+    assert_eq!(status, 403);
+    assert_eq!(receipt["reason_code"], "RESTORED_GRANT_FENCED");
+    assert_eq!(receipt["execution_state"], "NOT_EXECUTED");
+    assert_eq!(receipt["execution_scope"], "CURRENT_INVOCATION");
+    assert_eq!(receipt["prior_request_execution"], "UNVERIFIED");
+    assert_eq!(receipt["answer_published"], false);
+    assert_eq!(
+        receipt["grant"],
+        json!({"document_id":doc["document_id"],"version":doc["version"],"content_sha256":doc["content_sha256"]})
+    );
+    let normalized = json!({"operation":"answer","request":{
+        "knowledge_id":id,"question":request["question"],"max_tokens":2048,"timeout_s":120,
+        "context_grant":request["context_grant"],"asset_context_grant":null,
+        "client_request_id":request["client_request_id"],"retest_of":null}});
+    assert_eq!(
+        receipt["request_sha256"],
+        format!("{:x}", Sha256::digest(normalized.to_string().as_bytes()))
+    );
+    assert!(!receipt.to_string().contains("SYNTHETIC secret question"));
+    assert!(!receipt.to_string().contains("answer this project question"));
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "1"
+    );
+    // An ordinary invalid snapshot on a new post-restore grant must remain generic.
+    let (status, new_grant) = call(
+        &router,
+        "POST",
+        "/api/v1/documents",
+        "human",
+        json!({"title":"new grant","editor_json":editor(&id,"granted")}),
+    )
+    .await;
+    assert_eq!(status, 201);
+    let mut fresh = request.clone();
+    fresh["client_request_id"] = json!("restore_receipt_fresh");
+    fresh["context_grant"] = consumption(&new_grant);
+    let mut invalid = fresh.clone();
+    invalid["context_grant"]["content_sha256"] = json!("0".repeat(64));
+    let (status, generic) =
+        call(&router, "POST", "/api/v1/machine/answers", "human", invalid).await;
+    assert_eq!(status, 403);
+    assert_ne!(generic["reason_code"], "RESTORED_GRANT_FENCED");
+    assert_eq!(
+        call(&router, "POST", "/api/v1/machine/answers", "human", fresh)
+            .await
+            .0,
+        200
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "2"
+    );
+    // Corrupt fence is enforcement denial, not proof of membership in a valid restore fence.
+    drop(router);
+    let conn =
+        archeaxis_store_sqlite::init_workspace(dir.path().join("db.sqlite").to_str().unwrap())
+            .unwrap();
+    conn.execute(
+        "UPDATE workspace_meta SET value='broken' WHERE key='authorization_restore_fence'",
+        [],
+    )
+    .unwrap();
+    drop(conn);
+    let (router, _) = fixture(dir.path()).await;
+    let (status, generic) =
+        call(&router, "POST", "/api/v1/machine/answers", "human", request).await;
+    assert_eq!(status, 403);
+    assert_ne!(generic["reason_code"], "RESTORED_GRANT_FENCED");
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "2"
+    );
+}
+
+#[tokio::test]
 async fn frozen_answer_identity_serializes_concurrent_retries_survives_restart_and_refuses_conflict()
  {
     let dir = tempfile::tempdir().unwrap();
@@ -554,5 +674,168 @@ async fn restored_workspace_without_historical_grants_cannot_bypass_permission_b
             .await
             .0,
         403
+    );
+}
+
+#[tokio::test]
+async fn ordinary_retest_exposes_actual_context_without_changing_cache_or_historical_receipts() {
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let (router, id) = fixture(dir.path()).await;
+    let mut grant_editor = editor(&id, "granted");
+    grant_editor["attrs"]["archeaxis_context_grant"]["operations"] = json!(["answer", "retest"]);
+    let (status, grant) = call(
+        &router,
+        "POST",
+        "/api/v1/documents",
+        "human",
+        json!({"title":"SYNTHETIC answer/retest authorization","editor_json":grant_editor}),
+    )
+    .await;
+    assert_eq!(status, 201, "{grant}");
+    let question = "SYNTHETIC unchanged question";
+    let (status, answer) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/answers",
+        "human",
+        json!({"knowledge_id":id,"question":question,"context_grant":consumption(&grant)}),
+    )
+    .await;
+    assert_eq!(status, 200, "{answer}");
+    let (status, correction) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/corrections",
+        "human",
+        json!({"answer_id":answer["answer_id"],"knowledge_id":id,"question":question,
+        "machine_answer":answer["answer"]["answer"],"corrected_answer":"SYNTHETIC correction",
+        "error_note":"SYNTHETIC fixture intervention only","reviewer":"fixture-human"}),
+    )
+    .await;
+    assert_eq!(status, 200, "{correction}");
+    let request = json!({"retest_of":correction["failed_task_id"],"knowledge_id":id,
+        "question":question,"context_grant":consumption(&grant)});
+    let (status, first) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/retests",
+        "human",
+        request.clone(),
+    )
+    .await;
+    assert_eq!(status, 200, "{first}");
+    assert_eq!(
+        first["execution_request"]["schema"],
+        "archeaxis.machine-retest-execution/v1"
+    );
+    assert_eq!(
+        first["execution_request"]["context_sha256"],
+        format!("{:x}", Sha256::digest(b"SYNTHETIC authorized context"))
+    );
+    assert_eq!(first["execution_request"]["request"], first["request"]);
+    assert!(
+        first["request"].get("context_sha256").is_none(),
+        "positive cache request unchanged"
+    );
+    assert!(first["execution_request"].get("asset_context").is_none());
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "2"
+    );
+    let (status, second) = call(
+        &router,
+        "POST",
+        "/api/v1/machine/retests",
+        "human",
+        request.clone(),
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(second, first);
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "2"
+    );
+    drop(router);
+    // Explicit SYNTHETIC historical database fixture: older receipt lacks the new field.
+    let mut historical = first.clone();
+    historical
+        .as_object_mut()
+        .unwrap()
+        .remove("execution_request");
+    let conn =
+        archeaxis_store_sqlite::init_workspace(dir.path().join("db.sqlite").to_str().unwrap())
+            .unwrap();
+    assert_eq!(
+        conn.execute(
+            "UPDATE machine_tasks SET conditions=?1 WHERE task_id=?2",
+            rusqlite::params![
+                historical.to_string(),
+                first["retest_task_id"].as_str().unwrap()
+            ]
+        )
+        .unwrap(),
+        1
+    );
+    drop(conn);
+    let (restarted, _) = fixture(dir.path()).await;
+    let (status, replay) = call(
+        &restarted,
+        "POST",
+        "/api/v1/machine/retests",
+        "human",
+        request.clone(),
+    )
+    .await;
+    assert_eq!(
+        status, 409,
+        "unknown historical execution budget must not qualify a new request: {replay}"
+    );
+    let (status, stored) = call(
+        &restarted,
+        "GET",
+        &format!(
+            "/api/v1/machine/tasks/{}",
+            first["retest_task_id"].as_str().unwrap()
+        ),
+        "human",
+        serde_json::Value::Null,
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(stored["conditions"].as_str().unwrap()).unwrap(),
+        historical,
+        "historical receipt remains readable and unchanged"
+    );
+    // A legacy envelope object with no budget is equally UNKNOWN, not a cache miss.
+    let conn =
+        archeaxis_store_sqlite::init_workspace(dir.path().join("db.sqlite").to_str().unwrap())
+            .unwrap();
+    let mut missing_budget = historical.clone();
+    missing_budget["execution_request"] =
+        serde_json::json!({"schema":"archeaxis.machine-retest-execution/v1"});
+    conn.execute(
+        "UPDATE machine_tasks SET conditions=?1 WHERE task_id=?2",
+        rusqlite::params![
+            missing_budget.to_string(),
+            first["retest_task_id"].as_str().unwrap()
+        ],
+    )
+    .unwrap();
+    drop(conn);
+    let (status, _) = call(
+        &restarted,
+        "POST",
+        "/api/v1/machine/retests",
+        "human",
+        request,
+    )
+    .await;
+    assert_eq!(status, 409);
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "2"
     );
 }

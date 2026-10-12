@@ -1,0 +1,311 @@
+{
+  "schema": "archeaxis.common-format-source-guard-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "change": "Office/text-PDF actual Core probe now rechecks worktree identity after execution/cleanup; changed or missing identity forces ok=false and NOT_QUALIFIED_SOURCE_CHANGED_OR_UNVERIFIED.",
+  "checks": [
+    {
+      "receipt": ".project-local/runs/be268a2d33/c4c07f8557aa/artifacts/execution.json",
+      "status": "PASS",
+      "source_patch_sha256": "6252600219b9113207a102499f75d42843bc8640d4d4010759db5b84e38cf783"
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/2170af2f66d1/artifacts/execution.json",
+      "status": "PASS",
+      "source_patch_sha256": "6252600219b9113207a102499f75d42843bc8640d4d4010759db5b84e38cf783"
+    },
+    {
+      "receipt": ".project-local/runs/be268a2d33/e0bdf6b4d57d/artifacts/execution.json",
+      "status": "PASS",
+      "source_patch_sha256": "6252600219b9113207a102499f75d42843bc8640d4d4010759db5b84e38cf783"
+    }
+  ],
+  "scoped_tests": "8 PASS: actual four local parser formats plus locator guards and two SIMULATED receipt-finalization source-change controls. Not actual candidate Core qualification.",
+  "broader_probe_run": {
+    "receipt": ".project-local/runs/be268a2d33/c5bf2a2fd0db/artifacts/execution.json",
+    "passed": 32,
+    "skipped": 6,
+    "status": "PARTIAL_REQUIRED_RUNTIME_NOT_EXECUTED",
+    "skips": "Three opt-in Chinese OCR and three opt-in ASR lack explicit invocation parameters; not counted as runtime PASS."
+  },
+  "downloaded_ci99_format_evidence": [
+    {
+      "format": "docx",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/formats-99/fd2a08c715/4f46040f66de/artifacts/common-formats.json",
+      "receipt_sha256": "b7547cf8a08ad08ddb1e198c5ba9022e2cd8966eab9260a55eccdf906bee5f43",
+      "qualification": "INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+      "source_consistent": "UNVERIFIED_END_FINGERPRINT_NOT_RECORDED",
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "No installed UI/source-application navigation",
+        "Text PDF only; OCR separate",
+        "Formula text/cached chart data are not live calculation",
+        "No source package reconstruction",
+        "Independent reparse uses a new job; old pinned job remains valid, not superseded"
+      ]
+    },
+    {
+      "format": "xlsx",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/formats-99/fd2a08c715/4f46040f66de/artifacts/common-formats.json",
+      "receipt_sha256": "b7547cf8a08ad08ddb1e198c5ba9022e2cd8966eab9260a55eccdf906bee5f43",
+      "qualification": "INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+      "source_consistent": "UNVERIFIED_END_FINGERPRINT_NOT_RECORDED",
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "No installed UI/source-application navigation",
+        "Text PDF only; OCR separate",
+        "Formula text/cached chart data are not live calculation",
+        "No source package reconstruction",
+        "Independent reparse uses a new job; old pinned job remains valid, not superseded"
+      ]
+    },
+    {
+      "format": "pptx",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/formats-99/fd2a08c715/4f46040f66de/artifacts/common-formats.json",
+      "receipt_sha256": "b7547cf8a08ad08ddb1e198c5ba9022e2cd8966eab9260a55eccdf906bee5f43",
+      "qualification": "INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+      "source_consistent": "UNVERIFIED_END_FINGERPRINT_NOT_RECORDED",
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "No installed UI/source-application navigation",
+        "Text PDF only; OCR separate",
+        "Formula text/cached chart data are not live calculation",
+        "No source package reconstruction",
+        "Independent reparse uses a new job; old pinned job remains valid, not superseded"
+      ]
+    },
+    {
+      "format": "pdf",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/formats-99/fd2a08c715/4f46040f66de/artifacts/common-formats.json",
+      "receipt_sha256": "b7547cf8a08ad08ddb1e198c5ba9022e2cd8966eab9260a55eccdf906bee5f43",
+      "qualification": "INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+      "source_consistent": "UNVERIFIED_END_FINGERPRINT_NOT_RECORDED",
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "No installed UI/source-application navigation",
+        "Text PDF only; OCR separate",
+        "Formula text/cached chart data are not live calculation",
+        "No source package reconstruction",
+        "Independent reparse uses a new job; old pinned job remains valid, not superseded"
+      ]
+    },
+    {
+      "format": "md",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "csv",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "json",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "html",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "srt",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "vtt",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "canvas",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "png",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "jpeg",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "pdf",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/84e4291a34d6/artifacts/common-light-ocr.json",
+      "receipt_sha256": "aeacbd81507050f1ac94dc6390f882cb88d39da765e3810523bc3cdc9c71dcb7",
+      "qualification": "INTEGRATED_SELECTED_LIGHT_CONTENT_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "English OCR sentinel content only; Chinese scan recognition UNMEASURED",
+        "MD anchor binds immutable original UTF-8 byte span; derived structure separately checked",
+        "No installed UI or source-application navigation",
+        "No format reconstruction or ASR",
+        "Independent reparse new job does not supersede historical pinned attempts"
+      ]
+    },
+    {
+      "format": "png",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/0b24fe8b89b2/artifacts/common-chinese-ocr.json",
+      "receipt_sha256": "78e5da564fcfc38e30df912841fa2456e630e73f0a0a0016476bf92e538d52cb",
+      "qualification": "INTEGRATED_SELECTED_CHINESE_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "Selected actual Chinese phrases only; full recognition accuracy UNMEASURED",
+        "OCR canonical line/span location; bbox is actual review metadata",
+        "No installed UI, source package reconstruction or ASR",
+        "Independent new jobs preserve pinned historical attempts"
+      ]
+    },
+    {
+      "format": "jpeg",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/0b24fe8b89b2/artifacts/common-chinese-ocr.json",
+      "receipt_sha256": "78e5da564fcfc38e30df912841fa2456e630e73f0a0a0016476bf92e538d52cb",
+      "qualification": "INTEGRATED_SELECTED_CHINESE_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "Selected actual Chinese phrases only; full recognition accuracy UNMEASURED",
+        "OCR canonical line/span location; bbox is actual review metadata",
+        "No installed UI, source package reconstruction or ASR",
+        "Independent new jobs preserve pinned historical attempts"
+      ]
+    },
+    {
+      "format": "pdf",
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/light-99/runs/fd2a08c715/0b24fe8b89b2/artifacts/common-chinese-ocr.json",
+      "receipt_sha256": "78e5da564fcfc38e30df912841fa2456e630e73f0a0a0016476bf92e538d52cb",
+      "qualification": "INTEGRATED_SELECTED_CHINESE_OCR_LOCATION_REPARSE_RESTART",
+      "source_consistent": true,
+      "independent_jobs": true,
+      "restart_equal": true,
+      "limits": [
+        "Selected actual Chinese phrases only; full recognition accuracy UNMEASURED",
+        "OCR canonical line/span location; bbox is actual review metadata",
+        "No installed UI, source package reconstruction or ASR",
+        "Independent new jobs preserve pinned historical attempts"
+      ]
+    }
+  ],
+  "evidence_scope": "Exact older99 selected materials only. Newly guarded probe/current candidate complete-format/current installed UI/Owner acceptance not qualified by these historical receipts.",
+  "pending_ci": {
+    "run_id": 38081667307,
+    "head_sha": "a8f93be52cf08ed4f0cac1c9689561ef5b9d961e",
+    "rust": "FAIL_FMT; repair published separately; following tests skipped",
+    "other_jobs": "RUNNING_AT_INSPECTION",
+    "successor": "NOT_DISPATCHED_TO_PRESERVE_CURRENT_USEFUL_RUN"
+  },
+  "whole_goal": "NOT_QUALIFIED"
+}

@@ -16,7 +16,7 @@ These are reasoning models: the chain of thought arrives in `reasoning_content` 
 token budget is therefore reported back, because a truncated answer and a finished one must not look
 alike.
 
-Only a model that answers the capability probe is reported as usable.
+Inventory presence is separate from model loading and successful inference.
 
 Usage:
     python worker_machine_answer.py --context <file> --question "<text>" [--model NAME]
@@ -26,13 +26,74 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import json
 import os
 import sys
 import time
 import urllib.error
 import urllib.request
+import urllib.parse
 from pathlib import Path
+
+
+class ModelCallFailure(RuntimeError):
+    reason_code = "MODEL_CALL_FAILED"
+
+
+class NoLocalRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ValueError("Local model redirects are refused")
+
+
+def local_urlopen(request, timeout):
+    """Numeric loopback only, no inherited proxy or redirects, no remote fallback."""
+    url = request.full_url if isinstance(request, urllib.request.Request) else request
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme != "http" or parsed.username or parsed.password or parsed.fragment:
+        raise ValueError("Invalid local model endpoint")
+    host = parsed.hostname
+    host = "127.0.0.1" if host == "localhost" else host
+    try:
+        if not ipaddress.ip_address(host).is_loopback:
+            raise ValueError("Remote model endpoint refused")
+    except (ValueError, TypeError) as error:
+        raise ValueError("Numeric loopback model endpoint required") from error
+    port = parsed.port
+    netloc = (f"[{host}]" if ":" in host else host) + (f":{port}" if port is not None else "")
+    canonical = urllib.parse.urlunsplit(("http", netloc, parsed.path, parsed.query, ""))
+    if isinstance(request, urllib.request.Request):
+        request = urllib.request.Request(canonical, data=request.data, headers=dict(request.header_items()), method=request.get_method())
+    else:
+        request = canonical
+    return urllib.request.build_opener(urllib.request.ProxyHandler({}), NoLocalRedirect()).open(request, timeout=timeout)
+
+
+MAX_MODEL_RESPONSE_BYTES = 4 * 1024 * 1024
+
+
+def read_model_json(response):
+    """Bound both inventory and inference responses before decoding or parsing."""
+    raw = response.read(MAX_MODEL_RESPONSE_BYTES + 1)
+    if len(raw) > MAX_MODEL_RESPONSE_BYTES:
+        raise ValueError("Local model response exceeds size limit")
+    payload = json.loads(raw.decode("utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("Local model response must be a JSON object")
+    return payload
+
+
+class FinalAnswerFailure(ValueError):
+    def __init__(self, message: str, reason_code: str):
+        super().__init__(message)
+        self.reason_code = reason_code
+
+
+def failure_receipt(error: Exception) -> dict:
+    code = getattr(error, "reason_code", "WORKER_FAILED")
+    if not isinstance(code, str) or code not in {"MODEL_CALL_FAILED", "NO_FINAL_ANSWER", "EMPTY_ANSWER"}:
+        code = "WORKER_FAILED"
+    return {"schema": "archeaxis.machine-worker-failure/v1", "reason_code": code}
 
 ENGINE = "python-worker-machine-answer"
 ENGINE_VERSION = "0.1.0"
@@ -129,7 +190,7 @@ def _endpoint() -> dict:
         }
     for candidate in _declared_lanes():
         try:
-            with urllib.request.urlopen(
+            with local_urlopen(
                     f"{candidate['base']}/{'models' if candidate['protocol'] == 'openai' else 'api/tags'}",
                     timeout=3):
                 return {**candidate, "discovered": True}
@@ -142,25 +203,34 @@ def _endpoint() -> dict:
 
 def _installed_models(endpoint: dict) -> list[str]:
     path = "/models" if endpoint["protocol"] == "openai" else "/api/tags"
-    try:
-        with urllib.request.urlopen(f"{endpoint['base']}{path}", timeout=5) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except Exception:  # noqa: BLE001
-        return []
-    if endpoint["protocol"] == "openai":
-        return sorted(item.get("id", "") for item in payload.get("data", []))
-    return sorted(item.get("name", "") for item in payload.get("models", []))
+    with local_urlopen(f"{endpoint['base']}{path}", timeout=5) as response:
+        payload = read_model_json(response)
+    key, identity = ("data", "id") if endpoint["protocol"] == "openai" else ("models", "name")
+    if not isinstance(payload, dict) or not isinstance(payload.get(key), list):
+        raise ValueError("Model inventory response shape invalid")
+    rows = payload[key]
+    if any(not isinstance(item, dict) or not isinstance(item.get(identity), str)
+           or not item[identity].strip() for item in rows):
+        raise ValueError("Model inventory identity invalid")
+    return sorted(item[identity] for item in rows)
 
 
 def probe(model: str | None = None) -> dict:
-    """Whether a text model can answer here, named concretely when it cannot."""
+    """Read inventory only; presence never proves loading or inference success."""
     endpoint = _endpoint()
     model = model or endpoint["model"]
-    installed = _installed_models(endpoint)
-    if not installed:
+    try:
+        installed = _installed_models(endpoint)
+    except Exception as error:  # noqa: BLE001 - failed inventory is not an empty successful read
         return {
             "capability": False,
-            "reason": f"no text endpoint answered at {endpoint['base']}",
+            "reason": f"text model inventory request failed at {endpoint['base']}",
+            "inventory_status": "READ_FAILED",
+            "availability": "UNVERIFIED",
+            "evidence_scope": "MODEL_INVENTORY_ONLY",
+            "inference_status": "NOT_EXECUTED",
+            "loaded_status": "UNKNOWN",
+            "error_type": type(error).__name__,
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "endpoint": endpoint["base"],
@@ -172,6 +242,11 @@ def probe(model: str | None = None) -> dict:
         return {
             "capability": False,
             "reason": f"model {model} is not available",
+            "inventory_status": "READ_VERIFIED",
+            "availability": "MODEL_NOT_LISTED",
+            "evidence_scope": "MODEL_INVENTORY_ONLY",
+            "inference_status": "NOT_EXECUTED",
+            "loaded_status": "UNKNOWN",
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "available": installed,
@@ -182,6 +257,11 @@ def probe(model: str | None = None) -> dict:
         }
     return {
         "capability": True,
+        "inventory_status": "READ_VERIFIED",
+        "availability": "MODEL_LISTED_INFERENCE_UNVERIFIED",
+        "evidence_scope": "MODEL_INVENTORY_ONLY",
+        "inference_status": "NOT_EXECUTED",
+        "loaded_status": "UNKNOWN",
         "engine": ENGINE,
         "engine_version": ENGINE_VERSION,
         "model": model,
@@ -194,12 +274,30 @@ def probe(model: str | None = None) -> dict:
     }
 
 
+class ModelReply(tuple):
+    """Keep the existing response tuple protocol with optional reported metering."""
+    def __new__(cls, values, usage):
+        result = super().__new__(cls, values)
+        result.usage = usage
+        return result
+
+
+def reported_usage(payload: dict, protocol: str) -> dict | None:
+    raw = payload.get("usage") if protocol == "openai" else payload
+    if not isinstance(raw, dict):
+        return None
+    fields = {"input_tokens": "prompt_tokens", "output_tokens": "completion_tokens", "total_tokens": "total_tokens"} if protocol == "openai" else {"input_tokens": "prompt_eval_count", "output_tokens": "eval_count"}
+    usage = {target: raw[source] for target, source in fields.items()
+             if type(raw.get(source)) is int and 0 <= raw[source] <= 2**53 - 1}
+    return usage or None
+
+
 def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
-          max_tokens: int) -> tuple[str, str]:
+          max_tokens: int) -> tuple[str, str, str | None, str]:
     """One text request, in whichever protocol the endpoint speaks.
 
-    Returns the text and the endpoint's own finish reason, because "the model stopped" and "the
-    budget ran out" produce very different confidence in the answer.
+    Returns text, finish reason, independently observed model identity and answer source.
+    Missing response identity remains None; the request is never used as an observation.
     """
     if endpoint["protocol"] == "openai":
         url = f"{endpoint['base']}/chat/completions"
@@ -219,20 +317,24 @@ def _call(endpoint: dict, model: str, prompt: str, timeout_s: int,
     request = urllib.request.Request(
         url, data=json.dumps(body).encode("utf-8"),
         headers={"Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(request, timeout=timeout_s) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    with local_urlopen(request, timeout=timeout_s) as response:
+        payload = read_model_json(response)
     if endpoint["protocol"] == "openai":
         choice = (payload.get("choices") or [{}])[0]
         message = choice.get("message", {})
-        # These are reasoning models: the chain of thought arrives in `reasoning_content` and the
-        # answer in `content`, and a small budget is consumed entirely by reasoning, leaving `content`
-        # empty. Prefer the answer and fall back rather than reporting nothing.
+        # Preserve the response identity independently from the requested model.
+        observed = payload.get("model")
+        observed = observed.strip() if isinstance(observed, str) and observed.strip() else None
         text = str(message.get("content") or "").strip()
+        answer_source = "content"
         if not text:
             text = str(message.get("reasoning_content") or "").strip()
-        return text, str(choice.get("finish_reason") or "")
+            answer_source = "reasoning_content"
+        return ModelReply((text, str(choice.get("finish_reason") or ""), observed, answer_source), reported_usage(payload, "openai"))
     text = str(payload.get("response", "")).strip()
-    return text, str(payload.get("done_reason") or "")
+    observed = payload.get("model")
+    observed = observed.strip() if isinstance(observed, str) and observed.strip() else None
+    return ModelReply((text, str(payload.get("done_reason") or ""), observed, "response"), reported_usage(payload, "ollama"))
 
 
 def answer(context: str, question: str, model: str | None = None,
@@ -249,25 +351,42 @@ def answer(context: str, question: str, model: str | None = None,
     if not context:
         raise ValueError("a context is required; answering without one is not grounded")
 
+    # Only an omitted selection uses launch policy. An explicit invalid selection
+    # must not silently become the default model or discover a runtime first.
+    if model is not None and (
+        not isinstance(model, str) or not model.strip() or len(model) > 256
+        or model != model.strip() or any(ord(char) < 32 or ord(char) == 127 for char in model)
+    ):
+        raise ValueError("invalid model selection")
+
     endpoint = _endpoint()
-    model = model or endpoint["model"]
+    model = endpoint["model"] if model is None else model
     prompt = PROMPT_TEMPLATE.format(context=context, question=question)
     started = time.monotonic()
     try:
-        text, finish_reason = _call(endpoint, model, prompt, timeout_s, max_tokens)
+        reply = _call(endpoint, model, prompt, timeout_s, max_tokens)
+        text, finish_reason, observed_model, answer_source = reply
+        usage = getattr(reply, "usage", None)
     except urllib.error.URLError as exc:
-        raise RuntimeError(
+        raise ModelCallFailure(
             f"text model call failed at {endpoint['base']} ({endpoint['protocol']}): {exc}"
         ) from exc
     except Exception as exc:  # noqa: BLE001
-        raise RuntimeError(f"text model call failed: {exc}") from exc
+        raise ModelCallFailure(f"text model call failed: {exc}") from exc
     elapsed_s = round(time.monotonic() - started, 2)
 
+    if answer_source == "reasoning_content":
+        # A reasoning-only response is not a final answer, even when the provider
+        # reports stop. Refuse before extract/transport can persist it as answer text.
+        raise FinalAnswerFailure(
+            f"model {model} returned no final answer within {max_tokens} tokens "
+            f"(finish_reason={finish_reason or 'unknown'}; answer_source=reasoning_content)", "NO_FINAL_ANSWER")
+
     if not text:
-        raise ValueError(
+        raise FinalAnswerFailure(
             f"model {model} returned no answer within {max_tokens} tokens "
             f"(finish_reason={finish_reason or 'unknown'}); raise the budget rather than reporting "
-            "an empty answer")
+            "an empty answer", "EMPTY_ANSWER")
 
     truncated = finish_reason == "length"
     return {
@@ -275,6 +394,9 @@ def answer(context: str, question: str, model: str | None = None,
         "engine_version": ENGINE_VERSION,
         "answer": text,
         "model": model,
+        "requested_model": model,
+        "observed_model": observed_model,
+        "answer_source": answer_source,
         "endpoint": endpoint["base"],
         "protocol": endpoint["protocol"],
         "prompt_version": PROMPT_VERSION,
@@ -282,11 +404,18 @@ def answer(context: str, question: str, model: str | None = None,
         "max_tokens": max_tokens,
         "truncated": truncated,
         "elapsed_s": elapsed_s,
+        "usage": usage,
+        "usage_status": "REPORTED" if usage is not None else "UNKNOWN",
+        "cost": None,
+        "cost_status": "UNKNOWN",
         "loss_receipt": {
             "engine": ENGINE,
             "engine_version": ENGINE_VERSION,
             "params": {
                 "model": model,
+                "requested_model": model,
+                "observed_model": observed_model,
+                "answer_source": answer_source,
                 "endpoint": endpoint["base"],
                 "protocol": endpoint["protocol"],
                 "prompt_version": PROMPT_VERSION,
@@ -323,6 +452,9 @@ def extract(path: str, question: str | None = None,
         "text": result["answer"],
         "answer": result["answer"],
         "model": result["model"],
+        "requested_model": result["requested_model"],
+        "observed_model": result["observed_model"],
+        "answer_source": result["answer_source"],
         "endpoint": result["endpoint"],
         "protocol": result["protocol"],
         "prompt_version": result["prompt_version"],
@@ -330,6 +462,10 @@ def extract(path: str, question: str | None = None,
         "max_tokens": result["max_tokens"],
         "truncated": result["truncated"],
         "elapsed_s": result["elapsed_s"],
+        "usage": result["usage"],
+        "usage_status": result["usage_status"],
+        "cost": result["cost"],
+        "cost_status": result["cost_status"],
         "loss_receipt": result["loss_receipt"],
     }
 
@@ -384,8 +520,8 @@ def main() -> int:
         return 2
     try:
         result = extract(args.context, args.question, args.model, args.max_tokens)
-    except (ValueError, RuntimeError) as exc:
-        print(json.dumps({"error": str(exc)}, ensure_ascii=False))
+    except Exception as exc:
+        print(json.dumps(failure_receipt(exc), ensure_ascii=False))
         return 1
     print(json.dumps(result, ensure_ascii=False))
     return 0

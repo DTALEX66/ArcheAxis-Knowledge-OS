@@ -1,0 +1,61 @@
+{
+  "schema": "archeaxis.source-candidate-type-repair/v1",
+  "date": "2026-10-11",
+  "status": "IMPLEMENTED_LOCAL_TESTED_LOCAL",
+  "whole_scope": "PARTIAL",
+  "source_commit": "a45394ea9e71e092709fbeb3413f0fc3c6298a75",
+  "source_patch_sha256": "6ece0ad79533138d967281d383cbae12dfc1ed5bff8c1386e5d6f08b10874d73",
+  "patch_sha256": "38250cb58e98984ab960c4214cce431be5a9ac73bd6eb06f60cc18e7a747e942",
+  "defect": "JobContent source_note is outside canonical KNOWLEDGE_TYPES; Core rejects it before candidate creation",
+  "repair": "Use canonical NOTE for source-bound note candidates; human acceptance and provenance/readback checks unchanged",
+  "authority": "packages/contracts/v1/assessment-vocabulary.schema.json #/$defs/knowledge_type",
+  "files": [
+    {
+      "path": "frontend/src/components/JobContent.tsx",
+      "sha256": "d3932be58c6c821e0430b9d74fbb203bc03e69dbfe89544f488348a4b1f0543c"
+    },
+    {
+      "path": "frontend/src/__tests__/JobContent.test.tsx",
+      "sha256": "76f32d54e7ffaa2673319edf95b78d93c00562fb2a76033071a031bda6547bfb"
+    },
+    {
+      "path": "frontend/src/__tests__/SourceCandidateJourney.test.tsx",
+      "sha256": "f7cc95709302d429d48656e2ceeef4fa629f72ce54a0a8598c744f259a709f64"
+    }
+  ],
+  "regression": {
+    "isolated_red": "f714401b40/54879a9146ae; real mounted component canonical-enum transport rejected old type and could not reach review",
+    "isolated_green_count": 43,
+    "root_all_frontend": {
+      "count": 1106,
+      "test_files": 120,
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/02c43532620b/artifacts/execution.json",
+      "evidence_level": "SIMULATED",
+      "source_consistent": true
+    },
+    "root_tsc_build": {
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/d61f7080d910/artifacts/frontend-build.json",
+      "source_consistent": true
+    },
+    "root_architecture": "PASS",
+    "root_diff_check": "PASS"
+  },
+  "limitations": [
+    "3ff installed HTTP rejection body was not observed; source defect and mounted reproduction confirmed, native complete fix still pending",
+    "No actual Core/native requalification on repaired source",
+    "Current a2 CI remains live; no replacement dispatch",
+    "Actual text AI service and whole nine-step journey remain unqualified"
+  ],
+  "frozen_execution_recovery": {
+    "state": "NOT_IMPLEMENTED_CONFIRMED",
+    "components": [
+      "JobContent",
+      "FolderIngest",
+      "BoundedJobPanel"
+    ],
+    "current_storage": "component memory only",
+    "next_slice": "Core-owned typed pending job journal with request/budget/source identity and explicit recovery; isolated implementation running"
+  }
+}

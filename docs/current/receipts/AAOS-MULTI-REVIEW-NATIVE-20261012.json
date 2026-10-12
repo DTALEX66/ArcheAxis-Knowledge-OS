@@ -1,0 +1,46 @@
+{
+  "schema": "archeaxis.multi-review-native/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "owner_acceptance": "NOT_EXECUTED",
+  "evidence_level": "INTEGRATED_WITH_SYNTHETIC_ACK_LOSS",
+  "native_run": "webdriver-7cae664a1b80",
+  "raw_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-7cae664a1b80/tmp/journey/receipt.json",
+    "sha256": "126dd9c518e78cdc54adaf8536864a5cd12830474a0e1f00030adc1a7b8d9cb7"
+  },
+  "source_patch_sha256": "62847056ede5d2913558b0bfc8302ab9bff7353a72d800de62dd1812bb783bf2",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "multi_review_recovery": {
+    "status": "PASS",
+    "evidence_level": "INTEGRATED_WITH_SYNTHETIC_ACK_LOSS",
+    "cold_restart": true,
+    "explicit_selection": true,
+    "selection_review_calls": 0,
+    "recovery_inference_calls": 0,
+    "submissions": [
+      {
+        "item_key": "course:course-5acca86ecf17a19b367a99ed11b4c7e766be3e6e5c196d33e7cb507ace5488f0:artifact:lesson-5acca86ecf17a19b367a99ed11b4c7e766be3e6e5c196d33e7cb507ace5488f0",
+        "client_event_id": "efbae083-43b7-4d17-b254-448bc4959693",
+        "event_id": 1,
+        "body_sha256": "afb01e88e784eaf87258b4955327c31bc77d9ba4f410f75a10e211ce8b48da20"
+      },
+      {
+        "item_key": "assessment_cf603cc4-d551-4906-8f48-62cf3b267a47",
+        "client_event_id": "642c40ac-5770-41df-85af-af01d896d824",
+        "event_id": 2,
+        "body_sha256": "b44ca92e9710ffa077228d3d02fd69f3fc719074b8497da69080d115a6a807bd"
+      }
+    ],
+    "other_request_retained": true
+  },
+  "scope": "Two actual native UI/Core-created assessments and frozen journals; cold restart; explicit page06 selection; exact body and event identities; clearing each retains the other; both histories persist after final cold restart",
+  "limits": [
+    "No direct journal or database fixture writes",
+    "Acknowledgment loss is injected, not a real model process failure",
+    "No model inference requested in this scoped run; no actual AI chain or accuracy claim",
+    "Page12 keeps its single-object expectedJourney constraint; multi-request selection is qualified on formal page06",
+    "No Owner acceptance, installed Green, publication or real user data overwrite"
+  ]
+}

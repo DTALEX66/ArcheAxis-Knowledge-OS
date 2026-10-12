@@ -1,0 +1,22 @@
+{
+  "schema": "archeaxis.local-model-task-sample/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "model": "qwen3.8-27b",
+  "weight": "plain-gguf/qwen3.8-27b/Qwen3.8-27B-UD-IQ4_XS.gguf",
+  "api_identifier": "aaos-27b-benchmark",
+  "loading": {"elapsed_s": 17.56, "reported_gib": 13.27, "context_tokens": 2048, "parallel": 1, "ttl_s": 180, "placement": "LM_DEFAULT_UNVERIFIED", "cli_pref_warning": "EPERM; no retry or private file access"},
+  "run": "6cca39fd1b1b",
+  "source_commit": "e5b57a8b48773c1ebbacfe9bf620a35272be9208",
+  "source_consistent": true,
+  "execution": "REAL_DIRECT_LOCAL_API",
+  "materials": "SYNTHETIC_AUTHORED",
+  "max_tokens": 1024,
+  "samples": [
+    {"case": "Chinese grounding", "first_generated_token_s": 4.329, "elapsed_s": 37.266, "completion_tokens": 95, "reasoning_tokens": 78, "finish_reason": "stop", "expected_literals_present": true},
+    {"case": "No invented fact", "first_generated_token_s": 2.969, "elapsed_s": 30.469, "completion_tokens": 69, "reasoning_tokens": 63, "finish_reason": "stop", "expected_literals_present": true},
+    {"case": "Original and draft", "first_generated_token_s": 2.719, "elapsed_s": 41.328, "completion_tokens": 102, "reasoning_tokens": 70, "finish_reason": "stop", "expected_literals_present": true}
+  ],
+  "acceleration_gain": "UNVERIFIED_NO_MATCHED_COMPARISON",
+  "limits": ["First token includes reasoning, not first visible answer", "Not formal worker/Core/grant qualification", "Not matched 4B prompt/context/token-budget comparison", "Actual GPU placement, peak memory and acceleration gain unverified", "No product model/default/provider change; existing 4B remains loaded"]
+}

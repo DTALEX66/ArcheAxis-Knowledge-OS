@@ -1,0 +1,43 @@
+{
+  "schema": "archeaxis.exact-sha-installed-progress/v1",
+  "date": "2026-10-11",
+  "whole_goal": "PARTIAL_NOT_QUALIFIED",
+  "qualified_candidate": {
+    "sha": "fc940dc89c431d275eec1e9b748dbfab02b0288f",
+    "ci_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38077876660",
+    "ci_status": "COMPLETED_SUCCESS",
+    "all_20_jobs_success": true,
+    "required_aggregate": "a0-gates_SUCCESS",
+    "installed_lifecycle": {
+      "status": "PASS_ISOLATED_CI_INSTALLATION",
+      "parent_receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/installed-fc/task-runtime/aaos01-webdriver/d38b5a0dd8f94fac85458dc1cfad4800/lifecycle-receipt.json",
+      "head_sha_matches_candidate": true,
+      "installer_sha256": "dd4a263afe6a85f5d6a958f01bf11f66d5c4df02a4b5c61ae14978c1bd76bc39",
+      "verified": ["graceful_shutdown", "in_place_upgrade", "forced_tree_cleanup", "clean_uninstall", "uninstall_retains_data", "reinstall_readback"],
+      "pyc_growth": 0
+    },
+    "installed_native_journey": {
+      "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/installed-fc/runs/fd2a08c715/webdriver-e04b39d646ef/tmp/journey/receipt.json",
+      "ok": true,
+      "source_consistent": true,
+      "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+      "host_sha256": "5195f7d74fc3406606ed0bd6eed565a53484389df5a3b2644222ad743fbc21c2",
+      "ordinary_note_saved_version": 2,
+      "ordinary_note_body_sha256": "d23602dd066994a708ae287b53fc13d71cd06181e46b866c344a3e70831642f2",
+      "scope": "Existing compatibility journey, actual ordinary note UI save and restart, backup/restore and scoped format matrix",
+      "compiled_source_binding": "UNVERIFIED_IN_CHILD_RECEIPT; installed candidate identity comes from its exact-SHA parent lifecycle verifier",
+      "limits": ["Not the new grouped UI complete journey", "Programmatic Chinese input, not physical IME", "No Owner signoff or real user data qualification", "Media matrix probe is not actual speech Core qualification"]
+    }
+  },
+  "successor_candidate": {
+    "sha": "99ba6d8b6afc79dee618bb2e8b87473ad27087fc",
+    "branch": "codex/Audit",
+    "normal_push": "PASS_GITHUB_API_REF_SHA_MATCH",
+    "ci_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38079439232",
+    "ci_status_at_dispatch": "DISPATCHED_NOT_YET_QUALIFIED",
+    "additional_scope": ["Required pinned Chinese OCR Core probe", "Current grouped native UI journey in a separate fresh workspace"],
+    "local_asr": "Selected public speech actual existing workers PASS; Core CAS/time locator/reparse/restart NOT_EXECUTED"
+  },
+  "remaining": ["Capability disabled non-admission proof and explicit original-request recovery", "Current grouped UI complete same-object journey", "Actual controlled-model correction/retest and restored old-grant refusal", "Chinese OCR current Core runtime", "Actual speech Core runtime", "Final combined exact-SHA qualification", "Owner interaction and physical IME acceptance"],
+  "delivery_limits": "Audit publication only; no merge, release, Green replacement or user installation"
+}

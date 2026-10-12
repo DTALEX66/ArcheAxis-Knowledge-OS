@@ -1,0 +1,113 @@
+{
+  "schema": "archeaxis.prior-epoch-review-native/v1",
+  "status": "PASS",
+  "overall_product_status": "PARTIAL",
+  "evidence_level": "INTEGRATED_REVIEW_WITH_SYNTHETIC_ACK_LOSS_AND_REAL_LOCAL_MODEL",
+  "native_run": "webdriver-7ac9dc0fa967",
+  "raw_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-7ac9dc0fa967/tmp/journey/receipt.json",
+    "sha256": "7d93af150aaf49a4088d3c61ada6470a71fcf8bb8c7e940f559485cb155a2818"
+  },
+  "source_patch_sha256": "227a74f85b71e93a7de574eb67d8c9f781e214f3fe610d195caad3f6eded4e96",
+  "source_consistent": true,
+  "owned_ports_released": true,
+  "engineering_status": "PASS",
+  "owner_acceptance": "NOT_EXECUTED",
+  "review_recovery": {
+    "status": "PASS",
+    "evidence_level": "INTEGRATED_WITH_SYNTHETIC_ACK_LOSS",
+    "freeze_ack": {
+      "faults": 1,
+      "rows": [
+        {
+          "duplicate": null,
+          "event_id": null,
+          "operation": "ui_state_write",
+          "status": 200
+        }
+      ]
+    },
+    "restore_preserve": [
+      {
+        "status": "PASS",
+        "origin_retained": true,
+        "discard_disabled": true,
+        "epoch_changed": true
+      },
+      {
+        "status": "PASS",
+        "origin_retained": true,
+        "discard_disabled": true,
+        "epoch_changed": true
+      }
+    ],
+    "review_ack": {
+      "faults": 1,
+      "rows": [
+        {
+          "duplicate": false,
+          "event_id": 1,
+          "operation": "learning_review",
+          "status": 201,
+          "body_sha256": "cf73c7df1807ddb55dd23129729c97d5c844797bc592f87c3fa455e8a2a42aa5"
+        }
+      ]
+    },
+    "explicit_retry": {
+      "faults": 0,
+      "rows": [
+        {
+          "duplicate": true,
+          "event_id": 1,
+          "operation": "learning_review",
+          "status": 200,
+          "body_sha256": "cf73c7df1807ddb55dd23129729c97d5c844797bc592f87c3fa455e8a2a42aa5"
+        }
+      ]
+    }
+  },
+  "stages": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    },
+    {
+      "id": "recover",
+      "status": "PASS"
+    }
+  ],
+  "limits": [
+    "Synthetic learner and engineering adoption are not Owner or independent accuracy evidence",
+    "Native pending-review discard control proven; pending-machine branch still not native qualified",
+    "Multiple simultaneous review selection still only simulated qualification",
+    "No installed Green, paid cloud calls or release"
+  ]
+}

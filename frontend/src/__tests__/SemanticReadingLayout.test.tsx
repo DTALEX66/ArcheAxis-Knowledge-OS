@@ -1,6 +1,6 @@
 import type { Editor } from "@tiptap/core";
 import { createHash, webcrypto } from "node:crypto";
-import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../app/App";
@@ -113,9 +113,28 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(bridge.call).toHaveBeenCalledWith("documents_list",{cursor:"actual-snapshot-cursor"});
   });
   it("SIMULATED: successful ordinary creation enters 03 with the returned ID",async()=>{
+    vi.stubGlobal("crypto",webcrypto);
+    const previous=bridge.call.getMockImplementation()!;
+    let created:typeof doc|null=null;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{
+      if(op==="document_create") {
+        const body=payload.body as {create_request_id:string;title:string;editor_json:typeof doc.editor_json};
+        const node=body.editor_json.content[0];
+        created={...doc,document_id:`doc_req_${createHash("sha256").update(body.create_request_id).digest("hex")}`,title:body.title,version:1,text_projection:"",editor_json:body.editor_json,
+          blocks:[{block_id:node.attrs.block_id,ordinal:0,kind:"paragraph",text_projection:"",node_json:node,codec_status:"known"}] as never};
+        return assertCoreDto("DocumentDto",created);
+      }
+      if(op==="document_version") {
+        expect(payload).toEqual({document_id:created!.document_id,version:1});
+        return assertCoreDto("DocumentDto",created);
+      }
+      return previous(op,payload);
+    });
     const open=vi.fn();render(<CanonicalLibrarySpace purpose="library" onOpenDocument={open}/>);
     await userEvent.setup().click(screen.getByRole("button",{name:"新建笔记"}));
-    expect(open).toHaveBeenCalledWith("doc_new");
+    await waitFor(()=>expect(open).toHaveBeenCalledWith(created!.document_id));
+    expect(bridge.call.mock.calls.filter(([op])=>op==="document_create")).toHaveLength(1);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="document_version")).toHaveLength(1);
     expect(bridge.call.mock.calls.some(([op])=>op==="document_check_record"||op==="source_import")).toBe(false);
   });
   it.each(["sources_list","documents_list"])("SIMULATED: initial reader ID hydrates verified CAS after delayed %s without reopening a draft",async(delayed)=>{

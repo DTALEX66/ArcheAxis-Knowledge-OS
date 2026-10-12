@@ -1,0 +1,28 @@
+{
+  "schema": "archeaxis.common-format-readback/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "qualification": "18_CATEGORIES_INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+  "candidate": "d22b9c7bc750131e2f856e74a4dbf5bc78b95af4",
+  "ci_run": 38126070564,
+  "desktop_fast_job": 114430705633,
+  "desktop_fast_conclusion": "success",
+  "full_ci": "IN_PROGRESS_AT_READBACK",
+  "categories": ["txt", "md", "csv", "json", "html", "pdf-text", "pdf-scanned", "png", "jpeg", "docx", "xlsx", "pptx", "srt", "vtt", "wav", "mp3", "mp4", "canvas"],
+  "source": "Five JSON receipts exact clean candidate, empty patch, source_consistent=true and ok=true; independently reverified, not inherited qualification",
+  "counts": {"fixture_rows": 21, "unique_original_sha256": 19, "raw_original_sha256_recomputed": 17, "input_bytes_also_compared": 14, "original_sha_only": 4, "main_jobs": 42, "pdf_page_jobs": 8, "successful_snapshots": 50, "derived_sha256_and_byte_length": 150, "current_locators": 54},
+  "reparse_content_structure_equal": true,
+  "restart_equal_all": true,
+  "speech": {"run": "9903bfcc5791", "jobs": 6, "derived": 18, "current_time_locators": 6, "start_ms": 0, "end_ms": 10380, "model_identity_before_after_equal": true, "resource": "ext.models.faster-whisper-large-v3-turbo", "revision": "0c94664816ec82be77b20e824c8e8675995b0029", "members": 5},
+  "evidence_root": ".project-local/runs/be268a2d33/ci-d22-readback-20261011",
+  "artifacts": [11697467626, 11697427323, 11697422575],
+  "receipt_sha256": {
+    "speech/9903bfcc5791": "e3bc4fc09ff2d3c0de59fe9d60995acbdb8ec87f5c340d9835af6d078c8e6c35",
+    "formats/24d4c0dd5c0e": "8c738c93cec5a61a2e5411da798ac50189911bbf8e0f1b766a3a0c289e7ce5be",
+    "light/82c8aedbd708": "3b8a485cabead049840bae8fc7626eecbb2a1685f33d4b6063f4d7b52a06352a",
+    "chinese/f7f25d43efda": "7cd2153311390b9e52eaaee1fafc0610a091f139fa15e1d14afe0c68eac420fd",
+    "chinese_duplicate_light/f7f25d43efda": "bd6d84b7f421d3e2b0d00e6a8acb2e9334f90eef78eba32d609ad22dbf65a457"
+  },
+  "limits": ["Selected phrases/sentinels do not establish full recognition accuracy", "Four Office/text-PDF raw originals absent from downloaded receipt; SHA alignment only", "English PNG two/JPEG four low-confidence regions await human review", "Line anchors/coverage derived from projected text; worker structure retained separately", "Scan PDF needs page OCR; XLSX formula caches are not live calculation", "MP4 audio only; no visual-model or continuous-coverage qualification", "Chinese duplicate rows counted once", "No installed UI/source reconstruction, Owner signoff or professional truth qualification"],
+  "verification": "Root source/hash inspection plus independent read-only raw SHA, all job/derived/locator bindings, reparse and restart audit"
+}

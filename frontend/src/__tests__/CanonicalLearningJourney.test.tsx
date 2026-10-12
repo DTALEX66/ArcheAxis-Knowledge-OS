@@ -3,17 +3,32 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalLearningJourneySpace } from "../spaces/CanonicalLearningJourneySpace";
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
+const journal = vi.hoisted(() => ({ value: null as null | {state:{pending_reviews:Record<string,{item_key:string}>}} }));
+vi.mock("../presentation/useCoreWorkingState", () => ({useOptionalCoreWorkingState:()=>journal.value}));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
 vi.mock("../spaces/CanonicalLearningSpace", () => ({ CanonicalLearningSpace: ({ initialItemKey }: { initialItemKey?: string }) => <div>真实练习入口 {initialItemKey}</div> }));
 vi.mock("../components/KnowledgeCoursePanel", () => ({ KnowledgeCoursePanel: ({ courseId, knowledgeId, onLearning }: { courseId?: string; knowledgeId?: string; onLearning: (key: string) => void }) => <div>课程读回 {courseId ?? knowledgeId}<button onClick={() => onLearning("real-course-item")}>练习当前课时</button></div> }));
 const row = (id: string, stale = false) => ({ manifest_id: id, title: `课程${id}`, stale, status: "candidate", human_review_required: true });
 beforeEach(() => {
+  journal.value = null;
   bridge.call.mockReset(); bridge.call.mockImplementation(async (operation: string) => {
     if (operation === "course_list") return { items: [row("c1")], next_cursor: null };
     if (operation === "search") return { items: [{ knowledge_id: "k1", head: "真实知识" }] };
     if (operation === "knowledge_get") return { knowledge_id: "k1", status: "accepted" };
     throw new Error(operation);
   });
+});
+it("recovers the persisted pending review on the restored feedback scene without submitting", async () => {
+  journal.value={state:{pending_reviews:{e1:{item_key:"persisted-item"}}}};
+  render(<CanonicalLearningJourneySpace pageId="12" />);
+  expect(await screen.findByText(/真实练习入口 persisted-item/)).toBeInTheDocument();
+  expect(bridge.call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
+});
+it("does not choose between multiple pending learning identities", async () => {
+  journal.value={state:{pending_reviews:{e1:{item_key:"first"},e2:{item_key:"second"}}}};
+  render(<CanonicalLearningJourneySpace pageId="12" />);
+  await screen.findByRole("button",{name:"课程c1"});
+  expect(screen.queryByText(/真实练习入口/)).not.toBeInTheDocument();
 });
 it("opens a persisted course without regenerating it and sends the actual assessment key to review", async () => {
   const onOpenPage = vi.fn(); render(<CanonicalLearningJourneySpace pageId="07" onOpenPage={onOpenPage} />);

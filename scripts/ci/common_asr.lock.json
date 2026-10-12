@@ -1,0 +1,66 @@
+{
+  "schema": "archeaxis/common-asr-assets/v1",
+  "resource_id": "ext.models.faster-whisper-large-v3-turbo",
+  "repo_id": "dropbox-dash/faster-whisper-large-v3-turbo",
+  "revision": "0c94664816ec82be77b20e824c8e8675995b0029",
+  "license": "MIT",
+  "model_card_url": "https://huggingface.co/dropbox-dash/faster-whisper-large-v3-turbo",
+  "hash_authority": "Local declared five-component byte identities; public model.bin LFS SHA/size matches, remaining four public components must independently match during preparation.",
+  "model_bytes": 1621665983,
+  "components": {
+    "model.bin": {
+      "bytes": 1617884929,
+      "sha256": "e76620f83d5f5b69efd3d87e3dc180c1bd21df9fbebacfd4335e5e1efcc018da"
+    },
+    "config.json": {
+      "bytes": 2263,
+      "sha256": "b0253ea6c0d3bea6b1e19e91a02acfd3b53f4467362efcb5a3e6b16c9b3a9b7e"
+    },
+    "tokenizer.json": {
+      "bytes": 2710337,
+      "sha256": "297b13372ac43916285644fb9687add3cc62ee2a1adb60da3dc25cc94c1871fd"
+    },
+    "preprocessor_config.json": {
+      "bytes": 340,
+      "sha256": "7ccc62c6f2765af1f3b46c00c9b5894426835a05021c8b9c01eecb6dfb542711"
+    },
+    "vocabulary.json": {
+      "bytes": 1068114,
+      "sha256": "c69260f2ab26d659b7c398f9a2b2b48ed0df16c3b47d7326782fd9cba71690c1"
+    }
+  },
+  "fixture": {
+    "repository": "SYSTRAN/faster-whisper",
+    "revision": "65882eee9f5cdbeeb2d877f1131d48cf241b327d",
+    "path": "tests/data/jfk.flac",
+    "bytes": 1152693,
+    "sha256": "63a4b1e4c1dc655ac70961ffbf518acd249df237e5a0152faae9a4a836949715",
+    "git_blob": "e44b7c13897eae7f78beb220c61fe77429a3961d",
+    "license_url": "https://raw.githubusercontent.com/SYSTRAN/faster-whisper/65882eee9f5cdbeeb2d877f1131d48cf241b327d/LICENSE",
+    "test_url": "https://raw.githubusercontent.com/SYSTRAN/faster-whisper/65882eee9f5cdbeeb2d877f1131d48cf241b327d/tests/test_transcribe.py",
+    "recording_rights_url": "https://www.jfklibrary.org/asset-viewer/archives/jfkwha-001",
+    "recording_rights": "Public Domain per JFKWHA-001 primary record; upstream repository MIT notice must be retained",
+    "transcript": "And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+    "expected_phrases": [
+      "fellow Americans",
+      "ask not",
+      "do for your country"
+    ],
+    "language": "en",
+    "evidence_assets": {
+      "LICENSE": {
+        "url": "https://raw.githubusercontent.com/SYSTRAN/faster-whisper/65882eee9f5cdbeeb2d877f1131d48cf241b327d/LICENSE",
+        "bytes": 1064,
+        "sha256": "af6798135e729f8aa6c853936d037dfdea449734d26b8ea6a89805fca758c0d5",
+        "git_blob": "2d92330dc294fea86caf785fa626d22917850141"
+      },
+      "upstream-test_transcribe.py.txt": {
+        "url": "https://raw.githubusercontent.com/SYSTRAN/faster-whisper/65882eee9f5cdbeeb2d877f1131d48cf241b327d/tests/test_transcribe.py",
+        "bytes": 11179,
+        "sha256": "b3cf3565a886e0bae941fd62a97b4203fdff80893aac1344039aa9edf56f762f",
+        "git_blob": "ccbaba0063c12f672b5c580b25f7c5bc9bce7617"
+      }
+    }
+  },
+  "qualification": "ASSET_IDENTITY_ONLY_NO_ASR_CORE_QUALIFICATION"
+}

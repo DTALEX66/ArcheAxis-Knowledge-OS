@@ -1,0 +1,26 @@
+{
+  "schema": "archeaxis.engineering-progress/v1",
+  "date": "2026-10-11",
+  "status": "PARTIAL",
+  "failed_candidate": "f36cf453897a35f4f5436c52656d28e38d664399",
+  "ci_run": 38120611525,
+  "ci_conclusion": "failure",
+  "installed_job": 114417050391,
+  "artifact": 11695623477,
+  "observed": "compat and independent conflict children passed; grouped recover passed; distill NOT_EXECUTED; capability recovery timed out selecting grouped-owner.txt on history page 20",
+  "cause": "History page restores the active document and renders its versions without a document list. Page 02 owns saved-document selection and routes selection to reader page 03",
+  "repair": "Both saved-document selections enter page 02; recover retains subsequent page 20 version inspection. No product behavior, grant or qualification assertion changed",
+  "regression": "Fake UI now rejects document selection outside page 02 instead of unconditionally simulating navigation to page 03",
+  "local_check": {
+    "run": "bf714b028b54",
+    "tests_passed": 23,
+    "subtests_passed": 78,
+    "source_commit": "f24f5b3bc2f9e9900295c34b74c9f8a38d26ba62",
+    "source_patch_sha256": "9ed7a2a3709f30fd1e8abb99fa2c2b883e4ad48baeeefa4caff1803a555034b4",
+    "source_consistent": true,
+    "evidence": "SIMULATED",
+    "warning": "Existing pyreadline3 destructor WinError after successful test exit retained"
+  },
+  "qualification": "SUCCESSOR_EXACT_SHA_CI_REQUIRED",
+  "limits": ["No complete installer lifecycle PASS", "No actual AI distillation or Owner acceptance", "Speech root cause still requires newly retained failure diagnostics"]
+}

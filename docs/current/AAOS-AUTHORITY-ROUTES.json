@@ -213,6 +213,10 @@
     {
       "path": "src-tauri/README.md",
       "role": "LIVE_NAVIGATION"
+    },
+    {
+      "path": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
+      "role": "OWNER_SCOPE_OVERLAY_NOT_REPLACEMENT_TASKPACK"
     }
   ],
   "rules": [

@@ -1,0 +1,50 @@
+{
+  "schema": "archeaxis.closed-loop-runtime-repair/v1",
+  "date": "2026-10-11",
+  "status": "TESTED_LOCAL_PENDING_EXACT_SHA_CI",
+  "base_commit": "a5601a81821f3d7ee3011b9188cad3d4c5ce6541",
+  "whole_goal": "NOT_QUALIFIED",
+  "previous_candidate": {
+    "sha": "4193028b35449132a02f7117d70a392c3b8f06b3",
+    "ci_run": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38076103471",
+    "status": "COMPLETED_FAIL",
+    "failures": ["rust-vnext formatting", "browser-smoke navigation", "desktop-fast light/OCR restart anchor collection", "installer-lifecycle ordinary editor save", "a0-gates aggregation"]
+  },
+  "actual_core_journal": {
+    "status": "PASS",
+    "source_sha": "4193028b35449132a02f7117d70a392c3b8f06b3",
+    "qualification": "INTEGRATED_CORE_JOURNAL_RESTART_EXPLICIT_RESTORE",
+    "materials": "SYNTHETIC_AUTHORED_NOTES",
+    "receipt": ".project-local/runs/be268a2d33/closedloop-integration-20261011/journal-419/fd2a08c715/1db32b50b720/artifacts/working-state.json",
+    "source_consistent": true,
+    "limits": ["No installed UI or physical IME", "Client-injected lost ACK, not actual network failure", "No human mastery or professional truth qualification"]
+  },
+  "repairs": [
+    "Candidate draft clears its navigation guard only after independent saved-body/source/anchor/version readback; late edits remain dirty",
+    "Scene bookkeeping CAS alone does not claim a content draft; real drafts, frozen original requests and editor owners retain their guards",
+    "Editor codec omits absent attrs instead of emitting own undefined keys that JSON transport drops; strict journal identity and body equality remain unchanged",
+    "Light/OCR probe freezes final shared-source anchors after all imports, refuses deletion of every earlier anchor, and verifies exact final collections after restart",
+    "Added actual Chinese OCR qualification wrapper with exact base-probe binding and protected-drive refusal; candidate Core execution remains NOT_EXECUTED"
+  ],
+  "local_checks": [
+    {"scope": "Final integrated frontend", "status": "PASS", "evidence_level": "SIMULATED", "files": 116, "tests": 1061, "receipt": ".project-local/runs/be268a2d33/a010e333f637/artifacts/execution.json", "source_patch_sha256": "c9602123844dbd84d055d21768053a308db60094304d5e8ab66912a4b29588e3", "source_consistent": true},
+    {"scope": "TypeScript and production build", "status": "PASS", "receipt": ".project-local/runs/be268a2d33/eec520fa61f2/artifacts/frontend-build.json", "source_patch_sha256": "c9602123844dbd84d055d21768053a308db60094304d5e8ab66912a4b29588e3", "source_consistent": true},
+    {"scope": "Chinese OCR and light-format parser/probe helpers", "status": "PASS", "tests": 20, "required_skips": 0, "receipt": ".project-local/runs/be268a2d33/5922b42511e6/artifacts/execution.json", "source_patch_sha256": "a0f372d576024879ea6cf19968c710e10ccf837d619a5c036aa8eb3563606ae2", "source_consistent": true, "limits": "Includes real existing-engine chi_sim recognition of authored PNG/JPEG/scanned PDF; not Core/native Chinese qualification. Editor codec changed afterward; OCR/probe files remained unchanged."},
+    {"scope": "Architecture guard and CI-selected E9/F63/F7/F82 Ruff on four affected Python files", "status": "PASS"}
+  ],
+  "retained_failures": [
+    "JSON transport regression first reproduced the same journal identity/body mismatch: be268a2d33/63e75f070d6c; corrected three-file regression 22 PASS: be268a2d33/ad0136d7ab30",
+    "419 installed receipt and failure screenshot show successful explicit restore followed by empty version-1 ordinary document; no successful installed-save claim",
+    "419 light/OCR receipt remains failed: shared PNG/PDF source legitimately gained anchors from 2 to 4; probe snapshot repair is not a runtime PASS",
+    "Broad default Ruff on four compact probe/helper files failed with 93 style findings; current CI's explicit critical selector passed. No whole-repository style PASS claim."
+  ],
+  "remaining": [
+    "Repaired candidate exact-SHA full CI and native installed save/restart",
+    "Formal grouped-UI single-object nine-step journey with actual controls, inference and explicit recovery",
+    "Chinese Core OCR location/reparse/restart qualification and actual spoken WAV/MP3/MP4 content qualification",
+    "Capability refusal recovery and Owner interaction acceptance"
+  ],
+  "themes": "UNCHANGED",
+  "delivery": "PENDING_BRANCH_UPLOAD_AND_EXACT_SHA_CI",
+  "release_green_replacement_real_user_data_overwrite": "NOT_GRANTED"
+}
