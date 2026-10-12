@@ -788,17 +788,52 @@ async fn ordinary_retest_exposes_actual_context_without_changing_cache_or_histor
         request.clone(),
     )
     .await;
-    assert_eq!(status, 409, "unknown historical execution budget must not qualify a new request: {replay}");
-    let (status, stored) = call(&restarted,"GET",
-        &format!("/api/v1/machine/tasks/{}",first["retest_task_id"].as_str().unwrap()),"human",serde_json::Value::Null).await;
-    assert_eq!(status,200);
-    assert_eq!(serde_json::from_str::<serde_json::Value>(stored["conditions"].as_str().unwrap()).unwrap(),historical,"historical receipt remains readable and unchanged");
+    assert_eq!(
+        status, 409,
+        "unknown historical execution budget must not qualify a new request: {replay}"
+    );
+    let (status, stored) = call(
+        &restarted,
+        "GET",
+        &format!(
+            "/api/v1/machine/tasks/{}",
+            first["retest_task_id"].as_str().unwrap()
+        ),
+        "human",
+        serde_json::Value::Null,
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(stored["conditions"].as_str().unwrap()).unwrap(),
+        historical,
+        "historical receipt remains readable and unchanged"
+    );
     // A legacy envelope object with no budget is equally UNKNOWN, not a cache miss.
-    let conn=archeaxis_store_sqlite::init_workspace(dir.path().join("db.sqlite").to_str().unwrap()).unwrap();
-    let mut missing_budget=historical.clone();missing_budget["execution_request"]=serde_json::json!({"schema":"archeaxis.machine-retest-execution/v1"});
-    conn.execute("UPDATE machine_tasks SET conditions=?1 WHERE task_id=?2",rusqlite::params![missing_budget.to_string(),first["retest_task_id"].as_str().unwrap()]).unwrap();drop(conn);
-    let (status, _)=call(&restarted,"POST","/api/v1/machine/retests","human",request).await;
-    assert_eq!(status,409);
+    let conn =
+        archeaxis_store_sqlite::init_workspace(dir.path().join("db.sqlite").to_str().unwrap())
+            .unwrap();
+    let mut missing_budget = historical.clone();
+    missing_budget["execution_request"] =
+        serde_json::json!({"schema":"archeaxis.machine-retest-execution/v1"});
+    conn.execute(
+        "UPDATE machine_tasks SET conditions=?1 WHERE task_id=?2",
+        rusqlite::params![
+            missing_budget.to_string(),
+            first["retest_task_id"].as_str().unwrap()
+        ],
+    )
+    .unwrap();
+    drop(conn);
+    let (status, _) = call(
+        &restarted,
+        "POST",
+        "/api/v1/machine/retests",
+        "human",
+        request,
+    )
+    .await;
+    assert_eq!(status, 409);
     assert_eq!(
         std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
         "2"

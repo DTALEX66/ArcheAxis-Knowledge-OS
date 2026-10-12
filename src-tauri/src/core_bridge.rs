@@ -527,17 +527,29 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         LearningReview => ("POST", "/api/v1/learning/reviews".into(), Some(body()?)),
         MachineAnswer => ("POST", "/api/v1/machine/answers".into(), Some(body()?)),
         MachineConfiguration => {
-            if !request.payload.as_object().is_some_and(|value| value.is_empty()) {
+            if !request
+                .payload
+                .as_object()
+                .is_some_and(|value| value.is_empty())
+            {
                 return Err("CORE_COMMAND_PAYLOAD_EMPTY_REQUIRED".into());
             }
             ("GET", "/api/v1/machine/configuration".into(), None)
-        },
+        }
         MachineInventory => {
-            if !request.payload.as_object().is_some_and(|value| value.is_empty()) {
+            if !request
+                .payload
+                .as_object()
+                .is_some_and(|value| value.is_empty())
+            {
                 return Err("CORE_COMMAND_PAYLOAD_EMPTY_REQUIRED".into());
             }
-            ("POST", "/api/v1/machine/inventory".into(), Some(serde_json::json!({})))
-        },
+            (
+                "POST",
+                "/api/v1/machine/inventory".into(),
+                Some(serde_json::json!({})),
+            )
+        }
         MachineRubricCreate => ("POST", "/api/v1/machine/rubrics".into(), Some(body()?)),
         MachineEvaluationCreate => ("POST", "/api/v1/machine/evaluations".into(), Some(body()?)),
         MachineAnswerSnapshot => (
@@ -624,7 +636,8 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             }
             ("GET", "/api/v1/workspace/ui-state".into(), None)
         }
-        UiStateWrite | UiStateClearSaved | UiStateClearJob | UiStateClearMachine | UiStateMachineStatus | UiStateRecover => {
+        UiStateWrite | UiStateClearSaved | UiStateClearJob | UiStateClearMachine
+        | UiStateMachineStatus | UiStateRecover => {
             if !p
                 .as_object()
                 .is_some_and(|object| object.len() == 1 && object.contains_key("body"))
@@ -1198,14 +1211,36 @@ mod tests {
 
     #[test]
     fn envelope_payload_matches_the_schema_object_boundary() {
-        let inventory = serde_json::from_value::<Request>(serde_json::json!({"operation":"machine_inventory","payload":{}})).unwrap();
-        assert_eq!(route(&inventory).unwrap(), ("POST", "/api/v1/machine/inventory".into(), Some(serde_json::json!({}))));
-        for payload in [serde_json::json!({"endpoint":"http://example.invalid"}), serde_json::json!({"context":"SYNTHETIC_PRIVATE"})] {
-            let inventory = serde_json::from_value::<Request>(serde_json::json!({"operation":"machine_inventory","payload":payload})).unwrap();
+        let inventory = serde_json::from_value::<Request>(
+            serde_json::json!({"operation":"machine_inventory","payload":{}}),
+        )
+        .unwrap();
+        assert_eq!(
+            route(&inventory).unwrap(),
+            (
+                "POST",
+                "/api/v1/machine/inventory".into(),
+                Some(serde_json::json!({}))
+            )
+        );
+        for payload in [
+            serde_json::json!({"endpoint":"http://example.invalid"}),
+            serde_json::json!({"context":"SYNTHETIC_PRIVATE"}),
+        ] {
+            let inventory = serde_json::from_value::<Request>(
+                serde_json::json!({"operation":"machine_inventory","payload":payload}),
+            )
+            .unwrap();
             assert!(route(&inventory).is_err());
         }
-        let config = serde_json::from_value::<Request>(serde_json::json!({"operation":"machine_configuration","payload":{}})).unwrap();
-        assert_eq!(route(&config).unwrap(), ("GET", "/api/v1/machine/configuration".into(), None));
+        let config = serde_json::from_value::<Request>(
+            serde_json::json!({"operation":"machine_configuration","payload":{}}),
+        )
+        .unwrap();
+        assert_eq!(
+            route(&config).unwrap(),
+            ("GET", "/api/v1/machine/configuration".into(), None)
+        );
         let config = serde_json::from_value::<Request>(serde_json::json!({"operation":"machine_configuration","payload":{"endpoint":"http://example.invalid"}})).unwrap();
         assert!(route(&config).is_err());
         for payload in [
@@ -1578,8 +1613,16 @@ mod folder_native_contract_regression {
         assert!(body.is_none());
         for (operation, method, path) in [
             ("ui_state_write", "PUT", "/api/v1/workspace/ui-state"),
-            ("ui_state_clear_machine", "POST", "/api/v1/workspace/ui-state/clear-machine"),
-            ("ui_state_machine_status", "POST", "/api/v1/workspace/ui-state/machine-status"),
+            (
+                "ui_state_clear_machine",
+                "POST",
+                "/api/v1/workspace/ui-state/clear-machine",
+            ),
+            (
+                "ui_state_machine_status",
+                "POST",
+                "/api/v1/workspace/ui-state/machine-status",
+            ),
             (
                 "ui_state_clear_job",
                 "POST",

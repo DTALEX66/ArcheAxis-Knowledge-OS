@@ -16,12 +16,12 @@ use tokio::sync::Mutex;
 mod colearning;
 mod context_refusal;
 mod courses;
+mod execution_claim;
 mod execution_status_projection;
 mod job_journal;
 mod machine_journal;
 mod semantic;
 mod withheld;
-mod execution_claim;
 use colearning::{machine_answer, record_correction, run_retest};
 
 struct Active {
@@ -34,10 +34,23 @@ async fn machine_configuration(State(runtime): State<Runtime>) -> Json<Value> {
 }
 async fn machine_inventory(State(runtime): State<Runtime>, Json(payload): Json<Value>) -> Response {
     if !payload.as_object().is_some_and(|v| v.is_empty()) {
-        return (StatusCode::BAD_REQUEST, Json(json!({"error":"EMPTY_PAYLOAD_REQUIRED"}))).into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error":"EMPTY_PAYLOAD_REQUIRED"})),
+        )
+            .into_response();
     }
-    let Ok(_permit) = tokio::time::timeout(std::time::Duration::from_secs(2), runtime.colearning_admission.lock()).await else {
-        return (StatusCode::SERVICE_UNAVAILABLE, Json(json!({"error":"MODEL_PROBE_BUSY"}))).into_response();
+    let Ok(_permit) = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        runtime.colearning_admission.lock(),
+    )
+    .await
+    else {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({"error":"MODEL_PROBE_BUSY"})),
+        )
+            .into_response();
     };
     Json(runtime.executor.machine_inventory().await).into_response()
 }
@@ -51,8 +64,14 @@ struct Runtime {
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
     Router::new()
-        .route("/api/v1/workspace/ui-state/clear-machine", post(machine_journal::clear))
-        .route("/api/v1/workspace/ui-state/machine-status", post(machine_journal::status))
+        .route(
+            "/api/v1/workspace/ui-state/clear-machine",
+            post(machine_journal::clear),
+        )
+        .route(
+            "/api/v1/workspace/ui-state/machine-status",
+            post(machine_journal::status),
+        )
         .route(
             "/api/v1/workspace/ui-state/clear-job",
             post(job_journal::clear),

@@ -2,14 +2,32 @@
 use super::*;
 use archeaxis_domain::ui_state::{self, ClearMachine, Error};
 
-pub(super) async fn status(State(runtime): State<Runtime>, headers: HeaderMap,
-    Json(request): Json<ui_state::MachineStatus>) -> Response {
-    if crate::request_actor(&headers)!=Ok("human") {return StatusCode::FORBIDDEN.into_response()}
-    match runtime.executor.store().submit_wait(move |conn|ui_state::machine_status(conn,request)).await {
-        Ok(Ok(value))=>Json(value).into_response(),
-        Ok(Err(Error::Conflict))=>(StatusCode::CONFLICT,"journal CAS changed; reread").into_response(),
-        Ok(Err(Error::Invalid(reason)))=>(StatusCode::UNPROCESSABLE_ENTITY,reason).into_response(),
-        _=>(StatusCode::SERVICE_UNAVAILABLE,"machine status unconfirmed").into_response(),
+pub(super) async fn status(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+    Json(request): Json<ui_state::MachineStatus>,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    match runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| ui_state::machine_status(conn, request))
+        .await
+    {
+        Ok(Ok(value)) => Json(value).into_response(),
+        Ok(Err(Error::Conflict)) => {
+            (StatusCode::CONFLICT, "journal CAS changed; reread").into_response()
+        }
+        Ok(Err(Error::Invalid(reason))) => {
+            (StatusCode::UNPROCESSABLE_ENTITY, reason).into_response()
+        }
+        _ => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            "machine status unconfirmed",
+        )
+            .into_response(),
     }
 }
 

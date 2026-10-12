@@ -147,6 +147,7 @@ fn handshake(
     }
     drop(child);
     let _ = reader.join();
-    dir.close().map_err(|e| format!("worker health staging cleanup unverified: {e}"))?;
+    dir.close()
+        .map_err(|e| format!("worker health staging cleanup unverified: {e}"))?;
     result
 }

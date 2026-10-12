@@ -11,7 +11,9 @@ pub(super) fn answer_request(body: &MachineAnswerBody) -> Value {
         "max_tokens":body.max_tokens.unwrap_or(2048),"timeout_s":body.timeout_s.unwrap_or(120),
         "context_grant":body.context_grant,"asset_context_grant":body.asset_context_grant,
         "client_request_id":body.client_request_id,"retest_of":null}});
-    if let Some(model) = &body.model { request["request"]["model"] = json!(model); }
+    if let Some(model) = &body.model {
+        request["request"]["model"] = json!(model);
+    }
     request
 }
 
@@ -21,7 +23,9 @@ pub(super) fn retest_request(body: &RetestBody) -> Value {
         "max_tokens":body.max_tokens.unwrap_or(2048),"timeout_s":body.timeout_s.unwrap_or(120),
         "context_grant":body.context_grant,"asset_context_grant":body.asset_context_grant,
         "client_request_id":null,"retest_of":body.retest_of}});
-    if let Some(model) = &body.model { request["request"]["model"] = json!(model); }
+    if let Some(model) = &body.model {
+        request["request"]["model"] = json!(model);
+    }
     request
 }
 pub(super) fn inspect(
@@ -101,7 +105,10 @@ mod tests {
             "knowledge_id":"k","question":"question","client_request_id":"client","model":"m1",
             "context_grant":{"document_id":"g","version":1,"content_sha256":"a".repeat(64),"purpose":"purpose"}
         })).unwrap();
-        assert_ne!(withheld::digest(&answer_request(&selected).to_string()), digest);
+        assert_ne!(
+            withheld::digest(&answer_request(&selected).to_string()),
+            digest
+        );
         assert_eq!(answer_request(&selected)["request"]["model"], "m1");
     }
 }

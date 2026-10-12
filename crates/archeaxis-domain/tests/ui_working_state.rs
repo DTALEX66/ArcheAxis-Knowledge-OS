@@ -342,19 +342,49 @@ fn pending_original_request_is_preserved_before_any_document_exists_and_is_froze
 #[test]
 fn recovery_discard_cannot_erase_unconfirmed_machine_or_review_candidate() {
     for kind in ["machine", "review", "draft_only"] {
-        let dir=tempfile::tempdir().unwrap();let mut conn=fixture(&dir.path().join("candidate.sqlite"));
-        if kind=="review" {conn.execute_batch("CREATE TABLE learning_assessments(assessment_id TEXT,item_key TEXT,knowledge_version TEXT); INSERT INTO learning_assessments VALUES('assessment','item','v1');").unwrap();}
-        let basis=ui_state::read(&mut conn).unwrap();let mut write=request(&basis,"synthetic candidate");
-        if kind=="machine" {write.state.pending_machine.insert("frozen".into(),serde_json::from_value(json!({"journal_id":"frozen","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k1","question":"Synthetic unknown","max_tokens":2048,"timeout_s":120,"client_request_id":"frozen"}})).unwrap());}
-        if kind=="review" {write.state.pending_reviews.insert("frozen".into(),serde_json::from_value(json!({"item_key":"item","client_event_id":"frozen","origin_restore_epoch":"initial","body":{"item_key":"item","client_event_id":"frozen","answer":"Synthetic unknown","assessment_id":"assessment","knowledge_version":"v1","correct":true,"rating":3}})).unwrap());}
-        ui_state::write(&mut conn,write).unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        let mut conn = fixture(&dir.path().join("candidate.sqlite"));
+        if kind == "review" {
+            conn.execute_batch("CREATE TABLE learning_assessments(assessment_id TEXT,item_key TEXT,knowledge_version TEXT); INSERT INTO learning_assessments VALUES('assessment','item','v1');").unwrap();
+        }
+        let basis = ui_state::read(&mut conn).unwrap();
+        let mut write = request(&basis, "synthetic candidate");
+        if kind == "machine" {
+            write.state.pending_machine.insert("frozen".into(),serde_json::from_value(json!({"journal_id":"frozen","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k1","question":"Synthetic unknown","max_tokens":2048,"timeout_s":120,"client_request_id":"frozen"}})).unwrap());
+        }
+        if kind == "review" {
+            write.state.pending_reviews.insert("frozen".into(),serde_json::from_value(json!({"item_key":"item","client_event_id":"frozen","origin_restore_epoch":"initial","body":{"item_key":"item","client_event_id":"frozen","answer":"Synthetic unknown","assessment_id":"assessment","knowledge_version":"v1","correct":true,"rating":3}})).unwrap());
+        }
+        ui_state::write(&mut conn, write).unwrap();
         conn.execute("INSERT INTO workspace_meta(key,value) VALUES('authorization_restore_fence',?1)",[json!({"schema":"archeaxis.authorization-restore-fence/v1","epoch":"b".repeat(32),"blocked_grant_ids":[]}).to_string()]).unwrap();
-        let preview=ui_state::read(&mut conn).unwrap();
-        let recovery=|action|Recover{workspace_id:preview["workspace_id"].as_str().unwrap().into(),restore_epoch:preview["restore_epoch"].as_str().unwrap().into(),state_revision:preview["state_revision"].as_i64().unwrap(),action};
-        if kind=="draft_only" {let discarded=ui_state::recover(&mut conn,recovery(RecoveryAction::Discard)).unwrap();assert_eq!(discarded["state"]["drafts"],json!({}));assert_eq!(discarded["recovery_requires_confirmation"],false);}
-        else {assert!(matches!(ui_state::recover(&mut conn,recovery(RecoveryAction::Discard)),Err(Error::Invalid(_))));assert_eq!(ui_state::read(&mut conn).unwrap(),preview);
-            let kept=ui_state::recover(&mut conn,recovery(RecoveryAction::Preserve)).unwrap();assert_eq!(kept["state"],preview["recovery_candidates"]);assert_eq!(kept["recovery_requires_confirmation"],false);}
-        assert_eq!(conn.query_row("SELECT count(*) FROM document_versions",[],|r|r.get::<_,i64>(0)).unwrap(),1);
+        let preview = ui_state::read(&mut conn).unwrap();
+        let recovery = |action| Recover {
+            workspace_id: preview["workspace_id"].as_str().unwrap().into(),
+            restore_epoch: preview["restore_epoch"].as_str().unwrap().into(),
+            state_revision: preview["state_revision"].as_i64().unwrap(),
+            action,
+        };
+        if kind == "draft_only" {
+            let discarded =
+                ui_state::recover(&mut conn, recovery(RecoveryAction::Discard)).unwrap();
+            assert_eq!(discarded["state"]["drafts"], json!({}));
+            assert_eq!(discarded["recovery_requires_confirmation"], false);
+        } else {
+            assert!(matches!(
+                ui_state::recover(&mut conn, recovery(RecoveryAction::Discard)),
+                Err(Error::Invalid(_))
+            ));
+            assert_eq!(ui_state::read(&mut conn).unwrap(), preview);
+            let kept = ui_state::recover(&mut conn, recovery(RecoveryAction::Preserve)).unwrap();
+            assert_eq!(kept["state"], preview["recovery_candidates"]);
+            assert_eq!(kept["recovery_requires_confirmation"], false);
+        }
+        assert_eq!(
+            conn.query_row("SELECT count(*) FROM document_versions", [], |r| r
+                .get::<_, i64>(0))
+                .unwrap(),
+            1
+        );
     }
 }
 
@@ -408,155 +438,382 @@ fn restoring_a_backup_that_predates_ui_identity_rejects_the_old_session() {
 
 #[test]
 fn frozen_review_survives_reopen_and_rejects_replacement_or_unconfirmed_clear() {
-    let dir = tempfile::tempdir().unwrap(); let path=dir.path().join("review.sqlite");
-    let mut conn=fixture(&path);
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("review.sqlite");
+    let mut conn = fixture(&path);
     conn.execute_batch("CREATE TABLE learning_assessments(assessment_id TEXT,item_key TEXT,knowledge_version TEXT); CREATE TABLE learning_event_keys(event_key TEXT,item_key TEXT,payload_hash TEXT,event_id TEXT); CREATE TABLE learning_events(event_id TEXT,item_key TEXT); INSERT INTO learning_assessments VALUES('assessment','course:card','version');").unwrap();
-    let basis=ui_state::read(&mut conn).unwrap();
-    let entry=json!({"item_key":"course:card","client_event_id":"event","origin_restore_epoch":"initial","body":{"item_key":"course:card","client_event_id":"event","answer":"answer","assessment_id":"assessment","knowledge_version":"version","correct":true,"rating":3}});
-    let mut write=request(&basis,"draft"); write.state.pending_reviews.insert("event".into(),serde_json::from_value(entry.clone()).unwrap());
-    ui_state::write(&mut conn,write).unwrap();drop(conn);
-    let mut conn=fixture(&path);let read=ui_state::read(&mut conn).unwrap();assert_eq!(read["state"]["pending_reviews"]["event"],entry);
-    let mut changed=request(&read,"draft");let mut altered=entry.clone();altered["body"]["answer"]=json!("different");changed.state.pending_reviews.insert("event".into(),serde_json::from_value(altered).unwrap());assert!(matches!(ui_state::write(&mut conn,changed),Err(Error::Invalid(_))));
-    assert!(matches!(ui_state::write(&mut conn,request(&read,"draft")),Err(Error::Invalid(_))));
-    assert_eq!(ui_state::read(&mut conn).unwrap()["state"]["pending_reviews"]["event"],entry);
-    conn.execute("INSERT INTO learning_event_keys VALUES('event','course:card',?1,'committed')", ["bbd700a6dd8934edc2695a5a4d882dfd1a54042eb4c1ebb083b4ee5771a704f8"]).unwrap();
+    let basis = ui_state::read(&mut conn).unwrap();
+    let entry = json!({"item_key":"course:card","client_event_id":"event","origin_restore_epoch":"initial","body":{"item_key":"course:card","client_event_id":"event","answer":"answer","assessment_id":"assessment","knowledge_version":"version","correct":true,"rating":3}});
+    let mut write = request(&basis, "draft");
+    write.state.pending_reviews.insert(
+        "event".into(),
+        serde_json::from_value(entry.clone()).unwrap(),
+    );
+    ui_state::write(&mut conn, write).unwrap();
+    drop(conn);
+    let mut conn = fixture(&path);
+    let read = ui_state::read(&mut conn).unwrap();
+    assert_eq!(read["state"]["pending_reviews"]["event"], entry);
+    let mut changed = request(&read, "draft");
+    let mut altered = entry.clone();
+    altered["body"]["answer"] = json!("different");
+    changed
+        .state
+        .pending_reviews
+        .insert("event".into(), serde_json::from_value(altered).unwrap());
+    assert!(matches!(
+        ui_state::write(&mut conn, changed),
+        Err(Error::Invalid(_))
+    ));
+    assert!(matches!(
+        ui_state::write(&mut conn, request(&read, "draft")),
+        Err(Error::Invalid(_))
+    ));
+    assert_eq!(
+        ui_state::read(&mut conn).unwrap()["state"]["pending_reviews"]["event"],
+        entry
+    );
+    conn.execute(
+        "INSERT INTO learning_event_keys VALUES('event','course:card',?1,'committed')",
+        ["bbd700a6dd8934edc2695a5a4d882dfd1a54042eb4c1ebb083b4ee5771a704f8"],
+    )
+    .unwrap();
     // A key without the actual committed event cannot clear the frozen request.
-    assert!(matches!(ui_state::write(&mut conn,request(&read,"draft")),Err(Error::Invalid(_))));
-    conn.execute("INSERT INTO learning_events VALUES('committed','other-card')", []).unwrap();
-    assert!(matches!(ui_state::write(&mut conn,request(&read,"draft")),Err(Error::Invalid(_))));
-    conn.execute("UPDATE learning_events SET item_key='course:card' WHERE event_id='committed'", []).unwrap();
-    let cleared=ui_state::write(&mut conn,request(&read,"draft")).unwrap();assert!(cleared["state"].get("pending_reviews").is_none());
+    assert!(matches!(
+        ui_state::write(&mut conn, request(&read, "draft")),
+        Err(Error::Invalid(_))
+    ));
+    conn.execute(
+        "INSERT INTO learning_events VALUES('committed','other-card')",
+        [],
+    )
+    .unwrap();
+    assert!(matches!(
+        ui_state::write(&mut conn, request(&read, "draft")),
+        Err(Error::Invalid(_))
+    ));
+    conn.execute(
+        "UPDATE learning_events SET item_key='course:card' WHERE event_id='committed'",
+        [],
+    )
+    .unwrap();
+    let cleared = ui_state::write(&mut conn, request(&read, "draft")).unwrap();
+    assert!(cleared["state"].get("pending_reviews").is_none());
 }
 #[test]
 fn machine_journal_reopens_and_old_client_cannot_drop_or_change_it() {
-    let dir=tempfile::tempdir().unwrap();let path=dir.path().join("machine.sqlite");let mut conn=fixture(&path);
-    let basis=ui_state::read(&mut conn).unwrap();
-    let entry=json!({"journal_id":"machine_fixed","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k1","question":"Synthetic question","max_tokens":2048,"timeout_s":120,"client_request_id":"machine_fixed"}});
-    let mut payload=json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"machine_fixed":entry}}});
-    let written=ui_state::write(&mut conn,serde_json::from_value(payload.clone()).unwrap()).unwrap();drop(conn);let mut conn=fixture(&path);
-    assert_eq!(ui_state::read(&mut conn).unwrap()["state"]["pending_machine"]["machine_fixed"],entry);
-    payload["state_revision"]=written["state_revision"].clone();payload["state"]["pending_machine"]["machine_fixed"]["body"]["question"]=json!("Changed");
-    assert!(ui_state::write(&mut conn,serde_json::from_value(payload.clone()).unwrap()).is_err());
-    payload["state"].as_object_mut().unwrap().remove("pending_machine");assert!(ui_state::write(&mut conn,serde_json::from_value(payload).unwrap()).is_err());
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("machine.sqlite");
+    let mut conn = fixture(&path);
+    let basis = ui_state::read(&mut conn).unwrap();
+    let entry = json!({"journal_id":"machine_fixed","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k1","question":"Synthetic question","max_tokens":2048,"timeout_s":120,"client_request_id":"machine_fixed"}});
+    let mut payload = json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"machine_fixed":entry}}});
+    let written =
+        ui_state::write(&mut conn, serde_json::from_value(payload.clone()).unwrap()).unwrap();
+    drop(conn);
+    let mut conn = fixture(&path);
+    assert_eq!(
+        ui_state::read(&mut conn).unwrap()["state"]["pending_machine"]["machine_fixed"],
+        entry
+    );
+    payload["state_revision"] = written["state_revision"].clone();
+    payload["state"]["pending_machine"]["machine_fixed"]["body"]["question"] = json!("Changed");
+    assert!(ui_state::write(&mut conn, serde_json::from_value(payload.clone()).unwrap()).is_err());
+    payload["state"]
+        .as_object_mut()
+        .unwrap()
+        .remove("pending_machine");
+    assert!(ui_state::write(&mut conn, serde_json::from_value(payload).unwrap()).is_err());
     conn.execute_batch("CREATE TABLE machine_tasks(task_id TEXT PRIMARY KEY,scope TEXT,conditions TEXT,retest_of TEXT)").unwrap();
-    use sha2::{Digest,Sha256};
-    let task_id=format!("answer_req_{}",hex::encode(Sha256::digest(b"machine_fixed")));
-    let clear=|| ui_state::ClearMachine{workspace_id:written["workspace_id"].as_str().unwrap().into(),restore_epoch:"initial".into(),state_revision:written["state_revision"].as_i64().unwrap(),journal_id:"machine_fixed".into(),task_id:task_id.clone()};
-    assert!(ui_state::clear_machine(&mut conn,clear()).is_err());
-    let mut doc=json!({"schema":"archeaxis.machine-answer/v1","authority":"candidate","answer_id":task_id,"client_request_id":"machine_fixed","knowledge_id":"k1","question":"Synthetic question","answer":{"answer":"SYNTHETIC"},"request":entry["body"]});
-    doc["request"]["max_tokens"]=json!(4096);
-    conn.execute("INSERT INTO machine_tasks(task_id,scope,conditions) VALUES(?1,'runtime.answer',?2)",rusqlite::params![task_id,doc.to_string()]).unwrap();
-    assert!(ui_state::clear_machine(&mut conn,clear()).is_err());
-    assert_eq!(ui_state::read(&mut conn).unwrap()["state"]["pending_machine"]["machine_fixed"],entry);
-    doc["request"]["max_tokens"]=json!(2048);conn.execute("UPDATE machine_tasks SET conditions=?1",[doc.to_string()]).unwrap();
-    let cleared=ui_state::clear_machine(&mut conn,clear()).unwrap();assert!(cleared["state"].get("pending_machine").is_none());
+    use sha2::{Digest, Sha256};
+    let task_id = format!(
+        "answer_req_{}",
+        hex::encode(Sha256::digest(b"machine_fixed"))
+    );
+    let clear = || ui_state::ClearMachine {
+        workspace_id: written["workspace_id"].as_str().unwrap().into(),
+        restore_epoch: "initial".into(),
+        state_revision: written["state_revision"].as_i64().unwrap(),
+        journal_id: "machine_fixed".into(),
+        task_id: task_id.clone(),
+    };
+    assert!(ui_state::clear_machine(&mut conn, clear()).is_err());
+    let mut doc = json!({"schema":"archeaxis.machine-answer/v1","authority":"candidate","answer_id":task_id,"client_request_id":"machine_fixed","knowledge_id":"k1","question":"Synthetic question","answer":{"answer":"SYNTHETIC"},"request":entry["body"]});
+    doc["request"]["max_tokens"] = json!(4096);
+    conn.execute(
+        "INSERT INTO machine_tasks(task_id,scope,conditions) VALUES(?1,'runtime.answer',?2)",
+        rusqlite::params![task_id, doc.to_string()],
+    )
+    .unwrap();
+    assert!(ui_state::clear_machine(&mut conn, clear()).is_err());
+    assert_eq!(
+        ui_state::read(&mut conn).unwrap()["state"]["pending_machine"]["machine_fixed"],
+        entry
+    );
+    doc["request"]["max_tokens"] = json!(2048);
+    conn.execute("UPDATE machine_tasks SET conditions=?1", [doc.to_string()])
+        .unwrap();
+    let cleared = ui_state::clear_machine(&mut conn, clear()).unwrap();
+    assert!(cleared["state"].get("pending_machine").is_none());
 }
 
 #[test]
 fn machine_journal_rejects_malformed_or_wrong_operation_grants_before_persistence() {
-    let dir=tempfile::tempdir().unwrap();let mut conn=fixture(&dir.path().join("bounded-machine.sqlite"));
-    let basis=ui_state::read(&mut conn).unwrap();
-    let entry=json!({"journal_id":"bounded","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k1","question":"Synthetic question","max_tokens":2048,"timeout_s":120,"client_request_id":"bounded"}});
-    let payload=json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"bounded":entry}}});
-    let snapshot=json!({"document_id":"grant","version":1,"content_sha256":"a".repeat(64)});
-    for bad in [json!(null),json!({"unknown":"private"}),json!({"document_id":"grant","version":0,"content_sha256":"a".repeat(64),"purpose":"synthetic"})] {
-        let mut attempt=payload.clone();attempt["state"]["pending_machine"]["bounded"]["body"]["context_grant"]=bad;
-        assert!(ui_state::write(&mut conn,serde_json::from_value(attempt).unwrap()).is_err());
-        assert_eq!(ui_state::read(&mut conn).unwrap()["state_revision"],basis["state_revision"]);
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = fixture(&dir.path().join("bounded-machine.sqlite"));
+    let basis = ui_state::read(&mut conn).unwrap();
+    let entry = json!({"journal_id":"bounded","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k1","question":"Synthetic question","max_tokens":2048,"timeout_s":120,"client_request_id":"bounded"}});
+    let payload = json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"bounded":entry}}});
+    let snapshot = json!({"document_id":"grant","version":1,"content_sha256":"a".repeat(64)});
+    for bad in [
+        json!(null),
+        json!({"unknown":"private"}),
+        json!({"document_id":"grant","version":0,"content_sha256":"a".repeat(64),"purpose":"synthetic"}),
+    ] {
+        let mut attempt = payload.clone();
+        attempt["state"]["pending_machine"]["bounded"]["body"]["context_grant"] = bad;
+        assert!(ui_state::write(&mut conn, serde_json::from_value(attempt).unwrap()).is_err());
+        assert_eq!(
+            ui_state::read(&mut conn).unwrap()["state_revision"],
+            basis["state_revision"]
+        );
     }
-    let mut attempt=payload.clone();attempt["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"]=json!({"request_id":"packet","grant":snapshot,"asset":snapshot,"purpose":"synthetic","consumer":"local-machine","operation":"retest"});
-    attempt["state"]["pending_machine"]["bounded"]["body"]["context_grant"]=json!({"document_id":"context","version":1,"content_sha256":"b".repeat(64),"purpose":"synthetic"});
-    assert!(ui_state::write(&mut conn,serde_json::from_value(attempt.clone()).unwrap()).is_err());
-    attempt["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"]["operation"]=json!("answer");
-    for (field,bad) in [("document_id",json!("x".repeat(129))),("version",json!(9_007_199_254_740_992_i64))] {
-        let mut invalid=attempt.clone();invalid["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"]["asset"][field]=bad;
-        assert!(ui_state::write(&mut conn,serde_json::from_value(invalid).unwrap()).is_err());
-        assert_eq!(ui_state::read(&mut conn).unwrap()["state_revision"],basis["state_revision"]);
+    let mut attempt = payload.clone();
+    attempt["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"] = json!({"request_id":"packet","grant":snapshot,"asset":snapshot,"purpose":"synthetic","consumer":"local-machine","operation":"retest"});
+    attempt["state"]["pending_machine"]["bounded"]["body"]["context_grant"] = json!({"document_id":"context","version":1,"content_sha256":"b".repeat(64),"purpose":"synthetic"});
+    assert!(ui_state::write(&mut conn, serde_json::from_value(attempt.clone()).unwrap()).is_err());
+    attempt["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"]["operation"] =
+        json!("answer");
+    for (field, bad) in [
+        ("document_id", json!("x".repeat(129))),
+        ("version", json!(9_007_199_254_740_992_i64)),
+    ] {
+        let mut invalid = attempt.clone();
+        invalid["state"]["pending_machine"]["bounded"]["body"]["asset_context_grant"]["asset"]
+            [field] = bad;
+        assert!(ui_state::write(&mut conn, serde_json::from_value(invalid).unwrap()).is_err());
+        assert_eq!(
+            ui_state::read(&mut conn).unwrap()["state_revision"],
+            basis["state_revision"]
+        );
     }
-    ui_state::write(&mut conn,serde_json::from_value(attempt).unwrap()).unwrap();
+    ui_state::write(&mut conn, serde_json::from_value(attempt).unwrap()).unwrap();
 }
 
 #[test]
 fn withheld_clear_requires_exact_frozen_fingerprint_and_preserves_terminal_history() {
-    let dir=tempfile::tempdir().unwrap();let mut conn=fixture(&dir.path().join("withheld-journal.sqlite"));
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = fixture(&dir.path().join("withheld-journal.sqlite"));
     conn.execute_batch("CREATE TABLE machine_tasks(task_id TEXT PRIMARY KEY,scope TEXT,conditions TEXT,retest_of TEXT)").unwrap();
-    let basis=ui_state::read(&mut conn).unwrap();
-    let entry=json!({"journal_id":"withheld_fixed","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k1","question":"Synthetic withheld","max_tokens":2048,"timeout_s":120,"client_request_id":"withheld_fixed"}});
-    let payload=json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"withheld_fixed":entry}}});
-    let written=ui_state::write(&mut conn,serde_json::from_value(payload).unwrap()).unwrap();
-    let task="withheld_audit";
-    let mut doc=json!({"schema":"archeaxis.machine-execution-withheld/v1","audit_task_id":task,"execution_state":"EXECUTED_BUT_WITHHELD","operation":"answer","knowledge_id":"k1","client_request_id":"withheld_fixed","retest_of":null,"answer_published":false,"authority":"historical_execution_audit"});
-    let clear=||ui_state::ClearMachine{workspace_id:written["workspace_id"].as_str().unwrap().into(),restore_epoch:"initial".into(),state_revision:written["state_revision"].as_i64().unwrap(),journal_id:"withheld_fixed".into(),task_id:task.into()};
+    let basis = ui_state::read(&mut conn).unwrap();
+    let entry = json!({"journal_id":"withheld_fixed","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k1","question":"Synthetic withheld","max_tokens":2048,"timeout_s":120,"client_request_id":"withheld_fixed"}});
+    let payload = json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"withheld_fixed":entry}}});
+    let written = ui_state::write(&mut conn, serde_json::from_value(payload).unwrap()).unwrap();
+    let task = "withheld_audit";
+    let mut doc = json!({"schema":"archeaxis.machine-execution-withheld/v1","audit_task_id":task,"execution_state":"EXECUTED_BUT_WITHHELD","operation":"answer","knowledge_id":"k1","client_request_id":"withheld_fixed","retest_of":null,"answer_published":false,"authority":"historical_execution_audit"});
+    let clear = || ui_state::ClearMachine {
+        workspace_id: written["workspace_id"].as_str().unwrap().into(),
+        restore_epoch: "initial".into(),
+        state_revision: written["state_revision"].as_i64().unwrap(),
+        journal_id: "withheld_fixed".into(),
+        task_id: task.into(),
+    };
     conn.execute("INSERT INTO machine_tasks(task_id,scope,conditions) VALUES(?1,'runtime.execution.withheld',?2)",rusqlite::params![task,doc.to_string()]).unwrap();
     // A historical audit lacking the new input fingerprint cannot retire unknown execution.
-    assert!(ui_state::clear_machine(&mut conn,clear()).is_err());
-    doc["admission_request_sha256"]=json!(ui_state::machine_request_fingerprint("answer",&entry["body"]));
-    doc["client_request_id"]=json!("other");conn.execute("UPDATE machine_tasks SET conditions=?1",[doc.to_string()]).unwrap();
-    assert!(ui_state::clear_machine(&mut conn,clear()).is_err());
-    doc["client_request_id"]=json!("withheld_fixed");conn.execute("UPDATE machine_tasks SET conditions=?1",[doc.to_string()]).unwrap();
-    let cleared=ui_state::clear_machine(&mut conn,clear()).unwrap();assert!(cleared["state"].get("pending_machine").is_none());
-    let after:String=conn.query_row("SELECT conditions FROM machine_tasks WHERE task_id=?1",[task],|r|r.get(0)).unwrap();assert_eq!(after,doc.to_string());
+    assert!(ui_state::clear_machine(&mut conn, clear()).is_err());
+    doc["admission_request_sha256"] = json!(ui_state::machine_request_fingerprint(
+        "answer",
+        &entry["body"]
+    ));
+    doc["client_request_id"] = json!("other");
+    conn.execute("UPDATE machine_tasks SET conditions=?1", [doc.to_string()])
+        .unwrap();
+    assert!(ui_state::clear_machine(&mut conn, clear()).is_err());
+    doc["client_request_id"] = json!("withheld_fixed");
+    conn.execute("UPDATE machine_tasks SET conditions=?1", [doc.to_string()])
+        .unwrap();
+    let cleared = ui_state::clear_machine(&mut conn, clear()).unwrap();
+    assert!(cleared["state"].get("pending_machine").is_none());
+    let after: String = conn
+        .query_row(
+            "SELECT conditions FROM machine_tasks WHERE task_id=?1",
+            [task],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(after, doc.to_string());
 }
 
 #[test]
 fn retest_journal_owner_is_bound_to_real_failed_journey() {
-    let dir=tempfile::tempdir().unwrap();let mut conn=fixture(&dir.path().join("retest-owner.sqlite"));
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = fixture(&dir.path().join("retest-owner.sqlite"));
     conn.execute_batch("CREATE TABLE machine_tasks(task_id TEXT PRIMARY KEY,scope TEXT,conditions TEXT,retest_of TEXT)").unwrap();
-    let prior=json!({"knowledge_id":"original","question":"Synthetic retest"});
+    let prior = json!({"knowledge_id":"original","question":"Synthetic retest"});
     conn.execute("INSERT INTO machine_tasks(task_id,scope,conditions) VALUES('failed','runtime.evaluation.failed',?1)",[prior.to_string()]).unwrap();
-    let basis=ui_state::read(&mut conn).unwrap();
-    let entry=json!({"journal_id":"retest_fixed","owner_knowledge_id":"other","operation":"retest","origin_restore_epoch":"initial","body":{"knowledge_id":"corrected","question":"Synthetic retest","max_tokens":2048,"timeout_s":120,"retest_of":"failed"}});
-    let mut payload=json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"retest_fixed":entry}}});
-    assert!(ui_state::write(&mut conn,serde_json::from_value(payload.clone()).unwrap()).is_err());
-    assert_eq!(ui_state::read(&mut conn).unwrap()["state_revision"],basis["state_revision"]);
-    payload["state"]["pending_machine"]["retest_fixed"]["owner_knowledge_id"]=json!("original");
-    let written=ui_state::write(&mut conn,serde_json::from_value(payload.clone()).unwrap()).unwrap();
-    let doc=json!({"schema":"archeaxis.machine-retest/v1","authority":"candidate","answer_id":"result","knowledge_id":"corrected","question":"Synthetic retest","answer":{"answer":"SYNTHETIC"},"retest_of":"failed","request":entry["body"],"execution_request":{"timeout_s":120}});
-    conn.execute("INSERT INTO machine_tasks VALUES('result','runtime.retest',?1,'failed')",[doc.to_string()]).unwrap();
-    let clear=||ui_state::ClearMachine{workspace_id:written["workspace_id"].as_str().unwrap().into(),restore_epoch:"initial".into(),state_revision:written["state_revision"].as_i64().unwrap(),journal_id:"retest_fixed".into(),task_id:"result".into()};
-    conn.execute("UPDATE machine_tasks SET conditions=?1 WHERE task_id='failed'",[json!({"knowledge_id":"changed-owner","question":"Synthetic retest"}).to_string()]).unwrap();
-    assert!(ui_state::clear_machine(&mut conn,clear()).is_err());
-    conn.execute("UPDATE machine_tasks SET conditions=?1 WHERE task_id='failed'",[prior.to_string()]).unwrap();
-    assert!(ui_state::clear_machine(&mut conn,clear()).unwrap()["state"].get("pending_machine").is_none());
+    let basis = ui_state::read(&mut conn).unwrap();
+    let entry = json!({"journal_id":"retest_fixed","owner_knowledge_id":"other","operation":"retest","origin_restore_epoch":"initial","body":{"knowledge_id":"corrected","question":"Synthetic retest","max_tokens":2048,"timeout_s":120,"retest_of":"failed"}});
+    let mut payload = json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"retest_fixed":entry}}});
+    assert!(ui_state::write(&mut conn, serde_json::from_value(payload.clone()).unwrap()).is_err());
+    assert_eq!(
+        ui_state::read(&mut conn).unwrap()["state_revision"],
+        basis["state_revision"]
+    );
+    payload["state"]["pending_machine"]["retest_fixed"]["owner_knowledge_id"] = json!("original");
+    let written =
+        ui_state::write(&mut conn, serde_json::from_value(payload.clone()).unwrap()).unwrap();
+    let doc = json!({"schema":"archeaxis.machine-retest/v1","authority":"candidate","answer_id":"result","knowledge_id":"corrected","question":"Synthetic retest","answer":{"answer":"SYNTHETIC"},"retest_of":"failed","request":entry["body"],"execution_request":{"timeout_s":120}});
+    conn.execute(
+        "INSERT INTO machine_tasks VALUES('result','runtime.retest',?1,'failed')",
+        [doc.to_string()],
+    )
+    .unwrap();
+    let clear = || ui_state::ClearMachine {
+        workspace_id: written["workspace_id"].as_str().unwrap().into(),
+        restore_epoch: "initial".into(),
+        state_revision: written["state_revision"].as_i64().unwrap(),
+        journal_id: "retest_fixed".into(),
+        task_id: "result".into(),
+    };
+    conn.execute(
+        "UPDATE machine_tasks SET conditions=?1 WHERE task_id='failed'",
+        [json!({"knowledge_id":"changed-owner","question":"Synthetic retest"}).to_string()],
+    )
+    .unwrap();
+    assert!(ui_state::clear_machine(&mut conn, clear()).is_err());
+    conn.execute(
+        "UPDATE machine_tasks SET conditions=?1 WHERE task_id='failed'",
+        [prior.to_string()],
+    )
+    .unwrap();
+    assert!(
+        ui_state::clear_machine(&mut conn, clear()).unwrap()["state"]
+            .get("pending_machine")
+            .is_none()
+    );
 }
 
 #[test]
 fn failed_machine_status_and_clear_require_current_attempt_after_reopen() {
-    use sha2::{Digest,Sha256};
-    let dir=tempfile::tempdir().unwrap();let path=dir.path().join("failed-status.sqlite");let mut conn=fixture(&path);
+    use sha2::{Digest, Sha256};
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("failed-status.sqlite");
+    let mut conn = fixture(&path);
     conn.execute_batch("CREATE TABLE machine_tasks(task_id TEXT PRIMARY KEY,scope TEXT,conditions TEXT,retest_of TEXT)").unwrap();
-    let basis=ui_state::read(&mut conn).unwrap();
-    let body=json!({"knowledge_id":"k1","question":"Synthetic failure","max_tokens":2048,"timeout_s":120,"client_request_id":"fixed"});
-    let entry=json!({"journal_id":"fixed","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":body});
-    let payload=json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"fixed":entry,"other": {"journal_id":"other","owner_knowledge_id":"k2","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k2","question":"Other synthetic","max_tokens":2048,"timeout_s":120,"client_request_id":"other"}}}}});
-    let written=ui_state::write(&mut conn,serde_json::from_value(payload).unwrap()).unwrap();
-    let status=||ui_state::MachineStatus{workspace_id:written["workspace_id"].as_str().unwrap().into(),restore_epoch:"initial".into(),state_revision:written["state_revision"].as_i64().unwrap(),journal_id:"fixed".into()};
-    assert!(ui_state::machine_admission_guard(&conn,"k1","answer",&ui_state::machine_request_fingerprint("answer",&body)).is_ok());
-    assert!(ui_state::machine_admission_guard(&conn,"k1","answer","new-client-fingerprint").is_err());
-    assert!(ui_state::machine_admission_guard(&conn,"k1","retest","new-operation-fingerprint").is_err());
-    assert_eq!(ui_state::machine_status(&conn,status()).unwrap()["status"],"UNKNOWN");
-    let claim_id=format!("answer_req_{}",hex::encode(Sha256::digest(b"fixed")));
-    let key=format!("machine_execution_claim_{}",hex::encode(Sha256::digest(claim_id.as_bytes())));
-    let claim=json!({"schema":"archeaxis.machine-execution-claim/v1","state":"KNOWN_FAILURE","attempt":2,"max_attempts":3,"request_sha256":"actual-frozen-digest","terminal_task_id":"failure_current"});
-    conn.execute("INSERT INTO workspace_meta(key,value) VALUES(?1,?2)",rusqlite::params![key,claim.to_string()]).unwrap();
-    let mut doc=json!({"schema":"archeaxis.machine-execution-failed/v1","execution_state":"UNVERIFIED","audit_task_id":"failure_current","operation":"answer","knowledge_id":"k1","client_request_id":"fixed","retest_of":null,"answer_published":false,"authority":"historical_execution_audit","admission_request_sha256":ui_state::machine_request_fingerprint("answer",&body),"attempt":1,"max_attempts":3,"request_sha256":"actual-frozen-digest"});
-    conn.execute("INSERT INTO machine_tasks VALUES('failure_current','runtime.execution.failed',?1,NULL)",[doc.to_string()]).unwrap();
-    let clear=||ui_state::ClearMachine{workspace_id:written["workspace_id"].as_str().unwrap().into(),restore_epoch:"initial".into(),state_revision:written["state_revision"].as_i64().unwrap(),journal_id:"fixed".into(),task_id:"failure_current".into()};
-    assert_eq!(ui_state::machine_status(&conn,status()).unwrap()["can_clear"],false);
-    assert!(ui_state::clear_machine(&mut conn,clear()).is_err());
-    doc["attempt"]=json!(2);doc["admission_request_sha256"]=json!("wrong");
-    conn.execute("UPDATE machine_tasks SET conditions=?1",[doc.to_string()]).unwrap();assert!(ui_state::clear_machine(&mut conn,clear()).is_err());
-    doc["admission_request_sha256"]=json!(ui_state::machine_request_fingerprint("answer",&body));
-    conn.execute("UPDATE machine_tasks SET conditions=?1",[doc.to_string()]).unwrap();
-    let mut inflight=claim.clone();inflight["state"]=json!("IN_FLIGHT");
-    conn.execute("UPDATE workspace_meta SET value=?1 WHERE key=?2",rusqlite::params![inflight.to_string(),key]).unwrap();
-    assert_eq!(ui_state::machine_status(&conn,status()).unwrap()["status"],"UNKNOWN");assert!(ui_state::clear_machine(&mut conn,clear()).is_err());
-    conn.execute("UPDATE workspace_meta SET value=?1 WHERE key=?2",rusqlite::params![claim.to_string(),key]).unwrap();
-    drop(conn);let mut conn=fixture(&path);
-    let read=ui_state::machine_status(&conn,status()).unwrap();assert_eq!(read["status"],"FAILED");assert_eq!(read["attempt"],2);
-    assert_eq!(ui_state::read(&mut conn).unwrap()["state_revision"],written["state_revision"]);
-    let cleared=ui_state::clear_machine(&mut conn,clear()).unwrap();
-    assert!(cleared["state"]["pending_machine"].get("fixed").is_none());assert_eq!(cleared["state"]["pending_machine"]["other"]["journal_id"],"other");
-    let after:String=conn.query_row("SELECT value FROM workspace_meta WHERE key=?1",[key],|r|r.get(0)).unwrap();assert_eq!(after,claim.to_string());
-    let audit:String=conn.query_row("SELECT conditions FROM machine_tasks WHERE task_id='failure_current'",[],|r|r.get(0)).unwrap();assert_eq!(audit,doc.to_string());
+    let basis = ui_state::read(&mut conn).unwrap();
+    let body = json!({"knowledge_id":"k1","question":"Synthetic failure","max_tokens":2048,"timeout_s":120,"client_request_id":"fixed"});
+    let entry = json!({"journal_id":"fixed","owner_knowledge_id":"k1","operation":"answer","origin_restore_epoch":"initial","body":body});
+    let payload = json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"fixed":entry,"other": {"journal_id":"other","owner_knowledge_id":"k2","operation":"answer","origin_restore_epoch":"initial","body":{"knowledge_id":"k2","question":"Other synthetic","max_tokens":2048,"timeout_s":120,"client_request_id":"other"}}}}});
+    let written = ui_state::write(&mut conn, serde_json::from_value(payload).unwrap()).unwrap();
+    let status = || ui_state::MachineStatus {
+        workspace_id: written["workspace_id"].as_str().unwrap().into(),
+        restore_epoch: "initial".into(),
+        state_revision: written["state_revision"].as_i64().unwrap(),
+        journal_id: "fixed".into(),
+    };
+    assert!(
+        ui_state::machine_admission_guard(
+            &conn,
+            "k1",
+            "answer",
+            &ui_state::machine_request_fingerprint("answer", &body)
+        )
+        .is_ok()
+    );
+    assert!(
+        ui_state::machine_admission_guard(&conn, "k1", "answer", "new-client-fingerprint").is_err()
+    );
+    assert!(
+        ui_state::machine_admission_guard(&conn, "k1", "retest", "new-operation-fingerprint")
+            .is_err()
+    );
+    assert_eq!(
+        ui_state::machine_status(&conn, status()).unwrap()["status"],
+        "UNKNOWN"
+    );
+    let claim_id = format!("answer_req_{}", hex::encode(Sha256::digest(b"fixed")));
+    let key = format!(
+        "machine_execution_claim_{}",
+        hex::encode(Sha256::digest(claim_id.as_bytes()))
+    );
+    let claim = json!({"schema":"archeaxis.machine-execution-claim/v1","state":"KNOWN_FAILURE","attempt":2,"max_attempts":3,"request_sha256":"actual-frozen-digest","terminal_task_id":"failure_current"});
+    conn.execute(
+        "INSERT INTO workspace_meta(key,value) VALUES(?1,?2)",
+        rusqlite::params![key, claim.to_string()],
+    )
+    .unwrap();
+    let mut doc = json!({"schema":"archeaxis.machine-execution-failed/v1","execution_state":"UNVERIFIED","audit_task_id":"failure_current","operation":"answer","knowledge_id":"k1","client_request_id":"fixed","retest_of":null,"answer_published":false,"authority":"historical_execution_audit","admission_request_sha256":ui_state::machine_request_fingerprint("answer",&body),"attempt":1,"max_attempts":3,"request_sha256":"actual-frozen-digest"});
+    conn.execute(
+        "INSERT INTO machine_tasks VALUES('failure_current','runtime.execution.failed',?1,NULL)",
+        [doc.to_string()],
+    )
+    .unwrap();
+    let clear = || ui_state::ClearMachine {
+        workspace_id: written["workspace_id"].as_str().unwrap().into(),
+        restore_epoch: "initial".into(),
+        state_revision: written["state_revision"].as_i64().unwrap(),
+        journal_id: "fixed".into(),
+        task_id: "failure_current".into(),
+    };
+    assert_eq!(
+        ui_state::machine_status(&conn, status()).unwrap()["can_clear"],
+        false
+    );
+    assert!(ui_state::clear_machine(&mut conn, clear()).is_err());
+    doc["attempt"] = json!(2);
+    doc["admission_request_sha256"] = json!("wrong");
+    conn.execute("UPDATE machine_tasks SET conditions=?1", [doc.to_string()])
+        .unwrap();
+    assert!(ui_state::clear_machine(&mut conn, clear()).is_err());
+    doc["admission_request_sha256"] = json!(ui_state::machine_request_fingerprint("answer", &body));
+    conn.execute("UPDATE machine_tasks SET conditions=?1", [doc.to_string()])
+        .unwrap();
+    let mut inflight = claim.clone();
+    inflight["state"] = json!("IN_FLIGHT");
+    conn.execute(
+        "UPDATE workspace_meta SET value=?1 WHERE key=?2",
+        rusqlite::params![inflight.to_string(), key],
+    )
+    .unwrap();
+    assert_eq!(
+        ui_state::machine_status(&conn, status()).unwrap()["status"],
+        "UNKNOWN"
+    );
+    assert!(ui_state::clear_machine(&mut conn, clear()).is_err());
+    conn.execute(
+        "UPDATE workspace_meta SET value=?1 WHERE key=?2",
+        rusqlite::params![claim.to_string(), key],
+    )
+    .unwrap();
+    drop(conn);
+    let mut conn = fixture(&path);
+    let read = ui_state::machine_status(&conn, status()).unwrap();
+    assert_eq!(read["status"], "FAILED");
+    assert_eq!(read["attempt"], 2);
+    assert_eq!(
+        ui_state::read(&mut conn).unwrap()["state_revision"],
+        written["state_revision"]
+    );
+    let cleared = ui_state::clear_machine(&mut conn, clear()).unwrap();
+    assert!(cleared["state"]["pending_machine"].get("fixed").is_none());
+    assert_eq!(
+        cleared["state"]["pending_machine"]["other"]["journal_id"],
+        "other"
+    );
+    let after: String = conn
+        .query_row(
+            "SELECT value FROM workspace_meta WHERE key=?1",
+            [key],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(after, claim.to_string());
+    let audit: String = conn
+        .query_row(
+            "SELECT conditions FROM machine_tasks WHERE task_id='failure_current'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(audit, doc.to_string());
 }

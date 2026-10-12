@@ -369,7 +369,12 @@ async fn core_creates_and_reads_back_assessment_bound_to_accepted_knowledge() {
     let assessment: Value = serde_json::from_slice(&bytes).unwrap();
     assert_eq!(assessment["item_key"], "card-assessment");
     assert_eq!(assessment["knowledge_id"], knowledge_id);
-    assert!(assessment["question"].as_str().unwrap().contains("请用自己的话"));
+    assert!(
+        assessment["question"]
+            .as_str()
+            .unwrap()
+            .contains("请用自己的话")
+    );
     assert!(!assessment["question"].as_str().unwrap().contains("FSRS"));
     assert_ne!(assessment["question"], assessment["content"]);
     assert_eq!(

@@ -165,7 +165,8 @@ impl Executor {
         max_tokens: u64,
         timeout: Duration,
     ) -> Result<serde_json::Value, String> {
-        self.machine_answer_selected(context, question, max_tokens, timeout, None).await
+        self.machine_answer_selected(context, question, max_tokens, timeout, None)
+            .await
     }
 
     /// Explicit choices are checked against the fixed local lane; never endpoint input.
@@ -190,17 +191,29 @@ impl Executor {
             || !(128..=4096).contains(&max_tokens)
             || timeout < Duration::from_secs(1)
             || timeout > Duration::from_secs(120)
-            || model.as_ref().is_some_and(|m| m.trim().is_empty() || m != m.trim()
-                || m.len() > 256 || m.chars().any(char::is_control))
+            || model.as_ref().is_some_and(|m| {
+                m.trim().is_empty()
+                    || m != m.trim()
+                    || m.len() > 256
+                    || m.chars().any(char::is_control)
+            })
         {
             return Err("invalid machine answer budget or input".into());
         }
         let deadline = Instant::now() + timeout;
         if let Some(selected) = &model {
-            let inventory = tokio::time::timeout(timeout, self.machine_inventory()).await
+            let inventory = tokio::time::timeout(timeout, self.machine_inventory())
+                .await
                 .map_err(|_| "machine selection verification timed out")?;
-            if inventory["status"] != "READ_VERIFIED" || !inventory["model_choices"].as_array()
-                .is_some_and(|choices| choices.iter().any(|choice| choice.as_str() == Some(selected.as_str()))) {
+            if inventory["status"] != "READ_VERIFIED"
+                || !inventory["model_choices"]
+                    .as_array()
+                    .is_some_and(|choices| {
+                        choices
+                            .iter()
+                            .any(|choice| choice.as_str() == Some(selected.as_str()))
+                    })
+            {
                 return Err("machine selection is not verified in local inventory".into());
             }
         }
@@ -211,7 +224,9 @@ impl Executor {
         let python = self.python.clone();
         let staging = self.staging.clone();
         tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
-            if Instant::now() >= deadline { return Err("machine selection budget exhausted".into()); }
+            if Instant::now() >= deadline {
+                return Err("machine selection budget exhausted".into());
+            }
             let dir = tempfile::tempdir_in(&staging).map_err(|_| "machine staging unavailable")?;
             let context_path = dir.path().join("context.txt");
             std::fs::write(&context_path, context.as_bytes())
@@ -245,10 +260,23 @@ impl Executor {
             }
             command.env("NO_PROXY", "127.0.0.1,localhost,::1");
             if let Some(selected) = &model {
-                command.arg("-I").arg("-B").arg("-X").arg("utf8").arg(&worker)
-                    .arg(&context_path).arg("--model").arg(selected);
+                command
+                    .arg("-I")
+                    .arg("-B")
+                    .arg("-X")
+                    .arg("utf8")
+                    .arg(&worker)
+                    .arg(&context_path)
+                    .arg("--model")
+                    .arg(selected);
             } else {
-                command.arg("-I").arg("-B").arg("-X").arg("utf8").arg(&worker).arg(&context_path);
+                command
+                    .arg("-I")
+                    .arg("-B")
+                    .arg("-X")
+                    .arg("utf8")
+                    .arg(&worker)
+                    .arg(&context_path);
             }
             command
                 .arg("--question")
@@ -317,13 +345,28 @@ impl Executor {
                             .map_err(|_| "machine status unavailable")?;
                     }
                     if let Some(status) = exit_status {
-                        let drain = *drain_deadline.get_or_insert_with(|| Instant::now() + Duration::from_secs(1));
+                        let drain = *drain_deadline
+                            .get_or_insert_with(|| Instant::now() + Duration::from_secs(1));
                         if errors_finished && out.is_some() {
                             if !status.success() {
-                                let failure = serde_json::from_slice::<serde_json::Value>(out.as_ref().unwrap()).ok();
-                                let code = failure.as_ref().filter(|value| value["schema"] == "archeaxis.machine-worker-failure/v1")
+                                let failure = serde_json::from_slice::<serde_json::Value>(
+                                    out.as_ref().unwrap(),
+                                )
+                                .ok();
+                                let code = failure
+                                    .as_ref()
+                                    .filter(|value| {
+                                        value["schema"] == "archeaxis.machine-worker-failure/v1"
+                                    })
                                     .and_then(|value| value["reason_code"].as_str())
-                                    .filter(|code| matches!(*code, "MODEL_CALL_FAILED" | "NO_FINAL_ANSWER" | "EMPTY_ANSWER"))
+                                    .filter(|code| {
+                                        matches!(
+                                            *code,
+                                            "MODEL_CALL_FAILED"
+                                                | "NO_FINAL_ANSWER"
+                                                | "EMPTY_ANSWER"
+                                        )
+                                    })
                                     .unwrap_or("WORKER_FAILED");
                                 return Err(format!("machine failure: {code}"));
                             }
@@ -347,8 +390,10 @@ impl Executor {
                 {
                     return Err("machine worker returned no candidate answer".into());
                 }
-                if model.as_ref().is_some_and(|selected| value["requested_model"].as_str() != Some(selected.as_str())
-                    || value["model"].as_str() != Some(selected.as_str())) {
+                if model.as_ref().is_some_and(|selected| {
+                    value["requested_model"].as_str() != Some(selected.as_str())
+                        || value["model"].as_str() != Some(selected.as_str())
+                }) {
                     return Err("machine worker model selection mismatch".into());
                 }
                 Ok(value)

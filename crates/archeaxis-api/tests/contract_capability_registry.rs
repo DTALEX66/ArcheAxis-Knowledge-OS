@@ -556,7 +556,10 @@ async fn a_disabled_capability_is_refused_by_the_execute_path() {
         .unwrap()
         .map(|entry| entry.unwrap().file_name())
         .collect();
-    assert!(remaining.is_empty(), "disabled execution left staging entries: {remaining:?}; capability: {disabled_record}");
+    assert!(
+        remaining.is_empty(),
+        "disabled execution left staging entries: {remaining:?}; capability: {disabled_record}"
+    );
     drop(router);
     drop(executor);
     let executor = Executor::open(
