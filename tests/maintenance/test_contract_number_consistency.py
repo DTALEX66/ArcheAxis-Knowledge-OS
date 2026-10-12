@@ -88,7 +88,7 @@ def test_the_launch_shape_split_adds_up():
     inventory = tree_facts()["inventory_pairs"]
     assert projections == 57, f"unconditional projection mounts changed: {projections}"
     assert conditional == 1, f"conditional manual receipt mounts changed: {conditional}"
-    assert runtime == 22, f"runtime mounts changed: {runtime}"
+    assert runtime == 26, f"runtime mounts changed: {runtime}"
     lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
     projection_builder = lib[lib.index("pub fn projections("):lib.index("let routes = if manual_receipts")]
     runtime_source = (REPO / "crates/archeaxis-api/src/runtime/mod.rs").read_text(encoding="utf-8")
@@ -118,7 +118,7 @@ def test_the_launch_shape_split_adds_up():
     assert "crate::projections_base(executor.store().clone(), false)" in runtime_source
     assert len(wrapper | base) == 67
     assert len(base) == 66
-    assert len(runtime_set) == 23
+    assert len(runtime_set) == 27
     assert len(base | runtime_set) == inventory
     contract = CONTRACT.read_text(encoding="utf-8")
     assert "67 projection method/path pairs" in contract

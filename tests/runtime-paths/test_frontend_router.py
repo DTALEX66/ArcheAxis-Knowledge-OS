@@ -218,13 +218,14 @@ def test_node_explicit_python_precedes_stale_managed_environment():
     module = (RUNTIME / "frontend_paths.mjs").as_uri()
     root = RUNTIME.parents[1]
     script = f'import {{projectPython}} from {json.dumps(module)}; console.log(projectPython({json.dumps(str(root))}));'
-    env = dict(os.environ, ARCHEAXIS_PYTHON=sys.executable)
+    interpreter = Path(sys.executable).resolve()
+    env = dict(os.environ, ARCHEAXIS_PYTHON=str(interpreter))
     # An explicit interpreter must not depend on Git/PATH or a managed .venv.
     env["PATH"] = ""
     result = subprocess.run([node, "--input-type=module", "-e", script], env=env,
                             capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
-    assert Path(result.stdout.strip()) == Path(sys.executable)
+    assert Path(result.stdout.strip()) == interpreter
 
 
 def test_node_explicit_python_keeps_protected_path_guard():

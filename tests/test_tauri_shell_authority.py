@@ -57,10 +57,14 @@ def test_restored_journal_requires_explicit_ui_decision_and_exact_readback(monke
         return next(replies)
     def click(label): calls.append(("click", label))
     def wait(script): calls.append(("wait", script))
+    def js(script):
+        if script == "return window.__aaosRecoveryReplies":
+            return [{"operation": "ui_state_recover", "value": {"status": 200, "body": after}}]
+        assert "window.__TAURI__" in script
     if tamper:
-        with pytest.raises(AssertionError): probe.confirm_restored_working_state(bridge, click, wait)
+        with pytest.raises(AssertionError): probe.confirm_restored_working_state(bridge, click, wait, js)
     else:
-        result = probe.confirm_restored_working_state(bridge, click, wait)
+        result = probe.confirm_restored_working_state(bridge, click, wait, js)
         assert result["decision"] == "EXPLICIT_UI_PRESERVE" and result["after"]["state"] == candidates
     assert [item for item in calls if item[0] != "wait"] == [
         ("read", "ui_state_read"), ("click", "保留恢复候选"), ("read", "ui_state_read")]
