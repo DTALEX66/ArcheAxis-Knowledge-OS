@@ -87,3 +87,11 @@ paths = [
 regexes = [
   '''^9eeaa0bba3b60043179b9873b72a20bc63c6a28029fdf1397e49b28f03588d22$''',
 ]
+
+[[allowlists]]
+description = "synthetic assessment UUID item key in the multi-review native receipt; not a credential"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = ['''^docs/current/receipts/AAOS-MULTI-REVIEW-NATIVE-20261012\.json$''']
+regexes = ['''^assessment_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$''']

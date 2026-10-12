@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "7c64f323248ead8662d76509586b5156d304530054d7d90c2ea9fd33ef5a7b4b"
+      "sha256": "ab9d96641f1fc8bb11618f1b5baf2719ba369acd20b6fcfdc9ef6af8bf5d2b3f"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -300,6 +300,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "current_sha256": "52556b694bb19af4d18aa9f342bb82cef0329305c592f469e40cb58949a05359"
         }
       ]
+    },
+    "source_binding_refresh": {
+      "date": "2026-10-12",
+      "basis": "Current committed public Git blobs; source navigation binding only",
+      "qualification_change": "NONE; no runtime or Owner qualification inferred"
     }
   },
   "freeze_register": {
@@ -1287,11 +1292,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "9197e9314d7395a7a0f31c8f20daec9c55940cf8387cfad12bbd49caa6eed15b"
+                "sha256": "95c22566814795592250175e4f990897c2dd60dc3d8d84d8dcee1692544b05a3"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "d55ef7b687669e427c35a14c49aa75454c3476614d1b872c67ef8958e158a938"
+                "sha256": "5f2d133c9590393135847ce8f62361f856e6d5a5e5d7ef42c5ba8ce6ec55bb6a"
               }
             ]
           },
@@ -1713,11 +1718,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "9197e9314d7395a7a0f31c8f20daec9c55940cf8387cfad12bbd49caa6eed15b"
+                "sha256": "95c22566814795592250175e4f990897c2dd60dc3d8d84d8dcee1692544b05a3"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "d55ef7b687669e427c35a14c49aa75454c3476614d1b872c67ef8958e158a938"
+                "sha256": "5f2d133c9590393135847ce8f62361f856e6d5a5e5d7ef42c5ba8ce6ec55bb6a"
               }
             ]
           },
