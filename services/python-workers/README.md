@@ -1,6 +1,6 @@
 # services/python-workers（隔离 capability worker）
 
-> **2026-10-12 当前路由与状态**：2026-10-11 Owner 已恢复完整框架、常见格式与最短闭环实施，RUNNING_BY_OWNER / PARTIAL，读 [活动指针](../../docs/current/AAOS-ACTIVE-EXECUTION.json)。2026-10-10 暂停为历史时点。六项核心能力增量 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实资料覆盖未授权。
+> **2026-10-12 当前路由与状态**：2026-10-11 Owner 已恢复完整框架、常见格式与最短闭环实施，RUNNING_BY_OWNER / PARTIAL，读 [活动指针](../../docs/current/AAOS-ACTIVE-EXECUTION.json) 与 [文档身份路由](../../docs/current/AAOS-AUTHORITY-ROUTES.json)。2026-10-10 暂停为历史时点。六项核心能力增量 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实资料覆盖未授权。
 
 本地回答与复测可在正式请求中显式携带 `model`。Core 将其绑定到请求、拒绝摘要和缓存；Executor 在固定本机 lane 的清单验证后传 `--model`，并核对 worker 返回的 `model/requested_model`。选模回答必须提供冻结 `client_request_id`；模型绑定的原回答复测不能省略模型。显式模型复测同时冻结 timeout；未指定模型的旧请求与历史缓存形状保留。清单列出仅证明身份存在，未证明加载或推理；所选模型不存在时拒绝，不替换默认模型或转云。解析、OCR、ASR 仍调用各自专用 worker，云检索仍遵守独立外发授权。前端当前冻结请求为内存状态；未确认请求跨退出持久恢复尚未完成，不能宣称该能力已验收。
 
