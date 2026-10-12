@@ -33,7 +33,7 @@ COVERAGE: dict[str, tuple[str, str]] = {
           "one credential header, both principals in it, the actor derived from which token "
           "matched, 401 and 403 shapes"),
     "3": ("tests/maintenance/test_contract_route_inventory.py",
-          "all 88 current documented method+path pairs are served and none is undocumented, plus the one "
+          "all current documented method+path pairs are served and none is undocumented, plus the one "
           "conditional mount; the outputs route's own boundaries are in contract_job_outputs.rs"),
     "4": ("crates/archeaxis-api/tests/contract_constant_fields.rs",
           "machine.status stays not_recorded with receipts present, the mastery projection is open, "
@@ -46,11 +46,14 @@ COVERAGE: dict[str, tuple[str, str]] = {
           "apart by the 405 that a mounted path answers"),
     "10": ("tests/maintenance/test_contract_route_inventory.py",
            "2026-10-10 current-source expansion: every documented method/path is actually registered; no runtime qualification inferred"),
+    "11": ("tests/maintenance/test_contract_route_inventory.py",
+           "2026-10-12 machine inventory expansion: documented routes match registration; no runtime qualification inferred"),
 }
 
 # A section can have more than one checker; each is listed so none can be dropped silently.
 ALSO_CHECKS: dict[str, list[str]] = {
     "10": ["tests/maintenance/test_contract_number_consistency.py"],
+    "11": ["tests/maintenance/test_contract_number_consistency.py"],
     "3": ["crates/archeaxis-api/tests/contract_job_outputs.rs",
           "crates/archeaxis-api/tests/contract_schedule_authority.rs"],
     "5": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs",
