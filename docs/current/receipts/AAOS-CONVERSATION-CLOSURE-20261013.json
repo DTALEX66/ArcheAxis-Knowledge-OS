@@ -48,7 +48,7 @@
     },
     {
       "id": "current-native-loop",
-      "status": "NOT_EXECUTED_CURRENT_INCREMENT",
+      "status": "REAL_4B_ATTEMPTED_PARTIAL; COMPLETE_CURRENT_CLOSURE_PENDING",
       "required": "After integrating changes, stable current-source Tauri/Core build and synthetic formal application loop with real local inference"
     },
     {
@@ -59,7 +59,7 @@
     },
     {
       "id": "bounded-video-vision",
-      "status": "IMPLEMENTED_BOUNDED_PATH_QUALIFICATION_PENDING",
+      "status": "BOUNDED_IMPLEMENTATION; AUTHORIZED_4B_27B_REGISTERED_NONVISION; REAL_VISION_NOT_EXECUTED",
       "required": "Existing bounded frames are not continuous video understanding; transport regression is not actual vision-model output qualification"
     },
     {
@@ -127,7 +127,7 @@
     "candidate_ci_status": "PASS",
     "merge_sha": "c7c631a6afa86660679d8ab5439170503f89ea29",
     "main_ci": 38284588835,
-    "main_ci_status": "RUNNING_AT_LAST_READBACK",
+    "main_ci_status": "PASS_VERIFIED",
     "independent_ui": "PRESERVED; this task writes only its isolated checkout"
   },
   "current_native_attempts": [
@@ -149,6 +149,16 @@
       "error": "Windows socket resource error 10055 during native navigation; no completion claim",
       "cleanup": "OWNED_MODEL_UNLOADED; PORTS_RELEASED; PREEXISTING_INSTANCES_PRESERVED",
       "repair": "Owned WebDriver persistent numeric-loopback connection; bounded responses, no redirects or command replay"
+    },
+    {
+      "model": "qwen3.5-4b",
+      "material": "SYNTHETIC",
+      "status": "PARTIAL",
+      "answer": "REAL_APPLICATION_PASS",
+      "retest": "REAL_APPLICATION_PASS",
+      "remaining_error": "Closure probe used nav element for Radix tablist; corrected to actual role=tablist",
+      "cleanup": "OWNED_MODEL_UNLOADED; PORTS_RELEASED; PREEXISTING_INSTANCES_PRESERVED",
+      "transport": "Persistent connection used; no socket resource error observed in this attempt"
     }
   ],
   "probe_transport_checks": {
@@ -157,5 +167,27 @@
     "run": ".project-local/runs/7d522a2a69/3259f699377d",
     "level": "SYNTHETIC_REAL_LOOPBACK_AND_SIMULATED_GUARDS",
     "native_repeat": "PENDING"
+  },
+  "local_model_capability_readback": {
+    "observed_local_date": "2026-10-13",
+    "source": "LM Studio SDK system.listDownloadedModels; existing registered files only",
+    "models": [
+      {
+        "model_key": "qwen3.5-4b",
+        "vision": false,
+        "size_bytes": 2740937888
+      },
+      {
+        "model_key": "qwen3.8-27b",
+        "vision": false,
+        "size_bytes": 14252845984
+      },
+      {
+        "model_key": "qwen2.5-vl-7b-instruct",
+        "vision": true,
+        "size_bytes": 5536191744
+      }
+    ],
+    "boundary": "Metadata is not inference qualification. Existing temporary test grants name 4B/27B; do not silently load or switch to the 7B vision candidate."
   }
 }
