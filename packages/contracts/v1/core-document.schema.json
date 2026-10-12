@@ -9,10 +9,21 @@
       "required":["schema","journal_id","status","can_clear","task_id","attempt","max_attempts","provider_stop_state"],
       "properties": {
         "schema":{"const":"archeaxis.machine-journal-status/v1"},
-        "journal_id":{"type":"string"}, "status":{"enum":["UNKNOWN","FAILED"]},
+        "journal_id":{"type":"string"}, "status":{"enum":["UNKNOWN","FAILED","CANCELLED_LOCAL_WORKER"]},
         "can_clear":{"type":"boolean"}, "task_id":{"type":["string","null"]},
         "attempt":{"type":["integer","null"],"minimum":1,"maximum":3},
         "max_attempts":{"const":3}, "provider_stop_state":{"const":"UNKNOWN"}
+      }
+    },
+    "MachineCancelDto": {
+      "type":"object", "additionalProperties":false,
+      "required":["schema","journal_id","attempt","cancel_requested","execution_state","provider_stop_state"],
+      "properties": {
+        "schema":{"const":"archeaxis.machine-cancel-receipt/v1"},
+        "journal_id":{"type":"string"},
+        "attempt":{"type":["integer","null"],"minimum":1,"maximum":3},
+        "cancel_requested":{"type":"boolean"},
+        "execution_state":{"const":"UNKNOWN"}, "provider_stop_state":{"const":"UNKNOWN"}
       }
     },
     "SourceDto": {

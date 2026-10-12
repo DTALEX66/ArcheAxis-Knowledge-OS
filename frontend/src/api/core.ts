@@ -17,6 +17,7 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
   machine_configuration: "MachineConfigurationDto",
   machine_inventory: "MachineInventoryDto",
   ui_state_machine_status: "MachineJournalStatusDto",
+  ui_state_cancel_machine: "MachineCancelDto",
   document_graph: "RelationProjectionDto",
   sources_list: "SourcesListDto", source_jobs: "SourceJobsDto", source_members: "SourceMembersDto", source_pages: "SourcePagesDto", source_original: "OriginalDto", documents_list: "DocumentsListDto",
   document_create: "DocumentDto", document_get: "DocumentDto", document_draft: "DocumentDto",

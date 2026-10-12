@@ -21,6 +21,28 @@ def load_probe():
 
 
 class GroupedNativeProbeTests(unittest.TestCase):
+    def test_cancel_ui_ack_does_not_imply_a_terminal_or_provider_stop(self):
+        probe=load_probe();actions=[]
+        class UI:
+            def click(self,label): actions.append(label)
+            def js(self,source): return "本地 worker 取消请求已接收；尚未确认停止"
+        report=probe.request_owned_machine_cancellation(UI(),lambda source:None,{})
+        self.assertEqual(actions,["请求取消当前本地 worker"])
+        self.assertTrue(report["cancel_requested"])
+        self.assertFalse(report["terminal_verified"])
+        self.assertEqual(report["provider_stop_state"],"UNKNOWN")
+        self.assertEqual(report["execution_state"],"UNKNOWN")
+
+    def test_cancel_terminal_requires_the_separate_audit_ui_observation(self):
+        probe=load_probe()
+        class UI:
+            def click(self,label): self.label=label
+            def js(self,source): return "Core 已确认第 1 次尝试的本地 worker 取消审计；可结束请求并保留草稿"
+        report=probe.confirm_owned_machine_cancellation(UI(),lambda source:None,{})
+        self.assertTrue(report["terminal_verified"])
+        self.assertEqual(report["local_worker_terminal"],"CANCELLED_LOCAL_WORKER")
+        self.assertEqual(report["provider_stop_state"],"UNKNOWN")
+
     def test_trusted_pending_review_navigation_confirms_parent_and_child_without_replaying_clicks(self):
         probe=load_probe();actions=[]
         def js(source):

@@ -1012,6 +1012,8 @@ def main():
     parser.add_argument("--grouped-review-ack-loss", action="store_true", help="Synthetic ACK loss after real review persistence, with two cold restarts")
     parser.add_argument("--grouped-multi-review-ack-loss", action="store_true", help="Two native UI review journals, explicit selection and independent exact-body recovery")
     parser.add_argument("--grouped-machine-ack-loss", action="store_true", help="Discard one actual answer ACK, cold restart and recover exact history without inference")
+    parser.add_argument("--grouped-machine-cancel", action="store_true", help="Explicit actual model route UI cancellation, durable local-worker audit/clear, cold restart and fresh normal answer; provider stop remains unknown")
+    parser.add_argument("--closure-features", action="store_true", help="Explicit current grouped native responsibilities and document package reimport qualification with synthetic material")
     parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
     parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
     parser.add_argument("--grouped-model", help="Explicit already-authorized local model choice through the formal UI; no endpoint or global configuration change")
@@ -1042,6 +1044,10 @@ def main():
         parser.error("authored intervention requires explicit --actual-model")
     if args.grouped_run_ai and not args.grouped_common_owner_loop:
         parser.error("grouped AI requires the grouped journey branch")
+    if args.grouped_machine_cancel and (not args.grouped_run_ai or not args.grouped_common_owner_loop or args.grouped_machine_ack_loss):
+        parser.error("machine cancellation requires the actual-model grouped journey and cannot mix answer ACK loss")
+    if args.closure_features and not args.grouped_common_owner_loop:
+        parser.error("closure features require the grouped native journey")
     if args.grouped_model and not args.grouped_run_ai:
         parser.error("explicit local selection requires an actual-model grouped journey")
     if args.grouped_max_tokens and not args.grouped_run_ai:
@@ -1483,6 +1489,8 @@ def main():
                 review_ack_loss=args.grouped_review_ack_loss,
                 multi_review_ack_loss=args.grouped_multi_review_ack_loss,
                 machine_ack_loss=args.grouped_machine_ack_loss,
+                machine_cancel=args.grouped_machine_cancel,
+                closure_features=args.closure_features,
                 selected_model=args.grouped_model,
                 selected_max_tokens=args.grouped_max_tokens,
                 accept_navigation_alert=grouped_accept_navigation_alert,

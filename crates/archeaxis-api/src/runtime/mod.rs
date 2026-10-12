@@ -29,6 +29,94 @@ struct Active {
     cancel: Cancellation,
     faulted: bool,
 }
+struct MachineActive {
+    attempt: u64,
+    restore_epoch: String,
+    cancel: Cancellation,
+    accepting: bool,
+}
+struct MachineLease {
+    registry: Arc<std::sync::Mutex<HashMap<String, MachineActive>>>,
+    key: String,
+    attempt: u64,
+    cancel: Cancellation,
+}
+impl MachineLease {
+    fn close(&self) -> Result<bool, String> {
+        let mut entries = self
+            .registry
+            .lock()
+            .map_err(|_| "machine registry unconfirmed")?;
+        let entry = entries
+            .get_mut(&self.key)
+            .filter(|entry| entry.attempt == self.attempt)
+            .ok_or("machine registry identity changed")?;
+        entry.accepting = false;
+        Ok(entry.cancel.is_cancelled())
+    }
+}
+impl Drop for MachineLease {
+    fn drop(&mut self) {
+        // A dropped HTTP request only stops our owned worker, never a shared provider.
+        self.cancel.cancel();
+        if let Ok(mut entries) = self.registry.lock() {
+            if entries
+                .get(&self.key)
+                .is_some_and(|entry| entry.attempt == self.attempt)
+            {
+                entries.remove(&self.key);
+            }
+        }
+        // The durable unfinished claim remains UNKNOWN when no receipt was persisted.
+    }
+}
+
+#[cfg(test)]
+mod machine_cancel_registry_tests {
+    use super::*;
+    #[test]
+    fn closing_publish_admission_and_cancellation_are_mutually_exclusive() {
+        for _ in 0..32 {
+            let registry = Arc::new(std::sync::Mutex::new(HashMap::new()));
+            let cancel = Cancellation::new();
+            registry.lock().unwrap().insert(
+                "request".to_owned(),
+                MachineActive {
+                    attempt: 1,
+                    restore_epoch: "initial".into(),
+                    cancel: cancel.clone(),
+                    accepting: true,
+                },
+            );
+            let lease = MachineLease {
+                registry: registry.clone(),
+                key: "request".into(),
+                attempt: 1,
+                cancel,
+            };
+            let barrier = Arc::new(std::sync::Barrier::new(2));
+            let thread_barrier = barrier.clone();
+            let task = std::thread::spawn(move || {
+                thread_barrier.wait();
+                let entries = registry.lock().unwrap();
+                entries
+                    .get("request")
+                    .filter(|entry| entry.accepting)
+                    .is_some_and(|entry| {
+                        entry.cancel.cancel();
+                        true
+                    })
+            });
+            barrier.wait();
+            let cancelled = lease.close().unwrap();
+            let accepted = task.join().unwrap();
+            assert_eq!(
+                cancelled, accepted,
+                "accepted cancellation must prevent publication; closed publication must refuse late cancellation"
+            );
+        }
+    }
+}
 async fn machine_configuration(State(runtime): State<Runtime>) -> Json<Value> {
     Json(runtime.executor.machine_configuration())
 }
@@ -60,6 +148,7 @@ struct Runtime {
     active: Arc<Mutex<HashMap<String, Active>>>,
     admission: Arc<Mutex<()>>,
     colearning_admission: Arc<Mutex<()>>,
+    machine_active: Arc<std::sync::Mutex<HashMap<String, MachineActive>>>,
 }
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
@@ -71,6 +160,10 @@ pub fn router(executor: Executor) -> Router {
         .route(
             "/api/v1/workspace/ui-state/machine-status",
             post(machine_journal::status),
+        )
+        .route(
+            "/api/v1/workspace/ui-state/cancel-machine",
+            post(machine_journal::cancel),
         )
         .route(
             "/api/v1/workspace/ui-state/clear-job",
@@ -137,6 +230,7 @@ pub fn router(executor: Executor) -> Router {
             active: Arc::new(Mutex::new(HashMap::new())),
             admission: Arc::new(Mutex::new(())),
             colearning_admission: Arc::new(Mutex::new(())),
+            machine_active: Arc::new(std::sync::Mutex::new(HashMap::new())),
         })
         .merge(projections)
 }

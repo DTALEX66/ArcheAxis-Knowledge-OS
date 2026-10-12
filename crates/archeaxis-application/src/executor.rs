@@ -31,6 +31,9 @@ impl Cancellation {
     pub fn cancel(&self) {
         self.0.store(true, Ordering::Relaxed);
     }
+    pub fn is_cancelled(&self) -> bool {
+        self.0.load(Ordering::Relaxed)
+    }
 }
 
 /// Whether a path exists as a regular file, used to decide if a registered route can actually run.
@@ -178,6 +181,26 @@ impl Executor {
         timeout: Duration,
         model: Option<String>,
     ) -> Result<serde_json::Value, String> {
+        self.machine_answer_cancellable(
+            context,
+            question,
+            max_tokens,
+            timeout,
+            model,
+            Cancellation::new(),
+        )
+        .await
+    }
+
+    pub async fn machine_answer_cancellable(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+        model: Option<String>,
+        cancel: Cancellation,
+    ) -> Result<serde_json::Value, String> {
         const MAX_CONTEXT: usize = 128_000;
         // Keep the existing --question argv protocol inside Windows command-line bounds.
         const MAX_QUESTION: usize = 8_192;
@@ -201,6 +224,9 @@ impl Executor {
             return Err("invalid machine answer budget or input".into());
         }
         let deadline = Instant::now() + timeout;
+        if cancel.is_cancelled() {
+            return Err("machine worker cancelled".into());
+        }
         if let Some(selected) = &model {
             let inventory = tokio::time::timeout(timeout, self.machine_inventory())
                 .await
@@ -224,6 +250,9 @@ impl Executor {
         let python = self.python.clone();
         let staging = self.staging.clone();
         tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
+            if cancel.is_cancelled() {
+                return Err("machine worker cancelled".into());
+            }
             if Instant::now() >= deadline {
                 return Err("machine selection budget exhausted".into());
             }
@@ -328,6 +357,9 @@ impl Executor {
                 let mut exit_status = None;
                 let mut drain_deadline = None;
                 loop {
+                    if cancel.is_cancelled() {
+                        return Err("machine worker cancelled".into());
+                    }
                     while let Ok((is_stdout, result)) = receive.try_recv() {
                         let bytes = result?;
                         if is_stdout {
@@ -438,6 +470,9 @@ impl Executor {
             }
             if cleanup_failed || incomplete {
                 return Err("machine worker cleanup incomplete".into());
+            }
+            if cancel.is_cancelled() {
+                return Err("machine worker cancelled".into());
             }
             result
         })

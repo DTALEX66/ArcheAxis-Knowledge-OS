@@ -1047,13 +1047,52 @@ pub fn machine_status(conn: &Connection, request: MachineStatus) -> Result<Value
             return Ok(result);
         };
         if failure_binding(conn, pending, &task_id, &doc, retest_of.as_deref())? {
-            result["status"] = serde_json::json!("FAILED");
+            result["status"] =
+                serde_json::json!(if doc["reason_code"] == "machine worker cancelled" {
+                    "CANCELLED_LOCAL_WORKER"
+                } else {
+                    "FAILED"
+                });
             result["can_clear"] = serde_json::json!(true);
             result["task_id"] = serde_json::json!(task_id);
             result["attempt"] = doc["attempt"].clone();
         }
     }
     Ok(result)
+}
+
+/// CAS-bound cancellation target; an unfinished claim alone is not a live process.
+pub fn machine_execution_epoch(conn: &Connection) -> Result<String, Error> {
+    epoch(conn)
+}
+pub fn machine_cancel_target(
+    conn: &Connection,
+    request: MachineStatus,
+) -> Result<Option<(String, u64, String)>, Error> {
+    let journal = request.journal_id.clone();
+    machine_status(conn, request)?;
+    let id = workspace_id(conn)?;
+    let current_epoch = epoch(conn)?;
+    let record = stored(conn, &id, &current_epoch)?;
+    let pending = record
+        .state
+        .pending_machine
+        .get(&journal)
+        .ok_or(Error::Invalid("frozen machine missing"))?;
+    let Some(claim) = machine_claim(conn, pending)? else {
+        return Ok(None);
+    };
+    if claim["state"] != "IN_FLIGHT" {
+        return Ok(None);
+    }
+    let Some(attempt) = claim["attempt"].as_u64().filter(|n| (1..=3).contains(n)) else {
+        return Ok(None);
+    };
+    Ok(Some((
+        machine_request_fingerprint(&pending.operation, &pending.body),
+        attempt,
+        current_epoch,
+    )))
 }
 
 /// Caller holds Runtime admission and active guards; the same Store transaction proves clearance.

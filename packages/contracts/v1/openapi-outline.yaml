@@ -26,6 +26,33 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/workspace/ui-state/cancel-machine:
+    post:
+      operationId: cancelFrozenMachineWorker
+      description: Human-only exact frozen journal CAS/epoch/current attempt cancellation request. Only this runtime's owned worker is targeted; shared model services are never stopped. Acceptance is not terminal proof. Confirmed local worker cancellation is read through machine-status; provider stop, usage and cost remain UNKNOWN. Missing active worker retains the durable claim.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch, state_revision, journal_id]
+              properties:
+                workspace_id: {type: string}
+                restore_epoch: {type: string}
+                state_revision: {type: integer}
+                journal_id: {type: string}
+      responses:
+        "200":
+          description: Cancellation request or no confirmed current owned worker; never provider stopped proof
+          content:
+            application/json:
+              schema: {$ref: 'core-document.schema.json#/$defs/MachineCancelDto'}
+        "403": {description: Human identity required}
+        "409": {description: Working state CAS changed}
+        "422": {description: Missing or invalid frozen journal}
+        "503": {description: Cancellation unconfirmed; journal retained}
   /api/v1/workspace/ui-state/machine-status:
     post:
       operationId: readFrozenMachineStatus

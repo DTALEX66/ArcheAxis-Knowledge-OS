@@ -33,6 +33,61 @@ fn now_seconds() -> u64 {
         .map(|d| d.as_secs())
         .unwrap_or(u64::MAX)
 }
+async fn machine_lease(
+    runtime: &Runtime,
+    fingerprint: &str,
+    claim_id: &str,
+) -> Result<super::MachineLease, Response> {
+    let id = claim_id.to_owned();
+    let attempt = runtime
+        .executor
+        .store()
+        .submit_wait(move |conn| -> Result<_, String> {
+            Ok((
+                super::execution_claim::attempt(conn, &id).map_err(|_| "claim unavailable")?,
+                archeaxis_domain::ui_state::machine_execution_epoch(conn)
+                    .map_err(|_| "epoch unavailable")?,
+            ))
+        })
+        .await;
+    let Ok(Ok((attempt, restore_epoch))) = attempt else {
+        return Err((
+            StatusCode::SERVICE_UNAVAILABLE,
+            "machine attempt unconfirmed; frozen request retained",
+        )
+            .into_response());
+    };
+    let cancel = super::Cancellation::new();
+    let key = fingerprint.to_owned();
+    {
+        let Ok(mut entries) = runtime.machine_active.lock() else {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                "machine registry unconfirmed",
+            )
+                .into_response());
+        };
+        if entries.contains_key(&key) {
+            return Err((StatusCode::CONFLICT, "machine execution already active").into_response());
+        }
+        entries.insert(
+            key.clone(),
+            super::MachineActive {
+                attempt,
+                restore_epoch,
+                cancel: cancel.clone(),
+                accepting: true,
+            },
+        );
+    }
+    Ok(super::MachineLease {
+        registry: runtime.machine_active.clone(),
+        key,
+        attempt,
+        cancel,
+    })
+}
+
 fn claim_error(error: rusqlite::Error) -> (StatusCode, String) {
     match error {
         rusqlite::Error::InvalidParameterName(_) => (StatusCode::CONFLICT,"previous execution claim is unfinished, conflicting or unreadable; prior execution UNVERIFIED; inference not repeated".into()),
@@ -498,17 +553,37 @@ pub(super) async fn machine_answer(
                 .into_response();
         }
     }
-    let answer = match runtime
+    let lease = match machine_lease(&runtime, &admission_request_sha256, &execution_id).await {
+        Ok(lease) => lease,
+        Err(response) => return response,
+    };
+    let execution = runtime
         .executor
-        .machine_answer_selected(
+        .machine_answer_cancellable(
             text,
             body.question.clone(),
             effective_tokens,
             std::time::Duration::from_secs(effective_timeout),
             body.model.clone(),
+            lease.cancel.clone(),
         )
-        .await
-    {
+        .await;
+    let cancelled = match lease.close() {
+        Ok(cancelled) => cancelled,
+        Err(_) => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "machine completion unconfirmed; frozen request retained",
+            )
+                .into_response();
+        }
+    };
+    let execution = if cancelled && execution.is_ok() {
+        Err("machine worker cancelled".to_owned())
+    } else {
+        execution
+    };
+    let answer = match execution {
         Ok(answer)
             if answer["answer"]
                 .as_str()
@@ -925,17 +1000,37 @@ pub(super) async fn run_retest(
                 .into_response();
         }
     }
-    let answer = match runtime
+    let lease = match machine_lease(&runtime, &admission_request_sha256, &durable_claim_id).await {
+        Ok(lease) => lease,
+        Err(response) => return response,
+    };
+    let execution = runtime
         .executor
-        .machine_answer_selected(
+        .machine_answer_cancellable(
             admitted_text,
             body.question.clone(),
             body.max_tokens.unwrap_or(2048),
             std::time::Duration::from_secs(effective_timeout),
             body.model.clone(),
+            lease.cancel.clone(),
         )
-        .await
-    {
+        .await;
+    let cancelled = match lease.close() {
+        Ok(cancelled) => cancelled,
+        Err(_) => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "machine completion unconfirmed; frozen request retained",
+            )
+                .into_response();
+        }
+    };
+    let execution = if cancelled && execution.is_ok() {
+        Err("machine worker cancelled".to_owned())
+    } else {
+        execution
+    };
+    let answer = match execution {
         Ok(answer)
             if answer["answer"]
                 .as_str()

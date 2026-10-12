@@ -7,6 +7,65 @@ use std::time::{Duration, Instant};
 
 const MARKER: &str = "ARCHEAXIS_TEST_PRIVATE_GLOBAL_MARKER";
 const SENTINEL: &str = "SYNTHETIC_PRIVATE_NOT_A_CREDENTIAL";
+
+#[tokio::test]
+async fn explicit_cancellation_reaps_only_the_owned_worker_before_return() {
+    use archeaxis_application::executor::Cancellation;
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(dir.path(), "time.sleep(30)").await;
+    let cancel = Cancellation::new();
+    let token = cancel.clone();
+    let task = tokio::spawn(async move {
+        executor
+            .machine_answer_cancellable(
+                "Synthetic context".into(),
+                "Synthetic question".into(),
+                2048,
+                Duration::from_secs(30),
+                None,
+                token,
+            )
+            .await
+    });
+    tokio::time::timeout(Duration::from_secs(5), async {
+        while !dir.path().join("machine_resource_fixture.pid").exists() {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
+    cancel.cancel();
+    let result = tokio::time::timeout(Duration::from_secs(3), task)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(result.unwrap_err(), "machine worker cancelled");
+    assert_owned_child_stopped(dir.path());
+}
+
+#[tokio::test]
+async fn pre_cancelled_machine_never_spawns_a_worker() {
+    use archeaxis_application::executor::Cancellation;
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(dir.path(), "print('{}')").await;
+    let cancel = Cancellation::new();
+    cancel.cancel();
+    assert_eq!(
+        executor
+            .machine_answer_cancellable(
+                "Synthetic".into(),
+                "Question".into(),
+                2048,
+                Duration::from_secs(30),
+                None,
+                cancel
+            )
+            .await
+            .unwrap_err(),
+        "machine worker cancelled"
+    );
+    assert!(!dir.path().join("machine_resource_fixture.pid").exists());
+}
 fn python() -> PathBuf {
     std::env::var_os("ARCHEAXIS_PYTHON")
         .expect("use existing canonical declared Python")
