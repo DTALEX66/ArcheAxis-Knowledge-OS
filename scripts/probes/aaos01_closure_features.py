@@ -16,7 +16,7 @@ from pathlib import Path
 def run(*, ui, read, bridge, js, wait, restart, work, report):
     evidence = report.setdefault("closure_features", {"status": "IN_PROGRESS"})
     ui.page("17", confirm_navigation=True)
-    ui.page("18")
+    ui.click("目录与搜索", "//nav[@aria-label='能力目录视图']")
     wait("return !!document.querySelector('[aria-label=\"模型与工具职责\"]')")
     roles = js("return document.querySelector('[aria-label=\"模型与工具职责\"]').innerText")
     for text in ("本地资料转换", "日常对话与学习", "联网研究与核验", "最终采用由用户决定"):

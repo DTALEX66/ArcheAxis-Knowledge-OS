@@ -6,6 +6,8 @@ import argparse
 import base64
 import ctypes
 import hashlib
+import http.client
+import io
 import json
 import os
 import re
@@ -348,6 +350,45 @@ def loopback_urlopen(request, *, timeout):
                 raise ValueError("Non-loopback probe HTTP redirect rejected")
             return super().redirect_request(req, fp, code, msg, headers, newurl)
     return build_opener(ProxyHandler({}), LoopbackRedirectHandler()).open(request, timeout=timeout)
+
+
+
+class OwnedWebDriverTransport:
+    """One numeric-loopback connection; never redirect or replay a command."""
+    def __init__(self, port):
+        if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:
+            raise ValueError("Invalid owned WebDriver port")
+        self.port = port
+        self.connection = http.client.HTTPConnection("127.0.0.1", port)
+
+    def open(self, request, *, timeout):
+        target = urlsplit(request.full_url)
+        if target.scheme != "http" or target.hostname != "127.0.0.1" or target.port != self.port or target.username or target.password or target.fragment:
+            raise ValueError("Foreign WebDriver destination rejected")
+        self.connection.timeout = timeout
+        if self.connection.sock is not None:
+            self.connection.sock.settimeout(timeout)
+        try:
+            path = target.path + ("?" + target.query if target.query else "")
+            self.connection.request(request.get_method(), path, body=request.data, headers=dict(request.header_items()))
+            response = self.connection.getresponse()
+            expected_length = response.length
+            raw = response.read(16 * 1024 * 1024 + 1)
+            if expected_length is not None and len(raw) < expected_length:
+                raise http.client.IncompleteRead(raw, expected_length - len(raw))
+            status, reason, headers = response.status, response.reason, response.headers
+            response.close()
+            if len(raw) > 16 * 1024 * 1024:
+                raise ValueError("WebDriver response exceeds bounded transport")
+            if status >= 300:
+                raise HTTPError(request.full_url, status, reason, headers, io.BytesIO(raw))
+            return io.BytesIO(raw)
+        except BaseException:
+            self.connection.close()
+            raise  # Even a read timeout may hide an applied command; never replay.
+
+    def close(self):
+        self.connection.close()
 
 
 def free_port():
@@ -1135,6 +1176,8 @@ def main():
     owned_tree_collection_verified = False
     log = (work / "driver.log").open("wb")
 
+    driver_transport = OwnedWebDriverTransport(port)
+
     def request(method, path, body=None):
         data = None if body is None else json.dumps(body).encode()
         req = Request(
@@ -1145,7 +1188,7 @@ def main():
         )
         try:
             timeout = args.session_timeout if method == "POST" and path == "/session" else 45
-            with loopback_urlopen(req, timeout=timeout) as response:
+            with driver_transport.open(req, timeout=timeout) as response:
                 value = json.load(response)["value"]
         except HTTPError as error:
             body = error.read().decode("utf-8", "replace")
@@ -1932,6 +1975,7 @@ def main():
         except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as error:
             receipt["owned_cleanup_readback_error"] = type(error).__name__
             receipt["ok"] = False
+        driver_transport.close()
         log.close()
         receipt["driver_log"] = identity(work / "driver.log")
         if native_log.is_file():

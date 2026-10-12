@@ -119,5 +119,43 @@
     "diff_check": "PASS",
     "native_helper": "SYNTAX_ONLY; NOT_EXECUTED",
     "exact_sha_ci": "PENDING_AFTER_PUSH"
+  },
+  "delivery_20261013": {
+    "pr": 186,
+    "candidate_sha": "010ca3ac3cfa97dd42a18d0936031ab2fd4843c5",
+    "candidate_ci": 38283199871,
+    "candidate_ci_status": "PASS",
+    "merge_sha": "c7c631a6afa86660679d8ab5439170503f89ea29",
+    "main_ci": 38284588835,
+    "main_ci_status": "RUNNING_AT_LAST_READBACK",
+    "independent_ui": "PRESERVED; this task writes only its isolated checkout"
+  },
+  "current_native_attempts": [
+    {
+      "model": "qwen3.5-4b",
+      "material": "SYNTHETIC",
+      "source_patch": "original integrated candidate",
+      "status": "PARTIAL",
+      "answer": "REAL_APPLICATION_PASS",
+      "retest": "REAL_APPLICATION_PASS",
+      "owned_worker_cancel": "REAL_DURABLE_AUDIT_PASS; PROVIDER_STOP_UNKNOWN",
+      "remaining_error": "closure probe attempted hidden detail page 18; corrected to catalog tab",
+      "cleanup": "OWNED_MODEL_UNLOADED; PORTS_RELEASED; PREEXISTING_INSTANCES_PRESERVED"
+    },
+    {
+      "model": "qwen3.5-4b",
+      "material": "SYNTHETIC",
+      "status": "PARTIAL",
+      "error": "Windows socket resource error 10055 during native navigation; no completion claim",
+      "cleanup": "OWNED_MODEL_UNLOADED; PORTS_RELEASED; PREEXISTING_INSTANCES_PRESERVED",
+      "repair": "Owned WebDriver persistent numeric-loopback connection; bounded responses, no redirects or command replay"
+    }
+  ],
+  "probe_transport_checks": {
+    "passed": 41,
+    "subtests": 124,
+    "run": ".project-local/runs/7d522a2a69/3259f699377d",
+    "level": "SYNTHETIC_REAL_LOOPBACK_AND_SIMULATED_GUARDS",
+    "native_repeat": "PENDING"
   }
 }
