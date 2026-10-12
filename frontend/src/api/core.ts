@@ -23,7 +23,7 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
   document_checks: "DocumentChecksDto", document_check_record: "DocumentCheckDto", document_check_execute: "DocumentCheckDto",
   document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto", anchor_resolve: "AnchorResolutionDto",
   search: "SearchDto", knowledge_get: "KnowledgeDto", learning_items: "LearningItemsDto",
-  learning_state: "LearningStateDto", document_export: "DocumentExportDto",
+  learning_state: "LearningStateDto", document_export: "DocumentExportDto", document_package_export: "DocumentPackageDto", document_package_import: "DocumentPackageImportDto",
   machine_retest: "MachineRetestDto",
   job_execution_status: "JobExecutionStatusDto", job_execution_cancel: "JobExecutionCancelDto",
   machine_tasks_list: "MachineTasksPageDto",

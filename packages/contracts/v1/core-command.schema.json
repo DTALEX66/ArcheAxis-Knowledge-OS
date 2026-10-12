@@ -26,6 +26,8 @@
         "document_version",
         "document_restore",
         "document_export",
+        "document_package_export",
+        "document_package_import",
         "document_export_save",
         "jobs_get",
         "job_quality",

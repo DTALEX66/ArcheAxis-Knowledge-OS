@@ -56,6 +56,8 @@ pub enum Operation {
     AnchorCreate,
     AnchorResolve,
     DocumentExport,
+    DocumentPackageExport,
+    DocumentPackageImport,
     DocumentExportSave,
     Search,
     KnowledgeGet,
@@ -384,6 +386,16 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
                 None,
             )
         }
+        DocumentPackageExport => (
+            "GET",
+            format!("/api/v1/documents/{}/package", id(p, "document_id")?),
+            None,
+        ),
+        DocumentPackageImport => (
+            "POST",
+            "/api/v1/document-packages/import".into(),
+            Some(p.clone()),
+        ),
         DocumentExport | DocumentExportSave => {
             let format = p
                 .get("format")
@@ -847,7 +859,9 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
 }
 
 fn request_byte_limit(operation: &Operation) -> usize {
-    if matches!(operation, Operation::SourceImport) {
+    if matches!(operation, Operation::DocumentPackageImport) {
+        16 * 1024 * 1024
+    } else if matches!(operation, Operation::SourceImport) {
         90 * 1024 * 1024
     } else if matches!(
         operation,

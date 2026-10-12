@@ -18,6 +18,47 @@ pub(crate) struct ExportQuery {
     format: String,
 }
 
+pub(crate) async fn package_export(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> Response {
+    crate::with_store(
+        state,
+        move |conn| match archeaxis_domain::portable_document::export(conn, &id) {
+            Ok(value) => Json(value).into_response(),
+            Err(error) => failure(error),
+        },
+    )
+    .await
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct PackageImport {
+    request_id: String,
+    package: archeaxis_domain::portable_document::Package,
+}
+pub(crate) async fn package_import(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(body): Json<PackageImport>,
+) -> Response {
+    if !human(&headers) {
+        return StatusCode::FORBIDDEN.into_response();
+    }
+    crate::with_store(
+        state,
+        move |conn| match archeaxis_domain::portable_document::import(
+            conn,
+            body.package,
+            &body.request_id,
+        ) {
+            Ok(value) => (StatusCode::CREATED, Json(value)).into_response(),
+            Err(error) => failure(error),
+        },
+    )
+    .await
+}
+
 pub(crate) async fn export(
     State(state): State<AppState>,
     Path(id): Path<String>,

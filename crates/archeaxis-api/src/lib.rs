@@ -129,6 +129,15 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         )
         .route("/api/v1/documents/:document_id", get(documents::read))
         .route(
+            "/api/v1/documents/:document_id/package",
+            get(documents::package_export),
+        )
+        .route(
+            "/api/v1/document-packages/import",
+            post(documents::package_import)
+                .layer(axum::extract::DefaultBodyLimit::max(16 * 1024 * 1024)),
+        )
+        .route(
             "/api/v1/documents/:document_id/relations",
             get(documents::relations),
         )

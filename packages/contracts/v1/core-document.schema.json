@@ -2,6 +2,8 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "archeaxis/core-document/v1",
   "$defs": {
+    "DocumentPackageDto": {"type":"object","additionalProperties":false,"required":["schema","document","objects","historical_anchors"],"properties":{"schema":{"const":"archeaxis.document-package/v1"},"document":{"$ref":"#/$defs/DocumentDto"},"objects":{"type":"array","maxItems":128,"items":{"type":"object","additionalProperties":false,"required":["source_id","sha256","original_name","bytes"],"properties":{"source_id":{"type":"string","maxLength":256},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"original_name":{"type":"string","maxLength":1024},"bytes":{"type":"array","maxItems":2097152,"items":{"type":"integer","minimum":0,"maximum":255}}}}},"historical_anchors":{"type":"array","maxItems":5000,"items":{"type":"object"}}}},
+    "DocumentPackageImportDto": {"type":"object","additionalProperties":false,"required":["schema","package_sha256","document","source_mapping","historical_anchors","anchor_registration","knowledge_admission"],"properties":{"schema":{"const":"archeaxis.document-package-import/v1"},"package_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"document":{"$ref":"#/$defs/DocumentDto"},"source_mapping":{"type":"object"},"historical_anchors":{"type":"array","maxItems":5000,"items":{"type":"object"}},"anchor_registration":{"const":"NOT_EXECUTED"},"knowledge_admission":{"const":"NOT_EXECUTED"}}},
     "MachineJournalStatusDto": {
       "type":"object", "additionalProperties":false,
       "required":["schema","journal_id","status","can_clear","task_id","attempt","max_attempts","provider_stop_state"],
