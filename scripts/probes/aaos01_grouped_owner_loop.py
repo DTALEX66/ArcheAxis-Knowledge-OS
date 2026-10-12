@@ -774,6 +774,7 @@ def run_grouped_loop(
     machine_ack_loss=False,
     machine_cancel=False,
     closure_features=False,
+    download_control=None,
     selected_model=None,
     selected_max_tokens=None,
     accept_navigation_alert=None,
@@ -1136,7 +1137,7 @@ def run_grouped_loop(
         result["actual_ai_requirement"] = "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN"
     if closure_features:
         helper = _read_module("aaos_closure_features",Path(__file__).with_name("aaos01_closure_features.py"))
-        helper.run(ui=ui,read=read,bridge=bridge,js=js,wait=wait,restart=restart,work=work,report=result)
+        helper.run(ui=ui,read=read,bridge=bridge,js=js,wait=wait,restart=restart,work=work,report=result,download_control=download_control)
     result["engineering_status"] = "PASS"
     result["status"] = "PARTIAL"  # Missing Owner/model correction evidence remains explicit.
     return result

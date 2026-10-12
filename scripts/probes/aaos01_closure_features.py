@@ -9,11 +9,12 @@ import base64
 import copy
 import hashlib
 import json
+import time
 import uuid
 from pathlib import Path
 
 
-def run(*, ui, read, bridge, js, wait, restart, work, report):
+def run(*, ui, read, bridge, js, wait, restart, work, report, download_control=None):
     evidence = report.setdefault("closure_features", {"status": "IN_PROGRESS"})
     ui.page("17", confirm_navigation=True)
     ui.click("目录与搜索", "//*[@role='tablist' and @aria-label='能力目录视图']")
@@ -65,6 +66,7 @@ def run(*, ui, read, bridge, js, wait, restart, work, report):
         ui.command(element, "value", {"text": str(fixture.absolute())})
         ui.evidence.append({"action": "trusted_portable_file_selection", "synthetic_fixture": str(fixture)})
         wait("return document.querySelector('[aria-label=\"有界文档便携包\"]')?.innerText.includes('待保存：')")
+        wait("return [...document.querySelector('[aria-label=\"有界文档便携包\"]').querySelectorAll('button')].some(b => b.textContent === '确认保存为新普通文档' && !b.disabled)")
         ui.click("确认保存为新普通文档", "//section[@aria-label='有界文档便携包']")
         wait("return document.querySelector('[aria-label=\"有界文档便携包\"]')?.innerText.includes('知识入库未执行')")
 
@@ -102,5 +104,40 @@ def run(*, ui, read, bridge, js, wait, restart, work, report):
     import_file()
     assert read("documents_list")["snapshot_count"] == count + 1, "Repeated file selection duplicated a document"
     assert read("document_get", {"document_id": document_id}) == saved
+    if download_control is not None:
+        directory = work / "closure-downloads"
+        download_control(directory)
+        wait("return [...document.querySelector('[aria-label=\"有界文档便携包\"]').querySelectorAll('button')].some(b => b.textContent === '下载文档与媒体便携包' && !b.disabled)")
+        ui.click("下载文档与媒体便携包", "//section[@aria-label='有界文档便携包']")
+        downloaded = directory / f"{document_id}-v{saved['version']}.aak-document.json"
+        deadline = time.monotonic() + 30
+        while not downloaded.is_file() and time.monotonic() < deadline:
+            time.sleep(0.1)
+        assert downloaded.is_file(), "Owned WebView download did not land in isolated directory"
+        raw = downloaded.read_bytes()
+        assert json.loads(raw) == exported, "Downloaded package differs from formal export"
+        assert not list(directory.glob("*.crdownload")), "Download remains incomplete"
+        fixture = downloaded
+        import_file()
+        rows = read("documents_list")
+        assert rows["snapshot_count"] == count + 2, "Downloaded package must create exactly one new ordinary document"
+        copies = [row for row in rows["documents"] if row["title"] == title and row["document_id"] != document_id]
+        assert len(copies) == 1
+        copy_id = copies[0]["document_id"]
+        copied = read("document_get", {"document_id": copy_id})
+        copied_media = copied["editor_json"]["attrs"]["archeaxis_expression"]["nodes"][0]["media"]["source_id"]
+        expected_copy = copy.deepcopy(saved["editor_json"])
+        expected_copy["attrs"]["archeaxis_expression"]["nodes"][0]["media"]["source_id"] = copied_media
+        assert copied["editor_json"] == expected_copy, "Downloaded file reimport lost structure or unknown nodes"
+        copied_original = read("source_original", {"source_id": copied_media})
+        assert copied_original["sha256"] == media_sha and base64.b64decode(copied_original["content_base64"]) == image
+        restart()
+        assert read("document_get", {"document_id": copy_id}) == copied
+        assert read("source_original", {"source_id": copied_media}) == copied_original
+        import_file()
+        assert read("documents_list")["snapshot_count"] == count + 2, "Repeated downloaded package created a duplicate"
+        evidence.update(downloaded_file_readback="REAL_OWNED_WEBVIEW_FILE_PASS", downloaded_file_sha256=hashlib.sha256(raw).hexdigest(),
+                        downloaded_file_reimport="TRUSTED_UI_PASS", downloaded_file_cold_restart="PASS",
+                        downloaded_file_repeat="IDEMPOTENT_PASS")
     evidence.update(cold_restart="PASS", repeated_ui_import="IDEMPOTENT_PASS", status="PASS",
                     qualification="REAL_CURRENT_NATIVE_UI_AND_CORE_SYNTHETIC_MATERIAL; not Owner acceptance")
