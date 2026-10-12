@@ -1,5 +1,7 @@
 # UI 优先首批执行与存储交接 · 2026-10-09
 
+> **2026-10-12 仓库接续**：PR #184 已并入 main；当前源码与分支/CI 身份读[接续记录](AAOS-REPOSITORY-CONTINUITY-20261012.md)。下方日期快照不表示当前未发布、旧分支仍活动或所有工作区相同；整体仍 PARTIAL。
+
 > **2026-10-11 最新 Owner 决定**：恢复完整框架、常见常用格式及最短闭环产品实施，RUNNING_BY_OWNER / PARTIAL；范围见[恢复决定](AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json)。下文暂停/停止/旧 CI 缺资格均保留原时点，最新 CI 读[收口记录](AAOS-AUTHORITY-CLOSEOUT-20261010.md)。当前优先：创建幂等、独立草稿与现场、冲突恢复、常用格式定位重验、资源启停及新 UI 同对象旅程。
 
 > **2026-10-10 历史仓库同步：BRANCH_PUBLISHED**。公开源码、任务包和文档已推送；源码快照 `3c1265be1017f565a64701b513bac3e51d724584`、Git树 `982dafceddc85b8e023f3d028b86805b9592f041` 经GitHub原生API及远程refs读回匹配，main与两个任务分支一致，本地主检出和代码检出已收敛。当前交付元数据的最新SHA以实际Git HEAD/远程ref为准。旧段落“源码不同/未commit/push/云端缺文件”仅为旧时点；不再表示当前仓库状态。该时点安装/产品任务暂停；2026-10-11 产品实施已恢复，安装资格单独记账，历史PARTIAL与FAIL保留。**CI_VERIFIED_EXACT_SHA未获得**：推送响应显示required a0-gates仍expected，服务器接收提交不等于CI通过。
