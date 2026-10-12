@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
-import type { ContextConsumptionDto, MachineTaskRowDto, MachineTasksPageDto, MachineConfigurationDto, MachineInventoryDto, MachineJournalStatusDto } from "../api/generated/core-contract";
+import type { ContextConsumptionDto, MachineTaskRowDto, MachineTasksPageDto, MachineConfigurationDto, MachineInventoryDto, MachineJournalStatusDto, MachineCancelDto } from "../api/generated/core-contract";
 import { assertAiAssetDto, type AssetPacketRequest, type MachineAssetContext } from "../api/generated/ai-asset-contract";
 import { sameAssetPin } from "../presentation/assetConsumption";
 import { ApiError, type MachineAdmissionRefusal } from "../api/client";
@@ -333,13 +333,27 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       const value=await coreCommand<MachineJournalStatusDto>("ui_state_machine_status",{body:{workspace_id:server.workspace_id,restore_epoch:server.restore_epoch,state_revision:server.state_revision,journal_id:entry.journal_id}});
       if(!requestLive(generation))return;
       if(value.journal_id!==entry.journal_id)throw new Error("status identity mismatch");
-      if(value.status!=="FAILED"||!value.can_clear||typeof value.task_id!=="string"||!value.task_id||typeof value.attempt!=="number"||value.attempt<1||value.attempt>3){
+      if(!["FAILED","CANCELLED_LOCAL_WORKER"].includes(value.status)||!value.can_clear||typeof value.task_id!=="string"||!value.task_id||typeof value.attempt!=="number"||value.attempt<1||value.attempt>3){
         setUncertain(true);setMessage("Core 未确认当前请求的失败终态；保留冻结身份，不结束或重跑。");return;
       }
       setWithheld(false);setUncertain(true);setWithheldAudit({taskId:value.task_id,entry,failed:true});
-      setMessage(`Core 已确认第 ${value.attempt} 次尝试的失败审计；可结束失败请求并保留草稿。服务端停止状态、用量与费用仍未知。`);
+      setMessage(`Core 已确认第 ${value.attempt} 次尝试的${value.status==="CANCELLED_LOCAL_WORKER"?"本地 worker 取消":"失败"}审计；可结束请求并保留草稿。服务端停止状态、用量与费用仍未知。`);
     }catch{if(requestLive(generation)){setUncertain(true);setMessage("失败状态读取未确认；保留冻结请求，不再次推理。");}}
     finally{if(requestLive(generation))setBusy(false);}
+  }
+
+  async function cancelMachine() {
+    if(!working||working.status!=="ready")return;
+    const entries=pendingEntries();if(entries.length!==1){setMessage("请选择一条冻结机器请求取消。");return;}
+    const entry=structuredClone(entries[0]);const server=working.session.getSnapshot().server;
+    if(!server)return;
+    const generation=epoch.current;
+    try {
+      const value=await coreCommand<MachineCancelDto>("ui_state_cancel_machine",{body:{workspace_id:server.workspace_id,restore_epoch:server.restore_epoch,state_revision:server.state_revision,journal_id:entry.journal_id}});
+      if(!requestLive(generation))return;
+      if(value.journal_id!==entry.journal_id)throw new Error("cancel identity mismatch");
+      setMessage(value.cancel_requested?"本地 worker 取消请求已接收；尚未确认停止。等待调用回执后核对冻结状态，模型服务停止、用量与费用仍未知。":"没有确认可取消的当前本地 worker；冻结请求保留，核对实际终态，不重新推理。");
+    }catch{if(requestLive(generation))setMessage("取消回执未确认；冻结请求保留，不宣称已停止。");}
   }
 
   async function readCandidate(id: string) {
@@ -513,7 +527,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     {retestFailure?<RawReceiptButton label="复测失败脱敏诊断" payload={retestFailure}/>:null}
     {admissionRefusal?<section aria-label="恢复授权拒绝" data-context-admission-refusal={JSON.stringify(admissionRefusal)}><p>拒绝依据：恢复后的旧授权隔离。仅确认本次调用未执行；历史执行 UNVERIFIED。</p><RawReceiptButton label="恢复授权拒绝回执" payload={admissionRefusal}/></section>:null}
     {withheld ? <><p>先读取并核对已保存的扣留审计；审计未确认时保留执行屏障。</p><button disabled={busy||!withheldAudit||!working} onClick={()=>void finishWithheld()}>结束已执行但未发布的请求，保留草稿</button></> : null}
-    {working&&hasPendingOwner()?<button disabled={busy||working.status!=="ready"} onClick={()=>void inspectFailure()}>核对冻结机器请求的失败状态</button>:null}
+    {working&&hasPendingOwner()?<><button disabled={working.status!=="ready"} onClick={()=>void cancelMachine()}>请求取消当前本地 worker</button><button disabled={busy||working.status!=="ready"} onClick={()=>void inspectFailure()}>核对冻结机器请求的失败状态</button></>:null}
     {withheldAudit?.failed?<button disabled={busy||!working} onClick={()=>void finishWithheld()}>结束失败请求，保留草稿</button>:null}
     <h4>既有机器学习回执</h4>
     {working&&Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).length>1?

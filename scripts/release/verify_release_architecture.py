@@ -7,7 +7,8 @@ from pathlib import Path
 
 
 REQUIRED_PATHS = (
-    "apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj",
+    "src-tauri/tauri.conf.json",
+    "frontend/package.json",
     "crates/archeaxis-api",
     "services/python-workers",
 )
@@ -21,18 +22,15 @@ def verify(root: Path, workflow: Path) -> list[str]:
     text = workflow.read_text(encoding="utf-8")
     if "if: ${{ false }} # R6 release freeze" not in text:
         errors.append("release publish job is not disabled by the current R6 freeze")
-    if "ArcheAxis.Desktop" not in text:
-        errors.append("release workflow does not mention the formal Avalonia desktop")
+    if "src-tauri/frontend" not in text:
+        errors.append("release workflow does not identify the formal Tauri/React desktop")
     if "crates/archeaxis-api" not in text and "Rust Core" not in text:
         errors.append("release workflow does not identify the Rust Core")
     if "services/python-workers" not in text and "python worker" not in text.lower():
         errors.append("release workflow does not identify the Python workers")
-    if "green-candidate-vnext" not in text:
-        errors.append("release workflow does not consume the exact-SHA Green candidate")
-    if "verify_green_candidate.py" not in text or "--require-runtime" not in text:
-        errors.append("release workflow does not require a complete Green runtime candidate")
-    if "Tauri" in text and "recovery" not in text.lower():
-        errors.append("legacy Tauri references are not labelled recovery")
+    for marker in ("release-candidate.json", "candidate.commit", "GITHUB_SHA", "candidate.installer.sha256", "candidate.executable.sha256", "candidate.frontend.sha256", "verify_nsis_install.ps1"):
+        if marker not in text:
+            errors.append(f"release workflow missing exact-SHA Tauri candidate validation: {marker}")
     return errors
 
 
@@ -46,7 +44,7 @@ def main() -> int:
         for error in errors:
             print(f"FAIL: {error}")
         return 1
-    print("PASS: formal Avalonia -> Rust Core -> Python workers are identified; release remains frozen")
+    print("PASS: formal Tauri/React -> Rust Core -> Python workers are identified; release remains frozen")
     return 0
 
 

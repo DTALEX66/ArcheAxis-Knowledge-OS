@@ -226,6 +226,120 @@ async fn unfinished_durable_claim_refuses_before_worker_invocation() {
 }
 
 #[tokio::test]
+async fn journal_cancellation_is_attempt_bound_and_terminal_readback_follows_owned_cleanup() {
+    let (dir, router, id) = fixture().await;
+    std::fs::write(dir.path().join("answer.py"),"import os,time\nfrom pathlib import Path\nPath(__file__).with_suffix('.pid').write_text(str(os.getpid()))\ntime.sleep(30)\n").unwrap();
+    let response = router
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/workspace/ui-state")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let basis: serde_json::Value =
+        serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
+    let body = serde_json::json!({"knowledge_id":id,"question":"Synthetic cancellation","max_tokens":2048,"timeout_s":30,"client_request_id":"cancel_fixed"});
+    let entry = serde_json::json!({"journal_id":"cancel_fixed","owner_knowledge_id":id,"operation":"answer","origin_restore_epoch":"initial","body":body});
+    let payload = serde_json::json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"cancel_fixed":entry}}});
+    let response = router
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("PUT")
+                .uri("/api/v1/workspace/ui-state")
+                .header("content-type", "application/json")
+                .body(Body::from(payload.to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    let written: serde_json::Value =
+        serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
+    let query = serde_json::json!({"workspace_id":written["workspace_id"],"restore_epoch":written["restore_epoch"],"state_revision":written["state_revision"],"journal_id":"cancel_fixed"});
+    let run_router = router.clone();
+    let run_body = body.to_string();
+    let task =
+        tokio::spawn(async move { post(&run_router, "/api/v1/machine/answers", &run_body).await });
+    tokio::time::timeout(std::time::Duration::from_secs(5), async {
+        while !dir.path().join("answer.pid").exists() {
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
+    let mut stale = query.clone();
+    stale["state_revision"] = serde_json::json!(0);
+    assert_eq!(
+        post(
+            &router,
+            "/api/v1/workspace/ui-state/cancel-machine",
+            &stale.to_string()
+        )
+        .await
+        .0,
+        409
+    );
+    let (status, raw) = post(
+        &router,
+        "/api/v1/workspace/ui-state/cancel-machine",
+        &query.to_string(),
+    )
+    .await;
+    assert_eq!(status, 200, "{raw}");
+    let receipt: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    assert_eq!(receipt["cancel_requested"], true);
+    assert_eq!(receipt["execution_state"], "UNKNOWN");
+    assert_eq!(receipt["provider_stop_state"], "UNKNOWN");
+    assert_eq!(receipt["attempt"], 1);
+    assert_eq!(
+        tokio::time::timeout(std::time::Duration::from_secs(3), task)
+            .await
+            .unwrap()
+            .unwrap()
+            .0,
+        503
+    );
+    let (status, raw) = post(
+        &router,
+        "/api/v1/workspace/ui-state/machine-status",
+        &query.to_string(),
+    )
+    .await;
+    assert_eq!(status, 200);
+    let terminal: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    assert_eq!(terminal["status"], "CANCELLED_LOCAL_WORKER");
+    assert_eq!(terminal["can_clear"], true);
+    assert_eq!(terminal["provider_stop_state"], "UNKNOWN");
+    let (status, raw) = post(
+        &router,
+        "/api/v1/workspace/ui-state/cancel-machine",
+        &query.to_string(),
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&raw).unwrap()["cancel_requested"],
+        false
+    );
+    let mut clear = query;
+    clear["task_id"] = terminal["task_id"].clone();
+    assert_eq!(
+        post(
+            &router,
+            "/api/v1/workspace/ui-state/clear-machine",
+            &clear.to_string()
+        )
+        .await
+        .0,
+        200
+    );
+}
+
+#[tokio::test]
 async fn unfinished_retest_claim_cannot_be_bypassed_by_changing_knowledge_body() {
     use sha2::{Digest, Sha256};
     let hash = |s: &str| format!("{:x}", Sha256::digest(s.as_bytes()));

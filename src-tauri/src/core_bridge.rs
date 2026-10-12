@@ -56,6 +56,8 @@ pub enum Operation {
     AnchorCreate,
     AnchorResolve,
     DocumentExport,
+    DocumentPackageExport,
+    DocumentPackageImport,
     DocumentExportSave,
     Search,
     KnowledgeGet,
@@ -111,6 +113,7 @@ pub enum Operation {
     UiStateClearJob,
     UiStateClearMachine,
     UiStateMachineStatus,
+    UiStateCancelMachine,
     UiStateRecover,
     // Constructed only by version 2 host commands; strict v1 JSON cannot select it.
     #[serde(skip)]
@@ -384,6 +387,16 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
                 None,
             )
         }
+        DocumentPackageExport => (
+            "GET",
+            format!("/api/v1/documents/{}/package", id(p, "document_id")?),
+            None,
+        ),
+        DocumentPackageImport => (
+            "POST",
+            "/api/v1/document-packages/import".into(),
+            Some(p.clone()),
+        ),
         DocumentExport | DocumentExportSave => {
             let format = p
                 .get("format")
@@ -637,7 +650,7 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             ("GET", "/api/v1/workspace/ui-state".into(), None)
         }
         UiStateWrite | UiStateClearSaved | UiStateClearJob | UiStateClearMachine
-        | UiStateMachineStatus | UiStateRecover => {
+        | UiStateMachineStatus | UiStateCancelMachine | UiStateRecover => {
             if !p
                 .as_object()
                 .is_some_and(|object| object.len() == 1 && object.contains_key("body"))
@@ -652,6 +665,7 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
                 UiStateWrite => ("PUT", "/api/v1/workspace/ui-state"),
                 UiStateClearMachine => ("POST", "/api/v1/workspace/ui-state/clear-machine"),
                 UiStateMachineStatus => ("POST", "/api/v1/workspace/ui-state/machine-status"),
+                UiStateCancelMachine => ("POST", "/api/v1/workspace/ui-state/cancel-machine"),
                 UiStateClearJob => ("POST", "/api/v1/workspace/ui-state/clear-job"),
                 UiStateClearSaved => ("POST", "/api/v1/workspace/ui-state/clear-saved"),
                 UiStateRecover => ("POST", "/api/v1/workspace/ui-state/recover"),
@@ -847,7 +861,9 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
 }
 
 fn request_byte_limit(operation: &Operation) -> usize {
-    if matches!(operation, Operation::SourceImport) {
+    if matches!(operation, Operation::DocumentPackageImport) {
+        16 * 1024 * 1024
+    } else if matches!(operation, Operation::SourceImport) {
         90 * 1024 * 1024
     } else if matches!(
         operation,
@@ -855,6 +871,7 @@ fn request_byte_limit(operation: &Operation) -> usize {
             | Operation::UiStateClearSaved
             | Operation::UiStateClearMachine
             | Operation::UiStateMachineStatus
+            | Operation::UiStateCancelMachine
             | Operation::UiStateClearJob
             | Operation::UiStateRecover
     ) {

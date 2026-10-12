@@ -109,31 +109,26 @@
     "future_grants": "Recorded task scope only; new sessions must resolve their current request, not inherit unrestricted permissions"
   },
   "delivery_readback": {
-    "state": "MERGED_MAIN",
-    "observed_date": "2026-10-12",
+    "state": "MERGED_MAIN_BASELINE; current closure changes remain local until independently delivered",
+    "observed_date": "2026-10-13",
     "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
-    "pull_request": 184,
-    "source_snapshot_commit": "fca7e7150c0e356b832730531f942af3f49b1b95",
-    "source_snapshot_tree": "9956bf790352ec4bfbeb0b96b3faeef2e05dcf11",
-    "merge_commit": "1a322045490075e68e4d8b5f26bdd706d3e4089a",
+    "pull_request": 185,
+    "source_snapshot_commit": "a6608a05858a37bf8a154e014ad17b10fa2c9c60",
+    "source_snapshot_tree": "fdf16af1a84c1b3056a22b279e0db54f985e56e9",
+    "merge_commit": "23f22a4928c69db2667b76b9c5cb84a2cd24252c",
     "remote_branches": [
-      "main",
-      "codex/minimax-aaos-cosmic-ui-20261001"
+      "main"
     ],
-    "local_remote_main_identity": "MATCH_AT_RECORDED_OBSERVATION",
+    "local_remote_main_identity": "MATCH_AT_RECORDED_OBSERVATION; task branch is separate",
     "local_worktrees_equal": false,
     "preserved_dirty_worktrees": 9,
+    "cosmic_remote": "DELETED_BY_EXPLICIT_OWNER_REQUEST; local dirty donor retained",
     "ci": {
-      "head_sha": "fca7e7150c0e356b832730531f942af3f49b1b95",
-      "run_id": 38268676998,
-      "state": "PASS_REQUIRED_GATES",
-      "installer_lifecycle": "REAL_CI_WINDOWS_SYNTHETIC_MATERIAL"
+      "head_sha": "23f22a4928c69db2667b76b9c5cb84a2cd24252c",
+      "run_id": 38274429552,
+      "state": "PASS"
     },
-    "merge_sha_ci": {
-      "run_id": 38272440912,
-      "state": "IN_PROGRESS_AT_OBSERVATION; query live before claiming PASS"
-    },
-    "installed": "CI_WINDOWS_INSTALLED_JOURNEYS_PASS; Owner machine/Green acceptance NOT_GRANTED_OR_NOT_COMPLETED",
+    "installed": "No new Owner machine/Green qualification inferred from CI",
     "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
     "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
   },
@@ -201,6 +196,35 @@
       "ci": "UNVERIFIED; required a0-gates expected at push",
       "latest_metadata_sha": "resolve actual HEAD/remote refs; payload commit is evidence identity",
       "product_execution": "REMAINS_PAUSED"
+    },
+    "delivery_readback_20261012_pr184": {
+      "state": "MERGED_MAIN",
+      "observed_date": "2026-10-12",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "pull_request": 184,
+      "source_snapshot_commit": "fca7e7150c0e356b832730531f942af3f49b1b95",
+      "source_snapshot_tree": "9956bf790352ec4bfbeb0b96b3faeef2e05dcf11",
+      "merge_commit": "1a322045490075e68e4d8b5f26bdd706d3e4089a",
+      "remote_branches": [
+        "main",
+        "codex/minimax-aaos-cosmic-ui-20261001"
+      ],
+      "local_remote_main_identity": "MATCH_AT_RECORDED_OBSERVATION",
+      "local_worktrees_equal": false,
+      "preserved_dirty_worktrees": 9,
+      "ci": {
+        "head_sha": "fca7e7150c0e356b832730531f942af3f49b1b95",
+        "run_id": 38268676998,
+        "state": "PASS_REQUIRED_GATES",
+        "installer_lifecycle": "REAL_CI_WINDOWS_SYNTHETIC_MATERIAL"
+      },
+      "merge_sha_ci": {
+        "run_id": 38272440912,
+        "state": "IN_PROGRESS_AT_OBSERVATION; query live before claiming PASS"
+      },
+      "installed": "CI_WINDOWS_INSTALLED_JOURNEYS_PASS; Owner machine/Green acceptance NOT_GRANTED_OR_NOT_COMPLETED",
+      "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
+      "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
     }
   }
 }

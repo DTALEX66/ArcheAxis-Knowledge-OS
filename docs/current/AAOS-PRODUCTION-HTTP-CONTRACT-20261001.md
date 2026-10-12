@@ -209,7 +209,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (93 pairs in a `text_worker` launch)
+## 3. Route inventory (96 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -314,6 +314,10 @@ These additions reflect the current Rust handlers and generated `core-document.s
 | 42 | `POST /api/v1/documents/{document_id}/checks/execute` | **human only** | Explicit version/hash-bound attempt, separate from pending application and save. Body check_id, expected_content_sha256, optional retry_of_task_id; no arbitrary model/provider. Unconfigured execution returns 201 durable failed/not_configured with execution_verified=false and execution_state=not_executed. A text-worker launch accepts owner-selected document_check_config from the fixed data-root config/document-check.json; invalid configuration remains a durable failed attempt and ordinary save remains available. Configured execution uses the same product Python and server-selected bounded provider/model, persists actual engine/retrieval receipts, and retries reference the latest failed attempt. Material preparation failures persist without invoking the worker; version/SHA and permission failures reject before claiming. Fidelity originals currently support bounded UTF-8 text only; real configured cloud acceptance is not established by transport fixtures. |
 
 `AnchorBody` is `{revision, position, checksum?}`. For a UTF-8 text locator, `start`/`end` are byte offsets and `checksum` identifies the selected slice; Core validates the bytes and boundaries. A source revision alone is not proof of a located page or text range.
+
+Document-check cloud dispatch (2026-10-13): each search, public-result fetch and model operation requires a bounded, one-use Core dispatch approval, bound to attempt, confirmed material plan, operation sequence, destination and outgoing material digest. Core rechecks the current version/hash, withdrawal and local-only constraints before approving. Missing, stale, mismatched or timed-out handshakes fail closed; no SDK retry or automatic local-to-cloud fallback is added. The approval decision is the authorization linearization point: withdrawal committed before that decision prevents the operation; an already approved in-flight network operation cannot be recalled. Withdrawal blocks subsequent dispatch decisions and prevents a successful result being published. This does not claim physical atomicity between approval and the first network byte. Basic saving and final human knowledge selection remain independent. Synthetic transport tests establish this protocol behavior, not live cloud-provider acceptance.
+
+The confirmed plan includes `retrieval_scope` (`public_search_results_only`, GET, bounded page count, no document body, redirects refused). Search query and encoded search URL are checked exactly by Core. Before the model call, a bounded Core-owned temporary handshake carries the actual prompt/images and source text: Core recalculates its canonical JSON digest and reconstructs the entire prompt from the confirmed saved text, original bytes, recognition output and approved public-fetch sources; changed or additional saved/private text is refused. PNG/JPEG attachments must match original bytes exactly. PDF raster pixels and public search parsing/extraction remain trusted worker transformations; Core checks their input binding, raster byte/count bounds, actual image digests and source association without claiming independent fidelity or fact verification. The owned temporary frames are removed with the owned child staging directory and are not published or logged. Provider SDK transport behavior remains provider-specific and unverified until actual authorized provider qualification; `num_retries=0` does not certify every SDK's internal network behavior.
 
 ### Search
 
@@ -543,10 +547,10 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 67 projection method/path pairs (57 unconditional mounts, ten dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 93 addresses (66 base projection method/path pairs + 27 runtime method/path pairs) | All routes above are served. |
+| **no** `text_worker` | 69 projection method/path pairs (59 unconditional mounts, ten dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 96 addresses (68 base projection method/path pairs + 28 runtime method/path pairs) | All routes above are served. |
 
-The runtime builder carries **26** routes, mounted there rather than with the projections because
+The runtime builder carries **27** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
@@ -749,11 +753,11 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 66 base projection pairs plus 27 runtime pairs total 93. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 68 base projection pairs plus 28 runtime pairs total 96. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
-The 27 additional method/path pairs below are registered in the current router source. This is source inspection, not runtime or installed qualification. Historical 2026-10-01/05/07 receipts above retain their measured counts. Authentication guards, request bodies and responses remain defined by the handler and generated Core contract; no new permission is granted by this index. Current projection/runtime counts are 57/26 mounts and 67/93 method/path pairs for projection-only/text-worker launches.
+The 27 additional method/path pairs below are registered in the current router source. This is source inspection, not runtime or installed qualification. Historical 2026-10-01/05/07 receipts above retain their measured counts. Authentication guards, request bodies and responses remain defined by the handler and generated Core contract; no new permission is granted by this index. Current projection/runtime counts are 59/27 mounts and 69/96 method/path pairs for projection-only/text-worker launches.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
@@ -796,3 +800,21 @@ These four current-source routes extend the text-worker inventory to 93 pairs. T
 | 128 | `POST /api/v1/machine/inventory` | any token | Empty input; bounded local inventory observation without inference or loading. Listing does not qualify inference; failed counts remain unknown. |
 | 129 | `POST /api/v1/workspace/ui-state/clear-machine` | Human-only | Exact frozen journal and workspace/epoch/revision CAS; admission and active-execution guards retain unresolved claims. |
 | 130 | `POST /api/v1/workspace/ui-state/machine-status` | Human-only | Read exact frozen journal and current attempt-bound failure audit. UNKNOWN does not permit repeat inference or clearance. |
+
+
+## 12. 2026-10-13 bounded ordinary-document package
+
+Current-source inventory is 96 method/path pairs. The two-file Markdown projection remains reference-only; this separate package includes the bound source and canonical expression media CAS bytes, with a combined 2 MiB original-byte / 16 MiB JSON / 128-object limit. It is not a workspace archive, live permission migration, engine execution or knowledge approval.
+
+| # | Method/path | Actor | Contract |
+| --- | --- | --- | --- |
+| 131 | `GET /api/v1/documents/{document_id}/package` | any token | Snapshot, unknown editor nodes and attributes, canonical bound source/media bytes and historical anchor metadata. Every object is hash-verified before export; missing or over-budget data fails instead of silently omitting media. |
+| 132 | `POST /api/v1/document-packages/import` | Human-only | Explicit request_id/package; all bytes and structure validated. Single Store transaction registers sources and a new version-1 ordinary Document, never overwrites an existing document or admits knowledge. Same request/package returns its original receipt; changed package on that request is rejected. Historical anchors remain inert metadata; source IDs are mapped to local CAS identity. Active grant/AI-governance document namespaces are rejected. Rollback can leave immutable unregistered CAS bytes, never partial registered sources/documents. |
+
+## 13. 2026-10-13 current-source owned worker cancellation
+
+Current projection/runtime counts are 59/27 mounts and 69/96 method/path pairs. Earlier dated counts remain historical. Cancellation reception is not proof of provider termination; no model service is stopped. The current attempt must produce a durable failure audit after owned worker cleanup before `CANCELLED_LOCAL_WORKER` permits explicit journal clearance. Dropped transports or unconfirmed cleanup retain the unfinished claim as UNKNOWN.
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| 133 | `POST /api/v1/workspace/ui-state/cancel-machine` | Human-only | Exact frozen journal CAS and restore epoch selects the current attempt's owned Cancellation token. Response is only cancel_requested; provider_stop_state and execution_state remain UNKNOWN until separate terminal readback. |

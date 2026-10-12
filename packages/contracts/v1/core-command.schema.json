@@ -26,6 +26,8 @@
         "document_version",
         "document_restore",
         "document_export",
+        "document_package_export",
+        "document_package_import",
         "document_export_save",
         "jobs_get",
         "job_quality",
@@ -89,7 +91,8 @@
         "machine_configuration",
         "machine_inventory",
         "ui_state_clear_machine",
-        "ui_state_machine_status"
+        "ui_state_machine_status",
+        "ui_state_cancel_machine"
       ]
     },
     "payload": {

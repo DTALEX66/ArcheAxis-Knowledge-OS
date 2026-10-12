@@ -208,7 +208,7 @@ fn run_mode(
         }
     };
     drop(child);
-    if inventory {
+    {
         let drain_deadline = Instant::now() + Duration::from_secs(1);
         while !(writer.is_finished() && stdout.is_finished() && stderr.is_finished()) {
             if Instant::now() >= drain_deadline {
@@ -268,9 +268,19 @@ fn run_mode(
                     let _ = stderr.join();
                 }
                 if !all_finished {
-                    return Err("inventory reader cleanup unverified".into());
+                    return Err(if inventory {
+                        "inventory reader cleanup unverified"
+                    } else {
+                        "derived reader cleanup unverified"
+                    }
+                    .into());
                 }
-                return Err("inventory worker pipe drain timed out".into());
+                return Err(if inventory {
+                    "inventory worker pipe drain timed out"
+                } else {
+                    "derived worker pipe drain timed out"
+                }
+                .into());
             }
             thread::sleep(Duration::from_millis(5));
         }

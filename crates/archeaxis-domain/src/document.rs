@@ -230,13 +230,26 @@ pub fn create_optional_with_request(
     editor: Value,
     request_id: Option<&str>,
 ) -> Result<Value, Error> {
+    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+    let value = create_optional_tx(&tx, source_id, revision, title, editor, request_id)?;
+    tx.commit()?;
+    Ok(value)
+}
+pub fn create_optional_tx(
+    tx: &rusqlite::Transaction<'_>,
+    source_id: Option<&str>,
+    revision: Option<&str>,
+    title: &str,
+    editor: Value,
+    request_id: Option<&str>,
+) -> Result<Value, Error> {
     if title.len() > 1024 {
         return Err(Error::Invalid("title exceeds limit"));
     }
     match (source_id, revision) {
         (None, None) => {}
         (Some(source_id), Some(revision)) => {
-            let digest: Option<String> = conn
+            let digest: Option<String> = tx
                 .query_row(
                     "SELECT sha256 FROM sources WHERE source_id=?1",
                     [source_id],
@@ -248,7 +261,7 @@ pub fn create_optional_with_request(
                     "source revision must match its immutable CAS hash",
                 ));
             }
-            archeaxis_store_sqlite::raw_objects::read(conn, revision)?;
+            archeaxis_store_sqlite::raw_objects::read(tx, revision)?;
         }
         _ => {
             return Err(Error::Invalid(
@@ -272,11 +285,10 @@ pub fn create_optional_with_request(
             hex::encode(Sha256::digest(request_id.as_bytes()))
         )
     } else {
-        conn.query_row("SELECT 'doc_' || lower(hex(randomblob(16)))", [], |r| {
+        tx.query_row("SELECT 'doc_' || lower(hex(randomblob(16)))", [], |r| {
             r.get::<_, String>(0)
         })?
     };
-    let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
     if request_id.is_some() {
         let exists: bool = tx.query_row(
             "SELECT EXISTS(SELECT 1 FROM documents WHERE document_id=?1)",
@@ -297,9 +309,8 @@ pub fn create_optional_with_request(
         }
     }
     tx.execute("INSERT INTO documents(document_id,source_id,source_revision,title,current_version) VALUES(?1,?2,?3,?4,0)",params![id,source_id,revision,title])?;
-    append(&tx, &id, 0, editor, None)?;
-    tx.commit()?;
-    read(conn, &id, None)
+    append(tx, &id, 0, editor, None)?;
+    read(tx, &id, None)
 }
 
 pub fn save(conn: &mut Connection, id: &str, expected: i64, editor: Value) -> Result<Value, Error> {
@@ -1139,6 +1150,7 @@ pub fn preview_check_egress(
     let plan = json!({"schema":"archeaxis.document-check-egress/v1","document_id":id,"version":snapshot["version"],"content_sha256":expected_sha,"restore_epoch":restore_epoch,
         "request_check_id":check_id,"purpose":request["dimension"],"configuration":config,"scope":if selected_text.is_some(){"selected_text"}else{"full_saved_snapshot"},
         "model_destination":endpoint,"search_destination":if query.is_some(){json!("https://lite.duckduckgo.com/lite/")}else{Value::Null},
+        "retrieval_scope":if query.is_some(){json!({"scope":"public_search_results_only","method":"GET","document_body":"not_sent","redirects":"refused","selection":"trusted_search_result_parser","maximum_pages":config["search_limit"]})}else{Value::Null},
         "document_text":{"text":text,"bytes":text.len(),"sha256":hex::encode(Sha256::digest(text.as_bytes()))},
         "original":original,"recognition":recognition,"search_query":query,"usage":"unknown","cost":"unknown"});
     // serde_json's ordered object representation provides deterministic UTF-8 JSON.

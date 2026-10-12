@@ -2,6 +2,7 @@
 //! Explicit local Core configuration, not a user-supplied executable endpoint.
 use crate::attempts;
 mod derived;
+mod dispatch;
 mod health;
 mod inventory;
 use archeaxis_sidecar_protocol::worker::{
@@ -30,6 +31,9 @@ impl Cancellation {
     }
     pub fn cancel(&self) {
         self.0.store(true, Ordering::Relaxed);
+    }
+    pub fn is_cancelled(&self) -> bool {
+        self.0.load(Ordering::Relaxed)
     }
 }
 
@@ -178,6 +182,26 @@ impl Executor {
         timeout: Duration,
         model: Option<String>,
     ) -> Result<serde_json::Value, String> {
+        self.machine_answer_cancellable(
+            context,
+            question,
+            max_tokens,
+            timeout,
+            model,
+            Cancellation::new(),
+        )
+        .await
+    }
+
+    pub async fn machine_answer_cancellable(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+        model: Option<String>,
+        cancel: Cancellation,
+    ) -> Result<serde_json::Value, String> {
         const MAX_CONTEXT: usize = 128_000;
         // Keep the existing --question argv protocol inside Windows command-line bounds.
         const MAX_QUESTION: usize = 8_192;
@@ -201,6 +225,9 @@ impl Executor {
             return Err("invalid machine answer budget or input".into());
         }
         let deadline = Instant::now() + timeout;
+        if cancel.is_cancelled() {
+            return Err("machine worker cancelled".into());
+        }
         if let Some(selected) = &model {
             let inventory = tokio::time::timeout(timeout, self.machine_inventory())
                 .await
@@ -224,6 +251,9 @@ impl Executor {
         let python = self.python.clone();
         let staging = self.staging.clone();
         tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
+            if cancel.is_cancelled() {
+                return Err("machine worker cancelled".into());
+            }
             if Instant::now() >= deadline {
                 return Err("machine selection budget exhausted".into());
             }
@@ -328,6 +358,9 @@ impl Executor {
                 let mut exit_status = None;
                 let mut drain_deadline = None;
                 loop {
+                    if cancel.is_cancelled() {
+                        return Err("machine worker cancelled".into());
+                    }
                     while let Ok((is_stdout, result)) = receive.try_recv() {
                         let bytes = result?;
                         if is_stdout {
@@ -438,6 +471,9 @@ impl Executor {
             }
             if cleanup_failed || incomplete {
                 return Err("machine worker cleanup incomplete".into());
+            }
+            if cancel.is_cancelled() {
+                return Err("machine worker cancelled".into());
             }
             result
         })
@@ -1238,6 +1274,7 @@ impl Executor {
                 _ => "egress_revalidation_failed".to_owned(),
             })?;
         let check_store = self.store.clone();
+        let dispatch_staging = self.staging.clone();
         let runtime = tokio::runtime::Handle::current();
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
@@ -1257,8 +1294,21 @@ impl Executor {
                     })
             };
             revalidate()?;
+            let dispatch_directory =
+                tempfile::tempdir_in(&dispatch_staging).map_err(|_| "dispatch_unavailable")?;
+            let mut dispatch_sequence = dispatch::State::default();
             let mut command = Command::new(&python);
             command
+                .env(
+                    "ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR",
+                    dispatch_directory.path(),
+                )
+                .env(
+                    "ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH",
+                    request["egress_sha256"]
+                        .as_str()
+                        .ok_or("dispatch_identity_missing")?,
+                )
                 .arg("-B")
                 .arg(worker)
                 .arg("--document-check")
@@ -1297,6 +1347,12 @@ impl Executor {
             let result = (|| -> Result<serde_json::Value, String> {
                 loop {
                     revalidate()?;
+                    dispatch::decide(
+                        dispatch_directory.path(),
+                        &mut dispatch_sequence,
+                        &request,
+                        &revalidate,
+                    )?;
                     if Instant::now() >= deadline {
                         return Err("worker_timeout".into());
                     }
@@ -1316,6 +1372,12 @@ impl Executor {
                 }
                 let bytes = loop {
                     revalidate()?;
+                    dispatch::decide(
+                        dispatch_directory.path(),
+                        &mut dispatch_sequence,
+                        &request,
+                        &revalidate,
+                    )?;
                     if Instant::now() >= deadline {
                         return Err("worker_timeout".into());
                     }

@@ -26,6 +26,8 @@ RUNBOOK = REPO / "docs/current/AAOS-BACKEND-ACCEPTANCE-RUNBOOK-20261001.md"
 # Contract section number -> (artifact, what the artifact establishes). Keyed by number rather
 # than title, because the titles carry suffixes that change as the document is edited.
 COVERAGE: dict[str, tuple[str, str]] = {
+    "12": ("crates/archeaxis-api/tests/document_package_api.rs", "human-only bounded package import, source preservation and idempotency"),
+    "13": ("crates/archeaxis-api/tests/contract_machine_answer.rs", "attempt-bound cancellation and durable terminal readback after owned cleanup"),
     "1": ("crates/archeaxis-api/tests/contract_process_model.rs",
           "readiness line, IPv4-only binding, port precedence, exit code 2 for every launch-input "
           "failure"),

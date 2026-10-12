@@ -1235,3 +1235,9 @@ webdriver-7ac9dc0fa967 工程PASS：两次真实Core持久化后的合成ACK丢�
 同一 dirty patch `43b726c512709ea528bf66a7e7f571968d5cb3a0320c0cf80fa719efb7d6e050`：Rust workspace `0334da7bb06a` 766 项 / 165 suite PASS；完整前端 `5f4b761dd65e` 127 文件 / 1230 项 PASS（与重编译串行，2 workers）；TypeScript `c763b6f78614`、contracts `3a94507e7974` PASS。定向 Core/SQLite 是 SYNTHETIC worker 的实际本地执行，前端 mounted fixture 是 SIMULATED。此前并发重编译时前端 `b2debf915847` 两项超时仍保留 FAIL，不追认为 PASS。
 
 [本轮回执](receipts/AAOS-MACHINE-FAILURE-COLD-RECOVERY-20261012.json) 保留失败轮次与精确摘要。专用 status/clear 和 UI 冷恢复源码已完成；机器取消、当前 native 构建运行和真实模型失败仍未验证，provider 停算和缺失计量保持 UNKNOWN。下一切片先完成机器取消，再绑定当前 native 资格，避免反复构建旧增量。文档在测试后更新，不声称文档字节已被该源码快照测试。
+
+### 2026-10-13 本对话未解决事项统一推进
+
+Owner 要求梳理全部未解决问题并修复。本轮在 main `23f22a49…` 基础上，隔离并行落实机器取消与 owned 管道收尾、逐次外发 Core 授权、文档便携恢复/媒体 CAS 往返；根工作区补现有能力目录的模型与工具职责。视频已有有界帧实现，当前缺口是资格与证据，不能重复造连续视频理解功能。当前集成与正式应用实测仍在执行，不以旧 PASS 资格新代码。问题、阶段与边界集中记入[本对话修复回执](receipts/AAOS-CONVERSATION-CLOSURE-20261013.json)，它不是新的执行队列。
+
+主线 CI `38274429552` 已动态核实 completed/success；Owner 要求删除的 cosmic 远程分支已删除，观察时远程仅 main；本地 dirty 供体和九个旧工作区保留。上述交付状态不改变产品整体 PARTIAL，也不替代实际模型、安装、Owner 或学习效果验收。

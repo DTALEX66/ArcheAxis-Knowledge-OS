@@ -31,3 +31,4 @@ pub mod vault;
 pub mod vault_members;
 
 pub use source::ImportOutcome;
+pub mod portable_document;

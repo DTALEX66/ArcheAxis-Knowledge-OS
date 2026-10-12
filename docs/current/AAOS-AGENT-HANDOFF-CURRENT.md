@@ -18,7 +18,7 @@
 
 公开源码已在 PR #184 合并至 main；合并 SHA `1a322045490075e68e4d8b5f26bdd706d3e4089a`，候选 SHA `fca7e7150c0e356b832730531f942af3f49b1b95` 的必需 CI 运行 `38268676998` 通过，包括 CI Windows 实际安装旅程。候选树与合并树一致。这是记录时点，最新 HEAD/ref/CI 必须现场读回。
 
-`codex/Audit` 已删除；不再作为接手目标。9 个含未提交修改的历史工作区与 cosmic Avalonia 供体分支仍保留，不能认定与 main 一致，也不能机械并入。完整状态、保留理由和换软件接续步骤见[仓库接续记录](AAOS-REPOSITORY-CONTINUITY-20261012.md)。
+`codex/Audit` 已删除；不再作为接手目标。Owner 随后明确要求删除的 cosmic 远程分支亦已删除；2026-10-13 回读远程仅有 main。9 个含未提交修改的历史工作区与 cosmic 本地供体工作区仍保留，不能认定与 main 一致，也不能机械并入。完整状态、保留理由和换软件接续步骤见[仓库接续记录](AAOS-REPOSITORY-CONTINUITY-20261012.md)。
 
 本地测试、候选 exact-SHA CI、合并 SHA CI、CI 安装旅程、本机安装/Green 和 Owner 验收分别记账。合并及 CI PASS 不完成整个产品，也不授予新会话任意发布、模型切换或私有数据外发权限。
 

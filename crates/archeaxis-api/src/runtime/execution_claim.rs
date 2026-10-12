@@ -7,6 +7,19 @@ const MAX_ATTEMPTS: u64 = 3;
 fn key(id: &str) -> String {
     format!("machine_execution_claim_{}", super::withheld::digest(id))
 }
+pub(super) fn attempt(conn: &Connection, id: &str) -> rusqlite::Result<u64> {
+    let raw: String = conn.query_row(
+        "SELECT value FROM workspace_meta WHERE key=?1",
+        [key(id)],
+        |r| r.get(0),
+    )?;
+    let claim: Value = serde_json::from_str(&raw)
+        .map_err(|_| rusqlite::Error::InvalidParameterName("unreadable execution claim".into()))?;
+    claim["attempt"]
+        .as_u64()
+        .filter(|n| (1..=MAX_ATTEMPTS).contains(n))
+        .ok_or_else(|| rusqlite::Error::InvalidParameterName("unknown execution attempt".into()))
+}
 
 pub(super) fn admit(conn: &Connection, id: &str, request: &Value) -> rusqlite::Result<()> {
     let key = key(id);
@@ -54,6 +67,7 @@ pub(super) fn record_failure(conn: &Connection, id: &str, error: &str) -> rusqli
     let confirmed = matches!(
         error,
         "invalid machine answer budget or input"
+            | "machine worker cancelled"
             | "machine selection verification timed out"
             | "machine selection is not verified in local inventory"
             | "machine selection budget exhausted"

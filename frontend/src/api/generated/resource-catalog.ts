@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "b42aa04a8007befd04c427dc3d53138b542da552ae1c03f71c106e9009c088ea"
+      "sha256": "d42b03c9aec78af39ebef5d1bd83cda7dcdb11023e12abce0f6b66eb1d027f69"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -228,7 +228,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "Cargo.lock",
-        "sha256": "8cb82278834c9c1ec20fc27529810270d1d8157cfbe398c991d223f95e3e849b"
+        "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
       },
       {
         "path": "src-tauri/Cargo.lock",
@@ -1292,11 +1292,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "95c22566814795592250175e4f990897c2dd60dc3d8d84d8dcee1692544b05a3"
+                "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "5f2d133c9590393135847ce8f62361f856e6d5a5e5d7ef42c5ba8ce6ec55bb6a"
+                "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
               }
             ]
           },
@@ -1313,7 +1313,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "Cargo.lock",
-                "sha256": "8cb82278834c9c1ec20fc27529810270d1d8157cfbe398c991d223f95e3e849b"
+                "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
               }
             ]
           },
@@ -1718,11 +1718,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "95c22566814795592250175e4f990897c2dd60dc3d8d84d8dcee1692544b05a3"
+                "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "5f2d133c9590393135847ce8f62361f856e6d5a5e5d7ef42c5ba8ce6ec55bb6a"
+                "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
               }
             ]
           },
@@ -1739,7 +1739,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "Cargo.lock",
-                "sha256": "8cb82278834c9c1ec20fc27529810270d1d8157cfbe398c991d223f95e3e849b"
+                "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
               }
             ]
           },

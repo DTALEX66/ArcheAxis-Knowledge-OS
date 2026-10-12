@@ -12,9 +12,13 @@
 - 公开源码、合同、权威索引及公开回执已进入 main；本地 runtime、数据库、模型文件、raw 测试材料、凭据和私人软件配置不上传。公开回执中的本地路径是证据 locator，不保证云端存在。
 - 后续治理元数据的最新 SHA 由 `git rev-parse HEAD` 和远程 ref 读取；本文件不自引用自己的提交 SHA。
 
-## 剩余分支为何保留
+## 分支清理与本地资料保留
 
 已清理 25 个远程旧分支和 2 个本地分支，包括已合并的 `codex/Audit`。观察时远程只剩 `main` 与 `codex/minimax-aaos-cosmic-ui-20261001`。
+
+2026-10-13 更新：Owner 明确要求「删了吧」后，cosmic 远程分支已删除，PR #158 已关闭；本轮 `git ls-remote --heads origin` 回读仅有 `main`，SHA `23f22a4928c69db2667b76b9c5cb84a2cd24252c`。本地 cosmic 供体工作区新增的 `AGENTS.md`、`README.md` 未提交差异保留，不把删除远程 ref 扩大为覆盖本地资料。当前修复使用独立隔离工作区；修复分支发布后需再次读取远程，不能把本次观察当永久状态。
+
+[PR #185](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/185) 权威接续已合并，合并 SHA 为上述 `23f22a49…`；[该 SHA CI 38274429552](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38274429552) 已动态核实 `completed/success`。这是该 SHA 的 CI 资格，不能覆盖随后未提交的取消、外发、便携恢复和职责界面增量。
 
 cosmic 分支保留 2 个唯一提交 `fec7a18f`、`627e74ff`，涉及 14 个历史 Avalonia 宿主/测试文件。它提供背景、玻璃界面与配色约束参考；正式宿主是 `frontend/` 和 `src-tauri/` 的 Tauri/React。直接合并会把冻结供体实现和旧测试假设带入当前产品，不能据分支名认为它是正式 cosmic 主题升级。需要复用时提取具体视觉行为并按当前宿主验证；此分支不是运行依赖或活动执行队列。
 

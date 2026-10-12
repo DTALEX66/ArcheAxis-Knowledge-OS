@@ -28,10 +28,10 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: "3.12"
-      - name: Verify formal Avalonia release architecture
+      - name: Verify formal Tauri release architecture
         run: python scripts/release/verify_release_architecture.py --root . --workflow .github/workflows/release.yml
-        # Formal chain: apps/ArcheAxis.Desktop -> crates/archeaxis-api -> services/python-workers.
-        # src-tauri/frontend remain recovery assets and are never the formal desktop identity.
+        # Formal chain: src-tauri/frontend -> crates/archeaxis-api -> services/python-workers.
+        # apps/ArcheAxis.Desktop is a historical behavior donor under SUP-022.
       - name: Require tag target to equal main
         shell: pwsh
         run: |
@@ -93,24 +93,6 @@ jobs:
           cache-dependency-glob: uv.lock
       - name: Install locked build tooling
         run: uv sync --frozen
-      - name: Download and verify exact-SHA Avalonia Green candidate
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          $greenStage = '.project-local/task-runtime/green-candidate-vnext'
-          New-Item -ItemType Directory -Force $greenStage | Out-Null
-          gh run download ${{ steps.require_ci.outputs.verification_run_id }} --name green-candidate-vnext --dir $greenStage
-          $greenZip = @(Get-ChildItem -LiteralPath $greenStage -Filter '*.zip' -File)
-          if ($greenZip.Count -ne 1) { throw "expected one Avalonia Green candidate ZIP, found $($greenZip.Count)" }
-          $greenExtract = Join-Path $greenStage 'expanded'
-          Expand-Archive -LiteralPath $greenZip[0].FullName -DestinationPath $greenExtract -Force
-          $greenCandidate = @(Get-ChildItem -LiteralPath $greenExtract -Directory)
-          if ($greenCandidate.Count -ne 1) { throw "expected one expanded Green candidate directory" }
-          $greenTree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
-          python -B scripts/release/verify_green_candidate.py $greenCandidate[0].FullName --require-runtime `
-            --expected-commit $env:GITHUB_SHA --expected-tree $greenTree
-          if ($LASTEXITCODE -ne 0) { throw 'exact-SHA Avalonia Green candidate verification failed' }
       - name: Resolve and verify release version
         id: resolve_version
         shell: pwsh

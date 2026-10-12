@@ -26,6 +26,33 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/workspace/ui-state/cancel-machine:
+    post:
+      operationId: cancelFrozenMachineWorker
+      description: Human-only exact frozen journal CAS/epoch/current attempt cancellation request. Only this runtime's owned worker is targeted; shared model services are never stopped. Acceptance is not terminal proof. Confirmed local worker cancellation is read through machine-status; provider stop, usage and cost remain UNKNOWN. Missing active worker retains the durable claim.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch, state_revision, journal_id]
+              properties:
+                workspace_id: {type: string}
+                restore_epoch: {type: string}
+                state_revision: {type: integer}
+                journal_id: {type: string}
+      responses:
+        "200":
+          description: Cancellation request or no confirmed current owned worker; never provider stopped proof
+          content:
+            application/json:
+              schema: {$ref: 'core-document.schema.json#/$defs/MachineCancelDto'}
+        "403": {description: Human identity required}
+        "409": {description: Working state CAS changed}
+        "422": {description: Missing or invalid frozen journal}
+        "503": {description: Cancellation unconfirmed; journal retained}
   /api/v1/workspace/ui-state/machine-status:
     post:
       operationId: readFrozenMachineStatus
@@ -318,6 +345,20 @@ paths:
         "403": {description: Machine actor cannot mutate this resource}
         "409": {description: Stale version or conflicting canonical identity}
         "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/package:
+    get:
+      operationId: exportOrdinaryDocumentPackage
+      description: "Bounded snapshot with bound source/expression media CAS bytes; historical anchors are metadata, not registered authority."
+      responses:
+        "200": {description: "archeaxis.document-package/v1; combined raw bytes <=2 MiB, JSON <=16 MiB"}
+  /api/v1/document-packages/import:
+    post:
+      operationId: importOrdinaryDocumentPackage
+      description: "Human explicit save into a new ordinary Document; idempotent request_id, all references in one transaction. No knowledge approval or grant migration."
+      responses:
+        "201": {description: "archeaxis.document-package-import/v1, persisted version readback and source mapping"}
+        "400": {description: "Changed request binding, corrupt/hash-mismatched/oversized package or unsupported governance metadata"}
+        "403": {description: "Human role required"}
   /api/v1/documents/{document_id}/export:
     parameters:
       - name: document_id

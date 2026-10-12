@@ -6,12 +6,45 @@ import importlib.util
 import json
 import subprocess
 import sys
+import threading
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2] if "tests" in Path(__file__).parts else Path.cwd()
+
+
+def test_dispatch_without_core_fails_closed(worker, monkeypatch):
+    monkeypatch.setattr(worker, "_DISPATCH_REQUIRED", True)
+    monkeypatch.delenv("ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR", raising=False)
+    with pytest.raises(worker.CheckExecutionError, match="dispatch_unavailable"):
+        worker.authorize_dispatch("model", "https://fixture.invalid/v1", {"payload": "synthetic"})
+
+
+def test_dispatch_binds_exact_operation_and_consumes_one_approval(worker, monkeypatch, tmp_path):
+    monkeypatch.setattr(worker, "_DISPATCH_REQUIRED", True)
+    monkeypatch.setattr(worker, "_DISPATCH_IDENTITY", {"attempt_id":"synthetic", "egress_sha256":"a" * 64})
+    monkeypatch.setenv("ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR", str(tmp_path))
+    result = []
+    def call():
+        worker.authorize_dispatch("model", "https://fixture.invalid/v1", {"payload": "synthetic"})
+        result.append("approved")
+    thread = threading.Thread(target=call)
+    thread.start()
+    import time
+    deadline = time.monotonic() + 2
+    while not (tmp_path / "request.json").exists() and time.monotonic() < deadline:
+        time.sleep(.01)
+    assert result == []
+    frame = json.loads((tmp_path / "request.json").read_text())
+    assert frame["material_sha256"] == hashlib.sha256(b'{"payload":"synthetic"}').hexdigest()
+    assert frame["material"] == {"payload": "synthetic"}
+    assert frame["sequence"] == 1 and frame["destination"] == "https://fixture.invalid/v1"
+    (tmp_path / "approval.json").write_text(json.dumps(frame))
+    thread.join(2)
+    assert not thread.is_alive() and result == ["approved"]
+    assert not (tmp_path / "approval.json").exists()
 
 
 def load(path, name):
@@ -32,6 +65,7 @@ def worker(monkeypatch):
 
     def fetch(url, *, policy):
         assert isinstance(policy, http.SafeHTTPPolicy)
+        assert policy.max_redirects == 0, "redirects must not bypass a new Core dispatch decision"
         body = (
             b'<a class="result-link" href="https://example.org/background">Background</a>'
             if "duckduckgo" in url

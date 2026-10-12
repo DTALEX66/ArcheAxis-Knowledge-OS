@@ -46,6 +46,7 @@ READ_OPERATIONS = frozenset(
         "machine_task_get",
         "machine_contexts_list",
         "ui_state_read",
+        "ui_state_machine_status",
         "workspace_backups",
     }
 )
@@ -771,6 +772,8 @@ def run_grouped_loop(
     review_ack_loss=False,
     multi_review_ack_loss=False,
     machine_ack_loss=False,
+    machine_cancel=False,
+    closure_features=False,
     selected_model=None,
     selected_max_tokens=None,
     accept_navigation_alert=None,
@@ -1044,7 +1047,7 @@ def run_grouped_loop(
         {"id": "review", "status": "PASS", "state": learning, "history": history}
     )
     screenshot("grouped-learning-review.png")
-    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart)
+    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart, machine_cancel)
     result["stages"].append(ai_stage)
     if machine_ack_loss:
         require_machine_ack_recovery(ai_stage)
@@ -1131,6 +1134,9 @@ def run_grouped_loop(
         result["actual_ai_requirement"] = "IN_PROGRESS"
         assert_actual_ai_chain(result)
         result["actual_ai_requirement"] = "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN"
+    if closure_features:
+        helper = _read_module("aaos_closure_features",Path(__file__).with_name("aaos01_closure_features.py"))
+        helper.run(ui=ui,read=read,bridge=bridge,js=js,wait=wait,restart=restart,work=work,report=result)
     result["engineering_status"] = "PASS"
     result["status"] = "PARTIAL"  # Missing Owner/model correction evidence remains explicit.
     return result
@@ -1203,7 +1209,29 @@ def selected_retest_binding(stage, selected_model):
     return True
 
 
-def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None):
+def request_owned_machine_cancellation(ui, wait, report):
+    """Trusted UI opt-in; acceptance alone never qualifies worker/provider stop."""
+    ui.click("请求取消当前本地 worker")
+    wait("return document.body.innerText.includes('取消请求已接收；尚未确认停止') || document.body.innerText.includes('没有确认可取消的当前本地 worker')")
+    text = ui.js("return document.body.innerText")
+    accepted = "取消请求已接收；尚未确认停止" in text
+    assert accepted or "没有确认可取消的当前本地 worker" in text
+    report.update(cancel_requested=accepted, execution_state="UNKNOWN", provider_stop_state="UNKNOWN", terminal_verified=False)
+    return report
+
+
+def confirm_owned_machine_cancellation(ui, wait, report):
+    """Invoke only after the original call finishes; observe the separate Core audit UI."""
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='核对冻结机器请求的失败状态' && !b.disabled)")
+    ui.click("核对冻结机器请求的失败状态")
+    wait("return document.body.innerText.includes('本地 worker 取消审计；可结束请求并保留草稿')")
+    text = ui.js("return document.body.innerText")
+    assert "本地 worker 取消审计；可结束请求并保留草稿" in text
+    report.update(local_worker_terminal="CANCELLED_LOCAL_WORKER", terminal_verified=True, provider_stop_state="UNKNOWN", evidence_scope="TRUSTED_UI_DURABLE_LOCAL_WORKER_AUDIT")
+    return report
+
+
+def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None, machine_cancel=False):
     stage = {
         "id": "distill",
         "status": "NOT_EXECUTED",
@@ -1278,6 +1306,51 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         assert restart is not None
         install_machine_observer(js, lose_ack=True, knowledge_id=pin['knowledge_id'], question=question)
     ui.click("执行本地机器回答")
+    if machine_cancel:
+        assert restart is not None and run_ai and not machine_ack_loss
+        cancellation = stage["owned_worker_cancellation"] = {"status":"IN_PROGRESS","provider_stop_state":"UNKNOWN"}
+        # This is the existing actual model route, not a synthetic worker or SDK substitute.
+        time.sleep(2)
+        frozen_state = read("ui_state_read")
+        frozen = one(frozen_state["state"].get("pending_machine",{}).values(),
+            lambda row: row["operation"]=="answer" and row["owner_knowledge_id"]==pin["knowledge_id"] and row["body"]["question"]==question,
+            "actual machine cancellation journal")
+        request_owned_machine_cancellation(ui,wait,cancellation)
+        assert cancellation["cancel_requested"], "No actual current owned worker accepted cancellation; no stop claim"
+        confirm_owned_machine_cancellation(ui,wait,cancellation)
+        current = read("ui_state_read")
+        query = {key:current[key] for key in ("workspace_id","restore_epoch","state_revision")}
+        query["journal_id"] = frozen["journal_id"]
+        terminal = read("ui_state_machine_status",{"body":query})
+        assert terminal["status"]=="CANCELLED_LOCAL_WORKER" and terminal["can_clear"] is True
+        assert terminal["provider_stop_state"]=="UNKNOWN" and 1<=terminal["attempt"]<=3
+        audit = read("machine_task_get",{"task_id":terminal["task_id"]})
+        audit_body = task_conditions(audit)
+        assert audit["scope"]=="runtime.execution.failed" and audit_body["reason_code"]=="machine worker cancelled"
+        assert audit_body["client_request_id"]==frozen["body"]["client_request_id"] and audit_body["answer_published"] is False
+        assert audit_body["usage"] is None and audit_body["cost"] is None
+        assert not any(row["scope"]=="runtime.answer" and task_conditions(row).get("client_request_id")==frozen["body"]["client_request_id"] for row in machine_tasks(read))
+        ui.click("结束失败请求，保留草稿")
+        cleared = poll(read,"ui_state_read",{},lambda row: frozen["journal_id"] not in row["state"].get("pending_machine",{}))
+        retained = js("return [...document.querySelectorAll('label')].find(n=>n.textContent.startsWith('实际问题'))?.querySelector('textarea')?.value")
+        assert retained==question,"Cancellation clear erased the user's question draft"
+        shutdown = restart()
+        assert read("machine_task_get",{"task_id":terminal["task_id"]})==audit
+        assert frozen["journal_id"] not in read("ui_state_read")["state"].get("pending_machine",{})
+        cancellation.update(status="LOCAL_CANCEL_AUDIT_CONFIRMED",evidence_level="REAL_LOCAL_WORKER_CANCEL_WITH_SYNTHETIC_MATERIAL",model_execution_state="UNKNOWN",frozen_journal=frozen,
+            terminal=terminal,audit=audit,clear_revision=cleared["state_revision"],retained_question=retained,restart=shutdown,
+            normal_answer_after_restart="IN_PROGRESS")
+        ui.page("14");ui.click("刷新上下文列表");ui.click("选择原知识授权 "+document["title"])
+        wait("return [...document.querySelectorAll('label')].some(n=>n.textContent.startsWith('实际问题'))")
+        if selected_model is not None:
+            ui.click("探测本地模型清单")
+            wait("return document.querySelector('[aria-label=\"本地模型清单探测结果\"]')?.textContent.includes('清单已读取')",seconds=30)
+            ui.click_selector("descendant::label[contains(.,'本次本地回答模型')]/select/option[@value="+xpath_literal(selected_model)+"]")
+        if selected_max_tokens is not None:
+            ui.click_selector("descendant::label[contains(.,'本次输出预算')]/select/option[@value="+xpath_literal(str(selected_max_tokens))+ "]")
+        ui.type("实际问题",question,"textarea")
+        before_tasks=machine_tasks(read)
+        ui.click("执行本地机器回答")
     wait(
         "return !!document.querySelector('[aria-label=\"真实机器回答\"]') || document.body.innerText.includes('回答未完成') || document.body.innerText.includes('Core 明确拒绝此回答请求') || document.body.innerText.includes('推理已执行，答案未发布')",
         seconds=150,
@@ -1317,6 +1390,11 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         "Answer knowledge changed during inference"
     )
     binding = receipt_binding(task, knowledge, question, grant,selected_model=selected_model)
+    if machine_cancel:
+        assert original["client_request_id"] != stage["owned_worker_cancellation"]["frozen_journal"]["body"]["client_request_id"]
+        stage["owned_worker_cancellation"]["normal_answer_after_restart"]="PERSISTED_CANDIDATE"
+        stage["owned_worker_cancellation"]["status"]="PASS" if binding["status"]=="RECEIPT_BINDINGS_VALIDATED" else "UNVERIFIED"
+        stage["owned_worker_cancellation"]["normal_answer_task_id"]=task["task_id"]
     stage.update(
         receipt_binding=binding,
         status=(inference_status(task,selected_model) if binding["status"] == "RECEIPT_BINDINGS_VALIDATED" else "UNVERIFIED"),

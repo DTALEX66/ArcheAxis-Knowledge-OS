@@ -11,6 +11,7 @@ import type { SpaceId } from "./spaces";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 import { UI_CAPABILITY_INTENT, UI_CAPABILITY_SOURCE } from "../presentation/uiCapabilityIntent";
 import { RESEARCH_BOUNDARIES } from "../presentation/researchBoundaries";
+import { ModelTaskRoles } from "../components/ModelTaskRoles";
 
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid response");
@@ -65,6 +66,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
   const requiring = selected ? templatesRequiring(selected.atlas.capability_id) : [];
   const absorption = selected ? absorptionClassification(selected.atlas.capability_id) : null;
   const catalog = <div className="space-section-region" data-section="catalog" tabIndex={-1} aria-label="能力目录与搜索">
+    <ModelTaskRoles capabilities={live}/>
     <p>入口身份与别名由 Atlas 投影生成；能力声明、实际实现和运行资格分别核对。未来条目仍可查看用途与前提。</p>
     <AaosField label="查找能力" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="名称、ID、对象、依赖或旧入口别名" />
     <div className="capability-actions"><AaosButton variant="secondary" onClick={() => void refresh()}>刷新当前健康与权限</AaosButton>

@@ -146,3 +146,37 @@ async fn derived_workers_preserve_partial_outcomes_and_bound_failure() {
         "中文😀"
     );
 }
+
+#[tokio::test]
+async fn derived_inherited_pipes_cannot_join_forever_after_direct_worker_exit() {
+    let dir = tempfile::tempdir().unwrap();
+    let worker = dir.path().join("inherited.py");
+    // This synthetic descendant exits on its own; no shared process is stopped.
+    std::fs::write(&worker,"import sys,json,subprocess\njson.loads(sys.stdin.readline())\nsubprocess.Popen([sys.executable,'-c','import time;time.sleep(4)'])\nprint(json.dumps({'status':'PARTIAL'}))\n").unwrap();
+    let python: PathBuf = std::env::var_os("ARCHEAXIS_PYTHON").unwrap().into();
+    let executor = Executor::open_routes(
+        &dir.path().join("db"),
+        &dir.path().join("staging"),
+        &python,
+        &worker,
+        &[("search.semantic", worker.clone())],
+    )
+    .await
+    .unwrap();
+    let began = std::time::Instant::now();
+    let result = tokio::time::timeout(
+        Duration::from_secs(3),
+        executor.derived_json(
+            "search.semantic",
+            json!({"query":"synthetic"}),
+            Duration::from_secs(1),
+        ),
+    )
+    .await
+    .unwrap();
+    assert!(
+        result.is_err(),
+        "incomplete pipe drain must never manufacture a valid result"
+    );
+    assert!(began.elapsed() < Duration::from_secs(3));
+}
