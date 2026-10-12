@@ -66,6 +66,7 @@ def run(*, ui, read, bridge, js, wait, restart, work, report, download_control=N
         ui.command(element, "value", {"text": str(fixture.absolute())})
         ui.evidence.append({"action": "trusted_portable_file_selection", "synthetic_fixture": str(fixture)})
         wait("return document.querySelector('[aria-label=\"有界文档便携包\"]')?.innerText.includes('待保存：')")
+        wait("return [...document.querySelector('[aria-label=\"有界文档便携包\"]').querySelectorAll('button')].some(b => b.textContent === '确认保存为新普通文档' && !b.disabled)")
         ui.click("确认保存为新普通文档", "//section[@aria-label='有界文档便携包']")
         wait("return document.querySelector('[aria-label=\"有界文档便携包\"]')?.innerText.includes('知识入库未执行')")
 
@@ -106,6 +107,7 @@ def run(*, ui, read, bridge, js, wait, restart, work, report, download_control=N
     if download_control is not None:
         directory = work / "closure-downloads"
         download_control(directory)
+        wait("return [...document.querySelector('[aria-label=\"有界文档便携包\"]').querySelectorAll('button')].some(b => b.textContent === '下载文档与媒体便携包' && !b.disabled)")
         ui.click("下载文档与媒体便携包", "//section[@aria-label='有界文档便携包']")
         downloaded = directory / f"{document_id}-v{saved['version']}.aak-document.json"
         deadline = time.monotonic() + 30
