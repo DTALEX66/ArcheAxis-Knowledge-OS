@@ -16,6 +16,7 @@ pub mod course;
 pub mod document;
 pub mod expression;
 pub mod knowledge;
+pub mod layout;
 pub mod learning;
 pub mod machine;
 pub mod machine_evaluation;
