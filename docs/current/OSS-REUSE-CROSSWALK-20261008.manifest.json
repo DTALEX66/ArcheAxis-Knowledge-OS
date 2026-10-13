@@ -61,14 +61,14 @@
       "matches_current_file": true
     },
     "inspiration_research/resources/open_source_absorption_ledger.json": {
-      "sha256_of_bytes_read_by_generator": "6b35d0ea2317df21b4cc6bb3f7ce5e57f7455712d2cf65670f3864d205086d1a",
-      "sha256_of_current_file": "6b35d0ea2317df21b4cc6bb3f7ce5e57f7455712d2cf65670f3864d205086d1a",
+      "sha256_of_bytes_read_by_generator": "9d1c0004c3c112a66a479a58bf07bfd6d14f0171982c4800fdbb89895252c57f",
+      "sha256_of_current_file": "9d1c0004c3c112a66a479a58bf07bfd6d14f0171982c4800fdbb89895252c57f",
       "recorded_rows": 106,
       "matches_current_file": true
     },
     "inspiration_research/resources/open_source_project_registry.json": {
-      "sha256_of_bytes_read_by_generator": "e158437db522a85abb0d1e9bc5209a707f3ad571026787fa018c1d3bcffd6428",
-      "sha256_of_current_file": "e158437db522a85abb0d1e9bc5209a707f3ad571026787fa018c1d3bcffd6428",
+      "sha256_of_bytes_read_by_generator": "a66b8f17720dac49ce8d70c5a19b291a677031b16e75e13d4ae6c755b6c17c7d",
+      "sha256_of_current_file": "a66b8f17720dac49ce8d70c5a19b291a677031b16e75e13d4ae6c755b6c17c7d",
       "recorded_rows": 106,
       "matches_current_file": true
     }
@@ -77,8 +77,8 @@
     "json": {
       "file": "OSS-REUSE-CROSSWALK-20261008.json",
       "bytes": 987664,
-      "sha256": "f9b29596bd3f600b9c9acef7b219563444dc234498bd201779ebe116c56e4bd2",
-      "sha256_portable": "f9b29596bd3f600b9c9acef7b219563444dc234498bd201779ebe116c56e4bd2",
+      "sha256": "c6bfad67ea2c9e8606fc6f9cc954da0d793a14d0d8183b3c5c15684b7fe3267f",
+      "sha256_portable": "c6bfad67ea2c9e8606fc6f9cc954da0d793a14d0d8183b3c5c15684b7fe3267f",
       "line_terminator": "LF",
       "line_count": 20899,
       "record_count": 701,
