@@ -20,6 +20,8 @@ from urllib.request import urlopen
 
 from playwright.sync_api import Route, sync_playwright
 
+from browser_color import composite
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -862,12 +864,6 @@ def check_status_accessibility(page) -> dict[str, object]:
     assert layout["spillsAboveBar"] == layout["spillsBelowBar"] == 0, layout
     assert all(c["width"] >= 24 and c["height"] >= 24 and c["reachable"] and c["inBar"]
                for c in layout["controls"]), layout
-
-    def composite(color: str, background: tuple[float, ...]) -> tuple[float, ...]:
-        numbers = [float(n) for n in re.findall(r"[\d.]+", color)]
-        assert len(numbers) in (3, 4), color
-        alpha = numbers[3] if len(numbers) == 4 else 1
-        return tuple(alpha * f + (1 - alpha) * b for f, b in zip(numbers[:3], background))
 
     def contrast(a, b) -> float:
         def luminance(rgb):

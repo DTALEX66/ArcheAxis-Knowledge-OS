@@ -1340,8 +1340,10 @@ impl Executor {
             });
             let (written_send, written_receive) = mpsc::channel();
             let ready_directory = dispatch_directory.path().to_owned();
-            let ready_hash = request["egress_sha256"].as_str()
-                .ok_or("dispatch_identity_missing")?.to_owned();
+            let ready_hash = request["egress_sha256"]
+                .as_str()
+                .ok_or("dispatch_identity_missing")?
+                .to_owned();
             let ready_store = check_store.clone();
             let ready_runtime = runtime.clone();
             let ready_request = request.clone();
@@ -1353,9 +1355,14 @@ impl Executor {
                         if writer_cancelled.load(Ordering::Acquire) {
                             return Err("dispatch_cancelled".into());
                         }
-                        ready_runtime.block_on(ready_store.submit_wait(move |conn| {
-                            archeaxis_domain::document::check_egress_before_worker(conn, &ready_request)
-                        })).map_err(|_| "execution_unavailable".to_owned())?
+                        ready_runtime
+                            .block_on(ready_store.submit_wait(move |conn| {
+                                archeaxis_domain::document::check_egress_before_worker(
+                                    conn,
+                                    &ready_request,
+                                )
+                            }))
+                            .map_err(|_| "execution_unavailable".to_owned())?
                             .map_err(|_| "egress_revalidation_failed".to_owned())
                     })
                     .and_then(|_| dispatch::write_material(&mut input, &bytes, &writer_cancelled));

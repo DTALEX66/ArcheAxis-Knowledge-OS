@@ -56,6 +56,8 @@ DEV_ALLOWED = {"build", "runs", "task-runtime", "candidates", "recovery", "mig",
                # Current DIRECTORY_AUTHORITY.yaml ignored_local_roots. Historical
                # task-runtime/a*/rt* exceptions above remain preservation classes.
                "agents", "leases", "logs", "artifacts",
+               # AGENTS.md: byte-preserved input material; never a relocation candidate.
+               "archives",
                # named by a tracked document, so it stays; sanctioned rather than re-flagged forever
                "tmp"}
 # Budgets are ceilings for review, not delete triggers: exceeding one means the class needs a

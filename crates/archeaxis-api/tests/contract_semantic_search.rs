@@ -192,7 +192,10 @@ async fn complete_ranks_are_merged_with_stable_ties() {
     assert_eq!(body["candidate_count"], 129);
     assert_eq!(rows.len(), 129);
     let ids = |values: &[Value]| -> std::collections::BTreeSet<String> {
-        values.iter().map(|row| row["knowledge_id"].as_str().unwrap().to_owned()).collect()
+        values
+            .iter()
+            .map(|row| row["knowledge_id"].as_str().unwrap().to_owned())
+            .collect()
     };
     let expected = ids(body["candidates"].as_array().unwrap());
     assert_eq!(expected.len(), 129);
@@ -200,7 +203,13 @@ async fn complete_ranks_are_merged_with_stable_ties() {
     assert_eq!(ids(body["embedding"]["rank"].as_array().unwrap()), expected);
     let batches = body["batches"].as_array().unwrap();
     assert_eq!(batches.len(), 9);
-    assert_eq!(batches.last().unwrap()["candidate_ids"].as_array().unwrap().len(), 1);
+    assert_eq!(
+        batches.last().unwrap()["candidate_ids"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
     assert!(
         rows.windows(2)
             .all(|pair| pair[0]["knowledge_id"].as_str() < pair[1]["knowledge_id"].as_str())

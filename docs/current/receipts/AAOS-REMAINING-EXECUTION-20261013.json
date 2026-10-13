@@ -556,7 +556,12 @@
     "New local venv ensurepip failed real-location resolution; preserved; no ACL changes"
   ],
   "delivery": {
-    "state": "NOT_EXECUTED",
+    "state": "DRAFT_PR_CI_RUNNING",
+    "pr": 191,
+    "candidate_sha": "20610943f4a7f3cf68cf9845bf9858809730d6ad",
+    "first_run": 38417928142,
+    "first_verdict": "FAIL missing-final-newline in two registries; fixed",
+    "current_run": 38418486242,
     "main_merged": false,
     "local_git_write": "BLOCKED_READ_ONLY_GIT",
     "approved_delivery_route": "GitHub connector; no ACL escalation"
@@ -875,5 +880,18 @@
     },
     "exact_sha_ci": "NOT_EXECUTED",
     "installed_runtime": "UNVERIFIED"
+  },
+  "owner_goal": {
+    "date": "2026-10-13",
+    "instruction": "/GOAL 全部执行，自行拆解任务，执行任务，并行任务，本地和云端仓库目录规范化和体积清理也加入任务",
+    "state": "ACTIVE",
+    "normalization_record": "docs/current/AAOS-STORAGE-NORMALIZATION-20261013.md",
+    "tasks": [
+      "NORM01",
+      "NORM02",
+      "NORM03",
+      "NORM04",
+      "NORM05"
+    ]
   }
 }

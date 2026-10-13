@@ -166,7 +166,11 @@ async fn configured_worker_is_outside_writer_transaction_and_old_version_readbac
     let ready = dir.path().join("ready");
     let release = dir.path().join("release");
     let script = dir.path().join("worker.py");
-    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
+    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
     let source = format!(
         r#"import importlib.util,json,sys
 from pathlib import Path

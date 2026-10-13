@@ -67,15 +67,21 @@ fn citation(conn: &Connection, material: &Material, captured: &Citation) -> Resu
         .ok_or(invalid("research citation anchor is missing"))?;
     let locator: Value = serde_json::from_str(&position)
         .map_err(|_| invalid("research citation anchor is invalid"))?;
-    let span = locator["end"].as_u64().zip(locator["start"].as_u64())
+    let span = locator["end"]
+        .as_u64()
+        .zip(locator["start"].as_u64())
         .and_then(|(end, start)| end.checked_sub(start));
-    if stored_source != *source_id || revision != *sha256
+    if stored_source != *source_id
+        || revision != *sha256
         || captured.anchor_position_sha256 != digest(position.as_bytes())
-        || locator["type"] != "text" || locator["location_status"] != "located"
+        || locator["type"] != "text"
+        || locator["location_status"] != "located"
         || locator["checksum"] != captured.quote_sha256
         || span != Some(captured.quote.len() as u64)
     {
-        return Err(invalid("research citation does not match captured Core anchor"));
+        return Err(invalid(
+            "research citation does not match captured Core anchor",
+        ));
     }
     Ok(())
 }

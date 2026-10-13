@@ -3,11 +3,20 @@
 use base64::Engine;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use std::{collections::BTreeSet, io::{Read, Write}, path::Path, sync::atomic::{AtomicBool, Ordering}};
+use std::{
+    collections::BTreeSet,
+    io::{Read, Write},
+    path::Path,
+    sync::atomic::{AtomicBool, Ordering},
+};
 
 /// Withhold all document material until the configured worker advertises this
 /// exact dispatch protocol and launch binding. Legacy workers get no stdin body.
-pub(super) fn wait_ready(directory: &Path, egress_hash: &str, cancelled: &AtomicBool) -> Result<(), String> {
+pub(super) fn wait_ready(
+    directory: &Path,
+    egress_hash: &str,
+    cancelled: &AtomicBool,
+) -> Result<(), String> {
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
     let path = directory.join("ready.json");
     loop {
@@ -21,8 +30,8 @@ pub(super) fn wait_ready(directory: &Path, egress_hash: &str, cancelled: &Atomic
                 .take(1025)
                 .read_to_end(&mut bytes)
                 .map_err(|_| "dispatch_ready_read_failed")?;
-            let ready: Value = serde_json::from_slice(&bytes)
-                .map_err(|_| "dispatch_protocol_incompatible")?;
+            let ready: Value =
+                serde_json::from_slice(&bytes).map_err(|_| "dispatch_protocol_incompatible")?;
             if bytes.len() > 1024
                 || !fields(&ready, &["schema", "egress_sha256"])
                 || ready["schema"] != "archeaxis.egress-dispatch/v1"
@@ -39,11 +48,17 @@ pub(super) fn wait_ready(directory: &Path, egress_hash: &str, cancelled: &Atomic
     }
 }
 
-pub(super) fn write_material(output: &mut impl Write, bytes: &[u8], cancelled: &AtomicBool) -> Result<(), String> {
+pub(super) fn write_material(
+    output: &mut impl Write,
+    bytes: &[u8],
+    cancelled: &AtomicBool,
+) -> Result<(), String> {
     if cancelled.load(Ordering::Acquire) {
         return Err("dispatch_cancelled".into());
     }
-    output.write_all(bytes).map_err(|_| "worker_write_failed".into())
+    output
+        .write_all(bytes)
+        .map_err(|_| "worker_write_failed".into())
 }
 
 fn fields(value: &Value, expected: &[&str]) -> bool {
@@ -398,9 +413,16 @@ mod tests {
             json!({"schema":"archeaxis.egress-dispatch/v1","egress_sha256":hash,"extra":true}),
         ] {
             std::fs::write(&path, value.to_string()).unwrap();
-            assert_eq!(wait_ready(directory.path(), &hash, &AtomicBool::new(false)).unwrap_err(), "dispatch_protocol_incompatible");
+            assert_eq!(
+                wait_ready(directory.path(), &hash, &AtomicBool::new(false)).unwrap_err(),
+                "dispatch_protocol_incompatible"
+            );
         }
-        std::fs::write(&path, json!({"schema":"archeaxis.egress-dispatch/v1","egress_sha256":hash}).to_string()).unwrap();
+        std::fs::write(
+            &path,
+            json!({"schema":"archeaxis.egress-dispatch/v1","egress_sha256":hash}).to_string(),
+        )
+        .unwrap();
         wait_ready(directory.path(), &hash, &AtomicBool::new(false)).unwrap();
         let mut state = State::default();
         assert!(state.require_success_dispatch().is_err());
@@ -416,11 +438,22 @@ mod tests {
         let worker = directory.path().join("legacy.py");
         std::fs::write(&worker, format!("import sys,pathlib\nbody=sys.stdin.buffer.read()\nif body: pathlib.Path({}).write_text('simulated outbound')\n", serde_json::to_string(&marker).unwrap())).unwrap();
         let python = std::env::var_os("ARCHEAXIS_PYTHON").unwrap();
-        let mut child = std::process::Command::new(python).arg("-B").arg(worker)
-            .stdin(std::process::Stdio::piped()).stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::null()).spawn().unwrap();
+        let mut child = std::process::Command::new(python)
+            .arg("-B")
+            .arg(worker)
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .unwrap();
         let result = wait_ready(directory.path(), &"a".repeat(64), &AtomicBool::new(false))
-            .and_then(|_| write_material(child.stdin.as_mut().unwrap(), b"synthetic private material", &AtomicBool::new(false)));
+            .and_then(|_| {
+                write_material(
+                    child.stdin.as_mut().unwrap(),
+                    b"synthetic private material",
+                    &AtomicBool::new(false),
+                )
+            });
         drop(child.stdin.take());
         let status = child.wait().unwrap();
         assert!(status.success());
