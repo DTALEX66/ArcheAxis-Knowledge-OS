@@ -26,18 +26,19 @@ _REGISTRY_PATH = (
 )
 
 
-def test_registry_v2_migrates_all_101_entries_without_loss():
+def test_registry_v2_migrates_current_entries_without_loss():
     assert _REGISTRY_PATH.is_file()
     raw = json.loads(_REGISTRY_PATH.read_text(encoding="utf-8"))
     entries = raw["projects"]
-    assert len(entries) == 101
+    assert len(entries) == 106
 
     migrated, errors = validate_registry(entries)
     assert errors == []
-    assert len(migrated) == 101
+    assert len(migrated) == len(entries)
 
     asset_ids = {e.asset_id for e in migrated}
-    assert len(asset_ids) == 101
+    assert len(asset_ids) == len(entries)
+    assert asset_ids == {entry["project_id"] for entry in entries}
     assert "osp_0001" in asset_ids
     assert "osp_0103" in asset_ids
 

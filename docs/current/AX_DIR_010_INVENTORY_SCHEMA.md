@@ -4,13 +4,12 @@
 > from a frozen, reviewed tree. The schema makes a later move reviewable; it
 > is not a command to consolidate directories now.
 >
-> **Authority clarification (2026-09-25):** The dated mandatory classifications
-> below are historical and superseded where they conflict with
-> [Directory Authority](../DIRECTORY_AUTHORITY_INDEX.md) and R6/M0. In
-> particular, `apps/ArcheAxis.Desktop/` is the formal desktop; `frontend/` and
-> `src-tauri/` are legacy compatibility/recovery surfaces. This schema remains
-> usable only for a specifically authorized, exact-path inventory; it does not
-> define the current product topology or authorize a move/delete.
+> **Authority clarification (2026-10-13):** The classifications below retain
+> their historical context. Current roles follow
+> [Directory Authority](../DIRECTORY_AUTHORITY_INDEX.md), SUP-022 and the active
+> execution pointer: `frontend/` and `src-tauri/` are the formal React/Tauri host;
+> `apps/ArcheAxis.Desktop/` is a migration donor. This schema describes a reviewed
+> exact-path inventory. It does not authorize a move, deletion or product cutover.
 
 ## One row per source path
 

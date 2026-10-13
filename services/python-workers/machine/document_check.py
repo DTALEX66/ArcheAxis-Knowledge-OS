@@ -631,6 +631,12 @@ def main() -> int:
     _DISPATCH_REQUIRED = True
     _DISPATCH_SEQUENCE = 0
     try:
+        directory = Path(os.environ["ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR"])
+        ready = {"schema": "archeaxis.egress-dispatch/v1",
+                 "egress_sha256": os.environ["ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH"]}
+        temporary = directory / "ready.tmp"
+        temporary.write_text(json.dumps(ready), encoding="utf8")
+        temporary.rename(directory / "ready.json")
         raw = sys.stdin.buffer.read(MAX_INPUT + 1)
         if len(raw) > MAX_INPUT:
             raise ValueError("input limit")

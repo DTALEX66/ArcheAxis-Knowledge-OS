@@ -89,3 +89,7 @@ Markdown、Properties、Links/Backlinks、Attachments、JSON Canvas、增量变�
 | 版本 | 日期 | 变更 | 授权 |
 |---|---|---|---|
 | V2 | 2026-08-12 | 系统总蓝图冻结（AXW-1200/1205） | Owner 任务包 |
+
+## 2026-10-13 候选补充
+
+[观猹未来吸收](WATCHA-FUTURE-ABSORPTION-20261013.md)：仅候选与恢复条件，不升级为实现或新架构。

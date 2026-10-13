@@ -1600,7 +1600,8 @@ fn verify_anchor_location(
     }
     let start = usize::try_from(position["start"].as_u64()?).ok()?;
     let end = usize::try_from(position["end"].as_u64()?).ok()?;
-    let bytes = archeaxis_store_sqlite::raw_objects::read(conn, revision).ok()?;
+    let bytes =
+        archeaxis_store_sqlite::raw_objects::read_bounded(conn, revision, 4 * 1024 * 1024).ok()?;
     let text = std::str::from_utf8(&bytes).ok()?;
     let excerpt = text.get(start..end)?;
     Some(format!("{:x}", Sha256::digest(excerpt.as_bytes())) == checksum)

@@ -127,3 +127,69 @@ fn empty_nonlinear_research_and_ordinary_documents_remain_valid() {
         ordinary
     );
 }
+
+#[test]
+fn captured_quote_is_bound_to_historical_anchor_and_does_not_gate_notes_on_cas_read() {
+    use archeaxis_domain::{anchor, source};
+    use sha2::{Digest, Sha256};
+    let hash = |bytes: &[u8]| hex::encode(Sha256::digest(bytes));
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("workspace.sqlite");
+    let mut c = init_workspace(db.to_str().unwrap()).unwrap();
+    let original = "前缀 原文😀\n尾部";
+    let quote = "原文😀\n";
+    let source_id =
+        match source::import_source(&mut c, original.as_bytes(), "quote.txt", None).unwrap() {
+            source::ImportOutcome::Imported { source_id, .. } => source_id,
+            _ => unreachable!(),
+        };
+    let revision = hash(original.as_bytes());
+    let start = original.find(quote).unwrap();
+    // SYNTHETIC historical Core anchor receipt. The API independently exercises
+    // actual CAS byte/checksum validation before marking an anchor located.
+    let position = json!({"type":"text","start":start,"end":start+quote.len(),
+        "checksum":hash(quote.as_bytes()),"location_status":"located"})
+    .to_string();
+    let anchor_id = anchor::add_anchor(&mut c, &source_id, &revision, &position).unwrap();
+    let captured = json!({"schema":"archeaxis.research-citation/v1","anchor_id":anchor_id,
+        "source_sha256":revision,"anchor_position_sha256":hash(position.as_bytes()),
+        "quote":quote,"quote_sha256":hash(quote.as_bytes()),"read_snapshot_sha256":revision});
+    let mut value = research(json!({"kind":"source","source_id":source_id,"sha256":revision}));
+    value["materials"][0]["citation"] = captured.clone();
+    let e = editor(value);
+    let first = document::create_optional(&mut c, None, None, "有原文的研究", e.clone()).unwrap();
+    for (field, bad) in [
+        ("quote", json!("篡改引文")),
+        ("anchor_id", json!("missing_anchor")),
+        ("source_sha256", json!("0".repeat(64))),
+        ("anchor_position_sha256", json!("0".repeat(64))),
+        ("read_snapshot_sha256", json!("0".repeat(64))),
+    ] {
+        let mut changed = e.clone();
+        changed["attrs"]["archeaxis_research"]["materials"][0]["citation"][field] = bad;
+        assert!(document::create_optional(&mut c, None, None, "不匹配引文", changed).is_err());
+    }
+    // Damage only this test's synthetic CAS object. Captured author's notes and
+    // historical quote can still save; a fresh raw read must fail closed.
+    let object = std::path::PathBuf::from(format!("{}.objects", db.display())).join(&revision);
+    std::fs::write(&object, b"synthetic corrupt object").unwrap();
+    assert!(archeaxis_store_sqlite::raw_objects::read_bounded(&c, &revision, 1024).is_err());
+    let second = document::create_optional(&mut c, None, None, "继续记录", e).unwrap();
+    assert_eq!(
+        second["editor_json"]["attrs"]["archeaxis_research"]["materials"][0]["citation"],
+        captured
+    );
+    let first_id = first["document_id"].as_str().unwrap().to_owned();
+    drop(c);
+    let reopened = init_workspace(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        document::read(&reopened, &first_id, Some(1)).unwrap(),
+        first
+    );
+    assert_eq!(
+        reopened
+            .query_row("SELECT COUNT(*) FROM knowledge", [], |r| r.get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+}

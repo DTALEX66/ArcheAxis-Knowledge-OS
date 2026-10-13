@@ -604,6 +604,8 @@ ignored_local_roots:
   - .project-local/tmp/
   - .project-local/logs/
   - .project-local/artifacts/
+  # AGENTS.md source-preservation archive; original bytes remain local, not Git payload.
+  - .project-local/archives/
   # evidence roots: large run/recovery archives kept in the ignored development root, of
   # which only a manifest + hash + verification entry is tracked (ownership class run-evidence)
   - .project-local/recovery/

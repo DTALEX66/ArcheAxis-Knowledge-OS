@@ -7,6 +7,7 @@ use crate::{
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 
 pub const SCHEMA: &str = "archeaxis.research/v1";
@@ -30,6 +31,59 @@ pub struct Material {
     pub id: String,
     pub note: String,
     pub reference: Reference,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub citation: Option<Citation>,
+}
+/// A captured raw UTF-8 quote bound to the existing immutable Core anchor.
+/// Saving an authored note does not rerun current location or read source bytes.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Citation {
+    pub schema: String,
+    pub anchor_id: String,
+    pub source_sha256: String,
+    pub anchor_position_sha256: String,
+    pub quote: String,
+    pub quote_sha256: String,
+    pub read_snapshot_sha256: String,
+}
+fn digest(bytes: &[u8]) -> String {
+    hex::encode(Sha256::digest(bytes))
+}
+fn citation(conn: &Connection, material: &Material, captured: &Citation) -> Result<(), Error> {
+    let Reference::Source { source_id, sha256 } = &material.reference else {
+        return Err(invalid("raw citation requires a pinned source reference"));
+    };
+    if captured.schema != "archeaxis.research-citation/v1"
+        || captured.quote.is_empty()
+        || captured.quote.len() > 16_384
+        || captured.source_sha256 != *sha256
+        || captured.read_snapshot_sha256 != *sha256
+        || captured.quote_sha256 != digest(captured.quote.as_bytes())
+    {
+        return Err(invalid("research citation snapshot identity mismatch"));
+    }
+    let (stored_source, revision, position) = crate::anchor::get_anchor(conn, &captured.anchor_id)?
+        .ok_or(invalid("research citation anchor is missing"))?;
+    let locator: Value = serde_json::from_str(&position)
+        .map_err(|_| invalid("research citation anchor is invalid"))?;
+    let span = locator["end"]
+        .as_u64()
+        .zip(locator["start"].as_u64())
+        .and_then(|(end, start)| end.checked_sub(start));
+    if stored_source != *source_id
+        || revision != *sha256
+        || captured.anchor_position_sha256 != digest(position.as_bytes())
+        || locator["type"] != "text"
+        || locator["location_status"] != "located"
+        || locator["checksum"] != captured.quote_sha256
+        || span != Some(captured.quote.len() as u64)
+    {
+        return Err(invalid(
+            "research citation does not match captured Core anchor",
+        ));
+    }
+    Ok(())
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -126,6 +180,9 @@ pub fn validate_editor(conn: &Connection, editor: &Value) -> Result<(), Error> {
             id(&m.id, &mut seen)?;
             text(&m.note)?;
             references(conn, std::slice::from_ref(&m.reference), &mut refs)?;
+            if let Some(captured) = &m.citation {
+                citation(conn, m, captured)?;
+            }
         }
         for entry in r
             .hypotheses

@@ -20,6 +20,8 @@ from urllib.request import urlopen
 
 from playwright.sync_api import Route, sync_playwright
 
+from browser_color import composite
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -863,12 +865,6 @@ def check_status_accessibility(page) -> dict[str, object]:
     assert all(c["width"] >= 24 and c["height"] >= 24 and c["reachable"] and c["inBar"]
                for c in layout["controls"]), layout
 
-    def composite(color: str, background: tuple[float, ...]) -> tuple[float, ...]:
-        numbers = [float(n) for n in re.findall(r"[\d.]+", color)]
-        assert len(numbers) in (3, 4), color
-        alpha = numbers[3] if len(numbers) == 4 else 1
-        return tuple(alpha * f + (1 - alpha) * b for f, b in zip(numbers[:3], background))
-
     def contrast(a, b) -> float:
         def luminance(rgb):
             channels = [v / 255 for v in rgb]
@@ -1372,12 +1368,16 @@ def read_semantic_reading(browser, viewport, problems, theme):
         geometry = page.evaluate("""() => {
           const rect = selector => { const r=document.querySelector(selector).getBoundingClientRect();
             return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
-          return {width:innerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details')};
+          const center = document.querySelector('.app-center'), style = getComputedStyle(center);
+          const containerWidth = center.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+          return {width:innerWidth,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details')};
         }""")
         doc, details = geometry["document"], geometry["details"]
         assert doc["width"] > 100 and doc["right"] <= geometry["width"] + 1, geometry
         assert details["width"] > 100 and details["right"] <= geometry["width"] + 1, geometry
-        if geometry["width"] > 1100:
+        # Side rails leave less room than the window width; the selected UI
+        # stacks reading details below the document in a narrow content container.
+        if geometry["width"] > 1100 and geometry["container_width"] > 900:
             assert doc["right"] <= details["x"], geometry
         else:
             assert doc["bottom"] <= details["y"], geometry

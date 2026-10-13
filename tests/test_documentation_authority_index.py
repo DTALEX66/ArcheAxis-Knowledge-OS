@@ -62,8 +62,9 @@ def test_documentation_authority_index_classifies_g0_as_historical_and_routes_di
 
     inventory = ROOT / "docs" / "current" / "AX_DIR_010_INVENTORY_SCHEMA.md"
     inventory_text = inventory.read_text(encoding="utf-8")
-    assert "historical and superseded" in inventory_text
-    assert "formal desktop" in inventory_text
+    assert "Historical classifications reconciled" in inventory_text
+    assert "`frontend/` and `src-tauri/` are the formal React/Tauri host" in inventory_text
+    assert "`apps/ArcheAxis.Desktop/` is a migration donor" in inventory_text
     data_class = next(line for line in inventory_text.splitlines() if "`data_class`" in line)
     assert "`LEGACY_SOURCE`" in data_class
     assert "`IGNORED_DEVELOPMENT`" in data_class

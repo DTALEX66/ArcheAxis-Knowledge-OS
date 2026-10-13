@@ -3,7 +3,63 @@
 use base64::Engine;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use std::{collections::BTreeSet, io::Read, path::Path};
+use std::{
+    collections::BTreeSet,
+    io::{Read, Write},
+    path::Path,
+    sync::atomic::{AtomicBool, Ordering},
+};
+
+/// Withhold all document material until the configured worker advertises this
+/// exact dispatch protocol and launch binding. Legacy workers get no stdin body.
+pub(super) fn wait_ready(
+    directory: &Path,
+    egress_hash: &str,
+    cancelled: &AtomicBool,
+) -> Result<(), String> {
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+    let path = directory.join("ready.json");
+    loop {
+        if cancelled.load(Ordering::Acquire) {
+            return Err("dispatch_cancelled".into());
+        }
+        if path.is_file() {
+            let mut bytes = Vec::new();
+            std::fs::File::open(&path)
+                .map_err(|_| "dispatch_ready_read_failed")?
+                .take(1025)
+                .read_to_end(&mut bytes)
+                .map_err(|_| "dispatch_ready_read_failed")?;
+            let ready: Value =
+                serde_json::from_slice(&bytes).map_err(|_| "dispatch_protocol_incompatible")?;
+            if bytes.len() > 1024
+                || !fields(&ready, &["schema", "egress_sha256"])
+                || ready["schema"] != "archeaxis.egress-dispatch/v1"
+                || ready["egress_sha256"] != egress_hash
+            {
+                return Err("dispatch_protocol_incompatible".into());
+            }
+            return Ok(());
+        }
+        if std::time::Instant::now() >= deadline {
+            return Err("dispatch_protocol_missing".into());
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+}
+
+pub(super) fn write_material(
+    output: &mut impl Write,
+    bytes: &[u8],
+    cancelled: &AtomicBool,
+) -> Result<(), String> {
+    if cancelled.load(Ordering::Acquire) {
+        return Err("dispatch_cancelled".into());
+    }
+    output
+        .write_all(bytes)
+        .map_err(|_| "worker_write_failed".into())
+}
 
 fn fields(value: &Value, expected: &[&str]) -> bool {
     value.as_object().is_some_and(|object| {
@@ -17,6 +73,15 @@ pub(super) struct State {
     searched: bool,
     articles: BTreeSet<String>,
     model: bool,
+}
+impl State {
+    pub(super) fn require_success_dispatch(&self) -> Result<(), String> {
+        if self.model {
+            Ok(())
+        } else {
+            Err("dispatch_success_without_model_approval".into())
+        }
+    }
 }
 fn digest(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
@@ -337,6 +402,89 @@ pub(super) fn decide(
 mod tests {
     use super::*;
     use serde_json::json;
+    #[test]
+    fn ready_protocol_is_exact_and_success_requires_approved_model() {
+        let directory = tempfile::tempdir().unwrap();
+        let hash = "a".repeat(64);
+        let path = directory.path().join("ready.json");
+        for value in [
+            json!({"schema":"legacy","egress_sha256":hash}),
+            json!({"schema":"archeaxis.egress-dispatch/v1","egress_sha256":"changed"}),
+            json!({"schema":"archeaxis.egress-dispatch/v1","egress_sha256":hash,"extra":true}),
+        ] {
+            std::fs::write(&path, value.to_string()).unwrap();
+            assert_eq!(
+                wait_ready(directory.path(), &hash, &AtomicBool::new(false)).unwrap_err(),
+                "dispatch_protocol_incompatible"
+            );
+        }
+        std::fs::write(
+            &path,
+            json!({"schema":"archeaxis.egress-dispatch/v1","egress_sha256":hash}).to_string(),
+        )
+        .unwrap();
+        wait_ready(directory.path(), &hash, &AtomicBool::new(false)).unwrap();
+        let mut state = State::default();
+        assert!(state.require_success_dispatch().is_err());
+        state.searched = true;
+        assert!(state.require_success_dispatch().is_err());
+        state.model = true;
+        state.require_success_dispatch().unwrap();
+    }
+    #[test]
+    fn legacy_worker_without_ready_never_receives_document_material() {
+        let directory = tempfile::tempdir().unwrap();
+        let marker = directory.path().join("sent");
+        let worker = directory.path().join("legacy.py");
+        std::fs::write(&worker, format!("import sys,pathlib\nbody=sys.stdin.buffer.read()\nif body: pathlib.Path({}).write_text('simulated outbound')\n", serde_json::to_string(&marker).unwrap())).unwrap();
+        let python = std::env::var_os("ARCHEAXIS_PYTHON").unwrap();
+        let mut child = std::process::Command::new(python)
+            .arg("-B")
+            .arg(worker)
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .unwrap();
+        let result = wait_ready(directory.path(), &"a".repeat(64), &AtomicBool::new(false))
+            .and_then(|_| {
+                write_material(
+                    child.stdin.as_mut().unwrap(),
+                    b"synthetic private material",
+                    &AtomicBool::new(false),
+                )
+            });
+        drop(child.stdin.take());
+        let status = child.wait().unwrap();
+        assert!(status.success());
+        assert_eq!(result.unwrap_err(), "dispatch_protocol_missing");
+        assert!(!marker.exists());
+    }
+    #[test]
+    fn cancelling_ready_wait_joins_promptly_and_withholds_material() {
+        let directory = tempfile::tempdir().unwrap();
+        let cancelled = std::sync::Arc::new(AtomicBool::new(false));
+        let signal = cancelled.clone();
+        let path = directory.path().to_owned();
+        let (started, receive) = std::sync::mpsc::channel();
+        let task = std::thread::spawn(move || {
+            let mut body = Vec::new();
+            started.send(()).unwrap();
+            let result = wait_ready(&path, &"a".repeat(64), &signal)
+                .and_then(|_| write_material(&mut body, b"synthetic private material", &signal));
+            (result, body)
+        });
+        receive.recv().unwrap();
+        let start = std::time::Instant::now();
+        cancelled.store(true, Ordering::Release);
+        let (result, body) = task.join().unwrap();
+        assert_eq!(result.unwrap_err(), "dispatch_cancelled");
+        assert!(body.is_empty());
+        assert!(start.elapsed() < std::time::Duration::from_secs(1));
+        let mut body = Vec::new();
+        assert!(write_material(&mut body, b"synthetic private material", &cancelled).is_err());
+        assert!(body.is_empty());
+    }
     fn request() -> Value {
         json!({"attempt_id":"synthetic","egress_sha256":"a".repeat(64),"config":{"endpoint":"https://fixture.invalid/v1","search_limit":1},"search_query":"public synthetic query"})
     }
