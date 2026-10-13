@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "d42b03c9aec78af39ebef5d1bd83cda7dcdb11023e12abce0f6b66eb1d027f69"
+      "sha256": "3d2ab03ac10f4a4011cc5a24df78f788f5bc9fdd1a843f35048ef8f13aec3159"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -305,6 +305,19 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "date": "2026-10-12",
       "basis": "Current committed public Git blobs; source navigation binding only",
       "qualification_change": "NONE; no runtime or Owner qualification inferred"
+    },
+    "layout_contract_refresh_20261014": {
+      "date": "2026-10-14",
+      "source_change_commit": "7897bbd35d618efecf73c146e5334259bd4366a2",
+      "reason": "Reviewed finite layout_read/write/recover operation additions only; existing CoreDocument DTO, donor qualification, activation and permissions unchanged.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702",
+          "current_sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
+        }
+      ]
     }
   },
   "freeze_register": {
@@ -1296,7 +1309,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
+                "sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
               }
             ]
           },
@@ -1722,7 +1735,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
+                "sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
               }
             ]
           },

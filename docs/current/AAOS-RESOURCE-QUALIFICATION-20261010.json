@@ -373,7 +373,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
+              "sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
             }
           ]
         },
@@ -596,7 +596,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
+              "sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
             }
           ]
         },
@@ -7862,5 +7862,18 @@
     "date": "2026-10-12",
     "basis": "Current committed public Git blobs; source navigation binding only",
     "qualification_change": "NONE; no runtime or Owner qualification inferred"
+  },
+  "layout_contract_refresh_20261014": {
+    "date": "2026-10-14",
+    "source_change_commit": "7897bbd35d618efecf73c146e5334259bd4366a2",
+    "reason": "Reviewed finite layout_read/write/recover operation additions only; existing CoreDocument DTO, donor qualification, activation and permissions unchanged.",
+    "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+    "changed_sources": [
+      {
+        "path": "frontend/src/api/generated/core-contract.ts",
+        "previous_sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702",
+        "current_sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
+      }
+    ]
   }
 }
