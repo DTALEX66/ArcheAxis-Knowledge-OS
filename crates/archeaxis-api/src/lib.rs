@@ -10,6 +10,7 @@ pub mod ask;
 pub mod capabilities;
 mod documents;
 pub mod launch;
+mod layout;
 mod machine_governance;
 mod ocr_locator;
 mod pdf_locator;
@@ -70,6 +71,11 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
 }
 pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
     let ui_routes = Router::new()
+        .route(
+            "/api/v1/workspace/layout",
+            get(layout::read).put(layout::write),
+        )
+        .route("/api/v1/workspace/layout/recover", post(layout::recover))
         .route(
             "/api/v1/workspace/ui-state",
             get(ui_state::read).put(ui_state::write),

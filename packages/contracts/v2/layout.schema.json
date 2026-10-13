@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.layout/v1",
+  "$defs": {
+    "Bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 32000
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 32000
+        },
+        "width": {
+          "type": "number",
+          "minimum": 160,
+          "maximum": 16000
+        },
+        "height": {
+          "type": "number",
+          "minimum": 120,
+          "maximum": 16000
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ]
+    },
+    "Dock": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "tabs"
+            },
+            "panels": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 22,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+              }
+            },
+            "active": {
+              "type": "string",
+              "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+            }
+          },
+          "required": [
+            "kind",
+            "panels",
+            "active"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "split"
+            },
+            "axis": {
+              "enum": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            "ratio": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 0.9
+            },
+            "first": {
+              "$ref": "#/$defs/Dock"
+            },
+            "second": {
+              "$ref": "#/$defs/Dock"
+            }
+          },
+          "required": [
+            "kind",
+            "axis",
+            "ratio",
+            "first",
+            "second"
+          ]
+        }
+      ]
+    },
+    "Layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "preset_id": {
+          "enum": [
+            "default",
+            "reading",
+            "research",
+            "learning"
+          ]
+        },
+        "registered_panels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 22,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+          }
+        },
+        "dock_tree": {
+          "$ref": "#/$defs/Dock"
+        },
+        "floating_bounds": {
+          "type": "object",
+          "maxProperties": 22,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Bounds"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "preset_id",
+        "registered_panels",
+        "dock_tree",
+        "floating_bounds"
+      ]
+    },
+    "Snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "layout": {
+          "$ref": "#/$defs/Layout"
+        },
+        "recovery_reason": {
+          "enum": [
+            null,
+            "LAYOUT_COMPONENT_OR_SCHEMA_UNSUPPORTED",
+            "LAYOUT_RESTORE_CONFIRMATION_REQUIRED"
+          ]
+        }
+      },
+      "required": [
+        "workspace_id",
+        "device_id",
+        "restore_epoch",
+        "revision",
+        "layout",
+        "recovery_reason"
+      ]
+    },
+    "Write": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740990
+        },
+        "layout": {
+          "$ref": "#/$defs/Layout"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "device_id",
+        "restore_epoch",
+        "expected_revision",
+        "layout"
+      ]
+    },
+    "Recover": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740990
+        },
+        "viewport_width": {
+          "type": "number",
+          "minimum": 320,
+          "maximum": 16000
+        },
+        "viewport_height": {
+          "type": "number",
+          "minimum": 240,
+          "maximum": 16000
+        }
+      },
+      "required": [
+        "workspace_id",
+        "device_id",
+        "restore_epoch",
+        "expected_revision",
+        "viewport_width",
+        "viewport_height"
+      ]
+    }
+  }
+}

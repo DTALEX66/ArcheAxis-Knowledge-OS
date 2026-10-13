@@ -1,3 +1,4 @@
+import { LayoutPreferencesPanel } from "../components/LayoutPreferencesPanel";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DataError, Loading } from "../components/RealData";
 import {
@@ -233,6 +234,7 @@ export function SettingsSpace() {
   return (
     <section className="settings-page" aria-labelledby="settings-title">
       <h1 id="settings-title">设置</h1>
+      <LayoutPreferencesPanel />
       <p className="muted">配置工作区与四库位置，系统会在创建前检查路径可写性与可用空间。</p>
       {loading ? <Loading label="设置" /> : error ? <DataError label="设置" message={error} /> : <>
         {stage === "welcome" && (
