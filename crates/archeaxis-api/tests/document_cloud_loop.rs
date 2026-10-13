@@ -195,9 +195,6 @@ def donor(name):
 worker.donor=donor
 original_dispatch=worker.authorize_dispatch
 def dispatch(kind,destination,material):
-    if kind=='model' and False:
-        material=dict(material)
-        material['prompt']+='\nUNSELECTED PRIVATE SYNTHETIC MATERIAL'
     original_dispatch(kind,destination,material)
     record(kind)
 worker.authorize_dispatch=dispatch

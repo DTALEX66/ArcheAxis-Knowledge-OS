@@ -1368,12 +1368,14 @@ def read_semantic_reading(browser, viewport, problems, theme):
         geometry = page.evaluate("""() => {
           const rect = selector => { const r=document.querySelector(selector).getBoundingClientRect();
             return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
-          return {width:innerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details')};
+          return {width:innerWidth,container_width:rect('.app-center').width,document:rect('.ui-reader-document'),details:rect('.ui-reader-details')};
         }""")
         doc, details = geometry["document"], geometry["details"]
         assert doc["width"] > 100 and doc["right"] <= geometry["width"] + 1, geometry
         assert details["width"] > 100 and details["right"] <= geometry["width"] + 1, geometry
-        if geometry["width"] > 1100:
+        # Side rails leave less room than the window width; the selected UI
+        # stacks reading details below the document in a narrow content container.
+        if geometry["width"] > 1100 and geometry["container_width"] > 900:
             assert doc["right"] <= details["x"], geometry
         else:
             assert doc["bottom"] <= details["y"], geometry

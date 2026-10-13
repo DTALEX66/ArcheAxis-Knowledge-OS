@@ -1,0 +1,76 @@
+{
+  "schema": "archeaxis.host-baseline/v1",
+  "state": "AUDITED_NOT_NEW_FEATURE_QUALIFICATION",
+  "source_baseline": "be79ff90e7394247171afc311b002eb96ff0581e",
+  "transport": [
+    "frontend/src/api/core.ts",
+    "src-tauri/src/main.rs",
+    "src-tauri/src/core_bridge.rs",
+    "crates/archeaxis-api/src/launch.rs",
+    "crates/archeaxis-api/src/lib.rs"
+  ],
+  "writer": "Rust Core Store sole canonical SQLite/CAS writer",
+  "reuse": {
+    "BE01": [
+      "finite Operation enum",
+      "strict Request payload",
+      "launch token in native host",
+      "generated CoreOperation"
+    ],
+    "BE02": [
+      "workspace_meta archive coverage",
+      "ui workspace identity",
+      "restore authorization fence"
+    ],
+    "BE03": [
+      "document checks and version references",
+      "bounded asset context grant",
+      "machine receipts"
+    ],
+    "BE04": [
+      "masked launch configuration read",
+      "model inventory"
+    ],
+    "BE05": [
+      "frozen request journal",
+      "cancellation receipts"
+    ],
+    "BE06": [
+      "versioned knowledge provenance"
+    ],
+    "BE07": [
+      "capability catalog",
+      "worker hello probes"
+    ],
+    "BE09": [
+      "Document/Research/Teaching/Learning ordinary saves"
+    ],
+    "BE11": [
+      "common-format workers",
+      "format loss receipts",
+      "historical eighteen-format qualification"
+    ]
+  },
+  "gaps": {
+    "BE01": "new UI host logical operations not formally admitted; typed consumer version/schema missing",
+    "BE02": "independent layout persistence and finite bridge not implemented",
+    "BE03": "material selection question adapter and destination binding absent",
+    "BE04": "configuration CAS writes, purpose bindings and native credential adapter absent",
+    "BE05": "persistent companion sessions/history/sequence stream absent",
+    "BE06": "character profile and propose-confirm-revoke memory operations absent",
+    "BE07": "operation/object scope, seven-axis status and expiry absent",
+    "BE08": "typed configuration/deployment plan projections pending",
+    "BE09": "new view drafts need field/admission crosswalk",
+    "BE10": "cross-project consumer source incomplete; typed local adapter required",
+    "BE11": "current-operation/profile qualification projection pending",
+    "BE12": "full companion gate distinct from core closed-loop qualification"
+  },
+  "boundaries": [
+    "no universal author-save evidence requirement",
+    "no second writer or knowledge store",
+    "no arbitrary URL/file/shell bridge",
+    "no cloud fallback",
+    "no frozen advanced engine activation",
+    "ASTRYN consumer evaluated via local adapter; no cross-project write"
+  ]
+}

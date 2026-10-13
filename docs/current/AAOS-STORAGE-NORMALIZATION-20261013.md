@@ -25,3 +25,9 @@ Owner 在本轮明确加入该任务。状态 RUNNING_BY_OWNER / PARTIAL；没�
 - NORM05：执行被审阅的具体清理范围，读回空间节约、哈希与仍有效消费者；尚无可审核的批量删除清单。
 
 回退：本轮规范修正可单提交 revert；源文件、历史证据和用户数据均保留。
+
+## 首批透明压缩实际回执
+
+仅 `runs/be268a2d33/341d928bd8d1/tmp/backend` 的已审计、独立文件二进制白名单操作，217 文件 SHA 全部保持原值、路径原样。首个 libssl 单文件试验节约 815,616 bytes，随后批次新增节约 93,470,856 bytes，合计 94,286,472 bytes（约 89.92 MiB）。不改 Core executable；没有删除或移动，不把另外 31 个大 run 视作相同内容。
+
+证据 `.project-local/runs/7d522a2a69/storage-audit-20261013/artifacts/compression-single-file.json` 与 `compression-reviewed-build.json`；逐文件记录压缩前属性、实际 allocated bytes 和 SHA 读回。回退对 before_compressed=false 的精确路径执行 `compact /U /Q`，已压缩文件保留先前属性。该回执只资格此批清理，不代表全部仓库治理完成。
