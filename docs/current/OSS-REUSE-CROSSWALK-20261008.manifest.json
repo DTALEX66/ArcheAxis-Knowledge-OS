@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.generated-artifact-manifest/v1",
   "artifact_name": "oss-reuse-crosswalk-20261008",
-  "recorded_at": "2026-10-08",
+  "recorded_at": "2026-10-13",
   "decision": {
     "what": "The generator is tracked; the full tables it produces are not.",
     "why": "A 20,584-line / 992,500-byte machine-generated table is a build output, not a source of truth: every byte of it is derivable from the tracked generator plus the tracked inputs named below. Committing it makes every future edit to any input either a stale table in Git or a 20k-line diff, and it hides the fact that the table's own embedded provenance can be out of date.",
@@ -31,9 +31,9 @@
     "layout_rule": ".project-local/runs/<identity>/<run-id>/artifacts/ (scripts/runtime/dev.py layout())",
     "identity_rule": "sha256(absolute worktree root, casefolded).hexdigest()[:10]",
     "deviation": "dev.py anchors runs at the OWNER checkout's .project-local. This task is confined to its own worktree and must not write the shared main-checkout .project-local, so the same layout is anchored at this worktree's ignored .project-local/ instead. The identity therefore differs per worktree by design.",
-    "identity_at_recording": "e5e9628f43",
-    "run_id": "oss-reuse-20261008",
-    "relative_path_at_recording": ".project-local\\runs\\e5e9628f43\\oss-reuse-20261008\\artifacts"
+    "identity_at_recording": "7d522a2a69",
+    "run_id": "oss-refresh-20261013",
+    "relative_path_at_recording": ".project-local\\runs\\7d522a2a69\\oss-refresh-20261013\\artifacts"
   },
   "inputs": {
     "docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json": {
@@ -61,27 +61,27 @@
       "matches_current_file": true
     },
     "inspiration_research/resources/open_source_absorption_ledger.json": {
-      "sha256_of_bytes_read_by_generator": "c69ecfda72bc6f92b058010c097e8daf7f21cc66b101f8fc671d88c858aa826a",
-      "sha256_of_current_file": "c69ecfda72bc6f92b058010c097e8daf7f21cc66b101f8fc671d88c858aa826a",
-      "recorded_rows": 101,
+      "sha256_of_bytes_read_by_generator": "6b35d0ea2317df21b4cc6bb3f7ce5e57f7455712d2cf65670f3864d205086d1a",
+      "sha256_of_current_file": "6b35d0ea2317df21b4cc6bb3f7ce5e57f7455712d2cf65670f3864d205086d1a",
+      "recorded_rows": 106,
       "matches_current_file": true
     },
     "inspiration_research/resources/open_source_project_registry.json": {
-      "sha256_of_bytes_read_by_generator": "61d63eacfcd2a999de35e24642d402c83110ec317d6ed51e8a2e98c380e057a8",
-      "sha256_of_current_file": "61d63eacfcd2a999de35e24642d402c83110ec317d6ed51e8a2e98c380e057a8",
-      "recorded_rows": 101,
+      "sha256_of_bytes_read_by_generator": "e158437db522a85abb0d1e9bc5209a707f3ad571026787fa018c1d3bcffd6428",
+      "sha256_of_current_file": "e158437db522a85abb0d1e9bc5209a707f3ad571026787fa018c1d3bcffd6428",
+      "recorded_rows": 106,
       "matches_current_file": true
     }
   },
   "outputs": {
     "json": {
       "file": "OSS-REUSE-CROSSWALK-20261008.json",
-      "bytes": 992500,
-      "sha256": "a9239a4e5d835359a3394a369fd03bd124505056434d1a59862d9136244464ce",
-      "sha256_portable": "4671bd273a1c40248dbee0be1012c9ffeece6edb9c259a3398767a9b39f50e19",
-      "line_terminator": "CRLF",
-      "line_count": 20584,
-      "record_count": 691,
+      "bytes": 987664,
+      "sha256": "f9b29596bd3f600b9c9acef7b219563444dc234498bd201779ebe116c56e4bd2",
+      "sha256_portable": "f9b29596bd3f600b9c9acef7b219563444dc234498bd201779ebe116c56e4bd2",
+      "line_terminator": "LF",
+      "line_count": 20899,
+      "record_count": 701,
       "pool_record_count": 369,
       "pool_counts": {
         "D": 351,
@@ -91,16 +91,16 @@
         "C": 2
       },
       "schema": "archeaxis.oss-reuse-crosswalk/v1",
-      "bytes_portable": 971916
+      "bytes_portable": 987664
     },
     "csv": {
       "file": "OSS-REUSE-CROSSWALK-20261008.csv",
-      "bytes": 303497,
-      "sha256": "c7d6a6cfbc5ce08edbdca07ba605223ae40937ae8cf53730c323551265a40c42",
-      "sha256_portable": "a6e157469313150c6a742b8c19a82129571ed1637f9b9176dba0fe364a33e78f",
+      "bytes": 308681,
+      "sha256": "820da067c32422d640413d0ee44db0c93b6f3e304e3f2f0cd9f036b31a446a57",
+      "sha256_portable": "9128bfa1a4be57376e237077e151d6761bad31ec10374df68cbffc67c28b584c",
       "line_terminator": "CRLF",
-      "line_count": 692,
-      "data_rows": 691,
+      "line_count": 702,
+      "data_rows": 701,
       "columns": [
         "record_key",
         "scope",
@@ -114,7 +114,7 @@
         "value",
         "reevaluate_when"
       ],
-      "bytes_portable": 302805
+      "bytes_portable": 307979
     }
   },
   "portability": {
@@ -154,5 +154,7 @@
     "path": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
     "bytes": 14105,
     "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0"
-  }
+  },
+  "previous_manifest": "docs/history/oss-reuse-crosswalk-manifest-20261008.json",
+  "refresh_reason": "Five explicit Watcha research candidates added; regeneration retains every source row and does not upgrade absorption qualification."
 }
