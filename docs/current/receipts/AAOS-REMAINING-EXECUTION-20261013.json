@@ -1,0 +1,879 @@
+{
+  "schema": "archeaxis.remaining-execution-receipt/v1",
+  "date": "2026-10-13",
+  "state": "RUNNING_BY_OWNER",
+  "overall": "PARTIAL",
+  "canonical_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "authorization": "Owner selected backend/frontend packages, independent UI branch, all remaining work to main; source chat historical audit-only limits superseded within current project scope.",
+  "archive": {
+    "path": "docs/authority/taskpack-20261013-backend-host",
+    "source_zip": "D:/All projects/Record/02-Backend-Host-Taskpack.zip",
+    "zip_sha256": "4be70e98fe70ea4e9febe3df83ced8fcdd69941edf8303d35edb39b1e1b48d38",
+    "files": 34,
+    "hashes_verified": 33,
+    "immutable": true
+  },
+  "boundaries": [
+    "No cross-project writes",
+    "No paid/private outward calls",
+    "No model downloads/global configuration/Green replacement/release",
+    "V01 FT01-04 and advanced frozen mechanisms remain frozen"
+  ],
+  "audit_overrides": [
+    "Use services/python-workers, not nonexistent workers/",
+    "ASTRYN source fragments miss events.ts protocol.ts state.ts; consume complete pinned export or typed local adapter",
+    "Existing finite bridge and canonical schemas reused",
+    "Current loop gate distinct from full BE12 companion/interoperability gate",
+    "Package asset PASS is inherited not independently qualified here",
+    "BE11 preserves 18-category historical evidence; no downgrade to two formats"
+  ],
+  "tasks": [
+    {
+      "id": "BE00",
+      "user_problem": "基础后端接手与缺口核对",
+      "expected_behavior": [
+        "不重复实现已有 Core，不启动通用 Agent 或冻结引擎。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "不重复实现已有 Core，不启动通用 Agent 或冻结引擎。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE01",
+      "user_problem": "有限宿主合同与所有权登记",
+      "expected_behavior": [
+        "三包接口版本及字段一致，未知输入拒绝。",
+        "launch-token 留在宿主；非空字段不替代权限或签名校验。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE00"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "三包接口版本及字段一致，未知输入拒绝。",
+        "launch-token 留在宿主；非空字段不替代权限或签名校验。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE02",
+      "user_problem": "独立布局偏好与 CAS 恢复",
+      "expected_behavior": [
+        "重启读回，冲突不覆盖另一修订。",
+        "不把业务正文、秘密或任意可执行组件写入布局。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "重启读回，冲突不覆盖另一修订。",
+        "不把业务正文、秘密或任意可执行组件写入布局。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE03",
+      "user_problem": "材料上下文与受限问答",
+      "expected_behavior": [
+        "真实新导入资料可问答，回答来源明确。",
+        "缺提取、权限或模型有具体原因，不伪装成功。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01",
+        "BE04"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "真实新导入资料可问答，回答来源明确。",
+        "缺提取、权限或模型有具体原因，不伪装成功。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE04",
+      "user_problem": "模型配置凭据与用途绑定",
+      "expected_behavior": [
+        "重启保持有效配置与用途；配置读不触发推理。",
+        "凭据不进日志或导出，未知加载和费用显示未知。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "重启保持有效配置与用途；配置读不触发推理。",
+        "凭据不进日志或导出，未知加载和费用显示未知。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE05",
+      "user_problem": "正式陪伴会话流与取消",
+      "expected_behavior": [
+        "真实模型对话通过；切换呈现不重复执行。",
+        "重启恢复与取消查询不扩大范围或静默重试。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01",
+        "BE04"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "真实模型对话通过；切换呈现不重复执行。",
+        "重启恢复与取消查询不扩大范围或静默重试。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE06",
+      "user_problem": "角色档案与受控长期记忆",
+      "expected_behavior": [
+        "真实保存重开与纠正删除可读回。",
+        "不建立第二长期知识主库；不只隐藏卡片冒充遗忘。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "真实保存重开与纠正删除可读回。",
+        "不建立第二长期知识主库；不只隐藏卡片冒充遗忘。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE07",
+      "user_problem": "能力状态与范围化就绪探测",
+      "expected_behavior": [
+        "页面标记和映射不当作运行资格；执行前再次校验。",
+        "状态查询不加载所有模型或轮询全部重引擎。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "页面标记和映射不当作运行资格；执行前再次校验。",
+        "状态查询不加载所有模型或轮询全部重引擎。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE08",
+      "user_problem": "配置依赖与部署计划边界",
+      "expected_behavior": [
+        "不以演示进度冒充安装，不把所有候选自动装进电脑。",
+        "安装或更新动作如实际执行必须绑定正式计划与授权回执。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01",
+        "BE07"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "不以演示进度冒充安装，不把所有候选自动装进电脑。",
+        "安装或更新动作如实际执行必须绑定正式计划与授权回执。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE09",
+      "user_problem": "页面草稿和学习对象最小保存",
+      "expected_behavior": [
+        "每个首期可编辑页面具有真实保存去向。",
+        "布局、草稿与正式知识真值分开，普通保存不增加治理负担。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "每个首期可编辑页面具有真实保存去向。",
+        "布局、草稿与正式知识真值分开，普通保存不增加治理负担。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE10",
+      "user_problem": "跨项目只读接入与版本协商",
+      "expected_behavior": [
+        "各产品独立数据与凭据，无另一产品也能运行。",
+        "Observer 不执行；候选不自动接纳；投递幂等但不承诺恰好一次。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "各产品独立数据与凭据，无另一产品也能运行。",
+        "Observer 不执行；候选不自动接纳；投递幂等但不承诺恰好一次。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE11",
+      "user_problem": "格式资格与转换回执",
+      "expected_behavior": [
+        "真实文本与至少一类现有文档样例闭环，其余格式按实际结果发布。",
+        "失败可追踪，可保存不冒充原生编辑或无损互通。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE01"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "真实文本与至少一类现有文档样例闭环，其余格式按实际结果发布。",
+        "失败可追踪，可保存不冒充原生编辑或无损互通。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    },
+    {
+      "id": "BE12",
+      "user_problem": "原生桥接与联合验收",
+      "expected_behavior": [
+        "重启、CAS 冲突、取消竞态、过期授权和未知结果有一致读回。",
+        "源码、CI、安装与人工资格不互相推断。"
+      ],
+      "state": "未实施",
+      "implementation_evidence": [],
+      "dependencies": [
+        "BE02",
+        "BE03",
+        "BE05",
+        "BE06",
+        "BE07",
+        "BE08",
+        "BE09",
+        "BE10",
+        "BE11"
+      ],
+      "priority": "P0",
+      "write_scope": [
+        "crates/",
+        "packages/contracts/",
+        "src-tauri/",
+        "services/python-workers/",
+        "tests/",
+        "docs/"
+      ],
+      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
+      "tests": [],
+      "acceptance": [
+        "重启、CAS 冲突、取消竞态、过期授权和未知结果有一致读回。",
+        "源码、CI、安装与人工资格不互相推断。"
+      ],
+      "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
+      "evidence": [],
+      "blocker": null,
+      "unblock": null,
+      "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
+    }
+  ],
+  "current_required_gaps": [
+    {
+      "id": "CORE-EGRESS",
+      "state": "未实施",
+      "priority": "P0",
+      "depends_on": [],
+      "requirement": "Protocol negotiation before delivering material and approved model dispatch required for success",
+      "paths": [
+        "crates/archeaxis-application/src/executor.rs",
+        "crates/archeaxis-application/src/executor/dispatch.rs",
+        "services/python-workers/machine/document_check.py"
+      ]
+    },
+    {
+      "id": "CORE-SEMANTIC",
+      "state": "已实施缺验证",
+      "priority": "P0",
+      "depends_on": [],
+      "requirement": "Complete corpus batching at least129 Core-owned synthetic items; revision/model identity/deadline guards",
+      "paths": [
+        "crates/archeaxis-api/src/runtime/semantic.rs",
+        "crates/archeaxis-api/tests/contract_semantic_search.rs"
+      ]
+    },
+    {
+      "id": "WA01",
+      "state": "未实施",
+      "priority": "P0",
+      "depends_on": [
+        "CORE-EGRESS"
+      ],
+      "requirement": "Research CAS snapshot quote locator and deterministic integrity; not proof of truth"
+    },
+    {
+      "id": "WA02",
+      "state": "未实施",
+      "priority": "P1",
+      "depends_on": [
+        "WA01"
+      ],
+      "requirement": "Readonly dismissible stale/conflict/duplicate diagnostics; no autonomous mutation"
+    },
+    {
+      "id": "WA03",
+      "state": "未实施",
+      "priority": "P1",
+      "depends_on": [
+        "BE03",
+        "BE09"
+      ],
+      "requirement": "Source-linked answer/retest/ASR journey; model cause remains editable hypothesis"
+    },
+    {
+      "id": "WA04",
+      "state": "外部授权待定",
+      "priority": "P2",
+      "depends_on": [
+        "CORE-EGRESS",
+        "WA01"
+      ],
+      "requirement": "Public query comparison contract first; paid supplier calls require exact new grant"
+    },
+    {
+      "id": "OSS-NECESSARY",
+      "state": "已实施缺验证",
+      "priority": "P1",
+      "depends_on": [
+        "BE00"
+      ],
+      "requirement": "Review existing adapters and bounded dispositions; candidate registration never verified absorption"
+    },
+    {
+      "id": "NATIVE-UNIFIED",
+      "state": "未实施",
+      "priority": "P0",
+      "depends_on": [
+        "CORE-EGRESS",
+        "CORE-SEMANTIC",
+        "WA01",
+        "BE03",
+        "BE09",
+        "BE11"
+      ],
+      "requirement": "Same-source isolated installed synthetic journey and native retest cancellation; existing4B27B only"
+    }
+  ],
+  "failures": [
+    "Previous CI venv uv trampoline permission denied",
+    "New local venv ensurepip failed real-location resolution; preserved; no ACL changes"
+  ],
+  "delivery": {
+    "state": "NOT_EXECUTED",
+    "main_merged": false,
+    "local_git_write": "BLOCKED_READ_ONLY_GIT",
+    "approved_delivery_route": "GitHub connector; no ACL escalation"
+  },
+  "ui_handoff": {
+    "thread_id": "01a1310d-c361-7831-a564-d77d28b8a7a4",
+    "title": "更新创建分支界面",
+    "pages_read": 2,
+    "returned_turns": 15,
+    "has_more": false,
+    "summary": "workspace/intake/ui-handoff-20261013/SUMMARY.md",
+    "visible_messages": "workspace/intake/ui-handoff-20261013/THREAD-PUBLIC-MESSAGES.json",
+    "pasted_input": "workspace/intake/ui-handoff-20261013/OWNER-PASTED-HANDOFF.txt",
+    "ui_commit": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e",
+    "patch_applied": "PASS, 9 explicit files on main-based isolated checkout",
+    "final_integration": "PARTIAL",
+    "main_merge": "NOT_EXECUTED"
+  },
+  "frontend_selected_tasks": [
+    {
+      "id": "FE00",
+      "title": "主线接手与分支范围登记",
+      "dependencies": [],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE01",
+      "title": "逐页面和逐功能区交互定稿",
+      "dependencies": [
+        "FE00"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE02",
+      "title": "视觉变量和组件状态定稿",
+      "dependencies": [
+        "FE01"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE03",
+      "title": "效果图升级与分层资产生产",
+      "dependencies": [
+        "FE02"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE04",
+      "title": "组件库复用与适配",
+      "dependencies": [
+        "FE02"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE05",
+      "title": "五区 Shell 与三级导航",
+      "dependencies": [
+        "FE01",
+        "FE04",
+        "BE01"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE06",
+      "title": "自由布局与共享业务会话",
+      "dependencies": [
+        "FE05",
+        "BE02"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE07",
+      "title": "知识库与导入入口",
+      "dependencies": [
+        "FE05"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE08",
+      "title": "阅读编辑与来源历史",
+      "dependencies": [
+        "FE07",
+        "BE03"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE09",
+      "title": "图谱与研究工作面",
+      "dependencies": [
+        "FE08",
+        "BE09"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE10",
+      "title": "学习路径与课程",
+      "dependencies": [
+        "FE08",
+        "BE09"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE11",
+      "title": "教学表达与交付修订",
+      "dependencies": [
+        "FE10",
+        "BE09"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE12",
+      "title": "练习复述与反馈节奏",
+      "dependencies": [
+        "FE10",
+        "BE09"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE13",
+      "title": "基础画布与视觉表达",
+      "dependencies": [
+        "FE11",
+        "BE09"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE14",
+      "title": "模型中心与用途绑定",
+      "dependencies": [
+        "FE05",
+        "BE04"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE15",
+      "title": "资源扩展与常用服务",
+      "dependencies": [
+        "FE14",
+        "BE07",
+        "BE08"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE16",
+      "title": "项目互联工作面",
+      "dependencies": [
+        "FE15",
+        "BE10"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE17",
+      "title": "受控 AI 旅程与任务回执",
+      "dependencies": [
+        "FE08",
+        "BE07"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE18",
+      "title": "小栖正式前端槽位",
+      "dependencies": [
+        "FE06",
+        "GF08"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE19",
+      "title": "分类能力与未来蓝图",
+      "dependencies": [
+        "FE05",
+        "BE07"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE20",
+      "title": "设置恢复与诊断",
+      "dependencies": [
+        "FE06",
+        "BE04",
+        "BE09"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE21",
+      "title": "全状态与可访问性",
+      "dependencies": [
+        "FE05",
+        "FE14",
+        "FE19"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE22",
+      "title": "多格式与导入导出闭环",
+      "dependencies": [
+        "FE07",
+        "BE11"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE23",
+      "title": "可见性生命周期与性能",
+      "dependencies": [
+        "FE06",
+        "FE18",
+        "FE22"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE24",
+      "title": "原生安装与五旅程验收",
+      "dependencies": [
+        "FE08",
+        "FE12",
+        "FE14",
+        "FE18",
+        "FE20",
+        "FE21",
+        "FE22",
+        "FE23",
+        "BE12",
+        "GF10"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    },
+    {
+      "id": "FE25",
+      "title": "真实宣传资产与交接",
+      "dependencies": [
+        "FE24"
+      ],
+      "state": "NOT_EXECUTED",
+      "evidence": []
+    }
+  ],
+  "validation_current": {
+    "frontend": {
+      "state": "PASS",
+      "tests": 1238,
+      "passed": 1238,
+      "evidence_level": "SIMULATED",
+      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-frontend"
+    },
+    "dispatch_units": {
+      "state": "PASS",
+      "tests": 6,
+      "passed": 6,
+      "evidence_level": "SYNTHETIC",
+      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-rust"
+    },
+    "research_domain": {
+      "state": "PASS",
+      "tests": 4,
+      "passed": 4,
+      "evidence_level": "SYNTHETIC"
+    },
+    "worker_units": {
+      "state": "PASS",
+      "tests": 68,
+      "passed": 68,
+      "evidence_level": "SYNTHETIC",
+      "scope": "tests/workers confcutdir; not complete canonical gate"
+    },
+    "api_integration": {
+      "state": "BLOCKED",
+      "reason": "Store open I/O permission in current sandbox; compile-only PASS is not behavior qualification"
+    },
+    "exact_sha_ci": "NOT_EXECUTED",
+    "installed_runtime": "UNVERIFIED"
+  }
+}

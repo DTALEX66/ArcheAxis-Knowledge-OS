@@ -1339,8 +1339,26 @@ impl Executor {
                 let _ = std::io::copy(&mut errors, &mut std::io::sink());
             });
             let (written_send, written_receive) = mpsc::channel();
+            let ready_directory = dispatch_directory.path().to_owned();
+            let ready_hash = request["egress_sha256"].as_str()
+                .ok_or("dispatch_identity_missing")?.to_owned();
+            let ready_store = check_store.clone();
+            let ready_runtime = runtime.clone();
+            let ready_request = request.clone();
+            let ready_cancelled = Arc::new(AtomicBool::new(false));
+            let writer_cancelled = ready_cancelled.clone();
             let writer = thread::spawn(move || {
-                let result = input.write_all(&bytes).map_err(|_| "worker_write_failed");
+                let result = dispatch::wait_ready(&ready_directory, &ready_hash, &writer_cancelled)
+                    .and_then(|_| {
+                        if writer_cancelled.load(Ordering::Acquire) {
+                            return Err("dispatch_cancelled".into());
+                        }
+                        ready_runtime.block_on(ready_store.submit_wait(move |conn| {
+                            archeaxis_domain::document::check_egress_before_worker(conn, &ready_request)
+                        })).map_err(|_| "execution_unavailable".to_owned())?
+                            .map_err(|_| "egress_revalidation_failed".to_owned())
+                    })
+                    .and_then(|_| dispatch::write_material(&mut input, &bytes, &writer_cancelled));
                 drop(input);
                 let _ = written_send.send(result);
             });
@@ -1361,7 +1379,7 @@ impl Executor {
                             .min(deadline.saturating_duration_since(Instant::now())),
                     ) {
                         Ok(result) => {
-                            result.map_err(str::to_owned)?;
+                            result?;
                             break;
                         }
                         Err(mpsc::RecvTimeoutError::Timeout) => continue,
@@ -1401,6 +1419,9 @@ impl Executor {
                 if !["succeeded", "failed"].contains(&value["outcome"].as_str().unwrap_or("")) {
                     return Err("invalid_worker_response".into());
                 }
+                if value["outcome"] == "succeeded" {
+                    dispatch_sequence.require_success_dispatch()?;
+                }
                 loop {
                     revalidate()?;
                     match child.0.try_wait().map_err(|_| "worker_wait_failed")? {
@@ -1418,6 +1439,7 @@ impl Executor {
                 }
                 Ok(value)
             })();
+            ready_cancelled.store(true, Ordering::Release);
             if child.0.try_wait().ok().flatten().is_none() {
                 let _ = child.0.kill();
                 let _ = child.0.wait();

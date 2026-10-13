@@ -52,6 +52,8 @@ async fn raw_call(
     )
 }
 
+const READY_PREAMBLE: &str = "import os,json\nfrom pathlib import Path\n_d=Path(os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR'])\n(_d/'ready.json').write_text(json.dumps({'schema':'archeaxis.egress-dispatch/v1','egress_sha256':os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH']}))\n";
+
 #[tokio::test]
 async fn actual_check_worker_dispatches_only_exact_confirmed_material_with_synthetic_transports() {
     for tamper in [false, true] {
@@ -164,23 +166,57 @@ async fn configured_worker_is_outside_writer_transaction_and_old_version_readbac
     let ready = dir.path().join("ready");
     let release = dir.path().join("release");
     let script = dir.path().join("worker.py");
+    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
     let source = format!(
-        r#"import hashlib,json,sys,time
+        r#"import importlib.util,json,sys
 from pathlib import Path
-request=json.load(sys.stdin)
-assert 'egress_sha256' not in request, 'Core admission metadata must not change worker protocol'
-assert request['search_query']=='public synthetic terminology', 'independent query was not forwarded'
-assert request['text']=='saved original', 'unselected document text was forwarded'
-ready=Path({ready});release=Path({release})
-ready.write_text('fixture-ready')
-deadline=time.monotonic()+10
-while not release.exists() and time.monotonic()<deadline: time.sleep(.01)
-assert release.exists(), 'fixture timeout'
-raw=json.dumps({{'status':'uncertain','basis':'synthetic fixture only'}})
-digest=hashlib.sha256(b'fixture-not-network').hexdigest()
-result={{'schema':'archeaxis.document-check.response/v1',**{{k:request[k] for k in ('attempt_id','request_check_id','document_id','version','content_sha256','dimension')}},'outcome':'succeeded','status':'uncertain','reason':None,'basis':'synthetic fixture only','raw_response':raw,'engine_receipt':{{'provider':request['config']['provider'],'requested_model':request['config']['model'],'model':'fixture-actual','prompt_sha256':digest,'response_sha256':hashlib.sha256(raw.encode()).hexdigest(),'tokens_used':1,'finish_reason':'stop'}},'retrieval_receipts':[{{'kind':kind,'body_sha256':digest,'http_status':200,'bytes':19,'retrieved_at':time.time()}} for kind in ('search','article')]}}
-print(json.dumps(result))
+from types import SimpleNamespace
+root=Path({root})
+sys.path.insert(0,str(root/'services/python-workers/machine'))
+import document_check as worker
+events=Path({events})
+def record(kind):
+    values=json.loads(events.read_text()) if events.exists() else []
+    events.write_text(json.dumps(values+[kind]))
+original_donor=worker.donor
+def donor(name):
+    module=original_donor(name)
+    if name=='safe_http':
+        def fetch(url,**kwargs):
+            assert kwargs['policy'].max_redirects==0
+            body=(b'<html><a class="result-link" href="https://source.invalid/public?q=term">public source</a></html>' if 'duckduckgo' in url else b'<html><body><article><h1>Synthetic public source</h1><p>Synthetic public background sentence for protocol testing only. No factual qualification is asserted.</p></article></body></html>')
+            return module.SafeHTTPResponse(url,200,{{'content-type':'text/html'}},body)
+        module.fetch=fetch
+    return module
+worker.donor=donor
+original_dispatch=worker.authorize_dispatch
+def dispatch(kind,destination,material):
+    if kind=='model' and False:
+        material=dict(material)
+        material['prompt']+='\nUNSELECTED PRIVATE SYNTHETIC MATERIAL'
+    original_dispatch(kind,destination,material)
+    record(kind)
+worker.authorize_dispatch=dispatch
+def completion(**kwargs):
+    assert kwargs['num_retries']==0 and kwargs['api_base']=='https://fixture.invalid/v1'
+    assert kwargs['model']=='fixture/explicit'
+    return {{'model':'SIMULATED-model','choices':[{{'message':{{'content':json.dumps({{'status':'uncertain','basis':'SIMULATED transport only'}})}},'finish_reason':'stop'}}],'usage':{{'total_tokens':3}}}}
+sys.modules['litellm']=SimpleNamespace(completion=completion)
+original_execute=worker.execute
+def delayed_execute(request):
+    assert request['search_query']=='public synthetic terminology'
+    assert request['text']=='saved original'
+    ready=Path({ready});release=Path({release})
+    ready.write_text('fixture-ready')
+    deadline=__import__('time').monotonic()+10
+    while not release.exists() and __import__('time').monotonic()<deadline: __import__('time').sleep(.01)
+    assert release.exists(), 'fixture timeout'
+    return original_execute(request)
+worker.execute=delayed_execute
+raise SystemExit(worker.main())
 "#,
+        root = serde_json::to_string(&repo.to_string_lossy()).unwrap(),
+        events = serde_json::to_string(&dir.path().join("events.json").to_string_lossy()).unwrap(),
         ready = serde_json::to_string(&ready.to_string_lossy()).unwrap(),
         release = serde_json::to_string(&release.to_string_lossy()).unwrap()
     );
@@ -354,7 +390,7 @@ sys.exit(1)
 "#,
         directory = serde_json::to_string(&dir.path().to_string_lossy()).unwrap()
     );
-    std::fs::write(&script, source).unwrap();
+    std::fs::write(&script, format!("{READY_PREAMBLE}{source}")).unwrap();
     let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
     let executor = Executor::open_routes(
         &dir.path().join("db.sqlite"),
@@ -618,7 +654,7 @@ async fn malformed_flood_and_timeout_are_failed_and_explicitly_retryable() {
     ] {
         let dir = tempfile::tempdir().unwrap();
         let script = dir.path().join("worker.py");
-        std::fs::write(&script, script_body).unwrap();
+        std::fs::write(&script, format!("{READY_PREAMBLE}{script_body}")).unwrap();
         let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
         let executor = Executor::open_routes(
             &dir.path().join("db.sqlite"),
@@ -961,7 +997,7 @@ async fn retrieval_failure_details_survive_restart_without_blocking_ordinary_sav
             "import json,sys\nrequest=json.load(sys.stdin)\nresult=json.loads({})\nresult.update(schema='archeaxis.document-check.response/v1')\nresult.update({{k:request[k] for k in ('attempt_id','request_check_id','document_id','version','content_sha256','dimension')}})\nprint(json.dumps(result))\nsys.exit(1)\n",
             serde_json::to_string(&response.to_string()).unwrap()
         );
-        std::fs::write(&script, worker).unwrap();
+        std::fs::write(&script, format!("{READY_PREAMBLE}{worker}")).unwrap();
         let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
         let executor = Executor::open_routes(
             &db,

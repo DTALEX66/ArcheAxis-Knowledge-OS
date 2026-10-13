@@ -1253,3 +1253,19 @@ PR #186 已合并 `c7c631a6afa86660679d8ab5439170503f89ea29`，其候选与主�
 ### 2026-10-13 文件往返补验
 
 此前浏览器下载落盘未测项已补齐：当前隔离 WebView 将正式 UI 导出的便携包下载到本轮项目目录，读回文件与 Core 导出一致；从可信文件选择回导后，媒体字节/哈希、未知节点、重启读回和重复提交均 PASS。原生回执 `.project-local/runs/7d522a2a69/webdriver-426c16909fb6/tmp/journey/receipt.json`，源码身份与文件哈希见本轮收尾回执的 `portable_file_qualification`。本次未调用模型；两种模型的原验收范围与未验证质量保持原样。实际取消原生证据覆盖 answer；retest 取消由定向测试支持，不能扩张为原生证明。PR188 已合并到 `d714e613fcb348f6ab10b5341ce2ab305e8e31d3`，主线文档门禁 `38291083446` PASS；PR187 合并后的旧 CI 被随后推送取消，不计 PASS，保留候选完整 CI 的证据身份。
+
+## 2026-10-13 后端宿主增量与统一剩余工作（Owner已选中）
+
+Owner明确要求将02-Backend-Host任务包归档、加入未完成清单并全部执行。原包无损保存在[后端宿主包](../authority/taskpack-20261013-backend-host/00_START_HERE.md)，34文件、33个清单hash/尺寸通过；包内PLANNED及旧PASS保留原日期，不改写为实施结果。仍沿用本执行记录，不建立第二当前任务系统。精确任务字段、依赖、证据与阻塞统一保存在[剩余执行回执](receipts/AAOS-REMAINING-EXECUTION-20261013.json)。
+
+优先先补CORE-EGRESS、CORE-SEMANTIC与WA01，再按BE00→BE01合同和各领域依赖执行。BE02/04/05/06/07/08/09/10/11为必要增量或现有能力复用；BE03材料问答不能通过自动入库绕过用户选择；WA02/03复用版本、学习及ASR来源，WA04付费实调用仍待授权。BE12完整联合验收和当前闭环资格分开，不能因外部消费方未交付阻止验证本项目独立闭环。
+
+运行、配置、凭据、记忆、跨项目合同和新领域接口按现有Rust唯一写者与有限桥实施；不解冻V01/FT01–04及高级历史机制。不写独立UI工作区，不写其他仓库。根分支codex/ui-revision-20261013仍保留；本轮writer为conversation-closure-final-20261013隔离checkout。语义容量修改尚未验证；其余新增行为未实施。归档/登记不代表产品完成。
+
+## 2026-10-13 UI 会话归档与主线整合增量
+
+Owner 已明确将独立 UI 分支及新前端包纳入全部推进到主线范围。压缩去重归档见 `workspace/intake/ui-handoff-20261013/SUMMARY.md`；两页原生读取及原始粘贴保留可见消息来源。FE26 项与 BE13 项仍按既有账本及 remaining receipt 记录，不把历史审计或素材状态当实现 PASS。UI a69a55f7 的9文件 patch已接入 main be79ff90 隔离整合 checkout，尚未提交／远程合并。Core dispatch 5/5 单元测试 PASS；语义集成因 workspace I/O 权限拒绝而未通过行为验收。
+
+### 2026-10-13 剩余实施联合回归
+
+独立 UI 9 文件补丁已吸收至主线基准隔离 checkout，尚未合并 main。Research 原件选区精确引文、不可变锚点与历史版本展示已实施；普通保存不重读 CAS。云核验 worker 在发布协议 ready 前不接收正文，握手等待支持取消，成功必须有 model dispatch 批准。语义全库快照去掉 128 文档上限，保留自适应批次与总预算。当前前端 1238/1238、dispatch 定向 6/6、Research domain 4/4、worker scoped 68/68 PASS，分别为 SIMULATED/SYNTHETIC 证据。API Store 当前沙箱 I/O 权限阻塞，compile-only 不代表集成通过；exact-SHA CI 与安装运行尚未验收。详细任务与验收状态见 receipts/AAOS-REMAINING-EXECUTION-20261013.json，不把本批实现作为全部 BE/FE 完成。

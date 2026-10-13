@@ -7,6 +7,7 @@ import "./design-system/tokens.css";
 import "./design-system/themes.css";
 import "./design-system/primitives.css";
 import "./spaces/ui-first.css";
+import "./design-system/ui-polish.css";
 
 applyTheme(readThemePreference());
 

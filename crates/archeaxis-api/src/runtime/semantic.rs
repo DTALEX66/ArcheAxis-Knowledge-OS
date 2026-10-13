@@ -39,7 +39,7 @@ fn snapshot(conn: &rusqlite::Connection) -> rusqlite::Result<Vec<Value>> {
     conn.prepare("SELECT k.knowledge_id,k.body,k.receipt_hash,k.anchor_id,a.source_id,a.source_revision,s.sha256
         FROM knowledge k LEFT JOIN anchors a ON k.anchor_id=a.anchor_id LEFT JOIN sources s ON a.source_id=s.source_id
         WHERE k.status='accepted' AND NOT EXISTS(SELECT 1 FROM knowledge_supersedes x WHERE x.old_knowledge_id=k.knowledge_id)
-        ORDER BY k.knowledge_id LIMIT 129")?.query_map([],|r| {
+        ORDER BY k.knowledge_id")?.query_map([],|r| {
             let id:String=r.get(0)?;
             Ok(json!({"knowledge_id":id,"knowledge_version":id,"body":r.get::<_,String>(1)?,"status":"accepted",
                 "receipt_hash":r.get::<_,String>(2)?,"anchor_id":r.get::<_,Option<String>>(3)?,
@@ -245,12 +245,6 @@ async fn run(runtime: Runtime, q: String) -> Response {
         Ok(v) => v,
         Err(r) => return r,
     };
-    if candidates.len() > 128 {
-        return error(
-            StatusCode::CONFLICT,
-            "semantic search capacity exceeded: more than 128 eligible knowledge items; no partial corpus was ranked",
-        );
-    }
     if candidates.is_empty() {
         return Json(json!({"schema":"archeaxis.semantic-search/v1","q":q,"status":"EMPTY","complete":false,"candidate_count":0,
         "candidates":[],"embedding":{"complete":false,"rank":[]},"reranker":{"complete":false,"rank":[]},"index_persisted":false})).into_response();

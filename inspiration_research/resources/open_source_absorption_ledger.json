@@ -1150,6 +1150,61 @@
       "source_status": "candidate",
       "execution_state": "reference_only",
       "note": "MCP Server + CLI，将本地代码索引到图数据库，为 AI 助手提供代码上下文"
+    },
+    {
+      "project_id": "osp_0104",
+      "name": "xinchen03/minta",
+      "category": "Knowledge / audited candidate",
+      "recommended_target": "ArcheAxis Knowledge",
+      "absorption_mode": "Adapter/参考候选",
+      "note": "WA02 readonly diagnostic; no canonical writes; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "risk_policy": "must_review_before_use",
+      "source_status": "candidate",
+      "execution_state": "reference_only"
+    },
+    {
+      "project_id": "osp_0105",
+      "name": "quzhiii/thesis-skills",
+      "category": "Knowledge / audited candidate",
+      "recommended_target": "ArcheAxis Knowledge",
+      "absorption_mode": "Adapter/参考候选",
+      "note": "WA01 deterministic citation integrity only; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "risk_policy": "must_review_before_use",
+      "source_status": "candidate",
+      "execution_state": "deferred_review"
+    },
+    {
+      "project_id": "osp_0106",
+      "name": "cocoindex-io/cocoindex",
+      "category": "Knowledge / audited candidate",
+      "recommended_target": "ArcheAxis Knowledge",
+      "absorption_mode": "Adapter/参考候选",
+      "note": "future incremental comparison; no second outbox; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "risk_policy": "must_review_before_use",
+      "source_status": "candidate",
+      "execution_state": "deferred_review"
+    },
+    {
+      "project_id": "osp_0107",
+      "name": "bybit-exchange/kaas",
+      "category": "Knowledge / audited candidate",
+      "recommended_target": "ArcheAxis Knowledge",
+      "absorption_mode": "Adapter/参考候选",
+      "note": "future derived Wiki; no truth replacement; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "risk_policy": "must_review_before_use",
+      "source_status": "candidate",
+      "execution_state": "deferred_review"
+    },
+    {
+      "project_id": "osp_0108",
+      "name": "volcengine/OpenViking",
+      "category": "Knowledge / audited candidate",
+      "recommended_target": "ArcheAxis Knowledge",
+      "absorption_mode": "Adapter/参考候选",
+      "note": "future scoped retrieval; AGPL boundary; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "risk_policy": "must_review_before_use",
+      "source_status": "candidate",
+      "execution_state": "deferred_review"
     }
   ]
 }

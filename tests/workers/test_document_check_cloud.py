@@ -4,6 +4,7 @@ import base64
 import hashlib
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import threading
@@ -253,13 +254,17 @@ def test_actual_safe_http_policy_response_and_restricted_url():
         http._validate_url("http://127.0.0.1/", policy)
 
 
-def test_actual_cli_input_byte_budget_before_sdk(worker):
+def test_actual_cli_input_byte_budget_before_sdk(worker, tmp_path):
     result = subprocess.run(
         [sys.executable, "-B", str(ROOT / "services/python-workers/machine/document_check.py")],
         input=b"x" * (worker.MAX_INPUT + 1),
+        env={**os.environ, "ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR": str(tmp_path),
+             "ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH": "a" * 64},
         capture_output=True,
         timeout=10,
     )
+    assert json.loads((tmp_path / "ready.json").read_text()) == {
+        "schema": "archeaxis.egress-dispatch/v1", "egress_sha256": "a" * 64}
     assert result.returncode == 1
     assert len(result.stdout) < worker.MAX_OUTPUT
     assert json.loads(result.stdout)["reason"] == "invalid_request"

@@ -1,0 +1,16 @@
+{
+  "source": "D:\\All projects\\Record\\01-Frontend-UI-Taskpack.zip",
+  "sha256": "f672e5212d6f96147b97ef91a01613fd517308c6f5f8157614163ae15a063b0f",
+  "zip_crc": "PASS",
+  "files": 105,
+  "archive": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\archives\\frontend-ui-20261013\\01-Frontend-UI-Taskpack.zip",
+  "pasted_source": "C:\\Users\\ALEX\\.codex\\attachments\\7531192a-3dca-4ad9-9a96-802025314608\\已粘贴的文本.txt",
+  "pasted_sha256": "361e9b266d8df633d1953fa470c6877aa11c78c24e6967ae70a8d252171591fb",
+  "share_url": "https://chatgpt.com/s/cx_6ace3a44bda48191924b2a89c5817440",
+  "share_content": "Native read_thread: 15 returned turns, two pages, hasMore=false; visible public messages archived locally only",
+  "ui_commit": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e",
+  "integration": "9 explicit file patch applied to main-based isolated checkout; not merged yet",
+  "current_owner_selection": "Include independent UI and frontend package; advance all to main. Historical audit-only limits are source context.",
+  "thread_id": "01a1310d-c361-7831-a564-d77d28b8a7a4",
+  "raw_archive": ".project-local/archives/ui-thread-20261013"
+}

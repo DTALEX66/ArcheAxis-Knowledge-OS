@@ -1,9 +1,14 @@
 import { UI_DAILY_ENTRY_POINTS, UI_FIXED_ENTRY_POINTS, UI_PAGES, defaultUiPage, uiEntryForPage } from "../presentation/uiPages";
-import { AaosIcon } from "./AaosIcon";
+import { AaosIcon, type AaosIconName } from "./AaosIcon";
 import { useRef, useState } from "react";
 import { spaceDescription, type SpaceDef, type SpaceId } from "../spaces/spaces";
 import { CAPABILITY_NAVIGATION_ENTRIES } from "../presentation/navigation";
 import { productLayerLabel } from "../presentation/labels";
+
+const entryIcons: Record<string, AaosIconName> = {
+  "01": "Workspace", "02": "Knowledge", "06": "Review", "13": "HumanAi",
+  "15": "Import", "17": "Connection", "19": "Settings",
+};
 
 export function SpaceRail({
   active,
@@ -76,7 +81,7 @@ export function SpaceRail({
         <ul className="space-rail-list" aria-label="日常工作流">
           {UI_DAILY_ENTRY_POINTS.map(entry => <li key={entry.pageId}><button type="button" data-page-id={entry.pageId} className="space-rail-item"
             aria-current={entry.pageIds.includes(pageId ?? defaultUiPage(active)) && !activeCapabilityId ? (pageId === entry.pageId ? "page" : "true") : undefined}
-            onKeyDown={onNavigationItemKeyDown} onClick={() => onPage(entry.pageId)}>{entry.label}</button></li>)}
+            onKeyDown={onNavigationItemKeyDown} onClick={() => onPage(entry.pageId)}><span className="space-rail-icon" aria-hidden="true"><AaosIcon name={entryIcons[entry.pageId] ?? "Source"}/></span><span>{entry.label}</span></button></li>)}
         </ul>
         {(() => {
           const entry = uiEntryForPage(pageId ?? defaultUiPage(active));
@@ -89,7 +94,7 @@ export function SpaceRail({
         <ul className="space-rail-list" aria-label="固定入口">
           {UI_FIXED_ENTRY_POINTS.map(entry => <li key={entry.pageId}><button type="button" data-page-id={entry.pageId} className="space-rail-item"
             aria-current={entry.pageIds.includes(pageId ?? defaultUiPage(active)) ? (pageId === entry.pageId && !activeCapabilityId ? "page" : "true") : undefined}
-            onKeyDown={onNavigationItemKeyDown} onClick={() => onPage(entry.pageId)}>{entry.label}</button></li>)}
+            onKeyDown={onNavigationItemKeyDown} onClick={() => onPage(entry.pageId)}><span className="space-rail-icon" aria-hidden="true"><AaosIcon name={entryIcons[entry.pageId] ?? "Source"}/></span><span>{entry.label}</span></button></li>)}
         </ul>
       </div> : <ul className="space-rail-list" role="list" aria-label="产品空间">
         {spaces.map((space) => (

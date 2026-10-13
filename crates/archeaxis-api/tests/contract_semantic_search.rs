@@ -164,7 +164,7 @@ async fn core_candidates_are_batched_and_partial_is_not_a_complete_rerank() {
     assert_eq!(body["reranker"]["rank"].as_array().unwrap().len(), 2);
 }
 #[tokio::test]
-async fn empty_capacity_unknown_fields_and_untrusted_worker_rows_are_explicit() {
+async fn empty_unknown_fields_and_untrusted_worker_rows_are_explicit() {
     let (_dir, _executor, app) = setup("raise RuntimeError('must not execute')", 0).await;
     let (status, body) = call(app.clone(), json!({"q":"x"})).await;
     assert_eq!(status, 200);
@@ -172,11 +172,6 @@ async fn empty_capacity_unknown_fields_and_untrusted_worker_rows_are_explicit() 
     let (status, body) = call(app, json!({"q":"x","candidates":[]})).await;
     assert_eq!(status, 422);
     assert_error_envelope("AAK-VAL-001", &body, false);
-
-    let (_dir, _executor, app) = setup("raise RuntimeError('must not execute')", 129).await;
-    let (status, body) = call(app, json!({"q":"x"})).await;
-    assert_eq!(status, 409);
-    assert_error_envelope("AAK-CON-002", &body, false);
 
     for mode in ["foreign", "version", "duplicate", "score", "bad_logprob"] {
         let (_dir, _executor, app) = setup(&stub(mode), 2).await;
@@ -188,13 +183,24 @@ async fn empty_capacity_unknown_fields_and_untrusted_worker_rows_are_explicit() 
 
 #[tokio::test]
 async fn complete_ranks_are_merged_with_stable_ties() {
-    let (_dir, _executor, app) = setup(&stub("full"), 17).await;
+    let (_dir, _executor, app) = setup(&stub("full"), 129).await;
     let (status, body) = call(app, json!({"q":"evidence"})).await;
     assert_eq!(status, 200, "{body}");
     assert_eq!(body["complete"], true);
     assert_eq!(body["status"], "AVAILABLE");
     let rows = body["reranker"]["rank"].as_array().unwrap();
-    assert_eq!(rows.len(), 17);
+    assert_eq!(body["candidate_count"], 129);
+    assert_eq!(rows.len(), 129);
+    let ids = |values: &[Value]| -> std::collections::BTreeSet<String> {
+        values.iter().map(|row| row["knowledge_id"].as_str().unwrap().to_owned()).collect()
+    };
+    let expected = ids(body["candidates"].as_array().unwrap());
+    assert_eq!(expected.len(), 129);
+    assert_eq!(ids(rows), expected);
+    assert_eq!(ids(body["embedding"]["rank"].as_array().unwrap()), expected);
+    let batches = body["batches"].as_array().unwrap();
+    assert_eq!(batches.len(), 9);
+    assert_eq!(batches.last().unwrap()["candidate_ids"].as_array().unwrap().len(), 1);
     assert!(
         rows.windows(2)
             .all(|pair| pair[0]["knowledge_id"].as_str() < pair[1]["knowledge_id"].as_str())
