@@ -3,15 +3,23 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalTeachingSpace } from "../spaces/CanonicalTeachingSpace";
+import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 vi.mock("../spaces/CanonicalLearningSpace",()=>({CanonicalLearningSpace:({initialItemKey}:{initialItemKey:string})=><div>真实练习入口 {initialItemKey}</div>}));
 type Json=Record<string,any>;
-let records:Json[], creates:Json[], withdrawn:Set<string>;
+let records:Json[], creates:Json[], withdrawn:Set<string>, preparations:Map<string,Json>;
+function preparationSnapshot(body:Json,document_id:string,version=1) {
+ const editor_json=structuredClone(body.editor_json);
+ editor_json.content.forEach((node:Json,index:number)=>{node.attrs={...node.attrs,block_id:node.attrs?.block_id??`fixture_block_${index}`};});
+ const blocks=editor_json.content.map((node:Json,ordinal:number)=>({block_id:node.attrs.block_id,kind:"paragraph",ordinal,node_json:structuredClone(node),text_projection:node.content?.map((n:Json)=>n.text).join("")??"",codec_status:"known"}));
+ return {document_id,version,title:body.title,source_id:null,source_revision:null,editor_json,content_sha256:"a".repeat(64),text_projection:blocks.map((b:Json)=>b.text_projection).filter(Boolean).join("\n"),blocks,revision_basis:null};
+}
+async function preparationDocument(body:Json){return preparationSnapshot(body,await documentRequestIdentity(body.create_request_id));}
 function view(record:Json){return {record,content_sha256:"a".repeat(64),withdrawn:withdrawn.has(record.record_id),scoring_status:"not_scored"};}
 function record(id:string,kind="requirement",parent_id:string|null=null){return {schema:"archeaxis.teaching-record/v2",record_id:id,kind,knowledge_id:"knowledge_actual_v1",knowledge_version:"knowledge_actual_v1",course_id:null,parent_id,purpose:`目的 ${id}`,scope:"personal",privacy:"local_only",content:`正文 ${id}`,feedback_class:null,assessment_id:null,rubric_version:null,assisted:false,producer_kind:"human_authored"};}
 function Harness({initial="08"}:{initial?:string}){const [page,setPage]=useState(initial);return <CanonicalTeachingSpace pageId={page} onOpenPage={setPage}/>;}
-beforeEach(()=>{records=[];creates=[];withdrawn=new Set();bridge.call.mockReset();bridge.call.mockImplementation(async(op:string,p:Json={})=>{
+beforeEach(()=>{records=[];creates=[];withdrawn=new Set();preparations=new Map();bridge.call.mockReset();bridge.call.mockImplementation(async(op:string,p:Json={})=>{
  if(op==="teaching_list")return {items:records.map(view),next_cursor:null};
  if(op==="search")return {items:[{knowledge_id:"knowledge_actual_v1",head:"实际来源知识"}]};
  if(op==="knowledge_get")return {knowledge_id:"knowledge_actual_v1",status:"accepted"};
@@ -21,10 +29,44 @@ beforeEach(()=>{records=[];creates=[];withdrawn=new Set();bridge.call.mockReset(
  if(op==="teaching_withdraw"){withdrawn.add(p.body.record_id);return {withdrawal_id:p.body.withdrawal_id,record_id:p.body.record_id,duplicate:false,affected_record_ids:[p.body.record_id]};}
  if(op==="teaching_import_preview")return {valid:true,record_count:p.body.records.length,duplicate_count:0,package_sha256:p.body.package_sha256};
  if(op==="teaching_import"){records.push(...p.body.records);return {items:p.body.records.map(view),duplicate_count:0,package_sha256:p.body.package_sha256};}
- if(op==="document_create")return {document_id:"preparation_real_id",version:1};
- if(op==="document_get")return {document_id:p.document_id,version:1};
+ if(op==="document_create"){const doc=await preparationDocument(p.body);if(!preparations.has(doc.document_id))preparations.set(doc.document_id,doc);return preparations.get(doc.document_id);}
+ if(op==="document_draft"){const previous=preparations.get(p.document_id);if(!previous||previous.version!==p.body.expected_version)throw new Error("CAS conflict");const doc=preparationSnapshot({...p.body,title:previous.title},p.document_id,previous.version+1);preparations.set(doc.document_id,doc);return doc;}
+ if(op==="document_get"||op==="document_version"){const doc=preparations.get(p.document_id);if(!doc)throw new Error("preparation not found");return structuredClone(doc);}
  throw new Error(op);
 });});
+
+it.each(["identity","version","title","source","body","projection","block","digest"])("SIMULATED preparation rejects a consistent but wrong %s in save ACK and readback",async(field)=>{
+ const original=bridge.call.getMockImplementation()!;
+ bridge.call.mockImplementation(async(op:string,p:Json)=>{
+  const value=await original(op,p);
+  if(op!=="document_create"&&op!=="document_get"&&op!=="document_version")return value;
+  const wrong=structuredClone(value);
+  if(field==="identity")wrong.document_id="other_document";
+  if(field==="version")wrong.version=8;
+  if(field==="title")wrong.title="unrelated title";
+  if(field==="source")wrong.source_id="unrequested_source";
+  if(field==="body")wrong.editor_json.content[0].content[0].text="changed persisted text";
+  if(field==="projection")wrong.text_projection="changed projection";
+  if(field==="block")wrong.blocks[0].text_projection="changed block";
+  if(field==="digest")wrong.content_sha256="not-a-sha256";
+  if(field==="identity")preparations.set(wrong.document_id,wrong);
+  return wrong;
+ });
+ const user=userEvent.setup();render(<Harness/>);await user.type(screen.getByRole("textbox",{name:"内容"}),"保留原文");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));
+ await screen.findByText(/操作未确认完成/);expect(screen.queryByText(/准备正文已保存并读回/)).not.toBeInTheDocument();expect(screen.getByRole("textbox",{name:"内容"})).toHaveValue("保留原文");
+});
+
+it.each(["body","digest","version"])("SIMULATED valid save ACK followed by wrong %s readback remains unconfirmed",async(field)=>{
+ const original=bridge.call.getMockImplementation()!;
+ bridge.call.mockImplementation(async(op:string,p:Json)=>{const value=await original(op,p);if(op!=="document_get")return value;const wrong=structuredClone(value);if(field==="body")wrong.editor_json.content[0].content[0].text="晚到的其他正文";if(field==="digest")wrong.content_sha256="b".repeat(64);if(field==="version")wrong.version++;return wrong;});
+ const user=userEvent.setup();render(<Harness/>);await user.type(screen.getByRole("textbox",{name:"内容"}),"仍未确认的正文");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/操作未确认完成/);expect(screen.queryByText(/准备正文已保存并读回/)).not.toBeInTheDocument();expect(screen.getByRole("textbox",{name:"内容"})).toHaveValue("仍未确认的正文");
+});
+
+it("SIMULATED preparation keeps empty paragraphs and updates the same document with exact CAS revision",async()=>{
+ const user=userEvent.setup();render(<Harness/>);const input=screen.getByRole("textbox",{name:"内容"});await user.type(input,"第一行\n\n第二行\n");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);
+ const [id,first]=[...preparations.entries()][0];expect(first.editor_json.content).toHaveLength(4);expect(first.text_projection).toBe("第一行\n第二行");
+ await user.type(input,"第三行");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(new RegExp(`已保存文档 ${id} · v2`));expect(preparations.size).toBe(1);expect(preparations.get(id)?.editor_json.content).toHaveLength(4);expect(bridge.call).toHaveBeenCalledWith("document_draft",expect.objectContaining({document_id:id,body:expect.objectContaining({expected_version:1})}));
+});
 async function chooseSource(user:ReturnType<typeof userEvent.setup>){await user.click(screen.getByRole("button",{name:"搜索来源知识"}));await user.click(await screen.findByRole("button",{name:"实际来源知识"}));await screen.findByText(/已核对接受状态/);}
 async function fill(user:ReturnType<typeof userEvent.setup>,purpose:string){await user.type(screen.getByRole("textbox",{name:"用途"}),purpose);await user.type(screen.getByRole("textbox",{name:"内容"}),`内容 ${purpose}`);}
 async function save(user:ReturnType<typeof userEvent.setup>){await user.click(screen.getByRole("button",{name:"登记版本化记录"}));await screen.findByText("教学记录已保存；仍为不计分的人工作业记录。");}
@@ -36,7 +78,7 @@ it("SIMULATED complete requirement/proposal/delivery/teachback/feedback/revision
  for(const stage of stages){await user.click(screen.getByRole("button",{name:stage.page}));await user.selectOptions(screen.getByLabelText("记录类型"),stage.kind);const parent=stage.kind==="feedback"?delivery!:stage.kind==="revision"?feedback!:previous;await user.selectOptions(screen.getByLabelText("父记录"),parent.record_id);await fill(user,stage.label);if(stage.kind==="feedback")await user.selectOptions(screen.getByLabelText("反馈分类"),"expression_fit");if(stage.kind==="teach_back")await user.click(screen.getByLabelText("使用了辅助（不自动判定行为者）"));await save(user);const saved=creates.at(-1)!;expect(saved.parent_id).toBe(parent.record_id);expect(saved.knowledge_id).toBe("knowledge_actual_v1");expect(saved.knowledge_version).toBe("knowledge_actual_v1");if(stage.kind==="delivery")delivery=saved;if(stage.kind==="feedback")feedback=saved;if(stage.kind==="teach_back"){expect(saved.assisted).toBe(true);expect(saved.assessment_id).toBeNull();}previous=saved;}
  expect(new Set(creates.map(row=>row.record_id)).size).toBe(7);expect(creates.every(row=>/^teaching_[A-Za-z0-9-]+$/.test(row.record_id))).toBe(true);expect(within(screen.getByRole("article",{name:"已保存教学记录"})).getByText(/not_scored/)).toBeInTheDocument();expect(bridge.call).not.toHaveBeenCalledWith("learning_review",expect.anything());
 },15000);
-it("persists incomplete preparation body without knowledge then keeps formal registration separate",async()=>{const user=userEvent.setup();render(<Harness/>);await user.type(screen.getByRole("textbox",{name:"内容"}),"只有不完整准备正文");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);expect(bridge.call).toHaveBeenCalledWith("document_create",{body:{create_request_id:expect.stringMatching(/^preparation_[A-Za-z0-9_-]+$/),title:"教学准备草稿",editor_json:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"只有不完整准备正文"}]}]}}});expect(bridge.call).toHaveBeenCalledWith("document_get",{document_id:"preparation_real_id"});expect(creates).toHaveLength(0);await user.click(screen.getByRole("button",{name:"登记版本化记录"}));await screen.findByText(/操作未确认完成/);expect(creates).toHaveLength(0);});
+it("persists incomplete preparation body without knowledge then keeps formal registration separate",async()=>{const user=userEvent.setup();render(<Harness/>);await user.type(screen.getByRole("textbox",{name:"内容"}),"只有不完整准备正文");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);expect(bridge.call).toHaveBeenCalledWith("document_create",{body:{create_request_id:expect.stringMatching(/^preparation_[A-Za-z0-9_-]+$/),title:"教学准备草稿",editor_json:{type:"doc",content:[{type:"paragraph",attrs:{block_id:expect.stringMatching(/^[a-f0-9-]{36}$/)},content:[{type:"text",text:"只有不完整准备正文"}]}]}}});expect(bridge.call).toHaveBeenCalledWith("document_get",{document_id:[...preparations.keys()][0]});expect(creates).toHaveLength(0);await user.click(screen.getByRole("button",{name:"登记版本化记录"}));await screen.findByText(/操作未确认完成/);expect(creates).toHaveLength(0);});
 it("uncertain create retries the identical client record and frozen content",async()=>{const original=bridge.call.getMockImplementation()!;let first=true;bridge.call.mockImplementation(async(op:string,p:Json)=>{if(op==="teaching_create"&&first){first=false;creates.push(p.body);records.push(p.body);throw new Error("reply lost after persistence");}return original(op,p);});const user=userEvent.setup();render(<Harness/>);await chooseSource(user);await user.selectOptions(screen.getByLabelText("记录类型"),"requirement");await fill(user,"不确定保存");await user.click(screen.getByRole("button",{name:"登记版本化记录"}));await screen.findByText(/上次写入尚未确认/);expect(screen.getByRole("textbox",{name:"内容"})).toBeDisabled();await user.click(screen.getByRole("button",{name:"重试同一记录"}));await screen.findByText("已读回同一客户端记录，未重复创建。");expect(creates).toHaveLength(2);expect(creates[0]).toEqual(creates[1]);expect(records).toHaveLength(1);});
 it("cannot derive from a withdrawn parent or substitute arbitrary parent IDs",async()=>{records=[record("withdrawn_requirement")];withdrawn.add(records[0].record_id);const user=userEvent.setup();render(<Harness initial="09"/>);await screen.findByText(/本页尚无已保存记录/);expect(screen.queryByRole("option",{name:"需求 · 目的 withdrawn_requirement"})).not.toBeInTheDocument();await chooseSource(user);await fill(user,"无父方案");await user.click(screen.getByRole("button",{name:"登记版本化记录"}));await screen.findByText(/操作未确认完成/);expect(creates).toHaveLength(0);});
 it("failed list remains a failure and is never empty success",async()=>{bridge.call.mockRejectedValue(new Error("Core refused actor"));render(<Harness/>);await screen.findByText("教学记录读取失败；不会把失败显示为空列表。");expect(screen.queryByText(/本页尚无已保存记录/)).not.toBeInTheDocument();});
@@ -58,12 +100,12 @@ it("duplicate import displays Core's duplicate receipt rather than pretending a 
 
 it("preparation lost create ack retries stable request and original snapshot without duplicate documents",async()=>{
  const original=bridge.call.getMockImplementation()!;let first=true;const attempts:Json[]=[];const persisted=new Map<string,Json>();
- bridge.call.mockImplementation(async(op:string,p:Json)=>{if(op==="document_create"){attempts.push(p.body);const key=p.body.create_request_id;if(!persisted.has(key))persisted.set(key,{document_id:"one-persisted-preparation",version:1});if(first){first=false;throw new Error("lost ack after commit");}return persisted.get(key);}return original(op,p);});
+ bridge.call.mockImplementation(async(op:string,p:Json)=>{if(op==="document_create"){attempts.push(p.body);const key=p.body.create_request_id;if(!persisted.has(key)){const doc=await preparationDocument(p.body);persisted.set(key,doc);preparations.set(doc.document_id,doc);}if(first){first=false;throw new Error("lost ack after commit");}return persisted.get(key);}return original(op,p);});
  const user=userEvent.setup();render(<Harness/>);await user.type(screen.getByRole("textbox",{name:"内容"}),"保存原文");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/操作未确认完成/);
  await user.type(screen.getByRole("textbox",{name:"内容"})," 新编辑仍未保存");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);expect(attempts).toHaveLength(2);expect(attempts[0]).toEqual(attempts[1]);expect(persisted.size).toBe(1);expect(screen.getByRole("textbox",{name:"内容"})).toHaveValue("保存原文 新编辑仍未保存");
 });
 it("preparation lost readback reuses exact create identity",async()=>{
- const original=bridge.call.getMockImplementation()!;let first=true;const attempts:Json[]=[];bridge.call.mockImplementation(async(op:string,p:Json)=>{if(op==="document_create"){attempts.push(p.body);return {document_id:"preparation_real_id",version:1};}if(op==="document_get"&&first){first=false;throw new Error("readback lost");}return original(op,p);});const user=userEvent.setup();render(<Harness/>);await user.type(screen.getByRole("textbox",{name:"内容"}),"保留正文");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/操作未确认完成/);await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);expect(attempts[0]).toEqual(attempts[1]);
+ const original=bridge.call.getMockImplementation()!;let first=true;const attempts:Json[]=[];bridge.call.mockImplementation(async(op:string,p:Json)=>{if(op==="document_create")attempts.push(p.body);if(op==="document_get"&&first){first=false;throw new Error("readback lost");}return original(op,p);});const user=userEvent.setup();render(<Harness/>);await user.type(screen.getByRole("textbox",{name:"内容"}),"保留正文");await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/操作未确认完成/);await user.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);expect(attempts[0]).toEqual(attempts[1]);
 });
 it("withdrawal dialog traps Tab and Escape restores trigger without mutation",async()=>{
  records=[record("withdraw-me")];const user=userEvent.setup();render(<Harness/>);await user.click(await screen.findByRole("button",{name:"需求 · 目的 withdraw-me"}));const trigger=screen.getByRole("button",{name:"审阅撤回记录"});await user.click(trigger);const dialog=await screen.findByRole("alertdialog",{name:"确认撤回教学记录"});expect(dialog).toContainElement(document.activeElement as HTMLElement);await user.click(within(dialog).getByRole("button",{name:"取消撤回"}));await waitFor(()=>expect(trigger).toHaveFocus());await user.click(trigger);const cancel=screen.getByRole("button",{name:"取消撤回"});cancel.focus();await user.tab();expect(screen.getByRole("textbox",{name:"撤回原因"})).toHaveFocus();await user.keyboard("{Escape}");await waitFor(()=>expect(trigger).toHaveFocus());expect(bridge.call).not.toHaveBeenCalledWith("teaching_withdraw",expect.anything());

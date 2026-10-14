@@ -2,6 +2,9 @@ import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
+import { assertCoreDto, type DocumentDto } from "../api/generated/core-contract";
+import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
+import { sameValue } from "../presentation/exchangeProof";
 import type { TeachingRecord, RecordView, RecordPage, WriteReceipt, ExchangeBundle, WithdrawalReceipt, ImportReceipt } from "../api/generated/teaching-contract";
 import { assertTeachingDto } from "../api/generated/teaching-contract";
 import { coreFailureReason } from "../presentation/labels";
@@ -13,6 +16,11 @@ import {resolveLearningJourney,type LearningJourneyTarget} from "../presentation
 type Kind = TeachingRecord["kind"];
 type Knowledge = { knowledge_id: string; head: string };
 type Course = { manifest_id: string; title: string; stale: boolean };
+type PreparationEditor = {type:"doc";content:{type:"paragraph";attrs:{block_id:string};content?:{type:"text";text:string}[]}[]};
+type PreparationAttempt = {snapshot:string} & (
+  {operation:"document_create";payload:{body:{create_request_id:string;title:string;editor_json:PreparationEditor}}} |
+  {operation:"document_draft";payload:{document_id:string;body:{expected_version:number;editor_json:PreparationEditor}}}
+);
 const pages = [ ["08", "教学需求"], ["09", "表达方案"], ["10", "交付与版本"], ["11", "练习 / Teach-back"], ["12", "反馈与修订"], ["16", "人工交换"] ] as const;
 const kinds: Record<string, Kind[]> = { "08": ["observation", "requirement"], "09": ["proposal"], "10": ["delivery"], "11": ["teach_back"], "12": ["feedback", "revision"], "16": [] };
 const names: Record<Kind, string> = { observation:"观察", requirement:"需求", proposal:"表达方案", delivery:"交付", teach_back:"Teach-back", feedback:"反馈", revision:"修订" };
@@ -42,7 +50,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
   const [bundle,setBundle]=useState<ExchangeBundle|null>(null), [preview,setPreview]=useState<{record_count:number;duplicate_count:number;package_sha256:string}|null>(null), [exchangeDialog,setExchangeDialog]=useState(false), [practice,setPractice]=useState(false);
   const lock=useRef(false), epoch=useRef(0), listEpoch=useRef(0), fileEpoch=useRef(0);
   const createAttempt=useRef<TeachingRecord|null>(null), withdrawalAttempt=useRef<{schema:"archeaxis.teaching-withdrawal/v2";withdrawal_id:string;record_id:string;reason:string}|null>(null);
-  const preparationAttempt=useRef<{operation:"document_create"|"document_draft";payload:Record<string,unknown>;snapshot:string}|null>(null);
+  const preparationAttempt=useRef<PreparationAttempt|null>(null);
   const currentSelection=useRef<string|null>(null), currentBundle=useRef<ExchangeBundle|null>(null);
   function note(text:string) {setMessage(text);setFailure(null);}
   function merge(item:RecordView) {setItems(previous=>[item,...previous.filter(row=>row.record.record_id!==item.record.record_id)]);}
@@ -77,13 +85,29 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
   async function readAssessment() {if(!itemKey)return;await run(async request=>{const saved=object(await coreCommand("assessment_get",{item_key:itemKey}));if(typeof saved.assessment_id!=="string"||saved.knowledge_id!==knowledge?.knowledge_id||saved.knowledge_version!==knowledge?.knowledge_id)throw new Error("assessment knowledge mismatch");if(request===epoch.current){setAssessmentId(saved.assessment_id);note("已读取真实学习问题身份；Teach-back记录仍不计分。");}});}
   async function savePreparation() {try{await documentLease.write(savePreparationDocument);}catch(error){setFailure(error instanceof Error?error.message:"此文档视图只读");}}
   async function savePreparationDocument() {
-    await run(async request=>{const editor_json={type:"doc",content:draft.content.split("\n").map(text=>({type:"paragraph",...(text?{content:[{type:"text",text}]}:{})}))};
-      const attempt=preparationAttempt.current??{operation:preparation?"document_draft" as const:"document_create" as const,payload:preparation?{document_id:preparation.document_id,body:{expected_version:preparation.version,editor_json}}:{body:{create_request_id:boundedId("preparation"),title:draft.purpose.trim()||"教学准备草稿",editor_json}},snapshot:JSON.stringify({purpose:draft.purpose,content:draft.content})};
+    await run(async request=>{const editor_json:PreparationEditor={type:"doc",content:draft.content.split("\n").map(text=>({type:"paragraph",attrs:{block_id:crypto.randomUUID()},...(text?{content:[{type:"text" as const,text}]}:{})}))};
+      const currentSnapshot=JSON.stringify({purpose:draft.purpose,content:draft.content});
+      const attempt:PreparationAttempt=preparationAttempt.current??(preparation
+        ?{operation:"document_draft",payload:{document_id:preparation.document_id,body:{expected_version:preparation.version,editor_json}},snapshot:currentSnapshot}
+        :{operation:"document_create",payload:{body:{create_request_id:boundedId("preparation"),title:draft.purpose.trim()||"教学准备草稿",editor_json}},snapshot:currentSnapshot});
       preparationAttempt.current=attempt;
       const snapshot=attempt.snapshot;
-      const result=object(await coreCommand(attempt.operation,attempt.payload));
-      if(typeof result.document_id!=="string"||!Number.isInteger(result.version)||preparation&&result.document_id!==preparation.document_id)throw new Error("invalid preparation document receipt");
-      const readback=object(await coreCommand("document_get",{document_id:result.document_id}));if(readback.document_id!==result.document_id||readback.version!==result.version)throw new Error("preparation readback mismatch");
+      const expectedId=attempt.operation==="document_create"?await documentRequestIdentity(attempt.payload.body.create_request_id):attempt.payload.document_id;
+      const expectedVersion=attempt.operation==="document_create"?1:attempt.payload.body.expected_version+1;
+      const nodes=attempt.payload.body.editor_json.content;
+      const texts=nodes.map(node=>(node.content??[]).map(child=>child.text).join(""));
+      function verified(value:unknown):DocumentDto {
+        const doc=assertCoreDto<DocumentDto>("DocumentDto",value);
+        if(doc.document_id!==expectedId||doc.version!==expectedVersion||!/^[a-f0-9]{64}$/.test(doc.content_sha256)||doc.source_id!==null||doc.source_revision!==null
+          ||attempt.operation==="document_create"&&doc.title!==attempt.payload.body.title
+          ||!sameValue(doc.editor_json,attempt.payload.body.editor_json)||doc.text_projection!==texts.filter(text=>text.length>0).join("\n")
+          ||doc.blocks.length!==nodes.length||doc.blocks.some((block,index)=>block.block_id!==nodes[index].attrs.block_id||block.kind!=="paragraph"||block.ordinal!==index||block.text_projection!==texts[index]||block.codec_status!=="known"||!sameValue(block.node_json,nodes[index])))throw new Error("preparation snapshot mismatch");
+        return doc;
+      }
+      if(request!==epoch.current)return;
+      const result=verified(await coreCommand(attempt.operation,structuredClone(attempt.payload)));
+      const readback=verified(await coreCommand("document_get",{document_id:expectedId}));
+      if(readback.content_sha256!==result.content_sha256||readback.title!==result.title)throw new Error("preparation readback mismatch");
       if(request===epoch.current){setPreparation({document_id:result.document_id,version:result.version as number});setSavedPreparation(snapshot);preparationAttempt.current=null;note("准备正文已保存并读回；允许缺少需求字段或正式知识绑定。登记版本化记录是另一步操作。");}
     });
   }

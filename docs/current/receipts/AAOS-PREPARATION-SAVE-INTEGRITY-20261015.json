@@ -1,0 +1,115 @@
+{
+  "schema": "archeaxis.preparation-save-integrity/v1",
+  "date": "2026-10-15",
+  "overall": "PARTIAL",
+  "task": "BE09 existing preparation save adapter integrity",
+  "parent_commit": "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+  "branch": "codex/teaching-save-integrity-20261015",
+  "problem": "An internally consistent ACK/readback with the wrong document identity, version or content could be accepted as saved; the frozen submitted draft was not verified.",
+  "changes": [
+    "Pinned block IDs before sending, kept across frozen retries",
+    "Derived the expected document identity from the canonical create request ID",
+    "Required exact expected revision, requested source absence and creation title",
+    "Compared complete editor JSON, text projection, block identities/order/nodes/projections and codec status",
+    "Required valid SHA256 and identical ACK/readback fingerprints",
+    "Preserved current text and frozen request on mismatch; no new governance or provider calls"
+  ],
+  "code_files_sha256": {
+    "frontend/src/spaces/CanonicalTeachingSpace.tsx": "c4f033da9f178e2791c249f0becdab27dd0c63f6fef5fdda47997260257159f6",
+    "frontend/src/__tests__/CanonicalTeachingSpace.test.tsx": "c72ee30cc43bc4ab63de67710806a429c5fe45a8f24abef2069facda90d57079",
+    "crates/archeaxis-domain/tests/document_create_retry.rs": "3692e4f63ea834dfff4a194ee4220b0e3826df35db1c6852e63d6ee28ecd201b"
+  },
+  "evidence": {
+    "red": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/prep-red-1015/artifacts/execution.json",
+        "sha256": "ad3ede931985fb945a4e0be3f3701bd9d66ed13c9b56264bca4710f9ad6b1d7a",
+        "exit_code": 1,
+        "source_commit": "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "source_patch_sha256": "b49be95e8db5d1968f28740f7e734e7e51162d6758a3a9aaac34484de98e8398",
+        "source_consistent": true
+      },
+      "cases": "8 regressions fail against original adapter; all reported false saved status"
+    },
+    "frontend_targeted": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/prep-green3-1015/artifacts/execution.json",
+        "sha256": "71640cffa1c2df3db1213d60240147e53270de285b05d2cf37053d20d20237f4",
+        "exit_code": 0,
+        "source_commit": "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "source_patch_sha256": "cc79c14bdd0b8848fef9a2fd31351b96691842de116c6d8293a34540ad7657e9",
+        "source_consistent": true
+      },
+      "tests": 39,
+      "state": "PASS",
+      "level": "SIMULATED",
+      "cases": "Eight corrupt ACK/readback cases, three late readback corruptions, Unicode/empty paragraphs/CAS update, existing lostACK and leases"
+    },
+    "frontend_full": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/prep-ui-all-1015/artifacts/execution.json",
+        "sha256": "70dca9f2ee3690e7f5ef526728d7a406360d4db31e1e943572f076dbf8b31a3d",
+        "exit_code": 0,
+        "source_commit": "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "source_patch_sha256": "70bf3b7b72bd9a62c8229b5d1473c5be8efe9305f35eb28674cc534b4b0ad469",
+        "source_consistent": true
+      },
+      "files": 143,
+      "tests": 1297,
+      "state": "PASS",
+      "level": "SIMULATED"
+    },
+    "typescript": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/prep-types3-1015/artifacts/execution.json",
+        "sha256": "4c8f0ddccf79c1ad1879187f097458702d2ff1c3274fe47d117528edf369d58f",
+        "exit_code": 0,
+        "source_commit": "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "source_patch_sha256": "70bf3b7b72bd9a62c8229b5d1473c5be8efe9305f35eb28674cc534b4b0ad469",
+        "source_consistent": true
+      },
+      "state": "PASS"
+    },
+    "rust_format": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/prep-fmt-1015/artifacts/execution.json",
+        "sha256": "4a7e0af58d630dff8c4f6dd5ab10e2f7e6365e125243b8213bbc8f4bd532bef7",
+        "exit_code": 0,
+        "source_commit": "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "source_patch_sha256": "70bf3b7b72bd9a62c8229b5d1473c5be8efe9305f35eb28674cc534b4b0ad469",
+        "source_consistent": true
+      },
+      "state": "PASS"
+    },
+    "sqlite_domain": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/prep-core2-1015/artifacts/domain.json",
+        "sha256": "4a5ef84663dc33dd2f59722d4b0d10383bf6069444ca1f611ffc0a911cda7af4",
+        "exit_code": 0,
+        "source_commit": "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "source_patch_sha256": "70bf3b7b72bd9a62c8229b5d1473c5be8efe9305f35eb28674cc534b4b0ad469",
+        "source_consistent": true
+      },
+      "tests": 3,
+      "state": "PASS",
+      "level": "REAL_SQLITE_DOMAIN_SYNTHETIC_INPUT",
+      "cases": "Pinned node preservation, blank paragraphs, stale CAS rejected, close/reopen current and historical reads, same create identity returns original snapshot without replacing newer draft"
+    }
+  },
+  "remaining": [
+    "BE09 full manual course/plan/practice and view reopening adapters are not qualified by this small fix",
+    "No current native bridge/installed journey or Owner acceptance for this source",
+    "Standard quick's twelve historical shallow-run layout findings remain unresolved; full prior quick was FAIL",
+    "The earlier NSIS artifact predates this frontend fix and does not qualify it"
+  ],
+  "delivery": {
+    "push": "BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "pr": "NOT_CREATED",
+    "ci": "NO_EVIDENCE",
+    "merge": "NOT_EXECUTED",
+    "installed": "NOT_EXECUTED",
+    "reason": "approval required by policy, but AskForApproval is set to Never"
+  },
+  "rollback": "Revert this one preparation adapter/test commit; Core storage behavior was not changed",
+  "receipt_boundary": "Written after tested code snapshots; code hashes bind the reviewed files without claiming the future receipt commit was installed"
+}
