@@ -1902,7 +1902,7 @@ def capability_refusal_recovery(
     frozen_job_journal(read("ui_state_read"), frozen, pin["source_id"], document["source_revision"], "text")
     capability_permission(read, False)
     assert read("document_get", {"document_id": document["document_id"]}) == document
-    wait("return document.querySelector('[aria-label=\"当前页面\"] small')?.textContent==='UI / 03' && !!document.querySelector('[aria-label=\"阅读与编辑文档视图\"]') && document.body.innerText.includes(" + json.dumps(document["document_id"]) + ")")
+    wait("return document.querySelector('[aria-label=\"当前页面\"]')?.getAttribute('data-page-id')==='03' && !!document.querySelector('[aria-label=\"阅读与编辑文档视图\"]') && document.body.innerText.includes(" + json.dumps(document["document_id"]) + ")")
     # Hydration restores the scene, while a fresh host URL has no hash. Use the
     # actual same-page control to normalize it without changing the frozen intent.
     ui.page("03")
