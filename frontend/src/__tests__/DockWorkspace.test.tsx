@@ -3,13 +3,36 @@ import { fireEvent,render,screen,waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { DockWorkspace } from "../workspace/DockWorkspace";
 import {useDocumentWriteLease} from "../workspace/documentSessions";
-const counters=vi.hoisted(()=>({mounts:0,closes:0}));
+import {layoutPresets} from "../workspace/WorkspaceController";
+const counters=vi.hoisted(()=>({mounts:0,closes:0,working:null as null|{server:{workspace_id:string;restore_epoch:string};state:{active_document:null}}}));
+vi.mock("../presentation/useCoreWorkingState",()=>({useOptionalCoreWorkingState:()=>counters.working}));
 vi.mock("../spaces/SpaceView",()=>({SpaceView:({uiPageId,initialDocumentId}:{uiPageId:string;initialDocumentId?:string})=>{const [draft,setDraft]=useState(()=>{counters.mounts++;return "";});const lease=useDocumentWriteLease(initialDocumentId);return <label>文档草稿 {uiPageId}<input aria-label={`draft-${uiPageId}${initialDocumentId?":"+initialDocumentId:""}`} disabled={!lease.canWrite} value={draft} onChange={e=>setDraft(e.target.value)}/></label>;}}));
 class ResizeObserverStub{observe(){}unobserve(){}disconnect(){}}
-beforeEach(()=>{vi.stubGlobal("ResizeObserver",ResizeObserverStub);counters.mounts=0;});
-afterEach(()=>{vi.unstubAllGlobals();});
+beforeEach(()=>{vi.stubGlobal("ResizeObserver",ResizeObserverStub);counters.mounts=0;counters.working=null;});
+afterEach(()=>{vi.unstubAllGlobals();delete window.__TAURI__;});
 const props={spaceId:"library" as const,uiPageId:"03",onInspect:vi.fn(),onNavigate:vi.fn(),onOpenPage:vi.fn()};
 describe("actual Dockview retained business consumer",()=>{
+ it("SIMULATED native cold layout read keeps the requested business page visible instead of restoring another active tab",async()=>{
+  counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
+  const invoke=vi.fn().mockResolvedValue({status:200,body:{workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:null}});window.__TAURI__={core:{invoke}};
+  render(<DockWorkspace {...props} spaceId="settings" uiPageId="14"/>);
+  await waitFor(()=>expect(screen.getByLabelText("draft-14")).toBeVisible());
+  await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeInTheDocument());
+  expect(screen.getByLabelText("draft-14")).toBeVisible();
+  expect(invoke.mock.calls.map(call=>call[1].request.operation)).toEqual(["layout_read"]);
+ });
+ it("SIMULATED late layout hydration opens the latest navigation and retains existing business drafts",async()=>{
+  counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
+  let resolve!:(value:unknown)=>void;const reply=new Promise(done=>{resolve=done;});const invoke=vi.fn().mockReturnValue(reply);window.__TAURI__={core:{invoke}};
+  const view=render(<DockWorkspace {...props}/>);await waitFor(()=>expect(invoke).toHaveBeenCalledTimes(1));
+  fireEvent.change(screen.getByLabelText("draft-03"),{target:{value:"retained during hydration"}});
+  view.rerender(<DockWorkspace {...props} spaceId="settings" uiPageId="14"/>);
+  await waitFor(()=>expect(screen.getByLabelText("draft-14")).toBeVisible());
+  resolve({status:200,body:{workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:null}});
+  await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeInTheDocument());
+  expect(screen.getByLabelText("draft-14")).toBeVisible();expect(screen.getByLabelText("draft-03")).toHaveValue("retained during hydration");
+  expect(invoke.mock.calls.map(call=>call[1].request.operation)).toEqual(["layout_read"]);
+ });
  it("routes AI context, answer and receipts through one retained host with the requested page props",async()=>{
   const view=render(<DockWorkspace {...props} spaceId="settings" uiPageId="13"/>);
   const context=await screen.findByLabelText("draft-13");fireEvent.change(context,{target:{value:"same business session"}});

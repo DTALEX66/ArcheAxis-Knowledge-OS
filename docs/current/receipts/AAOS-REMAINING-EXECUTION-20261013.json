@@ -110,7 +110,8 @@
       ],
       "state": "PARTIAL_INTEGRATED",
       "implementation_evidence": [
-        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json"
       ],
       "dependencies": [
         "BE01"
@@ -135,9 +136,9 @@
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [
         "Device-isolated CAS preferences, restart readback, preserved unknown schema/panels and explicit restore-epoch recovery, strict bounded JSON, Settings consumer",
-        "Full Dock renderer FE06 and BE01 formal host integration remain pending; no installed-runtime qualification"
+        "Current Dockview renderer is mounted; FE06 full layout qualification and BE01 formal host integration remain pending; no installed-runtime qualification"
       ],
-      "blocker": "Current exact-SHA integration CI and installed acceptance remain unqualified; finite implemented scope is described in integration_closure_20261014.",
+      "blocker": "Local native synthetic-memory save/correction/forget/export and two cold reopens passed with exact build binding; installed/Owner, full layout and external/shared-port joint acceptance remain unqualified. Remote approval blocker unchanged.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -262,7 +263,8 @@
       "state": "PARTIAL_INTEGRATED",
       "implementation_evidence": [
         "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-        "docs/current/receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json"
+        "docs/current/receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json",
+        "docs/current/receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json"
       ],
       "dependencies": [
         "BE01"
@@ -290,7 +292,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": "Current panel, canonical ACK/export schemas and real SQLite/API synthetic regressions qualified locally; native/installed/Owner and external/shared-port joint acceptance remain unqualified. Remote approval blocker unchanged.",
+      "blocker": "Local native synthetic-memory save/correction/forget/export and two cold reopens passed with exact build binding; installed/Owner, full layout and external/shared-port joint acceptance remain unqualified. Remote approval blocker unchanged.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -370,8 +372,12 @@
         "每个首期可编辑页面具有真实保存去向。",
         "布局、草稿与正式知识真值分开，普通保存不增加治理负担。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_IMPLEMENTED_LOCAL",
+      "implementation_evidence": [
+        "docs/current/receipts/AAOS-PREPARATION-SAVE-INTEGRITY-20261015.json",
+        "docs/current/receipts/AAOS-PREPARATION-REOPEN-20261015.json",
+        "docs/current/receipts/AAOS-PREPARATION-TITLE-STATE-20261015.json"
+      ],
       "dependencies": [
         "BE01"
       ],
@@ -382,17 +388,21 @@
         "src-tauri/",
         "services/python-workers/",
         "tests/",
-        "docs/"
+        "docs/",
+        "frontend/src/"
       ],
-      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
-      "tests": [],
+      "consumer_scope": "Preparation consumer implemented in the current isolated formal frontend under the Owner-selected overlay; independent UI donor remains read-only. Other editable surfaces and external/shared-port acceptance remain separate.",
+      "tests": [
+        "frontend/src/__tests__/CanonicalTeachingSpace.test.tsx",
+        "crates/archeaxis-domain/tests/document_create_retry.rs"
+      ],
       "acceptance": [
         "每个首期可编辑页面具有真实保存去向。",
         "布局、草稿与正式知识真值分开，普通保存不增加治理负担。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Preparation ordinary-body save/reopen/title-purpose integrity slices passed locally at their recorded source snapshots; other BE09 editable surfaces and native/installed acceptance remain unqualified.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
