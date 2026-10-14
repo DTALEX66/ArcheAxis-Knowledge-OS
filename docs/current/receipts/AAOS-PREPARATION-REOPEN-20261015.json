@@ -1,0 +1,62 @@
+{
+  "schema": "archeaxis.preparation-reopen/v1",
+  "date": "2026-10-15",
+  "task": "BE09 preparation reopening adapter",
+  "overall": "PARTIAL",
+  "parent_commit": "7091f650934e96605730e7484e7eeb5a2a589c65",
+  "changes": [
+    "Reused typed Core documents_list pagination and document_get",
+    "Listed local documents without claiming they are all teaching preparations",
+    "Decoded only lossless source-free plain paragraph documents with pinned block identity, exact block projections and known codec",
+    "Refused rich text, unknown metadata, source binding, revision basis, invalid identities and projections without writes",
+    "Kept dirty text and unconfirmed frozen save attempts before switching",
+    "Reopened actual current revision and used it for CAS updates"
+  ],
+  "code_files_sha256": {
+    "frontend/src/spaces/CanonicalTeachingSpace.tsx": "b5259b6cac14b491b1d6601341e98a6b1d89ddf6076e9633cbb8b8aa5bf83597",
+    "frontend/src/__tests__/CanonicalTeachingSpace.test.tsx": "1938ce39674dd2f9072c2aaa3865e7036ef995c29988c963a4ba3f4ebc9c3f75"
+  },
+  "evidence": {
+    "frontend_full": {
+      "state": "PASS",
+      "level": "SIMULATED",
+      "files": 143,
+      "tests": 1309,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/reopen-all-1015/artifacts/execution.json",
+        "sha256": "5310593af48fd3560b9c2c4225bc07d59689d62845347ed30ed276b2e52c0c72",
+        "source_commit": "7091f650934e96605730e7484e7eeb5a2a589c65",
+        "source_patch_sha256": "632455e2113ca49edcaa7518acfa1f55851529fcf5ac246f3690a6c40a9d0a91",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "typescript": {
+      "state": "PASS",
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/reopen-type2-1015/artifacts/execution.json",
+        "sha256": "7705799772454c92601956b3a633cf7a4560a47101bfd8b7d52f86e573c36960",
+        "source_commit": "7091f650934e96605730e7484e7eeb5a2a589c65",
+        "source_patch_sha256": "632455e2113ca49edcaa7518acfa1f55851529fcf5ac246f3690a6c40a9d0a91",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    }
+  },
+  "remaining": [
+    "Other BE09 course, learning and view adapters still require separate qualification",
+    "Document draft saves update body; renaming the existing document title is not implemented by this adapter",
+    "No native bridge, installed restart or Owner acceptance for this source",
+    "Standard quick remains failed on the twelve preserved historical shallow-run folders",
+    "Earlier installer predates this frontend change"
+  ],
+  "delivery": {
+    "push": "BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "pr": "NOT_CREATED",
+    "ci": "NO_EVIDENCE",
+    "merge": "NOT_EXECUTED",
+    "installed": "NOT_EXECUTED",
+    "reason": "approval required by policy, but AskForApproval is set to Never"
+  },
+  "rollback": "Revert this preparation reopen adapter/test/receipt commit; no Core database schema or storage behavior changed"
+}
