@@ -170,7 +170,7 @@ fn meta(conn: &Connection, key: &str) -> Result<Option<String>, Error> {
         )
         .optional()?)
 }
-fn workspace_id(conn: &Connection) -> Result<String, Error> {
+pub(crate) fn workspace_id(conn: &Connection) -> Result<String, Error> {
     if let Some(id) = meta(conn, ID_KEY)? {
         if !hex32(&id) {
             return Err(Error::Invalid("corrupt UI workspace identity"));
@@ -183,7 +183,7 @@ fn workspace_id(conn: &Connection) -> Result<String, Error> {
     )?;
     meta(conn, ID_KEY)?.ok_or(Error::Invalid("workspace identity missing"))
 }
-fn epoch(conn: &Connection) -> Result<String, Error> {
+pub(crate) fn epoch(conn: &Connection) -> Result<String, Error> {
     match meta(conn, archeaxis_store_sqlite::authorization_fence::KEY)? {
         None => Ok("initial".into()),
         Some(raw) => {

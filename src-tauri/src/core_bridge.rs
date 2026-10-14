@@ -107,6 +107,9 @@ pub enum Operation {
     KnowledgeFromTransform,
     WorkspaceBackup,
     WorkspaceBackups,
+    LayoutRead,
+    LayoutWrite,
+    LayoutRecover,
     UiStateRead,
     UiStateWrite,
     UiStateClearSaved,
@@ -643,6 +646,51 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(serde_json::json!({})),
         ),
         WorkspaceBackups => ("GET", "/api/v1/workspace/backups".into(), None),
+        LayoutRead => {
+            if !p
+                .as_object()
+                .is_some_and(|object| object.len() == 1 && object.contains_key("device_id"))
+            {
+                return Err("CORE_LAYOUT_PAYLOAD_INVALID".into());
+            }
+            let device = p["device_id"]
+                .as_str()
+                .ok_or("CORE_LAYOUT_DEVICE_INVALID")?;
+            if device.is_empty()
+                || device.len() > 64
+                || !device
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+            {
+                return Err("CORE_LAYOUT_DEVICE_INVALID".into());
+            }
+            (
+                "GET",
+                format!("/api/v1/workspace/layout?device_id={device}"),
+                None,
+            )
+        }
+        LayoutWrite | LayoutRecover => {
+            if !p
+                .as_object()
+                .is_some_and(|object| object.len() == 1 && object.contains_key("body"))
+            {
+                return Err("CORE_LAYOUT_PAYLOAD_INVALID".into());
+            }
+            let value = body()?;
+            if !value.is_object() {
+                return Err("CORE_LAYOUT_PAYLOAD_INVALID".into());
+            }
+            if matches!(request.operation, LayoutWrite) {
+                ("PUT", "/api/v1/workspace/layout".into(), Some(value))
+            } else {
+                (
+                    "POST",
+                    "/api/v1/workspace/layout/recover".into(),
+                    Some(value),
+                )
+            }
+        }
         UiStateRead => {
             if !p.as_object().is_some_and(|object| object.is_empty()) {
                 return Err("CORE_UI_STATE_PAYLOAD_INVALID".into());
@@ -867,7 +915,9 @@ fn request_byte_limit(operation: &Operation) -> usize {
         90 * 1024 * 1024
     } else if matches!(
         operation,
-        Operation::UiStateWrite
+        Operation::LayoutWrite
+            | Operation::LayoutRecover
+            | Operation::UiStateWrite
             | Operation::UiStateClearSaved
             | Operation::UiStateClearMachine
             | Operation::UiStateMachineStatus
@@ -1681,5 +1731,41 @@ mod folder_native_contract_regression {
             payload: serde_json::json!({"body":{}})
         })
         .is_err());
+    }
+    #[test]
+    fn layout_routes_are_finite_and_device_query_cannot_inject_transport() {
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"layout_read","payload":{"device_id":"desktop_01"}}),
+        )
+        .unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/workspace/layout?device_id=desktop_01");
+        assert!(body.is_none());
+        for payload in [
+            serde_json::json!({"device_id":"../other"}),
+            serde_json::json!({"device_id":"a&actor=machine"}),
+            serde_json::json!({"device_id":"desktop","url":"http://example.invalid"}),
+        ] {
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":"layout_read","payload":payload}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
+        for (operation, method, path) in [
+            ("layout_write", "PUT", "/api/v1/workspace/layout"),
+            ("layout_recover", "POST", "/api/v1/workspace/layout/recover"),
+        ] {
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":operation,"payload":{"body":{}}}),
+            )
+            .unwrap();
+            let (actual, url, _) = route(&request).unwrap();
+            assert_eq!(actual, method);
+            assert_eq!(url, path);
+            let request: Request=serde_json::from_value(serde_json::json!({"operation":operation,"payload":{"body":{},"token":"synthetic"}})).unwrap();
+            assert!(route(&request).is_err());
+        }
     }
 }

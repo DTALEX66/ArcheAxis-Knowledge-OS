@@ -209,7 +209,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (96 pairs in a `text_worker` launch)
+## 3. Route inventory (99 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -547,8 +547,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 69 projection method/path pairs (59 unconditional mounts, ten dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 96 addresses (68 base projection method/path pairs + 28 runtime method/path pairs) | All routes above are served. |
+| **no** `text_worker` | 72 projection method/path pairs (61 unconditional mounts, eleven dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 99 addresses (71 base projection method/path pairs + 28 runtime method/path pairs) | All routes above are served. |
 
 The runtime builder carries **27** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
@@ -753,11 +753,11 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 68 base projection pairs plus 28 runtime pairs total 96. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 71 base projection pairs plus 28 runtime pairs total 99. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
-The 27 additional method/path pairs below are registered in the current router source. This is source inspection, not runtime or installed qualification. Historical 2026-10-01/05/07 receipts above retain their measured counts. Authentication guards, request bodies and responses remain defined by the handler and generated Core contract; no new permission is granted by this index. Current projection/runtime counts are 59/27 mounts and 69/96 method/path pairs for projection-only/text-worker launches.
+The 27 additional method/path pairs below are registered in the current router source. This is source inspection, not runtime or installed qualification. Historical 2026-10-01/05/07 receipts above retain their measured counts. Authentication guards, request bodies and responses remain defined by the handler and generated Core contract; no new permission is granted by this index. Current projection/runtime counts are 61/27 mounts and 72/99 method/path pairs for projection-only/text-worker launches.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
@@ -804,7 +804,7 @@ These four current-source routes extend the text-worker inventory to 93 pairs. T
 
 ## 12. 2026-10-13 bounded ordinary-document package
 
-Current-source inventory is 96 method/path pairs. The two-file Markdown projection remains reference-only; this separate package includes the bound source and canonical expression media CAS bytes, with a combined 2 MiB original-byte / 16 MiB JSON / 128-object limit. It is not a workspace archive, live permission migration, engine execution or knowledge approval.
+Current-source inventory is 99 method/path pairs. The two-file Markdown projection remains reference-only; this separate package includes the bound source and canonical expression media CAS bytes, with a combined 2 MiB original-byte / 16 MiB JSON / 128-object limit. It is not a workspace archive, live permission migration, engine execution or knowledge approval.
 
 | # | Method/path | Actor | Contract |
 | --- | --- | --- | --- |
@@ -813,8 +813,20 @@ Current-source inventory is 96 method/path pairs. The two-file Markdown projecti
 
 ## 13. 2026-10-13 current-source owned worker cancellation
 
-Current projection/runtime counts are 59/27 mounts and 69/96 method/path pairs. Earlier dated counts remain historical. Cancellation reception is not proof of provider termination; no model service is stopped. The current attempt must produce a durable failure audit after owned worker cleanup before `CANCELLED_LOCAL_WORKER` permits explicit journal clearance. Dropped transports or unconfirmed cleanup retain the unfinished claim as UNKNOWN.
+Current projection/runtime counts are 61/27 mounts and 72/99 method/path pairs. Earlier dated counts remain historical. Cancellation reception is not proof of provider termination; no model service is stopped. The current attempt must produce a durable failure audit after owned worker cleanup before `CANCELLED_LOCAL_WORKER` permits explicit journal clearance. Dropped transports or unconfirmed cleanup retain the unfinished claim as UNKNOWN.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
 | 133 | `POST /api/v1/workspace/ui-state/cancel-machine` | Human-only | Exact frozen journal CAS and restore epoch selects the current attempt's owned Cancellation token. Response is only cancel_requested; provider_stop_state and execution_state remain UNKNOWN until separate terminal readback. |
+
+
+
+## 2026-10-14 source inventory reconciliation
+
+The following 3 method/path pairs complete the current source inventory. This is source inspection, not an extension of historical OBSERVED receipts, installed qualification or actor permission. Projection-only: 61 unconditional mounts / 72 pairs; text-worker runtime: 27 mounts / 28 pairs, merging 71 base projection pairs for 99 unique production pairs. Manual receipts remain conditional and excluded.
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| 200 | `GET /api/v1/workspace/layout` | Existing handler guard; no inferred role permission | Current-source registration. Handler, canonical request DTO and response define the contract; runtime/installed qualification UNVERIFIED. |
+| 201 | `POST /api/v1/workspace/layout/recover` | Existing handler guard; no inferred role permission | Current-source registration. Handler, canonical request DTO and response define the contract; runtime/installed qualification UNVERIFIED. |
+| 202 | `PUT /api/v1/workspace/layout` | Existing handler guard; no inferred role permission | Current-source registration. Handler, canonical request DTO and response define the contract; runtime/installed qualification UNVERIFIED. |
