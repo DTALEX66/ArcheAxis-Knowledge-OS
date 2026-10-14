@@ -2,7 +2,7 @@ import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
-import { assertCoreDto, type DocumentDto } from "../api/generated/core-contract";
+import { assertCoreDto, type DocumentDto, type DocumentSummaryDto, type DocumentsListDto } from "../api/generated/core-contract";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { sameValue } from "../presentation/exchangeProof";
 import type { TeachingRecord, RecordView, RecordPage, WriteReceipt, ExchangeBundle, WithdrawalReceipt, ImportReceipt } from "../api/generated/teaching-contract";
@@ -31,6 +31,25 @@ function view(value: unknown): RecordView {
   return assertTeachingDto<RecordView>("RecordView",value);
 }
 function boundedId(prefix: string) { return `${prefix}_${crypto.randomUUID()}`; }
+function preparationText(doc:DocumentDto):string {
+  const editor=object(doc.editor_json);
+  if(doc.source_id!==null||doc.source_revision!==null||doc.revision_basis!==null||doc.title.length>512||editor.type!=="doc"||Object.keys(editor).some(key=>!["type","content"].includes(key))||!Array.isArray(editor.content)||!editor.content.length||doc.blocks.length!==editor.content.length||!/^[a-f0-9]{64}$/.test(doc.content_sha256))throw new Error("unsupported preparation document");
+  const ids=new Set<string>();
+  const lines=editor.content.map((value,index)=>{
+    const node=object(value),attrs=object(node.attrs),block=doc.blocks[index];
+    if(node.type!=="paragraph"||Object.keys(node).some(key=>!["type","attrs","content"].includes(key))||Object.keys(attrs).some(key=>key!=="block_id")||typeof attrs.block_id!=="string"||!attrs.block_id||ids.has(attrs.block_id))throw new Error("unsupported preparation paragraph");
+    ids.add(attrs.block_id);
+    if(node.content!==undefined&&(!Array.isArray(node.content)||node.content.length>1))throw new Error("unsupported preparation inline content");
+    const child=Array.isArray(node.content)&&node.content.length?object(node.content[0]):null;
+    if(child&&(child.type!=="text"||typeof child.text!=="string"||!child.text||Object.keys(child).some(key=>!["type","text"].includes(key))||(child.text as string).includes("\n")))throw new Error("unsupported preparation text");
+    const text=child?child.text as string:"";
+    if(block.block_id!==attrs.block_id||block.ordinal!==index||block.kind!=="paragraph"||block.codec_status!=="known"||block.text_projection!==text||!sameValue(block.node_json,node))throw new Error("preparation block mismatch");
+    return text;
+  });
+  const text=lines.join("\n");
+  if(text.length>65536||doc.text_projection!==lines.filter(Boolean).join("\n"))throw new Error("preparation projection mismatch");
+  return text;
+}
 function blank(kind: Kind) { return { kind, purpose:"", content:"", scope:"personal" as TeachingRecord["scope"], privacy:"local_only" as TeachingRecord["privacy"], assisted:false, feedback_class: null as TeachingRecord["feedback_class"], rubric_version:"", producer_kind:"human_authored" as TeachingRecord["producer_kind"] }; }
 
 /** Manual records share one canonical Core state; a record never constitutes a score. */
@@ -43,6 +62,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
   const [knowledge,setKnowledge]=useState<Knowledge|null>(null), [query,setQuery]=useState(""), [results,setResults]=useState<Knowledge[]>([]);
   const [courses,setCourses]=useState<Course[]>([]), [courseId,setCourseId]=useState<string|null>(null), [itemKey,setItemKey]=useState<string|null>(null), [assessmentId,setAssessmentId]=useState<string|null>(null);
   const [preparation,setPreparation]=useState<{document_id:string;version:number}|null>(null), [savedPreparation,setSavedPreparation]=useState("");
+  const [preparationRows,setPreparationRows]=useState<DocumentSummaryDto[]>([]), [preparationCursor,setPreparationCursor]=useState<string|null>(null), [preparationListed,setPreparationListed]=useState(false);
   const documentLease=useDocumentWriteLease(preparation?.document_id);
   const [parent,setParent]=useState<RecordView|null>(null), [busy,setBusy]=useState(false), [message,setMessage]=useState(""), [failure,setFailure]=useState<string|null>(null);
   const [pending,setPending]=useState(false), [withdrawReason,setWithdrawReason]=useState(""), [withdrawDialog,setWithdrawDialog]=useState(false);
@@ -84,6 +104,24 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
   async function chooseCourse(id:string) {if(pending||lock.current)return;setAssessmentId(null);setItemKey(null);if(!id){setCourseId(null);return;}await run(async request=>{const saved=object(await coreCommand("course_get",{course_id:id})),manifest=object(saved.manifest);if(saved.stale!==false||manifest.manifest_id!==id||!Array.isArray(saved.bindings)||!Array.isArray(manifest.artifacts))throw new Error("invalid course binding");const bindings=saved.bindings.map(object);if(!knowledge||!bindings.some(row=>row.knowledge_id===knowledge.knowledge_id&&row.knowledge_version===knowledge.knowledge_id))throw new Error("course is bound to different knowledge");const artifact=manifest.artifacts.map(object).find(row=>row.artifact_type==="lesson"&&row.renderer==="native-lesson");if(!artifact||typeof artifact.artifact_id!=="string")throw new Error("no native lesson");if(request===epoch.current){setCourseId(id);setItemKey(`course:${id}:artifact:${artifact.artifact_id}`);note("课程与知识版本已核对。尚未声明学习成绩。");}});}
   async function readAssessment() {if(!itemKey)return;await run(async request=>{const saved=object(await coreCommand("assessment_get",{item_key:itemKey}));if(typeof saved.assessment_id!=="string"||saved.knowledge_id!==knowledge?.knowledge_id||saved.knowledge_version!==knowledge?.knowledge_id)throw new Error("assessment knowledge mismatch");if(request===epoch.current){setAssessmentId(saved.assessment_id);note("已读取真实学习问题身份；Teach-back记录仍不计分。");}});}
   async function savePreparation() {try{await documentLease.write(savePreparationDocument);}catch(error){setFailure(error instanceof Error?error.message:"此文档视图只读");}}
+  async function listPreparations(more=false) {
+    await run(async request=>{
+      const page=assertCoreDto<DocumentsListDto>("DocumentsListDto",await coreCommand("documents_list",more&&preparationCursor?{cursor:preparationCursor}:{}));
+      if(new Set(page.documents.map(doc=>doc.document_id)).size!==page.documents.length)throw new Error("duplicate document identity");
+      if(request===epoch.current){setPreparationRows(previous=>more?[...previous,...page.documents.filter(doc=>!previous.some(row=>row.document_id===doc.document_id))]:page.documents);setPreparationCursor(page.next_cursor);setPreparationListed(true);note("已读取本地文档列表；打开时检查是否适合普通准备正文编辑。");}
+    });
+  }
+  async function openPreparation(id:string) {
+    if(lock.current||pending)return;
+    const snapshot=JSON.stringify({purpose:draft.purpose,content:draft.content});
+    if(preparationAttempt.current||snapshot!==savedPreparation&&(!!draft.purpose||!!draft.content)){note("当前准备正文尚未保存或保存未确认；请先保存并读回，当前文字保留。");return;}
+    await run(async request=>{
+      const doc=assertCoreDto<DocumentDto>("DocumentDto",await coreCommand("document_get",{document_id:id}));
+      if(doc.document_id!==id)throw new Error("preparation identity changed");
+      const content=preparationText(doc);
+      if(request===epoch.current){setDraft(previous=>({...previous,purpose:doc.title,content}));setPreparation({document_id:id,version:doc.version});setSavedPreparation(JSON.stringify({purpose:doc.title,content}));note("准备正文已从本地文档重开；继续保存使用当前版本，不登记正式知识或教学记录。");}
+    });
+  }
   async function savePreparationDocument() {
     await run(async request=>{const editor_json:PreparationEditor={type:"doc",content:draft.content.split("\n").map(text=>({type:"paragraph",attrs:{block_id:crypto.randomUUID()},...(text?{content:[{type:"text" as const,text}]}:{})}))};
       const currentSnapshot=JSON.stringify({purpose:draft.purpose,content:draft.content});
@@ -145,7 +183,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
       {selected?<article aria-label="已保存教学记录"><h3>{names[selected.record.kind]} · {selected.record.purpose}</h3><p style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{selected.record.content}</p><dl><dt>记录身份</dt><dd>{selected.record.record_id}</dd><dt>父关系</dt><dd>{selected.record.parent_id??"根记录"}</dd><dt>知识版本</dt><dd>{selected.record.knowledge_version}</dd><dt>课程身份</dt><dd>{selected.record.course_id??"未绑定"}</dd><dt>学习问题 / 辅助</dt><dd>{selected.record.assessment_id??"未绑定"} / {selected.record.assisted?"使用辅助":"未声明辅助"}</dd><dt>反馈分类 / 评分</dt><dd>{selected.record.feedback_class??"不适用"} / {selected.scoring_status}</dd><dt>内容来源 / 撤回</dt><dd>{selected.record.producer_kind} / {selected.withdrawn?"已撤回":"有效"}</dd></dl>
         <button disabled={busy||selected.withdrawn||selected.record.scope!=="manual_exchange"||selected.record.privacy!=="authorized_export"} onClick={()=>void exportSelected()}>导出人工交换 JSON</button><AaosDialog role="alertdialog" title="确认撤回教学记录" description="撤回保留历史；取消不执行写入。" open={withdrawDialog} onOpenChange={open=>{if(!busy)setWithdrawDialog(open);}} trigger={<button disabled={busy||selected.withdrawn}>审阅撤回记录</button>}><p>撤回 {selected.record.record_id}，保留知识、课程与历史，不删除原记录。</p><label>撤回原因<textarea disabled={busy||!!withdrawalAttempt.current} value={withdrawReason} onChange={event=>setWithdrawReason(event.target.value)}/></label><button disabled={busy||!withdrawReason.trim()} onClick={()=>void withdraw()}>确认撤回</button><button disabled={busy} onClick={()=>{setWithdrawDialog(false);}}>取消撤回</button></AaosDialog>
       </article>:null}
-      {pageId!=="16"?<form onSubmit={event=>{event.preventDefault();void save();}} aria-label="创建教学记录">
+      {pageId!=="16"?<><section aria-label="重开准备正文"><h3>重开本地正文文档</h3><button disabled={busy||pending} type="button" onClick={()=>void listPreparations()}>读取准备文档列表</button><p>列表包含本地文档；此处只编辑完整可识别的普通段落。富文本、未知字段或来源绑定文档保留原件，不转换为纯文字。</p>{preparationListed&&!preparationRows.length?<p>本地文档列表为空。</p>:null}<ul>{preparationRows.map(row=><li key={row.document_id}><button disabled={busy||pending} type="button" onClick={()=>void openPreparation(row.document_id)}>重开正文 · {row.title}</button><small>{row.document_id} · 列表版本 {row.version}</small></li>)}</ul>{preparationCursor?<button disabled={busy||pending} type="button" onClick={()=>void listPreparations(true)}>读取更多正文文档</button>:null}</section><form onSubmit={event=>{event.preventDefault();void save();}} aria-label="创建教学记录">
         <fieldset disabled={busy||pending}><legend>登记版本化记录（独立于普通准备草稿）</legend><label>记录类型<select value={draft.kind} onChange={event=>{setDraft(previous=>({...previous,kind:event.target.value as Kind}));setParent(null);}}>{pageKinds.map(kind=><option key={kind} value={kind}>{names[kind]}</option>)}</select></label>
           <label>父记录<select value={parent?.record.record_id??""} onChange={event=>{const row=eligible.find(item=>item.record.record_id===event.target.value);if(row)beginChild(row);else setParent(null);}}><option value="">请选择真实父记录</option>{eligible.map(row=><option key={row.record.record_id} value={row.record.record_id}>{names[row.record.kind]} · {row.record.purpose}</option>)}</select></label>
           <label>用途<input maxLength={512} value={draft.purpose} onChange={event=>setDraft(previous=>({...previous,purpose:event.target.value}))}/></label><label>内容<textarea maxLength={65536} rows={8} value={draft.content} onChange={event=>setDraft(previous=>({...previous,content:event.target.value}))}/></label>
@@ -154,7 +192,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
           {draft.kind==="feedback"?<label>反馈分类<select value={draft.feedback_class??""} onChange={event=>setDraft(previous=>({...previous,feedback_class:event.target.value as TeachingRecord["feedback_class"]}))}><option value="">请选择</option>{feedbackClasses.map(value=><option key={value}>{value}</option>)}</select></label>:null}
         </fieldset><p>知识：{knowledge?.knowledge_id??"尚未选择"} · 课程：{courseId??"未绑定"} · 学习问题：{assessmentId??"未绑定"}</p>
         <button disabled={busy||pending||!documentLease.canWrite} type="button" onClick={()=>void savePreparation()}>保存准备正文草稿</button><p>普通准备正文可先保存，不要求完整需求、父记录或知识绑定。{preparation?`已保存文档 ${preparation.document_id} · v${preparation.version}`:"尚未保存准备正文"}</p><button disabled={busy} type="submit">{pending?"重试同一记录":"登记版本化记录"}</button>{pending?<p role="status">上次写入尚未确认；重试保持相同客户端身份和原内容，编辑暂冻结。</p>:null}
-      </form>:<section aria-label="人工交换导入"><h3>用户选择 JSON → Core 只读预检 → 审阅导入</h3><input aria-label="选择人工交换 JSON" type="file" accept="application/json,.json" disabled={busy} onChange={event=>void chooseFile(event.target.files?.[0])}/><AaosDialog role="alertdialog" title="确认人工交换导入" description="Core预检只读；明确确认后才导入。" open={exchangeDialog} onOpenChange={open=>{if(!open&&!busy)setExchangeDialog(false);}} trigger={<button disabled={busy||!bundle} onClick={()=>void previewImport()}>Core 预检交换包</button>}>{preview?<><p>Core预检 {preview.record_count} 条，重复 {preview.duplicate_count} 条。包 {preview.package_sha256}。导入不会发送peer或执行材料。</p><button disabled={busy} onClick={()=>void importBundle()}>确认人工导入</button><button disabled={busy} onClick={()=>setExchangeDialog(false)}>取消导入</button></>:null}</AaosDialog>{originalExchange?<><button type="button" onClick={downloadOriginalExchange}>下载所选原始交换文件</button><p>原件：{originalExchange.name} · {originalExchange.size} 字节。下载保留未知字段或损坏JSON；不是规范记录导入。</p></>:null}<p>没有文件路径权限、不自动运行外部材料。损坏、身份冲突或权限不足由Core拒绝，重复包以Core回执为准。</p></section>}
+      </form></>:<section aria-label="人工交换导入"><h3>用户选择 JSON → Core 只读预检 → 审阅导入</h3><input aria-label="选择人工交换 JSON" type="file" accept="application/json,.json" disabled={busy} onChange={event=>void chooseFile(event.target.files?.[0])}/><AaosDialog role="alertdialog" title="确认人工交换导入" description="Core预检只读；明确确认后才导入。" open={exchangeDialog} onOpenChange={open=>{if(!open&&!busy)setExchangeDialog(false);}} trigger={<button disabled={busy||!bundle} onClick={()=>void previewImport()}>Core 预检交换包</button>}>{preview?<><p>Core预检 {preview.record_count} 条，重复 {preview.duplicate_count} 条。包 {preview.package_sha256}。导入不会发送peer或执行材料。</p><button disabled={busy} onClick={()=>void importBundle()}>确认人工导入</button><button disabled={busy} onClick={()=>setExchangeDialog(false)}>取消导入</button></>:null}</AaosDialog>{originalExchange?<><button type="button" onClick={downloadOriginalExchange}>下载所选原始交换文件</button><p>原件：{originalExchange.name} · {originalExchange.size} 字节。下载保留未知字段或损坏JSON；不是规范记录导入。</p></>:null}<p>没有文件路径权限、不自动运行外部材料。损坏、身份冲突或权限不足由Core拒绝，重复包以Core回执为准。</p></section>}
     </div><aside className="ui-content-panel" aria-label="真实教学来源"><h3>选择实际来源</h3><form onSubmit={event=>{event.preventDefault();void search();}}><label>查找来源知识<input value={query} disabled={busy||pending} onChange={event=>setQuery(event.target.value)}/></label><button disabled={busy||pending}>搜索来源知识</button></form><ul>{results.map(row=><li key={row.knowledge_id}><button disabled={busy||pending} onClick={()=>void chooseKnowledge(row)}>{row.head}</button></li>)}</ul>
       <label>绑定实际课程<select disabled={busy||pending||!knowledge||!!parent} value={courseId??""} onChange={event=>void chooseCourse(event.target.value)}><option value="">不绑定课程</option>{courses.map(row=><option disabled={row.stale} key={row.manifest_id} value={row.manifest_id}>{row.title}{row.stale?" · 来源失效":""}</option>)}</select></label>
       {parent&&courseId?<button disabled={busy} onClick={()=>void chooseCourse(courseId)}>核对父课程并读取练习入口</button>:null}
