@@ -52,7 +52,7 @@ async fn raw_call(
     )
 }
 
-const READY_PREAMBLE: &str = "import os,json\nfrom pathlib import Path\n_d=Path(os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR'])\n(_d/'ready.json').write_text(json.dumps({'schema':'archeaxis.egress-dispatch/v1','egress_sha256':os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH']}))\n";
+const READY_PREAMBLE: &str = "import os,json\nfrom pathlib import Path\n_d=Path(os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR'])\n(_d/'ready.tmp').write_text(json.dumps({'schema':'archeaxis.egress-dispatch/v1','egress_sha256':os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH']}))\n(_d/'ready.tmp').replace(_d/'ready.json')\n";
 
 #[tokio::test]
 async fn actual_check_worker_dispatches_only_exact_confirmed_material_with_synthetic_transports() {
