@@ -1288,6 +1288,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           uv run --frozen python -B scripts/contracts/generate_ui_working_state.py --check
           uv run --frozen python -B scripts/contracts/generate_layout.py --check
+          uv run --frozen python -B scripts/contracts/generate_ui_host.py --check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           git diff --exit-code -- frontend/src/api/generated/core-contract.ts
       - name: Prepare the installed Python runtime

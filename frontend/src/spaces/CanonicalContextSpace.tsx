@@ -1,3 +1,4 @@
+import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { ApiError } from "../api/client";
@@ -23,6 +24,7 @@ export function CanonicalContextSpace({ onUse, onOpenReference, initialLearningI
   onUse?: (value: ContextConsumptionDto, grant: ContextGrantDto) => void; onOpenReference?: (reference: ObjectReference) => void;
 }) {
   const draft = useRef<Draft>(blank()); const attempt = useRef<Attempt | null>(null);
+  const documentLease=useDocumentWriteLease(draft.current.base?.document_id);
   const dirtyOwner = useId();
   const mounted = useRef(true), epoch = useRef(0), saving = useRef(false);
   const [, redraw] = useState(0);
@@ -46,7 +48,7 @@ export function CanonicalContextSpace({ onUse, onOpenReference, initialLearningI
   }
   useEffect(() => { mounted.current = true; void list(); return () => { mounted.current = false; epoch.current++; listEpoch.current++; searchEpoch.current++; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: {owner:dirtyOwner,dirty:false} })); }; }, []);
   function edit(change: Partial<ContextGrantDto>) {
-    if (saving.current || draft.current.value.state === "revoked") return;
+    if (saving.current || !documentLease.canWrite || draft.current.value.state === "revoked") return;
     draft.current = { ...draft.current, value: { ...draft.current.value, ...change }, serial: draft.current.serial + 1, dirty: true }; publish();
   }
   function blocked() { if (saving.current || draft.current.dirty || attempt.current) { setMessage("当前草稿或写入尚未确认；请先保存并核对，再切换对象。"); return true; } return false; }
@@ -65,7 +67,8 @@ export function CanonicalContextSpace({ onUse, onOpenReference, initialLearningI
     } catch (reason) { if (seq === epoch.current && mounted.current) setError(failureMessage(reason)); }
     finally { if (seq === epoch.current && mounted.current) setBusy(false); }
   }
-  async function save() {
+  async function save() {try{await documentLease.write(saveContext);}catch(error){setError(error instanceof Error?error.message:"此文档视图只读");}}
+  async function saveContext() {
     if (saving.current || unsupported) return;
     const current = draft.current;
     if (!current.value.purpose.trim()) { setMessage("请填写用途。候选可先保存，授权另行决定。"); return; }
@@ -126,7 +129,7 @@ export function CanonicalContextSpace({ onUse, onOpenReference, initialLearningI
     catch(reason){if(seq===searchEpoch.current&&mounted.current)setError(failureMessage(reason));}finally{if(seq===searchEpoch.current&&mounted.current)setBusy(false);}
   }
   const current = draft.current, grant = current.value;
-  return <section aria-label="项目记忆与上下文" className="ui-content-main-side">
+  return <section aria-label="项目记忆与上下文" className="ui-content-main-side">{!documentLease.canWrite?<p role="status">此文档已有写入视图；上下文授权只读，草稿保留。</p>:null}
     <div><h2>项目记忆与上下文</h2><p>保存产品内的上下文与明确授权，来源固定到实际对象。候选可先保存；用途、允许操作与时效由你决定。</p>
       {initialLearningItemKey||proposedKnowledgeId?<button disabled={busy} onClick={()=>void prepareJourneyContext()}>读取指定知识并建立上下文候选</button>:null}
       <button disabled={busy || listing} onClick={() => void list()}>刷新上下文</button>
@@ -152,10 +155,10 @@ export function CanonicalContextSpace({ onUse, onOpenReference, initialLearningI
           const value = e.target.value ? Math.floor(new Date(e.target.value).getTime() / 1000) : null;
           if (value !== null && !Number.isSafeInteger(value)) { setError("到期时间无效，原时效保留。"); return; } edit({ expires_at: value });
         }} /></label>
-        <button disabled={busy || (grant.state === "revoked" && !current.dirty && !attempt.current)} onClick={() => void save()}>{attempt.current ? "重试冻结的上下文保存" : "保存上下文草稿"}</button>
+        <button disabled={busy || !documentLease.canWrite || (grant.state === "revoked" && !current.dirty && !attempt.current)} onClick={() => void save()}>{attempt.current ? "重试冻结的上下文保存" : "保存上下文草稿"}</button>
         {attempt.current ? <button disabled={busy} onClick={() => void reconcile()}>核对冻结请求</button> : null}
-        <button disabled={busy || grant.state !== "candidate" || !grant.knowledge_id || !grant.authorization_basis.trim() || !grant.operations.length} onClick={() => { edit({ state: "granted" }); void save(); }}>明确授权并保存</button>
-        <button disabled={busy || !current.base || grant.state !== "granted"} onClick={() => { edit({ state: "revoked" }); void save(); }}>撤回上下文授权</button>
+        <button disabled={busy || !documentLease.canWrite || grant.state !== "candidate" || !grant.knowledge_id || !grant.authorization_basis.trim() || !grant.operations.length} onClick={() => { edit({ state: "granted" }); void save(); }}>明确授权并保存</button>
+        <button disabled={busy || !documentLease.canWrite || !current.base || grant.state !== "granted"} onClick={() => { edit({ state: "revoked" }); void save(); }}>撤回上下文授权</button>
         <button disabled={busy || current.dirty || !!attempt.current || !current.base || grant.state !== "granted"} onClick={() => {
           if (!current.base || !grant.knowledge_id) return;
           onUse?.({ document_id: current.base.document_id, version: current.base.version, content_sha256: current.base.content_sha256, purpose: grant.purpose }, grant);

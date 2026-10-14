@@ -7,6 +7,7 @@ use std::collections::{BTreeMap, HashSet};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Dock {
+    Empty,
     Tabs {
         panels: Vec<String>,
         active: String,
@@ -34,12 +35,31 @@ pub struct Bounds {
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
+pub struct Binding {
+    pub page_id: String,
+    pub object_id: String,
+    pub session_key: String,
+}
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FloatingGroup {
+    pub tree: Dock,
+    pub bounds: Bounds,
+}
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Layout {
     pub schema_version: u32,
     pub preset_id: String,
     pub registered_panels: Vec<String>,
     pub dock_tree: Dock,
     pub floating_bounds: BTreeMap<String, Bounds>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub instance_bindings: BTreeMap<String, Binding>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub floating_groups: Vec<FloatingGroup>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub locked: bool,
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -70,6 +90,9 @@ pub struct Recover {
     pub viewport_width: f64,
     pub viewport_height: f64,
 }
+fn is_false(value: &bool) -> bool {
+    !*value
+}
 fn device(id: &str) -> Result<(), Error> {
     if id.is_empty()
         || id.len() > 64
@@ -91,6 +114,9 @@ fn default_layout() -> Layout {
             active: "01".into(),
         },
         floating_bounds: BTreeMap::new(),
+        instance_bindings: BTreeMap::new(),
+        floating_groups: Vec::new(),
+        locked: false,
     }
 }
 fn panel(id: &str) -> bool {
@@ -109,12 +135,17 @@ fn valid_tree(
         return Err(Error::Invalid("layout tree exceeds bound"));
     }
     match tree {
+        Dock::Empty => {
+            if depth > 0 {
+                return Err(Error::Invalid("empty nested layout branch"));
+            }
+        }
         Dock::Tabs { panels, active } => {
-            if panels.is_empty() || panels.len() > 22 || !panels.contains(active) {
+            if panels.is_empty() || panels.len() > 64 || !panels.contains(active) {
                 return Err(Error::Invalid("invalid layout tab selection"));
             }
             for id in panels {
-                if !panel(id) || !found.insert(id.clone()) {
+                if !instance(id) || !found.insert(id.clone()) {
                     return Err(Error::Invalid("unknown or duplicate layout panel"));
                 }
             }
@@ -134,11 +165,56 @@ fn valid_tree(
     }
     Ok(())
 }
+fn instance(id: &str) -> bool {
+    panel(id) || id.strip_prefix("document.").is_some_and(object)
+}
+fn object(id: &str) -> bool {
+    !id.is_empty()
+        && id.len() <= 128
+        && id
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+}
+fn valid_bounds(b: &Bounds) -> bool {
+    [b.x, b.y, b.width, b.height].iter().all(|v| v.is_finite())
+        && (0.0..=32000.0).contains(&b.x)
+        && (0.0..=32000.0).contains(&b.y)
+        && (160.0..=16000.0).contains(&b.width)
+        && (120.0..=16000.0).contains(&b.height)
+}
+fn binding_identity(layout: &Layout, workspace: &str, epoch: &str) -> Result<(), Error> {
+    for binding in layout.instance_bindings.values() {
+        if binding.session_key != format!("{workspace}:{epoch}:document:{}", binding.object_id) {
+            return Err(Error::Invalid("foreign layout business session"));
+        }
+    }
+    Ok(())
+}
 pub fn validate(layout: &Layout) -> Result<(), Error> {
-    if layout.schema_version != 1
+    if ![1, 2].contains(&layout.schema_version)
         || !["default", "reading", "research", "learning"].contains(&layout.preset_id.as_str())
     {
         return Err(Error::Invalid("unsupported layout schema or preset"));
+    }
+    if layout.schema_version == 1
+        && (!layout.instance_bindings.is_empty()
+            || !layout.floating_groups.is_empty()
+            || layout.locked
+            || matches!(layout.dock_tree, Dock::Empty))
+    {
+        return Err(Error::Invalid("v1 layout cannot contain v2 fields"));
+    }
+    if layout.instance_bindings.len() > 42 || layout.floating_groups.len() > 32 {
+        return Err(Error::Invalid("layout instance bound"));
+    }
+    for (id, b) in &layout.instance_bindings {
+        if id != &format!("document.{}", b.object_id)
+            || !object(&b.object_id)
+            || b.page_id != "03"
+            || b.session_key.len() > 512
+        {
+            return Err(Error::Invalid("invalid layout object binding"));
+        }
     }
     let bytes = serde_json::to_vec(layout).map_err(|_| Error::Invalid("invalid layout JSON"))?;
     if bytes.len() > 32768 {
@@ -146,14 +222,29 @@ pub fn validate(layout: &Layout) -> Result<(), Error> {
     }
     let declared: HashSet<_> = layout.registered_panels.iter().cloned().collect();
     if declared.len() != layout.registered_panels.len()
-        || declared.is_empty()
-        || declared.len() > 22
-        || !declared.iter().all(|id| panel(id))
+        || (declared.is_empty() && layout.schema_version == 1)
+        || declared.len() > 64
+        || !declared
+            .iter()
+            .all(|id| panel(id) || layout.instance_bindings.contains_key(id))
     {
         return Err(Error::Invalid("invalid registered layout panels"));
     }
+    if layout
+        .instance_bindings
+        .keys()
+        .any(|id| !declared.contains(id))
+    {
+        return Err(Error::Invalid("undeclared layout binding"));
+    }
     let mut docked = HashSet::new();
     valid_tree(&layout.dock_tree, 0, &mut 0, &mut docked)?;
+    for group in &layout.floating_groups {
+        if matches!(group.tree, Dock::Empty) || !valid_bounds(&group.bounds) {
+            return Err(Error::Invalid("invalid floating group"));
+        }
+        valid_tree(&group.tree, 0, &mut 0, &mut docked)?;
+    }
     for (id, bounds) in &layout.floating_bounds {
         if !panel(id)
             || !docked.insert(id.clone())
@@ -229,7 +320,10 @@ fn stored(
     }
     let parsed = serde_json::from_value::<Layout>(envelope.layout);
     let (layout, recovery_reason) = match parsed {
-        Ok(layout) if validate(&layout).is_ok() => {
+        Ok(layout)
+            if validate(&layout).is_ok()
+                && binding_identity(&layout, id, &envelope.restore_epoch).is_ok() =>
+        {
             let reason = if envelope.restore_epoch != current_epoch {
                 Some("LAYOUT_RESTORE_CONFIRMATION_REQUIRED".into())
             } else {
@@ -285,6 +379,7 @@ pub fn write(conn: &mut Connection, input: Write) -> Result<Snapshot, Error> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let id = ui_state::workspace_id(&tx)?;
     let epoch = ui_state::epoch(&tx)?;
+    binding_identity(&input.layout, &id, &epoch)?;
     let old = stored(&tx, &id, &epoch, &input.device_id)?;
     compare(
         &old,
@@ -334,7 +429,16 @@ pub fn recover(conn: &mut Connection, input: Recover) -> Result<Snapshot, Error>
         &input.restore_epoch,
         input.expected_revision,
     )?;
-    for bounds in record.layout.floating_bounds.values_mut() {
+    for binding in record.layout.instance_bindings.values_mut() {
+        binding.session_key = format!("{id}:{epoch}:document:{}", binding.object_id);
+    }
+    for bounds in record.layout.floating_bounds.values_mut().chain(
+        record
+            .layout
+            .floating_groups
+            .iter_mut()
+            .map(|g| &mut g.bounds),
+    ) {
         bounds.width = bounds.width.min(input.viewport_width);
         bounds.height = bounds.height.min(input.viewport_height);
         bounds.x = bounds.x.min(input.viewport_width - bounds.width);

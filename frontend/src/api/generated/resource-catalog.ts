@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "3d2ab03ac10f4a4011cc5a24df78f788f5bc9fdd1a843f35048ef8f13aec3159"
+      "sha256": "b283a8ab14822f322f1ecccc5d0b55ac76887ae4c33a92ea6600fbd35c7c544c"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -224,7 +224,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "frontend/package-lock.json",
-        "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+        "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
       },
       {
         "path": "Cargo.lock",
@@ -316,6 +316,66 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "path": "frontend/src/api/generated/core-contract.ts",
           "previous_sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702",
           "current_sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
+        }
+      ]
+    },
+    "host_material_configuration_contract_refresh_20261014": {
+      "date": "2026-10-14",
+      "reason": "Reviewed finite model configuration and material question routes and frozen machine request DTOs. Source reference refresh only.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d",
+          "current_sha256": "b3439fba7f24785891e5e8f8573c886b4a29c09449ec683df88ab6baf60df3db"
+        },
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d",
+          "current_sha256": "b3439fba7f24785891e5e8f8573c886b4a29c09449ec683df88ab6baf60df3db"
+        }
+      ],
+      "current_combined_core_contract_sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa"
+    },
+    "combined_integration_source_refresh_20261014": {
+      "date": "2026-10-14",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "reason": "Reviewed integration and pinned Dockview dependency source bytes only; activation, permissions and runtime qualification unchanged.",
+      "changed_sources": [
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        },
+        {
+          "path": "frontend/package.json",
+          "previous_sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d",
+          "current_sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        },
+        {
+          "path": "frontend/package.json",
+          "previous_sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d",
+          "current_sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
         }
       ]
     }
@@ -1309,7 +1369,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
+                "sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa"
               }
             ]
           },
@@ -1735,7 +1795,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
+                "sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa"
               }
             ]
           },
@@ -11386,11 +11446,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "frontend/package-lock.json",
-                "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+                "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               },
               {
                 "path": "frontend/package.json",
-                "sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d"
+                "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
               }
             ]
           },
@@ -11407,7 +11467,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "frontend/package-lock.json",
-                "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+                "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               }
             ]
           },
@@ -14820,11 +14880,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "frontend/package-lock.json",
-                "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+                "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               },
               {
                 "path": "frontend/package.json",
-                "sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d"
+                "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
               }
             ]
           },
@@ -14841,7 +14901,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "frontend/package-lock.json",
-                "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+                "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               }
             ]
           },

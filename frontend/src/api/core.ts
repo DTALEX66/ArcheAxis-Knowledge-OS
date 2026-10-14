@@ -15,6 +15,7 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  model_configuration_get:"ModelConfiguration", model_configuration_put:"ModelConfiguration", model_configuration_resolve:"ResolvedModel",
   machine_configuration: "MachineConfigurationDto",
   machine_inventory: "MachineInventoryDto",
   ui_state_machine_status: "MachineJournalStatusDto",

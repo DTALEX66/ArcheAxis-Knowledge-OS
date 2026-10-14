@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/character-memory/v1",
+  "$defs": {
+    "ApprovedMemory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "provenance": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "provenance"
+      ]
+    },
+    "CharacterProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.character-memory/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "preferences": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "learning_goals": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "memories": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/ApprovedMemory"
+          }
+        }
+      },
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "revision",
+        "enabled",
+        "preferences",
+        "learning_goals",
+        "memories"
+      ]
+    },
+    "CharacterMemoryWrite": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "command": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "profile"
+                },
+                "preferences": {
+                  "type": "string",
+                  "maxLength": 8192
+                },
+                "learning_goals": {
+                  "type": "string",
+                  "maxLength": 8192
+                }
+              },
+              "required": [
+                "operation",
+                "preferences",
+                "learning_goals"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "remember"
+                },
+                "memory": {
+                  "$ref": "#/$defs/ApprovedMemory"
+                }
+              },
+              "required": [
+                "operation",
+                "memory"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "correct"
+                },
+                "memory": {
+                  "$ref": "#/$defs/ApprovedMemory"
+                }
+              },
+              "required": [
+                "operation",
+                "memory"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "forget"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 128
+                }
+              },
+              "required": [
+                "operation",
+                "id"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "forget_all"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "disable"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "enable"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "expected_revision",
+        "command"
+      ]
+    },
+    "CharacterContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.character-context/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "preferences": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "learning_goals": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "approved_memories": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/ApprovedMemory"
+          }
+        },
+        "authority": {
+          "const": "human_preferences_only"
+        },
+        "grants": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {}
+        },
+        "knowledge_admitted": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "revision",
+        "enabled",
+        "preferences",
+        "learning_goals",
+        "approved_memories",
+        "authority",
+        "grants",
+        "knowledge_admitted"
+      ]
+    }
+  }
+}

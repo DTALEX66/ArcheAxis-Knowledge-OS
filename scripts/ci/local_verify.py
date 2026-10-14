@@ -174,6 +174,7 @@ def main():
             ("resource-catalog-drift", ["scripts/contracts/generate_resource_catalog.py", "--check"]),
             ("ui-working-state-drift", ["scripts/contracts/generate_ui_working_state.py", "--check"]),
             ("layout-drift", ["scripts/contracts/generate_layout.py", "--check"]),
+            ("ui-host-drift", ["scripts/contracts/generate_ui_host.py", "--check"]),
             ("media-policy", ["scripts/contracts/check_media_window_policy.py", "--check"]),
             ("workers", ["scripts/ci/check_vnext_workers.py"]),
         ):

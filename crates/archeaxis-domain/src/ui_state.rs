@@ -170,7 +170,7 @@ fn meta(conn: &Connection, key: &str) -> Result<Option<String>, Error> {
         )
         .optional()?)
 }
-pub(crate) fn workspace_id(conn: &Connection) -> Result<String, Error> {
+pub fn workspace_id(conn: &Connection) -> Result<String, Error> {
     if let Some(id) = meta(conn, ID_KEY)? {
         if !hex32(&id) {
             return Err(Error::Invalid("corrupt UI workspace identity"));
@@ -220,6 +220,9 @@ pub fn machine_request_fingerprint(operation: &str, body: &Value) -> String {
         "retest_of":if operation=="retest" {body["retest_of"].clone()} else {Value::Null}});
     if let Some(model) = body.get("model") {
         request["model"] = model.clone();
+    }
+    if let Some(config) = body.get("model_configuration") {
+        request["model_configuration"] = config.clone();
     }
     digest(&serde_json::json!({"operation":operation,"request":request}))
 }
@@ -315,6 +318,7 @@ fn validate(state: &State) -> Result<(), Error> {
             "max_tokens",
             "timeout_s",
             "model",
+            "model_configuration",
             "context_grant",
             "asset_context_grant",
             "client_request_id",
@@ -349,6 +353,9 @@ fn validate(state: &State) -> Result<(), Error> {
                         && s.len() <= 256
                         && !s.chars().any(char::is_control)
                 })
+            })
+            || body.get("model_configuration").is_some_and(|v| {
+                serde_json::from_value::<crate::model_configuration::Resolved>(v.clone()).is_err()
             })
             || !machine_grant_shapes(body, &pending.operation)
             || (pending.operation == "answer"
@@ -1182,6 +1189,7 @@ pub fn clear_machine(conn: &mut Connection, request: ClearMachine) -> Result<Val
         "context_grant",
         "asset_context_grant",
         "model",
+        "model_configuration",
     ];
     if doc["schema"] != schema
         || doc["authority"] != "candidate"

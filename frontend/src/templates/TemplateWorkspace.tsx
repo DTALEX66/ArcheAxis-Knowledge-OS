@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { coreCommand } from "../api/core";
 import type { DocumentDto } from "../api/generated/core-contract";
 import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
@@ -65,6 +66,7 @@ export function TemplateWorkspace({onOpen,onDirtyChange,onOpenCapability}:{onOpe
   const [bounded,setBounded]=useState(false);
   const [template,setTemplate]=useState("T1");const [discipline,setDiscipline]=useState("math");
   const [selected,setSelected]=useState<DocumentDto|null>(null);const [draft,setDraft]=useState<TemplateBinding|null>(null);
+  const documentLease=useDocumentWriteLease(selected?.document_id);
   const canvasRef=useRef<HTMLDivElement>(null);
   const editorHeadingRef=useRef<HTMLHeadingElement>(null);
   useEffect(()=>{if(selected)editorHeadingRef.current?.focus();},[selected?.document_id]);
@@ -99,7 +101,7 @@ export function TemplateWorkspace({onOpen,onDirtyChange,onOpenCapability}:{onOpe
   const dirty=useRef(false);const callbacks=useRef(onDirtyChange);callbacks.current=onDirtyChange;
   const pack=DISCIPLINES.find(p=>p.id===(draft?.discipline_id??discipline))!;
   function publish(){callbacks.current?.(dirty.current||running.current||!!attempt.current);}
-  function change(next:TemplateBinding){if(!mounted.current)return;serial.current++;dirty.current=true;publish();setDraft(next);}
+  function change(next:TemplateBinding){if(!mounted.current||!documentLease.canWrite)return;serial.current++;dirty.current=true;publish();setDraft(next);}
   async function refresh(){const generation=epoch.current;try{const data=await loadTemplateDocuments();if(mounted.current&&generation===epoch.current){setUnreadable(false);setDocuments(data.documents);setBounded(data.bounded);}return data.documents;}catch(error){if(mounted.current&&generation===epoch.current)setUnreadable(true);throw error;}}
   useEffect(()=>{mounted.current=true;let live=true;loadTemplateDocuments().then(data=>{if(live){setUnreadable(false);setDocuments(data.documents);setBounded(data.bounded);}}).catch(()=>{if(live){setUnreadable(true);setMessage("模板对象读取失败，请重试。");}});return()=>{live=false;mounted.current=false;epoch.current++;callbacks.current?.(false);};},[]);
   // One read of the live capability handshake per mount or explicit refresh. It writes no message into
@@ -117,7 +119,7 @@ export function TemplateWorkspace({onOpen,onDirtyChange,onOpenCapability}:{onOpe
   }
   async function action(work:()=>Promise<void>){if(running.current)return;running.current=true;const generation=epoch.current;setBusy(true);publish();try{await work();}catch(error){if(mounted.current&&generation===epoch.current)setMessage(error instanceof Error?error.message:"操作失败；请保留修改后重试。");}finally{running.current=false;if(mounted.current&&generation===epoch.current){setBusy(false);publish();}}}
   async function finishWrite(readOnly=false){const pending=attempt.current;if(!pending)return;setUncertain(true);let document:DocumentDto;
-    try{document=await (readOnly?readTemplateWrite(pending.write):executeTemplateWrite(pending.write));}
+    try{document=await (readOnly?readTemplateWrite(pending.write):pending.write.operation==="document_draft"?documentLease.write(()=>executeTemplateWrite(pending.write)):executeTemplateWrite(pending.write));}
     catch{throw new Error("模板请求结果尚未确认；草稿和冻结请求保留，请重试同一请求或核对读回。");}
     if(!mounted.current||pending.generation!==epoch.current)return;
     setSelected(document);if(serial.current===pending.serial)setDraft(structuredClone(binding(document)));dirty.current=serial.current!==pending.serial;
@@ -129,7 +131,7 @@ export function TemplateWorkspace({onOpen,onDirtyChange,onOpenCapability}:{onOpe
   async function create(){if(dirty.current||attempt.current)throw new Error("请先保存模板属性或核对冻结请求。");const generation=epoch.current,sentSerial=serial.current;
     const write=await prepareTemplateCreate(template,discipline);if(!mounted.current||generation!==epoch.current)return;
     attempt.current={write,serial:sentSerial,generation};await finishWrite();}
-  async function save(){if(!selected||!draft||attempt.current)return;const generation=epoch.current,sentSerial=serial.current;
+  async function save(){if(!documentLease.canWrite)throw new Error("此对象已有写入视图；模板属性草稿保留");if(!selected||!draft||attempt.current)return;const generation=epoch.current,sentSerial=serial.current;
     const write=await prepareTemplateSave(selected,structuredClone(draft));if(!mounted.current||generation!==epoch.current)return;
     attempt.current={write,serial:sentSerial,generation};await finishWrite();}
   function openDocument(id:string){if(running.current||attempt.current)return;if(dirty.current&&!window.confirm("模板属性尚未保存，是否放弃这些属性修改？"))return;onOpen(id);}
@@ -180,7 +182,7 @@ export function TemplateWorkspace({onOpen,onDirtyChange,onOpenCapability}:{onOpe
       <p>{pack.activity}；评价：{pack.evaluation}。普通笔记与假设允许保存，复习间隔不证明实操掌握。</p>
       {["status",...pack.fields].map(field=><label key={field}>{field}<input disabled={busy} value={draft.fields[field]??""} onChange={event=>change({...draft,fields:{...draft.fields,[field]:event.target.value}})}/></label>)}
       <label>关联学习项<input disabled={busy} value={draft.learning_item_key??""} onChange={event=>change({...draft,learning_item_key:event.target.value||null})}/></label>
-      <button disabled={busy||uncertain||!dirty.current} onClick={()=>void action(save)}>保存模板属性与关系</button>
+      <button disabled={busy||uncertain||!documentLease.canWrite||!dirty.current} onClick={()=>void action(save)}>保存模板属性与关系</button>
       {unreadable?<p>集合刷新未完成；保留此前文档，当前数量与关系未知。</p>:<p>当前学科集合 {currentCollection.members.length} 个对象，{currentCollection.relations} 条关系；{Object.entries(currentCollection.statuses).map(([state,count])=>`${state}：${count}`).join("；")}</p>}
       <label>关系目标<select value={target} disabled={busy} onChange={event=>setTarget(event.target.value)}><option value="">选择已有文档</option>{documents.map(d=><option key={d.document_id} value={d.document_id}>{d.title}</option>)}</select></label>
       <label>目标块 ID（可空）<input disabled={busy} value={targetBlock} onChange={event=>setTargetBlock(event.target.value)}/></label>

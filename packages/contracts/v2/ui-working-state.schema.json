@@ -636,6 +636,9 @@
             },
             "asset_context_grant": {
               "$ref": "#/$defs/MachineAssetPacketRequest"
+            },
+            "model_configuration": {
+              "$ref": "#/$defs/ResolvedModel"
             }
           },
           "required": [
@@ -765,6 +768,186 @@
         "version",
         "content_sha256",
         "purpose"
+      ]
+    },
+    "ModelPurpose": {
+      "enum": [
+        "answer",
+        "retest",
+        "material",
+        "document_check",
+        "embedding"
+      ]
+    },
+    "ModelLane": {
+      "enum": [
+        "fast",
+        "deep"
+      ]
+    },
+    "ModelProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?$"
+        },
+        "protocol": {
+          "enum": [
+            "ollama",
+            "openai"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "credential_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^aak_cred_[a-f0-9]{32}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 4096
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        }
+      },
+      "required": [
+        "endpoint",
+        "protocol",
+        "model",
+        "credential_ref",
+        "max_tokens",
+        "timeout_s"
+      ]
+    },
+    "ModelPurposeBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        }
+      },
+      "required": [
+        "purpose",
+        "lane",
+        "profile_id"
+      ]
+    },
+    "ModelConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.model-configuration/v1"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "profiles": {
+          "type": "object",
+          "maxProperties": 32,
+          "additionalProperties": {
+            "$ref": "#/$defs/ModelProfile"
+          }
+        },
+        "bindings": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/ModelPurposeBinding"
+          }
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "revision",
+        "profiles",
+        "bindings",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "ResolvedModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.resolved-model/v1"
+        },
+        "configuration_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "profile": {
+          "$ref": "#/$defs/ModelProfile"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "configuration_revision",
+        "configuration_sha256",
+        "purpose",
+        "lane",
+        "profile_id",
+        "profile",
+        "workspace_id",
+        "restore_epoch"
       ]
     }
   }

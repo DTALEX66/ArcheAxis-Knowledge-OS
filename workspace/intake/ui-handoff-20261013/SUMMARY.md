@@ -69,3 +69,5 @@
 当前整合验证补充：外发 dispatch 单元回归 5/5 PASS；语义 API 集成测试因 workspace I/O 权限拒绝而未获得行为 PASS。Git 本地 ref 写入受权限限制；不提权、不改 ACL、不绕过保护。最终整合及 main 合并仍 PARTIAL。
 
 当前补充验证：2026-10-13 全量前端 1238/1238 PASS；撤销握手等待及旧 worker 正文门禁定向 6/6 PASS。API Store 集成尚未通过当前沙箱，本地 helper PASS 不代替 API 或真实外发验证。原始对话仅本地保全，公开摘要去重并补全 native read_thread 的 15 个返回 turn。
+
+2026-10-14当前交付补充：上述UI九文件已随PR191合并main `c541ed8315e54aaa111da64ba79c95cad19b408d`；候选 `b2e283b669dc096c9d1898882990825b0762488c` 完整 required CI `38428576086` PASS，包含浏览器/Rust/worker/API相关测试。此前“未提交／尚未合并”和沙箱Store阻塞是历史观察。新布局增量及BE/FE全量仍PARTIAL，不扩张为Owner审美、复杂图谱或已安装资格。

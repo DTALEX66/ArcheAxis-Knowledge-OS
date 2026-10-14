@@ -12,6 +12,7 @@ import { SpaceRail } from "../components/SpaceRail";
 import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView, canonicalSurface } from "../spaces/SpaceView";
+import { DockWorkspace } from "../workspace/DockWorkspace";
 import { RecoveryShell } from "../components/RecoveryShell";
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
@@ -727,7 +728,7 @@ function AppBody() {
           <NavTrail levels={trailLevels} onJump={focusRegion} />
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
           <div className="ui-page-heading" role="group" aria-label="当前页面" data-current-page-id={uiPageId ?? ""}><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>{findUiPage(uiPageId ?? "")?.group ?? "个人工作区"}</small></div>
-          {(!desktop||workingEntered)?<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />:<p role="status">工作状态尚未核对；请使用上方读回或明确恢复入口。</p>}
+          {(!desktop||workingEntered)?(desktop?<DockWorkspace initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">工作状态尚未核对；请使用上方读回或明确恢复入口。</p>}
         </main>
         {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>

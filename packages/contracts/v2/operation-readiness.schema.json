@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/operation-readiness/v1",
+  "$defs": {
+    "OperationObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "type": "string"
+        },
+        "implementation": {
+          "enum": [
+            "IMPLEMENTED",
+            "MISSING"
+          ]
+        },
+        "dependencies": {
+          "enum": [
+            "AVAILABLE",
+            "MISSING"
+          ]
+        },
+        "connection": {
+          "const": "UNKNOWN"
+        },
+        "qualification": {
+          "const": "UNVERIFIED"
+        },
+        "permission": {
+          "enum": [
+            "ENABLED",
+            "DISABLED",
+            "UNKNOWN"
+          ]
+        },
+        "status": {
+          "enum": [
+            "READY",
+            "NOT_READY",
+            "UNVERIFIED",
+            "UNKNOWN",
+            "EXPIRED"
+          ]
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expires_at_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "operation",
+        "implementation",
+        "dependencies",
+        "connection",
+        "qualification",
+        "permission",
+        "status",
+        "reasons",
+        "expires_at_ms"
+      ]
+    },
+    "ReadinessQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]{1,128}$"
+          }
+        }
+      },
+      "required": [
+        "scope",
+        "operations"
+      ]
+    },
+    "ReadinessSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.operation-readiness/v1"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "observed_at_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expires_at_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "aggregate": {
+          "enum": [
+            "READY",
+            "NOT_READY",
+            "UNVERIFIED",
+            "UNKNOWN",
+            "EXPIRED"
+          ]
+        },
+        "operations": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/OperationObservation"
+          }
+        },
+        "network_performed": {
+          "const": false
+        },
+        "models_loaded": {
+          "const": false
+        },
+        "execution_authorized": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "scope",
+        "observed_at_ms",
+        "expires_at_ms",
+        "aggregate",
+        "operations",
+        "network_performed",
+        "models_loaded",
+        "execution_authorized"
+      ]
+    }
+  }
+}

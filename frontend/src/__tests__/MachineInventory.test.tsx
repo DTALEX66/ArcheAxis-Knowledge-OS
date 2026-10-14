@@ -14,9 +14,9 @@ it("keeps a previous explicit choice visible when inventory refresh fails", asyn
   render(<MachineAnswerPanel knowledgeId="k1"/>);
   const user=userEvent.setup();
   await user.click(screen.getByRole("button",{name:"探测本地模型清单"}));
-  await user.selectOptions(screen.getByLabelText("本次本地回答模型"),"m1");
+  await user.selectOptions(screen.getByLabelText("兼容模式本地回答模型"),"m1");
   await user.click(screen.getByRole("button",{name:"探测本地模型清单"}));
-  await waitFor(()=>expect(screen.getByLabelText("本次本地回答模型")).toHaveValue("m1"));
+  await waitFor(()=>expect(screen.getByLabelText("兼容模式本地回答模型")).toHaveValue("m1"));
   expect(screen.getByRole("option",{name:"m1（此前选择，本次清单未确认）"})).toBeInTheDocument();
 });
 
@@ -58,6 +58,7 @@ it("binds explicit model selection to a frozen lost-ACK retry", async () => {
   const requests: Record<string,unknown>[]=[];
   let doc: Record<string,unknown>;
   bridge.call.mockImplementation(async(operation:string,payload?:{body:Record<string,unknown>})=>{
+    if(operation==="model_configuration_get")return {schema:"archeaxis.model-configuration/v1",revision:0,profiles:{},bindings:[],workspace_id:"a".repeat(32),restore_epoch:"initial"};
     if(operation==="machine_inventory")return {...reply,model_choices:["m1","m2"]};
     if(operation==="machine_answer"){
       const request=payload!.body; requests.push(structuredClone(request));
@@ -71,11 +72,11 @@ it("binds explicit model selection to a frozen lost-ACK retry", async () => {
   render(<MachineAnswerPanel knowledgeId="k1"/>);
   const user=userEvent.setup();
   await user.click(screen.getByRole("button",{name:"探测本地模型清单"}));
-  await user.selectOptions(screen.getByLabelText("本次本地回答模型"),"m1");
+  await user.selectOptions(screen.getByLabelText("兼容模式本地回答模型"),"m1");
   await user.selectOptions(screen.getByLabelText("本次输出预算"),"4096");
   await user.type(screen.getByLabelText("实际问题"),"synthetic question");
   await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
-  await waitFor(()=>expect(screen.getByLabelText("本次本地回答模型")).toBeDisabled());
+  await waitFor(()=>expect(screen.getByLabelText("兼容模式本地回答模型")).toBeDisabled());
   expect(screen.getByLabelText("本次输出预算")).toBeDisabled();
   await user.click(screen.getByRole("button",{name:"重试同一回答请求"}));
   expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();

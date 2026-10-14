@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
 import { resetRuntimeClient } from "../api/workspace";
 import { SpaceView } from "../spaces/SpaceView";
-import { canNavigateToCapability, EFFECTIVE_NAVIGATION_ENTRIES } from "../presentation/navigation";
+import { canNavigateToCapability, EFFECTIVE_NAVIGATION_ENTRIES, CAPABILITY_NAVIGATION_ENTRIES } from "../presentation/navigation";
 import type { SpaceId } from "../spaces/spaces";
 
 // AXW-UI-804: App shell — product routes, default space, landmarks.
@@ -24,6 +24,10 @@ describe("App shell", () => {
     const invoke=vi.fn(async(command:string,_args?:Record<string,unknown>)=>{
       if(command!=="core_command")throw new Error("legacy native command forbidden");
       const operation=(_args?.request as Record<string,unknown>).operation;
+      if(operation==="operation_readiness") {
+        const payload=(_args?.request as Record<string,any>).payload;
+        return {status:200,body:{schema:"archeaxis.operation-readiness/v1",scope:payload.body.scope,operations:payload.body.operations.map((operation:string)=>({operation,permission:"DISABLED"})),expires_at_ms:Date.now()+30_000,models_loaded:false,network_performed:false,execution_authorized:false}};
+      }
       const body=operation==="sources_list"?{sources:[]}:operation==="documents_list"?{documents:[],next_cursor:null,snapshot_count:0}:operation==="learning_items"?{items:[],count:0}:operation==="search"?{items:[],transforms:[],count:0,transform_count:0}:{capabilities:[]};
       return {status:200,body};
     });
@@ -31,6 +35,16 @@ describe("App shell", () => {
     await act(async()=>{render(<SpaceView spaceId={spaceId} onInspect={vi.fn()} onNavigate={vi.fn()}/>);});
     if(spaceId === "workspace") expect(screen.getByRole("region",{name:"今日工作台"})).toBeInTheDocument();
     else expect(screen.getByRole("heading",{name:heading})).toBeInTheDocument();
+    if(spaceId === "settings") {
+      const entry=CAPABILITY_NAVIGATION_ENTRIES.find(item=>item.capability.implementation.runtime_capabilities.length>0);
+      expect(entry).toBeDefined();
+      const target=document.querySelector<HTMLButtonElement>(`button[data-entry-id="${entry!.entry_id}"]`);
+      expect(target).not.toBeNull();await userEvent.setup().click(target!);
+      expect(invoke.mock.calls.some(([,args])=>{
+        const request=args?.request as Record<string,unknown>;
+        return request.operation==="operation_readiness" && JSON.stringify((request.payload as Record<string,any>)?.body?.operations)===JSON.stringify(entry!.capability.implementation.runtime_capabilities);
+      })).toBe(true);
+    }
     if(heading==="知识库"){const user=userEvent.setup();await user.type(screen.getByLabelText("搜索内容"),"样板");await user.click(screen.getByRole("button",{name:"搜索"}));}
     expect(invoke).toHaveBeenCalled();expect(invoke.mock.calls.every(([command])=>command==="core_command")).toBe(true);expect(fetch).not.toHaveBeenCalled();
   });

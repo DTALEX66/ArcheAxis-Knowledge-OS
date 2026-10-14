@@ -395,24 +395,26 @@ describe("raw payloads stay off the reading surface", () => {
     expect(container.querySelectorAll("pre")).toHaveLength(0);
   });
 
-  it("publishes the Core handshake readback instead of printing it under the summary", async () => {
-    const observation = { capability: "machine.answer", health: "handshake_ready", enabled: false };
-    bridge.call.mockResolvedValue({ capabilities: [observation] });
+  it("publishes the scoped Core readiness readback instead of printing it under the summary", async () => {
+    const expires=Date.now()+30_000;
+    const observation = { operation: "machine.answer", implementation:"IMPLEMENTED",dependencies:"AVAILABLE",connection:"UNKNOWN",qualification:"UNVERIFIED",permission:"DISABLED",status:"NOT_READY",reasons:["CAPABILITY_DISABLED"],expires_at_ms:expires };
+    bridge.call.mockImplementation(async(operation:string,payload:{body:{scope:string;operations:readonly string[]}})=>{expect(operation).toBe("operation_readiness");expect(payload.body).toEqual({scope:"view:CAP-0050",operations:["machine.answer"]});return {schema:"archeaxis.operation-readiness/v1",scope:payload.body.scope,observed_at_ms:Date.now(),expires_at_ms:expires,aggregate:"NOT_READY",network_performed:false,models_loaded:false,execution_authorized:false,operations:[observation]};});
     const { container } = render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
-    await screen.findByText(/已读取当前 Core worker 握手/);
+    expect(bridge.call).not.toHaveBeenCalled();
     await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0050/ }));
+    await screen.findByText(/已读取当前视图的范围化状态/);
 
     // The human-readable summary is still on the reading surface...
     expect(screen.getByText(/连接\/权限/)).toHaveTextContent("已禁用");
-    expect(screen.getByText(/连接\/权限/)).toHaveTextContent("handshake_ready");
+    expect(screen.getByText(/连接\/权限/)).toHaveTextContent("UNKNOWN");
     // ...and the raw dump that used to sit under it is gone.
     const details = screen.getByRole("article", { name: "能力详情" });
     expect(details.querySelectorAll("pre")).toHaveLength(0);
     expect(details.querySelectorAll("details")).toHaveLength(0);
 
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
-    await userEvent.setup().click(screen.getByRole("button", { name: /Core 握手原始读回 · machine\.answer/ }));
-    expect(debug.mock.calls.some(([, label, payload]) => label === "Core 握手原始读回 · machine.answer" && JSON.stringify(payload) === JSON.stringify(observation))).toBe(true);
+    await userEvent.setup().click(screen.getByRole("button", { name: /Core 范围化状态原始读回 · machine\.answer/ }));
+    expect(debug.mock.calls.some(([, label, payload]) => label === "Core 范围化状态原始读回 · machine.answer" && JSON.stringify(payload) === JSON.stringify({...observation,enabled:false,health:"UNKNOWN"}))).toBe(true);
     debug.mockRestore();
     expect(container.textContent).not.toMatch(/"health"\s*:/);
   });

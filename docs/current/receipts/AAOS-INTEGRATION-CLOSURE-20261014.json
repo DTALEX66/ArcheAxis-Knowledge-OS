@@ -1,0 +1,291 @@
+{
+  "schema": "archeaxis.integration-closure/v1",
+  "date": "2026-10-14",
+  "state": "TESTED_LOCAL_BRANCH_PENDING",
+  "overall": "PARTIAL",
+  "formal_host": "frontend + src-tauri; Rust Core sole SQLite/CAS writer",
+  "scope": [
+    "BE01 finite host read ports",
+    "BE02/FE06 finite Dockview layout and editor leases",
+    "BE03 material questions",
+    "BE04 purpose configuration",
+    "BE05 conversations",
+    "BE06 explicit human memory",
+    "BE07 scoped readiness"
+  ],
+  "local_quick": {
+    "run": "closure-final-quick-final-20261014",
+    "state": "LOCAL_PASS",
+    "source_consistent": true,
+    "source_patch_sha256": "430e98fa025e2766f678f7a40ce0c471525ca7917b9c657669f04c44e232b02a",
+    "checks": [
+      {
+        "name": "conventions",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "architecture",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "language-boundaries",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "format-matrix",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "path-conventions",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "document-authority",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "h01-source-trace",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ui-design-increment",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ruff",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "python-suite",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "contracts",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "vocabulary",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "teaching-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "expression-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "research-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ai-asset-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "resource-catalog-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ui-working-state-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "layout-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ui-host-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "media-policy",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "workers",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "frontend-types",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "frontend-unit",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "rust-format",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "tauri-format",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      }
+    ]
+  },
+  "tests": {
+    "frontend_files": 143,
+    "frontend_tests": 1285,
+    "selected_python_tests": 18,
+    "domain_tests_prior_source_snapshot": 18,
+    "api_tests": 11,
+    "configured_execution_tests": 1,
+    "native_route_tests": 1,
+    "ready_fixture_tests": 1,
+    "evidence": "SIMULATED frontend / SYNTHETIC workers with actual SQLite and native compile; no actual AI in this increment"
+  },
+  "canonical_execution_records": [
+    {
+      "source_commit": "be79ff90e7394247171afc311b002eb96ff0581e",
+      "source_patch_sha256": "ba510e3f1ab46014f76b4d2abb3a3e1572c760e731229e24362d193e5631844a",
+      "command": [
+        "scripts/ci/cargo_test.bat",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "material_question_api",
+        "--test",
+        "model_configuration_api",
+        "--test",
+        "conversation_api",
+        "--test",
+        "character_memory_api",
+        "--offline",
+        "--locked"
+      ],
+      "child_exit_code": 0,
+      "started_at": "2026-10-14T14:37:24.787089+00:00"
+    },
+    {
+      "source_commit": "be79ff90e7394247171afc311b002eb96ff0581e",
+      "source_patch_sha256": "ba510e3f1ab46014f76b4d2abb3a3e1572c760e731229e24362d193e5631844a",
+      "command": [
+        "scripts/ci/cargo_test.bat",
+        "test",
+        "--manifest-path",
+        "src-tauri/Cargo.toml",
+        "layout_routes_are_finite_and_device_query_cannot_inject_transport",
+        "--offline",
+        "--locked"
+      ],
+      "child_exit_code": 0,
+      "started_at": "2026-10-14T14:38:08.633630+00:00"
+    },
+    {
+      "source_commit": "be79ff90e7394247171afc311b002eb96ff0581e",
+      "source_patch_sha256": "8a917df285bfb8dc522da752a1ac51ec54ab8ad03dc747307ae8844985ad5110",
+      "command": [
+        "scripts/ci/cargo_test.bat",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "layout_preferences_api",
+        "--test",
+        "operation_readiness_api",
+        "--offline",
+        "--locked"
+      ],
+      "child_exit_code": 0,
+      "started_at": "2026-10-14T14:54:22.939637+00:00"
+    },
+    {
+      "source_commit": "be79ff90e7394247171afc311b002eb96ff0581e",
+      "source_patch_sha256": "8a917df285bfb8dc522da752a1ac51ec54ab8ad03dc747307ae8844985ad5110",
+      "command": [
+        "scripts/ci/cargo_test.bat",
+        "test",
+        "-p",
+        "archeaxis-application",
+        "--test",
+        "model_configuration_execution",
+        "--offline",
+        "--locked"
+      ],
+      "child_exit_code": 0,
+      "started_at": "2026-10-14T14:54:38.169064+00:00"
+    },
+    {
+      "source_commit": "be79ff90e7394247171afc311b002eb96ff0581e",
+      "source_patch_sha256": "a1fa05784c8b2a166cefcafd40c48c9f5eeff5e2b2dcb54e3462d73285180080",
+      "command": [
+        "scripts/ci/cargo_test.bat",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "document_cloud_loop",
+        "malformed_flood_and_timeout_are_failed_and_explicitly_retryable",
+        "--offline",
+        "--locked"
+      ],
+      "child_exit_code": 0,
+      "started_at": "2026-10-14T15:00:50.411423+00:00"
+    }
+  ],
+  "preserved_failures": [
+    "old quick CRLF/GBK/deep pycache errors",
+    "readiness permission readback spawned worker; declared-only writeback fixed",
+    "PR192 CAF browser selector collision and READY fixture publication race; latest fixes 9daf1221952133374181a6c7c81b6529d0e6419f"
+  ],
+  "remote": {
+    "stage1_main": "c541ed8315e54aaa111da64ba79c95cad19b408d",
+    "stage1_ci": 38430339549,
+    "stage1_verdict": "PASS",
+    "layout_pr": 192,
+    "layout_head": "9daf1221952133374181a6c7c81b6529d0e6419f",
+    "layout_verdict": "PENDING_NEW_EXACT_SHA_CI",
+    "integration_branch": "codex/closure-integration-20261014",
+    "integration_verdict": "NOT_UPLOADED_YET"
+  },
+  "qualification_gaps": [
+    "exact-SHA integration CI",
+    "current installed runtime and offline lifecycle",
+    "real model/provider memory and multiobject UI qualification",
+    "ASTRYN full interoperability",
+    "remaining BE08-BE12/FE07-FE25 and earlier unimplemented slices"
+  ],
+  "queued_optimization": "docs/current/AAOS-GITHUB-OPTIMIZATION-PLAN-20261014.md; A01-A04 NOT_EXECUTED separate review batch",
+  "rollback": "Revert delivered task commit; preserve existing runtime data and unknown schema bytes; no reset/clean/force push",
+  "boundary": "No E/F, global config/ACL changes, secrets, real user data, release or Green replacement",
+  "local_browser": {
+    "state": "PASS",
+    "run": "final-browser-fixture-20261014-230039",
+    "report_sha256": "ec33049eda105e1fdb942219a91ceb1f967ba24cbfdadbdd42489e76bf79206f",
+    "source_patch_sha256": "d5d654e310d62a470c357f16bcad5d0c19ec5d46111e2171f05da467963ed8ca",
+    "viewports": 13,
+    "themes": 5,
+    "errors": 0,
+    "canonical_problems": 0,
+    "evidence": "Real Chromium1228/current Vite, SIMULATED_HOST_CORE_FIXTURE; exact10 navigation assertion retained; configured models/scoped readiness and installed runtime not qualified"
+  }
+}
