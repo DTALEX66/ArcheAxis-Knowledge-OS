@@ -1334,3 +1334,11 @@ A01～A04 实施实际 Cargo 缓存路径、分离 Core/Tauri target、输入完
 当前同一源码snapshot完成145文件1340项前端测试（SIMULATED）、7项Rust/真实SQLite/API合成材料回归、16项资源投影、20项preflight、TypeScript／Vite／Tauri无bundle编译 PASS。新增记忆ACK／导出schema，72个原生成定义逐项不变；仅重绑2项SOURCE_CONTRACT摘要，未提升runtime资格。原CRLF／摘要漂移失败保留，精确8个本轮文件的LF读回修复不改变先前5份JSON语义。代码SHA与原执行证据见 [记忆界面回执](receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json)。文档更新发生在源码验证后，不把元数据改动追认为原快照测试。
 
 BE06和整体任务继续 PARTIAL。当前Tauri编译不等于原生记忆实跑或已安装版；外部共享消费方、Owner数据、云CI、合并与Green未验收。标准quick的历史浅层目录FAIL仍保留，preflight不替代该门禁。远程push／PR此前被自动审批拒绝，理由为策略要求审批而AskForApproval=Never；未换通道绕过。
+
+### BE06 原生合成记忆闭环与冷布局修复
+
+记忆界面已本地提交 `110fc9d05d4ad46e77c8f339991a31204f79c3b4`。继续实际候选验证：首次因WebView2已更新到155而旧驱动154不匹配FAIL，项目内下载匹配官方驱动并验证Microsoft签名；没有修改系统浏览器、全局PATH或注册表。第二轮发现真正的冷布局竞态：标题恢复14页，但默认布局把记忆正文停放到隐藏区域，导出不可操作，该轮不算PASS。
+
+原代码两项可见性回归均RED；自动布局读回之后按最新导航重新打开业务面板，保留业务草稿和原显式布局操作。当前145文件1342项前端、38项定向、82项原生harness回归／124子测试、20项preflight以及TypeScript／Vite／Core／Tauri编译PASS。最新原生候选与dirty snapshot绑定：真实界面明确执行8次记忆命令，保存偏好／目标、两条新增和纠正、启停、遗忘取消及确认均实际存储读回；两次冷重开核对相同workspace／epoch／完整profile。正式导出实际下载814字节JSON并核对内容及SHA，三次应用均正常退出0，自有后代与端口已清理。
+
+证据级别REAL_NATIVE_UI_CORE_SYNTHETIC_INPUT，使用全新项目内数据目录，没有Owner记忆、模型调用、安装或Green替换。详见 [原生记忆回执](receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json)。此前“native尚未验证”是原记录时点，当前有限原生闭环由此回执补充；BE06、BE02／FE06全布局及整体任务仍PARTIAL，共享消费方／Owner／安装／云CI边界不变。BE09当前剩余记录同步为已实施的本地部分，引用既有三份准备正文证据，其余页面未实施状态不被隐藏。原始139文件仍仅本地保存，远程自动审批拒绝保持。
