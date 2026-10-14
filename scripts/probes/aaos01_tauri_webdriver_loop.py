@@ -261,6 +261,27 @@ def process_elevation(pid):
 
 
 
+def wait_owned_descendant_drain(records, *, timeout=15.0, interval=.2,
+                                snapshot=None, monotonic=None, sleep=None):
+    """Observe only PID + creation identities; do not stop or exempt processes."""
+    snapshot = snapshot or native_process_rows
+    monotonic = monotonic or time.monotonic
+    sleep = sleep or time.sleep
+    owned = {(row["pid"], row["created"]) for row in records}
+    started = monotonic()
+    deadline = started + timeout
+    samples = 0
+    while True:
+        current = snapshot()
+        samples += 1
+        remaining = [row for row in current if (row["pid"], row["created"]) in owned]
+        now = monotonic()
+        if not remaining or now >= deadline:
+            return {"remaining": remaining, "samples": samples,
+                    "elapsed_seconds": round(now-started, 3), "timeout_seconds": timeout}
+        sleep(min(interval, deadline-now))
+
+
 def owned_attach_diagnostics(root_pid, root_created, cdp_port, folders):
     """Owned metadata only; never persist complete command lines or environment."""
     rows = native_process_rows()
@@ -1968,12 +1989,14 @@ def main():
             receipt["owned_identity_collection_verified"] = owned_tree_collection_verified
             if receipt.get("owned_host_pids") and not owned_tree_collection_verified:
                 raise RuntimeError("Owned attach process tree was never identity-verified")
-            rows = {row["pid"]: row for row in native_process_rows()}
-            remaining = [row["pid"] for row in owned_host_records
-                         if row["pid"] in rows and rows[row["pid"]]["created"] == row["created"]]
+            receipt["owned_cleanup_readback_stage"] = "process_identity_drain"
+            drain = wait_owned_descendant_drain(owned_host_records)
+            receipt["owned_descendant_drain"] = drain
+            remaining = [row["pid"] for row in drain["remaining"]]
             receipt["remaining_same_creation_owned_hosts"] = sorted(set(remaining))
             if remaining:
                 raise RuntimeError("Owned host descendants remained after cleanup")
+            receipt["owned_cleanup_readback_stage"] = "port_listeners"
             query = subprocess.run(["powershell.exe", "-NoProfile", "-Command",
                 "@(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { $_.LocalPort -in @("
                 + ",".join(str(value) for value in attach_ports + [port, native])
@@ -2001,7 +2024,10 @@ def main():
         path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
         print(
             json.dumps(
-                {"ok": receipt["ok"], "receipt": str(path), "error": receipt.get("error")},
+                {"ok": receipt["ok"], "receipt": str(path), "error": receipt.get("error"),
+                 "cleanup_error": receipt.get("owned_cleanup_readback_error"),
+                 "cleanup_stage": receipt.get("owned_cleanup_readback_stage"),
+                 "remaining_owned": receipt.get("remaining_same_creation_owned_hosts")},
                 ensure_ascii=False,
             )
         )
