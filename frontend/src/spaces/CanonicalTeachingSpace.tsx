@@ -17,7 +17,7 @@ type Kind = TeachingRecord["kind"];
 type Knowledge = { knowledge_id: string; head: string };
 type Course = { manifest_id: string; title: string; stale: boolean };
 type PreparationEditor = {type:"doc";content:{type:"paragraph";attrs:{block_id:string};content?:{type:"text";text:string}[]}[]};
-type PreparationAttempt = {snapshot:string} & (
+type PreparationAttempt = {snapshot:string;persistedPurpose:string;expectedTitle:string} & (
   {operation:"document_create";payload:{body:{create_request_id:string;title:string;editor_json:PreparationEditor}}} |
   {operation:"document_draft";payload:{document_id:string;body:{expected_version:number;editor_json:PreparationEditor}}}
 );
@@ -61,7 +61,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
   const [selected,setSelected]=useState<RecordView|null>(null), [draft,setDraft]=useState(()=>blank(kinds[pageId]?.[0] ?? "observation"));
   const [knowledge,setKnowledge]=useState<Knowledge|null>(null), [query,setQuery]=useState(""), [results,setResults]=useState<Knowledge[]>([]);
   const [courses,setCourses]=useState<Course[]>([]), [courseId,setCourseId]=useState<string|null>(null), [itemKey,setItemKey]=useState<string|null>(null), [assessmentId,setAssessmentId]=useState<string|null>(null);
-  const [preparation,setPreparation]=useState<{document_id:string;version:number}|null>(null), [savedPreparation,setSavedPreparation]=useState("");
+  const [preparation,setPreparation]=useState<{document_id:string;version:number;title:string}|null>(null), [savedPreparation,setSavedPreparation]=useState("");
   const [preparationRows,setPreparationRows]=useState<DocumentSummaryDto[]>([]), [preparationCursor,setPreparationCursor]=useState<string|null>(null), [preparationListed,setPreparationListed]=useState(false);
   const documentLease=useDocumentWriteLease(preparation?.document_id);
   const [parent,setParent]=useState<RecordView|null>(null), [busy,setBusy]=useState(false), [message,setMessage]=useState(""), [failure,setFailure]=useState<string|null>(null);
@@ -104,6 +104,11 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
   async function chooseCourse(id:string) {if(pending||lock.current)return;setAssessmentId(null);setItemKey(null);if(!id){setCourseId(null);return;}await run(async request=>{const saved=object(await coreCommand("course_get",{course_id:id})),manifest=object(saved.manifest);if(saved.stale!==false||manifest.manifest_id!==id||!Array.isArray(saved.bindings)||!Array.isArray(manifest.artifacts))throw new Error("invalid course binding");const bindings=saved.bindings.map(object);if(!knowledge||!bindings.some(row=>row.knowledge_id===knowledge.knowledge_id&&row.knowledge_version===knowledge.knowledge_id))throw new Error("course is bound to different knowledge");const artifact=manifest.artifacts.map(object).find(row=>row.artifact_type==="lesson"&&row.renderer==="native-lesson");if(!artifact||typeof artifact.artifact_id!=="string")throw new Error("no native lesson");if(request===epoch.current){setCourseId(id);setItemKey(`course:${id}:artifact:${artifact.artifact_id}`);note("课程与知识版本已核对。尚未声明学习成绩。");}});}
   async function readAssessment() {if(!itemKey)return;await run(async request=>{const saved=object(await coreCommand("assessment_get",{item_key:itemKey}));if(typeof saved.assessment_id!=="string"||saved.knowledge_id!==knowledge?.knowledge_id||saved.knowledge_version!==knowledge?.knowledge_id)throw new Error("assessment knowledge mismatch");if(request===epoch.current){setAssessmentId(saved.assessment_id);note("已读取真实学习问题身份；Teach-back记录仍不计分。");}});}
   async function savePreparation() {try{await documentLease.write(savePreparationDocument);}catch(error){setFailure(error instanceof Error?error.message:"此文档视图只读");}}
+  function newPreparation() {
+    if(lock.current||pending)return;
+    if(preparationAttempt.current){note("上次准备正文保存尚未确认；请先重试同一请求，当前文字保留。");return;}
+    setPreparation(null);setSavedPreparation("");note("当前用途与正文保留为新准备草稿；再次保存会创建新文档，原文档保留。");
+  }
   async function listPreparations(more=false) {
     await run(async request=>{
       const page=assertCoreDto<DocumentsListDto>("DocumentsListDto",await coreCommand("documents_list",more&&preparationCursor?{cursor:preparationCursor}:{}));
@@ -119,15 +124,15 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
       const doc=assertCoreDto<DocumentDto>("DocumentDto",await coreCommand("document_get",{document_id:id}));
       if(doc.document_id!==id)throw new Error("preparation identity changed");
       const content=preparationText(doc);
-      if(request===epoch.current){setDraft(previous=>({...previous,purpose:doc.title,content}));setPreparation({document_id:id,version:doc.version});setSavedPreparation(JSON.stringify({purpose:doc.title,content}));note("准备正文已从本地文档重开；继续保存使用当前版本，不登记正式知识或教学记录。");}
+      if(request===epoch.current){setDraft(previous=>({...previous,purpose:doc.title,content}));setPreparation({document_id:id,version:doc.version,title:doc.title});setSavedPreparation(JSON.stringify({purpose:doc.title,content}));note("准备正文已从本地文档重开；继续保存使用当前版本，不登记正式知识或教学记录。");}
     });
   }
   async function savePreparationDocument() {
     await run(async request=>{const editor_json:PreparationEditor={type:"doc",content:draft.content.split("\n").map(text=>({type:"paragraph",attrs:{block_id:crypto.randomUUID()},...(text?{content:[{type:"text" as const,text}]}:{})}))};
       const currentSnapshot=JSON.stringify({purpose:draft.purpose,content:draft.content});
       const attempt:PreparationAttempt=preparationAttempt.current??(preparation
-        ?{operation:"document_draft",payload:{document_id:preparation.document_id,body:{expected_version:preparation.version,editor_json}},snapshot:currentSnapshot}
-        :{operation:"document_create",payload:{body:{create_request_id:boundedId("preparation"),title:draft.purpose.trim()||"教学准备草稿",editor_json}},snapshot:currentSnapshot});
+        ?{operation:"document_draft",payload:{document_id:preparation.document_id,body:{expected_version:preparation.version,editor_json}},snapshot:currentSnapshot,persistedPurpose:savedPreparation?JSON.parse(savedPreparation).purpose:"",expectedTitle:preparation.title}
+        :{operation:"document_create",payload:{body:{create_request_id:boundedId("preparation"),title:draft.purpose.trim()||"教学准备草稿",editor_json}},snapshot:currentSnapshot,persistedPurpose:draft.purpose,expectedTitle:draft.purpose.trim()||"教学准备草稿"});
       preparationAttempt.current=attempt;
       const snapshot=attempt.snapshot;
       const expectedId=attempt.operation==="document_create"?await documentRequestIdentity(attempt.payload.body.create_request_id):attempt.payload.document_id;
@@ -137,7 +142,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
       function verified(value:unknown):DocumentDto {
         const doc=assertCoreDto<DocumentDto>("DocumentDto",value);
         if(doc.document_id!==expectedId||doc.version!==expectedVersion||!/^[a-f0-9]{64}$/.test(doc.content_sha256)||doc.source_id!==null||doc.source_revision!==null
-          ||attempt.operation==="document_create"&&doc.title!==attempt.payload.body.title
+          ||doc.title!==attempt.expectedTitle
           ||!sameValue(doc.editor_json,attempt.payload.body.editor_json)||doc.text_projection!==texts.filter(text=>text.length>0).join("\n")
           ||doc.blocks.length!==nodes.length||doc.blocks.some((block,index)=>block.block_id!==nodes[index].attrs.block_id||block.kind!=="paragraph"||block.ordinal!==index||block.text_projection!==texts[index]||block.codec_status!=="known"||!sameValue(block.node_json,nodes[index])))throw new Error("preparation snapshot mismatch");
         return doc;
@@ -146,7 +151,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
       const result=verified(await coreCommand(attempt.operation,structuredClone(attempt.payload)));
       const readback=verified(await coreCommand("document_get",{document_id:expectedId}));
       if(readback.content_sha256!==result.content_sha256||readback.title!==result.title)throw new Error("preparation readback mismatch");
-      if(request===epoch.current){setPreparation({document_id:result.document_id,version:result.version as number});setSavedPreparation(snapshot);preparationAttempt.current=null;note("准备正文已保存并读回；允许缺少需求字段或正式知识绑定。登记版本化记录是另一步操作。");}
+      if(request===epoch.current){setPreparation({document_id:result.document_id,version:result.version as number,title:result.title});setSavedPreparation(JSON.stringify({purpose:attempt.persistedPurpose,content:JSON.parse(snapshot).content}));preparationAttempt.current=null;note("准备正文已保存并读回；允许缺少需求字段或正式知识绑定。登记版本化记录是另一步操作。"+(JSON.parse(snapshot).purpose!==attempt.persistedPurpose?"用途改动仍留在当前表单，未重命名已保存文档。":""));}
     });
   }
   async function save() {
@@ -191,7 +196,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
           <label><input type="checkbox" checked={draft.assisted} onChange={event=>setDraft(previous=>({...previous,assisted:event.target.checked}))}/>使用了辅助（不自动判定行为者）</label><label>内容来源声明（不授予行为者权限）<select value={draft.producer_kind} onChange={event=>setDraft(previous=>({...previous,producer_kind:event.target.value as TeachingRecord["producer_kind"]}))}><option value="human_authored">人工撰写</option><option value="external_material">外部材料</option><option value="machine_generated">机器生成</option></select></label><label>Rubric版本<input value={draft.rubric_version} onChange={event=>setDraft(previous=>({...previous,rubric_version:event.target.value}))}/></label>
           {draft.kind==="feedback"?<label>反馈分类<select value={draft.feedback_class??""} onChange={event=>setDraft(previous=>({...previous,feedback_class:event.target.value as TeachingRecord["feedback_class"]}))}><option value="">请选择</option>{feedbackClasses.map(value=><option key={value}>{value}</option>)}</select></label>:null}
         </fieldset><p>知识：{knowledge?.knowledge_id??"尚未选择"} · 课程：{courseId??"未绑定"} · 学习问题：{assessmentId??"未绑定"}</p>
-        <button disabled={busy||pending||!documentLease.canWrite} type="button" onClick={()=>void savePreparation()}>保存准备正文草稿</button><p>普通准备正文可先保存，不要求完整需求、父记录或知识绑定。{preparation?`已保存文档 ${preparation.document_id} · v${preparation.version}`:"尚未保存准备正文"}</p><button disabled={busy} type="submit">{pending?"重试同一记录":"登记版本化记录"}</button>{pending?<p role="status">上次写入尚未确认；重试保持相同客户端身份和原内容，编辑暂冻结。</p>:null}
+        <button disabled={busy||pending||!documentLease.canWrite} type="button" onClick={()=>void savePreparation()}>保存准备正文草稿</button>{preparation?<button disabled={busy||pending} type="button" onClick={newPreparation}>作为新准备草稿</button>:null}<p>普通准备正文可先保存，不要求完整需求、父记录或知识绑定。{preparation?`已保存文档 ${preparation.document_id} · v${preparation.version}`:"尚未保存准备正文"}。首次用途作为文档标题；后续正文保存保留该标题。需要新标题可作为新准备草稿保存。</p><button disabled={busy} type="submit">{pending?"重试同一记录":"登记版本化记录"}</button>{pending?<p role="status">上次写入尚未确认；重试保持相同客户端身份和原内容，编辑暂冻结。</p>:null}
       </form></>:<section aria-label="人工交换导入"><h3>用户选择 JSON → Core 只读预检 → 审阅导入</h3><input aria-label="选择人工交换 JSON" type="file" accept="application/json,.json" disabled={busy} onChange={event=>void chooseFile(event.target.files?.[0])}/><AaosDialog role="alertdialog" title="确认人工交换导入" description="Core预检只读；明确确认后才导入。" open={exchangeDialog} onOpenChange={open=>{if(!open&&!busy)setExchangeDialog(false);}} trigger={<button disabled={busy||!bundle} onClick={()=>void previewImport()}>Core 预检交换包</button>}>{preview?<><p>Core预检 {preview.record_count} 条，重复 {preview.duplicate_count} 条。包 {preview.package_sha256}。导入不会发送peer或执行材料。</p><button disabled={busy} onClick={()=>void importBundle()}>确认人工导入</button><button disabled={busy} onClick={()=>setExchangeDialog(false)}>取消导入</button></>:null}</AaosDialog>{originalExchange?<><button type="button" onClick={downloadOriginalExchange}>下载所选原始交换文件</button><p>原件：{originalExchange.name} · {originalExchange.size} 字节。下载保留未知字段或损坏JSON；不是规范记录导入。</p></>:null}<p>没有文件路径权限、不自动运行外部材料。损坏、身份冲突或权限不足由Core拒绝，重复包以Core回执为准。</p></section>}
     </div><aside className="ui-content-panel" aria-label="真实教学来源"><h3>选择实际来源</h3><form onSubmit={event=>{event.preventDefault();void search();}}><label>查找来源知识<input value={query} disabled={busy||pending} onChange={event=>setQuery(event.target.value)}/></label><button disabled={busy||pending}>搜索来源知识</button></form><ul>{results.map(row=><li key={row.knowledge_id}><button disabled={busy||pending} onClick={()=>void chooseKnowledge(row)}>{row.head}</button></li>)}</ul>
       <label>绑定实际课程<select disabled={busy||pending||!knowledge||!!parent} value={courseId??""} onChange={event=>void chooseCourse(event.target.value)}><option value="">不绑定课程</option>{courses.map(row=><option disabled={row.stale} key={row.manifest_id} value={row.manifest_id}>{row.title}{row.stale?" · 来源失效":""}</option>)}</select></label>
