@@ -820,7 +820,7 @@ Current projection/runtime counts are 61/42 mounts and 72/116 method/path pairs.
 | 133 | `POST /api/v1/workspace/ui-state/cancel-machine` | Human-only | Exact frozen journal CAS and restore epoch selects the current attempt's owned Cancellation token. Response is only cancel_requested; provider_stop_state and execution_state remain UNKNOWN until separate terminal readback. |
 
 
-## 2026-10-14 source inventory reconciliation
+## 14. 2026-10-14 source inventory reconciliation
 
 The following 20 method/path pairs complete the current source inventory. This is source inspection, not an extension of historical OBSERVED receipts, installed qualification or actor permission. Projection-only: 61 unconditional mounts / 72 pairs; text-worker runtime: 42 mounts / 45 pairs, merging 71 base projection pairs for 116 unique production pairs. Manual receipts remain conditional and excluded.
 
