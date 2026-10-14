@@ -261,7 +261,8 @@
       ],
       "state": "PARTIAL_INTEGRATED",
       "implementation_evidence": [
-        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json"
       ],
       "dependencies": [
         "BE01"
@@ -273,17 +274,23 @@
         "src-tauri/",
         "services/python-workers/",
         "tests/",
-        "docs/"
+        "docs/",
+        "frontend/src/"
       ],
-      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
-      "tests": [],
+      "consumer_scope": "Current formal UI mounted in the isolated optimization checkout under the Owner-selected frontend overlay; independent UI donor remains read-only. External/shared-port consumer acceptance remains separate and unqualified.",
+      "tests": [
+        "frontend/src/__tests__/CharacterMemoryPanel.test.tsx",
+        "frontend/src/__tests__/CharacterMemoryBridge.test.ts",
+        "crates/archeaxis-domain/tests/character_memory.rs",
+        "crates/archeaxis-api/tests/character_memory_api.rs"
+      ],
       "acceptance": [
         "真实保存重开与纠正删除可读回。",
         "不建立第二长期知识主库；不只隐藏卡片冒充遗忘。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": "Current exact-SHA integration CI and installed acceptance remain unqualified; finite implemented scope is described in integration_closure_20261014.",
+      "blocker": "Current panel, canonical ACK/export schemas and real SQLite/API synthetic regressions qualified locally; native/installed/Owner and external/shared-port joint acceptance remain unqualified. Remote approval blocker unchanged.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },

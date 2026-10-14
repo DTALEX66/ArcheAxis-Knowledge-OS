@@ -1,0 +1,33 @@
+{
+  "schema": "archeaxis.document-contract-source-refresh/v1",
+  "date": "2026-10-15",
+  "state": "PASS_SOURCE_DEFINITION_EQUIVALENCE_ONLY",
+  "parent_commit": "f10891c62649b942049a0009d6305e4dda4aa9d6",
+  "existing_definitions_compared": 72,
+  "existing_definitions_changed": 0,
+  "new_definitions": [
+    "CharacterMemoryExport",
+    "CharacterMemoryReceipt"
+  ],
+  "changed_refs": [
+    {
+      "stable_key": "archeaxiscoreknowledge",
+      "evidence_field": "version.source_refs",
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa",
+      "after_sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
+    },
+    {
+      "stable_key": "capcoreknowledge",
+      "evidence_field": "version.source_refs",
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa",
+      "after_sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
+    }
+  ],
+  "old_overlay": {
+    "path": ".project-local/tmp/resource-qualification-before-memory-1015.json",
+    "sha256": "b283a8ab14822f322f1ecccc5d0b55ac76887ae4c33a92ea6600fbd35c7c544c"
+  },
+  "qualification_boundary": "Version SOURCE_CONTRACT references refreshed after exact existing-definition comparison; runtime NOT_RUN and INHERITED_ONLY states preserved, no current usability or installation promotion"
+}

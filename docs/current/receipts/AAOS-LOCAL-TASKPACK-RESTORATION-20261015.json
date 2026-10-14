@@ -1,0 +1,27 @@
+{
+  "schema": "archeaxis.local-taskpack-restoration/v1",
+  "date": "2026-10-15",
+  "state": "PASS_SOURCE_BYTES_ONLY",
+  "source_checkout": "conversation-closure-final-20261013",
+  "files": 139,
+  "bytes": 32691084,
+  "matched_sha256": 139,
+  "packages": [
+    {
+      "name": "taskpack-20261013-backend-host",
+      "files": 34,
+      "verified_original_checksums": 33
+    },
+    {
+      "name": "taskpack-20261013-frontend-ui",
+      "files": 105,
+      "verified_original_checksums": 104
+    }
+  ],
+  "manifest": ".project-local/tmp/taskpack-source-restore-1015.json",
+  "manifest_sha256": "33d6a5ee5bcfa244bffc1cdc10062580abb677694b904d6e46b0ae48c6a78ab3",
+  "git_staging": "NOT_EXECUTED_LOCAL_ONLY",
+  "upload": "NOT_EXECUTED_LOCAL_ONLY",
+  "source_modified": false,
+  "product_qualification": "NO_EVIDENCE; immutable source restoration does not complete BE/FE tasks"
+}
