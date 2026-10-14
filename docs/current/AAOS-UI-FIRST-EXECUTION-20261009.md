@@ -1306,3 +1306,9 @@ A01～A04 实施实际 Cargo 缓存路径、分离 Core/Tauri target、输入完
 真实 Python3.12.15 运行包15.52秒，344模块与源码逐字节一致。已有离线依赖缓存、全新 Core target 的两次2项合同测试分别4.77/0.11秒，不能推广为全项目加速比例。Core release 实构建通过；Tauri/NSIS拆分保留失败耗时，264字符资源路径导致首次NSIS FAIL。使用本项目更短候选输入并核对19518文件哈希后，Tauri阶段47.00秒、NSIS整阶段222.08秒 PASS，生成152413824字节候选；这不是纯压缩单项计时或安装验收。制品绑定各自dirty snapshot，不借此资格化未来提交。
 
 详情与证据SHA见 [优化执行回执](receipts/AAOS-OPTIMIZATION-EXECUTION-20261015.json)。远程 push 和 PR 创建被自动审批拒绝：策略要求审批，但当前 AskForApproval=Never；未换通道绕过。该分支云CI、合并、Owner安装及真实用户验收均无完成证据。下一产品缺口为 BE09 教学准备草稿：现有回读仅ID/版本，继续补冻结请求的身份、正文及版本一致性，复用现有文档合同与单写者。
+
+### BE09 准备草稿保存回读完整性
+
+优化批已本地提交 `00d0fb71f824f29332ad2df83783bf6968e8f46e`，没有远程资格。其后独立 `codex/teaching-save-integrity-20261015` 修复教学准备保存误报：8项反例在旧代码均错误报已保存；现在冻结块身份并核对请求派生文档ID、准确版本、创建标题、完整正文、投影、块与SHA。错误及丢ACK保留原请求和后续编辑，不新增审批或推理。
+
+39项定向前端 PASS；143文件1297项完整前端 PASS（SIMULATED）；TypeScript、Rust格式 PASS。真实SQLite domain 3项 PASS（合成材料），验证空段落保留、CAS冲突、关闭重开及历史创建重试不覆盖新版本。详见 [准备保存回执](receipts/AAOS-PREPARATION-SAVE-INTEGRITY-20261015.json)。代码文件SHA与各执行snapshot绑定；BE09其余页面重开／人工课程适配未由本修复完成，旧NSIS包不资格化本前端源码。标准quick的历史run布局缺口保持，云CI、安装与Owner验收仍未完成。全部任务继续 PARTIAL。
