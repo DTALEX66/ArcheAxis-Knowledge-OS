@@ -373,7 +373,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa"
+              "sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
             }
           ]
         },
@@ -596,7 +596,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa"
+              "sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
             }
           ]
         },
@@ -7935,5 +7935,9 @@
         "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
       }
     ]
+  },
+  "source_contract_rebind_20261015": {
+    "scope": "Source definitions only; runtime and installed qualifications unchanged",
+    "receipt": "docs/current/receipts/AAOS-DOCUMENT-CONTRACT-SOURCE-REFRESH-20261015.json"
   }
 }

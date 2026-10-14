@@ -274,6 +274,71 @@
         "grants",
         "knowledge_admitted"
       ]
+    },
+    "CharacterMemoryReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.memory-write/v1"
+        },
+        "profile": {
+          "$ref": "#/$defs/CharacterProfile"
+        },
+        "live_store_deleted": {
+          "type": "boolean"
+        },
+        "forgotten_ids": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          }
+        },
+        "historical_chat_modified": {
+          "const": false
+        },
+        "backups_modified": {
+          "const": false
+        },
+        "secure_erasure": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "profile",
+        "live_store_deleted",
+        "forgotten_ids",
+        "historical_chat_modified",
+        "backups_modified",
+        "secure_erasure"
+      ]
+    },
+    "CharacterMemoryExport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.memory-export/v1"
+        },
+        "profile": {
+          "$ref": "#/$defs/CharacterProfile"
+        },
+        "contains_personal_memory": {
+          "const": true
+        },
+        "network_performed": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "profile",
+        "contains_personal_memory",
+        "network_performed"
+      ]
     }
   }
 }

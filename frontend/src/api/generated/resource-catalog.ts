@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "b283a8ab14822f322f1ecccc5d0b55ac76887ae4c33a92ea6600fbd35c7c544c"
+      "sha256": "5c877c10eb2e2f876ca66fc370e8cc44a0a2278870e65741407d4222b2aa761c"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -378,6 +378,10 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
         }
       ]
+    },
+    "source_contract_rebind_20261015": {
+      "scope": "Source definitions only; runtime and installed qualifications unchanged",
+      "receipt": "docs/current/receipts/AAOS-DOCUMENT-CONTRACT-SOURCE-REFRESH-20261015.json"
     }
   },
   "freeze_register": {
@@ -1369,7 +1373,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa"
+                "sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
               }
             ]
           },
@@ -1795,7 +1799,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa"
+                "sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
               }
             ]
           },

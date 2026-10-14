@@ -1324,3 +1324,13 @@ A01～A04 实施实际 Cargo 缓存路径、分离 Core/Tauri target、输入完
 正文重开已提交 `d957dbf8be7dd44936d36d0ed25ea9488fd95e2f`；NORM03 的13个实际历史目录及公开消费者草案已提交 `c95c1fafca6386ee183af46c7cfe0a82cb674dbd`，未移动。继续修正现有文档更新后用途变化被误标保存：draft 只更新正文，冻结原文档标题并核对ACK／读回，未持久化的用途保持dirty。显式“作为新准备草稿”保留当前文字，下一次保存创建新文档并保留旧件，未确认的冻结请求不得被丢弃。
 
 完整前端143文件1312项 PASS（SIMULATED），TypeScript PASS；新增用途dirty、冻结已有标题与另存不覆盖旧文档回归。证据见 [标题状态回执](receipts/AAOS-PREPARATION-TITLE-STATE-20261015.json)。本轮未改Core数据库规则，旧回执保持原snapshot，BE09／整体任务仍 PARTIAL；远程审批阻塞、标准quick历史布局FAIL及native／安装／Owner资格仍分别未完成。
+
+### BE06 角色档案与受控长期记忆
+
+标题状态已本地提交 `f10891c62649b942049a0009d6305e4dda4aa9d6`。当前 writer 为同一隔离检出的 `codex/character-memory-ui-20261015`。原始后端／前端任务包已恢复到现有指针路径，139文件、32,691,084字节全部SHA一致；原包校验33／104项通过，规划状态未改，139文件未暂存、未上传。详情见 [本地原包恢复回执](receipts/AAOS-LOCAL-TASKPACK-RESTORATION-20261015.json)。
+
+在正式14页挂载角色偏好、学习目标和获准记忆管理，复用既有Core单写者。明确记住／纠正／启停均冻结工作区、恢复身份和版本，核对完整ACK及存储读回；丢ACK保留文字并仅读回，不自动重复写入。遗忘须人工审阅，实际当前存储删除后确认，原聊天和备份未改、不声称安全擦除。导出为用户显式触发的本地JSON；不自动提取聊天、不调用模型、不授予知识或执行权限。
+
+当前同一源码snapshot完成145文件1340项前端测试（SIMULATED）、7项Rust/真实SQLite/API合成材料回归、16项资源投影、20项preflight、TypeScript／Vite／Tauri无bundle编译 PASS。新增记忆ACK／导出schema，72个原生成定义逐项不变；仅重绑2项SOURCE_CONTRACT摘要，未提升runtime资格。原CRLF／摘要漂移失败保留，精确8个本轮文件的LF读回修复不改变先前5份JSON语义。代码SHA与原执行证据见 [记忆界面回执](receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json)。文档更新发生在源码验证后，不把元数据改动追认为原快照测试。
+
+BE06和整体任务继续 PARTIAL。当前Tauri编译不等于原生记忆实跑或已安装版；外部共享消费方、Owner数据、云CI、合并与Green未验收。标准quick的历史浅层目录FAIL仍保留，preflight不替代该门禁。远程push／PR此前被自动审批拒绝，理由为策略要求审批而AskForApproval=Never；未换通道绕过。

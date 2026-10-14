@@ -1,0 +1,165 @@
+{
+  "schema": "archeaxis.character-memory-ui/v1",
+  "date": "2026-10-15",
+  "task": "BE06 role profile and human-approved memory",
+  "overall": "PARTIAL",
+  "parent_commit": "f10891c62649b942049a0009d6305e4dda4aa9d6",
+  "changes": [
+    "Mounted profile and approved-memory management in canonical controlled-AI page 14",
+    "Explicit profile/remember/correct/enable/disable commands use current workspace/epoch/revision and verify full ACK plus current readback",
+    "Human-reviewed forget/forget_all verifies current store deletion and declares unchanged chats/backups without secure-erasure claims",
+    "Frozen pending attempts preserve text and only query on lost ACK; manual adoption preserves edits and refuses changed workspace/epoch",
+    "Manual local JSON export validates canonical profile and workspace/epoch; no upload or model/chat extraction",
+    "Canonical receipt/export schemas and finite response projections; existing knowledge permissions and sole SQLite/CAS writer preserved",
+    "72 original generated definitions compared unchanged; two source-contract references rebound without promoting runtime qualifications"
+  ],
+  "code_files_sha256": {
+    "frontend/src/api/characterMemory.ts": "59eb4bdf241fdf2862f212fa1e49cdcc9357d68b83c43fd1ea5adc47fc4840f0",
+    "frontend/src/api/core.ts": "cc4b6e05dac75399ad561667c7f66cc5d4dc5c9753cd329a2f6ebb5588c16284",
+    "frontend/src/components/CharacterMemoryPanel.tsx": "550a241d62f42068fc15ee3aad18b5e32f6bc3cde7ab50955b5f5c072071173c",
+    "frontend/src/spaces/CanonicalControlledAiSpace.tsx": "40073e373443045a47486c78b2df6c26ecf6e7fc6f432be18ca365138f36224b",
+    "frontend/src/__tests__/CharacterMemoryPanel.test.tsx": "c0d34a35aae2a93508e17fea285e0e0aec69223aa7bb0ea42fdad436403689f1",
+    "frontend/src/__tests__/CharacterMemoryBridge.test.ts": "f377f64ffa7f568681b61f2c5a553d0ec4c45b72876761edc2e9a8ced9e272c4",
+    "frontend/src/api/generated/core-contract.ts": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276",
+    "frontend/src/api/generated/ui-host-contract.ts": "a0e6f22ba198ae9cc08aa5b2bd922418bb59f035afa97296ee0d385e54d6ca53",
+    "frontend/src/api/generated/resource-catalog.ts": "b71c35a3da3ef43e45131aa94291cc27c937f68ece3ab96f3bbd1c235ce89ba8",
+    "crates/archeaxis-api/tests/character_memory_api.rs": "32779d275e481f45155191cd0bb4a3b4fe204927fb69394c6c8b65daa0983a45",
+    "crates/archeaxis-contracts/src/generated/ui_host.rs": "77565fa98fbd100ef88b113225aefdf0b7770647a36b8461bc735b8f78f6c2a1",
+    "packages/contracts/v1/core-document.schema.json": "93d0122539056bd9d4ff362a89523cf0d09fdf427c6a19e3fd33db9f65c19070",
+    "packages/contracts/v2/character-memory.schema.json": "8f136684c590192695003fd96af95c1e435a6c973c470618e5480a3fed40145a",
+    "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json": "5c877c10eb2e2f876ca66fc370e8cc44a0a2278870e65741407d4222b2aa761c"
+  },
+  "evidence": {
+    "frontend_full": {
+      "state": "PASS",
+      "level": "SIMULATED",
+      "files": 145,
+      "tests": 1340,
+      "new_panel_tests": 22,
+      "new_native_invoke_fixture_tests": 6,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/memory-all2-1015/artifacts/execution.json",
+        "sha256": "5e9b712641635a34928f071e32bf2a6bd0472409756fc8c8728f16e47f92ab15",
+        "source_commit": "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "source_patch_sha256": "ca3347925d1971ad6c26e5a9c5293591e5ac89c7aa025b0888c49cf5cb66736f",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "core": {
+      "state": "PASS",
+      "level": "REAL_SQLITE_API_SYNTHETIC_INPUT",
+      "domain_tests": 3,
+      "api_tests": 2,
+      "ui_host_contract_tests": 2,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/memory-core3-1015/artifacts/memory-core.json",
+        "sha256": "09e787952e658f3354cfba5ceac07528c51c11254f0b4617f5bce54ec3820ecf",
+        "source_commit": "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "source_patch_sha256": "ca3347925d1971ad6c26e5a9c5293591e5ac89c7aa025b0888c49cf5cb66736f",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "preflight": {
+      "state": "PASS",
+      "checks": 20,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/memory-pre3-1015/artifacts/execution.json",
+        "sha256": "89fa5593c6fa641584e0010e2736b3ff135ee4261e3b3df4bcdd115b26e589a9",
+        "source_commit": "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "source_patch_sha256": "ca3347925d1971ad6c26e5a9c5293591e5ac89c7aa025b0888c49cf5cb66736f",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "resource_projection": {
+      "state": "PASS",
+      "tests": 16,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/memory-res-1015/artifacts/execution.json",
+        "sha256": "13d4b56a3dc2f14471735c91b39510993d13074342d2e699ed6effe03fce9821",
+        "source_commit": "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "source_patch_sha256": "ca3347925d1971ad6c26e5a9c5293591e5ac89c7aa025b0888c49cf5cb66736f",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "current_frontend_native_build": {
+      "state": "PASS_BUILD_ONLY",
+      "typescript": "PASS",
+      "vite": "PASS",
+      "tauri": "PASS",
+      "bundle": "NOT_EXECUTED_NO_BUNDLE",
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/acfed43b7214/artifacts/frontend-build.json",
+        "sha256": "8efcd0957d5aebc4c162772a18bace6ad509394bf53044bd87f529165553b22f",
+        "source_commit": "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "source_patch_sha256": "ca3347925d1971ad6c26e5a9c5293591e5ac89c7aa025b0888c49cf5cb66736f",
+        "source_consistent": true,
+        "exit_code": 0
+      },
+      "outer_proof": {
+        "path": ".project-local/runs/ba8e5e5614/memory-native-1015/artifacts/execution.json",
+        "sha256": "95735137b641c2ed6505de344a8056b31a335f62609ec01f968a2caa38d05e8e",
+        "source_commit": "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "source_patch_sha256": "ca3347925d1971ad6c26e5a9c5293591e5ac89c7aa025b0888c49cf5cb66736f",
+        "source_consistent": true,
+        "exit_code": 0
+      },
+      "executable": {
+        "path": ".project-local/build/ba8e5e5614/tauri/release/ArcheAxis.exe",
+        "bytes": 11913216,
+        "sha256": "71fdba55f18d2b8d6b61df1a71228e2d47c2a6d616e959f3d25aa6b1e80995a3"
+      },
+      "boundary": "Build with existing staged backend resources only; no native memory journey, installation or Owner data qualification"
+    }
+  },
+  "retained_failed_runs": [
+    {
+      "run": "memory-ts-1015",
+      "cause": "Missing required dialog trigger; corrected before final typecheck"
+    },
+    {
+      "run": "memory-pre-1015",
+      "cause": "Eight task-owned CRLF files and changed source-reference digest; original failure retained"
+    },
+    {
+      "run": "memory-pre2-1015",
+      "cause": "Source qualification and UI-host digest drift; corrected with exact source-definition comparison and regeneration"
+    }
+  ],
+  "source_line_endings": {
+    "state": "PASS_EXACT_OWNED_FILES_ONLY",
+    "readback": ".project-local/tmp/source-lf-readback-1015.json",
+    "sha256": "aea8dd43ed7f1ac691df28246719a77ea8710e8c357c61ad51596eed3ca1b656",
+    "semantic_changes": "None for five earlier public JSON receipts; old Git blobs already LF"
+  },
+  "source_packages": {
+    "receipt": "docs/current/receipts/AAOS-LOCAL-TASKPACK-RESTORATION-20261015.json",
+    "files": 139,
+    "upload": "NOT_EXECUTED_LOCAL_ONLY"
+  },
+  "remaining": [
+    "BE06 installed/native memory journey and Owner acceptance not qualified",
+    "BE01 external consumer/shared-port acceptance remains separate and unqualified",
+    "Standard quick has preserved historical shallow-run layout failures; preflight PASS does not qualify standard quick",
+    "Exact-SHA cloud CI, merge and current installer/Green qualification unavailable",
+    "Other BE/FE/GF/optimization/normalization tasks and frozen exclusions remain on the current queue"
+  ],
+  "delivery": {
+    "commit": "LOCAL_CHECKPOINT_PENDING_AT_RECEIPT_CREATION",
+    "push": "BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "pr": "NOT_CREATED",
+    "ci": "NO_EVIDENCE",
+    "merge": "NOT_EXECUTED",
+    "installed": "NOT_EXECUTED"
+  },
+  "artifact_ownership": {
+    "code": "Task-owned public product source and tests; recoverable from this checkpoint",
+    "raw_evidence": "Ignored common project runs under ba8e5e5614; retained as referenced evidence, not uploaded",
+    "temporary_helpers": "Ignored current checkout .project-local/tmp; task-generated and reproducible, retain while referenced",
+    "original_taskpacks": "Local-only restoration of exact original source; not staged or edited"
+  },
+  "rollback": "Revert this one UI/schema/test/receipt checkpoint; existing Core storage schema and user memory data are unchanged; preserve local-only source packages"
+}
