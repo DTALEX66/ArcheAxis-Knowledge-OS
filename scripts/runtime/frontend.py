@@ -11,8 +11,10 @@ from pathlib import Path
 
 if __package__:
     from . import dev
+    from .build_timing import BuildTimings
 else:
     import dev
+    from build_timing import BuildTimings
 
 ROOT = Path(__file__).absolute().parents[2]
 
@@ -90,7 +92,39 @@ def validate_inherited(root: Path) -> None:
         raise ValueError("inherited build paths require a canonical run")
 
 
-def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path | None = None) -> int:
+def tauri_commands(node, cli, arguments, overlay, separate_bundle):
+    split = arguments.index("--") if "--" in arguments else len(arguments)
+    normal = [node, str(cli), *arguments[:split], "--config", str(overlay), *arguments[split:]]
+    if not separate_bundle:
+        return [("tauri-with-bundle", normal)]
+    if split != len(arguments):
+        raise ValueError("separate bundle timing cannot forward raw Cargo arguments")
+    shared = []
+    bundles = None
+    index = 1
+    while index < len(arguments):
+        flag = arguments[index]
+        if flag in {"--config", "--target", "--features", "--bundles"}:
+            if index + 1 >= len(arguments) or arguments[index + 1].startswith("-"):
+                raise ValueError("missing Tauri option value")
+            if flag == "--bundles":
+                bundles = arguments[index + 1]
+            else:
+                shared.extend(arguments[index:index + 2])
+            index += 2
+        elif flag in {"--debug", "--ci", "--no-sign", "--verbose"}:
+            shared.append(flag)
+            index += 1
+        else:
+            raise ValueError(f"unsupported option for separate bundle timing: {flag}")
+    if bundles != "nsis":
+        raise ValueError("separate bundle timing requires explicit nsis target")
+    shared += ["--config", str(overlay)]
+    return [("tauri-compile-with-frontend-hook", [node, str(cli), "build", *shared, "--no-bundle"]),
+            ("nsis-bundle", [node, str(cli), "bundle", *shared, "--bundles", bundles])]
+
+
+def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path | None = None, separate_bundle: bool = False) -> int:
     root = dev.safe_path(root)
     validate_inherited(root)
     nested = os.environ.get("ARCHEAXIS_FRONTEND_BUILD_CONTEXT")
@@ -110,11 +144,13 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
         inherited_cargo = env.get("CARGO_TARGET_DIR")
         if inherited_cargo:
             cargo = dev.safe_path(Path(inherited_cargo))
-            if cargo not in {paths["cargo_build"], paths["dev"] / "build" / "tauri"}:
+            if cargo not in {paths["cargo_build"], paths["tauri_build"], paths["dev"] / "build" / "tauri"}:
                 raise ValueError("foreign inherited CARGO_TARGET_DIR")
         env.update(dev.prepare(paths))
         if inherited_cargo:
             env["CARGO_TARGET_DIR"] = str(cargo)
+        if mode == "tauri" and (not inherited_cargo or cargo == paths["cargo_build"]):
+            env["CARGO_TARGET_DIR"] = str(paths["tauri_build"])
     env["ARCHEAXIS_FRONTEND_BUILD_CONTEXT"] = str(paths["run"])
     destination = dev.safe_path(receipt) if receipt else paths["artifacts"] / "frontend-build.json"
     destination.relative_to(paths["dev"] / "runs")
@@ -124,24 +160,26 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
     if destination.exists():
         raise ValueError("frontend receipt already exists")
     if mode == "build":
-        commands = [[node, str(root / "frontend/node_modules/typescript/bin/tsc"), "--noEmit"],
-                    [node, str(root / "frontend/node_modules/vite/bin/vite.js"), "build", "--base", "./", *arguments]]
+        commands = [("frontend-typecheck", [node, str(root / "frontend/node_modules/typescript/bin/tsc"), "--noEmit"]),
+                    ("frontend-vite", [node, str(root / "frontend/node_modules/vite/bin/vite.js"), "build", "--base", "./", *arguments])]
         if any(arg == "--outDir" or arg.startswith("--outDir=") for arg in arguments):
             raise ValueError("frontend output is owned by the run router")
     else:
         if not arguments or arguments[0] != "build":
             raise ValueError("npm run tauri supports build only")
         cli = root / "frontend/node_modules/@tauri-apps/cli/tauri.js"
-        split = arguments.index("--") if "--" in arguments else len(arguments)
-        commands = [[node, str(cli), *arguments[:split], "--config", str(paths["tauri_config"]), *arguments[split:]]]
+        commands = tauri_commands(node, cli, arguments, paths["tauri_config"], separate_bundle)
         env["TAURI_CONFIG"] = paths["tauri_config"].read_text(encoding="utf-8")
     code = 1
     after = None
+    timings = BuildTimings(paths["artifacts"], env)
     try:
         if mode == "tauri":
             env = msvc_environment(env, paths, node)
-        for command in commands:
-            code = subprocess.call(command, cwd=root if mode == "tauri" else root / "frontend", env=env)
+        for name, command in commands:
+            with timings.stage(name) as stage:
+                code = subprocess.call(command, cwd=root if mode == "tauri" else root / "frontend", env=env)
+                stage["exit_code"] = code
             if code:
                 break
         _, after = dev.worktree_identity(root)
@@ -174,6 +212,7 @@ def main() -> int:
     parser.add_argument("--node", required=True)
     parser.add_argument("mode", choices=("build", "tauri", "verify"))
     parser.add_argument("--receipt", type=Path)
+    parser.add_argument("--separate-bundle", action="store_true")
     args, arguments = parser.parse_known_args()
     if arguments[:1] == ["--"]:
         arguments = arguments[1:]
@@ -187,7 +226,7 @@ def main() -> int:
             if overlay != dev.tauri_overlay(dev.layout(ROOT, Path(os.environ["ARCHEAXIS_RUN_ROOT"]).name)):
                 raise ValueError("frontend overlay mismatch")
             return 0
-        return build(ROOT, args.node, args.mode, arguments, args.receipt)
+        return build(ROOT, args.node, args.mode, arguments, args.receipt, args.separate_bundle)
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         print(f"[frontend] {error}", file=sys.stderr)
         return 2

@@ -15,6 +15,7 @@ import signal
 import stat
 import subprocess
 import sys
+import time
 import uuid
 from contextlib import suppress
 from datetime import datetime, timezone
@@ -83,6 +84,8 @@ def layout(root: Path, run_id: str | None = None) -> dict[str, Path]:
     # retain independent outputs. Do not move or remove any historical cache.
     paths["cargo_build"] = (dev / "build" / "cargo" if root == owner
                             else paths["build"] / "cargo")
+    paths["tauri_build"] = (dev / "build" / "tauri" if root == owner
+                            else paths["build"] / "tauri")
     for path in paths.values():
         safe_path(path)
     return paths
@@ -339,6 +342,8 @@ def environment(paths: dict[str, Path]) -> dict[str, str]:
         "npm_config_cache": str(cache / "npm"),
         "PLAYWRIGHT_BROWSERS_PATH": str(cache / "playwright"),
         "CARGO_TARGET_DIR": str(paths["cargo_build"]),
+        "ARCHEAXIS_CARGO_CORE_TARGET_DIR": str(paths["cargo_build"]),
+        "ARCHEAXIS_CARGO_TAURI_TARGET_DIR": str(paths["tauri_build"]),
         # Retain reusable compiled dependencies, without accumulating per-edit
         # incremental object archives in this project's long-lived worktrees.
         "CARGO_INCREMENTAL": "0",
@@ -544,6 +549,8 @@ def main() -> int:
                         raise ValueError("invalid environment path")
                     output.write(f"{name}={value}\n")
             print(f"[dev] GitHub environment initialized: {paths['run']}")
+            for name in ("CARGO_HOME", "CARGO_TARGET_DIR", "ARCHEAXIS_CARGO_TAURI_TARGET_DIR", "UV_CACHE_DIR"):
+                print(f"[dev] {name}={env[name]}")
             return 0
         if args.env_file is not None:
             # Recorded before the child starts so a run that fails or is cancelled
@@ -566,6 +573,7 @@ def main() -> int:
         if not command:
             raise ValueError("a child command or --pytest is required")
         started = datetime.now(timezone.utc).isoformat()
+        started_tick = time.perf_counter()
         dirty, patch_sha256 = worktree_identity(paths["root"])
         record = {"source_commit": git(paths["root"], "rev-parse", "HEAD"),
                   "source_tree": git(paths["root"], "rev-parse", "HEAD^{tree}"),
@@ -626,7 +634,7 @@ def main() -> int:
                           log=str(paths["logs"] / "execution.log"))
             if not consistent:
                 code = 3
-            record.update(exit_code=code, ended_at=datetime.now(timezone.utc).isoformat())
+            record.update(exit_code=code, ended_at=datetime.now(timezone.utc).isoformat(), seconds=time.perf_counter() - started_tick)
             (paths["artifacts"] / "execution.json").write_text(
                 json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         return code

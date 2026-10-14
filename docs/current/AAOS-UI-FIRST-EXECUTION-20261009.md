@@ -1296,3 +1296,13 @@ PR192 CI38583796838 新观察 browser-smoke/rust-vnext FAIL，故不合并：新
 
 
 当前 browser 实跑 `final-browser-fixture-20261014-230039` PASS：真实Chromium1228/当前Vite，13viewport/5theme，errors=0、canonicalproblems=0，10项导航断言保留；仍为SIMULATED_HOST_CORE_FIXTURE，不覆盖真实模型、scoped readiness或安装版。自有Vite/端口已释放。READY合成fixture改同目录原子发布，原malformed/flood/timeout/retry断言保留，父定向1项PASS；PR192新修复已上传 `9daf1221952133374181a6c7c81b6529d0e6419f`，等新exact-SHA CI。完整本地收尾摘要见 [联合回执](receipts/AAOS-INTEGRATION-CLOSURE-20261014.json)。
+
+## 2026-10-15 接手全部未完成任务与本地优化
+
+Owner 在交接后的当前会话授权执行全部未完成任务并要求不重复询问；本项目内继续运行，整体 PARTIAL。原冻结项、E/F、系统配置、凭据、Green、真实数据与发布边界保持。根检出两份本地交接保留；当前 writer 为 `codex/build-optimization-20261014` 隔离检出。功能候选本地合同修复 `5a3246aa43866de19942adfb0b98dee176530cac` 已通过26项 maintenance；源头 PR192 的已观察 CI38585726523 为 FAIL，不合并或借用其安装成功资格化后续整合。
+
+A01～A04 实施实际 Cargo 缓存路径、分离 Core/Tauri target、输入完整的依赖/产物 key、合同 preflight 和阶段计时。真实61→59及移除 layout PUT 反例均在编译前 FAIL；preflight 20项检查和26项路由合同 PASS。定向187项 PASS/3项 skip/9 subtests PASS，唯一 FAIL 为12个既有浅层 run 目录与原布局基线不符；不改原断言或扩充豁免。标准 quick 因 Python 布局检查 FAIL，其他合同/生成/worker/类型/Rust格式及143文件1285项前端测试 PASS。自身8个临时文件已按精确移动清单及SHA读回归档到本检出 `.project-local/tmp/`，旧目录和未知资产保留。
+
+真实 Python3.12.15 运行包15.52秒，344模块与源码逐字节一致。已有离线依赖缓存、全新 Core target 的两次2项合同测试分别4.77/0.11秒，不能推广为全项目加速比例。Core release 实构建通过；Tauri/NSIS拆分保留失败耗时，264字符资源路径导致首次NSIS FAIL。使用本项目更短候选输入并核对19518文件哈希后，Tauri阶段47.00秒、NSIS整阶段222.08秒 PASS，生成152413824字节候选；这不是纯压缩单项计时或安装验收。制品绑定各自dirty snapshot，不借此资格化未来提交。
+
+详情与证据SHA见 [优化执行回执](receipts/AAOS-OPTIMIZATION-EXECUTION-20261015.json)。远程 push 和 PR 创建被自动审批拒绝：策略要求审批，但当前 AskForApproval=Never；未换通道绕过。该分支云CI、合并、Owner安装及真实用户验收均无完成证据。下一产品缺口为 BE09 教学准备草稿：现有回读仅ID/版本，继续补冻结请求的身份、正文及版本一致性，复用现有文档合同与单写者。

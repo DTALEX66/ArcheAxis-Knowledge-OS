@@ -22,12 +22,32 @@ if __package__:
 else:
     import importlib.util
     # Direct CLI: load only these repository-owned modules without sys.path edits.
-    for module_name in ('dev', 'frontend'):
+    for module_name in ('dev', 'build_timing', 'frontend'):
         spec = importlib.util.spec_from_file_location(module_name, ROOT / "scripts/runtime" / (module_name + ".py"))
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
         globals()[module_name] = module
+
+
+CONTRACT_PREFLIGHT = (
+    ("contracts", ["scripts/ci/check_vnext_contracts.py"]),
+    ("vocabulary", ["scripts/contracts/generate_vocabulary.py", "--check"]),
+    ("teaching-drift", ["scripts/contracts/generate_core_teaching.py", "--check"]),
+    ("expression-drift", ["scripts/contracts/generate_expression_contract.py", "--check"]),
+    ("research-drift", ["scripts/contracts/generate_research_contract.py", "--check"]),
+    ("ai-asset-drift", ["scripts/contracts/generate_ai_asset_contract.py", "--check"]),
+    ("resource-catalog-drift", ["scripts/contracts/generate_resource_catalog.py", "--check"]),
+    ("ui-working-state-drift", ["scripts/contracts/generate_ui_working_state.py", "--check"]),
+    ("layout-drift", ["scripts/contracts/generate_layout.py", "--check"]),
+    ("ui-host-drift", ["scripts/contracts/generate_ui_host.py", "--check"]),
+    ("media-policy", ["scripts/contracts/check_media_window_policy.py", "--check"]),
+)
+
+QUICK_TEST_TARGETS = (
+    "tests/test_ci_classifier.py", "tests/test_ci_a0_gates.py", "tests/test_local_ci_profiles.py",
+    "tests/test_project_output_routing_contract.py", "tests/workflow/test_workspace_layout_contract.py",
+)
 
 
 def now():
@@ -62,6 +82,7 @@ def source_snapshot(root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", choices=("quick", "full"), required=True)
+    parser.add_argument("--preflight", action="store_true", help="Check route inventories and generated contracts before compilation")
     parser.add_argument("--run-id")
     parser.add_argument("--node", default=shutil.which("node"))
     parser.add_argument("--cargo", default=shutil.which("cargo"))
@@ -80,7 +101,7 @@ def main():
     os.write(handle, str(os.getpid()).encode())
     os.close(handle)
     report = {"schema": "archeaxis.local-ci/v1", "profile": args.profile,
-              "started_at": now(), "source_before": source_snapshot(ROOT),
+              "started_at": now(), "preflight_only": args.preflight, "source_before": source_snapshot(ROOT),
               "tools": {"python": sys.version}, "checks": [],
               "cloud": "CLOUD_BLOCKED_USER_REPORTED_NOT_REQUERIED",
               "evidence_boundary": "local execution; no installation or human acceptance"}
@@ -123,6 +144,18 @@ def main():
                                  "exit_code": None, "started_at": now(), "ended_at": now()})
         save()
 
+    def finish():
+        report["source_after"] = source_snapshot(ROOT)
+        consistent = report["source_before"] == report["source_after"]
+        report["source_consistent"] = consistent
+        if not consistent:
+            for item in report["checks"]:
+                if item["status"] == "LOCAL_PASS":
+                    item["status"] = "INVALIDATED"
+        states = {item["status"] for item in report["checks"]}
+        report["status"] = "INVALIDATED" if not consistent else "FAIL" if "FAIL" in states else "PARTIAL" if "NOT_RUN" in states else "LOCAL_PASS"
+        return 0 if report["status"] == "LOCAL_PASS" else 3 if not consistent else 1
+
     py = [sys.executable, "-B"]
     try:
         import yaml
@@ -137,7 +170,7 @@ def main():
                 report["tools"][package] = importlib.metadata.version(package)
             except importlib.metadata.PackageNotFoundError:
                 report["tools"][package] = "MISSING"
-        for name, executable in (("node", args.node), ("cargo", args.cargo)):
+        for name, executable in (() if args.preflight else (("node", args.node), ("cargo", args.cargo))):
             if executable:
                 version = subprocess.run([executable, "--version"], capture_output=True, text=True, env=env)
                 report["tools"][name] = {"path": executable, "exit_code": version.returncode,
@@ -153,32 +186,26 @@ def main():
             ("ui-design-increment", ["scripts/ci/check_ui_design_increment.py"]),
         ):
             run(name, py + command)
+        run("route-inventory", py + ["-m", "pytest", "--noconftest",
+             "tests/maintenance/test_contract_route_inventory.py",
+             "tests/maintenance/test_contract_number_consistency.py",
+             "tests/maintenance/test_contract_verification_map.py", "-q",
+             f"--basetemp={paths['tmp'] / 'preflight-pytest'}", "-o",
+             f"cache_dir={paths['run'] / 'preflight-cache'}"])
+        for name, command in CONTRACT_PREFLIGHT:
+            run(name, py + command)
+        if args.preflight or any(item["status"] != "LOCAL_PASS" for item in report["checks"]):
+            return finish()
         run("ruff", py + ["-m", "ruff", "check", "app", "shared", "knowledge_base",
                             "inspiration_research", "Inspiration-Research", "shared-contracts/adapters",
                             "app/workflow", "integration-tests", "scripts", "--select", "E9,F63,F7,F82"])
-        targets = args.tests if args.tests is not None else [
-            "tests/test_ci_classifier.py", "tests/test_ci_a0_gates.py", "tests/test_local_ci_profiles.py",
-            "tests/test_project_output_routing_contract.py", "tests/test_workspace_layout_contract.py"]
+        targets = args.tests if args.tests is not None else list(QUICK_TEST_TARGETS)
         if args.profile == "full":
             targets = ["tests", "knowledge_base/tests", "integration-tests"]
         run("python-suite", py + ["-m", "pytest", *targets, "-q", "--tb=short",
                                    f"--basetemp={paths['tmp'] / 'pytest'}", "-o",
                                    f"cache_dir={paths['run'] / 'pytest-cache'}"])
-        for name, command in (
-            ("contracts", ["scripts/ci/check_vnext_contracts.py"]),
-            ("vocabulary", ["scripts/contracts/generate_vocabulary.py", "--check"]),
-            ("teaching-drift", ["scripts/contracts/generate_core_teaching.py", "--check"]),
-            ("expression-drift", ["scripts/contracts/generate_expression_contract.py", "--check"]),
-            ("research-drift", ["scripts/contracts/generate_research_contract.py", "--check"]),
-            ("ai-asset-drift", ["scripts/contracts/generate_ai_asset_contract.py", "--check"]),
-            ("resource-catalog-drift", ["scripts/contracts/generate_resource_catalog.py", "--check"]),
-            ("ui-working-state-drift", ["scripts/contracts/generate_ui_working_state.py", "--check"]),
-            ("layout-drift", ["scripts/contracts/generate_layout.py", "--check"]),
-            ("ui-host-drift", ["scripts/contracts/generate_ui_host.py", "--check"]),
-            ("media-policy", ["scripts/contracts/check_media_window_policy.py", "--check"]),
-            ("workers", ["scripts/ci/check_vnext_workers.py"]),
-        ):
-            run(name, py + command)
+        run("workers", py + ["scripts/ci/check_vnext_workers.py"])
         if args.node:
             run("frontend-types", [args.node, "frontend/node_modules/typescript/bin/tsc", "--noEmit", "-p", "frontend/tsconfig.json"])
             run("frontend-unit", [args.node, "frontend/node_modules/vitest/vitest.mjs", "run", "--root", "frontend"])
@@ -209,16 +236,7 @@ def main():
             missing("desktop-fast-runtime-probes", "Requires a fresh lock-bound staged candidate; existing recovery materials must not be used")
             missing("desktop-build-nsis", "Requires a fresh lock-bound staged candidate and installed offline NSIS dependencies; frontend/Core builds alone do not qualify it")
             missing("installer-lifecycle", "Manual acceptance candidate and user confirmation required before actual install/uninstall/native windows")
-        report["source_after"] = source_snapshot(ROOT)
-        consistent = report["source_before"] == report["source_after"]
-        report["source_consistent"] = consistent
-        if not consistent:
-            for item in report["checks"]:
-                if item["status"] == "LOCAL_PASS":
-                    item["status"] = "INVALIDATED"
-        states = {item["status"] for item in report["checks"]}
-        report["status"] = "INVALIDATED" if not consistent else "FAIL" if "FAIL" in states else "PARTIAL" if "NOT_RUN" in states else "LOCAL_PASS"
-        return 0 if report["status"] == "LOCAL_PASS" else 3 if not consistent else 1
+        return finish()
     finally:
         report["ended_at"] = now()
         save()
