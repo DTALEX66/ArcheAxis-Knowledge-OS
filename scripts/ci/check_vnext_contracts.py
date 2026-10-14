@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -55,6 +56,8 @@ def language_boundary_result() -> tuple[list[str], dict]:
 
 def main() -> int:
     failures: list[str] = []
+    if subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/contracts/generate_material_question.py'), '--check'], cwd=ROOT).returncode:
+        failures.append('material-question generated DTO drift')
 
     if not CONTRACTS.is_dir():
         print(f"ERROR: contracts dir missing: {CONTRACTS}")
@@ -103,6 +106,8 @@ def main() -> int:
         except json.JSONDecodeError as exc:
             failures.append(f"worker-protocol: invalid JSON: {exc}")
 
+    if subprocess.run([sys.executable, str(ROOT / "scripts/contracts/generate_conversation.py"), "--check"]).returncode != 0:
+        failures.append("conversation generated DTO drift")
     boundary_failures, boundary_detail = language_boundary_result()
     failures += [f"language boundary: {item}" for item in boundary_failures]
 

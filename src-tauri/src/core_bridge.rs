@@ -89,6 +89,23 @@ pub enum Operation {
     AssessmentGet,
     LearningReference,
     MachineAnswer,
+    MaterialQuestion,
+    MaterialContextPrepare,
+    MaterialQuestionCancel,
+    MaterialQuestionStatus,
+    OperationReadiness,
+    CharacterMemoryGet,
+    CharacterMemoryApply,
+    CharacterMemoryContext,
+    CharacterMemoryExport,
+    ModelConfigurationGet,
+    ModelConfigurationPut,
+    ModelConfigurationResolve,
+    ConversationSessionCreate,
+    ConversationHistory,
+    ConversationRequest,
+    ConversationCancel,
+    ConversationStatus,
     MachineConfiguration,
     MachineInventory,
     MachineCorrection,
@@ -541,7 +558,61 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             None,
         ),
         LearningReview => ("POST", "/api/v1/learning/reviews".into(), Some(body()?)),
+        ConversationSessionCreate => (
+            "POST",
+            "/api/v1/conversation/sessions".into(),
+            Some(body()?),
+        ),
+        ConversationHistory => ("POST", "/api/v1/conversation/history".into(), Some(body()?)),
+        ConversationRequest => (
+            "POST",
+            "/api/v1/conversation/requests".into(),
+            Some(body()?),
+        ),
+        ConversationCancel => ("POST", "/api/v1/conversation/cancel".into(), Some(body()?)),
+        ConversationStatus => ("POST", "/api/v1/conversation/status".into(), Some(body()?)),
         MachineAnswer => ("POST", "/api/v1/machine/answers".into(), Some(body()?)),
+        MaterialQuestion => ("POST", "/api/v1/material/questions".into(), Some(body()?)),
+        MaterialContextPrepare => ("POST", "/api/v1/material/context".into(), Some(body()?)),
+        MaterialQuestionCancel => (
+            "POST",
+            "/api/v1/material/questions/cancel".into(),
+            Some(body()?),
+        ),
+        MaterialQuestionStatus => (
+            "POST",
+            "/api/v1/material/questions/status".into(),
+            Some(body()?),
+        ),
+        OperationReadiness => ("POST", "/api/v1/operation-readiness".into(), Some(body()?)),
+        CharacterMemoryGet | CharacterMemoryContext | CharacterMemoryExport => {
+            if !p.as_object().is_some_and(|v| v.is_empty()) {
+                return Err("CORE_COMMAND_FIELDS_INVALID".into());
+            }
+            (
+                "GET",
+                match request.operation {
+                    CharacterMemoryContext => "/api/v1/character-memory/context",
+                    CharacterMemoryExport => "/api/v1/character-memory/export",
+                    _ => "/api/v1/character-memory",
+                }
+                .into(),
+                None,
+            )
+        }
+        CharacterMemoryApply => ("POST", "/api/v1/character-memory".into(), Some(body()?)),
+        ModelConfigurationGet => {
+            if !p.as_object().is_some_and(|v| v.is_empty()) {
+                return Err("CORE_COMMAND_PAYLOAD_EMPTY_REQUIRED".into());
+            }
+            ("GET", "/api/v1/model-configuration".into(), None)
+        }
+        ModelConfigurationPut => ("PUT", "/api/v1/model-configuration".into(), Some(body()?)),
+        ModelConfigurationResolve => (
+            "POST",
+            "/api/v1/model-configuration/resolve".into(),
+            Some(body()?),
+        ),
         MachineConfiguration => {
             if !request
                 .payload
@@ -897,7 +968,9 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         // The owned worker permits 120 seconds plus 20 seconds for bounded
         // transport cleanup; keep a finite margin for durable readback.
         Operation::DocumentCheckExecute => 160,
-        Operation::MachineAnswer => 135,
+        Operation::MachineAnswer | Operation::MaterialQuestion | Operation::ConversationRequest => {
+            135
+        }
         Operation::MachineRetest => 135,
         Operation::WorkspaceBackup => 120,
         // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media

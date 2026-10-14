@@ -1,3 +1,4 @@
+import type { ModelConfiguration, ModelLane, ResolvedModel } from "../api/generated/model-configuration-contract";
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { ContextConsumptionDto, MachineTaskRowDto, MachineTasksPageDto, MachineConfigurationDto, MachineInventoryDto, MachineJournalStatusDto, MachineCancelDto } from "../api/generated/core-contract";
@@ -25,7 +26,7 @@ async function frozenFingerprint(entry: PendingMachine): Promise<string> {
   const request={knowledge_id:body.knowledge_id,question:body.question,max_tokens:body.max_tokens,timeout_s:body.timeout_s,
     context_grant:body.context_grant??null,asset_context_grant:body.asset_context_grant??null,
     client_request_id:entry.operation==="answer"?body.client_request_id??null:null,
-    retest_of:entry.operation==="retest"?body.retest_of??null:null,...(body.model===undefined?{}:{model:body.model})};
+    retest_of:entry.operation==="retest"?body.retest_of??null:null,...(body.model===undefined?{}:{model:body.model}),...(body.model_configuration===undefined?{}:{model_configuration:body.model_configuration})};
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical({operation:entry.operation,request})));
   return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,"0")).join("");
 }
@@ -60,6 +61,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   const [modelConfiguration, setModelConfiguration] = useState<MachineConfigurationDto|null>(null);
   const [inventory, setInventory] = useState<MachineInventoryDto|null>(null);
   const [inventoryBusy, setInventoryBusy] = useState(false);
+  const [lane,setLane]=useState<ModelLane>("fast");
   const [selectedModel, setSelectedModel] = useState("");
   const [maxTokens, setMaxTokens] = useState<2048|4096>(2048);
   const inventoryPending = useRef(false);
@@ -183,6 +185,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         ||proof.question!==request.question||proof.max_tokens!==request.max_tokens||proof.timeout_s!==request.timeout_s
         ||typeof proof.context_sha256!=="string"||!/^[a-f0-9]{64}$/.test(proof.context_sha256)
         ||canonical(proof.context_grant)!==canonical(request.context_grant??null)
+        ||canonical(proof.model_configuration??null)!==canonical(request.model_configuration??null)
         ||proof.model!==request.model || (request.model!==undefined&&(record(response.answer).model!==request.model||record(response.answer).requested_model!==request.model)))throw new Error("frozen answer identity mismatch");
       if(request.asset_context_grant!==undefined){
         if(canonical(proof.asset_context_grant)!==canonical(request.asset_context_grant)
@@ -365,13 +368,22 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     return value;
   }
 
+  async function configuredRequest(purpose:"answer"|"retest") {
+    const configuration=await coreCommand<ModelConfiguration>("model_configuration_get");
+    if(configuration.revision===0)return {};
+    const frozen=await coreCommand<ResolvedModel>("model_configuration_resolve",{body:{purpose,lane}});
+    if(frozen.purpose!==purpose||frozen.lane!==lane||frozen.configuration_revision!==configuration.revision||frozen.workspace_id!==configuration.workspace_id||frozen.restore_epoch!==configuration.restore_epoch)throw new Error("配置身份已变化");
+    return {model_configuration:frozen,model:frozen.profile.model,max_tokens:Math.min(maxTokens,frozen.profile.max_tokens),timeout_s:frozen.profile.timeout_s};
+  }
   async function ask() {
     const generation = epoch.current;
     if(restoredPending)return;
     if (!question.trim() || busy || inventoryPending.current || uncertain || (answerScoped && !contextGrant && !frozenAnswer.current) || (assetScoped && !assetContextGrant && !frozenAnswer.current)) return;
     if (answer && (downstreamDirty() || frozenRetest.current)) {setMessage("纠正或审核草稿尚未确认，请先保存和核对后再发起新回答。");return;}
+    let binding: Awaited<ReturnType<typeof configuredRequest>> = {};
+    if(!frozenAnswer.current){setBusy(true);try{binding=await configuredRequest("answer");}catch{setMessage("回答用途配置未绑定或读取失败；请在设置绑定当前 FAST/DEEP 后重试。");setBusy(false);return;}if(!requestLive(generation)){setBusy(false);return;}}
     const request = frozenAnswer.current ?? Object.freeze({knowledge_id:knowledgeId,question:question.trim(),max_tokens:maxTokens,timeout_s:120,
-      ...(selectedModel ? {model:selectedModel} : {}), ...(contextGrant ? {context_grant:structuredClone(contextGrant)} : {}), ...(assetContextGrant ? {asset_context_grant:{...structuredClone(assetContextGrant),request_id:`assetanswer_${crypto.randomUUID()}`,consumer:"local-machine",operation:"answer"}} : {}), client_request_id:`machine_${crypto.randomUUID()}`});
+      ...(selectedModel ? {model:selectedModel} : {}), ...(contextGrant ? {context_grant:structuredClone(contextGrant)} : {}), ...(assetContextGrant ? {asset_context_grant:{...structuredClone(assetContextGrant),request_id:`assetanswer_${crypto.randomUUID()}`,consumer:"local-machine",operation:"answer"}} : {}), client_request_id:`machine_${crypto.randomUUID()}`, ...binding});
     frozenAnswer.current = request;
     setBusy(true); setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setAdmissionRefusal(null);
@@ -474,7 +486,9 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     const failedTaskId = correction.failed_task_id;
     const candidateId = String(candidate.knowledge_id);
     const originalQuestion = String(answer.question);
-    const request = frozenRetest.current ?? { retest_of: failedTaskId, knowledge_id: candidateId, question: originalQuestion, max_tokens: maxTokens, timeout_s: 120, ...(selectedModel ? {model:selectedModel} : typeof record(answer.request??{}).model === "string" ? {model:record(answer.request).model} : {}), ...(retestContextGrant ? {context_grant:structuredClone(retestContextGrant)} : {}), ...(retestAssetContextGrant ? {asset_context_grant:{...structuredClone(retestAssetContextGrant),request_id:`assetretest_${crypto.randomUUID()}`,consumer:"local-machine",operation:"retest"}} : {}) };
+    let binding: Awaited<ReturnType<typeof configuredRequest>> = {};
+    if(!frozenRetest.current){setBusy(true);try{binding=await configuredRequest("retest");}catch{setMessage("复测用途配置未绑定或读取失败；请在设置绑定当前 FAST/DEEP 后重试。");setBusy(false);return;}if(!requestLive(generation)){setBusy(false);return;}}
+    const request = frozenRetest.current ?? { ...binding, retest_of: failedTaskId, knowledge_id: candidateId, question: originalQuestion, max_tokens: maxTokens, timeout_s: 120, ...(selectedModel ? {model:selectedModel} : typeof record(answer.request??{}).model === "string" ? {model:record(answer.request).model} : {}), ...(retestContextGrant ? {context_grant:structuredClone(retestContextGrant)} : {}), ...(retestAssetContextGrant ? {asset_context_grant:{...structuredClone(retestAssetContextGrant),request_id:`assetretest_${crypto.randomUUID()}`,consumer:"local-machine",operation:"retest"}} : {}), ...binding };
     frozenRetest.current=request;
     setRetestFailure(null);
     let phase = "invoke";
@@ -492,7 +506,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         || response.knowledge_id !== candidateId || response.question !== originalQuestion
         || response.authority !== "candidate" || typeof response.retest_task_id !== "string"
         || typeof machine.answer !== "string" || !machine.answer.trim()) throw new Error("invalid retest receipt");
-      if (canonical(response.request) !== canonical({retest_of:request.retest_of,knowledge_id:request.knowledge_id,question:request.question,max_tokens:request.max_tokens,...(request.model ? {model:request.model,timeout_s:request.timeout_s} : {}),...(request.context_grant ? {context_grant:request.context_grant} : {}),...(request.asset_context_grant ? {asset_context_grant:request.asset_context_grant} : {})}) || (request.model!==undefined&&(machine.model!==request.model||machine.requested_model!==request.model))) throw new Error("retest request mismatch");
+      if (canonical(response.request) !== canonical({retest_of:request.retest_of,knowledge_id:request.knowledge_id,question:request.question,max_tokens:request.max_tokens,...(request.model ? {model:request.model,timeout_s:request.timeout_s} : {}),...(request.context_grant ? {context_grant:request.context_grant} : {}),...(request.asset_context_grant ? {asset_context_grant:request.asset_context_grant} : {}),...(request.model_configuration?{model_configuration:request.model_configuration}:{})}) || (request.model!==undefined&&(machine.model!==request.model||machine.requested_model!==request.model))) throw new Error("retest request mismatch");
       const execution=record(response.execution_request??{});
       if(execution.schema!=="archeaxis.machine-retest-execution/v1"||execution.timeout_s!==request.timeout_s||canonical(execution.request)!==canonical(response.request))throw new Error("retest execution envelope mismatch");
       if(request.asset_context_grant){const execution=record(response.execution_request);if(execution.schema!=="archeaxis.machine-retest-execution/v1"||execution.timeout_s!==request.timeout_s||canonical(execution.request)!==canonical(response.request)||typeof execution.context_sha256!=="string"||!/^[a-f0-9]{64}$/.test(execution.context_sha256)||typeof execution.knowledge_context_sha256!=="string"||!/^[a-f0-9]{64}$/.test(execution.knowledge_context_sha256))throw new Error("retest execution budget or context mismatch");validateAssetContext(execution.asset_context,assertAiAssetDto<AssetPacketRequest>("AssetPacketRequest",request.asset_context_grant));}
@@ -549,7 +563,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     <button disabled={busy || inventoryBusy || uncertain || !!frozenRetest.current} onClick={() => void readInventory()}>探测本地模型清单</button>
     <p>探测只读取本机服务清单，不发送知识或问题，不加载模型或执行推理。</p>
     <p aria-label="本地模型清单探测结果">{inventoryBusy ? "正在读取本地清单…" : !inventory ? "清单未探测或读取失败。" : inventory.status === "READ_VERIFIED" ? `清单已读取，共 ${inventory.listed_model_count} 项；声明模型${inventory.selected_model_listed ? "已列出" : "未列出"}。加载状态未知，推理尚未验证。` : inventory.status === "DISABLED" ? "本地回答能力已禁用，未探测。" : inventory.status === "BUSY" ? "模型服务入口正忙，请稍后重试。" : "清单读取未确认；模型数量与可用性未知。"}</p>
-    <label>本次本地回答模型 <select value={selectedModel} disabled={busy||uncertain||!!frozenRetest.current||inventoryBusy} onChange={event=>setSelectedModel(event.target.value)}><option value="">沿用本地启动配置（模型尚未绑定）</option>{selectedModel&&(inventory?.status!=="READ_VERIFIED"||!inventory.model_choices?.includes(selectedModel))?<option value={selectedModel}>{selectedModel}（此前选择，本次清单未确认）</option>:null}{inventory?.status==="READ_VERIFIED"?inventory.model_choices?.map(model=><option key={model} value={model}>{model}（清单已列出，推理未验证）</option>):null}</select></label>
+    <label>用途执行通道 <select value={lane} disabled={busy||uncertain||!!frozenRetest.current} onChange={e=>setLane(e.target.value as ModelLane)}><option value="fast">FAST</option><option value="deep">DEEP</option></select></label>
+    <label>兼容模式本地回答模型 <select value={selectedModel} disabled={busy||uncertain||!!frozenRetest.current||inventoryBusy} onChange={event=>setSelectedModel(event.target.value)}><option value="">沿用本地启动配置（模型尚未绑定）</option>{selectedModel&&(inventory?.status!=="READ_VERIFIED"||!inventory.model_choices?.includes(selectedModel))?<option value={selectedModel}>{selectedModel}（此前选择，本次清单未确认）</option>:null}{inventory?.status==="READ_VERIFIED"?inventory.model_choices?.map(model=><option key={model} value={model}>{model}（清单已列出，推理未验证）</option>):null}</select></label>
     <p>选择仅用于本次回答及复测，不修改全局配置。执行可能由本机服务加载所选模型；不会自动转云。重试保留原选择。</p>
     <label>本次输出预算 <select value={maxTokens} disabled={busy||uncertain||!!frozenRetest.current} onChange={event=>setMaxTokens(event.target.value==="4096"?4096:2048)}><option value="2048">2048 tokens</option><option value="4096">4096 tokens</option></select></label>
     <p>推理与正文可能共享输出预算；预算用尽不代表已得到答案。更高预算可能增加等待时间，本次上限 120 秒。</p>

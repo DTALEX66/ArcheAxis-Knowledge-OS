@@ -77,7 +77,7 @@ pub(super) fn run(
     input: Option<Vec<u8>>,
     timeout: Duration,
 ) -> Result<Value, String> {
-    run_mode(staging, python, worker, site, input, timeout, false)
+    run_mode(staging, python, worker, site, input, timeout, false, None)
 }
 
 pub(super) fn inventory(
@@ -87,7 +87,27 @@ pub(super) fn inventory(
     site: bool,
     timeout: Duration,
 ) -> Result<Value, String> {
-    run_mode(staging, python, worker, site, None, timeout, true)
+    run_mode(staging, python, worker, site, None, timeout, true, None)
+}
+
+pub(super) fn configured_inventory(
+    staging: &Path,
+    python: &Path,
+    worker: &Path,
+    site: bool,
+    timeout: Duration,
+    profile: &archeaxis_domain::model_configuration::Profile,
+) -> Result<Value, String> {
+    run_mode(
+        staging,
+        python,
+        worker,
+        site,
+        None,
+        timeout,
+        true,
+        Some(profile),
+    )
 }
 
 fn run_mode(
@@ -98,6 +118,7 @@ fn run_mode(
     input: Option<Vec<u8>>,
     timeout: Duration,
     inventory: bool,
+    profile: Option<&archeaxis_domain::model_configuration::Profile>,
 ) -> Result<Value, String> {
     let dir = tempfile::tempdir_in(staging).map_err(|_| "derived staging unavailable")?;
     let mut command = Command::new(python);
@@ -112,6 +133,12 @@ fn run_mode(
                 command.env(key, value);
             }
         }
+    }
+    if let Some(p) = profile {
+        command
+            .env("ARCHEAXIS_MACHINE_ENDPOINT", &p.endpoint)
+            .env("ARCHEAXIS_MACHINE_MODEL", &p.model)
+            .env("ARCHEAXIS_MACHINE_PROTOCOL", &p.protocol);
     }
     for key in ["SystemRoot", "WINDIR", "SYSTEMDRIVE"] {
         if let Some(value) = std::env::var_os(key) {

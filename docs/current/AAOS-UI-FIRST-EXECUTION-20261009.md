@@ -1269,3 +1269,30 @@ Owner 已明确将独立 UI 分支及新前端包纳入全部推进到主线范�
 ### 2026-10-13 剩余实施联合回归
 
 独立 UI 9 文件补丁已吸收至主线基准隔离 checkout，尚未合并 main。Research 原件选区精确引文、不可变锚点与历史版本展示已实施；普通保存不重读 CAS。云核验 worker 在发布协议 ready 前不接收正文，握手等待支持取消，成功必须有 model dispatch 批准。语义全库快照去掉 128 文档上限，保留自适应批次与总预算。当前前端 1238/1238、dispatch 定向 6/6、Research domain 4/4、worker scoped 68/68 PASS，分别为 SIMULATED/SYNTHETIC 证据。API Store 当前沙箱 I/O 权限阻塞，compile-only 不代表集成通过；exact-SHA CI 与安装运行尚未验收。详细任务与验收状态见 receipts/AAOS-REMAINING-EXECUTION-20261013.json，不把本批实现作为全部 BE/FE 完成。
+
+
+### 2026-10-14 布局偏好首批与并行执行（当前观察）
+
+Owner 已授权本项目内全部推进并要求静默执行，继续保护 E:/F:、本机系统、全局配置、凭据、用户资产和未授权发布边界。BE01、BE03、BE04 使用各自隔离工作树；BE02 在既有整合 writer 内实现设备隔离 CAS、重启读回、未知组件/未来 schema 原字节保留、显式恢复及当前 restore epoch 核对，正式 Settings 有有限消费者。此为 PARTIAL_INTEGRATED，完整 Dock FE06、联合 BE01 契约和安装运行尚未资格。
+
+本地布局 domain 6/6、真实 SQLite API 1/1、实际匹配的原生 finite route 回归 1/1 PASS，完整前端 1241/1241 PASS；原生测试构建使用本轮 canonical frontend 输出，不等于打开安装版应用。首次错过滤得到 0 tests 的编译成功不计行为 PASS，历史沙箱 PermissionDenied 原样保留。精确 run/patch 身份见 remaining receipt。Stage1 PR191 候选 b2e283b669dc096c9d1898882990825b0762488c 的 CI 38428576086 仍运行，布局不在该远程候选内；此前候选失败不追认为 PASS，尚未合并 main。
+
+当前远程读回：Stage1 `b2e283b669dc096c9d1898882990825b0762488c` 的 CI `38428576086` completed/success，全部 required gates 与 a0 success；PR191 已按授权合并，main实际提交 `c541ed8315e54aaa111da64ba79c95cad19b408d`。其主线触发 CI 尚未另行核实。布局19文件独立候选 `7897bbd35d618efecf73c146e5334259bd4366a2` 已发布 PR192，并从旧 stacked base 转为 main，等待自身 CI；BE01/03/04 继续独立实施。整体 PARTIAL。
+
+## 2026-10-14 当前在途批次收尾（更新此前实施中/未实施措辞）
+
+Owner 要求先完成已经启动的工作再上传，不启动下一功能切片。Stage1 PR191 已合并 main `c541ed8315e54aaa111da64ba79c95cad19b408d`，候选 CI38428576086 与 main CI38430339549 均 PASS。PR192 布局候选更新至 `caf1373ddd02fc5ed5ba26c801ceead72c896c1c`，修正精确99条路由库存及安装验收的稳定 page identity（保留 reader/request 断言），12项 maintenance 实际 PASS；CI38583796838 正运行，不称已合并或安装通过。前次 CI 的 owned WebView2 清理在三次 journey 已通过，最终失败为旧UI/03文案断言；历史FAIL保留。
+
+当前隔离整合包含 BE01 有限宿主读取、BE02布局、BE03固定版本材料问答、BE04产品目的模型配置与冻结解析、BE05有界材料/陪伴对话、BE06显式人类记忆、BE07 scoped readiness，以及 FE06 Dockview 四次增量。Rust单写者、CAS、workspace/restore epoch、显式取消和历史只读不重推理保持。实际 Dockview8.5.1用于标签/分割/浮动/锁定，多文档和专用编辑器共享业务会话；schema v2绑定有限对象与会话，嵌套浮动split grid未支持。人物偏好仅在明确启用后进入对话的非事实上下文，不获得知识或动作授权。ASTRYN跨产品互通未验证；其他模型目的消费者、全BE/FE及真实用户验收仍 PARTIAL。
+
+本地143个前端文件/1285项 PASS，TypeScript PASS；材料问答/配置/对话/记忆9项实际SQLite API（合成worker）PASS；布局API1项PASS；domain18项PASS；匹配当前前端的Tauri编译与原生layout route1项PASS。证据分别为SIMULATED/SYNTHETIC/本地集成，不能资格真实AI或安装运行。新增 readiness API 实测暴露权限修改读回意外spawn worker，保留原断言并修复中。quick 的18项Python、合同/生成/格式/前端均PASS；深Windows pycache失败已改为managed bounded compile cache，原失败回执保留，最终quick和上传仍待完成。文档在测试后更新，不声称其新增字节属于此前tested source hash。
+
+Owner优化方案去重归档见 [GitHub优化方案](AAOS-GITHUB-OPTIMIZATION-PLAN-20261014.md)。A01～A04作为下一批隔离审阅，当前不实施缓存/计时优化、不改GitHub规则；A05～A08依赖阶段数据，A09先实际采样。继续禁止E/F、系统配置、Green替换、发布及真实数据覆盖。
+
+
+当前收尾验证读回：`closure-final-quick-final-20261014` 为 LOCAL_PASS，source_consistent=true；全部quick检查通过，18项Python与143文件/1285项前端PASS，worker/格式/合同/生成与约定检查PASS。11项SQLite/API合成worker回归（材料4、配置1、对话3、记忆1、布局1、readiness1）与配置目的/精确destination/revision执行1项PASS。权限写回已改为仅读声明和Store记录，GET显式健康探测保持兼容，enable/disable均不spawn。前次FAIL不追认。新增文档记录仍位于验证后。
+
+PR192 CI38583796838 新观察 browser-smoke/rust-vnext FAIL，故不合并：新增页面身份属性意外进入导航data-page-id选择器，已改独立data-current-page-id；Rust协议失败定位为合成READY fixture非原子发布，修复中，不能降低握手保护。当前整合以授权上传为本轮收尾，云CI/安装资格继续独立记录。
+
+
+当前 browser 实跑 `final-browser-fixture-20261014-230039` PASS：真实Chromium1228/当前Vite，13viewport/5theme，errors=0、canonicalproblems=0，10项导航断言保留；仍为SIMULATED_HOST_CORE_FIXTURE，不覆盖真实模型、scoped readiness或安装版。自有Vite/端口已释放。READY合成fixture改同目录原子发布，原malformed/flood/timeout/retry断言保留，父定向1项PASS；PR192新修复已上传 `9daf1221952133374181a6c7c81b6529d0e6419f`，等新exact-SHA CI。完整本地收尾摘要见 [联合回执](receipts/AAOS-INTEGRATION-CLOSURE-20261014.json)。

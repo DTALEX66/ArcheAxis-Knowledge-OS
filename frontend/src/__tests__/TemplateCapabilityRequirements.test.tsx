@@ -31,6 +31,11 @@ vi.mock("../api/core", async (importOriginal) => ({
   coreCommand: api.call,
 }));
 
+function scopedReadiness(body:{scope:string;operations:readonly string[]}) {
+ const expires=Date.now()+30_000;
+ return {schema:"archeaxis.operation-readiness/v1",scope:body.scope,observed_at_ms:Date.now(),expires_at_ms:expires,aggregate:"UNVERIFIED",network_performed:false,models_loaded:false,execution_authorized:false,operations:body.operations.map(operation=>({operation,implementation:"IMPLEMENTED",dependencies:"AVAILABLE",connection:"UNKNOWN",qualification:"UNVERIFIED",permission:"ENABLED",status:"UNVERIFIED",reasons:["CONNECTION_NOT_PROBED","RUNTIME_QUALIFICATION_UNVERIFIED"],expires_at_ms:expires}))};
+}
+
 const NOT_READ: CapabilityRead = { state: "not_read" };
 const LAUNCHER_SUMMARY = "学科模板 · 知识网络 / 研究与项目 / 学习与实践";
 /** The disclosure's own toggle contract, opened the way the committed template tests open it. */
@@ -261,13 +266,14 @@ describe("template detail renders the requirement table", () => {
 describe("capability detail is the plugin side of the same join", () => {
   beforeEach(() => {
     api.call.mockReset();
-    api.call.mockResolvedValue({ capabilities: [] });
+    api.call.mockImplementation(async(operation:string,payload:{body:{scope:string;operations:readonly string[]}})=>{expect(operation).toBe("operation_readiness");return scopedReadiness(payload.body);});
   });
   it("lists the templates that require the selected capability and offers one real route", async () => {
     const onNavigate = vi.fn();
     render(<CanonicalCapabilitiesSpace onNavigate={onNavigate} />);
-    await screen.findByText(/已读取当前 Core worker 握手/);
+    expect(api.call).not.toHaveBeenCalled();
     await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0020/ }));
+    await screen.findByText(/已读取当前视图的范围化状态/);
     const detail = screen.getByRole("article", { name: "能力详情" });
     expect(within(detail).getByRole("heading", { name: "使用此能力的模板" })).toBeInTheDocument();
     expect(detail.textContent).toContain("研究与项目");
@@ -278,7 +284,7 @@ describe("capability detail is the plugin side of the same join", () => {
   });
   it("says plainly when no template requires the capability, and offers no dead route", async () => {
     render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
-    await screen.findByText(/已读取当前 Core worker 握手/);
+    expect(api.call).not.toHaveBeenCalled();
     await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0110/ }));
     const detail = screen.getByRole("article", { name: "能力详情" });
     expect(detail.textContent).toContain("模板套件当前没有声明此能力");
@@ -286,8 +292,9 @@ describe("capability detail is the plugin side of the same join", () => {
   });
   it("shows each joined absorption source with its own class, and does not call them all plugins", async () => {
     render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
-    await screen.findByText(/已读取当前 Core worker 握手/);
+    expect(api.call).not.toHaveBeenCalled();
     await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0020/ }));
+    await screen.findByText(/已读取当前视图的范围化状态/);
     const detail = screen.getByRole("article", { name: "能力详情" });
     // The class now comes from the generated crosswalk projection, so a joined capability names its
     // sources instead of hiding behind 分类未确认.
@@ -301,7 +308,7 @@ describe("capability detail is the plugin side of the same join", () => {
   });
   it("still says 分类未确认 for a capability the crosswalk does not join", async () => {
     render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
-    await screen.findByText(/已读取当前 Core worker 握手/);
+    expect(api.call).not.toHaveBeenCalled();
     await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0060/ }));
     const detail = screen.getByRole("article", { name: "能力详情" });
     expect(detail.textContent).toContain("吸收来源分类：分类未确认");

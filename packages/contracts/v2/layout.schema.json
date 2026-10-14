@@ -46,16 +46,16 @@
             "panels": {
               "type": "array",
               "minItems": 1,
-              "maxItems": 22,
+              "maxItems": 64,
               "uniqueItems": true,
               "items": {
                 "type": "string",
-                "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2]|document\\.[A-Za-z0-9_-]{1,128})$"
               }
             },
             "active": {
               "type": "string",
-              "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+              "pattern": "^(0[1-9]|1[0-9]|2[0-2]|document\\.[A-Za-z0-9_-]{1,128})$"
             }
           },
           "required": [
@@ -96,55 +96,95 @@
             "first",
             "second"
           ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "empty"
+            }
+          },
+          "required": [
+            "kind"
+          ]
         }
       ]
     },
     "Layout": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "schema_version": {
-          "const": 1
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LegacyLayout"
         },
-        "preset_id": {
-          "enum": [
-            "default",
-            "reading",
-            "research",
-            "learning"
-          ]
-        },
-        "registered_panels": {
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 22,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
-          }
-        },
-        "dock_tree": {
-          "$ref": "#/$defs/Dock"
-        },
-        "floating_bounds": {
+        {
           "type": "object",
-          "maxProperties": 22,
-          "propertyNames": {
-            "type": "string",
-            "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+          "additionalProperties": false,
+          "properties": {
+            "schema_version": {
+              "const": 2
+            },
+            "preset_id": {
+              "enum": [
+                "default",
+                "reading",
+                "research",
+                "learning"
+              ]
+            },
+            "registered_panels": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2]|document\\.[A-Za-z0-9_-]{1,128})$"
+              }
+            },
+            "dock_tree": {
+              "$ref": "#/$defs/Dock"
+            },
+            "floating_bounds": {
+              "type": "object",
+              "maxProperties": 22,
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/Bounds"
+              }
+            },
+            "instance_bindings": {
+              "type": "object",
+              "maxProperties": 42,
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^document\\.[A-Za-z0-9_-]{1,128}$"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/Binding"
+              }
+            },
+            "floating_groups": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/FloatingGroup"
+              }
+            },
+            "locked": {
+              "type": "boolean"
+            }
           },
-          "additionalProperties": {
-            "$ref": "#/$defs/Bounds"
-          }
+          "required": [
+            "schema_version",
+            "preset_id",
+            "registered_panels",
+            "dock_tree",
+            "floating_bounds"
+          ]
         }
-      },
-      "required": [
-        "schema_version",
-        "preset_id",
-        "registered_panels",
-        "dock_tree",
-        "floating_bounds"
       ]
     },
     "Snapshot": {
@@ -260,6 +300,158 @@
         "expected_revision",
         "viewport_width",
         "viewport_height"
+      ]
+    },
+    "LegacyLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "preset_id": {
+          "enum": [
+            "default",
+            "reading",
+            "research",
+            "learning"
+          ]
+        },
+        "registered_panels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 22,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+          }
+        },
+        "dock_tree": {
+          "$ref": "#/$defs/LegacyDock"
+        },
+        "floating_bounds": {
+          "type": "object",
+          "maxProperties": 22,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Bounds"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "preset_id",
+        "registered_panels",
+        "dock_tree",
+        "floating_bounds"
+      ]
+    },
+    "Binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "page_id": {
+          "const": "03"
+        },
+        "object_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "session_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "required": [
+        "page_id",
+        "object_id",
+        "session_key"
+      ]
+    },
+    "FloatingGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tree": {
+          "$ref": "#/$defs/Dock"
+        },
+        "bounds": {
+          "$ref": "#/$defs/Bounds"
+        }
+      },
+      "required": [
+        "tree",
+        "bounds"
+      ]
+    },
+    "LegacyDock": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "tabs"
+            },
+            "panels": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 22,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+              }
+            },
+            "active": {
+              "type": "string",
+              "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+            }
+          },
+          "required": [
+            "kind",
+            "panels",
+            "active"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "split"
+            },
+            "axis": {
+              "enum": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            "ratio": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 0.9
+            },
+            "first": {
+              "$ref": "#/$defs/LegacyDock"
+            },
+            "second": {
+              "$ref": "#/$defs/LegacyDock"
+            }
+          },
+          "required": [
+            "kind",
+            "axis",
+            "ratio",
+            "first",
+            "second"
+          ]
+        }
       ]
     }
   }

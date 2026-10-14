@@ -5,7 +5,7 @@ import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
 import { ApiError } from "../api/client";
 import type { AssetPacketRequest } from "../api/generated/ai-asset-contract";
 type J=Record<string,any>;
-const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
+const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:(op:string,...args:unknown[])=>op==="model_configuration_get"?Promise.resolve({schema:"archeaxis.model-configuration/v1",revision:0,workspace_id:"a".repeat(32),restore_epoch:"initial",profiles:{},bindings:[]}):bridge.call(op,...args)}));
 const knowledge={document_id:"knowledge_grant",version:1,content_sha256:"a".repeat(64),purpose:"真实知识用途"};
 const asset:AssetPacketRequest={request_id:"selection_only",asset:{document_id:"asset",version:2,content_sha256:"b".repeat(64)},grant:{document_id:"asset_grant",version:3,content_sha256:"c".repeat(64)},purpose:"固定资产用途",consumer:"local-machine",operation:"answer"};
 const metadata=(b:J,operation="answer")=>({schema:"archeaxis.machine-asset-context/v1",asset:b.asset_context_grant.asset,grant:b.asset_context_grant.grant,consumer:"local-machine",operation,packet_sha256:"d".repeat(64),member_snapshots:[],tool_execution:"NOT_EXECUTED",private_session_access:false});

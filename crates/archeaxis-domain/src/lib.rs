@@ -33,3 +33,10 @@ pub mod vault_members;
 
 pub use source::ImportOutcome;
 pub mod portable_document;
+
+pub mod material_question;
+pub mod model_configuration;
+
+pub mod character_memory;
+
+pub mod readiness;

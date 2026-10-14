@@ -95,7 +95,24 @@
         "ui_state_cancel_machine",
         "layout_read",
         "layout_write",
-        "layout_recover"
+        "layout_recover",
+        "material_question",
+        "material_question_cancel",
+        "material_question_status",
+        "material_context_prepare",
+        "model_configuration_get",
+        "model_configuration_put",
+        "model_configuration_resolve",
+        "conversation_session_create",
+        "conversation_history",
+        "conversation_request",
+        "conversation_cancel",
+        "conversation_status",
+        "character_memory_get",
+        "character_memory_apply",
+        "character_memory_context",
+        "character_memory_export",
+        "operation_readiness"
       ]
     },
     "payload": {

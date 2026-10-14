@@ -33,7 +33,7 @@ fn now_seconds() -> u64 {
         .map(|d| d.as_secs())
         .unwrap_or(u64::MAX)
 }
-async fn machine_lease(
+pub(super) async fn machine_lease(
     runtime: &Runtime,
     fingerprint: &str,
     claim_id: &str,
@@ -483,6 +483,7 @@ pub(super) async fn machine_answer(
         base_request["asset_context_grant"] = json!(asset);
         base_request["asset_client_request_id"] = json!(body.client_request_id);
     }
+    let selected_configuration = body.model_configuration.clone();
     let frozen_input = admission_request_sha256.clone();
     let prepared = runtime.executor.store().submit_wait(move |conn: &mut rusqlite::Connection|
         -> Result<(String,Value,Option<Value>,String),(StatusCode,String)> {
@@ -499,6 +500,13 @@ pub(super) async fn machine_answer(
         }
         let packet=asset_admission(conn,asset_grant.as_ref(),archeaxis_domain::asset_context_grant::Operation::Answer).map_err(permission_error)?;
         let mut request = base_request;
+        if archeaxis_domain::model_configuration::read(conn).map_err(|_|(StatusCode::CONFLICT,"MODEL_CONFIGURATION_UNAVAILABLE".into()))?.revision>0 {
+            let config=selected_configuration.as_ref().ok_or((StatusCode::CONFLICT,"FROZEN_MODEL_CONFIGURATION_REQUIRED".into()))?;
+            archeaxis_domain::model_configuration::assert_current(conn,config).map_err(|_|(StatusCode::CONFLICT,"MODEL_CONFIGURATION_CHANGED".into()))?;
+            if config.purpose!=archeaxis_domain::model_configuration::Purpose::Answer || request["model"].as_str().is_some_and(|m|m!=config.profile.model) {return Err((StatusCode::CONFLICT,"MODEL_PURPOSE_SELECTION_MISMATCH".into()));}
+            request["model_configuration"]=json!(config);
+            request["resolved_model"]=json!(config);
+        } else if selected_configuration.is_some() {return Err((StatusCode::CONFLICT,"MODEL_CONFIGURATION_CHANGED".into()));}
         if let Some(packet)=&packet {
             request["asset_context"]=asset_proof(packet);
             request["knowledge_context_sha256"]=answer_context_digest(&text).into();
@@ -557,17 +565,33 @@ pub(super) async fn machine_answer(
         Ok(lease) => lease,
         Err(response) => return response,
     };
-    let execution = runtime
-        .executor
-        .machine_answer_cancellable(
-            text,
-            body.question.clone(),
-            effective_tokens,
-            std::time::Duration::from_secs(effective_timeout),
-            body.model.clone(),
-            lease.cancel.clone(),
-        )
-        .await;
+    let execution =
+        match super::readiness::require_execution_dependencies(&runtime.executor, "machine.answer")
+            .await
+        {
+            Err(reason) => Err(reason),
+            Ok(()) => {
+                runtime
+                    .executor
+                    .machine_answer_configured(
+                        text,
+                        body.question.clone(),
+                        effective_tokens,
+                        std::time::Duration::from_secs(effective_timeout),
+                        request
+                            .get("resolved_model")
+                            .and_then(|v| v["profile"]["model"].as_str())
+                            .map(str::to_owned)
+                            .or_else(|| body.model.clone()),
+                        lease.cancel.clone(),
+                        request.get("resolved_model").map(|v| {
+                            serde_json::from_value(v.clone())
+                                .expect("Core generated model configuration")
+                        }),
+                    )
+                    .await
+            }
+        };
     let cancelled = match lease.close() {
         Ok(cancelled) => cancelled,
         Err(_) => {
@@ -855,7 +879,11 @@ pub(super) async fn run_retest(
     if let Some(asset) = &body.asset_context_grant {
         request["asset_context_grant"] = json!(asset);
     }
+    let selected_configuration = body.model_configuration.clone();
     let cache_asset = body.asset_context_grant.clone();
+    if let Some(config) = &body.model_configuration {
+        request["model_configuration"] = json!(config);
+    }
     let cache_request = request.clone();
     let wanted = request.to_string();
     let cache_grant = body.context_grant.clone();
@@ -937,6 +965,13 @@ pub(super) async fn run_retest(
             execution_request["asset_context"]=asset_proof(packet);
             execution_request["knowledge_context_sha256"]=knowledge_digest.into();
         }
+
+        if archeaxis_domain::model_configuration::read(conn).map_err(|_|(StatusCode::CONFLICT,"MODEL_CONFIGURATION_UNAVAILABLE".into()))?.revision>0 {
+            let config=selected_configuration.as_ref().ok_or((StatusCode::CONFLICT,"FROZEN_MODEL_CONFIGURATION_REQUIRED".into()))?;
+            archeaxis_domain::model_configuration::assert_current(conn,config).map_err(|_|(StatusCode::CONFLICT,"MODEL_CONFIGURATION_CHANGED".into()))?;
+            if config.purpose!=archeaxis_domain::model_configuration::Purpose::Retest || execution_request["request"]["model"].as_str().is_some_and(|m|m!=config.profile.model) {return Err((StatusCode::CONFLICT,"MODEL_PURPOSE_SELECTION_MISMATCH".into()));}
+            execution_request["resolved_model"]=json!(config);
+        } else if selected_configuration.is_some() {return Err((StatusCode::CONFLICT,"MODEL_CONFIGURATION_CHANGED".into()));}
         frozen_asset_request(conn,cache_asset.as_ref(),&execution_request)?;
         let execution_id=format!("retest_exec_{}",withheld::digest(&execution_request.to_string()));
         if let Some(terminal)=withheld::terminal(conn,&execution_id,&execution_request).map_err(terminal_error)? {
@@ -1004,17 +1039,33 @@ pub(super) async fn run_retest(
         Ok(lease) => lease,
         Err(response) => return response,
     };
-    let execution = runtime
-        .executor
-        .machine_answer_cancellable(
-            admitted_text,
-            body.question.clone(),
-            body.max_tokens.unwrap_or(2048),
-            std::time::Duration::from_secs(effective_timeout),
-            body.model.clone(),
-            lease.cancel.clone(),
-        )
-        .await;
+    let execution =
+        match super::readiness::require_execution_dependencies(&runtime.executor, "machine.answer")
+            .await
+        {
+            Err(reason) => Err(reason),
+            Ok(()) => {
+                runtime
+                    .executor
+                    .machine_answer_configured(
+                        admitted_text,
+                        body.question.clone(),
+                        body.max_tokens.unwrap_or(2048),
+                        std::time::Duration::from_secs(effective_timeout),
+                        execution_request
+                            .get("resolved_model")
+                            .and_then(|v| v["profile"]["model"].as_str())
+                            .map(str::to_owned)
+                            .or_else(|| body.model.clone()),
+                        lease.cancel.clone(),
+                        execution_request.get("resolved_model").map(|v| {
+                            serde_json::from_value(v.clone())
+                                .expect("Core generated model configuration")
+                        }),
+                    )
+                    .await
+            }
+        };
     let cancelled = match lease.close() {
         Ok(cancelled) => cancelled,
         Err(_) => {

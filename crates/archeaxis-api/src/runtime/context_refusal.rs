@@ -14,6 +14,9 @@ pub(super) fn answer_request(body: &MachineAnswerBody) -> Value {
     if let Some(model) = &body.model {
         request["request"]["model"] = json!(model);
     }
+    if let Some(config) = &body.model_configuration {
+        request["request"]["model_configuration"] = json!(config);
+    }
     request
 }
 
@@ -25,6 +28,9 @@ pub(super) fn retest_request(body: &RetestBody) -> Value {
         "client_request_id":null,"retest_of":body.retest_of}});
     if let Some(model) = &body.model {
         request["request"]["model"] = json!(model);
+    }
+    if let Some(config) = &body.model_configuration {
+        request["request"]["model_configuration"] = json!(config);
     }
     request
 }

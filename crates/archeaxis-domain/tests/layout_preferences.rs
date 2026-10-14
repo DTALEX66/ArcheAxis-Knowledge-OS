@@ -3,6 +3,107 @@ use archeaxis_store_sqlite::init_workspace;
 use std::collections::BTreeMap;
 
 #[test]
+fn v2_instances_grouped_floats_empty_lock_and_foreign_session() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("layout-v2.sqlite").to_str().unwrap()).unwrap();
+    let base = layout::read(&mut conn, "device_v2").unwrap();
+    let mut value = serde_json::json!({"schema_version":2,"preset_id":"reading","registered_panels":["document.doc_a","03"],"dock_tree":{"kind":"empty"},"floating_bounds":{},"instance_bindings":{"document.doc_a":{"page_id":"03","object_id":"doc_a","session_key":format!("{}:{}:document:doc_a",base.workspace_id,base.restore_epoch)}},"floating_groups":[{"tree":{"kind":"tabs","panels":["document.doc_a","03"],"active":"document.doc_a"},"bounds":{"x":10,"y":20,"width":400,"height":300}}],"locked":true});
+    let mut input = Write {
+        workspace_id: base.workspace_id.clone(),
+        device_id: base.device_id.clone(),
+        restore_epoch: base.restore_epoch.clone(),
+        expected_revision: 0,
+        layout: serde_json::from_value(value.clone()).unwrap(),
+    };
+    let saved = layout::write(&mut conn, input.clone()).unwrap();
+    assert!(saved.layout.locked);
+    assert_eq!(
+        serde_json::to_value(layout::read(&mut conn, "device_v2").unwrap()).unwrap(),
+        serde_json::to_value(&saved).unwrap()
+    );
+    assert!(layout::write(&mut conn, input.clone()).is_err());
+    input.expected_revision = 1;
+    value["instance_bindings"]["document.doc_a"]["session_key"] =
+        "foreign:initial:document:doc_a".into();
+    input.layout = serde_json::from_value(value.clone()).unwrap();
+    assert!(layout::write(&mut conn, input.clone()).is_err());
+    value["instance_bindings"]["document.doc_a"]["page_id"] = "05".into();
+    assert!(layout::validate(&serde_json::from_value(value).unwrap()).is_err());
+    input.layout=serde_json::from_value(serde_json::json!({"schema_version":2,"preset_id":"default","registered_panels":[],"dock_tree":{"kind":"empty"},"floating_bounds":{},"locked":false})).unwrap();
+    let empty = layout::write(&mut conn, input).unwrap();
+    assert_eq!(empty.revision, 2);
+    assert_eq!(
+        conn.query_row("SELECT count(*) FROM document_versions", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+}
+
+#[test]
+fn v2_restore_explicitly_rebases_instance_sessions_and_retains_raw_until_confirmed() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = init_workspace(dir.path().join("v2-restore.sqlite").to_str().unwrap()).unwrap();
+    let first = layout::read(&mut conn, "restore_device").unwrap();
+    let prefs=serde_json::from_value(serde_json::json!({"schema_version":2,"preset_id":"reading","registered_panels":["document.doc_a"],"dock_tree":{"kind":"tabs","panels":["document.doc_a"],"active":"document.doc_a"},"floating_bounds":{},"instance_bindings":{"document.doc_a":{"page_id":"03","object_id":"doc_a","session_key":format!("{}:{}:document:doc_a",first.workspace_id,first.restore_epoch)}},"locked":true})).unwrap();
+    layout::write(
+        &mut conn,
+        Write {
+            workspace_id: first.workspace_id,
+            device_id: first.device_id,
+            restore_epoch: first.restore_epoch,
+            expected_revision: 0,
+            layout: prefs,
+        },
+    )
+    .unwrap();
+    let raw: String = conn
+        .query_row(
+            "SELECT value FROM workspace_meta WHERE key='ui_layout_v1:restore_device'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let tx = conn.transaction().unwrap();
+    archeaxis_store_sqlite::authorization_fence::install_after_restore(&tx).unwrap();
+    tx.commit().unwrap();
+    let read = layout::read(&mut conn, "restore_device").unwrap();
+    assert_eq!(
+        read.recovery_reason.as_deref(),
+        Some("LAYOUT_RESTORE_CONFIRMATION_REQUIRED")
+    );
+    assert_eq!(
+        conn.query_row(
+            "SELECT value FROM workspace_meta WHERE key='ui_layout_v1:restore_device'",
+            [],
+            |r| r.get::<_, String>(0)
+        )
+        .unwrap(),
+        raw
+    );
+    let recovered = layout::recover(
+        &mut conn,
+        Recover {
+            workspace_id: read.workspace_id,
+            device_id: read.device_id,
+            restore_epoch: read.restore_epoch,
+            expected_revision: read.revision,
+            viewport_width: 800.0,
+            viewport_height: 600.0,
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        recovered.layout.instance_bindings["document.doc_a"].session_key,
+        format!(
+            "{}:{}:document:doc_a",
+            recovered.workspace_id, recovered.restore_epoch
+        )
+    );
+    assert!(recovered.layout.locked);
+}
+
+#[test]
 fn preferences_restart_cas_and_device_isolation_do_not_write_business_drafts() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("workspace.sqlite");

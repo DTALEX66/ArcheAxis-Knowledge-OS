@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
-const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
+const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:(op:string,...args:unknown[])=>op==="model_configuration_get"?Promise.resolve({schema:"archeaxis.model-configuration/v1",revision:0,workspace_id:"a".repeat(32),restore_epoch:"initial",profiles:{},bindings:[]}):bridge.call(op,...args)}));
 const answer={schema:"archeaxis.machine-answer/v1",answer_id:"answer1",knowledge_id:"k1",question:"实际问题",answer:{answer:"实际机器回答",model:"local-model"},authority:"candidate"};
 const retestReceipt={schema:"archeaxis.machine-retest/v1",retest_task_id:"retest1",answer_id:"retest1",retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",answer:{answer:"纠正后复测回答",model:"local-model"},authority:"candidate",prior:{},request:{retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",max_tokens:2048},execution_request:{schema:"archeaxis.machine-retest-execution/v1",timeout_s:120,request:{retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",max_tokens:2048}},note:"human compares"};
 function task(doc:typeof answer|typeof retestReceipt,scope="runtime.answer") {return {task_id:doc.answer_id,conditions:JSON.stringify(doc),scope,knowledge_version:doc.knowledge_id+"@v1",model_version:doc.answer.model,outcome:"unmeasured",retest_of:scope==="runtime.retest"?"evaluation_answer1":null};}

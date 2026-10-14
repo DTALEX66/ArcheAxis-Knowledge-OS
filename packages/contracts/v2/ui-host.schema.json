@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.ui-host/v2",
+  "x-response-source": "packages/contracts/v1/core-document.schema.json",
+  "x-response-definitions": { "model.configuration.read": "MachineConfigurationDto", "model.inventory.read": "MachineInventoryDto" },
+  "description": "Finite host contract. request_id correlates a reply; it is not an idempotency key or a grant. Only mapped input-free reads are admitted in this revision. Missing ports never fall through to a generic command.",
+  "x-operations": {
+    "capability.catalog.read": "capabilities_list",
+    "model.configuration.read": "machine_configuration",
+    "model.inventory.read": "machine_inventory",
+    "capability.status.read": null,
+    "model.configuration.write": null,
+    "credential.bind": null,
+    "credential.revoke": null,
+    "model.test": null,
+    "model.binding.write": null,
+    "layout.read": null,
+    "layout.write": null,
+    "layout.recover": null,
+    "material.context.prepare": null,
+    "material.answer": null,
+    "companion.send": null,
+    "companion.cancel": null,
+    "companion.history.read": null,
+    "character.profile.read": null,
+    "character.profile.write": null,
+    "memory.list": null,
+    "memory.correct": null,
+    "memory.forget": null,
+    "memory.export": null,
+    "module.catalog.read": null,
+    "configuration.plan.read": null,
+    "deployment.plan.read": null,
+    "view.draft.read": null,
+    "view.draft.write": null,
+    "project.handshake": null,
+    "project.objects.read": null,
+    "project.handoff.preview": null,
+    "format.qualification.read": null,
+    "receipt.read": null
+  },
+  "$defs": {
+    "Operation": { "enum": ["capability.catalog.read", "model.configuration.read", "model.inventory.read", "capability.status.read", "model.configuration.write", "credential.bind", "credential.revoke", "model.test", "model.binding.write", "layout.read", "layout.write", "layout.recover", "material.context.prepare", "material.answer", "companion.send", "companion.cancel", "companion.history.read", "character.profile.read", "character.profile.write", "memory.list", "memory.correct", "memory.forget", "memory.export", "module.catalog.read", "configuration.plan.read", "deployment.plan.read", "view.draft.read", "view.draft.write", "project.handshake", "project.objects.read", "project.handoff.preview", "format.qualification.read", "receipt.read"] },
+    "EmptyInput": { "type": "object", "additionalProperties": false },
+    "Request": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "schema": { "const": "archeaxis.ui-host-request/v2" },
+        "contract_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "request_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+        "workspace_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "restore_epoch": { "type": "string", "pattern": "^(initial|[a-f0-9]{32})$" },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "input": { "$ref": "#/$defs/EmptyInput" }
+      },
+      "required": ["schema", "contract_digest", "request_id", "workspace_id", "restore_epoch", "operation", "input"]
+    },
+    "BuildIdentity": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "host_version": { "type": "string" }, "source_revision": { "type": "null" } },
+      "required": ["host_version", "source_revision"]
+    },
+    "Response": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "schema": { "const": "archeaxis.ui-host-response/v2" },
+        "contract_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "request_id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+        "workspace_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "restore_epoch": { "type": "string", "pattern": "^(initial|[a-f0-9]{32})$" },
+        "operation": { "$ref": "#/$defs/Operation" },
+        "outcome": { "enum": ["READ_OK", "UNAVAILABLE", "REJECTED", "UNKNOWN"] },
+        "reason_code": { "enum": [null, "HOST_CONTRACT_MISSING", "WORKSPACE_CHANGED", "RESULT_UNKNOWN", "CORE_REJECTED", "CORE_UNAVAILABLE", "INVALID_CORE_RESULT"] },
+        "core_status": { "type": ["integer", "null"] },
+        "build_identity": { "$ref": "#/$defs/BuildIdentity" },
+        "checked_at": { "type": "integer", "minimum": 0 },
+        "result_ref": { "type": ["object", "null"], "description": "Exact selected Core response DTO; never arbitrary executable input." }
+      },
+      "required": ["schema", "contract_digest", "request_id", "workspace_id", "restore_epoch", "operation", "outcome", "reason_code", "core_status", "build_identity", "checked_at", "result_ref"]
+    }
+  }
+}

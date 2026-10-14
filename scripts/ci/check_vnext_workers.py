@@ -54,6 +54,16 @@ def _managed_tempdir(prefix: str) -> tempfile.TemporaryDirectory[str]:
     return tempfile.TemporaryDirectory(prefix=prefix, dir=str(base))
 
 
+def _compile_worker(module: Path) -> None:
+    # Inherited pycache prefixes duplicate deep Windows worktree paths. Compile
+    # the same source into a bounded, isolated project-run temporary filename.
+    with _managed_tempdir("compile-") as compile_tmp:
+        py_compile.compile(
+            str(module), cfile=str(Path(compile_tmp) / (module.name + ".pyc")),
+            doraise=True,
+        )
+
+
 def _run(entrypoint: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
     import os
 
@@ -88,7 +98,7 @@ def main() -> int:
     modules = sorted(WORKERS.glob("*.py"))
     for module in modules:
         try:
-            py_compile.compile(str(module), doraise=True)
+            _compile_worker(module)
         except py_compile.PyCompileError as exc:
             failures.append(f"{module.name}: compile failed: {exc}")
 
@@ -134,7 +144,7 @@ def main() -> int:
     for relative, spec in WORKER_MATRIX.items():
         entrypoint = WORKERS / relative
         try:
-            py_compile.compile(str(entrypoint), doraise=True)
+            _compile_worker(entrypoint)
         except py_compile.PyCompileError as exc:
             failures.append(f"{relative}: compile failed: {exc}")
             continue
@@ -216,7 +226,7 @@ def main() -> int:
     # recorded in the T06 slice receipt with a truthful capability note.
     media_worker = WORKERS / "media" / "worker_transcribe.py"
     try:
-        py_compile.compile(str(media_worker), doraise=True)
+        _compile_worker(media_worker)
     except py_compile.PyCompileError as exc:
         failures.append(f"media/worker_transcribe.py: compile failed: {exc}")
     else:
@@ -244,7 +254,7 @@ def main() -> int:
     # dependent); local verification is recorded in the T06 slice receipt.
     video_worker = WORKERS / "media" / "worker_video.py"
     try:
-        py_compile.compile(str(video_worker), doraise=True)
+        _compile_worker(video_worker)
     except py_compile.PyCompileError as exc:
         failures.append(f"media/worker_video.py: compile failed: {exc}")
     else:
@@ -272,7 +282,7 @@ def main() -> int:
     # (recorded in the T06 receipt), never assumed on runners.
     ocr_worker = WORKERS / "vision" / "worker_ocr.py"
     try:
-        py_compile.compile(str(ocr_worker), doraise=True)
+        _compile_worker(ocr_worker)
     except py_compile.PyCompileError as exc:
         failures.append(f"vision/worker_ocr.py: compile failed: {exc}")
     else:
@@ -298,7 +308,7 @@ def main() -> int:
     # Vision caption worker (F04 layer 2): compile + probe + failure contracts.
     caption_worker = WORKERS / "vision" / "worker_caption.py"
     try:
-        py_compile.compile(str(caption_worker), doraise=True)
+        _compile_worker(caption_worker)
     except py_compile.PyCompileError as exc:
         failures.append(f"vision/worker_caption.py: compile failed: {exc}")
     else:
@@ -326,7 +336,7 @@ def main() -> int:
     # https://example.com is recorded in the T05 slice receipt.
     webpage_worker = WORKERS / "web" / "worker_webpage.py"
     try:
-        py_compile.compile(str(webpage_worker), doraise=True)
+        _compile_worker(webpage_worker)
     except py_compile.PyCompileError as exc:
         failures.append(f"web/worker_webpage.py: compile failed: {exc}")
     else:
@@ -348,7 +358,7 @@ def main() -> int:
     # Evaluation worker (T07): recomputable CER/WER metrics (stdlib only).
     quality_worker = WORKERS / "evaluation" / "worker_quality.py"
     try:
-        py_compile.compile(str(quality_worker), doraise=True)
+        _compile_worker(quality_worker)
     except py_compile.PyCompileError as exc:
         failures.append(f"evaluation/worker_quality.py: compile failed: {exc}")
     else:
@@ -413,7 +423,7 @@ def main() -> int:
     # (their third-party engines are not installed on runners).
     office_worker = WORKERS / "document" / "worker_office.py"
     try:
-        py_compile.compile(str(office_worker), doraise=True)
+        _compile_worker(office_worker)
     except py_compile.PyCompileError as exc:
         failures.append(f"document/worker_office.py: compile failed: {exc}")
     else:
