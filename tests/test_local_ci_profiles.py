@@ -1,10 +1,26 @@
 """Regressions for missing/empty diffs and fail-closed qualification."""
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_quick_profile_keeps_the_real_layout_gate_after_its_path_move():
+    from scripts.ci.local_verify import QUICK_TEST_TARGETS
+    assert "tests/workflow/test_workspace_layout_contract.py" in QUICK_TEST_TARGETS
+    assert all((ROOT / target).is_file() for target in QUICK_TEST_TARGETS)
+
+
+def test_direct_profile_cli_loads_timing_dependency_without_pythonpath(tmp_path):
+    env = dict(os.environ)
+    env.pop("PYTHONPATH", None)
+    result = subprocess.run([sys.executable, "-B", str(ROOT / "scripts/ci/local_verify.py"), "--help"],
+                            cwd=tmp_path, env=env, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    assert "--preflight" in result.stdout
 
 
 def test_explicit_empty_diff_does_not_trigger_heavy_qualification():

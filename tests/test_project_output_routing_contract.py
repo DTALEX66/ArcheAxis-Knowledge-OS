@@ -18,8 +18,12 @@ def test_formal_frontend_and_tauri_use_the_run_router() -> None:
     assert "ARCHEAXIS_FRONTEND_DIST" in vite
     assert "unrouted-frontend-dist" in tauri
     assert 'pointer("/build/frontendDist")' in build
-    router = _read("scripts/runtime/frontend.py")
-    assert '"--config", str(paths["tauri_config"])' in router
+    from scripts.runtime.frontend import tauri_commands
+    overlay = Path("run-owned-overlay.json")
+    command = tauri_commands("node", "cli", ["build", "--config", "base.json", "--", "--locked"], overlay, False)[0][1]
+    assert command[-4:] == ["--config", str(overlay), "--", "--locked"]
+    commands = tauri_commands("node", "cli", ["build", "--config", "base.json", "--bundles", "nsis"], overlay, True)
+    assert all(str(overlay) in command for _, command in commands)
     assert '"frontendDist": "../frontend/dist"' not in tauri
 
 
