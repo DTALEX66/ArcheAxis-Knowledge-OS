@@ -103,7 +103,8 @@ def main():
     report = {"schema": "archeaxis.local-ci/v1", "profile": args.profile,
               "started_at": now(), "preflight_only": args.preflight, "source_before": source_snapshot(ROOT),
               "tools": {"python": sys.version}, "checks": [],
-              "cloud": "CLOUD_BLOCKED_USER_REPORTED_NOT_REQUERIED",
+              "cloud": "NOT_QUERIED_BY_THIS_RUNNER",
+              "owner_local_source_preservation": "NOT_IN_PREFLIGHT_SCOPE" if args.preflight else "REQUIRED",
               "evidence_boundary": "local execution; no installation or human acceptance"}
     destination = paths["artifacts"] / "local-ci.json"
 
@@ -182,7 +183,6 @@ def main():
             ("format-matrix", ["scripts/check_format_matrix.py", "--matrix", "docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json"]),
             ("path-conventions", ["scripts/check_path_conventions.py"]),
             ("document-authority", ["scripts/ci/check_document_authority.py"]),
-            ("h01-source-trace", ["scripts/ci/check_h01_source_trace.py"]),
             ("ui-design-increment", ["scripts/ci/check_ui_design_increment.py"]),
         ):
             run(name, py + command)
@@ -194,6 +194,10 @@ def main():
              f"cache_dir={paths['run'] / 'preflight-cache'}"])
         for name, command in CONTRACT_PREFLIGHT:
             run(name, py + command)
+        # H01 requires owner-local original containers. It remains mandatory in
+        # local quick/full, but is not a portable contract-before-build check.
+        if not args.preflight:
+            run("h01-source-trace", py + ["scripts/ci/check_h01_source_trace.py"])
         if args.preflight or any(item["status"] != "LOCAL_PASS" for item in report["checks"]):
             return finish()
         run("ruff", py + ["-m", "ruff", "check", "app", "shared", "knowledge_base",
