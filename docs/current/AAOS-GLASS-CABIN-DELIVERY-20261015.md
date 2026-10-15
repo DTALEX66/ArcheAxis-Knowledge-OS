@@ -44,3 +44,14 @@
 - 本地构建和合成桥接截图通过，不代表整合后 native/installed、exact-SHA CI 或 Owner 验收通过。未 push、PR、发布、替换 Green 或覆盖真实数据。
 - 整合时仅需接纳 App 外壳 class/data 属性，保留根分支并行 BE09 业务变更。最终默认主题变更由根整合者同步当前活动指针；旧明确选择的主题不会覆盖。
 - 回退：按本分支单一提交执行普通 revert；不 reset/clean，不移除其他 writer 的工作。
+
+## 只读复核后的精确修复
+
+首提交 `686dd947be5adf144442725003494bbbda375ac2` 后，独立只读审查发现两处回归并立即修复：
+
+- 将本地文档搜索独立于工作台空态、聚合读取失败与保活快照。搜索组件始终挂载，以可展开的真实搜索入口节省首屏空间；学习列表读取失败、首次空库后在其他页保存文档，均可直接查询当前 Core 搜索结果。
+- 将 `layout_read` 的 `recovery_reason` 提示显式放在默认关闭的布局工具之外；用户能看到需要恢复的状态，再展开核对，未自动恢复或保存。
+
+新增3个针对原始失败模式的回归用例。`glass-review-fixes-2/artifacts/execution.json`：2文件14测试 PASS；首次测试定位误命中 Dockview 自带空 alert，已改为定位具体提示后验证 role/可见性，未掩盖功能失败。`9344c5b17c47/artifacts/frontend-build.json` 最终修复版类型检查/构建 PASS，前后 patch SHA-256 均 `2fb339071751eb8f303329c56637664283f7e249f46e1bc9f341b1a2dcf7922c`。
+
+`glass-review-home/artifacts/cosmic-1672-home.png` 为补充最终首屏图；同目录 `visual-check.json` 仅2项（首页横向溢出/无新增推理与独立搜索入口展开）PASS、0页面错误。没有重跑34项矩阵。此前阅读及各主题截图仍属于首提交视觉版；这次变化局限本地搜索入口与仅异常时显示的恢复提示，不能把旧全矩阵冒称最终小修版重新执行。

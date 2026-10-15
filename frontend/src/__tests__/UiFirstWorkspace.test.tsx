@@ -8,6 +8,22 @@ const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 afterEach(()=>{cleanup();bridge.call.mockReset();});
 describe("UI-first real object entry",()=>{
+  it.each([false,true])("keeps local search usable after an empty retained snapshot or unrelated learning failure: %s",async(failed)=>{
+    bridge.call.mockImplementation(async(operation:string)=>{
+      if(operation==="documents_list")return {documents:[]};
+      if(operation==="learning_items"){if(failed)throw new Error("learning unavailable");return {items:[]};}
+      if(operation==="search")return {documents:[{document_id:"new_doc",title:"随后保存的笔记",head:"本地正文",version:1,source_id:null,content_sha256:"a".repeat(64)}],document_count:1};
+      throw new Error(operation);
+    });
+    const open=vi.fn();render(<CanonicalWorkspaceSpace onNavigate={vi.fn()} onOpenDocument={open}/>);
+    if(failed)await screen.findByRole("alert");else await screen.findByRole("heading",{name:"从第一份资料开始"});
+    fireEvent.click(screen.getByText("搜索本地文档",{selector:"summary"}));
+    fireEvent.change(screen.getByRole("searchbox"),{target:{value:"随后保存"}});
+    fireEvent.click(screen.getByRole("button",{name:"搜索文档"}));
+    fireEvent.click(await screen.findByRole("button",{name:"随后保存的笔记 · v1"}));
+    expect(open).toHaveBeenCalledWith("new_doc");
+    expect(bridge.call).toHaveBeenCalledWith("search",{q:"随后保存",active_only:false});
+  });
   it("shows the first-material entry only after a confirmed empty read and routes both real actions",async()=>{
     let finish:(value:unknown)=>void=()=>{};
     bridge.call.mockImplementation((operation:string)=>operation==="documents_list"?new Promise(resolve=>{finish=resolve;}):Promise.resolve({items:[]}));

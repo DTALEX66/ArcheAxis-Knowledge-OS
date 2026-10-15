@@ -42,9 +42,10 @@ export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}
       </div>
       <p className="workspace-local-note"><AaosIcon name="Lock" size={20}/>内容保存在本地</p>
     </div>
+    <details className="workspace-search-options"><summary>搜索本地文档</summary><LocalDocumentSearch onOpenDocument={onOpenDocument}/></details>
     {state?<p role={failed?"alert":"status"}>{state}</p>:null}
     {failed?<button onClick={()=>setRetry(value=>value+1)}>重新读取工作区</button>:null}
-    {!failed&&!state&&!empty?<><LocalDocumentSearch onOpenDocument={onOpenDocument}/><div className="ui-workspace-grid">
+    {!failed&&!state&&!empty?<><div className="ui-workspace-grid">
       <section data-section="documents" tabIndex={-1}><div className="workspace-section-heading"><AaosIcon name="Source"/><h2>继续阅读与编辑</h2></div><p>本地已保存文档。列表不代表最近编辑排序。</p>{documents.length?<ul>{documents.slice(0,8).map(document=><li key={document.document_id}><button onClick={()=>onOpenDocument?.(document.document_id)}>{document.title} · v{document.version}</button><small>{document.source_id?"关联来源原件":"原创文档 · 未绑定来源"}</small></li>)}</ul>:<div className="workspace-empty"><AaosIcon name="Knowledge" size={28}/><p>还没有已保存文档，可从新建笔记开始。</p></div>}</section>
       <section data-section="review" tabIndex={-1}><div className="workspace-section-heading"><AaosIcon name="Review"/><h2>到期复习</h2></div><p>{reviews.due.length} 个已到期 · {reviews.unscheduled} 个未安排 · {reviews.unverified} 个日期待核实</p>
         {reviews.due.length?<ul>{reviews.due.slice(0,8).map(item=><li key={item.item_key}><button disabled={!onReviewItem} onClick={()=>onReviewItem?.(item.item_key)}>{item.item_key}</button><small>到期 {item.next_review}（UTC）</small></li>)}</ul>:<p>{learning.length?"当前没有已核实的到期复习。":"当前没有本地学习条目。"}</p>}
