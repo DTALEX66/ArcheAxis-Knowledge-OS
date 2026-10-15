@@ -272,6 +272,7 @@ def test_schema_matrix_coverage_status_is_explicit():
         "desktop-routes.schema.json": "covered (test_live_schema_matrix_positives_pass; test_live_schema_matrix_single_field_negatives_hit_expected_subpaths)",
         "domain-pack.schema.json": "covered (test_live_schema_matrix_positives_pass; test_live_schema_matrix_single_field_negatives_hit_expected_subpaths)",
         "format-execution-receipt.schema.json": "covered (test_live_schema_matrix_positives_pass; test_live_schema_matrix_single_field_negatives_hit_expected_subpaths)",
+        "file-format-qualification.schema.json": "covered (test_file_format_qualification: recorded real-worker responses and single-field negatives)",
         "local-green-identity.schema.json": "covered (test_live_schema_matrix_positives_pass; test_live_schema_matrix_single_field_negatives_hit_expected_subpaths)",
         "machine-growth.schema.json": "covered (test_live_schema_matrix_positives_pass; test_live_schema_matrix_single_field_negatives_hit_expected_subpaths)",
         "model-capability-pool.schema.json": "covered (test_live_schema_matrix_positives_pass; test_live_schema_matrix_single_field_negatives_hit_expected_subpaths)",

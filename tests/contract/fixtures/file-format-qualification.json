@@ -1,0 +1,233 @@
+{
+  "provenance": {
+    "evidence": "RECORDED_REAL_CORE_WORKER_CONTROLLED_INPUT",
+    "receipt": ".project-local/runs/ba8e5e5614/integrated-be11-1016/artifacts/execution.json",
+    "receipt_sha256": "9df6b3f7ae5acc14ac71f518b01535f557f7d9bb86750e32775ae8f20b569a41",
+    "source_test": "crates/archeaxis-api/tests/file_format_qualification.rs",
+    "materials": [
+      "controlled UTF-8 text",
+      "existing golden-docx-anchor.docx",
+      "synthetic malformed DOCX"
+    ]
+  },
+  "samples": [
+    {
+      "attempt": 1,
+      "attempt_state": "succeeded",
+      "capability": "text.extract",
+      "core_version": "0.1.0",
+      "engine": "python-worker-text",
+      "engine_version": "0.1.0",
+      "evidence_scope": "PERSISTED_CORE_EXECUTION; no corpus-wide, installed, visual or Owner qualification",
+      "execution_ref": "/api/v1/jobs/format-0/execution-status",
+      "execution_succeeded": true,
+      "job_id": "format-0",
+      "job_kind": "text",
+      "job_state": "succeeded",
+      "loss": {
+        "receipt_ref": "/api/v1/jobs/format-0/outputs/loss_report",
+        "reported_count": 0,
+        "status": "none_reported"
+      },
+      "media_type": "text/plain",
+      "operations": {
+        "edit": {
+          "qualification_version": 1,
+          "scope": "SOURCE_NATIVE_EDIT; derived document editing is separate",
+          "status": "UNVERIFIED"
+        },
+        "export": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_BYTES_ONLY; use source original endpoint",
+          "status": "AVAILABLE"
+        },
+        "extract": {
+          "qualification_version": 1,
+          "scope": "DECLARED_JOB_CAPABILITY_ONLY; quality and loss independent",
+          "status": "QUALIFIED"
+        },
+        "preview": {
+          "qualification_version": 1,
+          "scope": "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified",
+          "status": "QUALIFIED"
+        },
+        "roundtrip": {
+          "qualification_version": 1,
+          "scope": "NATIVE_FORMAT_EDIT_EXPORT_REIMPORT",
+          "status": "UNVERIFIED"
+        },
+        "store": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_CAS_REFERENCE; integrity audit not performed",
+          "status": "RECORDED"
+        }
+      },
+      "original_ref": "/api/v1/sources/src_7259b8b932a91056c187df9d/original",
+      "outputs": [
+        {
+          "byte_length": 128,
+          "kind": "document_structure",
+          "schema": "archeaxis.document-structure/v1",
+          "sha256": "a685ccdeff5afcae5850277678184dc5e2ce626025dd2c0d22c76c04a624bf57"
+        },
+        {
+          "byte_length": 518,
+          "kind": "loss_report",
+          "schema": "archeaxis.loss-receipt/v1",
+          "sha256": "6979c63962f98983bcdc41083cdf614225d5da27ef502f73c063678aede1aa62"
+        },
+        {
+          "byte_length": 27,
+          "kind": "text",
+          "schema": "archeaxis.text/v1",
+          "sha256": "1301e7fd152bc4528be6d573ad1f100b408e8dac62e8f298c83550a6c7f7e49a"
+        }
+      ],
+      "outputs_capped": false,
+      "qualification_evidence": "COMPLETE",
+      "qualification_version": 1,
+      "schema": "archeaxis.file-format-qualification/v1",
+      "source_id": "src_7259b8b932a91056c187df9d",
+      "source_revision": "1301e7fd152bc4528be6d573ad1f100b408e8dac62e8f298c83550a6c7f7e49a"
+    },
+    {
+      "attempt": 1,
+      "attempt_state": "succeeded",
+      "capability": "office.structure",
+      "core_version": "0.1.0",
+      "engine": "python-worker-office",
+      "engine_version": "0.1.0",
+      "evidence_scope": "PERSISTED_CORE_EXECUTION; no corpus-wide, installed, visual or Owner qualification",
+      "execution_ref": "/api/v1/jobs/format-1/execution-status",
+      "execution_succeeded": true,
+      "job_id": "format-1",
+      "job_kind": "office",
+      "job_state": "succeeded",
+      "loss": {
+        "receipt_ref": "/api/v1/jobs/format-1/outputs/loss_report",
+        "reported_count": 1,
+        "status": "reported"
+      },
+      "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "operations": {
+        "edit": {
+          "qualification_version": 1,
+          "scope": "SOURCE_NATIVE_EDIT; derived document editing is separate",
+          "status": "UNVERIFIED"
+        },
+        "export": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_BYTES_ONLY; use source original endpoint",
+          "status": "AVAILABLE"
+        },
+        "extract": {
+          "qualification_version": 1,
+          "scope": "DECLARED_JOB_CAPABILITY_ONLY; quality and loss independent",
+          "status": "QUALIFIED"
+        },
+        "preview": {
+          "qualification_version": 1,
+          "scope": "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified",
+          "status": "QUALIFIED"
+        },
+        "roundtrip": {
+          "qualification_version": 1,
+          "scope": "NATIVE_FORMAT_EDIT_EXPORT_REIMPORT",
+          "status": "UNVERIFIED"
+        },
+        "store": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_CAS_REFERENCE; integrity audit not performed",
+          "status": "RECORDED"
+        }
+      },
+      "original_ref": "/api/v1/sources/src_fe06e5310c41a3dc7a72a157/original",
+      "outputs": [
+        {
+          "byte_length": 128,
+          "kind": "document_structure",
+          "schema": "archeaxis.document-structure/v1",
+          "sha256": "f25acab66a28302c5943c0c2af063dc5b619d72697f1657dc3af528887bb4277"
+        },
+        {
+          "byte_length": 1169,
+          "kind": "loss_report",
+          "schema": "archeaxis.loss-receipt/v1",
+          "sha256": "2557390a3545e7c5a1206ac7f4356e0e83a6a1c9eac23fb5b5f54453c3c80347"
+        },
+        {
+          "byte_length": 81,
+          "kind": "text",
+          "schema": "archeaxis.text/v1",
+          "sha256": "37f4aaf7eb50d2301db76b51e276bc8cbc3679e877f155fdb688d6bd8dfe7f7c"
+        }
+      ],
+      "outputs_capped": false,
+      "qualification_evidence": "COMPLETE",
+      "qualification_version": 1,
+      "schema": "archeaxis.file-format-qualification/v1",
+      "source_id": "src_fe06e5310c41a3dc7a72a157",
+      "source_revision": "6356fbba83f683723a3d202a443af2d10ad5957dc2b7be2d275be0247349855b"
+    },
+    {
+      "attempt": 1,
+      "attempt_state": "failed",
+      "capability": "office.structure",
+      "core_version": "0.1.0",
+      "engine": null,
+      "engine_version": null,
+      "evidence_scope": "PERSISTED_CORE_EXECUTION; no corpus-wide, installed, visual or Owner qualification",
+      "execution_ref": "/api/v1/jobs/format-2/execution-status",
+      "execution_succeeded": false,
+      "job_id": "format-2",
+      "job_kind": "office",
+      "job_state": "failed",
+      "loss": {
+        "receipt_ref": null,
+        "reported_count": null,
+        "status": "unknown"
+      },
+      "media_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "operations": {
+        "edit": {
+          "qualification_version": 1,
+          "scope": "SOURCE_NATIVE_EDIT; derived document editing is separate",
+          "status": "UNVERIFIED"
+        },
+        "export": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_BYTES_ONLY; use source original endpoint",
+          "status": "AVAILABLE"
+        },
+        "extract": {
+          "qualification_version": 1,
+          "scope": "DECLARED_JOB_CAPABILITY_ONLY; quality and loss independent",
+          "status": "FAILED"
+        },
+        "preview": {
+          "qualification_version": 1,
+          "scope": "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified",
+          "status": "FAILED"
+        },
+        "roundtrip": {
+          "qualification_version": 1,
+          "scope": "NATIVE_FORMAT_EDIT_EXPORT_REIMPORT",
+          "status": "UNVERIFIED"
+        },
+        "store": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_CAS_REFERENCE; integrity audit not performed",
+          "status": "RECORDED"
+        }
+      },
+      "original_ref": "/api/v1/sources/src_d181153d6eb7a2fd290a473a/original",
+      "outputs": [],
+      "outputs_capped": false,
+      "qualification_evidence": "INCOMPLETE",
+      "qualification_version": 1,
+      "schema": "archeaxis.file-format-qualification/v1",
+      "source_id": "src_d181153d6eb7a2fd290a473a",
+      "source_revision": "a3989126344744ef800dbc88bf7e744853f3f2eac75c9ab3301f4e845ef22078"
+    }
+  ]
+}
