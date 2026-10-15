@@ -8,6 +8,8 @@ import os
 import subprocess
 import sys
 import threading
+import time
+from concurrent.futures import Future
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -23,28 +25,63 @@ def test_dispatch_without_core_fails_closed(worker, monkeypatch):
         worker.authorize_dispatch("model", "https://fixture.invalid/v1", {"payload": "synthetic"})
 
 
-def test_dispatch_binds_exact_operation_and_consumes_one_approval(worker, monkeypatch, tmp_path):
+@pytest.mark.parametrize("tamper", [None, "destination", "material", "sequence", "egress_sha256", "attempt_id"])
+def test_dispatch_binds_exact_operation_and_consumes_one_approval(worker, monkeypatch, tmp_path, tamper):
     monkeypatch.setattr(worker, "_DISPATCH_REQUIRED", True)
     monkeypatch.setattr(worker, "_DISPATCH_IDENTITY", {"attempt_id":"synthetic", "egress_sha256":"a" * 64})
     monkeypatch.setenv("ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR", str(tmp_path))
-    result = []
+    result = Future()
+
     def call():
-        worker.authorize_dispatch("model", "https://fixture.invalid/v1", {"payload": "synthetic"})
-        result.append("approved")
+        try:
+            worker.authorize_dispatch("model", "https://fixture.invalid/v1", {"payload": "synthetic"})
+        except BaseException as exc:
+            result.set_exception(exc)
+        else:
+            result.set_result("approved")
+
     thread = threading.Thread(target=call)
     thread.start()
-    import time
-    deadline = time.monotonic() + 2
-    while not (tmp_path / "request.json").exists() and time.monotonic() < deadline:
-        time.sleep(.01)
-    assert result == []
-    frame = json.loads((tmp_path / "request.json").read_text())
-    assert frame["material_sha256"] == hashlib.sha256(b'{"payload":"synthetic"}').hexdigest()
-    assert frame["material"] == {"payload": "synthetic"}
-    assert frame["sequence"] == 1 and frame["destination"] == "https://fixture.invalid/v1"
-    (tmp_path / "approval.json").write_text(json.dumps(frame))
-    thread.join(2)
-    assert not thread.is_alive() and result == ["approved"]
+    try:
+        deadline = time.monotonic() + 2
+        request_path = tmp_path / "request.json"
+        while not request_path.exists() and time.monotonic() < deadline:
+            if result.done():
+                result.result()  # Surface the original worker exception in this test.
+            time.sleep(.01)
+        assert request_path.is_file(), "worker did not publish its dispatch request"
+        assert not result.done()
+        frame = json.loads(request_path.read_text(encoding="utf8"))
+        assert frame["material_sha256"] == hashlib.sha256(b'{"payload":"synthetic"}').hexdigest()
+        assert frame["material"] == {"payload": "synthetic"}
+        assert frame["sequence"] == 1 and frame["destination"] == "https://fixture.invalid/v1"
+        assert frame["kind"] == "model"
+        assert frame["attempt_id"] == "synthetic" and frame["egress_sha256"] == "a" * 64
+        approval = dict(frame)
+        if tamper is not None:
+            approval[tamper] = {
+                "destination": "https://other.invalid/v1",
+                "material": {"payload": "different"},
+                "sequence": 2,
+                "egress_sha256": "b" * 64,
+                "attempt_id": "different",
+            }[tamper]
+        # Mirror Core dispatch.rs: write the complete frame before publishing it
+        # with a same-directory rename. exists() is the worker's readiness signal.
+        temporary = tmp_path / "approval.tmp"
+        temporary.write_text(json.dumps(approval), encoding="utf8")
+        assert not (tmp_path / "approval.json").exists()
+        temporary.replace(tmp_path / "approval.json")
+        if tamper is None:
+            assert result.result(timeout=2) == "approved"
+        else:
+            with pytest.raises(worker.CheckExecutionError, match="dispatch_identity_mismatch"):
+                result.result(timeout=2)
+    finally:
+        # authorize_dispatch has its own five-second deadline. Also join on an
+        # assertion failure so monkeypatch/tmp_path cannot outlive the worker.
+        thread.join(6)
+        assert not thread.is_alive(), "dispatch worker did not stop by its deadline"
     assert not (tmp_path / "approval.json").exists()
 
 

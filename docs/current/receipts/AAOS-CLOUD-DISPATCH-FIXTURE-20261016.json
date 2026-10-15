@@ -1,0 +1,85 @@
+{
+  "schema": "archeaxis.cloud-dispatch-fixture-receipt/v1",
+  "observed_at": "2026-10-16T03:16:38+08:00",
+  "status": "PASS_LOCAL_TARGETED_REGRESSION",
+  "evidence_level": "SYNTHETIC",
+  "scope": "Repair the synthetic Core approval publisher used by the real Python authorize_dispatch test; no production change",
+  "source": {
+    "branch_at_test": "codex/cloud-dispatch-ci-20261016",
+    "base_commit": "6bee1d88b78526722da09967b3b3696af48fdaae",
+    "dirty_at_test": true,
+    "tested_source_patch_sha256": "995a886d421d77116ab97db95072f28e778f9591788480fb222d3d8ac788127d",
+    "source_consistent": true,
+    "frozen_test_sha256": "81fc13c07c246ff0fb6b53cade65dac25fda67261ecc591f0d69ee15b9808d50",
+    "qualification": "Local base commit plus frozen uncommitted test; exact-SHA cloud rerun remains separate"
+  },
+  "historical_ci_failure": {
+    "run_id": 38790450859,
+    "job_id": 116613754137,
+    "test": "tests/workers/test_document_check_cloud.py::test_dispatch_binds_exact_operation_and_consumes_one_approval",
+    "failure": "Worker read approval.json while the synthetic publisher had created but not finished writing it; JSONDecodeError at character zero surfaced as a PytestUnhandledThreadExceptionWarning and an empty result list",
+    "worker_location": "services/python-workers/machine/document_check.py:56",
+    "disposition": "Historical CI failure retained; its separate schema-matrix failure is outside this correction"
+  },
+  "contract_readback": {
+    "core_producer": "crates/archeaxis-application/src/executor/dispatch.rs:381-388 writes the complete approval.tmp before renaming it to approval.json in the same directory",
+    "worker_request_producer": "document_check.py writes request.tmp before renaming it to request.json",
+    "core_consumer": "Core validates exact fields, sequence, attempt, egress, material digest, destination and operation material before revalidation and approval publication",
+    "rust_synthetic_tests": "Synchronous dispatch unit frame() writes request.json before calling decide(), so no concurrent consumer observes that write. API test READY_PREAMBLE already publishes ready.tmp with replace. Its events.write_text calls are single-writer event records, not approval publishers.",
+    "faulthandler": "Existing document_cloud_loop.rs Python wrappers record diagnostic worker stacks. That instrumentation does not publish approval frames and does not repair this race.",
+    "production_modified": false
+  },
+  "change": [
+    "Synthetic publisher writes approval.tmp completely, then replaces approval.json in the same directory, matching the production Core readiness contract",
+    "Future carries worker success or its original exception to the main test thread",
+    "A finally block joins the worker with a bounded six-second wait, exceeding its existing five-second dispatch deadline, even after test assertion failure",
+    "Successful approval and five tampered-field refusals retain exact-operation bindings and assert that each approval is consumed once"
+  ],
+  "verification": {
+    "launcher": "scripts/runtime/dev.py",
+    "regression_run": ".project-local/runs/6399d1fb54/cloud-dispatch-fixture-20261016",
+    "regression_receipt": "artifacts/execution.json",
+    "regression_log": "logs/execution.log",
+    "python_environment": "Existing candidate5 runtime supplies worker dependencies including trafilatura; runtime-ci-venv site-packages appended only in the test process to provide pytest. No package installation or persistent configuration modification.",
+    "pytest_arguments": [
+      "tests/workers/test_document_check_cloud.py",
+      "-q",
+      "-W",
+      "error::pytest.PytestUnhandledThreadExceptionWarning",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp=<dev.py run TMP>/pytest"
+    ],
+    "exit_code": 0,
+    "source_consistent": true,
+    "passed": 44,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": [
+      "One PytestConfigWarning: Unknown config option cache_dir, because cacheprovider was disabled; no unhandled thread exception warning"
+    ],
+    "dispatch_parameters": [
+      "unchanged exact frame succeeds",
+      "destination tamper rejected",
+      "material tamper rejected",
+      "sequence tamper rejected",
+      "egress_sha256 tamper rejected",
+      "attempt_id tamper rejected"
+    ],
+    "lint": {
+      "run": ".project-local/runs/6399d1fb54/cloud-dispatch-lint-20261016",
+      "command": "python -m ruff check --no-cache tests/workers/test_document_check_cloud.py",
+      "status": "PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    "diff_check": "PASS"
+  },
+  "limitations": [
+    "No real external network, paid provider or model call performed",
+    "No consumer fallback accepts empty, malformed or mismatched approvals; production authorization and single-consumption behavior unchanged",
+    "Local regression is not a Linux full-CI or installed-runtime qualification",
+    "No additional Rust implementation or test change was needed for this synthetic Python publisher defect"
+  ],
+  "rollback": "Revert only the test_document_check_cloud.py test correction; preserve this receipt as historical evidence"
+}
