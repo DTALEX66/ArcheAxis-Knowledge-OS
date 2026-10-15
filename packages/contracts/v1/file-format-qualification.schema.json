@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://archeaxis.local/contracts/v1/file-format-qualification.schema.json",
+  "title": "Per-file operation qualification",
+  "type": "object",
+  "required": ["schema", "qualification_version", "core_version", "source_id", "source_revision", "job_id", "attempt", "execution_succeeded", "qualification_evidence", "operations", "loss", "outputs", "evidence_scope"],
+  "properties": {
+    "schema": {"const": "archeaxis.file-format-qualification/v1"},
+    "qualification_version": {"const": 1},
+    "core_version": {"type": "string", "minLength": 1},
+    "source_id": {"type": "string", "minLength": 1},
+    "source_revision": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "job_id": {"type": "string", "minLength": 1},
+    "attempt": {"type": ["integer", "null"], "minimum": 1},
+    "execution_succeeded": {"type": "boolean"},
+    "qualification_evidence": {"enum": ["COMPLETE", "INCOMPLETE"]},
+    "operations": {
+      "type": "object", "additionalProperties": false,
+      "required": ["store", "preview", "extract", "edit", "export", "roundtrip"],
+      "properties": {
+        "store": {"$ref": "#/$defs/operation"},
+        "preview": {"$ref": "#/$defs/operation"},
+        "extract": {"$ref": "#/$defs/operation"},
+        "edit": {"$ref": "#/$defs/operation"},
+        "export": {"$ref": "#/$defs/operation"},
+        "roundtrip": {"$ref": "#/$defs/operation"}
+      }
+    },
+    "loss": {"type": "object", "required": ["status", "reported_count", "receipt_ref"], "properties": {
+      "status": {"enum": ["unknown", "none_reported", "reported"]},
+      "reported_count": {"type": ["integer", "null"], "minimum": 0},
+      "receipt_ref": {"type": ["string", "null"]}
+    }},
+    "outputs": {"type": "array", "maxItems": 50},
+    "evidence_scope": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "operation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["qualification_version", "status", "scope"],
+      "properties": {
+        "qualification_version": {"const": 1},
+        "status": {"enum": ["RECORDED", "AVAILABLE", "QUALIFIED", "FAILED", "CANCELLED", "NOT_EXECUTED", "UNVERIFIED"]},
+        "scope": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
