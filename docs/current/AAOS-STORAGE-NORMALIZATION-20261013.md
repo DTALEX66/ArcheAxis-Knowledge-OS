@@ -52,7 +52,7 @@ Owner 明确要求执行中直接处理已审计的过时、冗余内容，包�
 
 ## 2026-10-15 当前源码树与旧安装包归档
 
-对候选 `8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3` 的完整 Git tree 一次性测量：3,795 个 blob 路径、90,520,219 逻辑字节，唯一 blob 共87,481,916字节。75组至少1KiB的重复内容主要是有校验合同的历史任务包快照；Git 本身已按 blob 去重，不以删除快照冒充历史仓库体积节约。原始测量位于整合检出的 `.project-local/runs/ba8e5e5614/tracked-tree-audit-20261015/artifacts/tree-size.json`，仅资格该固定提交。
+对候选 `8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3` 的完整 Git tree 一次性测量：3,795 个 blob 路径、90,520,219 逻辑字节，唯一 blob 共87,481,916字节。75组至少1KiB的重复内容主要是有校验合同的历史任务包快照；Git 本身已按 blob 去重，不以删除快照冒充历史仓库体积节约。原始测量位于主项目的 `.project-local/runs/ba8e5e5614/tracked-tree-audit-20261015/artifacts/tree-size.json`，仅资格该固定提交。
 
 已将 `packaging/release-0.5.0/` 的两个旧安装包归档至主项目 ignored archives；逐项尺寸和SHA读回一致，合计4,638,139字节。全tracked精确路径/文件名检索只有历史记录与清单引用，没有构建、测试、CI或当前运行入口消费；旧目录保留README恢复指针，历史正文与Git blob保留。见[旧安装包归档回执](receipts/AAOS-LEGACY-INSTALLER-ARCHIVE-20261015.json)。当前候选源码树减少这两份二进制，尚未交付远端；本机有归档副本，不声称物理空间释放。CIM进程枚举被拒绝，记录UNVERIFIED；两文件独占只读打开及移动读回通过，没有把失败枚举记成零进程。
 
