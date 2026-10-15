@@ -33,7 +33,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Memory observer refu
         return profile
 
     def ready():
-        wait("return document.body.innerText.includes('工作状态已由 Core 保全；正文保存以各文档版本回执为准。')")
+        wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
         ui.page("14")
         wait("const panel=document.querySelector('[aria-label=\"角色档案与获准记忆\"]');return !!panel && !panel.closest('[hidden]') && !!panel.getClientRects().length && panel.innerText.includes('当前存储 v')")
 
