@@ -5,7 +5,7 @@
   "status": "IMPLEMENTED_LOCAL_RUNTIME_QUALIFICATION_PENDING",
   "integration": {
     "files": 21,
-    "manifest": ".project-local/runs/job-journal-delivery-20261011/manifest.json",
+    "manifest": ".project-local/runs/be268a2d33/job-journal-delivery-20261011/manifest.json",
     "patch_sha256": "699109653c2a8a8de29770678e813fa1e5b340c01575cabdb6bab6362ba4a1bb",
     "preimages": "All 21 exact existing/ABSENT preimages independently verified",
     "first_postimage_check": "FAILED_EOL_ONLY_ON_16_FILES",

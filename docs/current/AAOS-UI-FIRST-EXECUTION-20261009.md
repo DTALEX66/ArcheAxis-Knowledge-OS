@@ -1351,3 +1351,13 @@ BE06和整体任务继续 PARTIAL。当前Tauri编译不等于原生记忆实跑
 当前修复通过99项Rust/API/宿主和20项身份/配置回归、20项preflight；既有146文件1358项前端与41项probe/124子测试证据按未变化源码摘要复用，不冒充新全量执行。修复后的真实Tauri/Core候选完成19页一次人工合成配置保存、两次有限计划读取和一次冷重开；两次正常退出，自有端口释放。见 [配置计划回执](receipts/AAOS-CONFIGURATION-PLANS-20261015.json)。
 
 BE08及完整目标继续PARTIAL；远端服务、依赖变更和安装引擎诊断、其他BE/FE、同版本完整CI及安装/Owner验收尚未完成。当前正常审批路径已成功读回GitHub，旧Never拒绝仅为历史；main仍c541ed83，PR192为9daf1221且CI38585726523失败。本批未据此声明上传或合并。下一产品缺口是未提交练习答案的持久草稿、切换保留和冷重开。原始139文件保持本地，不提交。
+
+### 当前整合交付与清理实际进展
+
+配置计划已提交 `3855f2bb032e69dd10e9ef94d854b0ac8640f137` 并正常推送；整合 [PR193](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/193) 已创建草稿，包含此前PR192提交及其合同映射修复。CI `38737930533` 当前已启动，结果须实时读取，未据启动声明PASS或合并。此前远程审批拒绝已不再是当前交付阻塞。
+
+Owner 新增明确授权执行中主动处理已审计的过时／冗余内容。首批3个历史交付目录已无损迁入规范run位置，9文件144737字节SHA全部一致；2个空目录已非递归移除，没有删除原始材料或非空文件。精确路径与回退见 [迁移回执](receipts/AAOS-LEGACY-RUN-MIGRATION-EXECUTED-20261015.json)。其余审计和完整产品任务继续执行。
+
+PR193 首轮CI38737930533实际FAIL：hosted preflight误调用只适用于Owner本地原件的H01门禁，Linux正确拒绝登记的Windows路径，其余产品门禁未运行。已修复preflight范围，本地quick/full仍严格要求H01，不上传原件、不放宽路径保护。两条真实runner回归先RED，修复后35项及19项实际preflight PASS，H01本地结构单独PASS；见 [CI修复回执](receipts/AAOS-HOSTED-PREFLIGHT-SCOPE-20261015.json)。当前云端结果不能由本地修复推断。
+
+第二批规范化又完成4个目录无损迁移，533文件／10237979字节和241子目录全部保留；7处当前公开引用更新，历史内部路径通过prefix映射保留，详见 [第二批回执](receipts/AAOS-LEGACY-RUN-MIGRATION-BATCH2-20261015.json)。

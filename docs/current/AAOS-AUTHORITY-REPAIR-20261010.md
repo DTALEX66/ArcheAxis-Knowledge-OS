@@ -23,7 +23,7 @@
 
 上次已发布基线 `fb590dfb060e51c348dce57226a4e0bbc1e19f31`；本轮最新治理修复需要独立提交/远程读回，不能复用旧发布结果。已有“全部上传，双端一致”授权保留为公开项目范围；安装、Release、V01及产品恢复不在本轮。
 
-回退使用本轮精确diff或单个治理提交；修改前字节备份位于项目 `.project-local/runs/authority-repair-20261010/before/`。不得reset/clean或覆盖未知修改。
+回退使用本轮精确diff或单个治理提交；修改前字节备份位于项目 `.project-local/runs/be268a2d33/authority-repair-20261010/before/`。不得reset/clean或覆盖未知修改。
 
 ## 软件项目入口
 
@@ -41,11 +41,11 @@ AGENTS.md覆盖AGENTS兼容读取；新增CLAUDE.md、GEMINI.md和.github/copilo
 - 本轮变更格式检查PASS，原字节归档另记；全仓格式仍有41项历史问题，保持FAIL，不伪装全仓全绿。保存来源不能为格式检查改写原字节。
 - 实际各软件上下文加载、exact-SHA云端CI、安装、M01和真实效果验收未执行；产品暂停和六项增量冻结保持。
 
-本地回执目录 `.project-local/runs/authority-repair-20261010/`，旧交接/边界保全hash见 `docs/history/authority-repair-20261010/MANIFEST.json`。
+本地回执目录 `.project-local/runs/be268a2d33/authority-repair-20261010/`，旧交接/边界保全hash见 `docs/history/authority-repair-20261010/MANIFEST.json`。
 
 ## 本轮发布回读
 
-治理载荷提交 `338c17bb17c652e0651b536edaae9b2a96a01ba0`，Git树 `046d4b7f44258bafc35ff562f2f32617b88b7e38`。GitHub原生API读取main、codex/Audit、codex/aaos-gov-ui-20261008，三个ref均等于载荷SHA；主检出与代码检出同步到该SHA。AGENTS/AUTHORITY/路径路由/CLAUDE/GEMINI/Copilot六个关键文件远程字节与Git对象相同，GitHub About已更新并读回。本机回执为 `.project-local/runs/authority-repair-20261010/PAYLOAD-DELIVERY-READBACK.json`。
+治理载荷提交 `338c17bb17c652e0651b536edaae9b2a96a01ba0`，Git树 `046d4b7f44258bafc35ff562f2f32617b88b7e38`。GitHub原生API读取main、codex/Audit、codex/aaos-gov-ui-20261008，三个ref均等于载荷SHA；主检出与代码检出同步到该SHA。AGENTS/AUTHORITY/路径路由/CLAUDE/GEMINI/Copilot六个关键文件远程字节与Git对象相同，GitHub About已更新并读回。本机回执为 `.project-local/runs/be268a2d33/authority-repair-20261010/PAYLOAD-DELIVERY-READBACK.json`。
 
 本页后续readback元数据提交不改变载荷证据身份，最新HEAD/远程ref动态读取。原始ZIP/DOCX/PDF与本地运行证据仍Git-ignored，只上传可提交公开文本、索引与治理源码。最终提交态定向71测试PASS，run `be268a2d33/65d9ddddc308`；退出时pyreadline对象清理警告保留，进程exit=0，不作为额外产品资格。
 
