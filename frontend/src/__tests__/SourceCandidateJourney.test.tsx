@@ -3,10 +3,11 @@ import {existsSync,readFileSync} from "node:fs";
 import {resolve} from "node:path";
 import {useState} from "react";
 import {beforeEach,expect,it,vi} from "vitest";
-import {act,fireEvent,render,screen,waitFor} from "@testing-library/react";
+import {act,fireEvent,render,screen,waitFor,within} from "@testing-library/react";
 import type {Editor} from "@tiptap/core";
 import {SpaceView} from "../spaces/SpaceView";
 import {DocumentEditor} from "../components/DocumentEditor";
+import {DockWorkspace} from "../workspace/DockWorkspace";
 import {outputReceipt} from "./fixtures/jobContentCoreFixture";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 // Read the same canonical vocabulary that generates Rust KNOWLEDGE_TYPES.
@@ -15,7 +16,7 @@ const repoRoot=process.env.ARCHEAXIS_WORKTREE_ROOT??(existsSync(resolve(process.
 const vocabulary=JSON.parse(readFileSync(resolve(repoRoot,"packages/contracts/v1/assessment-vocabulary.schema.json"),"utf8")) as {$defs:{knowledge_type:{enum:string[]}}};
 const allowedKnowledgeTypes=vocabulary.$defs.knowledge_type.enum;
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
-vi.mock("../components/FolderIngest",()=>({FolderIngest:({onOpenSource}:{onOpenSource:(id:string,job:string)=>void})=><button onClick={()=>onOpenSource("source-exact","job-exact")}>选择已完成批量原件</button>}));
+vi.mock("../components/FolderIngest",()=>({FolderIngest:({onOpenSource}:{onOpenSource:(id:string,job:string)=>void})=><><button onClick={()=>onOpenSource("source-exact","job-exact")}>选择已完成批量原件</button><button onClick={()=>onOpenSource("source-other","job-other")}>选择另一个批量原件</button></>}));
 vi.mock("../components/KnowledgeCoursePanel",()=>({KnowledgeCoursePanel:()=>null}));
 const text="真实来源的引文正文",hash=createHash("sha256").update(text).digest("hex");
 const source={source_id:"source-exact",source_revision:hash,sha256:hash,original_name:"source.txt",imported_at:"2026-10-11"};
@@ -42,7 +43,53 @@ function mockCore(mismatch=false,candidateStatus="CURRENT"){let accepted=false,k
  }
 });}
 function Journey(){const[page,setPage]=useState("16");return <SpaceView spaceId={page==="16"?"exchange":"library"} uiPageId={page} onInspect={()=>{}} onNavigate={()=>{throw new Error("legacy navigation forbidden");}} onOpenPage={setPage}/>;}
-beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
+function DockJourney({initialPage="16",refuse=false,documentId}:{initialPage?:string;refuse?:boolean;documentId?:string}){const[page,setPage]=useState(initialPage);return <><nav><button onClick={()=>setPage("16")}>手动进入导入页</button><button onClick={()=>setPage("03")}>手动进入阅读页</button></nav><DockWorkspace spaceId={page==="16"?"exchange":"library"} uiPageId={page} initialDocumentId={documentId} onInspect={()=>{}} onNavigate={()=>{throw new Error("legacy navigation forbidden");}} onOpenPage={id=>{if(!refuse)setPage(id);}}/></>;}
+class ResizeObserverStub{observe(){}unobserve(){}disconnect(){}}
+beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);vi.stubGlobal("ResizeObserver",ResizeObserverStub);});
+it.each(["16","03"])("SIMULATED real Dockview transfers the exact source/job into a distinct reader host (initial page %s)",async initialPage=>{
+ mockCore();render(<DockJourney initialPage={initialPage}/>);
+ fireEvent.click(screen.getByRole("button",{name:"手动进入导入页"}));
+ const exchange=await screen.findByRole("region",{name:"导入、导出与互通"});
+ fireEvent.change(within(exchange).getByLabelText("筛选已读原件"),{target:{value:"保留批量页筛选"}});
+ fireEvent.click(within(exchange).getByRole("button",{name:"选择已完成批量原件"}));
+ fireEvent.click(await within(exchange).findByRole("button",{name:"阅读此原件与整理知识候选"}));
+ const reader=await screen.findByRole("region",{name:"阅读与编辑文档视图"});
+ const preparation=await within(reader).findByRole("region",{name:"同源知识整理"});
+ expect(preparation).toHaveTextContent(source.source_id);expect(preparation).toHaveTextContent(hash);
+ expect(bridge.call).toHaveBeenCalledWith("source_original",{source_id:source.source_id});
+ fireEvent.click(within(preparation).getByRole("button",{name:"整理此来源为知识候选"}));
+ expect(await within(reader).findByRole("textbox",{name:"选择实际引文"})).toHaveValue(text);
+ expect(bridge.call).toHaveBeenCalledWith("source_job_transform",expect.objectContaining({source_id:source.source_id,job_id:"job-exact"}));
+ fireEvent.click(screen.getByRole("button",{name:"手动进入导入页"}));
+ expect(within(screen.getByRole("region",{name:"导入、导出与互通"})).getByLabelText("筛选已读原件")).toHaveValue("保留批量页筛选");
+ expect(bridge.call.mock.calls.some(([op])=>["job_enqueue","job_execute","document_draft"].includes(op))).toBe(false);
+});
+it("SIMULATED refused Dock navigation leaves the retained reader unchanged and discards the pending source",async()=>{
+ mockCore();const previous=bridge.call.getMockImplementation()!;
+ const other={...source,source_id:"source-other",original_name:"other.txt"};
+ bridge.call.mockImplementation((op:string,p:Record<string,unknown>={})=>op==="sources_list"?Promise.resolve({sources:[source,other]}):op==="source_original"&&p.source_id===other.source_id?Promise.resolve({source_id:other.source_id,name:other.original_name,media_type:"text/plain",sha256:hash,content_base64:Buffer.from(text).toString("base64")}):previous(op,p));
+ const view=render(<DockJourney/>);
+ fireEvent.click(await screen.findByRole("button",{name:"选择已完成批量原件"}));
+ fireEvent.click(await screen.findByRole("button",{name:"阅读此原件与整理知识候选"}));
+ const reader=await screen.findByRole("region",{name:"阅读与编辑文档视图"});
+ expect(await within(reader).findByRole("region",{name:"同源知识整理"})).toHaveTextContent(source.source_id);
+ fireEvent.click(screen.getByRole("button",{name:"手动进入导入页"}));view.rerender(<DockJourney refuse/>);
+ fireEvent.click(screen.getByRole("button",{name:"选择另一个批量原件"}));
+ const read=await screen.findByRole("button",{name:"阅读此原件与整理知识候选"});
+ const before=bridge.call.mock.calls.filter(([op,p])=>op==="source_original"&&p.source_id===other.source_id).length;
+ fireEvent.click(read);
+ expect(screen.getByRole("region",{name:"导入、导出与互通"})).toBeVisible();
+ fireEvent.click(screen.getByRole("button",{name:"手动进入阅读页"}));
+ expect(within(screen.getByRole("region",{name:"阅读与编辑文档视图"})).getByRole("region",{name:"同源知识整理"})).toHaveTextContent(source.source_id);
+ expect(bridge.call.mock.calls.filter(([op,p])=>op==="source_original"&&p.source_id===other.source_id)).toHaveLength(before);
+ fireEvent.click(screen.getByRole("button",{name:"手动进入导入页"}));view.rerender(<DockJourney/>);
+ fireEvent.click(screen.getByRole("button",{name:"阅读此原件与整理知识候选"}));
+ await waitFor(()=>expect(within(screen.getByRole("region",{name:"阅读与编辑文档视图"})).getByRole("region",{name:"同源知识整理"})).toHaveTextContent(other.source_id));
+ expect(bridge.call.mock.calls.filter(([op,p])=>op==="source_original"&&p.source_id===other.source_id)).toHaveLength(before+1);
+ view.rerender(<DockJourney documentId="doc-exact"/>);
+ await waitFor(()=>expect(within(reader).getByRole("region",{name:"同源知识整理"}).closest("details")).toHaveClass("reader-source-tools"));
+ expect(await within(reader).findByRole("textbox",{name:"文档草稿"})).toHaveTextContent("已保存");
+});
 it("SIMULATED transport follows canonical knowledge enum and rejects the old source_note type",async()=>{
   expect(allowedKnowledgeTypes).toContain("NOTE");expect(allowedKnowledgeTypes).not.toContain("source_note");
   mockCore();await expect(bridge.call("knowledge_from_transform",{body:{knowledge_type:"source_note"}})).rejects.toThrow("400 unknown knowledge_type");

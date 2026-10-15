@@ -66,7 +66,7 @@ export function SpaceView({
   selectedCapabilityId, uiPageId, initialDocumentId, onOpenDocument, hasUnsavedDrafts,
   onTrail,
   initialLearningItemKey, onReviewItem,
-  activationRevision,
+  activationRevision, sourceJourney,
 }: {
   spaceId: SpaceId;
   onInspect: (target: InspectionTarget) => void;
@@ -79,8 +79,11 @@ export function SpaceView({
   onTrail?: (levels: readonly ObjectTrailLevel[]) => void;
   initialLearningItemKey?: string; onReviewItem?: (key:string)=>void;
   activationRevision?: number;
+  sourceJourney?: {target?:SourceJourneyTarget;onChange:(target?:SourceJourneyTarget)=>void};
 }) {
-  const [sourceTarget,setSourceTarget]=useState<SourceJourneyTarget>();
+  const [localSourceTarget,setLocalSourceTarget]=useState<SourceJourneyTarget>();
+  const sourceTarget=sourceJourney?sourceJourney.target:localSourceTarget;
+  const setSourceTarget=sourceJourney?.onChange??setLocalSourceTarget;
   const working=useOptionalCoreWorkingState();
   const pendingReviews=Object.values(working?.state.pending_reviews??{});
   const recoveredReview=useRef<{scope:string;itemKey?:string}>({scope:""});
@@ -90,10 +93,11 @@ export function SpaceView({
   const pendingReviewItemKey=recoveredReview.current.itemKey;
   const [candidateTarget,setCandidateTarget]=useState<CandidateJourneyTarget>();
   const externalDocument=useRef(initialDocumentId);
-  useEffect(()=>{if(externalDocument.current!==initialDocumentId){externalDocument.current=initialDocumentId;setSourceTarget(undefined);}},[initialDocumentId]);
+  useEffect(()=>{if(externalDocument.current!==initialDocumentId){externalDocument.current=initialDocumentId;if(!sourceJourney)setLocalSourceTarget(undefined);}},[initialDocumentId,sourceJourney]);
   const openJourneyDocument=(id:string)=>{setSourceTarget(undefined);onOpenDocument?.(id);};
   const candidateReview=(target?:CandidateJourneyTarget)=>{if(target)setCandidateTarget(target);else onNavigate("vault");};
-  useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed){setSourceTarget(undefined);setCandidateTarget(undefined);}};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[]);
+  useEffect(()=>{if(sourceTarget)setCandidateTarget(undefined);},[sourceTarget]);
+  useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed){setLocalSourceTarget(undefined);setCandidateTarget(undefined);}};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[]);
   const view = useRef<HTMLDivElement>(null);
   const [pinnedReference,setPinnedReference]=useState<ObjectReference|null>(null);
   useEffect(()=>{setPinnedReference(null);},[uiPageId,spaceId]);
