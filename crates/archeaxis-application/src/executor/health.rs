@@ -76,10 +76,16 @@ fn handshake(
     if !allow_site {
         command.arg("-S");
     }
+    command.arg(worker).arg("--staging-root").arg(dir.path());
+    // Match the real job's declared launch contract, including video's required
+    // artifact root. A health probe owns only this temporary directory: no job
+    // request or durable workspace artifact location is handed to the worker.
+    if crate::attempts::ARTIFACT_ROOT_CAPABILITIES.contains(&capability) {
+        let artifacts = dir.path().join("artifacts");
+        std::fs::create_dir(&artifacts).map_err(|e| e.to_string())?;
+        command.arg("--artifact-root").arg(&artifacts);
+    }
     command
-        .arg(worker)
-        .arg("--staging-root")
-        .arg(dir.path())
         .current_dir(dir.path())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
