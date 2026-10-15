@@ -10,6 +10,14 @@ export type PendingReview = UiWorkingStatePendingReview;
 export type PendingMachine = UiWorkingStatePendingMachine;
 export type LearningDraft = UiWorkingStateLearningDraft;
 export type TeachingDraft = UiWorkingStateTeachingDraft;
+type PreparationAttempt = NonNullable<TeachingDraft["preparation_attempt"]>;
+type PreparationFinish = {key:string;attempt:PreparationAttempt;preparation:NonNullable<TeachingDraft["preparation"]>;saved:string;original:TeachingDraft;remove:boolean};
+function applyPreparationFinish(state:WorkingState,finish:PreparationFinish):void {
+  const entry=state.teaching_drafts?.[finish.key];
+  if(!entry||!equal(entry.preparation_attempt,finish.attempt))return;
+  if(finish.remove&&equal(entry,finish.original)){delete state.teaching_drafts![finish.key];if(!Object.keys(state.teaching_drafts!).length)delete state.teaching_drafts;return;}
+  entry.preparation=structuredClone(finish.preparation);entry.saved_preparation=finish.saved;delete entry.preparation_attempt;
+}
 export type WorkingState = {drafts:Record<string,WorkingDraft>;teaching_drafts?:Record<string,TeachingDraft>;learning_drafts?:Record<string,LearningDraft>;opened_documents:string[];active_document:string|null;page_id:string|null;pending_original?:PendingOriginal|null;pending_jobs?:Record<string,PendingJob>;pending_reviews?:Record<string,PendingReview>;pending_machine?:Record<string,UiWorkingStatePendingMachine>};
 export type WorkingRead = {schema:"archeaxis.ui-working-state/v1";workspace_id:string;restore_epoch:string;state_revision:number;state:WorkingState;draft_digests:Record<string,string>;pending_document_id:string|null;recovery_candidates:WorkingState|null;recovery_requires_confirmation:boolean};
 type Basis = Pick<WorkingRead,"workspace_id"|"restore_epoch"|"state_revision">;
@@ -42,7 +50,7 @@ export class CoreWorkingStateSession {
   private inFlight:Promise<WorkingRead>|null=null;
   private readFlight:Promise<WorkingRead>|null=null;
   private clearFlight:Promise<boolean>|null=null;
-  private unknown:{base:WorkingRead;state:WorkingState;cleared?:{id:string;sent:WorkingDraft};clearedTeaching?:{key:string;draft:TeachingDraft};clearedReview?:PendingReview;clearedLearning?:LearningDraft;clearedJob?:PendingJob;clearedMachine?:PendingMachine}|null=null;
+  private unknown:{base:WorkingRead;state:WorkingState;finishedPreparation?:PreparationFinish;cleared?:{id:string;sent:WorkingDraft};clearedTeaching?:{key:string;draft:TeachingDraft};clearedReview?:PendingReview;clearedLearning?:LearningDraft;clearedJob?:PendingJob;clearedMachine?:PendingMachine}|null=null;
   getSnapshot=():WorkingView=>this.view;
   subscribe=(listener:()=>void):(()=>void)=>{this.listeners.add(listener);return()=>this.listeners.delete(listener);};
   constructor(private transport:WorkingTransport) {}
@@ -68,6 +76,7 @@ export class CoreWorkingStateSession {
         const pending=this.unknown;
         if(!sameWorkspace(pending.base,read))return this.fail(new Error("冻结请求属于不同工作区或恢复现场；未自动重放。"));
         if(read.state_revision===pending.base.state_revision+1&&equal(read.state,pending.state)) {
+          if(pending.finishedPreparation){const state=structuredClone(this.view.state);applyPreparationFinish(state,pending.finishedPreparation);this.publish({state});}
           if(pending.clearedTeaching&&equal(this.view.state.teaching_drafts?.[pending.clearedTeaching.key],pending.clearedTeaching.draft)) {
             const state=structuredClone(this.view.state);delete state.teaching_drafts![pending.clearedTeaching.key];if(!Object.keys(state.teaching_drafts!).length)delete state.teaching_drafts;this.publish({state});
           }
@@ -114,12 +123,32 @@ export class CoreWorkingStateSession {
     if(key!==`${draft.page_id}:${draft.context_item_key??""}`||[draft.context_item_key,draft.item_key].some(s=>s!==null&&(!s.trim()||new TextEncoder().encode(s).length>512)))throw new Error("教学草稿对象身份无效；原文保留。");
     const old=this.view.state.teaching_drafts?.[key];
     if(old?.pending_record&&!equal(old,draft))throw new Error("教学请求已冻结；请先核对同一记录回执。");
+    if(old?.preparation_attempt&&!equal(old.preparation_attempt,draft.preparation_attempt))throw new Error("准备正文请求已冻结；请先核对同一保存回执。");
     if(!old&&Object.keys(this.view.state.teaching_drafts??{}).length>=32)throw new Error("最多保留 32 份教学草稿；请先保存已有正文，当前原文保留。");
     if(new TextEncoder().encode(draft.form.content).length>65_536||new TextEncoder().encode(draft.form.purpose).length>512||new TextEncoder().encode(draft.form.rubric_version).length>128)throw new Error("教学正文或用途超过 UTF-8 字节上限；本次输入未保全，请保留原文。");
     const state=structuredClone(this.view.state);state.teaching_drafts??={};state.teaching_drafts[key]=structuredClone(draft);
     assertUiWorkingState("State",state);
     if(new TextEncoder().encode(JSON.stringify(state)).length>1_048_576)throw new Error("工作草稿总量超过 1 MiB；教学输入未保全，请先保存已有正文。");
     if(!equal(old,draft))this.change(next=>{next.teaching_drafts??={};next.teaching_drafts[key]=structuredClone(draft);});
+  }
+  /** Core proves the exact frozen Document intent before clearing it; later typing survives. */
+  async finishTeachingPreparation(key:string,attempt:PreparationAttempt,preparation:NonNullable<TeachingDraft["preparation"]>,saved:string):Promise<boolean> {
+    if(this.clearFlight){await this.clearFlight;return this.finishTeachingPreparation(key,attempt,preparation,saved);}
+    const run=this.finishTeachingPreparationOnce(key,attempt,preparation,saved);this.clearFlight=run;
+    try{return await run;}finally{this.clearFlight=null;}
+  }
+  private async finishTeachingPreparationOnce(key:string,attempt:PreparationAttempt,preparation:NonNullable<TeachingDraft["preparation"]>,saved:string):Promise<boolean> {
+    await this.flush();const server=this.view.server!,entry=server.state.teaching_drafts?.[key];
+    if(!entry||!equal(entry.preparation_attempt,attempt)||!equal(this.view.state.teaching_drafts?.[key]?.preparation_attempt,attempt))return false;
+    const ordinary=!entry.knowledge_id&&!entry.parent&&!entry.course_id&&!entry.item_key&&!entry.assessment_id&&!entry.pending_record&&entry.form.scope==="personal"&&entry.form.privacy==="local_only"&&!entry.form.assisted&&!entry.form.feedback_class&&!entry.form.rubric_version&&entry.form.producer_kind==="human_authored";
+    const finish:PreparationFinish={key,attempt:structuredClone(attempt),preparation,saved,original:structuredClone(entry),remove:ordinary&&JSON.stringify({purpose:entry.form.purpose,content:entry.form.content})===saved};
+    const expected=structuredClone(server.state);applyPreparationFinish(expected,finish);
+    this.publish({status:"saving",error:null});const run=this.transport.write({...basis(server),state:structuredClone(expected)});this.inFlight=run;
+    try {
+      const read=assertUiWorkingState<WorkingRead>("Read",await run);
+      if(!sameWorkspace(server,read)||read.recovery_requires_confirmation||read.state_revision!==server.state_revision+1||!equal(read.state,expected))throw new Error("准备正文清理回执未确认；冻结请求保留。");
+      const state=structuredClone(this.view.state);applyPreparationFinish(state,finish);this.publish({state,server:read,status:equal(state,read.state)?"ready":"unsaved",error:null});return true;
+    }catch(error){this.unknown={base:server,state:expected,finishedPreparation:finish};return this.fail(error);}finally{this.inFlight=null;}
   }
   /** Only the exact snapshot is removed, after a caller verifies its domain save/readback. */
   async finishTeachingDraft(key:string,draft:TeachingDraft):Promise<boolean> {
@@ -333,7 +362,7 @@ export class CoreWorkingStateSession {
   async recover(action:"preserve"|"discard"):Promise<void> {
     const server=this.view.server;
     if(!server?.recovery_requires_confirmation||this.inFlight||this.readFlight||this.clearFlight)throw new Error("没有可确认的恢复候选，或请求仍在执行。");
-    if(action==="discard"&&(Object.keys(server.recovery_candidates?.pending_machine??{}).length||Object.keys(server.recovery_candidates?.pending_reviews??{}).length||Object.values(server.recovery_candidates?.teaching_drafts??{}).some(d=>d.pending_record)))throw new Error("恢复候选含未确认的机器、复习或教学请求；请保留候选后核对回执，不能直接丢弃执行记录。");
+    if(action==="discard"&&(Object.keys(server.recovery_candidates?.pending_machine??{}).length||Object.keys(server.recovery_candidates?.pending_reviews??{}).length||Object.values(server.recovery_candidates?.teaching_drafts??{}).some(d=>d.pending_record||d.preparation_attempt)))throw new Error("恢复候选含未确认的机器、复习或教学请求；请保留候选后核对回执，不能直接丢弃执行记录。");
     const serial=this.serial;
     const expected=action==="preserve"?server.recovery_candidates:empty();
     const run=this.transport.recover({...basis(server),action});this.inFlight=run;

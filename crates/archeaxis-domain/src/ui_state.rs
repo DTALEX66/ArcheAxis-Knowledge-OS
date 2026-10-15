@@ -66,6 +66,84 @@ pub struct TeachingPreparation {
     pub version: i64,
     pub title: String,
 }
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationEditor {
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub content: Vec<PreparationParagraph>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationParagraph {
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub attrs: PreparationAttrs,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<Vec<PreparationText>>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationAttrs {
+    pub block_id: String,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationText {
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub text: String,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationCreateBody {
+    pub create_request_id: String,
+    pub title: String,
+    pub editor_json: PreparationEditor,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationCreatePayload {
+    pub body: PreparationCreateBody,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationDraftBody {
+    pub expected_version: i64,
+    pub editor_json: PreparationEditor,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationDraftPayload {
+    pub document_id: String,
+    pub body: PreparationDraftBody,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(tag = "operation", rename_all = "snake_case", deny_unknown_fields)]
+pub enum PreparationAttempt {
+    DocumentCreate {
+        payload: PreparationCreatePayload,
+        snapshot: String,
+        #[serde(rename = "persistedPurpose")]
+        persisted_purpose: String,
+        #[serde(rename = "expectedTitle")]
+        expected_title: String,
+    },
+    DocumentDraft {
+        payload: PreparationDraftPayload,
+        snapshot: String,
+        #[serde(rename = "persistedPurpose")]
+        persisted_purpose: String,
+        #[serde(rename = "expectedTitle")]
+        expected_title: String,
+    },
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreparationSnapshot {
+    purpose: String,
+    content: String,
+}
 /// Inert form input. Only teaching::put / document writes may publish domain objects.
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -81,6 +159,8 @@ pub struct TeachingDraft {
     pub preparation: Option<TeachingPreparation>,
     pub saved_preparation: String,
     pub pending_record: Option<crate::teaching::TeachingRecord>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preparation_attempt: Option<PreparationAttempt>,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -367,11 +447,162 @@ fn machine_grant_shapes(body: &Value, operation: &str) -> bool {
     }
     true
 }
+fn preparation_basis(
+    attempt: &PreparationAttempt,
+) -> Result<(String, i64, &str, &PreparationEditor, &str, &str), Error> {
+    let (id, version, title, editor, snapshot, purpose) = match attempt {
+        PreparationAttempt::DocumentCreate {
+            payload,
+            snapshot,
+            persisted_purpose,
+            expected_title,
+        } => {
+            if !identity(&payload.body.create_request_id) || payload.body.title != *expected_title {
+                return Err(Error::Invalid("invalid preparation create identity"));
+            }
+            (
+                format!(
+                    "doc_req_{}",
+                    hex::encode(Sha256::digest(payload.body.create_request_id.as_bytes()))
+                ),
+                1,
+                expected_title.as_str(),
+                &payload.body.editor_json,
+                snapshot.as_str(),
+                persisted_purpose.as_str(),
+            )
+        }
+        PreparationAttempt::DocumentDraft {
+            payload,
+            snapshot,
+            persisted_purpose,
+            expected_title,
+        } => {
+            if !identity(&payload.document_id) || payload.body.expected_version < 1 {
+                return Err(Error::Invalid("invalid preparation draft identity"));
+            }
+            (
+                payload.document_id.clone(),
+                payload
+                    .body
+                    .expected_version
+                    .checked_add(1)
+                    .ok_or(Error::Invalid("preparation version exhausted"))?,
+                expected_title.as_str(),
+                &payload.body.editor_json,
+                snapshot.as_str(),
+                persisted_purpose.as_str(),
+            )
+        }
+    };
+    if title.len() > 512
+        || purpose.len() > 512
+        || snapshot.len() > 400_000
+        || editor.kind != "doc"
+        || editor.content.is_empty()
+        || editor.content.len() > 65_537
+    {
+        return Err(Error::Invalid("invalid frozen preparation shape"));
+    }
+    let plain: PreparationSnapshot = serde_json::from_str(snapshot)
+        .map_err(|_| Error::Invalid("invalid preparation snapshot"))?;
+    if matches!(attempt, PreparationAttempt::DocumentCreate { .. })
+        && (purpose != plain.purpose
+            || title
+                != if plain.purpose.trim().is_empty() {
+                    "教学准备草稿"
+                } else {
+                    plain.purpose.trim()
+                })
+    {
+        return Err(Error::Invalid("preparation create title snapshot mismatch"));
+    }
+    let mut ids = HashSet::new();
+    let mut lines = Vec::new();
+    for paragraph in &editor.content {
+        if paragraph.kind != "paragraph"
+            || !identity(&paragraph.attrs.block_id)
+            || !ids.insert(&paragraph.attrs.block_id)
+            || paragraph.content.as_ref().is_some_and(|c| c.len() > 1)
+        {
+            return Err(Error::Invalid("invalid preparation paragraph"));
+        }
+        let child = paragraph.content.as_ref().and_then(|c| c.first());
+        if child.is_some_and(|c| c.kind != "text" || c.text.is_empty() || c.text.contains('\n')) {
+            return Err(Error::Invalid("invalid preparation inline text"));
+        }
+        lines.push(child.map(|c| c.text.as_str()).unwrap_or(""));
+    }
+    if plain.purpose.len() > 512
+        || plain.content.len() > 65_536
+        || lines.join("\n") != plain.content
+    {
+        return Err(Error::Invalid(
+            "preparation snapshot does not match frozen editor",
+        ));
+    }
+    Ok((id, version, title, editor, snapshot, purpose))
+}
+fn check_preparation_saved(conn: &Connection, attempt: &PreparationAttempt) -> Result<(), Error> {
+    let (id, version, title, editor, _, _) = preparation_basis(attempt)?;
+    let saved = crate::document::read(conn, &id, None)
+        .map_err(|_| Error::Invalid("preparation saved document unavailable; intent retained"))?;
+    let editor =
+        serde_json::to_value(editor).map_err(|_| Error::Invalid("invalid preparation editor"))?;
+    let nodes = editor["content"]
+        .as_array()
+        .ok_or(Error::Invalid("invalid preparation editor"))?;
+    let lines = nodes
+        .iter()
+        .map(|node| node["content"][0]["text"].as_str().unwrap_or(""))
+        .collect::<Vec<_>>();
+    let blocks = saved["blocks"]
+        .as_array()
+        .ok_or(Error::Invalid("preparation blocks unavailable"))?;
+    if saved["document_id"] != id
+        || saved["version"] != version
+        || saved["title"] != title
+        || !saved["source_id"].is_null()
+        || !saved["source_revision"].is_null()
+        || !saved["revision_basis"].is_null()
+        || saved["editor_json"] != editor
+        || saved["content_sha256"] != digest(&editor)
+        || saved["text_projection"]
+            != lines
+                .iter()
+                .filter(|line| !line.is_empty())
+                .copied()
+                .collect::<Vec<_>>()
+                .join("\n")
+        || blocks.len() != nodes.len()
+        || blocks.iter().enumerate().any(|(i, block)| {
+            block["block_id"] != nodes[i]["attrs"]["block_id"]
+                || block["ordinal"] != i
+                || block["kind"] != "paragraph"
+                || block["codec_status"] != "known"
+                || block["node_json"] != nodes[i]
+                || block["text_projection"] != lines[i]
+        })
+    {
+        return Err(Error::Invalid(
+            "preparation exact saved snapshot not confirmed; intent retained",
+        ));
+    }
+    Ok(())
+}
 fn validate(state: &State) -> Result<(), Error> {
     if state.teaching_drafts.len() > 32 {
         return Err(Error::Invalid("teaching draft limit exceeded"));
     }
     for (key, draft) in &state.teaching_drafts {
+        if let Some(attempt) = &draft.preparation_attempt {
+            preparation_basis(attempt)?;
+            if draft.pending_record.is_some() {
+                return Err(Error::Invalid(
+                    "preparation and teaching requests must be reconciled separately",
+                ));
+            }
+        }
         use crate::teaching::RecordKind::*;
         let page = match draft.form.kind {
             Observation | Requirement => "08",
@@ -792,6 +1023,22 @@ pub fn write(conn: &mut Connection, request: Write) -> Result<Value, Error> {
         return Err(Error::Conflict);
     }
     for (key, draft) in &old.state.teaching_drafts {
+        if let Some(attempt) = &draft.preparation_attempt {
+            match request
+                .state
+                .teaching_drafts
+                .get(key)
+                .and_then(|d| d.preparation_attempt.as_ref())
+            {
+                Some(next) if next == attempt => {}
+                Some(_) => {
+                    return Err(Error::Invalid(
+                        "frozen preparation request cannot be replaced",
+                    ));
+                }
+                None => check_preparation_saved(&tx, attempt)?,
+            }
+        }
         if let Some(pending) = &draft.pending_record {
             if request.state.teaching_drafts.get(key) == Some(draft) {
                 continue;
@@ -1060,7 +1307,7 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
                     .state
                     .teaching_drafts
                     .values()
-                    .any(|d| d.pending_record.is_some())
+                    .any(|d| d.pending_record.is_some() || d.preparation_attempt.is_some())
             {
                 return Err(Error::Invalid(
                     "unconfirmed machine, review or teaching recovery candidate requires exact receipt; preserve candidate before reconciliation",

@@ -6,6 +6,99 @@ use serde_json::{Value, json};
 use tower::ServiceExt;
 const ROUTE: &str = "/api/v1/workspace/ui-state";
 #[tokio::test]
+async fn frozen_preparation_survives_reopen_and_requires_exact_current_document_before_clear() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("preparation.sqlite");
+    let app = router(Store::open(&path).unwrap());
+    let (_, initial) = call(&app, "GET", ROUTE, Value::Null, "human").await;
+    let editor = json!({"type":"doc","content":[{"type":"paragraph","attrs":{"block_id":"frozen"},"content":[{"type":"text","text":"original"}]}]});
+    let attempt = json!({"operation":"document_create","payload":{"body":{"create_request_id":"stable_preparation","title":"purpose","editor_json":editor}},"snapshot":"{\"purpose\":\"purpose\",\"content\":\"original\"}","persistedPurpose":"purpose","expectedTitle":"purpose"});
+    let entry = json!({"page_id":"12","context_item_key":null,"form":{"kind":"feedback","purpose":"purpose","content":"original","scope":"personal","privacy":"local_only","assisted":false,"feedback_class":null,"rubric_version":"","producer_kind":"human_authored"},"knowledge_id":null,"course_id":null,"item_key":null,"assessment_id":null,"parent":null,"preparation":null,"saved_preparation":"","pending_record":null,"preparation_attempt":attempt});
+    let mut write = json!({"workspace_id":initial["workspace_id"],"restore_epoch":initial["restore_epoch"],"state_revision":0,"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":"12","teaching_drafts":{"12:":entry}}});
+    let (status, saved) = call(&app, "PUT", ROUTE, write.clone(), "human").await;
+    assert_eq!(status, 200, "{saved}");
+    drop(app);
+    let app = router(Store::open(&path).unwrap());
+    assert_eq!(
+        call(&app, "GET", ROUTE, Value::Null, "human").await.1,
+        saved
+    );
+    write["state_revision"] = saved["state_revision"].clone();
+    let mut clear = write.clone();
+    clear["state"]
+        .as_object_mut()
+        .unwrap()
+        .remove("teaching_drafts");
+    assert_ne!(
+        call(&app, "PUT", ROUTE, clear.clone(), "human").await.0,
+        200,
+        "no forged clearance before document save"
+    );
+    let mut replace = write.clone();
+    replace["state"]["teaching_drafts"]["12:"]["preparation_attempt"]["payload"]["body"]["create_request_id"] =
+        json!("replacement");
+    assert_ne!(call(&app, "PUT", ROUTE, replace, "human").await.0, 200);
+    let (_, doc) = call(
+        &app,
+        "POST",
+        "/api/v1/documents",
+        attempt["payload"]["body"].clone(),
+        "human",
+    )
+    .await;
+    let (status, duplicate) = call(
+        &app,
+        "POST",
+        "/api/v1/documents",
+        attempt["payload"]["body"].clone(),
+        "human",
+    )
+    .await;
+    assert!(status == 200 || status == 201, "{duplicate}");
+    assert_eq!(duplicate["document_id"], doc["document_id"]);
+    // A newer form is independent of the frozen dispatched body.
+    write["state"]["teaching_drafts"]["12:"]["form"]["content"] = json!("later input");
+    let (status, newer) = call(&app, "PUT", ROUTE, write.clone(), "human").await;
+    assert_eq!(status, 200, "{newer}");
+    write["state_revision"] = newer["state_revision"].clone();
+    write["state"]["teaching_drafts"]["12:"]
+        .as_object_mut()
+        .unwrap()
+        .remove("preparation_attempt");
+    write["state"]["teaching_drafts"]["12:"]["preparation"] =
+        json!({"document_id":doc["document_id"],"version":1,"title":"purpose"});
+    write["state"]["teaching_drafts"]["12:"]["saved_preparation"] = attempt["snapshot"].clone();
+    let conn = rusqlite::Connection::open(&path).unwrap();
+    conn.execute("UPDATE document_versions SET content_sha256='wrong'", [])
+        .unwrap();
+    assert_ne!(
+        call(&app, "PUT", ROUTE, write.clone(), "human").await.0,
+        200,
+        "actual stored integrity is checked"
+    );
+    conn.execute(
+        "UPDATE document_versions SET content_sha256=?1",
+        [doc["content_sha256"].as_str().unwrap()],
+    )
+    .unwrap();
+    let (status, finished) = call(&app, "PUT", ROUTE, write, "human").await;
+    assert_eq!(status, 200, "{finished}");
+    assert_eq!(
+        finished["state"]["teaching_drafts"]["12:"]["form"]["content"],
+        "later input"
+    );
+    assert!(
+        finished["state"]["teaching_drafts"]["12:"]
+            .get("preparation_attempt")
+            .is_none()
+    );
+    assert_eq!(
+        conn.query_row("SELECT count(*) FROM documents", [], |r| r.get::<_, i64>(0))
+            .unwrap(),
+        1
+    );
+}
+#[tokio::test]
 async fn unbound_teaching_text_survives_core_store_reopen_without_publishing_a_record() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("teaching-drafts.sqlite");
