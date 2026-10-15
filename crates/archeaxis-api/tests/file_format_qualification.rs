@@ -1,4 +1,4 @@
-//! Real workers and Core/CAS with controlled text and the existing golden DOCX.
+//! Real workers and Core/CAS with controlled text/CSV/Markdown and the existing golden DOCX.
 //! This qualifies the API contract; it is not a real-corpus or native layout claim.
 use axum::{
     body::Body,
@@ -70,6 +70,22 @@ async fn text_docx_failure_and_reopen_keep_operation_qualifications_separate() {
         ),
         ("sample.docx", "office", docx, true),
         ("broken.docx", "office", b"not a zip".to_vec(), false),
+        (
+            "table.csv",
+            "text",
+            "name,note\r\n星环,\"quoted, value\"\r\n"
+                .as_bytes()
+                .to_vec(),
+            true,
+        ),
+        (
+            "notes.md",
+            "text",
+            "# 星环\n\nA [local link](./source.txt).\n"
+                .as_bytes()
+                .to_vec(),
+            true,
+        ),
     ];
     let mut saved = Vec::new();
     for (index, (name, kind, bytes, success)) in cases.into_iter().enumerate() {
@@ -112,6 +128,11 @@ async fn text_docx_failure_and_reopen_keep_operation_qualifications_separate() {
         .unwrap();
         let (_, after) = call(&app, "GET", &path, Value::Null).await;
         assert_eq!(after["source_revision"], import["sha256"]);
+        assert_eq!(after["source_id"], source);
+        assert_eq!(after["job_id"], job);
+        assert_eq!(after["job_kind"], kind);
+        assert_eq!(after["qualification_version"], 1);
+        assert_eq!(after["core_version"], env!("CARGO_PKG_VERSION"));
         assert_eq!(
             after["operations"]["extract"]["status"],
             if success { "QUALIFIED" } else { "FAILED" },
@@ -130,6 +151,74 @@ async fn text_docx_failure_and_reopen_keep_operation_qualifications_separate() {
             assert_eq!(after["qualification_evidence"], "COMPLETE");
             assert!(after["engine_version"].as_str().is_some(), "{after}");
             assert!(after["loss"]["receipt_ref"].as_str().is_some());
+            if matches!(name, "table.csv" | "notes.md") {
+                // These are real worker projections over controlled samples, not
+                // native editing, native layout or corpus-wide qualification.
+                assert_eq!(after["engine"], "python-worker-text");
+                assert_eq!(after["attempt"], 1);
+                assert_eq!(after["attempt_state"], "succeeded");
+                assert_eq!(after["operations"].as_object().unwrap().len(), 6);
+                assert_eq!(after["operations"]["preview"]["status"], "QUALIFIED");
+                assert_eq!(
+                    after["operations"]["preview"]["scope"],
+                    "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified"
+                );
+                assert_eq!(after["operations"]["export"]["status"], "AVAILABLE");
+                let (status, text) = call(
+                    &app,
+                    "GET",
+                    &format!("/api/v1/jobs/{job}/outputs/text"),
+                    Value::Null,
+                )
+                .await;
+                assert_eq!(status, StatusCode::OK);
+                assert_eq!(text["content"], std::str::from_utf8(&bytes).unwrap());
+                let (status, loss) = call(
+                    &app,
+                    "GET",
+                    &format!("/api/v1/jobs/{job}/outputs/loss_report"),
+                    Value::Null,
+                )
+                .await;
+                assert_eq!(status, StatusCode::OK);
+                let receipt: Value =
+                    serde_json::from_str(loss["content"].as_str().unwrap()).unwrap();
+                assert_eq!(receipt["engine"], after["engine"]);
+                assert_eq!(receipt["engine_version"], after["engine_version"]);
+                let facts = &receipt["params"]["format"];
+                assert_eq!(facts["parsed"], true);
+                if name == "table.csv" {
+                    assert_eq!(after["media_type"], "text/csv");
+                    assert_eq!(facts["format"], "csv");
+                    assert_eq!(facts["row_count"], 2);
+                    assert_eq!(facts["column_count"], 2);
+                    assert!(
+                        facts["locations"]
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .any(|cell| cell["coordinate"] == "B2"
+                                && cell["value"] == "quoted, value")
+                    );
+                } else {
+                    assert_eq!(after["media_type"], "text/markdown");
+                    assert_eq!(facts["format"], "markdown");
+                    assert_eq!(facts["heading_count"], 1);
+                    assert_eq!(facts["headings"][0]["text"], "星环");
+                    assert_eq!(facts["markdown_link_count"], 1);
+                }
+                for (output_kind, envelope) in [("text", &text), ("loss_report", &loss)] {
+                    let output = after["outputs"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|output| output["kind"] == output_kind)
+                        .unwrap();
+                    assert_eq!(output["sha256"], envelope["metadata"]["sha256"]);
+                    assert_eq!(output["byte_length"], envelope["metadata"]["byte_length"]);
+                    assert_eq!(output["schema"], envelope["metadata"]["schema"]);
+                }
+            }
         } else {
             assert_eq!(after["loss"]["status"], "unknown");
             assert!(!after.to_string().contains("QUALIFIED"));

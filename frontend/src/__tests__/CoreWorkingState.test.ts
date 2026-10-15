@@ -5,6 +5,46 @@ import { CoreWorkingStateSession, type LearningDraft, type WorkingState, type Wo
 const editor=(text:string):WorkingEditor=>({type:"doc",content:[{type:"paragraph",attrs:{block_id:"stable",opaque:{future:[1,null,"保留"]}},content:[{type:"text",text}]}]});
 const state=():WorkingState=>({drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null});
 const learningDraft=(answer="  尚未提交\n答案  "):LearningDraft=>({item_key:"item",assessment_id:"assessment",knowledge_version:"v1",answer,checked_correct:null,rating:null,answer_revealed:false});
+it.each(["duplicate","round-trip"] as const)("equal confirmed scene becomes ready without another write: %s",async mode=>{
+  const f=fixture();await f.session.load();f.session.rememberScene("01");await f.session.flush();
+  const confirmed=f.session.getSnapshot().server!;
+  if(mode==="round-trip")f.session.rememberScene("02");
+  f.session.rememberScene("01");expect(f.session.getSnapshot().status).toBe("unsaved");
+  expect(await f.session.flush()).toBe(confirmed);
+  expect(f.session.getSnapshot().status).toBe("ready");expect(f.session.getSnapshot().error).toBeNull();
+  expect(f.session.getSnapshot().server!.state_revision).toBe(1);expect(f.transport.write).toHaveBeenCalledTimes(1);
+});
+it("equal local state cannot bypass an unknown write ACK",async()=>{
+  const f=fixture({...state(),page_id:"01"});await f.session.load();f.session.rememberScene("02");
+  vi.mocked(f.transport.write).mockRejectedValueOnce(new Error("lost ACK"));
+  await expect(f.session.flush()).rejects.toThrow("lost ACK");f.session.rememberScene("01");
+  expect(f.session.getSnapshot().state).toEqual(f.session.getSnapshot().server!.state);
+  await expect(f.session.flush()).rejects.toThrow("先读取");
+  expect(f.session.getSnapshot().status).toBe("blocked");expect(f.transport.write).toHaveBeenCalledTimes(1);
+});
+it("equal local state cannot bypass recovery confirmation",async()=>{
+  const f=fixture();await f.session.load();
+  f.set({...f.get(),recovery_candidates:state(),recovery_requires_confirmation:true});await f.session.load();
+  f.session.rememberScene(null);
+  await expect(f.session.flush()).rejects.toThrow("先读取");
+  expect(f.session.getSnapshot().status).toBe("recovery");expect(f.transport.write).not.toHaveBeenCalled();
+});
+it("equal scene flush preserves an acknowledged frozen original request",async()=>{
+  const pending={create_request_id:"frozen-original",title:"retained",editor_json:editor("frozen body")};
+  const f=fixture({...state(),page_id:"01",pending_original:pending});await f.session.load();
+  f.session.rememberScene("01");await f.session.flush();
+  expect(f.session.getSnapshot().status).toBe("ready");
+  expect(f.session.getSnapshot().state.pending_original).toEqual(pending);expect(f.transport.write).not.toHaveBeenCalled();
+});
+it("equal scene flush still waits for the active write before confirming ready",async()=>{
+  const f=fixture({...state(),page_id:"01"});await f.session.load();let finish!:(value:WorkingRead)=>void;
+  vi.mocked(f.transport.write).mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+  f.session.rememberScene("02");const sent=structuredClone(f.session.getSnapshot().state),writing=f.session.flush();
+  f.session.rememberScene("01");let settled=false;const flushing=f.session.flush().then(()=>{settled=true;});
+  await Promise.resolve();expect(settled).toBe(false);expect(f.session.getSnapshot().status).toBe("unsaved");
+  finish(f.publish(sent));await writing;await flushing;
+  expect(f.session.getSnapshot().status).toBe("ready");expect(f.get().state.page_id).toBe("01");expect(f.transport.write).toHaveBeenCalledTimes(2);
+});
 it("retains the newer learning answer while reconciling a lost draft ACK",async()=>{
   const f=fixture();await f.session.load();const sent=learningDraft();f.session.rememberLearningDraft(sent);
   vi.mocked(f.transport.write).mockImplementationOnce(async request=>{f.publish(request.state);throw new Error("lost draft ACK");});

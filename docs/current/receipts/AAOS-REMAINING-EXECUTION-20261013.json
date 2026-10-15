@@ -465,7 +465,8 @@
         "docs/current/receipts/BE11-FORMAT-QUALIFICATION-20261016.json",
         "docs/current/receipts/AAOS-VIDEO-HEALTH-CONTRACT-20261016.json",
         "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json",
-        "docs/current/receipts/BE11-FORMAT-SURFACE-20261016.json"
+        "docs/current/receipts/BE11-FORMAT-SURFACE-20261016.json",
+        "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
       ],
       "dependencies": [
         "BE01"
@@ -487,7 +488,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": "Per-file six-operation qualification, real controlled text/DOCX workers, finite host read and explicit UI are implemented and locally verified. Batch planning, native editing/roundtrip, corpus-wide qualification and current installed acceptance remain incomplete.",
+      "blocker": "Per-file six-operation qualification, real controlled text/DOCX/CSV/Markdown workers, finite host read and explicit UI are implemented and locally verified. Batch planning, native editing/roundtrip, corpus-wide qualification and current installed acceptance remain incomplete.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -716,9 +717,10 @@
       "evidence": [
         "docs/current/AAOS-GLASS-CABIN-DELIVERY-20261015.md",
         "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json",
-        "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json"
+        "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json",
+        "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
       ],
-      "remaining": "Sidebar/top-menu chrome and narrow drawer have bounded browser evidence. Remaining full shell/pages and reference-5 workbench composition are not qualified."
+      "remaining": "Sidebar/top-menu chrome and reference-5 two-column workbench are locally implemented with browser evidence; final materials/spacing, all pages and complete reference acceptance remain incomplete."
     },
     {
       "id": "FE06",
@@ -1047,6 +1049,10 @@
     "top_navigation_20261016": {
       "state": "LOCAL_PASS_CLOUD_PENDING",
       "receipt": "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json"
+    },
+    "latest_checkpoint": {
+      "state": "LOCAL_PASS_CLOUD_PENDING",
+      "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
     }
   },
   "owner_goal": {
@@ -1206,5 +1212,5 @@
     "status": "PASS_BOUNDED_NATIVE",
     "overall": "PARTIAL"
   },
-  "latest_integration_checkpoint": "docs/current/receipts/AAOS-SURFACE-INTEGRATION-20261016.json"
+  "latest_integration_checkpoint": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
 }
