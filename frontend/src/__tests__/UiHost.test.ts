@@ -28,3 +28,26 @@ describe("finite host v2 consumer",()=>{
   invoke.mockRejectedValue(new Error("lost reply"));await expect(uiHostRead("model.inventory.read")).rejects.toThrow("lost reply");expect(invoke).toHaveBeenCalledTimes(2);
  });
 });
+
+const planCatalog=()=>({schema:"archeaxis.configuration-plans/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",configuration_revision:0,configuration_sha256:"b".repeat(64),modules:[],plans:[],remote_service_support:"UNSUPPORTED_BY_CURRENT_LOOPBACK_CONTRACT",installer_available:false,requires_formal_plan_and_grant:true,execution_grant:null,network_performed:false,storage_changed:false,worker_started:false});
+describe("finite configuration and deployment plan reads",()=>{
+ beforeEach(()=>{vi.mocked(coreCommand).mockReset();vi.mocked(coreCommand).mockResolvedValue({workspace_id:"a".repeat(32),restore_epoch:"initial"});});
+ it("admits both mapped input-free reads and no installation request",async()=>{
+  const invoke=vi.fn().mockImplementation(async(_command,args)=>({...result(args.request),result_ref:planCatalog()}));window.__TAURI__={core:{invoke}};
+  for(const operation of ["configuration.plan.read","deployment.plan.read"] as const) await expect(uiHostRead(operation)).resolves.toEqual(planCatalog());
+  expect(invoke).toHaveBeenCalledTimes(2);
+  for(const call of invoke.mock.calls)expect(call[1].request.input).toEqual({});
+ });
+ it.each([{installer_available:true},{network_performed:true},{storage_changed:true},{worker_started:true},{execution_grant:"synthetic"},{configuration_sha256:"Z".repeat(64)},{workspace_id:"c".repeat(32)},{restore_epoch:"c".repeat(32)},{progress:100}])("rejects forged qualification or stale identity %j",async(patch)=>{
+  const invoke=vi.fn().mockImplementation(async(_command,args)=>({...result(args.request),result_ref:{...planCatalog(),...patch}}));window.__TAURI__={core:{invoke}};
+  await expect(uiHostRead("configuration.plan.read")).rejects.toThrow();expect(invoke).toHaveBeenCalledTimes(1);
+ });
+ it("rejects an executable download and unknown fields inside a plan",async()=>{
+  const download={plan_id:"b".repeat(64),profile_id:"local",model:"synthetic",mode:"local_download",source:null,version:null,artifact_sha256:null,size_bytes:null,executable:false,reason_code:"INSTALLER_AND_APPROVED_SOURCE_UNAVAILABLE",risk_scope:"LOCAL_DISK_AND_PROCESS_CHANGES_NOT_AUTHORIZED_BY_READ",rollback:"NO_ARTIFACT_CREATED_NO_ROLLBACK_REQUIRED"};
+  let body: Record<string,unknown>={...planCatalog(),plans:[download]};
+  const invoke=vi.fn().mockImplementation(async(_command,args)=>({...result(args.request),result_ref:body}));window.__TAURI__={core:{invoke}};
+  await expect(uiHostRead("deployment.plan.read")).resolves.toEqual(body);
+  body={...planCatalog(),plans:[{...download,executable:true}]};await expect(uiHostRead("deployment.plan.read")).rejects.toThrow();
+  body={...planCatalog(),plans:[{...download,source:"https://external.invalid/model"}]};await expect(uiHostRead("deployment.plan.read")).rejects.toThrow();
+ });
+});

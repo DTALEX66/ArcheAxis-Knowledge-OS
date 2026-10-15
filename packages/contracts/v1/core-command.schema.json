@@ -112,7 +112,8 @@
         "character_memory_apply",
         "character_memory_context",
         "character_memory_export",
-        "operation_readiness"
+        "operation_readiness",
+        "configuration_plans_read"
       ]
     },
     "payload": {

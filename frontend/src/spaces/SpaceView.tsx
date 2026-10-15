@@ -18,6 +18,8 @@ import type { ObjectReference } from "../api/generated/research-contract";
 import { CanonicalCapabilitiesSpace } from "./CanonicalCapabilitiesSpace";
 import { CanonicalResourcesSpace } from "./CanonicalResourcesSpace";
 import { BackupPanel } from "../components/BackupPanel";
+import { ModelConfigurationPanel } from "../components/ModelConfigurationPanel";
+import { ConfigurationPlanPanel } from "../components/ConfigurationPlanPanel";
 import { VersionSourcePanel } from "../components/VersionSourcePanel";
 import type { InspectionTarget } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
@@ -138,6 +140,8 @@ export function SpaceView({
   if (uiPageId === "19") return <section className="ui-reliability-panel" aria-label="系统与可靠性" data-section="backup" tabIndex={-1}>
     <h2>本地工作区与恢复</h2><p>普通笔记与草稿可先保存，依据分析、专业采用与 AI 资格分别记录。</p>
     <BackupPanel hasUnsavedDrafts={hasUnsavedDrafts} /><p>权限配置界面尚未接通。恢复通过本地宿主执行，浏览器未连接时明确不可用。</p>
+    <section aria-label="产品模型与用途绑定"><ModelConfigurationPanel /></section>
+    <ConfigurationPlanPanel />
   </section>;
   if (uiPageId === "20") return <><VersionSourcePanel /><CanonicalLibrarySpace purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /></>;
   if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onTrail={onTrail}/>;

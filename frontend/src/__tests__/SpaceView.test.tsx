@@ -160,3 +160,15 @@ describe("SpaceView routing", () => {
     expect(screen.queryByText("CANON-learning")).not.toBeInTheDocument();
   });
 });
+
+describe("current settings plan route",()=>{
+ it("mounts configuration and plans on page19 alongside existing recovery",()=>{
+  render(<SpaceView spaceId="settings" uiPageId="19" {...props}/>);
+  expect(screen.getByRole("button",{name:"读取模型配置"})).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:"读取配置与部署计划"})).toBeInTheDocument();
+ });
+ it("keeps capability detail and catalogs free of settings configuration forms",()=>{
+  render(<SpaceView spaceId="settings" uiPageId="17" {...props}/>);
+  expect(screen.queryByRole("button",{name:"读取配置与部署计划"})).not.toBeInTheDocument();
+ });
+});

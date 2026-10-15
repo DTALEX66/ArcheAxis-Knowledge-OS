@@ -1,0 +1,254 @@
+{
+  "schema": "archeaxis.configuration-plans-execution/v1",
+  "date": "2026-10-15",
+  "overall": "PARTIAL",
+  "local_readonly_plan_journey": "PASS_REAL_NATIVE_UI_CORE_SYNTHETIC_INPUT",
+  "parent_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+  "source_patch_sha256": "98822551a5528ba724f9693dec89e08742b527b7e95f29731695c9d59abceb5f",
+  "code_files_sha256": {
+    "crates/archeaxis-api/src/runtime/configuration_plans.rs": "f369eac08fd6fcd70e5fa4e06bf5a1f1d89739e18061571b83a917a7da44642a",
+    "crates/archeaxis-api/src/runtime/mod.rs": "a903e392efc6212ec08bcdba3b598a4eff36a33097e7b60f6cf540e5bffc9c17",
+    "crates/archeaxis-api/tests/configuration_plans_api.rs": "1faa7429c7b4b7c46ba2888c01ba34bcd9f95f7b50de4e777e2f2aae2edc3ae3",
+    "crates/archeaxis-contracts/src/generated/ui_host.rs": "0e80e555bd0b88392e768f9d278d6207942b114001191af1d781408188419d22",
+    "crates/archeaxis-domain/src/configuration_plans.rs": "526773b6fe6abdf7305b1788cdd5b1d84c42adaaffdb6df347378995973bfea5",
+    "crates/archeaxis-domain/src/lib.rs": "a14f3afaee22e33bc27d6d4bc2e1d7442f57c9a532fd442886ce0abdc8cb77d9",
+    "crates/archeaxis-domain/src/model_configuration.rs": "675a0256c490a552e3c661b7a0388d52b0e97c90b03013dc8bb3b8d09dc2c283",
+    "crates/archeaxis-domain/src/ui_state.rs": "8aa7c9208d2fd7ceae50f8b1f2e5d826e852e20d901d1aa93d7c113d41ec719b",
+    "crates/archeaxis-domain/tests/configuration_plans.rs": "cbb24bcd77b5995bb31865685e0631579c5756653a4b3c0ab6d975a81d532ec4",
+    "frontend/src/__tests__/ConfigurationPlanPanel.test.tsx": "f9220c9c2b865ea787479da798f9e8c20c877ab1068cd7f80bd501f11550f389",
+    "frontend/src/__tests__/SpaceView.test.tsx": "1ecd104ba33d29391323f0de7edb679c5266d885dce519e8ebdaf7710a3d31ed",
+    "frontend/src/__tests__/UiHost.test.ts": "64f90e69ae3f141485fb1daefb49c4d729a431f99ffd8738147d112b16f62266",
+    "frontend/src/api/core.ts": "01e32c97b351acf98abfde2e716d096a04a1ba3b1903607df97021085b873461",
+    "frontend/src/api/generated/core-contract.ts": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95",
+    "frontend/src/api/generated/resource-catalog.ts": "9e1c10aa1a20f9bd2232ef44760da19b588ce588832f7c0ec39ca286ce94616b",
+    "frontend/src/api/generated/ui-host-contract.ts": "0b0e2514cc2c2cdcaca4734c81f37c19853ed43f52054d4e4ca0893969374d37",
+    "frontend/src/api/uiHost.ts": "4dd2f8f32615d33c2dd4bece9c0e3a82b631d87d7703a8ca336b7f26160f7b14",
+    "frontend/src/components/ConfigurationPlanPanel.tsx": "3fe1600163bf96b4d4f6060f8ba31679582d9f5d993c1550ce807cf26dd5f585",
+    "frontend/src/spaces/SpaceView.tsx": "a57af2410a9624ede7753993e38e00416cba63aabcd4586e530d78e1e2f73baf",
+    "packages/contracts/v1/core-command.schema.json": "74d8b1516b6452a67c9060ad317784df8fbae425fb088d0ced39f04dc988ddbb",
+    "packages/contracts/v1/core-document.schema.json": "ea9aabb03dbe92f7d472b1c09e415ea915292718f3a334985babc58bdab8c32b",
+    "packages/contracts/v2/ui-host.schema.json": "60bf827bb83d837447928b9970af21914fd00911414ef367cba11e23d0e4132b",
+    "scripts/probes/aaos01_configuration_plan_loop.py": "6c51ea0d9ac1f96815f97b291d4233ee6ecb871ad48ef0d0bd738c6c3070aa05",
+    "scripts/probes/aaos01_tauri_webdriver_loop.py": "9477c0850100a492568734492bfca4f0df60e40c5ad9b5ccca8e2dc35a899cb5",
+    "src-tauri/src/core_bridge.rs": "315f1e39020f380e3458e090dd844e92259829c4ddd7cb00d9460b8cd4807882",
+    "src-tauri/src/ui_host_bridge.rs": "445ebc0d45e1629a3c13704a9542d1de935dd6202947f48185653ec893018c8c",
+    "tests/maintenance/test_contract_number_consistency.py": "c41cd525b6e12c11e37a83ae400a953c2effbf78b1d637ed71ffdee65ff81625",
+    "tests/maintenance/test_contract_route_inventory.py": "97c5fab9df96ff39c7018f1dcf4a60684cf3655725662de748f6375c8b40dcf8"
+  },
+  "changes": [
+    "Current workspace model configuration and registered module decisions produce typed read-only plans through two finite host ports.",
+    "UI19 exposes the existing product model configuration form and manual plan reader; no automatic probe, download or installation.",
+    "A genuine first-GET regression exposed lazy identity insertion. Missing identity now fails read-only; initialized reads do not write SQL.",
+    "Unknown version, source artifact hash and bytes remain null; all plans are non-executable and grant-free."
+  ],
+  "evidence": {
+    "rust_api_host": {
+      "state": "PASS",
+      "tests": 99,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/plan-read-green/artifacts/plan-core.json",
+        "sha256": "e7dbc8b6e19947bd52d6769d36acb2b1190799d5a0c935a0f9d3236c6f3f235f",
+        "source_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "source_patch_sha256": "98822551a5528ba724f9693dec89e08742b527b7e95f29731695c9d59abceb5f",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "identity_configuration_regression": {
+      "state": "PASS",
+      "tests": 20,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/plan-identity-regression/artifacts/plan-core.json",
+        "sha256": "1299dd13bf866f01e8e1a0d5cc84f72c3cc8951afa95bf88bfbb1d7671a43542",
+        "source_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "source_patch_sha256": "98822551a5528ba724f9693dec89e08742b527b7e95f29731695c9d59abceb5f",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "frontend_full": {
+      "state": "PASS",
+      "files": 146,
+      "tests": 1358,
+      "level": "SIMULATED",
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/plan-all2/artifacts/execution.json",
+        "sha256": "3d0f06763ee50480041ab27ed434e382ca4608d4a772ae45307638f46083eb11",
+        "source_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "source_patch_sha256": "2c7017d0609522d0836340de1724f4c509f25799d20bee40a7397ae24e381c2a",
+        "source_consistent": true,
+        "exit_code": 0
+      },
+      "scope": "Earlier patch 2c7017; all affected frontend/contract/host/probe source hashes remain identical, checked against its preflight snapshot. Not represented as a new full-suite run."
+    },
+    "probe_regressions": {
+      "state": "PASS",
+      "tests": 41,
+      "subtests": 124,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/plan-probes1/artifacts/execution.json",
+        "sha256": "0fd37ff33a94f811c8d91abcb91ceeade60825aa93b44bc25c9ff002e324be6a",
+        "source_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "source_patch_sha256": "2c7017d0609522d0836340de1724f4c509f25799d20bee40a7397ae24e381c2a",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "preflight": {
+      "state": "PASS",
+      "checks": 20,
+      "route_tests": 26,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/plan-final-pre/artifacts/execution.json",
+        "sha256": "4688df3a2627a2506e18cec12903a9ef49132ae746c5008a4a7e95cf7f7a261e",
+        "source_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "source_patch_sha256": "98822551a5528ba724f9693dec89e08742b527b7e95f29731695c9d59abceb5f",
+        "source_consistent": true,
+        "exit_code": 0
+      },
+      "scope": "Preflight only; standard quick historical directory-layout failure remains separate."
+    },
+    "current_build": {
+      "state": "PASS",
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/plan-candidate2-1015/artifacts/native-build-binding.json",
+        "sha256": "61043e54810a48b5562b2139e16793d4e392e6b1530f98f0f3312689b5fd0ad8",
+        "source_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "source_patch_sha256": "98822551a5528ba724f9693dec89e08742b527b7e95f29731695c9d59abceb5f",
+        "source_consistent": true
+      },
+      "host_sha256": "55e188ea7cc69ed887aab54a5b9424ee3d9b7ea893cdf0e3402f76810fd5e39a",
+      "core_sha256": "b1bf651e1e8477f39d073ecb550c059a0e8fcaa79770276aa70587debf5054da",
+      "runtime_manifest_sha256": "fe5fbb8d0bdb684e40765aed02506abf3b0976b88cb1d77ae9a30e624c76559d"
+    },
+    "unchanged_source_reuse": [
+      "frontend/src/__tests__/ConfigurationPlanPanel.test.tsx",
+      "frontend/src/__tests__/SpaceView.test.tsx",
+      "frontend/src/__tests__/UiHost.test.ts",
+      "frontend/src/api/core.ts",
+      "frontend/src/api/generated/core-contract.ts",
+      "frontend/src/api/generated/resource-catalog.ts",
+      "frontend/src/api/generated/ui-host-contract.ts",
+      "frontend/src/api/uiHost.ts",
+      "frontend/src/components/ConfigurationPlanPanel.tsx",
+      "frontend/src/spaces/SpaceView.tsx",
+      "packages/contracts/v1/core-command.schema.json",
+      "packages/contracts/v1/core-document.schema.json",
+      "packages/contracts/v2/ui-host.schema.json",
+      "scripts/probes/aaos01_configuration_plan_loop.py",
+      "scripts/probes/aaos01_tauri_webdriver_loop.py",
+      "src-tauri/src/core_bridge.rs",
+      "src-tauri/src/ui_host_bridge.rs"
+    ]
+  },
+  "native": {
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/webdriver-464e0216755c/tmp/journey/receipt.json",
+      "sha256": "fa02ed2652b98bb59b8704ca22430060693525a885db95419c06a244d2bbca94",
+      "source_patch_sha256": "98822551a5528ba724f9693dec89e08742b527b7e95f29731695c9d59abceb5f",
+      "source_consistent": true
+    },
+    "level": "REAL_NATIVE_UI_CORE_SYNTHETIC_INPUT",
+    "manual_configuration_writes": 1,
+    "formal_plan_reads": 2,
+    "cold_reopens": 1,
+    "plan_count": 2,
+    "current_configuration_unchanged_by_reads": true,
+    "configuration_sha256": "fe5ad9aa5b19cbde6aa51f04c9a3d221fe6cd2dd436a4d0c392c8cd25d0bafdd",
+    "normal_exits": 2,
+    "owned_ports_released": true,
+    "remaining_owned_processes": 0,
+    "model_execution": "NOT_EXECUTED",
+    "installed": "NOT_QUALIFIED",
+    "owner_acceptance": false,
+    "deployment_alias": "Unit/contract validated; native journey exercises configuration.plan.read only",
+    "visual_scope": "Actual UI19 controls and cold-reopened layout observed; results below screenshot viewport are DOM-asserted, not full-page pixel qualification."
+  },
+  "retained_failures": [
+    {
+      "run": "plan-read-red",
+      "reason": "Actual fresh Store GET inserted identity: total_changes 1 to 2, identity count 0 to 1. Fixed without weakening assertion.",
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/plan-read-red/artifacts/plan-core.json",
+        "sha256": "2a85bb471cc5ec95de84125e08a79d9df9cbbaab192b58b60b5613519d07c38a",
+        "source_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "source_patch_sha256": "f9c423de591737bbbe0753491f78773536a0f2437e3c05f831d9447381b943c4",
+        "source_consistent": true,
+        "exit_code": 101
+      }
+    },
+    {
+      "run": "plan-maint1",
+      "reason": "Strict inventory reflected new endpoint; updated exact counts with full set comparison preserved."
+    },
+    {
+      "run": "plan-core1-1015",
+      "reason": "Test Tauri build lacked canonical TAURI_CONFIG; corrected test environment."
+    },
+    {
+      "runs": [
+        "plan-front1",
+        "plan-front2",
+        "plan-front4"
+      ],
+      "reason": "Cancelled after hook returned a mock interpreted as pending cleanup; explicit void beforeEach fixed. Cancelled runs not PASS."
+    },
+    {
+      "runs": [
+        "plan-all1",
+        "plan-pre1"
+      ],
+      "reason": "Stale generated resource input hash; canonical generator refreshed, old failures retained."
+    },
+    {
+      "run": "plan-journey1",
+      "reason": "Default driver absent; used existing declared exact driver path."
+    },
+    {
+      "run": "plan-journey3",
+      "reason": "One native attempt timed out waiting for configuration save. No model configuration row was stored; exact UI cause remains UNVERIFIED. Same product bytes passed a diagnostic rerun; no repeated-run reliability claim.",
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/webdriver-3b66db27e99a/tmp/journey/receipt.json",
+        "sha256": "57589365825c726f6afe4638014bb339b328272bd886cc10d1dd18896c22d8ad",
+        "source_patch_sha256": "98822551a5528ba724f9693dec89e08742b527b7e95f29731695c9d59abceb5f",
+        "source_consistent": true
+      }
+    },
+    {
+      "run": "plan-journey4",
+      "reason": "Temporary diagnostic wrapper lacked probe import path; failed before native launch. Corrected ignored wrapper, no product mutation."
+    },
+    {
+      "scope": "Current resumed sandbox",
+      "reason": "Git ownership and gh config access unavailable in sandbox; normal approved execution succeeded; no global config or ACL changes."
+    }
+  ],
+  "remaining": [
+    "BE08 full remote-service, dependency change planning and installer-engine diagnostics are incomplete; current numeric-loopback contract remains explicit.",
+    "No actual installer/download/paid model use, no Owner data or installed acceptance.",
+    "BE09 ordinary exercise drafts and other editable-page consumers remain incomplete.",
+    "Whole BE/FE integration, current exact-SHA CI and main delivery are separate; full objective remains PARTIAL."
+  ],
+  "delivery": {
+    "state": "LOCAL_CHECKPOINT_PENDING",
+    "push": "NOT_YET_EXECUTED_FOR_THIS_CHANGE",
+    "ci": "NO_CURRENT_CANDIDATE_EVIDENCE",
+    "main_observed": "c541ed8315e54aaa111da64ba79c95cad19b408d",
+    "pr192_head_observed": "9daf1221952133374181a6c7c81b6529d0e6419f",
+    "pr192_ci": "FAILURE_38585726523",
+    "previous_approval_denial": "Historical; current normal approved GitHub read succeeds."
+  },
+  "artifact_ownership": {
+    "candidate": ".project-local/build/ba8e5e5614/plan-candidate2-1015",
+    "evidence_root": ".project-local/runs/ba8e5e5614",
+    "purpose": "Task-owned reproducible native candidate and isolated synthetic acceptance evidence",
+    "retention": "Retain while referenced by these receipts or undelivered changes; no cleanup authorized by PASS",
+    "raw_taskpacks": "139 files remain local, untracked and excluded from delivery"
+  },
+  "metadata_boundary": "This receipt and canonical progress update are written after testing. Recorded code hashes bind behavior; their new metadata bytes were not part of the prior runtime snapshot.",
+  "post_validation_format_only": {
+    "path": "crates/archeaxis-api/tests/configuration_plans_api.rs",
+    "previous_sha256": "f24781847078c73d61bc8e8536875496440f3c44b687f09a878fcd569146beac",
+    "change": "rustfmt line wrapping only; exact reverse-transform SHA verified"
+  }
+}

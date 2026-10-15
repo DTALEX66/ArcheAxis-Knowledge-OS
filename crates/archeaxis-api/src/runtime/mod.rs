@@ -15,6 +15,7 @@ use tokio::sync::Mutex;
 
 mod character_memory;
 mod colearning;
+mod configuration_plans;
 mod context_refusal;
 mod conversation;
 mod courses;
@@ -223,6 +224,7 @@ pub fn router(executor: Executor) -> Router {
             "/api/v1/material/questions/status",
             post(material_questions::status),
         )
+        .route("/api/v1/configuration-plans", get(configuration_plans::get))
         .route(
             "/api/v1/model-configuration",
             get(model_configuration::get).put(model_configuration::put),

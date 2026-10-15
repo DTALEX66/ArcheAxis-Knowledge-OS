@@ -15,6 +15,7 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  configuration_plans_read: "ConfigurationPlanCatalog",
   character_memory_get:"CharacterProfile", character_memory_context:"CharacterContext",
   character_memory_apply:"CharacterMemoryReceipt", character_memory_export:"CharacterMemoryExport",
   model_configuration_get:"ModelConfiguration", model_configuration_put:"ModelConfiguration", model_configuration_resolve:"ResolvedModel",

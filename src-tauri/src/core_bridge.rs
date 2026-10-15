@@ -98,6 +98,7 @@ pub enum Operation {
     CharacterMemoryApply,
     CharacterMemoryContext,
     CharacterMemoryExport,
+    ConfigurationPlansRead,
     ModelConfigurationGet,
     ModelConfigurationPut,
     ModelConfigurationResolve,
@@ -601,6 +602,12 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             )
         }
         CharacterMemoryApply => ("POST", "/api/v1/character-memory".into(), Some(body()?)),
+        ConfigurationPlansRead => {
+            if !p.as_object().is_some_and(|v| v.is_empty()) {
+                return Err("CORE_COMMAND_PAYLOAD_EMPTY_REQUIRED".into());
+            }
+            ("GET", "/api/v1/configuration-plans".into(), None)
+        }
         ModelConfigurationGet => {
             if !p.as_object().is_some_and(|v| v.is_empty()) {
                 return Err("CORE_COMMAND_PAYLOAD_EMPTY_REQUIRED".into());
@@ -1839,6 +1846,26 @@ mod folder_native_contract_regression {
             assert_eq!(url, path);
             let request: Request=serde_json::from_value(serde_json::json!({"operation":operation,"payload":{"body":{},"token":"synthetic"}})).unwrap();
             assert!(route(&request).is_err());
+        }
+    }
+    #[test]
+    fn configuration_plans_are_input_free_gets_with_no_install_route() {
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"configuration_plans_read","payload":{}}),
+        )
+        .unwrap();
+        let actual = route(&request).unwrap();
+        assert_eq!(actual, ("GET", "/api/v1/configuration-plans".into(), None));
+        for payload in [
+            serde_json::json!({"url":"https://external.invalid"}),
+            serde_json::json!({"grant":"synthetic"}),
+            serde_json::json!({"install":true}),
+        ] {
+            let invalid: Request = serde_json::from_value(
+                serde_json::json!({"operation":"configuration_plans_read","payload":payload}),
+            )
+            .unwrap();
+            assert!(route(&invalid).is_err());
         }
     }
 }

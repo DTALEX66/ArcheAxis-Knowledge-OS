@@ -1063,6 +1063,7 @@ def main():
     parser.add_argument("--driver", type=Path)
     parser.add_argument("--native-driver", type=Path)
     parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
+    parser.add_argument("--configuration-plan-loop", action="store_true", help="Explicit isolated BE08 native configuration and read-only plan journey; no installer or model execution")
     parser.add_argument("--character-memory-loop", action="store_true", help="Explicit independent BE06 synthetic memory UI, cold reopen and owned local JSON download; no model or installed claim")
     parser.add_argument("--ui-import-manifest", type=Path, help="Explicit 18-format synthetic fixture identities for actual file input qualification")
     parser.add_argument("--ui-format-conversion", action="store_true", help="Execute actual UI content controls for explicit synthetic import manifest")
@@ -1123,6 +1124,8 @@ def main():
     validate_conflict_branch(args)
     if args.character_memory_loop and any((args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.installer, args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss, args.grouped_machine_ack_loss)):
         parser.error("character-memory candidate qualification cannot mix other journeys or installer qualification")
+    if args.configuration_plan_loop and any((args.character_memory_loop, args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.installer, args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss, args.grouped_machine_ack_loss, args.grouped_run_ai)):
+        parser.error("configuration-plan candidate qualification cannot mix other journeys, models or installer qualification")
     host = args.host.resolve()
     tools = REPO / ".project-local/task-runtime/aaos01-tools"
     driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
@@ -1409,7 +1412,7 @@ def main():
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
         wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
-        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop:
+        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
@@ -1528,6 +1531,22 @@ def main():
             initialization["status"] = initialization["ui_result"]["status"]
             close_session()
             receipt["ok"] = initialization["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
+        if args.configuration_plan_loop:
+            grouped = load("plan_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            plans = load("plan_native_journey", REPO / "scripts/probes/aaos01_configuration_plan_loop.py")
+            actions = []
+            def plan_command(element_id, action, body):
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def plan_restart():
+                close_session()
+                launch()
+            controls = grouped.GroupedUI(js, wait, ui_element, plan_command, actions)
+            receipt["configuration_plan_loop"] = {"ui_actions":actions}
+            plans.run(ui=controls, bridge=bridge, js=js, wait=wait, restart=plan_restart, screenshot=screenshot, report=receipt["configuration_plan_loop"])
+            receipt["steps"].append("BE08 finite product configuration and read-only plan UI; no installation, model or Owner qualification")
+            close_session()
+            receipt["ok"] = receipt["configuration_plan_loop"]["status"] == "PASS"
             raise _GroupedJourneyCompleteError()
         if args.character_memory_loop:
             grouped = load("memory_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")

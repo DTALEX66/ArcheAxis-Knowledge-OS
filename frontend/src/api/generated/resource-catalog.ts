@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "5c877c10eb2e2f876ca66fc370e8cc44a0a2278870e65741407d4222b2aa761c"
+      "sha256": "5a5cea33282207a731e0d06569da6a30f316cfd1d463fb13b0ae830cd37e7d3c"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -382,6 +382,10 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     "source_contract_rebind_20261015": {
       "scope": "Source definitions only; runtime and installed qualifications unchanged",
       "receipt": "docs/current/receipts/AAOS-DOCUMENT-CONTRACT-SOURCE-REFRESH-20261015.json"
+    },
+    "plan_contract_rebind_20261015": {
+      "scope": "Source definitions only; runtime and installed qualifications unchanged",
+      "receipt": "docs/current/receipts/AAOS-PLAN-CONTRACT-SOURCE-REFRESH-20261015.json"
     }
   },
   "freeze_register": {
@@ -1373,7 +1377,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
+                "sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
               }
             ]
           },
@@ -1799,7 +1803,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
+                "sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
               }
             ]
           },
