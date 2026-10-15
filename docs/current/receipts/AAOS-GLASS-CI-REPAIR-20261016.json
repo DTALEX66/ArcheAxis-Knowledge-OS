@@ -1,0 +1,62 @@
+{
+  "schema": "archeaxis.glass-ci-repair/v1",
+  "date": "2026-10-16",
+  "state": "PARTIAL_PENDING_COMBINED_GATE",
+  "ci_failure": {
+    "run": 38757310107,
+    "head": "4fc9006a2bd59cf9e0733ffc46357f0488d6a27b",
+    "checkout": "01d0d880679013970ead0582987663850f11752c",
+    "verdict": "FAIL"
+  },
+  "changes": [
+    "Use visible home settings disclosure to choose themes; measure narrow content against inset app body.",
+    "Keep required visible search/settings affordances, 24px targets, focus contrast and overflow gates; adapt compressed-target fault to the visible search control.",
+    "Repair real light/cosmic focus contrast; preserve the new 38px brand aspect ratio and decoded asset validation.",
+    "Verify live canonical status by visible available pill and exact diagnostic title after homepage text simplification.",
+    "Correct unavailable local donor full SHA reference to the actual published integrated commit; preserve donor short identity.",
+    "Add bounded synthetic worker stack diagnostics to two unchanged Rust assertions. No timeout increase or production behavior change."
+  ],
+  "validation": {
+    "browser_contracts": {
+      "state": "PASS",
+      "tests": 5,
+      "run": ".project-local/runs/ba8e5e5614/glass-browser-contracts4-1015"
+    },
+    "source_audit_regressions": {
+      "state": "PASS_TARGETS_ONLY",
+      "tests": 2,
+      "run": ".project-local/runs/ba8e5e5614/glass-browser-contracts3-1015",
+      "boundary": "Same run had separate browser loader failures, subsequently repaired and verified by the five browser contract tests."
+    },
+    "browser_matrix": {
+      "state": "PASSED_BEFORE_LATER_CANONICAL_ASSERTION_FAILURE",
+      "run": ".project-local/runs/ba8e5e5614/glass-browser-repair6-1016",
+      "boundary": "Full run FAIL on old liveness text; not a full browser PASS."
+    },
+    "canonical_host": {
+      "state": "PASS",
+      "run": ".project-local/runs/ba8e5e5614/glass-canonical-repair1-1016",
+      "evidence": "Real Chromium rendering and interaction with synthetic host."
+    },
+    "document_worker": {
+      "state": "PASS_LOCAL_ONLY",
+      "tests": 8,
+      "run": ".project-local/runs/ba8e5e5614/document-worker-diagnostics-1015",
+      "boundary": "Complete declared Python runtime; CI timeout cause still UNVERIFIED and awaits the next diagnostic run."
+    }
+  },
+  "installed_failure": {
+    "artifact_id": 11986327492,
+    "receipt": ".project-local/runs/ba8e5e5614/installed-ci-diagnosis-1016/artifacts/runs/fd2a08c715/webdriver-1fabc57d9118/tmp/journey/receipt.json",
+    "receipt_sha256": "dfe891dd2b20c9111ba36ee4b28609c734d3f2c26b98ef6b9c6dfb58a8ec24c4",
+    "finding": "Clicking the source reading action reaches page 03 without the same-source section; matches the locally reproduced Dock target loss. Fix integrated in 1b231207; original native path rerun pending.",
+    "compiled_source_binding": "UNVERIFIED in original artifact; CI source checkout recorded independently."
+  },
+  "file_sha256": {
+    "scripts/a0_browser_smoke.py": "75117f2bb993da600be394fbd0bdde74f320767d08cdcb05864314793349adeb",
+    "tests/test_a0_browser_smoke.py": "3ee2da2cc669a276b3c81b87c9c21908cc31b21df1aaa8244f63533ed63a8378",
+    "frontend/src/design-system/glass-cabin.css": "5dd0961c7146bd3544f1a8890e88dfb431d662d2b7f229f4b7174d877163e48e",
+    "crates/archeaxis-api/tests/document_cloud_loop.rs": "7db99b145da2ced17eb6958f897328004526e86ec2b57c9dd9cc93eda1dec914"
+  },
+  "boundary": "No complete CI, current candidate, installation or Owner acceptance inferred. No QODER or Green writes."
+}

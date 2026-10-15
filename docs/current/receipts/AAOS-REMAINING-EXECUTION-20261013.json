@@ -387,7 +387,8 @@
         "docs/current/receipts/AAOS-PREPARATION-REOPEN-20261015.json",
         "docs/current/receipts/AAOS-PREPARATION-TITLE-STATE-20261015.json",
         "docs/current/receipts/AAOS-LEARNING-DRAFTS-20261015.json",
-        "docs/current/receipts/AAOS-LIBRARY-REFRESH-20261015.json"
+        "docs/current/receipts/AAOS-LIBRARY-REFRESH-20261015.json",
+        "docs/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json"
       ],
       "dependencies": [
         "BE01"
@@ -413,7 +414,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": "Unsubmitted answer draft source/SQLite and retained library regressions passed; native cold recovery of unsubmitted learning drafts and full BE09 surfaces still require separate qualification.",
+      "blocker": "Implemented unsubmitted learner fields now pass bounded actual native cold recovery, exact submission cleanup and another-source retention on candidate e980f5b. Teach-back/feedback ordinary draft persistence is being implemented; whole BE09 and Owner qualification remain partial.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -1002,6 +1003,11 @@
       "run": ".project-local/runs/7d522a2a69/layout-native-20261014-001953-test",
       "source_patch_sha256": "b08aba2f5a981ad5282d330f79f10653b5b64f95f1f29b024d5bf78dc8000e9f",
       "scope": "Actual matching unit executed; Tauri host compiled with canonical frontend output; no installed UI/runtime claim"
+    },
+    "glass_integration_20261015": {
+      "state": "LOCAL_PASS_CI_FAILURES_PENDING_REPAIR",
+      "receipt": "docs/current/receipts/AAOS-PARALLEL-INTEGRATION-FINAL-20261015.json",
+      "tested_head": "4fc9006a2bd59cf9e0733ffc46357f0488d6a27b"
     }
   },
   "owner_goal": {
@@ -1017,7 +1023,7 @@
       "NORM05"
     ]
   },
-  "updated_at": "2026-10-15",
+  "updated_at": "2026-10-16",
   "quiet_execution": true,
   "parallel_writers": {
     "integration": ".project-local/worktrees/optimization-20261014",
@@ -1038,7 +1044,51 @@
   "execution_preferences": {
     "quiet": true,
     "new_permission_requests": "FORBIDDEN_BY_OWNER_20261014",
-    "limited_steps": "Record NOT_EXECUTED and continue authorized work; do not bypass sandbox or alter ACL"
+    "limited_steps": "Record NOT_EXECUTED and continue authorized work; do not bypass sandbox or alter ACL",
+    "task_sizing": {
+      "owner_instruction": "Parallel tasks; split by difficulty, explicitly choose model/reasoning, reuse evidence and avoid repeated validation.",
+      "default_routine": {
+        "model": "gpt-6-luna",
+        "reasoning": "medium"
+      },
+      "default_implementation": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "medium"
+      },
+      "cross_layer_or_recovery": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "high"
+      },
+      "escalation": "Raise only for a concrete unresolved difficulty; no automatic highest-tier allocation.",
+      "running_inherited_tasks": "Retain their in-flight work until a useful checkpoint; do not restart solely to change model.",
+      "dispatches": [
+        {
+          "task": "cleanup_compact",
+          "model": "gpt-6-luna",
+          "reasoning": "medium",
+          "scope": "Exact audited runtime archival helper; root reviews and executes."
+        },
+        {
+          "task": "source_navigation_fix",
+          "model": "gpt-6.1-sol",
+          "reasoning": "high",
+          "scope": "Read-only diagnosis of native source-to-reader transition."
+        },
+        {
+          "task": "teaching_draft",
+          "model": "gpt-6.1-sol",
+          "reasoning": "high",
+          "scope": "BE09 teaching/feedback durable drafts using canonical writer; separate checkout."
+        },
+        {
+          "task": "installed_ci_diagnosis",
+          "model": "gpt-6-luna",
+          "reasoning": "medium",
+          "scope": "Read one existing installed CI artifact; identify exact failed stage without repeating installation."
+        }
+      ],
+      "coordination": "One writer per checkout; independent UI/backend branches; root integrates; targeted checks per slice, combined gate only after integration; QODER excluded."
+    }
   },
   "delivery_history": [
     {
@@ -1074,5 +1124,12 @@
     "receipt": "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json",
     "next_product_gap": "Learning draft persistence now locally implemented; native unsubmitted-draft cold recovery and remaining BE09 surfaces pending."
   },
-  "current_ui_direction": "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
+  "current_ui_direction": "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json",
+  "runtime_cleanup_20261016": {
+    "state": "PASS_EXACT_SCOPE",
+    "receipt": "docs/current/receipts/AAOS-CANDIDATE-RUNTIME-ARCHIVE-20261016.json",
+    "files": 19474,
+    "net_bytes_saved": 397862276,
+    "overall": "PARTIAL"
+  }
 }

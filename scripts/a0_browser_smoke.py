@@ -113,6 +113,21 @@ def navigate_ui_page(page, page_id: str) -> None:
         page.locator(f'.navigation-sidebar [data-page-id="{page_id}"]').click()
 
 
+def select_ui_theme(page, theme: str) -> None:
+    """Use the visible settings disclosure when the home page owns the picker."""
+    picker = page.get_by_label("界面主题")
+    opened = not picker.is_visible()
+    summary = page.get_by_label("界面设置", exact=True)
+    if opened:
+        summary.click()
+    try:
+        picker.select_option(theme)
+        page.wait_for_function("theme => document.documentElement.dataset.aaosTheme === theme", arg=theme)
+    finally:
+        if opened:
+            summary.click()
+
+
 def chrome_bands(page, *, library: bool = False) -> dict[str, str]:
     # Expected structure is declared by viewport and surface, never inferred from missing nodes.
     bands = {"status":".status-bar", "center":".app-center", "dock":".activity-dock"}
@@ -783,6 +798,7 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
             rail: box('.space-rail'),
             dock: box('.activity-dock'),
             main: box('.app-center'),
+            body: box('.app-body'),
             inspector: Boolean(document.querySelector('.inspector')),
             context: Boolean(context) && getComputedStyle(context).display !== 'none',
             statusBarOverlaps: overlaps,
@@ -817,8 +833,8 @@ def check_geometry(
     else:
         assert "navigation_trigger" in bands, "missing declared narrow navigation affordance"
         assert geometry["rail"]["width"] == 0, geometry
-        assert abs(geometry["main"]["x"]) <= 1, geometry
-        assert geometry["main"]["width"] >= width - 1, geometry
+        assert abs(geometry["main"]["x"] - geometry["body"]["x"]) <= 1, geometry
+        assert abs(geometry["main"]["width"] - geometry["body"]["width"]) <= 1, geometry
     assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
     assert not geometry["inspector"], geometry
     if "context" in bands:
@@ -853,13 +869,16 @@ def check_status_accessibility(page) -> dict[str, object]:
       return {lines: new Set([...range.getClientRects()].map(r => r.top)).size,
         spillsAboveBar: Math.max(0, bar.top - rect.top),
         spillsBelowBar: Math.max(0, rect.bottom - bar.bottom),
-        controls: [...document.querySelectorAll('.status-bar button, .theme-picker select')]
+        controls: [...document.querySelectorAll('.status-bar > button, .status-bar > .theme-picker select, .cabin-settings > summary')]
+          .filter(el => el.checkVisibility())
           .map(el => { const r = el.getBoundingClientRect();
             const hit = document.elementFromPoint(r.x + r.width/2, r.y + r.height/2);
             return {label: el.getAttribute('aria-label'), width: r.width, height: r.height,
               reachable: el.contains(hit), inBar: r.left >= bar.left && r.right <= bar.right
                 && r.top >= bar.top && r.bottom <= bar.bottom}; })};
     }""")
+    labels = {c["label"] for c in layout["controls"]}
+    assert {"打开全局命令", "界面设置"} <= labels, layout
     assert layout["lines"] == 1, layout
     assert layout["spillsAboveBar"] == layout["spillsBelowBar"] == 0, layout
     assert all(c["width"] >= 24 and c["height"] >= 24 and c["reachable"] and c["inBar"]
@@ -875,9 +894,11 @@ def check_status_accessibility(page) -> dict[str, object]:
 
     focus = []
     page.keyboard.press("Tab")  # establish keyboard modality for :focus-visible
-    controls = page.locator('.status-bar button, .theme-picker select')
+    controls = page.locator('.status-bar > button, .status-bar > .theme-picker select, .cabin-settings > summary')
     for index in range(controls.count()):
         control = controls.nth(index)
+        if not control.is_visible():
+            continue
         control.focus()
         page.wait_for_timeout(200)
         style = control.evaluate("""el => {
@@ -910,7 +931,7 @@ def status_fault_selftest(page, width: int, height: int, scale: float) -> list[d
         ("navigation-child-overflow", '.context-subnav' if "context" in chrome_bands(page) else '.navigation-sidebar' if "rail" in chrome_bands(page) else '.activity-dock', geometry),
         ("pill-wrap", '.status-pill {white-space:normal!important;width:30px!important;overflow:visible!important}',
          lambda: check_status_accessibility(page)),
-        ("compressed-target", '.inspector-trigger {width:13px!important}', lambda: check_status_accessibility(page)),
+        ("compressed-target", '.command-trigger {width:13px!important;min-width:13px!important;max-width:13px!important;flex:0 0 13px!important;padding:0!important;border:0!important;box-sizing:border-box!important}', lambda: check_status_accessibility(page)),
         ("invisible-focus", ':root {--ax-focus-ring:transparent!important}', lambda: check_status_accessibility(page)),
     )
     for name, fault, checker in faults:
@@ -1114,7 +1135,7 @@ def read_template_roundtrip(browser, viewport, problems, theme="black") -> dict:
     context, page = open_library_page(browser, problems, stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
     page.set_default_timeout(8000)
     try:
-        page.get_by_label("界面主题").select_option(theme)
+        select_ui_theme(page, theme)
         page.locator("details.template-launcher > summary").click()
         section = page.locator(TEMPLATE_SECTION_SELECTOR)
         section.get_by_role("button", name="创建学科对象", exact=True).click()
@@ -1344,7 +1365,7 @@ def read_semantic_reading(browser, viewport, problems, theme):
         stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
     try:
         label = viewport[0]
-        page.get_by_label("界面主题").select_option(theme)
+        select_ui_theme(page, theme)
         navigate_ui_page(page, "02")
         library = page.get_by_role("region", name="知识库文档视图", exact=True)
         library.wait_for()
@@ -1432,7 +1453,9 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     # The desktop surface names its own liveness, which the browser fallback never shows; that is
     # the discriminator between "mounted the host UI" and "silently rendered the fallback shell".
     page.locator(".ui-page-navigation").first.wait_for()
-    assert page.get_by_text("后端状态：本地可用").first.is_visible(), "no desktop liveness on the surface"
+    liveness = page.locator('.status-bar .status-pill[data-status="available"][title="后端状态：本地可用"]')
+    liveness.wait_for(state="visible")
+    assert "本地可用" in liveness.inner_text(), "no desktop liveness on the surface"
     assert page.get_by_text("本地桌面恢复").count() == 0, "the canonical surface fell back to the recovery shell"
 
     # Import/template regression belongs to the explicit canonical compatibility route.
@@ -1558,12 +1581,12 @@ def main() -> None:
 
                 accessibility = {}
                 for theme in AAOS_THEME_IDS:
-                    page.get_by_label("界面主题").select_option(theme)
+                    select_ui_theme(page, theme)
                     page.wait_for_timeout(200)
                     check_geometry(measure_geometry(page, chrome_bands(page)),
                                    width=width, height=height, scale=scale, bands=chrome_bands(page))
                     accessibility[theme] = check_status_accessibility(page)
-                page.get_by_label("界面主题").select_option("black")
+                select_ui_theme(page, "black")
 
                 faults = status_fault_selftest(page, width, height, scale) if (width, height) == (640, 480) else []
 
@@ -1604,7 +1627,7 @@ def main() -> None:
                 if label == DESKTOP_MATRIX[0][0]:
                     glows: dict[str, str] = {}
                     for theme in AAOS_THEME_IDS:
-                        page.get_by_label("界面主题").select_option(theme)
+                        select_ui_theme(page, theme)
                         page.wait_for_timeout(150)
                         applied = page.evaluate("document.documentElement.dataset.aaosTheme")
                         brand = page.evaluate(
@@ -1634,10 +1657,10 @@ def main() -> None:
                         # read as a correct brand mark.
                         expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{asset_theme}.png")
                         assert tuple(brand["decoded"]) == expected, (theme, brand["decoded"], expected)
-                        # The layout box is the declared slot, and the slot keeps the artwork's own
-                        # ratio: an <img> stretched to a box of a different aspect is the classic
-                        # way a logo silently distorts, and nothing in the DOM notices.
-                        assert brand["box"] == [float(value) for value in brand["attributes"]], brand
+                        # The reference cabin declares a 38px desktop mark; its CSS box
+                        # scales the intrinsic ratio instead of the legacy HTML fallback slot.
+                        # Keep the decoded-file, aspect-ratio and target-size assertions.
+                        assert brand["box"][0] == 38.0, brand
                         drawn = brand["box"][0] / brand["box"][1]
                         assert abs(drawn - expected[0] / expected[1]) < 0.02, (theme, drawn, expected)
                         assert 20 <= brand["box"][1] <= 40, (theme, brand["box"])
@@ -1656,7 +1679,7 @@ def main() -> None:
                         }
                     assert len({glows[id] for id in ("black", "white", "cosmic")}) == 3, glows
                     assert all(glows[id] for id in AAOS_THEME_IDS), glows
-                    page.get_by_label("界面主题").select_option("black")
+                    select_ui_theme(page, "black")
 
                 screenshot = ARTIFACTS / f"canonical-shell-{label}.png"
                 page.screenshot(path=str(screenshot), full_page=True)
