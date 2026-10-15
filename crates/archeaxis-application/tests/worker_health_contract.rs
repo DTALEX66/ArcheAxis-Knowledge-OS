@@ -71,7 +71,10 @@ pathlib.Path(__file__).with_name('eof_without_request').touch()
     let health = executor.provider_health("image.ocr", &script, false).await;
     assert_eq!(health["status"], "handshake_ready", "{health}");
     assert_eq!(health["task_executed"], false);
-    assert!(marker.is_file(), "worker must see EOF without request bytes");
+    assert!(
+        marker.is_file(),
+        "worker must see EOF without request bytes"
+    );
     assert_eq!(std::fs::read_dir(&staging).unwrap().count(), 0);
 }
 
@@ -92,7 +95,10 @@ async fn real_artifact_worker_health_hellos_remain_compatible() {
         let health = executor
             .provider_health(capability, &worker(relative), false)
             .await;
-        assert_eq!(health["status"], "handshake_ready", "{capability}: {health}");
+        assert_eq!(
+            health["status"], "handshake_ready",
+            "{capability}: {health}"
+        );
         assert_eq!(health["task_executed"], false);
         assert_eq!(std::fs::read_dir(&staging).unwrap().count(), 0);
     }

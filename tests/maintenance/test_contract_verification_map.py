@@ -26,6 +26,8 @@ RUNBOOK = REPO / "docs/current/AAOS-BACKEND-ACCEPTANCE-RUNBOOK-20261001.md"
 # Contract section number -> (artifact, what the artifact establishes). Keyed by number rather
 # than title, because the titles carry suffixes that change as the document is edited.
 COVERAGE: dict[str, tuple[str, str]] = {
+    "15": ("crates/archeaxis-api/tests/file_format_qualification.rs",
+           "source/job binding, real text and DOCX workers, persisted qualification and corrupt or missing evidence downgrade"),
     "14": ("tests/maintenance/test_contract_route_inventory.py",
            "2026-10-14 finite-host inventory reconciliation: every documented method/path matches the router; runtime qualification remains separate"),
     "12": ("crates/archeaxis-api/tests/document_package_api.rs", "human-only bounded package import, source preservation and idempotency"),
