@@ -1,0 +1,94 @@
+{
+  "schema": "archeaxis.integration-checkpoint/v1",
+  "date": "2026-10-16",
+  "overall": "PARTIAL",
+  "product_commit": "5c42a08af21f58e7d28c2aeae5bf62d0fc28dba1",
+  "tested_patch_sha256": "599fcd1ce35f46a2bc2ee6fe4719ca0a80810c8fb8213e9f0343dcc4f8a03496",
+  "implementation": [
+    "Bounded native workspace recovery and narrow Dock navigation qualified on candidate5; eight required stages, five normal owned exits.",
+    "BE11 source/job qualification endpoint separates six operation statuses and downgrades missing or corrupt evidence.",
+    "FE09 filters the loaded relation projection without changing fixed-version references or issuing new reads/writes.",
+    "FE10 page 06/07 returns to the exact course/artifact/assessment knowledge revision; stale and mismatched bindings do not regenerate.",
+    "Worker health probes reuse the declared artifact-root launch contract; video now produces its real hello without executing a job."
+  ],
+  "integration_checks": {
+    "quick": {
+      "path": ".project-local/runs/ba8e5e5614/integrated-ready-1016/artifacts/local-ci.json",
+      "sha256": "71e95ff7958373c6589f70c6e599142dc2d42d5d1d6fa079b550d00e513303bb",
+      "status": "LOCAL_PASS",
+      "checks": 27,
+      "frontend_files": 150,
+      "frontend_tests": 1430,
+      "python_tests": 96,
+      "python_subtests": 141,
+      "source_consistent": true
+    },
+    "format_api": {
+      "path": ".project-local/runs/ba8e5e5614/integrated-be11-1016/artifacts/execution.json",
+      "sha256": "9df6b3f7ae5acc14ac71f518b01535f557f7d9bb86750e32775ae8f20b569a41",
+      "status": "PASS",
+      "tests": 8
+    },
+    "worker_health": {
+      "path": ".project-local/runs/ba8e5e5614/integrated-video-health-1016/artifacts/execution.json",
+      "sha256": "d5f76ff907bb324dc470585aa8613509e48a72fb8a372abca2503d218024eac8",
+      "status": "PASS",
+      "tests": 3,
+      "real_worker_hellos": 5,
+      "job_executed": false
+    }
+  },
+  "native_receipt": "docs/current/receipts/AAOS-RECOVERY-AND-DOCK-20261016.json",
+  "slice_receipts": [
+    "docs/current/receipts/BE11-FORMAT-QUALIFICATION-20261016.json",
+    "docs/current/receipts/AAOS-FE09-LOCAL-FILTERS-20261016.json",
+    "docs/current/receipts/AAOS-FE10-COURSE-RETURN-20261016.json",
+    "docs/current/receipts/AAOS-VIDEO-HEALTH-CONTRACT-20261016.json"
+  ],
+  "integration_repairs": [
+    "Unified checks also caught a missing relation-filter layout rule and formatting in the new worker test; both were repaired before the final 27-check LOCAL_PASS.",
+    "First quick preflight identified missing qualification route documentation and stale counts; repaired to 118 production pairs.",
+    "Next preflight identified missing section-to-test mapping; added the real API regression and canonical runbook commands.",
+    "FE10 independent review identified missing assessment revision binding; fixed with a mismatched-revision component-chain regression before integration."
+  ],
+  "delivery": {
+    "donor_commits": [
+      "2a10bb6c1f367fc80b747bf29fc013bcb054957f",
+      "3685135f68068c2000879dfe24c4caa187466c7f",
+      "1baaf5ee",
+      "65262d5c"
+    ],
+    "integrated_commits": [
+      "a3989ce1",
+      "9f661739",
+      "685d9039",
+      "5c42a08a"
+    ],
+    "prior_agent_git_block": "Resolved through the normal authorized project identity; original donor receipts retain their historical observations.",
+    "branch": "codex/character-memory-ui-20261015",
+    "pull_request": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/193",
+    "exact_sha_cloud_ci": "PENDING_NEW_PUSH",
+    "historical_failed_ci": 38757310107
+  },
+  "cleanup": {
+    "verified_net_reclaimed_bytes": 397862276,
+    "six_old_runtimes_logical_bytes": 3754808790,
+    "six_old_runtimes": "PRESERVED_NOT_REMOVED: process ownership/use remains unresolved; no reclamation claim",
+    "worktree_reuse": "Reused the two clean donor checkouts for FE10 and worker health, preserving original branches; no extra checkout or native runtime copy."
+  },
+  "open_issues": [
+    "Full seven-reference visual implementation and Owner acceptance remain incomplete; QODER character work is excluded.",
+    "FE10 learning goals/planning and page 11/12 cross-host course return remain incomplete; FE11 bound teaching and FE12 full feedback/hints remain partial.",
+    "BE11 batch planner, native-format editing/roundtrip and full per-format qualification remain partial.",
+    "Latest health source fix has targeted real hello evidence, not a rebuilt native candidate or media decoding qualification.",
+    "Current exact-SHA CI, installed runtime, release/Green and Owner acceptance are separate; release and Green replacement are not authorized.",
+    "Candidate5 distill/actual model was not executed; older actual-model receipts remain bound to their own candidates."
+  ],
+  "allowance_guard": {
+    "automation_id": "archeaxis",
+    "state": "ACTIVE",
+    "stop_when_remaining_percent_lte": 15,
+    "latest_observed_remaining_percent": 30,
+    "then": "Stop new work; save public summary/issues/handoff; commit/push task-owned files; verify remote equality; pause goal and monitor."
+  }
+}

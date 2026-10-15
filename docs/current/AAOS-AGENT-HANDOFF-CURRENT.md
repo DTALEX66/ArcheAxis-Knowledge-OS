@@ -8,6 +8,8 @@
 
 Owner 已明确确认：账户**剩余额度 ≤ 15%**时停止新增开发并收尾。已创建的 `archeaxis` 监控每5分钟检查有效额度窗口；触发后保存总结、问题、证据与交接，提交上传本轮可公开且属于本任务的内容，读回本地/远端分支一致，再暂停目标和监控。忽略内容、原始保全包、运行时、数据库、私人配置不上传；额度重置不自动恢复。具体规则在活动指针 `execution_control.allowance_guard`，不以此扩大合并、发布或 Green 权限。
 
+本轮最新整合见[2026-10-16 检查点](receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json)：限定原生恢复通过；BE11、FE09、FE10 与视频健康合同修复均已合入。按该检查点区分源码/本地门禁/原生候选；云端状态必须按最新 SHA 读回。
+
 ## 当前任务与停止边界
 
 [活动指针](AAOS-ACTIVE-EXECUTION.json) 是任务路由；来源仍为 `docs/taskpacks/aaos-ui-first-20261009/`，实际进度读 [UI执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。Owner 2026-10-11 已明确恢复“完整框架 / 多格式（常见常用格式）/ 最短闭环”，当前 **RUNNING_BY_OWNER / PARTIAL**；[恢复范围](AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json) 只承接这次用户决定，不替换原任务包或赋予 PASS。V01暂停、FT01–04冻结；发布、Green替换与真实用户数据覆盖未授权。

@@ -115,6 +115,8 @@
   max-width: 100%;
   overflow-wrap: anywhere;
 }
+.ui-relation-filters { display:flex; flex-wrap:wrap; align-items:end; gap:12px; }
+.ui-relation-filters label { flex:1 1 160px; }
 .ui-relations-page fieldset,
 [data-section="research"] fieldset,
 .ui-pinned-reference {

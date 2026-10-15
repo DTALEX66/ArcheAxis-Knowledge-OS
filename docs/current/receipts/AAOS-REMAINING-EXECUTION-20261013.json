@@ -460,8 +460,12 @@
         "真实文本与至少一类现有文档样例闭环，其余格式按实际结果发布。",
         "失败可追踪，可保存不冒充原生编辑或无损互通。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/receipts/BE11-FORMAT-QUALIFICATION-20261016.json",
+        "docs/current/receipts/AAOS-VIDEO-HEALTH-CONTRACT-20261016.json",
+        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json"
+      ],
       "dependencies": [
         "BE01"
       ],
@@ -482,7 +486,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Per-file six-operation qualification and real text/DOCX workers verified. Batch planning, finite host bridge/UI presentation, native editing/roundtrip and corpus-wide qualification remain incomplete.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -757,8 +761,12 @@
         "FE08",
         "BE09"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/receipts/AAOS-FE09-LOCAL-FILTERS-20261016.json",
+        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json"
+      ],
+      "remaining": "Loaded version-bound projection filters implemented. Full graph/research task and reference visual acceptance remain partial."
     },
     {
       "id": "FE10",
@@ -770,9 +778,11 @@
       "state": "PARTIAL_INTEGRATED",
       "evidence": [
         "frontend/src/spaces/CanonicalLearningJourneySpace.tsx",
-        "frontend/src/components/KnowledgeCoursePanel.tsx"
+        "frontend/src/components/KnowledgeCoursePanel.tsx",
+        "docs/current/receipts/AAOS-FE10-COURSE-RETURN-20261016.json",
+        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json"
       ],
-      "remaining": "Existing course/source/lesson navigation is implemented. Goal-to-route planning, manual learning records and full FE10 product acceptance remain incomplete."
+      "remaining": "Page 06/07 course-to-study return preserves course/artifact and assessment knowledge revision. Goal/route planning, manual records, page 11/12 cross-host return and full acceptance remain incomplete."
     },
     {
       "id": "FE11",
@@ -1180,5 +1190,6 @@
     "receipt": "docs/current/receipts/AAOS-RECOVERY-AND-DOCK-20261016.json",
     "status": "PASS_BOUNDED_NATIVE",
     "overall": "PARTIAL"
-  }
+  },
+  "latest_integration_checkpoint": "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json"
 }
