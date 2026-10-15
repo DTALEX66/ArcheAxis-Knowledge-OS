@@ -342,18 +342,101 @@
     "previous_published_sha": "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
     "current_ref": "Resolve Git HEAD and origin branch live; a receipt cannot bind its own commit",
     "commit_push": "AUTHORIZED; public task-owned files only",
-    "merge_release_green": "NOT_PERFORMED"
+    "merge_release_green": "NOT_PERFORMED",
+    "product_commit": "36edc3ea228638ce88eed2f9478d41ca77c0b94c",
+    "sync_scope": "Current integration branch local HEAD versus remote same branch; not all donor worktrees or main.",
+    "unpublished_payloads": [
+      "139 original backend/frontend taskpack files (32.69 MB), preserved local only",
+      "Ignored raw runtime, database, cache, archive and test artifacts; public sanitized evidence is committed",
+      "Donor dirty worktrees retained; QODER character checkout untouched"
+    ],
+    "merge": "NOT_PERFORMED; required installed CI failed"
   },
   "ci_observation": {
     "run_id": 38804704425,
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38804704425",
     "head_sha": "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
-    "state": "IN_PROGRESS_AT_OBSERVATION",
-    "boundary": "Latest local workbench/ready fix is absent from that head. Old installer failure remains FAIL until a new run independently passes."
+    "artifact_source_sha": "b064abd073c39e25a533ad81970d346bd1e030ce",
+    "artifact_source_basis": "Installed artifact name; PR merge checkout identity is distinct from head",
+    "state": "FAIL",
+    "passed_jobs": [
+      "gateplan",
+      "lint",
+      "test (3.12)",
+      "desktop-fast",
+      "contracts-vnext",
+      "security-targeted",
+      "rust-vnext",
+      "browser-smoke",
+      "desktop-vnext",
+      "workers-vnext",
+      "desktop-build",
+      "green-candidate-vnext"
+    ],
+    "failed_jobs": [
+      "installer-lifecycle",
+      "a0-gates"
+    ],
+    "classifier_skips": [
+      "windows-runtime-smoke",
+      "py-compat",
+      "wheel-smoke",
+      "format-targeted",
+      "migration-targeted"
+    ],
+    "failure": {
+      "error": "AssertionError: {'clip': {'bottom': 654.65625, 'left': 310.953125, 'right': 456.953125, 'top': 493.046875}, 'hit': 'DIV', 'ready': False, 'reason': 'No reachable scroll container', 'target': {'x': 517.1171875, 'y': 654.546875}}",
+      "probe": "scripts/probes/aaos01_grouped_owner_loop.py:1191",
+      "action": "click_revealed_selector(reopened_document_selector) after restart",
+      "detail": "reveal_selector line428 reports target x517.12 outside clipped right456.95 and no reachable scroll container. Exact CSS/layout vs probe cause remains UNVERIFIED; no fix attempted after allowance threshold.",
+      "remaining": "Inspect the saved grouped screenshot/DOM and narrow document list clipping; retain trusted click and actual visibility requirements; do not replace with programmatic click or weaken acceptance."
+    },
+    "bounded_passes": [
+      "Main installed source/document/backup/recovery/format journey receipt ok=true",
+      "Installed draft conflict journey receipt ok=true",
+      "Strict target-frame-detached explicit exit observed same owned process natural exit0 in main journey"
+    ],
+    "raw_receipts": [
+      {
+        "path": ".project-local/tmp/ci-38804704425-installed/runs/fd2a08c715/webdriver-694b22d5f07f/tmp/journey/receipt.json",
+        "sha256": "f260bf62602efa82dabb500d6dc125b7118861848af8d58061c33df93672f53e",
+        "ok": true,
+        "source_consistent": true,
+        "steps": 21,
+        "normal_exit_zero": 5,
+        "owned_ports_released": true
+      },
+      {
+        "path": ".project-local/tmp/ci-38804704425-installed/runs/fd2a08c715/webdriver-8b60d46a1b2b/tmp/journey/receipt.json",
+        "sha256": "5a2587ebbacefd8afcb07717c65e186ab94c2865b1f8ecc5dd73e63c8071122d",
+        "ok": false,
+        "source_consistent": true,
+        "steps": 1,
+        "normal_exit_zero": 2,
+        "owned_ports_released": true
+      },
+      {
+        "path": ".project-local/tmp/ci-38804704425-installed/runs/fd2a08c715/webdriver-c9c273197af1/tmp/journey/receipt.json",
+        "sha256": "0db0e36c3e80dde36ade46cce8593867674beff8e0722a7c7252882126f4de9e",
+        "ok": true,
+        "source_consistent": true,
+        "steps": 0,
+        "normal_exit_zero": 2,
+        "owned_ports_released": true
+      }
+    ],
+    "boundary": "Overall installed lifecycle remains FAIL, grouped closed_loop_verified=false. Later36edc3ea workbench/ready/CSV patch was not part of this run. No Owner/Green or complete format/AI claim."
   },
   "allowance": {
     "threshold_remaining_percent": 15,
-    "last_observed_remaining_percent": 16,
-    "state": "ABOVE_THRESHOLD; no new development slices after this validation checkpoint"
+    "last_observed_remaining_percent": 15,
+    "used_percent": 85,
+    "window_minutes": 10080,
+    "observed_at": "2026-10-16T05:14:29+08:00",
+    "state": "THRESHOLD_TRIGGERED_CHECKPOINTED",
+    "behavior": "No new development or heavy validation after observation; only failure evidence preservation, handoff and authorized delivery.",
+    "goal_and_monitor": "Pause after successful delivery; tool state must be read back.",
+    "resume_requires": "Explicit Owner instruction; quota reset alone does not resume."
   },
   "remaining": [
     "Current-head CI and installed lifecycle",
@@ -361,5 +444,21 @@
     "Remaining BE/FE scope, batch formatting, native editing and roundtrip",
     "Current native/actual AI source binding and independent quality where required",
     "Owner acceptance; no Green replacement or release"
-  ]
+  ],
+  "stop_checkpoint": {
+    "state": "PAUSED_BY_OWNER_THRESHOLD",
+    "overall": "PARTIAL",
+    "all_owned_agents": "CHECKPOINTED_OR_COMPLETED; no active writer",
+    "first_resume_task": "Read current HEAD/remote/PR/CI, inspect saved grouped reopened-document clipping failure, then fix and run targeted reproduction before repeating required CI.",
+    "next_parallel_lanes": [
+      "Remaining backend task ledger and actual format corpus gaps",
+      "Non-character seven-reference visual completion",
+      "Only exact reviewed cleanup paths with occupancy and hash evidence"
+    ],
+    "do_not_repeat": [
+      "Passed unchanged local quick/73 working-state/8 Rust/10 browser suites",
+      "Completed source archive and directory normalization audits",
+      "QODER character implementation"
+    ]
+  }
 }
