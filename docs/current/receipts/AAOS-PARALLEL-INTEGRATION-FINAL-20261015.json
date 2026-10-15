@@ -1,0 +1,36 @@
+{
+  "schema": "archeaxis.parallel-integration-final/v1",
+  "date": "2026-10-15",
+  "state": "LOCAL_PASS",
+  "overall": "PARTIAL",
+  "tested_head": "4fc9006a2bd59cf9e0733ffc46357f0488d6a27b",
+  "source_patch_sha256": "6e028a09850ce74da1c7b535aa8da1dcba6913eeb055604b7000cbc9c3da2580",
+  "source_consistent": true,
+  "quick": {
+    "path": ".project-local/runs/ba8e5e5614/glass-integrated-final-1015/artifacts/local-ci.json",
+    "sha256": "0342f01e23162da4d43ecfad3705a102ba1b1ff9fc05e15fc8a6e3027dcae819",
+    "checks": 27,
+    "frontend_files": 148,
+    "frontend_tests": 1396
+  },
+  "native_receipt": "docs/current/receipts/AAOS-GLASS-INTEGRATED-NATIVE-20261015.json",
+  "ci": {
+    "run": 38757310107,
+    "head_sha": "4fc9006a2bd59cf9e0733ffc46357f0488d6a27b",
+    "state": "COMPLETED_FAILURE",
+    "failed_jobs": [
+      "browser-smoke",
+      "test (3.12)",
+      "rust-vnext",
+      "installer-lifecycle",
+      "a0-gates"
+    ],
+    "merge_sha": "01d0d880679013970ead0582987663850f11752c"
+  },
+  "boundary": [
+    "Quick and native bind their own source identities.",
+    "Current follow-up changes require their own validation.",
+    "No Owner visual acceptance or installed qualification inferred.",
+    "QODER character implementation excluded."
+  ]
+}

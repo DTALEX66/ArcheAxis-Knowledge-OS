@@ -7,6 +7,12 @@
   --cabin-inset-x: 4.665vw;
   --cabin-inset-y: 5.95dvh;
 }
+/* Glass chrome sits over a dark scene in both light themes. Keep keyboard
+   focus distinct from the translucent chrome and the light control surface. */
+:root:is([data-aaos-theme="blueprint-light"], [data-aaos-theme="white"]) .cabin-shell { --ax-focus-ring: #3379c4; }
+.cabin-shell .status-bar :is(button, select, summary):focus-visible {
+  box-shadow: 0 0 0 2px var(--ax-focus-ring), 0 0 0 4px var(--ax-focus-ring);
+}
 :root[data-aaos-theme="cosmic"] {
   --cabin-edge: #b5d9ff99;
   --cabin-surface: #10203591;

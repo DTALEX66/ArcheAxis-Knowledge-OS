@@ -1385,3 +1385,16 @@ UI局部实现已合入 `699d3483`，审查修复为 `41e22bf9`、文件规范�
 整合原生旅程已在 `e980f5b865b0b92f5340efdb190ed4328cf71b5c` 实际PASS：原资料库刷新失败路径、中文原件、普通笔记保存/重开、备份恢复、正文检索、引用及已声明格式矩阵均走真实Tauri/Core；5次产品正常退出0，自有进程和端口释放。见[整合原生回执](receipts/AAOS-GLASS-INTEGRATED-NATIVE-20261015.json)。第一次原生检查因依赖首开已隐藏的冗长ready说明而失败，探针改为等待实际 `data-working-state=ready`，仍要求Core完成身份/草稿恢复，未绕过原导入和保存断言。探针合同45项/124子测试通过；此为合成材料候选原生，非Owner安装资格。
 
 完整前端整合检查发现5项旧无障碍回归，其余1390项通过。已保留原断言与通告预算，修复首次列表重复播报和首次失败误称已有列表，31项定向检查及独立复审通过，见[通告修复回执](receipts/AAOS-LIBRARY-ANNOUNCEMENTS-20261015.json)。该最后源码增量由最终整合门禁和新exact-SHA CI独立验证；不追认为此前原生候选已包含此改动。
+
+最终整合 quick `glass-integrated-final-1015` 在 `4fc9006a2bd59cf9e0733ffc46357f0488d6a27b` 实际27项 LOCAL_PASS，含148文件1396项前端，source_consistent=true。见[整合门禁回执](receipts/AAOS-PARALLEL-INTEGRATION-FINAL-20261015.json)。该SHA云CI38757310107仍在运行，已发现browser-smoke、test(3.12)、rust-vnext失败，继续定位修复，不据本地PASS宣称云端完成。
+
+Owner补充按难度选择模型和推理：简单盘点/回执用gpt-6-luna medium，常规实现用gpt-6.1-sol medium，数据恢复/跨层问题用gpt-6.1-sol high，只有具体困难才升级。已将归档helper交给luna medium，将原生来源跳转诊断交给sol high；正在产出成果的既有writer不为换模型重启。分工和证据复用记录在remaining receipt的execution_preferences.task_sizing。
+
+BE09已实现的学习答案草稿补齐有限原生冷恢复：整合提交 `6ddf8b1b` 的probe复用实际候选e980f5b，3次冷重启、4次正常退出0；原始答案/揭示/正误/评分恢复，正式提交只产生1条event并精确清理来源A，来源B草稿再重启保持。43项/147子测试及根独立审阅通过，见[学习草稿原生回执](receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json)。候选产品源码与probe身份分别绑定，不宣称当前整树native资格。原grouped来源跳转到空阅读页的实际失败另存并修复中；Teach-back/反馈草稿另由gpt-6.1-sol high切片推进，BE09整体仍PARTIAL。
+
+
+### 2026-10-16 精确清理与整合修复
+
+已审计的旧候选 runtime 已完整归档后按清单精确移除：19,474文件、625,801,465逻辑字节，ZIP展开SHA及保留候选逐项复核；扣除ZIP/恢复清单/提示文件净减少397,862,276字节（约379.43MiB，未计结果JSON和文件系统元数据）。源候选其余部分和新候选完整保留，见[清理回执](receipts/AAOS-CANDIDATE-RUNTIME-ARCHIVE-20261016.json)。此前三批目录迁移和217文件去重不重复计数，目录规范化整体仍PARTIAL。
+
+CI38757310107最终FAIL，新增installer-lifecycle失败，具体证据由gpt-6-luna medium只读检查。阅读几何已合入74966811，来源跨Dock丢失修复已合入1b231207并通过38项定向验证；完整浏览器正在复验。教学草稿新增持久保全已交付，但独立审查确认普通准备创建在未知ACK后重挂载可能重复文档，已回到原writer补冻结身份；待此修复完成再统一构建，不把已知缺口写为闭环。
