@@ -152,6 +152,32 @@ def test_architecture_guard_ignores_documentation_and_error_examples(tmp_path: P
     assert scan_architecture(tmp_path) == []
 
 
+def test_architecture_guard_distinguishes_xpath_predicates_from_unc_hosts(tmp_path: Path):
+    from scripts.check_architecture import scan_architecture
+
+    values = [
+        "//label[normalize-space(.)='回答正确']/input",
+        "//label[normalize-space(text())='学习者自评']/select",
+        "//label[normalize-space(text())='反馈分类']/select",
+        "//section[@aria-label='学习草稿']//button",
+        "//server/share/vault",
+        "//server.example/share[1]/vault",
+        "//192.0.2.1/share/vault",
+        r"\\server\share\vault",
+        "E:/private/vault",
+        "/opt/private/vault",
+        "//label[@title='E:/private/vault']/input",
+    ]
+    _write(tmp_path, "scripts/selectors.py", "".join(
+        f"VALUE_{index} = {value!r}\n" for index, value in enumerate(values)
+    ))
+
+    issues = scan_architecture(tmp_path)
+    assert [(issue.line, issue.code) for issue in issues] == [
+        (line, "forbidden-absolute-path") for line in range(5, 12)
+    ]
+
+
 @pytest.mark.parametrize("lower_path", ["app/core", "app/agent", "shared", "knowledge_base"])
 @pytest.mark.parametrize(
     "statement",

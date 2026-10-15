@@ -43,7 +43,7 @@ it("SIMULATED App guards an unsubmitted learning draft even outside the learning
 });
 it("SIMULATED restore notice lists learning drafts without applying or submitting them",async()=>{
   read.recovery_requires_confirmation=true;read.recovery_candidates={...empty(),learning_drafts:{assessment:{item_key:"retained-item",assessment_id:"assessment",knowledge_version:"v1",answer:"answer",checked_correct:null,rating:null,answer_revealed:false}}};
-  render(<App/>);await screen.findByText("另有 1 份未提交学习草稿。");expect(screen.getByText("retained-item · v1")).toBeInTheDocument();
+  render(<App/>);await screen.findByText("另有 1 份未提交学习草稿，以及 0 份教学正文草稿。");expect(screen.getByText("retained-item · v1")).toBeInTheDocument();
   expect(bridge.call.mock.calls.some(([op])=>op==="learning_review"||op==="ui_state_recover")).toBe(false);
 });
 it("SIMULATED mounted App retains a dirty AI journey across receipt panels and still guards leaving",async()=>{

@@ -388,7 +388,9 @@
         "docs/current/receipts/AAOS-PREPARATION-TITLE-STATE-20261015.json",
         "docs/current/receipts/AAOS-LEARNING-DRAFTS-20261015.json",
         "docs/current/receipts/AAOS-LIBRARY-REFRESH-20261015.json",
-        "docs/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json"
+        "docs/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json",
+        "docs/current/receipts/AAOS-TEACHING-DRAFT-NATIVE-PROBE-20261016.json",
+        "docs/current/receipts/AAOS-RECOVERY-AND-DOCK-20261016.json"
       ],
       "dependencies": [
         "BE01"
@@ -414,7 +416,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": "Implemented unsubmitted learner fields now pass bounded actual native cold recovery, exact submission cleanup and another-source retention on candidate e980f5b. Teach-back/feedback ordinary draft persistence is being implemented; whole BE09 and Owner qualification remain partial.",
+      "blocker": "Learning and unbound teaching drafts have bounded native cold-recovery evidence. Full bound teaching submission/rejection, all editable-page acceptance, installed runtime and Owner qualification remain partial; see latest recovery receipt for current grouped journey verdict.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -765,8 +767,12 @@
         "FE08",
         "BE09"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "frontend/src/spaces/CanonicalLearningJourneySpace.tsx",
+        "frontend/src/components/KnowledgeCoursePanel.tsx"
+      ],
+      "remaining": "Existing course/source/lesson navigation is implemented. Goal-to-route planning, manual learning records and full FE10 product acceptance remain incomplete."
     },
     {
       "id": "FE11",
@@ -775,8 +781,12 @@
         "FE10",
         "BE09"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/receipts/AAOS-TEACHING-DRAFT-NATIVE-PROBE-20261016.json",
+        "docs/current/receipts/AAOS-TEACHING-PREPARATION-INTEGRITY-20261016.json"
+      ],
+      "remaining": "Ordinary preparation and unbound drafts have evidence. Bound teaching submission/rejection, full delivery revision and export/adoption journey remain unqualified."
     },
     {
       "id": "FE12",
@@ -785,8 +795,12 @@
         "FE10",
         "BE09"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json",
+        "docs/current/receipts/AAOS-TEACHING-DRAFT-NATIVE-PROBE-20261016.json"
+      ],
+      "remaining": "Practice/self-assessment/version-bound review and raw drafts are implemented. Graded hints, explanations and full feedback rhythm remain incomplete; older native receipts qualify only their original candidates."
     },
     {
       "id": "FE13",
@@ -1088,6 +1102,17 @@
         }
       ],
       "coordination": "One writer per checkout; independent UI/backend branches; root integrates; targeted checks per slice, combined gate only after integration; QODER excluded."
+    },
+    "allowance_guard": {
+      "owner_confirmed": "Stop and hand off when remaining account allowance is at or below 15 percent.",
+      "threshold_remaining_percent": 15,
+      "metric": "Minimum remaining percentage across applicable non-null Codex account usage windows; not context length. Unknown is not zero.",
+      "automation_id": "archeaxis",
+      "automation_state_at_observation": "ACTIVE",
+      "interval_minutes": 5,
+      "on_threshold": "Stop new development and heavy validation; checkpoint owned agents; summarize completed work, incomplete work, failures and evidence; explicitly stage and commit/push this round public task-owned files; verify local/remote branch SHA; pause goal and monitor after handoff.",
+      "publication_boundary": "No secrets, private agent state, runtime/database/cache/archive payloads, unrelated dirty changes, QODER, release or Green replacement. Merge requires current review and full required CI.",
+      "resumption": "Explicit Owner instruction; quota reset alone does not resume."
     }
   },
   "delivery_history": [
@@ -1130,6 +1155,30 @@
     "receipt": "docs/current/receipts/AAOS-CANDIDATE-RUNTIME-ARCHIVE-20261016.json",
     "files": 19474,
     "net_bytes_saved": 397862276,
+    "overall": "PARTIAL",
+    "additional_six_runtimes": {
+      "state": "PRESERVED_NOT_REMOVED",
+      "source_root": ".project-local/build/ba8e5e5614",
+      "exact_runtime_parents": [
+        "memory-candidate-1015",
+        "memory-candidate2-1015",
+        "memory-candidate3-1015",
+        "nsis-input-1015",
+        "plan-candidate1-1015",
+        "plan-candidate2-1015"
+      ],
+      "files": 116844,
+      "logical_source_bytes": 3754808790,
+      "ownership_manifest_comparison": "PASS; metadata matches retained runtime, per-file content hashes still required before removal",
+      "process_ownership_check": "UNVERIFIED: CIM Access Denied; helper remains fail closed, no deletion executed",
+      "plan": ".project-local/runs/ba8e5e5614/older-runtime-inventory-1016/artifacts/plan.json",
+      "recovery_strategy": "Reuse existing hash-verified runtime archive; preserve Core, data, host, workers and manifests. Do not create six duplicate ZIPs.",
+      "space_reclaimed": 0
+    }
+  },
+  "recovery_and_dock_20261016": {
+    "receipt": "docs/current/receipts/AAOS-RECOVERY-AND-DOCK-20261016.json",
+    "status": "PASS_BOUNDED_NATIVE",
     "overall": "PARTIAL"
   }
 }
