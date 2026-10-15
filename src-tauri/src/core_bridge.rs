@@ -36,6 +36,7 @@ pub enum Operation {
     SourceImport,
     SourcesList,
     SourceJobs,
+    SourceJobFormatQualification,
     SourceMembers,
     SourcePages,
     SourceOriginal,
@@ -255,6 +256,15 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         SourceJobs => (
             "GET",
             format!("/api/v1/sources/{}/jobs", id(p, "source_id")?),
+            None,
+        ),
+        SourceJobFormatQualification => (
+            "GET",
+            format!(
+                "/api/v1/sources/{}/jobs/{}/format-qualification",
+                id(p, "source_id")?,
+                id(p, "job_id")?
+            ),
             None,
         ),
         SourceMembers => (
@@ -1253,6 +1263,27 @@ mod tests {
                 serde_json::json!({"operation":operation,"payload":{}}),
             )
             .expect("schema and host command contract must agree");
+        }
+    }
+    #[test]
+    fn format_qualification_is_a_bounded_read_with_both_validated_ids() {
+        let request = serde_json::from_value::<Request>(serde_json::json!({
+            "operation":"source_job_format_qualification", "payload":{"source_id":"src-safe","job_id":"job-safe.txt"}
+        })).unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(
+            path,
+            "/api/v1/sources/src-safe/jobs/job-safe.txt/format-qualification"
+        );
+        assert!(body.is_none());
+        for payload in [
+            serde_json::json!({"source_id":"src-safe"}),
+            serde_json::json!({"source_id":"../other","job_id":"job-safe"}),
+            serde_json::json!({"source_id":"src-safe","job_id":"../other"}),
+        ] {
+            let request = serde_json::from_value::<Request>(serde_json::json!({"operation":"source_job_format_qualification","payload":payload})).unwrap();
+            assert!(route(&request).is_err());
         }
     }
     #[test]

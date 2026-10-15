@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "5a5cea33282207a731e0d06569da6a30f316cfd1d463fb13b0ae830cd37e7d3c"
+      "sha256": "627091eca33f19f1057bd53686dc158732886866d4e12cb08638ef2b36af471d"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -386,6 +386,17 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     "plan_contract_rebind_20261015": {
       "scope": "Source definitions only; runtime and installed qualifications unchanged",
       "receipt": "docs/current/receipts/AAOS-PLAN-CONTRACT-SOURCE-REFRESH-20261015.json"
+    },
+    "format_qualification_source_rebind_20261016": {
+      "scope": "Reviewed additional finite read-only operation and generated per-file qualification DTO from the existing schema; existing document fields, dependency activation and runtime qualifications unchanged.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "previous_digests": [
+        "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+      ],
+      "current_digest": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775",
+      "targeted_evidence": ".project-local/runs/ba8e5e5614/course-format-ui-1016/artifacts/execution.json",
+      "tests": "59 frontend regressions; per-file schema plus route maintenance 44 tests; TypeScript PASS. Native bridge and combined gate pending separate receipts."
     }
   },
   "freeze_register": {
@@ -1377,7 +1388,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+                "sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775"
               }
             ]
           },
@@ -1803,7 +1814,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+                "sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775"
               }
             ]
           },

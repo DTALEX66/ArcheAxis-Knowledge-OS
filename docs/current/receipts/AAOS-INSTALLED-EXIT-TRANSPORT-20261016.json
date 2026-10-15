@@ -1,0 +1,77 @@
+{
+  "schema": "archeaxis.installed-exit-transport/v1",
+  "date": "2026-10-16",
+  "state": "LOCAL_PASS_CLOUD_PENDING",
+  "overall": "PARTIAL",
+  "failed_ci": {
+    "run_id": 38798080182,
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38798080182",
+    "head_sha": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+    "tested_pr_merge_sha": "01a6296c606c4bd5a07af289c405decfdfe903b4",
+    "state": "FAIL",
+    "passed_jobs": [
+      "gateplan",
+      "lint",
+      "security-targeted",
+      "test (3.12)",
+      "desktop-vnext",
+      "green-candidate-vnext",
+      "rust-vnext",
+      "contracts-vnext",
+      "desktop-build",
+      "desktop-fast",
+      "browser-smoke",
+      "workers-vnext"
+    ],
+    "failed_jobs": [
+      "installer-lifecycle",
+      "a0-gates"
+    ],
+    "skipped_jobs": [
+      "migration-targeted",
+      "wheel-smoke",
+      "windows-runtime-smoke",
+      "format-targeted",
+      "py-compat"
+    ],
+    "skip_boundary": "Classifier skips are not PASS.",
+    "installed_raw": {
+      "path": ".project-local/tmp/ci-38798080182-installed/runs/fd2a08c715/webdriver-06144174dbf2/tmp/journey/receipt.json",
+      "sha256": "782ae0ee2a51920bf252af83237d9c1a084a790384bfd9ac364381dd1bff4fc7"
+    },
+    "failure": "First explicit exit_application lost its WebDriver reply with typed target frame detached and the exact window-closed/disconnected renderer message.",
+    "business_before_failure": "Document import, navigation, concurrent source reads and document draft persistence ran; receipt.document and saved.png exist. Empty steps does not mean zero business execution.",
+    "exit_evidence": "requested=true but no ACK/natural exit 0 recorded. Final empty owned host/listener sets establish cleanup only; this run remains FAIL."
+  },
+  "repair": "Accept only the typed target frame detached code and full window-closed/disconnected message template inside the explicit owned-exit operation; retain same PID/creation, original Popen wait <=15 seconds, natural exit 0 and cleanup checks.",
+  "negative_guards": [
+    "Unknown or malformed messages still fail",
+    "Other error codes still fail",
+    "Nonzero exit and timeout fail",
+    "Recycled PID cannot receive exit request",
+    "Ordinary command errors propagate"
+  ],
+  "checks": {
+    "targeted": {
+      "path": ".project-local/runs/ba8e5e5614/native-exit-detach-20261016/artifacts/execution.json",
+      "sha256": "4b4eb11a23700d250dd584c4b711482146cd7451a35e77fb2079cbd74fc01d15",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "e0744021ad5599b66af5498e2f7354c1f8af7bfc935938f78a4c2918b21cd997",
+      "tests": 67
+    },
+    "lint": {
+      "path": ".project-local/runs/ba8e5e5614/native-exit-lint-20261016/artifacts/execution.json",
+      "sha256": "2096aaca6809cf9a4e69fa4f9f68df3ea7a26b1c798d74e8c6065041701efa2c",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "e0744021ad5599b66af5498e2f7354c1f8af7bfc935938f78a4c2918b21cd997"
+    }
+  },
+  "independent_review": "PASS",
+  "evidence_level": "SYNTHETIC_PROBE_REGRESSION; prior real CI failure retained",
+  "current_installed_qualification": "NOT_EXECUTED",
+  "next": "Read new exact-head CI and its actual merge checkout; no retrospective qualification."
+}

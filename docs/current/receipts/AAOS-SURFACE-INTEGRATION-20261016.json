@@ -1,0 +1,129 @@
+{
+  "schema": "archeaxis.surface-integration/v1",
+  "date": "2026-10-16",
+  "overall": "PARTIAL",
+  "state": "LOCAL_PASS_DELIVERY_PENDING",
+  "product_baseline": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+  "product_patch_sha256": "7f9de5e2b62877291d79a3dbec82bca67f88a81827edddc020e93447553a4c06",
+  "receipts": [
+    "BE11-FORMAT-SURFACE-20261016.json",
+    "AAOS-TEACHING-COURSE-RETURN-20261016.json",
+    "AAOS-INSTALLED-EXIT-TRANSPORT-20261016.json"
+  ],
+  "checks": {
+    "combined": {
+      "path": ".project-local/runs/ba8e5e5614/course-format-combined-utf8-1016/artifacts/local-ci.json",
+      "sha256": "f9d1cd9f29792dec54ec604f98525a60648cdae01a89e3688c5d66f6d6acb669",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "7f9de5e2b62877291d79a3dbec82bca67f88a81827edddc020e93447553a4c06",
+      "checks": 27,
+      "frontend_files": 151,
+      "frontend_tests": 1449,
+      "affected_python_tests": 17,
+      "route_maintenance_tests": 27,
+      "scope": "quick with explicit affected Python contract suite; not full Python or installed qualification."
+    },
+    "exit_regressions": {
+      "path": ".project-local/runs/ba8e5e5614/native-exit-detach-20261016/artifacts/execution.json",
+      "sha256": "4b4eb11a23700d250dd584c4b711482146cd7451a35e77fb2079cbd74fc01d15",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "e0744021ad5599b66af5498e2f7354c1f8af7bfc935938f78a4c2918b21cd997",
+      "tests": 67
+    },
+    "exit_lint": {
+      "path": ".project-local/runs/ba8e5e5614/native-exit-lint-20261016/artifacts/execution.json",
+      "sha256": "2096aaca6809cf9a4e69fa4f9f68df3ea7a26b1c798d74e8c6065041701efa2c",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "e0744021ad5599b66af5498e2f7354c1f8af7bfc935938f78a4c2918b21cd997"
+    },
+    "final_preflight": {
+      "path": ".project-local/runs/ba8e5e5614/surface-checkpoint-preflight-fixed-1016/artifacts/local-ci.json",
+      "sha256": "6ffc6a9a82830ce05e490f6de317f71f6cf5b40306c3c19cd18da68d04111981",
+      "status": "LOCAL_PASS",
+      "checks": 19,
+      "source_consistent": true
+    }
+  },
+  "failed_attempts_preserved": [
+    {
+      "run": "format-surface-bridge-1016",
+      "reason": "Direct Tauri unit build lacked the routed frontend assets/config; corrected by canonical Vite output and TAURI_CONFIG."
+    },
+    {
+      "run": "course-format-combined-1016",
+      "reason": "Resource catalog source digest drift; reviewed DTO source refs and generated catalog refreshed without upgrading qualification."
+    },
+    {
+      "run": "course-format-combined-fixed-1016",
+      "reason": "GBK console encoding failed on test-output checkmark; attempt is not PASS. Read-only owned test-process lookup later found none. Process-only PYTHONUTF8 corrected the entry and full quick passed."
+    },
+    {
+      "run": "surface-checkpoint-preflight-1016",
+      "reason": "Unsupported --preflight-only argument rejected before checks; corrected to repository --preflight flag."
+    }
+  ],
+  "latest_completed_ci": {
+    "run_id": 38798080182,
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38798080182",
+    "head_sha": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+    "tested_pr_merge_sha": "01a6296c606c4bd5a07af289c405decfdfe903b4",
+    "state": "FAIL",
+    "passed_jobs": [
+      "gateplan",
+      "lint",
+      "security-targeted",
+      "test (3.12)",
+      "desktop-vnext",
+      "green-candidate-vnext",
+      "rust-vnext",
+      "contracts-vnext",
+      "desktop-build",
+      "desktop-fast",
+      "browser-smoke",
+      "workers-vnext"
+    ],
+    "failed_jobs": [
+      "installer-lifecycle",
+      "a0-gates"
+    ],
+    "skipped_jobs": [
+      "migration-targeted",
+      "wheel-smoke",
+      "windows-runtime-smoke",
+      "format-targeted",
+      "py-compat"
+    ],
+    "skip_boundary": "Classifier skips are not PASS.",
+    "installed_raw": {
+      "path": ".project-local/tmp/ci-38798080182-installed/runs/fd2a08c715/webdriver-06144174dbf2/tmp/journey/receipt.json",
+      "sha256": "782ae0ee2a51920bf252af83237d9c1a084a790384bfd9ac364381dd1bff4fc7"
+    },
+    "failure": "First explicit exit_application lost its WebDriver reply with typed target frame detached and the exact window-closed/disconnected renderer message.",
+    "business_before_failure": "Document import, navigation, concurrent source reads and document draft persistence ran; receipt.document and saved.png exist. Empty steps does not mean zero business execution.",
+    "exit_evidence": "requested=true but no ACK/natural exit 0 recorded. Final empty owned host/listener sets establish cleanup only; this run remains FAIL."
+  },
+  "remaining": [
+    "New exact-head CI including installed lifecycle",
+    "Full seven-reference non-character visual comparison and alternate top-menu layout",
+    "Remaining BE/FE scope including full learning/teaching and all-format editing/roundtrip",
+    "Current installed/Owner acceptance; no release or Green replacement"
+  ],
+  "allowance": {
+    "observed_remaining_percent": 21,
+    "threshold_remaining_percent": 15,
+    "state": "CONTINUE_ABOVE_THRESHOLD"
+  },
+  "publication_boundary": "Public task-owned source and sanitized evidence only; raw source packages, runtime/cache/database/private state and QODER remain excluded.",
+  "handoff_archive": {
+    "path": "docs/history/handoff-20261016/AAOS-AGENT-HANDOFF-before-surface-checkpoint.md",
+    "bytes": 15217,
+    "sha256": "b93469e1fd3884f564e13584e3408d4cc278467acbfb047237f4485b6ee3f3d1",
+    "scope": "Complete previous public handoff retained byte-for-byte; current entry shortened to remove competing dated status narratives."
+  }
+}

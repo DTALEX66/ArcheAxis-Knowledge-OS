@@ -49,7 +49,12 @@ def request_owned_product_exit(host, launch_identity, live_rows, request_exit, r
     except OSError as error:
         record.update(ack="TRANSPORT_CLOSED", error_type=type(error).__name__)
     except WebDriverProtocolError as error:
-        if error.value.get("error") not in {"no such window", "invalid session id"}:
+        message = error.value.get("message")
+        detached_on_exit = error.value.get("error") == "target frame detached" and isinstance(message, str) and re.fullmatch(
+            r"target frame detached\n  \(failed to check if window was closed: "
+            r"disconnected: Unable to receive message from renderer\)"
+            r"(?:\n  \(Session info: MicrosoftEdge=\d+\.\d+\.\d+\.\d+\))?", message)
+        if error.value.get("error") not in {"no such window", "invalid session id"} and not detached_on_exit:
             raise
         record.update(ack="TRANSPORT_CLOSED", error_type=error.value["error"])
     else:
