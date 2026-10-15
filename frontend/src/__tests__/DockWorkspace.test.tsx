@@ -54,17 +54,30 @@ describe("actual Dockview retained business consumer",()=>{
  it("uses real Dockview groups and closing/reopening only detaches the persistent business view",async()=>{
   const view=render(<DockWorkspace {...props}/>);
   await waitFor(()=>expect(screen.getByLabelText("draft-03")).toBeInTheDocument());
+  expect(view.container.querySelector(".dock-workspace")).toHaveAttribute("data-compact-reader","true");
   fireEvent.change(screen.getByLabelText("draft-03"),{target:{value:"unsaved retained"}});
   fireEvent.click(screen.getByText("布局与面板"));
   fireEvent.click(screen.getByRole("button",{name:"左右分栏"}));
   await waitFor(()=>expect(screen.getByLabelText("draft-17")).toBeInTheDocument());
   expect(view.container.querySelectorAll(".dv-groupview").length).toBeGreaterThanOrEqual(2);
+  expect(view.container.querySelector(".dock-workspace")).not.toHaveAttribute("data-compact-reader");
   fireEvent.click(screen.getByRole("button",{name:"重置视图布局"}));
   await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeInTheDocument());
   view.rerender(<DockWorkspace {...props} uiPageId="17" spaceId="settings"/>);
   view.rerender(<DockWorkspace {...props}/>);
   await waitFor(()=>expect(screen.getByLabelText("draft-03")).toHaveValue("unsaved retained"));
   expect(counters.mounts).toBe(3);
+ });
+ it("keeps the floating group header available without remounting the reader",async()=>{
+  const view=render(<DockWorkspace {...props}/>);
+  const editor=await screen.findByLabelText("draft-03");
+  fireEvent.change(editor,{target:{value:"floating draft"}});
+  fireEvent.click(screen.getByText("布局与面板"));
+  fireEvent.click(screen.getByRole("button",{name:"浮动当前面板"}));
+  await waitFor(()=>expect(view.container.querySelector(".dock-workspace")).not.toHaveAttribute("data-compact-reader"));
+  expect(screen.getByLabelText("draft-03")).toBe(editor);
+  expect(editor).toHaveValue("floating draft");
+  expect(counters.mounts).toBe(1);
  });
  it("locks layout controls while maintaining the same mounted business session",async()=>{
   render(<DockWorkspace {...props}/>);await waitFor(()=>expect(screen.getByLabelText("draft-03")).toBeInTheDocument());

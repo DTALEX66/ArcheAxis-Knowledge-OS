@@ -42,7 +42,10 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const action=(operation:()=>void|Promise<unknown>)=>{try{Promise.resolve(operation()).catch(error=>setNotice(String(error.message??error)));}catch(error){setNotice(String((error as Error).message));}};
  const split=(direction:"right"|"below")=>{const candidate=id==="17"?"03":"17";open(candidate,direction);};
  const active=()=>api.current?.activePanel;
- return <section className="dock-workspace" aria-label="自由布局工作区" data-layout-version={version} data-panel-count={api.current?.panels.length??1}>
+ // Navigation already exposes these singleton pages. Keep tabs for every real
+ // multi-group, floating or object view; compacting never closes a business host.
+ const compactReader=page==="03"&&api.current?.groups.length===1&&api.current.groups[0].api.location.type==="grid"&&api.current.panels.every(panel=>panel.id==="01"||panel.id==="03");
+ return <section className="dock-workspace" aria-label="自由布局工作区" data-layout-version={version} data-panel-count={api.current?.panels.length??1} data-compact-reader={compactReader||undefined}>
   <details className="dock-layout-options"><summary>布局与面板</summary><div className="dock-toolbar" role="toolbar" aria-label="布局操作">
    <button onClick={()=>split("right")} disabled={locked}>左右分栏</button><button onClick={()=>split("below")} disabled={locked}>上下分栏</button>
    <button disabled={locked||!(view.initialDocumentId??working?.state.active_document)} onClick={()=>action(()=>open(documentPanelId(view.initialDocumentId??working!.state.active_document!),"right"))}>并排打开当前文档</button>
