@@ -23,7 +23,7 @@ export type WorkingRead = {schema:"archeaxis.ui-working-state/v1";workspace_id:s
 type Basis = Pick<WorkingRead,"workspace_id"|"restore_epoch"|"state_revision">;
 export type WorkingTransport = {
   read:()=>Promise<WorkingRead>;
-  write:(request:Basis & {state:WorkingState})=>Promise<WorkingRead>;
+  write:(request:Basis & {state:WorkingState;release_teaching?:{draft_key:string;record_id:string}})=>Promise<WorkingRead>;
   clearSaved:(request:Basis & {document_id:string;base_version:number;content_sha256:string;saved_version:number})=>Promise<WorkingRead>;
   clearMachine?:(request:Basis & {journal_id:string;task_id:string})=>Promise<WorkingRead>;
   clearJob?:(request:Basis & {request_id:string;action:"terminal"|"abandon_unadmitted"})=>Promise<WorkingRead>;
@@ -50,7 +50,7 @@ export class CoreWorkingStateSession {
   private inFlight:Promise<WorkingRead>|null=null;
   private readFlight:Promise<WorkingRead>|null=null;
   private clearFlight:Promise<boolean>|null=null;
-  private unknown:{base:WorkingRead;state:WorkingState;finishedPreparation?:PreparationFinish;cleared?:{id:string;sent:WorkingDraft};clearedTeaching?:{key:string;draft:TeachingDraft};clearedReview?:PendingReview;clearedLearning?:LearningDraft;clearedJob?:PendingJob;clearedMachine?:PendingMachine}|null=null;
+  private unknown:{base:WorkingRead;state:WorkingState;releasedTeaching?:{key:string;draft:TeachingDraft};finishedPreparation?:PreparationFinish;cleared?:{id:string;sent:WorkingDraft};clearedTeaching?:{key:string;draft:TeachingDraft};clearedReview?:PendingReview;clearedLearning?:LearningDraft;clearedJob?:PendingJob;clearedMachine?:PendingMachine}|null=null;
   getSnapshot=():WorkingView=>this.view;
   subscribe=(listener:()=>void):(()=>void)=>{this.listeners.add(listener);return()=>this.listeners.delete(listener);};
   constructor(private transport:WorkingTransport) {}
@@ -76,6 +76,7 @@ export class CoreWorkingStateSession {
         const pending=this.unknown;
         if(!sameWorkspace(pending.base,read))return this.fail(new Error("冻结请求属于不同工作区或恢复现场；未自动重放。"));
         if(read.state_revision===pending.base.state_revision+1&&equal(read.state,pending.state)) {
+          if(pending.releasedTeaching&&equal(this.view.state.teaching_drafts?.[pending.releasedTeaching.key],pending.releasedTeaching.draft)){const state=structuredClone(this.view.state);state.teaching_drafts![pending.releasedTeaching.key].pending_record=null;this.publish({state});}
           if(pending.finishedPreparation){const state=structuredClone(this.view.state);applyPreparationFinish(state,pending.finishedPreparation);this.publish({state});}
           if(pending.clearedTeaching&&equal(this.view.state.teaching_drafts?.[pending.clearedTeaching.key],pending.clearedTeaching.draft)) {
             const state=structuredClone(this.view.state);delete state.teaching_drafts![pending.clearedTeaching.key];if(!Object.keys(state.teaching_drafts!).length)delete state.teaching_drafts;this.publish({state});
@@ -112,6 +113,26 @@ export class CoreWorkingStateSession {
       else return this.fail(new Error("远端工作状态与本地输入不同；未自动替换草稿。"));
       return read;
     } catch(error){return this.fail(error);}
+  }
+  /** Explicit retirement, never a network-catch fallback. Core fences late arrivals atomically. */
+  async releaseTeachingDraft(key:string,draft:TeachingDraft):Promise<boolean> {
+    if(this.clearFlight){await this.clearFlight;return this.releaseTeachingDraft(key,draft);}
+    const run=this.releaseTeachingDraftOnce(key,draft);this.clearFlight=run;
+    try{return await run;}finally{this.clearFlight=null;}
+  }
+  private async releaseTeachingDraftOnce(key:string,draft:TeachingDraft):Promise<boolean> {
+    await this.flush();const server=this.view.server!;
+    if(!draft.pending_record||!equal(this.view.state.teaching_drafts?.[key],draft)||!equal(server.state.teaching_drafts?.[key],draft))return false;
+    const expected=structuredClone(server.state);expected.teaching_drafts![key].pending_record=null;
+    const request={...basis(server),state:structuredClone(expected),release_teaching:{draft_key:key,record_id:draft.pending_record.record_id}};
+    assertUiWorkingState("Write",request);
+    this.publish({status:"saving",error:null});const run=this.transport.write(request);this.inFlight=run;
+    try {
+      const read=assertUiWorkingState<WorkingRead>("Read",await run);
+      if(!sameWorkspace(server,read)||read.recovery_requires_confirmation||read.state_revision!==server.state_revision+1||!equal(read.state,expected))throw new Error("教学请求解除冻结回执未确认；原记录请求保留。");
+      const state=structuredClone(this.view.state);if(equal(state.teaching_drafts?.[key],draft))state.teaching_drafts![key].pending_record=null;
+      this.publish({state,server:read,status:equal(state,read.state)?"ready":"unsaved",error:null});return true;
+    }catch(error){this.unknown={base:server,state:expected,releasedTeaching:{key,draft:structuredClone(draft)}};return this.fail(error);}finally{this.inFlight=null;}
   }
   change(update:(state:WorkingState)=>void):void {
     const state=structuredClone(this.view.state);update(state);this.serial++;

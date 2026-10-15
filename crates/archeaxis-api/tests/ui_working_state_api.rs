@@ -6,6 +6,40 @@ use serde_json::{Value, json};
 use tower::ServiceExt;
 const ROUTE: &str = "/api/v1/workspace/ui-state";
 #[tokio::test]
+async fn human_release_preserves_frozen_body_and_retires_late_create_through_existing_write_route()
+{
+    let dir = tempfile::tempdir().unwrap();
+    let app = router(Store::open(&dir.path().join("release.sqlite")).unwrap());
+    let (_, initial) = call(&app, "GET", ROUTE, Value::Null, "human").await;
+    let record = json!({"schema":"archeaxis.teaching-record/v2","record_id":"frozen_refused","kind":"observation","knowledge_id":"synthetic","knowledge_version":"synthetic","course_id":null,"parent_id":null,"purpose":"purpose","scope":"personal","privacy":"local_only","content":"preserved body","feedback_class":null,"assessment_id":null,"rubric_version":null,"assisted":false,"producer_kind":"human_authored"});
+    let entry = json!({"page_id":"08","context_item_key":null,"form":{"kind":"observation","purpose":"purpose","content":"preserved body","scope":"personal","privacy":"local_only","assisted":false,"feedback_class":null,"rubric_version":"","producer_kind":"human_authored"},"knowledge_id":"synthetic","course_id":null,"item_key":null,"assessment_id":null,"parent":null,"preparation":null,"saved_preparation":"","pending_record":record});
+    let mut write = json!({"workspace_id":initial["workspace_id"],"restore_epoch":initial["restore_epoch"],"state_revision":0,"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":"08","teaching_drafts":{"08:":entry}}});
+    let (status, staged) = call(&app, "PUT", ROUTE, write.clone(), "human").await;
+    assert_eq!(status, 200, "{staged}");
+    write["state_revision"] = staged["state_revision"].clone();
+    write["state"]["teaching_drafts"]["08:"]["pending_record"] = Value::Null;
+    assert_eq!(
+        call(&app, "PUT", ROUTE, write.clone(), "human").await.0,
+        422,
+        "normal write cannot silently unfreeze"
+    );
+    write["release_teaching"] = json!({"draft_key":"08:","record_id":"frozen_refused"});
+    assert_eq!(
+        call(&app, "PUT", ROUTE, write.clone(), "machine").await.0,
+        403
+    );
+    let (status, released) = call(&app, "PUT", ROUTE, write, "human").await;
+    assert_eq!(status, 200, "{released}");
+    assert_eq!(
+        released["state"]["teaching_drafts"]["08:"]["form"],
+        entry["form"]
+    );
+    assert!(released["state"]["teaching_drafts"]["08:"]["pending_record"].is_null());
+    let (status, late) = call(&app, "POST", "/api/v2/teaching/records", record, "human").await;
+    assert_eq!(status, 409, "{late}");
+    assert!(late.to_string().contains("retired"));
+}
+#[tokio::test]
 async fn frozen_preparation_survives_reopen_and_requires_exact_current_document_before_clear() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("preparation.sqlite");

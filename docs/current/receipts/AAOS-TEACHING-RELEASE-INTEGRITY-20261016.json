@@ -1,0 +1,103 @@
+{
+  "overall_be09": "PARTIAL; native/installed/Owner qualification belongs to root integration",
+  "scope": "Validate formal TeachingRecord and journal locally before freezing. Explicit release uses existing typed ui_state_write; atomic CAS + exact retained form + not-admitted check + durable retired-ID marker in existing workspace_meta. Core teaching create/import refuse late retired IDs. Unknown release ACK retains draft until exact readback.",
+  "recorded_at": "2026-10-15T16:31:55.2569392+00:00",
+  "evidence": [
+    {
+      "source_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783",
+      "child_exit_code": 1,
+      "run": "teaching-release-red",
+      "source_consistent": true,
+      "source_patch_sha256": "54a9cb45e2a7735a81bb6bd7465756e7cf3159ed273d201a67ecc9df460e8385",
+      "sha256": "e0c416976abe0d6d300c12bc5d52372268f4c1065298b5c8aaa07a87f4f3be92",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\teaching-release-red\\artifacts\\execution.json",
+      "status": "FAIL"
+    },
+    {
+      "source_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783",
+      "child_exit_code": 0,
+      "run": "teaching-release-green1",
+      "source_consistent": true,
+      "source_patch_sha256": "53d22f7a12971e64a56e2025555ba8671b0c11a4a1adaf88db6314981dc65da7",
+      "sha256": "3056368af2b8e4557da40a35a78e683db21b9b0fd424473edffb4638a7fc54be",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\teaching-release-green1\\artifacts\\execution.json",
+      "status": "LOCAL_PASS"
+    },
+    {
+      "source_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783",
+      "child_exit_code": 0,
+      "run": "teaching-release-rust2",
+      "source_consistent": true,
+      "source_patch_sha256": "864ce997e6ffa56e2a21727fb923db083b919bd7b4abea116cbd5824ec3b7402",
+      "sha256": "16d92bd0ed01c040cd47c47e37083241324e1553622c504ca207141d7f01ab89",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\teaching-release-rust2\\artifacts\\execution.json",
+      "status": "LOCAL_PASS"
+    },
+    {
+      "source_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783",
+      "child_exit_code": 0,
+      "run": "teaching-release-final-frontend",
+      "source_consistent": true,
+      "source_patch_sha256": "3851b02e05c444353fe1f914d74b4b506ede2510df9f2862fb8e445f439ebc93",
+      "sha256": "4bae67b75bef3336d0d033cc2c02c95fb8d7a76575962d0b07ab56c2bafe5446",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\teaching-release-final-frontend\\artifacts\\execution.json",
+      "status": "LOCAL_PASS"
+    },
+    {
+      "source_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783",
+      "child_exit_code": 0,
+      "run": "teaching-release-final-api",
+      "source_consistent": true,
+      "source_patch_sha256": "3851b02e05c444353fe1f914d74b4b506ede2510df9f2862fb8e445f439ebc93",
+      "sha256": "e81b20344350c0e6279ab3b73ea1f41dc40cc513f6dd62520ed14401a6d8dbcd",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\teaching-release-final-api\\artifacts\\execution.json",
+      "status": "LOCAL_PASS"
+    },
+    {
+      "source_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783",
+      "child_exit_code": 0,
+      "run": "teaching-release-final-tsc",
+      "source_consistent": true,
+      "source_patch_sha256": "3851b02e05c444353fe1f914d74b4b506ede2510df9f2862fb8e445f439ebc93",
+      "sha256": "e4e13047719999c958eeb893d9211b90f6496cb44ca3eb8bbb39d0e8620c8f47",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\teaching-release-final-tsc\\artifacts\\execution.json",
+      "status": "LOCAL_PASS"
+    },
+    {
+      "source_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783",
+      "child_exit_code": 0,
+      "run": "teaching-release-final-typegen",
+      "source_consistent": true,
+      "source_patch_sha256": "3851b02e05c444353fe1f914d74b4b506ede2510df9f2862fb8e445f439ebc93",
+      "sha256": "bbf429470b2b587908dcd7ad9fa1a42dfb55da82451b7bea4bb723a2fb68fc8e",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\teaching-release-final-typegen\\artifacts\\execution.json",
+      "status": "LOCAL_PASS"
+    },
+    {
+      "source_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783",
+      "child_exit_code": 0,
+      "run": "teaching-release-final-gate",
+      "source_consistent": true,
+      "source_patch_sha256": "3851b02e05c444353fe1f914d74b4b506ede2510df9f2862fb8e445f439ebc93",
+      "sha256": "4fd65add2c6c6d4a6a9c15acec36f2a62cfc2b160168079d11649fa77b6d7681",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\teaching-release-final-gate\\artifacts\\execution.json",
+      "status": "LOCAL_PASS"
+    }
+  ],
+  "schema": "archeaxis.teaching-release-integrity/v1",
+  "task": "AX-HOST-20261013/BE09",
+  "limitations": [
+    "Frontend evidence SYNTHETIC; Rust/API evidence INTEGRATED actual project SQLite and Store.",
+    "Domain 38-run predates only the added API regression; final API/frontend/type/gate verify final code.",
+    "No native build, full gate, exact-SHA CI, push, merge, release, real Owner data or installed-runtime work performed here."
+  ],
+  "rollback": "Revert delivery commit. No schema migration. Retired-ID metadata remains inert under the old reader; do not erase unknown local state.",
+  "status": "PASS_LOCAL_SYNTHETIC_AND_INTEGRATED_SQLITE",
+  "regression": [
+    "Two original RED cases: invalid local rubric freezes unsent form; definite Core rejection has no explicit recovery.",
+    "Frontend 116 passed, including unadmitted/admitted unknown release ACK boundaries.",
+    "Domain 38 passed, including parent Withdrawn before insert, stale CAS, exact form retention, restart, rejected late create/import and already admitted refusal.",
+    "API 6 passed, including human-only existing write route, ordinary write forbidden to unfreeze, late HTTP create conflict."
+  ],
+  "base_commit": "f97c7a5119aa46c63c7eb09680caf12c79d19783"
+}

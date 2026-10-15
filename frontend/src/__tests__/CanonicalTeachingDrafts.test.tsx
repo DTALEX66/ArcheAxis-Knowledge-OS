@@ -57,6 +57,24 @@ function freeze(entry:TeachingDraft){
   return entry;
 }
 function view(record:NonNullable<TeachingDraft["pending_record"]>){return {record:structuredClone(record),content_sha256:"a".repeat(64),withdrawn:false,scoring_status:"not_scored"};}
+it("keeps locally invalid rubric text editable when no teaching request was dispatched",async()=>{
+  const f=fixture(),entry=draft("08");entry.knowledge_id="knowledge_v1";f.server().state.teaching_drafts={"08:":entry};await f.session.load();render(component(f.session,"08"));
+  fireEvent.change(screen.getByLabelText("Rubric版本"),{target:{value:"v 1"}});fireEvent.click(screen.getByRole("button",{name:"登记版本化记录"}));await screen.findByText(/操作未确认完成/);
+  expect(screen.getByLabelText("内容")).toBeEnabled();expect(screen.getByLabelText("Rubric版本")).toHaveValue("v 1");expect(call.mock.calls.some(([op])=>op==="teaching_create")).toBe(false);expect(f.session.getSnapshot().state.teaching_drafts?.["08:"].pending_record).toBeNull();
+});
+it("explicitly releases a definitely refused teaching identity into the unchanged editable draft",async()=>{
+  const f=fixture(),entry=freeze(draft("08"));f.server().state.teaching_drafts={"08:":entry};await f.session.load();
+  call.mockImplementation(async(op:string)=>{if(op==="teaching_list")return {items:[],next_cursor:null};if(op==="teaching_create")throw new Error("parent withdrawn before insert");throw new Error(`Unexpected ${op}`);});
+  render(component(f.session,"08"));fireEvent.click(screen.getByRole("button",{name:"重试同一记录"}));await screen.findByText(/操作未确认完成/);expect(screen.getByLabelText("内容")).toBeDisabled();
+  fireEvent.click(screen.getByRole("button",{name:"核对未入库并解除冻结"}));await screen.findByText(/已解除冻结/);expect(screen.getByLabelText("内容")).toBeEnabled();expect(screen.getByLabelText("内容")).toHaveValue(entry.form.content);
+  expect(f.transport.write).toHaveBeenCalledWith(expect.objectContaining({release_teaching:{draft_key:"08:",record_id:entry.pending_record!.record_id}}));expect(f.server().state.teaching_drafts?.["08:"].pending_record).toBeNull();
+});
+it.each([false,true])("retains the frozen record across an unknown release ACK until exact readback, admitted=%s",async admitted=>{
+  const f=fixture(),entry=freeze(draft("08"));f.server().state.teaching_drafts={"08:":entry};await f.session.load();
+  const write=f.transport.write;f.transport.write=async request=>{if(admitted)await write(request);throw new Error("unknown release ACK");};
+  await expect(f.session.releaseTeachingDraft("08:",entry)).rejects.toThrow("unknown release ACK");expect(f.session.getSnapshot().state.teaching_drafts?.["08:"]).toEqual(entry);
+  await f.session.load();expect(f.session.getSnapshot().state.teaching_drafts?.["08:"].pending_record).toEqual(admitted?null:entry.pending_record);expect(f.session.getSnapshot().state.teaching_drafts?.["08:"].form).toEqual(entry.form);
+});
 it("isolates the same teaching page by the original learning item without copying another object's text",async()=>{
   const f=fixture();await f.session.load();const first=render(component(f.session,"11","course:a"));
   fireEvent.change(screen.getByLabelText("内容"),{target:{value:"belongs to A"}});first.rerender(component(f.session,"11","course:b"));expect(screen.getByLabelText("内容")).toHaveValue("");

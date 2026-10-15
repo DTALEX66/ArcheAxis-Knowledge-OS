@@ -422,6 +422,7 @@ fn job_journal_reopens_refuses_old_client_omission_and_requires_exact_clearance(
 }
 fn request(receipt: &Value, text: &str) -> Write {
     Write {
+        release_teaching: None,
         workspace_id: receipt["workspace_id"].as_str().unwrap().into(),
         restore_epoch: receipt["restore_epoch"].as_str().unwrap().into(),
         state_revision: receipt["state_revision"].as_i64().unwrap(),
