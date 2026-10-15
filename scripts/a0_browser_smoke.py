@@ -1429,6 +1429,69 @@ def read_semantic_reading(browser, viewport, problems, theme):
         context.close()
 
 
+def read_top_navigation(browser, viewport, problems, theme):
+    """Exercise actual alternate chrome, existing routes and editor identity."""
+    context, page = open_library_page(browser, problems,
+        stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
+    label, width, _, _ = viewport
+    try:
+        select_ui_theme(page, theme)
+        navigate_ui_page(page, "01")
+        settings = page.get_by_label("界面设置", exact=True)
+        settings.click()
+        page.get_by_label("导航呈现", exact=True).select_option("top")
+        settings.click()
+        assert page.evaluate("localStorage.getItem('aaos.navigation-appearance.v1')") == "top"
+        assert not page.locator('.navigation-sidebar').is_visible()
+        nav = page.get_by_role("navigation", name="顶部空间导航", exact=True)
+        if width > 1200:
+            assert nav.is_visible()
+            nav.get_by_role("button", name="知识", exact=True).click()
+            menu = nav.get_by_role("menu", name="知识页面", exact=True)
+            assert menu.get_by_role("menuitem").count() == 4
+            shot = ARTIFACTS / f"top-menu-{theme}-{label}.png"
+            page.screenshot(path=str(shot), full_page=True)
+            geometry = nav.evaluate("""node => {
+              const bounds = element => { const r=element.getBoundingClientRect();
+                return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}; };
+              return {shell:bounds(document.querySelector('.cabin-shell')),nav:bounds(node),
+                menu:bounds(node.querySelector('[role=menu]')),
+                entries:[...node.querySelectorAll('[data-top-page]')].map(el=>{
+                  const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                  return {label:el.textContent,rect:bounds(el),reachable:el.contains(hit)};}),
+                overflow:document.documentElement.scrollWidth>innerWidth};
+            }""")
+            assert not geometry['overflow'], geometry
+            assert len(geometry['entries']) == 7 and all(item['reachable'] for item in geometry['entries']), geometry
+            assert geometry['menu']['right'] <= geometry['shell']['right'], geometry
+            menu.get_by_role("menuitem", name="知识库", exact=True).click()
+        else:
+            assert not nav.is_visible()
+            navigate_ui_page(page, "02")
+            shot = ARTIFACTS / f"top-drawer-{theme}-{label}.png"
+            page.screenshot(path=str(shot), full_page=True)
+            geometry = {"drawer_used": True, "overflow": page.evaluate("document.documentElement.scrollWidth>innerWidth")}
+            assert not geometry['overflow'], geometry
+        page.get_by_role("button", name="打开文档 引用目标 1 · 独立历史正文", exact=True).click()
+        editor = page.get_by_role("region", name="阅读与编辑文档视图", exact=True).get_by_role("textbox", name="文档草稿")
+        editor.wait_for()
+        assert "绑定历史正文 1 v1" in editor.inner_text()
+        editor.evaluate("node => window.__A0_NAV_EDITOR__ = node")
+        for appearance in ("sidebar", "top"):
+            settings.click()
+            page.get_by_label("导航呈现", exact=True).select_option(appearance)
+            settings.click()
+            assert editor.evaluate("node => node === window.__A0_NAV_EDITOR__"), "Navigation appearance remounted editor"
+        status = check_status_accessibility(page)
+        calls = page.evaluate("window.__A0_DOCUMENT_FIXTURE__.calls")
+        assert not any(call['operation'] == 'document_draft' for call in calls), calls
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "viewport":label, "theme":theme,
+                "geometry":geometry, "editor_preserved":True, "status_accessibility":status, "screenshot":_recorded(shot)}
+    finally:
+        context.close()
+
+
 def read_narrow_dock_library(browser, problems, theme, viewport=("1600x1000@100", 1600, 1000, 1.0)):
     """A wide window can contain narrow real Dock panels; clicks must still work."""
     context, page = open_library_page(browser, problems,
@@ -1610,6 +1673,8 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     result["narrow_dock_reading"] = [read_narrow_dock_library(browser, problems, theme)
         for theme in AAOS_THEME_IDS]
     result["narrow_dock_reading"].append(read_narrow_dock_library(browser, problems, "cosmic", ("1600x1000@125",1280,800,1.25)))
+    result["top_navigation"] = [read_top_navigation(browser, viewport, problems, "cosmic")
+        for viewport in (("1672x941@100",1672,941,1), ("390x844@100",390,844,1))]
     return result
 
 

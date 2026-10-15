@@ -224,3 +224,51 @@ body:has(.cabin-shell) {
 }
 @media (prefers-reduced-transparency: reduce) { .cabin-shell .status-bar,.cabin-shell .navigation-sidebar,.workspace-entry-card,.cabin-shell .app-center,.cabin-shell[data-cabin-page="03"] .ui-reader-document,.cabin-shell[data-cabin-page="03"] .ui-reader-details { background: var(--ax-panel); backdrop-filter: none; } }
 @media (forced-colors: active) { body:has(.cabin-shell) { background: Canvas; } .workspace-entry-card { border: 1px solid CanvasText; box-shadow: none; } }
+
+/* Alternate reference 5 chrome. Only navigation presentation changes; the task
+   surface and its workspace key stay in place, including unsaved editors. */
+.navigation-appearance { display: grid; gap: 8px; color: var(--ax-fg); }
+.navigation-appearance small { font-size: 12px; color: var(--ax-fg-secondary); line-height: 1.5; }
+.space-top-navigation { display: flex; align-items: center; flex: 1 1 auto; min-width: 0; gap: 0; }
+.space-top-entry { position: relative; flex: 0 0 auto; }
+.cabin-shell .space-top-entry > button { display: flex; gap: 9px; align-items: center; justify-content: center; min-height: 50px; padding: 10px 24px; border: 1px solid transparent; border-radius: 0; background: transparent; color: var(--ax-fg); font-size: 17px; white-space: nowrap; }
+.space-top-entry + .space-top-entry::before { content: ""; position: absolute; left: 0; top: 16px; height: 22px; border-left: 1px solid var(--cabin-edge); opacity: .5; }
+.cabin-shell .space-top-entry:first-child { margin-right: 12px; }
+.cabin-shell .space-top-entry > button[aria-current] { border-radius: 17px; border-color: var(--cabin-edge); background: color-mix(in srgb, var(--ax-accent) 25%, transparent); box-shadow: var(--cabin-shadow); }
+.cabin-shell .space-top-entry:first-child > button[aria-current] { border-color: var(--cabin-highlight); background: linear-gradient(110deg, color-mix(in srgb,var(--ax-accent) 70%,transparent),color-mix(in srgb,var(--ax-accent) 35%,transparent)); box-shadow: var(--cabin-shadow), 0 0 15px color-mix(in srgb,var(--ax-accent) 50%,transparent); }
+.cabin-shell .space-top-entry > button[aria-expanded="true"] { border-radius: 14px; border-color: var(--cabin-edge); background: var(--cabin-surface); box-shadow: var(--cabin-shadow); }
+.space-top-active-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ax-accent-bright); box-shadow: 0 0 8px var(--ax-accent); }
+.space-top-menu { position: absolute; top: calc(100% + 3px); left: 8px; min-width: 210px; max-height: min(560px,65dvh); overflow-y: auto; z-index: 45; padding: 12px 14px; border: 1px solid var(--cabin-edge); border-radius: 16px; background: color-mix(in srgb,var(--ax-panel) 90%,transparent); backdrop-filter: blur(22px) saturate(120%); box-shadow: var(--cabin-shadow),0 16px 35px #0005; }
+.space-top-entry:last-child .space-top-menu { left: auto; right: 0; }
+.space-top-menu > p { padding: 0 10px 8px; margin: 0; font-size: 14px; color: var(--ax-fg-secondary); }
+.cabin-shell .space-top-menu > button { display: flex; align-items: center; width: 100%; gap: 20px; padding: 12px 10px; min-height: 45px; font-size: 16px; text-align: left; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ax-fg); white-space: nowrap; }
+.cabin-shell .space-top-menu > button:is(:hover,[aria-current]) { border-color: var(--cabin-edge); background: color-mix(in srgb,var(--ax-accent) 16%,transparent); }
+.cabin-shell .space-top-navigation button:focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+.cabin-shell[data-navigation-appearance="top"] .navigation-sidebar { display: none; }
+.cabin-shell[data-navigation-appearance="top"] .status-bar { position: relative; z-index: 40; }
+.cabin-shell[data-navigation-appearance="top"] .status-bar .command-trigger:focus-visible { box-shadow: 0 0 0 2px var(--ax-focus-ring), 0 0 0 4px var(--ax-focus-ring); }
+@media (min-width: 1201px) {
+  .cabin-shell[data-navigation-appearance="top"] .status-bar { min-height: 88px; height: 88px; padding-inline: 28px; gap: 16px; }
+  .cabin-shell[data-navigation-appearance="top"] .status-bar-brand { min-width: 230px; }
+  .cabin-shell[data-navigation-appearance="top"] .status-bar > .command-trigger { flex: 0 0 36px; min-width: 36px; width: 36px; justify-content: center; padding: 0; border: 0; background: transparent; box-shadow: none; }
+  .cabin-shell[data-navigation-appearance="top"] .command-trigger > span:not([aria-hidden]),
+  .cabin-shell[data-navigation-appearance="top"] .command-trigger kbd,
+  .cabin-shell[data-navigation-appearance="top"] .status-bar-space { display: none; }
+  .cabin-shell[data-navigation-appearance="top"] .status-bar > .theme-picker { display: none; }
+  .cabin-shell[data-navigation-appearance="top"] .app-body { padding-top: 4px; }
+  .cabin-shell[data-navigation-appearance="top"][data-cabin-page="03"] > section[data-working-state="ready"][role="status"] { top: 88px; left: 28px; }
+}
+@media (min-width: 1201px) and (max-width: 1550px) {
+  .cabin-shell[data-navigation-appearance="top"] .status-bar { gap: 8px; padding-inline: 12px; }
+  .cabin-shell[data-navigation-appearance="top"] .status-bar-brand { min-width: 180px; }
+  .cabin-shell .space-top-entry > button { padding-inline: 12px; font-size: 15px; }
+  .cabin-shell[data-navigation-appearance="top"] .status-pill { font-size: 11px; }
+}
+@media (max-width: 1200px) {
+  .space-top-navigation { display: none; }
+  .cabin-shell[data-navigation-appearance="top"] .ui-navigation-trigger { display: block; align-self: flex-start; margin: 8px 16px; }
+  .cabin-shell[data-navigation-appearance="top"][data-cabin-page="03"] > section[data-working-state="ready"][role="status"] { position: static; margin: 0 0 4px; }
+  .cabin-shell[data-navigation-appearance="top"][data-cabin-page="03"] .app-center { margin-top: 0; }
+}
+@media (prefers-reduced-transparency: reduce) { .space-top-menu { background: var(--ax-panel); backdrop-filter: none; } }
+@media (forced-colors: active) { .space-top-menu { background: Canvas; border-color: CanvasText; } .cabin-shell .space-top-entry > button[aria-current] { border-color: Highlight; } }

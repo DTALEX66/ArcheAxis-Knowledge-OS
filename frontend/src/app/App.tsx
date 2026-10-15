@@ -70,6 +70,13 @@ function AppBody() {
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
   const [navigationOpen,setNavigationOpen] = useState(false);
+  const [navigationAppearance,setNavigationAppearance] = useState<"sidebar" | "top">(() => {
+    try { return localStorage.getItem("aaos.navigation-appearance.v1") === "top" ? "top" : "sidebar"; } catch { return "sidebar"; }
+  });
+  const changeNavigationAppearance = (value: "sidebar" | "top") => {
+    setNavigationAppearance(value);
+    try { localStorage.setItem("aaos.navigation-appearance.v1", value); } catch { /* Session preference remains usable when storage is unavailable. */ }
+  };
   const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));
   const [openedDocumentId,setOpenedDocumentId] = useState<string|undefined>();
   const [initialLearningItemKey, setInitialLearningItemKey] = useState<string|undefined>();
@@ -699,11 +706,15 @@ function AppBody() {
   ];
 
   return (
-    <div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""}>
+    <div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""} data-navigation-appearance={navigationAppearance}>
       {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
       {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区并重启本地 Core，请等待读回完成…</div> : null}
       {workingNotice}
       <StatusBar
+        navigationAppearance={navigationAppearance}
+        onNavigationAppearance={changeNavigationAppearance}
+        pageId={uiPageId}
+        learningFocus={learningFocus}
         activeSpace={activeSpace}
         backendState={!desktop
           ? "web"
