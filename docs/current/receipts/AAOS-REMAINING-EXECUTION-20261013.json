@@ -715,8 +715,10 @@
       "state": "PARTIAL_INTEGRATED",
       "evidence": [
         "docs/current/AAOS-GLASS-CABIN-DELIVERY-20261015.md",
-        "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
-      ]
+        "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json",
+        "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json"
+      ],
+      "remaining": "Sidebar/top-menu chrome and narrow drawer have bounded browser evidence. Remaining full shell/pages and reference-5 workbench composition are not qualified."
     },
     {
       "id": "FE06",
@@ -1041,6 +1043,10 @@
     "surface_integration_20261016": {
       "state": "LOCAL_PASS_CLOUD_PENDING",
       "receipt": "docs/current/receipts/AAOS-SURFACE-INTEGRATION-20261016.json"
+    },
+    "top_navigation_20261016": {
+      "state": "LOCAL_PASS_CLOUD_PENDING",
+      "receipt": "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json"
     }
   },
   "owner_goal": {

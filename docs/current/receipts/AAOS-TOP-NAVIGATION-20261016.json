@@ -1,0 +1,86 @@
+{
+  "schema": "archeaxis.top-navigation/v1",
+  "date": "2026-10-16",
+  "state": "LOCAL_PASS",
+  "overall": "PARTIAL",
+  "implementation": [
+    "Optional top-menu chrome via interface settings; default sidebar retained.",
+    "Existing pages and App navigation guards reused; capability/page/space fallback chooses one current entry.",
+    "Browser-local appearance preference; no Core layout write, editor remount or new dependency.",
+    "Seven top entries, knowledge four-page glass dropdown, keyboard navigation/Escape/outside dismissal; existing drawer used at <=1200px.",
+    "Existing background/inset shell and five semantic themes retained; character work excluded."
+  ],
+  "checks": {
+    "combined": {
+      "path": ".project-local/runs/ba8e5e5614/top-menu-integrated-1016/artifacts/local-ci.json",
+      "sha256": "63b9556f03457854f944509fe914097d4ddb8b9576fa6df62841179ad9dd4f32",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "0f4c703c3324d2da96a2987e90e1eda0e9eec39d",
+      "patch_sha256": "708f3f65f2d5b45908ff8140c16c1cad3335c1148f80e6ed7a4668c007a40913",
+      "checks": 27,
+      "frontend_files": 152,
+      "frontend_tests": 1459,
+      "scope": "quick with affected browser/minimum-size Python tests; no native rebuild"
+    },
+    "browser": {
+      "path": ".project-local/runs/ba8e5e5614/top-menu-browser-focus-fixed-1016/artifacts/execution.json",
+      "sha256": "ec0521e7536b9539670680b8261c4ba4cee94b757ac335c1258b9213ecb765cc",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "0f4c703c3324d2da96a2987e90e1eda0e9eec39d",
+      "patch_sha256": "708f3f65f2d5b45908ff8140c16c1cad3335c1148f80e6ed7a4668c007a40913",
+      "cases": 10,
+      "raw_path": ".project-local/runs/ba8e5e5614/top-menu-browser-focus-fixed-1016/artifacts/browser-smoke/reference-top.json",
+      "raw_sha256": "f95c0e7b227efdc159ba4082b669d97c3461df154703bfcd6bd559561e10603a"
+    },
+    "independent_review": "PASS after space-route active-state fix"
+  },
+  "failures_preserved": [
+    {
+      "run": "Donor initial incomplete-dependency attempt; final canonical top-navigation-complete-deps-20261016 passes",
+      "reason": "Initial donor dependency link lacked dockview-react; reused existing integration dependencies without installation. Exact donor execution log records actual run identity."
+    },
+    {
+      "run": "top-menu-browser-1016",
+      "reason": "Real menu click intercepted by app body; fixed header stacking context."
+    },
+    {
+      "run": "top-menu-browser-layer-fixed-1016",
+      "reason": "Top search decoration overrode focus shadow; restored explicit visible focus while retaining contrast assertion."
+    }
+  ],
+  "reference_observation": {
+    "reference": "星环知识系统：玻璃知识中枢.png",
+    "viewport": [
+      1672,
+      941
+    ],
+    "screenshot": ".project-local/runs/ba8e5e5614/top-menu-browser-focus-fixed-1016/artifacts/browser-smoke/top-menu-cosmic-1672x941@100.png",
+    "sha256": "e88f3268dc9ccef8cbc272c0a0e469e69360cc032fdc88c80406bec3fb111887",
+    "nav": {
+      "x": 367.984375,
+      "y": 142.078125,
+      "right": 1339.015625,
+      "bottom": 192.078125,
+      "width": 971.03125,
+      "height": 50
+    },
+    "menu": {
+      "x": 489.5,
+      "y": 195.078125,
+      "right": 699.5,
+      "bottom": 442.078125,
+      "width": 210,
+      "height": 247
+    },
+    "boundary": "Actual Chromium with controlled host/document fixture. Fixture shows an unconfirmed working-state banner; absolute vertical geometry is not the final ready-state match. This qualifies navigation only, not reference-5 dashboard composition or full seven-image similarity."
+  },
+  "evidence_level": "SIMULATED_HOST_CORE_FIXTURE_RENDERED_IN_REAL_CHROMIUM",
+  "remaining": [
+    "Reference-5 two-column workbench body and final materials/spacing",
+    "Full seven-reference comparison",
+    "Current exact-SHA CI, installed and Owner visual acceptance"
+  ],
+  "publication": "Public task-owned source/receipt only; no raw images/runtime/private data/QODER"
+}

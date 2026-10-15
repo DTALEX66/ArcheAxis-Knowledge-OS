@@ -6,6 +6,7 @@ import { CommandPalette } from "./CommandPalette";
 import { ThemePicker } from "./ThemePicker";
 import { AaosIcon } from "./AaosIcon";
 import type { ObjectReference } from "../api/generated/research-contract";
+import { SpaceTopNavigation } from "./SpaceTopNavigation";
 export type BackendDisplayState = "checking" | "available" | "unavailable" | "web";
 
 interface StatusBarProps {
@@ -20,6 +21,10 @@ interface StatusBarProps {
   onCommandPaletteOpenChange?: (open: boolean) => void;
   inspectorOpen?: boolean;
   onToggleInspector?: () => void;
+  navigationAppearance?: "sidebar" | "top";
+  onNavigationAppearance?: (value: "sidebar" | "top") => void;
+  pageId?: string;
+  learningFocus?: boolean;
 }
 
 const BACKEND_LABELS: Record<BackendDisplayState, string> = {
@@ -40,6 +45,7 @@ export function StatusBar({
   onCommandPaletteOpenChange,
   inspectorOpen = true,
   onToggleInspector = () => {},
+  navigationAppearance = "sidebar", onNavigationAppearance, pageId, learningFocus = false,
 }: StatusBarProps) {
   const { theme } = useAaosTheme();
   const displayStatus = backendState === "web"
@@ -56,8 +62,9 @@ export function StatusBar({
         <span className="brand-name">星环知识系统<small>ArcheAxis Knowledge</small></span>
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
+      {navigationAppearance === "top" && !learningFocus && onPage ? <SpaceTopNavigation activeSpace={activeSpace} pageId={pageId} onPage={onPage} activeCapabilityId={selectedCapabilityId}/> : null}
       <CommandPalette onPage={onPage} onOpenObject={onOpenObject} onNavigate={onNavigate} onOpenCapability={onOpenCapability} onOpenChange={onCommandPaletteOpenChange} />
-      {activeSpace !== "workspace" ? <ThemePicker /> : null}
+      {activeSpace !== "workspace" && navigationAppearance !== "top" ? <ThemePicker /> : null}
       <div className="status-bar-center">
         <span
           className={`status-pill status-pill--${displayStatus}`}
@@ -72,7 +79,7 @@ export function StatusBar({
         {activeLabel}
       </div>
       {!selectedCapabilityId ? <button type="button" className="inspector-trigger" title="展开/折叠检查器（Ctrl+Alt+I）" aria-keyshortcuts="Control+Alt+I" aria-label={inspectorOpen ? "折叠检查器" : "展开检查器"} aria-expanded={inspectorOpen} onClick={onToggleInspector}>◧</button> : null}
-      <details className="cabin-settings"><summary aria-label="界面设置"><AaosIcon name="Settings" size={24}/></summary><div>{activeSpace === "workspace" ? <ThemePicker/> : null}<button type="button" onClick={()=>onPage?.("19")}>打开设置</button></div></details>
+      <details className="cabin-settings"><summary aria-label="界面设置"><AaosIcon name="Settings" size={24}/></summary><div>{activeSpace === "workspace" || navigationAppearance === "top" ? <ThemePicker/> : null}{onNavigationAppearance ? <label className="navigation-appearance">导航呈现<select aria-label="导航呈现" value={navigationAppearance} onChange={event=>onNavigationAppearance(event.target.value as "sidebar" | "top")}><option value="sidebar">侧栏导航</option><option value="top">顶部菜单</option></select><small>仅保存在此浏览器，不更改工作区布局。</small></label> : null}<button type="button" onClick={()=>onPage?.("19")}>打开设置</button></div></details>
     </header>
   );
 }
