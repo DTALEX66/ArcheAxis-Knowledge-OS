@@ -1,0 +1,56 @@
+{
+  "schema": "archeaxis.teaching-course-return/v1",
+  "date": "2026-10-16",
+  "state": "LOCAL_PASS",
+  "overall": "PARTIAL",
+  "pages": [
+    "11",
+    "12"
+  ],
+  "implementation": [
+    "Return to the original course within the teaching page without unmounting the teaching body or practice answers.",
+    "Pin course/artifact, knowledge revision, source revision and assessment identity; missing, stale or substituted receipts fail.",
+    "Read-only course panel uses get/render; create/study actions are hidden and guarded."
+  ],
+  "review": "Independent read-only review PASS; no blocking defect found.",
+  "checks": {
+    "ui": {
+      "path": ".project-local/runs/ba8e5e5614/course-format-ui-1016/artifacts/execution.json",
+      "sha256": "fb6697a04b1c9fce96510efe875a2ca9ff75d8de37a3e348ee2f68a3f8f8f939",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "c5117f901c51605bac191765bcfabf06f3e0773eda8c659d4bfeb7efd5d4dab5",
+      "files": 5,
+      "tests": 59
+    },
+    "types": {
+      "path": ".project-local/runs/ba8e5e5614/course-format-types-1016/artifacts/execution.json",
+      "sha256": "afd3976b27227a81d746b49fe416f4e6218ddc87340461bd113595ba1e67cba6",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "c5117f901c51605bac191765bcfabf06f3e0773eda8c659d4bfeb7efd5d4dab5"
+    },
+    "combined": {
+      "path": ".project-local/runs/ba8e5e5614/course-format-combined-utf8-1016/artifacts/local-ci.json",
+      "sha256": "f9d1cd9f29792dec54ec604f98525a60648cdae01a89e3688c5d66f6d6acb669",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "7f9de5e2b62877291d79a3dbec82bca67f88a81827edddc020e93447553a4c06",
+      "checks": 27,
+      "frontend_files": 151,
+      "frontend_tests": 1449,
+      "affected_python_tests": 17,
+      "route_maintenance_tests": 27,
+      "scope": "quick with explicit affected Python contract suite; not full Python or installed qualification."
+    }
+  },
+  "evidence_level": "SIMULATED",
+  "remaining": [
+    "Goal/route planning and manual records",
+    "Full teaching delivery/revision/adoption journey",
+    "Current native/installed and Owner qualification"
+  ]
+}

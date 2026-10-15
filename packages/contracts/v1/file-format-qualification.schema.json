@@ -12,6 +12,10 @@
     "source_revision": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "job_id": {"type": "string", "minLength": 1},
     "attempt": {"type": ["integer", "null"], "minimum": 1},
+    "job_state": {"type": "string"},
+    "engine": {"type": ["string", "null"]},
+    "engine_version": {"type": ["string", "null"]},
+    "outputs_capped": {"type": "boolean"},
     "execution_succeeded": {"type": "boolean"},
     "qualification_evidence": {"enum": ["COMPLETE", "INCOMPLETE"]},
     "operations": {
@@ -31,7 +35,10 @@
       "reported_count": {"type": ["integer", "null"], "minimum": 0},
       "receipt_ref": {"type": ["string", "null"]}
     }},
-    "outputs": {"type": "array", "maxItems": 50},
+    "outputs": {"type": "array", "maxItems": 50, "items": {"type": "object", "properties": {
+      "kind": {"type": "string"}, "schema": {"type": ["string", "null"]},
+      "sha256": {"type": ["string", "null"]}, "byte_length": {"type": ["integer", "null"], "minimum": 0}
+    }}},
     "evidence_scope": {"type": "string", "minLength": 1}
   },
   "$defs": {

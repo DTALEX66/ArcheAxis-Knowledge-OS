@@ -464,7 +464,8 @@
       "implementation_evidence": [
         "docs/current/receipts/BE11-FORMAT-QUALIFICATION-20261016.json",
         "docs/current/receipts/AAOS-VIDEO-HEALTH-CONTRACT-20261016.json",
-        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json"
+        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json",
+        "docs/current/receipts/BE11-FORMAT-SURFACE-20261016.json"
       ],
       "dependencies": [
         "BE01"
@@ -486,7 +487,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": "Per-file six-operation qualification and real text/DOCX workers verified. Batch planning, finite host bridge/UI presentation, native editing/roundtrip and corpus-wide qualification remain incomplete.",
+      "blocker": "Per-file six-operation qualification, real controlled text/DOCX workers, finite host read and explicit UI are implemented and locally verified. Batch planning, native editing/roundtrip, corpus-wide qualification and current installed acceptance remain incomplete.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -780,9 +781,10 @@
         "frontend/src/spaces/CanonicalLearningJourneySpace.tsx",
         "frontend/src/components/KnowledgeCoursePanel.tsx",
         "docs/current/receipts/AAOS-FE10-COURSE-RETURN-20261016.json",
-        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json"
+        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json",
+        "docs/current/receipts/AAOS-TEACHING-COURSE-RETURN-20261016.json"
       ],
-      "remaining": "Page 06/07 course-to-study return preserves course/artifact and assessment knowledge revision. Goal/route planning, manual records, page 11/12 cross-host return and full acceptance remain incomplete."
+      "remaining": "Page 06/07 and teaching 11/12 original course/artifact/revision returns are implemented. Goal/route planning, manual records and complete native/installed acceptance remain incomplete."
     },
     {
       "id": "FE11",
@@ -914,8 +916,11 @@
         "FE07",
         "BE11"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/receipts/BE11-FORMAT-SURFACE-20261016.json"
+      ],
+      "remaining": "Explicit six-operation readback is implemented; full batch import/export, native editing/roundtrip and actual corpus acceptance remain incomplete."
     },
     {
       "id": "FE23",
@@ -1032,6 +1037,10 @@
       "state": "LOCAL_PASS_CI_FAILURES_PENDING_REPAIR",
       "receipt": "docs/current/receipts/AAOS-PARALLEL-INTEGRATION-FINAL-20261015.json",
       "tested_head": "4fc9006a2bd59cf9e0733ffc46357f0488d6a27b"
+    },
+    "surface_integration_20261016": {
+      "state": "LOCAL_PASS_CLOUD_PENDING",
+      "receipt": "docs/current/receipts/AAOS-SURFACE-INTEGRATION-20261016.json"
     }
   },
   "owner_goal": {
@@ -1191,5 +1200,5 @@
     "status": "PASS_BOUNDED_NATIVE",
     "overall": "PARTIAL"
   },
-  "latest_integration_checkpoint": "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json"
+  "latest_integration_checkpoint": "docs/current/receipts/AAOS-SURFACE-INTEGRATION-20261016.json"
 }

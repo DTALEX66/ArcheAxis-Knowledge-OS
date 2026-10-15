@@ -373,7 +373,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+              "sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775"
             }
           ]
         },
@@ -596,7 +596,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+              "sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775"
             }
           ]
         },
@@ -7943,5 +7943,16 @@
   "plan_contract_rebind_20261015": {
     "scope": "Source definitions only; runtime and installed qualifications unchanged",
     "receipt": "docs/current/receipts/AAOS-PLAN-CONTRACT-SOURCE-REFRESH-20261015.json"
+  },
+  "format_qualification_source_rebind_20261016": {
+    "scope": "Reviewed additional finite read-only operation and generated per-file qualification DTO from the existing schema; existing document fields, dependency activation and runtime qualifications unchanged.",
+    "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+    "path": "frontend/src/api/generated/core-contract.ts",
+    "previous_digests": [
+      "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+    ],
+    "current_digest": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775",
+    "targeted_evidence": ".project-local/runs/ba8e5e5614/course-format-ui-1016/artifacts/execution.json",
+    "tests": "59 frontend regressions; per-file schema plus route maintenance 44 tests; TypeScript PASS. Native bridge and combined gate pending separate receipts."
   }
 }

@@ -57,3 +57,53 @@ it("SIMULATED explicitly selected persisted review item can continue into page11
  await screen.findByRole("textbox",{name:"本次答案"});
  expect(bridge.call.mock.calls.some(([op])=>["assessment_create","learning_reference","course_from_knowledge"].includes(op))).toBe(false);
 });
+
+
+it.each(["11","12"])("SIMULATED page%s reads the exact original course without leaving or losing teaching/answer drafts",async page=>{
+ setup();render(<CanonicalTeachingSpace pageId={page} initialItemKey={key}/>);
+ fireEvent.change(screen.getByLabelText("内容"),{target:{value:"  保留教学正文\n第二行  "}});
+ fireEvent.change(await screen.findByLabelText("本次答案"),{target:{value:"  保留独立答案  "}});
+ const before=bridge.call.mock.calls.length;
+ fireEvent.click(screen.getByRole("button",{name:"返回原课程与绑定版本"}));
+ const article=await screen.findByLabelText("课程候选课时");
+ expect(article).toHaveTextContent("source-revision-exact");expect(article).toHaveTextContent(knowledgeId);
+ expect(screen.getByLabelText("原课程与绑定版本")).toHaveTextContent(`仅阅读本题绑定的知识修订 ${knowledgeId}`);
+ expect(bridge.call.mock.calls.slice(before)).toEqual([["course_get",{course_id:"course-exact"}],["course_render",{course_id:"course-exact",body:{artifact_id:"lesson-exact"}}]]);
+ expect(screen.queryByRole("button",{name:"由课程课时建立学习问题"})).not.toBeInTheDocument();
+ expect(screen.queryByRole("button",{name:"从当前知识生成课程与课时"})).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button",{name:"关闭课程并继续编辑"}));
+ expect(screen.queryByLabelText("原课程与绑定版本")).not.toBeInTheDocument();
+ expect(screen.getByLabelText("内容")).toHaveValue("  保留教学正文\n第二行  ");expect(screen.getByLabelText("本次答案")).toHaveValue("  保留独立答案  ");
+ expect(events).toHaveLength(0);
+});
+it.each(["11","12"])("SIMULATED page%s rejects same course/artifact rebound to another knowledge revision and preserves drafts",async page=>{
+ setup();const original=bridge.call.getMockImplementation()!;let returning=false;
+ bridge.call.mockImplementation((op:string,p:Record<string,unknown>)=>{if(returning&&op==="course_get"){const value=course();value.bindings[0].knowledge_id="changed-knowledge";value.bindings[0].knowledge_version="changed-knowledge";return Promise.resolve(value);}return original(op,p);});
+ render(<CanonicalTeachingSpace pageId={page} initialItemKey={key}/>);
+ fireEvent.change(screen.getByLabelText("内容"),{target:{value:"保留教学正文"}});fireEvent.change(await screen.findByLabelText("本次答案"),{target:{value:"保留答案"}});
+ returning=true;const before=bridge.call.mock.calls.length;
+ fireEvent.click(screen.getByRole("button",{name:"返回原课程与绑定版本"}));await screen.findByText(/课程未能读取/);
+ expect(screen.queryByLabelText("课程候选课时")).not.toBeInTheDocument();expect(bridge.call.mock.calls.slice(before)).toEqual([["course_get",{course_id:"course-exact"}]]);
+ fireEvent.click(screen.getByRole("button",{name:"关闭课程并继续编辑"}));
+ expect(screen.getByLabelText("内容")).toHaveValue("保留教学正文");expect(screen.getByLabelText("本次答案")).toHaveValue("保留答案");expect(events).toHaveLength(0);
+});
+it.each(["missing","stale","artifact","source"])("SIMULATED course return refuses %s readback without writes or draft loss",async failure=>{
+ setup();const original=bridge.call.getMockImplementation()!;let returning=false;
+ bridge.call.mockImplementation((op:string,p:Record<string,unknown>)=>{
+  if(returning&&op==="course_get"){
+   if(failure==="missing")return Promise.reject(new Error("course unavailable"));
+   const value=course();
+   if(failure==="stale"){value.stale=true;value.bindings[0].stale=true;}
+   if(failure==="artifact")value.manifest.artifacts[0].artifact_id="changed-lesson";
+   if(failure==="source")value.bindings[0].source_revision="changed-source-revision";
+   return Promise.resolve(value);
+  }
+  return original(op,p);
+ });
+ render(<CanonicalTeachingSpace pageId="12" initialItemKey={key}/>);
+ fireEvent.change(screen.getByLabelText("内容"),{target:{value:"不覆盖反馈草稿"}});fireEvent.change(await screen.findByLabelText("本次答案"),{target:{value:"不覆盖答案"}});
+ returning=true;const before=bridge.call.mock.calls.length;fireEvent.click(screen.getByRole("button",{name:"返回原课程与绑定版本"}));await screen.findByText(/课程未能读取/);
+ expect(screen.queryByLabelText("课程候选课时")).not.toBeInTheDocument();expect(bridge.call.mock.calls.slice(before)).toEqual([["course_get",{course_id:"course-exact"}]]);
+ expect(screen.getByLabelText("内容")).toHaveValue("不覆盖反馈草稿");expect(screen.getByLabelText("本次答案")).toHaveValue("不覆盖答案");
+ expect(bridge.call.mock.calls.some(([op])=>["course_from_knowledge","assessment_create","learning_reference","learning_review","teaching_create"].includes(op))).toBe(false);
+});
