@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.owner-ui-direction/v1",
   "date": "2026-10-15",
-  "role": "CURRENT_OWNER_SCOPE_AND_VISUAL_REQUIREMENTS",
+  "role": "DESIGN_REQUIREMENTS_OVERLAY_NOT_REPLACEMENT_TASKPACK",
   "plan_id": "AX-UI-20261013",
   "selected_package": "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI",
   "canonical_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
@@ -90,5 +90,8 @@
     "Full reference reader geometry and horizontal metadata rows",
     "Alternate top-menu reference layout and other non-character taskpack pages",
     "Current candidate native/installed and Owner visual acceptance"
-  ]
+  ],
+  "authority_of_scope": "CURRENT_EXPLICIT_OWNER_REQUEST",
+  "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
+  "progress_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
 }

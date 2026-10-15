@@ -90,7 +90,7 @@ def confirm_restored_working_state(bridge, ui_click, wait, js):
     js("const original=window.__TAURI__,invoke=original.core.invoke;window.__aaosRecoveryReplies=[];window.__aaosRecoveryOriginal=original;const observed=async function(command,args){const value=await invoke(command,args);if(command==='core_command'&&['ui_state_recover','ui_state_write'].includes(args?.request?.operation))window.__aaosRecoveryReplies.push({operation:args.request.operation,value});return value;};window.__TAURI__={...original,core:{...original.core,invoke:observed}};if(window.__TAURI__.core.invoke!==observed)throw new Error('Recovery observer installation refused');")
     try:
         ui_click("保留恢复候选")
-        wait("return document.body.innerText.includes('工作状态已由 Core 保全')")
+        wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
         after = bridge("ui_state_read")
         observed = js("return window.__aaosRecoveryReplies")
     finally:
@@ -129,7 +129,9 @@ def navigate_compatibility_space(js, wait, space: str) -> None:
     """Exercise the declared public legacy route; never infer new-page coverage."""
     # A live bridge is not the UI journal hydration barrier. A restored scene can
     # otherwise replace a hash written immediately after reopening the window.
-    wait("return document.body.innerText.includes('工作状态已由 Core 保全；正文保存以各文档版本回执为准。')")
+    # The reference home hides the verbose ready-only notice, while recovery and
+    # errors stay visible. Await the real hydrated state, not decorative copy.
+    wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
     headings = {"library": "资料库", "vault": "知识库", "workspace": "工作台"}
     heading = headings[space]
     js("window.location.hash=arguments[0]", ["space=" + space])
