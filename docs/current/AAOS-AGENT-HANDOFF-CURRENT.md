@@ -1,6 +1,12 @@
-# 当前 Agent 接手入口 · 2026-10-12
+# 当前 Agent 接手入口 · 2026-10-16
 
 先读 [根权威入口](../../AUTHORITY.md)、[AGENTS](../../AGENTS.md)、[项目合同](../../PROJECT_CONTRACT.yaml)、[文档权威索引](../DOCUMENTATION_AUTHORITY_INDEX.md) 和 [路径身份路由](AAOS-AUTHORITY-ROUTES.json)。这些是仓库公开入口，适用于遵循项目规则的本地/云端软件与模型；不依赖私人配置。
+
+本轮仍 **RUNNING_BY_OWNER / PARTIAL**。当前同时推进 AX-HOST-20261013、AX-UI-20261013 与已审计清理；原始包已归档，实际实现按[执行记录末尾](AAOS-UI-FIRST-EXECUTION-20261009.md)和[统一剩余回执](receipts/AAOS-REMAINING-EXECUTION-20261013.json)接续。整合分支为 `codex/character-memory-ui-20261015`，PR193；不得把本页下方的旧 main、旧 COMPLETE 或旧待办当作当前事实。最新 SHA/CI 需现场读回。
+
+前端按[七张参考图及归属](AAOS-UI-REFERENCE-DIRECTION-20261015.json)实现全窗背景与内缩玻璃界面；首页和阅读页已有局部实现，七图整体尚未验收。FE18 虚拟人物由 QODER 负责，本 writer 不重复实现。后端教学草稿已有[限定原生证明](receipts/AAOS-TEACHING-DRAFT-NATIVE-PROBE-20261016.json)；保活学习页旧 dirty 状态及恢复后旧请求身份边界已修复，最终统一复验结果读执行记录末尾，不能以局部 PASS 代替整个闭环。
+
+Owner 已明确确认：账户**剩余额度 ≤ 15%**时停止新增开发并收尾。已创建的 `archeaxis` 监控每5分钟检查有效额度窗口；触发后保存总结、问题、证据与交接，提交上传本轮可公开且属于本任务的内容，读回本地/远端分支一致，再暂停目标和监控。忽略内容、原始保全包、运行时、数据库、私人配置不上传；额度重置不自动恢复。具体规则在活动指针 `execution_control.allowance_guard`，不以此扩大合并、发布或 Green 权限。
 
 ## 当前任务与停止边界
 
@@ -12,9 +18,9 @@
 
 正式 `frontend/` + `src-tauri/`，Tauri 2 + React/TypeScript/Vite；Rust Core唯一SQLite/CAS业务写者，Python worker隔离。Avalonia是冻结供体，旧FastAPI不成为正式后端。普通内容先保存，权限/结构/完整性仍检查；识别忠实度与专业依据独立，人工认可属专门流程。
 
-新布局/架构按UI优先包，blueprint默认，blueprint-light与black/white/cosmic可切换；所有主题共用新布局，同主题全局语义颜色一致。治理更新不改产品配色和代码。
+新布局/架构按已选择的UI包及当前参考图增量执行；新用户默认 cosmic，有效旧主题偏好保留，blueprint、blueprint-light、black、white、cosmic均可切换；所有主题共用新布局，同主题全局语义颜色一致。
 
-## 当前检出、云端与证据
+## 2026-10-12 历史检出、云端与证据
 
 公开源码已在 PR #184 合并至 main；合并 SHA `1a322045490075e68e4d8b5f26bdd706d3e4089a`，候选 SHA `fca7e7150c0e356b832730531f942af3f49b1b95` 的必需 CI 运行 `38268676998` 通过，包括 CI Windows 实际安装旅程。候选树与合并树一致。这是记录时点，最新 HEAD/ref/CI 必须现场读回。
 

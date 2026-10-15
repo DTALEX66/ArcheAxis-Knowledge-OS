@@ -1,0 +1,183 @@
+{
+  "schema": "archeaxis.recovery-and-dock/v1",
+  "date": "2026-10-16",
+  "overall": "PARTIAL",
+  "status": "PASS_BOUNDED_NATIVE",
+  "tested_source_commit": "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+  "compiled_patch_sha256": "0a853ff70623104a74957c64b198d2c0e5ab82f8823ce1698b6e8411cf9fd910",
+  "native_probe_patch_sha256": "01a3ba63b3004c4b453115e73bb86658ed74bb0b0643e9721b09f76bb6d27d00",
+  "implementation": [
+    "Retained review hosts reconcile completed journals without clearing newer drafts or old-origin recovery identities.",
+    "Library and reader columns respond to their actual Dock container width, including split panels inside a wide desktop.",
+    "XPath predicates are not misclassified as UNC paths; real forbidden-path checks remain enforced.",
+    "Native exit ACK absence is independent from exact live-owned process identity and mandatory normal exit 0.",
+    "Native recovery follows the new reader source disclosure with trusted wheel input and hit-tested native pointer input."
+  ],
+  "local_gate": {
+    "path": ".project-local/runs/ba8e5e5614/glass-dock-final-1016/artifacts/local-ci.json",
+    "sha256": "d7dd59e84a47be343ba168d45ec560ae7f3206c7bfe7c10e0e2f5b65870b21f9",
+    "status": "LOCAL_PASS",
+    "checks": 27,
+    "frontend_tests": 1424,
+    "frontend_files": 150,
+    "python_tests": 99,
+    "python_subtests": 164
+  },
+  "browser": {
+    "path": ".project-local/runs/ba8e5e5614/glass-browser-dock-final-1016/artifacts/browser-smoke/canonical-browser-smoke.json",
+    "sha256": "bcc5793627c882c8001545c895d426a73c729a0426e227ae2b1452adaf64da6d",
+    "status": "PASS",
+    "viewports": 13,
+    "themes": 5,
+    "errors": 0
+  },
+  "narrow_dock": {
+    "path": ".project-local/runs/ba8e5e5614/narrow-dock-pointer-1016/artifacts/browser-smoke/narrow-dock.json",
+    "sha256": "f2122df783db04554cfaaa802b3f2597e6bc6f8b6e10a097518b901f281e69c0",
+    "status": "PASS",
+    "cases": 6,
+    "smallest_library_css_width": 289,
+    "scope": "Real Chromium and pointer/wheel input; synthetic host/Core fixture. Includes inspector retained at 125 percent display scale."
+  },
+  "probe_tests": {
+    "path": ".project-local/runs/ba8e5e5614/native-scroll-exit-final5-1016/artifacts/execution.json",
+    "sha256": "a1cf0e4f97a7da9541944ce502099d72b2c24232a90eac73996d018b6f86c81f",
+    "status": "PASS",
+    "tests": 73,
+    "subtests": 141
+  },
+  "native": {
+    "path": ".project-local/runs/ba8e5e5614/webdriver-e7c8da00e492/tmp/journey/receipt.json",
+    "sha256": "c35f5341fd1af462ef8deca84e8be392b004d4d2287961564e9cb67e4f630bb2",
+    "ok": true,
+    "build": {
+      "path": ".project-local/runs/ba8e5e5614/glass-loop-candidate5-1016/artifacts/native-build-binding.json",
+      "sha256": "b03cd75505ea501526ff660b47af8486f8f112579a57ed7fb38cf7f1d3e41161"
+    },
+    "probe_binding": {
+      "path": ".project-local/runs/ba8e5e5614/glass-grouped-native12-1016/artifacts/probe-only-build-binding.json",
+      "sha256": "ad9a8939d825a4fccac0ca64e20b80f6f5ce4b6d1a835f54eadea527f3cfba13"
+    },
+    "host_sha256": "5ea7b12599915a86c1e606e6609a8fce33174a048dcb76af7469c6493113bbde",
+    "core_sha256": "d5d578946501f4c7d952edbaae84f6fb0260616d628d7488b1f11431d417d275",
+    "stages": [
+      {
+        "id": "import",
+        "status": "PASS"
+      },
+      {
+        "id": "read",
+        "status": "PASS"
+      },
+      {
+        "id": "anchor",
+        "status": "PASS"
+      },
+      {
+        "id": "claim",
+        "status": "PASS"
+      },
+      {
+        "id": "learn",
+        "status": "PASS"
+      },
+      {
+        "id": "practice",
+        "status": "PASS"
+      },
+      {
+        "id": "review",
+        "status": "PASS"
+      },
+      {
+        "id": "distill",
+        "status": "NOT_EXECUTED"
+      },
+      {
+        "id": "recover",
+        "status": "PASS"
+      }
+    ],
+    "shutdowns": [
+      {
+        "pid": 18252,
+        "created": 134365624082901148,
+        "ack": "CONFIRMED",
+        "exited": true,
+        "exit_code": 0,
+        "method": "product_exit_application_attached_observer"
+      },
+      {
+        "pid": 2636,
+        "created": 134365624396968794,
+        "ack": "CONFIRMED",
+        "exited": true,
+        "exit_code": 0,
+        "method": "product_exit_application_attached_observer"
+      },
+      {
+        "pid": 19980,
+        "created": 134365624464794523,
+        "ack": "CONFIRMED",
+        "exited": true,
+        "exit_code": 0,
+        "method": "product_exit_application_attached_observer"
+      },
+      {
+        "pid": 25444,
+        "created": 134365624537802601,
+        "ack": "CONFIRMED",
+        "exited": true,
+        "exit_code": 0,
+        "method": "product_exit_application_attached_observer"
+      },
+      {
+        "pid": 5208,
+        "created": 134365624638714255,
+        "ack": "CONFIRMED",
+        "exited": true,
+        "exit_code": 0,
+        "method": "product_exit_application_attached_observer"
+      }
+    ],
+    "ports_released": true,
+    "remaining_owned": [],
+    "error": null,
+    "evidence": "REAL_NATIVE_HOST_CORE_SYNTHETIC_MATERIAL"
+  },
+  "retained_failures": [
+    {
+      "run": "narrow-dock-red-1016",
+      "reason": "Actual wide-window split retained two columns, leaving list at 302 of 586 CSS pixels."
+    },
+    {
+      "run": "webdriver-c3610d0b73dd",
+      "reason": "Pre-fix narrow library content collapsed; document button not interactable."
+    },
+    {
+      "run": "webdriver-7182eada2413",
+      "reason": "Exit request returned no WebView ACK before wait; TypeError. No retroactive PASS."
+    },
+    {
+      "run": "webdriver-8e18d3e0d46d",
+      "reason": "Nested clipped target not scrolled into view after restore."
+    },
+    {
+      "run": "webdriver-aec910790fd2",
+      "reason": "Restore/readback passed; second document click in capability-refusal branch needed the same visible-scroll navigation."
+    },
+    {
+      "run": "webdriver-a37019800f96",
+      "reason": "Element-click changed the nested scroll after successful target hit testing; corrected by one native pointer action at the observed point."
+    }
+  ],
+  "limits": [
+    "Eight required grouped stages passed; distill, actual AI and Owner acceptance were not executed. closed_loop_verified remains false and mastery remains unmeasured.",
+    "media.video handshake_failed in the capability snapshot is not qualified by the passing text.extract recovery path.",
+    "Full seven-reference UI and Owner visual acceptance remain incomplete; QODER character work excluded.",
+    "This is an isolated candidate, not installation, release or Green replacement.",
+    "No actual model invocation in this run; retained actual-model evidence has its own source identity.",
+    "Full current exact-SHA cloud CI remains pending; historical run 38757310107 failed.",
+    "New BE11 and FE09 commits have their own targeted evidence and are integrated separately after this native qualification."
+  ]
+}

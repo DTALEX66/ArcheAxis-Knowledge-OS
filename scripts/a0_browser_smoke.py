@@ -1412,6 +1412,76 @@ def read_semantic_reading(browser, viewport, problems, theme):
         context.close()
 
 
+def read_narrow_dock_library(browser, problems, theme, viewport=("1600x1000@100", 1600, 1000, 1.0)):
+    """A wide window can contain narrow real Dock panels; clicks must still work."""
+    context, page = open_library_page(browser, problems,
+        stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
+    try:
+        select_ui_theme(page, theme)
+        navigate_ui_page(page, "02")
+        # Match the native reopened layout with the real document inspector retained.
+        page.get_by_role("region", name="知识库文档视图", exact=True).get_by_role("button",
+            name="打开文档 引用目标 1 · 独立历史正文", exact=True).click()
+        page.get_by_role("region", name="阅读与编辑文档视图", exact=True).wait_for()
+        navigate_ui_page(page, "02")
+        page.locator("details.dock-layout-options > summary").click()
+        page.get_by_role("button", name="左右分栏", exact=True).click()
+        navigate_ui_page(page, "02")
+        library = page.get_by_role("region", name="知识库文档视图", exact=True)
+        library.wait_for()
+        row = library.get_by_role("button", name="打开文档 引用目标 1 · 独立历史正文", exact=True)
+        row.wait_for()
+        geometry = library.evaluate("""node => {
+          const box = el => { const r=el.getBoundingClientRect();
+            return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
+          return {window_width:innerWidth,library:box(node),
+            content:box(node.querySelector('.ui-content-main-side > section')),
+            details:box(node.querySelector('.ui-content-main-side > aside'))};
+        }""")
+        library_shot = ARTIFACTS / f"narrow-dock-library-{theme}-{viewport[0]}.png"
+        page.screenshot(path=str(library_shot), full_page=True)
+        assert geometry["window_width"] == viewport[1], geometry
+        assert 220 <= geometry["library"]["width"] < 700, geometry
+        assert geometry["content"]["width"] >= geometry["library"]["width"] - 2, geometry
+        assert geometry["details"]["y"] >= geometry["content"]["bottom"], geometry
+        from probes.aaos01_grouped_owner_loop import GroupedUI
+        scroll_actions = []
+        def wheel(_element, action, body):
+            if action == "pointer_click":
+                page.mouse.click(body["x"], body["y"])
+                return
+            assert action == "wheel", action
+            page.mouse.move(body["x"], body["y"])
+            page.mouse.wheel(body["deltaX"], body["deltaY"])
+        control = GroupedUI(lambda script:page.evaluate("() => {"+script+"}"),
+            lambda script:page.wait_for_function("() => {"+script+"}"),
+            lambda using, selector:page.locator("xpath="+selector), wheel, scroll_actions)
+        control.click_revealed_selector("//section[@aria-label='知识库文档视图']//button[@aria-label='打开文档 引用目标 1 · 独立历史正文']")
+        reader = page.get_by_role("region", name="阅读与编辑文档视图", exact=True)
+        editor = reader.get_by_role("textbox", name="文档草稿")
+        editor.wait_for()
+        assert "绑定历史正文 1 v1" in editor.inner_text()
+        reader_geometry = reader.evaluate("""node => {
+          const box = el => { const r=el.getBoundingClientRect();
+            return {width:r.width,bottom:r.bottom,y:r.y}; };
+          return {reader:box(node),document:box(node.querySelector('.ui-reader-document')),
+            details:box(node.querySelector('.ui-reader-details'))};
+        }""")
+        assert reader_geometry["document"]["width"] >= reader_geometry["reader"]["width"] - 2, reader_geometry
+        assert reader_geometry["details"]["y"] >= reader_geometry["document"]["bottom"], reader_geometry
+        calls = page.evaluate("() => window.__A0_DOCUMENT_FIXTURE__.calls")
+        assert not any(call["operation"] == "document_draft" for call in calls), calls
+        reader_shot = ARTIFACTS / f"narrow-dock-reader-{theme}-{viewport[0]}.png"
+        page.screenshot(path=str(reader_shot), full_page=True)
+        return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme, "viewport":viewport[0],
+            "library_geometry":geometry, "reader_geometry":reader_geometry,
+            "real_split_and_document_click":True, "document_id":"a0_target_1",
+            "scroll_actions":scroll_actions,
+            "library_screenshot":_recorded(library_shot), "reader_screenshot":_recorded(reader_shot)}
+    finally:
+        context.close()
+
+
 def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     """Render the formal Tauri host UI in a real Chromium engine, once, and read its affordances.
 
@@ -1518,6 +1588,9 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     result["semantic_reading"] = [read_semantic_reading(browser, viewport, problems, theme)
         for viewport in DESKTOP_MATRIX if viewport[0] in ("1440x1000@100", "640x480@100")
         for theme in ("blueprint", "blueprint-light")]
+    result["narrow_dock_reading"] = [read_narrow_dock_library(browser, problems, theme)
+        for theme in AAOS_THEME_IDS]
+    result["narrow_dock_reading"].append(read_narrow_dock_library(browser, problems, "cosmic", ("1600x1000@125",1280,800,1.25)))
     return result
 
 

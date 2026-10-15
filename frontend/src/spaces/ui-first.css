@@ -28,7 +28,7 @@
 .ui-page-navigation .space-rail-item { justify-content: flex-start; }
 
 /* The semantic layout is shared by every palette, including legacy themes. */
-.ui-library-page,.ui-reader-page { min-width:0; }
+.ui-library-page,.ui-reader-page { min-width:0; container-type:inline-size; }
 .app-shell .ui-page-navigation .space-rail-list { list-style:none; margin:0; padding:0; display:grid; gap:3px; }
 .app-shell .ui-page-navigation .space-rail-item { display:flex; align-items:center; border:0; border-radius:6px; box-shadow:none; background:transparent; padding:10px 12px; min-height:40px; color:var(--ax-fg-secondary); }
 .app-shell .ui-page-navigation .space-rail-item::before { display:none; }
@@ -59,8 +59,11 @@
 .ui-reader-details dl>div { padding:14px 0; border-bottom:1px solid var(--ax-border); }
 .ui-reader-details dt { font-size:12px; color:var(--ax-fg-tertiary); }.ui-reader-details dd { margin:6px 0 0; overflow-wrap:anywhere; }
 .ui-reader-details details { margin:18px 0; }.ui-reader-details details summary { cursor:pointer; }
+.ui-reader-details :is(.reader-material-tools,.reader-source-tools) { min-width:0; overflow-wrap:anywhere; }
 .ui-reader-original { margin-top:24px; }.ui-reader-original pre { overflow:auto; white-space:pre-wrap; }
 @media(max-width:1100px) { .ui-content-main-side,.ui-reader-layout { grid-template-columns:minmax(0,1fr); }.ui-reader-document { padding:24px; } }
+/* Dock splits and floating panels can be narrow inside a wide desktop window. */
+@container(max-width:900px) { .ui-content-main-side,.ui-reader-layout { grid-template-columns:minmax(0,1fr); } }
 
 .ui-learning-steps { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 24px; padding-left:24px; color:var(--ax-fg-secondary); margin:20px 0 28px; }
 .ui-course-list { list-style:none; padding:0; display:grid; gap:12px; }

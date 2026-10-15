@@ -397,6 +397,60 @@ class GroupedUI:
         selector = button_selector(label, scope)
         self.click_selector(selector)
 
+    def reveal_selector(self, selector):
+        """Use real wheel input; observe every clipping ancestor before the final click."""
+        self.find(selector)
+        script = "const n=document.evaluate(" + json.dumps(selector) + ",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;" + r"""
+if(!n)return {ready:false};
+const r=n.getBoundingClientRect(), px=(r.left+r.right)/2, py=(r.top+r.bottom)/2;
+let left=0,top=0,right=innerWidth,bottom=innerHeight;const scroll=[];
+for(let a=n.parentElement;a;a=a.parentElement){const s=getComputedStyle(a),b=a.getBoundingClientRect();
+ if(s.overflowX!=='visible'){left=Math.max(left,b.left+a.clientLeft);right=Math.min(right,b.left+a.clientLeft+a.clientWidth);}
+ if(s.overflowY!=='visible'){top=Math.max(top,b.top+a.clientTop);bottom=Math.min(bottom,b.top+a.clientTop+a.clientHeight);}
+ if(/auto|scroll/.test(s.overflowY)&&a.scrollHeight>a.clientHeight+1)scroll.push(a);
+}
+const hit=document.elementFromPoint(px,py);
+if(r.width>0&&r.height>0&&px>left&&px<right&&py>top&&py<bottom&&hit&&n.contains(hit))return {ready:true,point:{x:Math.floor(px),y:Math.floor(py)}};
+for(const a of scroll){let b=a.getBoundingClientRect(),l=Math.max(0,b.left),t=Math.max(0,b.top),rr=Math.min(innerWidth,b.right),bb=Math.min(innerHeight,b.bottom);
+ for(let p=a.parentElement;p;p=p.parentElement){const s=getComputedStyle(p),q=p.getBoundingClientRect();if(s.overflowX!=='visible'){l=Math.max(l,q.left+p.clientLeft);rr=Math.min(rr,q.left+p.clientLeft+p.clientWidth);}if(s.overflowY!=='visible'){t=Math.max(t,q.top+p.clientTop);bb=Math.min(bb,q.top+p.clientTop+p.clientHeight);}}
+ const dy=py>=bb?240:py<=t?-240:0;
+ if(!dy||bb<=t||rr<=l||(dy>0&&a.scrollTop+a.clientHeight>=a.scrollHeight-1)||(dy<0&&a.scrollTop<=0))continue;
+ const x=Math.floor((l+rr)/2),y=Math.floor((t+bb)/2),origin=document.elementFromPoint(x,y);
+ if(origin&&a.contains(origin))return {ready:false,wheel:{x,y,deltaX:0,deltaY:dy},scrollTop:a.scrollTop};
+}
+return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},clip:{left,top,right,bottom},hit:hit?.tagName};
+"""
+        for _ in range(16):
+            observed = self.js(script)
+            if observed.get("ready"):
+                self.evidence.append({"action":"target_visible_and_hit_tested", "selector":selector, **observed.get("point",{})})
+                return observed
+            assert observed.get("wheel"), observed
+            self.command(None, "wheel", observed["wheel"])
+            self.evidence.append({"action":"trusted_wheel", **observed["wheel"]})
+            time.sleep(.15)
+        raise TimeoutError("Target remains clipped after bounded trusted scrolling")
+
+    def click_revealed_selector(self, selector):
+        observed = self.reveal_selector(selector)
+        # Element-click may scroll the nested layout again. Pointer input uses
+        # the already visible, unobscured target without changing that scroll.
+        self.command(None, "pointer_click", observed["point"])
+        self.evidence.append({"action":"trusted_visible_pointer_click", "selector":selector, **observed["point"]})
+
+    def click_revealed(self, label, scope=""):
+        self.click_revealed_selector(button_selector(label, scope))
+
+    def open_reader_source_tools(self):
+        scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
+        candidate = button_selector("整理此来源为知识候选", scope)
+        self.find(candidate)
+        disclosure = self.js("return [...document.querySelectorAll('.ui-reader-page .reader-source-tools')].filter(n=>n.getClientRects().length>0).map(n=>({open:n.open}))")
+        assert len(disclosure) <= 1, "Ambiguous visible reader source tools"
+        if disclosure and not disclosure[0]["open"]:
+            self.click_revealed_selector(scope + "//details[contains(@class,'reader-source-tools')]/summary")
+        self.click_revealed_selector(candidate)
+
     def click_selector(self, selector, using="xpath"):
         element = self.find(selector, using)
         node = (
@@ -472,7 +526,15 @@ class GroupedUI:
             self.accept_navigation_alert()
         self.evidence.append({"action": "trusted_navigation_enter", "selector": selector})
         try:
-            self.wait("return location.hash===" + json.dumps("#page=" + page_id))
+            observation = "return location.hash===" + json.dumps("#page=" + page_id)
+            for attempt in range(3):
+                try:
+                    self.wait(observation)
+                    break
+                except Exception as error:
+                    if not confirm_navigation or getattr(error, "value", {}).get("error") != "unexpected alert open" or attempt == 2:
+                        raise
+                    self.accept_navigation_alert()
         except TimeoutError:
             self.evidence.append({"action": "navigation_failure_observation", "observed": self.js("return {hash:location.hash,heading:document.querySelector('.ui-page-heading')?.innerText,focused:document.activeElement?.outerHTML}")})
             raise
@@ -529,6 +591,18 @@ def poll(read, operation, payload, predicate, seconds=30):
             return value
         time.sleep(0.15)
     raise TimeoutError(f"Grouped readback deadline: {operation}")
+
+
+def navigate_retained_review(ui, read, pin, answer):
+    recovery = _read_module("grouped_review_draft_proof", Path(__file__).with_name("aaos01_learning_draft_recovery.py"))
+    expected = recovery.expected_draft(pin, answer, revealed=True)
+    before = poll(read, "ui_state_read", {}, lambda value: value["state"].get("learning_drafts", {}).get(pin["assessment_id"]) == expected)
+    history = read("learning_history", {"item_key": pin["item_key"]})
+    ui.page("12", confirm_navigation=True)
+    after = read("ui_state_read")
+    assert (after["workspace_id"], after["restore_epoch"]) == (before["workspace_id"], before["restore_epoch"])
+    recovery.assert_unsubmitted(after, expected, history, read("learning_history", {"item_key": pin["item_key"]}), read("assessment_get", {"item_key": pin["item_key"]}), pin)
+    return {"status": "PASS", "exact_unsubmitted_draft": True, "history_unchanged": True}
 
 
 def review_ack_recovery(ui, read, js, wait, restart, key, before, report):
@@ -780,12 +854,20 @@ def run_grouped_loop(
     selected_max_tokens=None,
     accept_navigation_alert=None,
 ):
-    if os.environ.get("AAOS01_LEARNING_DRAFT_ONLY") == "1":
+    teaching_only = os.environ.get("AAOS01_TEACHING_DRAFT_ONLY") == "1"
+    learning_only = os.environ.get("AAOS01_LEARNING_DRAFT_ONLY") == "1"
+    if teaching_only and learning_only:
+        raise ValueError("Draft isolation modes are mutually exclusive")
+    if teaching_only or learning_only:
         if any((run_ai, authored_intervention, require_actual_ai_loop, review_ack_loss, multi_review_ack_loss, machine_ack_loss, machine_cancel, closure_features)):
             raise ValueError("Learning draft isolation forbids model, ACK injection, and other journey modes")
-        helper = _read_module("aaos_learning_draft_recovery", Path(__file__).with_name("aaos01_learning_draft_recovery.py"))
+        helper = _read_module("aaos_isolated_draft_recovery", Path(__file__).with_name("aaos01_teaching_draft_recovery.py" if teaching_only else "aaos01_learning_draft_recovery.py"))
         result = report if report is not None else {}
         ui = GroupedUI(js, wait, element, command, result.setdefault("actions", []), accept_navigation_alert)
+        if teaching_only:
+            navigation = _read_module("aaos_draft_navigation", Path(__file__).with_name("aaos01_learning_draft_recovery.py"))
+            raw_wait = wait
+            wait = lambda script: navigation.wait_with_navigation(ui, raw_wait, script)
         return helper.run(ui=ui, bridge=bridge, read=readonly_bridge(bridge), js=js, wait=wait, restart=restart, poll=poll, screenshot=screenshot, report=result)
     read = readonly_bridge(bridge)
     result = report if report is not None else {}
@@ -1036,7 +1118,7 @@ def run_grouped_loop(
     result["stages"].append(
         {"id": "practice", "status": "PASS", "item_key": key, "actual_mastery": "UNMEASURED"}
     )
-    ui.page("12")
+    result["practice_to_review_navigation"] = navigate_retained_review(ui, read, pin, candidate_body)
     # Explicit authored learner fixture; no inference that this proves mastery.
     ui.click_selector(label_selector("回答正确"))
     ui.keys(label_selector("学习者自评", "select"), "\ue015\ue015\ue015\ue007")
@@ -1100,11 +1182,13 @@ def run_grouped_loop(
             == ai_stage["accepted_correction"]
         )
     ui.page("02")
-    ui.click_selector(
+    reopened_document_selector = (
+        "//section[@aria-label='知识库文档视图' and not(ancestor-or-self::*[@hidden])]"
         "//nav[@aria-label='已保存文档']//button[@aria-label="
         + xpath_literal("打开文档 " + document["title"])
-        + "]"
+        + " and not(ancestor-or-self::*[@hidden])]"
     )
+    ui.click_revealed_selector(reopened_document_selector)
     ui.page("20")
     wait("return document.body.innerText.includes('Grouped document revision')")
     if pointer_navigation:
@@ -1871,17 +1955,18 @@ def capability_refusal_recovery(
     assert before["source_id"] == pin["source_id"] and before["jobs_capped"] is False
     previous_jobs = {row["job_id"] for row in before["jobs"]}
     ui.page("02")
-    ui.click_selector(
+    ui.click_revealed_selector(
+        "//section[@aria-label='知识库文档视图' and not(ancestor-or-self::*[@hidden])]"
         "//nav[@aria-label='已保存文档']//button[@aria-label="
         + xpath_literal("打开文档 " + document["title"])
-        + "]"
+        + " and not(ancestor-or-self::*[@hidden])]"
     )
     wait("return location.hash==='#page=03'")
-    ui.click("整理此来源为知识候选")
+    ui.open_reader_source_tools()
     wait(
         'return !!document.querySelector(\'[aria-label="真实转换产物"] [aria-label="Core 提取正文"]\')'
     )
-    ui.click("执行真实内容转换", "//section[@aria-label='真实转换产物']")
+    ui.click_revealed("执行真实内容转换", "//section[@aria-label='真实转换产物']")
     wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
     view = frozen_conversion_view(js)
     assert view["page"] == "#page=03" and "Core 已证明原请求未受理" in view["recovery"]
@@ -1915,14 +2000,14 @@ def capability_refusal_recovery(
     # actual same-page control to normalize it without changing the frozen intent.
     ui.page("03")
     wait("return location.hash==='#page=03'")
-    ui.click("整理此来源为知识候选")
-    ui.click("恢复冻结现场 " + frozen["request_id"])
+    ui.open_reader_source_tools()
+    ui.click_revealed("恢复冻结现场 " + frozen["request_id"])
     recovered_view = frozen_conversion_view(js)
     assert recovered_view["frozen"] == view["frozen"] and recovered_view["latest"] == view["latest"]
     assert read("job_execution_status", {"job_id": job_id}) == refused, "Restart silently executed frozen intent"
     assert read("source_jobs", {"source_id": pin["source_id"]}) == listing, "Restart created a replacement job"
     # Explicitly retry the original identity while still disabled to obtain a fresh admission proof.
-    ui.click("同请求重试转换", "//section[@aria-label='真实转换产物']")
+    ui.click_revealed("同请求重试转换", "//section[@aria-label='真实转换产物']")
     wait("return !!document.querySelector('[aria-label=\"冻结请求的能力恢复\"]')")
     assert read("job_execution_status", {"job_id": job_id}) == refused
     result.update(
@@ -1935,7 +2020,7 @@ def capability_refusal_recovery(
         body_evidence="Rendered bound NOT_ADMITTED proof + canonical single-text 60s/split:false/words:false contract; retry durable budget checked independently",
     )
     scope = "//section[@aria-label='冻结请求的能力恢复']"
-    ui.click("启用 text.extract", scope)
+    ui.click_revealed("启用 text.extract", scope)
     wait(
         "return document.body.innerText.includes('该能力已启用，工作区设置已读回。原冻结请求保留；请另点同请求重试。')"
     )
@@ -1957,7 +2042,7 @@ def capability_refusal_recovery(
         "Capability enable enqueued another job"
     )
     result["enable_without_execution"] = "PASS"
-    ui.click("同请求重试转换", "//section[@aria-label='真实转换产物']")
+    ui.click_revealed("同请求重试转换", "//section[@aria-label='真实转换产物']")
     succeeded = poll(
         read,
         "job_execution_status",

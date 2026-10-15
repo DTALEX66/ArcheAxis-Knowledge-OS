@@ -35,6 +35,36 @@ class WebDriverProtocolError(RuntimeError):
         super().__init__(value)
 
 
+def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt):
+    """Exit ACK may disappear with WebView; only this owned process's exit 0 qualifies."""
+    assert launch_identity and launch_identity["pid"] == host.pid, "Owned launch identity missing"
+    assert any(row["pid"] == host.pid and row["created"] == launch_identity["created"]
+               for row in live_rows), "Owned host creation identity changed"
+    assert host.poll() is None, "Owned host exited before requested product exit"
+    record = {"pid": host.pid, "created": launch_identity["created"], "requested": True}
+    receipt.setdefault("requested_product_exits", []).append(record)
+    try:
+        reply = request_exit()
+    except OSError as error:
+        record.update(ack="TRANSPORT_CLOSED", error_type=type(error).__name__)
+    except WebDriverProtocolError as error:
+        if error.value.get("error") not in {"no such window", "invalid session id"}:
+            raise
+        record.update(ack="TRANSPORT_CLOSED", error_type=error.value["error"])
+    else:
+        if reply is None:
+            record["ack"] = "MISSING_ON_EXIT"
+        else:
+            assert isinstance(reply, dict) and reply.get("ok") is True and "value" in reply, reply
+            record["ack"] = "CONFIRMED"
+    code = host.wait(timeout=15)
+    exited = code == 0 and host.poll() == 0
+    receipt.setdefault("host_shutdowns", []).append({
+        "pid": host.pid, "created": launch_identity["created"], "ack": record["ack"],
+        "exited": exited, "exit_code": code, "method": "product_exit_application_attached_observer"})
+    assert exited, "Owned host did not exit normally with product exit code 0"
+
+
 def click_current_element(request, find, session, selector):
     """Only retry explicit stale-before-click refusal; never replay unknown ACK."""
     for attempt in range(3):
@@ -1432,18 +1462,17 @@ def main():
         nonlocal session, owned_host, owned_tree_collection_verified
         assert owned_host is not None, "Owned host identity missing"
         pid = owned_host.pid
-        owned_host_records.extend(owned_process_rows(native_process_rows(), pid))
+        live_rows = native_process_rows()
+        owned_host_records.extend(owned_process_rows(live_rows, pid))
         owned_tree_collection_verified = True
-        assert owned_host.poll() is None, "Owned host exited unexpectedly before requested product exit"
-        receipt.setdefault("requested_product_exits", []).append({"pid":pid,"requested":True})
-        if owned_host.poll() is None:
-            # Transport may close as the product exits; normal wait/code remain mandatory.
-            with suppress(OSError, RuntimeError):
-                native_command("exit_application")
-            owned_host.wait(timeout=15)
-        exited = owned_host.poll() == 0
-        receipt.setdefault("host_shutdowns", []).append({"pid":pid,"exited":exited,"exit_code":owned_host.returncode,"method":"product_exit_application_attached_observer"})
-        assert exited, "Owned host did not exit normally with product exit code 0"
+        launch_identity = next((row for row in reversed(receipt["launch_attempts"])
+                                if row["host_pid"] == pid), None)
+        identity_record = ({"pid": pid, "created": launch_identity["host_created"]}
+                           if launch_identity else None)
+        request_owned_product_exit(owned_host, identity_record, live_rows,
+            lambda: request("POST", f"/session/{session}/execute/async", {
+                "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke('exit_application').then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
+                "args": []}), receipt)
         if session:
             # Host has already verifiably exited with code 0.
             with suppress(OSError, RuntimeError):
@@ -1574,6 +1603,15 @@ def main():
         if args.grouped_common_owner_loop:
             grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
             def grouped_element_command(element_id, action, body):
+                if action == "pointer_click":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"pointer", "id":"grouped-owned-pointer", "parameters":{"pointerType":"mouse"},
+                        "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
+                                   {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
+                if action == "wheel":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"wheel", "id":"grouped-owned-scroll", "actions":[{
+                            "type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
                 return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
             def grouped_restart():
                 close_session()
