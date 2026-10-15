@@ -1,6 +1,10 @@
 // Geometry reused verbatim from apps/ArcheAxis.Desktop/AaosIcon.axaml.cs.
 // The established AAOS VI uses a 24-unit viewBox and 1.7-unit strokes.
 const paths = {
+  "Home": "M3,10 L12,3 L21,10 M5,9 L5,21 L10,21 L10,14 L14,14 L14,21 L19,21 L19,9",
+  "ImportDocument": "M4,2 L15,2 L21,8 L21,22 L4,22 Z M15,2 L15,8 L21,8 M12,19 L12,11 M8,15 L12,11 L16,15",
+  "Write": "M3,21 L21,21 M4,17 L5,12 L16,1 Q17,0 18,1 L21,4 Q22,5 21,6 L10,17 L4,18 Z M14,3 L19,8",
+  "Lock": "M6,10 L18,10 L18,22 L6,22 Z M9,10 L9,6 A3,3 0 0,1 15,6 L15,10 M12,15 L12,18",
   "Workspace": "M3,4 L10,4 L10,10 L3,10 Z M14,4 L21,4 L21,10 L14,10 Z M3,14 L10,14 L10,20 L3,20 Z M14,14 L21,14 L21,20 L14,20 Z M10,7 L14,7 M6.5,10 L6.5,14 M17.5,10 L17.5,14 M10,17 L14,17",
   "Source": "M4,3 L15,3 L20,8 L20,21 L4,21 Z M15,3 L15,8 L20,8 M8,12 L16,12 M8,16 L16,16",
   "Import": "M12,3 L12,15 M7,10 L12,15 L17,10 M4,17 L4,21 L20,21 L20,17",

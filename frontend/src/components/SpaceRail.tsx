@@ -6,7 +6,7 @@ import { CAPABILITY_NAVIGATION_ENTRIES } from "../presentation/navigation";
 import { productLayerLabel } from "../presentation/labels";
 
 const entryIcons: Record<string, AaosIconName> = {
-  "01": "Workspace", "02": "Knowledge", "06": "Review", "13": "HumanAi",
+  "01": "Home", "02": "Source", "06": "Knowledge", "13": "HumanAi",
   "15": "Import", "17": "Connection", "19": "Settings",
 };
 

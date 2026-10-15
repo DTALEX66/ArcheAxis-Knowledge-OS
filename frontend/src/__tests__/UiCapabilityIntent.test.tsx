@@ -55,7 +55,7 @@ describe("preserved independent design intentions",()=>{
     }
   });  it("keeps the new five-domain navigation while the former palettes change only presentation",()=>{
     expect(AAOS_THEMES.map(theme=>theme.id)).toEqual(["blueprint","blueprint-light","black","white","cosmic"]);
-    expect(readThemePreference({getItem:()=>null})).toBe("blueprint");
+    expect(readThemePreference({getItem:()=>null})).toBe("cosmic");
     render(<SpaceRail active="workspace" spaces={SPACES} onNavigate={vi.fn()} pageId="01" onPage={vi.fn()}/>);
     const rail=screen.getByRole("navigation",{name:"主空间导航"});
     for(const theme of ["black","white","cosmic"] as const){

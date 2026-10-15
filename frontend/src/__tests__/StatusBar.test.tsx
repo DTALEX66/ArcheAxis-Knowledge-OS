@@ -59,6 +59,7 @@ describe("StatusBar", () => {
     const user = userEvent.setup();
     try {
       render(<ThemeProvider><StatusBar activeSpace="workspace" backendState="web" /></ThemeProvider>);
+      await user.click(screen.getByLabelText("界面设置"));
       const picker = screen.getByRole("combobox", { name: "界面主题" });
       const mark = document.querySelector<HTMLImageElement>(".status-bar-brand img");
       expect(mark).not.toBeNull();

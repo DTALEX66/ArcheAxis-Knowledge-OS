@@ -668,7 +668,7 @@ function AppBody() {
       hydratedSession.current=working.session;setWorkingEntered(true);
     }catch{/* Explicit choice may still be refused; no candidate replaces local input. */}
   }
-  const workingNotice=desktop?<section aria-label="工作草稿保全" role={working.error?"alert":"status"}>
+  const workingNotice=desktop?<section aria-label="工作草稿保全" data-working-state={working.status} role={working.error?"alert":"status"}>
     <p>{working.status==="ready"?"工作状态已由 Core 保全；正文保存以各文档版本回执为准。":working.status==="saving"?"正在保全工作草稿…":working.status==="loading"?"正在读取工作草稿；编辑入口等待身份核对。":"工作草稿仍保留，持久化尚未全部确认。"}</p>
     {working.error?<p>{working.error}</p>:null}
     {["blocked","loading","unsaved"].includes(working.status)?<><button onClick={()=>void rereadWorkingState()}>核对工作状态</button><button disabled={working.status!=="unsaved"} onClick={()=>void working.session.flush().catch(()=>{})}>仅重试草稿保全</button></>:null}
@@ -699,7 +699,7 @@ function AppBody() {
   ];
 
   return (
-    <div className="app-shell">
+    <div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""}>
       {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
       {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区并重启本地 Core，请等待读回完成…</div> : null}
       {workingNotice}

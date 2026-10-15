@@ -1,0 +1,135 @@
+/* AX-UI-20261013: reference geometry with live controls and a single scene layer. */
+:root {
+  --cabin-edge: color-mix(in srgb, var(--ax-fg) 30%, transparent);
+  --cabin-surface: color-mix(in srgb, var(--ax-panel) 84%, transparent);
+  --cabin-highlight: color-mix(in srgb, var(--ax-accent-bright) 70%, white);
+  --cabin-shadow: 0 12px 30px #0004, inset 0 1px 2px #fff7, inset 0 -1px 1px #7fbaff55;
+  --cabin-inset-x: 4.665vw;
+  --cabin-inset-y: 5.95dvh;
+}
+:root[data-aaos-theme="cosmic"] {
+  --cabin-edge: #b5d9ff99;
+  --cabin-surface: #10203591;
+  --cabin-highlight: #d2efff;
+}
+body:has(.cabin-shell) {
+  background: var(--ax-canvas) url("../assets/cabin/deep-space-background-20261015.png") center / cover fixed no-repeat !important;
+}
+#root:has(.cabin-shell) { background: transparent !important; display: flow-root; }
+.app-shell.cabin-shell {
+  margin: var(--cabin-inset-y) var(--cabin-inset-x) 0;
+  height: calc(100dvh - var(--cabin-inset-y) - 4.4dvh); min-height: 420px;
+  border: 2px solid #d9ecffb5; border-radius: 49px; overflow: hidden;
+  box-shadow: 0 0 0 3px #a8c6ed38, 0 0 0 5px #ecf5ff24, 0 20px 45px #0007, inset 0 1px 4px #fff, inset 2px 0 4px #e6f6ffb3, inset -2px -1px 4px #e6f6ffad;
+  background: color-mix(in srgb, var(--ax-canvas) 42%, transparent) !important;
+  padding: 0 14px; font-size: 16px;
+}
+.cabin-shell::before { display: none; }
+.cabin-shell > section[data-working-state="ready"][role="status"] { display: none; }
+.cabin-shell .status-bar {
+  background: transparent; min-height: 63px; height: 63px; padding: 0 24px;
+  border-color: var(--cabin-edge); gap: 24px; box-shadow: none; backdrop-filter: none;
+}
+.cabin-shell .status-bar-brand { min-width: 224px; gap: 18px; font-size: 19px; letter-spacing: 0; }
+.cabin-shell .status-bar-brand .brand-mark { width: 38px; height: auto; }
+.cabin-shell .brand-name { line-height: 25px; white-space: nowrap; }
+.cabin-shell .brand-name small { display: block; line-height: 16px; font-size: 12px; color: var(--ax-fg-secondary); }
+.cabin-shell .command-trigger { display: flex; justify-content: flex-start; gap: 12px; flex: 1; width: auto; max-width: 746px; min-height: 42px; height: 42px; font-size: 16px; border-radius: 9px; background: #18325040; border-color: #82b3e2a3; box-shadow: inset 0 1px 4px #a5d6ff4d; }
+.cabin-shell .command-trigger kbd { font-size: 14px; margin-left: auto; }
+.cabin-shell .status-bar-center { flex: 0 0 auto; margin-left: auto; }
+.cabin-shell .status-pill { font-size: 14px; color: var(--ax-fg-secondary); border: 0; padding: 0; background: transparent; }
+.cabin-shell .status-pill::before { width: 12px; height: 12px; margin-right: 10px; }
+.cabin-shell .status-pill--available::before { background: #88e36c; box-shadow: 0 0 5px #88e36c55; }
+.cabin-shell .status-pill--pending::before { background: var(--ax-warning); }
+.cabin-shell .status-pill--unavailable::before { background: var(--ax-danger); }
+.cabin-shell[data-cabin-page="01"] .status-bar-space,
+.cabin-shell[data-cabin-page="01"] .inspector-trigger { display: none; }
+.cabin-settings { position: relative; flex: 0 0 auto; border-left: 1px solid var(--cabin-edge); padding-left: 24px; }
+.cabin-settings > summary { list-style: none; display: flex; align-items: center; cursor: pointer; }
+.cabin-settings > div { position: absolute; right: 0; top: 45px; z-index: 30; padding: 18px; display: grid; gap: 12px; min-width: 220px; border-radius: 14px; border: 1px solid var(--cabin-edge); background: var(--ax-panel); box-shadow: var(--cabin-shadow); }
+.cabin-shell .app-body { gap: 4px; }
+.cabin-shell .navigation-sidebar {
+  flex: 0 0 193px; min-width: 193px; width: 193px; padding: 21px 0 12px;
+  border: 1px solid var(--cabin-edge); border-radius: 18px; background: var(--cabin-surface);
+  backdrop-filter: blur(10px) saturate(115%); box-shadow: inset 0 1px 2px #fff3;
+}
+.cabin-shell .navigation-sidebar .space-rail { padding: 0 6px; }
+.cabin-shell .ui-page-navigation .space-rail-list { gap: 5px; }
+.cabin-shell .ui-page-navigation .space-rail-item { min-height: 54px; padding: 13px 24px; border-radius: 10px; font-size: 18px; gap: 18px; color: var(--ax-fg); }
+.cabin-shell .space-rail-icon { width: 26px; height: 26px; flex-basis: 26px; }
+.cabin-shell .space-rail-icon svg { width: 26px; height: 26px; }
+.cabin-shell .ui-page-navigation .space-rail-item[aria-current] {
+  color: var(--ax-fg); border: 1px solid #a5d3ff;
+  background: linear-gradient(115deg, #4d9cffc9, #2c578784);
+  box-shadow: inset 0 1px 3px #f5fbffb3, inset 1px 0 2px #e1f6ff80, 0 0 12px #2686ff66;
+}
+.cabin-shell .ui-page-navigation [aria-label="固定入口"] { margin: 44px 18px 0; padding-top: 26px; border-top: 1px solid var(--cabin-edge); }
+.cabin-shell .ui-page-navigation [aria-label="固定入口"] .space-rail-item { padding-inline: 6px; }
+.cabin-shell .capability-rail { margin: 12px 18px; font-size: 12px; }
+.cabin-shell .app-center { padding: 20px 24px; position: relative; border: 1px solid var(--cabin-edge); border-radius: 18px; background: #07132177; }
+.cabin-shell .ui-page-heading { margin-bottom: 16px; padding-bottom: 12px; border-color: #b2d3ef44; }
+.cabin-shell .ui-page-heading h1 { font-size: 26px; line-height: 34px; letter-spacing: 0; }
+.cabin-shell .ui-page-heading p { font-size: 15px; margin-top: 4px; }
+.cabin-shell[data-cabin-page="01"] .app-center { display: flex; flex-direction: column; }
+.cabin-shell[data-cabin-page="01"] .ui-page-heading { border: 0; margin: 0; padding: 0; min-height: 40px; }
+.cabin-shell[data-cabin-page="01"] .ui-page-heading p,
+.cabin-shell[data-cabin-page="01"] .ui-page-heading small { display: none; }
+.cabin-shell[data-cabin-page="01"] .dock-workspace { flex: 1; min-height: 0; height: auto; }
+.cabin-shell[data-cabin-page="01"] .dock-surface { min-height: 0; }
+.cabin-shell[data-cabin-page="01"] .dock-layout-options { position: absolute; right: 24px; top: 18px; z-index: 10; }
+.cabin-shell[data-cabin-page="01"] .dock-layout-options > summary { text-align: right; }
+.cabin-shell[data-cabin-page="01"] .dock-layout-options[open] { width: min(640px,80%); padding: 12px; border: 1px solid var(--cabin-edge); border-radius: 12px; background: var(--ax-panel); }
+.workspace-start { width: 782px; max-width: calc(100% - 100px); margin: 14.45dvh 0 28px 8.1%; }
+.workspace-start-copy { margin-bottom: 20px; }
+.workspace-start h2 { font-family: var(--ax-font-ui); font-size: 46px; line-height: 1.3; font-weight: 650; letter-spacing: .035em; margin: 0 0 7px; color: var(--ax-fg); }
+.workspace-start-copy p { font-size: 22px; line-height: 30px; color: var(--ax-fg); margin: 0; }
+.workspace-entry-cards { display: grid; grid-template-columns: 425fr 340fr; gap: 16px; }
+.workspace-entry-card {
+  display: flex; flex-direction: column; align-items: flex-start; padding: 28px 36px; min-height: 276px;
+  border-radius: 16px; border: 1px solid var(--cabin-edge); color: var(--ax-fg);
+  background: radial-gradient(ellipse at 100% 0, #effaff80, transparent 15%), linear-gradient(125deg, #b6d8ff3b, #1b2b421a 45%, #a1c3e329), #0b192b38;
+  box-shadow: var(--cabin-shadow); backdrop-filter: blur(6px) saturate(120%);
+}
+.workspace-entry-card-primary { border-color: #a6d9ff; box-shadow: var(--cabin-shadow), inset 0 2px 3px #b8e9ff9c, 0 0 12px #1886ff40; }
+.workspace-entry-card > svg { color: var(--cabin-highlight); margin-bottom: 14px; filter: drop-shadow(0 0 3px #4b9eff66); }
+.workspace-entry-card h3 { font-size: 28px; line-height: 36px; margin: 0 0 4px; }
+.workspace-entry-card p { font-size: 19px; line-height: 28px; color: var(--ax-fg-secondary); margin: 0 0 22px; }
+.cabin-shell .workspace-entry-card button { margin-top: auto; min-height: 52px; padding: 10px 24px; width: 205px; max-width: 100%; border-radius: 15px; font-size: 19px; font-weight: 600; border-color: #a6cbe8b8; background: linear-gradient(120deg,#98b9e455,#1e365873); box-shadow: inset 0 1px 2px #f3faffb3, inset 0 -2px 2px #81b8e255; }
+.cabin-shell .workspace-entry-card button.primary { width: 218px; color: #fff; border: 1px solid #ccf7ff; background: linear-gradient(115deg, #59beff, #2261db 38%, #2d71f1 70%, #8bdfff); box-shadow: inset 0 2px 4px #fff, inset 0 -1px 4px #7ff4ff, 0 0 15px #247eff88; }
+.workspace-local-note { display: flex; align-items: center; gap: 9px; color: var(--ax-fg-secondary); font-size: 16px; margin: 26px 0 0; }
+.cabin-shell .ui-reader-document { border-radius: 16px; border-color: var(--cabin-edge); box-shadow: var(--cabin-shadow); background: var(--cabin-surface); }
+.cabin-shell .ui-reader-details { border-radius: 16px; background: var(--cabin-surface); border-color: var(--cabin-edge); }
+.cabin-shell .dock-toolbar { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+.cabin-shell .dock-toolbar > * { flex: 0 0 auto; white-space: nowrap; }
+.cabin-shell .dock-toolbar select { width: 150px; min-width: 100px; }
+.cabin-shell .dock-toolbar button { font-size: 12px; padding: 6px 10px; }
+.dock-layout-options > summary { cursor: pointer; color: var(--ax-fg-secondary); padding: 8px 0; font-size: 12px; }
+.cabin-shell .dock-workspace > [role="status"], .cabin-shell .dock-layout-options p { font-size: 11px; color: var(--ax-fg-tertiary); }
+.cabin-shell[data-cabin-page="01"] .dock-workspace[data-panel-count="1"] .dv-tabs-and-actions-container { display: none; }
+.cabin-shell .dockview-theme-dark { --dv-group-view-background-color: transparent; --dv-background-color: transparent; --dv-tabs-and-actions-container-background-color: var(--cabin-surface); --dv-activegroup-visiblepanel-tab-background-color: var(--ax-accent-soft); }
+.cabin-shell .activity-dock { min-height: 50px; padding: 12px 24px; background: #14223270; backdrop-filter: blur(10px); border-top: 0; }
+.cabin-shell .status-bar { background: #15243660; backdrop-filter: blur(8px); }
+.cabin-shell[data-cabin-page="03"] .navigation-sidebar { flex-basis: 230px; width: 230px; min-width: 230px; }
+.cabin-shell[data-cabin-page="03"] .ui-page-navigation .space-rail-item { min-height: 34px; padding-block: 6px; font-size: 16px; }
+.cabin-shell[data-cabin-page="03"] .ui-page-navigation [aria-label="固定入口"] { margin-top: 16px; padding-top: 12px; }
+.cabin-shell[data-cabin-page="03"] .app-center { padding: 16px 32px; }
+.cabin-shell[data-cabin-page="03"] .dock-layout-options { position: absolute; right: 32px; top: 18px; z-index: 10; }
+.cabin-shell[data-cabin-page="03"] .dock-layout-options[open] { width: min(640px,80%); padding: 12px; border: 1px solid var(--cabin-edge); border-radius: 12px; background: var(--ax-panel); }
+.cabin-shell .ui-reader-layout { grid-template-columns: minmax(0,1.95fr) minmax(280px,1fr); gap: 20px; }
+.cabin-shell .ui-reader-document { padding: 26px; }
+.cabin-shell .ui-reader-document h2 { font-family: var(--ax-font-ui); margin: 8px 0 18px; }
+.cabin-shell .ui-reader-toolbar { width: fit-content; min-width: 360px; padding: 0; gap: 0; margin: 4px 0 10px; }
+.cabin-shell .ui-reader-toolbar .ui-content-tabs button { min-width: 118px; padding: 8px 24px; font-size: 17px; }
+.cabin-shell .ui-reader-toolbar .ui-content-tabs button[aria-pressed="true"] { color: var(--ax-fg); background: linear-gradient(120deg,#55b8ff,#326fdb,#9ed7ff); box-shadow: inset 0 1px 3px #fff; }
+.cabin-shell .activity-dock-item { font-size: 14px; }
+@container (max-width: 900px) { .cabin-shell .ui-reader-layout { grid-template-columns: minmax(0,1fr); } }
+:root:is([data-aaos-theme="white"],[data-aaos-theme="blueprint-light"],[data-aaos-theme="black"]) body:has(.cabin-shell) { background: var(--ax-canvas) !important; }
+:root:is([data-aaos-theme="white"],[data-aaos-theme="blueprint-light"],[data-aaos-theme="black"]) .cabin-shell .app-center { background: var(--ax-canvas); }
+:root:is([data-aaos-theme="white"],[data-aaos-theme="blueprint-light"]) { --cabin-shadow: 0 15px 35px #142e4910,inset 0 1px 1px #fffc; }
+@media (max-width: 1400px) { .cabin-shell .status-bar { gap: 14px; padding-inline: 14px; } .cabin-shell .status-bar-brand { min-width: 195px; font-size: 16px; gap: 10px; } .workspace-start { margin-left: 4%; max-width: 92%; } .workspace-entry-card { padding: 26px; } .workspace-start h2 { font-size: 40px; } }
+@media (max-width: 1100px) { .cabin-shell .status-bar-brand { min-width: 0; } .cabin-shell .status-pill { font-size: 11px; } .workspace-start { margin-top: 8dvh; } .workspace-entry-card { padding: 22px; } .workspace-entry-card p { font-size: 16px; } .cabin-shell .workspace-entry-card button { font-size: 16px; } .cabin-shell .status-bar-brand .brand-mark { width: 30px; height: auto; } .cabin-shell .brand-name small { display: none; } }
+@media (max-width: 900px) { .app-shell.cabin-shell { margin: 2.5dvh 2vw 0; height: 95dvh; border-radius: 28px; padding-inline: 7px; } .cabin-shell .app-center { padding: 16px 20px; } .workspace-start { margin: 6dvh auto 26px; max-width: 100%; } .cabin-shell .status-bar { gap: 10px; } .cabin-shell .cabin-settings { padding-left: 10px; } .cabin-shell .command-trigger { min-width: 80px; } .workspace-start h2 { font-size: 36px; } .workspace-start-copy p { font-size: 18px; } }
+@media (max-width: 640px) { .app-shell.cabin-shell { margin: 10px; height: calc(100dvh - 20px); border-radius: 20px; padding-inline: 4px; } .cabin-shell .app-center { padding: 16px; border-radius: 12px; } .workspace-entry-cards { grid-template-columns: 1fr; gap: 16px; } .workspace-entry-card { min-height: 260px; padding: 24px; } .workspace-start { margin-top: 34px; } .workspace-start-copy { margin-bottom: 22px; } .workspace-start h2 { font-size: 30px; } .workspace-start-copy p { font-size: 16px; } .cabin-shell .status-bar { padding: 8px; min-height: 60px; } .cabin-shell .status-bar-brand { font-size: 14px; } .cabin-shell .status-bar-brand .brand-mark { width: 24px; height: auto; } .cabin-shell .activity-dock { padding: 10px; } .cabin-shell .activity-dock-item { font-size: 11px; } .cabin-shell[data-cabin-page="01"] .dock-layout-options { top: 14px; right: 16px; } .cabin-shell .ui-page-heading h1 { font-size: 22px; } .cabin-shell .command-trigger { min-width: 36px; flex: 0 0 36px; } }
+@media (prefers-reduced-transparency: reduce) { .cabin-shell .status-bar,.cabin-shell .navigation-sidebar,.workspace-entry-card,.cabin-shell .app-center { background: var(--ax-panel); backdrop-filter: none; } }
+@media (forced-colors: active) { body:has(.cabin-shell) { background: Canvas; } .workspace-entry-card { border: 1px solid CanvasText; box-shadow: none; } }
+
