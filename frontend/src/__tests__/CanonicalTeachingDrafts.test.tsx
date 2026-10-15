@@ -30,6 +30,27 @@ it("reopens unsubmitted teach-back and feedback independently after a new Core s
   expect(call.mock.calls.some(([op])=>["teaching_create","document_create","learning_review"].includes(op))).toBe(false);
 });
 function draft(page:"08"|"11"|"12"="11",context:string|null=null):TeachingDraft{return {page_id:page,context_item_key:context,form:{kind:page==="08"?"requirement":page==="11"?"teach_back":"feedback",purpose:"未提交用途",content:"  原始正文\n总结  ",scope:"personal",privacy:"local_only",assisted:false,feedback_class:page==="12"?"mastery":null,rubric_version:"",producer_kind:"human_authored"},knowledge_id:null,course_id:null,item_key:null,assessment_id:null,parent:null,preparation:null,saved_preparation:"",pending_record:null};}
+function preparationEntry():TeachingDraft {
+  const entry=draft("12");entry.form.content="frozen body";
+  entry.preparation_attempt={operation:"document_create",payload:{body:{create_request_id:"fixed_preparation",title:entry.form.purpose,editor_json:{type:"doc",content:[{type:"paragraph",attrs:{block_id:"fixed"},content:[{type:"text",text:entry.form.content}]}]}}},snapshot:JSON.stringify({purpose:entry.form.purpose,content:entry.form.content}),persistedPurpose:entry.form.purpose,expectedTitle:entry.form.purpose};return entry;
+}
+it("clears a frozen preparation through unknown ACK readback while preserving typing made during clearance",async()=>{
+  const f=fixture(),entry=preparationEntry();f.server().state.teaching_drafts={"12:":entry};await f.session.load();
+  const write=f.transport.write;f.transport.write=async request=>{await write(request);f.session.rememberTeachingDraft("12:",{...entry,form:{...entry.form,content:"later typing"}});throw new Error("clear ACK lost");};
+  await expect(f.session.finishTeachingPreparation("12:",entry.preparation_attempt!,{document_id:"doc_fixed",version:1,title:entry.form.purpose},entry.preparation_attempt!.snapshot)).rejects.toThrow("clear ACK lost");
+  expect(f.session.getSnapshot().state.teaching_drafts?.["12:"].preparation_attempt).toEqual(entry.preparation_attempt);
+  await f.session.load();const retained=f.session.getSnapshot().state.teaching_drafts?.["12:"];expect(retained?.form.content).toBe("later typing");expect(retained?.preparation_attempt).toBeUndefined();expect(retained?.preparation?.document_id).toBe("doc_fixed");
+  expect(f.session.getSnapshot().status).toBe("unsaved");f.transport.write=write;await f.session.flush();expect(f.server().state.teaching_drafts?.["12:"].form.content).toBe("later typing");
+});
+it("reconciles a cold-reopened draft whose Document save completed before the ACK was lost without appending again",async()=>{
+  const f=fixture(),entry=preparationEntry(),create=entry.preparation_attempt!;if(create.operation!=="document_create")throw new Error("fixture");
+  entry.preparation={document_id:"doc_existing",version:4,title:entry.form.purpose};entry.preparation_attempt={...create,operation:"document_draft",payload:{document_id:"doc_existing",body:{expected_version:4,editor_json:create.payload.body.editor_json}}};f.server().state.teaching_drafts={"12:":entry};await f.session.load();
+  const editor_json=create.payload.body.editor_json,nodes=editor_json.content;
+  const doc={document_id:"doc_existing",version:5,title:entry.form.purpose,source_id:null,source_revision:null,revision_basis:null,content_sha256:"b".repeat(64),editor_json,text_projection:entry.form.content,blocks:nodes.map((node,ordinal)=>({block_id:node.attrs.block_id,kind:"paragraph",ordinal,node_json:node,codec_status:"known",text_projection:entry.form.content}))};
+  call.mockImplementation(async(op:string)=>{if(op==="teaching_list")return {items:[],next_cursor:null};if(op==="document_get")return doc;throw new Error(`Unexpected ${op}`);});
+  render(component(f.session,"12"));fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);
+  expect(call.mock.calls.some(([op])=>op==="document_draft"||op==="document_create")).toBe(false);expect(f.server().state.teaching_drafts?.["12:"].preparation?.version).toBe(5);expect(f.server().state.teaching_drafts?.["12:"].preparation_attempt).toBeUndefined();
+});
 function freeze(entry:TeachingDraft){
   entry.knowledge_id="knowledge_v1";
   entry.pending_record={schema:"archeaxis.teaching-record/v2",record_id:"teaching_stable",kind:entry.form.kind,knowledge_id:"knowledge_v1",knowledge_version:"knowledge_v1",course_id:null,parent_id:null,purpose:entry.form.purpose,scope:entry.form.scope,privacy:entry.form.privacy,content:entry.form.content,feedback_class:null,assessment_id:null,rubric_version:null,assisted:false,producer_kind:"human_authored"};
@@ -98,4 +119,20 @@ it.each([false,true])("clears only ordinary body input after exact Document read
   expect(saved.text_projection).toBe("未提交反馈总结\n第二行");expect(call.mock.calls.some(([op])=>op==="teaching_create")).toBe(false);
   if(metadata){await act(async()=>{await f.session.flush();});first.unmount();const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();render(component(reopened,"12"));expect(screen.getByLabelText("反馈分类")).toHaveValue("mastery");expect(screen.getByLabelText("内容")).toHaveValue("未提交反馈总结\n第二行");expect(reopened.getSnapshot().state.teaching_drafts?.["12:"].preparation?.version).toBe(1);}
   else expect(f.session.getSnapshot().state.teaching_drafts).toBeUndefined();
+});
+it("reuses an already persisted preparation create after lost ACK and cold session reopen instead of duplicating documents",async()=>{
+  const f=fixture();await f.session.load();const documents=new Map<string,any>();let lost=true;
+  call.mockImplementation(async(op:string,payload:any)=>{
+    if(op==="teaching_list")return {items:[],next_cursor:null};
+    if(op==="document_create"){
+      const body=payload.body,id=await documentRequestIdentity(body.create_request_id),editor_json=structuredClone(body.editor_json),blocks=editor_json.content.map((node:any,ordinal:number)=>({block_id:node.attrs.block_id,kind:"paragraph",ordinal,node_json:node,text_projection:node.content?.map((child:any)=>child.text).join("")??"",codec_status:"known"}));
+      if(!documents.has(id))documents.set(id,{document_id:id,version:1,title:body.title,source_id:null,source_revision:null,revision_basis:null,editor_json,blocks,text_projection:blocks.map((b:any)=>b.text_projection).filter(Boolean).join("\n"),content_sha256:"c".repeat(64)});
+      if(lost){lost=false;throw new Error("lost ACK after Core persistence");}return documents.get(id);
+    }
+    if(op==="document_get")return documents.get(payload.document_id);throw new Error(`Unexpected ${op}`);
+  });
+  const first=render(component(f.session,"12"));fireEvent.change(screen.getByLabelText("用途"),{target:{value:"准备总结"}});fireEvent.change(screen.getByLabelText("内容"),{target:{value:"只应生成一份文档"}});
+  fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/操作未确认完成/);expect(documents.size).toBe(1);first.unmount();
+  const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();render(component(reopened,"12"));fireEvent.click(screen.getByRole("button",{name:"保存准备正文草稿"}));await screen.findByText(/准备正文已保存并读回/);
+  const creates=call.mock.calls.filter(([op])=>op==="document_create");expect(creates).toHaveLength(2);expect(creates[1][1]).toEqual(creates[0][1]);expect(documents.size).toBe(1);
 });

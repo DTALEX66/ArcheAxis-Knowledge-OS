@@ -46,6 +46,7 @@ function valid(node: any, value: unknown): boolean {
     && (node.minimum === undefined || value >= node.minimum)
     && (node.maximum === undefined || value <= node.maximum);
   if (node.type === "array") return Array.isArray(value)
+    && (node.minItems === undefined || value.length >= node.minItems)
     && (node.maxItems === undefined || value.length <= node.maxItems)
     && (!node.uniqueItems || new Set(value.map(item => JSON.stringify(item))).size === value.length)
     && value.every(item => valid(node.items || {}, item));

@@ -19,10 +19,7 @@ type Kind = TeachingRecord["kind"];
 type Knowledge = { knowledge_id: string; head: string };
 type Course = { manifest_id: string; title: string; stale: boolean };
 type PreparationEditor = {type:"doc";content:{type:"paragraph";attrs:{block_id:string};content?:{type:"text";text:string}[]}[]};
-type PreparationAttempt = {snapshot:string;persistedPurpose:string;expectedTitle:string} & (
-  {operation:"document_create";payload:{body:{create_request_id:string;title:string;editor_json:PreparationEditor}}} |
-  {operation:"document_draft";payload:{document_id:string;body:{expected_version:number;editor_json:PreparationEditor}}}
-);
+type PreparationAttempt = NonNullable<TeachingDraft["preparation_attempt"]>;
 const pages = [ ["08", "教学需求"], ["09", "表达方案"], ["10", "交付与版本"], ["11", "练习 / Teach-back"], ["12", "反馈与修订"], ["16", "人工交换"] ] as const;
 const kinds: Record<string, Kind[]> = { "08": ["observation", "requirement"], "09": ["proposal"], "10": ["delivery"], "11": ["teach_back"], "12": ["feedback", "revision"], "16": [] };
 const names: Record<Kind, string> = { observation:"观察", requirement:"需求", proposal:"表达方案", delivery:"交付", teach_back:"Teach-back", feedback:"反馈", revision:"修订" };
@@ -81,9 +78,9 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
   const [bundle,setBundle]=useState<ExchangeBundle|null>(null), [preview,setPreview]=useState<{record_count:number;duplicate_count:number;package_sha256:string}|null>(null), [exchangeDialog,setExchangeDialog]=useState(false), [practice,setPractice]=useState(false);
   const lock=useRef(false), epoch=useRef(0), listEpoch=useRef(0), fileEpoch=useRef(0);
   const createAttempt=useRef<TeachingRecord|null>(retained?.pending_record??null), withdrawalAttempt=useRef<{schema:"archeaxis.teaching-withdrawal/v2";withdrawal_id:string;record_id:string;reason:string}|null>(null);
-  const preparationAttempt=useRef<PreparationAttempt|null>(null);
+  const preparationAttempt=useRef<PreparationAttempt|null>(retained?.preparation_attempt??null);
   const journalBaseline=useRef<string|null>(null);
-  function teachingSnapshot():TeachingDraft {return {page_id:pageId as TeachingDraft["page_id"],context_item_key:initialItemKey??null,form:structuredClone(draft),knowledge_id:knowledge?.knowledge_id??null,course_id:courseId,item_key:itemKey,assessment_id:assessmentId,parent:parent?structuredClone(parent):null,preparation:preparation?{...preparation}:null,saved_preparation:savedPreparation,pending_record:createAttempt.current?structuredClone(createAttempt.current):null};}
+  function teachingSnapshot():TeachingDraft {return {page_id:pageId as TeachingDraft["page_id"],context_item_key:initialItemKey??null,form:structuredClone(draft),knowledge_id:knowledge?.knowledge_id??null,course_id:courseId,item_key:itemKey,assessment_id:assessmentId,parent:parent?structuredClone(parent):null,preparation:preparation?{...preparation}:null,saved_preparation:savedPreparation,pending_record:createAttempt.current?structuredClone(createAttempt.current):null,...(preparationAttempt.current?{preparation_attempt:structuredClone(preparationAttempt.current)}:{})};}
   useEffect(()=>{
     if(!working||pageId==="16")return;
     const entry=teachingSnapshot(),json=JSON.stringify(entry);
@@ -147,14 +144,16 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
     });
   }
   async function savePreparationDocument() {
-    await run(async request=>{const journal=teachingSnapshot();
-      if(working){working.session.rememberTeachingDraft(draftKey,journal);const ack=await working.session.flush();if(!sameValue(ack.state.teaching_drafts?.[draftKey],journal))throw new Error("preparation journal not acknowledged");}
+    await run(async request=>{
       const editor_json:PreparationEditor={type:"doc",content:draft.content.split("\n").map(text=>({type:"paragraph",attrs:{block_id:crypto.randomUUID()},...(text?{content:[{type:"text" as const,text}]}:{})}))};
       const currentSnapshot=JSON.stringify({purpose:draft.purpose,content:draft.content});
       const attempt:PreparationAttempt=preparationAttempt.current??(preparation
         ?{operation:"document_draft",payload:{document_id:preparation.document_id,body:{expected_version:preparation.version,editor_json}},snapshot:currentSnapshot,persistedPurpose:savedPreparation?JSON.parse(savedPreparation).purpose:"",expectedTitle:preparation.title}
         :{operation:"document_create",payload:{body:{create_request_id:boundedId("preparation"),title:draft.purpose.trim()||"教学准备草稿",editor_json}},snapshot:currentSnapshot,persistedPurpose:draft.purpose,expectedTitle:draft.purpose.trim()||"教学准备草稿"});
+      const journal={...teachingSnapshot(),preparation_attempt:structuredClone(attempt)};
+      if(working)working.session.rememberTeachingDraft(draftKey,journal);
       preparationAttempt.current=attempt;
+      if(working){const ack=await working.session.flush();if(!sameValue(ack.state.teaching_drafts?.[draftKey]?.preparation_attempt,attempt))throw new Error("preparation journal not acknowledged");}
       const snapshot=attempt.snapshot;
       const expectedId=attempt.operation==="document_create"?await documentRequestIdentity(attempt.payload.body.create_request_id):attempt.payload.document_id;
       const expectedVersion=attempt.operation==="document_create"?1:attempt.payload.body.expected_version+1;
@@ -169,19 +168,28 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
         return doc;
       }
       if(request!==epoch.current)return;
-      const result=verified(await coreCommand(attempt.operation,structuredClone(attempt.payload)));
+      let result:DocumentDto;
+      if(attempt.operation==="document_draft"){
+        const current=assertCoreDto<DocumentDto>("DocumentDto",await coreCommand("document_get",{document_id:expectedId}));
+        if(current.document_id!==expectedId)throw new Error("preparation identity changed");
+        result=current.version===expectedVersion?verified(current):verified(await coreCommand(attempt.operation,structuredClone(attempt.payload)));
+      }else result=verified(await coreCommand(attempt.operation,structuredClone(attempt.payload)));
       const readback=verified(await coreCommand("document_get",{document_id:expectedId}));
       if(readback.content_sha256!==result.content_sha256||readback.title!==result.title)throw new Error("preparation readback mismatch");
       if(request!==epoch.current)return;
       const nextPreparation={document_id:result.document_id,version:result.version,title:result.title},nextSaved=JSON.stringify({purpose:attempt.persistedPurpose,content:JSON.parse(snapshot).content});
-      const ordinaryOnly=!journal.knowledge_id&&!journal.parent&&!journal.course_id&&!journal.item_key&&!journal.assessment_id
-        &&journal.form.scope==="personal"&&journal.form.privacy==="local_only"&&!journal.form.assisted&&!journal.form.feedback_class&&!journal.form.rubric_version&&journal.form.producer_kind==="human_authored";
-      if(working&&ordinaryOnly&&JSON.stringify({purpose:draft.purpose,content:draft.content})===nextSaved&&await working.session.finishTeachingDraft(draftKey,journal))journalBaseline.current=JSON.stringify({...journal,preparation:nextPreparation,saved_preparation:nextSaved});
+      if(working){
+        if(!await working.session.finishTeachingPreparation(draftKey,attempt,nextPreparation,nextSaved))throw new Error("preparation intent changed; retained");
+        const current=working.session.getSnapshot().state.teaching_drafts?.[draftKey];
+        const finished:TeachingDraft={...journal,preparation:nextPreparation,saved_preparation:nextSaved};delete finished.preparation_attempt;
+        journalBaseline.current=JSON.stringify(current??finished);
+      }
       if(request===epoch.current){setPreparation(nextPreparation);setSavedPreparation(nextSaved);preparationAttempt.current=null;note("准备正文已保存并读回；允许缺少需求字段或正式知识绑定。登记版本化记录是另一步操作。"+(JSON.parse(snapshot).purpose!==attempt.persistedPurpose?"用途改动仍留在当前表单，未重命名已保存文档。":""));}
     });
   }
   async function save() {
     await run(async request=>{
+      if(preparationAttempt.current)throw new Error("准备正文保存尚未确认；请先重试同一准备请求。");
       let record=createAttempt.current;
       if(!record){if(!knowledge||!draft.purpose.trim()||draft.purpose.length>512||!draft.content.trim()||draft.content.length>65536)throw new Error("knowledge, bounded purpose and content required");
         if(parents[draft.kind] && draft.kind!=="requirement" && !parent)throw new Error("parent required");
