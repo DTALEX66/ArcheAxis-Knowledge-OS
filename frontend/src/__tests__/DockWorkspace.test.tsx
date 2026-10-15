@@ -46,6 +46,7 @@ describe("actual Dockview retained business consumer",()=>{
   const view=render(<DockWorkspace {...props}/>);
   await waitFor(()=>expect(screen.getByLabelText("draft-03")).toBeInTheDocument());
   fireEvent.change(screen.getByLabelText("draft-03"),{target:{value:"unsaved retained"}});
+  fireEvent.click(screen.getByText("布局与面板"));
   fireEvent.click(screen.getByRole("button",{name:"左右分栏"}));
   await waitFor(()=>expect(screen.getByLabelText("draft-17")).toBeInTheDocument());
   expect(view.container.querySelectorAll(".dv-groupview").length).toBeGreaterThanOrEqual(2);
@@ -58,6 +59,7 @@ describe("actual Dockview retained business consumer",()=>{
  });
  it("locks layout controls while maintaining the same mounted business session",async()=>{
   render(<DockWorkspace {...props}/>);await waitFor(()=>expect(screen.getByLabelText("draft-03")).toBeInTheDocument());
+  fireEvent.click(screen.getByText("布局与面板"));
   fireEvent.click(screen.getByRole("button",{name:"锁定布局"}));
   expect(screen.getByRole("button",{name:"左右分栏"})).toBeDisabled();
   expect(screen.getByRole("button",{name:"浮动当前面板"})).toBeDisabled();
@@ -65,6 +67,7 @@ describe("actual Dockview retained business consumer",()=>{
  });
  it("opens stable parallel object views, enforces one object writer and closes only its presentation",async()=>{
   const view=render(<DockWorkspace {...props} initialDocumentId="doc-a"/>);await waitFor(()=>expect(screen.getByLabelText("draft-03:doc-a")).toBeEnabled());
+  fireEvent.click(screen.getByText("布局与面板"));
   fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await waitFor(()=>expect(screen.getAllByLabelText("draft-03:doc-a")).toHaveLength(2));expect(screen.getAllByLabelText("draft-03:doc-a").filter(input=>(input as HTMLInputElement).disabled)).toHaveLength(1);
   view.rerender(<DockWorkspace {...props} initialDocumentId="doc-b"/>);await waitFor(()=>expect(screen.getByLabelText("draft-03:doc-a")).toBeEnabled());fireEvent.change(screen.getByLabelText("draft-03:doc-a"),{target:{value:"object draft retained"}});
   fireEvent.click(screen.getByRole("button",{name:"关闭当前视图"}));fireEvent.click(screen.getByRole("button",{name:"重开文档 doc-a"}));await waitFor(()=>expect(screen.getByLabelText("draft-03:doc-a")).toHaveValue("object draft retained"));expect(counters.mounts).toBe(2);

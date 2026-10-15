@@ -8,6 +8,18 @@ const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 afterEach(()=>{cleanup();bridge.call.mockReset();});
 describe("UI-first real object entry",()=>{
+  it("shows the first-material entry only after a confirmed empty read and routes both real actions",async()=>{
+    let finish:(value:unknown)=>void=()=>{};
+    bridge.call.mockImplementation((operation:string)=>operation==="documents_list"?new Promise(resolve=>{finish=resolve;}):Promise.resolve({items:[]}));
+    const navigate=vi.fn();render(<CanonicalWorkspaceSpace onNavigate={navigate}/>);
+    expect(screen.queryByRole("heading",{name:"从第一份资料开始"})).toBeNull();
+    finish({documents:[]});await screen.findByRole("heading",{name:"从第一份资料开始"});
+    fireEvent.click(screen.getByRole("button",{name:/导入第一份资料/}));
+    fireEvent.click(screen.getByRole("button",{name:/新建笔记与阅读/}));
+    expect(navigate.mock.calls).toEqual([["intake"],["library"]]);
+    expect(screen.queryByText(/到期复习/)).toBeNull();
+    expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["documents_list","learning_items"]);
+  });
   it("SIMULATED: opens the returned stable document ID without a save or model call",async()=>{
     bridge.call.mockImplementation(async(operation:string)=>operation==="documents_list"?{documents:[{document_id:"doc_actual",title:"中文笔记",version:4,source_id:null,source_revision:null,content_sha256:"hash"}]}:{items:[]});
     const open=vi.fn();render(<CanonicalWorkspaceSpace onNavigate={vi.fn()} onOpenDocument={open}/>);
@@ -23,7 +35,7 @@ describe("UI-first real object entry",()=>{
     bridge.call.mockResolvedValue({documents:[],items:[]});
     fireEvent.click(screen.getByRole("button",{name:"重新读取工作区"}));
     await waitFor(()=>expect(screen.queryByRole("alert")).toBeNull());
-    await screen.findByText("还没有已保存文档，可从新建笔记开始。");
+    await screen.findByRole("heading",{name:"从第一份资料开始"});
   });
   it("finds a new semantic page through global commands without treating its backing space as the page",async()=>{
     const onPage=vi.fn(); const onNavigate=vi.fn();

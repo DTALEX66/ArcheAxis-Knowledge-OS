@@ -19,6 +19,18 @@ describe("canonical activity dock", () => {
     window.__TAURI__ = { core: { invoke } };
     return invoke;
   }
+  it("shows a quiet ready state only after an empty Core read, keeping refresh and failures accessible", async () => {
+    const invoke=bridge();invoke.mockResolvedValue({status:200,body:{sources:[]}} as never);
+    render(<ActivityDock />);
+    expect(screen.queryByText("就绪")).toBeNull();
+    await screen.findByText("就绪");
+    expect(screen.queryByRole("button",{name:"刷新任务"})).toBeNull();
+    fireEvent.click(screen.getByRole("button",{name:"展开活动坞"}));
+    invoke.mockRejectedValue(new Error("Core stopped"));
+    fireEvent.click(screen.getByRole("button",{name:"刷新任务"}));
+    await screen.findByText("正典任务读取未完成，请刷新重试。");
+    expect(screen.queryByText("就绪")).toBeNull();
+  });
   it("reads failed durable jobs through finite Core commands without legacy delivery controls", async () => {
     const invoke = bridge(); const inspect = vi.fn(); const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
     render(<ActivityDock onInspect={inspect} />);

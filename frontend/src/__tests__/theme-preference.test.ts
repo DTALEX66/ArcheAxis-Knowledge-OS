@@ -30,10 +30,10 @@ describe("AAOS theme preferences", () => {
   it("persists UI preference only and tolerates unavailable storage", () => {
     const values = new Map<string, string>();
     const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value) };
-    expect(readThemePreference(storage)).toBe("blueprint");
+    expect(readThemePreference(storage)).toBe("cosmic");
     writeThemePreference("white", storage);
     expect(readThemePreference(storage)).toBe("white");
-    expect(readThemePreference({ getItem: () => "warm-white" })).toBe("blueprint");
+    expect(readThemePreference({ getItem: () => "warm-white" })).toBe("cosmic");
     expect(() => readThemePreference({ getItem: () => { throw new Error("disabled"); } })).not.toThrow();
     expect(() => writeThemePreference("cosmic", { setItem: () => { throw new Error("disabled"); } })).not.toThrow();
   });

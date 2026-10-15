@@ -42,8 +42,8 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const action=(operation:()=>void|Promise<unknown>)=>{try{Promise.resolve(operation()).catch(error=>setNotice(String(error.message??error)));}catch(error){setNotice(String((error as Error).message));}};
  const split=(direction:"right"|"below")=>{const candidate=id==="17"?"03":"17";open(candidate,direction);};
  const active=()=>api.current?.activePanel;
- return <section className="dock-workspace" aria-label="自由布局工作区" data-layout-version={version}>
-  <div className="dock-toolbar" role="toolbar" aria-label="布局操作">
+ return <section className="dock-workspace" aria-label="自由布局工作区" data-layout-version={version} data-panel-count={api.current?.panels.length??1}>
+  <details className="dock-layout-options"><summary>布局与面板</summary><div className="dock-toolbar" role="toolbar" aria-label="布局操作">
    <button onClick={()=>split("right")} disabled={locked}>左右分栏</button><button onClick={()=>split("below")} disabled={locked}>上下分栏</button>
    <button disabled={locked||!(view.initialDocumentId??working?.state.active_document)} onClick={()=>action(()=>open(documentPanelId(view.initialDocumentId??working!.state.active_document!),"right"))}>并排打开当前文档</button>
    <button onClick={()=>{const panel=active();if(panel)api.current?.removePanel(panel);}}>关闭当前视图</button>
@@ -58,8 +58,8 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
    <button onClick={()=>action(async()=>{await controller.read();setNotice("已读回版本；当前视图保留。请明确应用读回布局。");})}>读回布局版本</button>
    <button disabled={locked} onClick={()=>action(()=>{if(controller.snapshot){apply(controller.snapshot.layout);setNotice("已应用读回布局；业务会话保留。");}})}>应用读回布局</button>
    <button disabled={locked} onClick={()=>action(async()=>{const recovered=await controller.recover(Math.max(320,window.innerWidth),Math.max(240,window.innerHeight));apply(recovered.layout);})}>确认布局恢复</button>
-  </div>
-  <p role="status">{notice||controller.status} · 关闭面板仅关闭视图；草稿与已提交任务保留。</p>
+  </div><p role="status">{controller.status} · 关闭面板仅关闭视图；草稿与已提交任务保留。</p></details>
+  {notice?<p role="alert">{notice}</p>:null}
   <div className="dock-surface"><DockviewReact components={components} theme={themeDark} onReady={onReady} locked={locked} disableDnd={locked}/></div>
   <div hidden aria-hidden="true" ref={parking}/>
   {[...retained.current].map(([panelId,saved])=>createPortal(<DocumentBusinessProvider sessions={documentSessions} viewId={registry.key(panelId)} revealOwner={owner=>{const ownerPanel=[...retained.current.keys()].find(candidate=>registry.key(candidate)===owner);if(ownerPanel)open(ownerPanel);}}><SpaceView {...saved} activationRevision={activations.current.get(panelId)??0} onTrail={panelId===id?saved.onTrail:undefined}/></DocumentBusinessProvider>,registry.host(panelId),registry.key(panelId)))}
