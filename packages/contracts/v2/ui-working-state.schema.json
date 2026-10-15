@@ -17,6 +17,21 @@
     }
   ],
   "$defs": {
+    "LearningDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "item_key": {"type": "string", "minLength": 1, "maxLength": 512},
+        "assessment_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,128}$"},
+        "knowledge_version": {"type": "string", "minLength": 1, "maxLength": 512},
+        "question_version": {"type": "string", "minLength": 1, "maxLength": 512},
+        "answer": {"type": "string", "maxLength": 65536},
+        "checked_correct": {"anyOf": [{"type": "boolean"}, {"type": "null"}]},
+        "rating": {"anyOf": [{"type": "integer", "minimum": 1, "maximum": 4}, {"type": "null"}]},
+        "answer_revealed": {"type": "boolean"}
+      },
+      "required": ["item_key", "assessment_id", "knowledge_version", "answer", "checked_correct", "rating", "answer_revealed"]
+    },
     "Draft": {
       "type": "object",
       "additionalProperties": false,
@@ -50,6 +65,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "learning_drafts": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,128}$"},
+          "additionalProperties": {"$ref": "#/$defs/LearningDraft"}
+        },
         "drafts": {
           "type": "object",
           "maxProperties": 32,

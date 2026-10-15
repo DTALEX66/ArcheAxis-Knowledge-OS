@@ -30,6 +30,22 @@ pub struct Draft {
     pub base_version: i64,
     pub editor_json: Value,
 }
+/// Editable human input, distinct from immutable pending_reviews execution intent.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LearningDraft {
+    pub item_key: String,
+    pub assessment_id: String,
+    pub knowledge_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub question_version: Option<String>,
+    pub answer: String,
+    #[serde(deserialize_with = "Option::deserialize")]
+    pub checked_correct: Option<bool>,
+    #[serde(deserialize_with = "Option::deserialize")]
+    pub rating: Option<u8>,
+    pub answer_revealed: bool,
+}
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct OriginalAttempt {
@@ -109,6 +125,8 @@ pub struct MachineStatus {
 #[serde(deny_unknown_fields)]
 pub struct State {
     pub drafts: BTreeMap<String, Draft>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub learning_drafts: BTreeMap<String, LearningDraft>,
     pub opened_documents: Vec<String>,
     pub active_document: Option<String>,
     pub page_id: Option<String>,
@@ -371,6 +389,26 @@ fn validate(state: &State) -> Result<(), Error> {
                     || !body["retest_of"].as_str().is_some_and(identity)))
         {
             return Err(Error::Invalid("invalid frozen machine journal"));
+        }
+    }
+    if state.learning_drafts.len() > 32 {
+        return Err(Error::Invalid("learning draft limit exceeded"));
+    }
+    for (key, draft) in &state.learning_drafts {
+        if key != &draft.assessment_id
+            || !identity(key)
+            || draft.item_key.trim().is_empty()
+            || draft.item_key.len() > 512
+            || draft.knowledge_version.trim().is_empty()
+            || draft.knowledge_version.len() > 512
+            || draft
+                .question_version
+                .as_ref()
+                .is_some_and(|v| v.trim().is_empty() || v.len() > 512)
+            || draft.answer.len() > 65_536
+            || draft.rating.is_some_and(|n| !(1..=4).contains(&n))
+        {
+            return Err(Error::Invalid("invalid learning draft"));
         }
     }
     if state.pending_reviews.len() > 32 {
@@ -636,6 +674,20 @@ pub fn write(conn: &mut Connection, request: Write) -> Result<Value, Error> {
     if old.restore_epoch != current_epoch {
         return Err(Error::Conflict);
     }
+    for (key, draft) in &request.state.learning_drafts {
+        if old.state.learning_drafts.get(key).is_some_and(|prior| {
+            prior.item_key != draft.item_key
+                || prior.knowledge_version != draft.knowledge_version
+                || prior.question_version != draft.question_version
+        }) {
+            return Err(Error::Invalid(
+                "learning draft version binding cannot be replaced",
+            ));
+        }
+        if old.state.learning_drafts.get(key) != Some(draft) {
+            check_learning_draft_binding(&tx, draft)?;
+        }
+    }
     for (key, pending) in &old.state.pending_machine {
         if request.state.pending_machine.get(key) != Some(pending) {
             return Err(Error::Invalid(
@@ -867,6 +919,9 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
             record.state = State::default();
         }
         RecoveryAction::Preserve => {
+            for draft in record.state.learning_drafts.values() {
+                check_learning_draft_binding(&tx, draft)?;
+            }
             for pending in record.state.pending_jobs.values() {
                 check_job_binding(&tx, pending)?;
             }
@@ -892,6 +947,18 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
     let result = response(&record, &current_epoch);
     tx.commit()?;
     Ok(result)
+}
+
+fn check_learning_draft_binding(conn: &Connection, draft: &LearningDraft) -> Result<(), Error> {
+    let bound = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM learning_assessments WHERE assessment_id=?1 AND item_key=?2 AND knowledge_version=?3)",
+        rusqlite::params![draft.assessment_id, draft.item_key, draft.knowledge_version],
+        |r| r.get::<_, bool>(0),
+    )?;
+    if !bound {
+        return Err(Error::Invalid("learning draft assessment binding mismatch"));
+    }
+    Ok(())
 }
 
 fn check_job_binding(conn: &Connection, pending: &PendingJob) -> Result<(), Error> {

@@ -1,5 +1,5 @@
 import type { JSONContent } from "@tiptap/core";
-import type { UiWorkingStatePendingJob, UiWorkingStatePendingReview, UiWorkingStatePendingMachine } from "../api/generated/ui-working-state-contract";
+import type { UiWorkingStateLearningDraft, UiWorkingStatePendingJob, UiWorkingStatePendingReview, UiWorkingStatePendingMachine } from "../api/generated/ui-working-state-contract";
 import { assertUiWorkingState } from "../api/generated/ui-working-state-contract";
 
 export type WorkingEditor = JSONContent & {type:"doc";content:JSONContent[]};
@@ -8,7 +8,8 @@ export type PendingOriginal = {create_request_id:string;title:string;editor_json
 export type PendingJob = UiWorkingStatePendingJob;
 export type PendingReview = UiWorkingStatePendingReview;
 export type PendingMachine = UiWorkingStatePendingMachine;
-export type WorkingState = {drafts:Record<string,WorkingDraft>;opened_documents:string[];active_document:string|null;page_id:string|null;pending_original?:PendingOriginal|null;pending_jobs?:Record<string,PendingJob>;pending_reviews?:Record<string,PendingReview>;pending_machine?:Record<string,UiWorkingStatePendingMachine>};
+export type LearningDraft = UiWorkingStateLearningDraft;
+export type WorkingState = {drafts:Record<string,WorkingDraft>;learning_drafts?:Record<string,LearningDraft>;opened_documents:string[];active_document:string|null;page_id:string|null;pending_original?:PendingOriginal|null;pending_jobs?:Record<string,PendingJob>;pending_reviews?:Record<string,PendingReview>;pending_machine?:Record<string,UiWorkingStatePendingMachine>};
 export type WorkingRead = {schema:"archeaxis.ui-working-state/v1";workspace_id:string;restore_epoch:string;state_revision:number;state:WorkingState;draft_digests:Record<string,string>;pending_document_id:string|null;recovery_candidates:WorkingState|null;recovery_requires_confirmation:boolean};
 type Basis = Pick<WorkingRead,"workspace_id"|"restore_epoch"|"state_revision">;
 export type WorkingTransport = {
@@ -40,7 +41,7 @@ export class CoreWorkingStateSession {
   private inFlight:Promise<WorkingRead>|null=null;
   private readFlight:Promise<WorkingRead>|null=null;
   private clearFlight:Promise<boolean>|null=null;
-  private unknown:{base:WorkingRead;state:WorkingState;cleared?:{id:string;sent:WorkingDraft};clearedJob?:PendingJob;clearedMachine?:PendingMachine}|null=null;
+  private unknown:{base:WorkingRead;state:WorkingState;cleared?:{id:string;sent:WorkingDraft};clearedReview?:PendingReview;clearedLearning?:LearningDraft;clearedJob?:PendingJob;clearedMachine?:PendingMachine}|null=null;
   getSnapshot=():WorkingView=>this.view;
   subscribe=(listener:()=>void):(()=>void)=>{this.listeners.add(listener);return()=>this.listeners.delete(listener);};
   constructor(private transport:WorkingTransport) {}
@@ -77,6 +78,12 @@ export class CoreWorkingStateSession {
           if(pending.clearedMachine&&equal(this.view.state.pending_machine?.[pending.clearedMachine.journal_id],pending.clearedMachine)) {
             const state=structuredClone(this.view.state);delete state.pending_machine![pending.clearedMachine.journal_id];if(!Object.keys(state.pending_machine!).length)delete state.pending_machine;this.publish({state});
           }
+          if(pending.clearedLearning&&equal(this.view.state.learning_drafts?.[pending.clearedLearning.assessment_id],pending.clearedLearning)) {
+            const state=structuredClone(this.view.state);delete state.learning_drafts![pending.clearedLearning.assessment_id];if(!Object.keys(state.learning_drafts!).length)delete state.learning_drafts;this.publish({state});
+          }
+          if(pending.clearedReview&&equal(this.view.state.pending_reviews?.[pending.clearedReview.client_event_id],pending.clearedReview)) {
+            const state=structuredClone(this.view.state);delete state.pending_reviews![pending.clearedReview.client_event_id];if(!Object.keys(state.pending_reviews!).length)delete state.pending_reviews;this.publish({state});
+          }
           this.unknown=null;this.publish({server:read,status:equal(read.state,this.view.state)?"ready":"unsaved",error:null});return read;
         }
         if(read.state_revision===pending.base.state_revision&&equal(read.state,pending.base.state)) {
@@ -98,6 +105,43 @@ export class CoreWorkingStateSession {
     this.publish({state,status:this.view.status==="blocked"||this.view.status==="recovery"?this.view.status:"unsaved"});
   }
   rememberDraft(id:string,editor:WorkingEditor,baseVersion:number):void {this.change(state=>{state.drafts[id]={base_version:baseVersion,editor_json:structuredClone(editor)};});}
+  rememberLearningDraft(draft:LearningDraft):void {
+    assertUiWorkingState("LearningDraft",draft);
+    if([draft.item_key,draft.knowledge_version,draft.question_version].some(value=>value!==undefined&&(!value.trim()||new TextEncoder().encode(value).length>512)))throw new Error("学习题目或修订标识为空或超过 512 UTF-8 字节；原答案保留。");
+    if(Object.values(this.view.state.pending_reviews??{}).some(entry=>entry.item_key===draft.item_key))throw new Error("此题已有冻结复习请求；草稿不能改写待核对的答案。");
+    const old=this.view.state.learning_drafts?.[draft.assessment_id];
+    if(old&&(old.item_key!==draft.item_key||old.knowledge_version!==draft.knowledge_version||old.question_version!==draft.question_version))throw new Error("学习草稿属于不同题目修订；原文保留。");
+    if(!old&&Object.keys(this.view.state.learning_drafts??{}).length>=32)throw new Error("最多保留 32 份学习草稿；请先完成复习或明确丢弃一份旧草稿，原答案均保留。");
+    if(new TextEncoder().encode(draft.answer).length>65_536)throw new Error("本题答案超过 65536 UTF-8 字节；本次输入未应用，原答案保留。");
+    const next=structuredClone(this.view.state);next.learning_drafts??={};next.learning_drafts[draft.assessment_id]=structuredClone(draft);
+    if(new TextEncoder().encode(JSON.stringify(next)).length>1_048_576)throw new Error("工作草稿总量超过 1 MiB；本次输入未应用，请先保存或明确丢弃已有草稿。");
+    this.change(state=>{state.learning_drafts??={};state.learning_drafts[draft.assessment_id]=structuredClone(draft);});
+  }
+  /** Explicit user discard; retain the exact local answer until Core ACK or matching readback. */
+  async discardLearningDraft(draft:LearningDraft):Promise<void> {
+    if(this.clearFlight){await this.clearFlight;return this.discardLearningDraft(draft);}
+    const run=this.discardLearningDraftOnce(draft).then(()=>true);this.clearFlight=run;
+    try{await run;}finally{this.clearFlight=null;}
+  }
+  private async discardLearningDraftOnce(draft:LearningDraft):Promise<void> {
+    const checked=()=>{
+      if(!equal(this.view.state.learning_drafts?.[draft.assessment_id],draft))throw new Error("学习草稿已变化；未丢弃新输入。");
+      if(Object.values(this.view.state.pending_reviews??{}).some(entry=>entry.item_key===draft.item_key))throw new Error("此题已有冻结复习请求；请先核对回执，不能丢弃草稿。");
+    };
+    checked();await this.flush();checked();
+    const server=this.view.server!;
+    if(!equal(server.state.learning_drafts?.[draft.assessment_id],draft))throw new Error("学习草稿保全身份未确认。");
+    const expected=structuredClone(server.state);delete expected.learning_drafts![draft.assessment_id];if(!Object.keys(expected.learning_drafts!).length)delete expected.learning_drafts;
+    this.publish({status:"saving",error:null});
+    const run=this.transport.write({...basis(server),state:structuredClone(expected)});this.inFlight=run;
+    try{
+      const read=assertUiWorkingState<WorkingRead>("Read",await run);
+      if(!sameWorkspace(server,read)||read.recovery_requires_confirmation||read.state_revision!==server.state_revision+1||!equal(read.state,expected))throw new Error("学习草稿丢弃回执未确认。");
+      const state=structuredClone(this.view.state);
+      if(equal(state.learning_drafts?.[draft.assessment_id],draft)){delete state.learning_drafts![draft.assessment_id];if(!Object.keys(state.learning_drafts!).length)delete state.learning_drafts;}
+      this.publish({state,server:read,status:equal(state,read.state)?"ready":"unsaved",error:null});
+    }catch(error){this.unknown={base:server,state:expected,clearedLearning:structuredClone(draft)};this.fail(error);}finally{this.inFlight=null;}
+  }
   async stageMachine(entry:PendingMachine):Promise<void> {
     assertUiWorkingState("PendingMachine",entry);
     const server=this.view.server;
@@ -138,13 +182,38 @@ export class CoreWorkingStateSession {
     const retained=server?.state.pending_reviews?.[entry.client_event_id];
     if(!server||(server.restore_epoch!==entry.origin_restore_epoch&&(!equal(old,entry)||!equal(retained,entry))))throw new Error("复习请求属于另一恢复现场；未发送。");
     if(old&&!equal(old,entry))throw new Error("复习请求已冻结，不能替换。");
+    const next=structuredClone(this.view.state);next.pending_reviews??={};next.pending_reviews[entry.client_event_id]=structuredClone(entry);
+    assertUiWorkingState("State",next);
+    if(new TextEncoder().encode(JSON.stringify(next)).length>1_048_576)throw new Error("复习请求保全将超过 1 MiB；请先保存或明确丢弃其他草稿。");
     this.change(state=>{state.pending_reviews??={};state.pending_reviews[entry.client_event_id]=structuredClone(entry);});
     const read=await this.flush();if(!equal(read.state.pending_reviews?.[entry.client_event_id],entry))throw new Error("复习身份保全未确认；尚未发送。");
   }
-  async finishReview(entry:PendingReview):Promise<void> {
-    if(!equal(this.view.state.pending_reviews?.[entry.client_event_id],entry))throw new Error("冻结复习身份已变化。");
-    this.change(state=>{delete state.pending_reviews![entry.client_event_id];if(!Object.keys(state.pending_reviews!).length)delete state.pending_reviews;});
+  async finishReview(entry:PendingReview,draft?:LearningDraft):Promise<void> {
+    if(this.clearFlight){await this.clearFlight;return this.finishReview(entry,draft);}
+    const run=this.finishReviewOnce(entry,draft).then(()=>true);this.clearFlight=run;
+    try{await run;}finally{this.clearFlight=null;}
+  }
+  private async finishReviewOnce(entry:PendingReview,draft?:LearningDraft):Promise<void> {
     await this.flush();
+    const server=this.view.server!;
+    if(!equal(this.view.state.pending_reviews?.[entry.client_event_id],entry)||!equal(server.state.pending_reviews?.[entry.client_event_id],entry))throw new Error("冻结复习身份已变化。");
+    const expected=structuredClone(server.state);
+    delete expected.pending_reviews![entry.client_event_id];if(!Object.keys(expected.pending_reviews!).length)delete expected.pending_reviews;
+    const clearedLearning=draft&&equal(expected.learning_drafts?.[draft.assessment_id],draft)
+        &&draft.item_key===entry.item_key&&draft.assessment_id===entry.body.assessment_id
+        &&draft.knowledge_version===entry.body.knowledge_version&&draft.question_version===entry.body.question_version
+        &&draft.answer.trim()===entry.body.answer&&draft.checked_correct===entry.body.correct&&draft.rating===entry.body.rating?structuredClone(draft):undefined;
+    if(clearedLearning){delete expected.learning_drafts![clearedLearning.assessment_id];if(!Object.keys(expected.learning_drafts!).length)delete expected.learning_drafts;}
+    this.publish({status:"saving",error:null});
+    const run=this.transport.write({...basis(server),state:structuredClone(expected)});this.inFlight=run;
+    try{
+      const read=assertUiWorkingState<WorkingRead>("Read",await run);
+      if(!sameWorkspace(server,read)||read.recovery_requires_confirmation||read.state_revision!==server.state_revision+1||!equal(read.state,expected))throw new Error("复习草稿清理回执未确认。");
+      const state=structuredClone(this.view.state);
+      if(equal(state.pending_reviews?.[entry.client_event_id],entry)){delete state.pending_reviews![entry.client_event_id];if(!Object.keys(state.pending_reviews!).length)delete state.pending_reviews;}
+      if(clearedLearning&&equal(state.learning_drafts?.[clearedLearning.assessment_id],clearedLearning)){delete state.learning_drafts![clearedLearning.assessment_id];if(!Object.keys(state.learning_drafts!).length)delete state.learning_drafts;}
+      this.publish({state,server:read,status:equal(state,read.state)?"ready":"unsaved",error:null});
+    }catch(error){this.unknown={base:server,state:expected,clearedReview:structuredClone(entry),clearedLearning};this.fail(error);}finally{this.inFlight=null;}
   }
   async stageJob(entry:PendingJob):Promise<void> {
     const old=this.view.state.pending_jobs?.[entry.request_id];
@@ -237,7 +306,7 @@ export class CoreWorkingStateSession {
     try {
       const read=assertUiWorkingState<WorkingRead>("Read",await run);
       if(!sameWorkspace(server,read)||read.recovery_requires_confirmation||read.state_revision!==server.state_revision+1||this.serial!==serial||!equal(read.state,expected))throw new Error("恢复确认期间本地输入或身份已变化；未自动应用。");
-      if(Object.keys(this.view.state.drafts).length||this.view.state.pending_original||Object.keys(this.view.state.pending_jobs??{}).length||Object.keys(this.view.state.pending_reviews??{}).length||Object.keys(this.view.state.pending_machine??{}).length) {
+      if(Object.keys(this.view.state.drafts).length||Object.keys(this.view.state.learning_drafts??{}).length||this.view.state.pending_original||Object.keys(this.view.state.pending_jobs??{}).length||Object.keys(this.view.state.pending_reviews??{}).length||Object.keys(this.view.state.pending_machine??{}).length) {
         this.unknown=null;this.publish({server:read,status:"blocked",error:"Core恢复候选已处理；现场另有本地草稿，请比较保全后再继续，未自动覆盖。"});return;
       }
       this.serial=0;this.unknown=null;this.publish({state:structuredClone(read.state),server:read,status:"ready",error:null});

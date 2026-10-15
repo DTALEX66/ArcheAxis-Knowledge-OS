@@ -1,5 +1,5 @@
 use archeaxis_domain::ui_state::{
-    self, ClearSaved, Draft, Error, Recover, RecoveryAction, State, Write,
+    self, ClearSaved, Draft, Error, LearningDraft, Recover, RecoveryAction, State, Write,
 };
 use rusqlite::Connection;
 use serde_json::{Value, json};
@@ -28,6 +28,172 @@ fn fixture(path: &std::path::Path) -> Connection {
 }
 fn body(text: &str) -> Value {
     json!({"type":"doc","content":[{"type":"paragraph","attrs":{"block_id":"block_a"},"content":[{"type":"text","text":text}]}]})
+}
+
+fn learning_draft(id: &str, item: &str, version: &str, answer: &str) -> LearningDraft {
+    LearningDraft {
+        item_key: item.into(),
+        assessment_id: id.into(),
+        knowledge_version: version.into(),
+        question_version: None,
+        answer: answer.into(),
+        checked_correct: None,
+        rating: None,
+        answer_revealed: false,
+    }
+}
+
+#[test]
+fn independent_learning_drafts_reopen_without_review_and_refuse_stale_cas_or_rebinding() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("learning-drafts.sqlite");
+    let mut conn = fixture(&path);
+    conn.execute_batch("CREATE TABLE learning_assessments(assessment_id TEXT PRIMARY KEY,item_key TEXT,knowledge_version TEXT); CREATE TABLE learning_events(event_id TEXT,item_key TEXT); INSERT INTO learning_assessments VALUES('assessment_a','item-a','v1'),('assessment_b','item-b','v2');").unwrap();
+    let initial = ui_state::read(&mut conn).unwrap();
+    let a = learning_draft("assessment_a", "item-a", "v1", "  未提交 A\n第二行  ");
+    let mut b = learning_draft("assessment_b", "item-b", "v2", "");
+    // An unfinished check is a draft, not an admissible learning review.
+    b.checked_correct = Some(false);
+    b.rating = Some(3);
+    b.answer_revealed = true;
+    let mut write = request(&initial, "document remains independent");
+    write.state.learning_drafts = BTreeMap::from([
+        ("assessment_a".into(), a.clone()),
+        ("assessment_b".into(), b.clone()),
+    ]);
+    let saved = ui_state::write(&mut conn, write.clone()).unwrap();
+    assert!(matches!(
+        ui_state::write(&mut conn, write),
+        Err(Error::Conflict)
+    ));
+    drop(conn);
+    let mut conn = fixture(&path);
+    assert_eq!(ui_state::read(&mut conn).unwrap(), saved);
+    assert_eq!(
+        saved["state"]["learning_drafts"]["assessment_a"],
+        serde_json::to_value(&a).unwrap()
+    );
+    assert_eq!(
+        saved["state"]["learning_drafts"]["assessment_b"],
+        serde_json::to_value(&b).unwrap()
+    );
+    assert_eq!(
+        conn.query_row("SELECT count(*) FROM learning_events", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    let next = || {
+        let mut value = request(&saved, "document remains independent");
+        value.state.learning_drafts = BTreeMap::from([
+            ("assessment_a".into(), a.clone()),
+            ("assessment_b".into(), b.clone()),
+        ]);
+        value
+    };
+    for change in ["item", "version", "question", "map-key", "oversize"] {
+        let mut invalid = next();
+        let draft = invalid
+            .state
+            .learning_drafts
+            .get_mut("assessment_a")
+            .unwrap();
+        match change {
+            "item" => draft.item_key = "item-b".into(),
+            "version" => draft.knowledge_version = "v2".into(),
+            "question" => draft.question_version = Some("changed-question".into()),
+            "oversize" => draft.answer = "中".repeat(21_846),
+            _ => {
+                let draft = invalid
+                    .state
+                    .learning_drafts
+                    .remove("assessment_a")
+                    .unwrap();
+                invalid
+                    .state
+                    .learning_drafts
+                    .insert("wrong_key".into(), draft);
+            }
+        }
+        assert!(
+            ui_state::write(&mut conn, invalid).is_err(),
+            "{change} should be rejected"
+        );
+        assert_eq!(ui_state::read(&mut conn).unwrap(), saved);
+    }
+    for field in ["checked_correct", "rating"] {
+        let mut value = serde_json::to_value(&a).unwrap();
+        value.as_object_mut().unwrap().remove(field);
+        assert!(serde_json::from_value::<LearningDraft>(value).is_err());
+    }
+    let mut updated = next();
+    updated
+        .state
+        .learning_drafts
+        .get_mut("assessment_a")
+        .unwrap()
+        .answer = "new answer A".into();
+    let updated = ui_state::write(&mut conn, updated).unwrap();
+    assert_eq!(
+        updated["state"]["learning_drafts"]["assessment_b"],
+        serde_json::to_value(&b).unwrap()
+    );
+}
+
+#[test]
+fn learning_draft_restore_requires_explicit_choice_and_valid_assessment_binding() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = fixture(&dir.path().join("learning-restore.sqlite"));
+    conn.execute_batch("CREATE TABLE learning_assessments(assessment_id TEXT PRIMARY KEY,item_key TEXT,knowledge_version TEXT); INSERT INTO learning_assessments VALUES('assessment','item','v1');").unwrap();
+    let basis = ui_state::read(&mut conn).unwrap();
+    let mut write = request(&basis, "document");
+    write.state.learning_drafts.insert(
+        "assessment".into(),
+        learning_draft("assessment", "item", "v1", "answer retained"),
+    );
+    let saved = ui_state::write(&mut conn, write).unwrap();
+    conn.execute("INSERT INTO workspace_meta VALUES('authorization_restore_fence',?1)",[json!({"schema":"archeaxis.authorization-restore-fence/v1","epoch":"b".repeat(32),"blocked_grant_ids":[]}).to_string()]).unwrap();
+    let candidate = ui_state::read(&mut conn).unwrap();
+    assert_eq!(candidate["recovery_requires_confirmation"], true);
+    assert!(candidate["state"].get("learning_drafts").is_none());
+    assert_eq!(
+        candidate["recovery_candidates"]["learning_drafts"],
+        saved["state"]["learning_drafts"]
+    );
+    let recover = |action| Recover {
+        workspace_id: candidate["workspace_id"].as_str().unwrap().into(),
+        restore_epoch: candidate["restore_epoch"].as_str().unwrap().into(),
+        state_revision: candidate["state_revision"].as_i64().unwrap(),
+        action,
+    };
+    conn.execute("DELETE FROM learning_assessments", [])
+        .unwrap();
+    assert!(ui_state::recover(&mut conn, recover(RecoveryAction::Preserve)).is_err());
+    assert_eq!(ui_state::read(&mut conn).unwrap(), candidate);
+    conn.execute(
+        "INSERT INTO learning_assessments VALUES('assessment','item','v1')",
+        [],
+    )
+    .unwrap();
+    let preserved = ui_state::recover(&mut conn, recover(RecoveryAction::Preserve)).unwrap();
+    assert_eq!(
+        preserved["state"]["learning_drafts"],
+        saved["state"]["learning_drafts"]
+    );
+    conn.execute("UPDATE workspace_meta SET value=?1 WHERE key='authorization_restore_fence'",[json!({"schema":"archeaxis.authorization-restore-fence/v1","epoch":"c".repeat(32),"blocked_grant_ids":[]}).to_string()]).unwrap();
+    let candidate = ui_state::read(&mut conn).unwrap();
+    let discarded = ui_state::recover(
+        &mut conn,
+        Recover {
+            workspace_id: candidate["workspace_id"].as_str().unwrap().into(),
+            restore_epoch: candidate["restore_epoch"].as_str().unwrap().into(),
+            state_revision: candidate["state_revision"].as_i64().unwrap(),
+            action: RecoveryAction::Discard,
+        },
+    )
+    .unwrap();
+    assert!(discarded["state"].get("learning_drafts").is_none());
+    assert_eq!(discarded["recovery_requires_confirmation"], false);
 }
 
 #[test]
@@ -161,6 +327,7 @@ fn request(receipt: &Value, text: &str) -> Write {
             pending_original: None,
             pending_jobs: BTreeMap::new(),
             pending_reviews: BTreeMap::new(),
+            learning_drafts: BTreeMap::new(),
         },
     }
 }
@@ -445,6 +612,10 @@ fn frozen_review_survives_reopen_and_rejects_replacement_or_unconfirmed_clear() 
     let basis = ui_state::read(&mut conn).unwrap();
     let entry = json!({"item_key":"course:card","client_event_id":"event","origin_restore_epoch":"initial","body":{"item_key":"course:card","client_event_id":"event","answer":"answer","assessment_id":"assessment","knowledge_version":"version","correct":true,"rating":3}});
     let mut write = request(&basis, "draft");
+    write.state.learning_drafts.insert(
+        "assessment".into(),
+        learning_draft("assessment", "course:card", "version", "  answer  "),
+    );
     write.state.pending_reviews.insert(
         "event".into(),
         serde_json::from_value(entry.clone()).unwrap(),
@@ -454,6 +625,10 @@ fn frozen_review_survives_reopen_and_rejects_replacement_or_unconfirmed_clear() 
     let mut conn = fixture(&path);
     let read = ui_state::read(&mut conn).unwrap();
     assert_eq!(read["state"]["pending_reviews"]["event"], entry);
+    assert_eq!(
+        read["state"]["learning_drafts"]["assessment"]["answer"],
+        "  answer  "
+    );
     let mut changed = request(&read, "draft");
     let mut altered = entry.clone();
     altered["body"]["answer"] = json!("different");
@@ -499,6 +674,7 @@ fn frozen_review_survives_reopen_and_rejects_replacement_or_unconfirmed_clear() 
     .unwrap();
     let cleared = ui_state::write(&mut conn, request(&read, "draft")).unwrap();
     assert!(cleared["state"].get("pending_reviews").is_none());
+    assert!(cleared["state"].get("learning_drafts").is_none());
 }
 #[test]
 fn machine_journal_reopens_and_old_client_cannot_drop_or_change_it() {

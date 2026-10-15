@@ -34,6 +34,18 @@ it("SIMULATED App guards leaving when only a frozen review is pending",async()=>
   fireEvent.click(document.querySelector('.navigation-sidebar button[data-page-id="02"]')!);
   expect(confirm).toHaveBeenCalledTimes(1);expect(window.location.hash).toBe("#page=03");
 });
+it("SIMULATED App guards an unsubmitted learning draft even outside the learning page",async()=>{
+  read.state.learning_drafts={assessment:{item_key:"item",assessment_id:"assessment",knowledge_version:"v1",answer:"retained learning answer",checked_correct:null,rating:null,answer_revealed:false}};
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);render(<App/>);
+  await waitFor(()=>expect(bridge.call.mock.calls.some(([op])=>op==="ui_state_write")).toBe(true));confirm.mockClear();
+  fireEvent.click(document.querySelector('.navigation-sidebar button[data-page-id="02"]')!);
+  expect(confirm).toHaveBeenCalledTimes(1);expect(window.location.hash).toBe("#page=03");
+});
+it("SIMULATED restore notice lists learning drafts without applying or submitting them",async()=>{
+  read.recovery_requires_confirmation=true;read.recovery_candidates={...empty(),learning_drafts:{assessment:{item_key:"retained-item",assessment_id:"assessment",knowledge_version:"v1",answer:"answer",checked_correct:null,rating:null,answer_revealed:false}}};
+  render(<App/>);await screen.findByText("另有 1 份未提交学习草稿。");expect(screen.getByText("retained-item · v1")).toBeInTheDocument();
+  expect(bridge.call.mock.calls.some(([op])=>op==="learning_review"||op==="ui_state_recover")).toBe(false);
+});
 it("SIMULATED mounted App retains a dirty AI journey across receipt panels and still guards leaving",async()=>{
   window.location.hash="#page=14";read.state.page_id="14";
   const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
