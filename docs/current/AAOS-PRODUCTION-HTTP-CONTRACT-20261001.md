@@ -209,7 +209,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (117 pairs in a `text_worker` launch)
+## 3. Route inventory (118 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -547,8 +547,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 72 projection method/path pairs (61 unconditional mounts, eleven dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 117 addresses (71 base projection method/path pairs + 46 runtime method/path pairs) | All routes above are served. |
+| **no** `text_worker` | 73 projection method/path pairs (62 unconditional mounts, eleven dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 118 addresses (72 base projection method/path pairs + 46 runtime method/path pairs) | All routes above are served. |
 
 The runtime builder carries **42** routes, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
@@ -753,7 +753,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 71 base projection pairs plus 46 runtime pairs total 117. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 72 base projection pairs plus 46 runtime pairs total 118. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
@@ -822,7 +822,7 @@ Current projection/runtime counts are 61/42 mounts and 72/116 method/path pairs.
 
 ## 14. 2026-10-14 source inventory reconciliation
 
-The following 21 method/path pairs complete the current source inventory. This is source inspection, not an extension of historical OBSERVED receipts, installed qualification or actor permission. Projection-only: 61 unconditional mounts / 72 pairs; text-worker runtime: 43 mounts / 46 pairs, merging 71 base projection pairs for 117 unique production pairs. Manual receipts remain conditional and excluded.
+The following 21 method/path pairs record the 2026-10-14 source reconciliation; the 2026-10-16 addition follows in §15. This is source inspection, not an extension of historical OBSERVED receipts, installed qualification or actor permission. Current projection-only: 62 unconditional mounts / 73 pairs; text-worker runtime: 43 mounts / 46 pairs, merging 72 base projection pairs for 118 unique production pairs. Manual receipts remain conditional and excluded.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
@@ -848,3 +848,9 @@ The following 21 method/path pairs complete the current source inventory. This i
 | 219 | `PUT /api/v1/workspace/layout` | Existing handler guard; no inferred role permission | Current-source registration. Handler, canonical request DTO and response define the contract; runtime/installed qualification UNVERIFIED. |
 
 | 220 | `GET /api/v1/configuration-plans` | Read only; no execution grant | Current workspace configuration revision/hash and registered-module enable decisions. No service probe, worker launch, download, installation, credential read or configuration write. Existing services are numeric loopback only; remote services unsupported. Download source/version/artifact hash/size remain unknown. All plans non-executable; installation needs a separately implemented engine, formal plan and authorization receipt. Tests: `crates/archeaxis-api/tests/configuration_plans_api.rs`. Native/installed acceptance UNVERIFIED. |
+
+## 15. 2026-10-16 per-file format qualification
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| 221 | `GET /api/v1/sources/{source_id}/jobs/{job_id}/format-qualification` | any token; read only | Bound source/job/latest attempt projection. Returns separate store, preview, extract, edit, export and roundtrip status, engine/version, output hashes and loss reference. Unknown or mismatched source/job returns 404. Successful execution remains independent from qualification: missing, malformed, oversized or truncated evidence yields UNVERIFIED. QUALIFIED requires valid text metadata and a readable, hash/length-verified loss receipt with nonempty engine/version. Unknown loss count stays unknown. Store is CAS reference only, export is original-byte availability, native edit and native format roundtrip remain UNVERIFIED. Schema: `packages/contracts/v1/file-format-qualification.schema.json`; tests: `crates/archeaxis-api/tests/file_format_qualification.rs`. No new worker execution, native visual fidelity, installed or Owner qualification. |
