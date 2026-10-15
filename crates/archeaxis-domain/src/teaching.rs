@@ -428,7 +428,45 @@ fn references(
     }
     Ok(())
 }
+fn retired_key(id: &str) -> String {
+    format!(
+        "teaching_retired_{}",
+        hex::encode(Sha256::digest(id.as_bytes()))
+    )
+}
+fn check_not_retired(conn: &Connection, id: &str) -> Result<()> {
+    let retired: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM workspace_meta WHERE key=?1)",
+        [retired_key(id)],
+        |r| r.get(0),
+    )?;
+    if retired {
+        return Err(TeachingError::Conflict(
+            "record_id was explicitly retired before admission; use a new draft identity".into(),
+        ));
+    }
+    Ok(())
+}
+pub(crate) fn retire_unadmitted(conn: &Connection, id: &str) -> Result<()> {
+    token(id, 128)?;
+    let exists: bool = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM teaching_records WHERE record_id=?1)",
+        [id],
+        |r| r.get(0),
+    )?;
+    if exists {
+        return Err(TeachingError::Conflict(
+            "admitted teaching record cannot be released".into(),
+        ));
+    }
+    conn.execute(
+        "INSERT OR IGNORE INTO workspace_meta(key,value) VALUES(?1,?2)",
+        params![retired_key(id), id],
+    )?;
+    Ok(())
+}
 fn insert(conn: &Connection, record: &TeachingRecord) -> Result<()> {
+    check_not_retired(conn, &record.record_id)?;
     let kind = canonical(&record.kind)?;
     conn.execute("INSERT INTO teaching_records(record_id,parent_id,kind,record_json,content_sha256) VALUES(?1,?2,?3,?4,?5)",params![record.record_id,record.parent_id,kind.trim_matches('"'),canonical(record)?,hash(record)?])?;
     Ok(())
@@ -436,6 +474,7 @@ fn insert(conn: &Connection, record: &TeachingRecord) -> Result<()> {
 pub fn put(conn: &mut Connection, record: &TeachingRecord) -> Result<WriteReceipt> {
     shape(record)?;
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    check_not_retired(&tx, &record.record_id)?;
     if let Some(existing) = get(&tx, &record.record_id)? {
         if existing.content_sha256 != hash(record)? || existing.record != *record {
             return Err(TeachingError::Conflict(
@@ -619,6 +658,7 @@ fn validate_import(conn: &Connection, bundle: &ExchangeBundle) -> Result<ImportP
     }
     let mut batch = BTreeMap::new();
     for r in &bundle.records {
+        check_not_retired(conn, &r.record_id)?;
         shape(r)?;
         if batch.insert(r.record_id.clone(), r.clone()).is_some() {
             return Err(invalid("duplicate record ID in package"));

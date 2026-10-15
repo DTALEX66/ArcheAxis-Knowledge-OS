@@ -262,6 +262,9 @@
         },
         "state": {
           "$ref": "#/$defs/State"
+        },
+        "release_teaching": {
+          "$ref": "#/$defs/ReleaseTeaching"
         }
       },
       "required": [
@@ -1637,6 +1640,27 @@
           ]
         }
       ]
+    },
+    "ReleaseTeaching": {
+      "additionalProperties": false,
+      "required": [
+        "draft_key",
+        "record_id"
+      ],
+      "type": "object",
+      "properties": {
+        "draft_key": {
+          "maxLength": 515,
+          "type": "string",
+          "minLength": 3
+        },
+        "record_id": {
+          "maxLength": 128,
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "minLength": 1
+        }
+      }
     }
   }
 }

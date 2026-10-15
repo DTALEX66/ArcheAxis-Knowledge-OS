@@ -264,6 +264,14 @@ pub struct Write {
     pub restore_epoch: String,
     pub state_revision: i64,
     pub state: State,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub release_teaching: Option<ReleaseTeaching>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseTeaching {
+    pub draft_key: String,
+    pub record_id: String,
 }
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -1022,6 +1030,29 @@ pub fn write(conn: &mut Connection, request: Write) -> Result<Value, Error> {
     if old.restore_epoch != current_epoch {
         return Err(Error::Conflict);
     }
+    if let Some(release) = &request.release_teaching {
+        let prior = old
+            .state
+            .teaching_drafts
+            .get(&release.draft_key)
+            .ok_or(Error::Invalid("frozen teaching draft unavailable"))?;
+        let record = prior
+            .pending_record
+            .as_ref()
+            .ok_or(Error::Invalid("teaching request is not frozen"))?;
+        let mut expected = prior.clone();
+        expected.pending_record = None;
+        if record.record_id != release.record_id
+            || request.state.teaching_drafts.get(&release.draft_key) != Some(&expected)
+        {
+            return Err(Error::Invalid(
+                "teaching release must retain exact editable draft",
+            ));
+        }
+        // The same writer transaction proves absence and permanently retires the old ID.
+        // A queued/unknown create arriving later cannot publish the released snapshot.
+        crate::teaching::retire_unadmitted(&tx,&release.record_id).map_err(|_|Error::Invalid("teaching record already exists or retirement unavailable; retry exact record to reconcile"))?;
+    }
     for (key, draft) in &old.state.teaching_drafts {
         if let Some(attempt) = &draft.preparation_attempt {
             match request
@@ -1040,6 +1071,13 @@ pub fn write(conn: &mut Connection, request: Write) -> Result<Value, Error> {
             }
         }
         if let Some(pending) = &draft.pending_record {
+            if request
+                .release_teaching
+                .as_ref()
+                .is_some_and(|release| release.draft_key == *key)
+            {
+                continue;
+            }
             if request.state.teaching_drafts.get(key) == Some(draft) {
                 continue;
             }
