@@ -1,0 +1,71 @@
+{
+  "schema": "archeaxis.fe09-bounded-slice/v1",
+  "task": "FE09",
+  "status": "PARTIAL",
+  "date": "2026-10-16",
+  "source_sha": "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+  "branch": "codex/graph-research-20261016",
+  "authority_source": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/worktrees/optimization-20261014/docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/TASKS.json",
+  "implemented": [
+    "Current loaded fixed-version relation projection filters by direction, relation kind and connected object type.",
+    "Graph, fallback list and node list share filtered edges/nodes; center remains visible.",
+    "Reset restores loaded projection; filter-empty differs from empty scan; scan/truncation evidence remains visible.",
+    "Pinned document/block/source references remain unchanged; filters issue no reads or writes."
+  ],
+  "reused": [
+    "CanonicalRelationSpace fixed-version graph, save/readback and navigation",
+    "CanonicalResearchSpace authored research drafts, reference selection, source verification, save/reopen and historical views"
+  ],
+  "changed_paths": [
+    "frontend/src/spaces/CanonicalRelationSpace.tsx",
+    "frontend/src/__tests__/CanonicalRelationSpace.test.tsx"
+  ],
+  "artifact_hashes": {
+    "frontend/src/spaces/CanonicalRelationSpace.tsx": "d2a04589f20ff7a44d287b649713077187a737347e0e35cf54354979e2fb16fb",
+    "frontend/src/__tests__/CanonicalRelationSpace.test.tsx": "7f4c1e3ba152a47e0b3c66bf5d3478d1572770a084e4df5ed4fce74175737a35"
+  },
+  "verification": [
+    {
+      "command": "validation-python scripts/runtime/dev.py --run-id fe09-filter-final -- declared-node frontend/node_modules/vitest/vitest.mjs run --config frontend/vite.config.ts frontend/src/__tests__/CanonicalRelationSpace.test.tsx frontend/src/__tests__/CanonicalResearchSpace.test.tsx",
+      "exit_code": 0,
+      "result": "PASS 42/42 (17 relation + 25 research)",
+      "evidence_level": "SYNTHETIC",
+      "receipt": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/564a680512/fe09-filter-final/artifacts/execution.json"
+    },
+    {
+      "command": "validation-python scripts/runtime/frontend.py --node declared-node build",
+      "exit_code": 1,
+      "result": "BLOCKED_BY_EXISTING_ENVIRONMENT: reused main node_modules lacks dockview and dockview-react; reported type errors are DockLayout/DockWorkspace paths. No dependency installed.",
+      "receipt": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/564a680512/dde35aead82e/artifacts/frontend-build.json"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "command": "validation-python scripts/runtime/dev.py --run-id fe09-integration-typecheck -- declared-node frontend/node_modules/typescript/bin/tsc --noEmit --project frontend/tsconfig.json",
+      "exit_code": 0,
+      "result": "PASS with integration-checkout dependencies, including dockview/dockview-react",
+      "receipt": "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/564a680512/fe09-integration-typecheck/artifacts/execution.json"
+    }
+  ],
+  "environment": {
+    "dependency_reuse": "Ignored frontend/node_modules junction now targets optimization-20261014/frontend/node_modules. Previous task-created junction to main frontend/node_modules was verified and removed as a link only; target retained. No install.",
+    "git_safety": "Process-scoped safe.directory for exact main and task worktree; no global config changes"
+  },
+  "limitations": [
+    "Bounded FE09 slice only; full FE09 acceptance remains PARTIAL.",
+    "Filters act only on currently loaded projection page; no whole-library graph or backend search added.",
+    "No research schema/shared contract/App changes.",
+    "No experimental execution, real model/AI, installed-runtime, owner acceptance, or visual reference comparison verified.",
+    "No push; root owns integration and final gates.",
+    "Full build was not repeated after dependency routing correction; final integrated build belongs to root. Current TypeScript check passed."
+  ],
+  "rollback_handle": "Revert the bounded FE09 commit or restore its three explicit task-owned paths from source_sha.",
+  "delivery": {
+    "commit": "BLOCKED: explicit git add and git commit could not create .git/worktrees/graph-research-20261016/index.lock (Permission denied); no elevation or bypass attempted.",
+    "head": "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+    "push": "NOT_EXECUTED"
+  }
+}
