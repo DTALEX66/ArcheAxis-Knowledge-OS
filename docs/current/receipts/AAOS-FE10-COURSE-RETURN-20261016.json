@@ -1,0 +1,135 @@
+{
+  "schema": "archeaxis.slice-receipt/v1",
+  "task": "FE10 course lesson return navigation",
+  "observed_date": "2026-10-16",
+  "status": "PARTIAL",
+  "evidence_level": "SIMULATED",
+  "source_sha": "9f6617398b77d35bda973d1db40c622d44149377",
+  "branch": "codex/course-return-20261016",
+  "scope": "06/07 course lesson -> loaded learning assessment -> return same manifest/artifact with exact assessment knowledge ID/version required by readCourse; stale history read-only.",
+  "changed_paths": [
+    "frontend/src/components/KnowledgeCoursePanel.tsx",
+    "frontend/src/spaces/CanonicalLearningJourneySpace.tsx",
+    "frontend/src/spaces/CanonicalLearningSpace.tsx",
+    "frontend/src/presentation/courseLearningTarget.ts",
+    "frontend/src/__tests__/KnowledgeCoursePanel.test.tsx"
+  ],
+  "artifact_hashes": {
+    "frontend/src/components/KnowledgeCoursePanel.tsx": "83dd1bc78ce0420f4eb93568269fece361618bc6e2975af87c5e262f3b0732e0",
+    "frontend/src/spaces/CanonicalLearningJourneySpace.tsx": "90daf4301b6de324aad5d400ddb6b4304c2696a2bdda2ed72cfc4f103ad7e8cc",
+    "frontend/src/spaces/CanonicalLearningSpace.tsx": "1a0d0a09571fbb35a980af815c5ca15c400120932e444ccf1ffb0fa98b277c15",
+    "frontend/src/presentation/courseLearningTarget.ts": "80e6b72198ea58fea526e5c62ef182c5561404677dfc85f9d0c4c8492f53833d",
+    "frontend/src/__tests__/KnowledgeCoursePanel.test.tsx": "a9a2b7c81723a269d5d7969f83acc63c57801189f086268f93e18864abe4b8b8"
+  },
+  "verification": [
+    {
+      "source_commit": "9f6617398b77d35bda973d1db40c622d44149377",
+      "source_tree": "08a51bd8c73ebd04fc705ef6679663227d6f4c2e",
+      "dirty": true,
+      "source_patch_sha256": "18fedb9ca40f0b9e77dfbe6930b0cf34d5465087efc2c55306a1c2d7b53035ee",
+      "source_commit_after": "9f6617398b77d35bda973d1db40c622d44149377",
+      "source_patch_sha256_after": "18fedb9ca40f0b9e77dfbe6930b0cf34d5465087efc2c55306a1c2d7b53035ee",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "command": [
+        "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/24.18.0/node.exe",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "frontend/vite.config.ts",
+        "frontend/src/__tests__/KnowledgeCoursePanel.test.tsx",
+        "frontend/src/__tests__/CanonicalLearningJourney.test.tsx"
+      ],
+      "started_at": "2026-10-15T18:45:17.556985+00:00",
+      "ended_at": "2026-10-15T18:45:22.336917+00:00",
+      "run_id": "fe10-course-return-pins-tests",
+      "execution_receipt": ".project-local/runs/564a680512/fe10-course-return-pins-tests/artifacts/execution.json",
+      "execution_receipt_sha256": "f20c98e9ca44ededcd07a955fe6cbaea31a19a0c7b1af54ea2b3a2eeeee8f9ad",
+      "routing": "scripts/runtime/dev.py; approved normal execution identity",
+      "tests_passed": 30,
+      "test_files_passed": 2,
+      "case_counts": {
+        "KnowledgeCoursePanel.test.tsx": 22,
+        "CanonicalLearningJourney.test.tsx": 8
+      }
+    },
+    {
+      "source_commit": "9f6617398b77d35bda973d1db40c622d44149377",
+      "source_tree": "08a51bd8c73ebd04fc705ef6679663227d6f4c2e",
+      "dirty": true,
+      "source_patch_sha256": "18fedb9ca40f0b9e77dfbe6930b0cf34d5465087efc2c55306a1c2d7b53035ee",
+      "source_commit_after": "9f6617398b77d35bda973d1db40c622d44149377",
+      "source_patch_sha256_after": "18fedb9ca40f0b9e77dfbe6930b0cf34d5465087efc2c55306a1c2d7b53035ee",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "command": [
+        "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/nodejs-lts/24.18.0/node.exe",
+        "frontend/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--project",
+        "frontend/tsconfig.json"
+      ],
+      "started_at": "2026-10-15T18:45:23.813723+00:00",
+      "ended_at": "2026-10-15T18:45:30.504840+00:00",
+      "run_id": "fe10-course-return-pins-types",
+      "execution_receipt": ".project-local/runs/564a680512/fe10-course-return-pins-types/artifacts/execution.json",
+      "execution_receipt_sha256": "f491cda6a94f44e6da9fcaa69a0389b164bb5ca7fdc2692568f341a8b0d2f231",
+      "routing": "scripts/runtime/dev.py; approved normal execution identity"
+    }
+  ],
+  "limitations": [
+    "FE10 overall PARTIAL; this slice covers 06/07 only.",
+    "11/12 CanonicalTeachingSpace has no pinned course-return routing to 07; pending a separate cross-host version-routing slice.",
+    "Core bridge is SIMULATED; no real Core/native/installed runtime, exact-SHA CI or Owner acceptance.",
+    "Canonical qualification applies to baseline SHA plus recorded dirty source patch, not a committed delivery SHA.",
+    "No push, shared ledger update, native rebuild, release or Green replacement performed."
+  ],
+  "rollback_handle": "Revert the task delivery commit once created, or restore only the five listed implementation/test files and remove this receipt; preserve unrelated work.",
+  "delivery_state": "READY_FOR_MAIN_AGENT_COMMIT; no remote delivery claimed",
+  "review": {
+    "status": "PASS",
+    "evidence": "Main agent reported independent review and re-review PASS after assessment knowledge pin correction.",
+    "boundary": "Delegated review verdict; no installed runtime qualification."
+  },
+  "behavior": [
+    "Generated courses retain the saved course ID in the 06/07 journey.",
+    "Return action passes loaded assessment knowledge_id and knowledge_version; both must be nonempty and equal under the existing immutable knowledge ID contract.",
+    "Course readback requires that exact knowledge ID as well as the original course/artifact learning key; changed knowledge revision is refused before render.",
+    "Returning re-reads course_get/course_render; stale course uses course_get only and remains read-only.",
+    "Return navigation retains the independent answer draft and never auto-generates or records a review."
+  ],
+  "evidence_history": {
+    "initial_canonical_attempt": {
+      "status": "BLOCKED",
+      "exit_code": 1,
+      "reason": "Sandbox identity could not pass owner Git ignore check; no safe.directory or ACL change."
+    },
+    "direct_runner_before_pin_fix": {
+      "tests_passed": 29,
+      "typescript_exit_code": 0,
+      "qualification": "Historical earlier patch only; not final pin-fix qualification."
+    },
+    "canonical_before_pin_fix": {
+      "fe10-course-return-tests": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\564a680512\\fe10-course-return-tests\\artifacts\\execution.json",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\graph-research-20261016",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\564a680512\\fe10-course-return-tests",
+        "qualification": "PREVIOUS_PATCH_ONLY; rerun needed"
+      },
+      "fe10-course-return-types": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\564a680512\\fe10-course-return-types\\artifacts\\execution.json",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\graph-research-20261016",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\564a680512\\fe10-course-return-types",
+        "qualification": "PREVIOUS_PATCH_ONLY; rerun needed"
+      }
+    }
+  }
+}

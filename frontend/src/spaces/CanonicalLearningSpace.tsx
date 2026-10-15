@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {useOptionalCoreWorkingState} from "../presentation/useCoreWorkingState";
 import type {LearningDraft, PendingReview} from "../presentation/coreWorkingState";
+import { courseLearningTarget } from "../presentation/courseLearningTarget";
 import { coreCommand } from "../api/core";
 import { ApiError } from "../api/client";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
@@ -35,7 +36,7 @@ function historySummary(history: unknown): string {
 }
 import {assertJourneyAssessment,type LearningJourneyTarget} from "../presentation/learningJourney";
 
-export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney, onItemSelected}:{onItemSelected?:(key:string)=>void;expectedJourney?:LearningJourneyTarget;onTrail?:(levels:readonly ObjectTrailLevel[])=>void; initialItemKey?:string} = {}) {
+export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney, onItemSelected, onReturnCourse}:{onReturnCourse?:(key:string,knowledgeId:string,knowledgeVersion:string)=>void;onItemSelected?:(key:string)=>void;expectedJourney?:LearningJourneyTarget;onTrail?:(levels:readonly ObjectTrailLevel[])=>void; initialItemKey?:string} = {}) {
   const working=useOptionalCoreWorkingState();
   const journalReview=useRef<PendingReview|null>(null);
   const journalWorkspace=useRef<{workspace_id:string;restore_epoch:string}|null>(null);
@@ -190,6 +191,7 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
     <form onSubmit={event=>{event.preventDefault();void open(itemKey);}}><label>学习项目键 <input value={itemKey} disabled={busy||reviewPending} onChange={event=>{epoch.current+=1;setItemKey(event.target.value);setState(null);}} /></label><button disabled={!itemKey.trim()||busy}>读取项目</button></form>
     {state?<article>{(()=>{const learner=record(state.learner);const assessment=learner.assessment?record(learner.assessment):null;return <>
       <h3>复习题</h3>
+      {onReturnCourse && courseLearningTarget(itemKey) && assessment && typeof assessment.knowledge_id === "string" && assessment.knowledge_id.length > 0 && assessment.knowledge_version === assessment.knowledge_id ? <button type="button" disabled={busy||reviewPending} onClick={()=>onReturnCourse(itemKey, assessment.knowledge_id as string, assessment.knowledge_version as string)}>返回原课程与绑定版本</button> : null}
       {assessment&&typeof assessment.question==="string"?<p>{assessment.question}</p>:<p>此学习项目没有可用的真实题目。请从知识页面创建学习题后再来复习。</p>}
       {assessment&&typeof assessment.knowledge_version==="string"?<small>知识修订：{assessment.knowledge_version}</small>:null}
       <h4>先独立作答</h4><label>本次答案 <textarea value={answer} disabled={busy||reviewPending||!assessment||!!working&&!working.server} onChange={event=>edit({answer:event.target.value,checked_correct:null,rating:null})} /></label>
