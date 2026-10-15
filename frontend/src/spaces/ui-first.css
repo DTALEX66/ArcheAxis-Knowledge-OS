@@ -185,3 +185,17 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* Keep a retained inspector usable without consuming the reader's narrow width. */
+@media (max-width: 900px) {
+  .app-shell .app-body { flex-direction: column; }
+  .app-shell .app-body > .app-center { min-height: 0; }
+  .app-shell .app-body > .inspector {
+    flex: 0 1 40%;
+    width: 100%;
+    max-height: 40%;
+    min-height: 0;
+    border-left: 0;
+    border-top: 1px solid var(--ax-border);
+  }
+}

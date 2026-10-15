@@ -10,6 +10,10 @@ Owner 已明确确认：账户**剩余额度 ≤ 15%**时停止新增开发并�
 
 本轮最新整合见[2026-10-16 检查点](receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json)：限定原生恢复通过；BE11、FE09、FE10 与视频健康合同修复均已合入。按该检查点区分源码/本地门禁/原生候选；云端状态必须按最新 SHA 读回。
 
+最新云端运行 `38790450859` 已结束 FAIL：合同登记、合成授权文件发布竞态、安装探针 CIM 查询超时三项已修复，组合本地回归 219 项 / 193 子项 PASS。详见[CI 修复回执](receipts/AAOS-INTEGRATION-CI-REPAIR-20261016.json)。head `6bee1d88` 与实际 PR merge checkout `9ad43f8d` 分开登记；新一轮 exact-SHA CI 和安装旅程仍待读回，不能使用旧运行替代。
+
+阅读页横向元数据和两列主体已实施，并完成 1672×941 实际渲染核对；旧“待实施”已更新为“待完整视觉验收”。新增发现的窄屏检查器挤压、顶栏重叠已修复，14 个浏览器场景含五主题、390/640/900/901/1672px及关闭/重开检查器通过。[阅读响应式回执](receipts/AAOS-READER-RESPONSIVE-20261016.json) 明确这是受控宿主/文档的真实浏览器渲染，七图整体验收仍 PARTIAL。
+
 ## 当前任务与停止边界
 
 [活动指针](AAOS-ACTIVE-EXECUTION.json) 是任务路由；来源仍为 `docs/taskpacks/aaos-ui-first-20261009/`，实际进度读 [UI执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。Owner 2026-10-11 已明确恢复“完整框架 / 多格式（常见常用格式）/ 最短闭环”，当前 **RUNNING_BY_OWNER / PARTIAL**；[恢复范围](AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json) 只承接这次用户决定，不替换原任务包或赋予 PASS。V01暂停、FT01–04冻结；发布、Green替换与真实用户数据覆盖未授权。

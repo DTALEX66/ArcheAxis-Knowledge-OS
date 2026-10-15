@@ -1391,7 +1391,9 @@ def read_semantic_reading(browser, viewport, problems, theme):
             return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
           const center = document.querySelector('.app-center'), style = getComputedStyle(center);
           const containerWidth = center.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-          return {width:innerWidth,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details')};
+          return {width:innerWidth,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details'),
+            center:rect('.app-center'),body:rect('.app-body'),inspector:rect('.inspector'),
+            scroll_width:document.documentElement.scrollWidth};
         }""")
         doc, details = geometry["document"], geometry["details"]
         assert doc["width"] > 100 and doc["right"] <= geometry["width"] + 1, geometry
@@ -1402,6 +1404,21 @@ def read_semantic_reading(browser, viewport, problems, theme):
             assert doc["right"] <= details["x"], geometry
         else:
             assert doc["bottom"] <= details["y"], geometry
+        if geometry["width"] <= 900:
+            # Opening a real library row retains its inspector: the reader must
+            # keep its full width, and the lower detail pane must remain operable.
+            assert abs(geometry["center"]["width"] - geometry["body"]["width"]) <= 1, geometry
+            assert geometry["center"]["bottom"] <= geometry["inspector"]["y"] + 1, geometry
+            assert geometry["inspector"]["bottom"] <= geometry["body"]["bottom"] + 1, geometry
+            assert geometry["scroll_width"] <= geometry["width"], geometry
+            inspector = page.get_by_role("complementary", name="检查器", exact=True)
+            assert "引用目标 1" in inspector.inner_text()
+            inspector.get_by_role("button", name="关闭检查器", exact=True).click()
+            assert inspector.count() == 0
+            assert "绑定历史正文 1 v1" in editor.inner_text()
+            page.get_by_role("button", name="展开检查器", exact=True).click()
+            assert "引用目标 1" in inspector.inner_text()
+            geometry["status_accessibility"] = check_status_accessibility(page)
         reader_shot = ARTIFACTS / f"semantic-reader-{theme}-{label}.png"
         page.screenshot(path=str(reader_shot), full_page=True)
         return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme,"viewport":label,
@@ -1588,6 +1605,8 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     result["semantic_reading"] = [read_semantic_reading(browser, viewport, problems, theme)
         for viewport in DESKTOP_MATRIX if viewport[0] in ("1440x1000@100", "640x480@100")
         for theme in ("blueprint", "blueprint-light")]
+    result["semantic_reading"].append(read_semantic_reading(
+        browser, ("390x844@100", 390, 844, 1), problems, "cosmic"))
     result["narrow_dock_reading"] = [read_narrow_dock_library(browser, problems, theme)
         for theme in AAOS_THEME_IDS]
     result["narrow_dock_reading"].append(read_narrow_dock_library(browser, problems, "cosmic", ("1600x1000@125",1280,800,1.25)))

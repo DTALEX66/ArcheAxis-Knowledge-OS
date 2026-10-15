@@ -194,5 +194,33 @@ body:has(.cabin-shell) {
 @media (max-width: 640px) { .app-shell.cabin-shell { margin: 10px; height: calc(100dvh - 20px); border-radius: 20px; padding-inline: 4px; } .cabin-shell .app-center { padding: 16px; border-radius: 12px; } .workspace-entry-cards { grid-template-columns: 1fr; gap: 16px; } .workspace-entry-card { min-height: 260px; padding: 24px; } .workspace-start { margin-top: 34px; } .workspace-start-copy { margin-bottom: 22px; } .workspace-start h2 { font-size: 30px; } .workspace-start-copy p { font-size: 16px; } .cabin-shell .status-bar { padding: 8px; min-height: 60px; } .cabin-shell .status-bar-brand { font-size: 14px; } .cabin-shell .status-bar-brand .brand-mark { width: 24px; height: auto; } .cabin-shell .activity-dock { padding: 10px; } .cabin-shell .activity-dock-item { font-size: 11px; } .cabin-shell[data-cabin-page="01"] .dock-layout-options { top: 14px; right: 16px; } .cabin-shell .ui-page-heading h1 { font-size: 22px; } .cabin-shell .command-trigger { min-width: 36px; flex: 0 0 36px; } }
 @media (max-width: 900px) { .cabin-shell[data-cabin-page="03"] > section[data-working-state="ready"][role="status"] { position: static; order: 1; margin: 0 0 4px; } .cabin-shell[data-cabin-page="03"] .status-bar { order: 0; } .cabin-shell[data-cabin-page="03"] :is(.ui-navigation-trigger,.app-body,.activity-dock) { order: 2; } .cabin-shell[data-cabin-page="03"]:has(> [data-working-state="ready"]) .app-center { margin-top: 0; } .cabin-shell[data-cabin-page="03"] .app-center { padding: 16px; } .cabin-shell[data-cabin-page="03"] .dock-layout-options { right: 16px; } .cabin-shell[data-cabin-page="03"] .ui-page-heading { gap: 8px; } .cabin-shell[data-cabin-page="03"] .ui-reader-document { padding: 18px; } .cabin-shell[data-cabin-page="03"] .ui-reader-document h2 { font-size: 28px; line-height: 38px; } .cabin-shell[data-cabin-page="03"] .ui-reader-document .tiptap { font-size: 17px; } }
 @media (max-width: 640px) { .cabin-shell[data-cabin-page="03"] .ui-page-heading h1 { font-size: 24px; line-height: 32px; } .cabin-shell[data-cabin-page="03"] .ui-page-heading p { font-size: 14px; line-height: 21px; } .cabin-shell[data-cabin-page="03"] .ui-page-heading > small { display: none; } .cabin-shell[data-cabin-page="03"] .nav-trail { padding-right: 70px; } .cabin-shell[data-cabin-page="03"] .ui-reader-toolbar .ui-content-tabs { flex: 1; } .cabin-shell[data-cabin-page="03"] .ui-content-tabs button { min-width: 0; flex: 1; padding-inline: 14px; } .cabin-shell[data-cabin-page="03"] .library-list-controls { margin-left: 0; } }
+/* Wrapped controls need a growing header so the working-state notice starts below it. */
+@media (max-width: 640px) {
+  .app-shell.cabin-shell .status-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 36px 36px;
+    gap: 8px;
+    height: auto;
+  }
+  .cabin-shell .status-bar-brand { grid-column: 1 / 3; grid-row: 1; }
+  .cabin-shell .command-trigger {
+    grid-column: 3;
+    grid-row: 1;
+    width: 36px;
+    min-height: 36px;
+    height: 36px;
+    justify-content: center;
+    padding: 0;
+  }
+  .cabin-shell .command-trigger > span:not([aria-hidden]),
+  .cabin-shell .command-trigger kbd { display: none; }
+  .cabin-shell .cabin-settings { grid-column: 4; grid-row: 1; padding-left: 0; border-left: 0; }
+  .cabin-shell .cabin-settings > summary { min-height: 36px; }
+  .cabin-shell .status-bar > .theme-picker { grid-column: 1; grid-row: 2; }
+  .cabin-shell .status-bar-space { grid-column: 2 / 4; grid-row: 2; overflow-wrap: anywhere; }
+  .cabin-shell .inspector-trigger { grid-column: 4; grid-row: 2; width: 36px; height: 36px; }
+  .cabin-shell .status-bar-center { grid-column: 1 / -1; grid-row: 3; margin-left: 0; justify-content: flex-start; }
+  .cabin-shell .status-pill { white-space: normal; overflow: visible; }
+}
 @media (prefers-reduced-transparency: reduce) { .cabin-shell .status-bar,.cabin-shell .navigation-sidebar,.workspace-entry-card,.cabin-shell .app-center,.cabin-shell[data-cabin-page="03"] .ui-reader-document,.cabin-shell[data-cabin-page="03"] .ui-reader-details { background: var(--ax-panel); backdrop-filter: none; } }
 @media (forced-colors: active) { body:has(.cabin-shell) { background: Canvas; } .workspace-entry-card { border: 1px solid CanvasText; box-shadow: none; } }
