@@ -84,4 +84,3 @@ describe("actual Dockview retained business consumer",()=>{
   fireEvent.click(screen.getByRole("button",{name:"保存布局"}));expect(await screen.findByText(/对象布局需真实工作区身份/)).toBeInTheDocument();
  });
 });
-
