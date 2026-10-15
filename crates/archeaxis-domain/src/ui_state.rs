@@ -48,6 +48,42 @@ pub struct LearningDraft {
 }
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
+pub struct TeachingForm {
+    pub kind: crate::teaching::RecordKind,
+    pub purpose: String,
+    pub content: String,
+    pub scope: crate::teaching::RecordScope,
+    pub privacy: crate::teaching::RecordPrivacy,
+    pub assisted: bool,
+    pub feedback_class: Option<crate::teaching::FeedbackClass>,
+    pub rubric_version: String,
+    pub producer_kind: crate::teaching::ProducerKind,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct TeachingPreparation {
+    pub document_id: String,
+    pub version: i64,
+    pub title: String,
+}
+/// Inert form input. Only teaching::put / document writes may publish domain objects.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct TeachingDraft {
+    pub page_id: String,
+    pub context_item_key: Option<String>,
+    pub form: TeachingForm,
+    pub knowledge_id: Option<String>,
+    pub course_id: Option<String>,
+    pub item_key: Option<String>,
+    pub assessment_id: Option<String>,
+    pub parent: Option<crate::teaching::RecordView>,
+    pub preparation: Option<TeachingPreparation>,
+    pub saved_preparation: String,
+    pub pending_record: Option<crate::teaching::TeachingRecord>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct OriginalAttempt {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_id: Option<String>,
@@ -127,6 +163,8 @@ pub struct State {
     pub drafts: BTreeMap<String, Draft>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub learning_drafts: BTreeMap<String, LearningDraft>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub teaching_drafts: BTreeMap<String, TeachingDraft>,
     pub opened_documents: Vec<String>,
     pub active_document: Option<String>,
     pub page_id: Option<String>,
@@ -330,6 +368,85 @@ fn machine_grant_shapes(body: &Value, operation: &str) -> bool {
     true
 }
 fn validate(state: &State) -> Result<(), Error> {
+    if state.teaching_drafts.len() > 32 {
+        return Err(Error::Invalid("teaching draft limit exceeded"));
+    }
+    for (key, draft) in &state.teaching_drafts {
+        use crate::teaching::RecordKind::*;
+        let page = match draft.form.kind {
+            Observation | Requirement => "08",
+            Proposal => "09",
+            Delivery => "10",
+            TeachBack => "11",
+            Feedback | Revision => "12",
+        };
+        if draft.page_id != page
+            || key
+                != &format!(
+                    "{}:{}",
+                    draft.page_id,
+                    draft.context_item_key.as_deref().unwrap_or("")
+                )
+            || draft
+                .context_item_key
+                .as_ref()
+                .is_some_and(|s| s.trim().is_empty() || s.len() > 512)
+            || draft
+                .item_key
+                .as_ref()
+                .is_some_and(|s| s.trim().is_empty() || s.len() > 512)
+            || [&draft.knowledge_id, &draft.course_id, &draft.assessment_id]
+                .iter()
+                .any(|s| s.as_ref().is_some_and(|v| !identity(v)))
+            || draft.form.purpose.len() > 512
+            || draft.form.content.len() > 65_536
+            || draft.form.rubric_version.len() > 128
+            || draft.saved_preparation.len() > 400_000
+            || draft
+                .preparation
+                .as_ref()
+                .is_some_and(|p| !identity(&p.document_id) || p.version < 1 || p.title.len() > 512)
+        {
+            return Err(Error::Invalid("invalid teaching draft"));
+        }
+        if let Some(record) = &draft.pending_record {
+            if record.schema != crate::teaching::RECORD_SCHEMA
+                || !identity(&record.record_id)
+                || record.kind != draft.form.kind
+                || record.purpose != draft.form.purpose.trim()
+                || record.content != draft.form.content
+                || record.knowledge_id != draft.knowledge_id.as_deref().unwrap_or("")
+                || record.knowledge_version != record.knowledge_id
+                || record.course_id != draft.course_id
+                || record.parent_id.as_deref()
+                    != draft.parent.as_ref().map(|p| p.record.record_id.as_str())
+                || record.scope != draft.form.scope
+                || record.privacy != draft.form.privacy
+                || record.assisted != draft.form.assisted
+                || record.producer_kind != draft.form.producer_kind
+                || record.feedback_class
+                    != if record.kind == Feedback {
+                        draft.form.feedback_class.clone()
+                    } else {
+                        None
+                    }
+                || record.assessment_id
+                    != if record.kind == TeachBack {
+                        draft.assessment_id.clone()
+                    } else {
+                        None
+                    }
+                || record.rubric_version.as_deref()
+                    != if draft.form.rubric_version.trim().is_empty() {
+                        None
+                    } else {
+                        Some(draft.form.rubric_version.trim())
+                    }
+            {
+                return Err(Error::Invalid("teaching draft frozen record mismatch"));
+            }
+        }
+    }
     if state.pending_machine.len() > 32 {
         return Err(Error::Invalid("pending machine limit exceeded"));
     }
@@ -674,6 +791,33 @@ pub fn write(conn: &mut Connection, request: Write) -> Result<Value, Error> {
     if old.restore_epoch != current_epoch {
         return Err(Error::Conflict);
     }
+    for (key, draft) in &old.state.teaching_drafts {
+        if let Some(pending) = &draft.pending_record {
+            if request.state.teaching_drafts.get(key) == Some(draft) {
+                continue;
+            }
+            if request.state.teaching_drafts.contains_key(key) {
+                return Err(Error::Invalid("frozen teaching draft cannot be replaced"));
+            }
+            let saved: Option<String> = tx
+                .query_row(
+                    "SELECT record_json FROM teaching_records WHERE record_id=?1",
+                    [&pending.record_id],
+                    |r| r.get(0),
+                )
+                .optional()?;
+            if saved
+                .as_deref()
+                .and_then(|s| serde_json::from_str::<crate::teaching::TeachingRecord>(s).ok())
+                .as_ref()
+                != Some(pending)
+            {
+                return Err(Error::Invalid(
+                    "frozen teaching draft requires exact saved record",
+                ));
+            }
+        }
+    }
     for (key, draft) in &request.state.learning_drafts {
         if old.state.learning_drafts.get(key).is_some_and(|prior| {
             prior.item_key != draft.item_key
@@ -910,10 +1054,16 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
     }
     match request.action {
         RecoveryAction::Discard => {
-            if !record.state.pending_machine.is_empty() || !record.state.pending_reviews.is_empty()
+            if !record.state.pending_machine.is_empty()
+                || !record.state.pending_reviews.is_empty()
+                || record
+                    .state
+                    .teaching_drafts
+                    .values()
+                    .any(|d| d.pending_record.is_some())
             {
                 return Err(Error::Invalid(
-                    "unconfirmed machine or review recovery candidate requires exact receipt; preserve candidate before reconciliation",
+                    "unconfirmed machine, review or teaching recovery candidate requires exact receipt; preserve candidate before reconciliation",
                 ));
             }
             record.state = State::default();

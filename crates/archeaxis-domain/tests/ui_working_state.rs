@@ -43,6 +43,119 @@ fn learning_draft(id: &str, item: &str, version: &str, answer: &str) -> Learning
     }
 }
 
+fn teaching_draft(page: &str, context: Option<&str>, content: &str) -> ui_state::TeachingDraft {
+    serde_json::from_value(json!({"page_id":page,"context_item_key":context,
+        "form":{"kind":if page=="11" {"teach_back"} else {"feedback"},"purpose":"未提交总结","content":content,
+            "scope":"personal","privacy":"local_only","assisted":false,"feedback_class":null,"rubric_version":"","producer_kind":"human_authored"},
+        "knowledge_id":null,"course_id":null,"item_key":null,"assessment_id":null,"parent":null,
+        "preparation":null,"saved_preparation":"","pending_record":null})).unwrap()
+}
+
+#[test]
+fn teaching_drafts_reopen_as_inert_input_with_page_object_cas_and_utf8_boundaries() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("teaching-drafts.sqlite");
+    let mut conn = fixture(&path);
+    let initial = ui_state::read(&mut conn).unwrap();
+    let a = teaching_draft("11", Some("course:a"), "  未提交复述\n第二行  ");
+    let b = teaching_draft("12", None, "反馈与总结原文");
+    let mut write = request(&initial, "independent document");
+    write.state.teaching_drafts =
+        BTreeMap::from([("11:course:a".into(), a.clone()), ("12:".into(), b.clone())]);
+    let saved = ui_state::write(&mut conn, write.clone()).unwrap();
+    assert!(matches!(
+        ui_state::write(&mut conn, write),
+        Err(Error::Conflict)
+    ));
+    drop(conn);
+    let mut conn = fixture(&path);
+    let reopened = ui_state::read(&mut conn).unwrap();
+    assert_eq!(reopened, saved);
+    let state: State = serde_json::from_value(reopened["state"].clone()).unwrap();
+    assert_eq!(state.teaching_drafts["11:course:a"], a);
+    assert_eq!(state.teaching_drafts["12:"], b);
+    // No knowledge/assessment/teaching tables are needed to preserve unfinished ordinary text.
+    let mut malformed = request(&reopened, "document");
+    malformed
+        .state
+        .teaching_drafts
+        .insert("wrong-object".into(), a.clone());
+    assert!(matches!(
+        ui_state::write(&mut conn, malformed),
+        Err(Error::Invalid(_))
+    ));
+    let mut oversized = request(&reopened, "document");
+    oversized.state.teaching_drafts.insert(
+        "11:course:a".into(),
+        teaching_draft("11", Some("course:a"), &"中".repeat(21_846)),
+    );
+    assert!(matches!(
+        ui_state::write(&mut conn, oversized),
+        Err(Error::Invalid(_))
+    ));
+    let mut unknown = serde_json::to_value(a).unwrap();
+    unknown["form"]["unexpected_truth"] = json!(true);
+    assert!(serde_json::from_value::<ui_state::TeachingDraft>(unknown).is_err());
+    assert_eq!(ui_state::read(&mut conn).unwrap(), saved);
+}
+
+#[test]
+fn frozen_teaching_draft_requires_exact_saved_record_before_clearance() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut conn = fixture(&dir.path().join("teaching-frozen.sqlite"));
+    conn.execute_batch(
+        "CREATE TABLE teaching_records(record_id TEXT PRIMARY KEY,record_json TEXT);",
+    )
+    .unwrap();
+    let initial = ui_state::read(&mut conn).unwrap();
+    let mut entry = teaching_draft("11", None, "冻结的复述正文");
+    entry.knowledge_id = Some("knowledge_v1".into());
+    entry.pending_record=Some(serde_json::from_value(json!({"schema":"archeaxis.teaching-record/v2","record_id":"teaching_a","kind":"teach_back",
+        "knowledge_id":"knowledge_v1","knowledge_version":"knowledge_v1","course_id":null,"parent_id":null,
+        "purpose":entry.form.purpose,"content":entry.form.content,"scope":"personal","privacy":"local_only","feedback_class":null,
+        "assessment_id":null,"rubric_version":null,"assisted":false,"producer_kind":"human_authored"})).unwrap());
+    let mut write = request(&initial, "document");
+    write
+        .state
+        .teaching_drafts
+        .insert("11:".into(), entry.clone());
+    let saved = ui_state::write(&mut conn, write).unwrap();
+    let clear = request(&saved, "document");
+    assert!(matches!(
+        ui_state::write(&mut conn, clear.clone()),
+        Err(Error::Invalid(_))
+    ));
+    let mut replacement = clear.clone();
+    let mut changed = entry.clone();
+    changed.form.content = "changed".into();
+    replacement
+        .state
+        .teaching_drafts
+        .insert("11:".into(), changed);
+    assert!(matches!(
+        ui_state::write(&mut conn, replacement),
+        Err(Error::Invalid(_))
+    ));
+    let mut wrong = entry.pending_record.clone().unwrap();
+    wrong.content = "wrong canonical body".into();
+    conn.execute(
+        "INSERT INTO teaching_records VALUES('teaching_a',?1)",
+        [serde_json::to_string(&wrong).unwrap()],
+    )
+    .unwrap();
+    assert!(matches!(
+        ui_state::write(&mut conn, clear.clone()),
+        Err(Error::Invalid(_))
+    ));
+    conn.execute(
+        "UPDATE teaching_records SET record_json=?1",
+        [serde_json::to_string(&entry.pending_record).unwrap()],
+    )
+    .unwrap();
+    let cleared = ui_state::write(&mut conn, clear).unwrap();
+    assert!(cleared["state"].get("teaching_drafts").is_none());
+}
+
 #[test]
 fn independent_learning_drafts_reopen_without_review_and_refuse_stale_cas_or_rebinding() {
     let dir = tempfile::tempdir().unwrap();
@@ -328,6 +441,7 @@ fn request(receipt: &Value, text: &str) -> Write {
             pending_jobs: BTreeMap::new(),
             pending_reviews: BTreeMap::new(),
             learning_drafts: BTreeMap::new(),
+            teaching_drafts: BTreeMap::new(),
         },
     }
 }
