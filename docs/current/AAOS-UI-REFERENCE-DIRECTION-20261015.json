@@ -87,8 +87,8 @@
   },
   "status": "RUNNING_BY_OWNER / PARTIAL",
   "remaining_visual_work": [
-    "Full seven-reference comparison and final reader spacing/material acceptance; current reader geometry and metadata are implemented.",
-    "Reference-5 two-column workbench body and other non-character taskpack pages; alternate top-menu navigation is implemented and locally verified.",
+    "Full seven-reference comparison and final materials/color/spacing acceptance; current reader and optional reference-5 two-column workbench are locally implemented.",
+    "Remaining non-character taskpack pages and complete interaction acceptance",
     "Current candidate native/installed and Owner visual acceptance"
   ],
   "authority_of_scope": "CURRENT_EXPLICIT_OWNER_REQUEST",
@@ -105,5 +105,10 @@
     "receipt": "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json",
     "implemented": "Optional top-menu presentation using existing guarded routes; editor retained; narrow drawer and five themes verified",
     "acceptance": "PARTIAL; controlled browser fixture, not reference-5 complete composition or installed/Owner acceptance"
+  },
+  "latest_workbench_observation": {
+    "date": "2026-10-16",
+    "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
+    "status": "LOCAL_PASS; overall PARTIAL"
   }
 }

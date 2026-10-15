@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { DocumentSummaryDto } from "../api/generated/core-contract";
 import { coreFailureReason } from "../presentation/labels";
@@ -7,6 +7,7 @@ import { LocalDocumentSearch } from "../components/LocalDocumentSearch";
 import { workspaceReviews } from "../presentation/workspaceReview";
 import { AaosIcon } from "../components/AaosIcon";
 export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}:{onNavigate:(space:SpaceId)=>void;onOpenDocument?:(id:string)=>void;onReviewItem?:(key:string)=>void}) {
+  const searchOptions = useRef<HTMLDetailsElement>(null);
   const [documents,setDocuments] = useState<DocumentSummaryDto[]>([]);
   const [learning,setLearning] = useState<{item_key:string;next_review:string|null}[]>([]);
   const [state,setState] = useState("正在读取本地工作区…");
@@ -32,6 +33,7 @@ export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}
   const empty=!failed&&!state&&documents.length===0&&learning.length===0;
   return <section className={`ui-workspace cabin-workspace${empty?" cabin-workspace-empty":""}`} aria-label="今日工作台">
     <div className="workspace-start">
+      <p className="workspace-top-only workspace-start-label">开始</p>
       <div className="workspace-start-copy">
         <h2>{empty?"从第一份资料开始":"你的知识空间"}</h2>
         <p>导入资料，或先记下一个想法。</p>
@@ -40,9 +42,16 @@ export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}
         <section className="workspace-entry-card workspace-entry-card-primary"><AaosIcon name="ImportDocument" size={56}/><h3>导入资料</h3><p>文档、图片、音视频</p><button className="primary" onClick={()=>onNavigate("intake")}>导入第一份资料</button></section>
         <section className="workspace-entry-card"><AaosIcon name="Write" size={56}/><h3>新建笔记</h3><p>记录想法，稍后整理</p><button aria-label="新建笔记与阅读" onClick={()=>onNavigate("library")}>新建笔记</button></section>
       </div>
+      <div className="workspace-top-only workspace-quick-actions" aria-label="工作台快捷操作">
+        <button type="button" aria-label="查找本地文档" onClick={()=>{if(searchOptions.current){searchOptions.current.open=true;searchOptions.current.querySelector<HTMLInputElement>("input[type='search']")?.focus();}}}><AaosIcon name="Source" size={26}/></button>
+        <button type="button" aria-label="打开学习空间" onClick={()=>onNavigate("learning")}><AaosIcon name="Review" size={26}/></button>
+      </div>
       <p className="workspace-local-note"><AaosIcon name="Lock" size={20}/>内容保存在本地</p>
     </div>
-    <details className="workspace-search-options"><summary>搜索本地文档</summary><LocalDocumentSearch onOpenDocument={onOpenDocument}/></details>
+    <section className="workspace-top-only workspace-planet-hero" aria-label="开始使用知识空间">
+      <div><h2>你的知识空间</h2><p>从一份资料，或一个想法开始。</p><button type="button" onClick={()=>onNavigate("intake")}>开始使用<span aria-hidden="true"> →</span></button></div>
+    </section>
+    <details ref={searchOptions} className="workspace-search-options"><summary>搜索本地文档</summary><LocalDocumentSearch onOpenDocument={onOpenDocument}/></details>
     {state?<p role={failed?"alert":"status"}>{state}</p>:null}
     {failed?<button onClick={()=>setRetry(value=>value+1)}>重新读取工作区</button>:null}
     {!failed&&!state&&!empty?<><div className="ui-workspace-grid">

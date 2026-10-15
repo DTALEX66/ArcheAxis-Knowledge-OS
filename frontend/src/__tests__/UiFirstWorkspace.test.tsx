@@ -8,6 +8,19 @@ const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 afterEach(()=>{cleanup();bridge.call.mockReset();});
 describe("UI-first real object entry",()=>{
+  it("SIMULATED: alternate hero and quick actions preserve real objects and route through existing callbacks", async()=>{
+    bridge.call.mockImplementation(async(operation:string)=>operation==="documents_list"?{documents:[{document_id:"kept_doc",title:"保留文档",version:2,source_id:null,source_revision:null,content_sha256:"hash"}]}:{items:[{item_key:"due_item",next_review:"2020-01-01T00:00:00Z"}]});
+    const navigate=vi.fn(),open=vi.fn(),review=vi.fn();
+    render(<div className="cabin-shell" data-navigation-appearance="top"><CanonicalWorkspaceSpace onNavigate={navigate} onOpenDocument={open} onReviewItem={review}/></div>);
+    fireEvent.click(await screen.findByRole("button",{name:"保留文档 · v2"}));expect(open).toHaveBeenCalledWith("kept_doc");
+    fireEvent.click(screen.getByRole("button",{name:"due_item"}));expect(review).toHaveBeenCalledWith("due_item");
+    fireEvent.click(screen.getByRole("button",{name:/开始使用/}));expect(navigate).toHaveBeenLastCalledWith("intake");
+    fireEvent.click(screen.getByRole("button",{name:"打开学习空间"}));expect(navigate).toHaveBeenLastCalledWith("learning");
+    fireEvent.click(screen.getByRole("button",{name:"查找本地文档"}));
+    expect(screen.getByRole("searchbox")).toHaveFocus();
+    expect(screen.getByText("搜索本地文档",{selector:"summary"}).parentElement).toHaveAttribute("open");
+    expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["documents_list","learning_items"]);
+  });
   it.each([false,true])("keeps local search usable after an empty retained snapshot or unrelated learning failure: %s",async(failed)=>{
     bridge.call.mockImplementation(async(operation:string)=>{
       if(operation==="documents_list")return {documents:[]};

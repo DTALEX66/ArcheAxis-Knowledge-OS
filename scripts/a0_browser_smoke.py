@@ -450,6 +450,12 @@ HOST_BRIDGE_STUB_TEMPLATE = """
           }
           const journalAnswer=await journalFixture(operation,request?.request?.payload??{});
           if(journalAnswer)return journalAnswer;
+          if(operation==="source_jobs") {
+            const sourceId=request?.request?.payload?.source_id;
+            return bodies.sources_list.sources.some(source=>source.source_id===sourceId)
+              ? {status:200,body:{source_id:sourceId,jobs:[],jobs_capped:false}}
+              : {status:404,body:{error:"SOURCE_NOT_FOUND"}};
+          }
           if (documentFixture) {
             const answer = await documentFixture(operation, request?.request?.payload ?? {});
             if (answer) return answer;
@@ -1441,6 +1447,8 @@ def read_top_navigation(browser, viewport, problems, theme):
         settings.click()
         page.get_by_label("导航呈现", exact=True).select_option("top")
         settings.click()
+        page.locator('[data-working-state="ready"]').wait_for(state="attached")
+        assert "读取未完成" not in page.get_by_role("contentinfo", name="活动坞", exact=True).inner_text()
         assert page.evaluate("localStorage.getItem('aaos.navigation-appearance.v1')") == "top"
         assert not page.locator('.navigation-sidebar').is_visible()
         nav = page.get_by_role("navigation", name="顶部空间导航", exact=True)
@@ -1459,11 +1467,14 @@ def read_top_navigation(browser, viewport, problems, theme):
                 entries:[...node.querySelectorAll('[data-top-page]')].map(el=>{
                   const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
                   return {label:el.textContent,rect:bounds(el),reachable:el.contains(hit)};}),
+                hero:bounds(document.querySelector('.workspace-planet-hero')),
+                actions:bounds(document.querySelector('.workspace-start')),
                 overflow:document.documentElement.scrollWidth>innerWidth};
             }""")
             assert not geometry['overflow'], geometry
             assert len(geometry['entries']) == 7 and all(item['reachable'] for item in geometry['entries']), geometry
             assert geometry['menu']['right'] <= geometry['shell']['right'], geometry
+            assert geometry['actions']['right'] <= geometry['hero']['x'], geometry
             menu.get_by_role("menuitem", name="知识库", exact=True).click()
         else:
             assert not nav.is_visible()

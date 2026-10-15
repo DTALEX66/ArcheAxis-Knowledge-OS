@@ -241,8 +241,11 @@ export class CoreWorkingStateSession {
     if(this.readFlight)await this.readFlight;
     if(this.inFlight){await this.inFlight;return this.flush();}
     const server=this.view.server;
-    if(!server||this.view.status==="blocked"||server.recovery_requires_confirmation)throw new Error("请先读取或明确恢复工作状态；本地输入保留。");
-    if(equal(server.state,this.view.state))return server;
+    if(!server||this.unknown||this.view.status==="blocked"||this.view.status==="recovery"||server.recovery_requires_confirmation)throw new Error("请先读取或明确恢复工作状态；本地输入保留。");
+    if(equal(server.state,this.view.state)) {
+      if(this.view.status!=="ready"||this.view.error!==null)this.publish({status:"ready",error:null});
+      return server;
+    }
     const state=structuredClone(this.view.state);
     this.publish({status:"saving",error:null});
     const run=this.transport.write({...basis(server),state:structuredClone(state)});this.inFlight=run;

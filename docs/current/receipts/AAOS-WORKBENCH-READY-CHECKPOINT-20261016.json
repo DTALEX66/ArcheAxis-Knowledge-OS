@@ -1,0 +1,365 @@
+{
+  "schema": "archeaxis.workbench-ready-checkpoint/v1",
+  "date": "2026-10-16",
+  "overall": "PARTIAL",
+  "execution": "RUNNING_BY_OWNER",
+  "checks": {
+    "combined": {
+      "path": ".project-local/runs/ba8e5e5614/workbench-ready-integrated-1016/artifacts/local-ci.json",
+      "sha256": "c4f23a0f3600c56e3cd0905c95dddcfeb72fe8b83686fb3b8d1aa898a766dd42",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
+      "patch_sha256": "4d9a819c6046942c3ec9869170519e0fbf51349b32194b52548321de7ae5bb21",
+      "checks": 27,
+      "frontend_files": 152,
+      "frontend_tests": 1466,
+      "scope": "quick with affected browser/minimum-size Python suite; not all Python, native or installed qualification"
+    },
+    "browser": {
+      "path": ".project-local/runs/ba8e5e5614/top-workbench-ready-browser-1016/artifacts/execution.json",
+      "sha256": "db362536eea88451a5c9364b93ce95b2d3b3de4f22a91e69e3dfe10209d72565",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
+      "patch_sha256": "4d9a819c6046942c3ec9869170519e0fbf51349b32194b52548321de7ae5bb21",
+      "cases": 10
+    },
+    "working_state": {
+      "path": ".project-local/runs/ba8e5e5614/working-state-equal-1016/artifacts/execution.json",
+      "sha256": "76ffaad6d93020ee0d18ec32df30743ec0b589520bc6a1adfbc742d5b06a1662",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
+      "patch_sha256": "4d9a819c6046942c3ec9869170519e0fbf51349b32194b52548321de7ae5bb21",
+      "tests": 73,
+      "files": 3
+    },
+    "format_workers": {
+      "path": ".project-local/runs/ba8e5e5614/be11-csv-markdown-integrated-1016/artifacts/execution.json",
+      "sha256": "68540dddbc73f81f8ac2cc3c5d5e93861fcffbc5522b2cba74d3ecf3977ddc2f",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
+      "patch_sha256": "0d0cddd055ea55052428393c12136fb8dee43ab14519aa433ded64130bd5589a",
+      "tests": 8,
+      "scope": "Real Rust Core/CAS and existing text/Office workers on controlled samples; no new engine or dependency"
+    }
+  },
+  "implementation": {
+    "workbench": "Top-menu appearance adds reference-5 left action pills and right planet hero using the existing asset; original documents/reviews/search/failure/retry and callbacks retained. Sidebar primary reference is unchanged.",
+    "working_state": "After waiting for pending reads/writes, an equal confirmed state now returns to ready without a new write. Unknown ACK, blocked/recovery states and frozen requests cannot be bypassed.",
+    "format_workers": "CSV with quoted comma/Chinese/CRLF and Markdown heading/relative-link content now have actual text/loss/metadata/source-revision checks. Native editing and roundtrip remain UNVERIFIED.",
+    "browser_fixture": "Explicit source_jobs returns a source-bound empty controlled job list; unknown source returns404 and existing declared faults still win. Screenshot now waits for actual working-state ready, rather than hiding the notice."
+  },
+  "independent_working_state_review": "PASS",
+  "format_samples": [
+    {
+      "media_type": "text/csv",
+      "source_revision": "0118373460c661eadf16c7e15067908322684f951e8a0366af11b6e6336dcd49",
+      "job_kind": "text",
+      "engine": "python-worker-text",
+      "engine_version": "0.1.0",
+      "qualification_evidence": "COMPLETE",
+      "operations": {
+        "edit": {
+          "qualification_version": 1,
+          "scope": "SOURCE_NATIVE_EDIT; derived document editing is separate",
+          "status": "UNVERIFIED"
+        },
+        "export": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_BYTES_ONLY; use source original endpoint",
+          "status": "AVAILABLE"
+        },
+        "extract": {
+          "qualification_version": 1,
+          "scope": "DECLARED_JOB_CAPABILITY_ONLY; quality and loss independent",
+          "status": "QUALIFIED"
+        },
+        "preview": {
+          "qualification_version": 1,
+          "scope": "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified",
+          "status": "QUALIFIED"
+        },
+        "roundtrip": {
+          "qualification_version": 1,
+          "scope": "NATIVE_FORMAT_EDIT_EXPORT_REIMPORT",
+          "status": "UNVERIFIED"
+        },
+        "store": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_CAS_REFERENCE; integrity audit not performed",
+          "status": "RECORDED"
+        }
+      },
+      "outputs": [
+        {
+          "byte_length": 128,
+          "kind": "document_structure",
+          "schema": "archeaxis.document-structure/v1",
+          "sha256": "c8f5698f1ccd920baebcfb96eaae33ca2c7c0fa12eb254bec2c3b63136ae0276"
+        },
+        {
+          "byte_length": 1165,
+          "kind": "loss_report",
+          "schema": "archeaxis.loss-receipt/v1",
+          "sha256": "e612f6f23c7c576785aa1b859d27b80ae478ac63858cd2e8a37c64a5981c191f"
+        },
+        {
+          "byte_length": 35,
+          "kind": "text",
+          "schema": "archeaxis.text/v1",
+          "sha256": "0118373460c661eadf16c7e15067908322684f951e8a0366af11b6e6336dcd49"
+        }
+      ]
+    },
+    {
+      "media_type": "text/markdown",
+      "source_revision": "ca6f1ce9fb9a7e53ed143e8ad2b44517f7f553b8646c96ad6cbe983ec4c98b58",
+      "job_kind": "text",
+      "engine": "python-worker-text",
+      "engine_version": "0.1.0",
+      "qualification_evidence": "COMPLETE",
+      "operations": {
+        "edit": {
+          "qualification_version": 1,
+          "scope": "SOURCE_NATIVE_EDIT; derived document editing is separate",
+          "status": "UNVERIFIED"
+        },
+        "export": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_BYTES_ONLY; use source original endpoint",
+          "status": "AVAILABLE"
+        },
+        "extract": {
+          "qualification_version": 1,
+          "scope": "DECLARED_JOB_CAPABILITY_ONLY; quality and loss independent",
+          "status": "QUALIFIED"
+        },
+        "preview": {
+          "qualification_version": 1,
+          "scope": "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified",
+          "status": "QUALIFIED"
+        },
+        "roundtrip": {
+          "qualification_version": 1,
+          "scope": "NATIVE_FORMAT_EDIT_EXPORT_REIMPORT",
+          "status": "UNVERIFIED"
+        },
+        "store": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_CAS_REFERENCE; integrity audit not performed",
+          "status": "RECORDED"
+        }
+      },
+      "outputs": [
+        {
+          "byte_length": 188,
+          "kind": "document_structure",
+          "schema": "archeaxis.document-structure/v1",
+          "sha256": "0efdb13351653652aa3da7f6b8df0935b7243030e630b81c18a51a571d68b15f"
+        },
+        {
+          "byte_length": 673,
+          "kind": "loss_report",
+          "schema": "archeaxis.loss-receipt/v1",
+          "sha256": "d32234301306b111ce586eebaf1e711424e33aa0f571ffcfc09cadd3e4e92ffc"
+        },
+        {
+          "byte_length": 40,
+          "kind": "text",
+          "schema": "archeaxis.text/v1",
+          "sha256": "ca6f1ce9fb9a7e53ed143e8ad2b44517f7f553b8646c96ad6cbe983ec4c98b58"
+        }
+      ]
+    }
+  ],
+  "visual": {
+    "raw_path": ".project-local/runs/ba8e5e5614/top-workbench-ready-browser-1016/artifacts/browser-smoke/reference-top.json",
+    "raw_sha256": "7811893ca1b63811bced54da23179e4e3b7f326a9208f8e5ed030f46f4e19b3f",
+    "screenshot": ".project-local/runs/ba8e5e5614/top-workbench-ready-browser-1016/artifacts/browser-smoke/top-menu-cosmic-1672x941@100.png",
+    "screenshot_sha256": "cd12dfa1b09c502dd0ecc9e00f0404fffae943292b58dac93d6db27e21bf8179",
+    "geometry": {
+      "shell": {
+        "x": 77.984375,
+        "y": 55.984375,
+        "right": 1594.015625,
+        "bottom": 899.578125,
+        "width": 1516.03125,
+        "height": 843.59375
+      },
+      "nav": {
+        "x": 367.984375,
+        "y": 76.484375,
+        "right": 1339.015625,
+        "bottom": 126.484375,
+        "width": 971.03125,
+        "height": 50
+      },
+      "menu": {
+        "x": 489.5,
+        "y": 129.484375,
+        "right": 699.5,
+        "bottom": 376.484375,
+        "width": 210,
+        "height": 247
+      },
+      "entries": [
+        {
+          "label": "工作台",
+          "rect": {
+            "x": 367.984375,
+            "y": 76.484375,
+            "right": 469.5,
+            "bottom": 126.484375,
+            "width": 101.515625,
+            "height": 50
+          },
+          "reachable": true
+        },
+        {
+          "label": "知识",
+          "rect": {
+            "x": 481.5,
+            "y": 76.484375,
+            "right": 565.84375,
+            "bottom": 126.484375,
+            "width": 84.34375,
+            "height": 50
+          },
+          "reachable": true
+        },
+        {
+          "label": "学习",
+          "rect": {
+            "x": 565.84375,
+            "y": 76.484375,
+            "right": 650.1875,
+            "bottom": 126.484375,
+            "width": 84.34375,
+            "height": 50
+          },
+          "reachable": true
+        },
+        {
+          "label": "AI",
+          "rect": {
+            "x": 650.1875,
+            "y": 76.484375,
+            "right": 716.90625,
+            "bottom": 126.484375,
+            "width": 66.71875,
+            "height": 50
+          },
+          "reachable": true
+        },
+        {
+          "label": "资源",
+          "rect": {
+            "x": 716.90625,
+            "y": 76.484375,
+            "right": 801.25,
+            "bottom": 126.484375,
+            "width": 84.34375,
+            "height": 50
+          },
+          "reachable": true
+        },
+        {
+          "label": "全部能力",
+          "rect": {
+            "x": 801.25,
+            "y": 76.484375,
+            "right": 919.9375,
+            "bottom": 126.484375,
+            "width": 118.6875,
+            "height": 50
+          },
+          "reachable": true
+        },
+        {
+          "label": "设置",
+          "rect": {
+            "x": 919.9375,
+            "y": 76.484375,
+            "right": 1004.28125,
+            "bottom": 126.484375,
+            "width": 84.34375,
+            "height": 50
+          },
+          "reachable": true
+        }
+      ],
+      "hero": {
+        "x": 743.859375,
+        "y": 257.984375,
+        "right": 1534.984375,
+        "bottom": 837.984375,
+        "width": 791.125,
+        "height": 580
+      },
+      "actions": {
+        "x": 136.984375,
+        "y": 257.984375,
+        "right": 709.859375,
+        "bottom": 667.984375,
+        "width": 572.875,
+        "height": 410
+      },
+      "overflow": false
+    },
+    "evidence": "SIMULATED_HOST_CORE_FIXTURE_RENDERED_IN_REAL_CHROMIUM",
+    "limits": "Ready-state navigation/body geometry locally inspected. Different reference cards, detailed material/color/spacing, all seven images and installed/Owner acceptance remain incomplete."
+  },
+  "failures_preserved": [
+    {
+      "run": "top-workbench-browser-1016",
+      "state": "FAIL",
+      "cause": "30-second ready wait exposed a real equal-state flush status bug; earlier short-saving explanation was a hypothesis disproved by this test."
+    },
+    {
+      "run": "top-ready-diagnosis-1016",
+      "state": "DIAGNOSTIC",
+      "finding": "200 write ACK persisted page01 at revision1, but duplicate scene kept UI unsaved; no second write or error."
+    },
+    {
+      "run": "donor be11-csv-md-20261016",
+      "state": "NOT_EXECUTED",
+      "cause": "Sandbox Git ownership prevented dev launcher; normal approved project runtime later completed the actual tests."
+    }
+  ],
+  "earlier_receipts": [
+    "AAOS-SURFACE-INTEGRATION-20261016.json",
+    "AAOS-TOP-NAVIGATION-20261016.json",
+    "AAOS-INSTALLED-EXIT-TRANSPORT-20261016.json",
+    "AAOS-READER-RESPONSIVE-20261016.json",
+    "AAOS-CANDIDATE-RUNTIME-ARCHIVE-20261016.json"
+  ],
+  "delivery": {
+    "branch": "codex/character-memory-ui-20261015",
+    "pull_request": 193,
+    "previous_published_sha": "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
+    "current_ref": "Resolve Git HEAD and origin branch live; a receipt cannot bind its own commit",
+    "commit_push": "AUTHORIZED; public task-owned files only",
+    "merge_release_green": "NOT_PERFORMED"
+  },
+  "ci_observation": {
+    "run_id": 38804704425,
+    "head_sha": "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
+    "state": "IN_PROGRESS_AT_OBSERVATION",
+    "boundary": "Latest local workbench/ready fix is absent from that head. Old installer failure remains FAIL until a new run independently passes."
+  },
+  "allowance": {
+    "threshold_remaining_percent": 15,
+    "last_observed_remaining_percent": 16,
+    "state": "ABOVE_THRESHOLD; no new development slices after this validation checkpoint"
+  },
+  "remaining": [
+    "Current-head CI and installed lifecycle",
+    "Full seven-reference visual/material/spacing comparison",
+    "Remaining BE/FE scope, batch formatting, native editing and roundtrip",
+    "Current native/actual AI source binding and independent quality where required",
+    "Owner acceptance; no Green replacement or release"
+  ]
+}
