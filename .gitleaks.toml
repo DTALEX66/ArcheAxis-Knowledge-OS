@@ -50,20 +50,24 @@ paths = [
   '''target/''',
 ]
 
-# Verified Oct10 receipt source-file SHA256 digests, never file-wide exclusions.
-# 20 findings in two historical commits map exactly to committed public bytes.
+# Verified receipt source-file SHA256 digests, never file-wide exclusions.
+# 22 historical findings map exactly to committed public bytes; proof records each commit.
 [[allowlists]]
 description = "exact verified receipt source digests"
 condition = "AND"
 targetRules = ["generic-api-key"]
 regexTarget = "secret"
 paths = [
+  '''^docs/current/receipts/AAOS\-CHARACTER\-MEMORY\-UI\-20261015\.json$''',
+  '''^docs/current/receipts/AAOS\-CONFIGURATION\-PLANS\-20261015\.json$''',
   '''^docs/current/receipts/AAOS\-AI\-STAGE\-20261010\.json$''',
   '''^docs/current/receipts/AAOS\-CANVAS\-STAGE\-20261010\.json$''',
   '''^docs/current/receipts/AAOS\-RESEARCH\-STAGE\-20261010\.json$''',
   '''^docs/current/receipts/AAOS\-TEACHING\-STAGE\-20261010\.json$''',
 ]
 regexes = [
+  '''^32779d275e481f45155191cd0bb4a3b4fe204927fb69394c6c8b65daa0983a45$''',
+  '''^1faa7429c7b4b7c46ba2888c01ba34bcd9f95f7b50de4e777e2f2aae2edc3ae3$''',
   '''^4c35d8878a18a4da737eff80a82c7cad38a3840eb8f2ce5487526694c32311a4$''',
   '''^4cc8047b67a9d174558e3700e8b81df9c04230cdd209049b367ba3619d673191$''',
   '''^5f8393df1b41965895501782d904efac05b7f6793d739f29351096b9c514859d$''',

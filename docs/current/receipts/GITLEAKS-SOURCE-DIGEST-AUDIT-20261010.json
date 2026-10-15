@@ -301,10 +301,47 @@
       ],
       "committed_source_hash_match": true,
       "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json",
+      "StartLine": 11,
+      "EndLine": 11,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "3855f2bb032e69dd10e9ef94d854b0ac8640f137:docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json:generic-api-key:11",
+      "Commit": "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+      "source_path": "crates/archeaxis-api/tests/configuration_plans_api.rs",
+      "source_sha256": "1faa7429c7b4b7c46ba2888c01ba34bcd9f95f7b50de4e777e2f2aae2edc3ae3",
+      "registered_map": [
+        "/code_files_sha256"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
+    },
+    {
+      "File": "docs/current/receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json",
+      "StartLine": 26,
+      "EndLine": 26,
+      "RuleID": "generic-api-key",
+      "Fingerprint": "110fc9d05d4ad46e77c8f339991a31204f79c3b4:docs/current/receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json:generic-api-key:26",
+      "Commit": "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+      "source_path": "crates/archeaxis-api/tests/character_memory_api.rs",
+      "source_sha256": "32779d275e481f45155191cd0bb4a3b4fe204927fb69394c6c8b65daa0983a45",
+      "registered_map": [
+        "/code_files_sha256"
+      ],
+      "committed_source_hash_match": true,
+      "committed_source_crlf_hash_match": false
     }
   ],
   "status": "20_OF_20_COMMITTED_SOURCE_BYTE_HASH_MATCH",
   "secrets_or_match_text_included": false,
   "scanner_configuration_reference": "https://github.com/gitleaks/gitleaks/blob/v8.30.1/README.md",
-  "exception_policy": "AND exact receipt path + exact previously verified source digest; generic-api-key only; no commit-wide or file-wide waiver"
+  "exception_policy": "AND exact receipt path + exact previously verified source digest; generic-api-key only; no commit-wide or file-wide waiver",
+  "latest_audit": {
+    "date": "2026-10-15",
+    "run_id": 38740205982,
+    "additional_source_digest_findings": 2,
+    "classification": "PUBLIC_COMMITTED_SOURCE_SHA256_METADATA",
+    "verification": "Current and finding-commit source bytes independently hash to each metadata value; no credential or secret match text retained"
+  }
 }

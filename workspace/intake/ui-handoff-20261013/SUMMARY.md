@@ -25,7 +25,7 @@
 
 ## 验证证据与边界
 
-历史验证目录：主项目 `.project-local/runs/ui-polish-20261013/`，对照页为 `artifacts/comparison.html`。
+历史验证目录：主项目 `.project-local/runs/be268a2d33/ui-polish-20261013/`，对照页为 `artifacts/comparison.html`。
 
 - 294 个前端及合同输入记录逐字节／SHA-256 比较；TypeScript、1235 项 Vitest 和 Vite 打包通过。
 - 完整 Vitest 在最后 CSS 微调之前执行；微调后执行定向样式检查、打包与浏览器检查，不宣称全量测试在最终整合版本重跑过。
@@ -37,7 +37,7 @@
 
 1. 第一组设计输入：来源会话记录了 `C:/Users/ALEX/Doubao/chats/2026-10-12/new-chat/星环知识系统-UI提示词库-任务包.zip` 及 `aaos-task-pack/星环知识系统-UI提示词库-任务包.html`。历史分析约 35 文件、19 prompts、5 research、3 grounding、4 JPG；本轮仅归档其引用与分析，尚未复制或重新校验原件，不标 SOURCE_MISSING。
 2. 新前端 ZIP：`D:/All projects/Record/01-Frontend-UI-Taskpack.zip`；SHA-256 `f672e5212d6f96147b97ef91a01613fd517308c6f5f8157614163ae15a063b0f`。本轮原件复制至主项目 ignored `.project-local/archives/frontend-ui-20261013/`，105 文件解包至 `docs/authority/taskpack-20261013-frontend-ui/`，CRC 与 ZIP 完整 SHA 校验通过。
-3. 历史前端审计：主项目 `.project-local/runs/frontend-taskpack-audit-20261013/AUDIT.md`、`audit.py`、`audit-structure.json`。历史记录 104 成员尺寸／SHA、62 资产 hash、5 tarball SRI 匹配；SRI 不等于 registry 签名。历史成员检查不伪装成本轮重新执行。
+3. 历史前端审计：主项目 `.project-local/runs/be268a2d33/frontend-taskpack-audit-20261013/AUDIT.md`、`audit.py`、`audit-structure.json`。历史记录 104 成员尺寸／SHA、62 资产 hash、5 tarball SRI 匹配；SRI 不等于 registry 签名。历史成员检查不伪装成本轮重新执行。
 4. 本目录保留 `OWNER-PASTED-HANDOFF.txt`、`THREAD-PUBLIC-MESSAGES.json` 与 `ARCHIVE-RECEIPT.json`；摘要去重不删除这些来源。
 5. 同轮后端 ZIP 已独立归档于 `docs/authority/taskpack-20261013-backend-host/`，与前端一起接入既有执行记录。
 

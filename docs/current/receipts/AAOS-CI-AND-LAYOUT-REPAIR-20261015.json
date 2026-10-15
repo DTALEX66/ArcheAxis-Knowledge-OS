@@ -1,0 +1,35 @@
+{
+  "schema": "archeaxis.ci-and-layout-repair/v1",
+  "date": "2026-10-15",
+  "state": "LOCAL_PASS_CLOUD_PENDING",
+  "parent_commit": "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+  "failed_cloud_run": 38740205982,
+  "failed_cloud_merge_checkout": "1d96acf1bc1632fe195b243583fb4431cddc795d",
+  "repairs": [
+    "Two generic-api-key findings independently equal public source SHA256 at current and historical finding commits. Exact receipt-path and verified-digest intersection extended; arbitrary values remain scanned.",
+    "Tauri edition2021 rustfmt import sorting restored in two lines; no runtime semantics changed.",
+    "Final four audited legacy directories migrated with complete file hashes, ordinary directory inventory and one explicitly retargeted internal junction. Existing layout baseline unchanged."
+  ],
+  "validation": {
+    "digest_regression_red": "verified-digest-red: 1 failed, 1 passed before exact rule repair",
+    "digest_regression_green": "verified-digest-green: 2 passed, including different-value and source-path negative protection",
+    "layout": "legacy-layout-final: 6 passed",
+    "quick": {
+      "path": ".project-local/runs/ba8e5e5614/closure-quick2-1015/artifacts/local-ci.json",
+      "sha256": "901c0792c2fdb1dfb48025f211d0d4dc59137c20a9e1857916546a8d2d83d533",
+      "source_patch_sha256": "f5026787f959c4809f131e668fdf270a8b48da1a6a8cfa202a08486431459b87",
+      "source_consistent": true,
+      "checks_passed": 27,
+      "python_tests_passed": 91,
+      "route_contract_tests_passed": 26,
+      "frontend_test_files_passed": 146,
+      "frontend_tests_passed": 1358,
+      "status": "LOCAL_PASS"
+    },
+    "prior_quick": "closure-quick-1015 failed five newly written CRLF files. Exact task-owned files normalized to LF before the successful repeat; failure retained."
+  },
+  "evidence": "LOCAL_STRUCTURAL_AND_SIMULATED_FRONTEND; no new installed or Owner acceptance",
+  "source_preservation": "Local quick still requires H01 source trace. Owner-local original packages remain local and untracked.",
+  "metadata_timing": "This receipt was added after the successful quick run and does not alter tested product source.",
+  "rollback": "Revert task-owned source/config/docs commit; directory movement rollback is separately specified by each migration receipt."
+}
