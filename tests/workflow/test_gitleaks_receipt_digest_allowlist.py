@@ -22,7 +22,7 @@ def test_every_receipt_exception_is_an_actual_committed_public_file_digest():
     assert rule["condition"] == "AND"
     assert rule["targetRules"] == ["generic-api-key"]
     assert rule["regexTarget"] == "secret"
-    assert len(proof["findings"]) == 20
+    assert len(proof["findings"]) == 22
     for row in proof["findings"]:
         raw = subprocess.check_output(["git", "show", row["Commit"] + ":" + row["source_path"]], cwd=ROOT)
         assert hashlib.sha256(raw).hexdigest() == row["source_sha256"]

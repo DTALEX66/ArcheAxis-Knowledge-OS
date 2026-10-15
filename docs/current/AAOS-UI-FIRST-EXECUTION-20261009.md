@@ -1361,3 +1361,11 @@ Owner 新增明确授权执行中主动处理已审计的过时／冗余内容�
 PR193 首轮CI38737930533实际FAIL：hosted preflight误调用只适用于Owner本地原件的H01门禁，Linux正确拒绝登记的Windows路径，其余产品门禁未运行。已修复preflight范围，本地quick/full仍严格要求H01，不上传原件、不放宽路径保护。两条真实runner回归先RED，修复后35项及19项实际preflight PASS，H01本地结构单独PASS；见 [CI修复回执](receipts/AAOS-HOSTED-PREFLIGHT-SCOPE-20261015.json)。当前云端结果不能由本地修复推断。
 
 第二批规范化又完成4个目录无损迁移，533文件／10237979字节和241子目录全部保留；7处当前公开引用更新，历史内部路径通过prefix映射保留，详见 [第二批回执](receipts/AAOS-LEGACY-RUN-MIGRATION-BATCH2-20261015.json)。
+
+第三批最后4个目录迁移完成，8,830文件／244,817,174字节和1,108普通子目录完整保留；唯一内部Junction按新父目录重定向，文件SHA不变。三批全部13个精确对象完成：11目录归位、2空目录移除；严格布局门禁6/6 PASS，未扩充豁免，迁移不计释放空间。见 [第三批回执](receipts/AAOS-LEGACY-RUN-MIGRATION-BATCH3-20261015.json)。
+
+CI38740205982的head为0a4f7b05，实际checkout合并树为1d96acf1。lint、浏览器、Rust、worker和合同已PASS；test(3.12)因两项公开源码摘要误报未运行产品测试，desktop-fast因Tauri edition2021导入排序不符失败。两项摘要分别按finding commit与当前公开源码字节独立验证，精确路径与确证digest交集规则补齐，其他值及源码路径继续拒绝豁免；回归先1FAIL/1PASS、后2PASS。Tauri只调整两行导入排序，不改变运行语义。整轮CI和后续候选仍须实时核实，不能借部分job宣称完整PASS。
+
+Owner再次明确后端、清理和新UI同时推进。AX-UI-20261013已归档且已选择；目前旧玻璃微调、FE06部分布局和角色记忆并不等于新首页/小栖舱交付。当前分别使用隔离的learning-drafts与glass-cabin工作区推进BE09未提交练习草稿以及FE02/05/07/18首批正式界面；最终实现、截图与验证据各自固定提交补录，不把开工记成完成。
+
+清理和CI修复后的标准quick `closure-quick2-1015` 实际27/27 LOCAL_PASS，源码指纹前后一致，含91项Python、26项路由合同、146文件1358项前端和Core/Tauri格式检查；H01仍在本地执行。首次quick的5文件CRLF失败保留，精确转LF后通过。见 [当前修复回执](receipts/AAOS-CI-AND-LAYOUT-REPAIR-20261015.json)。本地quick不替代完整云CI或后续BE09/UI改动的最终验证。

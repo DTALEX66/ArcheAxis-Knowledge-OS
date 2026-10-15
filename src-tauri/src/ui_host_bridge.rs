@@ -2,8 +2,8 @@
 #[path = "../../crates/archeaxis-contracts/src/generated/ui_host.rs"]
 pub mod contract;
 use crate::core_bridge;
-use contract::{CONTRACT_DIGEST, Outcome, Request, Response};
-use serde_json::{Value, json};
+use contract::{Outcome, Request, Response, CONTRACT_DIGEST};
+use serde_json::{json, Value};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn reply(
