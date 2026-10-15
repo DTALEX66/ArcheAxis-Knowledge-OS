@@ -1,0 +1,40 @@
+{
+  "schema": "archeaxis.legacy-installer-archive/v1",
+  "date": "2026-10-15",
+  "state": "PASS_LOCAL_ARCHIVE",
+  "source_commit": "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+  "authorization": "Owner requested audited obsolete content archival, migration and deletion during execution",
+  "source_directory": "packaging/release-0.5.0",
+  "archive_directory": ".project-local/archives/installers-0.5.0-20261015",
+  "archive_owner": "main project root",
+  "entries": [
+    {
+      "name": "ArcheAxis_0.5.0_x64-setup.exe",
+      "blob": "bf7ea3f5761e04f130d1a6707f2b4b1388b8a62e",
+      "sha256": "fadabd22b41ea7fad5f5a02d231c1399df27e18df73867a1da0f1fc1a4e739b7",
+      "bytes": 1852859
+    },
+    {
+      "name": "ArcheAxis_0.5.0_x64_en-US.msi",
+      "blob": "31548c89aaa7301e0da087038b840132904383d1",
+      "sha256": "bf42a9eae974639a2b1b0076ffd03e43baf7140162072a23fb0197ecda1d9c3c",
+      "bytes": 2785280
+    }
+  ],
+  "files": 2,
+  "bytes_preserved": 4638139,
+  "current_tree_binary_bytes_removed": 4638139,
+  "disk_bytes_reclaimed": 0,
+  "consumer_audit": "Exact directory and both filenames searched across all tracked files. Matches only historical reports and legacy inventory; no tests, build scripts, CI or current runtime consumer.",
+  "process_scan": "UNVERIFIED: CIM access denied; failed enumeration is not zero matches",
+  "exclusive_file_open": "PASS_FOR_BOTH_EXACT_FILES",
+  "verification": "Before/after full SHA256 and byte counts match; historical Git blobs remain recoverable; no installer executed",
+  "historical_documents": "Preserved unchanged; packaging README redirects old references to this receipt",
+  "rollback": "Copy both exact archived files back to packaging/release-0.5.0 and verify listed SHA256, or restore these two paths from source_commit. Do not install them.",
+  "boundaries": [
+    "No Git history rewrite or garbage collection",
+    "No release or Green changes",
+    "No unknown directories or user data deletion",
+    "Other checkouts unchanged"
+  ]
+}
