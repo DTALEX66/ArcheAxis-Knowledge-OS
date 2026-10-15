@@ -19,16 +19,19 @@ afterEach(()=>vi.restoreAllMocks());
 function fixture(other=false){
   let server:WorkingRead={schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:"12",pending_original:null,learning_drafts:{assessment_a:draft("a"),...(other?{assessment_b:draft("b")}: {})}},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false};
   const transport:WorkingTransport={read:async()=>structuredClone(server),write:async request=>{server={...server,state:structuredClone(request.state),state_revision:server.state_revision+1};return structuredClone(server);},clearSaved:vi.fn(),recover:vi.fn()};
-  return {session:new CoreWorkingStateSession(transport),server:()=>server};
+  return {transport,session:new CoreWorkingStateSession(transport),server:()=>server};
 }
-async function views(other=false){
-  const f=fixture(other);await f.session.load();const owners=new Map<string,boolean>();
+function surface(session:CoreWorkingStateSession,other=false){return <CoreWorkingStateProvider session={session}><section data-testid="review"><CanonicalLearningSpace initialItemKey="a"/></section><section data-testid="parked"><CanonicalLearningSpace initialItemKey="a"/></section>{other?<section data-testid="other"><CanonicalLearningSpace initialItemKey="b"/></section>:null}</CoreWorkingStateProvider>;}
+const frozenA={item_key:"a",client_event_id:"preserved_a",origin_restore_epoch:"initial",body:{item_key:"a",client_event_id:"preserved_a",assessment_id:"assessment_a",knowledge_version:"v1",answer:draft("a").answer.trim(),rating:3,correct:true}};
+async function views(other=false,prepare?:(f:ReturnType<typeof fixture>)=>void|Promise<void>){
+  const f=fixture(other);await prepare?.(f);await f.session.load();const owners=new Map<string,boolean>();
   const listener=(event:Event)=>{const {owner,dirty}=(event as CustomEvent).detail;owners.set(owner,dirty);};
   window.addEventListener("archeaxis-draft-dirty",listener);
-  const view=render(<CoreWorkingStateProvider session={f.session}><section data-testid="review"><CanonicalLearningSpace initialItemKey="a"/></section><section data-testid="parked"><CanonicalLearningSpace initialItemKey="a"/></section>{other?<section data-testid="other"><CanonicalLearningSpace initialItemKey="b"/></section>:null}</CoreWorkingStateProvider>);
+  const view=render(surface(f.session,other));
   const review=within(view.getByTestId("review")),parked=within(view.getByTestId("parked"));
-  await waitFor(()=>expect(review.getByLabelText("本次答案")).toHaveValue(draft("a").answer));
-  await waitFor(()=>expect(parked.getByLabelText("本次答案")).toHaveValue(draft("a").answer));
+  const answer=Object.values(f.server().state.pending_reviews??{}).find(entry=>entry.item_key==="a")?.body.answer??draft("a").answer;
+  await waitFor(()=>expect(review.getByLabelText("本次答案")).toHaveValue(answer));
+  await waitFor(()=>expect(parked.getByLabelText("本次答案")).toHaveValue(answer));
   return {...f,view,review,parked,owners,stop:()=>window.removeEventListener("archeaxis-draft-dirty",listener)};
 }
 it("releases every retained same-item controller after another view confirms the exact review",async()=>{
@@ -83,5 +86,35 @@ it("does not release another item's frozen request when the same-item retained v
     expect(f.session.getSnapshot().state.pending_reviews).toEqual({frozen_b:pending});
     expect(f.session.getSnapshot().state.learning_drafts?.assessment_b).toEqual(draft("b"));
     expect([...f.owners.values()].every(Boolean)).toBe(true);
+  }finally{f.stop();}
+});
+it("reconciles two retained views of an explicitly preserved old-origin journal without replacing its request identity",async()=>{
+  const original=call.getMockImplementation()!;call.mockImplementation(async(op,payload)=>op==="learning_review"?{next_review_days:1}:original(op,payload));
+  const f=await views(false,async f=>{
+    const server=f.server(),candidate=structuredClone(server.state);candidate.pending_reviews={preserved_a:structuredClone(frozenA)};
+    Object.assign(server,{restore_epoch:"c".repeat(32),state:{drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null},recovery_candidates:candidate,recovery_requires_confirmation:true});
+    f.transport.recover=async()=>{Object.assign(server,{state:structuredClone(candidate),state_revision:1,recovery_candidates:null,recovery_requires_confirmation:false});return structuredClone(server);};
+    await f.session.load();await f.session.recover("preserve");
+  });try{
+    expect(f.parked.getByLabelText("本次答案")).toBeDisabled();
+    expect(f.server().restore_epoch).not.toBe(frozenA.origin_restore_epoch);
+    fireEvent.click(f.review.getByRole("button",{name:"记录复习结果"}));await f.review.findByText(/Core 已确认复习记录/);
+    expect(call.mock.calls.filter(([op])=>op==="learning_review").map(([,payload])=>payload)).toEqual([{body:frozenA.body}]);
+    expect(f.server().state.pending_reviews).toBeUndefined();
+    await waitFor(()=>expect(f.parked.getByLabelText("本次答案")).toBeEnabled());
+    expect(f.review.getByLabelText("本次答案")).toBeEnabled();
+    await waitFor(()=>expect([...f.owners.values()]).toEqual([false,false]));
+  }finally{f.stop();}
+});
+it.each(["workspace_id","restore_epoch"] as const)("does not release old controllers when the actual %s context changes",async field=>{
+  const f=await views(false,f=>{f.server().state.pending_reviews={preserved_a:structuredClone(frozenA)};});try{
+    const replacement=fixture();replacement.server()[field]="d".repeat(32);delete replacement.server().state.learning_drafts;
+    await replacement.session.load();
+    f.view.rerender(surface(replacement.session));
+    await f.parked.findByText(/复习提交未确认，请先重试同一冻结请求/);
+    expect(f.parked.getByLabelText("本次答案")).toBeDisabled();expect(f.review.getByLabelText("本次答案")).toBeDisabled();
+    expect(f.session.getSnapshot().state.pending_reviews).toEqual({preserved_a:frozenA});
+    expect([...f.owners.values()]).toEqual([true,true]);
+    expect(call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
   }finally{f.stop();}
 });
