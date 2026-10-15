@@ -78,11 +78,12 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
   useEffect(()=>{
     const entry=journalReview.current,basis=journalWorkspace.current,server=working?.server;
     if(!working||busy||!entry||!basis||!server||working.status==="blocked"||working.status==="recovery"||server.recovery_requires_confirmation
-      ||server.workspace_id!==basis.workspace_id||server.restore_epoch!==basis.restore_epoch||entry.origin_restore_epoch!==basis.restore_epoch
+      ||server.workspace_id!==basis.workspace_id||server.restore_epoch!==basis.restore_epoch
       ||working.state.pending_reviews?.[entry.client_event_id]||server.state.pending_reviews?.[entry.client_event_id]
       ||frozenReview.current?.client_event_id!==entry.client_event_id)return;
-    // Another retained view confirmed this exact request. Reopen from shared raw
-    // drafts, rather than keeping a ghost lock or copying this view's old answer.
+    // Another retained view confirmed this exact request in this controller's
+    // context. A preserved request may legitimately retain an older origin epoch.
+    // Reopen shared raw drafts instead of copying this view's old answer.
     journalReview.current=null;journalWorkspace.current=null;frozenReview.current=null;eventId.current=null;draftAtReview.current=undefined;setReviewPending(false);
     void open(itemKey);
   },[working?.state.pending_reviews,working?.server,working?.status,busy,itemKey]);
