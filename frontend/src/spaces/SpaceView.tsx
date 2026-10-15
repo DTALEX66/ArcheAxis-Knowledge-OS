@@ -66,6 +66,7 @@ export function SpaceView({
   selectedCapabilityId, uiPageId, initialDocumentId, onOpenDocument, hasUnsavedDrafts,
   onTrail,
   initialLearningItemKey, onReviewItem,
+  activationRevision,
 }: {
   spaceId: SpaceId;
   onInspect: (target: InspectionTarget) => void;
@@ -77,6 +78,7 @@ export function SpaceView({
   hasUnsavedDrafts?: boolean;
   onTrail?: (levels: readonly ObjectTrailLevel[]) => void;
   initialLearningItemKey?: string; onReviewItem?: (key:string)=>void;
+  activationRevision?: number;
 }) {
   const [sourceTarget,setSourceTarget]=useState<SourceJourneyTarget>();
   const working=useOptionalCoreWorkingState();
@@ -122,7 +124,7 @@ export function SpaceView({
   if (selectedCapabilityId) {
     return <CanonicalCapabilitiesSpace onNavigate={onNavigate} selectedCapabilityId={selectedCapabilityId} navigation={navigation} onTrail={onTrail} />;
   }
-  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
+  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace activationRevision={activationRevision} purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
   if (uiPageId === "21") return <CanonicalExpressionSpace onTrail={onTrail} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "04") return <CanonicalRelationSpace onOpenReference={setPinnedReference} renderCollection={(document,envelope,change,pending,readOnly)=>{
     const attrs=envelope.attrs && typeof envelope.attrs==="object" && !Array.isArray(envelope.attrs) ? envelope.attrs as Record<string,unknown> : {};
@@ -143,11 +145,11 @@ export function SpaceView({
     <section aria-label="产品模型与用途绑定"><ModelConfigurationPanel /></section>
     <ConfigurationPlanPanel />
   </section>;
-  if (uiPageId === "20") return <><VersionSourcePanel /><CanonicalLibrarySpace purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /></>;
+  if (uiPageId === "20") return <><VersionSourcePanel /><CanonicalLibrarySpace activationRevision={activationRevision} purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /></>;
   if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onTrail={onTrail}/>;
   switch (spaceId) {
     case "library": case "intake": case "exchange":
-      return <CanonicalLibrarySpace initialDocumentId={initialDocumentId} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
+      return <CanonicalLibrarySpace activationRevision={activationRevision} initialDocumentId={initialDocumentId} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
     case "vault": case "evidence": case "ai-assets":
       return <CanonicalKnowledgeSpace onLearning={()=>onNavigate("learning")} onTrail={onTrail}/>;
     case "learning": return <CanonicalLearningJourneySpace onOpenPage={onOpenPage} onTrail={onTrail}/>;
