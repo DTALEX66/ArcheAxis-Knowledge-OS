@@ -74,6 +74,30 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(JSON.stringify(save?.[1])).toContain("ownerFutureBlock");
     expect(JSON.stringify(save?.[1])).toContain("未知内容");
   });
+  it("SIMULATED: auxiliary tools collapse without losing input, hiding list errors or starting inference",async()=>{
+    const previous=bridge.call.getMockImplementation()!;
+    render(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id}/>);
+    const editor=await screen.findByRole("textbox",{name:"文档草稿"});
+    const tools=screen.getByText("围绕此文档提问").closest("details")!;
+    expect(tools).not.toHaveAttribute("open");
+    const input=within(tools).getByLabelText("材料问题");
+    const user=userEvent.setup();
+    await user.click(within(tools).getByText("围绕此文档提问"));
+    await user.type(input,"保留尚未提交的问题");
+    await user.click(within(tools).getByText("围绕此文档提问"));
+    await user.click(screen.getByRole("button",{name:"原件"}));
+    await user.click(screen.getByRole("button",{name:"正文"}));
+    await user.click(within(tools).getByText("围绕此文档提问"));
+    expect(within(tools).getByLabelText("材料问题")).toBe(input);
+    expect(input).toHaveValue("保留尚未提交的问题");
+    expect(screen.getByRole("textbox",{name:"文档草稿"})).toBe(editor);
+    expect(screen.getByRole("button",{name:"查看原始回执（诊断）：文档身份与来源指纹"})).toHaveTextContent("文档身份与来源指纹");
+    bridge.call.mockImplementation((op:string,payload:Record<string,unknown>={})=>op==="documents_list"?Promise.reject(new Error("refresh offline")):previous(op,payload));
+    await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
+    expect(await screen.findByRole("alert")).toHaveTextContent("资料列表刷新失败");
+    expect(screen.getByRole("textbox",{name:"文档草稿"})).toBe(editor);
+    expect(bridge.call.mock.calls.some(([op])=>["document_draft","conversation_create","conversation_request","material_question"].includes(op))).toBe(false);
+  });
   it("SIMULATED: same reader page is a no-op and the selected real Document survives another daily workflow",async()=>{
     const user=userEvent.setup();render(<App/>);
     await user.click(await screen.findByRole("button",{name:"打开文档 中文普通笔记"}));
