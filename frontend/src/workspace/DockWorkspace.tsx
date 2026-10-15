@@ -1,4 +1,4 @@
-import { useEffect,useLayoutEffect,useMemo,useRef,useState,type ComponentProps } from "react";
+import { useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type ComponentProps } from "react";
 import { createPortal } from "react-dom";
 import { DockviewReact,themeDark,type IDockviewPanelProps,type DockviewReadyEvent,type DockviewApi } from "dockview-react";
 import "dockview-react/dist/styles/dockview.css";
@@ -6,6 +6,7 @@ import "./dock-workspace.css";
 import { SpaceView } from "../spaces/SpaceView";
 import { findUiPage,defaultUiPage } from "../presentation/uiPages";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
+import type {SourceJourneyTarget} from "../presentation/sourceJourney";
 import { PanelRegistry,businessPanelId,documentPanelId,documentObjectId,presentationPanelId } from "./PanelRegistry";
 import { DocumentBusinessSessions,DocumentBusinessProvider } from "./documentSessions";
 import { WorkspaceController,layoutPresets } from "./WorkspaceController";
@@ -31,6 +32,18 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  const activations=useRef(new Map<string,number>());
  const controller=useMemo(()=>new WorkspaceController(desktopLayoutTransport(),()=>{if(mounted.current)refresh(v=>v+1);},{workspace_id:workspaceId,restore_epoch:epoch}),[]);
  const current=useRef(view);current.current=view;
+ const [sourceTarget,setSourceTarget]=useState<SourceJourneyTarget>();
+ const [pendingSource,setPendingSource]=useState<{target:SourceJourneyTarget;documentId?:string}>();
+ const changeSource=useCallback((target?:SourceJourneyTarget)=>{
+  if(target)setPendingSource({target,documentId:current.current.initialDocumentId});
+  else {setPendingSource(undefined);setSourceTarget(undefined);}
+ },[]);
+ // App navigation guards run synchronously in the requesting event. Commit only
+ // after the accepted page change; a refused request must not alter a hidden reader
+ // or survive to a later, unrelated visit to page 03.
+ useEffect(()=>{if(pendingSource){if(page==="03"&&pendingSource.documentId===view.initialDocumentId)setSourceTarget(pendingSource.target);setPendingSource(undefined);}},[pendingSource,page,view.initialDocumentId]);
+ useLayoutEffect(()=>{setPendingSource(undefined);setSourceTarget(undefined);},[view.initialDocumentId]);
+ useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed)changeSource(undefined);};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[changeSource]);
  const components=useMemo(()=>({business:function BusinessSlot(panel:IDockviewPanelProps){const slot=useRef<HTMLDivElement>(null);const panelId=presentationPanelId(panel.api.id);useLayoutEffect(()=>{if(slot.current)slot.current.appendChild(registry.host(panelId));const activate=()=>{activations.current.set(panelId,(activations.current.get(panelId)??0)+1);refresh(v=>v+1);};const visibility=panel.api.onDidVisibilityChange(event=>{if(event.isVisible)activate();});if(panel.api.isVisible)activate();return()=>{visibility.dispose();if(parking.current)registry.park(panelId,parking.current);};},[panelId]);return <div className="dock-slot" ref={slot}/>;}}),[registry]);
  const ensure=(panelId:string)=>{if(!retained.current.has(panelId)){const objectId=documentObjectId(panelId),pageId=objectId?"03":panelId,definition=findUiPage(pageId);retained.current.set(panelId,{...current.current,uiPageId:pageId,spaceId:definition?.space??"workspace",selectedCapabilityId:null,initialDocumentId:objectId,navigation:undefined,onTrail:undefined});}registry.host(panelId);};
  const apply=(layout:typeof layoutPresets.default)=>{if(!api.current)return;layout.registered_panels.map(presentationPanelId).forEach(ensure);hydrating.current=true;try{restoreLayout(api.current,layout,{workspaceId,epoch});setPreset(layout.preset_id);setLocked(layout.schema_version===2?layout.locked??false:false);refresh(v=>v+1);}finally{hydrating.current=false;}};
@@ -66,6 +79,6 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
   {controller.snapshot?.recovery_reason?<p role="alert">布局需要确认恢复：{controller.snapshot.recovery_reason}。请展开“布局与面板”核对并确认恢复。</p>:null}
   <div className="dock-surface"><DockviewReact components={components} theme={themeDark} onReady={onReady} locked={locked} disableDnd={locked}/></div>
   <div hidden aria-hidden="true" ref={parking}/>
-  {[...retained.current].map(([panelId,saved])=>createPortal(<DocumentBusinessProvider sessions={documentSessions} viewId={registry.key(panelId)} revealOwner={owner=>{const ownerPanel=[...retained.current.keys()].find(candidate=>registry.key(candidate)===owner);if(ownerPanel)open(ownerPanel);}}><SpaceView {...saved} activationRevision={activations.current.get(panelId)??0} onTrail={panelId===id?saved.onTrail:undefined}/></DocumentBusinessProvider>,registry.host(panelId),registry.key(panelId)))}
+  {[...retained.current].map(([panelId,saved])=>createPortal(<DocumentBusinessProvider sessions={documentSessions} viewId={registry.key(panelId)} revealOwner={owner=>{const ownerPanel=[...retained.current.keys()].find(candidate=>registry.key(candidate)===owner);if(ownerPanel)open(ownerPanel);}}><SpaceView {...saved} sourceJourney={{target:panelId==="03"?sourceTarget:undefined,onChange:changeSource}} activationRevision={activations.current.get(panelId)??0} onTrail={panelId===id?saved.onTrail:undefined}/></DocumentBusinessProvider>,registry.host(panelId),registry.key(panelId)))}
  </section>;
 }
