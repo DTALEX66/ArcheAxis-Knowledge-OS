@@ -225,6 +225,22 @@ describe("Library page announce budget", () => {
     expect(liveRegions().some((region) => region.contains(reason))).toBe(false);
   });
 
+  it("announces refresh failure and retry once while retaining the loaded list", async () => {
+    libraryFixture();render(<CanonicalLibrarySpace />);
+    await screen.findByRole("button", {name:"样板.txt"});expect(liveRegions()).toHaveLength(0);
+    const gate=deferred<{sources:typeof source[]}>();bridge.call.mockImplementationOnce(()=>gate.promise);
+    const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
+    expect(liveRegions()).toHaveLength(1);expect(liveRegions()[0]).toHaveTextContent("正在刷新资料列表…");
+    gate.reject(FAILURE_CLASSES[0][1]);await screen.findByText(/资料列表刷新失败/);
+    expect(liveRegions()).toHaveLength(1);expect(liveRegions()[0]).toHaveAttribute("role","alert");
+    expect(screen.getByRole("button",{name:"样板.txt"})).toBeInTheDocument();
+    const reason=screen.getByText(/^离线：/);expect(reason).toHaveClass("state-reason");
+    expect(liveRegions().some(region=>region.contains(reason))).toBe(false);
+    await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
+    await waitFor(()=>expect(liveRegions()).toHaveLength(0));
+    expect(screen.getByRole("button",{name:"样板.txt"})).toBeInTheDocument();
+  });
+
   it("announces reading a document-with-unverified-original once, not twice", async () => {
     // The libraryFixture deliberately lets the original's digest disagree with the bound source
     // revision, so opening the document lands in the "关联原件未完成核验" branch. That is the real
