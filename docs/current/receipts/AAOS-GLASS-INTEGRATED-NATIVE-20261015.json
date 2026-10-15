@@ -1,0 +1,87 @@
+{
+  "schema": "archeaxis.glass-integrated-native/v1",
+  "date": "2026-10-15",
+  "status": "PASS_BOUNDED_NATIVE_JOURNEY",
+  "overall": "PARTIAL",
+  "tested_source_commit": "e980f5b865b0b92f5340efdb190ed4328cf71b5c",
+  "source_patch_sha256": "6e028a09850ce74da1c7b535aa8da1dcba6913eeb055604b7000cbc9c3da2580",
+  "native": {
+    "path": ".project-local/runs/ba8e5e5614/webdriver-731f4f97178f/tmp/journey/receipt.json",
+    "sha256": "c5dfbb5a9b363e5cca941005c2138d6054d61fe2b5a6771d97724ddb766d60dc"
+  },
+  "build": {
+    "path": ".project-local/runs/ba8e5e5614/glass-loop-candidate2-1015/artifacts/native-build-binding.json",
+    "sha256": "c15cf7e83c1a26e613b82ce62c8b6ae3bca14a2ffaafe5f3e6afef67ac65289b"
+  },
+  "host_sha256": "9ec481de34a5ab5bd6db36731d1f170a37373c90a29441e5c4addbfbbf563dc5",
+  "core_sha256": "f59026b158bd91250b26cfa06c0af82ca2bb2ee62262dad9fb5c90060ec23194",
+  "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+  "steps": [
+    "Real Tauri WebDriver session/window",
+    "UI same-space source/document/anchor/version navigation focuses actual regions without creating objects",
+    "Finite system_version bridge",
+    "Import/read original bytes and rendered Chinese reader",
+    "Finite bridge document save",
+    "Session close/relaunch persisted document",
+    "Product consistent backup and list readback",
+    "Native backup restore/retry and actual version rollback with original CAS readback",
+    "UI original note without source/review/model prerequisites saved by canonical writer",
+    "Trusted native Ctrl+Alt+J expands/collapses activity dock without losing editor focus or issuing API writes",
+    "UI original note close/relaunch readback equals persisted version",
+    "UI search finds ordinary unverified document and opens existing editor without knowledge acceptance",
+    "UI separately records both manual uncertain checks and cloud pending requests; cloud remains not executed",
+    "UI unconfigured previews fail without attempts, fabricated plans, cloud success or human approval; saved annotations remain intact",
+    "UI explicitly selected revision basis persists with next ordinary document save",
+    "Actual EPUB Reader chapter/paragraph, UI citation, source revision and persisted result-bound locator; no visual pagination claim",
+    "Known XLSX/PPTX/CSV/TAR through finite installed/candidate host bridge with actual worker, locators, loss and automatic TAR member",
+    "Remaining canonical A/B format rows and four malformed inputs use real host jobs; media probe only, missing engines fail",
+    "Full host restart reads every host matrix source/output/quality/origin and negative error state from Core",
+    "Full host restart restores actual EPUB Reader and persisted reference navigation to known paragraph",
+    "Full host close/relaunch preserves known format originals, worker outputs, locators and loss byte hashes"
+  ],
+  "limitations": [
+    "Candidate executable, not NSIS installed journey",
+    "Programmatic Chinese text, not physical native IME",
+    "No human signoff; optional authored course fixture uses an explicitly synthetic review actor only",
+    "One engineering run, not whole UI P95 acceptance"
+  ],
+  "normal_product_exits": 5,
+  "all_exit_zero": true,
+  "owned_ports_released": true,
+  "remaining_owned_processes": [],
+  "remaining_owned_listeners": [],
+  "failures_preserved": [
+    {
+      "run": "glass-integrated-quick-1015",
+      "state": "FAIL_BEFORE_PRODUCT_TESTS",
+      "cause": "New design direction omitted existing overlay routing fields; one old working-tree receipt had CRLF. Fields and newline repaired without changing old receipt JSON semantics."
+    },
+    {
+      "run": "webdriver-f7c4c76f2d08",
+      "state": "FAIL",
+      "cause": "Native hydration wait depended on visible verbose ready copy, intentionally hidden on reference home. Now awaits the existing DOM data-working-state=ready; actual Core hydration/recovery and import assertions remain required."
+    },
+    {
+      "run": "glass-integrated-quick2-1015",
+      "state": "FAIL",
+      "cause": "1390 frontend tests passed, 5 live-region accessibility tests failed after list refresh. Separate targeted product fix and final gate required."
+    }
+  ],
+  "probe_regression": {
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/glass-native-contracts-1015/artifacts/execution.json",
+      "sha256": "de90801656071c9a510e8f7ec3695cc3414f5b6a7a7d1d22f13914def6c4ccc2"
+    },
+    "tests": 45,
+    "subtests": 124,
+    "state": "PASS"
+  },
+  "boundary": [
+    "No Owner dataset or character implementation",
+    "No actual model dispatch or installer execution",
+    "Native evidence binds the stated source; subsequent accessibility changes and metadata have separate evidence",
+    "BE09 unsubmitted-learning-draft native cold recovery is not covered by this default journey",
+    "Full reference-page replication and Owner visual acceptance remain unfinished"
+  ],
+  "rollback": "Ordinary scoped revert of integrated changes; preserved run receipts and Core storage recovery remain independent."
+}
