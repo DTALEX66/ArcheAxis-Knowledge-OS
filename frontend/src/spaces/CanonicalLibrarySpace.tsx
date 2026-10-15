@@ -60,7 +60,8 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [listSnapshot,setListSnapshot] = useState(0);
   const sourceTargetKey=initialSourceTarget?JSON.stringify([initialSourceTarget.source_id,initialSourceTarget.source_revision,initialSourceTarget.sha256]):null;
   const sourceTargetAttempt=useRef<{key:string|null;navigation:number;editing:number;pending:boolean;consumed:boolean}|null>(null);
-  const [refreshingLists,setRefreshingLists] = useState(false);
+  const listHasSnapshot=useRef(false);
+  const [refreshingLists,setRefreshingLists] = useState(true);
   const [listError,setListError] = useState<string|null>(null);
   const [listFailureReason,setListFailureReason] = useState<string|null>(null);
   const [openedDocuments, setOpenedDocuments] = useState<DocumentSummaryDto[]>([]);
@@ -90,7 +91,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const currentDocument = useRef(document);
   currentDocument.current = document;
   const [editorEpoch, setEditorEpoch] = useState(0);
-  const [message, setMessage] = useState("正在读取资料…");
+  const [message, setMessage] = useState("");
   const [failure, setFailure] = useState(false);
   const [failureReason, setFailureReason] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
@@ -206,9 +207,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       setSources(sourcesResult.sources);setDocuments(docsResult.documents);setSourcePage(0);
       setNextDocumentCursor(docsResult.next_cursor ?? null);
       documentSnapshotCount.current = docsResult.snapshot_count ?? null;
-      consumedDocumentCursors.current.clear();setListSnapshot(current);
-    }catch(error){if(libraryMounted.current&&current===listGeneration.current){setListError("资料列表刷新失败；已加载列表、当前内容与草稿保留，可重试。");setListFailureReason(coreFailureReason(error));}}
-    finally{if(libraryMounted.current&&current===listGeneration.current){listRefreshInFlight.current=false;setRefreshingLists(false);setLibraryBootSettled(true);setMessage(previous=>previous==="正在读取资料…"?"":previous);}}
+      consumedDocumentCursors.current.clear();listHasSnapshot.current=true;setListSnapshot(current);
+    }catch(error){if(libraryMounted.current&&current===listGeneration.current){setListError(listHasSnapshot.current?"资料列表刷新失败；已加载列表、当前内容与草稿保留，可重试。":"资料暂时无法读取，请检查本地核心。");setListFailureReason(coreFailureReason(error));}}
+    finally{if(libraryMounted.current&&current===listGeneration.current){listRefreshInFlight.current=false;setRefreshingLists(false);setLibraryBootSettled(true);}}
   }
   async function loadMoreDocuments() {
     if (!nextDocumentCursor || documentPageInFlight.current || listRefreshInFlight.current) return;
@@ -603,7 +604,8 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy||!documentLease.canWrite} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
   const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>冻结笔记请求已保留；先核对工作状态，再重试同一请求。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一笔记请求</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>核对笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
-  const listControls=<section aria-label="资料列表刷新"><button type="button" disabled={refreshingLists} onClick={()=>void refreshLists()}>刷新资料列表</button>{refreshingLists?<p role="status">正在刷新资料列表…</p>:null}{listError?<p role="alert">{listError}</p>:null}{listFailureReason?<p className="state-reason">{listFailureReason}</p>:null}</section>;
+  // List reads own one announcement; content/write outcomes remain independent.
+  const listControls=<section aria-label="资料列表刷新"><button type="button" disabled={refreshingLists} onClick={()=>void refreshLists()}>刷新资料列表</button>{refreshingLists?<p role="status">{libraryBootSettled?"正在刷新资料列表…":"正在读取资料…"}</p>:null}{listError?<p role="alert">{listError}</p>:null}{listFailureReason?<p className="state-reason">{listFailureReason}</p>:null}</section>;
   const filteredDocuments = documents.filter(item => {
     if(contentFilter === "original" && item.source_id) return false;
     if(contentFilter === "linked" && !item.source_id) return false;
