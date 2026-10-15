@@ -1,6 +1,6 @@
 # 当前 Agent 接手入口 · 2026-10-16
 
-先读 [根权威](../../AUTHORITY.md)、[AGENTS](../../AGENTS.md)、[项目合同](../../PROJECT_CONTRACT.yaml)、[文档权威索引](../DOCUMENTATION_AUTHORITY_INDEX.md) 和 [路径路由](AAOS-AUTHORITY-ROUTES.json)。当前仍 **RUNNING_BY_OWNER / PARTIAL**，不从旧 COMPLETE 或历史权限推导当前事实。
+先读 [根权威](../../AUTHORITY.md)、[AGENTS](../../AGENTS.md)、[项目合同](../../PROJECT_CONTRACT.yaml)、[文档权威索引](../DOCUMENTATION_AUTHORITY_INDEX.md) 和 [路径路由](AAOS-AUTHORITY-ROUTES.json)。当前为 **PAUSED_BY_OWNER / PARTIAL**（账户剩余15%阈值已触发），不从旧 COMPLETE 或历史权限推导当前事实。
 
 ## 当前工作和证据
 
@@ -12,7 +12,9 @@
 
 此前[桥接与课程检查点](receipts/AAOS-SURFACE-INTEGRATION-20261016.json)包含BE11六操作资格有限Tauri桥接及UI、FE10教学11/12返回原课程且保留作答/正文；[顶部导航回执](receipts/AAOS-TOP-NAVIGATION-20261016.json)保留五主题/窄屏证据。后续退出探针修复另有67项回归和独立审查通过。
 
-最新已结束 CI `38798080182` **FAIL**：head `dbb99f87`、实际 PR merge checkout `01a6296c`；除安装生命周期及依赖汇总外，运行的产品检查通过。安装过程已保存文档，首次显式退出遇到 WebDriver target frame detached，未观测自然 exit 0，不追认通过。精确关闭模板修复见[退出回执](receipts/AAOS-INSTALLED-EXIT-TRANSPORT-20261016.json)，新 exact-SHA CI / installed 尚待验证。之前的合同登记、授权文件竞态和 CIM 查询失败已修复，旧 FAIL 留在[历史 CI 回执](receipts/AAOS-INTEGRATION-CI-REPAIR-20261016.json)。
+最新已结束 CI `38804704425` **FAIL**，head `2ce3c37b`、安装工件来源标识 `b064abd0`。除安装生命周期及依赖汇总外，运行的产品检查通过；分类器跳过项不记PASS。主安装文档/备份恢复/格式旅程与草稿冲突旅程各自通过，严格退出模板也观测到同一进程自然exit0。新的失败在分组旅程冷启动后的文档入口点击：`aaos01_grouped_owner_loop.py:1191`，目标中心x517超出容器右界457且无可达滚动容器。具体布局/探针根因尚未确认，保留截图、原始回执SHA和FAIL，见[当前检查点](receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json)。额度已触线，本轮未继续修复或重跑。后续36edc3ea产品变更不在这次云端测试中。
+
+更早 `38798080182` 的退出失败、`38790450859` 的合同/授权/CIM失败仍保留各自FAIL和修复回执，不改写历史。
 
 前端按[七张参考图](AAOS-UI-REFERENCE-DIRECTION-20261015.json)实现全窗背景与内缩玻璃壳；首开、阅读两列/横向元数据及窄屏检查器/顶栏已局部实现，[14场景浏览器回执](receipts/AAOS-READER-RESPONSIVE-20261016.json)限定为受控宿主的真实渲染。[顶部横向菜单](receipts/AAOS-TOP-NAVIGATION-20261016.json)已实现并通过10个真实浏览器场景；[图5双栏工作台](receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json)已局部实现并完成就绪态浏览器核对；材质/颜色/间距与七图全量视觉仍未验收。**FE18 人物归 QODER，本 writer 不读取、复制或修改其检出。**
 
@@ -20,9 +22,9 @@
 
 ## 下一步与停止条件
 
-继续当前 exact-SHA 安装 CI、完整参考图验收与剩余 BE/FE；按任务台账推进，不重跑已经通过且源码未改变的全量检查。完整学习/教学、全格式原生编辑与往返、全部视觉和 Owner 资格仍未闭合。candidate5 的[限定恢复与分栏原生证明](receipts/AAOS-RECOVERY-AND-DOCK-20261016.json)以及历史4B/27B实测只绑定各自候选，不能代表当前整树或模型质量。
+等待Owner明确恢复后，先检查最新PR/CI及上述文档点击失败，再继续完整参考图与剩余BE/FE；按任务台账推进，不重跑已经通过且源码未改变的全量检查。完整学习/教学、全格式原生编辑与往返、全部视觉和 Owner 资格仍未闭合。candidate5 的[限定恢复与分栏原生证明](receipts/AAOS-RECOVERY-AND-DOCK-20261016.json)以及历史4B/27B实测只绑定各自候选，不能代表当前整树或模型质量。
 
-Owner 已确认账户**剩余额度 ≤15%**时停止新增开发和重型验证；现有 `archeaxis` 每5分钟检查有效窗口的最小剩余额度，UNKNOWN不是0。触发后 checkpoint 自有agents，整理摘要/问题/证据/交接，显式提交上传本轮公开且任务所属内容，核对本地与远端分支 SHA，再暂停目标和监控。额度重置不自动继续。
+Owner已确认的**剩余额度≤15%**阈值于2026-10-16 05:14（上海时间）触发，used85%。自有agents已保全并停止；只完成公开任务成果提交上传、分支SHA读回及目标/监控暂停。额度重置不自动继续，必须有Owner明确恢复。当前产品提交36edc3ea，最新交接提交须读Git；主线因安装CI失败未合并，不能宣称所有检出与main一致。原始139文件任务包、忽略的运行时/数据库/缓存/ZIP及donor dirty保留本地。
 
 ## 固定边界
 

@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.remaining-execution-receipt/v1",
   "date": "2026-10-13",
-  "state": "RUNNING_BY_OWNER",
+  "state": "PAUSED_BY_OWNER",
   "overall": "PARTIAL",
   "canonical_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
   "authorization": "Owner selected backend/frontend packages, independent UI branch, all remaining work to main; source chat historical audit-only limits superseded within current project scope.",
@@ -1058,7 +1058,7 @@
   "owner_goal": {
     "date": "2026-10-13",
     "instruction": "/GOAL 全部执行，自行拆解任务，执行任务，并行任务，本地和云端仓库目录规范化和体积清理也加入任务",
-    "state": "ACTIVE",
+    "state": "PAUSED_BY_OWNER_THRESHOLD",
     "normalization_record": "docs/current/AAOS-STORAGE-NORMALIZATION-20261013.md",
     "tasks": [
       "NORM01",
@@ -1066,7 +1066,9 @@
       "NORM03",
       "NORM04",
       "NORM05"
-    ]
+    ],
+    "stop_receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
+    "resume_requires": "Explicit Owner instruction, not quota reset"
   },
   "updated_at": "2026-10-16",
   "quiet_execution": true,
@@ -1212,5 +1214,10 @@
     "status": "PASS_BOUNDED_NATIVE",
     "overall": "PARTIAL"
   },
-  "latest_integration_checkpoint": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
+  "latest_integration_checkpoint": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
+  "latest_ci_observation": {
+    "run_id": 38804704425,
+    "state": "FAIL",
+    "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
+  }
 }

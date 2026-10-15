@@ -1446,3 +1446,9 @@ CI38798080182最终FAIL：head dbb99f87、实际merge01a6296c。此前三项故�
 顶部呈现增加图5左操作/右星球卡片双栏，原对象/复习/错误/搜索与真实回调保留；就绪态10场景浏览器通过。此前以为保存瞬间的横幅，经30秒等待与实际200 ACK追踪确认是等值flush未发布ready的真实缺陷；已修复且未知ACK/恢复/冻结请求保护保持，73项定向回归及独立审查通过。fixture缺少source_jobs的独立问题已补，未隐藏产品提示。
 
 CSV及Markdown复用现有真实worker，内容/格式事实/输出摘要/身份/六操作边界和既有失败/重开共8项Rust测试通过，原生编辑和往返仍UNVERIFIED。最终quick27项PASS，152文件1466项前端，详见[最新检查点](receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json)。旧失败、各次源码摘要和非安装证据边界完整保留；七图整体验收和当前安装CI仍未闭合。
+
+### 2026-10-16 剩余额度15%收尾停止
+
+05:14上海时间账户used85%/remaining15%，触发Owner明确停止条件。停止新增开发和重型验证，所有自有agents保全；本轮产品36edc3ea及公开交接正常提交上传，远端SHA读回后暂停目标与archeaxis监控，整体仍PARTIAL，额度重置不自动恢复。原始任务包/runtime/DB/cache/恢复ZIP及donor dirty保留本地，QODER不触碰。
+
+CI38804704425（head2ce3c37b、安装工件来源b064abd0）最终FAIL：主安装文档/恢复/格式旅程与草稿冲突旅程分别PASS，旧target-frame-detached退出修复观测同一进程自然exit0；新阻塞为分组旅程冷启动后的文档入口超出裁剪区域且无可达滚动容器。具体根因未确认，已保全回执SHA/截图/失败栈，不在阈值后扩大修复。详情与下一步见[收尾检查点](receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json)。

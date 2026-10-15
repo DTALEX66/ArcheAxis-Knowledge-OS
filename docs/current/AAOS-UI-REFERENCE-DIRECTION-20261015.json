@@ -85,7 +85,7 @@
     "independent_lanes": "Backend, cleanup and non-character UI advance concurrently; merge overlapping files serially.",
     "taskpack_state": "Immutable planning status is not implementation evidence."
   },
-  "status": "RUNNING_BY_OWNER / PARTIAL",
+  "status": "PAUSED_BY_OWNER / PARTIAL",
   "remaining_visual_work": [
     "Full seven-reference comparison and final materials/color/spacing acceptance; current reader and optional reference-5 two-column workbench are locally implemented.",
     "Remaining non-character taskpack pages and complete interaction acceptance",
@@ -110,5 +110,6 @@
     "date": "2026-10-16",
     "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
     "status": "LOCAL_PASS; overall PARTIAL"
-  }
+  },
+  "pause_receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
 }
