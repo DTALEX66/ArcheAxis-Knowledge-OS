@@ -1,0 +1,60 @@
+{
+  "schema": "archeaxis.hosted-preflight-scope/v1",
+  "date": "2026-10-15",
+  "state": "LOCAL_PASS_CLOUD_PENDING",
+  "failed_run": 38737930533,
+  "failed_head": "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+  "failure": "Hosted portable preflight incorrectly required Owner-local H01 original containers registered as Windows absolute paths; safe_path correctly refused. Other jobs skipped, not PASS.",
+  "change": "Owner-local source-preservation check stays required in local quick/full. Portable preflight excludes it explicitly without claiming source-preservation qualification. No path protection, required route/contract gate or CI aggregator relaxed.",
+  "code_files_sha256": {
+    "scripts/ci/local_verify.py": "5baa9fb4b7709c3548ba006e5898072170f4729738c71f99fa7598548c90909f",
+    "tests/test_local_ci_profiles.py": "77fcbccab6b4e986e0c1032ace34bb8888f7fdd6bcca57f6590516fcf0e862ac"
+  },
+  "red": {
+    "state": "EXPECTED_FAILURE",
+    "failed": 2,
+    "passed": 8,
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/hosted-preflight-red/artifacts/execution.json",
+      "sha256": "fe7785744e7b9a80b4b7912413bbf24bef1247a9a1dfe0d01fc2edbdc53a84b9",
+      "source_commit": "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+      "source_patch_sha256": "b29336afa573581068bded95877d5aff91596b67f589cfe1200bb936ca60b453",
+      "source_consistent": true,
+      "exit_code": 1
+    }
+  },
+  "regression": {
+    "state": "PASS",
+    "tests": 35,
+    "level": "SIMULATED_SUBPROCESS_RESULTS",
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/hosted-preflight-green/artifacts/execution.json",
+      "sha256": "d1840f8f147025d467bf85c32535cd8db73b04b1b3b0dab0e4c5b4b815e08501",
+      "source_commit": "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+      "source_patch_sha256": "7155f4d4712e0229fec46ba5c4666b3b93565416ff5787a9730fe5603e06a7d3",
+      "source_consistent": true,
+      "exit_code": 0
+    }
+  },
+  "preflight": {
+    "state": "PASS",
+    "checks": 19,
+    "route_tests": 26,
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/hosted-preflight-actual/artifacts/execution.json",
+      "sha256": "1f29888804433d8440199466a943dd988b21ea16709b77a81db61492b1825428",
+      "source_commit": "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+      "source_patch_sha256": "7155f4d4712e0229fec46ba5c4666b3b93565416ff5787a9730fe5603e06a7d3",
+      "source_consistent": true,
+      "exit_code": 0
+    }
+  },
+  "owner_local_h01": {
+    "state": "PASS_LOCAL_STRUCTURE",
+    "semantic_audit": "UNVERIFIED",
+    "product_implementation": "UNKNOWN",
+    "command": "python -B scripts/ci/check_h01_source_trace.py",
+    "exit_code": 0
+  },
+  "delivery": "Await new pushed SHA and its own full CI; previous failed run remains failure."
+}
