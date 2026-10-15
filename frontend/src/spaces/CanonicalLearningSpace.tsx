@@ -38,6 +38,7 @@ import {assertJourneyAssessment,type LearningJourneyTarget} from "../presentatio
 export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney, onItemSelected}:{onItemSelected?:(key:string)=>void;expectedJourney?:LearningJourneyTarget;onTrail?:(levels:readonly ObjectTrailLevel[])=>void; initialItemKey?:string} = {}) {
   const working=useOptionalCoreWorkingState();
   const journalReview=useRef<PendingReview|null>(null);
+  const journalWorkspace=useRef<{workspace_id:string;restore_epoch:string}|null>(null);
   const localDrafts=useRef<Record<string,LearningDraft>>({});
   const draftAtReview=useRef<LearningDraft|undefined>(undefined);
   const [focusMode, setFocusMode] = useState(false);
@@ -74,6 +75,17 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
   useEffect(()=>{if(initialItemKey&&(!working||working.server&&!working.server.recovery_requires_confirmation))void open(initialItemKey);},[initialItemKey,working?.server?.workspace_id,working?.server?.restore_epoch,working?.server?.recovery_requires_confirmation]);
   const pendingReviews=Object.values(working?.state.pending_reviews??{});
   useEffect(()=>{const entries=Object.values(working?.state.pending_reviews??{});const entry=initialItemKey?entries.find(row=>row.item_key===initialItemKey):entries.length===1?entries[0]:undefined;if(entry&&!frozenReview.current)void open(entry.item_key,entry);},[working?.state.pending_reviews,initialItemKey]);
+  useEffect(()=>{
+    const entry=journalReview.current,basis=journalWorkspace.current,server=working?.server;
+    if(!working||busy||!entry||!basis||!server||working.status==="blocked"||working.status==="recovery"||server.recovery_requires_confirmation
+      ||server.workspace_id!==basis.workspace_id||server.restore_epoch!==basis.restore_epoch||entry.origin_restore_epoch!==basis.restore_epoch
+      ||working.state.pending_reviews?.[entry.client_event_id]||server.state.pending_reviews?.[entry.client_event_id]
+      ||frozenReview.current?.client_event_id!==entry.client_event_id)return;
+    // Another retained view confirmed this exact request. Reopen from shared raw
+    // drafts, rather than keeping a ghost lock or copying this view's old answer.
+    journalReview.current=null;journalWorkspace.current=null;frozenReview.current=null;eventId.current=null;draftAtReview.current=undefined;setReviewPending(false);
+    void open(itemKey);
+  },[working?.state.pending_reviews,working?.server,working?.status,busy,itemKey]);
   useEffect(() => {
     const levels: ObjectTrailLevel[] = [];
     if (itemKey && state) {
@@ -115,7 +127,7 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
     restored??=Object.values(working?.session.getSnapshot().state.pending_reviews??{}).find(row=>row.item_key===key);
     const retained=journalReview.current&&working?.session.getSnapshot().state.pending_reviews?.[journalReview.current.client_event_id];
     if(frozenReview.current&&(!restored||!retained)){setMessage("复习提交未确认，请先重试同一冻结请求；原答案和事件身份仍保留。");return;}
-    if(restored){journalReview.current=restored;frozenReview.current=structuredClone(restored.body);eventId.current=restored.client_event_id;setReviewPending(true);}
+    if(restored){journalReview.current=restored;const server=working?.session.getSnapshot().server;journalWorkspace.current=server?{workspace_id:server.workspace_id,restore_epoch:server.restore_epoch}:null;frozenReview.current=structuredClone(restored.body);eventId.current=restored.client_event_id;setReviewPending(true);}
     const current = ++epoch.current; setState(null);setHistory(null);setItemKey(key);setFailureReason(null);if(!restored)eventId.current=null;
     try {
       const [raw, events] = await Promise.all([coreCommand("learning_state",{item_key:key}),coreCommand("learning_history",{item_key:key})]);
@@ -152,10 +164,10 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
       }
       if(!frozenReview.current)draftAtReview.current=currentDrafts()[String(body.assessment_id)];
       frozenReview.current ??= structuredClone(body);setReviewPending(true);
-      if(working){const server=working.session.getSnapshot().server;if(!server)throw new Error("工作日志尚未读回，未发送复习。");journalReview.current??={item_key:itemKey,client_event_id:String(frozenReview.current.client_event_id),body:structuredClone(frozenReview.current) as PendingReview["body"],origin_restore_epoch:server.restore_epoch};
+      if(working){const server=working.session.getSnapshot().server;if(!server)throw new Error("工作日志尚未读回，未发送复习。");journalReview.current??={item_key:itemKey,client_event_id:String(frozenReview.current.client_event_id),body:structuredClone(frozenReview.current) as PendingReview["body"],origin_restore_epoch:server.restore_epoch};journalWorkspace.current??={workspace_id:server.workspace_id,restore_epoch:server.restore_epoch};
         try{await working.session.freezeReview(journalReview.current);}catch(error){
           // A local preflight refusal has no frozen Core intent to retry. Unknown write ACKs retain their journal.
-          if(!working.session.getSnapshot().state.pending_reviews?.[journalReview.current.client_event_id]){journalReview.current=null;frozenReview.current=null;eventId.current=null;setReviewPending(false);}
+          if(!working.session.getSnapshot().state.pending_reviews?.[journalReview.current.client_event_id]){journalReview.current=null;journalWorkspace.current=null;frozenReview.current=null;eventId.current=null;setReviewPending(false);}
           throw error;
         }
       }
@@ -163,7 +175,7 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
       if(working&&journalReview.current)await working.session.finishReview(journalReview.current,draftAtReview.current);
       else if(draftAtReview.current&&localDrafts.current[draftAtReview.current.assessment_id]===draftAtReview.current){const next={...localDrafts.current};delete next[draftAtReview.current.assessment_id];localDrafts.current=next;}
       draftAtReview.current=undefined;
-      journalReview.current=null;frozenReview.current=null;setReviewPending(false);
+      journalReview.current=null;journalWorkspace.current=null;frozenReview.current=null;setReviewPending(false);
       if (current === epoch.current) {await open(itemKey);const scheduled=typeof receipt.next_review==="string"?`下次复习：${receipt.next_review}`:receipt.next_review_days===-1?"学习记录已保存；Core 未能安排下次复习。":"学习记录已保存；下次复习时间未提供。";setMessage(`Core 已确认复习记录。${scheduled}`);setHistory((previous:unknown)=>({receipt,history:previous}));await refresh();}
     } catch (error) {if(working&&!journalReview.current&&!frozenReview.current){setMessage(`${error instanceof Error?error.message:"复习请求未能保全。"} 未发送复习，答案仍可编辑。`);return;}if(!journalReview.current&&error instanceof ApiError && error.status>=400 && error.status<500){frozenReview.current=null;setReviewPending(false);}setMessage(error instanceof ApiError && error.status >= 400 && error.status < 500
       ? `Core 拒绝了复习记录（${error.status}）。${(error as Error).message} 请检查答案与自评，答案仍保留。`
