@@ -12,6 +12,15 @@ beforeEach(()=>{vi.stubGlobal("ResizeObserver",ResizeObserverStub);counters.moun
 afterEach(()=>{vi.unstubAllGlobals();delete window.__TAURI__;});
 const props={spaceId:"library" as const,uiPageId:"03",onInspect:vi.fn(),onNavigate:vi.fn(),onOpenPage:vi.fn()};
 describe("actual Dockview retained business consumer",()=>{
+ it("shows required layout recovery without opening layout controls",async()=>{
+  counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body:{workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:"LAYOUT_RESTORE_CONFIRMATION_REQUIRED"}})}};
+  const view=render(<DockWorkspace {...props}/>);
+  const alert=await screen.findByText(/布局需要确认恢复.*请展开/);
+  expect(alert).toHaveAttribute("role","alert");
+  expect(alert).toBeVisible();
+  expect(view.container.querySelector(".dock-layout-options")).not.toHaveAttribute("open");
+ });
  it("SIMULATED native cold layout read keeps the requested business page visible instead of restoring another active tab",async()=>{
   counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
   const invoke=vi.fn().mockResolvedValue({status:200,body:{workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:null}});window.__TAURI__={core:{invoke}};
@@ -75,3 +84,4 @@ describe("actual Dockview retained business consumer",()=>{
   fireEvent.click(screen.getByRole("button",{name:"保存布局"}));expect(await screen.findByText(/对象布局需真实工作区身份/)).toBeInTheDocument();
  });
 });
+

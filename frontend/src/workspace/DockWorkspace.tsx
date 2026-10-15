@@ -60,6 +60,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
    <button disabled={locked} onClick={()=>action(async()=>{const recovered=await controller.recover(Math.max(320,window.innerWidth),Math.max(240,window.innerHeight));apply(recovered.layout);})}>确认布局恢复</button>
   </div><p role="status">{controller.status} · 关闭面板仅关闭视图；草稿与已提交任务保留。</p></details>
   {notice?<p role="alert">{notice}</p>:null}
+  {controller.snapshot?.recovery_reason?<p role="alert">布局需要确认恢复：{controller.snapshot.recovery_reason}。请展开“布局与面板”核对并确认恢复。</p>:null}
   <div className="dock-surface"><DockviewReact components={components} theme={themeDark} onReady={onReady} locked={locked} disableDnd={locked}/></div>
   <div hidden aria-hidden="true" ref={parking}/>
   {[...retained.current].map(([panelId,saved])=>createPortal(<DocumentBusinessProvider sessions={documentSessions} viewId={registry.key(panelId)} revealOwner={owner=>{const ownerPanel=[...retained.current.keys()].find(candidate=>registry.key(candidate)===owner);if(ownerPanel)open(ownerPanel);}}><SpaceView {...saved} activationRevision={activations.current.get(panelId)??0} onTrail={panelId===id?saved.onTrail:undefined}/></DocumentBusinessProvider>,registry.host(panelId),registry.key(panelId)))}
