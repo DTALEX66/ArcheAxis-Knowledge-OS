@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { courseLearningTarget } from "../presentation/courseLearningTarget";
 import { coreCommand } from "../api/core";
 import { coreFailureReason } from "../presentation/labels";
 import { KnowledgeCoursePanel } from "../components/KnowledgeCoursePanel";
@@ -38,6 +39,8 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
   const [knowledgeId, setKnowledgeId] = useState<string>();
   const [knowledgeTitle, setKnowledgeTitle] = useState("");
   const [courseId, setCourseId] = useState<string>();
+  const [returnItemKey, setReturnItemKey] = useState<string>();
+  const [courseRead, setCourseRead] = useState(0);
   const [itemKey, setItemKey] = useState<string | undefined>(initialItemKey);
   const working = useOptionalCoreWorkingState();
   useEffect(() => {
@@ -79,15 +82,22 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
       const knowledge = record(await coreCommand("knowledge_get", { id: row.knowledge_id }));
       if (knowledge.knowledge_id !== row.knowledge_id || knowledge.status !== "accepted") throw new Error("course requires accepted knowledge");
       if (epoch === sourceEpoch.current) {
-        setKnowledgeId(row.knowledge_id); setKnowledgeTitle(row.head); setCourseId(undefined); setItemKey(undefined); setMessage("");
+        setReturnItemKey(undefined); setKnowledgeId(row.knowledge_id); setKnowledgeTitle(row.head); setCourseId(undefined); setItemKey(undefined); setMessage("");
         onOpenPage?.("07");
       }
     } catch (error) { if (epoch === sourceEpoch.current) { setMessage("此知识暂不能用于生成课程；普通笔记仍可保存，课程绑定条件单独核实。"); setFailure(coreFailureReason(error)); } }
     finally { if (epoch === sourceEpoch.current) setSearching(false); }
   }
   function chooseCourse(row: CourseRow) {
-    sourceEpoch.current++; setSearching(false); setKnowledgeId(undefined); setCourseId(row.manifest_id); setItemKey(undefined); setMessage(""); setFailure(null);
+    sourceEpoch.current++; setReturnItemKey(undefined); setSearching(false); setKnowledgeId(undefined); setCourseId(row.manifest_id); setItemKey(undefined); setMessage(""); setFailure(null);
     onOpenPage?.("07");
+  }
+  function returnCourse(key: string, knowledgeId: string, knowledgeVersion: string) {
+    const target = courseLearningTarget(key);
+    if (!target || !knowledgeId || knowledgeVersion !== knowledgeId) return;
+    sourceEpoch.current++; setSearching(false); setKnowledgeId(knowledgeId); setKnowledgeTitle("");
+    setCourseId(target.courseId); setReturnItemKey(key); setCourseRead(value => value + 1);
+    setMessage(""); setFailure(null); onOpenPage?.("07");
   }
   return <section className="ui-learning-journey" aria-label={pageId === "07" ? "课程与视觉教学" : "学习路径"}>
     <div className="ui-content-tabs"><button aria-pressed={pageId === "06"} onClick={() => onOpenPage?.("06")}>学习路径</button><button aria-pressed={pageId === "07"} onClick={() => onOpenPage?.("07")}>课程与课时</button></div>
@@ -105,8 +115,8 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
         <form className="ui-library-toolbar" onSubmit={event => { event.preventDefault(); void search(); }}><label>查找课程来源知识<input value={query} onChange={event => setQuery(event.target.value)} /></label><button disabled={searching}>搜索知识</button></form>
         {searched && !results.length ? <p>没有匹配的知识。可先去知识库保存内容，再独立整理课程来源。</p> : null}
         <ul aria-label="课程来源搜索结果">{results.map(row => <li key={row.knowledge_id}><button disabled={searching} onClick={() => void chooseKnowledge(row)}>{row.head}</button></li>)}</ul>
-        {courseId || knowledgeId ? <KnowledgeCoursePanel key={courseId ?? knowledgeId} courseId={courseId} knowledgeId={knowledgeId}
-          onCourseCreated={() => { void load(); }} onLearning={key => { setItemKey(key); onLearningItem?.(key); onOpenPage?.("06"); }} /> : null}
+        {courseId || knowledgeId ? <KnowledgeCoursePanel key={`${courseId ?? knowledgeId}:${courseRead}`} courseId={courseId} knowledgeId={knowledgeId} expectedItemKey={returnItemKey}
+          onCourseCreated={id => { setCourseId(id); void load(); }} onLearning={key => { setItemKey(key); onLearningItem?.(key); onOpenPage?.("06"); }} /> : null}
         {knowledgeId ? <p>课程来源：{knowledgeTitle}。生成不会改写原知识，也不会直接记录掌握。</p> : null}
         {message ? <p role="status">{message}</p> : null}{failure ? <p className="state-reason">{failure}</p> : null}
       </div>
@@ -118,6 +128,6 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
       </aside>
     </div>
     <div className="ui-content-tabs"><button disabled={!itemKey} onClick={()=>{if(itemKey){onLearningItem?.(itemKey);onOpenPage?.("11");}}}>练习此学习项目</button><button disabled={!itemKey} onClick={()=>{if(itemKey){onLearningItem?.(itemKey);onOpenPage?.("12");}}}>复习此学习项目</button></div>
-    {pageId === "06" || itemKey ? <div className="ui-content-panel ui-learning-review"><CanonicalLearningSpace onTrail={onTrail} initialItemKey={itemKey} onItemSelected={key=>{setItemKey(key);onLearningItem?.(key);}} /></div> : null}
+    {pageId === "06" || itemKey ? <div className="ui-content-panel ui-learning-review"><CanonicalLearningSpace onReturnCourse={returnCourse} onTrail={onTrail} initialItemKey={itemKey} onItemSelected={key=>{setItemKey(key);onLearningItem?.(key);}} /></div> : null}
   </section>;
 }

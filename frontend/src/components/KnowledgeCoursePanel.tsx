@@ -43,8 +43,8 @@ export function readCourse(value: unknown, knowledgeId?: string, expected?: Cour
 }
 function itemKey(course: Course): string { return `course:${course.id}:artifact:${course.artifactId}`; }
 
-export function KnowledgeCoursePanel({ knowledgeId, courseId, onCourseCreated, onLearning }: {
-  knowledgeId?: string; courseId?: string;
+export function KnowledgeCoursePanel({ knowledgeId, courseId, expectedItemKey, onCourseCreated, onLearning }: {
+  knowledgeId?: string; courseId?: string; expectedItemKey?: string;
   onCourseCreated?: (courseId: string) => void; onLearning?: (itemKey: string) => void;
 }) {
   const [course, setCourse] = useState<Course | null>(null);
@@ -69,7 +69,7 @@ export function KnowledgeCoursePanel({ knowledgeId, courseId, onCourseCreated, o
     try {
       const saved = readCourse(await coreCommand("course_get", { course_id: id }), knowledgeId, undefined, true);
       if (!current(request)) return;
-      if (saved.id !== id) throw new Error("stored course identity changed");
+      if (saved.id !== id || (expectedItemKey !== undefined && itemKey(saved) !== expectedItemKey)) throw new Error("stored course identity changed");
       if (saved.stale) {
         setCourse(saved); setMessage("来源绑定已失效：保留原课程与知识版本，仅供历史阅读。不会自动升级、渲染或建立新学习问题。");
         return;
@@ -84,7 +84,7 @@ export function KnowledgeCoursePanel({ knowledgeId, courseId, onCourseCreated, o
     setCourse(null);setLesson(null);setMessage("");setFailure(null);setBusy(false);
     if (courseId) void loadStored(courseId, request);
     return () => {epoch.current += 1;};
-  }, [knowledgeId, courseId]);
+  }, [knowledgeId, courseId, expectedItemKey]);
   async function generate() {
     if (busy || !knowledgeId) return;
     const request = ++epoch.current;
