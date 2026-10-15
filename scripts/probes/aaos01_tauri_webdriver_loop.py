@@ -23,6 +23,7 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 from aaos01_office_runtime_loop import REPO, identity, load
+from native_tcp_listeners import tcp_listener_rows
 
 
 class _GroupedJourneyCompleteError(Exception):
@@ -314,6 +315,21 @@ def wait_owned_descendant_drain(records, *, timeout=15.0, interval=.2,
         sleep(min(interval, deadline-now))
 
 
+def owned_cdp_listener_rows(cdp_port, owned, *, snapshot=None, observe=None):
+    """Verify loopback/ownership and recheck each listener's creation identity."""
+    snapshot = snapshot or native_process_rows
+    observe = observe or tcp_listener_rows
+    listeners = observe(ports=(cdp_port,))
+    indexed = {row["pid"]: row["created"] for row in owned}
+    if not listeners or any(row["LocalAddress"] not in ("127.0.0.1", "::1")
+                            or row["OwningProcess"] not in indexed for row in listeners):
+        raise RuntimeError("Unowned CDP listener")
+    after = {row["pid"]: row["created"] for row in snapshot()}
+    if any(after.get(row["OwningProcess"]) != indexed[row["OwningProcess"]] for row in listeners):
+        raise RuntimeError("CDP listener process creation identity changed during observation")
+    return listeners
+
+
 def owned_attach_diagnostics(root_pid, root_created, cdp_port, folders):
     """Owned metadata only; never persist complete command lines or environment."""
     rows = native_process_rows()
@@ -332,14 +348,14 @@ def owned_attach_diagnostics(root_pid, root_created, cdp_port, folders):
         "debug_port_matches=($cmd -match '--remote-debugging-port=" + str(cdp_port) + "(?:[^0-9]|$)'); "
         "debug_address_loopback=($cmd -match '--remote-debugging-address=127\\.0\\.0\\.1(?:[^0-9.]|$)'); "
         "has_user_data_dir=($cmd -match '--user-data-dir(?:=|\\s)') } }); "
-        "$listeners=@(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { "
-        "($_.LocalPort -eq " + str(cdp_port) + " -or $_.OwningProcess -in $ids) -and $_.LocalAddress -in @('127.0.0.1','::1') "
-        "} | Select-Object LocalAddress,LocalPort,OwningProcess); "
-        "@{processes=$processes; loopback_listeners=$listeners} | ConvertTo-Json -Depth 5 -Compress"
+        "@{processes=$processes} | ConvertTo-Json -Depth 5 -Compress"
     )
     result = subprocess.run(["powershell.exe", "-NoProfile", "-Command", script],
                             capture_output=True, text=True, encoding="utf-8", errors="replace", check=True, timeout=15)
     metadata = json.loads(result.stdout)
+    metadata["loopback_listeners"] = [row for row in tcp_listener_rows(
+        ports=(cdp_port,), pids=(row["pid"] for row in owned))
+        if row["LocalAddress"] in ("127.0.0.1", "::1")]
     after = {row["pid"]: row for row in native_process_rows()}
     if any(row["pid"] not in after or after[row["pid"]]["created"] != row["created"] for row in owned):
         raise RuntimeError("Owned attach process identity changed during metadata collection")
@@ -1433,11 +1449,7 @@ def main():
         owned = owned_process_rows(native_process_rows(), owned_host.pid)
         owned_host_records.extend(owned)
         owned_tree_collection_verified = True
-        query = subprocess.check_output(["powershell.exe", "-NoProfile", "-Command", f"@(Get-NetTCPConnection -State Listen -LocalPort {cdp_port} | Select-Object LocalAddress,OwningProcess) | ConvertTo-Json -Compress"], text=True, timeout=10)
-        listeners = json.loads(query)
-        if isinstance(listeners, dict):
-            listeners = [listeners]
-        assert listeners and all(item["LocalAddress"] in ("127.0.0.1", "::1") and item["OwningProcess"] in {row["pid"] for row in owned} for item in listeners), "Unowned CDP listener"
+        listeners = owned_cdp_listener_rows(cdp_port, owned)
         receipt["launch_attempts"][-1].update({"owned_processes":owned,"cdp_version":version["Browser"],"listeners":listeners,"listener_process_identities":[row for row in owned if row["pid"] in {item["OwningProcess"] for item in listeners}]})
         result = request("POST", "/session", {"capabilities":{"alwaysMatch":{"browserName":"webview2","unhandledPromptBehavior":"ignore","ms:edgeChromium":True,"ms:edgeOptions":{"debuggerAddress":f"127.0.0.1:{cdp_port}"}}}})
         session = result["sessionId"]
@@ -2080,12 +2092,7 @@ def main():
             if remaining:
                 raise RuntimeError("Owned host descendants remained after cleanup")
             receipt["owned_cleanup_readback_stage"] = "port_listeners"
-            query = subprocess.run(["powershell.exe", "-NoProfile", "-Command",
-                "@(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { $_.LocalPort -in @("
-                + ",".join(str(value) for value in attach_ports + [port, native])
-                + ") } | Select-Object LocalAddress,LocalPort,OwningProcess) | ConvertTo-Json -Compress"],
-                capture_output=True, text=True, check=True, timeout=15)
-            listeners = json.loads(query.stdout or "[]")
+            listeners = tcp_listener_rows(ports=attach_ports + [port, native])
             receipt["remaining_owned_port_listeners"] = listeners
             if listeners:
                 raise RuntimeError("Owned attach/driver ports remained listening after cleanup")

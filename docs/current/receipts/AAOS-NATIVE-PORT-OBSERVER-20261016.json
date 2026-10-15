@@ -1,0 +1,45 @@
+{
+  "schema": "archeaxis.native-port-observer-receipt/v1",
+  "observed_date": "2026-10-16",
+  "status": "LOCAL_PASS; CI_AND_INSTALLED_JOURNEY_UNVERIFIED",
+  "source_base": "e21552577c6b1535d7698b3029f611a15d6c5142",
+  "change": "Replace all three Get-NetTCPConnection listener queries in the WebDriver probe with read-only IP Helper IPv4/IPv6 OWNER_PID_LISTENER observations. Preserve loopback, owning PID, process creation and cleanup guards.",
+  "failure_evidence": {
+    "ci_run": 38790450859,
+    "job": 116620498519,
+    "workflow_head": "6bee1d88",
+    "tested_merge_candidate": "9ad43f8de8213606cc06d9a61d9cdf6620f9e2ee",
+    "observation": "CDP version available; PowerShell Get-NetTCPConnection launch check timed out after 10 seconds before journey steps. Final owned-process and listener cleanup was empty. This does not establish a product behavior failure."
+  },
+  "api_contract": {
+    "api": "iphlpapi.dll!GetExtendedTcpTable",
+    "table_class": "TCP_TABLE_OWNER_PID_LISTENER (3)",
+    "families": ["AF_INET (2)", "AF_INET6 (23)"],
+    "abi": "32-bit DWORD; IPv4 row 24 bytes; IPv6 row 56 bytes; table row offset from ctypes structure alignment",
+    "bounds": "At most four calls per family, 16 MiB table allocation; reject API errors, invalid growth, returned-size/count boundary violations and non-LISTEN rows. No partial-family success or unknown-as-empty fallback.",
+    "latency_boundary": "Eliminates PowerShell/CIM startup. Retry count and allocation are bounded; a synchronous Windows API call has no independent wall-clock cancellation guarantee.",
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/iphlpapi/nf-iphlpapi-getextendedtcptable",
+      "https://learn.microsoft.com/en-us/windows/win32/api/tcpmib/ns-tcpmib-mib_tcprow_owner_pid",
+      "https://learn.microsoft.com/en-us/windows/win32/api/tcpmib/ns-tcpmib-mib_tcp6row_owner_pid",
+      "https://learn.microsoft.com/en-us/windows/win32/api/tcpmib/ns-tcpmib-mib_tcptable_owner_pid",
+      "https://learn.microsoft.com/en-us/windows/win32/api/tcpmib/ns-tcpmib-mib_tcp6table_owner_pid"
+    ]
+  },
+  "validation": {
+    "canonical_launcher": "scripts/runtime/dev.py --require-worktree <task-worktree> --run-id native-port-observer-20261016 --pytest tests/test_native_tcp_listeners.py tests/test_native_owned_descendant_drain.py tests/test_native_exit_ack.py -q",
+    "execution_receipt": ".project-local/runs/564a680512/native-port-observer-20261016/artifacts/execution.json",
+    "result": "56 passed in 0.33s; exit 0; source_consistent true",
+    "tested_dirty_patch_sha256": "52f694550810ed8e8de8a9ba5494e86b0759533c37b10e8bac19c8e5a8d87971",
+    "synthetic": "API errors in both families, growth/retry bounds, malformed tables and counts, ABI layout, two-family target filtering, wildcard/unowned/recycled PID rejection and exception propagation",
+    "real": "Windows self-owned temporary IPv4 127.0.0.1 and IPv6 ::1 sockets: listener appears with exact address/port/current PID, then disappears after close. Both real tests ran without skip.",
+    "lint": "NOT_EXECUTED_AT_THIS_RECEIPT; git diff --check PASS",
+    "qualification_boundary": "Local probe/helper regression only. No native rebuild, product launch, installed journey, cloud CI, Owner-machine/Green qualification, commit or push performed by this task."
+  },
+  "tested_files_sha256": {
+    "scripts/probes/aaos01_tauri_webdriver_loop.py": "423ba48f9dfaae93c40232f8925d12ed321af6e52e3fc180e66edb4c7e5f7494",
+    "scripts/probes/native_tcp_listeners.py": "ca30b0e3b672dae47670cacd12ab3d65e556c3adfa3b7f124c5dcd86352b36e8",
+    "tests/test_native_tcp_listeners.py": "36163cf8677743c7e5d710c1b387efdc1f1c4a8c274d685b4487a347bf476e4d"
+  },
+  "rollback": "Revert the three probe replacements and remove the dedicated helper, test and this receipt as one scoped change."
+}
