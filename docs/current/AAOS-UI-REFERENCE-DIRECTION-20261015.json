@@ -87,11 +87,17 @@
   },
   "status": "RUNNING_BY_OWNER / PARTIAL",
   "remaining_visual_work": [
-    "Full reference reader geometry and horizontal metadata rows",
+    "Full seven-reference comparison and final reader spacing/material acceptance; current reader two-column geometry and horizontal metadata rows are implemented.",
     "Alternate top-menu reference layout and other non-character taskpack pages",
     "Current candidate native/installed and Owner visual acceptance"
   ],
   "authority_of_scope": "CURRENT_EXPLICIT_OWNER_REQUEST",
   "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
-  "progress_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+  "progress_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "latest_reader_observation": {
+    "date": "2026-10-16",
+    "receipt": "docs/current/receipts/AAOS-READER-RESPONSIVE-20261016.json",
+    "implemented": "Full background/inset shell, reader two columns/horizontal metadata, retained narrow Inspector and non-overlapping small header",
+    "acceptance": "PARTIAL; controlled browser fixture and reference-size inspection, not full visual or native acceptance"
+  }
 }
