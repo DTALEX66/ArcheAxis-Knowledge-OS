@@ -1,6 +1,6 @@
 import { webcrypto } from "node:crypto";
 import { beforeEach, expect, it, vi } from "vitest";
-import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, act, within } from "@testing-library/react";
 import { CanonicalRelationSpace } from "../spaces/CanonicalRelationSpace";
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
@@ -22,6 +22,41 @@ beforeEach(() => { vi.stubGlobal("crypto", webcrypto); docs = new Map([['doc_a',
 async function open(id = 'doc_a') { fireEvent.click(await screen.findByRole('button', { name: new RegExp('^' + id + ' ·') })); await screen.findByText(/关系投影已读取/); }
 function add(label = 'NEW') { fireEvent.change(screen.getByLabelText('关系说明'), { target: { value: label } }); fireEvent.change(screen.getByLabelText('目标对象ID'), { target: { value: 'doc_b' } }); fireEvent.change(screen.getByLabelText('固定目标版本'), { target: { value: '3' } }); fireEvent.click(screen.getByRole('button', { name: '加入关系草稿' })); }
 it('graph and fallback list retain exact pinned target despite current target version5', async () => { const jump = vi.fn(); render(<CanonicalRelationSpace onOpenDocument={jump}/>); await open(); fireEvent.click(screen.getByRole('button', { name: '图形不可用，切换列表' })); expect(screen.queryByLabelText('同版本关系图')).toBeNull(); fireEvent.click(screen.getByRole('button', { name: /打开固定对象 doc_b/ })); expect(jump).toHaveBeenCalledWith('doc_b', 3, 'old_block'); expect(bridge.call).toHaveBeenCalledWith('document_graph', { document_id: 'doc_a', version: 1 }); });
+it('filters the loaded graph and list together without changing pinned references or writing documents', async () => {
+  const call = bridge.call.getMockImplementation()!, jump = vi.fn();
+  bridge.call.mockImplementation(async (op: string, p: J) => {
+    const result = await call(op, p);
+    if (op === 'document_graph') {
+      result.nodes.push({ key: 'source', reference: { kind: 'source', source_id: 'source_1', sha256: 'c'.repeat(64) }, status: 'resolved', object: {} });
+      result.edges.push({ ...result.edges[0], id: 'source_edge', to: 'source', relation: { id: 'source_relation', kind: 'related', label: '原件材料', target: result.nodes[2].reference } });
+      result.edges.push({ ...result.edges[0], id: 'backlink_edge', from: 'b', to: 'a', direction: 'backlink', source_snapshot: { document_id: 'doc_b', version: 3, content_sha256: 'a'.repeat(64) }, relation: { id: 'backlink_relation', kind: 'contradicts', label: '反向反证', target: result.nodes[0].reference } });
+    }
+    return result;
+  });
+  render(<CanonicalRelationSpace onOpenReference={jump}/>); await open();
+  const list = screen.getByRole('list', { name: '同版本关系列表' });
+  expect(within(list).getAllByRole('listitem')).toHaveLength(3);
+  fireEvent.change(screen.getByLabelText('筛选关系方向'), { target: { value: 'backlink' } });
+  expect(within(list).getAllByRole('listitem')).toHaveLength(1);
+  expect(list).toHaveTextContent('反向反证');
+  expect(screen.getByLabelText('同版本关系图').querySelectorAll('[data-relation-edge]')).toHaveLength(1);
+  fireEvent.click(within(list).getByRole('button', { name: /打开固定对象 doc_b/ }));
+  expect(jump).toHaveBeenLastCalledWith(target);
+  fireEvent.change(screen.getByLabelText('筛选关联对象类型'), { target: { value: 'source' } });
+  expect(screen.getByText(/当前筛选没有匹配关系/)).toBeVisible();
+  expect(screen.queryByText('此页没有关系记录；仅限上述扫描范围。')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: '重置关系筛选' }));
+  fireEvent.change(screen.getByLabelText('筛选关系类型'), { target: { value: 'related' } });
+  fireEvent.change(screen.getByLabelText('筛选关联对象类型'), { target: { value: 'source' } });
+  expect(within(list).getAllByRole('listitem')).toHaveLength(1);
+  expect(list).toHaveTextContent('原件材料');
+  fireEvent.click(within(list).getByRole('button', { name: /打开固定对象 source_1/ }));
+  expect(jump).toHaveBeenLastCalledWith({ kind: 'source', source_id: 'source_1', sha256: 'c'.repeat(64) });
+  fireEvent.click(screen.getByRole('button', { name: '重置关系筛选' }));
+  expect(within(list).getAllByRole('listitem')).toHaveLength(3);
+  expect(writes).toHaveLength(0);
+  expect(bridge.call.mock.calls.filter(args => args[0] === 'document_graph')).toHaveLength(1);
+});
 it('incomplete scans cannot become a claim that the whole library has no relations', async () => { incomplete = true; const call = bridge.call.getMockImplementation()!; bridge.call.mockImplementation(async (op: string, p: J) => { const r = await call(op, p); if (op === 'document_graph') r.edges = []; return r; }); render(<CanonicalRelationSpace onOpenDocument={vi.fn()}/>); await open(); expect(screen.getByText(/扫描尚未完成，不能断言全库无关系/)).toBeVisible(); expect(screen.getByText('此页没有关系记录；仅限上述扫描范围。')).toBeVisible(); fireEvent.click(screen.getByRole('button', { name: '读取下一页反链' })); await waitFor(() => expect(bridge.call).toHaveBeenCalledWith('document_graph', { document_id: 'doc_a', version: 1, cursor: 'source20' })); });
 it('preserves unknown envelope, body and stable block IDs on relation-only save', async () => { const prior = structuredClone(docs.get('doc_a')!.editor_json); render(<CanonicalRelationSpace onOpenDocument={vi.fn()}/>); await open(); add(); fireEvent.click(screen.getByRole('button', { name: '保存关系草稿' })); await screen.findByText('关系已保存并读回核对。'); expect(writes[0].body.expected_version).toBe(1); expect(writes[0].body.editor_json.content).toEqual(prior.content); expect(writes[0].body.editor_json.attrs.unknown).toEqual(prior.attrs.unknown); expect(writes[0].body.editor_json.attrs.archeaxis_relations.relations[0].target).toEqual({ kind: 'document', document_id: 'doc_b', version: 3 }); });
 it('first-create lost acknowledgement retries frozen key/payload and preserves later editing', async () => { const call = bridge.call.getMockImplementation()!; let lost = true; bridge.call.mockImplementation(async (op: string, p: J) => { const r = await call(op, p); if (op === 'document_create' && lost) { lost = false; throw new Error('response lost'); } return r; }); render(<CanonicalRelationSpace onOpenDocument={vi.fn()}/>); add('FIRST'); fireEvent.click(screen.getByRole('button', { name: '保存关系草稿' })); await screen.findByRole('alert'); add('LATER'); fireEvent.click(screen.getByRole('button', { name: '重试冻结保存' })); await screen.findByText('已保存发送时的版本；随后编辑仍是未保存草稿。'); expect(writes).toHaveLength(2); expect(writes[0]).toEqual(writes[1]); expect(docs.size).toBe(3); expect(screen.getByLabelText('关系草稿')).toHaveTextContent('LATER'); });
