@@ -1,0 +1,212 @@
+{
+  "schema": "archeaxis.learning-draft-native-execution/v1",
+  "date": "2026-10-15",
+  "overall": "PARTIAL",
+  "implemented_learner_fields": "PASS_REAL_NATIVE_SYNTHETIC_MATERIAL",
+  "probe_base_commit_local": "4fc9006a; integration mapping pending",
+  "probe_source_patch_sha256": "42cd8a095f7da2946b7638aa5e51a3190ebee468df43f6319acd022e219dd48c",
+  "code_files_sha256": [
+    {
+      "path": "scripts/probes/aaos01_grouped_owner_loop.py",
+      "sha256": "be07768240f8385055390d503867299f955e961b6ebb9568051a5df95239902b"
+    },
+    {
+      "path": "scripts/probes/aaos01_learning_draft_recovery.py",
+      "sha256": "17c7ec9036a70fbd1047a0b98a8aef326b3798a1cb228a0c55afbb6665c324e0"
+    },
+    {
+      "path": "tests/test_learning_draft_native_probe.py",
+      "sha256": "90dc969b8c56b183d3390e3f4805d0ed8192538cdd5bf43ff9b89e806c3b60b9"
+    }
+  ],
+  "candidate": {
+    "source_commit": "e980f5b865b0b92f5340efdb190ed4328cf71b5c",
+    "source_patch_sha256": "6e028a09850ce74da1c7b535aa8da1dcba6913eeb055604b7000cbc9c3da2580",
+    "binding": {
+      "path": ".project-local/runs/ba8e5e5614/glass-loop-candidate2-1015/artifacts/native-build-binding.json",
+      "sha256": "c15cf7e83c1a26e613b82ce62c8b6ae3bca14a2ffaafe5f3e6afef67ac65289b"
+    },
+    "host_sha256": "9ec481de34a5ab5bd6db36731d1f170a37373c90a29441e5c4addbfbbf563dc5",
+    "core_sha256": "f59026b158bd91250b26cfa06c0af82ca2bb2ee62262dad9fb5c90060ec23194",
+    "host_and_core_rehashed": "PASS",
+    "unchanged_product_files": [
+      {
+        "path": "crates/archeaxis-api/src/ui_state.rs",
+        "sha256": "a4f05936e0ff35ebce336900cf9bcc28faf3a2f91dcddae4e84498ec1500ac1b"
+      },
+      {
+        "path": "crates/archeaxis-domain/src/ui_state.rs",
+        "sha256": "2fb74de862936e85948abadac8ce1ab49f2d99a109504bb90b3ae2c5bb131ccc"
+      },
+      {
+        "path": "frontend/src/api/generated/ui-working-state-contract.ts",
+        "sha256": "b1b691fc13be25bd0851c4e08bb3f129f08016e99a2cddf732609ee0ee14422a"
+      },
+      {
+        "path": "frontend/src/presentation/coreWorkingState.ts",
+        "sha256": "fa3979e8b6a7df805c8aad60ece65c68af3ca23c3fb6c535a82fb5eb9c79fc60"
+      },
+      {
+        "path": "frontend/src/presentation/useCoreWorkingState.tsx",
+        "sha256": "0cc4b572bc5dd2a3041933abd8f0cccbbf1eeca9ac2b022db1d554cc6924cf0b"
+      },
+      {
+        "path": "packages/contracts/v2/ui-working-state.schema.json",
+        "sha256": "6ffceed378b093aa051e02b721286997a3dfb950fffc1379193c6a014f3a92d4"
+      },
+      {
+        "path": "frontend/src/spaces/CanonicalLearningSpace.tsx",
+        "sha256": "b16b432e15b822566cf48a5929e35629ac2948696f82869279dc93edaa55504a"
+      },
+      {
+        "path": "frontend/src/spaces/CanonicalLearningJourneySpace.tsx",
+        "sha256": "8a99704cdc374018288abe19712510ea16484b6878399ee2f8828b6fc627343b"
+      },
+      {
+        "path": "frontend/src/spaces/CanonicalTeachingSpace.tsx",
+        "sha256": "7e452aa784e7e18b76543fd213ad98d77d28ba3845b8b397ac646b6167d458ed"
+      },
+      {
+        "path": "frontend/src/app/App.tsx",
+        "sha256": "78094fb053e5112185789ed05e51851e276946f4e0c8ac579e8b9bf0e6643967"
+      }
+    ],
+    "native_harness_compiled_binding": {
+      "status": "UNVERIFIED",
+      "reason": "Candidate build binding not supplied; installation is qualified only by its parent verifier"
+    },
+    "qualification": "Existing e980f5b native candidate only; not exact 4fc9006a whole-tree native qualification. Candidate and probe identities are distinct."
+  },
+  "evidence": {
+    "native": {
+      "path": ".project-local/runs/4e215f9ac8/webdriver-04f3cf05f768/tmp/journey/receipt.json",
+      "sha256": "65fa80cd7a50c809348c9348f9b7d00f4a2cd5889fd837362caed44cd04ae807",
+      "execution": {
+        "path": ".project-local/runs/4e215f9ac8/learning-native-run4-1015/artifacts/execution.json",
+        "sha256": "d0022f6f5de86e6289ad8359aeb0e9260a1ee1c217c65cfd4b6a92370dd658cb"
+      },
+      "source_consistent": true,
+      "seconds": 26.24443130000145,
+      "fixture_setup": "Canonical Core API synthetic source/text/knowledge/assessment creation; not UI setup or Owner acceptance",
+      "tested_actions": "Trusted WebDriver learner edits, normal product exit, fresh host launch, explicit draft selection, learner submission",
+      "cold_restarts": 3,
+      "normal_exit_application_acknowledgements": 4,
+      "host_shutdowns": [
+        {
+          "pid": 26648,
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 17236,
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 7704,
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 7640,
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        }
+      ],
+      "owned_ports_released": true,
+      "remaining_owned_hosts": [],
+      "remaining_owned_listeners": []
+    },
+    "targeted_tests": {
+      "path": ".project-local/runs/4e215f9ac8/learning-native-unit4-1015/artifacts/execution.json",
+      "sha256": "35b3c4d49fa3b26d396eadeab728d349637a2f7b4cdb504d7edac0abb6aadea4",
+      "status": "PASS",
+      "passed": 43,
+      "subtests_passed": 147,
+      "scope": [
+        "test_learning_draft_native_probe.py",
+        "test_grouped_native_owner_probe.py"
+      ],
+      "evidence_level": "SIMULATED"
+    },
+    "ruff_E9_F63_F7_F82": "PASS",
+    "diff_whitespace": "PASS",
+    "changed_file_conventions": "PASS",
+    "readonly_review": {
+      "reviewer": "root",
+      "status": "PASS_NO_BLOCKER",
+      "scope": "Mode conflicts, canonical fixture setup, persisted journal identity, visible fields, exact submission cleanup and different source preservation"
+    }
+  },
+  "coverage": [
+    "Raw answer including leading spaces and trailing line breaks survives normal exit and cold restart.",
+    "Unrevealed practice fields remain answer_revealed=false, checked_correct=null and rating=null.",
+    "Review fields recover answer_revealed=true, checked_correct=true, rating=3 and the exact raw answer.",
+    "Workspace/restore epoch and assessment/item/knowledge/source/anchor identity remain fixed across restarts.",
+    "Before explicit review submit, pending_reviews stays empty and review history is unchanged.",
+    "Formal UI submission adds exactly one review event with normalized answer and the original assessment/knowledge binding.",
+    "Only the submitted draft is removed; a different source draft remains byte-exact and editable after another cold restart."
+  ],
+  "nonpassing_attempts": [
+    {
+      "kind": "EXISTING_GROUPED_PRECONDITION_PRODUCT_PATH_FAILURE",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/webdriver-5dc65b2eddcb/tmp/journey/receipt.json",
+        "sha256": "d505ee571a2ac48346047011de7c2816bac2e01bf981f9f7c30380c23b3a702e"
+      },
+      "description": "FolderIngest successful source navigation reached page03 with no same-source reader; BE09 code had not executed. Preserved for independent product investigation; default assertions unchanged."
+    },
+    {
+      "kind": "PROBE_ASYNC_NAVIGATION_PROMPT_HANDLING",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/webdriver-46d605dc45fb/tmp/journey/receipt.json",
+        "sha256": "c8815ca6c3268d2253da560315e67e232f0905e642f47612f922e1a4713c42b9"
+      }
+    },
+    {
+      "kind": "PROBE_ASYNC_NAVIGATION_PROMPT_HANDLING",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/webdriver-a3fd6179fab0/tmp/journey/receipt.json",
+        "sha256": "43aab28e8485735cd2fde926e1563c7aa81402385e9966f3ce2d14e6a5a94233"
+      },
+      "resolution": "Recognize only unexpected-alert protocol failure, use harness exact-text native confirmation, retry observation without replaying the click."
+    }
+  ],
+  "reproduce": {
+    "working_directory": ".project-local/worktrees/learning-drafts-20261015",
+    "environment": {
+      "AAOS01_LEARNING_DRAFT_ONLY": "1",
+      "PYTHONUTF8": "1"
+    },
+    "launcher": "scripts/runtime/dev.py --run-id <fresh-id> -- <existing-python> -B",
+    "command": [
+      "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/build/ba8e5e5614/validation-venv/Scripts/python.exe",
+      "-B",
+      "scripts/probes/aaos01_tauri_webdriver_loop.py",
+      "--host",
+      "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/build/ba8e5e5614/glass-loop-candidate2-1015/ArcheAxis.exe",
+      "--driver",
+      "D:/All projects/OS External Configuration/10-toolchains/tauri-driver/bin/tauri-driver.exe",
+      "--native-driver",
+      "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/ba8e5e5614/mem-driver155/tmp/msedgedriver.exe",
+      "--grouped-common-owner-loop"
+    ],
+    "output_routing": "dev.layout creates a fresh isolated webdriver run; do not reuse run identifiers. No --actual-model, installer, or fault flags."
+  },
+  "boundaries": {
+    "teach_back_summary_and_feedback_body_drafts": "NOT_IMPLEMENTED_NOT_QUALIFIED; next product slice",
+    "optional_question_version": "No current native assessment value; covered by existing contract/unit layer only",
+    "abrupt_kill_or_power_loss": "NOT_EXECUTED",
+    "model_calls": "NOT_EXECUTED",
+    "owner_acceptance": "NOT_EXECUTED",
+    "installed_owner_environment": "NOT_EXECUTED",
+    "cloud_ci": "NOT_EXECUTED_FOR_THIS_COMMIT",
+    "default_grouped_navigation": "Separate original product failure retained; this focused mode does not qualify that route",
+    "release_green_replacement": "NOT_EXECUTED"
+  },
+  "rollback": "Revert this isolated probe-only commit; no product data or runtime source change."
+}

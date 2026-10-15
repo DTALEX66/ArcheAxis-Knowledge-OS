@@ -10,6 +10,7 @@ import base64
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import time
 import uuid
@@ -779,6 +780,13 @@ def run_grouped_loop(
     selected_max_tokens=None,
     accept_navigation_alert=None,
 ):
+    if os.environ.get("AAOS01_LEARNING_DRAFT_ONLY") == "1":
+        if any((run_ai, authored_intervention, require_actual_ai_loop, review_ack_loss, multi_review_ack_loss, machine_ack_loss, machine_cancel, closure_features)):
+            raise ValueError("Learning draft isolation forbids model, ACK injection, and other journey modes")
+        helper = _read_module("aaos_learning_draft_recovery", Path(__file__).with_name("aaos01_learning_draft_recovery.py"))
+        result = report if report is not None else {}
+        ui = GroupedUI(js, wait, element, command, result.setdefault("actions", []), accept_navigation_alert)
+        return helper.run(ui=ui, bridge=bridge, read=readonly_bridge(bridge), js=js, wait=wait, restart=restart, poll=poll, screenshot=screenshot, report=result)
     read = readonly_bridge(bridge)
     result = report if report is not None else {}
     result.update(
