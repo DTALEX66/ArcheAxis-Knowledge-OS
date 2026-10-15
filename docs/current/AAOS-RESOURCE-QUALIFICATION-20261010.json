@@ -373,7 +373,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
+              "sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
             }
           ]
         },
@@ -596,7 +596,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276"
+              "sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
             }
           ]
         },
@@ -7939,5 +7939,9 @@
   "source_contract_rebind_20261015": {
     "scope": "Source definitions only; runtime and installed qualifications unchanged",
     "receipt": "docs/current/receipts/AAOS-DOCUMENT-CONTRACT-SOURCE-REFRESH-20261015.json"
+  },
+  "plan_contract_rebind_20261015": {
+    "scope": "Source definitions only; runtime and installed qualifications unchanged",
+    "receipt": "docs/current/receipts/AAOS-PLAN-CONTRACT-SOURCE-REFRESH-20261015.json"
   }
 }

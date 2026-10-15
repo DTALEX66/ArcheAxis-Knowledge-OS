@@ -131,6 +131,13 @@ pub fn validate(c: &Configuration) -> rusqlite::Result<()> {
     }
     Ok(())
 }
+/// Read on the serialized Store connection without lazily creating workspace identity.
+pub fn read_only(conn: &Connection) -> rusqlite::Result<Configuration> {
+    crate::ui_state::existing_workspace_id(conn)
+        .map_err(|_| invalid())?
+        .ok_or_else(invalid)?;
+    read(conn)
+}
 pub fn read(conn: &Connection) -> rusqlite::Result<Configuration> {
     let size: Option<i64> = conn
         .query_row(

@@ -34,6 +34,7 @@ pub mod vault_members;
 pub use source::ImportOutcome;
 pub mod portable_document;
 
+pub mod configuration_plans;
 pub mod material_question;
 pub mod model_configuration;
 

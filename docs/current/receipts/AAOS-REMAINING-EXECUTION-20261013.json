@@ -73,7 +73,8 @@
       ],
       "state": "PARTIAL_INTEGRATED",
       "implementation_evidence": [
-        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json"
       ],
       "dependencies": [
         "BE00"
@@ -189,7 +190,8 @@
       ],
       "state": "PARTIAL_INTEGRATED",
       "implementation_evidence": [
-        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json"
       ],
       "dependencies": [
         "BE01"
@@ -338,8 +340,10 @@
         "不以演示进度冒充安装，不把所有候选自动装进电脑。",
         "安装或更新动作如实际执行必须绑定正式计划与授权回执。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json"
+      ],
       "dependencies": [
         "BE01",
         "BE07"
@@ -353,15 +357,20 @@
         "tests/",
         "docs/"
       ],
-      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
-      "tests": [],
+      "consumer_scope": "Formal UI19 configuration and read-only plans; independent UI donor untouched.",
+      "tests": [
+        "crates/archeaxis-api/tests/configuration_plans_api.rs",
+        "crates/archeaxis-domain/tests/configuration_plans.rs",
+        "frontend/src/__tests__/ConfigurationPlanPanel.test.tsx",
+        "scripts/probes/aaos01_configuration_plan_loop.py"
+      ],
       "acceptance": [
         "不以演示进度冒充安装，不把所有候选自动装进电脑。",
         "安装或更新动作如实际执行必须绑定正式计划与授权回执。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Current local read-only plans and cold restart passed. Remote-service/dependency-change/installer diagnostics and full joint acceptance remain incomplete; no installation engine execution is claimed.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -1037,5 +1046,10 @@
     "quick_run": "closure-final-quick-final-20261014",
     "historical_failure": "Original readiness no-spawn assertion failed; permission readback fixed to declared Store state with enable+disable no-spawn regression. Earlier quick path/encoding/source-projection failures retained in ignored run receipts.",
     "browser": "Full actual Chromium1228/current Vite smoke PASS, 13viewports/5themes/0errors/0canonicalproblems; simulated host fixtures only"
+  },
+  "configuration_plans_20261015": {
+    "state": "PARTIAL_INTEGRATED",
+    "receipt": "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json",
+    "next_product_gap": "BE09 ordinary exercise answers lack durable drafts before review submission."
   }
 }

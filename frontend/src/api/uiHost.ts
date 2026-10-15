@@ -1,7 +1,7 @@
 // Finite v2 native host calls. A request ID is correlation only; no automatic retry.
 import { coreCommand } from "./core";
 import { ApiError } from "./client";
-import { assertCoreDto, type MachineConfigurationDto, type MachineInventoryDto } from "./generated/core-contract";
+import { assertCoreDto, type ConfigurationPlanCatalog, type MachineConfigurationDto, type MachineInventoryDto } from "./generated/core-contract";
 import { UI_HOST_CONTRACT_DIGEST, assertUiHostRequest, assertUiHostResponse, type UiHostOperation, type UiHostRequest } from "./generated/ui-host-contract";
 
 export async function uiHostRead(operation: UiHostOperation): Promise<Record<string, unknown>> {
@@ -15,6 +15,11 @@ export async function uiHostRead(operation: UiHostOperation): Promise<Record<str
   assertUiHostResponse(reply, request);
   if(reply.outcome!=="READ_OK") throw new ApiError(reply.core_status??503, `宿主接口未完成：${reply.reason_code}。`, reply.outcome==="REJECTED"?"unauthorized":"unavailable");
   const body = reply.result_ref!;
+  if(operation==="configuration.plan.read" || operation==="deployment.plan.read") {
+    const plans=assertCoreDto<ConfigurationPlanCatalog>("ConfigurationPlanCatalog",body);
+    if(plans.workspace_id!==request.workspace_id || plans.restore_epoch!==request.restore_epoch) throw new Error("HOST_PLAN_IDENTITY_CHANGED");
+    return plans;
+  }
   if(operation==="model.configuration.read") return assertCoreDto<MachineConfigurationDto>("MachineConfigurationDto",body);
   if(operation==="model.inventory.read") return assertCoreDto<MachineInventoryDto>("MachineInventoryDto",body);
   if(operation==="capability.catalog.read") {
@@ -26,3 +31,5 @@ export async function uiHostRead(operation: UiHostOperation): Promise<Record<str
 export const readHostCapabilityCatalog = () => uiHostRead("capability.catalog.read");
 export const readHostModelInventory = () => uiHostRead("model.inventory.read");
 export const readHostModelConfiguration = () => uiHostRead("model.configuration.read");
+
+export const readHostConfigurationPlans = async (): Promise<ConfigurationPlanCatalog> => assertCoreDto<ConfigurationPlanCatalog>("ConfigurationPlanCatalog", await uiHostRead("configuration.plan.read"));

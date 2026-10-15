@@ -170,11 +170,15 @@ fn meta(conn: &Connection, key: &str) -> Result<Option<String>, Error> {
         )
         .optional()?)
 }
+pub fn existing_workspace_id(conn: &Connection) -> Result<Option<String>, Error> {
+    let id = meta(conn, ID_KEY)?;
+    if id.as_ref().is_some_and(|id| !hex32(id)) {
+        return Err(Error::Invalid("corrupt UI workspace identity"));
+    }
+    Ok(id)
+}
 pub fn workspace_id(conn: &Connection) -> Result<String, Error> {
-    if let Some(id) = meta(conn, ID_KEY)? {
-        if !hex32(&id) {
-            return Err(Error::Invalid("corrupt UI workspace identity"));
-        }
+    if let Some(id) = existing_workspace_id(conn)? {
         return Ok(id);
     }
     conn.execute(

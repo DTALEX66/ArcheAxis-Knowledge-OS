@@ -2,8 +2,8 @@
 #[path = "../../crates/archeaxis-contracts/src/generated/ui_host.rs"]
 pub mod contract;
 use crate::core_bridge;
-use contract::{Outcome, Request, Response, CONTRACT_DIGEST};
-use serde_json::{json, Value};
+use contract::{CONTRACT_DIGEST, Outcome, Request, Response};
+use serde_json::{Value, json};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub fn reply(
@@ -103,7 +103,12 @@ fn valid_result(request: &Request, body: &Value) -> bool {
         _ => return false,
     };
     if let Some(schema) = schemas.get(&operation) {
-        return schema_matches(schema, body);
+        let identity_matches = !matches!(
+            request.operation,
+            contract::Operation::ConfigurationPlanRead | contract::Operation::DeploymentPlanRead
+        ) || (body["workspace_id"] == request.workspace_id
+            && body["restore_epoch"] == request.restore_epoch);
+        return identity_matches && schema_matches(schema, body);
     }
     match request.operation {
         contract::Operation::CapabilityCatalogRead => {
@@ -191,6 +196,11 @@ fn schema_matches(schema: &Value, value: &Value) -> bool {
                         "^[^\\u0000-\\u001f\\u007f]+$" => {
                             !s.is_empty() && s.chars().all(|c| c > '\u{001f}' && c != '\u{007f}')
                         }
+                        "^[0-9a-f]{64}$" => {
+                            s.len() == 64
+                                && s.bytes()
+                                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                        }
                         _ => false,
                     })
         }),
@@ -216,6 +226,8 @@ mod tests {
             ("capability.catalog.read", "capabilities_list"),
             ("model.configuration.read", "machine_configuration"),
             ("model.inventory.read", "machine_inventory"),
+            ("configuration.plan.read", "configuration_plans_read"),
+            ("deployment.plan.read", "configuration_plans_read"),
         ] {
             let req = request(operation);
             let mapped = mapped(&req).unwrap().unwrap();
@@ -297,5 +309,49 @@ mod tests {
             .outcome,
             Outcome::Unknown
         );
+    }
+
+    #[test]
+    fn plans_do_not_admit_execution_side_effects_grants_or_stale_workspace_identity() {
+        let body = json!({"schema":"archeaxis.configuration-plans/v1","workspace_id":"a".repeat(32),"restore_epoch":"initial","configuration_revision":0,"configuration_sha256":"b".repeat(64),"modules":[],"plans":[],"remote_service_support":"UNSUPPORTED_BY_CURRENT_LOOPBACK_CONTRACT","installer_available":false,"requires_formal_plan_and_grant":true,"execution_grant":null,"network_performed":false,"storage_changed":false,"worker_started":false});
+        for operation in ["configuration.plan.read", "deployment.plan.read"] {
+            let req = request(operation);
+            assert_eq!(
+                project(
+                    &req,
+                    Ok(core_bridge::Reply {
+                        status: 200,
+                        body: body.clone()
+                    })
+                )
+                .outcome,
+                Outcome::ReadOk
+            );
+            for (field, value) in [
+                ("execution_grant", json!("synthetic-grant")),
+                ("installer_available", json!(true)),
+                ("network_performed", json!(true)),
+                ("storage_changed", json!(true)),
+                ("worker_started", json!(true)),
+                ("configuration_sha256", json!("Z".repeat(64))),
+                ("workspace_id", json!("c".repeat(32))),
+                ("restore_epoch", json!("c".repeat(32))),
+            ] {
+                let mut invalid = body.clone();
+                invalid[field] = value;
+                assert_eq!(
+                    project(
+                        &req,
+                        Ok(core_bridge::Reply {
+                            status: 200,
+                            body: invalid
+                        })
+                    )
+                    .outcome,
+                    Outcome::Unknown,
+                    "{field}"
+                );
+            }
+        }
     }
 }
