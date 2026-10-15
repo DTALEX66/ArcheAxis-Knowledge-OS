@@ -1,0 +1,107 @@
+{
+  "schema": "archeaxis.legacy-run-migration-executed/v1",
+  "date": "2026-10-15",
+  "state": "PASS_BOUNDED_BATCH",
+  "authorization": "Current Owner request explicitly includes audited cleanup, archive, migration and deletion during execution",
+  "scope": "Five exact ignored project-owned historical paths; no source checkout edits, original taskpack deletion or external-project access",
+  "prior_plan": "docs/current/receipts/AAOS-LEGACY-RUN-MIGRATION-PLAN-20261015.json",
+  "actions": [
+    {
+      "target": ".project-local/runs/be268a2d33/job-journal-helper-fix-20261011",
+      "files": [
+        {
+          "bytes": 6114,
+          "name": "helper-fix.patch",
+          "sha256": "5937f2cf731f7df5451dd90f821bc10354415fa2298f2ab0f4634ed0a7af12e9"
+        },
+        {
+          "bytes": 388,
+          "name": "manifest.json",
+          "sha256": "31b0e10bd10d33d7c34443145d74a789e6b9d7c9c154d91e8b90d8a4107feccc"
+        },
+        {
+          "bytes": 45490,
+          "name": "preimage.py",
+          "sha256": "432b19f83faef4465650ada01b27886f1c6624f8c52a2a08b2aa8b703abf1657"
+        }
+      ],
+      "source": ".project-local/runs/job-journal-helper-fix-20261011",
+      "action": "MOVE",
+      "state": "PASS_HASH_READBACK"
+    },
+    {
+      "target": ".project-local/runs/f2a14bcd53/capability-onsite-delivery-20261011",
+      "files": [
+        {
+          "bytes": 55405,
+          "name": "capability-onsite.patch",
+          "sha256": "1a1c03360e7c025306be298f8ad391d9e7337927214adcabec8acc99675ff33e"
+        },
+        {
+          "bytes": 2458,
+          "name": "package_delivery.py",
+          "sha256": "07ae6b9f52d2206ddaff1721ae9364fc61b61b0c1fba5dc9fb6f4e359d622028"
+        },
+        {
+          "bytes": 3401,
+          "name": "preimage-manifest.json",
+          "sha256": "f404445745c458c42d518b50195b53117a4687a35b24e6d1e599f64d8eb38a82"
+        }
+      ],
+      "source": ".project-local/worktrees/framework-20261011/.project-local/runs/capability-onsite-delivery-20261011",
+      "action": "MOVE",
+      "state": "PASS_HASH_READBACK"
+    },
+    {
+      "target": ".project-local/runs/f2a14bcd53/capability-refusal-delivery-20261011",
+      "files": [
+        {
+          "bytes": 24620,
+          "name": "capability-refusal.patch",
+          "sha256": "d5bca58fefbdfac0dcff62dd26316a74da8885e0113ec20177424b55453bd535"
+        },
+        {
+          "bytes": 2564,
+          "name": "package_delivery.py",
+          "sha256": "f4181b7df4e3a23aa41b73c3ed3168b4c72dc0bb2d38ad6e9662f8b3781b99cf"
+        },
+        {
+          "bytes": 4297,
+          "name": "preimage-manifest.json",
+          "sha256": "f50d4be856dfb3d4a7de6db13a5fe0671c118543c3d68c50ffe2b810505f0788"
+        }
+      ],
+      "source": ".project-local/worktrees/framework-20261011/.project-local/runs/capability-refusal-delivery-20261011",
+      "action": "MOVE",
+      "state": "PASS_HASH_READBACK"
+    },
+    {
+      "source": ".project-local/runs/declared-routes",
+      "action": "REMOVE_EMPTY_NONRECURSIVE",
+      "state": "PASS_ABSENT_READBACK",
+      "deleted_files": 0
+    },
+    {
+      "source": ".project-local/worktrees/gov-ui-20261008/.project-local/runs/declared-routes",
+      "action": "REMOVE_EMPTY_NONRECURSIVE",
+      "state": "PASS_ABSENT_READBACK",
+      "deleted_files": 0
+    }
+  ],
+  "preserved_files": 9,
+  "preserved_bytes": 144737,
+  "reclaimed_file_bytes": 0,
+  "process_coverage": "Limited process-image scan and exclusive file-open checks; not a claim of complete system handle/command-line coverage",
+  "rollback": "For each moved directory, verify hashes and move target back to source if source absent. Removed directories were empty and may be recreated.",
+  "layout_gate_readback": {
+    "state": "PARTIAL_LAYOUT_STILL_FAIL",
+    "passed_tests": 5,
+    "failed_tests": 1,
+    "remaining_new_shallow_names": 8,
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/legacy-layout-after1/artifacts/execution.json",
+      "sha256": "e3a3339e25933271de943ce5793bd17bcac1b49d571b657df57a4f68601e2262"
+    },
+    "assertions": "Unchanged original layout baseline"
+  }
+}

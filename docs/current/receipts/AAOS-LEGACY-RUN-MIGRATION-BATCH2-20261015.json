@@ -1,0 +1,74 @@
+{
+  "schema": "archeaxis.legacy-run-migration-executed/v1",
+  "date": "2026-10-15",
+  "state": "PASS_BOUNDED_BATCH",
+  "authorization": "Current Owner explicit audited archive/migration/deletion grant",
+  "actions": [
+    {
+      "files": 47,
+      "source": ".project-local/runs/authority-repair-20261010",
+      "subdirectories": 18,
+      "manifest": ".project-local/runs/ba8e5e5614/legacy-migration-batch2/artifacts/authority-repair-20261010.json",
+      "manifest_sha256": "4233d06bfd4f0bab8f552d11e0ee15979de29f44ec5c85e8347fa024f18d667b",
+      "bytes": 387224,
+      "action": "MOVE",
+      "target": ".project-local/runs/be268a2d33/authority-repair-20261010",
+      "file_tree_sha256": "dcab9a73077df40385340e144153f2cf28431396d045daae70bd45818e365b1c",
+      "state": "PASS_HASH_AND_DIRECTORY_READBACK"
+    },
+    {
+      "files": 17,
+      "source": ".project-local/runs/bounded-journal-guard-20261011",
+      "subdirectories": 14,
+      "manifest": ".project-local/runs/ba8e5e5614/legacy-migration-batch2/artifacts/bounded-journal-guard-20261011.json",
+      "manifest_sha256": "d914ad28dd229631e0bd20f19139e5ec368228d5c0484f3a9cb13870e9b530ab",
+      "bytes": 74021,
+      "action": "MOVE",
+      "target": ".project-local/runs/be268a2d33/bounded-journal-guard-20261011",
+      "file_tree_sha256": "1e9d14478b19f378242a523238610b4bf8cf137e4589400fc3d63229acbc8a04",
+      "state": "PASS_HASH_AND_DIRECTORY_READBACK"
+    },
+    {
+      "files": 55,
+      "source": ".project-local/runs/job-journal-delivery-20261011",
+      "subdirectories": 63,
+      "manifest": ".project-local/runs/ba8e5e5614/legacy-migration-batch2/artifacts/job-journal-delivery-20261011.json",
+      "manifest_sha256": "fd14b642fdb87fadfcff795fd35f521790576a7a15d5f746980e7d9b0bb0946a",
+      "bytes": 1204749,
+      "action": "MOVE",
+      "target": ".project-local/runs/be268a2d33/job-journal-delivery-20261011",
+      "file_tree_sha256": "a833ad7b3de84c5b5255bfc3553713fb32b50c4c3ad5b5216cd713e14b5fa673",
+      "state": "PASS_HASH_AND_DIRECTORY_READBACK"
+    },
+    {
+      "files": 414,
+      "source": ".project-local/runs/upload-sync-20261010",
+      "subdirectories": 146,
+      "manifest": ".project-local/runs/ba8e5e5614/legacy-migration-batch2/artifacts/upload-sync-20261010.json",
+      "manifest_sha256": "1c7fb81f2d32b1d19ce32ed4c1efb239ae18e7b86d509822fe445546d763d2b2",
+      "bytes": 8571985,
+      "action": "MOVE",
+      "target": ".project-local/runs/be268a2d33/upload-sync-20261010",
+      "file_tree_sha256": "3d5726b51edf0405af3aa1d182ec104230c4d03185b0165c5de7d55d02428f0e",
+      "state": "PASS_HASH_AND_DIRECTORY_READBACK"
+    }
+  ],
+  "preserved_files": 533,
+  "preserved_bytes": 10237979,
+  "deleted_files": 0,
+  "reclaimed_file_bytes": 0,
+  "process_scope": "Current exact four source paths: executable/commandline matches zero; no process terminated and no complete handle enumeration claimed",
+  "historical_references": "Directory contents remain byte-identical. Internal historical absolute paths resolve by action source-prefix to target-prefix mapping; generate separate run-owned configs before replay.",
+  "rollback": "Verify manifest and move each target back to source if source absent; same-volume reversible movement only",
+  "layout_gate_readback": {
+    "state": "PARTIAL_LAYOUT_STILL_FAIL",
+    "passed_tests": 5,
+    "failed_tests": 1,
+    "remaining_new_shallow_names": 4,
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/legacy-layout-after2/artifacts/execution.json",
+      "sha256": "2dd3427e96e5553bd969b5419d5ed62da3ea7b5cbda60703653422b2aba12768"
+    },
+    "assertions": "Unchanged original layout baseline"
+  }
+}

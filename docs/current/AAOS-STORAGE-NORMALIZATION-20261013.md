@@ -1,6 +1,6 @@
 # 本地与云端仓库规范化及体积审计
 
-Owner 在本轮明确加入该任务。状态 RUNNING_BY_OWNER / PARTIAL；没有目录迁移、批量删除、Git 历史重写或 Green 替换。
+Owner 已将规范化与审计后清理加入执行范围。状态 RUNNING_BY_OWNER / PARTIAL；2026-10-15 首批精确迁移与空目录移除已执行，见文末最新记录。历史测量保留原观察日期；Git 历史和 Green 未改。
 
 ## 当前证据
 
@@ -37,3 +37,11 @@ Owner 在本轮明确加入该任务。状态 RUNNING_BY_OWNER / PARTIAL；没�
 仅 `runs/be268a2d33/341d928bd8d1/tmp/backend` 的已审计、独立文件二进制白名单操作，217 文件 SHA 全部保持原值、路径原样。首个 libssl 单文件试验节约 815,616 bytes，随后批次新增节约 93,470,856 bytes，合计 94,286,472 bytes（约 89.92 MiB）。不改 Core executable；没有删除或移动，不把另外 31 个大 run 视作相同内容。
 
 证据 `.project-local/runs/7d522a2a69/storage-audit-20261013/artifacts/compression-single-file.json` 与 `compression-reviewed-build.json`；逐文件记录压缩前属性、实际 allocated bytes 和 SHA 读回。回退对 before_compressed=false 的精确路径执行 `compact /U /Q`，已压缩文件保留先前属性。该回执只资格此批清理，不代表全部仓库治理完成。
+
+## 2026-10-15 已授权首批迁移与空目录清理
+
+Owner 明确要求执行中直接处理已审计的过时、冗余内容，包括归档、迁移和删除。对当前13个已登记目录复核后，三份历史源码交付材料已迁入各自 worktree identity 下：`job-journal-helper-fix-20261011`、`capability-onsite-delivery-20261011`、`capability-refusal-delivery-20261011`。9文件、144737字节逐一核对尺寸与SHA，全部保留；两个确认为空的 `declared-routes` 目录已用非递归删除移除。
+
+精确旧→新映射、9文件摘要和反向回退见 [执行回执](receipts/AAOS-LEGACY-RUN-MIGRATION-EXECUTED-20261015.json)。没有删除非空文件，本批不计文件字节节约。其余目录、重解析目标和原始任务正文仍保留；当前批次不代表标准quick已经全通过，也不声称完成全系统句柄或ignored消费者审计。
+
+第二批已迁移 `authority-repair`、`bounded-journal-guard`、`job-journal-delivery`、`upload-sync` 四个历史目录。533文件、10237979字节及241个子目录完整保留，移动前后文件树SHA一致；当前4份公开消费者的7处引用已更新。历史目录内部的原路径不改原字节，由 [第二批回执](receipts/AAOS-LEGACY-RUN-MIGRATION-BATCH2-20261015.json) 的prefix映射解析。精确源路径的当前进程匹配为0，没有终止进程或删除非空文件。首批后的布局检查仍有8项新浅层名称，第二批后已实测剩余4项，5项检查PASS、1项布局检查FAIL；不修改既有基线豁免。

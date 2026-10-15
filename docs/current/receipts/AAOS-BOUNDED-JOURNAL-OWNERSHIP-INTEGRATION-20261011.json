@@ -12,7 +12,7 @@
     "No automatic execution or capability enable; Core admission and permission rules unchanged"
   ],
   "integration": {
-    "patch": ".project-local/runs/bounded-journal-guard-20261011/bounded-journal-guard.patch",
+    "patch": ".project-local/runs/be268a2d33/bounded-journal-guard-20261011/bounded-journal-guard.patch",
     "patch_sha256": "3c15e284cc42723d5400a79fef7e4bcf14ad7b381a540b8b1faca1a4abfe3cdb",
     "preimages": "Three exact raw source hashes verified",
     "postimages": "Initial raw check failed on CRLF/LF; all three full normalized byte contents independently matched exact reviewed isolated source hashes, then exact bytes restored",
@@ -21,7 +21,7 @@
   "verification": {
     "isolated_red": "3 PASS / 3 FAIL; new manual/folder/bounded ownership cases reproduce enabled fresh action",
     "isolated_green": "4 files / 60 PASS and complete TypeScript semantic overlay PASS",
-    "isolated_evidence": ".project-local/runs/bounded-journal-guard-20261011/RECEIPT.md",
+    "isolated_evidence": ".project-local/runs/be268a2d33/bounded-journal-guard-20261011/RECEIPT.md",
     "root_frontend": {"files": 121, "passed": 1122, "skipped": 0, "execution": ".project-local/runs/be268a2d33/0048cfd8a47b/artifacts/execution.json"},
     "root_build": ".project-local/runs/be268a2d33/5c8cc759aac4/artifacts/frontend-build.json",
     "typescript_and_production_build": "PASS",
