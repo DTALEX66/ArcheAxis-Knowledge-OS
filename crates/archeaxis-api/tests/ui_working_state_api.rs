@@ -5,6 +5,36 @@ use http_body_util::BodyExt;
 use serde_json::{Value, json};
 use tower::ServiceExt;
 const ROUTE: &str = "/api/v1/workspace/ui-state";
+#[tokio::test]
+async fn unbound_teaching_text_survives_core_store_reopen_without_publishing_a_record() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("teaching-drafts.sqlite");
+    let store = Store::open(&path).unwrap();
+    let app = router(store.clone());
+    let (_, initial) = call(&app, "GET", ROUTE, Value::Null, "human").await;
+    let draft = json!({"page_id":"12","context_item_key":null,"form":{"kind":"feedback","purpose":"未提交总结","content":"  反馈正文\n保持原文  ","scope":"personal","privacy":"local_only","assisted":false,"feedback_class":"mastery","rubric_version":"","producer_kind":"human_authored"},"knowledge_id":null,"course_id":null,"item_key":null,"assessment_id":null,"parent":null,"preparation":null,"saved_preparation":"","pending_record":null});
+    let body = json!({"workspace_id":initial["workspace_id"],"restore_epoch":initial["restore_epoch"],"state_revision":initial["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":"12","teaching_drafts":{"12:":draft}}});
+    assert_eq!(
+        call(&app, "PUT", ROUTE, body.clone(), "machine").await.0,
+        403
+    );
+    let (status, saved) = call(&app, "PUT", ROUTE, body, "human").await;
+    assert_eq!(status, 200, "{saved}");
+    drop(app);
+    drop(store);
+    let app = router(Store::open(&path).unwrap());
+    assert_eq!(
+        call(&app, "GET", ROUTE, Value::Null, "human").await.1,
+        saved
+    );
+    let conn = rusqlite::Connection::open(&path).unwrap();
+    assert_eq!(
+        conn.query_row("SELECT count(*) FROM teaching_records", [], |r| r
+            .get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+}
 async fn call(
     router: &Router,
     method: &str,

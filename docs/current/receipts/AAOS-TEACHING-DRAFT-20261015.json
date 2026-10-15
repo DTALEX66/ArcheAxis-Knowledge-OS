@@ -1,0 +1,214 @@
+{
+  "schema": "archeaxis.teaching-draft-local-execution/v1",
+  "recorded_at": "2026-10-15T16:06:50.729573+00:00",
+  "task": "AX-HOST-20261013/BE09",
+  "scope": "Typed persistence for unsubmitted CanonicalTeachingSpace form text and teaching metadata; no new summary object.",
+  "scope_status": "PASS_LOCAL_SYNTHETIC_AND_INTEGRATED_SQLITE",
+  "overall_be09": "PARTIAL; this receipt qualifies only the stated slice",
+  "base_commit": "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+  "qualified_code_patch_sha256": "9a28cdc2ef5ac3702b0b93cfb927c566fe4f515d11db7c975168d6e6fb080648",
+  "source_commit_binding": "Base commit + dirty patch + code SHA256, before this receipt. Resolve delivery commit from Git; no exact-SHA CI or installed qualification.",
+  "changed_code_files": [
+    {
+      "path": "crates/archeaxis-api/tests/ui_working_state_api.rs",
+      "sha256": "a501ee5b06d3fcc5706babfb03c5968f6c7d7a43c25ec96ff55f20ec61ac2627"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/ui_state.rs",
+      "sha256": "81691f9b5982851b67c589ba7c69930b978502053de944b7f3f854368890d6c3"
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/ui_working_state.rs",
+      "sha256": "e463d5d6168b14bf0e69b46fd9dab16454f9dfffd29664108daa647b90cddec5"
+    },
+    {
+      "path": "frontend/src/api/generated/ui-working-state-contract.ts",
+      "sha256": "b4a53a245c9d0abc7ba3e632f11cb881886990cd3665c113754a911f18df4415"
+    },
+    {
+      "path": "frontend/src/app/App.tsx",
+      "sha256": "40092f7971de92e17ef8d4f69704a1f16557371a0018641e01c26381cc1b398e"
+    },
+    {
+      "path": "frontend/src/presentation/coreWorkingState.ts",
+      "sha256": "0dbb31ab1990e8835eb8a2c339e67d06231981e18adc19b195daebe358c18098"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalTeachingSpace.tsx",
+      "sha256": "2f0b653302648548247b21c2ef42e9071b68936c533f10bbf572c217405690e4"
+    },
+    {
+      "path": "frontend/src/__tests__/CanonicalTeachingDrafts.test.tsx",
+      "sha256": "952d203f2ccbf521810edbc5d6ed018a83830722c61ddbf1b18a0f1433353144"
+    },
+    {
+      "path": "packages/contracts/v2/ui-working-state.schema.json",
+      "sha256": "7ae2fd5ecc74f64322a4e4ba135ca5424e40b9795bd24755df299806844b5a5d"
+    },
+    {
+      "path": "scripts/contracts/generate_ui_working_state.py",
+      "sha256": "31b89d931f4fe9f1f3313d449b0b644b1dfb959eaa557de862f4d7a9a14655b8"
+    }
+  ],
+  "implemented": [
+    "Existing Rust Core WorkingState journal owns typed teaching_drafts; no new database or generic domain writer.",
+    "Separate page/original-learning-item slots preserve purpose, content including whitespace, record kind, feedback/rubric/provenance fields and version references.",
+    "Known frozen teaching_create record_id/body survives new sessions; exact record ACK and teaching_get must agree before exact journal clearance.",
+    "Unconfirmed clear ACK, changed draft, workspace/epoch mismatch or restore candidate retains input; no automatic teaching submission or restore decision.",
+    "Unbound ordinary text can save through existing Document API without knowledge approval. Exact ordinary-only body readback clears that snapshot; teaching metadata remains journalled when not published.",
+    "App dirty and explicit-recovery surfaces include teaching drafts. Existing learner answer draft code was not changed."
+  ],
+  "validation_counts": {
+    "frontend": 117,
+    "rust_domain_ui_working_state": 19,
+    "rust_api_ui_working_state": 4,
+    "typescript_no_emit": "PASS",
+    "generated_dto_check": "PASS",
+    "contracts_structure_language_boundary": "PASS",
+    "changed_python_ruff": "PASS"
+  },
+  "evidence": [
+    {
+      "run": "teaching-red",
+      "execution": ".project-local\\runs\\4e215f9ac8\\teaching-red\\artifacts\\execution.json",
+      "execution_sha256": "e87bd13449b282bea7499a95815c974a8abf28ab32cbc77644787632e75bb9be",
+      "log_sha256": "65f421abd582e45b0358c3f65508862187fa7acf3befd36a4d75e266e89af5d8",
+      "source_commit": "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+      "source_patch_sha256": "3b52cddaa07d1670d7d7ca9089be0fdaaa8a19d6758deff2e789f75bb833e181",
+      "source_consistent": true,
+      "status": "FAIL",
+      "exit_code": 1,
+      "command": [
+        "node",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "src/__tests__/CanonicalTeachingDrafts.test.tsx",
+        "--root",
+        "frontend"
+      ]
+    },
+    {
+      "run": "teaching-final-frontend",
+      "execution": ".project-local\\runs\\4e215f9ac8\\teaching-final-frontend\\artifacts\\execution.json",
+      "execution_sha256": "48f303a0b4b189d5912c53e64d63823729b88e6a969959a23d42cac1b14dfc5a",
+      "log_sha256": "a68cd6f88bda6039261b4098127bdb2d4d9bd6233c20a436ab43a4c0e2ca84e4",
+      "source_commit": "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+      "source_patch_sha256": "9a28cdc2ef5ac3702b0b93cfb927c566fe4f515d11db7c975168d6e6fb080648",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "command": [
+        "node",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "src/__tests__/CanonicalTeachingDrafts.test.tsx",
+        "src/__tests__/CanonicalTeachingSpace.test.tsx",
+        "src/__tests__/CoreWorkingState.test.ts",
+        "src/__tests__/CanonicalLearningDrafts.test.tsx",
+        "src/__tests__/TeachingContract.test.ts",
+        "--root",
+        "frontend"
+      ]
+    },
+    {
+      "run": "teaching-final-tsc",
+      "execution": ".project-local\\runs\\4e215f9ac8\\teaching-final-tsc\\artifacts\\execution.json",
+      "execution_sha256": "7f29a027f1eef83c88cacda0de10bcdf1e759be7fb5948d472a6f0b726b45972",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_commit": "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+      "source_patch_sha256": "9a28cdc2ef5ac3702b0b93cfb927c566fe4f515d11db7c975168d6e6fb080648",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "command": [
+        "node",
+        "frontend/node_modules/typescript/bin/tsc",
+        "-p",
+        "frontend/tsconfig.json",
+        "--noEmit"
+      ]
+    },
+    {
+      "run": "teaching-final-rust",
+      "execution": ".project-local\\runs\\4e215f9ac8\\teaching-final-rust\\artifacts\\execution.json",
+      "execution_sha256": "ad04dd7f555133ad6d6f1d3d8db8c4228fd29361704e571eeb881053056191e2",
+      "log_sha256": "5ee63b41c6b172442740bb0da6ffbfddc26018fe8c733b05a93dd5a994ffd900",
+      "source_commit": "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+      "source_patch_sha256": "9a28cdc2ef5ac3702b0b93cfb927c566fe4f515d11db7c975168d6e6fb080648",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "command": [
+        "scripts/ci/cargo_test.bat",
+        "test",
+        "-p",
+        "archeaxis-domain",
+        "--test",
+        "ui_working_state",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "ui_working_state_api",
+        "--offline"
+      ]
+    },
+    {
+      "run": "teaching-final-typegen-exact",
+      "execution": ".project-local\\runs\\4e215f9ac8\\teaching-final-typegen-exact\\artifacts\\execution.json",
+      "execution_sha256": "109df59cd98704b599bf767a1e86b992162cd7c7136b286d3c2b20a732b30e92",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_commit": "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+      "source_patch_sha256": "9a28cdc2ef5ac3702b0b93cfb927c566fe4f515d11db7c975168d6e6fb080648",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/build/ba8e5e5614/validation-venv/Scripts/python.exe",
+        "scripts/contracts/generate_ui_working_state.py",
+        "--check"
+      ]
+    },
+    {
+      "run": "teaching-final-contract-gate",
+      "execution": ".project-local\\runs\\4e215f9ac8\\teaching-final-contract-gate\\artifacts\\execution.json",
+      "execution_sha256": "c27ebef943e2dc4001ffea917607f3f2b0dc737de39ac861b8acfec59fca2ade",
+      "log_sha256": "6fe63fbe9f3d6ac66e6e0fc1fa22c138ebff5388633244ac850e9fa0dd325ff2",
+      "source_commit": "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+      "source_patch_sha256": "9a28cdc2ef5ac3702b0b93cfb927c566fe4f515d11db7c975168d6e6fb080648",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/build/ba8e5e5614/validation-venv/Scripts/python.exe",
+        "scripts/ci/check_vnext_contracts.py"
+      ]
+    },
+    {
+      "run": "teaching-final-lint",
+      "execution": ".project-local\\runs\\4e215f9ac8\\teaching-final-lint\\artifacts\\execution.json",
+      "execution_sha256": "d948767ab26ffbcd6e83eb9005d7368e84484e6ca690827fe6dae24398cf5ad3",
+      "log_sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+      "source_commit": "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+      "source_patch_sha256": "9a28cdc2ef5ac3702b0b93cfb927c566fe4f515d11db7c975168d6e6fb080648",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.project-local/build/ba8e5e5614/validation-venv/Scripts/python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "scripts/contracts/generate_ui_working_state.py"
+      ]
+    }
+  ],
+  "limitations": [
+    "No native candidate rebuild or installed/Owner data qualification; root integration must validate the real teaching journey.",
+    "Ordinary preparation document_create retry identity remains component-scoped; cold restart preserves text, but unknown Document create intent is not yet a durable pending request.",
+    "No independent summary field exists in CanonicalTeachingSpace; summaries entered in its body are preserved, no new summary domain object was invented.",
+    "Native rendering, exact-SHA CI, release and Green replacement were not executed."
+  ],
+  "rollback": "Revert this scoped delivery commit; preserve .project-local run evidence and any existing workspace working state.",
+  "remote_operations": "NOT_EXECUTED",
+  "public_progress_modified": false
+}

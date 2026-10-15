@@ -10,6 +10,8 @@ import { assertTeachingDto } from "../api/generated/teaching-contract";
 import { coreFailureReason } from "../presentation/labels";
 import { CanonicalLearningSpace } from "./CanonicalLearningSpace";
 import type { ObjectTrailLevel } from "../components/NavTrail";
+import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
+import type { TeachingDraft } from "../presentation/coreWorkingState";
 
 import {resolveLearningJourney,type LearningJourneyTarget} from "../presentation/learningJourney";
 
@@ -52,25 +54,42 @@ function preparationText(doc:DocumentDto):string {
 }
 function blank(kind: Kind) { return { kind, purpose:"", content:"", scope:"personal" as TeachingRecord["scope"], privacy:"local_only" as TeachingRecord["privacy"], assisted:false, feedback_class: null as TeachingRecord["feedback_class"], rubric_version:"", producer_kind:"human_authored" as TeachingRecord["producer_kind"] }; }
 
+type TeachingProps={initialItemKey?:string;pageId?:string;onOpenPage?:(id:string)=>void;onTrail?:(levels:readonly ObjectTrailLevel[])=>void};
+/** A form belongs to one page/object and one acknowledged workspace epoch. */
+export function CanonicalTeachingSpace(props:TeachingProps) {
+  const working=useOptionalCoreWorkingState();
+  if(working&&(!working.server||working.server.recovery_requires_confirmation||working.status==="blocked"))return <section aria-label="教学草稿保全"><p role="status">{working.error??"请先读取或明确恢复 Core 工作草稿；保留的教学正文不会自动重放。"}</p>{Object.entries(working.state.teaching_drafts??{}).map(([key,draft])=><label key={key}>保留的教学正文 {key}<textarea readOnly value={draft.form.content}/></label>)}</section>;
+  return <TeachingEditor key={working?`${working.server!.workspace_id}:${working.server!.restore_epoch}:${props.pageId??"08"}:${props.initialItemKey??""}`:undefined} {...props}/>;
+}
 /** Manual records share one canonical Core state; a record never constitutes a score. */
-export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initialItemKey}: {initialItemKey?:string;pageId?:string; onOpenPage?:(id:string)=>void; onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:TeachingProps) {
+  const working=useOptionalCoreWorkingState(),draftKey=`${pageId}:${initialItemKey??""}`;
+  const retained=working?.state.teaching_drafts?.[draftKey];
   const [journey,setJourney]=useState<LearningJourneyTarget>();
   const [journeyFailure,setJourneyFailure]=useState<string|null>(null);
   const journeyEpoch=useRef(0);
   const [items,setItems]=useState<RecordView[]>([]), [cursor,setCursor]=useState<string|null>(null), [loaded,setLoaded]=useState(false);
-  const [selected,setSelected]=useState<RecordView|null>(null), [draft,setDraft]=useState(()=>blank(kinds[pageId]?.[0] ?? "observation"));
-  const [knowledge,setKnowledge]=useState<Knowledge|null>(null), [query,setQuery]=useState(""), [results,setResults]=useState<Knowledge[]>([]);
-  const [courses,setCourses]=useState<Course[]>([]), [courseId,setCourseId]=useState<string|null>(null), [itemKey,setItemKey]=useState<string|null>(null), [assessmentId,setAssessmentId]=useState<string|null>(null);
-  const [preparation,setPreparation]=useState<{document_id:string;version:number;title:string}|null>(null), [savedPreparation,setSavedPreparation]=useState("");
+  const [selected,setSelected]=useState<RecordView|null>(null), [draft,setDraft]=useState(()=>retained?.form??blank(kinds[pageId]?.[0] ?? "observation"));
+  const [knowledge,setKnowledge]=useState<Knowledge|null>(()=>retained?.knowledge_id?{knowledge_id:retained.knowledge_id,head:`保留的来源 ${retained.knowledge_id}`}:null), [query,setQuery]=useState(""), [results,setResults]=useState<Knowledge[]>([]);
+  const [courses,setCourses]=useState<Course[]>([]), [courseId,setCourseId]=useState<string|null>(retained?.course_id??null), [itemKey,setItemKey]=useState<string|null>(retained?.item_key??null), [assessmentId,setAssessmentId]=useState<string|null>(retained?.assessment_id??null);
+  const [preparation,setPreparation]=useState<{document_id:string;version:number;title:string}|null>(retained?.preparation??null), [savedPreparation,setSavedPreparation]=useState(retained?.saved_preparation??"");
   const [preparationRows,setPreparationRows]=useState<DocumentSummaryDto[]>([]), [preparationCursor,setPreparationCursor]=useState<string|null>(null), [preparationListed,setPreparationListed]=useState(false);
   const documentLease=useDocumentWriteLease(preparation?.document_id);
-  const [parent,setParent]=useState<RecordView|null>(null), [busy,setBusy]=useState(false), [message,setMessage]=useState(""), [failure,setFailure]=useState<string|null>(null);
-  const [pending,setPending]=useState(false), [withdrawReason,setWithdrawReason]=useState(""), [withdrawDialog,setWithdrawDialog]=useState(false);
+  const [parent,setParent]=useState<RecordView|null>(retained?.parent??null), [busy,setBusy]=useState(false), [message,setMessage]=useState(retained?"已恢复本地教学草稿；来源与父记录仍由正式保存合同核对，尚未登记新记录。":""), [failure,setFailure]=useState<string|null>(null);
+  const [pending,setPending]=useState(Boolean(retained?.pending_record)), [withdrawReason,setWithdrawReason]=useState(""), [withdrawDialog,setWithdrawDialog]=useState(false);
   const [originalExchange,setOriginalExchange]=useState<File|null>(null);
   const [bundle,setBundle]=useState<ExchangeBundle|null>(null), [preview,setPreview]=useState<{record_count:number;duplicate_count:number;package_sha256:string}|null>(null), [exchangeDialog,setExchangeDialog]=useState(false), [practice,setPractice]=useState(false);
   const lock=useRef(false), epoch=useRef(0), listEpoch=useRef(0), fileEpoch=useRef(0);
-  const createAttempt=useRef<TeachingRecord|null>(null), withdrawalAttempt=useRef<{schema:"archeaxis.teaching-withdrawal/v2";withdrawal_id:string;record_id:string;reason:string}|null>(null);
+  const createAttempt=useRef<TeachingRecord|null>(retained?.pending_record??null), withdrawalAttempt=useRef<{schema:"archeaxis.teaching-withdrawal/v2";withdrawal_id:string;record_id:string;reason:string}|null>(null);
   const preparationAttempt=useRef<PreparationAttempt|null>(null);
+  const journalBaseline=useRef<string|null>(null);
+  function teachingSnapshot():TeachingDraft {return {page_id:pageId as TeachingDraft["page_id"],context_item_key:initialItemKey??null,form:structuredClone(draft),knowledge_id:knowledge?.knowledge_id??null,course_id:courseId,item_key:itemKey,assessment_id:assessmentId,parent:parent?structuredClone(parent):null,preparation:preparation?{...preparation}:null,saved_preparation:savedPreparation,pending_record:createAttempt.current?structuredClone(createAttempt.current):null};}
+  useEffect(()=>{
+    if(!working||pageId==="16")return;
+    const entry=teachingSnapshot(),json=JSON.stringify(entry);
+    if(journalBaseline.current===json||!entry.form.content&&!entry.form.purpose&&!entry.pending_record&&!retained)return;
+    try{working.session.rememberTeachingDraft(draftKey,entry);journalBaseline.current=json;}catch(error){setFailure(error instanceof Error?error.message:"教学草稿未保全，请保留当前正文。");}
+  },[draft,knowledge,courseId,itemKey,assessmentId,parent,preparation,savedPreparation,pending,working?.session,draftKey]);
   const currentSelection=useRef<string|null>(null), currentBundle=useRef<ExchangeBundle|null>(null);
   function note(text:string) {setMessage(text);setFailure(null);}
   function merge(item:RecordView) {setItems(previous=>[item,...previous.filter(row=>row.record.record_id!==item.record.record_id)]);}
@@ -83,7 +102,7 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
     } catch(error) {if(request===listEpoch.current){setLoaded(false);setMessage("教学记录读取失败；不会把失败显示为空列表。");setFailure(coreFailureReason(error));}}
   }
   useEffect(()=>{void load();return()=>{epoch.current++;listEpoch.current++;fileEpoch.current++;};},[]);
-  useEffect(()=>{epoch.current++;if(!createAttempt.current){setDraft(previous=>({...previous,kind:kinds[pageId]?.[0] ?? previous.kind}));}setPractice(Boolean(initialItemKey&&["11","12"].includes(pageId)));},[pageId,initialItemKey]);
+  useEffect(()=>{epoch.current++;if(!working&&!createAttempt.current){setDraft(previous=>({...previous,kind:kinds[pageId]?.[0] ?? previous.kind}));}setPractice(Boolean(initialItemKey&&["11","12"].includes(pageId)));},[pageId,initialItemKey]);
   useEffect(()=>{const request=++journeyEpoch.current;if(!initialItemKey||!["11","12"].includes(pageId)){setJourney(undefined);setJourneyFailure(null);return;}setJourney(previous=>previous?.item_key===initialItemKey?previous:undefined);setJourneyFailure(null);void resolveLearningJourney(initialItemKey).then(target=>{if(request!==journeyEpoch.current)return;setJourney(target);}).catch(error=>{if(request!==journeyEpoch.current)return;setJourney(undefined);setJourneyFailure(coreFailureReason(error)??"原学习项目的绑定回执不一致或不可用。");});return()=>{journeyEpoch.current++;};},[initialItemKey,pageId]);
   useEffect(()=>{const dirty=JSON.stringify({purpose:draft.purpose,content:draft.content})!==savedPreparation&&(!!draft.content||!!draft.purpose)||pending;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:dirty}));},[draft.content,draft.purpose,pending,savedPreparation]);
   useEffect(()=>()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:false}));},[]);
@@ -128,7 +147,9 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
     });
   }
   async function savePreparationDocument() {
-    await run(async request=>{const editor_json:PreparationEditor={type:"doc",content:draft.content.split("\n").map(text=>({type:"paragraph",attrs:{block_id:crypto.randomUUID()},...(text?{content:[{type:"text" as const,text}]}:{})}))};
+    await run(async request=>{const journal=teachingSnapshot();
+      if(working){working.session.rememberTeachingDraft(draftKey,journal);const ack=await working.session.flush();if(!sameValue(ack.state.teaching_drafts?.[draftKey],journal))throw new Error("preparation journal not acknowledged");}
+      const editor_json:PreparationEditor={type:"doc",content:draft.content.split("\n").map(text=>({type:"paragraph",attrs:{block_id:crypto.randomUUID()},...(text?{content:[{type:"text" as const,text}]}:{})}))};
       const currentSnapshot=JSON.stringify({purpose:draft.purpose,content:draft.content});
       const attempt:PreparationAttempt=preparationAttempt.current??(preparation
         ?{operation:"document_draft",payload:{document_id:preparation.document_id,body:{expected_version:preparation.version,editor_json}},snapshot:currentSnapshot,persistedPurpose:savedPreparation?JSON.parse(savedPreparation).purpose:"",expectedTitle:preparation.title}
@@ -151,7 +172,12 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
       const result=verified(await coreCommand(attempt.operation,structuredClone(attempt.payload)));
       const readback=verified(await coreCommand("document_get",{document_id:expectedId}));
       if(readback.content_sha256!==result.content_sha256||readback.title!==result.title)throw new Error("preparation readback mismatch");
-      if(request===epoch.current){setPreparation({document_id:result.document_id,version:result.version as number,title:result.title});setSavedPreparation(JSON.stringify({purpose:attempt.persistedPurpose,content:JSON.parse(snapshot).content}));preparationAttempt.current=null;note("准备正文已保存并读回；允许缺少需求字段或正式知识绑定。登记版本化记录是另一步操作。"+(JSON.parse(snapshot).purpose!==attempt.persistedPurpose?"用途改动仍留在当前表单，未重命名已保存文档。":""));}
+      if(request!==epoch.current)return;
+      const nextPreparation={document_id:result.document_id,version:result.version,title:result.title},nextSaved=JSON.stringify({purpose:attempt.persistedPurpose,content:JSON.parse(snapshot).content});
+      const ordinaryOnly=!journal.knowledge_id&&!journal.parent&&!journal.course_id&&!journal.item_key&&!journal.assessment_id
+        &&journal.form.scope==="personal"&&journal.form.privacy==="local_only"&&!journal.form.assisted&&!journal.form.feedback_class&&!journal.form.rubric_version&&journal.form.producer_kind==="human_authored";
+      if(working&&ordinaryOnly&&JSON.stringify({purpose:draft.purpose,content:draft.content})===nextSaved&&await working.session.finishTeachingDraft(draftKey,journal))journalBaseline.current=JSON.stringify({...journal,preparation:nextPreparation,saved_preparation:nextSaved});
+      if(request===epoch.current){setPreparation(nextPreparation);setSavedPreparation(nextSaved);preparationAttempt.current=null;note("准备正文已保存并读回；允许缺少需求字段或正式知识绑定。登记版本化记录是另一步操作。"+(JSON.parse(snapshot).purpose!==attempt.persistedPurpose?"用途改动仍留在当前表单，未重命名已保存文档。":""));}
     });
   }
   async function save() {
@@ -164,9 +190,15 @@ export function CanonicalTeachingSpace({pageId="08", onOpenPage, onTrail, initia
         record={schema:"archeaxis.teaching-record/v2",record_id:boundedId("teaching"),kind:draft.kind,knowledge_id:knowledge.knowledge_id,knowledge_version:knowledge.knowledge_id,course_id:courseId,parent_id:parent?.record.record_id??null,purpose:draft.purpose.trim(),scope:draft.scope,privacy:draft.privacy,content:draft.content,feedback_class:draft.kind==="feedback"?draft.feedback_class:null,assessment_id:draft.kind==="teach_back"?assessmentId:null,rubric_version:draft.rubric_version.trim()||null,assisted:draft.assisted,producer_kind:draft.producer_kind};
         createAttempt.current=record;setPending(true);
       }
+      const journal=teachingSnapshot();journal.pending_record=structuredClone(record);
+      if(working){working.session.rememberTeachingDraft(draftKey,journal);const ack=await working.session.flush();if(!sameValue(ack.state.teaching_drafts?.[draftKey],journal))throw new Error("teaching draft journal not acknowledged");}
       const receipt=object(await coreCommand<WriteReceipt>("teaching_create",{body:record}));const saved=view(receipt.item);
-      if(saved.record.record_id!==record.record_id||typeof receipt.duplicate!=="boolean")throw new Error("create identity changed");
-      if(request===epoch.current){merge(saved);setSelected(saved);currentSelection.current=saved.record.record_id;setDraft(blank(record.kind));setParent(null);createAttempt.current=null;setPending(false);note(receipt.duplicate?"已读回同一客户端记录，未重复创建。":"教学记录已保存；仍为不计分的人工作业记录。");}
+      if(!sameValue(saved.record,record)||typeof receipt.duplicate!=="boolean")throw new Error("create identity or body changed");
+      const readback=view(await coreCommand("teaching_get",{record_id:record.record_id}));
+      if(!sameValue(readback.record,record)||readback.content_sha256!==saved.content_sha256||readback.scoring_status!=="not_scored")throw new Error("teaching saved readback mismatch");
+      if(request!==epoch.current)return;
+      if(working&&!await working.session.finishTeachingDraft(draftKey,journal))throw new Error("teaching draft changed after save; retained");
+      if(request===epoch.current){merge(readback);setSelected(readback);currentSelection.current=readback.record.record_id;const cleared={...journal,form:blank(record.kind),parent:null,pending_record:null};journalBaseline.current=JSON.stringify(cleared);setDraft(cleared.form);setParent(null);createAttempt.current=null;setPending(false);note(receipt.duplicate?"已读回同一客户端记录，未重复创建。":"教学记录已保存；仍为不计分的人工作业记录。");}
     });
   }
   async function exportSelected() {if(!selected)return;const target=selected;await run(async request=>{if(target.record.scope!=="manual_exchange"||target.record.privacy!=="authorized_export")throw new Error("record is not authorized for manual exchange");const value=await coreCommand<ExchangeBundle>("teaching_export",{record_id:target.record.record_id});const result=object(value);if(result.schema!=="archeaxis.teaching-exchange/v2"||!Array.isArray(result.records)||typeof result.package_sha256!=="string")throw new Error("invalid exchange export");if(request!==epoch.current)return;const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:"application/json"}));const link=document.createElement("a");link.href=url;link.download=`teaching-${target.record.record_id}.json`;link.click();URL.revokeObjectURL(url);note("已导出人工交换包；没有发送给任何peer或执行外部材料。");});}
