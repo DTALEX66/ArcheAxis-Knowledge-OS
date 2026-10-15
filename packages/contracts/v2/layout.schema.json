@@ -1,0 +1,458 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.layout/v1",
+  "$defs": {
+    "Bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 32000
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 32000
+        },
+        "width": {
+          "type": "number",
+          "minimum": 160,
+          "maximum": 16000
+        },
+        "height": {
+          "type": "number",
+          "minimum": 120,
+          "maximum": 16000
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ]
+    },
+    "Dock": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "tabs"
+            },
+            "panels": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2]|document\\.[A-Za-z0-9_-]{1,128})$"
+              }
+            },
+            "active": {
+              "type": "string",
+              "pattern": "^(0[1-9]|1[0-9]|2[0-2]|document\\.[A-Za-z0-9_-]{1,128})$"
+            }
+          },
+          "required": [
+            "kind",
+            "panels",
+            "active"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "split"
+            },
+            "axis": {
+              "enum": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            "ratio": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 0.9
+            },
+            "first": {
+              "$ref": "#/$defs/Dock"
+            },
+            "second": {
+              "$ref": "#/$defs/Dock"
+            }
+          },
+          "required": [
+            "kind",
+            "axis",
+            "ratio",
+            "first",
+            "second"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "empty"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "Layout": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LegacyLayout"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "schema_version": {
+              "const": 2
+            },
+            "preset_id": {
+              "enum": [
+                "default",
+                "reading",
+                "research",
+                "learning"
+              ]
+            },
+            "registered_panels": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2]|document\\.[A-Za-z0-9_-]{1,128})$"
+              }
+            },
+            "dock_tree": {
+              "$ref": "#/$defs/Dock"
+            },
+            "floating_bounds": {
+              "type": "object",
+              "maxProperties": 22,
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/Bounds"
+              }
+            },
+            "instance_bindings": {
+              "type": "object",
+              "maxProperties": 42,
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^document\\.[A-Za-z0-9_-]{1,128}$"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/Binding"
+              }
+            },
+            "floating_groups": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/FloatingGroup"
+              }
+            },
+            "locked": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "schema_version",
+            "preset_id",
+            "registered_panels",
+            "dock_tree",
+            "floating_bounds"
+          ]
+        }
+      ]
+    },
+    "Snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "layout": {
+          "$ref": "#/$defs/Layout"
+        },
+        "recovery_reason": {
+          "enum": [
+            null,
+            "LAYOUT_COMPONENT_OR_SCHEMA_UNSUPPORTED",
+            "LAYOUT_RESTORE_CONFIRMATION_REQUIRED"
+          ]
+        }
+      },
+      "required": [
+        "workspace_id",
+        "device_id",
+        "restore_epoch",
+        "revision",
+        "layout",
+        "recovery_reason"
+      ]
+    },
+    "Write": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740990
+        },
+        "layout": {
+          "$ref": "#/$defs/Layout"
+        }
+      },
+      "required": [
+        "workspace_id",
+        "device_id",
+        "restore_epoch",
+        "expected_revision",
+        "layout"
+      ]
+    },
+    "Recover": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740990
+        },
+        "viewport_width": {
+          "type": "number",
+          "minimum": 320,
+          "maximum": 16000
+        },
+        "viewport_height": {
+          "type": "number",
+          "minimum": 240,
+          "maximum": 16000
+        }
+      },
+      "required": [
+        "workspace_id",
+        "device_id",
+        "restore_epoch",
+        "expected_revision",
+        "viewport_width",
+        "viewport_height"
+      ]
+    },
+    "LegacyLayout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "preset_id": {
+          "enum": [
+            "default",
+            "reading",
+            "research",
+            "learning"
+          ]
+        },
+        "registered_panels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 22,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+          }
+        },
+        "dock_tree": {
+          "$ref": "#/$defs/LegacyDock"
+        },
+        "floating_bounds": {
+          "type": "object",
+          "maxProperties": 22,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Bounds"
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "preset_id",
+        "registered_panels",
+        "dock_tree",
+        "floating_bounds"
+      ]
+    },
+    "Binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "page_id": {
+          "const": "03"
+        },
+        "object_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "session_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "required": [
+        "page_id",
+        "object_id",
+        "session_key"
+      ]
+    },
+    "FloatingGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tree": {
+          "$ref": "#/$defs/Dock"
+        },
+        "bounds": {
+          "$ref": "#/$defs/Bounds"
+        }
+      },
+      "required": [
+        "tree",
+        "bounds"
+      ]
+    },
+    "LegacyDock": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "tabs"
+            },
+            "panels": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 22,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+              }
+            },
+            "active": {
+              "type": "string",
+              "pattern": "^(0[1-9]|1[0-9]|2[0-2])$"
+            }
+          },
+          "required": [
+            "kind",
+            "panels",
+            "active"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "split"
+            },
+            "axis": {
+              "enum": [
+                "horizontal",
+                "vertical"
+              ]
+            },
+            "ratio": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 0.9
+            },
+            "first": {
+              "$ref": "#/$defs/LegacyDock"
+            },
+            "second": {
+              "$ref": "#/$defs/LegacyDock"
+            }
+          },
+          "required": [
+            "kind",
+            "axis",
+            "ratio",
+            "first",
+            "second"
+          ]
+        }
+      ]
+    }
+  }
+}

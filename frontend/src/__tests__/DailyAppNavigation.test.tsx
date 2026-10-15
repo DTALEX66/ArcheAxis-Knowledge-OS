@@ -6,7 +6,22 @@ vi.mock("../spaces/SpaceView", async importOriginal => {
   return {...actual,SpaceView:(props:{uiPageId?:string;initialDocumentId?:string;initialLearningItemKey?:string;onOpenDocument?:(id:string)=>void;onReviewItem?:(id:string)=>void})=><section aria-label="SIMULATED navigation port"><output data-testid="page">{props.uiPageId}</output><output data-testid="document">{props.initialDocumentId}</output><output data-testid="item">{props.initialLearningItemKey}</output><button onClick={()=>props.onOpenDocument?.("doc_actual_selection")}>选择真实ID</button><button onClick={()=>props.onReviewItem?.("review_actual_key")}>复习真实key</button></section>};
 });
 describe("actual App navigation guard with SIMULATED child ports",()=>{
-  afterEach(()=>{vi.restoreAllMocks();window.history.replaceState(null,"","#page=01");});
+  afterEach(()=>{vi.restoreAllMocks();localStorage.removeItem("aaos.navigation-appearance.v1");window.history.replaceState(null,"","#page=01");});
+  it("changes chrome without remounting the active surface or bypassing dirty navigation guards",()=>{
+    window.history.replaceState(null,"","#page=01");render(<App/>);
+    const surface = screen.getByTestId("page");
+    const confirm = vi.spyOn(window,"confirm").mockReturnValue(false);
+    act(()=>window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:"top-nav-test",dirty:true}})));
+    fireEvent.click(screen.getByLabelText("界面设置"));
+    fireEvent.change(screen.getByLabelText("导航呈现"),{target:{value:"top"}});
+    expect(screen.getByTestId("page")).toBe(surface);
+    expect(confirm).not.toHaveBeenCalled();
+    expect(localStorage.getItem("aaos.navigation-appearance.v1")).toBe("top");
+    fireEvent.click(screen.getByRole("navigation",{name:"顶部空间导航"}).querySelector("[data-top-page='02']")!);
+    fireEvent.click(screen.getByRole("menuitem",{name:"阅读与编辑"}));
+    expect(confirm).toHaveBeenCalled();expect(surface).toHaveTextContent("01");
+    expect(window.location.hash).toBe("#page=01");
+  });
   it("retains a selected Document and same-page draft without resetting it through navigate",()=>{
     window.history.replaceState(null,"","#page=01");render(<App/>);
     fireEvent.click(screen.getByRole("button",{name:"选择真实ID"}));expect(screen.getByTestId("document")).toHaveTextContent("doc_actual_selection");

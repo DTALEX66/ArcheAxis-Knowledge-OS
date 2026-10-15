@@ -230,6 +230,10 @@ pub async fn list(executor: &Executor) -> Response {
 /// One capability by its exact dot-separated name. A near miss is a 404 rather than the nearest
 /// match, because a registry that guesses is worse than one that says it does not know.
 pub async fn read(executor: &Executor, capability: &str) -> Response {
+    read_record(executor, capability, true).await
+}
+
+async fn read_record(executor: &Executor, capability: &str, observe_health: bool) -> Response {
     // Registration is checked first: a capability that does not exist cannot be enabled, disabled or
     // reported, and saying "not found" is more useful than answering about its settings.
     let registered = executor
@@ -260,20 +264,21 @@ pub async fn read(executor: &Executor, capability: &str) -> Response {
     } else {
         None
     };
-    let record = observed_record(
-        executor.clone(),
-        capability_record(
-            &name,
-            &worker,
-            site_packages,
-            python,
-            &disabled,
-            readable,
-            &default_owned,
-            fallback,
-        ),
-    )
-    .await;
+    let record = capability_record(
+        &name,
+        &worker,
+        site_packages,
+        python,
+        &disabled,
+        readable,
+        &default_owned,
+        fallback,
+    );
+    let record = if observe_health {
+        observed_record(executor.clone(), record).await
+    } else {
+        record
+    };
     Json(json!({
         "schema": "archeaxis.capability/v1",
         "capability": record,
@@ -306,7 +311,8 @@ pub async fn set_enabled(executor: &Executor, capability: &str, enabled: bool) -
         .submit_wait(move |conn| capability_settings::set_enabled(conn, &owned, enabled))
         .await;
     match written {
-        Ok(Ok(())) => read(executor, capability).await,
+        // Permission changes must never start a worker for their readback.
+        Ok(Ok(())) => read_record(executor, capability, false).await,
         _ => (
             StatusCode::SERVICE_UNAVAILABLE,
             "the capability record could not be written",

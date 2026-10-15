@@ -17,7 +17,8 @@ const hash="a".repeat(64),originalId="knowledge-exact",candidateId="correction-e
 function knowledge(id:string){return {knowledge_id:id,body:id===originalId?"同一原件的已接受正文":"使用者纠正正文",version:id+"-review-v1",status:id===originalId?"accepted":correctionStatus,source_id:id===originalId?"source-exact":null,anchor_id:id===originalId?"anchor-exact":null};}
 function task(answer:J,scope="runtime.answer"){return {task_id:answer.answer_id,conditions:JSON.stringify(answer),scope,knowledge_version:answer.knowledge_id+"@v1",model_version:"SIMULATED-model",outcome:"unmeasured",method_version:null,tool_version:null,failure:null,retest_of:scope==="runtime.retest"?answer.retest_of:null};}
 function setup(){bridge.call.mockImplementation(async(op:string,p:J={})=>{
- if(op==="machine_contexts_list")return {items:[...docs.values()].map(d=>({document_id:d.document_id,title:d.title,version:d.version,content_sha256:d.content_sha256})),next_cursor:null};
+ if(op==="model_configuration_get")return {schema:"archeaxis.model-configuration/v1",revision:0,profiles:{},bindings:[],workspace_id:"a".repeat(32),restore_epoch:"initial"};
+    if(op==="machine_contexts_list")return {items:[...docs.values()].map(d=>({document_id:d.document_id,title:d.title,version:d.version,content_sha256:d.content_sha256})),next_cursor:null};
  if(op==="assessment_get")return {item_key:"assessment-exact",assessment_id:"assessment-id-exact",knowledge_id:originalId,knowledge_version:originalId,question:"原学习问题",content:"同一原件的已接受正文",source_id:"source-exact",anchor_id:"anchor-exact"};
  if(op==="knowledge_get")return knowledge(p.id);
  if(op==="document_get")return structuredClone(docs.get(p.document_id));

@@ -1,0 +1,77 @@
+{
+  "schema": "archeaxis.format-surface-receipt/v1",
+  "date": "2026-10-16",
+  "state": "LOCAL_PASS",
+  "overall": "PARTIAL",
+  "operation": "source_job_format_qualification",
+  "method": "GET",
+  "route": "/api/v1/sources/{source_id}/jobs/{job_id}/format-qualification",
+  "implementation": [
+    "Finite Tauri bridge validates both IDs and reads the existing Core endpoint; no additional production Core route.",
+    "Selected source/job exposes an explicit qualification read with six independent operation statuses.",
+    "Strict source/revision/job/attempt/state identity and async generation guards reject stale responses.",
+    "Unknown remains UNVERIFIED; output, engine, loss and hash details are collapsed; no worker or job mutation."
+  ],
+  "checks": {
+    "ui": {
+      "path": ".project-local/runs/ba8e5e5614/course-format-ui-1016/artifacts/execution.json",
+      "sha256": "fb6697a04b1c9fce96510efe875a2ca9ff75d8de37a3e348ee2f68a3f8f8f939",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "c5117f901c51605bac191765bcfabf06f3e0773eda8c659d4bfeb7efd5d4dab5",
+      "files": 5,
+      "tests": 59
+    },
+    "types": {
+      "path": ".project-local/runs/ba8e5e5614/course-format-types-1016/artifacts/execution.json",
+      "sha256": "afd3976b27227a81d746b49fe416f4e6218ddc87340461bd113595ba1e67cba6",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "c5117f901c51605bac191765bcfabf06f3e0773eda8c659d4bfeb7efd5d4dab5"
+    },
+    "contracts": {
+      "path": ".project-local/runs/ba8e5e5614/format-surface-contracts-1016/artifacts/execution.json",
+      "sha256": "df3dee50e705f00c9caccf67c169a37a4ec35d23ecdbb5a0cda19a6a01718671",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "c5117f901c51605bac191765bcfabf06f3e0773eda8c659d4bfeb7efd5d4dab5",
+      "tests": 44
+    },
+    "bridge": {
+      "path": ".project-local/runs/ba8e5e5614/format-surface-bridge-routed-1016/artifacts/execution.json",
+      "sha256": "cffe9505e78fe1af2c15f5becd235d54fbfbdd6d1c68e58f8a9cd35b618290e4",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "7f9de5e2b62877291d79a3dbec82bca67f88a81827edddc020e93447553a4c06",
+      "tests": 1,
+      "filtered": 94,
+      "scope": "Actual finite bridge unit; no installed application started."
+    },
+    "combined": {
+      "path": ".project-local/runs/ba8e5e5614/course-format-combined-utf8-1016/artifacts/local-ci.json",
+      "sha256": "f9d1cd9f29792dec54ec604f98525a60648cdae01a89e3688c5d66f6d6acb669",
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "head": "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+      "patch_sha256": "7f9de5e2b62877291d79a3dbec82bca67f88a81827edddc020e93447553a4c06",
+      "checks": 27,
+      "frontend_files": 151,
+      "frontend_tests": 1449,
+      "affected_python_tests": 17,
+      "route_maintenance_tests": 27,
+      "scope": "quick with explicit affected Python contract suite; not full Python or installed qualification."
+    }
+  },
+  "evidence_level": "SIMULATED_UI_AND_SYNTHETIC_BRIDGE; prior Core real controlled text/DOCX worker evidence retains its own receipt",
+  "qualification_digest_refresh": "Only matching source_refs for the reviewed generated DTO were refreshed; no resource activation or qualification upgrade. Previous digests retained in AAOS-RESOURCE-QUALIFICATION-20261010.json.",
+  "remaining": [
+    "Batch planning",
+    "Native editing and roundtrip qualification",
+    "Corpus-wide actual-format qualification",
+    "Current installed journey and Owner acceptance"
+  ]
+}

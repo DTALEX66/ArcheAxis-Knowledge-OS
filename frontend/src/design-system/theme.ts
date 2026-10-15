@@ -36,7 +36,7 @@ export function readThemePreference(storage?: Pick<Storage, "getItem">): AaosThe
   } catch {
     // Private browsing and embedded WebViews may reject localStorage access.
   }
-  return "blueprint";
+  return "cosmic";
 }
 
 export function writeThemePreference(theme: AaosThemeId, storage?: Pick<Storage, "setItem">): void {

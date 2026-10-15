@@ -30,6 +30,138 @@ pub struct Draft {
     pub base_version: i64,
     pub editor_json: Value,
 }
+/// Editable human input, distinct from immutable pending_reviews execution intent.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LearningDraft {
+    pub item_key: String,
+    pub assessment_id: String,
+    pub knowledge_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub question_version: Option<String>,
+    pub answer: String,
+    #[serde(deserialize_with = "Option::deserialize")]
+    pub checked_correct: Option<bool>,
+    #[serde(deserialize_with = "Option::deserialize")]
+    pub rating: Option<u8>,
+    pub answer_revealed: bool,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct TeachingForm {
+    pub kind: crate::teaching::RecordKind,
+    pub purpose: String,
+    pub content: String,
+    pub scope: crate::teaching::RecordScope,
+    pub privacy: crate::teaching::RecordPrivacy,
+    pub assisted: bool,
+    pub feedback_class: Option<crate::teaching::FeedbackClass>,
+    pub rubric_version: String,
+    pub producer_kind: crate::teaching::ProducerKind,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct TeachingPreparation {
+    pub document_id: String,
+    pub version: i64,
+    pub title: String,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationEditor {
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub content: Vec<PreparationParagraph>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationParagraph {
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub attrs: PreparationAttrs,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<Vec<PreparationText>>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationAttrs {
+    pub block_id: String,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationText {
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub text: String,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationCreateBody {
+    pub create_request_id: String,
+    pub title: String,
+    pub editor_json: PreparationEditor,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationCreatePayload {
+    pub body: PreparationCreateBody,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationDraftBody {
+    pub expected_version: i64,
+    pub editor_json: PreparationEditor,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationDraftPayload {
+    pub document_id: String,
+    pub body: PreparationDraftBody,
+}
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(tag = "operation", rename_all = "snake_case", deny_unknown_fields)]
+pub enum PreparationAttempt {
+    DocumentCreate {
+        payload: PreparationCreatePayload,
+        snapshot: String,
+        #[serde(rename = "persistedPurpose")]
+        persisted_purpose: String,
+        #[serde(rename = "expectedTitle")]
+        expected_title: String,
+    },
+    DocumentDraft {
+        payload: PreparationDraftPayload,
+        snapshot: String,
+        #[serde(rename = "persistedPurpose")]
+        persisted_purpose: String,
+        #[serde(rename = "expectedTitle")]
+        expected_title: String,
+    },
+}
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreparationSnapshot {
+    purpose: String,
+    content: String,
+}
+/// Inert form input. Only teaching::put / document writes may publish domain objects.
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct TeachingDraft {
+    pub page_id: String,
+    pub context_item_key: Option<String>,
+    pub form: TeachingForm,
+    pub knowledge_id: Option<String>,
+    pub course_id: Option<String>,
+    pub item_key: Option<String>,
+    pub assessment_id: Option<String>,
+    pub parent: Option<crate::teaching::RecordView>,
+    pub preparation: Option<TeachingPreparation>,
+    pub saved_preparation: String,
+    pub pending_record: Option<crate::teaching::TeachingRecord>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preparation_attempt: Option<PreparationAttempt>,
+}
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct OriginalAttempt {
@@ -109,6 +241,10 @@ pub struct MachineStatus {
 #[serde(deny_unknown_fields)]
 pub struct State {
     pub drafts: BTreeMap<String, Draft>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub learning_drafts: BTreeMap<String, LearningDraft>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub teaching_drafts: BTreeMap<String, TeachingDraft>,
     pub opened_documents: Vec<String>,
     pub active_document: Option<String>,
     pub page_id: Option<String>,
@@ -128,6 +264,14 @@ pub struct Write {
     pub restore_epoch: String,
     pub state_revision: i64,
     pub state: State,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub release_teaching: Option<ReleaseTeaching>,
+}
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseTeaching {
+    pub draft_key: String,
+    pub record_id: String,
 }
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -170,11 +314,15 @@ fn meta(conn: &Connection, key: &str) -> Result<Option<String>, Error> {
         )
         .optional()?)
 }
-fn workspace_id(conn: &Connection) -> Result<String, Error> {
-    if let Some(id) = meta(conn, ID_KEY)? {
-        if !hex32(&id) {
-            return Err(Error::Invalid("corrupt UI workspace identity"));
-        }
+pub fn existing_workspace_id(conn: &Connection) -> Result<Option<String>, Error> {
+    let id = meta(conn, ID_KEY)?;
+    if id.as_ref().is_some_and(|id| !hex32(id)) {
+        return Err(Error::Invalid("corrupt UI workspace identity"));
+    }
+    Ok(id)
+}
+pub fn workspace_id(conn: &Connection) -> Result<String, Error> {
+    if let Some(id) = existing_workspace_id(conn)? {
         return Ok(id);
     }
     conn.execute(
@@ -183,7 +331,7 @@ fn workspace_id(conn: &Connection) -> Result<String, Error> {
     )?;
     meta(conn, ID_KEY)?.ok_or(Error::Invalid("workspace identity missing"))
 }
-fn epoch(conn: &Connection) -> Result<String, Error> {
+pub(crate) fn epoch(conn: &Connection) -> Result<String, Error> {
     match meta(conn, archeaxis_store_sqlite::authorization_fence::KEY)? {
         None => Ok("initial".into()),
         Some(raw) => {
@@ -220,6 +368,9 @@ pub fn machine_request_fingerprint(operation: &str, body: &Value) -> String {
         "retest_of":if operation=="retest" {body["retest_of"].clone()} else {Value::Null}});
     if let Some(model) = body.get("model") {
         request["model"] = model.clone();
+    }
+    if let Some(config) = body.get("model_configuration") {
+        request["model_configuration"] = config.clone();
     }
     digest(&serde_json::json!({"operation":operation,"request":request}))
 }
@@ -304,7 +455,237 @@ fn machine_grant_shapes(body: &Value, operation: &str) -> bool {
     }
     true
 }
+fn preparation_basis(
+    attempt: &PreparationAttempt,
+) -> Result<(String, i64, &str, &PreparationEditor, &str, &str), Error> {
+    let (id, version, title, editor, snapshot, purpose) = match attempt {
+        PreparationAttempt::DocumentCreate {
+            payload,
+            snapshot,
+            persisted_purpose,
+            expected_title,
+        } => {
+            if !identity(&payload.body.create_request_id) || payload.body.title != *expected_title {
+                return Err(Error::Invalid("invalid preparation create identity"));
+            }
+            (
+                format!(
+                    "doc_req_{}",
+                    hex::encode(Sha256::digest(payload.body.create_request_id.as_bytes()))
+                ),
+                1,
+                expected_title.as_str(),
+                &payload.body.editor_json,
+                snapshot.as_str(),
+                persisted_purpose.as_str(),
+            )
+        }
+        PreparationAttempt::DocumentDraft {
+            payload,
+            snapshot,
+            persisted_purpose,
+            expected_title,
+        } => {
+            if !identity(&payload.document_id) || payload.body.expected_version < 1 {
+                return Err(Error::Invalid("invalid preparation draft identity"));
+            }
+            (
+                payload.document_id.clone(),
+                payload
+                    .body
+                    .expected_version
+                    .checked_add(1)
+                    .ok_or(Error::Invalid("preparation version exhausted"))?,
+                expected_title.as_str(),
+                &payload.body.editor_json,
+                snapshot.as_str(),
+                persisted_purpose.as_str(),
+            )
+        }
+    };
+    if title.len() > 512
+        || purpose.len() > 512
+        || snapshot.len() > 400_000
+        || editor.kind != "doc"
+        || editor.content.is_empty()
+        || editor.content.len() > 65_537
+    {
+        return Err(Error::Invalid("invalid frozen preparation shape"));
+    }
+    let plain: PreparationSnapshot = serde_json::from_str(snapshot)
+        .map_err(|_| Error::Invalid("invalid preparation snapshot"))?;
+    if matches!(attempt, PreparationAttempt::DocumentCreate { .. })
+        && (purpose != plain.purpose
+            || title
+                != if plain.purpose.trim().is_empty() {
+                    "教学准备草稿"
+                } else {
+                    plain.purpose.trim()
+                })
+    {
+        return Err(Error::Invalid("preparation create title snapshot mismatch"));
+    }
+    let mut ids = HashSet::new();
+    let mut lines = Vec::new();
+    for paragraph in &editor.content {
+        if paragraph.kind != "paragraph"
+            || !identity(&paragraph.attrs.block_id)
+            || !ids.insert(&paragraph.attrs.block_id)
+            || paragraph.content.as_ref().is_some_and(|c| c.len() > 1)
+        {
+            return Err(Error::Invalid("invalid preparation paragraph"));
+        }
+        let child = paragraph.content.as_ref().and_then(|c| c.first());
+        if child.is_some_and(|c| c.kind != "text" || c.text.is_empty() || c.text.contains('\n')) {
+            return Err(Error::Invalid("invalid preparation inline text"));
+        }
+        lines.push(child.map(|c| c.text.as_str()).unwrap_or(""));
+    }
+    if plain.purpose.len() > 512
+        || plain.content.len() > 65_536
+        || lines.join("\n") != plain.content
+    {
+        return Err(Error::Invalid(
+            "preparation snapshot does not match frozen editor",
+        ));
+    }
+    Ok((id, version, title, editor, snapshot, purpose))
+}
+fn check_preparation_saved(conn: &Connection, attempt: &PreparationAttempt) -> Result<(), Error> {
+    let (id, version, title, editor, _, _) = preparation_basis(attempt)?;
+    let saved = crate::document::read(conn, &id, None)
+        .map_err(|_| Error::Invalid("preparation saved document unavailable; intent retained"))?;
+    let editor =
+        serde_json::to_value(editor).map_err(|_| Error::Invalid("invalid preparation editor"))?;
+    let nodes = editor["content"]
+        .as_array()
+        .ok_or(Error::Invalid("invalid preparation editor"))?;
+    let lines = nodes
+        .iter()
+        .map(|node| node["content"][0]["text"].as_str().unwrap_or(""))
+        .collect::<Vec<_>>();
+    let blocks = saved["blocks"]
+        .as_array()
+        .ok_or(Error::Invalid("preparation blocks unavailable"))?;
+    if saved["document_id"] != id
+        || saved["version"] != version
+        || saved["title"] != title
+        || !saved["source_id"].is_null()
+        || !saved["source_revision"].is_null()
+        || !saved["revision_basis"].is_null()
+        || saved["editor_json"] != editor
+        || saved["content_sha256"] != digest(&editor)
+        || saved["text_projection"]
+            != lines
+                .iter()
+                .filter(|line| !line.is_empty())
+                .copied()
+                .collect::<Vec<_>>()
+                .join("\n")
+        || blocks.len() != nodes.len()
+        || blocks.iter().enumerate().any(|(i, block)| {
+            block["block_id"] != nodes[i]["attrs"]["block_id"]
+                || block["ordinal"] != i
+                || block["kind"] != "paragraph"
+                || block["codec_status"] != "known"
+                || block["node_json"] != nodes[i]
+                || block["text_projection"] != lines[i]
+        })
+    {
+        return Err(Error::Invalid(
+            "preparation exact saved snapshot not confirmed; intent retained",
+        ));
+    }
+    Ok(())
+}
 fn validate(state: &State) -> Result<(), Error> {
+    if state.teaching_drafts.len() > 32 {
+        return Err(Error::Invalid("teaching draft limit exceeded"));
+    }
+    for (key, draft) in &state.teaching_drafts {
+        if let Some(attempt) = &draft.preparation_attempt {
+            preparation_basis(attempt)?;
+            if draft.pending_record.is_some() {
+                return Err(Error::Invalid(
+                    "preparation and teaching requests must be reconciled separately",
+                ));
+            }
+        }
+        use crate::teaching::RecordKind::*;
+        let page = match draft.form.kind {
+            Observation | Requirement => "08",
+            Proposal => "09",
+            Delivery => "10",
+            TeachBack => "11",
+            Feedback | Revision => "12",
+        };
+        if draft.page_id != page
+            || key
+                != &format!(
+                    "{}:{}",
+                    draft.page_id,
+                    draft.context_item_key.as_deref().unwrap_or("")
+                )
+            || draft
+                .context_item_key
+                .as_ref()
+                .is_some_and(|s| s.trim().is_empty() || s.len() > 512)
+            || draft
+                .item_key
+                .as_ref()
+                .is_some_and(|s| s.trim().is_empty() || s.len() > 512)
+            || [&draft.knowledge_id, &draft.course_id, &draft.assessment_id]
+                .iter()
+                .any(|s| s.as_ref().is_some_and(|v| !identity(v)))
+            || draft.form.purpose.len() > 512
+            || draft.form.content.len() > 65_536
+            || draft.form.rubric_version.len() > 128
+            || draft.saved_preparation.len() > 400_000
+            || draft
+                .preparation
+                .as_ref()
+                .is_some_and(|p| !identity(&p.document_id) || p.version < 1 || p.title.len() > 512)
+        {
+            return Err(Error::Invalid("invalid teaching draft"));
+        }
+        if let Some(record) = &draft.pending_record {
+            if record.schema != crate::teaching::RECORD_SCHEMA
+                || !identity(&record.record_id)
+                || record.kind != draft.form.kind
+                || record.purpose != draft.form.purpose.trim()
+                || record.content != draft.form.content
+                || record.knowledge_id != draft.knowledge_id.as_deref().unwrap_or("")
+                || record.knowledge_version != record.knowledge_id
+                || record.course_id != draft.course_id
+                || record.parent_id.as_deref()
+                    != draft.parent.as_ref().map(|p| p.record.record_id.as_str())
+                || record.scope != draft.form.scope
+                || record.privacy != draft.form.privacy
+                || record.assisted != draft.form.assisted
+                || record.producer_kind != draft.form.producer_kind
+                || record.feedback_class
+                    != if record.kind == Feedback {
+                        draft.form.feedback_class.clone()
+                    } else {
+                        None
+                    }
+                || record.assessment_id
+                    != if record.kind == TeachBack {
+                        draft.assessment_id.clone()
+                    } else {
+                        None
+                    }
+                || record.rubric_version.as_deref()
+                    != if draft.form.rubric_version.trim().is_empty() {
+                        None
+                    } else {
+                        Some(draft.form.rubric_version.trim())
+                    }
+            {
+                return Err(Error::Invalid("teaching draft frozen record mismatch"));
+            }
+        }
+    }
     if state.pending_machine.len() > 32 {
         return Err(Error::Invalid("pending machine limit exceeded"));
     }
@@ -315,6 +696,7 @@ fn validate(state: &State) -> Result<(), Error> {
             "max_tokens",
             "timeout_s",
             "model",
+            "model_configuration",
             "context_grant",
             "asset_context_grant",
             "client_request_id",
@@ -350,6 +732,9 @@ fn validate(state: &State) -> Result<(), Error> {
                         && !s.chars().any(char::is_control)
                 })
             })
+            || body.get("model_configuration").is_some_and(|v| {
+                serde_json::from_value::<crate::model_configuration::Resolved>(v.clone()).is_err()
+            })
             || !machine_grant_shapes(body, &pending.operation)
             || (pending.operation == "answer"
                 && (body["knowledge_id"] != pending.owner_knowledge_id
@@ -360,6 +745,26 @@ fn validate(state: &State) -> Result<(), Error> {
                     || !body["retest_of"].as_str().is_some_and(identity)))
         {
             return Err(Error::Invalid("invalid frozen machine journal"));
+        }
+    }
+    if state.learning_drafts.len() > 32 {
+        return Err(Error::Invalid("learning draft limit exceeded"));
+    }
+    for (key, draft) in &state.learning_drafts {
+        if key != &draft.assessment_id
+            || !identity(key)
+            || draft.item_key.trim().is_empty()
+            || draft.item_key.len() > 512
+            || draft.knowledge_version.trim().is_empty()
+            || draft.knowledge_version.len() > 512
+            || draft
+                .question_version
+                .as_ref()
+                .is_some_and(|v| v.trim().is_empty() || v.len() > 512)
+            || draft.answer.len() > 65_536
+            || draft.rating.is_some_and(|n| !(1..=4).contains(&n))
+        {
+            return Err(Error::Invalid("invalid learning draft"));
         }
     }
     if state.pending_reviews.len() > 32 {
@@ -625,6 +1030,93 @@ pub fn write(conn: &mut Connection, request: Write) -> Result<Value, Error> {
     if old.restore_epoch != current_epoch {
         return Err(Error::Conflict);
     }
+    if let Some(release) = &request.release_teaching {
+        let prior = old
+            .state
+            .teaching_drafts
+            .get(&release.draft_key)
+            .ok_or(Error::Invalid("frozen teaching draft unavailable"))?;
+        let record = prior
+            .pending_record
+            .as_ref()
+            .ok_or(Error::Invalid("teaching request is not frozen"))?;
+        let mut expected = prior.clone();
+        expected.pending_record = None;
+        if record.record_id != release.record_id
+            || request.state.teaching_drafts.get(&release.draft_key) != Some(&expected)
+        {
+            return Err(Error::Invalid(
+                "teaching release must retain exact editable draft",
+            ));
+        }
+        // The same writer transaction proves absence and permanently retires the old ID.
+        // A queued/unknown create arriving later cannot publish the released snapshot.
+        crate::teaching::retire_unadmitted(&tx,&release.record_id).map_err(|_|Error::Invalid("teaching record already exists or retirement unavailable; retry exact record to reconcile"))?;
+    }
+    for (key, draft) in &old.state.teaching_drafts {
+        if let Some(attempt) = &draft.preparation_attempt {
+            match request
+                .state
+                .teaching_drafts
+                .get(key)
+                .and_then(|d| d.preparation_attempt.as_ref())
+            {
+                Some(next) if next == attempt => {}
+                Some(_) => {
+                    return Err(Error::Invalid(
+                        "frozen preparation request cannot be replaced",
+                    ));
+                }
+                None => check_preparation_saved(&tx, attempt)?,
+            }
+        }
+        if let Some(pending) = &draft.pending_record {
+            if request
+                .release_teaching
+                .as_ref()
+                .is_some_and(|release| release.draft_key == *key)
+            {
+                continue;
+            }
+            if request.state.teaching_drafts.get(key) == Some(draft) {
+                continue;
+            }
+            if request.state.teaching_drafts.contains_key(key) {
+                return Err(Error::Invalid("frozen teaching draft cannot be replaced"));
+            }
+            let saved: Option<String> = tx
+                .query_row(
+                    "SELECT record_json FROM teaching_records WHERE record_id=?1",
+                    [&pending.record_id],
+                    |r| r.get(0),
+                )
+                .optional()?;
+            if saved
+                .as_deref()
+                .and_then(|s| serde_json::from_str::<crate::teaching::TeachingRecord>(s).ok())
+                .as_ref()
+                != Some(pending)
+            {
+                return Err(Error::Invalid(
+                    "frozen teaching draft requires exact saved record",
+                ));
+            }
+        }
+    }
+    for (key, draft) in &request.state.learning_drafts {
+        if old.state.learning_drafts.get(key).is_some_and(|prior| {
+            prior.item_key != draft.item_key
+                || prior.knowledge_version != draft.knowledge_version
+                || prior.question_version != draft.question_version
+        }) {
+            return Err(Error::Invalid(
+                "learning draft version binding cannot be replaced",
+            ));
+        }
+        if old.state.learning_drafts.get(key) != Some(draft) {
+            check_learning_draft_binding(&tx, draft)?;
+        }
+    }
     for (key, pending) in &old.state.pending_machine {
         if request.state.pending_machine.get(key) != Some(pending) {
             return Err(Error::Invalid(
@@ -847,15 +1339,24 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
     }
     match request.action {
         RecoveryAction::Discard => {
-            if !record.state.pending_machine.is_empty() || !record.state.pending_reviews.is_empty()
+            if !record.state.pending_machine.is_empty()
+                || !record.state.pending_reviews.is_empty()
+                || record
+                    .state
+                    .teaching_drafts
+                    .values()
+                    .any(|d| d.pending_record.is_some() || d.preparation_attempt.is_some())
             {
                 return Err(Error::Invalid(
-                    "unconfirmed machine or review recovery candidate requires exact receipt; preserve candidate before reconciliation",
+                    "unconfirmed machine, review or teaching recovery candidate requires exact receipt; preserve candidate before reconciliation",
                 ));
             }
             record.state = State::default();
         }
         RecoveryAction::Preserve => {
+            for draft in record.state.learning_drafts.values() {
+                check_learning_draft_binding(&tx, draft)?;
+            }
             for pending in record.state.pending_jobs.values() {
                 check_job_binding(&tx, pending)?;
             }
@@ -881,6 +1382,18 @@ pub fn recover(conn: &mut Connection, request: Recover) -> Result<Value, Error> 
     let result = response(&record, &current_epoch);
     tx.commit()?;
     Ok(result)
+}
+
+fn check_learning_draft_binding(conn: &Connection, draft: &LearningDraft) -> Result<(), Error> {
+    let bound = conn.query_row(
+        "SELECT EXISTS(SELECT 1 FROM learning_assessments WHERE assessment_id=?1 AND item_key=?2 AND knowledge_version=?3)",
+        rusqlite::params![draft.assessment_id, draft.item_key, draft.knowledge_version],
+        |r| r.get::<_, bool>(0),
+    )?;
+    if !bound {
+        return Err(Error::Invalid("learning draft assessment binding mismatch"));
+    }
+    Ok(())
 }
 
 fn check_job_binding(conn: &Connection, pending: &PendingJob) -> Result<(), Error> {
@@ -1182,6 +1695,7 @@ pub fn clear_machine(conn: &mut Connection, request: ClearMachine) -> Result<Val
         "context_grant",
         "asset_context_grant",
         "model",
+        "model_configuration",
     ];
     if doc["schema"] != schema
         || doc["authority"] != "candidate"

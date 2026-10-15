@@ -225,6 +225,22 @@ describe("Library page announce budget", () => {
     expect(liveRegions().some((region) => region.contains(reason))).toBe(false);
   });
 
+  it("announces refresh failure and retry once while retaining the loaded list", async () => {
+    libraryFixture();render(<CanonicalLibrarySpace />);
+    await screen.findByRole("button", {name:"样板.txt"});expect(liveRegions()).toHaveLength(0);
+    const gate=deferred<{sources:typeof source[]}>();bridge.call.mockImplementationOnce(()=>gate.promise);
+    const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
+    expect(liveRegions()).toHaveLength(1);expect(liveRegions()[0]).toHaveTextContent("正在刷新资料列表…");
+    gate.reject(FAILURE_CLASSES[0][1]);await screen.findByText(/资料列表刷新失败/);
+    expect(liveRegions()).toHaveLength(1);expect(liveRegions()[0]).toHaveAttribute("role","alert");
+    expect(screen.getByRole("button",{name:"样板.txt"})).toBeInTheDocument();
+    const reason=screen.getByText(/^离线：/);expect(reason).toHaveClass("state-reason");
+    expect(liveRegions().some(region=>region.contains(reason))).toBe(false);
+    await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
+    await waitFor(()=>expect(liveRegions()).toHaveLength(0));
+    expect(screen.getByRole("button",{name:"样板.txt"})).toBeInTheDocument();
+  });
+
   it("announces reading a document-with-unverified-original once, not twice", async () => {
     // The libraryFixture deliberately lets the original's digest disagree with the bound source
     // revision, so opening the document lands in the "关联原件未完成核验" branch. That is the real
@@ -395,24 +411,26 @@ describe("raw payloads stay off the reading surface", () => {
     expect(container.querySelectorAll("pre")).toHaveLength(0);
   });
 
-  it("publishes the Core handshake readback instead of printing it under the summary", async () => {
-    const observation = { capability: "machine.answer", health: "handshake_ready", enabled: false };
-    bridge.call.mockResolvedValue({ capabilities: [observation] });
+  it("publishes the scoped Core readiness readback instead of printing it under the summary", async () => {
+    const expires=Date.now()+30_000;
+    const observation = { operation: "machine.answer", implementation:"IMPLEMENTED",dependencies:"AVAILABLE",connection:"UNKNOWN",qualification:"UNVERIFIED",permission:"DISABLED",status:"NOT_READY",reasons:["CAPABILITY_DISABLED"],expires_at_ms:expires };
+    bridge.call.mockImplementation(async(operation:string,payload:{body:{scope:string;operations:readonly string[]}})=>{expect(operation).toBe("operation_readiness");expect(payload.body).toEqual({scope:"view:CAP-0050",operations:["machine.answer"]});return {schema:"archeaxis.operation-readiness/v1",scope:payload.body.scope,observed_at_ms:Date.now(),expires_at_ms:expires,aggregate:"NOT_READY",network_performed:false,models_loaded:false,execution_authorized:false,operations:[observation]};});
     const { container } = render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
-    await screen.findByText(/已读取当前 Core worker 握手/);
+    expect(bridge.call).not.toHaveBeenCalled();
     await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0050/ }));
+    await screen.findByText(/已读取当前视图的范围化状态/);
 
     // The human-readable summary is still on the reading surface...
     expect(screen.getByText(/连接\/权限/)).toHaveTextContent("已禁用");
-    expect(screen.getByText(/连接\/权限/)).toHaveTextContent("handshake_ready");
+    expect(screen.getByText(/连接\/权限/)).toHaveTextContent("UNKNOWN");
     // ...and the raw dump that used to sit under it is gone.
     const details = screen.getByRole("article", { name: "能力详情" });
     expect(details.querySelectorAll("pre")).toHaveLength(0);
     expect(details.querySelectorAll("details")).toHaveLength(0);
 
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
-    await userEvent.setup().click(screen.getByRole("button", { name: /Core 握手原始读回 · machine\.answer/ }));
-    expect(debug.mock.calls.some(([, label, payload]) => label === "Core 握手原始读回 · machine.answer" && JSON.stringify(payload) === JSON.stringify(observation))).toBe(true);
+    await userEvent.setup().click(screen.getByRole("button", { name: /Core 范围化状态原始读回 · machine\.answer/ }));
+    expect(debug.mock.calls.some(([, label, payload]) => label === "Core 范围化状态原始读回 · machine.answer" && JSON.stringify(payload) === JSON.stringify({...observation,enabled:false,health:"UNKNOWN"}))).toBe(true);
     debug.mockRestore();
     expect(container.textContent).not.toMatch(/"health"\s*:/);
   });

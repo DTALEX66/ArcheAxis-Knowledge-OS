@@ -115,6 +115,46 @@ def test_ci_cargo_target_is_preserved_but_foreign_target_is_refused(project, mon
         router.build(project, "node", "tauri", ["build"])
 
 
+def test_tauri_build_uses_its_own_target_when_parent_routes_core(project, monkeypatch):
+    paths = router.dev.layout(project, "parent-core")
+    monkeypatch.setenv("CARGO_TARGET_DIR", str(paths["cargo_build"]))
+    observed = []
+    monkeypatch.setattr(router.subprocess, "call", lambda *args, **kwargs: observed.append(kwargs["env"]["CARGO_TARGET_DIR"]) or successful_compiler(*args, **kwargs))
+    assert router.build(project, "node", "tauri", ["build"]) == 0
+    assert observed == [str(paths["tauri_build"])]
+    assert paths["cargo_build"] != paths["tauri_build"]
+
+
+def test_separate_nsis_bundle_retains_config_features_and_failure(project, monkeypatch):
+    commands = []
+    def execute(command, **kwargs):
+        commands.append(command)
+        successful_compiler(command, **kwargs)
+        return 23 if command[2] == "bundle" else 0
+    monkeypatch.setattr(router.subprocess, "call", execute)
+    arguments = ["build", "--config", "src-tauri/tauri.conf.json", "--bundles", "nsis", "--features", "custom-protocol"]
+    assert router.build(project, "node", "tauri", arguments, separate_bundle=True) == 23
+    assert [command[2] for command in commands] == ["build", "bundle"]
+    assert "--no-bundle" in commands[0] and "--bundles" not in commands[0]
+    assert "--bundles" in commands[1] and commands[1][-1] == "nsis"
+    for command in commands:
+        assert "custom-protocol" in command and "src-tauri/tauri.conf.json" in command
+    assert commands[0][commands[0].index("--config", 5) + 1] == commands[1][commands[1].index("--config", 5) + 1]
+    reports = [json.loads(path.read_text()) for path in (project / ".project-local/runs").glob("*/*/artifacts/bt-*.json")]
+    assert [(stage["name"], stage["status"]) for stage in reports[0]["stages"]] == [("tauri-compile-with-frontend-hook", "PASS"), ("nsis-bundle", "FAIL")]
+    receipt = next((project / ".project-local/runs").glob("*/*/artifacts/frontend-build.json"))
+    assert json.loads(receipt.read_text())["exit_code"] == 23
+
+
+def test_separate_bundling_never_runs_after_compilation_failure(project, monkeypatch):
+    commands = []
+    monkeypatch.setattr(router.subprocess, "call", lambda command, **_: commands.append(command) or 17)
+    assert router.build(project, "node", "tauri", ["build", "--bundles", "nsis"], separate_bundle=True) == 17
+    assert len(commands) == 1 and commands[0][2] == "build"
+    with pytest.raises(ValueError, match="raw Cargo arguments"):
+        router.tauri_commands("node", "cli", ["build", "--", "--locked"], "overlay", True)
+
+
 def test_foreign_dist_or_injected_nested_context_is_refused(project, monkeypatch):
     paths = router.dev.layout(project, "fixture")
     env = router.dev.prepare(paths)

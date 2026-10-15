@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "archeaxis/ui-working-state/v1",
-  "description": "Core-owned human working drafts and UI continuity; not committed Document content. State <=1048576 UTF8 bytes; each draft <=262144 bytes. Exact Core workspace/restore epoch/revision CAS required. clear_saved verifies stored draft digest and actual base+1 committed Document version. Restore candidates require explicit preserve/discard; never automatic application. Discard refuses candidates containing pending_machine or pending_reviews without changing revision; preserve then reconcile exact receipts. Ordinary draft-only candidates remain discardable.",
+  "description": "Core-owned human working drafts and UI continuity; not committed Document content. State <=1048576 UTF8 bytes; each draft <=262144 bytes. Exact Core workspace/restore epoch/revision CAS required. clear_saved verifies stored draft digest and actual base+1 committed Document version. Restore candidates require explicit preserve/discard; never automatic application. Discard refuses candidates containing pending_machine, pending_reviews or frozen teaching_drafts without changing revision; preserve then reconcile exact receipts. Ordinary draft-only candidates remain discardable.",
   "oneOf": [
     {
       "$ref": "#/$defs/Write"
@@ -17,6 +17,69 @@
     }
   ],
   "$defs": {
+    "LearningDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "item_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "assessment_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "question_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "answer": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "checked_correct": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "answer_revealed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "item_key",
+        "assessment_id",
+        "knowledge_version",
+        "answer",
+        "checked_correct",
+        "rating",
+        "answer_revealed"
+      ]
+    },
     "Draft": {
       "type": "object",
       "additionalProperties": false,
@@ -50,6 +113,17 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "learning_drafts": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/LearningDraft"
+          }
+        },
         "drafts": {
           "type": "object",
           "maxProperties": 32,
@@ -148,6 +222,18 @@
           "additionalProperties": {
             "$ref": "#/$defs/PendingMachine"
           }
+        },
+        "teaching_drafts": {
+          "type": "object",
+          "maxProperties": 32,
+          "propertyNames": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 515
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/TeachingDraft"
+          }
         }
       },
       "required": [
@@ -176,6 +262,9 @@
         },
         "state": {
           "$ref": "#/$defs/State"
+        },
+        "release_teaching": {
+          "$ref": "#/$defs/ReleaseTeaching"
         }
       },
       "required": [
@@ -636,6 +725,9 @@
             },
             "asset_context_grant": {
               "$ref": "#/$defs/MachineAssetPacketRequest"
+            },
+            "model_configuration": {
+              "$ref": "#/$defs/ResolvedModel"
             }
           },
           "required": [
@@ -766,6 +858,809 @@
         "content_sha256",
         "purpose"
       ]
+    },
+    "ModelPurpose": {
+      "enum": [
+        "answer",
+        "retest",
+        "material",
+        "document_check",
+        "embedding"
+      ]
+    },
+    "ModelLane": {
+      "enum": [
+        "fast",
+        "deep"
+      ]
+    },
+    "ModelProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?$"
+        },
+        "protocol": {
+          "enum": [
+            "ollama",
+            "openai"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "credential_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^aak_cred_[a-f0-9]{32}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 4096
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        }
+      },
+      "required": [
+        "endpoint",
+        "protocol",
+        "model",
+        "credential_ref",
+        "max_tokens",
+        "timeout_s"
+      ]
+    },
+    "ModelPurposeBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        }
+      },
+      "required": [
+        "purpose",
+        "lane",
+        "profile_id"
+      ]
+    },
+    "ModelConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.model-configuration/v1"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "profiles": {
+          "type": "object",
+          "maxProperties": 32,
+          "additionalProperties": {
+            "$ref": "#/$defs/ModelProfile"
+          }
+        },
+        "bindings": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/ModelPurposeBinding"
+          }
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "revision",
+        "profiles",
+        "bindings",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "ResolvedModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.resolved-model/v1"
+        },
+        "configuration_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "profile": {
+          "$ref": "#/$defs/ModelProfile"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "configuration_revision",
+        "configuration_sha256",
+        "purpose",
+        "lane",
+        "profile_id",
+        "profile",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "RecordKind": {
+      "type": "string",
+      "enum": [
+        "observation",
+        "requirement",
+        "proposal",
+        "delivery",
+        "teach_back",
+        "feedback",
+        "revision"
+      ]
+    },
+    "RecordScope": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "manual_exchange"
+      ]
+    },
+    "RecordPrivacy": {
+      "type": "string",
+      "enum": [
+        "local_only",
+        "authorized_export"
+      ]
+    },
+    "FeedbackClass": {
+      "type": "string",
+      "enum": [
+        "professional_basis",
+        "evidence_fidelity",
+        "recognition_quality",
+        "expression_fit",
+        "operation_fault",
+        "mastery",
+        "ai_qualification"
+      ]
+    },
+    "ProducerKind": {
+      "type": "string",
+      "enum": [
+        "human_authored",
+        "external_material",
+        "machine_generated"
+      ]
+    },
+    "TeachingRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "record_id",
+        "kind",
+        "knowledge_id",
+        "knowledge_version",
+        "course_id",
+        "parent_id",
+        "purpose",
+        "scope",
+        "privacy",
+        "content",
+        "feedback_class",
+        "assessment_id",
+        "rubric_version",
+        "assisted",
+        "producer_kind"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.teaching-record/v2"
+        },
+        "record_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "kind": {
+          "$ref": "#/$defs/RecordKind"
+        },
+        "knowledge_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+        },
+        "knowledge_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$",
+          "x-equalsField": "knowledge_id"
+        },
+        "course_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-notEqualsField": "record_id"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512,
+          "pattern": "[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000]",
+          "x-maxUtf8Bytes": 512
+        },
+        "scope": {
+          "$ref": "#/$defs/RecordScope"
+        },
+        "privacy": {
+          "$ref": "#/$defs/RecordPrivacy"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65536,
+          "pattern": "[^\\u0009-\\u000D\\u0020\\u0085\\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000]",
+          "x-maxUtf8Bytes": 65536
+        },
+        "feedback_class": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FeedbackClass"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-onlyForKind": "feedback"
+        },
+        "assessment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rubric_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assisted": {
+          "type": "boolean"
+        },
+        "producer_kind": {
+          "$ref": "#/$defs/ProducerKind"
+        }
+      }
+    },
+    "RecordView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record",
+        "content_sha256",
+        "withdrawn",
+        "scoring_status"
+      ],
+      "properties": {
+        "record": {
+          "$ref": "#/$defs/TeachingRecord"
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "minLength": 64,
+          "maxLength": 64
+        },
+        "withdrawn": {
+          "type": "boolean"
+        },
+        "scoring_status": {
+          "const": "not_scored"
+        }
+      }
+    },
+    "TeachingForm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/RecordKind"
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "scope": {
+          "$ref": "#/$defs/RecordScope"
+        },
+        "privacy": {
+          "$ref": "#/$defs/RecordPrivacy"
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "feedback_class": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FeedbackClass"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-onlyForKind": "feedback"
+        },
+        "rubric_version": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "assisted": {
+          "type": "boolean"
+        },
+        "producer_kind": {
+          "$ref": "#/$defs/ProducerKind"
+        }
+      },
+      "required": [
+        "kind",
+        "purpose",
+        "scope",
+        "privacy",
+        "content",
+        "feedback_class",
+        "rubric_version",
+        "assisted",
+        "producer_kind"
+      ]
+    },
+    "TeachingPreparation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 512
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "title"
+      ]
+    },
+    "TeachingDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "page_id": {
+          "enum": [
+            "08",
+            "09",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        "context_item_key": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "form": {
+          "$ref": "#/$defs/TeachingForm"
+        },
+        "knowledge_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "course_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "item_key": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 512
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assessment_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecordView"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "preparation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TeachingPreparation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "saved_preparation": {
+          "type": "string",
+          "maxLength": 400000
+        },
+        "pending_record": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TeachingRecord"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "preparation_attempt": {
+          "$ref": "#/$defs/PreparationAttempt"
+        }
+      },
+      "required": [
+        "page_id",
+        "context_item_key",
+        "form",
+        "knowledge_id",
+        "course_id",
+        "item_key",
+        "assessment_id",
+        "parent",
+        "preparation",
+        "saved_preparation",
+        "pending_record"
+      ]
+    },
+    "PreparationEditor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "doc"
+        },
+        "content": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 65537,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "const": "paragraph"
+              },
+              "attrs": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "block_id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{1,128}$"
+                  }
+                },
+                "required": [
+                  "block_id"
+                ]
+              },
+              "content": {
+                "type": "array",
+                "maxItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "type": {
+                      "const": "text"
+                    },
+                    "text": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 65536
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "text"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "attrs"
+            ]
+          }
+        }
+      },
+      "required": [
+        "type",
+        "content"
+      ]
+    },
+    "PreparationAttempt": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "operation": {
+              "const": "document_create"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "body": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "create_request_id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9_-]{1,128}$"
+                    },
+                    "title": {
+                      "type": "string",
+                      "maxLength": 512
+                    },
+                    "editor_json": {
+                      "$ref": "#/$defs/PreparationEditor"
+                    }
+                  },
+                  "required": [
+                    "create_request_id",
+                    "title",
+                    "editor_json"
+                  ]
+                }
+              },
+              "required": [
+                "body"
+              ]
+            },
+            "snapshot": {
+              "type": "string",
+              "maxLength": 400000
+            },
+            "persistedPurpose": {
+              "type": "string",
+              "maxLength": 512
+            },
+            "expectedTitle": {
+              "type": "string",
+              "maxLength": 512
+            }
+          },
+          "required": [
+            "operation",
+            "payload",
+            "snapshot",
+            "persistedPurpose",
+            "expectedTitle"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "operation": {
+              "const": "document_draft"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "document_id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,128}$"
+                },
+                "body": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "expected_version": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "editor_json": {
+                      "$ref": "#/$defs/PreparationEditor"
+                    }
+                  },
+                  "required": [
+                    "expected_version",
+                    "editor_json"
+                  ]
+                }
+              },
+              "required": [
+                "document_id",
+                "body"
+              ]
+            },
+            "snapshot": {
+              "type": "string",
+              "maxLength": 400000
+            },
+            "persistedPurpose": {
+              "type": "string",
+              "maxLength": 512
+            },
+            "expectedTitle": {
+              "type": "string",
+              "maxLength": 512
+            }
+          },
+          "required": [
+            "operation",
+            "payload",
+            "snapshot",
+            "persistedPurpose",
+            "expectedTitle"
+          ]
+        }
+      ]
+    },
+    "ReleaseTeaching": {
+      "additionalProperties": false,
+      "required": [
+        "draft_key",
+        "record_id"
+      ],
+      "type": "object",
+      "properties": {
+        "draft_key": {
+          "maxLength": 515,
+          "type": "string",
+          "minLength": 3
+        },
+        "record_id": {
+          "maxLength": 128,
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "minLength": 1
+        }
+      }
     }
   }
 }

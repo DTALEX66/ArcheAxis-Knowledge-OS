@@ -23,6 +23,7 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 from aaos01_office_runtime_loop import REPO, identity, load
+from native_tcp_listeners import tcp_listener_rows
 
 
 class _GroupedJourneyCompleteError(Exception):
@@ -33,6 +34,41 @@ class WebDriverProtocolError(RuntimeError):
     def __init__(self, value):
         self.value = value
         super().__init__(value)
+
+
+def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt):
+    """Exit ACK may disappear with WebView; only this owned process's exit 0 qualifies."""
+    assert launch_identity and launch_identity["pid"] == host.pid, "Owned launch identity missing"
+    assert any(row["pid"] == host.pid and row["created"] == launch_identity["created"]
+               for row in live_rows), "Owned host creation identity changed"
+    assert host.poll() is None, "Owned host exited before requested product exit"
+    record = {"pid": host.pid, "created": launch_identity["created"], "requested": True}
+    receipt.setdefault("requested_product_exits", []).append(record)
+    try:
+        reply = request_exit()
+    except OSError as error:
+        record.update(ack="TRANSPORT_CLOSED", error_type=type(error).__name__)
+    except WebDriverProtocolError as error:
+        message = error.value.get("message")
+        detached_on_exit = error.value.get("error") == "target frame detached" and isinstance(message, str) and re.fullmatch(
+            r"target frame detached\n  \(failed to check if window was closed: "
+            r"disconnected: Unable to receive message from renderer\)"
+            r"(?:\n  \(Session info: MicrosoftEdge=\d+\.\d+\.\d+\.\d+\))?", message)
+        if error.value.get("error") not in {"no such window", "invalid session id"} and not detached_on_exit:
+            raise
+        record.update(ack="TRANSPORT_CLOSED", error_type=error.value["error"])
+    else:
+        if reply is None:
+            record["ack"] = "MISSING_ON_EXIT"
+        else:
+            assert isinstance(reply, dict) and reply.get("ok") is True and "value" in reply, reply
+            record["ack"] = "CONFIRMED"
+    code = host.wait(timeout=15)
+    exited = code == 0 and host.poll() == 0
+    receipt.setdefault("host_shutdowns", []).append({
+        "pid": host.pid, "created": launch_identity["created"], "ack": record["ack"],
+        "exited": exited, "exit_code": code, "method": "product_exit_application_attached_observer"})
+    assert exited, "Owned host did not exit normally with product exit code 0"
 
 
 def click_current_element(request, find, session, selector):
@@ -90,7 +126,7 @@ def confirm_restored_working_state(bridge, ui_click, wait, js):
     js("const original=window.__TAURI__,invoke=original.core.invoke;window.__aaosRecoveryReplies=[];window.__aaosRecoveryOriginal=original;const observed=async function(command,args){const value=await invoke(command,args);if(command==='core_command'&&['ui_state_recover','ui_state_write'].includes(args?.request?.operation))window.__aaosRecoveryReplies.push({operation:args.request.operation,value});return value;};window.__TAURI__={...original,core:{...original.core,invoke:observed}};if(window.__TAURI__.core.invoke!==observed)throw new Error('Recovery observer installation refused');")
     try:
         ui_click("保留恢复候选")
-        wait("return document.body.innerText.includes('工作状态已由 Core 保全')")
+        wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
         after = bridge("ui_state_read")
         observed = js("return window.__aaosRecoveryReplies")
     finally:
@@ -129,7 +165,9 @@ def navigate_compatibility_space(js, wait, space: str) -> None:
     """Exercise the declared public legacy route; never infer new-page coverage."""
     # A live bridge is not the UI journal hydration barrier. A restored scene can
     # otherwise replace a hash written immediately after reopening the window.
-    wait("return document.body.innerText.includes('工作状态已由 Core 保全；正文保存以各文档版本回执为准。')")
+    # The reference home hides the verbose ready-only notice, while recovery and
+    # errors stay visible. Await the real hydrated state, not decorative copy.
+    wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
     headings = {"library": "资料库", "vault": "知识库", "workspace": "工作台"}
     heading = headings[space]
     js("window.location.hash=arguments[0]", ["space=" + space])
@@ -261,6 +299,42 @@ def process_elevation(pid):
 
 
 
+def wait_owned_descendant_drain(records, *, timeout=15.0, interval=.2,
+                                snapshot=None, monotonic=None, sleep=None):
+    """Observe only PID + creation identities; do not stop or exempt processes."""
+    snapshot = snapshot or native_process_rows
+    monotonic = monotonic or time.monotonic
+    sleep = sleep or time.sleep
+    owned = {(row["pid"], row["created"]) for row in records}
+    started = monotonic()
+    deadline = started + timeout
+    samples = 0
+    while True:
+        current = snapshot()
+        samples += 1
+        remaining = [row for row in current if (row["pid"], row["created"]) in owned]
+        now = monotonic()
+        if not remaining or now >= deadline:
+            return {"remaining": remaining, "samples": samples,
+                    "elapsed_seconds": round(now-started, 3), "timeout_seconds": timeout}
+        sleep(min(interval, deadline-now))
+
+
+def owned_cdp_listener_rows(cdp_port, owned, *, snapshot=None, observe=None):
+    """Verify loopback/ownership and recheck each listener's creation identity."""
+    snapshot = snapshot or native_process_rows
+    observe = observe or tcp_listener_rows
+    listeners = observe(ports=(cdp_port,))
+    indexed = {row["pid"]: row["created"] for row in owned}
+    if not listeners or any(row["LocalAddress"] not in ("127.0.0.1", "::1")
+                            or row["OwningProcess"] not in indexed for row in listeners):
+        raise RuntimeError("Unowned CDP listener")
+    after = {row["pid"]: row["created"] for row in snapshot()}
+    if any(after.get(row["OwningProcess"]) != indexed[row["OwningProcess"]] for row in listeners):
+        raise RuntimeError("CDP listener process creation identity changed during observation")
+    return listeners
+
+
 def owned_attach_diagnostics(root_pid, root_created, cdp_port, folders):
     """Owned metadata only; never persist complete command lines or environment."""
     rows = native_process_rows()
@@ -279,14 +353,14 @@ def owned_attach_diagnostics(root_pid, root_created, cdp_port, folders):
         "debug_port_matches=($cmd -match '--remote-debugging-port=" + str(cdp_port) + "(?:[^0-9]|$)'); "
         "debug_address_loopback=($cmd -match '--remote-debugging-address=127\\.0\\.0\\.1(?:[^0-9.]|$)'); "
         "has_user_data_dir=($cmd -match '--user-data-dir(?:=|\\s)') } }); "
-        "$listeners=@(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { "
-        "($_.LocalPort -eq " + str(cdp_port) + " -or $_.OwningProcess -in $ids) -and $_.LocalAddress -in @('127.0.0.1','::1') "
-        "} | Select-Object LocalAddress,LocalPort,OwningProcess); "
-        "@{processes=$processes; loopback_listeners=$listeners} | ConvertTo-Json -Depth 5 -Compress"
+        "@{processes=$processes} | ConvertTo-Json -Depth 5 -Compress"
     )
     result = subprocess.run(["powershell.exe", "-NoProfile", "-Command", script],
                             capture_output=True, text=True, encoding="utf-8", errors="replace", check=True, timeout=15)
     metadata = json.loads(result.stdout)
+    metadata["loopback_listeners"] = [row for row in tcp_listener_rows(
+        ports=(cdp_port,), pids=(row["pid"] for row in owned))
+        if row["LocalAddress"] in ("127.0.0.1", "::1")]
     after = {row["pid"]: row for row in native_process_rows()}
     if any(row["pid"] not in after or after[row["pid"]]["created"] != row["created"] for row in owned):
         raise RuntimeError("Owned attach process identity changed during metadata collection")
@@ -1042,6 +1116,8 @@ def main():
     parser.add_argument("--driver", type=Path)
     parser.add_argument("--native-driver", type=Path)
     parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
+    parser.add_argument("--configuration-plan-loop", action="store_true", help="Explicit isolated BE08 native configuration and read-only plan journey; no installer or model execution")
+    parser.add_argument("--character-memory-loop", action="store_true", help="Explicit independent BE06 synthetic memory UI, cold reopen and owned local JSON download; no model or installed claim")
     parser.add_argument("--ui-import-manifest", type=Path, help="Explicit 18-format synthetic fixture identities for actual file input qualification")
     parser.add_argument("--ui-format-conversion", action="store_true", help="Execute actual UI content controls for explicit synthetic import manifest")
     parser.add_argument("--ui-format-reparse", action="store_true", help="Independent second actual UI conversion; preserve first job outputs")
@@ -1099,6 +1175,10 @@ def main():
     if args.grouped_common_owner_loop and (args.synthetic_course_loop or args.synthetic_template_pagination):
         parser.error("grouped qualification cannot mix compatibility fixtures")
     validate_conflict_branch(args)
+    if args.character_memory_loop and any((args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.installer, args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss, args.grouped_machine_ack_loss)):
+        parser.error("character-memory candidate qualification cannot mix other journeys or installer qualification")
+    if args.configuration_plan_loop and any((args.character_memory_loop, args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.installer, args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss, args.grouped_machine_ack_loss, args.grouped_run_ai)):
+        parser.error("configuration-plan candidate qualification cannot mix other journeys, models or installer qualification")
     host = args.host.resolve()
     tools = REPO / ".project-local/task-runtime/aaos01-tools"
     driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
@@ -1374,18 +1454,14 @@ def main():
         owned = owned_process_rows(native_process_rows(), owned_host.pid)
         owned_host_records.extend(owned)
         owned_tree_collection_verified = True
-        query = subprocess.check_output(["powershell.exe", "-NoProfile", "-Command", f"@(Get-NetTCPConnection -State Listen -LocalPort {cdp_port} | Select-Object LocalAddress,OwningProcess) | ConvertTo-Json -Compress"], text=True, timeout=10)
-        listeners = json.loads(query)
-        if isinstance(listeners, dict):
-            listeners = [listeners]
-        assert listeners and all(item["LocalAddress"] in ("127.0.0.1", "::1") and item["OwningProcess"] in {row["pid"] for row in owned} for item in listeners), "Unowned CDP listener"
+        listeners = owned_cdp_listener_rows(cdp_port, owned)
         receipt["launch_attempts"][-1].update({"owned_processes":owned,"cdp_version":version["Browser"],"listeners":listeners,"listener_process_identities":[row for row in owned if row["pid"] in {item["OwningProcess"] for item in listeners}]})
         result = request("POST", "/session", {"capabilities":{"alwaysMatch":{"browserName":"webview2","unhandledPromptBehavior":"ignore","ms:edgeChromium":True,"ms:edgeOptions":{"debuggerAddress":f"127.0.0.1:{cdp_port}"}}}})
         session = result["sessionId"]
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
         wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
-        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop:
+        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
@@ -1403,18 +1479,17 @@ def main():
         nonlocal session, owned_host, owned_tree_collection_verified
         assert owned_host is not None, "Owned host identity missing"
         pid = owned_host.pid
-        owned_host_records.extend(owned_process_rows(native_process_rows(), pid))
+        live_rows = native_process_rows()
+        owned_host_records.extend(owned_process_rows(live_rows, pid))
         owned_tree_collection_verified = True
-        assert owned_host.poll() is None, "Owned host exited unexpectedly before requested product exit"
-        receipt.setdefault("requested_product_exits", []).append({"pid":pid,"requested":True})
-        if owned_host.poll() is None:
-            # Transport may close as the product exits; normal wait/code remain mandatory.
-            with suppress(OSError, RuntimeError):
-                native_command("exit_application")
-            owned_host.wait(timeout=15)
-        exited = owned_host.poll() == 0
-        receipt.setdefault("host_shutdowns", []).append({"pid":pid,"exited":exited,"exit_code":owned_host.returncode,"method":"product_exit_application_attached_observer"})
-        assert exited, "Owned host did not exit normally with product exit code 0"
+        launch_identity = next((row for row in reversed(receipt["launch_attempts"])
+                                if row["host_pid"] == pid), None)
+        identity_record = ({"pid": pid, "created": launch_identity["host_created"]}
+                           if launch_identity else None)
+        request_owned_product_exit(owned_host, identity_record, live_rows,
+            lambda: request("POST", f"/session/{session}/execute/async", {
+                "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke('exit_application').then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
+                "args": []}), receipt)
         if session:
             # Host has already verifiably exited with code 0.
             with suppress(OSError, RuntimeError):
@@ -1505,9 +1580,55 @@ def main():
             close_session()
             receipt["ok"] = initialization["status"] == "PASS"
             raise _GroupedJourneyCompleteError()
+        if args.configuration_plan_loop:
+            grouped = load("plan_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            plans = load("plan_native_journey", REPO / "scripts/probes/aaos01_configuration_plan_loop.py")
+            actions = []
+            def plan_command(element_id, action, body):
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def plan_restart():
+                close_session()
+                launch()
+            controls = grouped.GroupedUI(js, wait, ui_element, plan_command, actions)
+            receipt["configuration_plan_loop"] = {"ui_actions":actions}
+            plans.run(ui=controls, bridge=bridge, js=js, wait=wait, restart=plan_restart, screenshot=screenshot, report=receipt["configuration_plan_loop"])
+            receipt["steps"].append("BE08 finite product configuration and read-only plan UI; no installation, model or Owner qualification")
+            close_session()
+            receipt["ok"] = receipt["configuration_plan_loop"]["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
+        if args.character_memory_loop:
+            grouped = load("memory_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            memory = load("memory_native_journey", REPO / "scripts/probes/aaos01_character_memory_loop.py")
+            actions = []
+            def memory_command(element_id, action, body):
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def memory_restart():
+                close_session()
+                launch()
+            def memory_download(directory):
+                directory = Path(directory).resolve()
+                directory.relative_to(work.resolve())
+                directory.mkdir(parents=True, exist_ok=False)
+                request("POST", f"/session/{session}/ms/cdp/execute", {"cmd":"Browser.setDownloadBehavior","params":{"behavior":"allow","downloadPath":str(directory)}})
+            controls = grouped.GroupedUI(js, wait, ui_element, memory_command, actions)
+            receipt["character_memory_loop"] = {"ui_actions":actions}
+            memory.run(ui=controls, bridge=bridge, js=js, wait=wait, restart=memory_restart, download_control=memory_download, work=work, screenshot=screenshot, report=receipt["character_memory_loop"])
+            receipt["steps"].append("BE06 explicit memory UI and current-store readback only; no model, Owner or installer qualification")
+            close_session()
+            receipt["ok"] = receipt["character_memory_loop"]["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
         if args.grouped_common_owner_loop:
             grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
             def grouped_element_command(element_id, action, body):
+                if action == "pointer_click":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"pointer", "id":"grouped-owned-pointer", "parameters":{"pointerType":"mouse"},
+                        "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
+                                   {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
+                if action == "wheel":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"wheel", "id":"grouped-owned-scroll", "actions":[{
+                            "type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
                 return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
             def grouped_restart():
                 close_session()
@@ -1968,18 +2089,15 @@ def main():
             receipt["owned_identity_collection_verified"] = owned_tree_collection_verified
             if receipt.get("owned_host_pids") and not owned_tree_collection_verified:
                 raise RuntimeError("Owned attach process tree was never identity-verified")
-            rows = {row["pid"]: row for row in native_process_rows()}
-            remaining = [row["pid"] for row in owned_host_records
-                         if row["pid"] in rows and rows[row["pid"]]["created"] == row["created"]]
+            receipt["owned_cleanup_readback_stage"] = "process_identity_drain"
+            drain = wait_owned_descendant_drain(owned_host_records)
+            receipt["owned_descendant_drain"] = drain
+            remaining = [row["pid"] for row in drain["remaining"]]
             receipt["remaining_same_creation_owned_hosts"] = sorted(set(remaining))
             if remaining:
                 raise RuntimeError("Owned host descendants remained after cleanup")
-            query = subprocess.run(["powershell.exe", "-NoProfile", "-Command",
-                "@(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { $_.LocalPort -in @("
-                + ",".join(str(value) for value in attach_ports + [port, native])
-                + ") } | Select-Object LocalAddress,LocalPort,OwningProcess) | ConvertTo-Json -Compress"],
-                capture_output=True, text=True, check=True, timeout=15)
-            listeners = json.loads(query.stdout or "[]")
+            receipt["owned_cleanup_readback_stage"] = "port_listeners"
+            listeners = tcp_listener_rows(ports=attach_ports + [port, native])
             receipt["remaining_owned_port_listeners"] = listeners
             if listeners:
                 raise RuntimeError("Owned attach/driver ports remained listening after cleanup")
@@ -2001,7 +2119,10 @@ def main():
         path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
         print(
             json.dumps(
-                {"ok": receipt["ok"], "receipt": str(path), "error": receipt.get("error")},
+                {"ok": receipt["ok"], "receipt": str(path), "error": receipt.get("error"),
+                 "cleanup_error": receipt.get("owned_cleanup_readback_error"),
+                 "cleanup_stage": receipt.get("owned_cleanup_readback_stage"),
+                 "remaining_owned": receipt.get("remaining_same_creation_owned_hosts")},
                 ensure_ascii=False,
             )
         )

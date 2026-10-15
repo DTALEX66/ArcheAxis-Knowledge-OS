@@ -36,6 +36,7 @@ pub enum Operation {
     SourceImport,
     SourcesList,
     SourceJobs,
+    SourceJobFormatQualification,
     SourceMembers,
     SourcePages,
     SourceOriginal,
@@ -89,6 +90,24 @@ pub enum Operation {
     AssessmentGet,
     LearningReference,
     MachineAnswer,
+    MaterialQuestion,
+    MaterialContextPrepare,
+    MaterialQuestionCancel,
+    MaterialQuestionStatus,
+    OperationReadiness,
+    CharacterMemoryGet,
+    CharacterMemoryApply,
+    CharacterMemoryContext,
+    CharacterMemoryExport,
+    ConfigurationPlansRead,
+    ModelConfigurationGet,
+    ModelConfigurationPut,
+    ModelConfigurationResolve,
+    ConversationSessionCreate,
+    ConversationHistory,
+    ConversationRequest,
+    ConversationCancel,
+    ConversationStatus,
     MachineConfiguration,
     MachineInventory,
     MachineCorrection,
@@ -107,6 +126,9 @@ pub enum Operation {
     KnowledgeFromTransform,
     WorkspaceBackup,
     WorkspaceBackups,
+    LayoutRead,
+    LayoutWrite,
+    LayoutRecover,
     UiStateRead,
     UiStateWrite,
     UiStateClearSaved,
@@ -234,6 +256,15 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         SourceJobs => (
             "GET",
             format!("/api/v1/sources/{}/jobs", id(p, "source_id")?),
+            None,
+        ),
+        SourceJobFormatQualification => (
+            "GET",
+            format!(
+                "/api/v1/sources/{}/jobs/{}/format-qualification",
+                id(p, "source_id")?,
+                id(p, "job_id")?
+            ),
             None,
         ),
         SourceMembers => (
@@ -538,7 +569,67 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             None,
         ),
         LearningReview => ("POST", "/api/v1/learning/reviews".into(), Some(body()?)),
+        ConversationSessionCreate => (
+            "POST",
+            "/api/v1/conversation/sessions".into(),
+            Some(body()?),
+        ),
+        ConversationHistory => ("POST", "/api/v1/conversation/history".into(), Some(body()?)),
+        ConversationRequest => (
+            "POST",
+            "/api/v1/conversation/requests".into(),
+            Some(body()?),
+        ),
+        ConversationCancel => ("POST", "/api/v1/conversation/cancel".into(), Some(body()?)),
+        ConversationStatus => ("POST", "/api/v1/conversation/status".into(), Some(body()?)),
         MachineAnswer => ("POST", "/api/v1/machine/answers".into(), Some(body()?)),
+        MaterialQuestion => ("POST", "/api/v1/material/questions".into(), Some(body()?)),
+        MaterialContextPrepare => ("POST", "/api/v1/material/context".into(), Some(body()?)),
+        MaterialQuestionCancel => (
+            "POST",
+            "/api/v1/material/questions/cancel".into(),
+            Some(body()?),
+        ),
+        MaterialQuestionStatus => (
+            "POST",
+            "/api/v1/material/questions/status".into(),
+            Some(body()?),
+        ),
+        OperationReadiness => ("POST", "/api/v1/operation-readiness".into(), Some(body()?)),
+        CharacterMemoryGet | CharacterMemoryContext | CharacterMemoryExport => {
+            if !p.as_object().is_some_and(|v| v.is_empty()) {
+                return Err("CORE_COMMAND_FIELDS_INVALID".into());
+            }
+            (
+                "GET",
+                match request.operation {
+                    CharacterMemoryContext => "/api/v1/character-memory/context",
+                    CharacterMemoryExport => "/api/v1/character-memory/export",
+                    _ => "/api/v1/character-memory",
+                }
+                .into(),
+                None,
+            )
+        }
+        CharacterMemoryApply => ("POST", "/api/v1/character-memory".into(), Some(body()?)),
+        ConfigurationPlansRead => {
+            if !p.as_object().is_some_and(|v| v.is_empty()) {
+                return Err("CORE_COMMAND_PAYLOAD_EMPTY_REQUIRED".into());
+            }
+            ("GET", "/api/v1/configuration-plans".into(), None)
+        }
+        ModelConfigurationGet => {
+            if !p.as_object().is_some_and(|v| v.is_empty()) {
+                return Err("CORE_COMMAND_PAYLOAD_EMPTY_REQUIRED".into());
+            }
+            ("GET", "/api/v1/model-configuration".into(), None)
+        }
+        ModelConfigurationPut => ("PUT", "/api/v1/model-configuration".into(), Some(body()?)),
+        ModelConfigurationResolve => (
+            "POST",
+            "/api/v1/model-configuration/resolve".into(),
+            Some(body()?),
+        ),
         MachineConfiguration => {
             if !request
                 .payload
@@ -643,6 +734,51 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(serde_json::json!({})),
         ),
         WorkspaceBackups => ("GET", "/api/v1/workspace/backups".into(), None),
+        LayoutRead => {
+            if !p
+                .as_object()
+                .is_some_and(|object| object.len() == 1 && object.contains_key("device_id"))
+            {
+                return Err("CORE_LAYOUT_PAYLOAD_INVALID".into());
+            }
+            let device = p["device_id"]
+                .as_str()
+                .ok_or("CORE_LAYOUT_DEVICE_INVALID")?;
+            if device.is_empty()
+                || device.len() > 64
+                || !device
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+            {
+                return Err("CORE_LAYOUT_DEVICE_INVALID".into());
+            }
+            (
+                "GET",
+                format!("/api/v1/workspace/layout?device_id={device}"),
+                None,
+            )
+        }
+        LayoutWrite | LayoutRecover => {
+            if !p
+                .as_object()
+                .is_some_and(|object| object.len() == 1 && object.contains_key("body"))
+            {
+                return Err("CORE_LAYOUT_PAYLOAD_INVALID".into());
+            }
+            let value = body()?;
+            if !value.is_object() {
+                return Err("CORE_LAYOUT_PAYLOAD_INVALID".into());
+            }
+            if matches!(request.operation, LayoutWrite) {
+                ("PUT", "/api/v1/workspace/layout".into(), Some(value))
+            } else {
+                (
+                    "POST",
+                    "/api/v1/workspace/layout/recover".into(),
+                    Some(value),
+                )
+            }
+        }
         UiStateRead => {
             if !p.as_object().is_some_and(|object| object.is_empty()) {
                 return Err("CORE_UI_STATE_PAYLOAD_INVALID".into());
@@ -849,7 +985,9 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         // The owned worker permits 120 seconds plus 20 seconds for bounded
         // transport cleanup; keep a finite margin for durable readback.
         Operation::DocumentCheckExecute => 160,
-        Operation::MachineAnswer => 135,
+        Operation::MachineAnswer | Operation::MaterialQuestion | Operation::ConversationRequest => {
+            135
+        }
         Operation::MachineRetest => 135,
         Operation::WorkspaceBackup => 120,
         // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media
@@ -867,7 +1005,9 @@ fn request_byte_limit(operation: &Operation) -> usize {
         90 * 1024 * 1024
     } else if matches!(
         operation,
-        Operation::UiStateWrite
+        Operation::LayoutWrite
+            | Operation::LayoutRecover
+            | Operation::UiStateWrite
             | Operation::UiStateClearSaved
             | Operation::UiStateClearMachine
             | Operation::UiStateMachineStatus
@@ -1123,6 +1263,27 @@ mod tests {
                 serde_json::json!({"operation":operation,"payload":{}}),
             )
             .expect("schema and host command contract must agree");
+        }
+    }
+    #[test]
+    fn format_qualification_is_a_bounded_read_with_both_validated_ids() {
+        let request = serde_json::from_value::<Request>(serde_json::json!({
+            "operation":"source_job_format_qualification", "payload":{"source_id":"src-safe","job_id":"job-safe.txt"}
+        })).unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(
+            path,
+            "/api/v1/sources/src-safe/jobs/job-safe.txt/format-qualification"
+        );
+        assert!(body.is_none());
+        for payload in [
+            serde_json::json!({"source_id":"src-safe"}),
+            serde_json::json!({"source_id":"../other","job_id":"job-safe"}),
+            serde_json::json!({"source_id":"src-safe","job_id":"../other"}),
+        ] {
+            let request = serde_json::from_value::<Request>(serde_json::json!({"operation":"source_job_format_qualification","payload":payload})).unwrap();
+            assert!(route(&request).is_err());
         }
     }
     #[test]
@@ -1681,5 +1842,61 @@ mod folder_native_contract_regression {
             payload: serde_json::json!({"body":{}})
         })
         .is_err());
+    }
+    #[test]
+    fn layout_routes_are_finite_and_device_query_cannot_inject_transport() {
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"layout_read","payload":{"device_id":"desktop_01"}}),
+        )
+        .unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/workspace/layout?device_id=desktop_01");
+        assert!(body.is_none());
+        for payload in [
+            serde_json::json!({"device_id":"../other"}),
+            serde_json::json!({"device_id":"a&actor=machine"}),
+            serde_json::json!({"device_id":"desktop","url":"http://example.invalid"}),
+        ] {
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":"layout_read","payload":payload}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
+        for (operation, method, path) in [
+            ("layout_write", "PUT", "/api/v1/workspace/layout"),
+            ("layout_recover", "POST", "/api/v1/workspace/layout/recover"),
+        ] {
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":operation,"payload":{"body":{}}}),
+            )
+            .unwrap();
+            let (actual, url, _) = route(&request).unwrap();
+            assert_eq!(actual, method);
+            assert_eq!(url, path);
+            let request: Request=serde_json::from_value(serde_json::json!({"operation":operation,"payload":{"body":{},"token":"synthetic"}})).unwrap();
+            assert!(route(&request).is_err());
+        }
+    }
+    #[test]
+    fn configuration_plans_are_input_free_gets_with_no_install_route() {
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"configuration_plans_read","payload":{}}),
+        )
+        .unwrap();
+        let actual = route(&request).unwrap();
+        assert_eq!(actual, ("GET", "/api/v1/configuration-plans".into(), None));
+        for payload in [
+            serde_json::json!({"url":"https://external.invalid"}),
+            serde_json::json!({"grant":"synthetic"}),
+            serde_json::json!({"install":true}),
+        ] {
+            let invalid: Request = serde_json::from_value(
+                serde_json::json!({"operation":"configuration_plans_read","payload":payload}),
+            )
+            .unwrap();
+            assert!(route(&invalid).is_err());
+        }
     }
 }

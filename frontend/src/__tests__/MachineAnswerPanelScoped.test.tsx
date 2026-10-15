@@ -6,7 +6,7 @@ import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
 import { ApiError } from "../api/client";
 import type { ContextConsumptionDto } from "../api/generated/core-contract";
 import { machineAdmissionRequestSha } from "../api/machineAdmission";
-const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
+const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:(op:string,...args:unknown[])=>op==="model_configuration_get"?Promise.resolve({schema:"archeaxis.model-configuration/v1",revision:0,workspace_id:"a".repeat(32),restore_epoch:"initial",profiles:{},bindings:[]}):bridge.call(op,...args)}));
 type J=Record<string,unknown>;
 const grant:ContextConsumptionDto={document_id:"grant",version:2,content_sha256:"a".repeat(64),purpose:"固定原用途"};
 const changed:ContextConsumptionDto={...grant,version:3,purpose:"不同用途"};

@@ -1,0 +1,475 @@
+{
+  "schema": "archeaxis.bounded-run-layout-audit/v1",
+  "date": "2026-10-15",
+  "source_commit": "d957dbf8be7dd44936d36d0ed25ea9488fd95e2f",
+  "task": "NORM03 bounded migration/consumer planning",
+  "overall": "PARTIAL",
+  "exact_names": [
+    "authority-repair-20261010",
+    "bounded-journal-guard-20261011",
+    "capability-onsite-delivery-20261011",
+    "capability-refusal-delivery-20261011",
+    "declared-routes",
+    "frontend-taskpack-audit-20261013",
+    "job-journal-delivery-20261011",
+    "job-journal-helper-fix-20261011",
+    "record-archive-20261009",
+    "restored-grant-refusal-delivery-20261011",
+    "ui-polish-20261013",
+    "upload-sync-20261010"
+  ],
+  "private_checkout_exclusions": 1,
+  "public_source_reference_errors": [],
+  "rows": [
+    {
+      "source": ".project-local/runs/authority-repair-20261010",
+      "proposed_target": ".project-local/runs/be268a2d33/authority-repair-20261010",
+      "files": 47,
+      "readable_bytes": 387224,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/authority-repair-20261010",
+        "target": ".project-local/runs/authority-repair-20261010"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": [
+        {
+          "file": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+          "line": 26,
+          "checkouts": [
+            ".",
+            ".project-local/worktrees/closure-egress-20261013",
+            ".project-local/worktrees/closure-machine-20261013",
+            ".project-local/worktrees/closure-portable-20261013",
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/conversation-closure-final-20261013",
+            ".project-local/worktrees/conversation-host-20261014",
+            ".project-local/worktrees/dock-workspace-20261014",
+            ".project-local/worktrees/f15-folder-ingest-20261007",
+            ".project-local/worktrees/framework-20261011",
+            ".project-local/worktrees/gov-ui-20261008",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/material-questions-20261014",
+            ".project-local/worktrees/model-configuration-20261014",
+            ".project-local/worktrees/optimization-20261014",
+            ".project-local/worktrees/ui-host-contract-20261014"
+          ]
+        },
+        {
+          "file": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+          "line": 44,
+          "checkouts": [
+            ".",
+            ".project-local/worktrees/closure-egress-20261013",
+            ".project-local/worktrees/closure-machine-20261013",
+            ".project-local/worktrees/closure-portable-20261013",
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/conversation-closure-final-20261013",
+            ".project-local/worktrees/conversation-host-20261014",
+            ".project-local/worktrees/dock-workspace-20261014",
+            ".project-local/worktrees/f15-folder-ingest-20261007",
+            ".project-local/worktrees/framework-20261011",
+            ".project-local/worktrees/gov-ui-20261008",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/material-questions-20261014",
+            ".project-local/worktrees/model-configuration-20261014",
+            ".project-local/worktrees/optimization-20261014",
+            ".project-local/worktrees/ui-host-contract-20261014"
+          ]
+        },
+        {
+          "file": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+          "line": 48,
+          "checkouts": [
+            ".",
+            ".project-local/worktrees/closure-egress-20261013",
+            ".project-local/worktrees/closure-machine-20261013",
+            ".project-local/worktrees/closure-portable-20261013",
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/conversation-closure-final-20261013",
+            ".project-local/worktrees/conversation-host-20261014",
+            ".project-local/worktrees/dock-workspace-20261014",
+            ".project-local/worktrees/f15-folder-ingest-20261007",
+            ".project-local/worktrees/framework-20261011",
+            ".project-local/worktrees/gov-ui-20261008",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/material-questions-20261014",
+            ".project-local/worktrees/model-configuration-20261014",
+            ".project-local/worktrees/optimization-20261014",
+            ".project-local/worktrees/ui-host-contract-20261014"
+          ]
+        }
+      ]
+    },
+    {
+      "source": ".project-local/runs/bounded-journal-guard-20261011",
+      "proposed_target": ".project-local/runs/be268a2d33/bounded-journal-guard-20261011",
+      "files": 17,
+      "readable_bytes": 74021,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/bounded-journal-guard-20261011",
+        "target": ".project-local/runs/bounded-journal-guard-20261011"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": [
+        {
+          "file": "docs/current/receipts/AAOS-BOUNDED-JOURNAL-OWNERSHIP-INTEGRATION-20261011.json",
+          "line": 15,
+          "checkouts": [
+            ".",
+            ".project-local/worktrees/closure-egress-20261013",
+            ".project-local/worktrees/closure-machine-20261013",
+            ".project-local/worktrees/closure-portable-20261013",
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/conversation-closure-final-20261013",
+            ".project-local/worktrees/conversation-host-20261014",
+            ".project-local/worktrees/dock-workspace-20261014",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/material-questions-20261014",
+            ".project-local/worktrees/model-configuration-20261014",
+            ".project-local/worktrees/optimization-20261014",
+            ".project-local/worktrees/ui-host-contract-20261014"
+          ]
+        },
+        {
+          "file": "docs/current/receipts/AAOS-BOUNDED-JOURNAL-OWNERSHIP-INTEGRATION-20261011.json",
+          "line": 24,
+          "checkouts": [
+            ".",
+            ".project-local/worktrees/closure-egress-20261013",
+            ".project-local/worktrees/closure-machine-20261013",
+            ".project-local/worktrees/closure-portable-20261013",
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/conversation-closure-final-20261013",
+            ".project-local/worktrees/conversation-host-20261014",
+            ".project-local/worktrees/dock-workspace-20261014",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/material-questions-20261014",
+            ".project-local/worktrees/model-configuration-20261014",
+            ".project-local/worktrees/optimization-20261014",
+            ".project-local/worktrees/ui-host-contract-20261014"
+          ]
+        }
+      ]
+    },
+    {
+      "source": ".project-local/runs/declared-routes",
+      "proposed_target": ".project-local/runs/be268a2d33/declared-routes",
+      "files": 0,
+      "readable_bytes": 0,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/declared-routes",
+        "target": ".project-local/runs/declared-routes"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": []
+    },
+    {
+      "source": ".project-local/runs/frontend-taskpack-audit-20261013",
+      "proposed_target": ".project-local/runs/be268a2d33/frontend-taskpack-audit-20261013",
+      "files": 19,
+      "readable_bytes": 3962310,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/frontend-taskpack-audit-20261013",
+        "target": ".project-local/runs/frontend-taskpack-audit-20261013"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": [
+        {
+          "file": "workspace/intake/ui-handoff-20261013/SUMMARY.md",
+          "line": 40,
+          "checkouts": [
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/optimization-20261014"
+          ]
+        }
+      ]
+    },
+    {
+      "source": ".project-local/runs/job-journal-delivery-20261011",
+      "proposed_target": ".project-local/runs/be268a2d33/job-journal-delivery-20261011",
+      "files": 55,
+      "readable_bytes": 1204749,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/job-journal-delivery-20261011",
+        "target": ".project-local/runs/job-journal-delivery-20261011"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": [
+        {
+          "file": "docs/current/receipts/AAOS-PENDING-JOB-JOURNAL-INTEGRATION-20261011.json",
+          "line": 8,
+          "checkouts": [
+            ".",
+            ".project-local/worktrees/closure-egress-20261013",
+            ".project-local/worktrees/closure-machine-20261013",
+            ".project-local/worktrees/closure-portable-20261013",
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/conversation-closure-final-20261013",
+            ".project-local/worktrees/conversation-host-20261014",
+            ".project-local/worktrees/dock-workspace-20261014",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/material-questions-20261014",
+            ".project-local/worktrees/model-configuration-20261014",
+            ".project-local/worktrees/optimization-20261014",
+            ".project-local/worktrees/ui-host-contract-20261014"
+          ]
+        }
+      ]
+    },
+    {
+      "source": ".project-local/runs/job-journal-helper-fix-20261011",
+      "proposed_target": ".project-local/runs/be268a2d33/job-journal-helper-fix-20261011",
+      "files": 3,
+      "readable_bytes": 51992,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/job-journal-helper-fix-20261011",
+        "target": ".project-local/runs/job-journal-helper-fix-20261011"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": []
+    },
+    {
+      "source": ".project-local/runs/record-archive-20261009",
+      "proposed_target": ".project-local/runs/be268a2d33/record-archive-20261009",
+      "files": 10,
+      "readable_bytes": 28286,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/record-archive-20261009",
+        "target": ".project-local/runs/record-archive-20261009"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": []
+    },
+    {
+      "source": ".project-local/runs/restored-grant-refusal-delivery-20261011",
+      "proposed_target": ".project-local/runs/be268a2d33/restored-grant-refusal-delivery-20261011",
+      "files": 2,
+      "readable_bytes": 56217,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/restored-grant-refusal-delivery-20261011",
+        "target": ".project-local/runs/restored-grant-refusal-delivery-20261011"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": []
+    },
+    {
+      "source": ".project-local/runs/ui-polish-20261013",
+      "proposed_target": ".project-local/runs/be268a2d33/ui-polish-20261013",
+      "files": 8799,
+      "readable_bytes": 240770361,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 1,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/ui-polish-20261013",
+        "target": ".project-local/runs/ui-polish-20261013"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": [
+        {
+          "file": "docs/current/UI-POLISH-20261013.md",
+          "line": 9,
+          "checkouts": [
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/optimization-20261014"
+          ]
+        },
+        {
+          "file": "workspace/intake/ui-handoff-20261013/SUMMARY.md",
+          "line": 28,
+          "checkouts": [
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/optimization-20261014"
+          ]
+        }
+      ]
+    },
+    {
+      "source": ".project-local/runs/upload-sync-20261010",
+      "proposed_target": ".project-local/runs/be268a2d33/upload-sync-20261010",
+      "files": 414,
+      "readable_bytes": 8571985,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/be268a2d33/upload-sync-20261010",
+        "target": ".project-local/runs/upload-sync-20261010"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": [
+        {
+          "file": "docs/current/AAOS-REPOSITORY-SYNC-20261010.md",
+          "line": 10,
+          "checkouts": [
+            ".",
+            ".project-local/worktrees/closure-egress-20261013",
+            ".project-local/worktrees/closure-machine-20261013",
+            ".project-local/worktrees/closure-portable-20261013",
+            ".project-local/worktrees/closure-upload-20261014",
+            ".project-local/worktrees/conversation-closure-final-20261013",
+            ".project-local/worktrees/conversation-host-20261014",
+            ".project-local/worktrees/dock-workspace-20261014",
+            ".project-local/worktrees/f15-folder-ingest-20261007",
+            ".project-local/worktrees/framework-20261011",
+            ".project-local/worktrees/gov-ui-20261008",
+            ".project-local/worktrees/layout-ci-repair-20261014",
+            ".project-local/worktrees/material-questions-20261014",
+            ".project-local/worktrees/model-configuration-20261014",
+            ".project-local/worktrees/optimization-20261014",
+            ".project-local/worktrees/ui-host-contract-20261014"
+          ]
+        }
+      ]
+    },
+    {
+      "source": ".project-local/worktrees/framework-20261011/.project-local/runs/capability-onsite-delivery-20261011",
+      "proposed_target": ".project-local/runs/f2a14bcd53/capability-onsite-delivery-20261011",
+      "files": 3,
+      "readable_bytes": 61264,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/f2a14bcd53/capability-onsite-delivery-20261011",
+        "target": ".project-local/worktrees/framework-20261011/.project-local/runs/capability-onsite-delivery-20261011"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": []
+    },
+    {
+      "source": ".project-local/worktrees/framework-20261011/.project-local/runs/capability-refusal-delivery-20261011",
+      "proposed_target": ".project-local/runs/f2a14bcd53/capability-refusal-delivery-20261011",
+      "files": 3,
+      "readable_bytes": 31481,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/f2a14bcd53/capability-refusal-delivery-20261011",
+        "target": ".project-local/worktrees/framework-20261011/.project-local/runs/capability-refusal-delivery-20261011"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": []
+    },
+    {
+      "source": ".project-local/worktrees/gov-ui-20261008/.project-local/runs/declared-routes",
+      "proposed_target": ".project-local/runs/f714401b40/declared-routes",
+      "files": 0,
+      "readable_bytes": 0,
+      "measurement_error_count": 0,
+      "excluded_private_count": 0,
+      "link_count": 0,
+      "ownership": "UNVERIFIED_GENERATION_AND_LIVE_PROCESS",
+      "consumer_coverage": "PARTIAL",
+      "byte_preservation_proof": "NOT_EXECUTED",
+      "move": "NOT_EXECUTED",
+      "rollback": {
+        "source": ".project-local/runs/f714401b40/declared-routes",
+        "target": ".project-local/worktrees/gov-ui-20261008/.project-local/runs/declared-routes"
+      },
+      "decision": "PRESERVE_PENDING_EXACT_GENERATION_PROCESS_AND_HASH_REVIEW",
+      "public_tracked_consumers": []
+    }
+  ],
+  "operations": {
+    "metadata_measurement": "READ_ONLY",
+    "private_body_access": "NOT_EXECUTED",
+    "moves": "NOT_EXECUTED",
+    "deletions": "NOT_EXECUTED",
+    "baseline_edit": "NOT_EXECUTED"
+  },
+  "limits": [
+    "Metadata counts are not per-file hashes or losslessness proof",
+    "Public tracked references do not cover ignored evidence consumers or live processes",
+    "A name or public reference does not establish writer ownership",
+    "No reference is not deletion or migration eligibility",
+    "The failing original layout gate remains unchanged"
+  ],
+  "audit_artifact": {
+    "path": ".project-local/runs/ba8e5e5614/norm-audit-1015/artifacts/legacy-runs.json",
+    "sha256": "602f80ca0c2bc1557c66fad4ce51cf93f2a8adbdf2e073759496989d146dd3ad"
+  },
+  "aggregate": {
+    "actual_directories": 13,
+    "files_measured": 9372,
+    "readable_bytes": 255199890,
+    "measurement_errors": 0,
+    "links_excluded": 1
+  }
+}

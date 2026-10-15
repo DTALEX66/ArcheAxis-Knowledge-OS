@@ -8,6 +8,7 @@ import "./design-system/themes.css";
 import "./design-system/primitives.css";
 import "./spaces/ui-first.css";
 import "./design-system/ui-polish.css";
+import "./design-system/glass-cabin.css";
 
 applyTheme(readThemePreference());
 

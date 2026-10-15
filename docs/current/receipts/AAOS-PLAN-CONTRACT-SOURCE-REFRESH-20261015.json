@@ -1,0 +1,32 @@
+{
+  "schema": "archeaxis.document-contract-source-refresh/v1",
+  "date": "2026-10-15",
+  "state": "PASS_SOURCE_DEFINITION_EQUIVALENCE_ONLY",
+  "parent_commit": "f66f095dd129ade1721838c8712b3082d9ae382b",
+  "existing_definitions_compared": 74,
+  "existing_definitions_changed": 0,
+  "new_definitions": [
+    "ConfigurationPlanCatalog"
+  ],
+  "changed_refs": [
+    {
+      "stable_key": "archeaxiscoreknowledge",
+      "evidence_field": "version.source_refs",
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276",
+      "after_sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+    },
+    {
+      "stable_key": "capcoreknowledge",
+      "evidence_field": "version.source_refs",
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "caa9581de441f00b21678c786931a2bf2c18483520674b16856cd134a5ccf276",
+      "after_sha256": "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+    }
+  ],
+  "old_overlay": {
+    "path": ".project-local/tmp/resource-qualification-before-plans-1015.json",
+    "sha256": "5c877c10eb2e2f876ca66fc370e8cc44a0a2278870e65741407d4222b2aa761c"
+  },
+  "qualification_boundary": "Version SOURCE_CONTRACT references refreshed after exact existing-definition comparison; runtime NOT_RUN and INHERITED_ONLY states preserved, no current usability or installation promotion"
+}

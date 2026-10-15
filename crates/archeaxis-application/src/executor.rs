@@ -202,6 +202,39 @@ impl Executor {
         model: Option<String>,
         cancel: Cancellation,
     ) -> Result<serde_json::Value, String> {
+        self.machine_answer_configured(context, question, max_tokens, timeout, model, cancel, None)
+            .await
+    }
+
+    pub async fn machine_answer_configured(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+        model: Option<String>,
+        cancel: Cancellation,
+        configuration: Option<archeaxis_domain::model_configuration::Resolved>,
+    ) -> Result<serde_json::Value, String> {
+        if let Some(c) = &configuration {
+            if c.profile.credential_ref.is_some() {
+                return Err("LOCAL_CREDENTIAL_NOT_SUPPORTED".into());
+            }
+            if model.as_deref() != Some(c.profile.model.as_str())
+                || max_tokens > c.profile.max_tokens
+                || timeout.as_secs() > c.profile.timeout_s
+            {
+                return Err("MODEL_PURPOSE_BUDGET_MISMATCH".into());
+            }
+            let pinned = c.clone();
+            self.store
+                .submit_wait(move |conn| {
+                    archeaxis_domain::model_configuration::assert_current(conn, &pinned)
+                })
+                .await
+                .map_err(|_| "MODEL_CONFIGURATION_UNAVAILABLE")?
+                .map_err(|_| "MODEL_CONFIGURATION_CHANGED")?;
+        }
         const MAX_CONTEXT: usize = 128_000;
         // Keep the existing --question argv protocol inside Windows command-line bounds.
         const MAX_QUESTION: usize = 8_192;
@@ -229,9 +262,14 @@ impl Executor {
             return Err("machine worker cancelled".into());
         }
         if let Some(selected) = &model {
-            let inventory = tokio::time::timeout(timeout, self.machine_inventory())
-                .await
-                .map_err(|_| "machine selection verification timed out")?;
+            let inventory = tokio::time::timeout(
+                timeout,
+                self.machine_inventory_configured(
+                    configuration.as_ref().map(|c| c.profile.clone()),
+                ),
+            )
+            .await
+            .map_err(|_| "machine selection verification timed out")?;
             if inventory["status"] != "READ_VERIFIED"
                 || !inventory["model_choices"]
                     .as_array()
@@ -276,6 +314,11 @@ impl Executor {
                 if let Some(value) = std::env::var_os(key) {
                     command.env(key, value);
                 }
+            }
+            if let Some(c) = &configuration {
+                command.env("ARCHEAXIS_MACHINE_ENDPOINT", &c.profile.endpoint);
+                command.env("ARCHEAXIS_MACHINE_MODEL", &c.profile.model);
+                command.env("ARCHEAXIS_MACHINE_PROTOCOL", &c.profile.protocol);
             }
             for key in [
                 "TEMP",

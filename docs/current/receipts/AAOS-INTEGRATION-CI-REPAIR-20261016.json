@@ -1,0 +1,105 @@
+{
+  "schema": "archeaxis.integration-ci-repair/v1",
+  "date": "2026-10-16",
+  "state": "LOCAL_PASS_CLOUD_RERUN_PENDING",
+  "overall": "PARTIAL",
+  "failed_ci": {
+    "run_id": 38790450859,
+    "url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/38790450859",
+    "head_sha": "6bee1d88b78526722da09967b3b3696af48fdaae",
+    "tested_pr_merge_sha": "9ad43f8de8213606cc06d9a61d9cdf6620f9e2ee",
+    "verdict": "FAIL",
+    "passed_jobs": [
+      "gateplan",
+      "lint",
+      "security-targeted",
+      "browser-smoke",
+      "workers-vnext",
+      "desktop-build",
+      "rust-vnext",
+      "desktop-fast",
+      "green-candidate-vnext",
+      "desktop-vnext"
+    ],
+    "failed_jobs": [
+      "contracts-vnext",
+      "test (3.12)",
+      "installer-lifecycle",
+      "a0-gates"
+    ],
+    "skipped_jobs": [
+      "py-compat",
+      "wheel-smoke",
+      "format-targeted",
+      "migration-targeted",
+      "windows-runtime-smoke"
+    ],
+    "skip_boundary": "Classifier skips are retained as SKIPPED, not PASS."
+  },
+  "repairs": [
+    {
+      "cause": "New file-format-qualification schema was not registered in explicit contract coverage.",
+      "commit": "dc81b929",
+      "change": "Register schema and validate recorded controlled text/DOCX/malformed-DOCX response shapes with 17 positive/negative cases.",
+      "boundary": "Recorded controlled worker responses are synthetic test material; not all-format native editing qualification."
+    },
+    {
+      "cause": "Synthetic cloud approval producer exposed its final file before JSON write completed, racing the polling consumer.",
+      "commit": "e2155257",
+      "change": "Publish approval.tmp by atomic replace, surface background exceptions and join the publisher; validate accepted and tampered envelopes.",
+      "tests": 44,
+      "evidence": "docs/current/receipts/AAOS-CLOUD-DISPATCH-FIXTURE-20261016.json",
+      "boundary": "Production Rust already used temporary-file rename; no production change or actual cloud/model call."
+    },
+    {
+      "cause": "Installed native probe Get-NetTCPConnection subprocess timed out after 10 seconds before the first business step.",
+      "commit": "5ae78579",
+      "change": "Read IPv4/IPv6 owner PID listener tables with Windows IP Helper; preserve exact address/port/PID and creation identity checks, fail on unknown observations.",
+      "tests": 56,
+      "evidence": "docs/current/receipts/AAOS-NATIVE-PORT-OBSERVER-20261016.json",
+      "boundary": "Bounded allocation/retries, no independent cancellable wall-clock deadline. Real self-owned socket checks are not an installed application journey."
+    }
+  ],
+  "local_validation": {
+    "preflight": {
+      "run": ".project-local/runs/ba8e5e5614/ci-repair-preflight-1016/artifacts/local-ci.json",
+      "checks": 19,
+      "passed_initially": 18,
+      "initial_failure": "Three edited documentation files used CRLF. Normalized task-owned documents to repository LF; original FAIL retained.",
+      "corrected_conventions": ".project-local/runs/ba8e5e5614/ci-repair-conventions-1016/artifacts/execution.json",
+      "corrected_conventions_status": "LOCAL_PASS",
+      "boundary": "No unchanged full frontend/native test repetition; affected contracts, probes, browser and conventions have distinct receipts."
+    },
+    "combined_contract_and_native_probe": {
+      "path": ".project-local/runs/ba8e5e5614/ci-repairs-integrated-1016/artifacts/execution.json",
+      "sha256": "40513c53f9ac874ce660109663c0dcc8e802bfae298be1fa0dd16d5c790d79e0",
+      "source_commit": "5ae78579422d552245236d740f4d47480aa4ddbc",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "tests": 219,
+      "subtests": 193,
+      "skips": 0
+    },
+    "native_listener_lint": {
+      "path": ".project-local/runs/564a680512/native-port-lint-fixed-20261016/artifacts/execution.json",
+      "sha256": "703e7077a401aeff0a3dc500676d7b056c7ca659f3385a211c6ff300543f3f36",
+      "source_commit": "e21552577c6b1535d7698b3029f611a15d6c5142",
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    "environment_failure_preserved": ".project-local/runs/564a680512/native-port-lint-20261016: routed base Python lacked ruff; corrected by selecting the existing project CI Python, no installation/global configuration change.",
+    "warnings": "Existing jsonschema RefResolver deprecations and grouped-probe JavaScript escape SyntaxWarning remain non-failing; no new required skip."
+  },
+  "installed_failure": {
+    "raw_path": ".project-local/tmp/ci-38790450859-installed/runs/fd2a08c715/webdriver-93f20499ffe5/tmp/journey/receipt.json",
+    "business_steps": 0,
+    "source_consistent": true,
+    "compiled_source_binding": "UNVERIFIED in child receipt; parent verifier supplies installed provenance",
+    "remaining_owned_hosts": [],
+    "remaining_port_listeners": [],
+    "boundary": "FAIL retained. Startup before journey does not qualify application behavior; successful final cleanup does not erase the launch failure.",
+    "raw_sha256": "456f6db1ec59e0c62ce6d3ece3abb6403bb85a67c4164698101ad4ab7279741b"
+  },
+  "next": "Publish the repaired candidate and read the new exact-head CI through completion. Do not infer installed qualification or Owner acceptance from local tests.",
+  "delivery": "Task-owned public files only; no raw archives, runtime/cache/database/private data, QODER work, release or Green replacement."
+}

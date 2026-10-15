@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
+import { CanonicalLearningJourneySpace } from "../spaces/CanonicalLearningJourneySpace";
 import { KnowledgeCoursePanel } from "../components/KnowledgeCoursePanel";
 import { CanonicalKnowledgeSpace } from "../spaces/CanonicalKnowledgeSpace";
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
@@ -197,5 +199,62 @@ describe("persisted course selection and immutable history", () => {
     await userEvent.setup().click(screen.getByRole("button",{name:"从当前知识生成课程与课时"}));
     await waitFor(()=>expect(onCreated).toHaveBeenCalledWith(courseId));
     expect(bridge.call.mock.calls.map(([op])=>op)).toEqual(["course_from_knowledge","course_get","course_render"]);
+  });
+});
+
+
+describe("course return through the real learning components (simulated Core)", () => {
+  beforeEach(() => { bridge.call.mockReset(); });
+  it.each(["generated", "saved", "stale-on-return", "changed-knowledge-on-return"])("returns %s course to its pinned lesson without regeneration", async mode => {
+    let stale = false, changedKnowledge = false;
+    setup();
+    const original = bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async (op: string, payload: unknown) => {
+      if (op === "course_list") return { items: [{ manifest_id: courseId, title: "原课程", stale: false, status: "candidate", human_review_required: true }], next_cursor: null };
+      if (op === "search") return { items: [{ knowledge_id: "k1", head: "来源知识" }] };
+      if (op === "knowledge_get") return { knowledge_id: "k1", status: "accepted" };
+      if (op === "learning_items") return { items: [{ item_key: key }] };
+      if (op === "learning_state") return { item_key: key, learner: { assessment: { assessment_id: "assessment-1", question: "说明证据", content: "原修订内容", knowledge_id: "k1", knowledge_version: "k1" } }, machine: { status: "not_recorded" } };
+      if (op === "learning_history") return { events: [] };
+      if (op === "course_get" && changedKnowledge) { const value = course(); value.bindings[0].knowledge_id = "k2"; value.bindings[0].knowledge_version = "k2"; return value; }
+      if (op === "course_get" && stale) { const value = course(); value.stale = true; value.bindings[0].stale = true; return value; }
+      return original(op, payload);
+    });
+    function Host() { const [page, setPage] = useState("07"); return <CanonicalLearningJourneySpace pageId={page} onOpenPage={setPage} />; }
+    render(<Host />); const user = userEvent.setup();
+    if (mode === "generated") {
+      await user.click(screen.getByRole("button", { name: "搜索知识" }));
+      await user.click(await screen.findByRole("button", { name: "来源知识" }));
+      await user.click(screen.getByRole("button", { name: "从当前知识生成课程与课时" }));
+    } else await user.click(await screen.findByRole("button", { name: "原课程" }));
+    await screen.findByLabelText("课程候选课时");
+    await user.click(screen.getByRole("button", { name: "由课程课时建立学习问题" }));
+    await user.type(await screen.findByLabelText("本次答案"), "独立答案");
+    const beforeReturn = bridge.call.mock.calls.length;
+    stale = mode === "stale-on-return"; changedKnowledge = mode === "changed-knowledge-on-return";
+    await user.click(screen.getByRole("button", { name: "返回原课程与绑定版本" }));
+    if (changedKnowledge) {
+      await screen.findByText(/课程未能读取/);
+      expect(screen.queryByLabelText("课程候选课时")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("本次答案")).toHaveValue("独立答案");
+      expect(bridge.call.mock.calls.slice(beforeReturn)).toEqual([["course_get", { course_id: courseId }]]);
+      expect(bridge.call.mock.calls.some(([op]) => op === "course_from_knowledge")).toBe(false);
+      return;
+    }
+    const article = await screen.findByLabelText("课程候选课时");
+    expect(article).toHaveTextContent("sha-source"); expect(article).toHaveTextContent("绑定知识版本：k1");
+    expect(screen.getByLabelText("本次答案")).toHaveValue("独立答案");
+    await waitFor(() => expect(bridge.call.mock.calls.slice(beforeReturn).map(([op]) => op)).toEqual(stale ? ["course_get"] : ["course_get", "course_render"]));
+    expect(bridge.call.mock.calls.slice(beforeReturn)[0]).toEqual(["course_get", { course_id: courseId }]);
+    if (!stale) expect(bridge.call.mock.calls.slice(beforeReturn)[1]).toEqual(["course_render", { course_id: courseId, body: { artifact_id: artifactId } }]);
+    else { expect(article).toHaveTextContent("历史课程"); expect(screen.queryByRole("button", { name: "由课程课时建立学习问题" })).not.toBeInTheDocument(); }
+    expect(bridge.call.mock.calls.filter(([op]) => op === "course_from_knowledge")).toHaveLength(mode === "generated" ? 1 : 0);
+    expect(bridge.call.mock.calls.some(([op]) => op === "learning_review")).toBe(false);
+  });
+  it("refuses a returned course whose lesson differs from the learning item pin", async () => {
+    setup(); render(<KnowledgeCoursePanel courseId={courseId} expectedItemKey={`course:${courseId}:artifact:other`} />);
+    await screen.findByText(/课程未能读取/);
+    expect(bridge.call.mock.calls.map(([op]) => op)).toEqual(["course_get"]);
+    expect(screen.queryByLabelText("课程候选课时")).not.toBeInTheDocument();
   });
 });

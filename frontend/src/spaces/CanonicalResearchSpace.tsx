@@ -1,3 +1,4 @@
+import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { OriginalTextCitation } from "../components/OriginalTextCitation";
@@ -64,6 +65,7 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   const pickerSession=useRef(0), referenceRequest=useRef(0), searchRequest=useRef(0), sourceRequest=useRef(0);
   const pending=useRef(false); pending.current=target!==null || pickerBusy;
   const b=buffers.current.get(active.current)!;
+  const documentLease=useDocumentWriteLease(b.base?.document_id);
   function publish() { if (!mounted.current) return; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:[...buffers.current.values()].some(v=>v.dirty||!!v.attempt)||saving.current||pending.current})); redraw(n=>n+1); }
   function note(text:string, failed=false) { if(mounted.current){setMessage(text);setError(failed);} }
   useEffect(()=>{ mounted.current=true;void list(false);return()=>{mounted.current=false;epoch.current++;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:false}));};},[]);
@@ -74,7 +76,7 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
     try{const page=await coreCommand<DocumentsListDto>("documents_list",more&&cursor?{cursor}:{});if(!Array.isArray(page.documents)||!Number.isSafeInteger(page.snapshot_count)||!(page.next_cursor===null||typeof page.next_cursor==="string"))throw new Error("list shape");if(mounted.current){setRows(old=>more?[...old,...page.documents.filter(d=>!old.some(o=>o.document_id===d.document_id))]:page.documents);setCursor(page.next_cursor);note("已读取真实文档；打开时核对研究格式。");}}
     catch{note("文档列表读取失败；未当成空研究列表。",true);}finally{listLock.current=false;if(mounted.current)setLoading(false);}
   }
-  function edit(next:ResearchValue){if(!parseResearch(next)){note("研究结构超出条目／引用／文字限制；当前内容保留。",true);return;}const cur=buffers.current.get(active.current)!;cur.value=structuredClone(next);cur.serial++;cur.dirty=true;historyGeneration.current++;setHistory(null);publish();}
+  function edit(next:ResearchValue){if(!documentLease.canWrite)return;if(!parseResearch(next)){note("研究结构超出条目／引用／文字限制；当前内容保留。",true);return;}const cur=buffers.current.get(active.current)!;cur.value=structuredClone(next);cur.serial++;cur.dirty=true;historyGeneration.current++;setHistory(null);publish();}
   function changeText(change:()=>ResearchValue,text:string){if(bytes(text)>16384){note("文字超过 16384 UTF-8 字节；未截断或覆盖原文。",true);return;}edit(change());}
   function addEntry(section:EntrySection){edit({...b.value,[section]:[...b.value[section],{id:crypto.randomUUID(),text:"",references:[]}]});}
   async function open(key:string){historyGeneration.current++;sourceRequest.current++;const request=++epoch.current;const old=active.current,serial=buffers.current.get(old)!.serial;setSwitchTo(null);setHistory(null);setUnsupported(null);setSourceRead(null);
@@ -87,7 +89,8 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   function requestOpen(key:string){if(pending.current){note("先完成或取消引用选择；当前临时输入保留。",true);return;}if(saving.current){note("保存尚未确认，当前对象不切换。",true);return;}if(b.dirty||b.attempt){setSwitchTo(key);return;}void open(key);}
   function makeAttempt(cur:Buffer):Attempt{const editor=encode(cur);return {operation:cur.base?"document_draft":"document_create",payload:cur.base?{document_id:cur.base.document_id,body:{expected_version:cur.base.version,editor_json:editor}}:{body:{create_request_id:`research_${crypto.randomUUID()}`,title:cur.title,editor_json:editor}},editor,serial:cur.serial,version:cur.base?cur.base.version+1:1};}
   function accept(cur:Buffer,attempt:Attempt,doc:DocumentDto){const expectedMetadata=object(attempt.editor.attrs)?attempt.editor.attrs.archeaxis_research:null;if(!decode(doc)||doc.version!==attempt.version||!same(decode(doc),expectedMetadata)||!preserved(attempt.editor,doc.editor_json))throw new Error("readback content");cur.base=doc;cur.envelope=structuredClone(doc.editor_json as Record<string,unknown>);cur.attempt=undefined;cur.dirty=cur.serial!==attempt.serial;if(!cur.dirty)cur.value=structuredClone(decode(doc)!);buffers.current.set(doc.document_id,cur);if(mounted.current)setRows(old=>[doc,...old.filter(r=>r.document_id!==doc.document_id)]);note(cur.dirty?"发送时的研究版本已读回；随后编辑仍未保存。":"研究草稿已保存并读回；未变为核验或采用状态。");}
-  async function save(){if(saving.current)return;if(pending.current){note("先完成或取消引用选择；保存未发送，临时输入保留。",true);return;}if(unsupported||history){note("原始或历史文档只读；返回当前草稿后保存。",true);return;}historyGeneration.current++;const cur=buffers.current.get(active.current)!;const attempt=cur.attempt??makeAttempt(cur);cur.attempt=attempt;saving.current=true;setBusy(true);publish();
+  async function save(){try{await documentLease.write(saveResearch);}catch(error){note(error instanceof Error?error.message:"此文档视图只读",true);}}
+  async function saveResearch(){if(saving.current)return;if(pending.current){note("先完成或取消引用选择；保存未发送，临时输入保留。",true);return;}if(unsupported||history){note("原始或历史文档只读；返回当前草稿后保存。",true);return;}historyGeneration.current++;const cur=buffers.current.get(active.current)!;const attempt=cur.attempt??makeAttempt(cur);cur.attempt=attempt;saving.current=true;setBusy(true);publish();
     try{const createBody=attempt.operation==="document_create"?attempt.payload.body as {create_request_id:string;title:string}:null;if(createBody&&!attempt.expectedDocumentId)attempt.expectedDocumentId=await documentRequestIdentity(createBody.create_request_id);const expectedId=attempt.expectedDocumentId??cur.base!.document_id;const matchesIdentity=(doc:DocumentDto)=>doc.document_id===expectedId&&doc.version===attempt.version&&(!createBody||(doc.title===createBody.title&&doc.source_id===null&&doc.source_revision===null));const result=await coreCommand<DocumentDto>(attempt.operation,structuredClone(attempt.payload));if(!matchesIdentity(result))throw new Error("save identity");const read=await coreCommand<DocumentDto>("document_get",{document_id:expectedId});if(!matchesIdentity(read)||read.content_sha256!==result.content_sha256||!same(read.editor_json,result.editor_json))throw new Error("readback identity");accept(cur,attempt,read);}
     catch{note("保存未确认（可能冲突或回执丢失）；草稿和原冻结请求保留。重试相同请求，不另建研究对象。",true);}finally{saving.current=false;if(mounted.current){setBusy(false);publish();}}
   }
@@ -133,8 +136,8 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   }
   function showCitation(captured:ResearchCitation|undefined,ref:ResearchReference){return captured?<aside aria-label="已保存版本的引文快照"><blockquote style={{whiteSpace:"pre-wrap"}}>{captured.quote}</blockquote><p>原件 SHA {captured.source_sha256} · 定位 {captured.anchor_id}</p><button type="button" onClick={()=>void replayCitation(captured,ref)}>重新核验引文定位</button></aside>:null;}
   function showRefs(refs:ResearchReference[],remove?:(index:number)=>void){return <ul>{refs.map((ref,i)=><li key={`${refName(ref)}-${i}`}><span>{refName(ref)}</span>{ref.kind!=="knowledge"||onOpenReference?<button type="button" onClick={()=>navigateRef(ref)}>{ref.kind==="source"?"读取校验原件":ref.kind==="knowledge"?"打开不变知识版本":"打开固定版本"}</button>:<span>作者引用；不表示知识已接受或AI资格</span>}{remove?<button type="button" onClick={()=>remove(i)} aria-label={`删除引用 ${i+1}`}>删除引用</button>:null}</li>)}</ul>;}
-  const readonly=!!history||!!unsupported;const shown=history??unsupported;const shownValue=shown?decode(shown):null;
-  return <Section title="研究空间"><div style={{minWidth:0,maxWidth:"100%"}} data-section="research">
+  const readonly=!!history||!!unsupported||!documentLease.canWrite;const shown=history??unsupported;const shownValue=shown?decode(shown):null;
+  return <Section title="研究空间">{!documentLease.canWrite?<p role="status">此文档已有写入视图；研究记录只读，草稿保留。</p>:null}<div style={{minWidth:0,maxWidth:"100%"}} data-section="research">
     <p>作者研究记录：问题、假设、方法、实验、反证与结论可非线性编辑。保存不代表核验、专业采用或 AI 资格；学术检索与 GraphRAG 当前未接通。</p>
     <div><button type="button" disabled={busy} onClick={()=>requestOpen("__new")}>新建研究草稿</button><button type="button" disabled={loading} onClick={()=>void list(false)}>刷新文档列表</button></div>
     <ul aria-label="研究文档列表">{rows.map(row=><li key={row.document_id}><button type="button" onClick={()=>requestOpen(row.document_id)}>{row.title} · 版本 {row.version}</button></li>)}</ul>{cursor?<button type="button" disabled={loading} onClick={()=>void list(true)}>更多文档</button>:null}

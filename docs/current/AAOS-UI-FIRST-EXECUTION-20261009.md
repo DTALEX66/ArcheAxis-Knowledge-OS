@@ -1269,3 +1269,186 @@ Owner 已明确将独立 UI 分支及新前端包纳入全部推进到主线范�
 ### 2026-10-13 剩余实施联合回归
 
 独立 UI 9 文件补丁已吸收至主线基准隔离 checkout，尚未合并 main。Research 原件选区精确引文、不可变锚点与历史版本展示已实施；普通保存不重读 CAS。云核验 worker 在发布协议 ready 前不接收正文，握手等待支持取消，成功必须有 model dispatch 批准。语义全库快照去掉 128 文档上限，保留自适应批次与总预算。当前前端 1238/1238、dispatch 定向 6/6、Research domain 4/4、worker scoped 68/68 PASS，分别为 SIMULATED/SYNTHETIC 证据。API Store 当前沙箱 I/O 权限阻塞，compile-only 不代表集成通过；exact-SHA CI 与安装运行尚未验收。详细任务与验收状态见 receipts/AAOS-REMAINING-EXECUTION-20261013.json，不把本批实现作为全部 BE/FE 完成。
+
+
+### 2026-10-14 布局偏好首批与并行执行（当前观察）
+
+Owner 已授权本项目内全部推进并要求静默执行，继续保护 E:/F:、本机系统、全局配置、凭据、用户资产和未授权发布边界。BE01、BE03、BE04 使用各自隔离工作树；BE02 在既有整合 writer 内实现设备隔离 CAS、重启读回、未知组件/未来 schema 原字节保留、显式恢复及当前 restore epoch 核对，正式 Settings 有有限消费者。此为 PARTIAL_INTEGRATED，完整 Dock FE06、联合 BE01 契约和安装运行尚未资格。
+
+本地布局 domain 6/6、真实 SQLite API 1/1、实际匹配的原生 finite route 回归 1/1 PASS，完整前端 1241/1241 PASS；原生测试构建使用本轮 canonical frontend 输出，不等于打开安装版应用。首次错过滤得到 0 tests 的编译成功不计行为 PASS，历史沙箱 PermissionDenied 原样保留。精确 run/patch 身份见 remaining receipt。Stage1 PR191 候选 b2e283b669dc096c9d1898882990825b0762488c 的 CI 38428576086 仍运行，布局不在该远程候选内；此前候选失败不追认为 PASS，尚未合并 main。
+
+当前远程读回：Stage1 `b2e283b669dc096c9d1898882990825b0762488c` 的 CI `38428576086` completed/success，全部 required gates 与 a0 success；PR191 已按授权合并，main实际提交 `c541ed8315e54aaa111da64ba79c95cad19b408d`。其主线触发 CI 尚未另行核实。布局19文件独立候选 `7897bbd35d618efecf73c146e5334259bd4366a2` 已发布 PR192，并从旧 stacked base 转为 main，等待自身 CI；BE01/03/04 继续独立实施。整体 PARTIAL。
+
+## 2026-10-14 当前在途批次收尾（更新此前实施中/未实施措辞）
+
+Owner 要求先完成已经启动的工作再上传，不启动下一功能切片。Stage1 PR191 已合并 main `c541ed8315e54aaa111da64ba79c95cad19b408d`，候选 CI38428576086 与 main CI38430339549 均 PASS。PR192 布局候选更新至 `caf1373ddd02fc5ed5ba26c801ceead72c896c1c`，修正精确99条路由库存及安装验收的稳定 page identity（保留 reader/request 断言），12项 maintenance 实际 PASS；CI38583796838 正运行，不称已合并或安装通过。前次 CI 的 owned WebView2 清理在三次 journey 已通过，最终失败为旧UI/03文案断言；历史FAIL保留。
+
+当前隔离整合包含 BE01 有限宿主读取、BE02布局、BE03固定版本材料问答、BE04产品目的模型配置与冻结解析、BE05有界材料/陪伴对话、BE06显式人类记忆、BE07 scoped readiness，以及 FE06 Dockview 四次增量。Rust单写者、CAS、workspace/restore epoch、显式取消和历史只读不重推理保持。实际 Dockview8.5.1用于标签/分割/浮动/锁定，多文档和专用编辑器共享业务会话；schema v2绑定有限对象与会话，嵌套浮动split grid未支持。人物偏好仅在明确启用后进入对话的非事实上下文，不获得知识或动作授权。ASTRYN跨产品互通未验证；其他模型目的消费者、全BE/FE及真实用户验收仍 PARTIAL。
+
+本地143个前端文件/1285项 PASS，TypeScript PASS；材料问答/配置/对话/记忆9项实际SQLite API（合成worker）PASS；布局API1项PASS；domain18项PASS；匹配当前前端的Tauri编译与原生layout route1项PASS。证据分别为SIMULATED/SYNTHETIC/本地集成，不能资格真实AI或安装运行。新增 readiness API 实测暴露权限修改读回意外spawn worker，保留原断言并修复中。quick 的18项Python、合同/生成/格式/前端均PASS；深Windows pycache失败已改为managed bounded compile cache，原失败回执保留，最终quick和上传仍待完成。文档在测试后更新，不声称其新增字节属于此前tested source hash。
+
+Owner优化方案去重归档见 [GitHub优化方案](AAOS-GITHUB-OPTIMIZATION-PLAN-20261014.md)。A01～A04作为下一批隔离审阅，当前不实施缓存/计时优化、不改GitHub规则；A05～A08依赖阶段数据，A09先实际采样。继续禁止E/F、系统配置、Green替换、发布及真实数据覆盖。
+
+
+当前收尾验证读回：`closure-final-quick-final-20261014` 为 LOCAL_PASS，source_consistent=true；全部quick检查通过，18项Python与143文件/1285项前端PASS，worker/格式/合同/生成与约定检查PASS。11项SQLite/API合成worker回归（材料4、配置1、对话3、记忆1、布局1、readiness1）与配置目的/精确destination/revision执行1项PASS。权限写回已改为仅读声明和Store记录，GET显式健康探测保持兼容，enable/disable均不spawn。前次FAIL不追认。新增文档记录仍位于验证后。
+
+PR192 CI38583796838 新观察 browser-smoke/rust-vnext FAIL，故不合并：新增页面身份属性意外进入导航data-page-id选择器，已改独立data-current-page-id；Rust协议失败定位为合成READY fixture非原子发布，修复中，不能降低握手保护。当前整合以授权上传为本轮收尾，云CI/安装资格继续独立记录。
+
+
+当前 browser 实跑 `final-browser-fixture-20261014-230039` PASS：真实Chromium1228/当前Vite，13viewport/5theme，errors=0、canonicalproblems=0，10项导航断言保留；仍为SIMULATED_HOST_CORE_FIXTURE，不覆盖真实模型、scoped readiness或安装版。自有Vite/端口已释放。READY合成fixture改同目录原子发布，原malformed/flood/timeout/retry断言保留，父定向1项PASS；PR192新修复已上传 `9daf1221952133374181a6c7c81b6529d0e6419f`，等新exact-SHA CI。完整本地收尾摘要见 [联合回执](receipts/AAOS-INTEGRATION-CLOSURE-20261014.json)。
+
+## 2026-10-15 接手全部未完成任务与本地优化
+
+Owner 在交接后的当前会话授权执行全部未完成任务并要求不重复询问；本项目内继续运行，整体 PARTIAL。原冻结项、E/F、系统配置、凭据、Green、真实数据与发布边界保持。根检出两份本地交接保留；当前 writer 为 `codex/build-optimization-20261014` 隔离检出。功能候选本地合同修复 `5a3246aa43866de19942adfb0b98dee176530cac` 已通过26项 maintenance；源头 PR192 的已观察 CI38585726523 为 FAIL，不合并或借用其安装成功资格化后续整合。
+
+A01～A04 实施实际 Cargo 缓存路径、分离 Core/Tauri target、输入完整的依赖/产物 key、合同 preflight 和阶段计时。真实61→59及移除 layout PUT 反例均在编译前 FAIL；preflight 20项检查和26项路由合同 PASS。定向187项 PASS/3项 skip/9 subtests PASS，唯一 FAIL 为12个既有浅层 run 目录与原布局基线不符；不改原断言或扩充豁免。标准 quick 因 Python 布局检查 FAIL，其他合同/生成/worker/类型/Rust格式及143文件1285项前端测试 PASS。自身8个临时文件已按精确移动清单及SHA读回归档到本检出 `.project-local/tmp/`，旧目录和未知资产保留。
+
+真实 Python3.12.15 运行包15.52秒，344模块与源码逐字节一致。已有离线依赖缓存、全新 Core target 的两次2项合同测试分别4.77/0.11秒，不能推广为全项目加速比例。Core release 实构建通过；Tauri/NSIS拆分保留失败耗时，264字符资源路径导致首次NSIS FAIL。使用本项目更短候选输入并核对19518文件哈希后，Tauri阶段47.00秒、NSIS整阶段222.08秒 PASS，生成152413824字节候选；这不是纯压缩单项计时或安装验收。制品绑定各自dirty snapshot，不借此资格化未来提交。
+
+详情与证据SHA见 [优化执行回执](receipts/AAOS-OPTIMIZATION-EXECUTION-20261015.json)。远程 push 和 PR 创建被自动审批拒绝：策略要求审批，但当前 AskForApproval=Never；未换通道绕过。该分支云CI、合并、Owner安装及真实用户验收均无完成证据。下一产品缺口为 BE09 教学准备草稿：现有回读仅ID/版本，继续补冻结请求的身份、正文及版本一致性，复用现有文档合同与单写者。
+
+### BE09 准备草稿保存回读完整性
+
+优化批已本地提交 `00d0fb71f824f29332ad2df83783bf6968e8f46e`，没有远程资格。其后独立 `codex/teaching-save-integrity-20261015` 修复教学准备保存误报：8项反例在旧代码均错误报已保存；现在冻结块身份并核对请求派生文档ID、准确版本、创建标题、完整正文、投影、块与SHA。错误及丢ACK保留原请求和后续编辑，不新增审批或推理。
+
+39项定向前端 PASS；143文件1297项完整前端 PASS（SIMULATED）；TypeScript、Rust格式 PASS。真实SQLite domain 3项 PASS（合成材料），验证空段落保留、CAS冲突、关闭重开及历史创建重试不覆盖新版本。详见 [准备保存回执](receipts/AAOS-PREPARATION-SAVE-INTEGRITY-20261015.json)。代码文件SHA与各执行snapshot绑定；BE09其余页面重开／人工课程适配未由本修复完成，旧NSIS包不资格化本前端源码。标准quick的历史run布局缺口保持，云CI、安装与Owner验收仍未完成。全部任务继续 PARTIAL。
+
+### BE09 普通准备正文重开
+
+保存完整性已本地提交 `7091f650934e96605730e7484e7eeb5a2a589c65`。继续复用现有文档列表、分页和按身份读取，增加准备正文重开入口。列表不冒充全部为教学准备；仅可无损识别的普通段落进入文字框，富文本、未知字段、来源绑定、版本依据、投影／块不一致均保留原件并拒绝覆盖。未保存文字或未确认重试先保留；打开时使用实际最新版本，后续保存以该版本CAS，不借列表旧版本写入。
+
+完整前端143文件1309项 PASS（SIMULATED），TypeScript PASS；包含组件卸载后重开、空行、同身份继续保存、错误身份／未知字段保护、列表失败不冒充空列表和列表陈旧版本的回归。详见 [正文重开回执](receipts/AAOS-PREPARATION-REOPEN-20261015.json)。现有文档的标题重命名不由正文 draft 合同提供；其余 BE09 适配及 native／安装后重开仍需独立验收。标准quick的既有目录问题和远程自动审批拒绝未消失，整体继续 PARTIAL。
+
+### BE09 标题、用途和正文保存状态
+
+正文重开已提交 `d957dbf8be7dd44936d36d0ed25ea9488fd95e2f`；NORM03 的13个实际历史目录及公开消费者草案已提交 `c95c1fafca6386ee183af46c7cfe0a82cb674dbd`，未移动。继续修正现有文档更新后用途变化被误标保存：draft 只更新正文，冻结原文档标题并核对ACK／读回，未持久化的用途保持dirty。显式“作为新准备草稿”保留当前文字，下一次保存创建新文档并保留旧件，未确认的冻结请求不得被丢弃。
+
+完整前端143文件1312项 PASS（SIMULATED），TypeScript PASS；新增用途dirty、冻结已有标题与另存不覆盖旧文档回归。证据见 [标题状态回执](receipts/AAOS-PREPARATION-TITLE-STATE-20261015.json)。本轮未改Core数据库规则，旧回执保持原snapshot，BE09／整体任务仍 PARTIAL；远程审批阻塞、标准quick历史布局FAIL及native／安装／Owner资格仍分别未完成。
+
+### BE06 角色档案与受控长期记忆
+
+标题状态已本地提交 `f10891c62649b942049a0009d6305e4dda4aa9d6`。当前 writer 为同一隔离检出的 `codex/character-memory-ui-20261015`。原始后端／前端任务包已恢复到现有指针路径，139文件、32,691,084字节全部SHA一致；原包校验33／104项通过，规划状态未改，139文件未暂存、未上传。详情见 [本地原包恢复回执](receipts/AAOS-LOCAL-TASKPACK-RESTORATION-20261015.json)。
+
+在正式14页挂载角色偏好、学习目标和获准记忆管理，复用既有Core单写者。明确记住／纠正／启停均冻结工作区、恢复身份和版本，核对完整ACK及存储读回；丢ACK保留文字并仅读回，不自动重复写入。遗忘须人工审阅，实际当前存储删除后确认，原聊天和备份未改、不声称安全擦除。导出为用户显式触发的本地JSON；不自动提取聊天、不调用模型、不授予知识或执行权限。
+
+当前同一源码snapshot完成145文件1340项前端测试（SIMULATED）、7项Rust/真实SQLite/API合成材料回归、16项资源投影、20项preflight、TypeScript／Vite／Tauri无bundle编译 PASS。新增记忆ACK／导出schema，72个原生成定义逐项不变；仅重绑2项SOURCE_CONTRACT摘要，未提升runtime资格。原CRLF／摘要漂移失败保留，精确8个本轮文件的LF读回修复不改变先前5份JSON语义。代码SHA与原执行证据见 [记忆界面回执](receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json)。文档更新发生在源码验证后，不把元数据改动追认为原快照测试。
+
+BE06和整体任务继续 PARTIAL。当前Tauri编译不等于原生记忆实跑或已安装版；外部共享消费方、Owner数据、云CI、合并与Green未验收。标准quick的历史浅层目录FAIL仍保留，preflight不替代该门禁。远程push／PR此前被自动审批拒绝，理由为策略要求审批而AskForApproval=Never；未换通道绕过。
+
+### BE06 原生合成记忆闭环与冷布局修复
+
+记忆界面已本地提交 `110fc9d05d4ad46e77c8f339991a31204f79c3b4`。继续实际候选验证：首次因WebView2已更新到155而旧驱动154不匹配FAIL，项目内下载匹配官方驱动并验证Microsoft签名；没有修改系统浏览器、全局PATH或注册表。第二轮发现真正的冷布局竞态：标题恢复14页，但默认布局把记忆正文停放到隐藏区域，导出不可操作，该轮不算PASS。
+
+原代码两项可见性回归均RED；自动布局读回之后按最新导航重新打开业务面板，保留业务草稿和原显式布局操作。当前145文件1342项前端、38项定向、82项原生harness回归／124子测试、20项preflight以及TypeScript／Vite／Core／Tauri编译PASS。最新原生候选与dirty snapshot绑定：真实界面明确执行8次记忆命令，保存偏好／目标、两条新增和纠正、启停、遗忘取消及确认均实际存储读回；两次冷重开核对相同workspace／epoch／完整profile。正式导出实际下载814字节JSON并核对内容及SHA，三次应用均正常退出0，自有后代与端口已清理。
+
+证据级别REAL_NATIVE_UI_CORE_SYNTHETIC_INPUT，使用全新项目内数据目录，没有Owner记忆、模型调用、安装或Green替换。详见 [原生记忆回执](receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json)。此前“native尚未验证”是原记录时点，当前有限原生闭环由此回执补充；BE06、BE02／FE06全布局及整体任务仍PARTIAL，共享消费方／Owner／安装／云CI边界不变。BE09当前剩余记录同步为已实施的本地部分，引用既有三份准备正文证据，其余页面未实施状态不被隐藏。原始139文件仍仅本地保存，远程自动审批拒绝保持。
+
+
+### BE08 正式设置页只读配置计划与首次读取修复
+
+正式19页接入既有产品模型配置和有限计划读取。每个已配置模型分别显示现有本机服务与本地下载候选；来源、版本、制品摘要和大小按实际已知值返回，未知保留未知，所有计划不可执行且不携带授权。读取不探测服务、不启动worker、不安装。真实首个GET回归发现旧读取会懒创建工作区身份，已改为缺失身份明确不可用，前后SQL改动计数严格不变。
+
+当前修复通过99项Rust/API/宿主和20项身份/配置回归、20项preflight；既有146文件1358项前端与41项probe/124子测试证据按未变化源码摘要复用，不冒充新全量执行。修复后的真实Tauri/Core候选完成19页一次人工合成配置保存、两次有限计划读取和一次冷重开；两次正常退出，自有端口释放。见 [配置计划回执](receipts/AAOS-CONFIGURATION-PLANS-20261015.json)。
+
+BE08及完整目标继续PARTIAL；远端服务、依赖变更和安装引擎诊断、其他BE/FE、同版本完整CI及安装/Owner验收尚未完成。当前正常审批路径已成功读回GitHub，旧Never拒绝仅为历史；main仍c541ed83，PR192为9daf1221且CI38585726523失败。本批未据此声明上传或合并。下一产品缺口是未提交练习答案的持久草稿、切换保留和冷重开。原始139文件保持本地，不提交。
+
+### 当前整合交付与清理实际进展
+
+配置计划已提交 `3855f2bb032e69dd10e9ef94d854b0ac8640f137` 并正常推送；整合 [PR193](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/193) 已创建草稿，包含此前PR192提交及其合同映射修复。CI `38737930533` 当前已启动，结果须实时读取，未据启动声明PASS或合并。此前远程审批拒绝已不再是当前交付阻塞。
+
+Owner 新增明确授权执行中主动处理已审计的过时／冗余内容。首批3个历史交付目录已无损迁入规范run位置，9文件144737字节SHA全部一致；2个空目录已非递归移除，没有删除原始材料或非空文件。精确路径与回退见 [迁移回执](receipts/AAOS-LEGACY-RUN-MIGRATION-EXECUTED-20261015.json)。其余审计和完整产品任务继续执行。
+
+PR193 首轮CI38737930533实际FAIL：hosted preflight误调用只适用于Owner本地原件的H01门禁，Linux正确拒绝登记的Windows路径，其余产品门禁未运行。已修复preflight范围，本地quick/full仍严格要求H01，不上传原件、不放宽路径保护。两条真实runner回归先RED，修复后35项及19项实际preflight PASS，H01本地结构单独PASS；见 [CI修复回执](receipts/AAOS-HOSTED-PREFLIGHT-SCOPE-20261015.json)。当前云端结果不能由本地修复推断。
+
+第二批规范化又完成4个目录无损迁移，533文件／10237979字节和241子目录全部保留；7处当前公开引用更新，历史内部路径通过prefix映射保留，详见 [第二批回执](receipts/AAOS-LEGACY-RUN-MIGRATION-BATCH2-20261015.json)。
+
+第三批最后4个目录迁移完成，8,830文件／244,817,174字节和1,108普通子目录完整保留；唯一内部Junction按新父目录重定向，文件SHA不变。三批全部13个精确对象完成：11目录归位、2空目录移除；严格布局门禁6/6 PASS，未扩充豁免，迁移不计释放空间。见 [第三批回执](receipts/AAOS-LEGACY-RUN-MIGRATION-BATCH3-20261015.json)。
+
+CI38740205982的head为0a4f7b05，实际checkout合并树为1d96acf1。lint、浏览器、Rust、worker和合同已PASS；test(3.12)因两项公开源码摘要误报未运行产品测试，desktop-fast因Tauri edition2021导入排序不符失败。两项摘要分别按finding commit与当前公开源码字节独立验证，精确路径与确证digest交集规则补齐，其他值及源码路径继续拒绝豁免；回归先1FAIL/1PASS、后2PASS。Tauri只调整两行导入排序，不改变运行语义。整轮CI和后续候选仍须实时核实，不能借部分job宣称完整PASS。
+
+Owner再次明确后端、清理和新UI同时推进。AX-UI-20261013已归档且已选择；目前旧玻璃微调、FE06部分布局和角色记忆并不等于新首页/小栖舱交付。当前分别使用隔离的learning-drafts与glass-cabin工作区推进BE09未提交练习草稿以及FE02/05/07/18首批正式界面；最终实现、截图与验证据各自固定提交补录，不把开工记成完成。
+
+清理和CI修复后的标准quick `closure-quick2-1015` 实际27/27 LOCAL_PASS，源码指纹前后一致，含91项Python、26项路由合同、146文件1358项前端和Core/Tauri格式检查；H01仍在本地执行。首次quick的5文件CRLF失败保留，精确转LF后通过。见 [当前修复回执](receipts/AAOS-CI-AND-LAYOUT-REPAIR-20261015.json)。本地quick不替代完整云CI或后续BE09/UI改动的最终验证。
+
+### 2026-10-15 三线整合与人物任务归属纠正
+
+Owner 最新明确要求三线并行，并将虚拟人物任务交由 QODER；上段首次分工中 FE18 归本 writer 的描述由此纠正。当前 [UI方向](AAOS-UI-REFERENCE-DIRECTION-20261015.json) 登记七张实物参考的SHA及全窗背景/内缩玻璃几何，FE18为QODER独立负责，Codex不读取或复制其检出。已有Core记忆管理不回退，也不冒充人物交付。
+
+BE09 未提交练习答案已合入 `8fc22a40`：切题/重开保持各自草稿，冻结复习请求和未知ACK保留，容量/版本边界在写前检查。74项定向前端、17项真实SQLite合成输入回归通过，见[草稿回执](receipts/AAOS-LEARNING-DRAFTS-20261015.json)。随后修复CI安装旅程发现的保活资料库不刷新问题，合入 `244f2cf8`：返回可见、导入事件和手动刷新统一更新，迟到分页/列表不覆盖保存ACK或编辑现场，原件读取失败可明确重试。73项定向回归及独立复审通过，原installer probe未放宽，见[刷新回执](receipts/AAOS-LIBRARY-REFRESH-20261015.json)。
+
+UI局部实现已合入 `699d3483`，审查修复为 `41e22bf9`、文件规范收尾为 `003397f4`。首开实际1672×941截图外窗x77.98/y55.98/w1516.03/h843.59、导航193、首卡约425.55×276；同一生成背景透过真实界面，首开/读取失败/导航入口及阅读框架已经接到现有业务。新默认cosmic保留有效旧偏好。审查发现的搜索隐藏和布局恢复提示折叠问题已修复，见[UI有限交付回执](AAOS-GLASS-CABIN-DELIVERY-20261015.md)。五主题/五宽度及交互共34项Chrome检查PASS，属于真实渲染+合成Host；不能资格原生或Owner视觉验收。阅读几何、图5布局和其他非人物页面尚未逐页收敛，七图一比一整体仍PARTIAL。
+
+清理并行完成两个旧v0.5.0安装包的完整归档，当前树移除4,638,139二进制字节且保留恢复指针；又将已审计217个runtime副本ZIP逐项校验后精确移除，扣除归档/索引/提示后文件占用净减少58,938,325字节。有真实4B消费者的副本、原Core、其余文件与历史manifest完整保留。见[安装包回执](receipts/AAOS-LEGACY-INSTALLER-ARCHIVE-20261015.json)和[副本去重回执](receipts/AAOS-RUNTIME-DEDUP-20261015.json)。未重写Git历史或操作QODER、Green和Owner数据。
+
+当前整合候选进行一次统一quick及新构建原生旅程；上述分支局部PASS不提前记为该整合版本PASS。BE09未提交草稿的原生冷恢复、完整FE/BE、当前exact-SHA CI、安装/Owner资格继续分别记录，不因本轮三线进展宣称整体闭环。
+
+整合原生旅程已在 `e980f5b865b0b92f5340efdb190ed4328cf71b5c` 实际PASS：原资料库刷新失败路径、中文原件、普通笔记保存/重开、备份恢复、正文检索、引用及已声明格式矩阵均走真实Tauri/Core；5次产品正常退出0，自有进程和端口释放。见[整合原生回执](receipts/AAOS-GLASS-INTEGRATED-NATIVE-20261015.json)。第一次原生检查因依赖首开已隐藏的冗长ready说明而失败，探针改为等待实际 `data-working-state=ready`，仍要求Core完成身份/草稿恢复，未绕过原导入和保存断言。探针合同45项/124子测试通过；此为合成材料候选原生，非Owner安装资格。
+
+完整前端整合检查发现5项旧无障碍回归，其余1390项通过。已保留原断言与通告预算，修复首次列表重复播报和首次失败误称已有列表，31项定向检查及独立复审通过，见[通告修复回执](receipts/AAOS-LIBRARY-ANNOUNCEMENTS-20261015.json)。该最后源码增量由最终整合门禁和新exact-SHA CI独立验证；不追认为此前原生候选已包含此改动。
+
+最终整合 quick `glass-integrated-final-1015` 在 `4fc9006a2bd59cf9e0733ffc46357f0488d6a27b` 实际27项 LOCAL_PASS，含148文件1396项前端，source_consistent=true。见[整合门禁回执](receipts/AAOS-PARALLEL-INTEGRATION-FINAL-20261015.json)。该SHA云CI38757310107仍在运行，已发现browser-smoke、test(3.12)、rust-vnext失败，继续定位修复，不据本地PASS宣称云端完成。
+
+Owner补充按难度选择模型和推理：简单盘点/回执用gpt-6-luna medium，常规实现用gpt-6.1-sol medium，数据恢复/跨层问题用gpt-6.1-sol high，只有具体困难才升级。已将归档helper交给luna medium，将原生来源跳转诊断交给sol high；正在产出成果的既有writer不为换模型重启。分工和证据复用记录在remaining receipt的execution_preferences.task_sizing。
+
+BE09已实现的学习答案草稿补齐有限原生冷恢复：整合提交 `6ddf8b1b` 的probe复用实际候选e980f5b，3次冷重启、4次正常退出0；原始答案/揭示/正误/评分恢复，正式提交只产生1条event并精确清理来源A，来源B草稿再重启保持。43项/147子测试及根独立审阅通过，见[学习草稿原生回执](receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json)。候选产品源码与probe身份分别绑定，不宣称当前整树native资格。原grouped来源跳转到空阅读页的实际失败另存并修复中；Teach-back/反馈草稿另由gpt-6.1-sol high切片推进，BE09整体仍PARTIAL。
+
+
+### 2026-10-16 精确清理与整合修复
+
+已审计的旧候选 runtime 已完整归档后按清单精确移除：19,474文件、625,801,465逻辑字节，ZIP展开SHA及保留候选逐项复核；扣除ZIP/恢复清单/提示文件净减少397,862,276字节（约379.43MiB，未计结果JSON和文件系统元数据）。源候选其余部分和新候选完整保留，见[清理回执](receipts/AAOS-CANDIDATE-RUNTIME-ARCHIVE-20261016.json)。此前三批目录迁移和217文件去重不重复计数，目录规范化整体仍PARTIAL。
+
+CI38757310107最终FAIL，新增installer-lifecycle失败，具体证据由gpt-6-luna medium只读检查。阅读几何已合入74966811，来源跨Dock丢失修复已合入1b231207并通过38项定向验证；完整浏览器正在复验。教学草稿新增持久保全已交付，但独立审查确认普通准备创建在未知ACK后重挂载可能重复文档，已回到原writer补冻结身份；待此修复完成再统一构建，不把已知缺口写为闭环。
+
+
+### 2026-10-16 教学草稿、保活复习与窄分栏整合
+
+教学原始字段与冻结创建身份已实现并取得限定原生冷恢复证明：三次冷重启，合成 ACK 丢失后仍复用同一创建身份，只清理确认成功的草稿。保活复习页的旧 dirty 状态及恢复后旧 origin 保护已修复。来源仍由 Rust Core 唯一写入；不重复 QODER 人物任务。
+
+实际宽窗口的窄 Dock 面板曾挤压资料库，现按面板自身宽度排列。当前产品快照完成 27 项 LOCAL_PASS、150 文件 1424 项前端、99 项 Python／164 子测试；13 窗口五主题浏览器检查通过，补充保留检查器的 289 CSS 像素分栏、真实滚轮与点击通过。原生退出探针按启动 PID／creation 和同一 Popen 的退出码 0 核对，不把缺失 ACK 当成功；最终探针 73 项／141 子测试通过。
+
+原生 grouped 最新结论：**PASS_BOUNDED_NATIVE**。详细阶段、实际源码／二进制摘要、旧失败及限制见[恢复与分栏回执](receipts/AAOS-RECOVERY-AND-DOCK-20261016.json)。浏览器夹具、真实候选、已安装版与 Owner 验收分别记账；当前云 CI 未完成，不追认旧失败。FE10／11／12 原 NOT_EXECUTED 已按现有源码改为 PARTIAL_INTEGRATED，并明确各自剩余范围。
+
+六份旧 runtime 共 3,754,808,790 逻辑字节仅完成清理盘点，因进程占用核对受限全部保留，未将其计入已回收空间。先前已核验的 379.43 MiB 净缩减维持独立回执，不重复计数。账户剩余额度 ≤15% 时收尾停止的现有监控保持 ACTIVE。
+
+
+### 2026-10-16 格式资格、图谱筛选、课程返回与视频健康整合
+
+BE11 逐文件资格接口、FE09 当前投影筛选、FE10 06/07 原课程/修订返回和视频 worker 健康参数修复已合入同一分支。BE11 8 项 Rust 回归、worker 健康 3 项（五个真实 hello）通过；整合 quick 门禁通过，具体测试快照和摘要见[检查点](receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json)。新增接口路由清单、数量、验收映射和命令已同步。旧预检失败与 FE10 修订身份审查问题保留记录，最终修复已验证。
+
+BE11/FE09 原未实施状态改为 PARTIAL_INTEGRATED，FE10 补充同课程/课时/知识修订返回；不将限定实现提升为全部任务完成。FE10 的 11/12 跨宿主返回、完整七图视觉、全部格式与安装/Owner 验收仍未闭合。两份干净 donor 工作区复用，避免新增工作区和原生 runtime 副本；QODER 人物分支未动。
+
+
+### 2026-10-16 云端失败定向修复
+
+最新云端运行 `38790450859` 已结束 FAIL：合同登记、合成授权文件发布竞态、安装探针 CIM 查询超时三项已修复，组合本地回归 219 项 / 193 子项 PASS。详见[CI 修复回执](receipts/AAOS-INTEGRATION-CI-REPAIR-20261016.json)。head `6bee1d88` 与实际 PR merge checkout `9ad43f8d` 分开登记；新一轮 exact-SHA CI 和安装旅程仍待读回，不能使用旧运行替代。
+
+### 2026-10-16 阅读页参考核对与窄屏修复
+
+阅读页横向元数据和两列主体已实施，并完成 1672×941 实际渲染核对；旧“待实施”已更新为“待完整视觉验收”。新增发现的窄屏检查器挤压、顶栏重叠已修复，14 个浏览器场景含五主题、390/640/900/901/1672px及关闭/重开检查器通过。[阅读响应式回执](receipts/AAOS-READER-RESPONSIVE-20261016.json) 明确这是受控宿主/文档的真实浏览器渲染，七图整体验收仍 PARTIAL。
+
+
+### 2026-10-16 格式资格界面、教学原课程返回与安装退出修复
+
+BE11 有限只读桥接和六操作资格 UI、FE10 教学11/12原课程返回已完成本地整合；严格校验原来源/任务/课程/修订，教学正文及作答不因只读课程面板卸载。组合 quick 27项通过，151文件1449项前端、类型和合同一致；真实桥接定向1项通过。见[本轮检查点](receipts/AAOS-SURFACE-INTEGRATION-20261016.json)。首次资源摘要漂移、构建路由及GBK输出失败按原运行保留，修正后通过，不算首跑成功。
+
+CI38798080182最终FAIL：head dbb99f87、实际merge01a6296c。此前三项故障已过，本次安装在文档保存后的首次退出遇到精确target frame detached；同进程正常退出0未观测，不能凭cleanup或空steps改成PASS。仅在显式退出内识别完整关闭模板，仍核对同PID/creation和原Popen自然exit0；67项定向回归、lint与独立审查通过，新exact-SHA安装CI待验证。
+
+当前交接入口已压缩为最新状态与必要边界，原全文逐字节归档并记SHA，减少历史状态互相覆盖。FE22原NOT_EXECUTED改为有限资格界面已集成，完整格式编辑/往返未完成；FE10移除已实现的11/12返回待办，其他学习/教学仍PARTIAL。七图整体验收、顶部菜单和当前安装/Owner证据未闭合。
+
+
+### 2026-10-16 顶部菜单参考切片
+
+顶部横向菜单已作为可选呈现接入，保留原页面路由、草稿保护和编辑器实例；五主题及1672/1201/1200/900/640/390px共10个真实浏览器场景通过。审查发现的space路由错误高亮、真实点击被正文遮挡、搜索焦点样式覆盖已修复，原失败保留。最终quick27项PASS，152文件1459项前端；见[顶部菜单回执](receipts/AAOS-TOP-NAVIGATION-20261016.json)。受控fixture含未确认工作状态横幅，绝对纵坐标不冒充最终ready布局；图5双栏正文、七图整体、当前installed/Owner视觉仍PARTIAL。
+
+
+### 2026-10-16 双栏工作台、保全状态与CSV/Markdown补验
+
+顶部呈现增加图5左操作/右星球卡片双栏，原对象/复习/错误/搜索与真实回调保留；就绪态10场景浏览器通过。此前以为保存瞬间的横幅，经30秒等待与实际200 ACK追踪确认是等值flush未发布ready的真实缺陷；已修复且未知ACK/恢复/冻结请求保护保持，73项定向回归及独立审查通过。fixture缺少source_jobs的独立问题已补，未隐藏产品提示。
+
+CSV及Markdown复用现有真实worker，内容/格式事实/输出摘要/身份/六操作边界和既有失败/重开共8项Rust测试通过，原生编辑和往返仍UNVERIFIED。最终quick27项PASS，152文件1466项前端，详见[最新检查点](receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json)。旧失败、各次源码摘要和非安装证据边界完整保留；七图整体验收和当前安装CI仍未闭合。
+
+### 2026-10-16 剩余额度15%收尾停止
+
+05:14上海时间账户used85%/remaining15%，触发Owner明确停止条件。停止新增开发和重型验证，所有自有agents保全；本轮产品36edc3ea及公开交接正常提交上传，远端SHA读回后暂停目标与archeaxis监控，整体仍PARTIAL，额度重置不自动恢复。原始任务包/runtime/DB/cache/恢复ZIP及donor dirty保留本地，QODER不触碰。
+
+CI38804704425（head2ce3c37b、安装工件来源b064abd0）最终FAIL：主安装文档/恢复/格式旅程与草稿冲突旅程分别PASS，旧target-frame-detached退出修复观测同一进程自然exit0；新阻塞为分组旅程冷启动后的文档入口超出裁剪区域且无可达滚动容器。具体根因未确认，已保全回执SHA/截图/失败栈，不在阈值后扩大修复。详情与下一步见[收尾检查点](receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json)。

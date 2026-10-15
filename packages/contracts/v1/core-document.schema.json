@@ -2,28 +2,196 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "archeaxis/core-document/v1",
   "$defs": {
-    "DocumentPackageDto": {"type":"object","additionalProperties":false,"required":["schema","document","objects","historical_anchors"],"properties":{"schema":{"const":"archeaxis.document-package/v1"},"document":{"$ref":"#/$defs/DocumentDto"},"objects":{"type":"array","maxItems":128,"items":{"type":"object","additionalProperties":false,"required":["source_id","sha256","original_name","bytes"],"properties":{"source_id":{"type":"string","maxLength":256},"sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"original_name":{"type":"string","maxLength":1024},"bytes":{"type":"array","maxItems":2097152,"items":{"type":"integer","minimum":0,"maximum":255}}}}},"historical_anchors":{"type":"array","maxItems":5000,"items":{"type":"object"}}}},
-    "DocumentPackageImportDto": {"type":"object","additionalProperties":false,"required":["schema","package_sha256","document","source_mapping","historical_anchors","anchor_registration","knowledge_admission"],"properties":{"schema":{"const":"archeaxis.document-package-import/v1"},"package_sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},"document":{"$ref":"#/$defs/DocumentDto"},"source_mapping":{"type":"object"},"historical_anchors":{"type":"array","maxItems":5000,"items":{"type":"object"}},"anchor_registration":{"const":"NOT_EXECUTED"},"knowledge_admission":{"const":"NOT_EXECUTED"}}},
-    "MachineJournalStatusDto": {
-      "type":"object", "additionalProperties":false,
-      "required":["schema","journal_id","status","can_clear","task_id","attempt","max_attempts","provider_stop_state"],
+    "DocumentPackageDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "document",
+        "objects",
+        "historical_anchors"
+      ],
       "properties": {
-        "schema":{"const":"archeaxis.machine-journal-status/v1"},
-        "journal_id":{"type":"string"}, "status":{"enum":["UNKNOWN","FAILED","CANCELLED_LOCAL_WORKER"]},
-        "can_clear":{"type":"boolean"}, "task_id":{"type":["string","null"]},
-        "attempt":{"type":["integer","null"],"minimum":1,"maximum":3},
-        "max_attempts":{"const":3}, "provider_stop_state":{"const":"UNKNOWN"}
+        "schema": {
+          "const": "archeaxis.document-package/v1"
+        },
+        "document": {
+          "$ref": "#/$defs/DocumentDto"
+        },
+        "objects": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_id",
+              "sha256",
+              "original_name",
+              "bytes"
+            ],
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "original_name": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "bytes": {
+                "type": "array",
+                "maxItems": 2097152,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 255
+                }
+              }
+            }
+          }
+        },
+        "historical_anchors": {
+          "type": "array",
+          "maxItems": 5000,
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "DocumentPackageImportDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "package_sha256",
+        "document",
+        "source_mapping",
+        "historical_anchors",
+        "anchor_registration",
+        "knowledge_admission"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.document-package-import/v1"
+        },
+        "package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "document": {
+          "$ref": "#/$defs/DocumentDto"
+        },
+        "source_mapping": {
+          "type": "object"
+        },
+        "historical_anchors": {
+          "type": "array",
+          "maxItems": 5000,
+          "items": {
+            "type": "object"
+          }
+        },
+        "anchor_registration": {
+          "const": "NOT_EXECUTED"
+        },
+        "knowledge_admission": {
+          "const": "NOT_EXECUTED"
+        }
+      }
+    },
+    "MachineJournalStatusDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "journal_id",
+        "status",
+        "can_clear",
+        "task_id",
+        "attempt",
+        "max_attempts",
+        "provider_stop_state"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.machine-journal-status/v1"
+        },
+        "journal_id": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "UNKNOWN",
+            "FAILED",
+            "CANCELLED_LOCAL_WORKER"
+          ]
+        },
+        "can_clear": {
+          "type": "boolean"
+        },
+        "task_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attempt": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 3
+        },
+        "max_attempts": {
+          "const": 3
+        },
+        "provider_stop_state": {
+          "const": "UNKNOWN"
+        }
       }
     },
     "MachineCancelDto": {
-      "type":"object", "additionalProperties":false,
-      "required":["schema","journal_id","attempt","cancel_requested","execution_state","provider_stop_state"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "journal_id",
+        "attempt",
+        "cancel_requested",
+        "execution_state",
+        "provider_stop_state"
+      ],
       "properties": {
-        "schema":{"const":"archeaxis.machine-cancel-receipt/v1"},
-        "journal_id":{"type":"string"},
-        "attempt":{"type":["integer","null"],"minimum":1,"maximum":3},
-        "cancel_requested":{"type":"boolean"},
-        "execution_state":{"const":"UNKNOWN"}, "provider_stop_state":{"const":"UNKNOWN"}
+        "schema": {
+          "const": "archeaxis.machine-cancel-receipt/v1"
+        },
+        "journal_id": {
+          "type": "string"
+        },
+        "attempt": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 3
+        },
+        "cancel_requested": {
+          "type": "boolean"
+        },
+        "execution_state": {
+          "const": "UNKNOWN"
+        },
+        "provider_stop_state": {
+          "const": "UNKNOWN"
+        }
       }
     },
     "SourceDto": {
@@ -2202,7 +2370,12 @@
             "model_choices": {
               "type": "array",
               "maxItems": 256,
-              "items": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[^\\u0000-\\u001f\\u007f]+$"}
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+              }
             },
             "listed_model_count": {
               "type": "integer",
@@ -2291,6 +2464,909 @@
           "additionalProperties": false
         }
       ]
+    },
+    "ModelPurpose": {
+      "enum": [
+        "answer",
+        "retest",
+        "material",
+        "document_check",
+        "embedding",
+        "companion"
+      ]
+    },
+    "ModelLane": {
+      "enum": [
+        "fast",
+        "deep"
+      ]
+    },
+    "ModelProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?$"
+        },
+        "protocol": {
+          "enum": [
+            "ollama",
+            "openai"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "credential_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^aak_cred_[a-f0-9]{32}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 4096
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        }
+      },
+      "required": [
+        "endpoint",
+        "protocol",
+        "model",
+        "credential_ref",
+        "max_tokens",
+        "timeout_s"
+      ]
+    },
+    "ModelPurposeBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        }
+      },
+      "required": [
+        "purpose",
+        "lane",
+        "profile_id"
+      ]
+    },
+    "ModelConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.model-configuration/v1"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "profiles": {
+          "type": "object",
+          "maxProperties": 32,
+          "additionalProperties": {
+            "$ref": "#/$defs/ModelProfile"
+          }
+        },
+        "bindings": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/ModelPurposeBinding"
+          }
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "revision",
+        "profiles",
+        "bindings",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "ResolvedModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.resolved-model/v1"
+        },
+        "configuration_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "profile": {
+          "$ref": "#/$defs/ModelProfile"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "configuration_revision",
+        "configuration_sha256",
+        "purpose",
+        "lane",
+        "profile_id",
+        "profile",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "ApprovedMemory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "provenance": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "provenance"
+      ]
+    },
+    "CharacterProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.character-memory/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "preferences": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "learning_goals": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "memories": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/ApprovedMemory"
+          }
+        }
+      },
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "revision",
+        "enabled",
+        "preferences",
+        "learning_goals",
+        "memories"
+      ]
+    },
+    "CharacterMemoryWrite": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "command": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "profile"
+                },
+                "preferences": {
+                  "type": "string",
+                  "maxLength": 8192
+                },
+                "learning_goals": {
+                  "type": "string",
+                  "maxLength": 8192
+                }
+              },
+              "required": [
+                "operation",
+                "preferences",
+                "learning_goals"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "remember"
+                },
+                "memory": {
+                  "$ref": "#/$defs/ApprovedMemory"
+                }
+              },
+              "required": [
+                "operation",
+                "memory"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "correct"
+                },
+                "memory": {
+                  "$ref": "#/$defs/ApprovedMemory"
+                }
+              },
+              "required": [
+                "operation",
+                "memory"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "forget"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 128
+                }
+              },
+              "required": [
+                "operation",
+                "id"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "forget_all"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "disable"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "enable"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "expected_revision",
+        "command"
+      ]
+    },
+    "CharacterContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.character-context/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "preferences": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "learning_goals": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "approved_memories": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/ApprovedMemory"
+          }
+        },
+        "authority": {
+          "const": "human_preferences_only"
+        },
+        "grants": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {}
+        },
+        "knowledge_admitted": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "revision",
+        "enabled",
+        "preferences",
+        "learning_goals",
+        "approved_memories",
+        "authority",
+        "grants",
+        "knowledge_admitted"
+      ]
+    },
+    "OperationObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "type": "string"
+        },
+        "implementation": {
+          "enum": [
+            "IMPLEMENTED",
+            "MISSING"
+          ]
+        },
+        "dependencies": {
+          "enum": [
+            "AVAILABLE",
+            "MISSING"
+          ]
+        },
+        "connection": {
+          "const": "UNKNOWN"
+        },
+        "qualification": {
+          "const": "UNVERIFIED"
+        },
+        "permission": {
+          "enum": [
+            "ENABLED",
+            "DISABLED",
+            "UNKNOWN"
+          ]
+        },
+        "status": {
+          "enum": [
+            "READY",
+            "NOT_READY",
+            "UNVERIFIED",
+            "UNKNOWN",
+            "EXPIRED"
+          ]
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "expires_at_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "operation",
+        "implementation",
+        "dependencies",
+        "connection",
+        "qualification",
+        "permission",
+        "status",
+        "reasons",
+        "expires_at_ms"
+      ]
+    },
+    "ReadinessQuery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "operations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]{1,128}$"
+          }
+        }
+      },
+      "required": [
+        "scope",
+        "operations"
+      ]
+    },
+    "ReadinessSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.operation-readiness/v1"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "observed_at_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "expires_at_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "aggregate": {
+          "enum": [
+            "READY",
+            "NOT_READY",
+            "UNVERIFIED",
+            "UNKNOWN",
+            "EXPIRED"
+          ]
+        },
+        "operations": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/OperationObservation"
+          }
+        },
+        "network_performed": {
+          "const": false
+        },
+        "models_loaded": {
+          "const": false
+        },
+        "execution_authorized": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "scope",
+        "observed_at_ms",
+        "expires_at_ms",
+        "aggregate",
+        "operations",
+        "network_performed",
+        "models_loaded",
+        "execution_authorized"
+      ]
+    },
+    "CharacterMemoryReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.memory-write/v1"
+        },
+        "profile": {
+          "$ref": "#/$defs/CharacterProfile"
+        },
+        "live_store_deleted": {
+          "type": "boolean"
+        },
+        "forgotten_ids": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          }
+        },
+        "historical_chat_modified": {
+          "const": false
+        },
+        "backups_modified": {
+          "const": false
+        },
+        "secure_erasure": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "profile",
+        "live_store_deleted",
+        "forgotten_ids",
+        "historical_chat_modified",
+        "backups_modified",
+        "secure_erasure"
+      ]
+    },
+    "CharacterMemoryExport": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.memory-export/v1"
+        },
+        "profile": {
+          "$ref": "#/$defs/CharacterProfile"
+        },
+        "contains_personal_memory": {
+          "const": true
+        },
+        "network_performed": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "profile",
+        "contains_personal_memory",
+        "network_performed"
+      ]
+    },
+    "ConfigurationPlanCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "configuration_revision",
+        "configuration_sha256",
+        "modules",
+        "plans",
+        "remote_service_support",
+        "installer_available",
+        "requires_formal_plan_and_grant",
+        "execution_grant",
+        "network_performed",
+        "storage_changed",
+        "worker_started"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.configuration-plans/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "minLength": 32,
+          "maxLength": 32
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+        },
+        "configuration_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "capability",
+              "enabled",
+              "runtime_qualification"
+            ],
+            "properties": {
+              "capability": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+              },
+              "enabled": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "runtime_qualification": {
+                "const": "UNVERIFIED"
+              }
+            }
+          },
+          "maxItems": 1024
+        },
+        "plans": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "plan_id",
+                  "profile_id",
+                  "model",
+                  "mode",
+                  "source",
+                  "version",
+                  "artifact_sha256",
+                  "size_bytes",
+                  "executable",
+                  "reason_code",
+                  "risk_scope",
+                  "rollback"
+                ],
+                "properties": {
+                  "plan_id": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "profile_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                  },
+                  "model": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                  },
+                  "mode": {
+                    "const": "existing_service"
+                  },
+                  "source": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                  },
+                  "version": {
+                    "const": null
+                  },
+                  "artifact_sha256": {
+                    "const": null
+                  },
+                  "size_bytes": {
+                    "const": null
+                  },
+                  "executable": {
+                    "const": false
+                  },
+                  "reason_code": {
+                    "const": "SERVICE_NOT_PROBED_PLAN_ONLY"
+                  },
+                  "risk_scope": {
+                    "const": "LOOPBACK_SERVICE_CONNECTION_REQUIRES_SEPARATE_EXECUTION"
+                  },
+                  "rollback": {
+                    "const": "RETAIN_CURRENT_BINDINGS_NO_CONNECTION_PERFORMED"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "plan_id",
+                  "profile_id",
+                  "model",
+                  "mode",
+                  "source",
+                  "version",
+                  "artifact_sha256",
+                  "size_bytes",
+                  "executable",
+                  "reason_code",
+                  "risk_scope",
+                  "rollback"
+                ],
+                "properties": {
+                  "plan_id": {
+                    "type": "string",
+                    "minLength": 64,
+                    "maxLength": 64,
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "profile_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                  },
+                  "model": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256,
+                    "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+                  },
+                  "mode": {
+                    "const": "local_download"
+                  },
+                  "source": {
+                    "const": null
+                  },
+                  "version": {
+                    "const": null
+                  },
+                  "artifact_sha256": {
+                    "const": null
+                  },
+                  "size_bytes": {
+                    "const": null
+                  },
+                  "executable": {
+                    "const": false
+                  },
+                  "reason_code": {
+                    "const": "INSTALLER_AND_APPROVED_SOURCE_UNAVAILABLE"
+                  },
+                  "risk_scope": {
+                    "const": "LOCAL_DISK_AND_PROCESS_CHANGES_NOT_AUTHORIZED_BY_READ"
+                  },
+                  "rollback": {
+                    "const": "NO_ARTIFACT_CREATED_NO_ROLLBACK_REQUIRED"
+                  }
+                }
+              }
+            ]
+          },
+          "maxItems": 64
+        },
+        "remote_service_support": {
+          "const": "UNSUPPORTED_BY_CURRENT_LOOPBACK_CONTRACT"
+        },
+        "installer_available": {
+          "const": false
+        },
+        "requires_formal_plan_and_grant": {
+          "const": true
+        },
+        "execution_grant": {
+          "const": null
+        },
+        "network_performed": {
+          "const": false
+        },
+        "storage_changed": {
+          "const": false
+        },
+        "worker_started": {
+          "const": false
+        }
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.remaining-execution-receipt/v1",
   "date": "2026-10-13",
-  "state": "RUNNING_BY_OWNER",
+  "state": "PAUSED_BY_OWNER",
   "overall": "PARTIAL",
   "canonical_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
   "authorization": "Owner selected backend/frontend packages, independent UI branch, all remaining work to main; source chat historical audit-only limits superseded within current project scope.",
@@ -17,7 +17,9 @@
     "No cross-project writes",
     "No paid/private outward calls",
     "No model downloads/global configuration/Green replacement/release",
-    "V01 FT01-04 and advanced frozen mechanisms remain frozen"
+    "V01 FT01-04 and advanced frozen mechanisms remain frozen",
+    "No E: or F: access; no operating system or global agent configuration changes",
+    "No deletion of unknown/user assets; no release or Green replacement"
   ],
   "audit_overrides": [
     "Use services/python-workers, not nonexistent workers/",
@@ -69,8 +71,11 @@
         "三包接口版本及字段一致，未知输入拒绝。",
         "launch-token 留在宿主；非空字段不替代权限或签名校验。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json"
+      ],
       "dependencies": [
         "BE00"
       ],
@@ -90,8 +95,10 @@
         "launch-token 留在宿主；非空字段不替代权限或签名校验。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
-      "evidence": [],
-      "blocker": null,
+      "evidence": [
+        "Independent project-local worktree; integration and full qualification pending"
+      ],
+      "blocker": "Current exact-SHA integration CI and installed acceptance remain unqualified; finite implemented scope is described in integration_closure_20261014.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -102,8 +109,11 @@
         "重启读回，冲突不覆盖另一修订。",
         "不把业务正文、秘密或任意可执行组件写入布局。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json"
+      ],
       "dependencies": [
         "BE01"
       ],
@@ -117,14 +127,19 @@
         "docs/"
       ],
       "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
-      "tests": [],
+      "tests": [
+        "Domain 6/6; real SQLite API integration 1/1; finite native bridge 1/1; frontend suite 1241/1241"
+      ],
       "acceptance": [
         "重启读回，冲突不覆盖另一修订。",
         "不把业务正文、秘密或任意可执行组件写入布局。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
-      "evidence": [],
-      "blocker": null,
+      "evidence": [
+        "Device-isolated CAS preferences, restart readback, preserved unknown schema/panels and explicit restore-epoch recovery, strict bounded JSON, Settings consumer",
+        "Current Dockview renderer is mounted; FE06 full layout qualification and BE01 formal host integration remain pending; no installed-runtime qualification"
+      ],
+      "blocker": "Local native synthetic-memory save/correction/forget/export and two cold reopens passed with exact build binding; installed/Owner, full layout and external/shared-port joint acceptance remain unqualified. Remote approval blocker unchanged.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -135,8 +150,10 @@
         "真实新导入资料可问答，回答来源明确。",
         "缺提取、权限或模型有具体原因，不伪装成功。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      ],
       "dependencies": [
         "BE01",
         "BE04"
@@ -157,8 +174,10 @@
         "缺提取、权限或模型有具体原因，不伪装成功。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
-      "evidence": [],
-      "blocker": null,
+      "evidence": [
+        "Independent project-local worktree; integration and full qualification pending"
+      ],
+      "blocker": "Current exact-SHA integration CI and installed acceptance remain unqualified; finite implemented scope is described in integration_closure_20261014.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -169,8 +188,11 @@
         "重启保持有效配置与用途；配置读不触发推理。",
         "凭据不进日志或导出，未知加载和费用显示未知。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json"
+      ],
       "dependencies": [
         "BE01"
       ],
@@ -190,8 +212,10 @@
         "凭据不进日志或导出，未知加载和费用显示未知。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
-      "evidence": [],
-      "blocker": null,
+      "evidence": [
+        "Independent project-local worktree; integration and full qualification pending"
+      ],
+      "blocker": "Current exact-SHA integration CI and installed acceptance remain unqualified; finite implemented scope is described in integration_closure_20261014.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -202,8 +226,10 @@
         "真实模型对话通过；切换呈现不重复执行。",
         "重启恢复与取消查询不扩大范围或静默重试。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      ],
       "dependencies": [
         "BE01",
         "BE04"
@@ -225,7 +251,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Current exact-SHA integration CI and installed acceptance remain unqualified; finite implemented scope is described in integration_closure_20261014.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -236,8 +262,12 @@
         "真实保存重开与纠正删除可读回。",
         "不建立第二长期知识主库；不只隐藏卡片冒充遗忘。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/receipts/AAOS-CHARACTER-MEMORY-UI-20261015.json",
+        "docs/current/receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json"
+      ],
       "dependencies": [
         "BE01"
       ],
@@ -248,17 +278,23 @@
         "src-tauri/",
         "services/python-workers/",
         "tests/",
-        "docs/"
+        "docs/",
+        "frontend/src/"
       ],
-      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
-      "tests": [],
+      "consumer_scope": "Current formal UI mounted in the isolated optimization checkout under the Owner-selected frontend overlay; independent UI donor remains read-only. External/shared-port consumer acceptance remains separate and unqualified.",
+      "tests": [
+        "frontend/src/__tests__/CharacterMemoryPanel.test.tsx",
+        "frontend/src/__tests__/CharacterMemoryBridge.test.ts",
+        "crates/archeaxis-domain/tests/character_memory.rs",
+        "crates/archeaxis-api/tests/character_memory_api.rs"
+      ],
       "acceptance": [
         "真实保存重开与纠正删除可读回。",
         "不建立第二长期知识主库；不只隐藏卡片冒充遗忘。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Local native synthetic-memory save/correction/forget/export and two cold reopens passed with exact build binding; installed/Owner, full layout and external/shared-port joint acceptance remain unqualified. Remote approval blocker unchanged.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -269,8 +305,10 @@
         "页面标记和映射不当作运行资格；执行前再次校验。",
         "状态查询不加载所有模型或轮询全部重引擎。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      ],
       "dependencies": [
         "BE01"
       ],
@@ -291,7 +329,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Current exact-SHA integration CI and installed acceptance remain unqualified; finite implemented scope is described in integration_closure_20261014.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -302,8 +340,10 @@
         "不以演示进度冒充安装，不把所有候选自动装进电脑。",
         "安装或更新动作如实际执行必须绑定正式计划与授权回执。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json"
+      ],
       "dependencies": [
         "BE01",
         "BE07"
@@ -317,15 +357,20 @@
         "tests/",
         "docs/"
       ],
-      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
-      "tests": [],
+      "consumer_scope": "Formal UI19 configuration and read-only plans; independent UI donor untouched.",
+      "tests": [
+        "crates/archeaxis-api/tests/configuration_plans_api.rs",
+        "crates/archeaxis-domain/tests/configuration_plans.rs",
+        "frontend/src/__tests__/ConfigurationPlanPanel.test.tsx",
+        "scripts/probes/aaos01_configuration_plan_loop.py"
+      ],
       "acceptance": [
         "不以演示进度冒充安装，不把所有候选自动装进电脑。",
         "安装或更新动作如实际执行必须绑定正式计划与授权回执。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Current local read-only plans and cold restart passed. Remote-service/dependency-change/installer diagnostics and full joint acceptance remain incomplete; no installation engine execution is claimed.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -336,8 +381,17 @@
         "每个首期可编辑页面具有真实保存去向。",
         "布局、草稿与正式知识真值分开，普通保存不增加治理负担。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/receipts/AAOS-PREPARATION-SAVE-INTEGRITY-20261015.json",
+        "docs/current/receipts/AAOS-PREPARATION-REOPEN-20261015.json",
+        "docs/current/receipts/AAOS-PREPARATION-TITLE-STATE-20261015.json",
+        "docs/current/receipts/AAOS-LEARNING-DRAFTS-20261015.json",
+        "docs/current/receipts/AAOS-LIBRARY-REFRESH-20261015.json",
+        "docs/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json",
+        "docs/current/receipts/AAOS-TEACHING-DRAFT-NATIVE-PROBE-20261016.json",
+        "docs/current/receipts/AAOS-RECOVERY-AND-DOCK-20261016.json"
+      ],
       "dependencies": [
         "BE01"
       ],
@@ -348,17 +402,21 @@
         "src-tauri/",
         "services/python-workers/",
         "tests/",
-        "docs/"
+        "docs/",
+        "frontend/src/"
       ],
-      "consumer_scope": "frontend/src/api/generated only for contract generation; independent UI checkout remains separate",
-      "tests": [],
+      "consumer_scope": "Preparation consumer implemented in the current isolated formal frontend under the Owner-selected overlay; independent UI donor remains read-only. Other editable surfaces and external/shared-port acceptance remain separate.",
+      "tests": [
+        "frontend/src/__tests__/CanonicalTeachingSpace.test.tsx",
+        "crates/archeaxis-domain/tests/document_create_retry.rs"
+      ],
       "acceptance": [
         "每个首期可编辑页面具有真实保存去向。",
         "布局、草稿与正式知识真值分开，普通保存不增加治理负担。"
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Learning and unbound teaching drafts have bounded native cold-recovery evidence. Full bound teaching submission/rejection, all editable-page acceptance, installed runtime and Owner qualification remain partial; see latest recovery receipt for current grouped journey verdict.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -402,8 +460,14 @@
         "真实文本与至少一类现有文档样例闭环，其余格式按实际结果发布。",
         "失败可追踪，可保存不冒充原生编辑或无损互通。"
       ],
-      "state": "未实施",
-      "implementation_evidence": [],
+      "state": "PARTIAL_INTEGRATED",
+      "implementation_evidence": [
+        "docs/current/receipts/BE11-FORMAT-QUALIFICATION-20261016.json",
+        "docs/current/receipts/AAOS-VIDEO-HEALTH-CONTRACT-20261016.json",
+        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json",
+        "docs/current/receipts/BE11-FORMAT-SURFACE-20261016.json",
+        "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
+      ],
       "dependencies": [
         "BE01"
       ],
@@ -424,7 +488,7 @@
       ],
       "version_identity": "Resolve tested HEAD and dirty patch; source baseline be79ff90 is an observation",
       "evidence": [],
-      "blocker": null,
+      "blocker": "Per-file six-operation qualification, real controlled text/DOCX/CSV/Markdown workers, finite host read and explicit UI are implemented and locally verified. Batch planning, native editing/roundtrip, corpus-wide qualification and current installed acceptance remain incomplete.",
       "unblock": null,
       "rollback": "Task-owned changes only; versioned data compatibility and explicit recovery; no destructive reset"
     },
@@ -473,7 +537,7 @@
   "current_required_gaps": [
     {
       "id": "CORE-EGRESS",
-      "state": "未实施",
+      "state": "MERGED_MAIN_CI_VERIFIED",
       "priority": "P0",
       "depends_on": [],
       "requirement": "Protocol negotiation before delivering material and approved model dispatch required for success",
@@ -481,27 +545,30 @@
         "crates/archeaxis-application/src/executor.rs",
         "crates/archeaxis-application/src/executor/dispatch.rs",
         "services/python-workers/machine/document_check.py"
-      ]
+      ],
+      "evidence": "PR191; main c541ed8315e54aaa111da64ba79c95cad19b408d; candidate CI38428576086 and main CI38430339549 PASS, bounded synthetic/semantic source qualification only"
     },
     {
       "id": "CORE-SEMANTIC",
-      "state": "已实施缺验证",
+      "state": "MERGED_MAIN_CI_VERIFIED",
       "priority": "P0",
       "depends_on": [],
       "requirement": "Complete corpus batching at least129 Core-owned synthetic items; revision/model identity/deadline guards",
       "paths": [
         "crates/archeaxis-api/src/runtime/semantic.rs",
         "crates/archeaxis-api/tests/contract_semantic_search.rs"
-      ]
+      ],
+      "evidence": "PR191; main c541ed8315e54aaa111da64ba79c95cad19b408d; candidate CI38428576086 and main CI38430339549 PASS, bounded synthetic/semantic source qualification only"
     },
     {
       "id": "WA01",
-      "state": "未实施",
+      "state": "MERGED_MAIN_CI_VERIFIED",
       "priority": "P0",
       "depends_on": [
         "CORE-EGRESS"
       ],
-      "requirement": "Research CAS snapshot quote locator and deterministic integrity; not proof of truth"
+      "requirement": "Research CAS snapshot quote locator and deterministic integrity; not proof of truth",
+      "evidence": "PR191; main c541ed8315e54aaa111da64ba79c95cad19b408d; candidate CI38428576086 and main CI38430339549 PASS, bounded synthetic/semantic source qualification only"
     },
     {
       "id": "WA02",
@@ -561,16 +628,18 @@
     "New local venv ensurepip failed real-location resolution; preserved; no ACL changes"
   ],
   "delivery": {
-    "state": "DRAFT_PR_CI_RUNNING",
-    "pr": 191,
-    "candidate_sha": "dd8784ee16562d64aecd4cdb7b84988d47911e86",
-    "first_run": 38417928142,
-    "first_verdict": "FAIL missing-final-newline in two registries; fixed",
-    "current_run": 38419790969,
-    "main_merged": false,
-    "local_git_write": "BLOCKED_READ_ONLY_GIT",
-    "approved_delivery_route": "GitHub connector; no ACL escalation",
-    "second_verdict": "FAIL cargo fmt and CSS normalized-sRGB parsing; exact artifact patch and parser fix pushed"
+    "state": "CURRENT_INTEGRATION_LOCAL_PENDING_VALIDATION_AND_UPLOAD",
+    "stage1_pr": 191,
+    "stage1_main_sha": "c541ed8315e54aaa111da64ba79c95cad19b408d",
+    "layout_pr": 192,
+    "layout_candidate_sha": "9daf1221952133374181a6c7c81b6529d0e6419f",
+    "layout_ci_run": 38583796838,
+    "layout_ci_status": "PENDING_NEW_EXACT_SHA_CI",
+    "local_git_write": "AVAILABLE_CURRENT_EXECUTION",
+    "merge_or_install_qualification": "NOT_GRANTED_BY_UPLOAD",
+    "layout_current_blockers": [],
+    "integration_pr": 193,
+    "integration_ci": "Previous head 0a4f7b05 run 38740205982 FAIL; reviewed fixes integrated, new exact-SHA verification pending."
   },
   "ui_handoff": {
     "thread_id": "01a1310d-c361-7831-a564-d77d28b8a7a4",
@@ -609,8 +678,11 @@
       "dependencies": [
         "FE01"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/AAOS-GLASS-CABIN-DELIVERY-20261015.md",
+        "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
+      ]
     },
     {
       "id": "FE03",
@@ -618,8 +690,11 @@
       "dependencies": [
         "FE02"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/AAOS-GLASS-CABIN-DELIVERY-20261015.md",
+        "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
+      ]
     },
     {
       "id": "FE04",
@@ -638,8 +713,14 @@
         "FE04",
         "BE01"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/AAOS-GLASS-CABIN-DELIVERY-20261015.md",
+        "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json",
+        "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json",
+        "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
+      ],
+      "remaining": "Sidebar/top-menu chrome and reference-5 two-column workbench are locally implemented with browser evidence; final materials/spacing, all pages and complete reference acceptance remain incomplete."
     },
     {
       "id": "FE06",
@@ -648,8 +729,10 @@
         "FE05",
         "BE02"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "Dockview 8.5.1 actual tabs/splits/floating/lock; document and specialized editor session leases; layout schema v2 with finite instance bindings; nested floating split grids not supported; installed multi-object acceptance UNVERIFIED"
+      ]
     },
     {
       "id": "FE07",
@@ -657,8 +740,11 @@
       "dependencies": [
         "FE05"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/AAOS-GLASS-CABIN-DELIVERY-20261015.md",
+        "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
+      ]
     },
     {
       "id": "FE08",
@@ -667,8 +753,11 @@
         "FE07",
         "BE03"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/AAOS-GLASS-CABIN-DELIVERY-20261015.md",
+        "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
+      ]
     },
     {
       "id": "FE09",
@@ -677,8 +766,12 @@
         "FE08",
         "BE09"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/receipts/AAOS-FE09-LOCAL-FILTERS-20261016.json",
+        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json"
+      ],
+      "remaining": "Loaded version-bound projection filters implemented. Full graph/research task and reference visual acceptance remain partial."
     },
     {
       "id": "FE10",
@@ -687,8 +780,15 @@
         "FE08",
         "BE09"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "frontend/src/spaces/CanonicalLearningJourneySpace.tsx",
+        "frontend/src/components/KnowledgeCoursePanel.tsx",
+        "docs/current/receipts/AAOS-FE10-COURSE-RETURN-20261016.json",
+        "docs/current/receipts/AAOS-INTEGRATION-CHECKPOINT-20261016.json",
+        "docs/current/receipts/AAOS-TEACHING-COURSE-RETURN-20261016.json"
+      ],
+      "remaining": "Page 06/07 and teaching 11/12 original course/artifact/revision returns are implemented. Goal/route planning, manual records and complete native/installed acceptance remain incomplete."
     },
     {
       "id": "FE11",
@@ -697,8 +797,12 @@
         "FE10",
         "BE09"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/receipts/AAOS-TEACHING-DRAFT-NATIVE-PROBE-20261016.json",
+        "docs/current/receipts/AAOS-TEACHING-PREPARATION-INTEGRITY-20261016.json"
+      ],
+      "remaining": "Ordinary preparation and unbound drafts have evidence. Bound teaching submission/rejection, full delivery revision and export/adoption journey remain unqualified."
     },
     {
       "id": "FE12",
@@ -707,8 +811,12 @@
         "FE10",
         "BE09"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json",
+        "docs/current/receipts/AAOS-TEACHING-DRAFT-NATIVE-PROBE-20261016.json"
+      ],
+      "remaining": "Practice/self-assessment/version-bound review and raw drafts are implemented. Graded hints, explanations and full feedback rhythm remain incomplete; older native receipts qualify only their original candidates."
     },
     {
       "id": "FE13",
@@ -768,8 +876,10 @@
         "FE06",
         "GF08"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "DELEGATED_TO_QODER",
+      "evidence": [
+        "Owner explicitly assigns virtual-character implementation to QODER; Codex excludes character work and does not infer that branch completion."
+      ]
     },
     {
       "id": "FE19",
@@ -810,8 +920,11 @@
         "FE07",
         "BE11"
       ],
-      "state": "NOT_EXECUTED",
-      "evidence": []
+      "state": "PARTIAL_INTEGRATED",
+      "evidence": [
+        "docs/current/receipts/BE11-FORMAT-SURFACE-20261016.json"
+      ],
+      "remaining": "Explicit six-operation readback is implemented; full batch import/export, native editing/roundtrip and actual corpus acceptance remain incomplete."
     },
     {
       "id": "FE23",
@@ -855,10 +968,10 @@
   "validation_current": {
     "frontend": {
       "state": "PASS",
-      "tests": 1238,
-      "passed": 1238,
+      "tests": 1241,
+      "passed": 1241,
       "evidence_level": "SIMULATED",
-      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-frontend"
+      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-frontend-233532"
     },
     "dispatch_units": {
       "state": "PASS",
@@ -881,16 +994,71 @@
       "scope": "tests/workers confcutdir; not complete canonical gate"
     },
     "api_integration": {
-      "state": "BLOCKED",
-      "reason": "Store open I/O permission in current sandbox; compile-only PASS is not behavior qualification"
+      "state": "PARTIAL",
+      "scope": "Layout SQLite API 1/1 passed through normal approved execution; previous sandbox denied run remains historical. Other API suites require their own current evidence."
     },
-    "exact_sha_ci": "NOT_EXECUTED",
-    "installed_runtime": "UNVERIFIED"
+    "exact_sha_ci": {
+      "state": "PASS_REQUIRED_GATES",
+      "pr": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/191",
+      "head_sha": "b2e283b669dc096c9d1898882990825b0762488c",
+      "run_id": 38428576086,
+      "scope": "Stage1 only; BE02 local changes are absent from this SHA; prior failed candidates remain FAIL",
+      "merge_sha": "c541ed8315e54aaa111da64ba79c95cad19b408d",
+      "delivery": "MERGED_MAIN",
+      "main_ci": {
+        "run_id": 38430339549,
+        "state": "PASS_REQUIRED_GATES",
+        "sha": "c541ed8315e54aaa111da64ba79c95cad19b408d"
+      }
+    },
+    "installed_runtime": "UNVERIFIED",
+    "layout_domain": {
+      "state": "PASS",
+      "tests": 6,
+      "passed": 6,
+      "evidence_level": "INTEGRATED",
+      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-layout-000840",
+      "source_patch_sha256": "61b65adb042225174b793a21f8c8f5989baa278ec4a9258299b8624e5873f342"
+    },
+    "layout_api": {
+      "state": "PASS",
+      "tests": 1,
+      "passed": 1,
+      "evidence_level": "INTEGRATED",
+      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-layout-api-real-235651",
+      "source_patch_sha256": "b2a51b3502641ef95d2593f931dad38d82840f401a23ae3394eeba5c05ee5d90"
+    },
+    "layout_native_bridge": {
+      "state": "PASS",
+      "tests": 1,
+      "passed": 1,
+      "evidence_level": "SYNTHETIC",
+      "run": ".project-local/runs/7d522a2a69/layout-native-20261014-001953-test",
+      "source_patch_sha256": "b08aba2f5a981ad5282d330f79f10653b5b64f95f1f29b024d5bf78dc8000e9f",
+      "scope": "Actual matching unit executed; Tauri host compiled with canonical frontend output; no installed UI/runtime claim"
+    },
+    "glass_integration_20261015": {
+      "state": "LOCAL_PASS_CI_FAILURES_PENDING_REPAIR",
+      "receipt": "docs/current/receipts/AAOS-PARALLEL-INTEGRATION-FINAL-20261015.json",
+      "tested_head": "4fc9006a2bd59cf9e0733ffc46357f0488d6a27b"
+    },
+    "surface_integration_20261016": {
+      "state": "LOCAL_PASS_CLOUD_PENDING",
+      "receipt": "docs/current/receipts/AAOS-SURFACE-INTEGRATION-20261016.json"
+    },
+    "top_navigation_20261016": {
+      "state": "LOCAL_PASS_CLOUD_PENDING",
+      "receipt": "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json"
+    },
+    "latest_checkpoint": {
+      "state": "LOCAL_PASS_CLOUD_PENDING",
+      "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
+    }
   },
   "owner_goal": {
     "date": "2026-10-13",
     "instruction": "/GOAL 全部执行，自行拆解任务，执行任务，并行任务，本地和云端仓库目录规范化和体积清理也加入任务",
-    "state": "ACTIVE",
+    "state": "PAUSED_BY_OWNER_THRESHOLD",
     "normalization_record": "docs/current/AAOS-STORAGE-NORMALIZATION-20261013.md",
     "tasks": [
       "NORM01",
@@ -898,6 +1066,158 @@
       "NORM03",
       "NORM04",
       "NORM05"
-    ]
+    ],
+    "stop_receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
+    "resume_requires": "Explicit Owner instruction, not quota reset"
+  },
+  "updated_at": "2026-10-16",
+  "quiet_execution": true,
+  "parallel_writers": {
+    "integration": ".project-local/worktrees/optimization-20261014",
+    "backend": ".project-local/worktrees/learning-drafts-20261015",
+    "ui": ".project-local/worktrees/glass-cabin-20261015",
+    "character": "QODER_OWNED_EXCLUDED"
+  },
+  "layout_delivery": {
+    "state": "BRANCH_PUBLISHED",
+    "pr": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/192",
+    "head_sha": "e62e5e3969182448d7ef14543140922af7ea13fc",
+    "files": 22,
+    "base": "main",
+    "ci": "RUNNING; previous candidate contract qualification hash drift FAIL preserved",
+    "installed_runtime": "UNVERIFIED",
+    "ci_run": 38431627158
+  },
+  "execution_preferences": {
+    "quiet": true,
+    "new_permission_requests": "FORBIDDEN_BY_OWNER_20261014",
+    "limited_steps": "Record NOT_EXECUTED and continue authorized work; do not bypass sandbox or alter ACL",
+    "task_sizing": {
+      "owner_instruction": "Parallel tasks; split by difficulty, explicitly choose model/reasoning, reuse evidence and avoid repeated validation.",
+      "default_routine": {
+        "model": "gpt-6-luna",
+        "reasoning": "medium"
+      },
+      "default_implementation": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "medium"
+      },
+      "cross_layer_or_recovery": {
+        "model": "gpt-6.1-sol",
+        "reasoning": "high"
+      },
+      "escalation": "Raise only for a concrete unresolved difficulty; no automatic highest-tier allocation.",
+      "running_inherited_tasks": "Retain their in-flight work until a useful checkpoint; do not restart solely to change model.",
+      "dispatches": [
+        {
+          "task": "cleanup_compact",
+          "model": "gpt-6-luna",
+          "reasoning": "medium",
+          "scope": "Exact audited runtime archival helper; root reviews and executes."
+        },
+        {
+          "task": "source_navigation_fix",
+          "model": "gpt-6.1-sol",
+          "reasoning": "high",
+          "scope": "Read-only diagnosis of native source-to-reader transition."
+        },
+        {
+          "task": "teaching_draft",
+          "model": "gpt-6.1-sol",
+          "reasoning": "high",
+          "scope": "BE09 teaching/feedback durable drafts using canonical writer; separate checkout."
+        },
+        {
+          "task": "installed_ci_diagnosis",
+          "model": "gpt-6-luna",
+          "reasoning": "medium",
+          "scope": "Read one existing installed CI artifact; identify exact failed stage without repeating installation."
+        }
+      ],
+      "coordination": "One writer per checkout; independent UI/backend branches; root integrates; targeted checks per slice, combined gate only after integration; QODER excluded."
+    },
+    "allowance_guard": {
+      "owner_confirmed": "Stop and hand off when remaining account allowance is at or below 15 percent.",
+      "threshold_remaining_percent": 15,
+      "metric": "Minimum remaining percentage across applicable non-null Codex account usage windows; not context length. Unknown is not zero.",
+      "automation_id": "archeaxis",
+      "automation_state_at_observation": "ACTIVE",
+      "interval_minutes": 5,
+      "on_threshold": "Stop new development and heavy validation; checkpoint owned agents; summarize completed work, incomplete work, failures and evidence; explicitly stage and commit/push this round public task-owned files; verify local/remote branch SHA; pause goal and monitor after handoff.",
+      "publication_boundary": "No secrets, private agent state, runtime/database/cache/archive payloads, unrelated dirty changes, QODER, release or Green replacement. Merge requires current review and full required CI.",
+      "resumption": "Explicit Owner instruction; quota reset alone does not resume."
+    }
+  },
+  "delivery_history": [
+    {
+      "state": "DRAFT_PR_CI_RUNNING",
+      "pr": 191,
+      "candidate_sha": "dd8784ee16562d64aecd4cdb7b84988d47911e86",
+      "first_run": 38417928142,
+      "first_verdict": "FAIL missing-final-newline in two registries; fixed",
+      "current_run": 38419790969,
+      "main_merged": false,
+      "local_git_write": "BLOCKED_READ_ONLY_GIT",
+      "approved_delivery_route": "GitHub connector; no ACL escalation",
+      "second_verdict": "FAIL cargo fmt and CSS normalized-sRGB parsing; exact artifact patch and parser fix pushed"
+    }
+  ],
+  "integration_closure_20261014": {
+    "state": "PARTIAL",
+    "frontend": "143 files / 1285 tests PASS; TypeScript PASS",
+    "api": "11 integrated synthetic-worker API tests PASS: material4,configuration1,conversation3,memory1,layout1,readiness1; configured exact destination/revision execution1 PASS",
+    "native": "current frontend production build and Tauri compile / finite layout route regression1 PASS, not installed runtime",
+    "domain": "18 tests PASS: layout8,model_configuration5,character_memory3,readiness2",
+    "quick": "LOCAL_PASS, source_consistent true, canonical quick closure-final-quick-final-20261014; 18 selected Python tests and 143 frontend files/1285 tests, worker/contract/generation/conventions/format checks PASS",
+    "real_models": "NOT_EXECUTED in this increment",
+    "new_feature_slices": "NOT_STARTED; owner requests finish already-running work then upload",
+    "optimization_plan": "docs/current/AAOS-GITHUB-OPTIMIZATION-PLAN-20261014.md",
+    "optimization_state": "A01-A04 queued separate isolated review batch; A05-A08 after stage measurements; A09 sample first; no GitHub ruleset changes",
+    "quick_run": "closure-final-quick-final-20261014",
+    "historical_failure": "Original readiness no-spawn assertion failed; permission readback fixed to declared Store state with enable+disable no-spawn regression. Earlier quick path/encoding/source-projection failures retained in ignored run receipts.",
+    "browser": "Full actual Chromium1228/current Vite smoke PASS, 13viewports/5themes/0errors/0canonicalproblems; simulated host fixtures only"
+  },
+  "configuration_plans_20261015": {
+    "state": "PARTIAL_INTEGRATED",
+    "receipt": "docs/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json",
+    "next_product_gap": "Learning draft persistence now locally implemented; native unsubmitted-draft cold recovery and remaining BE09 surfaces pending."
+  },
+  "current_ui_direction": "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json",
+  "runtime_cleanup_20261016": {
+    "state": "PASS_EXACT_SCOPE",
+    "receipt": "docs/current/receipts/AAOS-CANDIDATE-RUNTIME-ARCHIVE-20261016.json",
+    "files": 19474,
+    "net_bytes_saved": 397862276,
+    "overall": "PARTIAL",
+    "additional_six_runtimes": {
+      "state": "PRESERVED_NOT_REMOVED",
+      "source_root": ".project-local/build/ba8e5e5614",
+      "exact_runtime_parents": [
+        "memory-candidate-1015",
+        "memory-candidate2-1015",
+        "memory-candidate3-1015",
+        "nsis-input-1015",
+        "plan-candidate1-1015",
+        "plan-candidate2-1015"
+      ],
+      "files": 116844,
+      "logical_source_bytes": 3754808790,
+      "ownership_manifest_comparison": "PASS; metadata matches retained runtime, per-file content hashes still required before removal",
+      "process_ownership_check": "UNVERIFIED: CIM Access Denied; helper remains fail closed, no deletion executed",
+      "plan": ".project-local/runs/ba8e5e5614/older-runtime-inventory-1016/artifacts/plan.json",
+      "recovery_strategy": "Reuse existing hash-verified runtime archive; preserve Core, data, host, workers and manifests. Do not create six duplicate ZIPs.",
+      "space_reclaimed": 0
+    }
+  },
+  "recovery_and_dock_20261016": {
+    "receipt": "docs/current/receipts/AAOS-RECOVERY-AND-DOCK-20261016.json",
+    "status": "PASS_BOUNDED_NATIVE",
+    "overall": "PARTIAL"
+  },
+  "latest_integration_checkpoint": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
+  "latest_ci_observation": {
+    "run_id": 38804704425,
+    "state": "FAIL",
+    "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
   }
 }

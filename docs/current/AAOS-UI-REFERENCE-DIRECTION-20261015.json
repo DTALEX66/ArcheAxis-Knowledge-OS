@@ -1,0 +1,115 @@
+{
+  "schema": "archeaxis.owner-ui-direction/v1",
+  "date": "2026-10-15",
+  "role": "DESIGN_REQUIREMENTS_OVERLAY_NOT_REPLACEMENT_TASKPACK",
+  "plan_id": "AX-UI-20261013",
+  "selected_package": "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI",
+  "canonical_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "owner_request": "后端、体积清理和项目目录规范化、前端UI并行执行；能一次解决不重复执行；前端按新UI任务规划和所附效果图一比一复刻，全窗底层背景与较小的浮动界面。",
+  "references": [
+    {
+      "path": "D:/All projects/Record/首开空工作台.png",
+      "sha256": "3e7d1046ac7fc432868c1441e470e355761c16a42a5976ceeee646f669d7e59c",
+      "bytes": 2084287
+    },
+    {
+      "path": "D:/All projects/Record/小栖星环知识舱.png",
+      "sha256": "da5fed5f0049a5a87f252bfd7e7fc251f34ef5b9274b4ffeae4d54929cd879b6",
+      "bytes": 2454346
+    },
+    {
+      "path": "D:/All projects/Record/液态玻璃星际界面展演.png",
+      "sha256": "88962963c030883934d837168225673974ce8a4adfb8ef6c7de5649430893bfe",
+      "bytes": 2299654
+    },
+    {
+      "path": "D:/All projects/Record/深空液态玻璃知识界面.png",
+      "sha256": "343f8f00ceb009bb6f57f888c79b7994e06505fc6ee5260ed6b8298633a2a971",
+      "bytes": 2218140
+    },
+    {
+      "path": "D:/All projects/Record/星环知识系统：玻璃知识中枢.png",
+      "sha256": "4281d16cd5360725084ef3de42a7c6b324bf4ae1b2f742f8c486e1709c19a06b",
+      "bytes": 2232037
+    },
+    {
+      "path": "D:/All projects/Record/小栖星环学习舱.png",
+      "sha256": "7908573b3581f4fd88801e94382e113a16720c153abe53ea74d8c9911b91c689",
+      "bytes": 2305897
+    },
+    {
+      "path": "D:/All projects/Record/星环恒星能量阅读界面.png",
+      "sha256": "01a11b91f69d7a5834b60a2dd822d3e0425ec4bc7e625cc92f004f67a22d96f7",
+      "bytes": 2291543
+    }
+  ],
+  "visual_contract": {
+    "home_primary": "首开空工作台.png",
+    "reader_primary": "深空液态玻璃知识界面.png",
+    "alternate_navigation_reference": "星环知识系统：玻璃知识中枢.png",
+    "composition": "One full-viewport environment layer, smaller floating glass shell exposing background margins, translucent toolbar/navigation/cards and shared background through glass.",
+    "home_reference_geometry_1672x941": {
+      "shell_x": 78,
+      "shell_y": 56,
+      "shell_width": 1516,
+      "shell_height": 844,
+      "navigation_width": 193,
+      "header_height": 65,
+      "footer_height": 50,
+      "first_card_x": 415,
+      "first_card_y": 433,
+      "first_card_width": 425,
+      "first_card_height": 276
+    },
+    "qualification": "Compare actual same-size rendered UI with reference images, plus working interactions; palette-only polish and task archival do not complete implementation.",
+    "responsive": "Preserve reference composition at target size, adapt at smaller sizes without horizontal overflow or inaccessible actions.",
+    "background": "Builtin imagegen reconstructed the clean environment obscured by reference UI. Generated plate is not claimed as original hidden pixels; controls remain real frontend components."
+  },
+  "ownership": {
+    "codex": [
+      "backend Core/host and learning recovery",
+      "audited storage and directory normalization",
+      "non-character frontend shell, navigation and reference page implementation"
+    ],
+    "qoder": [
+      "virtual character branch",
+      "FE18 character renderer and character-specific resources/implementation"
+    ],
+    "qoder_checkout": "EXCLUDED_FROM_CODEX_READ_WRITE_COPY",
+    "existing_host_memory": "Previously integrated Core profile/memory UI is preserved; no duplicate character implementation."
+  },
+  "execution_policy": {
+    "isolated_writers": true,
+    "integration_writer": "root",
+    "verification": "Affected targeted regressions per slice; one combined gate after integration, repeat only for new changes or failures.",
+    "independent_lanes": "Backend, cleanup and non-character UI advance concurrently; merge overlapping files serially.",
+    "taskpack_state": "Immutable planning status is not implementation evidence."
+  },
+  "status": "PAUSED_BY_OWNER / PARTIAL",
+  "remaining_visual_work": [
+    "Full seven-reference comparison and final materials/color/spacing acceptance; current reader and optional reference-5 two-column workbench are locally implemented.",
+    "Remaining non-character taskpack pages and complete interaction acceptance",
+    "Current candidate native/installed and Owner visual acceptance"
+  ],
+  "authority_of_scope": "CURRENT_EXPLICIT_OWNER_REQUEST",
+  "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
+  "progress_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "latest_reader_observation": {
+    "date": "2026-10-16",
+    "receipt": "docs/current/receipts/AAOS-READER-RESPONSIVE-20261016.json",
+    "implemented": "Full background/inset shell, reader two columns/horizontal metadata, retained narrow Inspector and non-overlapping small header",
+    "acceptance": "PARTIAL; controlled browser fixture and reference-size inspection, not full visual or native acceptance"
+  },
+  "latest_top_navigation_observation": {
+    "date": "2026-10-16",
+    "receipt": "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json",
+    "implemented": "Optional top-menu presentation using existing guarded routes; editor retained; narrow drawer and five themes verified",
+    "acceptance": "PARTIAL; controlled browser fixture, not reference-5 complete composition or installed/Owner acceptance"
+  },
+  "latest_workbench_observation": {
+    "date": "2026-10-16",
+    "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
+    "status": "LOCAL_PASS; overall PARTIAL"
+  },
+  "pause_receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
+}

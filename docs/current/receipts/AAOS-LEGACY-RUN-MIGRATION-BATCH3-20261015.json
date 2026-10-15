@@ -1,0 +1,71 @@
+{
+  "schema": "archeaxis.legacy-run-migration-executed/v1",
+  "date": "2026-10-15",
+  "state": "PASS_BOUNDED_BATCH",
+  "authorization": "Current Owner explicit audited archive/migration/deletion grant",
+  "plan": ".project-local/runs/ba8e5e5614/legacy-batch3-audit/artifacts/plan.json",
+  "plan_sha256": "ee022ff1608026331f9afcb4b5bdd45d97e9dd1739d708d10a6f0394bb1eae92",
+  "actions": [
+    {
+      "subdirectories": 9,
+      "manifest_sha256": "f308a43dbe55b3ef8cd1bb989233ee558f569df14fa7fb9f75ed6beb43ae8579",
+      "source": ".project-local/runs/record-archive-20261009",
+      "junction_retarget": "NOT_APPLICABLE",
+      "file_tree_sha256": "7e595aa7dce4bf449654afe404d73852c15d583eb40ead5340582655120661df",
+      "state": "PASS_FILE_HASH_DIRECTORY_AND_LINK_READBACK",
+      "target": ".project-local/runs/be268a2d33/record-archive-20261009",
+      "files": 10,
+      "manifest": ".project-local/runs/ba8e5e5614/legacy-batch3-audit/artifacts/record-archive-20261009.json",
+      "bytes": 28286
+    },
+    {
+      "subdirectories": 0,
+      "manifest_sha256": "f48e927cb0ad22e1601d35e68c25c11c27f3f58da5abf7421311b49027fe4db6",
+      "source": ".project-local/runs/restored-grant-refusal-delivery-20261011",
+      "junction_retarget": "NOT_APPLICABLE",
+      "file_tree_sha256": "0c0d4c8c32851999df2c5d99dcace2f37c70b39edb0b98a4b2393a7fda1b518b",
+      "state": "PASS_FILE_HASH_DIRECTORY_AND_LINK_READBACK",
+      "target": ".project-local/runs/be268a2d33/restored-grant-refusal-delivery-20261011",
+      "files": 2,
+      "manifest": ".project-local/runs/ba8e5e5614/legacy-batch3-audit/artifacts/restored-grant-refusal-delivery-20261011.json",
+      "bytes": 56217
+    },
+    {
+      "subdirectories": 3,
+      "manifest_sha256": "c34760befc0d71d03426c43bbdfc49138b173fe1004f79d52aef60e84768b10f",
+      "source": ".project-local/runs/frontend-taskpack-audit-20261013",
+      "junction_retarget": "NOT_APPLICABLE",
+      "file_tree_sha256": "dcddbc0b715a19c5aebc4e9a44b2709de3692c3b16834b14de9545961941c3bf",
+      "state": "PASS_FILE_HASH_DIRECTORY_AND_LINK_READBACK",
+      "target": ".project-local/runs/be268a2d33/frontend-taskpack-audit-20261013",
+      "files": 19,
+      "manifest": ".project-local/runs/ba8e5e5614/legacy-batch3-audit/artifacts/frontend-taskpack-audit-20261013.json",
+      "bytes": 3962310
+    },
+    {
+      "subdirectories": 1096,
+      "manifest_sha256": "c7bf4bc093cd3c5fe30245f554c435ea21bfd476e71b99add6d660c3b1ddcc57",
+      "source": ".project-local/runs/ui-polish-20261013",
+      "junction_retarget": {
+        "state": "RETARGETED",
+        "after": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ui-polish-20261013\\source\\frontend\\node_modules",
+        "before": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\ui-polish-20261013\\source\\frontend\\node_modules",
+        "path": "baseline/frontend/node_modules"
+      },
+      "file_tree_sha256": "a3c466407cea9f0608e9aea87cf027100e688e4792d5147e9b48c77cdec01989",
+      "state": "PASS_FILE_HASH_DIRECTORY_AND_LINK_READBACK",
+      "target": ".project-local/runs/be268a2d33/ui-polish-20261013",
+      "files": 8799,
+      "manifest": ".project-local/runs/ba8e5e5614/legacy-batch3-audit/artifacts/ui-polish-20261013.json",
+      "bytes": 240770361
+    }
+  ],
+  "preserved_files": 8830,
+  "preserved_bytes": 244817174,
+  "preserved_subdirectories": 1108,
+  "deleted_files": 0,
+  "reclaimed_file_bytes": 0,
+  "process_scope": "Exact source image/commandline matches zero at execution; no process terminated; complete handles not enumerated",
+  "historical_references": "Unchanged original file bytes; resolve historical source prefixes via action target prefixes",
+  "rollback": "Verify manifests, move targets back to absent sources, and retarget the single junction to original target. Never recurse through or delete the junction target."
+}

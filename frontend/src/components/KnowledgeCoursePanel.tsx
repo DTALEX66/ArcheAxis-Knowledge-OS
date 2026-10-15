@@ -43,8 +43,8 @@ export function readCourse(value: unknown, knowledgeId?: string, expected?: Cour
 }
 function itemKey(course: Course): string { return `course:${course.id}:artifact:${course.artifactId}`; }
 
-export function KnowledgeCoursePanel({ knowledgeId, courseId, onCourseCreated, onLearning }: {
-  knowledgeId?: string; courseId?: string;
+export function KnowledgeCoursePanel({ knowledgeId, courseId, expectedItemKey, expectedCourse, readOnly = false, onCourseCreated, onLearning }: {
+  knowledgeId?: string; courseId?: string; expectedItemKey?: string; expectedCourse?: Course; readOnly?: boolean;
   onCourseCreated?: (courseId: string) => void; onLearning?: (itemKey: string) => void;
 }) {
   const [course, setCourse] = useState<Course | null>(null);
@@ -67,9 +67,9 @@ export function KnowledgeCoursePanel({ knowledgeId, courseId, onCourseCreated, o
   async function loadStored(id: string, request: number) {
     setBusy(true);
     try {
-      const saved = readCourse(await coreCommand("course_get", { course_id: id }), knowledgeId, undefined, true);
+      const saved = readCourse(await coreCommand("course_get", { course_id: id }), knowledgeId, expectedCourse, true);
       if (!current(request)) return;
-      if (saved.id !== id) throw new Error("stored course identity changed");
+      if ((readOnly && saved.stale) || saved.id !== id || (expectedItemKey !== undefined && itemKey(saved) !== expectedItemKey)) throw new Error("stored course identity changed");
       if (saved.stale) {
         setCourse(saved); setMessage("来源绑定已失效：保留原课程与知识版本，仅供历史阅读。不会自动升级、渲染或建立新学习问题。");
         return;
@@ -84,9 +84,9 @@ export function KnowledgeCoursePanel({ knowledgeId, courseId, onCourseCreated, o
     setCourse(null);setLesson(null);setMessage("");setFailure(null);setBusy(false);
     if (courseId) void loadStored(courseId, request);
     return () => {epoch.current += 1;};
-  }, [knowledgeId, courseId]);
+  }, [knowledgeId, courseId, expectedItemKey, expectedCourse, readOnly]);
   async function generate() {
-    if (busy || !knowledgeId) return;
+    if (readOnly || busy || !knowledgeId) return;
     const request = ++epoch.current;
     setBusy(true);setCourse(null);setLesson(null);setMessage("");setFailure(null);
     try {
@@ -105,7 +105,7 @@ export function KnowledgeCoursePanel({ knowledgeId, courseId, onCourseCreated, o
     finally {if (current(request)) setBusy(false);}
   }
   async function study() {
-    if (!course || course.stale || !lesson || busy) return;
+    if (readOnly || !course || course.stale || !lesson || busy) return;
     const request = epoch.current;
     setBusy(true);setMessage("");setFailure(null);
     try {
@@ -127,14 +127,14 @@ export function KnowledgeCoursePanel({ knowledgeId, courseId, onCourseCreated, o
   }
   return <section aria-label="课程与课时">
     <h4>课程与课时</h4><p>由已接受知识生成课程候选；课时是派生阅读内容，生成不等于人工接受或掌握。</p>
-    {knowledgeId && !courseId ? <button disabled={busy} onClick={() => void generate()}>从当前知识生成课程与课时</button> : null}
+    {!readOnly && knowledgeId && !courseId ? <button disabled={busy} onClick={() => void generate()}>从当前知识生成课程与课时</button> : null}
     {courseId ? <button disabled={busy} onClick={() => {const request=++epoch.current;setCourse(null);setLesson(null);setMessage("");setFailure(null);void loadStored(courseId,request);}}>重新读取保存的课程</button> : null}
     {course && (lesson !== null || course.stale) ? <article className="library-document" aria-label="课程候选课时"><h5>{course.title}</h5><p>{course.stale ? "历史课程 · 来源绑定失效 · 只读" : "课程候选 · 需人工复核 · 来源版本已由 Core 校验"}</p>
       <h6>知识要点</h6>{course.components.map((component, index) => <div key={index}><strong>{component.title}</strong><p className="course-statement">{component.statement}</p></div>)}
       <h6>学习目标</h6><ul>{course.objectives.map((objective, index) => <li key={index}>{objective}</li>)}</ul>
       <p>绑定知识版本：{course.knowledgeId} · 来源修订：{course.sourceRevision}</p>
       {lesson ? <RawReceiptButton label="课程课时渲染回执" payload={lesson} /> : null}
-      {!course.stale && lesson ? <button disabled={busy} onClick={() => void study()}>由课程课时建立学习问题</button> : null}</article> : null}
+      {!readOnly && !course.stale && lesson ? <button disabled={busy} onClick={() => void study()}>由课程课时建立学习问题</button> : null}</article> : null}
     {message ? <p role="status">{message}</p> : null}{failure ? <p className="state-reason">{failure}</p> : null}
   </section>;
 }

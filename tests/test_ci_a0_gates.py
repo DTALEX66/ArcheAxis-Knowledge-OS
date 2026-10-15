@@ -166,7 +166,9 @@ def test_ci_builds_and_tests_the_windows_desktop_shell() -> None:
         "Test the canonical Windows desktop shell"
     )
     assert "cargo install cargo-audit --version 0.22.2 --locked" in desktop_job
-    assert "cargo audit --file Cargo.lock" in desktop_job
+    assert '& $cargoAudit audit --file Cargo.lock' in desktop_job
+    assert '$cargoBin = Join-Path $env:CARGO_HOME "bin"' in desktop_job
+    assert '--locked --root $env:CARGO_HOME' in desktop_job
     assert 'scripts\\runtime\\frontend.mjs' in desktop_job
     assert 'tauri --receipt' in desktop_job
     assert '-- build --config src-tauri\\tauri.conf.json --bundles nsis' in desktop_job

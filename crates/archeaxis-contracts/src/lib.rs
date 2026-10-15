@@ -2,6 +2,8 @@
 //! Schemas, not hand-maintained copies. Run generate_vocabulary.py --check
 //! to detect drift; shared JSON cases exercise actual language parsers.
 pub mod loss_receipt;
+#[path = "generated/ui_host.rs"]
+pub mod ui_host;
 
 #[path = "generated/vocabulary.rs"]
 mod vocabulary;

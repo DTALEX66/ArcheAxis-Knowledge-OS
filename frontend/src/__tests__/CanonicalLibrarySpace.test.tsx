@@ -86,6 +86,9 @@ describe("canonical content sample", () => {
     await user.click(await screen.findByRole("button",{name:"样板.txt"}));
     await user.click(await screen.findByRole("button",{name:"建立版本化草稿"}));
     await screen.findByLabelText("待确认的笔记创建");
+    await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
+    await waitFor(()=>expect(screen.getByRole("button",{name:"刷新资料列表"})).toBeEnabled());
+    expect(screen.getByLabelText("待确认的笔记创建")).toBeInTheDocument();
     await user.click(screen.getByRole("button",{name:"重试同一笔记请求"}));
     await waitFor(()=>expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("原文样板"));
     const sent=bridge.call.mock.calls.filter(([operation])=>operation==="document_create").map(([,payload])=>payload);
@@ -105,6 +108,31 @@ describe("canonical content sample", () => {
     expect(screen.getByRole("textbox", {name:"文档草稿"})).toBe(textbox);
     expect(textbox).toHaveTextContent("导航仍保留未保存正文");
     expect(onDirtyChange).not.toHaveBeenCalled(); expect(bridge.call).not.toHaveBeenCalled();
+  });
+  it("SIMULATED: refreshed metadata does not replace the selected original or remount a dirty editor",async()=>{
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"样板.txt"}));
+    const original=await screen.findByLabelText("原件正文");const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
+    fireEvent.compositionStart(textbox);act(()=>{(textbox as HTMLElement&{editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"未保存，刷新必须保留"}]}]},{emitUpdate:true});});
+    const served=bridge.call.getMockImplementation()!;bridge.call.mockImplementation(async(op,payload)=>op==="documents_list"?{documents:[{...doc,title:"新列表标题",version:2}],next_cursor:null,snapshot_count:1}:served(op,payload));
+    bridge.call.mockClear();act(()=>window.dispatchEvent(new Event("archeaxis-job-changed")));
+    await screen.findByRole("button",{name:"新列表标题 · 文档"});
+    expect(screen.getByRole("textbox",{name:"文档草稿"})).toBe(textbox);expect(textbox).toHaveTextContent("未保存，刷新必须保留");expect(screen.getByLabelText("原件正文")).toBe(original);
+    expect(bridge.call.mock.calls.map(([op])=>op).sort()).toEqual(["documents_list","sources_list"]);
+  });
+  it("SIMULATED: a delayed list snapshot cannot downgrade a document save acknowledged during refresh",async()=>{
+    render(<CanonicalLibrarySpace/>);const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"样板.txt · 文档"}));
+    const textbox=await screen.findByRole("textbox",{name:"文档草稿"});fireEvent.compositionStart(textbox);
+    act(()=>{(textbox as HTMLElement&{editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"保存中的新正文"}]}]},{emitUpdate:true});});
+    const served=bridge.call.getMockImplementation()!;let release!:(value:unknown)=>void,first=true;let latest=doc;
+    bridge.call.mockImplementation(async(op,payload)=>{
+      if(op==="documents_list"){if(first){first=false;return new Promise(resolve=>{release=resolve;});}return {documents:[latest],next_cursor:null,snapshot_count:1};}
+      if(op==="document_draft"){latest={...doc,title:"刚保存的标题",version:2,editor_json:payload.body.editor_json};return latest;}
+      return served(op,payload);
+    });
+    await user.click(screen.getByRole("button",{name:"刷新资料列表"}));fireEvent.compositionEnd(textbox);await user.click(screen.getByRole("button",{name:"保存草稿"}));
+    await screen.findByRole("button",{name:"刚保存的标题 · 文档"});
+    await act(async()=>release({documents:[doc],next_cursor:null,snapshot_count:1}));
+    expect(screen.getByRole("button",{name:"刚保存的标题 · 文档"})).toBeInTheDocument();expect(textbox).toHaveTextContent("保存中的新正文");
   });
   it("SIMULATED: object navigation does not invent a selected source or document", async () => {
     const {rerender} = render(<CanonicalLibrarySpace navigation={{section:"anchors",sequence:1}} />);

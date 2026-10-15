@@ -1,0 +1,323 @@
+{
+  "schema": "archeaxis.optimization-execution/v1",
+  "date": "2026-10-15",
+  "overall": "PARTIAL",
+  "authorization": "Current Owner request: execute all unfinished tasks within the established project boundaries; no repeated confirmation",
+  "branch": "codex/build-optimization-20261014",
+  "parent_commit": "5a3246aa43866de19942adfb0b98dee176530cac",
+  "canonical_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "tasks": {
+    "A01": {
+      "implementation": "LOCAL",
+      "effective_cargo_home": "project-local cache/cargo",
+      "core_and_tauri_targets": "SEPARATE",
+      "audit_root": "effective CARGO_HOME/bin",
+      "hosted_restore": "NOT_EXECUTED"
+    },
+    "A02": {
+      "implementation": "LOCAL",
+      "key_inputs": [
+        "rustc identity and host target",
+        "profile",
+        "both lockfiles",
+        "tracked Cargo manifests/features",
+        "Cargo configs",
+        "workflow build arguments/features",
+        "hashed Rust flags",
+        "audit version"
+      ],
+      "dependency_cache": "IMMUTABLE_INPUT_KEY",
+      "output_cache": "INPUT_PREFIX_PLUS_CURRENT_SOURCE",
+      "hosted_restore": "NOT_EXECUTED"
+    },
+    "A03": {
+      "implementation": "LOCAL",
+      "preflight": "LOCAL_PASS",
+      "source_consistent": true,
+      "negative_cases": [
+        "61-to-59 inventory fails before compilers",
+        "missing layout PUT row fails before compilers"
+      ],
+      "direct_cli_no_pythonpath": "PASS",
+      "old_quick_layout_test_path": "REPAIRED_WITH_ASSERTION_RETAINED"
+    },
+    "A04": {
+      "implementation": "LOCAL",
+      "successful_and_failed_timings": "PASS_LOCAL_REAL_COMMANDS",
+      "nsis_compression_boundary": "ENTIRE_NSIS_BUNDLE_STAGE; compression alone not isolated",
+      "candidate_installation": "NOT_EXECUTED"
+    }
+  },
+  "preflight": {
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/opt-pre2-1015/artifacts/local-ci.json",
+      "sha256": "596a9b2ba19ecc78174a0e8ffa3d3025874464db1ffc767c6eff7369e644a646"
+    },
+    "checks": 20,
+    "status": "LOCAL_PASS",
+    "negative_proofs": [
+      {
+        "path": ".project-local/runs/ba8e5e5614/opt-neg-mount-count-1015/artifacts/local-ci.json",
+        "sha256": "cc1fe6c7f73353cbd8115044abdcfc17bdbd94b2317977b93bbc36c9d1ef2f65"
+      },
+      {
+        "path": ".project-local/runs/ba8e5e5614/opt-neg-layout-route-1015/artifacts/local-ci.json",
+        "sha256": "0fc5b8f9088ed9524c239a555b8a09486e85609c32e4058ab6980f0d1c9576ea"
+      }
+    ]
+  },
+  "targeted_regression": {
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/opt-f2-1015/artifacts/execution.json",
+      "sha256": "0057e196770fdbb384b4e7ba5d3dfc8fbcaa52eff6acd9b8a5c570247a90c534"
+    },
+    "exit_code": 1,
+    "source_consistent": true,
+    "limitation": "Legacy shallow-run layout gate remains failed; all new regression results are retained in execution.log"
+  },
+  "standard_quick": {
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/opt-quick2-1015/artifacts/local-ci.json",
+      "sha256": "db3826996f1e3e79d7352b6b21e527fd4648704895613f5ba04725b6b695262b"
+    },
+    "status": "FAIL",
+    "source_consistent": true,
+    "checks": [
+      {
+        "name": "conventions",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "architecture",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "language-boundaries",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "format-matrix",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "path-conventions",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "document-authority",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "h01-source-trace",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ui-design-increment",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "route-inventory",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "contracts",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "vocabulary",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "teaching-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "expression-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "research-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ai-asset-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "resource-catalog-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ui-working-state-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "layout-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ui-host-drift",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "media-policy",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "ruff",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "python-suite",
+        "status": "FAIL",
+        "exit_code": 1
+      },
+      {
+        "name": "workers",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "frontend-types",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "frontend-unit",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "rust-format",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      },
+      {
+        "name": "tauri-format",
+        "status": "LOCAL_PASS",
+        "exit_code": 0
+      }
+    ],
+    "frontend": "143 files / 1285 PASS; SIMULATED frontend tests",
+    "layout": "Own eight helper files subsequently moved with hash readback; twelve pre-existing shallow run directories preserved pending ownership/consumer review"
+  },
+  "local_measurements": {
+    "cargo": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/optimization-cargo-measure-20261014/artifacts/cargo-measurement.json",
+        "sha256": "5a3094a625f2fa819a4b03eefe27ea87903451d015ec422eea3a8f1d01a5066b"
+      },
+      "dependency_cache": "EXISTING_PROJECT_CACHE_OFFLINE",
+      "initial_target": "NEW",
+      "seconds": [
+        4.76530939998338,
+        0.10929669998586178
+      ],
+      "tests": "real two-test contract execution each pass; not full workspace performance"
+    },
+    "python_runtime": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/optimization-runtime-measure-20261014/artifacts/runtime-build-measurement.json",
+        "sha256": "158e28a89d7d1f7e0a5e9783e389f96b0b1d06837c5ec6d68e13a3519cdd114a"
+      },
+      "python": "3.12.15",
+      "seconds": 15.523895699996501,
+      "source_patch_sha256": "9611ea4a73ddc7e9753fc2c6c99184f0055e882ec54c3b14462381822a288848",
+      "source_consistent": true,
+      "isolated_import_exit": 0,
+      "wheel_readback": {
+        "schema": "archeaxis.wheel-readback/v1",
+        "python_modules_checked": 344,
+        "mismatches": [],
+        "wheel_sha256": "8ae1732fc265350fdfc394d5e36d1d8d0916a8c489fc4d534c2ba6a5a7de2fc1",
+        "state": "PASS"
+      }
+    },
+    "native": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/optimization-native-reuse-20261015/artifacts/native-build-measurement.json",
+        "sha256": "034d72319d47ce792088ef90b44759d0d2c2c79d3c491651295a7e136cfd7447"
+      },
+      "exit_code": 1,
+      "source_patch_sha256": "126fbe6501ab6f62fa934cbfd3137efb3cedcc1c79f15cdc0a8e5e45f092bf0e",
+      "source_consistent": true,
+      "first_nsis_failure": "MAX_PATH: 264-character source resource path; no registry/ACL/junction change"
+    },
+    "nsis_retry": {
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/opt-nsis-1015/artifacts/nsis-measurement.json",
+        "sha256": "c0a1dd013088478b6123fb5c944383c1ca387900bf4496d707dc8f856ef72f66"
+      },
+      "exit_code": 0,
+      "source_patch_sha256": "142d89d8ac091a2972b4efd17f7df02becfcd084614c6bf691cd3af7c0e08e7c",
+      "source_consistent": true,
+      "input_files_hash_verified": 19518,
+      "short_input": "project-local build/ba8e5e5614/nsis-input-1015, copied with per-file hash verification",
+      "stages": [
+        {
+          "name": "tauri-compile-with-frontend-hook",
+          "started_at": "2026-10-14T16:07:41.906419+00:00",
+          "status": "PASS",
+          "exit_code": 0,
+          "seconds": 46.99660310000763,
+          "ended_at": "2026-10-14T16:08:28.904075+00:00"
+        },
+        {
+          "name": "nsis-bundle",
+          "started_at": "2026-10-14T16:08:28.907075+00:00",
+          "status": "PASS",
+          "exit_code": 0,
+          "seconds": 222.0789604000165,
+          "ended_at": "2026-10-14T16:12:10.986892+00:00"
+        }
+      ],
+      "installer": {
+        "sha256": "4a4ad5e46646640739702d1532da8b88add6ab8d2288d2223cf517e84330ba37",
+        "bytes": 152413824
+      },
+      "qualification": "REAL_LOCAL_BUILD_FROM_DIRTY_SNAPSHOT; NOT_EXACT_COMMIT_OR_INSTALLED_RUNTIME"
+    }
+  },
+  "delivery": {
+    "local_contract_fix": "5a3246aa43866de19942adfb0b98dee176530cac",
+    "push": "BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "pr_creation": "BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "reason": "approval required by policy, but AskForApproval is set to Never",
+    "ci_for_this_branch": "NO_EVIDENCE",
+    "merge": "NOT_EXECUTED",
+    "installed": "NOT_EXECUTED",
+    "owner_acceptance": "NOT_EXECUTED"
+  },
+  "boundaries": [
+    "No E/F access",
+    "No system configuration or ACL change",
+    "No Green replacement",
+    "No real user database",
+    "No credentials printed/uploaded",
+    "Frozen tasks remain frozen",
+    "Local artifact hashes do not imply hosted or Owner acceptance"
+  ],
+  "rollback": "Revert the single optimization commit, or continue from its parent; keys use new v7 prefix and do not delete old caches",
+  "receipt_scope": "Docs are written after tested code snapshots and do not claim the receipt's own future commit was built or installed"
+}

@@ -21,6 +21,76 @@ def load_probe():
 
 
 class GroupedNativeProbeTests(unittest.TestCase):
+    def test_revealed_click_is_one_pointer_click_after_hit_testing(self):
+        probe = load_probe()
+        commands = []
+        ui = probe.GroupedUI(lambda _:{"ready":True,"point":{"x":30,"y":40}}, lambda _:None,
+            lambda *_:"node", lambda *args:commands.append(args), [])
+        ui.click_revealed_selector("//button[@id='target']")
+        self.assertEqual(commands, [(None,"pointer_click",{"x":30,"y":40})])
+
+    def test_reveal_uses_bounded_wheel_input_without_clicking_or_mutating_dom(self):
+        probe = load_probe()
+        commands, evidence = [], []
+        values = iter([{"ready":False,"wheel":{"x":30,"y":40,"deltaX":0,"deltaY":240}}, {"ready":True}])
+        ui = probe.GroupedUI(lambda _:next(values), lambda _:None, lambda *_:"node",
+            lambda *args:commands.append(args), evidence)
+        with patch.object(probe.time, "sleep", lambda _:None):
+            ui.reveal_selector("//button[@id='target']")
+        self.assertEqual(commands, [(None,"wheel",{"x":30,"y":40,"deltaX":0,"deltaY":240})])
+        self.assertEqual(evidence[-1]["action"], "target_visible_and_hit_tested")
+
+    def test_reveal_refuses_unreachable_target_and_stops_bounded_scroll(self):
+        probe = load_probe()
+        for observation, failure, expected_calls in [
+            ({"ready":False,"reason":"covered"}, AssertionError, 0),
+            ({"ready":False,"wheel":{"x":30,"y":40,"deltaX":0,"deltaY":240}}, TimeoutError, 16),
+        ]:
+            commands = []
+            ui = probe.GroupedUI(lambda _:observation, lambda _:None, lambda *_:"node",
+                lambda *args:commands.append(args), [])
+            with patch.object(probe.time, "sleep", lambda _:None), self.assertRaises(failure):
+                ui.reveal_selector("//button[@id='target']")
+            self.assertEqual(len(commands), expected_calls)
+
+    def test_review_navigation_requires_the_exact_retained_unsubmitted_draft(self):
+        probe = load_probe()
+        pin = dict(item_key="course:c1:artifact:a1", assessment_id="a1", knowledge_version="k1", knowledge_id="k1", source_id="s1", anchor_id="r1")
+        draft = {key: pin[key] for key in ("item_key", "assessment_id", "knowledge_version")}
+        draft.update(answer="  answer\n", answer_revealed=True, checked_correct=None, rating=None)
+        for lose_draft in (False, True):
+            state = dict(workspace_id="w1", restore_epoch="e1", recovery_requires_confirmation=False, state=dict(learning_drafts={"a1": draft}, pending_reviews={}))
+            actions = []
+            class UI:
+                def page(self, page_id, confirm_navigation=False):
+                    actions.append((page_id, confirm_navigation))
+                    if lose_draft:
+                        state["state"]["learning_drafts"] = {}
+            def read(operation, payload=None):
+                return copy.deepcopy({"ui_state_read": state, "assessment_get": pin, "learning_history": {"count": 0, "events": []}}[operation])
+            with self.subTest(lose_draft=lose_draft):
+                if lose_draft:
+                    with self.assertRaises(AssertionError):
+                        probe.navigate_retained_review(UI(), read, pin, draft["answer"])
+                else:
+                    self.assertEqual(probe.navigate_retained_review(UI(), read, pin, draft["answer"])["status"], "PASS")
+                self.assertEqual(actions, [("12", True)])
+
+    def test_delayed_navigation_confirmation_never_replays_the_action(self):
+        probe = load_probe()
+        actions = []
+        class Alert(Exception):
+            value = {"error": "unexpected alert open"}
+        def wait(script):
+            if not script.startswith("return location.hash"):
+                return True
+            actions.append("observe")
+            if actions.count("observe") == 1:
+                raise Alert()
+        ui = probe.GroupedUI(lambda script: "#page=11" if script == "return location.hash" else True, wait, lambda selector, using: "element", lambda *args: actions.append("activate"), [], lambda: actions.append("confirm"))
+        ui.page("12", confirm_navigation=True)
+        self.assertEqual(actions, ["activate", "confirm", "observe", "confirm", "observe"])
+
     def test_cancel_ui_ack_does_not_imply_a_terminal_or_provider_stop(self):
         probe=load_probe();actions=[]
         class UI:
@@ -1212,6 +1282,15 @@ class GroupedNativeProbeTests(unittest.TestCase):
                     state["page"] = "#page=03"
                 else:
                     raise AssertionError("unexpected selector")
+
+            def click_revealed_selector(self, selector):
+                self.click_selector(selector)
+
+            def open_reader_source_tools(self):
+                self.click("整理此来源为知识候选")
+
+            def click_revealed(self, label, scope=""):
+                self.click(label, scope)
 
             def click(self, label, scope=""):
                 actions.append(("click", label, scope))

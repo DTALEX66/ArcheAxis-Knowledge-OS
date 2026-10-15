@@ -3,9 +3,10 @@ import { useJobJournal, JobJournalRecovery } from "../presentation/useJobJournal
 import type { PendingJob } from "../presentation/coreWorkingState";
 import { useEffect, useId, useRef, useState } from "react";
 import type { SourcesListDto, SourceJobsDto } from "../api/generated/core-contract";
+import { FormatQualificationPanel } from "./FormatQualificationPanel";
 
 /** Integration port: add these finite operations to generated Core/native contracts first. */
-export type BoundedJobOperation = "sources_list" | "source_jobs" | "jobs_get" | "job_execute" | "job_execution_status" | "job_execution_cancel";
+export type BoundedJobOperation = "sources_list" | "source_jobs" | "jobs_get" | "job_execute" | "job_execution_status" | "job_execution_cancel" | "source_job_format_qualification";
 export type BoundedJobCommand = (operation: BoundedJobOperation, payload: Record<string, unknown>) => Promise<unknown>;
 export type JobStatus = { job_id: string; input_ref: string; state: string; attempt: number | null; request_id: string | null; error: string | null; [key: string]: unknown };
 type Attempt = { job_id: string; request_id: string; body: { deadline_ms: number; split: boolean; words: boolean } };
@@ -170,6 +171,9 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     <button disabled={!jobId || busy} onClick={() => void refresh()}>刷新实际状态</button>
     <button disabled={busy || !(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)} onClick={() => void cancel()}>请求取消</button>
     {cancelPending ? <p>取消待确认：继续轮询实际状态。</p> : null}
+    {status && status.job_id === jobId && status.input_ref === sourceId ? <FormatQualificationPanel
+      key={JSON.stringify([sourceId, sources.find(row => row.source_id === sourceId)?.source_revision, jobId, status.attempt, status.state])}
+      command={command} identity={{sourceId, sourceRevision: sources.find(row => row.source_id === sourceId)?.source_revision ?? "", jobId, attempt: status.attempt, jobState: status.state}} error={status.error}/> : null}
     {attempt ? <p>冻结请求 {attempt.request_id} · {attempt.body.deadline_ms} ms</p> : null}
     {currentReceipt ? <><h3>实际尝试步骤与提交记录</h3><pre aria-label="实际预算与步骤">{JSON.stringify({budget:currentReceipt.budget,steps:currentReceipt.steps},null,2)}</pre><pre aria-label="已提交检查点">{JSON.stringify(currentReceipt.checkpoint,null,2)}</pre><pre aria-label="继续条件">{JSON.stringify(currentReceipt.continuation,null,2)}</pre><p>CORE_COMMITTED 只表示这些 Core 提交记录。NOT_OBSERVED 不等于无数据；NOT_SUPPORTED 不支持检查点恢复。新请求仍须当前来源、能力与路由通过 Core 校验。</p></> : <p>当前接口未提供预算、步骤或检查点明细，不能推导进度或保证可恢复。</p>}
     {status ? <><dl><dt>任务</dt><dd>{status.job_id}</dd><dt>实际 attempt</dt><dd>{status.attempt ?? "未提供"}</dd><dt>实际 request_id</dt><dd>{status.request_id ?? "未提供"}</dd><dt>状态</dt><dd>{status.state}</dd><dt>错误</dt><dd>{status.error ?? "未提供"}</dd></dl><details><summary>完整状态与检查点回执</summary><pre>{JSON.stringify(status, null, 2)}</pre></details>{["failed", "cancelled", "rejected"].includes(status.state) ? <p>此尝试已终止，原提交记录与错误保留。只有 Core 提供当前新尝试条件时才开放新请求重试；它不是同请求重放，也不自动证明媒体检查点已恢复。</p> : null}</> : null}

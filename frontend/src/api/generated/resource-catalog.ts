@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "d42b03c9aec78af39ebef5d1bd83cda7dcdb11023e12abce0f6b66eb1d027f69"
+      "sha256": "627091eca33f19f1057bd53686dc158732886866d4e12cb08638ef2b36af471d"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -224,7 +224,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "frontend/package-lock.json",
-        "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+        "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
       },
       {
         "path": "Cargo.lock",
@@ -305,6 +305,98 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "date": "2026-10-12",
       "basis": "Current committed public Git blobs; source navigation binding only",
       "qualification_change": "NONE; no runtime or Owner qualification inferred"
+    },
+    "layout_contract_refresh_20261014": {
+      "date": "2026-10-14",
+      "source_change_commit": "7897bbd35d618efecf73c146e5334259bd4366a2",
+      "reason": "Reviewed finite layout_read/write/recover operation additions only; existing CoreDocument DTO, donor qualification, activation and permissions unchanged.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702",
+          "current_sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d"
+        }
+      ]
+    },
+    "host_material_configuration_contract_refresh_20261014": {
+      "date": "2026-10-14",
+      "reason": "Reviewed finite model configuration and material question routes and frozen machine request DTOs. Source reference refresh only.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "changed_sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d",
+          "current_sha256": "b3439fba7f24785891e5e8f8573c886b4a29c09449ec683df88ab6baf60df3db"
+        },
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "5bedcebddcc238e42a47270b5117f572d76769daf39c8efd138eb72d0173bb9d",
+          "current_sha256": "b3439fba7f24785891e5e8f8573c886b4a29c09449ec683df88ab6baf60df3db"
+        }
+      ],
+      "current_combined_core_contract_sha256": "190e5ebe5c6f6402c3f0b4eff86f84f40348f68d1e6b924469548f2603d32aaa"
+    },
+    "combined_integration_source_refresh_20261014": {
+      "date": "2026-10-14",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "reason": "Reviewed integration and pinned Dockview dependency source bytes only; activation, permissions and runtime qualification unchanged.",
+      "changed_sources": [
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        },
+        {
+          "path": "frontend/package.json",
+          "previous_sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d",
+          "current_sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        },
+        {
+          "path": "frontend/package.json",
+          "previous_sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d",
+          "current_sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        },
+        {
+          "path": "frontend/package-lock.json",
+          "previous_sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897",
+          "current_sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
+        }
+      ]
+    },
+    "source_contract_rebind_20261015": {
+      "scope": "Source definitions only; runtime and installed qualifications unchanged",
+      "receipt": "docs/current/receipts/AAOS-DOCUMENT-CONTRACT-SOURCE-REFRESH-20261015.json"
+    },
+    "plan_contract_rebind_20261015": {
+      "scope": "Source definitions only; runtime and installed qualifications unchanged",
+      "receipt": "docs/current/receipts/AAOS-PLAN-CONTRACT-SOURCE-REFRESH-20261015.json"
+    },
+    "format_qualification_source_rebind_20261016": {
+      "scope": "Reviewed additional finite read-only operation and generated per-file qualification DTO from the existing schema; existing document fields, dependency activation and runtime qualifications unchanged.",
+      "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "previous_digests": [
+        "4b4e9fa3cd5efb538851ec339d344150e70b94a7da2bd74ebbc12bb611cf5c95"
+      ],
+      "current_digest": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775",
+      "targeted_evidence": ".project-local/runs/ba8e5e5614/course-format-ui-1016/artifacts/execution.json",
+      "tests": "59 frontend regressions; per-file schema plus route maintenance 44 tests; TypeScript PASS. Native bridge and combined gate pending separate receipts."
     }
   },
   "freeze_register": {
@@ -1296,7 +1388,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
+                "sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775"
               }
             ]
           },
@@ -1722,7 +1814,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "c6a92ce02868173f8f4f44bb7ce2093ddbd1af97491dc184c88e4db877c2d702"
+                "sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775"
               }
             ]
           },
@@ -11373,11 +11465,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "frontend/package-lock.json",
-                "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+                "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               },
               {
                 "path": "frontend/package.json",
-                "sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d"
+                "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
               }
             ]
           },
@@ -11394,7 +11486,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "frontend/package-lock.json",
-                "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+                "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               }
             ]
           },
@@ -14807,11 +14899,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "frontend/package-lock.json",
-                "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+                "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               },
               {
                 "path": "frontend/package.json",
-                "sha256": "09a223f18536c5ffc6623d4fab21ad453ffc122239056af35d70522d6cc6cf9d"
+                "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
               }
             ]
           },
@@ -14828,7 +14920,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "frontend/package-lock.json",
-                "sha256": "bad160497be687b50a3c03241942fce9fff5741f7f2657dc5da953baace48897"
+                "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               }
             ]
           },

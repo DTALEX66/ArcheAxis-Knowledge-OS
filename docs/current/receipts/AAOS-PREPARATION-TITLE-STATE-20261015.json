@@ -1,0 +1,60 @@
+{
+  "schema": "archeaxis.preparation-title-state/v1",
+  "date": "2026-10-15",
+  "task": "BE09 preparation draft/title truth separation",
+  "overall": "PARTIAL",
+  "parent_commit": "c95c1fafca6386ee183af46c7cfe0a82cb674dbd",
+  "changes": [
+    "Frozen original document title verified for both create and existing-document draft ACK/readback",
+    "Body updates preserve the previous persisted purpose marker; unsaved purpose changes remain dirty",
+    "Explicit new-preparation action preserves current form text and original document before a later save creates a new document",
+    "Unconfirmed frozen request cannot be abandoned by starting another preparation",
+    "User-facing distinction between first title and subsequent body updates"
+  ],
+  "code_files_sha256": {
+    "frontend/src/spaces/CanonicalTeachingSpace.tsx": "7e452aa784e7e18b76543fd213ad98d77d28ba3845b8b397ac646b6167d458ed",
+    "frontend/src/__tests__/CanonicalTeachingSpace.test.tsx": "1cef6e8a85566ee7492fa37de0fee8227af87341cea0e5a29c3e607defef0db7"
+  },
+  "evidence": {
+    "frontend_full": {
+      "state": "PASS",
+      "level": "SIMULATED",
+      "files": 143,
+      "tests": 1312,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/prep-title-all-1015/artifacts/execution.json",
+        "sha256": "35896e4350a8acfdfae0eb2f2c2591a587ed707ffacc090d59242193979ec62f",
+        "source_commit": "c95c1fafca6386ee183af46c7cfe0a82cb674dbd",
+        "source_patch_sha256": "eeb1b7b1917bd20eebe20107ce4d0a823f1d825b44434cb65e868e9b7c2d2ff9",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "typescript": {
+      "state": "PASS",
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/prep-title-ts2-1015/artifacts/execution.json",
+        "sha256": "ea44e39645b85dae34fb6b2292ca3cfc0715655316c0158f9809c7408e35ada8",
+        "source_commit": "c95c1fafca6386ee183af46c7cfe0a82cb674dbd",
+        "source_patch_sha256": "eeb1b7b1917bd20eebe20107ce4d0a823f1d825b44434cb65e868e9b7c2d2ff9",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    }
+  },
+  "remaining": [
+    "No current native/installed/Owner qualification for this adapter",
+    "Existing document title renaming is not introduced; explicit new-document save is available",
+    "BE09 other editable surfaces need separate save/reopen qualification",
+    "Historical shallow run layout findings remain preserved, standard quick not qualified",
+    "Remote approval blocker unchanged"
+  ],
+  "delivery": {
+    "push": "BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "pr": "NOT_CREATED",
+    "ci": "NO_EVIDENCE",
+    "merge": "NOT_EXECUTED",
+    "installed": "NOT_EXECUTED"
+  },
+  "rollback": "Revert this one title-state adapter/test/receipt commit; no Core storage schema changed"
+}

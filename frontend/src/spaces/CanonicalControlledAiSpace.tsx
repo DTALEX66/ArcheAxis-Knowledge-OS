@@ -1,3 +1,5 @@
+import {ConversationPanel} from "../components/ConversationPanel";
+import {CharacterMemoryPanel} from "../components/CharacterMemoryPanel";
 import {useEffect,useState} from "react";
 import {CanonicalContextSpace} from "./CanonicalContextSpace";
 import {CanonicalAiJourneySpace} from "./CanonicalAiJourneySpace";
@@ -28,7 +30,7 @@ export function CanonicalControlledAiSpace({pageId,onOpenPage,onOpenReference,in
    <CanonicalContextSpace initialLearningItemKey={slot==="original"?initialLearningItemKey:undefined} proposedKnowledgeId={proposedKnowledge} onKnowledgeBound={setBoundKnowledge} onOpenReference={onOpenReference} onUse={(value,grant)=>{if(boundKnowledge&&grant.knowledge_id!==boundKnowledge){setError("所选上下文不是当前旅程指定知识的授权；请核对原对象。");return;}if(slot==="corrected"){if(!grant.operations.includes("retest")){setError("此授权未明确允许复测；不会复用原回答授权。");return;}setCorrected(value);}else setOriginal(value);setError(null);onOpenPage?.("14");}}/>
    {error?<p role="alert">{error}</p>:null}
   </div>:null}
-  {(visited.has("14")||pageId==="14")?<div hidden={pageId!=="14"}><CanonicalAiJourneySpace initialConsumption={original} initialRetestConsumption={corrected} initialAssetConsumption={asset} onOpenContext={openContext} onTask={setTaskId} onOpenReceipts={id=>{setTaskId(id);onOpenPage?.("22");}}/></div>:null}
+  {(visited.has("14")||pageId==="14")?<div hidden={pageId!=="14"}><CharacterMemoryPanel/><ConversationPanel/><CanonicalAiJourneySpace initialConsumption={original} initialRetestConsumption={corrected} initialAssetConsumption={asset} onOpenContext={openContext} onTask={setTaskId} onOpenReceipts={id=>{setTaskId(id);onOpenPage?.("22");}}/></div>:null}
   {(visited.has("22")||pageId==="22")?<div hidden={pageId!=="22"}><CanonicalMachineReceiptsSpace initialTaskId={taskId}/><button onClick={()=>onOpenPage?.("14")}>返回同一纠正与复测旅程</button></div>:null}
  </>;
 }

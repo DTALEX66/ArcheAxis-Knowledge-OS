@@ -1,0 +1,71 @@
+{
+  "schema": "archeaxis.library-announcement-execution/v1",
+  "date": "2026-10-15",
+  "overall": "PARTIAL",
+  "base_commit": "e980f5b865b0b92f5340efdb190ed4328cf71b5c",
+  "changes": [
+    "The list owns exactly one initial load announcement; content/write feedback no longer duplicates that event.",
+    "Initial read failure does not claim a previously loaded snapshot. Refresh failure retains existing lists and plain classified reasons.",
+    "Existing accessibility budgets and assertions are unchanged; an additional refresh failure/retry case verifies one announcement per event."
+  ],
+  "code_files_sha256": [
+    {
+      "path": "frontend/src/spaces/CanonicalLibrarySpace.tsx",
+      "sha256": "de4465b8c0f496ffd71c12f1fb082b557f02a6d92be19f626420067317d39af5"
+    },
+    {
+      "path": "frontend/src/__tests__/LiveRegionBudget.test.tsx",
+      "sha256": "47b9a32fc54296696ab67f47f0a227516e392d62b4355cfbbf065d8a7a37e2fc"
+    }
+  ],
+  "evidence": {
+    "original_red": {
+      "level": "SIMULATED",
+      "failed": 5,
+      "passed": 25,
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/library-announcements-red/artifacts/execution.json",
+        "sha256": "bba12b0cfd311532b24fced81f30801b23d60fe39a2facfa9c6223a3be6e3a89",
+        "source_commit": "e980f5b865b0b92f5340efdb190ed4328cf71b5c",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "status": "FAIL",
+        "source_consistent": true,
+        "exit_code": 1
+      }
+    },
+    "targeted_green": {
+      "level": "SIMULATED",
+      "passed": 31,
+      "failed": 0,
+      "files": 2,
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/library-announcements-green/artifacts/execution.json",
+        "sha256": "f16773e6bc162528c1dbc9d5e4bb709537e3885741a71577d848e5ad8540bfa6",
+        "source_commit": "e980f5b865b0b92f5340efdb190ed4328cf71b5c",
+        "source_patch_sha256": "fda35af89969d19bbaee287d03a834b64790fce021ba5681005f9ff9edaa7483",
+        "status": "LOCAL_PASS",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "typescript": "PASS",
+    "diff_whitespace": "PASS",
+    "readonly_review": {
+      "reviewer": "remaining_gap",
+      "status": "PASS_NO_BLOCKER",
+      "tests_repeated": false
+    },
+    "changed_file_conventions": {
+      "status": "PASS",
+      "files": 3,
+      "issues": 0
+    }
+  },
+  "delivery": {
+    "scope": "LOCAL_COMMIT_ONLY",
+    "push": "NOT_EXECUTED",
+    "installed": "UNVERIFIED",
+    "exact_sha_ci": "NOT_EXECUTED"
+  },
+  "retention": "Keep the two exact run directories referenced above while this receipt is needed; no shared dependencies or previous evidence were changed."
+}

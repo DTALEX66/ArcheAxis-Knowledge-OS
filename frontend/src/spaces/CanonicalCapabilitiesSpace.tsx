@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AaosButton, AaosField, AaosTabs } from "../design-system/AaosPrimitives";
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
@@ -26,23 +26,33 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
   const [message, setMessage] = useState("");
   const [failureReason, setFailureReason] = useState<string | null>(null);
 
-  async function refresh() {
+  const sequence=useRef(0);
+  const [expires,setExpires]=useState<number|null>(null);
+  async function refresh(target=selected) {
+    const generation=++sequence.current;setLive(null);setExpires(null);
+    if(!target||!target.implementation.runtime_capabilities.length){setFailureReason(null);setMessage("请选择具体运行能力；目录声明不提供运行资格，不轮询全部引擎。");return;}
+    const operations:readonly string[]=target.implementation.runtime_capabilities;
+
     try {
-      const response = record(await coreCommand("capabilities_list"));
-      if (!Array.isArray(response.capabilities)) throw new Error("invalid capability list");
-      const rows = response.capabilities.map(record);
-      if (rows.some((row) => typeof row.capability !== "string")) throw new Error("invalid capability identity");
-      setLive(new Map(rows.map((row) => [String(row.capability), row])));
-      setFailureReason(null);
-      setMessage("已读取当前 Core worker 握手；不代表引擎产物通过。");
+      const scope=`view:${target.atlas.capability_id}`;
+      const response = record(await coreCommand("operation_readiness",{body:{scope,operations}}));
+      if(generation!==sequence.current)return;
+      if(response.schema!=="archeaxis.operation-readiness/v1"||response.scope!==scope||!Array.isArray(response.operations)||typeof response.expires_at_ms!=="number"||response.expires_at_ms<=Date.now()||response.models_loaded!==false||response.network_performed!==false||response.execution_authorized!==false)throw new Error("invalid readiness snapshot");
+      const rows = response.operations.map(record);
+      if(rows.length!==operations.length||new Set(rows.map(row=>row.operation)).size!==rows.length||rows.some(row=>!operations.includes(String(row.operation))))throw new Error("invalid operation scope");
+      setLive(new Map(rows.map(row=>[String(row.operation),{...row,enabled:row.permission==="ENABLED"?true:row.permission==="DISABLED"?false:undefined,health:row.connection}])));
+      setExpires(response.expires_at_ms);setFailureReason(null);
+      setMessage("已读取当前视图的范围化状态；连接与运行资格分别保留未知，不加载模型。");
     } catch (error) {
+      if(generation!==sequence.current)return;
       setLive(null);
       setMessage("当前健康与权限读取失败，显示未知；目录详情仍可浏览。");
       setFailureReason(coreFailureReason(error));
     }
   }
 
-  useEffect(() => { void refresh(); }, []);
+  useEffect(() => { void refresh(selected);return()=>{sequence.current++;}; }, [selected]);
+  useEffect(()=>{if(expires===null)return;const timer=setTimeout(()=>{setLive(null);setMessage("状态已过期，连接、权限与资格降级未知；按当前视图显式刷新。");},Math.max(0,Math.min(expires-Date.now(),30_000)));return()=>clearTimeout(timer);},[expires]);
   useEffect(() => {
     const entry = CAPABILITY_CATALOG.entries.find((item) => item.atlas.capability_id === selectedCapabilityId) ?? null;
     setSelected(entry);
@@ -119,10 +129,10 @@ export function CanonicalCapabilitiesSpace({ onNavigate, selectedCapabilityId, n
     <p>实现声明来源：config/capability-map.v1.json · {selected.implementation.state}。声明本身不证明本轮执行。</p>
     {selected.implementation.runtime_capabilities.length ? <ul>{selected.implementation.runtime_capabilities.map((capability) => {
       const observation = live?.get(capability);
-      return <li key={capability}>{capability}<p>连接/权限：{typeof observation?.enabled === "boolean" ? (observation.enabled ? "允许" : "已禁用") : "未知"} · 即时健康：{typeof observation?.health === "string" ? observation.health : "未观察"}</p>
+      return <li key={capability}>{capability}<p>连接/权限：{typeof observation?.enabled === "boolean" ? (observation.enabled ? "允许" : "已禁用") : "未知"} · 即时健康：{typeof observation?.health === "string" ? observation.health : "未知"}</p><p>运行资格：{String(observation?.qualification??"UNKNOWN")} · 原因：{Array.isArray(observation?.reasons)?observation.reasons.join(" / "):"未观察或已过期"}</p>
         {/* The line above is the human-readable reading surface; the untouched handshake readback goes
             to the diagnostic console, the same channel this file already uses for the catalog sources. */}
-        {observation ? <RawReceiptButton label={`Core 握手原始读回 · ${capability}`} payload={observation} /> : null}</li>;
+        {observation ? <RawReceiptButton label={`Core 范围化状态原始读回 · ${capability}`} payload={observation} /> : null}</li>;
     })}</ul> : <p>{selected.implementation.state === "not_implemented" ? "没有当前运行实现，执行动作不可用。" : "此项声明为 Core 原生；worker 握手不提供该项的运行证据。"}</p>}
     <p>实际引擎身份、版本与产物质量需在具体 job 的质量回执核验。</p>
     <AaosButton variant="primary" disabled={!destination || !canNavigateToCapability(selected)}

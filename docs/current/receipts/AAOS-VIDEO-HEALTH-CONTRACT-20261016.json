@@ -1,0 +1,90 @@
+{
+  "schema": "archeaxis.video-health-contract-receipt/v1",
+  "observed_at": "2026-10-16T02:48:07+08:00",
+  "status": "PASS_LOCAL_TARGETED_REGRESSION",
+  "product_status": "PARTIAL",
+  "evidence_level": "INTEGRATED",
+  "scope": "Rust Core provider_health launches real Python worker hello without submitting a job",
+  "source": {
+    "branch_at_test": "codex/video-health-contract-20261016",
+    "base_commit": "9f6617398b77d35bda973d1db40c622d44149377",
+    "dirty_at_test": true,
+    "green_source_patch_sha256": "838cbe1bf3d8b2307379f21023293fe831fc5153f710414aaa403b2e09447f8c",
+    "source_consistent": true,
+    "qualification": "Base commit plus uncommitted source; not exact-commit CI qualification",
+    "frozen_files_sha256": {
+      "crates/archeaxis-application/src/executor/health.rs": "81787479619bd9b3284258f7035238bdbe7edb703e9f9a14bacaf32ea9ba576b",
+      "crates/archeaxis-application/tests/worker_health_contract.rs": "68cea7b31890c468120159be3e45194275cbe56364b88904849860a07bc67366"
+    }
+  },
+  "historical_failure": {
+    "receipt": ".project-local/runs/ba8e5e5614/webdriver-e7c8da00e492/tmp/journey/receipt.json",
+    "candidate": "glass-loop-candidate5-1016",
+    "capability": "media.video",
+    "enabled": true,
+    "registered": true,
+    "worker_present": true,
+    "interpreter_present": true,
+    "health": "handshake_failed",
+    "reason": "missing, unterminated or oversized worker hello",
+    "task_executed": false,
+    "disposition": "Preserved historical failure; no candidate rebuild or native rerun in this correction"
+  },
+  "cause": "Health supplied only --staging-root, while video NDJSON transport requires --artifact-root before emitting hello. Real job launch already supplies that argument for declared artifact-capable routes.",
+  "change": "Health reuses attempts::ARTIFACT_ROOT_CAPABILITIES to pass a newly created artifacts directory inside its own temporary staging directory. Non-artifact routes keep their existing staging-only CLI. Worker CLI, real dispatch and hello protocol validation are unchanged.",
+  "verification": {
+    "launcher": "scripts/runtime/dev.py",
+    "python": "Existing project runtime-ci-venv Python 3.12.15",
+    "command": [
+      "scripts/ci/cargo_test.bat",
+      "test",
+      "-p",
+      "archeaxis-application",
+      "--test",
+      "worker_health_contract",
+      "--offline"
+    ],
+    "red": {
+      "run": ".project-local/runs/6399d1fb54/video-health-red-owner-20261016",
+      "execution_receipt": "artifacts/execution.json",
+      "log": "logs/execution.log",
+      "exit_code": 101,
+      "source_consistent": true,
+      "passed": 2,
+      "failed": 1,
+      "failure": "Only real_video_health_hello_needs_no_job_or_media_engine failed: handshake_failed instead of handshake_ready"
+    },
+    "green": {
+      "run": ".project-local/runs/6399d1fb54/video-health-green-owner-20261016",
+      "execution_receipt": "artifacts/execution.json",
+      "log": "logs/execution.log",
+      "exit_code": 0,
+      "source_consistent": true,
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    "real_worker_hellos": [
+      "media.video",
+      "text.extract",
+      "pdf.extract",
+      "archive.inventory",
+      "office.structure"
+    ],
+    "assertions": [
+      "Real video reports handshake_ready, expected identity, NDJSON protocol and task_executed=false",
+      "Video health leaves zero queued jobs and cleans its temporary staging directory",
+      "Four other real artifact-capable workers still report handshake_ready and task_executed=false and clean staging",
+      "A SYNTHETIC strict non-artifact worker accepts only --staging-root, sees EOF without request bytes and cleans staging"
+    ],
+    "diff_check": "PASS",
+    "sandbox_attempt": "Initial sandbox dev.py invocation stopped on Git ownership; parent ran RED and GREEN with normal approved identity. No safe.directory or ACL change."
+  },
+  "limitations": [
+    "Hello confirms process startup, protocol, worker identity and declared capability only",
+    "No video job, FFmpeg decode, ASR, visual model inference or engine dependency qualification executed",
+    "No full test matrix, native candidate rebuild, installed runtime or Owner acceptance inferred",
+    "Commit, push, exact-SHA CI and release are separate delivery evidence"
+  ],
+  "rollback": "Revert the health.rs launch change and the dedicated worker_health_contract.rs regression file; preserve this receipt as historical evidence"
+}

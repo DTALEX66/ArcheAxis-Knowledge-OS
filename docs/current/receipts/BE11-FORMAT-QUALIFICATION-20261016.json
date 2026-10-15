@@ -1,0 +1,310 @@
+{
+  "schema": "archeaxis.be11-bounded-format-qualification/v1",
+  "date": "2026-10-16",
+  "status": "PASS_BOUNDED_API_CONTRACT",
+  "overall": "PARTIAL",
+  "base_source_commit": "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+  "gap_fixed": "Per-file source/job readback now separates versioned store, preview, extract, edit, export and roundtrip qualification while retaining actual attempt, engine/version, output hashes and loss reference. Existing adapters, CAS and execution remain reused.",
+  "endpoint": "GET /api/v1/sources/:source_id/jobs/:job_id/format-qualification",
+  "reused_evidence": {
+    "path": "docs/current/receipts/AAOS-GLASS-INTEGRATED-NATIVE-20261015.json",
+    "sha256": "5b1c694589ed9dabf77a6f97733154405b413ce18a2f396d75e1ecab1e9fc5c4",
+    "role": "Historical native multi-format evidence only; no rerun or new installed claim"
+  },
+  "changed_product_files": [
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "sha256": "e293f5ec9e26a4386482917a47f756d6badfd119cb391d3b764b76d8f7f5e945"
+    },
+    {
+      "path": "crates/archeaxis-api/src/format_qualification.rs",
+      "sha256": "482129a7b3ba2437d3f442eccf6358e72d8ddf2cf712d15a5346c2934b562512"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/file_format_qualification.rs",
+      "sha256": "218fe7eac1b2bb6a88091b4c0678e02029096397cab71b6ef1bc1c0da1169684"
+    },
+    {
+      "path": "packages/contracts/v1/file-format-qualification.schema.json",
+      "sha256": "55a94a0a8b2158845b92714016ad8de63645fe6b1e791f0997df0d17066ee194"
+    }
+  ],
+  "proof": [
+    {
+      "run": "be11-review-qualification",
+      "path": ".project-local/runs/6399d1fb54/be11-review-qualification/artifacts/execution.json",
+      "sha256": "bb3f7411b69ad2d6d0ad3c8731e6d5e152a6f95840af30117df3d9ffa5e3e043",
+      "tested_source_commit": "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+      "source_patch_sha256": "0666ae23446aedd878e6901f871aa0ada50c19652d22c22b07e3a327e88aaa8f",
+      "exit_code": 0
+    },
+    {
+      "run": "be11-review-schema",
+      "path": ".project-local/runs/6399d1fb54/be11-review-schema/artifacts/execution.json",
+      "sha256": "d9a519f5dd81c16b15ee0a4a23c6163cba48c8f740f0bdb30c6b4e34aae8d5ab",
+      "tested_source_commit": "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+      "source_patch_sha256": "0666ae23446aedd878e6901f871aa0ada50c19652d22c22b07e3a327e88aaa8f",
+      "exit_code": 0
+    }
+  ],
+  "tests": {
+    "rust_tests_passed": 8,
+    "schema_samples_validated": 3,
+    "negative_schema_mutations_rejected": 7,
+    "assertions": [
+      "Original byte readback equals imported controlled text, existing golden DOCX and malformed DOCX",
+      "Unexecuted extraction is NOT_EXECUTED with null attempt",
+      "Real text and Office workers produce independent scoped qualifications and versioned loss links",
+      "Malformed DOCX extraction fails without losing its original; loss remains unknown",
+      "Unknown source/job binding returns 404",
+      "Core reopen returns exactly the persisted qualification",
+      "Existing source transform and quality projections remain compatible"
+    ]
+  },
+  "sample_manifest": [
+    {
+      "label": "controlled UTF-8 text",
+      "fixture_kind": "SYNTHETIC",
+      "source_sha256": "1301e7fd152bc4528be6d573ad1f100b408e8dac62e8f298c83550a6c7f7e49a",
+      "job_state": "succeeded",
+      "capability": "text.extract",
+      "engine": "python-worker-text",
+      "engine_version": "0.1.0",
+      "loss": {
+        "receipt_ref": "/api/v1/jobs/format-0/outputs/loss_report",
+        "reported_count": 0,
+        "status": "none_reported"
+      },
+      "operations": {
+        "edit": {
+          "qualification_version": 1,
+          "scope": "SOURCE_NATIVE_EDIT; derived document editing is separate",
+          "status": "UNVERIFIED"
+        },
+        "export": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_BYTES_ONLY; use source original endpoint",
+          "status": "AVAILABLE"
+        },
+        "extract": {
+          "qualification_version": 1,
+          "scope": "DECLARED_JOB_CAPABILITY_ONLY; quality and loss independent",
+          "status": "QUALIFIED"
+        },
+        "preview": {
+          "qualification_version": 1,
+          "scope": "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified",
+          "status": "QUALIFIED"
+        },
+        "roundtrip": {
+          "qualification_version": 1,
+          "scope": "NATIVE_FORMAT_EDIT_EXPORT_REIMPORT",
+          "status": "UNVERIFIED"
+        },
+        "store": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_CAS_REFERENCE; integrity audit not performed",
+          "status": "RECORDED"
+        }
+      },
+      "outputs": [
+        {
+          "byte_length": 128,
+          "kind": "document_structure",
+          "schema": "archeaxis.document-structure/v1",
+          "sha256": "a685ccdeff5afcae5850277678184dc5e2ce626025dd2c0d22c76c04a624bf57"
+        },
+        {
+          "byte_length": 518,
+          "kind": "loss_report",
+          "schema": "archeaxis.loss-receipt/v1",
+          "sha256": "6979c63962f98983bcdc41083cdf614225d5da27ef502f73c063678aede1aa62"
+        },
+        {
+          "byte_length": 27,
+          "kind": "text",
+          "schema": "archeaxis.text/v1",
+          "sha256": "1301e7fd152bc4528be6d573ad1f100b408e8dac62e8f298c83550a6c7f7e49a"
+        }
+      ],
+      "execution_succeeded": true,
+      "qualification_evidence": "COMPLETE"
+    },
+    {
+      "label": "tests/fixtures/golden/golden-docx-anchor.docx",
+      "fixture_kind": "EXISTING_CONTROLLED_FIXTURE",
+      "source_sha256": "6356fbba83f683723a3d202a443af2d10ad5957dc2b7be2d275be0247349855b",
+      "job_state": "succeeded",
+      "capability": "office.structure",
+      "engine": "python-worker-office",
+      "engine_version": "0.1.0",
+      "loss": {
+        "receipt_ref": "/api/v1/jobs/format-1/outputs/loss_report",
+        "reported_count": 1,
+        "status": "reported"
+      },
+      "operations": {
+        "edit": {
+          "qualification_version": 1,
+          "scope": "SOURCE_NATIVE_EDIT; derived document editing is separate",
+          "status": "UNVERIFIED"
+        },
+        "export": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_BYTES_ONLY; use source original endpoint",
+          "status": "AVAILABLE"
+        },
+        "extract": {
+          "qualification_version": 1,
+          "scope": "DECLARED_JOB_CAPABILITY_ONLY; quality and loss independent",
+          "status": "QUALIFIED"
+        },
+        "preview": {
+          "qualification_version": 1,
+          "scope": "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified",
+          "status": "QUALIFIED"
+        },
+        "roundtrip": {
+          "qualification_version": 1,
+          "scope": "NATIVE_FORMAT_EDIT_EXPORT_REIMPORT",
+          "status": "UNVERIFIED"
+        },
+        "store": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_CAS_REFERENCE; integrity audit not performed",
+          "status": "RECORDED"
+        }
+      },
+      "outputs": [
+        {
+          "byte_length": 128,
+          "kind": "document_structure",
+          "schema": "archeaxis.document-structure/v1",
+          "sha256": "f25acab66a28302c5943c0c2af063dc5b619d72697f1657dc3af528887bb4277"
+        },
+        {
+          "byte_length": 1169,
+          "kind": "loss_report",
+          "schema": "archeaxis.loss-receipt/v1",
+          "sha256": "2557390a3545e7c5a1206ac7f4356e0e83a6a1c9eac23fb5b5f54453c3c80347"
+        },
+        {
+          "byte_length": 81,
+          "kind": "text",
+          "schema": "archeaxis.text/v1",
+          "sha256": "37f4aaf7eb50d2301db76b51e276bc8cbc3679e877f155fdb688d6bd8dfe7f7c"
+        }
+      ],
+      "execution_succeeded": true,
+      "qualification_evidence": "COMPLETE"
+    },
+    {
+      "label": "malformed DOCX",
+      "fixture_kind": "SYNTHETIC_NEGATIVE",
+      "source_sha256": "a3989126344744ef800dbc88bf7e744853f3f2eac75c9ab3301f4e845ef22078",
+      "job_state": "failed",
+      "capability": "office.structure",
+      "engine": null,
+      "engine_version": null,
+      "loss": {
+        "receipt_ref": null,
+        "reported_count": null,
+        "status": "unknown"
+      },
+      "operations": {
+        "edit": {
+          "qualification_version": 1,
+          "scope": "SOURCE_NATIVE_EDIT; derived document editing is separate",
+          "status": "UNVERIFIED"
+        },
+        "export": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_BYTES_ONLY; use source original endpoint",
+          "status": "AVAILABLE"
+        },
+        "extract": {
+          "qualification_version": 1,
+          "scope": "DECLARED_JOB_CAPABILITY_ONLY; quality and loss independent",
+          "status": "FAILED"
+        },
+        "preview": {
+          "qualification_version": 1,
+          "scope": "DERIVED_TEXT_PROJECTION; native visual fidelity unqualified",
+          "status": "FAILED"
+        },
+        "roundtrip": {
+          "qualification_version": 1,
+          "scope": "NATIVE_FORMAT_EDIT_EXPORT_REIMPORT",
+          "status": "UNVERIFIED"
+        },
+        "store": {
+          "qualification_version": 1,
+          "scope": "ORIGINAL_CAS_REFERENCE; integrity audit not performed",
+          "status": "RECORDED"
+        }
+      },
+      "outputs": [],
+      "execution_succeeded": false,
+      "qualification_evidence": "INCOMPLETE"
+    }
+  ],
+  "evidence_level": "INTEGRATED_REAL_CORE_AND_WORKERS_WITH_CONTROLLED_INPUTS",
+  "prior_failures_preserved": [
+    {
+      "run": "be11-format-qualification",
+      "reason": "Direct Cargo did not import MSVC environment; linker unavailable."
+    },
+    {
+      "run": "be11-format-qualification2",
+      "reason": "New test used wrong app signature; compilation failed; corrected."
+    },
+    {
+      "run": "be11-format-qualification3",
+      "reason": "New test request identity contained slash; existing API rejected it; corrected."
+    }
+  ],
+  "limitations": [
+    "Scoped persisted execution qualification, not corpus-wide or native visual fidelity qualification",
+    "Store RECORDED means canonical CAS reference, not a new integrity audit",
+    "Export AVAILABLE is original-byte endpoint availability, not converted native export execution",
+    "Native source editing and native edit/export/reimport remain UNVERIFIED; ordinary derived document editing remains independent",
+    "No batch conversion API, per-file planner, finite Tauri bridge addition, installed/Green journey or Owner acceptance in this slice",
+    "No CI, new provider, real AI, dependency installation, remote write or private dataset"
+  ],
+  "rollback": "Revert this bounded commit; no schema migration or existing data rewrite",
+  "earlier_proof": [
+    {
+      "run": "be11-format-qualification-final",
+      "path": ".project-local/runs/6399d1fb54/be11-format-qualification-final/artifacts/execution.json",
+      "sha256": "af94be2a7739072986c3e9d36920ec28b2ecc8b4666b82f064291ed4c8858f78",
+      "tested_source_commit": "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+      "source_patch_sha256": "64d3face9aca3a7b8eb9d7c1fb0b445f31afec7bc0abf18fd0271695cfe5d60c",
+      "exit_code": 0
+    },
+    {
+      "run": "be11-format-schema",
+      "path": ".project-local/runs/6399d1fb54/be11-format-schema/artifacts/execution.json",
+      "sha256": "b2d27c1f5a9a34a3733f5f5992d9c4b10cee067ca9d101f36abafa551d906cbc",
+      "tested_source_commit": "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+      "source_patch_sha256": "64d3face9aca3a7b8eb9d7c1fb0b445f31afec7bc0abf18fd0271695cfe5d60c",
+      "exit_code": 0
+    }
+  ],
+  "review_repair": {
+    "finding": "Successful job plus text output previously qualified extraction even when a loss receipt was missing or bounded out.",
+    "fix": "Execution success is now independent from qualification evidence. QUALIFIED requires valid text metadata and a bounded readable loss receipt with matching kind/schema, SHA256, byte_length and nonempty engine/version; capped outputs cannot qualify. Corrupt evidence downgrades to UNVERIFIED rather than erasing execution success or returning fabricated success. Unknown loss counts remain unknown even when usable engine receipt qualifies the scoped operation.",
+    "persisted_api_fixture_cases": [
+      "missing loss receipt",
+      "receipt exceeds 256KiB",
+      "unreadable receipt JSON",
+      "missing engine",
+      "blank engine_version",
+      "incomplete text metadata",
+      "incomplete loss metadata",
+      "incorrect loss receipt hash",
+      "usable receipt with unknown loss count"
+    ],
+    "fixture_writer_boundary": "Controlled fixtures are seeded before opening the API Store and the setup connection is dropped; no concurrent canonical writer or product write interface added.",
+    "normal_cases": "Original real-worker text/golden DOCX/malformed DOCX and existing transform/quality regression remain passing."
+  }
+}

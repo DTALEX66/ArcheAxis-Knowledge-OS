@@ -108,6 +108,83 @@ fn bundle(records: Vec<TeachingRecord>) -> ExchangeBundle {
         records,
     }
 }
+#[test]
+fn rejected_teaching_request_can_be_explicitly_released_and_late_arrivals_stay_retired_after_reopen()
+ {
+    use archeaxis_domain::ui_state;
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("release.sqlite");
+    let mut f = open(path.to_str().unwrap());
+    let kid = knowledge_fixture(&mut f, "release");
+    let rows = chain(&mut f, &kid);
+    let record = row(RecordKind::Proposal, "rejected_proposal", Some("req"), &kid);
+    let entry = json!({"page_id":"09","context_item_key":null,"form":{"kind":"proposal","purpose":record.purpose,"content":record.content,"scope":record.scope,"privacy":record.privacy,"assisted":record.assisted,"feedback_class":record.feedback_class,"rubric_version":"","producer_kind":record.producer_kind},"knowledge_id":kid,"course_id":null,"item_key":null,"assessment_id":null,"parent":get(&f,"req").unwrap().unwrap(),"preparation":null,"saved_preparation":"","pending_record":record});
+    let initial = ui_state::read(&mut f).unwrap();
+    let mut write = json!({"workspace_id":initial["workspace_id"],"restore_epoch":initial["restore_epoch"],"state_revision":0,"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":"09","teaching_drafts":{"09:":entry}}});
+    let staged = ui_state::write(&mut f, serde_json::from_value(write.clone()).unwrap()).unwrap();
+    withdraw(
+        &mut f,
+        &Withdrawal {
+            schema: WITHDRAWAL_SCHEMA.into(),
+            withdrawal_id: "withdraw_req".into(),
+            record_id: "req".into(),
+            reason: "parent changed before child arrived".into(),
+        },
+    )
+    .unwrap();
+    assert!(matches!(
+        put(&mut f, &record),
+        Err(TeachingError::Withdrawn(_))
+    ));
+    write["state"]["teaching_drafts"]["09:"]["pending_record"] = json!(null);
+    write["release_teaching"] = json!({"draft_key":"09:","record_id":record.record_id});
+    assert!(
+        matches!(
+            ui_state::write(&mut f, serde_json::from_value(write.clone()).unwrap()),
+            Err(ui_state::Error::Conflict)
+        ),
+        "stale CAS cannot retire anything"
+    );
+    write["state_revision"] = staged["state_revision"].clone();
+    let mut wrong = write.clone();
+    wrong["state"]["teaching_drafts"]["09:"]["form"]["content"] = json!("replacement");
+    assert!(
+        ui_state::write(&mut f, serde_json::from_value(wrong).unwrap()).is_err(),
+        "release is not an editing bypass"
+    );
+    let released = ui_state::write(&mut f, serde_json::from_value(write).unwrap()).unwrap();
+    assert_eq!(
+        released["state"]["teaching_drafts"]["09:"]["form"],
+        entry["form"]
+    );
+    assert!(released["state"]["teaching_drafts"]["09:"]["pending_record"].is_null());
+    assert!(get(&f, &record.record_id).unwrap().is_none());
+    drop(f);
+    let mut f = open(path.to_str().unwrap());
+    assert_eq!(ui_state::read(&mut f).unwrap(), released);
+    assert!(
+        matches!(put(&mut f,&record),Err(TeachingError::Conflict(reason)) if reason.contains("retired")),
+        "late request cannot publish after release even across restart"
+    );
+    assert!(
+        preview_import(&f, &bundle(vec![record.clone()])).is_err(),
+        "manual import cannot bypass retired identity"
+    );
+    let next = row(RecordKind::Observation, "fresh_identity", None, &kid);
+    put(&mut f, &next).unwrap();
+    // Already admitted records must reconcile their original receipt, never retire.
+    let existing = &rows[2];
+    let mut entry = entry;
+    entry["pending_record"] = serde_json::to_value(existing).unwrap();
+    entry["form"]["purpose"] = json!(existing.purpose);
+    entry["form"]["content"] = json!(existing.content);
+    let mut state = released["state"].clone();
+    state["teaching_drafts"]["09:"] = entry;
+    let staged=ui_state::write(&mut f,serde_json::from_value(json!({"workspace_id":released["workspace_id"],"restore_epoch":released["restore_epoch"],"state_revision":released["state_revision"],"state":state})).unwrap()).unwrap();
+    state["teaching_drafts"]["09:"]["pending_record"] = json!(null);
+    assert!(ui_state::write(&mut f,serde_json::from_value(json!({"workspace_id":staged["workspace_id"],"restore_epoch":staged["restore_epoch"],"state_revision":staged["state_revision"],"state":state,"release_teaching":{"draft_key":"09:","record_id":existing.record_id}})).unwrap()).is_err());
+    assert_eq!(ui_state::read(&mut f).unwrap(), staged);
+}
 fn course_fixture(conn: &mut Connection, kid: &str, id: &str) -> String {
     let (sid,revision):(String,String)=conn.query_row("SELECT a.source_id,a.source_revision FROM knowledge k JOIN anchors a ON a.anchor_id=k.anchor_id WHERE k.knowledge_id=?1",[kid],|r|Ok((r.get(0)?,r.get(1)?))).unwrap();
     let manifest = json!({"schema":"archeaxis.course-manifest/v1","manifest_id":id,"title":"Fixture lesson","domain_pack_id":"general","status":"candidate",

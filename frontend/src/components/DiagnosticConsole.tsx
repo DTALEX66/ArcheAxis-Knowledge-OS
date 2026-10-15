@@ -1,10 +1,10 @@
 import { useDiagnostics, clearDiagnostics, publishDiagnostic } from "../presentation/diagnostics";
 
 /** Replaces an inline JSON dump: the operator still reaches the untouched payload, the reading surface does not carry it. */
-export function RawReceiptButton({ label, payload }: { label: string; payload: unknown }) {
+export function RawReceiptButton({ label, payload, visibleLabel }: { label: string; payload: unknown; visibleLabel?: string }) {
   return (
     <button type="button" className="raw-receipt" aria-label={`查看原始回执（诊断）：${label}`} onClick={() => publishDiagnostic(label, payload)}>
-      查看原始回执（诊断）
+        {visibleLabel ?? "查看原始回执（诊断）"}
     </button>
   );
 }

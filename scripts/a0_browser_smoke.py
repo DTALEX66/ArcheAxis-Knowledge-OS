@@ -113,6 +113,21 @@ def navigate_ui_page(page, page_id: str) -> None:
         page.locator(f'.navigation-sidebar [data-page-id="{page_id}"]').click()
 
 
+def select_ui_theme(page, theme: str) -> None:
+    """Use the visible settings disclosure when the home page owns the picker."""
+    picker = page.get_by_label("界面主题")
+    opened = not picker.is_visible()
+    summary = page.get_by_label("界面设置", exact=True)
+    if opened:
+        summary.click()
+    try:
+        picker.select_option(theme)
+        page.wait_for_function("theme => document.documentElement.dataset.aaosTheme === theme", arg=theme)
+    finally:
+        if opened:
+            summary.click()
+
+
 def chrome_bands(page, *, library: bool = False) -> dict[str, str]:
     # Expected structure is declared by viewport and surface, never inferred from missing nodes.
     bands = {"status":".status-bar", "center":".app-center", "dock":".activity-dock"}
@@ -435,6 +450,12 @@ HOST_BRIDGE_STUB_TEMPLATE = """
           }
           const journalAnswer=await journalFixture(operation,request?.request?.payload??{});
           if(journalAnswer)return journalAnswer;
+          if(operation==="source_jobs") {
+            const sourceId=request?.request?.payload?.source_id;
+            return bodies.sources_list.sources.some(source=>source.source_id===sourceId)
+              ? {status:200,body:{source_id:sourceId,jobs:[],jobs_capped:false}}
+              : {status:404,body:{error:"SOURCE_NOT_FOUND"}};
+          }
           if (documentFixture) {
             const answer = await documentFixture(operation, request?.request?.payload ?? {});
             if (answer) return answer;
@@ -783,6 +804,7 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
             rail: box('.space-rail'),
             dock: box('.activity-dock'),
             main: box('.app-center'),
+            body: box('.app-body'),
             inspector: Boolean(document.querySelector('.inspector')),
             context: Boolean(context) && getComputedStyle(context).display !== 'none',
             statusBarOverlaps: overlaps,
@@ -817,8 +839,8 @@ def check_geometry(
     else:
         assert "navigation_trigger" in bands, "missing declared narrow navigation affordance"
         assert geometry["rail"]["width"] == 0, geometry
-        assert abs(geometry["main"]["x"]) <= 1, geometry
-        assert geometry["main"]["width"] >= width - 1, geometry
+        assert abs(geometry["main"]["x"] - geometry["body"]["x"]) <= 1, geometry
+        assert abs(geometry["main"]["width"] - geometry["body"]["width"]) <= 1, geometry
     assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
     assert not geometry["inspector"], geometry
     if "context" in bands:
@@ -853,13 +875,16 @@ def check_status_accessibility(page) -> dict[str, object]:
       return {lines: new Set([...range.getClientRects()].map(r => r.top)).size,
         spillsAboveBar: Math.max(0, bar.top - rect.top),
         spillsBelowBar: Math.max(0, rect.bottom - bar.bottom),
-        controls: [...document.querySelectorAll('.status-bar button, .theme-picker select')]
+        controls: [...document.querySelectorAll('.status-bar > button, .status-bar > .theme-picker select, .cabin-settings > summary')]
+          .filter(el => el.checkVisibility())
           .map(el => { const r = el.getBoundingClientRect();
             const hit = document.elementFromPoint(r.x + r.width/2, r.y + r.height/2);
             return {label: el.getAttribute('aria-label'), width: r.width, height: r.height,
               reachable: el.contains(hit), inBar: r.left >= bar.left && r.right <= bar.right
                 && r.top >= bar.top && r.bottom <= bar.bottom}; })};
     }""")
+    labels = {c["label"] for c in layout["controls"]}
+    assert {"打开全局命令", "界面设置"} <= labels, layout
     assert layout["lines"] == 1, layout
     assert layout["spillsAboveBar"] == layout["spillsBelowBar"] == 0, layout
     assert all(c["width"] >= 24 and c["height"] >= 24 and c["reachable"] and c["inBar"]
@@ -875,9 +900,11 @@ def check_status_accessibility(page) -> dict[str, object]:
 
     focus = []
     page.keyboard.press("Tab")  # establish keyboard modality for :focus-visible
-    controls = page.locator('.status-bar button, .theme-picker select')
+    controls = page.locator('.status-bar > button, .status-bar > .theme-picker select, .cabin-settings > summary')
     for index in range(controls.count()):
         control = controls.nth(index)
+        if not control.is_visible():
+            continue
         control.focus()
         page.wait_for_timeout(200)
         style = control.evaluate("""el => {
@@ -910,7 +937,7 @@ def status_fault_selftest(page, width: int, height: int, scale: float) -> list[d
         ("navigation-child-overflow", '.context-subnav' if "context" in chrome_bands(page) else '.navigation-sidebar' if "rail" in chrome_bands(page) else '.activity-dock', geometry),
         ("pill-wrap", '.status-pill {white-space:normal!important;width:30px!important;overflow:visible!important}',
          lambda: check_status_accessibility(page)),
-        ("compressed-target", '.inspector-trigger {width:13px!important}', lambda: check_status_accessibility(page)),
+        ("compressed-target", '.command-trigger {width:13px!important;min-width:13px!important;max-width:13px!important;flex:0 0 13px!important;padding:0!important;border:0!important;box-sizing:border-box!important}', lambda: check_status_accessibility(page)),
         ("invisible-focus", ':root {--ax-focus-ring:transparent!important}', lambda: check_status_accessibility(page)),
     )
     for name, fault, checker in faults:
@@ -1114,7 +1141,7 @@ def read_template_roundtrip(browser, viewport, problems, theme="black") -> dict:
     context, page = open_library_page(browser, problems, stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
     page.set_default_timeout(8000)
     try:
-        page.get_by_label("界面主题").select_option(theme)
+        select_ui_theme(page, theme)
         page.locator("details.template-launcher > summary").click()
         section = page.locator(TEMPLATE_SECTION_SELECTOR)
         section.get_by_role("button", name="创建学科对象", exact=True).click()
@@ -1344,7 +1371,7 @@ def read_semantic_reading(browser, viewport, problems, theme):
         stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
     try:
         label = viewport[0]
-        page.get_by_label("界面主题").select_option(theme)
+        select_ui_theme(page, theme)
         navigate_ui_page(page, "02")
         library = page.get_by_role("region", name="知识库文档视图", exact=True)
         library.wait_for()
@@ -1370,7 +1397,9 @@ def read_semantic_reading(browser, viewport, problems, theme):
             return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
           const center = document.querySelector('.app-center'), style = getComputedStyle(center);
           const containerWidth = center.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-          return {width:innerWidth,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details')};
+          return {width:innerWidth,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details'),
+            center:rect('.app-center'),body:rect('.app-body'),inspector:rect('.inspector'),
+            scroll_width:document.documentElement.scrollWidth};
         }""")
         doc, details = geometry["document"], geometry["details"]
         assert doc["width"] > 100 and doc["right"] <= geometry["width"] + 1, geometry
@@ -1381,12 +1410,165 @@ def read_semantic_reading(browser, viewport, problems, theme):
             assert doc["right"] <= details["x"], geometry
         else:
             assert doc["bottom"] <= details["y"], geometry
+        if geometry["width"] <= 900:
+            # Opening a real library row retains its inspector: the reader must
+            # keep its full width, and the lower detail pane must remain operable.
+            assert abs(geometry["center"]["width"] - geometry["body"]["width"]) <= 1, geometry
+            assert geometry["center"]["bottom"] <= geometry["inspector"]["y"] + 1, geometry
+            assert geometry["inspector"]["bottom"] <= geometry["body"]["bottom"] + 1, geometry
+            assert geometry["scroll_width"] <= geometry["width"], geometry
+            inspector = page.get_by_role("complementary", name="检查器", exact=True)
+            assert "引用目标 1" in inspector.inner_text()
+            inspector.get_by_role("button", name="关闭检查器", exact=True).click()
+            assert inspector.count() == 0
+            assert "绑定历史正文 1 v1" in editor.inner_text()
+            page.get_by_role("button", name="展开检查器", exact=True).click()
+            assert "引用目标 1" in inspector.inner_text()
+            geometry["status_accessibility"] = check_status_accessibility(page)
         reader_shot = ARTIFACTS / f"semantic-reader-{theme}-{label}.png"
         page.screenshot(path=str(reader_shot), full_page=True)
         return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme,"viewport":label,
             "document_id":"a0_target_1","new_library":True,"new_reader":True,
             "geometry":geometry,"library_screenshot":_recorded(library_shot),
             "reader_screenshot":_recorded(reader_shot)}
+    finally:
+        context.close()
+
+
+def read_top_navigation(browser, viewport, problems, theme):
+    """Exercise actual alternate chrome, existing routes and editor identity."""
+    context, page = open_library_page(browser, problems,
+        stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
+    label, width, _, _ = viewport
+    try:
+        select_ui_theme(page, theme)
+        navigate_ui_page(page, "01")
+        settings = page.get_by_label("界面设置", exact=True)
+        settings.click()
+        page.get_by_label("导航呈现", exact=True).select_option("top")
+        settings.click()
+        page.locator('[data-working-state="ready"]').wait_for(state="attached")
+        assert "读取未完成" not in page.get_by_role("contentinfo", name="活动坞", exact=True).inner_text()
+        assert page.evaluate("localStorage.getItem('aaos.navigation-appearance.v1')") == "top"
+        assert not page.locator('.navigation-sidebar').is_visible()
+        nav = page.get_by_role("navigation", name="顶部空间导航", exact=True)
+        if width > 1200:
+            assert nav.is_visible()
+            nav.get_by_role("button", name="知识", exact=True).click()
+            menu = nav.get_by_role("menu", name="知识页面", exact=True)
+            assert menu.get_by_role("menuitem").count() == 4
+            shot = ARTIFACTS / f"top-menu-{theme}-{label}.png"
+            page.screenshot(path=str(shot), full_page=True)
+            geometry = nav.evaluate("""node => {
+              const bounds = element => { const r=element.getBoundingClientRect();
+                return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}; };
+              return {shell:bounds(document.querySelector('.cabin-shell')),nav:bounds(node),
+                menu:bounds(node.querySelector('[role=menu]')),
+                entries:[...node.querySelectorAll('[data-top-page]')].map(el=>{
+                  const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+                  return {label:el.textContent,rect:bounds(el),reachable:el.contains(hit)};}),
+                hero:bounds(document.querySelector('.workspace-planet-hero')),
+                actions:bounds(document.querySelector('.workspace-start')),
+                overflow:document.documentElement.scrollWidth>innerWidth};
+            }""")
+            assert not geometry['overflow'], geometry
+            assert len(geometry['entries']) == 7 and all(item['reachable'] for item in geometry['entries']), geometry
+            assert geometry['menu']['right'] <= geometry['shell']['right'], geometry
+            assert geometry['actions']['right'] <= geometry['hero']['x'], geometry
+            menu.get_by_role("menuitem", name="知识库", exact=True).click()
+        else:
+            assert not nav.is_visible()
+            navigate_ui_page(page, "02")
+            shot = ARTIFACTS / f"top-drawer-{theme}-{label}.png"
+            page.screenshot(path=str(shot), full_page=True)
+            geometry = {"drawer_used": True, "overflow": page.evaluate("document.documentElement.scrollWidth>innerWidth")}
+            assert not geometry['overflow'], geometry
+        page.get_by_role("button", name="打开文档 引用目标 1 · 独立历史正文", exact=True).click()
+        editor = page.get_by_role("region", name="阅读与编辑文档视图", exact=True).get_by_role("textbox", name="文档草稿")
+        editor.wait_for()
+        assert "绑定历史正文 1 v1" in editor.inner_text()
+        editor.evaluate("node => window.__A0_NAV_EDITOR__ = node")
+        for appearance in ("sidebar", "top"):
+            settings.click()
+            page.get_by_label("导航呈现", exact=True).select_option(appearance)
+            settings.click()
+            assert editor.evaluate("node => node === window.__A0_NAV_EDITOR__"), "Navigation appearance remounted editor"
+        status = check_status_accessibility(page)
+        calls = page.evaluate("window.__A0_DOCUMENT_FIXTURE__.calls")
+        assert not any(call['operation'] == 'document_draft' for call in calls), calls
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "viewport":label, "theme":theme,
+                "geometry":geometry, "editor_preserved":True, "status_accessibility":status, "screenshot":_recorded(shot)}
+    finally:
+        context.close()
+
+
+def read_narrow_dock_library(browser, problems, theme, viewport=("1600x1000@100", 1600, 1000, 1.0)):
+    """A wide window can contain narrow real Dock panels; clicks must still work."""
+    context, page = open_library_page(browser, problems,
+        stub=host_bridge_stub(stateful_documents=True), viewport=viewport)
+    try:
+        select_ui_theme(page, theme)
+        navigate_ui_page(page, "02")
+        # Match the native reopened layout with the real document inspector retained.
+        page.get_by_role("region", name="知识库文档视图", exact=True).get_by_role("button",
+            name="打开文档 引用目标 1 · 独立历史正文", exact=True).click()
+        page.get_by_role("region", name="阅读与编辑文档视图", exact=True).wait_for()
+        navigate_ui_page(page, "02")
+        page.locator("details.dock-layout-options > summary").click()
+        page.get_by_role("button", name="左右分栏", exact=True).click()
+        navigate_ui_page(page, "02")
+        library = page.get_by_role("region", name="知识库文档视图", exact=True)
+        library.wait_for()
+        row = library.get_by_role("button", name="打开文档 引用目标 1 · 独立历史正文", exact=True)
+        row.wait_for()
+        geometry = library.evaluate("""node => {
+          const box = el => { const r=el.getBoundingClientRect();
+            return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
+          return {window_width:innerWidth,library:box(node),
+            content:box(node.querySelector('.ui-content-main-side > section')),
+            details:box(node.querySelector('.ui-content-main-side > aside'))};
+        }""")
+        library_shot = ARTIFACTS / f"narrow-dock-library-{theme}-{viewport[0]}.png"
+        page.screenshot(path=str(library_shot), full_page=True)
+        assert geometry["window_width"] == viewport[1], geometry
+        assert 220 <= geometry["library"]["width"] < 700, geometry
+        assert geometry["content"]["width"] >= geometry["library"]["width"] - 2, geometry
+        assert geometry["details"]["y"] >= geometry["content"]["bottom"], geometry
+        from probes.aaos01_grouped_owner_loop import GroupedUI
+        scroll_actions = []
+        def wheel(_element, action, body):
+            if action == "pointer_click":
+                page.mouse.click(body["x"], body["y"])
+                return
+            assert action == "wheel", action
+            page.mouse.move(body["x"], body["y"])
+            page.mouse.wheel(body["deltaX"], body["deltaY"])
+        control = GroupedUI(lambda script:page.evaluate("() => {"+script+"}"),
+            lambda script:page.wait_for_function("() => {"+script+"}"),
+            lambda using, selector:page.locator("xpath="+selector), wheel, scroll_actions)
+        control.click_revealed_selector("//section[@aria-label='知识库文档视图']//button[@aria-label='打开文档 引用目标 1 · 独立历史正文']")
+        reader = page.get_by_role("region", name="阅读与编辑文档视图", exact=True)
+        editor = reader.get_by_role("textbox", name="文档草稿")
+        editor.wait_for()
+        assert "绑定历史正文 1 v1" in editor.inner_text()
+        reader_geometry = reader.evaluate("""node => {
+          const box = el => { const r=el.getBoundingClientRect();
+            return {width:r.width,bottom:r.bottom,y:r.y}; };
+          return {reader:box(node),document:box(node.querySelector('.ui-reader-document')),
+            details:box(node.querySelector('.ui-reader-details'))};
+        }""")
+        assert reader_geometry["document"]["width"] >= reader_geometry["reader"]["width"] - 2, reader_geometry
+        assert reader_geometry["details"]["y"] >= reader_geometry["document"]["bottom"], reader_geometry
+        calls = page.evaluate("() => window.__A0_DOCUMENT_FIXTURE__.calls")
+        assert not any(call["operation"] == "document_draft" for call in calls), calls
+        reader_shot = ARTIFACTS / f"narrow-dock-reader-{theme}-{viewport[0]}.png"
+        page.screenshot(path=str(reader_shot), full_page=True)
+        return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme, "viewport":viewport[0],
+            "library_geometry":geometry, "reader_geometry":reader_geometry,
+            "real_split_and_document_click":True, "document_id":"a0_target_1",
+            "scroll_actions":scroll_actions,
+            "library_screenshot":_recorded(library_shot), "reader_screenshot":_recorded(reader_shot)}
     finally:
         context.close()
 
@@ -1432,7 +1614,9 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     # The desktop surface names its own liveness, which the browser fallback never shows; that is
     # the discriminator between "mounted the host UI" and "silently rendered the fallback shell".
     page.locator(".ui-page-navigation").first.wait_for()
-    assert page.get_by_text("后端状态：本地可用").first.is_visible(), "no desktop liveness on the surface"
+    liveness = page.locator('.status-bar .status-pill[data-status="available"][title="后端状态：本地可用"]')
+    liveness.wait_for(state="visible")
+    assert "本地可用" in liveness.inner_text(), "no desktop liveness on the surface"
     assert page.get_by_text("本地桌面恢复").count() == 0, "the canonical surface fell back to the recovery shell"
 
     # Import/template regression belongs to the explicit canonical compatibility route.
@@ -1495,6 +1679,13 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     result["semantic_reading"] = [read_semantic_reading(browser, viewport, problems, theme)
         for viewport in DESKTOP_MATRIX if viewport[0] in ("1440x1000@100", "640x480@100")
         for theme in ("blueprint", "blueprint-light")]
+    result["semantic_reading"].append(read_semantic_reading(
+        browser, ("390x844@100", 390, 844, 1), problems, "cosmic"))
+    result["narrow_dock_reading"] = [read_narrow_dock_library(browser, problems, theme)
+        for theme in AAOS_THEME_IDS]
+    result["narrow_dock_reading"].append(read_narrow_dock_library(browser, problems, "cosmic", ("1600x1000@125",1280,800,1.25)))
+    result["top_navigation"] = [read_top_navigation(browser, viewport, problems, "cosmic")
+        for viewport in (("1672x941@100",1672,941,1), ("390x844@100",390,844,1))]
     return result
 
 
@@ -1558,12 +1749,12 @@ def main() -> None:
 
                 accessibility = {}
                 for theme in AAOS_THEME_IDS:
-                    page.get_by_label("界面主题").select_option(theme)
+                    select_ui_theme(page, theme)
                     page.wait_for_timeout(200)
                     check_geometry(measure_geometry(page, chrome_bands(page)),
                                    width=width, height=height, scale=scale, bands=chrome_bands(page))
                     accessibility[theme] = check_status_accessibility(page)
-                page.get_by_label("界面主题").select_option("black")
+                select_ui_theme(page, "black")
 
                 faults = status_fault_selftest(page, width, height, scale) if (width, height) == (640, 480) else []
 
@@ -1604,7 +1795,7 @@ def main() -> None:
                 if label == DESKTOP_MATRIX[0][0]:
                     glows: dict[str, str] = {}
                     for theme in AAOS_THEME_IDS:
-                        page.get_by_label("界面主题").select_option(theme)
+                        select_ui_theme(page, theme)
                         page.wait_for_timeout(150)
                         applied = page.evaluate("document.documentElement.dataset.aaosTheme")
                         brand = page.evaluate(
@@ -1634,10 +1825,10 @@ def main() -> None:
                         # read as a correct brand mark.
                         expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{asset_theme}.png")
                         assert tuple(brand["decoded"]) == expected, (theme, brand["decoded"], expected)
-                        # The layout box is the declared slot, and the slot keeps the artwork's own
-                        # ratio: an <img> stretched to a box of a different aspect is the classic
-                        # way a logo silently distorts, and nothing in the DOM notices.
-                        assert brand["box"] == [float(value) for value in brand["attributes"]], brand
+                        # The reference cabin declares a 38px desktop mark; its CSS box
+                        # scales the intrinsic ratio instead of the legacy HTML fallback slot.
+                        # Keep the decoded-file, aspect-ratio and target-size assertions.
+                        assert brand["box"][0] == 38.0, brand
                         drawn = brand["box"][0] / brand["box"][1]
                         assert abs(drawn - expected[0] / expected[1]) < 0.02, (theme, drawn, expected)
                         assert 20 <= brand["box"][1] <= 40, (theme, brand["box"])
@@ -1656,7 +1847,7 @@ def main() -> None:
                         }
                     assert len({glows[id] for id in ("black", "white", "cosmic")}) == 3, glows
                     assert all(glows[id] for id in AAOS_THEME_IDS), glows
-                    page.get_by_label("界面主题").select_option("black")
+                    select_ui_theme(page, "black")
 
                 screenshot = ARTIFACTS / f"canonical-shell-{label}.png"
                 page.screenshot(path=str(screenshot), full_page=True)

@@ -1,4 +1,7 @@
+import {MaterialQuestionPanel} from "../components/MaterialQuestionPanel";
+import {ConversationPanel} from "../components/ConversationPanel";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
+import { useDocumentWriteLease } from "../workspace/documentSessions";
 import type { WorkingDraft, WorkingEditor, PendingOriginal } from "../presentation/coreWorkingState";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { DocumentJournalError } from "../presentation/documentSaveStage";
@@ -32,7 +35,7 @@ const DocumentEditor = lazy(() => import("../components/DocumentEditor").then(mo
 
 import type { SourceJourneyTarget, CandidateJourneyTarget } from "../presentation/sourceJourney";
 
-export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{initialSourceTarget?:SourceJourneyTarget;purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:(target?:CandidateJourneyTarget)=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{activationRevision?:number;initialSourceTarget?:SourceJourneyTarget;purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:(target?:CandidateJourneyTarget)=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const workingContext=useOptionalCoreWorkingState();
   // Core working-state persistence belongs to the verified formal desktop host.
   // Browser presentation fixtures do not obtain a native persistence receipt.
@@ -53,6 +56,14 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
   const documentSnapshotCount = useRef<number | null>(null);
   const consumedDocumentCursors = useRef(new Set<string>());
   const libraryMounted = useRef(true);
+  const listGeneration = useRef(0), listRefreshInFlight = useRef(false);
+  const [listSnapshot,setListSnapshot] = useState(0);
+  const sourceTargetKey=initialSourceTarget?JSON.stringify([initialSourceTarget.source_id,initialSourceTarget.source_revision,initialSourceTarget.sha256]):null;
+  const sourceTargetAttempt=useRef<{key:string|null;navigation:number;editing:number;pending:boolean;consumed:boolean}|null>(null);
+  const listHasSnapshot=useRef(false);
+  const [refreshingLists,setRefreshingLists] = useState(true);
+  const [listError,setListError] = useState<string|null>(null);
+  const [listFailureReason,setListFailureReason] = useState<string|null>(null);
   const [openedDocuments, setOpenedDocuments] = useState<DocumentSummaryDto[]>([]);
   const [source, setSource] = useState<SourceDto | null>(null);
   const [original, setOriginal] = useState<OriginalDto | null>(null);
@@ -61,6 +72,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
   const [documentOriginal, setDocumentOriginal] = useState<OriginalDto | null>(null);
   const [documentBytes, setDocumentBytes] = useState<Uint8Array | null>(null);
   const [document, setDocument] = useState<DocumentDto | null>(null);
+  const documentLease=useDocumentWriteLease(document?.document_id);
   const [documentDrafts, setDocumentDrafts] = useState<Record<string, {content:JSONContent;baseVersion:number}>>(()=>Object.fromEntries(Object.entries(working?.state.drafts??{}).map(([id,draft])=>[id,{content:structuredClone(draft.editor_json),baseVersion:draft.base_version}])));
   const documentDraftsRef = useRef(documentDrafts);
   documentDraftsRef.current = documentDrafts;
@@ -79,7 +91,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
   const currentDocument = useRef(document);
   currentDocument.current = document;
   const [editorEpoch, setEditorEpoch] = useState(0);
-  const [message, setMessage] = useState("正在读取资料…");
+  const [message, setMessage] = useState("");
   const [failure, setFailure] = useState(false);
   const [failureReason, setFailureReason] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
@@ -99,7 +111,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
   function publishDirtyState() {
     dirty.current = dirtyDocumentIds.current.size > 0 || noteAttempt.current !== null;
     onDirtyChange?.(dirty.current);
-    window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: dirty.current }));
+    window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: documentLease.ownerId?{owner:documentLease.ownerId,dirty:dirty.current}:dirty.current }));
   }
   function reportEditorDirty(id:string, value:boolean) {
     if(value) dirtyDocumentIds.current.add(id); else dirtyDocumentIds.current.delete(id);
@@ -108,6 +120,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
     publishDirtyState();
   }
   function rememberDraft(id:string, content:JSONContent, baseVersion:number) {
+    if(!documentLease.canWrite)throw new Error("此文档视图只读；共享草稿保持不变");
     const next={...documentDraftsRef.current,[id]:{content:structuredClone(content),baseVersion}};
     documentDraftsRef.current=next;setDocumentDrafts(next);
     working?.session.rememberDraft(id,content as WorkingEditor,baseVersion);
@@ -174,28 +187,39 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
     });
   }, [document, source, anchors, onInspect]);
   useEffect(() => {
-    let alive = true;
     libraryMounted.current = true;
-    Promise.all([
-      coreCommand<{ sources: SourceDto[] }>("sources_list"),
-      coreCommand<DocumentsListDto>("documents_list"),
-    ]).then(([sourcesResult, docsResult]) => {
-      if (!alive) return;
-      setSources(sourcesResult.sources); setDocuments(docsResult.documents); if(generation.current === 0) setMessage("");
+    const refresh=()=>{void refreshLists();};
+    window.addEventListener("archeaxis-job-changed",refresh);
+    return () => { window.removeEventListener("archeaxis-job-changed",refresh); libraryMounted.current = false; listGeneration.current += 1; generation.current += 1; onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: documentLease.ownerId?{owner:documentLease.ownerId,dirty:false}:false })); };
+  }, []);
+  useEffect(()=>{sourceTargetAttempt.current={key:sourceTargetKey,navigation:generation.current,editing:editGeneration.current,pending:false,consumed:false};},[sourceTargetKey]);
+  useEffect(()=>{void refreshLists();},[activationRevision,sourceTargetKey]);
+  // List reads have their own generation. Refreshing never reopens selected content or resets a write.
+  async function refreshLists() {
+    const current=++listGeneration.current;
+    listRefreshInFlight.current=true;documentPageInFlight.current=false;
+    setRefreshingLists(true);setLoadingDocuments(false);setListError(null);setListFailureReason(null);
+    try {
+      const [sourcesResult,docsResult]=await Promise.all([
+        coreCommand<{sources:SourceDto[]}>("sources_list"),coreCommand<DocumentsListDto>("documents_list"),
+      ]);
+      if(!libraryMounted.current||current!==listGeneration.current)return;
+      setSources(sourcesResult.sources);setDocuments(docsResult.documents);setSourcePage(0);
       setNextDocumentCursor(docsResult.next_cursor ?? null);
       documentSnapshotCount.current = docsResult.snapshot_count ?? null;
-      consumedDocumentCursors.current.clear();
-    }).catch((error: unknown) => { if (alive) { setMessage("资料暂时无法读取，请检查本地核心。"); setFailureReason(coreFailureReason(error)); setFailure(true); } }).finally(()=>{if(alive)setLibraryBootSettled(true);});
-    return () => { alive = false; libraryMounted.current = false; generation.current += 1; onDirtyChange?.(false); window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: false })); };
-  }, []);
+      consumedDocumentCursors.current.clear();listHasSnapshot.current=true;setListSnapshot(current);
+    }catch(error){if(libraryMounted.current&&current===listGeneration.current){setListError(listHasSnapshot.current?"资料列表刷新失败；已加载列表、当前内容与草稿保留，可重试。":"资料暂时无法读取，请检查本地核心。");setListFailureReason(coreFailureReason(error));}}
+    finally{if(libraryMounted.current&&current===listGeneration.current){listRefreshInFlight.current=false;setRefreshingLists(false);setLibraryBootSettled(true);}}
+  }
   async function loadMoreDocuments() {
-    if (!nextDocumentCursor || documentPageInFlight.current) return;
+    if (!nextDocumentCursor || documentPageInFlight.current || listRefreshInFlight.current) return;
     const cursor = nextDocumentCursor;
+    const current=listGeneration.current;
     documentPageInFlight.current = true;
     setLoadingDocuments(true);
     try {
       const result = await coreCommand<DocumentsListDto>("documents_list", { cursor });
-      if (!libraryMounted.current) return;
+      if (!libraryMounted.current || current!==listGeneration.current) return;
       if (result.snapshot_count !== documentSnapshotCount.current || result.next_cursor === cursor
         || (result.next_cursor && consumedDocumentCursors.current.has(result.next_cursor))) {
         throw new Error("document pagination snapshot is incompatible");
@@ -206,19 +230,32 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
         return [...previous, ...result.documents.filter(item => !existing.has(item.document_id))];
       });
       setNextDocumentCursor(result.next_cursor);
-      setMessage(""); setFailure(false); setFailureReason(null);
+      setListError(null); setListFailureReason(null);
     } catch (error) {
-      if (libraryMounted.current) {
-        setMessage("更多文档读取失败；已加载文档与草稿仍保留，可重试。");
-        setFailure(true); setFailureReason(coreFailureReason(error));
+      if (libraryMounted.current && current===listGeneration.current) {
+        setListError("更多文档读取失败；已加载文档与草稿仍保留，可重试。");
+        setListFailureReason(coreFailureReason(error));
       }
     } finally {
-      documentPageInFlight.current = false;
-      if (libraryMounted.current) setLoadingDocuments(false);
+      if (libraryMounted.current && current===listGeneration.current) {documentPageInFlight.current = false;setLoadingDocuments(false);}
     }
   }
   useEffect(()=>{if(initialDocumentId && !initialSourceTarget && libraryBootSettled)void openDocument(initialDocumentId);},[initialDocumentId,initialSourceTarget,libraryBootSettled]);
-  useEffect(()=>{if(!initialSourceTarget||!libraryBootSettled)return;setCandidateEditing(false);const matches=sources.filter(s=>s.source_id===initialSourceTarget.source_id&&s.source_revision===initialSourceTarget.source_revision&&s.sha256===initialSourceTarget.sha256);if(matches.length!==1){setFailure(true);setMessage("所选原件版本未唯一核对；不会切换为同名或新版原件。");return;}setShowSource(true);void open(matches[0]);},[initialSourceTarget,libraryBootSettled]);
+  useEffect(()=>{
+    const attempt=sourceTargetAttempt.current;
+    if(!initialSourceTarget||!attempt||attempt.key!==sourceTargetKey||attempt.pending||attempt.consumed||listSnapshot!==listGeneration.current)return;
+    // A newer explicit selection or edit wins over delayed source navigation.
+    if(attempt.navigation!==generation.current||attempt.editing!==editGeneration.current){attempt.consumed=true;return;}
+    const matches=sources.filter(s=>s.source_id===initialSourceTarget.source_id&&s.source_revision===initialSourceTarget.source_revision&&s.sha256===initialSourceTarget.sha256);
+    if(matches.length!==1){setFailure(true);setMessage("所选原件版本未唯一核对；不会切换为同名或新版原件。");return;}
+    attempt.pending=true;setCandidateEditing(false);setShowSource(true);
+    const reading=open(matches[0]);attempt.navigation=generation.current;
+    void reading.then(result=>{
+      if(sourceTargetAttempt.current!==attempt)return;
+      attempt.pending=false;attempt.consumed=result!=="failure";
+      // Failure waits for another successful list refresh; it never loops on its own.
+    });
+  },[sourceTargetKey,sources,listSnapshot]);
   async function importFile(file: File) {
     setImportReceipt({name:file.name,bytes:file.size,state:"正在检查原件"});
     if (file.size > 64 * 1024 * 1024) { setMessage("当前导入上限为 64 MiB，请选择不超过上限的原件。"); setFailure(true); setImportReceipt({name:file.name,bytes:file.size,state:"未导入：超过大小上限"}); return; }
@@ -228,12 +265,12 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
       let binary = "";
       for (let offset = 0; offset < content.length; offset += 8192) binary += String.fromCharCode(...content.subarray(offset, offset + 8192));
       await coreCommand("source_import", { body: { name: file.name, content_base64: btoa(binary) } });
-      const list = await coreCommand<{ sources: SourceDto[] }>("sources_list");
-      setSources(list.sources); setImportReceipt({name:file.name,bytes:file.size,state:"原件已保留；转换尚未执行"}); setMessage("原件已导入；选择它开始阅读。");
+      setImportReceipt({name:file.name,bytes:file.size,state:"原件已保留；转换尚未执行"}); setMessage("原件已导入；选择它开始阅读。");
+      await refreshLists();
     } catch { setImportReceipt({name:file.name,bytes:file.size,state:"导入未确认，请保留原件"}); setMessage("导入未完成，请保留原件并重试。"); setFailure(true); }
     finally { setImporting(false); }
   }
-  async function open(selected: SourceDto) {
+  async function open(selected: SourceDto):Promise<"success"|"stale"|"failure"> {
     revisionBasis.current = null;
     const epoch = ++generation.current;
     const editingEpoch=editGeneration.current;
@@ -244,7 +281,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
         coreCommand<OriginalDto>("source_original", { source_id: selected.source_id }),
         coreCommand<{ anchors: AnchorDto[] }>("anchors_list", { source_id: selected.source_id }),
       ]);
-      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
+      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return "stale";
       readStage="原件版本核对";
       if (asset.source_id!==selected.source_id||asset.sha256 !== selected.sha256) throw new Error("source identity mismatch");
       const decoded = Uint8Array.from(atob(asset.content_base64), (character) => character.charCodeAt(0));
@@ -254,15 +291,18 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
       const linked = documents.find((item) => item.source_id === selected.source_id && item.source_revision === selected.source_revision);
       readStage="草稿版本读取";
       const active = linked ? await coreCommand<DocumentDto>("document_get", { document_id: linked.document_id }) : null;
-      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
+      if (epoch !== generation.current || editingEpoch !== editGeneration.current) return "stale";
       if(active&&(active.document_id!==linked!.document_id||active.source_id!==selected.source_id||active.source_revision!==selected.source_revision))throw new Error("linked document identity mismatch");
       setSource(selected); setOriginal(asset); setBytes(decoded); setDocument(active); setAnchors(evidence.anchors);
       setDocumentSource(active ? selected : null); setDocumentOriginal(active ? asset : null); setDocumentBytes(active ? decoded : null);
       if (active) setOpenedDocuments(previous => previous.some(item => item.document_id === active.document_id) ? previous : [...previous, active]);
       setExportProof(null); setFailureReason(null);
       setEditorEpoch((value) => value + 1); setPage(1); setMessage("原件哈希已核对；草稿与原件独立保存。");
-      publishDirtyState();
-    } catch (error) { if (epoch === generation.current) { setFailure(true); setMessage(`${readStage}未完成；未替换当前内容，请保留原件重试。`); setFailureReason(coreFailureReason(error)); } }
+      publishDirtyState();return "success";
+    } catch (error) {
+      if(epoch!==generation.current||editingEpoch!==editGeneration.current)return "stale";
+      setFailure(true);setMessage(`${readStage}未完成；未替换当前内容，请保留原件重试。`);setFailureReason(coreFailureReason(error));return "failure";
+    }
   }
   async function openDocument(id: string) {
     if (currentDocument.current?.document_id === id) return;
@@ -307,6 +347,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
       noteAttempt.current=null;setNoteUncertain(false);publishDirtyState();
       if(!libraryMounted.current)return;
       setDocuments(previous=>[created,...previous.filter(row=>row.document_id!==created.document_id)]);
+      if(listRefreshInFlight.current||documentPageInFlight.current)void refreshLists();
       setOpenedDocuments(previous => [created,...previous.filter(row=>row.document_id!==created.document_id)]);
       if(epoch!==generation.current||editingEpoch!==editGeneration.current){setMessage("原创笔记已建立，当前编辑内容仍保留；可从已保存文档打开新笔记。");return;}
       revisionBasis.current = null;
@@ -352,6 +393,9 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
     await createOriginal();
   }
   async function save(content: JSONContent, expectedVersion: number) {
+    return documentLease.write(()=>saveDraft(content,expectedVersion));
+  }
+  async function saveDraft(content: JSONContent, expectedVersion: number) {
     if (!document) throw new Error("document not loaded");
     const requestedDocumentId = document.document_id;
     const sentBasis = revisionBasis.current;
@@ -362,6 +406,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
     if (revisionBasis.current === sentBasis && currentDocument.current?.document_id === requestedDocumentId) revisionBasis.current = null;
     if(currentDocument.current?.document_id===saved.document_id) setDocument(saved);
     setDocuments((previous) => previous.map((item) => item.document_id === saved.document_id ? saved : item));
+    if(listRefreshInFlight.current||documentPageInFlight.current)void refreshLists();
     setOpenedDocuments((previous) => previous.map((item) => item.document_id === saved.document_id ? saved : item));
     // Document ACK is already known. Journal failures must not rewind it or
     // send the same body again just to obtain a working-state cleanup receipt.
@@ -442,6 +487,9 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
     }
   }
   async function restore() {
+    try{await documentLease.write(restoreDocument);}catch(error){setMessage(error instanceof Error?error.message:"此文档视图不可写入");setFailure(true);}
+  }
+  async function restoreDocument() {
     if (!document) return;
     const epoch = generation.current;
     const editingEpoch=editGeneration.current;
@@ -452,6 +500,8 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
       // Read the specific immutable version before requesting a new restored revision.
       await coreCommand<DocumentDto>("document_version", { document_id: document.document_id, version: previous });
       const restored = await coreCommand<DocumentDto>("document_restore", { document_id: document.document_id, body: { expected_version: document.version, restore_version: previous } });
+      setDocuments(previous=>previous.map(item=>item.document_id===restored.document_id?restored:item));
+      if(listRefreshInFlight.current||documentPageInFlight.current)void refreshLists();
       if (epoch !== generation.current || editingEpoch !== editGeneration.current) return;
       setDocument(restored); setEditorEpoch((value) => value + 1); reportEditorDirty(restored.document_id,false);
       setOpenedDocuments(previous => previous.map(item => item.document_id === restored.document_id ? restored : item));
@@ -541,7 +591,8 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
   // Chunk-load placeholder, deliberately not a live region: the page's own outcome region below already
   // announces "正在读取资料…" / "正在读取原件与文档…", so a second placeholder region would make one
   // page read announce several times. The text stays where the editor appears.
-  const documentEditor = document ? <Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onReadConflict={readDocumentConflict} onRetryWorkingState={()=>retrySavedJournal(document.document_id)} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense> : null;
+  const sharedDraft=document?working?.state.drafts[document.document_id]:undefined;
+  const documentEditor = document ? documentLease.canWrite?<Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={sharedDraft?.editor_json??documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={sharedDraft?.base_version??documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onReadConflict={readDocumentConflict} onRetryWorkingState={()=>retrySavedJournal(document.document_id)} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense>:<section aria-label="共享文档只读视图" data-business-session-key={documentLease.sessionKey}><p>同一文档已有写入视图；当前显示 Core 工作草稿；只读查看不会建立第二写入会话。</p><button disabled={!documentLease.canRevealOwner} onClick={documentLease.revealOwner}>打开文档写入视图</button><pre>{sharedDraft?JSON.stringify(sharedDraft.editor_json,null,2):document.text_projection}</pre></section> : null;
 
   const originalPane = document ? <article className="original-derived-pane" aria-label="不可变原件">
               <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
@@ -550,9 +601,11 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
                  {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre ref={purpose === "reader" ? textRegion : undefined} tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
               </> : <p>原件读取失败、身份不匹配或未绑定到此文档版本。正文指纹与原件指纹保持分开显示。</p>}
             </article> : null;
-  const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
+  const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy||!documentLease.canWrite} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
   const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>冻结笔记请求已保留；先核对工作状态，再重试同一请求。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一笔记请求</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>核对笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
+  // List reads own one announcement; content/write outcomes remain independent.
+  const listControls=<section className="library-list-controls" aria-label="资料列表刷新"><button type="button" disabled={refreshingLists} onClick={()=>void refreshLists()}>刷新资料列表</button>{refreshingLists?<p role="status">{libraryBootSettled?"正在刷新资料列表…":"正在读取资料…"}</p>:null}{listError?<p role="alert">{listError}</p>:null}{listFailureReason?<p className="state-reason">{listFailureReason}</p>:null}</section>;
   const filteredDocuments = documents.filter(item => {
     if(contentFilter === "original" && item.source_id) return false;
     if(contentFilter === "linked" && !item.source_id) return false;
@@ -573,6 +626,7 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
   </>;
   const originalTextCitation=source&&bytes&&/\.(txt|md)$/i.test(source.original_name)?<OriginalTextCitation sourceId={source.source_id} revision={source.source_revision} bytes={bytes} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(item=>item.anchor_id!==anchor.anchor_id),anchor])}/>:null;
   if(purpose === "library") return <section className="ui-library-page" aria-label="知识库文档视图">
+    {listControls}
     <div className="ui-content-tabs" role="group" aria-label="内容筛选">
       <button type="button" aria-pressed={contentFilter==="all"} onClick={()=>setContentFilter("all")}>全部内容</button>
       <button type="button" aria-pressed={contentFilter==="original"} onClick={()=>setContentFilter("original")}>原创笔记</button>
@@ -583,23 +637,28 @@ export function CanonicalLibrarySpace({initialSourceTarget,purpose,onOpenDocumen
       <aside className="ui-content-panel" aria-label="内容与视图"><h3>内容与视图</h3><p>笔记与关联原件共用文档版本。打开实际文档后阅读与编辑。</p><p>普通笔记无需依据即可保存；依据分析与用户采用分别记录。</p><h4>集合与视图</h4><p>集合、标签和其他视图尚未接通。</p><button type="button" onClick={()=>onOpenCapability?.("CAP-0020")} disabled={!onOpenCapability}>查看集合能力详情</button></aside>
     </div>{feedback}
   </section>;
+  const readerSourceTools=purpose==="reader"&&source&&original&&bytes?<section aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<p>{source.source_id} · {source.source_revision}</p>{!document?<><pre ref={textRegion} tabIndex={0} aria-label="并排原件正文">{original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"原字节已核对；派生正文从真实转换作业读取。"}</pre><button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null;
   if(purpose === "reader" || purpose === "history") return <section className="ui-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"}>
-    {purpose==="reader"&&source&&original&&bytes?<section aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<p>{source.source_id} · {source.source_revision}</p>{!document?<><pre ref={textRegion} tabIndex={0} aria-label="并排原件正文">{original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"原字节已核对；派生正文从真实转换作业读取。"}</pre><button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null}
+    {!document?listControls:null}
+    {!document||initialSourceTarget?readerSourceTools:null}
     {document ? <>
-      <div className="ui-reader-toolbar"><div className="ui-content-tabs" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div></div>
+      <div className="ui-reader-toolbar"><div className="ui-content-tabs" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div>{listControls}</div>
       <div className="ui-reader-layout"><article className="ui-reader-document" aria-label="文档正文与编辑"><header><p className="ui-document-meta">{document.source_id ? "关联原件文档" : "原创笔记"} · v{document.version} · 无需依据即可保存</p><h2>{document.title}</h2></header>{purpose!=="history" ? documentEditor : <p>{document.text_projection}</p>}
         {showSource ? <section className="ui-reader-original" aria-label="关联原件阅读">{document.source_id ? originalPane : <p>此原创笔记没有绑定来源原件。</p>}</section> : null}
       </article><aside className="ui-content-panel ui-reader-details" aria-label="内容详情"><h3>内容详情</h3><dl><div><dt>内容身份</dt><dd>{document.source_id ? "关联原件文档" : "原创笔记"}</dd></div><div><dt>文档版本</dt><dd>v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存更改" : ""}</dd></div><div><dt>来源版本</dt><dd>{document.source_id ? linkedOriginal ? "原件身份、版本与字节已核对" : "已绑定；原件读取尚未核对" : "未绑定；保存不要求来源"}</dd></div></dl>
-        <RawReceiptButton label="文档身份与来源指纹" payload={{document_id:document.document_id,source_id:document.source_id,source_revision:document.source_revision,content_sha256:document.content_sha256}}/>
+        <RawReceiptButton label="文档身份与来源指纹" visibleLabel="文档身份与来源指纹" payload={{document_id:document.document_id,source_id:document.source_id,source_revision:document.source_revision,content_sha256:document.content_sha256}}/>
         <details><summary>依据与修订记录</summary><CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}}/></details>
         {showVersions||purpose==="history" ? <section aria-label="版本与影响">{versionControls}</section> : <button type="button" onClick={()=>setShowVersions(true)}>查看历史版本</button>}
         <details><summary>导出已保存文档</summary><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button>{exportProof?<RawReceiptButton label="导出格式与损失回执" payload={exportProof}/>:null}</details>
+        <details className="reader-material-tools"><summary>围绕此文档提问</summary><MaterialQuestionPanel key={`material:${document.document_id}:${document.version}`} material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}} text={document.text_projection}/><ConversationPanel material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}}/></details>
+        {readerSourceTools&&!initialSourceTarget?<details className="reader-source-tools"><summary>整理关联来源</summary>{readerSourceTools}</details>:null}
       </aside></div>
     </> : <section className="ui-content-panel"><h3>选择已保存文档</h3><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
     {feedback}
   </section>;
 
   return <Section title="资料库">
+    {listControls}
     <TemplateLauncher onOpen={id=>void openDocument(id)} onOpenCapability={onOpenCapability} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("template-properties");else dirtyDocumentIds.current.delete("template-properties");publishDirtyState();}} />
     <p className="muted">原件保留其不可变版本；草稿自动保存到本地核心，引用绑定原件版本。</p>
     <label className="content-import" data-section="import" tabIndex={-1}>导入原件 <input type="file" aria-label="导入原件" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; }} /></label>

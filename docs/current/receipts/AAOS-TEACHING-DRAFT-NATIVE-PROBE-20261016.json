@@ -1,0 +1,54 @@
+{
+  "schema": "archeaxis.teaching-draft-native-probe-delivery/v1",
+  "date": "2026-10-16",
+  "status": "PARTIAL",
+  "implementation": "IMPLEMENTED_AND_LIMITED_NATIVE_PASS",
+  "entry": "AAOS01_TEACHING_DRAFT_ONLY=1 with existing grouped native harness",
+  "prerequisite_commit": "6ddf8b1b (locally cherry-picked as d64616a8; already in integration)",
+  "contract_checks": {
+    "evidence_level": "SIMULATED",
+    "stdlib_unittest": "Earlier revision PASS: 5 teaching and 6 existing learning probe tests",
+    "canonical_dev_entry": "PASS: project validation-venv via scripts/runtime/dev.py; 12 passed, 38 subtests passed",
+    "run_receipt": ".project-local/runs/8bc12e00bb/teaching-probe-visible-contract-20261016/artifacts/execution.json",
+    "visible_form_guard": "Observation requires one rendered form in the current hash page Dock host; native interaction XPath pins that page host and excludes hidden/aria-hidden ancestors",
+    "initial_environment_failure": "Default Python lacks PyYAML; corrected by using existing validation-venv, no dependency installed",
+    "default_grouped_flow": "Later navigation repair separately recorded; this native receipt retains the earlier probe source identity.",
+    "mutual_exclusion_and_model_mode_rejection": "PASS"
+  },
+  "planned_native_assertions": [
+    "UI page 11: and 12: purpose/content exact whitespace and trailing blank lines after leave and cold restart",
+    "UI page 12: rubric and feedback classification retained separately",
+    "Canonical document_create executes once before SYNTHETIC ACK loss",
+    "Frozen preparation_attempt payload survives restart and UI retry uses same create_request_id/editor",
+    "Exact canonical document paragraphs; one document at version 1",
+    "Only acknowledged ordinary preparation draft clears; other page survives another restart"
+  ],
+  "coverage_limit": "Unbound page contexts only; bound item contexts and formal teaching record submission/rejection are not qualified by this probe",
+  "native_execution": {
+    "status": "PASS",
+    "evidence_level": "REAL_NATIVE_SYNTHETIC_MATERIAL",
+    "receipt": ".project-local/runs/ba8e5e5614/webdriver-ef90fff8e571/tmp/journey/receipt.json",
+    "receipt_sha256": "90e5d591354459042e6e5c0c966eb14f29c8e2c4d5dd8feca5bd4d84381d4d77",
+    "source_commit": "06554fd1a6ed6710b23a87383a8652451e96d103",
+    "source_patch_sha256": "1e70be3bcebf3c3cc5fbaffecfb42f9a0232bb63626d5ec570f65a8c8d93cf44",
+    "source_consistent": true,
+    "compiled_source_binding": "PASS",
+    "raw_recovery": "PASS: exact page 11/12 purpose, content, rubric and classification across leave/cold restart",
+    "preparation": "PASS: real Core create with synthetic ACK loss; cold restart reuses the same request and content, exactly one document at version 1, precise draft cleanup and independent page preservation after another restart",
+    "cold_restarts": 3,
+    "owned_cleanup": "PASS: no remaining owned hosts/listeners",
+    "formal_teaching_submission": "NOT_EXECUTED"
+  },
+  "build": {
+    "status": "PASS",
+    "receipt": ".project-local/runs/ba8e5e5614/glass-loop-candidate3-1016/artifacts/native-build-binding.json",
+    "receipt_sha256": "338e449808707213cd37783e921e270f997104347802c356a1aa5e5d13eee3b4",
+    "host_sha256": "aa35bd53b2bb8c14962cec877ddc870d18a3d7e85c117572f0f31041df95a37a",
+    "core_sha256": "d5d578946501f4c7d952edbaae84f6fb0260616d628d7488b1f11431d417d275",
+    "installed_or_owner_qualified": false
+  },
+  "model_calls": "NOT_EXECUTED",
+  "owner_acceptance": "NOT_EXECUTED",
+  "push": "NOT_EXECUTED",
+  "closed_loop_verified": false
+}

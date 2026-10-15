@@ -1,0 +1,184 @@
+{
+  "schema": "archeaxis.character-memory-native/v1",
+  "date": "2026-10-15",
+  "overall": "PARTIAL",
+  "local_memory_journey": "PASS_REAL_NATIVE_SYNTHETIC_MEMORY",
+  "parent_commit": "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+  "changes": [
+    "Independent opt-in native memory UI qualification without model or installer flags",
+    "Cold automatic layout restore reopens the latest requested business panel after hydration; preserved drafts and explicit toolbar restoration unchanged",
+    "Two genuine red visibility regressions before the layout fix; complete actual Dockview and native follow-up passed"
+  ],
+  "code_files_sha256": {
+    "frontend/src/workspace/DockWorkspace.tsx": "6703570a5efcb241a072cafcd6834a9ee78d9967781400a2831f5a6dfdeef756",
+    "frontend/src/__tests__/DockWorkspace.test.tsx": "5dfe79befa8ae763a62adf0cb5a134f494c2d63f1ea3fb327f88c67196ef1788",
+    "scripts/probes/aaos01_tauri_webdriver_loop.py": "94c3fcf21884c2a7d8330bbd37f473111aceccd2acbb9301381861dd18d8b2ee",
+    "scripts/probes/aaos01_character_memory_loop.py": "059f8e2a54ded2387743cf1cc71de3df223709c1b2d97da063f11da8789449e3"
+  },
+  "previous_memory_ui_code": "All 14 prior UI/API/schema/resource source hashes unchanged from AAOS-CHARACTER-MEMORY-UI-20261015.json",
+  "native": {
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/webdriver-381a50a8b98f/tmp/journey/receipt.json",
+      "sha256": "c001f9503067fcdcfb4522fdc6943637e0574f0779a5f68509bec42be4042658",
+      "source_patch_sha256": "9084d5dd2a645cb2383819cbdd0fbd10ad3aa821d14c7641f715321328c9dce9",
+      "source_consistent": true
+    },
+    "binding": {
+      "path": ".project-local/runs/ba8e5e5614/memory-candidate3-1015/artifacts/native-build-binding.json",
+      "sha256": "70e0dc5f7e73b7ae368adf886618db8f7aa98fe85d617c49b324fb9c3df55c6a",
+      "source_commit": "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+      "source_patch_sha256": "9084d5dd2a645cb2383819cbdd0fbd10ad3aa821d14c7641f715321328c9dce9",
+      "source_consistent": true
+    },
+    "host": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\ba8e5e5614\\memory-candidate3-1015\\ArcheAxis.exe",
+      "sha256": "483cfaff480b643e0cfe0067e3df6e6cc15b9b29505e8bb312a566a6eacef305",
+      "bytes": 11913216
+    },
+    "core_sha256": "38b5bf72e5439d843660d442312f79b08fe99e1947fc467dce2c87eeeddf6c81",
+    "level": "REAL_NATIVE_UI_CORE_SYNTHETIC_INPUT",
+    "manual_commands": 8,
+    "cold_reopens": [
+      {
+        "revision": 5,
+        "memories": 2,
+        "same_workspace_epoch_profile": true
+      },
+      {
+        "revision": 8,
+        "memories": 0,
+        "same_workspace_epoch_profile": true
+      }
+    ],
+    "cancel_forget_unchanged": true,
+    "download": {
+      "path": ".project-local/runs/ba8e5e5614/webdriver-381a50a8b98f/tmp/journey/memory-download/archeaxis-memory-v5.json",
+      "bytes": 814,
+      "sha256": "3c0f85d5e878cf9f1eb9d0a8591a7c8e7702c22da5e2a230bb36c0dbd4512d23",
+      "exact_profile": true
+    },
+    "normal_application_exits": 3,
+    "owned_ports_released": true,
+    "remaining_owned_processes": 0,
+    "model_execution": "NOT_EXECUTED",
+    "owner_acceptance": false,
+    "installed": "NOT_EXECUTED"
+  },
+  "evidence": {
+    "frontend_full": {
+      "state": "PASS",
+      "level": "SIMULATED",
+      "files": 145,
+      "tests": 1342,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/memory-all3/artifacts/execution.json",
+        "sha256": "6e32d6dd5009c0a39d911e87f9cc57c39d5bd48f90eda6f663a33b0775b207f3",
+        "source_commit": "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+        "source_patch_sha256": "9084d5dd2a645cb2383819cbdd0fbd10ad3aa821d14c7641f715321328c9dce9",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "native_harness_regressions": {
+      "state": "PASS",
+      "tests": 82,
+      "subtests": 124,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/mem-probes3/artifacts/execution.json",
+        "sha256": "78fd6380a81196e1d2587dc487c636a4566dec93434cb0730242400291596746",
+        "source_commit": "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+        "source_patch_sha256": "9084d5dd2a645cb2383819cbdd0fbd10ad3aa821d14c7641f715321328c9dce9",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "preflight": {
+      "state": "PASS",
+      "checks": 20,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/mem-pre4/artifacts/execution.json",
+        "sha256": "21c1f67740a5d8f8fe557e8de597e57285caa9025697c279415e4238b393ff16",
+        "source_commit": "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+        "source_patch_sha256": "9084d5dd2a645cb2383819cbdd0fbd10ad3aa821d14c7641f715321328c9dce9",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    },
+    "targeted_layout_memory": {
+      "state": "PASS",
+      "tests": 38,
+      "proof": {
+        "path": ".project-local/runs/ba8e5e5614/dock-cold-green/artifacts/execution.json",
+        "sha256": "d533b0e50072cd570acdb6cb0e8718069d2380a967209a287248ce3aafed49f6",
+        "source_commit": "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+        "source_patch_sha256": "9084d5dd2a645cb2383819cbdd0fbd10ad3aa821d14c7641f715321328c9dce9",
+        "source_consistent": true,
+        "exit_code": 0
+      }
+    }
+  },
+  "driver": {
+    "scope": "Project-local portable driver; no global or browser changes",
+    "official_source": "https://msedgedriver.microsoft.com/155.0.4283.45/edgedriver_win64.zip",
+    "official_matching_rule": "https://learn.microsoft.com/en-us/microsoft-edge/webdriver/",
+    "version": "Microsoft Edge WebDriver 155.0.4283.45 (50f24ef2aa5369a074b8888b7db82d9c0652d642)",
+    "signature": "Valid",
+    "publisher": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+    "archive_sha256": "352d096a7d7dccb922887a260f5d574996032ea3908b87666e730d9b422d66b3",
+    "executable_sha256": "dc99c208c10a5364e61c4e5b1341be492f3224de753adb23e973be97875b1892",
+    "proof": {
+      "path": ".project-local/runs/ba8e5e5614/mem-driver155/artifacts/driver.json",
+      "sha256": "ee8c9e339a4321bb9337d7d3e1c18a0b1b9f87343e1e46a7047d2a6cc296561f"
+    }
+  },
+  "retained_failures": [
+    {
+      "run": "mem-journey1",
+      "receipt": ".project-local/runs/ba8e5e5614/webdriver-e448c9e18a98/tmp/journey/receipt.json",
+      "reason": "Old driver 154 did not match actual WebView2 155; first run did not complete"
+    },
+    {
+      "run": "mem-journey2",
+      "receipt": ".project-local/runs/ba8e5e5614/webdriver-528d93811169/tmp/journey/receipt.json",
+      "reason": "Real cold restart restored heading but hid requested memory page behind default layout; not qualified"
+    },
+    {
+      "run": "mem-probes1",
+      "reason": "Structural installed initializer entry contract failed; original sequence restored without changing its assertion"
+    },
+    {
+      "run": "dock-cold-red",
+      "reason": "Initial synthetic hook fixture omitted state; not a valid behavioral red"
+    },
+    {
+      "run": "dock-cold-red2",
+      "reason": "Both requested-page visibility regressions failed on original product code"
+    },
+    {
+      "run": "mem-driver155",
+      "reason": "PowerShell 5 Security module autoload failed; downloaded bytes retained, then verified with existing PowerShell 7"
+    }
+  ],
+  "remaining": [
+    "No Owner memory, independent memory-quality, actual model influence or secure-erasure qualification",
+    "BE06 external/shared-port joint consumer acceptance remains unqualified",
+    "Candidate run does not qualify installer, installed Green or release",
+    "Full BE02/FE06 layout acceptance still separate from this cold-page restoration fix",
+    "Standard quick historical layout failures preserved; preflight does not replace standard quick",
+    "Remote automatic approval blocker and other tasks unchanged"
+  ],
+  "delivery": {
+    "push": "BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW",
+    "pr": "NOT_CREATED",
+    "cloud_ci": "NO_EVIDENCE",
+    "merge": "NOT_EXECUTED",
+    "release_install": "NOT_EXECUTED"
+  },
+  "artifact_ownership": {
+    "native_candidate": ".project-local/build/ba8e5e5614/memory-candidate3-1015; task-owned reproducible build, retained while current binding references it",
+    "driver": "Ignored mem-driver155 run; task-owned portable official tool, no external tool replacement",
+    "raw_proofs": "Ignored project runs; synthetic records, images, downloaded memory JSON and failed-run evidence remain local",
+    "original_taskpacks": "139 restored original files remain local-only and unstaged"
+  },
+  "rollback": "Revert this checkpoint to remove automatic selected-page restoration and native probe entry; no Core schema/data or external/global configuration changed"
+}

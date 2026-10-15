@@ -12,6 +12,7 @@ import { SpaceRail } from "../components/SpaceRail";
 import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView, canonicalSurface } from "../spaces/SpaceView";
+import { DockWorkspace } from "../workspace/DockWorkspace";
 import { RecoveryShell } from "../components/RecoveryShell";
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
@@ -69,6 +70,13 @@ function AppBody() {
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
   const [navigationOpen,setNavigationOpen] = useState(false);
+  const [navigationAppearance,setNavigationAppearance] = useState<"sidebar" | "top">(() => {
+    try { return localStorage.getItem("aaos.navigation-appearance.v1") === "top" ? "top" : "sidebar"; } catch { return "sidebar"; }
+  });
+  const changeNavigationAppearance = (value: "sidebar" | "top") => {
+    setNavigationAppearance(value);
+    try { localStorage.setItem("aaos.navigation-appearance.v1", value); } catch { /* Session preference remains usable when storage is unavailable. */ }
+  };
   const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));
   const [openedDocumentId,setOpenedDocumentId] = useState<string|undefined>();
   const [initialLearningItemKey, setInitialLearningItemKey] = useState<string|undefined>();
@@ -633,7 +641,7 @@ function AppBody() {
     if(!desktop)return;
     // Scene CAS status also includes page/opened-object bookkeeping. Only actual
     // content drafts or a frozen create request own the content navigation guard.
-    const dirty=Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original)||Object.keys(working.state.pending_jobs??{}).length>0||Object.keys(working.state.pending_reviews??{}).length>0||Object.keys(working.state.pending_machine??{}).length>0;
+    const dirty=Object.keys(working.state.teaching_drafts??{}).length>0||Object.keys(working.state.drafts).length>0||Boolean(working.state.pending_original)||Object.keys(working.state.pending_jobs??{}).length>0||Object.keys(working.state.pending_reviews??{}).length>0||Object.keys(working.state.learning_drafts??{}).length>0||Object.keys(working.state.pending_machine??{}).length>0;
     if(dirty)draftOwners.current.add("core-working-state");else draftOwners.current.delete("core-working-state");
     draftDirty.current=draftOwners.current.size>0;setUnsavedDrafts(draftDirty.current);
   },[desktop,working.state,working.status,workspaceEpoch]);
@@ -667,11 +675,11 @@ function AppBody() {
       hydratedSession.current=working.session;setWorkingEntered(true);
     }catch{/* Explicit choice may still be refused; no candidate replaces local input. */}
   }
-  const workingNotice=desktop?<section aria-label="工作草稿保全" role={working.error?"alert":"status"}>
+  const workingNotice=desktop?<section aria-label="工作草稿保全" data-working-state={working.status} role={working.error?"alert":"status"}>
     <p>{working.status==="ready"?"工作状态已由 Core 保全；正文保存以各文档版本回执为准。":working.status==="saving"?"正在保全工作草稿…":working.status==="loading"?"正在读取工作草稿；编辑入口等待身份核对。":"工作草稿仍保留，持久化尚未全部确认。"}</p>
     {working.error?<p>{working.error}</p>:null}
     {["blocked","loading","unsaved"].includes(working.status)?<><button onClick={()=>void rereadWorkingState()}>核对工作状态</button><button disabled={working.status!=="unsaved"} onClick={()=>void working.session.flush().catch(()=>{})}>仅重试草稿保全</button></>:null}
-    {working.server?.recovery_requires_confirmation?<><p>恢复候选含 {Object.keys(working.server.recovery_candidates?.drafts??{}).length} 份独立草稿、{Object.keys(working.server.recovery_candidates?.pending_jobs??{}).length} 个转换请求、{Object.keys(working.server.recovery_candidates?.pending_machine??{}).length} 个机器请求及 {Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length} 个复习请求。正文尚未套用；请明确选择。</p><pre>{Object.keys(working.server.recovery_candidates?.drafts??{}).join("\n")}</pre><button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button disabled={!!(Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length)} onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button>{Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length?<p>未确认的机器或复习请求须保留候选后核对回执，不能通过丢弃候选清除执行记录。</p>:null}</>:null}
+    {working.server?.recovery_requires_confirmation?<><p>恢复候选含 {Object.keys(working.server.recovery_candidates?.drafts??{}).length} 份独立草稿、{Object.keys(working.server.recovery_candidates?.pending_jobs??{}).length} 个转换请求、{Object.keys(working.server.recovery_candidates?.pending_machine??{}).length} 个机器请求及 {Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length} 个复习请求。正文尚未套用；请明确选择。</p><p>另有 {Object.keys(working.server.recovery_candidates?.learning_drafts??{}).length} 份未提交学习草稿，以及 {Object.keys(working.server.recovery_candidates?.teaching_drafts??{}).length} 份教学正文草稿。</p><pre>{[...Object.keys(working.server.recovery_candidates?.drafts??{}),...Object.keys(working.server.recovery_candidates?.teaching_drafts??{}),...Object.values(working.server.recovery_candidates?.learning_drafts??{}).map(draft=>`${draft.item_key} · ${draft.knowledge_version}`)].join("\n")}</pre><button onClick={()=>void decideWorkingRecovery("preserve")}>保留恢复候选</button><button disabled={!!(Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length||Object.values(working.server.recovery_candidates?.teaching_drafts??{}).some(draft=>draft.pending_record||draft.preparation_attempt))} onClick={()=>void decideWorkingRecovery("discard")}>丢弃恢复候选</button>{Object.keys(working.server.recovery_candidates?.pending_machine??{}).length||Object.keys(working.server.recovery_candidates?.pending_reviews??{}).length||Object.values(working.server.recovery_candidates?.teaching_drafts??{}).some(draft=>draft.pending_record||draft.preparation_attempt)?<p>未确认的机器、复习或教学请求须保留候选后核对回执，不能通过丢弃候选清除执行记录。</p>:null}</>:null}
   </section>:null;
 
   if (!desktopReady && recoveryStatus) {
@@ -698,11 +706,15 @@ function AppBody() {
   ];
 
   return (
-    <div className="app-shell">
+    <div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""} data-navigation-appearance={navigationAppearance}>
       {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
       {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区并重启本地 Core，请等待读回完成…</div> : null}
       {workingNotice}
       <StatusBar
+        navigationAppearance={navigationAppearance}
+        onNavigationAppearance={changeNavigationAppearance}
+        pageId={uiPageId}
+        learningFocus={learningFocus}
         activeSpace={activeSpace}
         backendState={!desktop
           ? "web"
@@ -726,8 +738,8 @@ function AppBody() {
           {searchedObject?<PinnedReferencePanel reference={searchedObject} expectedDocumentSha={searchedContentSha} onClose={()=>setSearchedObject(null)} onOpenReference={reference=>{setSearchedObject(reference);setSearchedContentSha(undefined);}}/>:null}
           <NavTrail levels={trailLevels} onJump={focusRegion} />
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
-          <div className="ui-page-heading" role="group" aria-label="当前页面"><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>{findUiPage(uiPageId ?? "")?.group ?? "个人工作区"}</small></div>
-          {(!desktop||workingEntered)?<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />:<p role="status">工作状态尚未核对；请使用上方读回或明确恢复入口。</p>}
+          <div className="ui-page-heading" role="group" aria-label="当前页面" data-current-page-id={uiPageId ?? ""}><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>{findUiPage(uiPageId ?? "")?.group ?? "个人工作区"}</small></div>
+          {(!desktop||workingEntered)?(desktop?<DockWorkspace initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">工作状态尚未核对；请使用上方读回或明确恢复入口。</p>}
         </main>
         {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>

@@ -26,7 +26,8 @@ _ABSOLUTE_PATH = re.compile(
     r"(?i)(?<![A-Za-z0-9])(?:"
     r"[A-Z]:[\\/]"
     r"|\\\\[^\\/\s]+[\\/][^\\/\s]+"
-    r"|(?<!:)//[^/\s]+/[^/\s]+"
+    # A UNC host cannot contain an XPath predicate; brackets in shares remain valid.
+    r"|(?<!:)//[^/\s\[\]]+/[^/\s]+"
     r"|/(?:Users|home|opt|var|tmp|etc|srv|root|data|workspace|usr)(?:[\\/]|$)"
     r"|/mnt/[A-Z](?:[\\/]|$)"
     r")"

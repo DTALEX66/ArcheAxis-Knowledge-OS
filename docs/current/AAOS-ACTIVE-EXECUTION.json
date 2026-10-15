@@ -47,7 +47,7 @@
   ],
   "formal_stack": "Tauri 2 + React/TypeScript/Vite + Rust Core sole SQLite/CAS writer + isolated Python workers",
   "theme_policy": {
-    "default": "blueprint",
+    "default": "cosmic",
     "available": [
       "blueprint",
       "blueprint-light",
@@ -56,7 +56,8 @@
       "cosmic"
     ],
     "layout": "new UI layout shared across themes",
-    "colors": "semantic colors from selected theme; new reference palette values preserved"
+    "colors": "semantic colors from selected theme; new reference palette values preserved",
+    "preference": "New or invalid preference defaults to cosmic per current UI package; valid saved theme remains unchanged."
   },
   "handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
   "drift_readback": "docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
@@ -79,14 +80,15 @@
   ],
   "freeze_register": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.md",
   "design_overlays": [
-    "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.json"
+    "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.json",
+    "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
-    "state": "RUNNING_BY_OWNER",
+    "state": "PAUSED_BY_OWNER",
     "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
-    "automatic_continuation": true,
+    "automatic_continuation": false,
     "previous_stop": {
       "state": "PAUSED_BY_OWNER",
       "stopped_after": "UF13 started local slice",
@@ -95,7 +97,30 @@
       "receipt": "docs/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
       "resume_requires": "new Owner instruction",
       "automatic_continuation": false
-    }
+    },
+    "parallel_lanes": [
+      "backend",
+      "storage_and_directory_normalization",
+      "non_character_reference_ui"
+    ],
+    "allowance_guard": {
+      "owner_confirmed": "Stop and hand off when remaining account allowance is at or below 15 percent.",
+      "threshold_remaining_percent": 15,
+      "metric": "Minimum remaining percentage across applicable non-null Codex account usage windows; not context length. Unknown is not zero.",
+      "automation_id": "archeaxis",
+      "automation_state_at_observation": "ACTIVE",
+      "interval_minutes": 5,
+      "on_threshold": "Stop new development and heavy validation; checkpoint owned agents; summarize completed work, incomplete work, failures and evidence; explicitly stage and commit/push this round public task-owned files; verify local/remote branch SHA; pause goal and monitor after handoff.",
+      "publication_boundary": "No secrets, private agent state, runtime/database/cache/archive payloads, unrelated dirty changes, QODER, release or Green replacement. Merge requires current review and full required CI.",
+      "resumption": "Explicit Owner instruction; quota reset alone does not resume.",
+      "threshold_observation": {
+        "observed_at": "2026-10-16T05:14:29+08:00",
+        "remaining_percent": 15,
+        "state": "TRIGGERED"
+      }
+    },
+    "pause_reason": "Owner-confirmed account remaining <=15 percent reached",
+    "pause_receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
   },
   "delivery_authorization": {
     "date": "2026-10-12",
@@ -261,7 +286,7 @@
     "owner_selected": "2026-10-13 current explicit request",
     "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
     "remaining_receipt": "docs/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
-    "state": "RUNNING_BY_OWNER / PARTIAL",
+    "state": "PAUSED_BY_OWNER / PARTIAL",
     "scope": "Supplement existing queue; not replacement or historical freeze activation"
   },
   "frontend_execution_overlay": {
@@ -299,6 +324,11 @@
     "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
     "receipt": "docs/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
     "handoff_summary": "workspace/intake/ui-handoff-20261013/SUMMARY.md",
-    "state": "RUNNING_BY_OWNER / PARTIAL"
+    "state": "PAUSED_BY_OWNER / PARTIAL",
+    "owner_direction": "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json",
+    "delegated_tasks": {
+      "FE18": "QODER_OWNED; do not implement or copy character branch"
+    },
+    "implementation_standard": "Reference composition, materials and geometry; actual rendered comparisons; no palette-only completion claim."
   }
 }

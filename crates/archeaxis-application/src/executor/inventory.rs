@@ -64,6 +64,12 @@ impl Executor {
     }
 
     pub async fn machine_inventory(&self) -> Value {
+        self.machine_inventory_configured(None).await
+    }
+    pub async fn machine_inventory_configured(
+        &self,
+        profile: Option<archeaxis_domain::model_configuration::Profile>,
+    ) -> Value {
         match self.inventory_enabled().await {
             Some(true) => {}
             Some(false) => return outcome("DISABLED", None, None),
@@ -94,7 +100,12 @@ impl Executor {
             if remaining.is_zero() {
                 return outcome("READ_FAILED", None, None);
             }
-            match derived::inventory(&staging, &python, &worker, site, remaining) {
+            let result = if let Some(p) = profile {
+                derived::configured_inventory(&staging, &python, &worker, site, remaining, &p)
+            } else {
+                derived::inventory(&staging, &python, &worker, site, remaining)
+            };
+            match result {
                 Ok(reply) => project(&reply),
                 Err(_) => outcome("READ_FAILED", None, None),
             }

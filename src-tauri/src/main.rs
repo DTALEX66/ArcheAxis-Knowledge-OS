@@ -2,6 +2,9 @@
 
 #[cfg(windows)]
 mod core_bridge;
+mod credentials;
+#[cfg(windows)]
+mod ui_host_bridge;
 
 // An explicit, process-local automation opt-in. WebView2 150+ ignores its
 // environment switch overrides for elevated hosts; pass only a validated
@@ -514,6 +517,72 @@ fn backend_info(state: State<'_, DesktopBackend>) -> Result<Option<BackendInfo>,
 
 #[cfg(windows)]
 #[tauri::command]
+async fn ui_host_command(
+    state: State<'_, DesktopBackend>,
+    request: ui_host_bridge::contract::Request,
+) -> Result<ui_host_bridge::contract::Response, String> {
+    use ui_host_bridge::contract::Outcome;
+    let Some(mapped) = ui_host_bridge::mapped(&request)? else {
+        return Ok(ui_host_bridge::reply(
+            &request,
+            Outcome::Unavailable,
+            Some("HOST_CONTRACT_MISSING"),
+            None,
+            None,
+        ));
+    };
+    let identity = || core_bridge::Request {
+        operation: core_bridge::Operation::UiStateRead,
+        payload: serde_json::json!({}),
+    };
+    let before = core_command(state.clone(), identity()).await;
+    if !before
+        .as_ref()
+        .is_ok_and(|value| ui_host_bridge::workspace_matches(&request, value))
+    {
+        return Ok(ui_host_bridge::reply(
+            &request,
+            Outcome::Rejected,
+            Some("WORKSPACE_CHANGED"),
+            None,
+            None,
+        ));
+    }
+    let result = core_command(state.clone(), mapped).await;
+    let after = core_command(state, identity()).await;
+    if !after
+        .as_ref()
+        .is_ok_and(|value| ui_host_bridge::workspace_matches(&request, value))
+    {
+        return Ok(ui_host_bridge::reply(
+            &request,
+            Outcome::Unknown,
+            Some("WORKSPACE_CHANGED"),
+            None,
+            None,
+        ));
+    }
+    Ok(ui_host_bridge::project(&request, result))
+}
+#[cfg(windows)]
+#[tauri::command]
+fn model_credential_create(window: tauri::Window, secret: String) -> Result<String, String> {
+    if window.label() != "main" {
+        return Err("CREDENTIAL_WINDOW_FORBIDDEN".into());
+    }
+    credentials::create(&credentials::NativeVault, secret.into_bytes()).map_err(str::to_owned)
+}
+#[cfg(windows)]
+#[tauri::command]
+fn model_credential_remove(window: tauri::Window, reference: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("CREDENTIAL_WINDOW_FORBIDDEN".into());
+    }
+    credentials::Vault::remove(&credentials::NativeVault, &reference).map_err(str::to_owned)
+}
+
+#[cfg(windows)]
+#[tauri::command]
 async fn core_command(
     state: State<'_, DesktopBackend>,
     request: core_bridge::Request,
@@ -967,6 +1036,9 @@ fn main() {
         .manage(backend)
         .invoke_handler(tauri::generate_handler![
             core_command,
+            ui_host_command,
+            model_credential_create,
+            model_credential_remove,
             backend_info,
             recovery_status,
             recovery_log_tail,

@@ -1,0 +1,97 @@
+{
+  "scope": "Complete frozen preparation create/draft intent in existing typed Core working-state journal, ACK before dispatch, stable identity across remount/restart, exact actual Document verification before clearance, retain subsequent edits.",
+  "status": "PASS_LOCAL_SYNTHETIC_AND_INTEGRATED_SQLITE",
+  "recorded_at": "2026-10-15T16:23:59.9337320+00:00",
+  "base_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+  "schema": "archeaxis.teaching-preparation-integrity/v1",
+  "evidence": [
+    {
+      "source_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\preparation-intent-red\\artifacts\\execution.json",
+      "run": "preparation-intent-red",
+      "source_patch_sha256": "f56c919c07aa60ce96193051cfb1bd2768f41e094b62a920096c129fcd9d5cb1",
+      "source_consistent": true,
+      "sha256": "d9e694d4dfe41315b0a656ad72db69902012d13b9356c57ebe27121f7115f3f4",
+      "status": "FAIL",
+      "child_exit_code": 1
+    },
+    {
+      "source_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\preparation-final-frontend\\artifacts\\execution.json",
+      "run": "preparation-final-frontend",
+      "source_patch_sha256": "b1300202f13a4dbc02c202ecb972661a1871135c24acbcb196b041c866494119",
+      "source_consistent": true,
+      "sha256": "29fe1d2079ad05194aff71e74249607e8a08667b98742f475c4584c105d14ea7",
+      "status": "LOCAL_PASS",
+      "child_exit_code": 0
+    },
+    {
+      "source_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\preparation-final-rust\\artifacts\\execution.json",
+      "run": "preparation-final-rust",
+      "source_patch_sha256": "b1300202f13a4dbc02c202ecb972661a1871135c24acbcb196b041c866494119",
+      "source_consistent": true,
+      "sha256": "9c9e667a99b34371476acbe4830db9dfdac5a44c8345054c8cf4554a74a923b0",
+      "status": "LOCAL_PASS",
+      "child_exit_code": 0
+    },
+    {
+      "source_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\preparation-final2-frontend\\artifacts\\execution.json",
+      "run": "preparation-final2-frontend",
+      "source_patch_sha256": "9a419452b01e8f511b35468b2d3f6880ad3489d41bcfe1b11b7fd1ae2af60302",
+      "source_consistent": true,
+      "sha256": "a833c9d8d8b2256013e4d84424eae57c8a6b5c272b09f00ec2e88c94d37cefff",
+      "status": "LOCAL_PASS",
+      "child_exit_code": 0
+    },
+    {
+      "source_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\preparation-final2-domain\\artifacts\\execution.json",
+      "run": "preparation-final2-domain",
+      "source_patch_sha256": "9a419452b01e8f511b35468b2d3f6880ad3489d41bcfe1b11b7fd1ae2af60302",
+      "source_consistent": true,
+      "sha256": "2cf245db78148e46acd823551ebd791144ca6b684466420a86fdc1b64eb1a3c1",
+      "status": "LOCAL_PASS",
+      "child_exit_code": 0
+    },
+    {
+      "source_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\preparation-final2-tsc\\artifacts\\execution.json",
+      "run": "preparation-final2-tsc",
+      "source_patch_sha256": "9a419452b01e8f511b35468b2d3f6880ad3489d41bcfe1b11b7fd1ae2af60302",
+      "source_consistent": true,
+      "sha256": "d33ca41adee1b246236d21d5557dbc28142326f2c681aede5ee8d3d842e868ac",
+      "status": "LOCAL_PASS",
+      "child_exit_code": 0
+    },
+    {
+      "source_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\preparation-final-contract\\artifacts\\execution.json",
+      "run": "preparation-final-contract",
+      "source_patch_sha256": "b1300202f13a4dbc02c202ecb972661a1871135c24acbcb196b041c866494119",
+      "source_consistent": true,
+      "sha256": "dc6872481e8b7a797a724bdf0eb51190e8bb694aad516a8f3a70880019ea99b8",
+      "status": "LOCAL_PASS",
+      "child_exit_code": 0
+    },
+    {
+      "source_commit": "391b1632dc164bd01325161697e184a77fbbec07",
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\4e215f9ac8\\preparation-final2-gate\\artifacts\\execution.json",
+      "run": "preparation-final2-gate",
+      "source_patch_sha256": "9a419452b01e8f511b35468b2d3f6880ad3489d41bcfe1b11b7fd1ae2af60302",
+      "source_consistent": true,
+      "sha256": "f154b88bc5401ba23740f216b6ce6a9540c047d2e2eec55e4c42704302a361fa",
+      "status": "LOCAL_PASS",
+      "child_exit_code": 0
+    }
+  ],
+  "task": "AX-HOST-20261013/BE09",
+  "rollback": "Revert delivery commit; no database migration introduced.",
+  "limitations": [
+    "Frontend tests are SYNTHETIC; Core API test uses actual project SQLite Store and router.",
+    "No native candidate rebuild, installed-runtime, CI, push, merge or Owner qualification performed here.",
+    "The final type-only annotation follows the 109-test run; final 13-test rerun and type/domain/gate validate the final patch."
+  ],
+  "overall_be09": "PARTIAL; formal rejected teaching request recovery follows separately"
+}

@@ -7,6 +7,7 @@ import { assertAiAssetDto } from "./generated/ai-asset-contract";
 import { assertTeachingDto } from "./generated/teaching-contract";
 import { assertCollectionDto } from "./generated/collection-contract";
 import { assertUiWorkingState } from "./generated/ui-working-state-contract";
+import { assertLayoutDto } from "./generated/layout-contract";
 export type { CoreOperation } from "./generated/core-contract";
 const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_list:"RecordPage",teaching_get:"RecordView",teaching_create:"WriteReceipt",
@@ -14,6 +15,11 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  source_job_format_qualification: "FileFormatQualificationDto",
+  configuration_plans_read: "ConfigurationPlanCatalog",
+  character_memory_get:"CharacterProfile", character_memory_context:"CharacterContext",
+  character_memory_apply:"CharacterMemoryReceipt", character_memory_export:"CharacterMemoryExport",
+  model_configuration_get:"ModelConfiguration", model_configuration_put:"ModelConfiguration", model_configuration_resolve:"ResolvedModel",
   machine_configuration: "MachineConfigurationDto",
   machine_inventory: "MachineInventoryDto",
   ui_state_machine_status: "MachineJournalStatusDto",
@@ -88,6 +94,10 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
       : response.status >= 500 ? `本地核心未能完成 ${operation}（${response.status}）。`
       : `本地核心拒绝了 ${operation}（${response.status}）。`;
     throw new ApiError(response.status, reason, response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
+  }
+  if (["layout_read", "layout_write", "layout_recover"].includes(operation)) {
+    try { return assertLayoutDto<T>("Snapshot", response.body); }
+    catch { throw new ApiError(502, "布局回读格式无效，请保留当前布局。", "incompatible"); }
   }
   const schema = responseSchemas[operation];
   if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_clear_machine", "ui_state_recover"].includes(operation)) {

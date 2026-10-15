@@ -16,6 +16,7 @@ pub mod course;
 pub mod document;
 pub mod expression;
 pub mod knowledge;
+pub mod layout;
 pub mod learning;
 pub mod machine;
 pub mod machine_evaluation;
@@ -32,3 +33,11 @@ pub mod vault_members;
 
 pub use source::ImportOutcome;
 pub mod portable_document;
+
+pub mod configuration_plans;
+pub mod material_question;
+pub mod model_configuration;
+
+pub mod character_memory;
+
+pub mod readiness;

@@ -4,12 +4,18 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalKnowledgeSpace } from "../spaces/CanonicalKnowledgeSpace";
 import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
+import { CAPABILITY_CATALOG } from "../api/generated/capability-catalog";
 import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
 import { ApiError } from "../api/client";
 import { coreFailureReason, failureMessage } from "../presentation/labels";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
+
+function scopedReadiness(body:{scope:string;operations:readonly string[]}) {
+ const expires=Date.now()+30_000;
+ return {schema:"archeaxis.operation-readiness/v1",scope:body.scope,observed_at_ms:Date.now(),expires_at_ms:expires,aggregate:"UNVERIFIED",network_performed:false,models_loaded:false,execution_authorized:false,operations:body.operations.map(operation=>({operation,implementation:"IMPLEMENTED",dependencies:"AVAILABLE",connection:"UNKNOWN",qualification:"UNVERIFIED",permission:"ENABLED",status:"UNVERIFIED",reasons:["CONNECTION_NOT_PROBED","RUNTIME_QUALIFICATION_UNVERIFIED"],expires_at_ms:expires}))};
+}
 
 async function failSearch(error: unknown) {
   bridge.call.mockRejectedValueOnce(error);
@@ -28,22 +34,23 @@ describe("UI-03 distinct failure states", () => {
   it("clears an old capability failure only after a validated successful refresh", async () => {
     bridge.call.mockRejectedValueOnce(new ApiError(0, "offline", "offline"));
     const user = userEvent.setup();
-    render(<CanonicalCapabilitiesSpace onNavigate={() => {}} />);
+    render(<CanonicalCapabilitiesSpace onNavigate={() => {}} selectedCapabilityId="CAP-0050" />);
     await screen.findByText(/^离线：/);
+    await user.click(screen.getByRole("tab", { name: "目录与搜索" }));
     const refresh = screen.getByRole("button", { name: "刷新当前健康与权限" });
-    bridge.call.mockResolvedValueOnce({ capabilities: [] });
+    bridge.call.mockResolvedValueOnce(scopedReadiness({scope:"view:CAP-0050",operations:CAPABILITY_CATALOG.entries.find(entry=>entry.atlas.capability_id==="CAP-0050")!.implementation.runtime_capabilities}));
     await user.click(refresh);
-    await screen.findByText("已读取当前 Core worker 握手；不代表引擎产物通过。");
+    await screen.findByText("已读取当前视图的范围化状态；连接与运行资格分别保留未知，不加载模型。");
     expect(screen.queryByText(/^离线：/)).not.toBeInTheDocument();
     expect(screen.getAllByRole("status")).toHaveLength(1);
     bridge.call.mockRejectedValueOnce(new ApiError(403, "denied", "unauthorized"));
     await user.click(refresh);
     await screen.findByText(/^权限：/);
-    bridge.call.mockResolvedValueOnce({ capabilities: [{ health: "ready" }] });
+    bridge.call.mockResolvedValueOnce({...scopedReadiness({scope:"view:CAP-0050",operations:["machine.answer"]}),scope:"other-view"});
     await user.click(refresh);
     await screen.findByText("当前健康与权限读取失败，显示未知；目录详情仍可浏览。");
     expect(screen.queryByText(/^权限：/)).not.toBeInTheDocument();
-    expect(screen.queryByText("已读取当前 Core worker 握手；不代表引擎产物通过。")).not.toBeInTheDocument();
+    expect(screen.queryByText("已读取当前视图的范围化状态；连接与运行资格分别保留未知，不加载模型。")).not.toBeInTheDocument();
     expect(screen.getAllByRole("status")).toHaveLength(1);
   });
 
@@ -89,7 +96,7 @@ describe("UI-03 distinct failure states", () => {
   // case above.
   it.each([
     ["学习", () => render(<CanonicalLearningSpace />), new ApiError(404, "本地核心找不到 learning_items 所需的对象。", "unavailable"), /^缺失：/],
-    ["全能力目录", () => render(<CanonicalCapabilitiesSpace onNavigate={() => {}} />), new ApiError(429, "本地核心繁忙，请稍后重试。", "unavailable"), /^繁忙：/],
+    ["全能力目录", () => render(<CanonicalCapabilitiesSpace onNavigate={() => {}} selectedCapabilityId="CAP-0050" />), new ApiError(429, "本地核心繁忙，请稍后重试。", "unavailable"), /^繁忙：/],
   ])("shows the classified reason on %s as plain text, not as a second announcement", async (_page, renderPage, error, pattern) => {
     bridge.call.mockRejectedValue(error);
     renderPage();
@@ -103,7 +110,7 @@ describe("UI-03 distinct failure states", () => {
   // the knowledge-page case above already pins for a single surface.
   it.each([
     ["学习", () => render(<CanonicalLearningSpace />), new ApiError(404, "本地核心找不到 learning_items 所需的对象。", "unavailable")],
-    ["全能力目录", () => render(<CanonicalCapabilitiesSpace onNavigate={() => {}} />), new ApiError(429, "本地核心繁忙，请稍后重试。", "unavailable")],
+    ["全能力目录", () => render(<CanonicalCapabilitiesSpace onNavigate={() => {}} selectedCapabilityId="CAP-0050" />), new ApiError(429, "本地核心繁忙，请稍后重试。", "unavailable")],
   ])("leaves %s with exactly one status live region while the same read fails", async (_page, renderPage, error) => {
     bridge.call.mockRejectedValue(error);
     renderPage();

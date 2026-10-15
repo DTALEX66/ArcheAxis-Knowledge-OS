@@ -46,7 +46,13 @@ def _load_smoke_module():
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
     assert spec.loader is not None
-    spec.loader.exec_module(module)
+    # Match the direct script entry point without relying on another test to
+    # have leaked scripts/ into the interpreter search path.
+    sys.path.insert(0, str(path.parent))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.remove(str(path.parent))
     return module
 
 

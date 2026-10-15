@@ -13,6 +13,7 @@ from pathlib import Path
 
 from desktop.scripts.stage_runtime import stage_runtime
 from scripts.runtime import dev as runtime_paths
+from scripts.runtime.build_timing import BuildTimings
 
 
 def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path) -> Path:
@@ -43,6 +44,7 @@ def clear_cached_bundle_resources(*, repository: Path) -> None:
     target_text = os.environ.get("CARGO_TARGET_DIR")
     if not target_text:
         return
+    target_text = os.environ.get("ARCHEAXIS_CARGO_TAURI_TARGET_DIR", target_text)
     target = Path(target_text).resolve()
     common = Path(subprocess.check_output(
         ["git", "rev-parse", "--path-format=absolute", "--git-common-dir"],
@@ -66,8 +68,9 @@ def clear_cached_bundle_resources(*, repository: Path) -> None:
             stager.filesystem_path(path).unlink()
 
 
-def _run(command: list[str], *, cwd: Path, env: dict[str, str]) -> None:
-    subprocess.run(command, cwd=cwd, env=env, check=True)
+def _run(command: list[str], *, cwd: Path, env: dict[str, str], stage: str, timings: BuildTimings) -> None:
+    with timings.stage(stage):
+        subprocess.run(command, cwd=cwd, env=env, check=True)
 
 
 def runtime_build_environment(repository: Path) -> dict[str, str]:
@@ -102,7 +105,10 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         raise RuntimeError("uv is required to prepare the desktop runtime")
 
     env = runtime_build_environment(repository)
-    staged_python = stage_runtime(repository=repository, destination=destination)
+    timings = BuildTimings(Path(env["ARCHEAXIS_RUN_ROOT"]) / "artifacts", env)
+    with timings.stage("python-copy") as copy:
+        staged_python = stage_runtime(repository=repository, destination=destination)
+        copy["bytes"] = sum(path.stat().st_size for path in staged_python.parent.rglob("*") if path.is_file())
     requirements = destination / "requirements.locked.txt"
     wheels = destination / "wheels"
     # The pinned setuptools backend builds in place even when uv's wheel output
@@ -134,6 +140,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         ],
         cwd=repository,
         env=env,
+        stage="dependency-export", timings=timings,
     )
     _run(
         [
@@ -149,11 +156,13 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         ],
         cwd=repository,
         env=env,
+        stage="dependency-install", timings=timings,
     )
     _run(
         [uv, "build", "--quiet", "--python", str(staged_python), "--wheel", "--out-dir", str(wheels), *settings],
         cwd=repository,
         env=env,
+        stage="wheel-build", timings=timings,
     )
     built_wheels = tuple(wheels.glob("archeaxis_workspace-*.whl"))
     if len(built_wheels) != 1:
@@ -171,6 +180,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         ],
         cwd=repository,
         env=env,
+        stage="wheel-install", timings=timings,
     )
     _run(
         [
@@ -181,6 +191,7 @@ def prepare_bundle_runtime(*, repository: Path, destination: Path) -> Path:
         ],
         cwd=destination,
         env=env,
+        stage="runtime-import-check", timings=timings,
     )
     return staged_python
 

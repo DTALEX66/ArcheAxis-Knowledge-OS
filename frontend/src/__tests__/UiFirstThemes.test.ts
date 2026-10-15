@@ -3,11 +3,11 @@ import { AAOS_THEMES, readThemePreference } from "../design-system/theme";
 
 describe("UI-first theme selection", () => {
   it("defaults new profiles to the new design while preserving every existing preference", () => {
-    expect(readThemePreference({ getItem: () => null })).toBe("blueprint");
+    expect(readThemePreference({ getItem: () => null })).toBe("cosmic");
     for (const id of ["black", "white", "cosmic", "blueprint", "blueprint-light"]) {
       expect(AAOS_THEMES.some(theme => theme.id === id)).toBe(true);
       expect(readThemePreference({ getItem: () => id })).toBe(id);
     }
-    expect(readThemePreference({ getItem: () => { throw new Error("unavailable"); } })).toBe("blueprint");
+    expect(readThemePreference({ getItem: () => { throw new Error("unavailable"); } })).toBe("cosmic");
   });
 });

@@ -1,0 +1,178 @@
+{
+  "schema": "archeaxis.learning-drafts-execution/v1",
+  "date": "2026-10-15",
+  "overall": "PARTIAL",
+  "slice": "BE09_LEARNING_ANSWER_DRAFTS_LOCAL_VERIFIED",
+  "base_commit": "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+  "source_patch_sha256": "50d56e989203934123067fd4508182461e125786704d98a7bd2d156dba67cea4",
+  "code_files_sha256": [
+    {
+      "path": "crates/archeaxis-domain/src/ui_state.rs",
+      "sha256": "2fb74de862936e85948abadac8ce1ab49f2d99a109504bb90b3ae2c5bb131ccc"
+    },
+    {
+      "path": "crates/archeaxis-domain/tests/ui_working_state.rs",
+      "sha256": "26619e38c4fa8c88e5bcc3dc384441caa91ea0e088920e3a6a462a5b738ae1bd"
+    },
+    {
+      "path": "frontend/src/__tests__/AppSceneNavigationGuard.test.tsx",
+      "sha256": "aee1777c680cd00fe55a9099e6469d03c992d33bc554497026a163501a617725"
+    },
+    {
+      "path": "frontend/src/__tests__/CanonicalLearningDrafts.test.tsx",
+      "sha256": "047fece8d1c5fd4462027146d655c98a5a8f31a96be2cb25f3583074ff137f5d"
+    },
+    {
+      "path": "frontend/src/__tests__/CoreWorkingState.test.ts",
+      "sha256": "47b379a4f417498ca64509d5aa340b59d6970667e330c184f73be41f95558ec8"
+    },
+    {
+      "path": "frontend/src/api/generated/ui-working-state-contract.ts",
+      "sha256": "b1b691fc13be25bd0851c4e08bb3f129f08016e99a2cddf732609ee0ee14422a"
+    },
+    {
+      "path": "frontend/src/app/App.tsx",
+      "sha256": "6ba7b05c200588c84b8681e644732aed695713ddfb07ade369e82617ca3b39b5"
+    },
+    {
+      "path": "frontend/src/presentation/coreWorkingState.ts",
+      "sha256": "fa3979e8b6a7df805c8aad60ece65c68af3ca23c3fb6c535a82fb5eb9c79fc60"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalLearningSpace.tsx",
+      "sha256": "b16b432e15b822566cf48a5929e35629ac2948696f82869279dc93edaa55504a"
+    },
+    {
+      "path": "packages/contracts/v2/ui-working-state.schema.json",
+      "sha256": "6ffceed378b093aa051e02b721286997a3dfb950fffc1379193c6a014f3a92d4"
+    }
+  ],
+  "changes": [
+    "Core UI working state preserves independent unsubmitted learning drafts keyed by immutable assessment identity, including raw answer whitespace, reveal/check/rating state and revision binding.",
+    "Switching questions and reopening a Core working-state session restore the matching draft; earlier assessments remain separately readable and require explicit discard.",
+    "Rust validates CAS workspace/restore/revision and real persisted assessment bindings. Restore quarantine still requires explicit preserve/discard.",
+    "Frozen review payload and event identity remain immutable. Draft/review cleanup waits for matching Core ACK or readback; lost ACK preserves local answers and execution intent.",
+    "Preflight checks draft count, UTF-8 field/answer limits and total working-state size before shared-state mutation, including the extra frozen-review payload.",
+    "App navigation and recovery preview include learning drafts; delayed question responses cannot replace the selected question."
+  ],
+  "evidence": {
+    "original_regression": {
+      "state": "RED_CONFIRMED",
+      "level": "SIMULATED",
+      "failed_tests": 2,
+      "reason": "Unsubmitted answers became empty after question switching and a new session.",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/learn-draft-red2/artifacts/execution.json",
+        "sha256": "164a6e2ee50e9c86443b954f587f77cd7f0fda328f9963f44fbd7531da5c9e45",
+        "status": "FAIL",
+        "exit_code": 1,
+        "source_consistent": true,
+        "source_commit": "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+        "source_patch_sha256": "a2ff5b53b3d280232dbbb2b3a4845883239af24f2775783633fa1e91429dacc9"
+      }
+    },
+    "frontend_targeted": {
+      "state": "PASS",
+      "level": "SIMULATED",
+      "tests": 74,
+      "files": 4,
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/learning-drafts-green5/artifacts/execution.json",
+        "sha256": "d327539bf379051d32e70769a1c4907c803137ec8a53f171ebe770deeafdef25",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "source_consistent": true,
+        "source_commit": "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+        "source_patch_sha256": "50d56e989203934123067fd4508182461e125786704d98a7bd2d156dba67cea4"
+      }
+    },
+    "rust_working_state": {
+      "state": "PASS",
+      "level": "INTEGRATED_SQLITE_SYNTHETIC_INPUT",
+      "tests": 17,
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/learning-drafts-rust-final/artifacts/execution.json",
+        "sha256": "2f2c291cd8e7a0ed52e1b796f71128e449ae6757887821188ea5367021ec483f",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "source_consistent": true,
+        "source_commit": "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+        "source_patch_sha256": "50d56e989203934123067fd4508182461e125786704d98a7bd2d156dba67cea4"
+      }
+    },
+    "typescript": {
+      "state": "PASS",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/learning-drafts-types-final/artifacts/execution.json",
+        "sha256": "bcd50f0ba4f6d281a0e8987cb0e708c315c01f297213252bfcaae5ebd1d356d6",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "source_consistent": true,
+        "source_commit": "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+        "source_patch_sha256": "50d56e989203934123067fd4508182461e125786704d98a7bd2d156dba67cea4"
+      }
+    },
+    "contract_generation": {
+      "state": "PASS",
+      "command": "python -B scripts/contracts/generate_ui_working_state.py --check"
+    },
+    "contracts_vnext": {
+      "state": "PASS",
+      "command": "python -B scripts/ci/check_vnext_contracts.py"
+    },
+    "diff_whitespace": {
+      "state": "PASS",
+      "command": "git diff --check"
+    },
+    "independent_readonly_review": {
+      "state": "PASS_NO_REMAINING_BLOCKER",
+      "reviewer": "remaining_gap",
+      "scope": "Rust binding/CAS/recovery, asynchronous switching, capacity, frozen review and ACK loss retention",
+      "tests_repeated_by_reviewer": false
+    }
+  },
+  "retained_runs": [
+    {
+      "run": "learning-drafts-green2",
+      "state": "INVALIDATED",
+      "reason": "All 65 child tests passed but concurrent rustfmt changed source fingerprint; superseded by later source-consistent runs."
+    }
+  ],
+  "known_warnings": [
+    "Existing unused imports in ai_asset.rs and asset_context_grant.rs; unrelated files were not changed."
+  ],
+  "remaining": [
+    "Current native UI to Rust end-to-end draft recovery is not qualified by these simulated UI and SQLite integration tests.",
+    "Installed runtime, exact-SHA CI, Owner acceptance and full BE09 remaining editable surfaces are not qualified."
+  ],
+  "delivery": {
+    "scope": "LOCAL_COMMIT_ONLY",
+    "push": "NOT_EXECUTED",
+    "merge": "NOT_EXECUTED",
+    "release": "NOT_EXECUTED",
+    "installed": "UNVERIFIED"
+  },
+  "artifact_ownership": [
+    {
+      "path": ".project-local/worktrees/learning-drafts-20261015",
+      "purpose": "Isolated BE09 sole-writer source and local commit for root integration",
+      "retention": "Keep until integrated and parent approves archival"
+    },
+    {
+      "path": ".project-local/runs/4e215f9ac8",
+      "purpose": "Task-owned synthetic local verification evidence",
+      "retention": "Keep while referenced by this receipt"
+    },
+    {
+      "path": ".project-local/build/4e215f9ac8/cargo",
+      "purpose": "Rebuildable isolated Rust test output using existing shared dependency cache",
+      "retention": "Eligible for separately authorized cleanup after integration"
+    },
+    {
+      "path": ".project-local/worktrees/learning-drafts-20261015/frontend/node_modules",
+      "purpose": "Junction to existing optimization worktree dependencies; no package installation",
+      "retention": "Do not recursively delete the junction target"
+    }
+  ],
+  "metadata_boundary": "Receipt was written after validation; code hashes bind the tested behavior. Raw taskpacks, canonical progress, other worktrees and UI styles were not modified."
+}

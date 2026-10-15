@@ -10,6 +10,13 @@ if (typeof Range !== "undefined" && !Range.prototype.getClientRects) {
   Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
   Range.prototype.getBoundingClientRect = () => new DOMRect();
 }
+// Dockview measures native geometry with ResizeObserver. jsdom behavior tests
+// retain zero geometry; this does not qualify screen/pixel or installed runtime.
+if (typeof ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class {
+    observe() {} unobserve() {} disconnect() {}
+  };
+}
 
 // Vitest runs without globals, so React Testing Library's auto-cleanup is not
 // registered; unmount between tests to keep queries unambiguous.

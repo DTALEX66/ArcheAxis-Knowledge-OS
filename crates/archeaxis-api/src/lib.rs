@@ -9,7 +9,9 @@ mod anchor_resolution;
 pub mod ask;
 pub mod capabilities;
 mod documents;
+mod format_qualification;
 pub mod launch;
+mod layout;
 mod machine_governance;
 mod ocr_locator;
 mod pdf_locator;
@@ -71,6 +73,11 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
 pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
     let ui_routes = Router::new()
         .route(
+            "/api/v1/workspace/layout",
+            get(layout::read).put(layout::write),
+        )
+        .route("/api/v1/workspace/layout/recover", post(layout::recover))
+        .route(
             "/api/v1/workspace/ui-state",
             get(ui_state::read).put(ui_state::write),
         )
@@ -119,6 +126,10 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
             get(machine_governance::answer_snapshot),
         )
         .route("/api/v1/sources", get(documents::sources))
+        .route(
+            "/api/v1/sources/:source_id/jobs/:job_id/format-qualification",
+            get(format_qualification::read),
+        )
         .route(
             "/api/v1/sources/:source_id/original",
             get(documents::original),

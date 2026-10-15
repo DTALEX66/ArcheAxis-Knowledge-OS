@@ -1,0 +1,168 @@
+{
+  "schema": "archeaxis.library-refresh-execution/v1",
+  "date": "2026-10-15",
+  "overall": "PARTIAL",
+  "slice": "RETAINED_LIBRARY_REFRESH_LOCAL_VERIFIED",
+  "base_commit": "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+  "source_patch_sha256": "4ec91a81f9667114a1897084f3df920bedd983c62decadae0fda44d1d83deace",
+  "code_files_sha256": [
+    {
+      "path": "frontend/src/workspace/DockWorkspace.tsx",
+      "sha256": "13b827f9111c9300a0c1e78929e1d8126ffb7ed71c24cb8805a6b3b2ed86acaa"
+    },
+    {
+      "path": "frontend/src/spaces/SpaceView.tsx",
+      "sha256": "99945883f2bbc0332b3892dadb4b0869407eb88f177dffe0c61c9254fac90ed7"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalLibrarySpace.tsx",
+      "sha256": "dcedda261e707545b1aaae8723b637140fece720dab48fbd5ff778efef2d698a"
+    },
+    {
+      "path": "frontend/src/__tests__/LibraryRefresh.test.tsx",
+      "sha256": "121c1d5b202b3746e4111ed4efd0c9bb382ea085e90809bcddae60fe641e3e49"
+    },
+    {
+      "path": "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx",
+      "sha256": "272be415988476502d29d916b5e71653d98948da2c6f7d6857556dd312e8f519"
+    }
+  ],
+  "changes": [
+    "Dockview visibility activation refreshes retained library metadata without remounting business content.",
+    "Existing archeaxis-job-changed events and explicit list retry refresh source and document lists; original imports share the same refresh path.",
+    "Independent list generations discard stale first-page and pagination replies, including finalizers. Successful document create/save/restore ACK invalidates older in-flight reads.",
+    "Selected originals, dirty editors, frozen unknown requests and write state remain independent from metadata refresh.",
+    "A source navigation target is resolved from a fresh snapshot. Read failures remain explicitly retriable, successful targets are consumed once, and later manual selection or editing wins over delayed navigation."
+  ],
+  "evidence": {
+    "original_regression": {
+      "state": "RED_CONFIRMED",
+      "level": "SIMULATED",
+      "failed_tests": 2,
+      "reason": "Real retained Dockview navigation and external import notification did not reveal imported source metadata.",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/library-refresh-red2/artifacts/execution.json",
+        "sha256": "d6605644761bea93a6d1c6c3fba910f3328be9a6aa068538db3be32ce377e450",
+        "status": "FAIL",
+        "exit_code": 1,
+        "source_consistent": true,
+        "source_commit": "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+        "source_patch_sha256": "8b9f2a0aa1906def797fa7d6cb8a7cf5be86b4eb4e09ccfad3af3809ea3eefba"
+      }
+    },
+    "ack_race_regression": {
+      "state": "RED_CONFIRMED",
+      "level": "SIMULATED",
+      "failed_tests": 1,
+      "reason": "An old list snapshot downgraded a summary after a confirmed document save.",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/library-save-race-red2/artifacts/execution.json",
+        "sha256": "c16d5d5cd7d9a2ac8eaae2846131231d557c86c99e16b507d68920afc193e8eb",
+        "status": "FAIL",
+        "exit_code": 1,
+        "source_consistent": true,
+        "source_commit": "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+        "source_patch_sha256": "8a73a5d662bb828829c41857e1bef5948309484f25ebe170a3f417a9366de9d8"
+      }
+    },
+    "source_target_regression": {
+      "state": "RED_CONFIRMED",
+      "level": "SIMULATED",
+      "failed_tests": 1,
+      "reason": "A new source target was rejected against retained old metadata and never retried after refresh.",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/library-target-red/artifacts/execution.json",
+        "sha256": "90aab2f4cbad15cb6eb68c3fa988e3e891ee615a3e1465c27d08d61b8f9bcb8d",
+        "status": "FAIL",
+        "exit_code": 1,
+        "source_consistent": true,
+        "source_commit": "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+        "source_patch_sha256": "764bace90615ccb696b68ce614489db5f4b0e3e79a13c18dfc6906e93e1f4941"
+      }
+    },
+    "frontend_targeted": {
+      "state": "PASS",
+      "level": "SIMULATED",
+      "tests": 73,
+      "files": 5,
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/library-refresh-green5/artifacts/execution.json",
+        "sha256": "96678a2e579294ee286851d4db4f1bad85291a54033c509befb83262a2ec996c",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "source_consistent": true,
+        "source_commit": "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+        "source_patch_sha256": "4ec91a81f9667114a1897084f3df920bedd983c62decadae0fda44d1d83deace"
+      }
+    },
+    "typescript": {
+      "state": "PASS",
+      "command": "node frontend/node_modules/typescript/bin/tsc -p frontend/tsconfig.json --noEmit"
+    },
+    "diff_whitespace": {
+      "state": "PASS",
+      "command": "git diff --check"
+    },
+    "independent_readonly_review": {
+      "state": "PASS_NO_REMAINING_BLOCKER",
+      "reviewer": "remaining_gap",
+      "tests_repeated_by_reviewer": false,
+      "scope": "Visibility activation, stale reads, ACK races, source target retry and manual selection precedence"
+    },
+    "source_read_retry_regression": {
+      "state": "RED_CONFIRMED",
+      "level": "SIMULATED",
+      "failed_tests": 1,
+      "reason": "Reader navigation consumed a target before source read succeeded, leaving no usable retry after temporary failure.",
+      "proof": {
+        "path": ".project-local/runs/4e215f9ac8/library-reader-retry-red/artifacts/execution.json",
+        "sha256": "960f61cc2c619ac91b07066f47afa5aee796838a19281e8b7de81452cd592ef2",
+        "status": "FAIL",
+        "exit_code": 1,
+        "source_consistent": true,
+        "source_commit": "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+        "source_patch_sha256": "33062aff42b35e7985789e16710d126c2c7de0d70698d67e5b1b8165e519b12b"
+      }
+    },
+    "changed_file_conventions": {
+      "state": "PASS",
+      "files": 6,
+      "issues": 0,
+      "entrypoints": [
+        "scan_path_set",
+        "scan_text_bytes",
+        "scan_naming_forbidden_terms"
+      ],
+      "script": "scripts/check_repository_conventions.py"
+    }
+  },
+  "remaining": [
+    "Core was mocked in UI tests; installed native bridge behavior and the CI installer probe remain unverified by this receipt.",
+    "Exact-SHA CI and Owner acceptance are outside this local checkpoint."
+  ],
+  "delivery": {
+    "scope": "LOCAL_COMMIT_ONLY",
+    "push": "NOT_EXECUTED",
+    "merge": "NOT_EXECUTED",
+    "release": "NOT_EXECUTED",
+    "installed": "UNVERIFIED"
+  },
+  "artifact_ownership": [
+    {
+      "path": ".project-local/worktrees/learning-drafts-20261015",
+      "purpose": "Isolated library-refresh sole-writer branch for root integration; previous BE09 branch preserved",
+      "retention": "Keep until integrated and parent approves archival"
+    },
+    {
+      "path": ".project-local/runs/4e215f9ac8",
+      "purpose": "Task-owned library regression evidence in the exact run directories named by evidence proofs; shared run parent also retains separately owned BE09 evidence",
+      "retention": "Keep proof-bearing runs referenced by this receipt; other development runs require separate cleanup authorization"
+    },
+    {
+      "path": ".project-local/worktrees/learning-drafts-20261015/frontend/node_modules",
+      "purpose": "Existing dependency junction; no installation or new build cache",
+      "retention": "Preserve shared target; no recursive deletion"
+    }
+  ],
+  "metadata_boundary": "Receipt added after validation; code hashes bind the tested sources. No probe, CSS, schema, canonical progress, raw taskpack or other worktree was changed."
+}

@@ -52,7 +52,7 @@ async fn raw_call(
     )
 }
 
-const READY_PREAMBLE: &str = "import os,json\nfrom pathlib import Path\n_d=Path(os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR'])\n(_d/'ready.json').write_text(json.dumps({'schema':'archeaxis.egress-dispatch/v1','egress_sha256':os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH']}))\n";
+const READY_PREAMBLE: &str = "import os,json\nfrom pathlib import Path\n_d=Path(os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR'])\n(_d/'ready.tmp').write_text(json.dumps({'schema':'archeaxis.egress-dispatch/v1','egress_sha256':os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH']}))\n(_d/'ready.tmp').replace(_d/'ready.json')\n";
 
 #[tokio::test]
 async fn actual_check_worker_dispatches_only_exact_confirmed_material_with_synthetic_transports() {
@@ -69,6 +69,9 @@ async fn actual_check_worker_dispatches_only_exact_confirmed_material_with_synth
             r#"import importlib.util,json,sys
 from pathlib import Path
 from types import SimpleNamespace
+import faulthandler
+_trace=Path(__file__).with_suffix(".stack").open("w")
+faulthandler.dump_traceback_later(5,repeat=True,file=_trace)
 root=Path({root})
 sys.path.insert(0,str(root/'services/python-workers/machine'))
 import document_check as worker
@@ -152,7 +155,12 @@ raise SystemExit(worker.main())
             assert_eq!(result["reason"], "dispatch_actual_material_mismatch");
             assert_eq!(result["execution_verified"], false);
         } else {
-            assert_eq!(operations, json!(["search", "article", "model"]));
+            assert_eq!(
+                operations,
+                json!(["search", "article", "model"]),
+                "{result}; synthetic worker stack: {}",
+                std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+            );
             assert_eq!(result["execution_verified"], true, "{result}");
             assert_eq!(result["engine_receipt"]["model"], "SIMULATED-model");
         }
@@ -175,6 +183,9 @@ async fn configured_worker_is_outside_writer_transaction_and_old_version_readbac
         r#"import importlib.util,json,sys
 from pathlib import Path
 from types import SimpleNamespace
+import faulthandler
+_trace=Path(__file__).with_suffix(".stack").open("w")
+faulthandler.dump_traceback_later(5,repeat=True,file=_trace)
 root=Path({root})
 sys.path.insert(0,str(root/'services/python-workers/machine'))
 import document_check as worker
@@ -332,7 +343,12 @@ raise SystemExit(worker.main())
     let (status, terminal) = task.await.unwrap();
     assert_eq!(status, 201, "{terminal}");
     assert_eq!(terminal["version"], 1);
-    assert_eq!(terminal["execution_verified"], true);
+    assert_eq!(
+        terminal["execution_verified"],
+        true,
+        "{terminal}; synthetic worker stack: {}",
+        std::fs::read_to_string(script.with_extension("stack")).unwrap_or_default()
+    );
     assert_eq!(terminal["status"], "uncertain");
     assert_eq!(terminal["actor"], "machine");
     assert_eq!(terminal["egress_plan"]["scope"], "selected_text");

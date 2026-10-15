@@ -1,0 +1,102 @@
+{
+  "schema": "archeaxis.reader-responsive/v1",
+  "date": "2026-10-16",
+  "status": "PASS_BOUNDED_RENDERING_AND_INTERACTION",
+  "overall_reference_acceptance": "PARTIAL",
+  "source_revision": {
+    "base_commit": "5ae78579422d552245236d740f4d47480aa4ddbc",
+    "worktree_dirty": true,
+    "worktree_diff_sha256": "b375783066e583408066786f40acacaf97511eeb72d905917d9c09669438d2cd"
+  },
+  "source_consistent": true,
+  "original_failure": {
+    "run": ".project-local/runs/ba8e5e5614/reference-reader-1016",
+    "viewport": "390x844",
+    "window_width": 390,
+    "main_content_width": 88,
+    "document_width": 100,
+    "cause": "Retained 300px Inspector consumed horizontal width; smaller wrapped status bar retained fixed height and visible full search text."
+  },
+  "changes": [
+    "At <=900px retain Inspector below full-width content, capped at 40 percent of body height with independent scrolling and existing close/reopen controls.",
+    "At <=640px use an automatically sized three-row header, retain search/settings accessible controls, theme, current space, Inspector and complete backend status.",
+    "Add the actual 390px reader regression to the existing CI browser surface, with close/reopen, retained document, hit targets and keyboard focus contrast checks."
+  ],
+  "validation": {
+    "raw_receipt": ".project-local/runs/ba8e5e5614/reader-accessibility-final-1016/artifacts/browser-smoke/reference-reader.json",
+    "raw_sha256": "13ed4a121ff5e69da5f474448351737379925b8ae933839c89336ce5e90f7087",
+    "cases": 14,
+    "themes": 5,
+    "widths": [
+      390,
+      640,
+      900,
+      901,
+      1672
+    ],
+    "browser_errors": [],
+    "browser_contract_tests": 5,
+    "targeted_lint": "PASS",
+    "evidence_level": "SIMULATED_HOST_CORE_FIXTURE_RENDERED_IN_REAL_CHROMIUM"
+  },
+  "reference_size_readback": {
+    "viewport": "1672x941@100",
+    "inspector": "Closed using existing control as in reference image 4",
+    "geometry": {
+      "shell": {
+        "x": 77.984375,
+        "y": 55.984375,
+        "width": 1516.03125,
+        "height": 843.59375,
+        "right": 1594.015625,
+        "bottom": 899.578125
+      },
+      "document": {
+        "x": 360.984375,
+        "y": 321.984375,
+        "width": 772.0625,
+        "height": 518,
+        "right": 1133.046875,
+        "bottom": 839.984375
+      },
+      "details": {
+        "x": 1149.046875,
+        "y": 321.984375,
+        "width": 395.9375,
+        "height": 518,
+        "right": 1544.984375,
+        "bottom": 839.984375
+      },
+      "metadata": [
+        {
+          "display": "grid",
+          "columns": "110px 211.938px",
+          "text": "内容身份\n原创笔记"
+        },
+        {
+          "display": "grid",
+          "columns": "110px 211.938px",
+          "text": "文档版本\nv1"
+        },
+        {
+          "display": "grid",
+          "columns": "110px 211.938px",
+          "text": "来源版本\n未绑定；保存不要求来源"
+        }
+      ],
+      "overflow": false
+    },
+    "screenshot": ".project-local/runs/ba8e5e5614/reader-accessibility-final-1016/artifacts/browser-smoke/reference-reader-1672x941-inspector-closed.png",
+    "sha256": "d503d8298b1271c2018a61505958c03b67c839275a8a9722c95490b9eb0f69e2",
+    "finding": "Full-window background, inset shell, two reader columns and horizontal metadata rows are implemented and visible; not merely an archived task."
+  },
+  "limitations": [
+    "Controlled document and host/Core fixture; not actual native, installed or Owner acceptance.",
+    "Seven-reference matching, alternate top navigation and remaining non-character pages remain PARTIAL.",
+    "Raw screenshots and runtimes retained locally; no QODER character implementation."
+  ],
+  "earlier_attempts": [
+    "reader-responsive-1016 in donor: validation environment unavailable (Node/Vite absent), not a product failure.",
+    "reader-responsive-integrated-1016: 13 layout cases passed, visual inspection then found separate small-header overlap; fixed and rechecked."
+  ]
+}

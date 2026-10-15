@@ -13,13 +13,19 @@ use serde_json::{Value, json};
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 
+mod character_memory;
 mod colearning;
+mod configuration_plans;
 mod context_refusal;
+mod conversation;
 mod courses;
 mod execution_claim;
 mod execution_status_projection;
 mod job_journal;
 mod machine_journal;
+mod material_questions;
+mod model_configuration;
+pub mod readiness;
 mod semantic;
 mod withheld;
 use colearning::{machine_answer, record_correction, run_retest};
@@ -153,6 +159,11 @@ struct Runtime {
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
     Router::new()
+        .route("/api/v1/conversation/sessions", post(conversation::create))
+        .route("/api/v1/conversation/history", post(conversation::history))
+        .route("/api/v1/conversation/requests", post(conversation::request))
+        .route("/api/v1/conversation/cancel", post(conversation::cancel))
+        .route("/api/v1/conversation/status", post(conversation::status))
         .route(
             "/api/v1/workspace/ui-state/clear-machine",
             post(machine_journal::clear),
@@ -186,6 +197,7 @@ pub fn router(executor: Executor) -> Router {
         .route("/api/v1/jobs/:job_id/outputs/:kind", get(output))
         // R7/G1 capability surface. It lives here rather than with the projections because it reads
         // the executor's registered routes, and the executor is this router's state.
+        .route("/api/v1/operation-readiness", post(readiness::read))
         .route("/api/v1/capabilities", get(capabilities))
         .route("/api/v1/capabilities/:capability", get(capability))
         .route(
@@ -196,6 +208,43 @@ pub fn router(executor: Executor) -> Router {
         // needs the executor, and the executor is this router's state; the projection builder holds
         // only the store and cannot reach a worker.
         .route("/api/v1/machine/answers", post(machine_answer))
+        .route(
+            "/api/v1/material/questions",
+            post(material_questions::question),
+        )
+        .route(
+            "/api/v1/material/context",
+            post(material_questions::context),
+        )
+        .route(
+            "/api/v1/material/questions/cancel",
+            post(material_questions::cancel),
+        )
+        .route(
+            "/api/v1/material/questions/status",
+            post(material_questions::status),
+        )
+        .route("/api/v1/configuration-plans", get(configuration_plans::get))
+        .route(
+            "/api/v1/model-configuration",
+            get(model_configuration::get).put(model_configuration::put),
+        )
+        .route(
+            "/api/v1/model-configuration/resolve",
+            post(model_configuration::resolve),
+        )
+        .route(
+            "/api/v1/character-memory",
+            get(character_memory::get).post(character_memory::apply),
+        )
+        .route(
+            "/api/v1/character-memory/context",
+            get(character_memory::context),
+        )
+        .route(
+            "/api/v1/character-memory/export",
+            get(character_memory::export),
+        )
         .route("/api/v1/machine/configuration", get(machine_configuration))
         .route("/api/v1/machine/inventory", post(machine_inventory))
         // G2: Ask with citations. It needs the store and the domain search matcher, both reachable
@@ -497,6 +546,8 @@ struct CapabilityEnabledBody {
 #[serde(deny_unknown_fields)]
 struct MachineAnswerBody {
     #[serde(default)]
+    model_configuration: Option<archeaxis_domain::model_configuration::Resolved>,
+    #[serde(default)]
     model: Option<String>,
     #[serde(default)]
     client_request_id: Option<String>,
@@ -597,6 +648,8 @@ struct VaultLinksBody {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RetestBody {
+    #[serde(default)]
+    model_configuration: Option<archeaxis_domain::model_configuration::Resolved>,
     #[serde(default)]
     model: Option<String>,
     /// The machine task being retested.

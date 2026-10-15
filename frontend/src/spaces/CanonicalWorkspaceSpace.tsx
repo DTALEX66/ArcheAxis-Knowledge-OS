@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { DocumentSummaryDto } from "../api/generated/core-contract";
 import { coreFailureReason } from "../presentation/labels";
@@ -7,12 +7,12 @@ import { LocalDocumentSearch } from "../components/LocalDocumentSearch";
 import { workspaceReviews } from "../presentation/workspaceReview";
 import { AaosIcon } from "../components/AaosIcon";
 export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}:{onNavigate:(space:SpaceId)=>void;onOpenDocument?:(id:string)=>void;onReviewItem?:(key:string)=>void}) {
+  const searchOptions = useRef<HTMLDetailsElement>(null);
   const [documents,setDocuments] = useState<DocumentSummaryDto[]>([]);
   const [learning,setLearning] = useState<{item_key:string;next_review:string|null}[]>([]);
   const [state,setState] = useState("正在读取本地工作区…");
   const [failed,setFailed] = useState(false);
   const [retry,setRetry] = useState(0);
-  const [welcomeExpanded,setWelcomeExpanded] = useState(false);
   const [clock,setClock] = useState(Date.now);
   useEffect(()=>{
     const timer=window.setInterval(()=>setClock(Date.now()),60_000);
@@ -30,24 +30,36 @@ export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}
     return()=>{alive=false;};
   },[retry]);
   const reviews=workspaceReviews(learning,clock);
-  return <section className="ui-workspace" aria-label="今日工作台">
-    <div className={`ui-workspace-hero${welcomeExpanded?"":" ui-workspace-hero-compact"}`}>
-      <div className="workspace-orbits" aria-hidden="true"><span/><span/><span/><i/><i/><i/></div>
-      <small>ARCHEAXIS KNOWLEDGE / PERSONAL OBSERVATORY</small><h2>{welcomeExpanded?"把知识带回自己的工作区":"让知识，在此相连"}</h2>
-      <p className="workspace-hero-caption">阅读、记录、探索。回到你的知识轨道。</p>
-      <button aria-expanded={welcomeExpanded} aria-controls="workspace-welcome" onClick={()=>setWelcomeExpanded(value=>!value)}>{welcomeExpanded?"收起欢迎说明":"展开欢迎说明"}</button>
-      {welcomeExpanded?<p id="workspace-welcome">从阅读、记录与学习开始。普通笔记无需专业依据即可保存。</p>:null}
+  const empty=!failed&&!state&&documents.length===0&&learning.length===0;
+  return <section className={`ui-workspace cabin-workspace${empty?" cabin-workspace-empty":""}`} aria-label="今日工作台">
+    <div className="workspace-start">
+      <p className="workspace-top-only workspace-start-label">开始</p>
+      <div className="workspace-start-copy">
+        <h2>{empty?"从第一份资料开始":"你的知识空间"}</h2>
+        <p>导入资料，或先记下一个想法。</p>
+      </div>
+      <div className="workspace-entry-cards">
+        <section className="workspace-entry-card workspace-entry-card-primary"><AaosIcon name="ImportDocument" size={56}/><h3>导入资料</h3><p>文档、图片、音视频</p><button className="primary" onClick={()=>onNavigate("intake")}>导入第一份资料</button></section>
+        <section className="workspace-entry-card"><AaosIcon name="Write" size={56}/><h3>新建笔记</h3><p>记录想法，稍后整理</p><button aria-label="新建笔记与阅读" onClick={()=>onNavigate("library")}>新建笔记</button></section>
+      </div>
+      <div className="workspace-top-only workspace-quick-actions" aria-label="工作台快捷操作">
+        <button type="button" aria-label="查找本地文档" onClick={()=>{if(searchOptions.current){searchOptions.current.open=true;searchOptions.current.querySelector<HTMLInputElement>("input[type='search']")?.focus();}}}><AaosIcon name="Source" size={26}/></button>
+        <button type="button" aria-label="打开学习空间" onClick={()=>onNavigate("learning")}><AaosIcon name="Review" size={26}/></button>
+      </div>
+      <p className="workspace-local-note"><AaosIcon name="Lock" size={20}/>内容保存在本地</p>
     </div>
-    <div className="ui-workspace-actions"><button className="primary" onClick={()=>onNavigate("library")}><AaosIcon name="Knowledge"/>新建笔记与阅读</button><button onClick={()=>onNavigate("intake")}><AaosIcon name="Import"/>导入原件</button><button onClick={()=>onNavigate("settings")}><AaosIcon name="Connection"/>全部能力与系统</button></div>
-    <LocalDocumentSearch onOpenDocument={onOpenDocument}/>
+    <section className="workspace-top-only workspace-planet-hero" aria-label="开始使用知识空间">
+      <div><h2>你的知识空间</h2><p>从一份资料，或一个想法开始。</p><button type="button" onClick={()=>onNavigate("intake")}>开始使用<span aria-hidden="true"> →</span></button></div>
+    </section>
+    <details ref={searchOptions} className="workspace-search-options"><summary>搜索本地文档</summary><LocalDocumentSearch onOpenDocument={onOpenDocument}/></details>
     {state?<p role={failed?"alert":"status"}>{state}</p>:null}
     {failed?<button onClick={()=>setRetry(value=>value+1)}>重新读取工作区</button>:null}
-    {!failed&&!state?<div className="ui-workspace-grid">
+    {!failed&&!state&&!empty?<><div className="ui-workspace-grid">
       <section data-section="documents" tabIndex={-1}><div className="workspace-section-heading"><AaosIcon name="Source"/><h2>继续阅读与编辑</h2></div><p>本地已保存文档。列表不代表最近编辑排序。</p>{documents.length?<ul>{documents.slice(0,8).map(document=><li key={document.document_id}><button onClick={()=>onOpenDocument?.(document.document_id)}>{document.title} · v{document.version}</button><small>{document.source_id?"关联来源原件":"原创文档 · 未绑定来源"}</small></li>)}</ul>:<div className="workspace-empty"><AaosIcon name="Knowledge" size={28}/><p>还没有已保存文档，可从新建笔记开始。</p></div>}</section>
       <section data-section="review" tabIndex={-1}><div className="workspace-section-heading"><AaosIcon name="Review"/><h2>到期复习</h2></div><p>{reviews.due.length} 个已到期 · {reviews.unscheduled} 个未安排 · {reviews.unverified} 个日期待核实</p>
         {reviews.due.length?<ul>{reviews.due.slice(0,8).map(item=><li key={item.item_key}><button disabled={!onReviewItem} onClick={()=>onReviewItem?.(item.item_key)}>{item.item_key}</button><small>到期 {item.next_review}（UTC）</small></li>)}</ul>:<p>{learning.length?"当前没有已核实的到期复习。":"当前没有本地学习条目。"}</p>}
         {reviews.due.length>8?<p>先显示最早到期的 8 个，全部条目可进入学习查看。</p>:null}<button onClick={()=>onNavigate("learning")}>查看全部学习条目</button>
       </section>
-    </div>:null}
+    </div></>:null}
   </section>;
 }

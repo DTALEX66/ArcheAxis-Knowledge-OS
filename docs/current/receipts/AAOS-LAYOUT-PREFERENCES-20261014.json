@@ -1,0 +1,63 @@
+{
+  "schema": "archeaxis.layout-preferences-receipt/v1",
+  "date": "2026-10-14",
+  "task": "BE02",
+  "overall": "PARTIAL_INTEGRATED",
+  "implementation": [
+    "Workspace/device-isolated canonical Store CAS",
+    "Restart readback and no business draft writes",
+    "Unknown layout preservation and explicit bounded recovery",
+    "Restore epoch fence",
+    "Finite HTTP/native routes and generated Settings consumer"
+  ],
+  "local_validation": [
+    {
+      "scope": "domain",
+      "tests": 6,
+      "passed": 6,
+      "evidence_level": "INTEGRATED",
+      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-layout-000840",
+      "patch_sha256": "61b65adb042225174b793a21f8c8f5989baa278ec4a9258299b8624e5873f342"
+    },
+    {
+      "scope": "SQLite HTTP API",
+      "tests": 1,
+      "passed": 1,
+      "evidence_level": "INTEGRATED",
+      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-layout-api-real-235651",
+      "patch_sha256": "b2a51b3502641ef95d2593f931dad38d82840f401a23ae3394eeba5c05ee5d90"
+    },
+    {
+      "scope": "native finite bridge",
+      "tests": 1,
+      "passed": 1,
+      "evidence_level": "SYNTHETIC",
+      "run": ".project-local/runs/7d522a2a69/layout-native-20261014-001953-test",
+      "patch_sha256": "b08aba2f5a981ad5282d330f79f10653b5b64f95f1f29b024d5bf78dc8000e9f"
+    },
+    {
+      "scope": "complete frontend",
+      "tests": 1241,
+      "passed": 1241,
+      "evidence_level": "SIMULATED",
+      "run": ".project-local/runs/7d522a2a69/remaining-cancel-history-20261013-frontend-233532"
+    }
+  ],
+  "source_candidate": "7897bbd35d618efecf73c146e5334259bd4366a2",
+  "exact_sha_ci": "PENDING; resolve actual PR head and run live",
+  "installed_runtime": "UNVERIFIED",
+  "remaining": [
+    "BE01 formal host integration",
+    "FE06 complete Dock renderer",
+    "Installed runtime and Owner acceptance"
+  ],
+  "prior_attempts": "Sandbox permission failures and zero-test filter compilation are preserved and do not count as behavior PASS",
+  "stage1": {
+    "pr": 191,
+    "head": "b2e283b669dc096c9d1898882990825b0762488c",
+    "ci_run": 38428576086,
+    "ci": "PASS_REQUIRED_GATES",
+    "merge": "c541ed8315e54aaa111da64ba79c95cad19b408d"
+  },
+  "rollback": "Revert only task-owned changes; no schema migration or user-data overwrite"
+}

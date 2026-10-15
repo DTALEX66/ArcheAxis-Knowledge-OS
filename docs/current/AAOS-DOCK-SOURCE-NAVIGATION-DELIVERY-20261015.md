@@ -1,0 +1,11 @@
+# Dock source navigation repair — 2026-10-15
+
+Status: PASS for targeted frontend regression; native qualification remains with the integrating task.
+
+Problem: import page 16 and reader page 03 are separate retained Dockview business hosts. The source/job selection was stored only inside page 16's SpaceView, so switching to 03 lost its exact SourceJourneyTarget and could open an empty reader. A test that reused one SpaceView had hidden the defect.
+
+Change: WorkspaceDockSession owns the ephemeral source target. SpaceView accepts an optional controlled target/change port and retains its local fallback for non-Dock consumers. A pending request is applied only after the synchronous shell navigation guard actually reaches page 03 with the same explicit-document identity. A refused request is discarded immediately; it cannot change an existing hidden reader or reappear on a later manual visit. Explicit document changes and confirmed workspace invalidation clear the target; the existing workspace/restore key also creates a fresh owner. Page 16 and 03 stay independent hosts, preserving import controls and editor sessions. The source revision, SHA and pinned job pass intact; canonical bytes and job verification remain unchanged.
+
+Verification: `.project-local/runs/8bc12e00bb/dock-source-final` has 4 files / 38 tests PASS (SourceCandidateJourney 10, DockWorkspace 8, SemanticReadingLayout 10, LibraryRefresh 10). New tests use real Dockview + real SpaceView with SYNTHETIC Core and FolderIngest boundaries. They cover first reader creation, an already-retained reader, exact source/job/transform consumption, preserved import filtering, refusal followed by manual navigation, subsequent accepted source change, and explicit document selection. Existing non-Dock candidate/source/citation flows still pass. No automatic enqueue, execute or document save is introduced. `.project-local/runs/8bc12e00bb/dock-source-typecheck`: TypeScript noEmit PASS.
+
+Scope: SpaceView.tsx, DockWorkspace.tsx, SourceCandidateJourney.test.tsx, this receipt. No CSS, App.tsx, Core, contracts, QODER, provider or character changes. The earlier reader screenshot remains evidence for the preceding visual commit only. No repeat browser/native/full suite or push in this patch; parent performs the integrated native retry. Revert this independent commit for rollback.

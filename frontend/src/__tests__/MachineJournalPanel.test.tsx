@@ -70,6 +70,7 @@ it("SIMULATED multiple unresolved requests prevent a fresh inference",async()=>{
   expect(screen.getByRole("button",{name:"执行本地机器回答"})).toBeDisabled();expect(bridge.call).not.toHaveBeenCalled();
 });
 it("SIMULATED journal ACK loss prevents inference and reopening restores a read-only pending answer",async()=>{
+  bridge.call.mockImplementation(async(op:string)=>{if(op==="model_configuration_get")return {schema:"archeaxis.model-configuration/v1",revision:0,profiles:{},bindings:[],workspace_id:"a".repeat(32),restore_epoch:"initial"};throw new Error("Unexpected inference or command "+op);});
   vi.stubGlobal("crypto",webcrypto);
   try {
     let server:WorkingRead={schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false};
@@ -77,12 +78,12 @@ it("SIMULATED journal ACK loss prevents inference and reopening restores a read-
     const session=new CoreWorkingStateSession(transport);await session.load();
     const ui=render(<CoreWorkingStateProvider session={session}><MachineAnswerPanel knowledgeId="k1"/></CoreWorkingStateProvider>);
     const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"Frozen synthetic question");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
-    await screen.findByText(/回答未完成或持久化读回未确认/);expect(bridge.call).not.toHaveBeenCalled();
+    await screen.findByText(/回答未完成或持久化读回未确认/);expect(bridge.call.mock.calls.map(([op])=>op)).toEqual(["model_configuration_get"]);
     const entries=Object.values(server.state.pending_machine??{});expect(entries).toHaveLength(1);expect(entries[0].body.client_request_id).toBe(entries[0].journal_id);
     ui.unmount();const reopened=new CoreWorkingStateSession(transport);await reopened.load();
     render(<CoreWorkingStateProvider session={reopened}><MachineAnswerPanel knowledgeId="k1"/></CoreWorkingStateProvider>);
     await screen.findByText(/已恢复未确认的机器请求/);expect(screen.getByLabelText("实际问题")).toHaveValue("Frozen synthetic question");
-    expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();expect(bridge.call).not.toHaveBeenCalled();
+    expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();expect(bridge.call.mock.calls.map(([op])=>op)).toEqual(["model_configuration_get"]);
   } finally {vi.unstubAllGlobals();}
 });
 it.each([false,true])("SIMULATED duplicate frozen requests retire individually with external clear %s",async(externalClear)=>{

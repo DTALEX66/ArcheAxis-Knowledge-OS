@@ -257,3 +257,14 @@ cargo test -p archeaxis-api --test document_package_api --test contract_machine_
 ```
 
 These checks cover bounded human-only portable import and attempt-bound worker cancellation; they do not qualify real model inference.
+
+## 2026-10-16 per-file qualification and worker health checks
+
+Use the declared project Python through `scripts/runtime/dev.py`; on Windows the tracked `scripts/ci/cargo_test.bat` resolves the registered Rust/MSVC environment:
+
+```sh
+python -B scripts/runtime/dev.py -- scripts/ci/cargo_test.bat test -p archeaxis-api --test file_format_qualification --test source_transform_readback --test job_quality --offline
+python -B scripts/runtime/dev.py -- scripts/ci/cargo_test.bat test -p archeaxis-application --test worker_health_contract --offline
+```
+
+The qualification tests cover real workers with controlled text/DOCX inputs and corrupt-evidence downgrades. Health tests exchange hello only, assert no job or input request, and verify temporary-directory cleanup. Neither establishes native-format editing, media decoding, installed runtime or Owner acceptance. The route inventory, counts and coverage map remain part of the canonical quick preflight.

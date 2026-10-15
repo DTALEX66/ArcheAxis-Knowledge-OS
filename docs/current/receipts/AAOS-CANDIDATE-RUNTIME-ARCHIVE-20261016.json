@@ -1,0 +1,29 @@
+{
+  "schema": "archeaxis.runtime-candidate-archive/v1",
+  "date": "2026-10-16",
+  "state": "PASS",
+  "overall_normalization": "PARTIAL",
+  "source": ".project-local/build/ba8e5e5614/glass-loop-candidate-1015/runtime",
+  "retained": ".project-local/build/ba8e5e5614/glass-loop-candidate2-1015/runtime",
+  "archive": ".project-local/archives/glass-candidate-runtime-20261015/glass-loop-candidate-1015-runtime.zip",
+  "archive_sha256": "f8e5635dface418bc8d1ccdab91fc22193ba968eaddc700b540bd20496296c57",
+  "restore_manifest_sha256": "79520f864fbc4fb2224dcdb77d905fd00c29accd83cab7a47882be47f09db9da",
+  "local_result": ".project-local/archives/glass-candidate-runtime-20261015/RESULT.json",
+  "local_result_sha256": "47f3c55875c404227fc45c559db647c081025842473f4d28c65480999d476e67",
+  "files": 19474,
+  "logical_bytes_archived": 625801465,
+  "net_allocated_bytes_saved_excluding_result_and_filesystem_metadata": 397862276,
+  "whitelist_sha256": "94763ee651229d382b0e7d6bb39195c1c10dd9b31b4f862614075cfbc03b40c4",
+  "source_manifest_sha256": "86d19d4a77a8cab8e4b7b91cffa1ef45acc5494a20512cefeddc8a301661dc95",
+  "retained_manifest_sha256": "3bbf6e6129a9f36aace15fcd3c53c921468acac759e0a0da12cc9630e6e0f991",
+  "verification": "Exact runtime file and directory counts; dual-manifest identity; exclusive source reads, shared read-only counterpart hashing (active runtime permitted), and SHA-256; ZIP entry lengths and expanded SHA-256; per-file removals; retained counterpart and candidate manifests rechecked.",
+  "preserved": [
+    "Source host, Core, shared, workers, data, manifests and logs",
+    "Complete retained candidate and all manifest bytes",
+    "Source runtime root and exact restore marker",
+    "QODER checkout, Green and Owner data"
+  ],
+  "rollback": "Verify ZIP and restore manifest SHA, then restore only manifest-listed relative runtime members into the retained source runtime root. Do not overwrite changed files.",
+  "boundary": "One audited runtime duplicate only. Not a total project-size or disk-free measurement. Prior archival results are separate and not counted twice.",
+  "failed_preflight": "Two initial attempts failed before archive or removal on a directory-count mismatch: 2263 included the retained root; 2262 ordinary child directories were verified. Final exact preflight and archive verification passed."
+}
