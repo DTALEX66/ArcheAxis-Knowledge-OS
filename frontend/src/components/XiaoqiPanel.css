@@ -9,7 +9,7 @@
   border-left: 1px solid var(--ax-border);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  z-index: 9998;
   animation: slideInRight 300ms ease-out;
 }
 
