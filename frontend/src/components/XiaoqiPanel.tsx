@@ -33,16 +33,44 @@ export function XiaoqiPanel({ isOpen, onClose, currentContext }: XiaoqiPanelProp
     setInput('');
     setXiaoqiState('thinking');
 
-    // TODO: 实际调用AI接口
-    setTimeout(() => {
+    try {
+      // 调用后端AI接口
+      const response = await fetch('/api/v1/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: input,
+          context: currentContext,
+          history: messages.slice(-5), // 最近5条消息作为上下文
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('AI响应失败');
+      }
+
+      const data = await response.json();
+
       const assistantMessage: Message = {
         role: 'assistant',
-        content: '这是小栖的回复示例。实际回复将通过AI接口获取。',
+        content: data.response || '抱歉，我现在无法回答。',
         timestamp: new Date(),
       };
+
       setMessages(prev => [...prev, assistantMessage]);
       setXiaoqiState('idle');
-    }, 1500);
+    } catch (error) {
+      console.error('小栖对话错误:', error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: '抱歉，我遇到了一些问题。请稍后再试。',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setXiaoqiState('idle');
+    }
   };
 
   if (!isOpen) return null;
