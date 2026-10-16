@@ -1,0 +1,180 @@
+/* XiaoqiPanel Component Styles */
+.xiaoqi-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 360px;
+  background: var(--ax-panel);
+  border-left: 1px solid var(--ax-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  animation: slideInRight 300ms ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.xiaoqi-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ax-space-4);
+  border-bottom: 1px solid var(--ax-border);
+}
+
+.xiaoqi-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-3);
+}
+
+.xiaoqi-header-left h3 {
+  margin: 0;
+  font-size: var(--ax-text-base);
+  font-weight: var(--ax-font-semibold);
+  color: var(--ax-fg);
+}
+
+.xiaoqi-context {
+  margin: 0;
+  font-size: var(--ax-text-xs);
+  color: var(--ax-fg-tertiary);
+  margin-top: 2px;
+}
+
+.xiaoqi-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--ax-fg-secondary);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--ax-radius-sm);
+  transition: all 150ms ease-out;
+}
+
+.xiaoqi-close-btn:hover {
+  background: var(--ax-hover);
+  color: var(--ax-fg);
+}
+
+.xiaoqi-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--ax-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ax-space-4);
+}
+
+.xiaoqi-welcome {
+  text-align: center;
+  padding: var(--ax-space-8) var(--ax-space-4);
+  color: var(--ax-fg-secondary);
+}
+
+.xiaoqi-welcome p {
+  margin: var(--ax-space-2) 0;
+}
+
+.xiaoqi-message {
+  display: flex;
+  gap: var(--ax-space-3);
+  align-items: flex-start;
+}
+
+.xiaoqi-message.user {
+  flex-direction: row-reverse;
+}
+
+.xiaoqi-message.user .message-content {
+  background: var(--ax-accent-soft);
+  border-color: var(--ax-accent);
+}
+
+.message-content {
+  flex: 1;
+  padding: var(--ax-space-3);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+}
+
+.message-content p {
+  margin: 0;
+  font-size: var(--ax-text-sm);
+  line-height: var(--ax-leading-relaxed);
+  color: var(--ax-fg);
+}
+
+.message-time {
+  display: block;
+  font-size: var(--ax-text-xs);
+  color: var(--ax-fg-tertiary);
+  margin-top: var(--ax-space-1);
+}
+
+.xiaoqi-input-area {
+  padding: var(--ax-space-4);
+  border-top: 1px solid var(--ax-border);
+  display: flex;
+  gap: var(--ax-space-2);
+}
+
+.xiaoqi-input {
+  flex: 1;
+  padding: var(--ax-space-2) var(--ax-space-3);
+  background: var(--ax-bg-inset);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+  color: var(--ax-fg);
+  font-size: var(--ax-text-sm);
+  transition: all 150ms ease-out;
+}
+
+.xiaoqi-input:focus {
+  outline: none;
+  border-color: var(--ax-accent);
+  background: var(--ax-raised);
+}
+
+.xiaoqi-send-btn {
+  padding: var(--ax-space-2) var(--ax-space-4);
+  background: var(--ax-accent);
+  color: var(--ax-on-accent);
+  border: none;
+  border-radius: var(--ax-radius-md);
+  font-size: var(--ax-text-sm);
+  font-weight: var(--ax-font-medium);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.xiaoqi-send-btn:hover:not(:disabled) {
+  background: var(--ax-accent-hover);
+  transform: translateY(-1px);
+}
+
+.xiaoqi-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .xiaoqi-panel {
+    width: 100vw;
+  }
+}

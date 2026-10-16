@@ -1,0 +1,360 @@
+{
+  "schema": "archeaxis.task-progress/v1",
+  "plan_id": "ASTRYN-COMPANION-20261013",
+  "repository": "DTALEX66/ASTRYN",
+  "branch": "feat/astryn-learning-companion-v1",
+  "updated": "2026-10-14",
+  "state_vocabulary": "task states follow pack template; runtime/installation kept separate from tests",
+  "task_updates": [
+    {
+      "task_id": "GF00",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_PACKAGE_AND_READBACK_CHECKS",
+      "runtime": "NOT_APPLICABLE_STATIC_HANDOVER",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF00-BASELINE-AND-SCOPE.md",
+        "docs/companion/source-ports-readback.json"
+      ],
+      "blocker": null,
+      "rollback_handle": "linear branch from a21495a; git revert of GF00 commit; no published history rewritten"
+    },
+    {
+      "task_id": "GF01",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_17_FILES_136_PASSED_PLUS_DEV_HOST_BROWSER_SMOKE",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_EPHEMERAL_PROFILE_STORE",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF01-PROFILE-AND-SETTINGS.md"
+      ],
+      "blocker": "host profile persistence BLOCKED_BY_HOST_CONTRACT (character.profile.read/write via BE06 + BE01 admission); ASTRYN side completed with ephemeral fallback and explicit save failure",
+      "rollback_handle": "git revert of the GF01 commit on feat/astryn-learning-companion-v1; linear history, nothing rewritten"
+    },
+    {
+      "task_id": "GF02",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_19_FILES_147_PASSED_PLUS_DEV_HOST_BROWSER_SMOKE",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_SHARED_SESSION_MANAGER",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF02-SESSION-MANAGER.md"
+      ],
+      "blocker": "host session stream (BE05) BLOCKED_BY_HOST_CONTRACT; ASTRYN-side session manager completed on existing ports",
+      "rollback_handle": "git revert of the GF02 commit on feat/astryn-learning-companion-v1; linear history, nothing rewritten",
+      "source_sha": "source tree sha256 9a04f3a025a0d8b17dcab6e7e3d530dc4e17d2be5a7c9fe196f53d09d829653e (72 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head 3a85821a55cd969b5fc11fac874bd64ec48b03ec; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "src/interaction/session-manager.ts (new)",
+        "src/presentation/companion-shell.tsx",
+        "src/interaction/companion-controller.ts",
+        "src/index.ts",
+        "dev-host/app.tsx",
+        "tests/interaction/session-manager.test.ts (new)",
+        "tests/presentation/shared-session.test.tsx (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF02-SESSION-MANAGER.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log .project-local/runs/gate-20261013-221934.log); vitest 19 files / 147 passed; dev host browser smoke on 127.0.0.1:5183 with VITE_ASTRYN_ALLOW_SYNTHETIC=1 (DOM evidence, 0 console errors)",
+      "artifact_hashes": "gates.json sourceTree.sha256=9a04f3a0...935e over 72 files; build index-COfKJKMr.js 221.05 kB gzip 72.68 kB",
+      "limitations": "runtime evidence is synthetic-port dev host only; real host session stream (BE05) not connected and marked BLOCKED_BY_HOST_CONTRACT; browser evidence is structural DOM readout (no screenshot surface) not pixel evidence"
+    },
+    {
+      "task_id": "GF03",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_23_FILES_171_PASSED_PLUS_DEV_HOST_BROWSER_SMOKE",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_TWO_VIEW_PROFILES_AND_RENDER_FALLBACK",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF03-ASSETS-AND-STATES.md",
+        "docs/companion/GF03-VISUAL-ASSET-BRIEF.md",
+        "assets/character/STATE-ASSET-INDEX.json"
+      ],
+      "blocker": "visual asset upgrade is PENDING_EXTERNAL (MINIMAX DESIGN v2, rights clause required before activation); ASTRYN-side profiles/state-mapping/fallback completed on the existing renderer seam; N1 UPDATE (2026-10-14): v2 DELIVERED and landed - 22 direct + 3 derived-alpha PNGs registered with bytes/sha256 in STATE-ASSET-INDEX schema v2; default renderer switched to xiaoqi-raster-v2 (D018/D019); rights recorded (ai-generated, platform terms, realPersonReference=false)",
+      "rollback_handle": "git revert of the GF03 commit on feat/astryn-learning-companion-v1; contract change is additive (optional view param), GF00-GF02 unaffected",
+      "source_sha": "source tree sha256 59d3d7a1b2f3c2e696fc8f5f30f82fbd5fd1a5b07a26f4f21bb2bef35cadc4b4 (78 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml; final re-seal after contract-doc update, first seal a38688a751f4f068 over same code at log gate-20261013-224036); sealed at branch head 7e9c2d62cb7c5f36d27ac4223726f7b1109b3735; receipt docs/verification/gates.json; anchors trackedFiles 130 problems []",
+      "changed_paths": [
+        "contracts/avatar.ts",
+        "src/avatar/render-profiles.ts (new)",
+        "src/avatar/state-action-matrix.ts (new)",
+        "src/avatar/xiaoqi-avatar.ts",
+        "src/avatar/xiaoqi-svg-renderer.ts",
+        "src/presentation/companion-view.tsx",
+        "src/presentation/companion-shell.tsx",
+        "src/presentation/astryn.css",
+        "src/index.ts",
+        "assets/character/STATE-ASSET-INDEX.json (new)",
+        "assets/character/README.md (new)",
+        "tests/avatar/render-profiles.test.ts (new)",
+        "tests/avatar/state-action-matrix.test.ts (new)",
+        "tests/presentation/avatar-fallback.test.tsx (new)",
+        "tests/boundary/character-assets.test.ts (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF03-ASSETS-AND-STATES.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log .project-local/runs/gate-20261013-224036.log); vitest 23 files / 171 passed; dev host browser smoke on 127.0.0.1:5183 (panel svg 168x196 viewBox 0 0 120 140; embedded svg 240x280; 0 fallback nodes; 0 overflow; console 0 errors on fresh load; PIDs 34956/38604 terminated, port free)",
+      "artifact_hashes": "gates.json sourceTree.sha256=a38688a751f4f068...48cb5 over 78 files; build index-0m_KqSw4.js 222.42 kB gzip 73.28 kB + index-h1SbPDct.css 8.58 kB",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface); cosmic-theme clarity upgrade for v2 raster assets PENDING_EXTERNAL (MINIMAX); three profiles guaranteed geometrically (viewBox/ratio/no external refs) not aesthetically; N1 UPDATE (2026-10-14): v2 raster landed and is the default renderer; residuals registered (pose_listening dekey ABORTED_BG_NONUNIFORM, 3 derived-alpha files, avatar safe area MEASURED - 2.48% outside, head intact; seedExposure NONE)"
+    },
+    {
+      "task_id": "GF04",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_26_FILES_223_PASSED_PLUS_DEV_HOST_EIGHT_PORT_DOM_READOUT",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_EIGHT_PORT_READOUT_FAIL_CLOSED_ON_UNCONFIGURED_HOST",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF04-HOST-ADAPTER.md"
+      ],
+      "blocker": "host logical operations are PROPOSED_REQUIRES_BE01_FORMAL_ADMISSION; adapter completes the ASTRYN-side typed/versioned/permissioned contract and marks every real call BLOCKED_BY_HOST_CONTRACT with explicit reason (never silent fallback)",
+      "rollback_handle": "git revert of the GF04 commit on feat/astryn-learning-companion-v1; contract change is additive (capability reading fields), GF00-GF03 unaffected",
+      "source_sha": "source tree sha256 05661b857379dc2ab384c317abb9550520d77d8bf0ae33fba6011ce6f36f7acc (82 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head 4484c9bf01d9f57701be57f1a81e698026ccb29b; receipt docs/verification/gates.json; anchors trackedFiles 130 problems []",
+      "changed_paths": [
+        "contracts/host.ts",
+        "src/adapters/host-handshake.ts (new)",
+        "src/adapters/aaos-bridge.ts",
+        "src/avatar/xiaoqi-svg-renderer.ts",
+        "src/presentation/companion-view.tsx",
+        "src/index.ts",
+        "dev-host/app.tsx",
+        "tests/adapters/host-handshake.test.ts (new)",
+        "tests/adapters/aaos-bridge.test.ts (new)",
+        "tests/adapters/port-compatibility.test.ts (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF04-HOST-ADAPTER.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-225347.log); first pass gate-20261013-225258 exposed 4 real test-fixture type errors (typecheck=2 build=2) which were fixed, not waived; vitest 26 files / 223 passed; dev host DOM readout of [data-testid=devhost-ports]: 8 rows, 5 host ports 未接+HOST_CONTRACT_MISSING reason, 3 ASTRYN seams 可用, NO_VERIFIER disclosure present, console 0 errors; vite PID 23964 terminated, port 5183 free",
+      "artifact_hashes": "gates.json sourceTree.sha256=05661b857379dc2a...f7acc over 82 files; build index-DijUeU0d.js 229.30 kB gzip 75.73 kB (sha256 129f8107fcd5d420…), index-h1SbPDct.css 8.58 kB",
+      "limitations": "real AAOS integration remains UNVERIFIED (nothing was called against the live host in this task); fail-closed branches verified against a fixture transport that replays host shapes from AAOS-HOST-CAPABILITY-MAP; registry capability key candidates are documented aliases pending real key names at GF10; browser evidence is structural DOM readout (screenshot surface unavailable this session); verify() returning NO_VERIFIER is honest absence-of-verifier, not a signed-receipt pass"
+    },
+    {
+      "task_id": "GF05",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_28_FILES_266_PASSED_INCL_GF05_43 (learning-journey 32 + learning-panel 11)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_FULL_LOOP (sample+selection import, journey, attempt/recall/self-rating, mastery schedule, authorized-fragment explain capture, chat/knowledge guards, reminders/focus toggles, no-model manual loop with honest explain disabled)",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF05-LEARNING-JOURNEY.md"
+      ],
+      "blocker": "learning state is in-process only; host-side persistence BLOCKED_BY_HOST_CONTRACT (no admitted host contract for learning materials/journeys); real selection remains BLOCKED_BY_HOST_CONTRACT (synthetic fixture labeled SYNTHETIC everywhere)",
+      "rollback_handle": "git revert of the GF05 commit on feat/astryn-learning-companion-v1; additive only (new src/learning, tests/learning, dev-host learning panel + wiring)",
+      "source_sha": "source tree sha256 db462aab7c055528ec73754e10b3ff7909fa7c28047fe31b7dd6d824e46df4e0 (87 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head abb1f47cb48f10f01115c6ae06274c7ebd460d0a; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "src/learning/types.ts (new)",
+        "src/learning/store.ts (new)",
+        "src/index.ts",
+        "dev-host/learning-panel.tsx (new)",
+        "dev-host/app.tsx",
+        "dev-host/dev-host.css",
+        "tests/learning/learning-journey.test.ts (new)",
+        "tests/learning/learning-panel.test.tsx (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF05-LEARNING-JOURNEY.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-231006.log); the same chain earlier in the task (log gate-20261013-230412.log) was the first full green after tsc exposed 3 real errors vitest cannot see (panel union narrowing x2, noUncheckedIndexedAccess x1) which were fixed, not waived; vitest 28 files / 266 passed; vite dev server 127.0.0.1:5183 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout, console 0 errors on fresh load, killed by netstat PID 29012, port released",
+      "artifact_hashes": "gates.json sourceTree.sha256=db462aab7c055528…e46df4e0 (87 files); build index-CiX15iyT.js 260657 bytes sha256 cf1f653b442f424d…, index-s_cYDZFx.css 9005 bytes sha256 b6d69791044e0646…",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface this session); learning persistence is in-process (refresh loses it) and host persistence stays BLOCKED_BY_HOST_CONTRACT; the two dev-host wiring fixes (selection provider offsets, model-switch-aware modelAvailable) are covered only by browser smoke - no test imports dev-host/app.tsx; mastery never exists without explicit user outcomes (unrated otherwise), and character turns are excluded by construction"
+    },
+    {
+      "task_id": "GF06",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_30_FILES_278_PASSED_INCL_GF06_12 (manager 8 + memory-panel 4)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_GOVERNANCE_LOOP (propose, correct with dual-channel read-back, revoke keeps ledger trace, delete removes from ledger, suspend revokes actives + blocks local propose, resume allows, export excludes deleted record, separation chips live, console 0 errors on fresh load)",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF06-MEMORY-GOVERNANCE.md"
+      ],
+      "blocker": "real long-term memory host (BE06) not admitted: ledger is the in-process SYNTHETIC fixture; host confirmation face absent (candidates never auto-confirm in dev host); host grant changes BLOCKED_BY_HOST_CONTRACT (suspend is local-only interception); backup retention is host territory and is never claimed cleared",
+      "rollback_handle": "git revert of the GF06 commit on feat/astryn-learning-companion-v1; additive only (src/memory/manager.ts, tests/memory/*, dev-host/memory-panel.tsx, dev-host/app.tsx section swap, dev-host.css rule)",
+      "source_sha": "source tree sha256 0075b9e1eff08655125bfdda41f6571e2a6b688c46a427ecd43d0f067386696d (91 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head 077e6fdadff2f4e2f4065d1107fc0fd49c73f89c; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "src/memory/manager.ts (new)",
+        "src/index.ts",
+        "dev-host/memory-panel.tsx (new)",
+        "dev-host/app.tsx",
+        "dev-host/dev-host.css",
+        "tests/memory/manager.test.ts (new)",
+        "tests/memory/memory-panel.test.tsx (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF06-MEMORY-GOVERNANCE.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-231754.log, single pass); vitest 30 files / 278 passed; vite dev server 127.0.0.1:5183 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout including propose/correct/revoke/delete/suspend/resume/export plus a GF05 learning import regression, console 0 errors on fresh load, vite terminated by netstat PID 15604, port 5183 released",
+      "artifact_hashes": "gates.json sourceTree.sha256=0075b9e1eff08655125bfdda41f6571e2a6b688c46a427ecd43d0f067386696d (91 files); build index-BId_1Wxf.js 275424 bytes sha256 160da66951dafa0e1bf68268bfe29f89fff3d5559edd83a1d7a6582f0ae78e70, index-C_KIL2tT.css 9221 bytes sha256 3d2b2d71c984dd6f3778a8b8453178d4013f1427975558f5daca8c793cc73a9c",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface this session); read-back runs through the same port, so a lying port is detected only by the falsifier test (TamperingPort) not by an out-of-band channel; confirmation governance (host receipt face) has no dev-host UI so candidate->confirmed is exercised in unit tests only; in-process SYNTHETIC ledger means real memory host integration stays UNVERIFIED (BE06); dev-host app.tsx wiring is browser-smoke-only (no test imports it)"
+    },
+    {
+      "task_id": "GF07",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_32_FILES_293_PASSED_INCL_GF07_15 (stream-retry 10 + composer-continuity 5)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_STREAM_RETRY_LOOP (draft survives settings toggle and hide/show; material-tag strip visible/removable/consumed; no-model retry bar keeps input with known-outcome note; stop during streaming -> interrupted + cancelled candidate; retry after stop -> lookup first (host has no record) -> resent -> completed reply; console 0 errors)",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF07-STREAM-AND-RETRY.md"
+      ],
+      "blocker": "real model upstream not configured this session so \"real call usable\" stays UNVERIFIED (adapter/SSE covered by tests, not host integration); lookupRequest is a new OPTIONAL port capability absent from the dev-proxy (openai-compatible) port so retry there is honestly labelled RESENT_WITHOUT_LOOKUP; AAOS-side request lookup BLOCKED_BY_HOST_CONTRACT",
+      "rollback_handle": "git revert of the GF07 commit on feat/astryn-learning-companion-v1; additive contract members are optional; new files tests/interaction/stream-retry.test.ts + tests/presentation/composer-continuity.test.tsx; no migration and no host-side writes",
+      "source_sha": "source tree sha256 d0a223a0dd84e7e41b197fb77c2914e704d48886fe782dc6a748b61029321008 (93 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head f1bf14e5e3df93f751e75f3da9bbee60be46b2cf; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "contracts/conversation.ts",
+        "src/interaction/companion-controller.ts",
+        "src/interaction/session-manager.ts",
+        "src/adapters/synthetic-conversation.ts",
+        "src/presentation/companion-view.tsx",
+        "src/presentation/companion-shell.tsx",
+        "src/presentation/astryn.css",
+        "src/index.ts",
+        "tests/interaction/stream-retry.test.ts (new)",
+        "tests/presentation/composer-continuity.test.tsx (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF07-STREAM-AND-RETRY.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-232954.log, single pass); vitest 32 files / 293 passed; vite dev server 127.0.0.1:5183 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout including draft continuity, no-model retry bar, stop via microtask capture, lookup-before-resend after stop, explain-selection regression, console 0 errors, vite terminated by netstat PID 14584, port 5183 released",
+      "artifact_hashes": "gates.json sourceTree.sha256=d0a223a0dd84e7e41b197fb77c2914e704d48886fe782dc6a748b61029321008 (93 files); build index-CbOSzxQX.js 281523 bytes sha256 1cf192baaa4f44a8760d0c28632cf3e61201d9f9c952d4b1cd8daca97c24d2a1, index-jmmVyAgy.css 10076 bytes sha256 f9ee4dba2d3945b103f551f7d45539707068911c40cf585785c4376a9c24a218",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface this session); synthetic script is zero-delay so the in-browser stop window is sub-frame and was caught via microtask polling while timing-sensitive semantics are proven by controlled-clock tests; late-event rejection relies on the existing GF04 guard chain (SETTLED_REQUEST) and only gains witness tests here; a port that ignores abort can only be stopped from the consumer side (no dispatch, no render); resend honestly records a second user message instead of merging; dev-host app.tsx wiring remains browser-smoke-only (no test imports it)"
+    },
+    {
+      "task_id": "GF08",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_34_FILES_303_PASSED_INCL_GF08_10 (host-slots 5 + presentation-tokens 5)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_THREE_SLOTS_SHARED_SESSION (submit from home slot -> aside + all three slot logs show the same reply; focus toggle -> data-focus=true on all three, avatar 112px, log 160px; hidden -> data-hidden=true with slot retained, min-height 72px; host stylesheet override of the reading slot token -> svg 128px, removed -> back to 168px; console 0 errors)",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF08-SLOTS-AND-HANDOFF.md"
+      ],
+      "blocker": "FE18 formal slot wiring BLOCKED_BY_HOST_CONTRACT (AAOS frontend has no slot contract yet); floating/pet/voice-only modes stay P2-blocked by native window/tray/ASR-TTS needs as declared in contracts/presentation.ts",
+      "rollback_handle": "git revert of the GF08 commit on feat/astryn-learning-companion-v1; contract/CSS changes additive (new tokens/rules; log max-height moved from literal 240px to a token with the same value); new files src/presentation/host-entry.tsx + tests/presentation/host-slots.test.tsx + tests/presentation/presentation-tokens.test.ts; no migration and no host-side writes",
+      "source_sha": "source tree sha256 ce9846f0f7c70fba44bce87e5c42c48c6a84a6f8432866fe9172a9fff06f6cb4 (96 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head 14f0e0d358e65cb990e57867b390f6555117f8f2; receipt docs/verification/gates.json",
+      "changed_paths": [
+        "contracts/presentation.ts",
+        "src/presentation/host-entry.tsx (new)",
+        "src/presentation/companion-shell.tsx",
+        "src/presentation/astryn.css",
+        "src/index.ts",
+        "dev-host/app.tsx",
+        "dev-host/dev-host.css",
+        "tests/presentation/host-slots.test.tsx (new)",
+        "tests/presentation/presentation-tokens.test.ts (new)",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF08-SLOTS-AND-HANDOFF.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-234143.log, single pass); vitest 34 files / 303 passed; slot falsification: planting a slot-ignore in host-entry made host-slots test 1 red (1 failed | 4 passed), reverted to green; vite dev server 127.0.0.1:5183 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout, console 0 errors, vite terminated by netstat PID 14640, port 5183 released",
+      "artifact_hashes": "gates.json sourceTree.sha256=ce9846f0f7c70fba44bce87e5c42c48c6a84a6f8432866fe9172a9fff06f6cb4 (96 files); build index-jeSTOzBq.js 284009 bytes sha256 b87de972b22109913d5858c51c35e809cc20532a71327279e2cc981dce8b9a2b, index-PqCch4VI.css 11670 bytes sha256 3e8d7372f43837ecad034ac17102b90fa1a51fa5d13dddb4dfc680fe3ff6ec64, index-jeSTOzBq.js.map 805180 bytes sha256 9752f9f72655df763928a5dade3c7240c5602d477ea577751a563c42324feb01 (disk bytes; vite's console kB display counts UTF-16 code units so its printed value is smaller than disk bytes for CJK content — disk bytes are authoritative)",
+      "limitations": "browser evidence is structural DOM readout (no screenshot surface this session); input draft is per-view local (each view keeps its own draft; the conversation record is shared); focus source in dev-host is the learning panel mindset.focusMode (demo wiring) while the formal contract is a host-supplied focus prop (Astryn never infers focus); SVG width attribute remains as no-CSS fallback; hidden footprint is a min-height (72px) not a pixel promise; panel width min(360px,100%) is not slot-token-governed; dev-host app.tsx slot row remains browser-smoke-only (no test imports it); a slot rendered without the shared manager prop would create its own session — locked semantics apply to the shared-manager wiring"
+    },
+    {
+      "task_id": "GF09",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED",
+      "tests": "EXECUTED_36_FILES_319_PASSED_INCL_GF09_14 (speech-shell 11 + voice-settings 3)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_DISABLED_SPEECH_SHELL_WITH_PREFERENCE_DEGRADATION (devhost-speech section renders verbatim proposal state/12 fields/3 rules + BLOCKED_BY_HOST_CONTRACT/BE01 reason; voice fieldset four availability chips all data-available=false with sample/stop/mic-hold/style disabled and reason titles; mouth mode 文本帧; runtime 空闲; document.querySelectorAll(audio)===0; toggling the 朗读 preference on shows the text-mode-only note and off removes it; screenshot m0-browser-04-gf09-voice-settings.png; console 0 errors)",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF09-SPEECH-SHELL.md"
+      ],
+      "blocker": "real speech runtime (ASR/TTS/audio master clock) BLOCKED_BY_HOST_CONTRACT: speech_optional proposal not admitted by BE01 (formalization gate: schemas/DTOs, exact native route, contract+negative tests, identical version+checksum all pending); ASTRYN side completes front-end fields, settings and the playback shell with the runtime explicitly disabled, never a fake voice",
+      "rollback_handle": "git revert of the GF09 commit on feat/astryn-learning-companion-v1; new files contracts/speech.ts + src/speech/playback.ts + tests/speech/speech-shell.test.ts + tests/presentation/voice-settings.test.tsx; profile schema raised to v3 with additive defaults and new migration notes (v1/v2 files still parse); settings voice fieldset is a behavior replacement (revert restores the GF01 voice section); no migration script and no host-side writes",
+      "source_sha": "source tree sha256 8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff (100 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head e27cec30db28e2f7a059ffa65145f134233ddaa1; receipt docs/verification/gates.json; disk tree re-hash after falsification restores matched the receipt",
+      "changed_paths": [
+        "contracts/speech.ts (new)",
+        "src/speech/playback.ts (new)",
+        "contracts/character.ts",
+        "contracts/index.ts",
+        "src/companion/profile-store.ts",
+        "src/index.ts",
+        "src/presentation/companion-settings.tsx",
+        "src/presentation/companion-shell.tsx",
+        "dev-host/app.tsx",
+        "tests/speech/speech-shell.test.ts (new)",
+        "tests/presentation/voice-settings.test.tsx (new)",
+        "tests/companion/character-profile.test.ts",
+        "tests/companion/profile-store.test.ts",
+        "tests/presentation/companion-settings.test.tsx",
+        "PROJECT_CONTRACT.yaml",
+        "docs/companion/GF09-SPEECH-SHELL.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261013-235531.log, single pass); vitest 36 files / 319 passed; two falsification plants: (1) viseme branch removed from resolveMouthMode -> speech-shell 2 failed | 9 passed; (2) NO_PORT refusal set status speaking -> speech-shell 1 failed | 10 passed; both restored byte-identical (sha256 re-verified) and re-run green; vite dev server 127.0.0.1:5261 (VITE_ASTRYN_ALLOW_SYNTHETIC=1) exercised via DOM readout + screenshot, console 0 errors, vite terminated by netstat PID 10844, port released",
+      "artifact_hashes": "gates.json sourceTree.sha256=8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff (100 files); index-P5YjlFx8.js 295268 bytes sha256 03e4f907786bb3c3811038ff7109106005a63d9c9521a61fd0f91652c4925574, index-PqCch4VI.css 11670 bytes sha256 3e8d7372f43837ecad034ac17102b90fa1a51fa5d13dddb4dfc680fe3ff6ec64, index-P5YjlFx8.js.map 845331 bytes sha256 c4f7ad965d8dd56f53eaf963f373804476d58d88f54c27f60be6c7051cfdba06, m0-browser-04-gf09-voice-settings.png 41244 bytes sha256 10c735670c717a7138bc69af68b964e58f39ce9f6999f32f4413caa97258d487 (disk bytes; vite's console kB display counts UTF-16 code units so its printed value is smaller than disk bytes for CJK content — disk bytes are authoritative)",
+      "limitations": "no real speech runtime this task: ASR/TTS/audio master clock remain BLOCKED_BY_HOST_CONTRACT (BE01); the audio clock has no real source in M0 — subtitle projection and stop semantics are pinned by synthetic-clock unit tests only; mouth rendering still text-frame driven (resolveMouthMode + viseme fields are the future mouth-driver contract surface); voiceStyle preferences are stored but unconsumed at runtime while the port is absent; connection-shape (synthetic port button flow) has unit tests but no browser screenshot — the screenshot only proves the unconnected form; dev-host speech section wiring remains browser-smoke-only (no test imports app.tsx); stop-sync semantics are shell-state-machine guarantees pending a real player that must obey the port AbortSignal"
+    },
+    {
+      "task_id": "GF10",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED_JOINT_ACCEPTANCE_ROUND_NO_SOURCE_CHANGE",
+      "tests": "EXECUTED_36_FILES_319_PASSED_SAME_AS_GF09 (no new tests: every behavior observed in the joint pass is already pinned by existing tests — DUPLICATE_MATERIAL learning-journey.test.ts:86, SCOPE_SUSPENDED_BY_LOCAL_POLICY manager.test.ts+memory-panel.test.tsx, lookup-before-resend stream-retry+composer-continuity)",
+      "runtime": "DEV_HOST_JOINT_BROWSER_VERIFIED_TWO_PAGE_INSTANCES (instance 1: three slots 240/168/168 + shared session logsCount=4 single sessionId + approval awaiting->approve->executing->advance->completed with audit 应用20·丢弃0·回执通过; instance 2 reload: real Range selection import -> journey -> explain-with-authorized-fragment -> capture-explain (provenance 授权片段) -> recall (登记材料) -> outcome-correct -> mastery explicit-user-outcomes-only; memory propose->correct(revoke+replace with dual read-back)->propose->delete(ledger removal)->suspend(propose refused SCOPE_SUSPENDED_BY_LOCAL_POLICY)->resume->export(deleted absent, revoked trace present); cancel race stopClicked=true->interrupted->retry->lookup not-found->resent->idle; hide->placeholder+log retained->show; persona radio girlfriend_style_opt_in->save->revision 0->1 v3 EPHEMERAL label; console 0 errors; screenshots 07-10)",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF10-JOINT-ACCEPTANCE.md"
+      ],
+      "blocker": "the real-host half of the joint acceptance BLOCKED_BY_HOST_CONTRACT: AAOS-side integration (BE12, FE18 formal slots, GF04 host ports, BE05 session stream, BE06 profile/memory persistence, BE01 speech) is host repo work — never substituted with synthetic results; the real-model half stays UNVERIFIED (A05) — no upstream credentials configured/permitted this session; all replies in this round come from the zero-delay synthetic fixture and are labelled SYNTHETIC end to end",
+      "rollback_handle": "git revert of the GF10 commit on feat/astryn-learning-companion-v1; the commit contains docs only (GF10-JOINT-ACCEPTANCE.md new, PROGRESS.json, STATUS.md, regenerated gates.json receipt); source tree hash identical to GF09 (8027cfe9) proves zero source drift; screenshots live in .project-local/artifacts (not committed by convention, byte-checked by the updater)",
+      "source_sha": "source tree sha256 8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff (100 files: contracts/src/dev-host/tests + root files incl PROJECT_CONTRACT.yaml); sealed at branch head e1cacd505184db39f30889ccea8991bf7029131e; receipt docs/verification/gates.json; disk tree re-hash matched the receipt (zero source drift in this no-source-change round)",
+      "changed_paths": [
+        "docs/companion/GF10-JOINT-ACCEPTANCE.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261014-000834.log, single pass); vitest 36 files / 319 passed (identical set to GF09); vite dev server 127.0.0.1:5288 (VITE_ASTRYN_ALLOW_SYNTHETIC=1 + VITE_ASTRYN_SYNTHETIC_HOST=1) exercised via DOM readouts + 4 saved screenshots, console 0 errors, vite terminated by netstat PID 5780, port 5288 released",
+      "artifact_hashes": "gates.json sourceTree.sha256=8027cfe9186a9c4d265a8074faca1b2933c95f9b5c6f3641245a582bae0771ff (100 files); index-P5YjlFx8.js 295268 bytes sha256 03e4f907786bb3c3811038ff7109106005a63d9c9521a61fd0f91652c4925574, index-PqCch4VI.css 11670 bytes sha256 3e8d7372f43837ecad034ac17102b90fa1a51fa5d13dddb4dfc680fe3ff6ec64, index-P5YjlFx8.js.map 845331 bytes sha256 c4f7ad965d8dd56f53eaf963f373804476d58d88f54c27f60be6c7051cfdba06, m0-browser-07-gf10-learning.png 816233 bytes sha256 9fe2ca304cce72e4c16f97aa3ec7993d531e9ea652b8c5b15384f6b894c79a8e, m0-browser-08-gf10-memory.png 863326 bytes sha256 4b0f025fc6b080ef6dc3fa16ecc0ead6005811c8202cd47addf7a2863db8b165, m0-browser-09-gf10-persona-settings.png 55133 bytes sha256 c2902ed326ed0ec9a4d768b838fc1a43f1866f91bae2f95333ddce2f9013e884, m0-browser-10-gf10-joint.png 930308 bytes sha256 2883cdd99a7c199f2ef20662fda06fb37b4b3d7e11c37535c78ed8e66592b4a4 (disk bytes; vite's console kB display counts UTF-16 code units so its printed value is smaller than disk bytes for CJK content — disk bytes are authoritative)",
+      "limitations": "synthetic-fixture joint pass only: the \"real host\" half (BE12/FE18/BE05/BE06/BE01) did not happen and is recorded as BLOCKED, the \"real model\" half stays UNVERIFIED (A05); sub-second states (listen/think/speak) are not stably observable in the browser with a zero-delay fixture — nine-state semantics pinned by unit tests; devhost-new-session does NOT reset the in-process learning/memory stores (observed: mastery persisted 2 outcomes across a session change; full page reload resets) — dev-host demo wiring, not formal product semantics; input drafts remain per-view local; no new tests this round by design (joint acceptance, not a feature round); screenshots 07-10 are the browser evidence"
+    },
+    {
+      "task_id": "GF11",
+      "state": "COMPLETED",
+      "implementation": "EXECUTED_HANDOVER_ROUND_DELIVERY_GUIDE_PLUS_PUBLICITY_CAPTURES_PLUS_REMAINING_WORK_LEDGER",
+      "tests": "EXECUTED_36_FILES_319_PASSED_SAME_SUITE (no new tests by design: handover round with zero source change; every guide claim cites an existing test pin or the sealed receipt)",
+      "runtime": "DEV_HOST_BROWSER_VERIFIED_PUBLICITY_CAPTURE_SET (127.0.0.1:5289 with VITE_ASTRYN_ALLOW_SYNTHETIC=1 + VITE_ASTRYN_SYNTHETIC_HOST=1; welcome initial view 小栖·星栖 self-intro + SYNTHETIC badge + hero avatar + toolbar; reading = real Range selection -> authorized-fragment material -> journey active -> explain enabled; recall = recall turn with provenance -> explicit outcome-correct -> source-text feedback + mastery explicit-only; memory = preset propose -> independent read-back -> separation counters; voice-reserved = four chips data-available=false + BLOCKED_BY_HOST_CONTRACT reason + run buttons disabled + mouth mode text-frame; console 3 messages 0 errors; vite killed via netstat PID 36964, port released); real-host capture half BLOCKED_BY_HOST_CONTRACT",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [
+        "docs/companion/GF11-DELIVERY-GUIDE.md",
+        "docs/companion/REMAINING-WORK.md"
+      ],
+      "blocker": "real-host capture/integration half BLOCKED_BY_HOST_CONTRACT (BE12/FE18/BE05/BE06/BE01); MINIMAX v2 visual assets PENDING_EXTERNAL (not received; current imagery is 100% the original v1 inline SVG) - N1 UPDATE (2026-10-14): v2 received and landed; default imagery is now the xiaoqi-raster-v2 raster set with v1 SVG as fallback floor; real model UNVERIFIED (A05); installation NOT_EXECUTED; feature-branch pushes do not trigger CI (ci.yml runs on main push / PR only)",
+      "rollback_handle": "git revert of the GF11 commit (docs + PROJECT_CONTRACT.yaml gf10/gf11 fields + execution_state; zero source drift vs the GF10 sealed tree apart from the contract file, asserted by git diff in this round); captures stay in .project-local/artifacts (not committed by repo rule); receipt regenerable via gate-chain.sh; v1 inline SVG stays the avatar fallback floor",
+      "source_sha": "source tree sha256 367b15793cfb7a2b88c3d486674916b869e89b37699dc9a6d05373a57b0d037f (100 files: contracts/src/dev-host/tests + 7 root files incl PROJECT_CONTRACT.yaml); sealed at branch head 5b6bdef4d55abcb86e3f509b3018b6560db942e9; receipt docs/verification/gates.json; disk tree re-hash matched the receipt",
+      "changed_paths": [
+        "PROJECT_CONTRACT.yaml (gf10_doc/gf10_semantics + gf11_doc/gf11_deliverables; execution_state GF11_completed)",
+        "docs/companion/GF11-DELIVERY-GUIDE.md (new)",
+        "docs/companion/REMAINING-WORK.md (new)",
+        "docs/companion/PROGRESS.json",
+        "docs/current/STATUS.md",
+        "docs/verification/gates.json (seal receipt regenerated)"
+      ],
+      "commands_and_exit_codes": "bash .project-local/runs/gate-chain.sh -> lint=0 typecheck=0 test=0 build=0 record=0 anchors=0 (log gate-20261014-001359.log, single pass); vitest 36 files / 319 passed; browser run on 127.0.0.1:5289 with both synthetic flags, 5 captures via take_screenshot filePath, console 0 errors, vite terminated by netstat PID, port released; no CI run (feature branch, ci.yml is main/PR-only)",
+      "artifact_hashes": "gates.json sourceTree.sha256=367b15793cfb7a2b88c3d486674916b869e89b37699dc9a6d05373a57b0d037f (100 files); index-P5YjlFx8.js 295268 bytes sha256 03e4f907786bb3c3811038ff7109106005a63d9c9521a61fd0f91652c4925574, index-PqCch4VI.css 11670 bytes sha256 3e8d7372f43837ecad034ac17102b90fa1a51fa5d13dddb4dfc680fe3ff6ec64, index-P5YjlFx8.js.map 845331 bytes sha256 c4f7ad965d8dd56f53eaf963f373804476d58d88f54c27f60be6c7051cfdba06; captures: m0-browser-11-gf11-welcome.png 61570 bytes sha256 b93ffcdbe6e2aac250c5f75183e312649f8d168c7f9485ae6f8824f67c5b75a7; m0-browser-12-gf11-reading.png 61354 bytes sha256 b9918c2c7848207f4800caef08e344ce1f0cb77a1542d38100854b82323bc583; m0-browser-13-gf11-recall.png 63336 bytes sha256 b06f8bb2d0785f997aded8608116102db5899f65fd47f8d707976b61f7a00d16; m0-browser-14-gf11-memory.png 54261 bytes sha256 48cf4c2096c3c590d1db067084cd20bba1775cb5a6df572de8d19b0874b3f89d; m0-browser-15-gf11-voice-reserved.png 40719 bytes sha256 f9af5343b09fe4b5ade3686db295f9059b5223ac0e677cf6fce6314072409e06 (all five sizes+hashes cross-checked against the delivery guide text at write time)",
+      "limitations": "the five captures are dev-host synthetic-stage only: the real-host capture set (welcome / reading companionship / recall feedback / memory management on the formal host) is BLOCKED_BY_HOST_CONTRACT and must be re-shot after integration; the welcome capture is a viewport clip (chat log partly below the fold); sub-second states not stably capturable with a zero-delay fixture; MINIMAX v2 pending so all imagery is the original v1 inline SVG (N1 UPDATE 2026-10-14: v2 landed and is the default renderer; these five captures remain valid as the pre-switch synthetic-stage record - imagery shown is the v1-SVG stage); no installation artifact exists (source-level integration via @astryn/core / @astryn/contracts aliases only); the guide supersedes nothing — GF01-GF10 documents remain the per-task record"
+    }
+  ]
+}

@@ -6,6 +6,8 @@ import type { SpaceId } from "./spaces";
 import { LocalDocumentSearch } from "../components/LocalDocumentSearch";
 import { workspaceReviews } from "../presentation/workspaceReview";
 import { AaosIcon } from "../components/AaosIcon";
+import { BrandHeader } from "../components/BrandHeader";
+import "../styles/workspace-enhanced.css";
 export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}:{onNavigate:(space:SpaceId)=>void;onOpenDocument?:(id:string)=>void;onReviewItem?:(key:string)=>void}) {
   const searchOptions = useRef<HTMLDetailsElement>(null);
   const [documents,setDocuments] = useState<DocumentSummaryDto[]>([]);
@@ -32,6 +34,13 @@ export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}
   const reviews=workspaceReviews(learning,clock);
   const empty=!failed&&!state&&documents.length===0&&learning.length===0;
   return <section className={`ui-workspace cabin-workspace${empty?" cabin-workspace-empty":""}`} aria-label="今日工作台">
+    <BrandHeader
+      title="今日工作台"
+      subtitle="导入资料，或先记下一个想法"
+      showQuickActions={true}
+      onImportFile={() => onNavigate("intake")}
+      onNewDocument={() => onNavigate("library")}
+    />
     <div className="workspace-start">
       <p className="workspace-top-only workspace-start-label">开始</p>
       <div className="workspace-start-copy">

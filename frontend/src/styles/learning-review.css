@@ -1,0 +1,323 @@
+/* Learning Review Card Styles - Based on A03 mockup */
+.learning-review-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: var(--ax-space-8);
+}
+
+.learning-context-bar {
+  width: 100%;
+  max-width: 600px;
+  padding: var(--ax-space-4);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+  margin-bottom: var(--ax-space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-3);
+}
+
+.learning-context-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--ax-accent);
+}
+
+.learning-context-text {
+  flex: 1;
+}
+
+.learning-context-text strong {
+  display: block;
+  font-size: var(--ax-text-sm);
+  color: var(--ax-fg);
+  margin-bottom: 2px;
+}
+
+.learning-context-text span {
+  font-size: var(--ax-text-xs);
+  color: var(--ax-fg-tertiary);
+}
+
+.review-card {
+  width: 100%;
+  max-width: 600px;
+  min-height: 400px;
+  background: var(--ax-elevated);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-lg);
+  box-shadow: var(--ax-shadow-xl);
+  perspective: 1000px;
+  position: relative;
+}
+
+.review-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.review-card.flipped .review-card-inner {
+  transform: rotateY(180deg);
+}
+
+.review-card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: var(--ax-space-8);
+}
+
+.review-card-front {
+  background: var(--ax-elevated);
+}
+
+.review-card-back {
+  background: var(--ax-raised);
+  transform: rotateY(180deg);
+}
+
+.review-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--ax-space-6);
+}
+
+.review-card-label {
+  font-size: var(--ax-text-xs);
+  font-weight: var(--ax-font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ax-fg-tertiary);
+}
+
+.review-card-progress {
+  font-size: var(--ax-text-sm);
+  color: var(--ax-fg-secondary);
+}
+
+.review-card-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.review-card-question {
+  font-size: var(--ax-text-2xl);
+  font-weight: var(--ax-font-medium);
+  color: var(--ax-fg);
+  line-height: var(--ax-leading-relaxed);
+}
+
+.review-card-answer {
+  font-size: var(--ax-text-lg);
+  color: var(--ax-fg);
+  line-height: var(--ax-leading-relaxed);
+}
+
+.review-card-hint {
+  padding: var(--ax-space-4);
+  background: var(--ax-accent-soft);
+  border-radius: var(--ax-radius-md);
+  border-left: 4px solid var(--ax-accent);
+  font-size: var(--ax-text-sm);
+  color: var(--ax-fg-secondary);
+  margin-top: var(--ax-space-4);
+}
+
+.review-actions {
+  display: flex;
+  gap: var(--ax-space-3);
+  margin-top: var(--ax-space-6);
+  width: 100%;
+  max-width: 600px;
+}
+
+.review-action-btn {
+  flex: 1;
+  padding: var(--ax-space-4);
+  border: none;
+  border-radius: var(--ax-radius-md);
+  font-size: var(--ax-text-base);
+  font-weight: var(--ax-font-medium);
+  cursor: pointer;
+  transition: all 200ms ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ax-space-2);
+}
+
+.review-action-btn.show-answer {
+  background: var(--ax-accent);
+  color: var(--ax-on-accent);
+}
+
+.review-action-btn.show-answer:hover {
+  background: var(--ax-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--ax-shadow-lg);
+}
+
+.review-action-btn.rate {
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  color: var(--ax-fg);
+}
+
+.review-action-btn.rate:hover {
+  border-color: var(--ax-accent);
+  background: var(--ax-hover);
+}
+
+.review-action-btn.rate-hard {
+  border-color: var(--ax-danger);
+  color: var(--ax-danger);
+}
+
+.review-action-btn.rate-hard:hover {
+  background: var(--ax-danger-soft);
+}
+
+.review-action-btn.rate-good {
+  border-color: var(--ax-success);
+  color: var(--ax-success);
+}
+
+.review-action-btn.rate-good:hover {
+  background: var(--ax-success-soft);
+}
+
+.review-action-btn.rate-easy {
+  border-color: var(--ax-accent);
+  color: var(--ax-accent);
+}
+
+.review-action-btn.rate-easy:hover {
+  background: var(--ax-accent-soft);
+}
+
+/* Xiaoqi Helper in Learning */
+.learning-xiaoqi-helper {
+  position: fixed;
+  bottom: var(--ax-space-6);
+  right: var(--ax-space-6);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ax-space-3);
+  z-index: 100;
+}
+
+.xiaoqi-speech-bubble {
+  max-width: 280px;
+  padding: var(--ax-space-4);
+  background: var(--ax-elevated);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-lg);
+  box-shadow: var(--ax-shadow-lg);
+  position: relative;
+  animation: bubble-appear 300ms ease-out;
+}
+
+@keyframes bubble-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.xiaoqi-speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: 20px;
+  right: -8px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 8px 0 8px 8px;
+  border-color: transparent transparent transparent var(--ax-elevated);
+}
+
+.xiaoqi-speech-bubble p {
+  margin: 0;
+  font-size: var(--ax-text-sm);
+  color: var(--ax-fg);
+  line-height: var(--ax-leading-relaxed);
+}
+
+/* Review Statistics */
+.review-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--ax-space-4);
+  margin-bottom: var(--ax-space-6);
+  max-width: 600px;
+  width: 100%;
+}
+
+.review-stat {
+  text-align: center;
+  padding: var(--ax-space-4);
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+}
+
+.review-stat-value {
+  display: block;
+  font-size: var(--ax-text-2xl);
+  font-weight: var(--ax-font-bold);
+  color: var(--ax-accent);
+  margin-bottom: var(--ax-space-1);
+}
+
+.review-stat-label {
+  display: block;
+  font-size: var(--ax-text-xs);
+  color: var(--ax-fg-secondary);
+}
+
+@media (max-width: 768px) {
+  .learning-review-container {
+    padding: var(--ax-space-4);
+  }
+
+  .review-card {
+    max-width: 100%;
+    min-height: 350px;
+  }
+
+  .review-card-question {
+    font-size: var(--ax-text-xl);
+  }
+
+  .learning-xiaoqi-helper {
+    bottom: var(--ax-space-4);
+    right: var(--ax-space-4);
+  }
+
+  .xiaoqi-speech-bubble {
+    max-width: 200px;
+  }
+
+  .review-stats {
+    grid-template-columns: 1fr;
+  }
+}

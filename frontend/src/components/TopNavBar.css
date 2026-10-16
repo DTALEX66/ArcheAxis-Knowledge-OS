@@ -1,0 +1,217 @@
+/* Top Navigation Bar Component */
+.top-nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--ax-panel);
+  border-bottom: 1px solid var(--ax-border);
+  backdrop-filter: blur(8px);
+}
+
+.top-nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ax-space-3) var(--ax-space-6);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.top-nav-left {
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-4);
+  flex: 1;
+  min-width: 0;
+}
+
+.top-nav-logo {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.top-nav-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-2);
+  font-size: var(--ax-text-sm);
+  color: var(--ax-fg-secondary);
+  overflow: hidden;
+}
+
+.breadcrumb-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumb-item.current {
+  color: var(--ax-fg);
+  font-weight: var(--ax-font-medium);
+}
+
+.breadcrumb-separator {
+  color: var(--ax-fg-quaternary);
+  user-select: none;
+}
+
+.breadcrumb-item button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  transition: color 150ms ease-out;
+}
+
+.breadcrumb-item button:hover {
+  color: var(--ax-accent);
+}
+
+.top-nav-center {
+  flex: 0 0 auto;
+  max-width: 500px;
+  width: 100%;
+  margin: 0 var(--ax-space-4);
+}
+
+.top-nav-search-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-3);
+  padding: var(--ax-space-2) var(--ax-space-4);
+  background: var(--ax-bg-inset);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.top-nav-search-trigger:hover {
+  border-color: var(--ax-accent);
+  background: var(--ax-raised);
+}
+
+.search-trigger-icon {
+  font-size: 16px;
+  color: var(--ax-fg-tertiary);
+}
+
+.search-trigger-text {
+  flex: 1;
+  font-size: var(--ax-text-sm);
+  color: var(--ax-fg-quaternary);
+  text-align: left;
+}
+
+.search-trigger-shortcut {
+  display: flex;
+  gap: 2px;
+}
+
+.search-trigger-key {
+  padding: 2px 6px;
+  background: var(--ax-raised);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-sm);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--ax-fg-tertiary);
+  line-height: 1;
+}
+
+.top-nav-right {
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-2);
+}
+
+.top-nav-action {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--ax-radius-sm);
+  color: var(--ax-fg-secondary);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.top-nav-action:hover {
+  background: var(--ax-hover);
+  color: var(--ax-fg);
+}
+
+.top-nav-action.has-badge::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--ax-danger);
+  border: 2px solid var(--ax-panel);
+  border-radius: 50%;
+}
+
+.top-nav-user {
+  display: flex;
+  align-items: center;
+  gap: var(--ax-space-2);
+  padding: var(--ax-space-1) var(--ax-space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--ax-radius-md);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.top-nav-user:hover {
+  background: var(--ax-hover);
+}
+
+.top-nav-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ax-accent);
+  color: var(--ax-on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--ax-text-xs);
+  font-weight: var(--ax-font-bold);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .top-nav-center {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-nav-container {
+    padding: var(--ax-space-2) var(--ax-space-4);
+  }
+
+  .top-nav-center {
+    display: none;
+  }
+
+  .top-nav-breadcrumb {
+    font-size: var(--ax-text-xs);
+  }
+
+  .top-nav-logo {
+    width: 28px;
+    height: 28px;
+  }
+}

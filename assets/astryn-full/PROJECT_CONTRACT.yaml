@@ -1,0 +1,90 @@
+schema_version: 1
+project:
+  name: ASTRYN
+  chinese_name: 星栖
+  default_character: 小栖
+  intended_repository: https://github.com/DTALEX66/ASTRYN
+  local_root: 'D:\All projects\ASTRYN'
+phase: companion_first_release_executing
+current_grant:
+  - archive_supplied_task_losslessly
+  - establish_directory_conventions
+  - establish_authority_and_path_indexes
+  - decompose_development_tasks_and_prepare_agent_handoff
+  - implement_m0_within_astryn_per_agent_start_prompt
+  - execute_astryn_companion_tasks_within_astryn_write_scope
+write_scope:
+  - 'D:\All projects\ASTRYN'
+external_operations: not_authorized_by_this_contract
+development_execution: executed_partial
+git_state: repository_main_pushed
+git_head: 9cfd2584a69b8398b260a4290f60b3cd1cbe5ae3
+git_remote: https://github.com/DTALEX66/ASTRYN
+remote_ci: 'main has 14 runs total = 10 green 4 red as of 9cfd258 (latest green 38600518023 @ 9cfd258 on node 20.19 and 22.12; 2026-10-14 gh run list); per-commit attribution in M0-ACCEPTANCE-TRACKER A18'
+host_integration: UNVERIFIED
+git_identity: VERIFIED_LOCAL_EQ_REMOTE
+architecture:
+  astryn: [character, companionship, expression, rendering, presentation]
+  aaos: [model_services, memory, context, tasks, permissions, authoritative_storage]
+  boundary: typed_versioned_permissioned_host_adapter
+  forbidden: [direct_aaos_database_writes, second_production_memory_store, second_formal_frontend]
+acceptance:
+  - archived_source_sha256_matches
+  - authority_links_resolve_locally
+  - directory_roles_documented
+  - external_references_marked_unverified
+  - no_git_initialization_or_remote_write  # 已由 D015（用户"全部上传"指令）在本阶段后覆盖，保留原文以显示决策链
+m0_acceptance:
+  ledger: docs/tasks/M0-ACCEPTANCE-TRACKER.md
+  verdict: PARTIAL
+  passed: [A00, A01, A02, A03, A04, A06, A07, A08, A09, A10, A11, A12, A13, A14, A15, A16, A18]
+  partial: []
+  not_tested: [A05]
+  unverified: [A17]
+  not_executed: [A19]
+  gates: {lint: 0, typecheck: 0, test: 0, build: 0}
+  tests: {files: 37, passed: 353}
+  gates_receipt: docs/verification/gates.json
+  gates_receipt_state: 'allGreen（八阶段全 EXIT=0，含 drift/archive/record/anchors）；树哈希与文件数以该回执为准'
+companion_program:
+  plan_id: ASTRYN-COMPANION-20261013
+  branch: feat/astryn-learning-companion-v1
+  branch_point: a21495a29298f0019ac2872f1ddf685071a30630
+  taskpack_origin: 'D:\All projects\Record\03-ASTRYN-Companion-Taskpack.zip'
+  taskpack_sha256: 553db575f2e41c4ae3f20298f4c9c92bb6c11f4d654827cae6a016679e0f94f4
+  taskpack_bytes: 6023444
+  package_integrity: '57/57 CHECKSUMS matched by node verifier; bundled VERIFY_PACKAGE.py not run (no python3 on this machine)'
+  baseline_doc: docs/companion/GF00-BASELINE-AND-SCOPE.md
+  readback: docs/companion/source-ports-readback.json
+  progress_ledger: docs/companion/PROGRESS.json
+  gf01_doc: docs/companion/GF01-PROFILE-AND-SETTINGS.md
+  gf02_doc: docs/companion/GF02-SESSION-MANAGER.md
+  gf03_doc: docs/companion/GF03-ASSETS-AND-STATES.md
+  gf03_asset_index: assets/character/STATE-ASSET-INDEX.json
+  gf03_visual_upgrade: 'DELIVERED (MINIMAX DESIGN v2, 2026-10-14)：22 张直用件 + 3 张本地派生去背件（derived-alpha）落库 upgraded/v1/；九态位图全可用；schema v2 逐文件 bytes/sha256/runtimeUsable 登记；来源 ai-generated（平台条款）；4 张去背失败件 3 张本地推导、pose_listening 如实中止（ABORT_BG_NONUNIFORM）；圆形头像安全区 MEASURED（2.48% 出界，头部完整）；v1 原创 SVG 保留为回退下限'
+  audit_ledger: docs/verification/PROJECT-AUDIT.md
+  gf04_doc: docs/companion/GF04-HOST-ADAPTER.md
+  gf04_port_manifest: src/adapters/host-handshake.ts
+  gf04_semantics: 'fail-closed 八端口；宿主无签名面 ⇒ verify() 恒 NO_VERIFIER；launch token 头仅存在于 src/adapters/aaos-bridge.ts'
+  gf05_doc: docs/companion/GF05-LEARNING-JOURNEY.md
+  gf05_domain: src/learning/types.ts + src/learning/store.ts
+  gf05_semantics: '掌握度仅由显式自评驱动（basis=explicit-user-outcomes-only）；角色轮出处置信仅来自真实附带过的授权片段；闲聊/无来源轮不进知识通道且永不自动登记；提醒关闭/专注模式只抑制提示不清队列'
+  gf05_devhost_fix: '选区提供器改为把实时选区偏移交给合成夹具（原 selection:null 为死路径，M0 起浏览器内真实与合成选区均恒 NO_SELECTION）；无模型时解释按钮禁用并标注原因（原误报可用）'
+  gf06_doc: docs/companion/GF06-MEMORY-GOVERNANCE.md
+  gf06_domain: src/memory/manager.ts + dev-host/memory-panel.tsx
+  gf06_semantics: '治理动作（纠正/忘记/导出/停用）全部经宿主记忆端口，且每次动作后用新鲜 query(listForReview+includeLifecycle) 独立读回，期望来自操作语义而非变更回执；revoke 保留审计痕迹、delete 从账本除名；停用=先真实撤销活跃记录再拦截本机登记，宿主 grant 本身变更 BLOCKED_BY_HOST_CONTRACT；备份保留归宿主不可见'
+  gf07_doc: docs/companion/GF07-STREAM-AND-RETRY.md
+  gf07_domain: contracts/conversation.ts + src/interaction/companion-controller.ts + src/presentation/companion-view.tsx
+  gf07_semantics: '重试保留输入与材料标签并以新 requestId 重发；未知执行结果的失败码（NETWORK/TIMEOUT/MALFORMED_STREAM/ABORTED/UNKNOWN）先经正式流合同 lookupRequest 查询原请求再决定：completed/in-progress 扣留不重发（HELD_BACK 防重复执行）且输入放回输入框，端口无查询能力时如实标注 RESENT_WITHOUT_LOOKUP（宿主合同缺项）；停止与关视图不同：隐藏角色不取消会话（隐藏期间跑完、恢复可见），用户停止后晚到增量与迟到权威事件被 SETTLED_REQUEST 静默丢弃、任务状态不因此改变；合成夹具不保留已结束请求（lookup 恒 not-found，不写正式记录）'
+  gf08_doc: docs/companion/GF08-SLOTS-AND-HANDOFF.md
+  gf08_domain: contracts/presentation.ts + src/presentation/host-entry.tsx + src/presentation/astryn.css + dev-host/app.tsx
+  gf08_semantics: '正式宿主入口 AstrynCompanionEntry：槽位（home/reading/sidebar）决定模式与取景档（home=embedded+hero，reading=embedded+sidebar，sidebar=panel+sidebar）；会话归宿主传入的共享 manager，三个槽位共用同一实例——一次提交只调端口一遍、任一处发送各处记录同步、逐个卸载不停止会话、全部卸载后重开仍拿完整记录；入口不构造任何模型端口（无第二个模型中心），未注入 conversation 即显示 NO MODEL；角色大小/对话区高度/隐藏足迹/专注收敛全部引用前端 tokens（--astryn-avatar-size-{hero,avatar,sidebar,home,reading,focus}、--astryn-log-height-*、--astryn-hidden-min-height），宿主在容器上覆盖 base 令牌即可改尺寸，无需改组件代码；专注是宿主给出的状态（如学习专注模式）经 focus 属性传入，星栖不自行推断；CSS 中 focus 规则必须写在槽位映射之后（同特异性靠书写顺序，顺序即语义，有门禁测试钉住）'
+  gf09_doc: docs/companion/GF09-SPEECH-SHELL.md
+  gf09_domain: contracts/speech.ts + src/speech/playback.ts + contracts/character.ts + src/presentation/companion-settings.tsx
+  gf09_semantics: '语音端口提议与任务包 speech_optional 逐字一致（state=FRONTEND_FIELDS_NOW_RUNTIME_OPTIONAL，12 字段/3 规则；正式登记 BLOCKED_BY_HOST_CONTRACT 归 BE01，formalization_gate 四项原样保存）；回放外壳以音频回放时钟为投影基准（tick 单调，回退读数忽略），字幕按 segments 与时钟交叠投影、utterance 结束保留末条、停止清空；块守卫：跨会话（FOREIGN_SESSION）/旧 utterance（STALE_UTTERANCE）/乱序重复（OUT_OF_ORDER）拒收，结清后到达的块一律作废（NOT_SPEAKING）；停止原子复位音频订阅（abort 信号）、字幕与嘴形，迟到块不改变投影；口型三态 resolveMouthMode：无音频=文本帧、有音频无音素=基础口型、有音素=viseme——缺音素时间戳仅标基础口型，M0 渲染器嘴型仍由文本帧驱动（音素选帧属未来口型驱动器）；档案 v3 声音节补全前端字段（enabled/microphone/subtitles/volume，迁移 MIGRATED_V1_TO_V3/MIGRATED_V2_TO_V3，音量夹 0–1），偏好可编辑但未接通时运行按钮（试听/停止/按住说话）保持禁用并原样显示未接通原因，不播放任何语音；星栖前端不直接采集麦克风（采集归宿主权限面），无 audio 元素、无占位语音，均有门禁测试钉住'
+  gf10_doc: docs/companion/GF10-JOINT-ACCEPTANCE.md
+  gf10_semantics: '联合验收轮（零源码改动）：开发宿主端九卡联合跑通（审批链/学习闭环/记忆治理/取消重发/隐藏连续/人设切换/三槽共享会话），真实宿主与真实模型两半按 BE12/A05 分列记录；封存源码树与 GF09 字节相同（零漂移自证）'
+  gf11_doc: docs/companion/GF11-DELIVERY-GUIDE.md
+  gf11_deliverables: '交付指南（导出入口/端口兼容/人物源文件/资源清单/使用说明/回退）+ 宣传采集（开发宿主合成阶段实测；真实宿主采集 BLOCKED_BY_HOST_CONTRACT；待接声音与未接通项保留状态）+ 剩余工作台账 docs/companion/REMAINING-WORK.md；安装 NOT_EXECUTED'
+  execution_state: GF11_completed
+  host_dependencies: 'BE01/BE03/BE05/BE06/BE07/BE12 in DTALEX66/ArcheAxis-Knowledge-OS; this repo never writes the host repo'

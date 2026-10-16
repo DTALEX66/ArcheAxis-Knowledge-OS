@@ -1,0 +1,22 @@
+{
+  "_version": 10,
+  "preferences": {
+    "loadUserMemory": true,
+    "projectArchitecture": "resource_v3"
+  },
+  "recentFiles": [],
+  "assetPanel": {
+    "typeFilters": [],
+    "dateFilter": {
+      "kind": "all"
+    },
+    "sortOrder": "desc"
+  },
+  "lastUsedModelParams": {},
+  "pinnedSessionIds": [],
+  "hiddenSessionIds": [],
+  "capabilityCardSelections": {},
+  "compositionSidebarOrder": {
+    "parents": {}
+  }
+}

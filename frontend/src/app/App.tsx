@@ -16,6 +16,7 @@ import { DockWorkspace } from "../workspace/DockWorkspace";
 import { RecoveryShell } from "../components/RecoveryShell";
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
+import { TopNavBar } from "../components/TopNavBar";
 import { focusSpaceSection, spaceSectionsFor, type SpaceSectionDef } from "../presentation/spaceSections";
 import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
 import {
@@ -707,6 +708,14 @@ function AppBody() {
 
   return (
     <div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""} data-navigation-appearance={navigationAppearance}>
+      <TopNavBar
+        breadcrumbs={[
+          { label: currentSpaceLabel },
+          ...(uiPageId ? [{ label: findUiPage(uiPageId)?.label ?? '' }] : [])
+        ]}
+        notificationCount={0}
+        userName="User"
+      />
       {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
       {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区并重启本地 Core，请等待读回完成…</div> : null}
       {workingNotice}

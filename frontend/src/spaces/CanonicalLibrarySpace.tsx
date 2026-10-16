@@ -27,6 +27,8 @@ import type { InspectionTarget } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 import { coreFailureReason } from "../presentation/labels";
 import { confirmOriginalNote, prepareOriginalNote, OriginalNoteRefused, type OriginalNoteAttempt } from "../presentation/originalNoteWrite";
+import { XiaoqiPanel } from "../components/XiaoqiPanel";
+import "../components/xiaoqi-trigger.css";
 
 // PDF.js is a large renderer and is needed only when the selected original is a PDF.
 const PdfReader = lazy(() => import("../components/PdfReader").then(module => ({ default: module.PdfReader })));
@@ -77,6 +79,8 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const documentDraftsRef = useRef(documentDrafts);
   documentDraftsRef.current = documentDrafts;
   const dirtyDocumentIds = useRef(new Set<string>(Object.keys(working?.state.drafts??{})));
+  const [xiaoqiOpen, setXiaoqiOpen] = useState(false);
+  // const [xiaoqiState, setXiaoqiState] = useState<XiaoqiState>('idle');
   const noteAttempt=useRef<OriginalNoteAttempt|null>(null);
   const [noteUncertain,setNoteUncertain]=useState(false);
   const [anchors, setAnchors] = useState<AnchorDto[]>([]);
@@ -264,7 +268,10 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       const content = new Uint8Array(await file.arrayBuffer());
       let binary = "";
       for (let offset = 0; offset < content.length; offset += 8192) binary += String.fromCharCode(...content.subarray(offset, offset + 8192));
-      await coreCommand("source_import", { body: { name: file.name, content_base64: btoa(binary) } });
+      const imported = await coreCommand<{ source_id?: unknown; sha256?: unknown; duplicate?: unknown }>("source_import", { body: { name: file.name, content_base64: btoa(binary) } });
+      if (typeof imported.source_id !== "string" || !imported.source_id || typeof imported.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(imported.sha256) || typeof imported.duplicate !== "boolean") {
+        setImportReceipt({name:file.name,bytes:file.size,state:"导入回执未确认，请保留原件"}); setMessage("导入回执未确认 source_id/sha256/duplicate；请保留原件并重试。"); setFailure(true); setImporting(false); return;
+      }
       setImportReceipt({name:file.name,bytes:file.size,state:"原件已保留；转换尚未执行"}); setMessage("原件已导入；选择它开始阅读。");
       await refreshLists();
     } catch { setImportReceipt({name:file.name,bytes:file.size,state:"导入未确认，请保留原件"}); setMessage("导入未完成，请保留原件并重试。"); setFailure(true); }
@@ -727,5 +734,21 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}
     {failureReason ? <p className="state-reason">{failureReason}</p> : null}
     <BackupPanel hasUnsavedDrafts={dirty.current} />
+    {purpose === "reader" && (
+      <>
+        <button
+          className="xiaoqi-trigger-btn"
+          onClick={() => setXiaoqiOpen(true)}
+          aria-label="打开小栖助手"
+        >
+          💬
+        </button>
+        <XiaoqiPanel
+          isOpen={xiaoqiOpen}
+          onClose={() => setXiaoqiOpen(false)}
+          currentContext={document?.title || source?.original_name}
+        />
+      </>
+    )}
   </Section>;
 }

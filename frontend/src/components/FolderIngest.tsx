@@ -154,6 +154,10 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
   async function runBatch() {
     const generation = lock(); if (generation === null) return;
     const batch = batchRef.current!;
+    const currentFolder = folderRef.current;
+    if (currentFolder && folderRef.current !== currentFolder) {
+      handled.current.clear();
+    }
     const next = [...queue.current.keys()].filter(relative => !handled.current.has(relative)).sort((a, b) => a.localeCompare(b)).slice(0, MAX_FILES);
     let processed = 0;
     try {

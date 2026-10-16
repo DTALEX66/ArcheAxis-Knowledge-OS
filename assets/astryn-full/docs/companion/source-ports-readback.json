@@ -1,0 +1,139 @@
+{
+  "schema": "astryn.companion.source-ports-readback/v1",
+  "plan_id": "ASTRYN-COMPANION-20261013",
+  "generated_at": "2026-10-13T13:54:14.046Z",
+  "repository": "DTALEX66/ASTRYN",
+  "branch": "feat/astryn-learning-companion-v1",
+  "local_head": "a21495a29298f0019ac2872f1ddf685071a30630",
+  "remote_main_at_readback": "a21495a29298f0019ac2872f1ddf685071a30630",
+  "head_equals_remote_main_at_branch_point": true,
+  "taskpack_reference": {
+    "source_index": "references/astryn-contracts/SOURCE-INDEX.json",
+    "matched": 8,
+    "total": 8
+  },
+  "ports": [
+    {
+      "port_symbol": "AstrynHostPort",
+      "file": "contracts/host.ts",
+      "bytes": 2041,
+      "sha256": "3b5fe46df6d2ec598dd2e7798842878d00a4ef09c1e24828b399435f5fa03072",
+      "git_blob_sha": "0aa5edbf6917d9c0f29d86a5d5e350c236816bb2",
+      "pack_reference_blob_sha": "0aa5edbf6917d9c0f29d86a5d5e350c236816bb2",
+      "matches_pack_reference": true,
+      "symbol_present": true
+    },
+    {
+      "port_symbol": "AstrynConversationPort",
+      "file": "contracts/conversation.ts",
+      "bytes": 1564,
+      "sha256": "74e2dc423c37b6ff51f8dd0d97333d929ce4182749c28199f68cf00a444abb5b",
+      "git_blob_sha": "67c711a669a2e67d5fbd934b1e74cab8adeda190",
+      "pack_reference_blob_sha": "67c711a669a2e67d5fbd934b1e74cab8adeda190",
+      "matches_pack_reference": true,
+      "symbol_present": true
+    },
+    {
+      "port_symbol": "AstrynMemoryPort",
+      "file": "contracts/memory.ts",
+      "bytes": 4581,
+      "sha256": "f77f178cb26bdd28dec17b60499d83ab15a45c240239e0c0625b672a53de679f",
+      "git_blob_sha": "83ca8bd14c29ebe222ad40f04464ef79575a99ce",
+      "pack_reference_blob_sha": "83ca8bd14c29ebe222ad40f04464ef79575a99ce",
+      "matches_pack_reference": true,
+      "symbol_present": true
+    },
+    {
+      "port_symbol": "AstrynActionPort",
+      "file": "contracts/action.ts",
+      "bytes": 2535,
+      "sha256": "bb169816c575c5f0248234a02363ed8ef47f6630e1a28953c59bdb6e5418b1b5",
+      "git_blob_sha": "497485c73769efc8312790ed72034222c06bb2a1",
+      "pack_reference_blob_sha": "497485c73769efc8312790ed72034222c06bb2a1",
+      "matches_pack_reference": true,
+      "symbol_present": true
+    },
+    {
+      "port_symbol": "AstrynContextPort",
+      "file": "contracts/context.ts",
+      "bytes": 2048,
+      "sha256": "b27cab2cc105aa1485dfccf550fa63e3db38f7a55bec781522a2e22151309579",
+      "git_blob_sha": "357c1a365e6f54743cc5afc1aab25576138b2ebe",
+      "pack_reference_blob_sha": "357c1a365e6f54743cc5afc1aab25576138b2ebe",
+      "matches_pack_reference": true,
+      "symbol_present": true
+    },
+    {
+      "port_symbol": "AstrynAvatarRenderer",
+      "file": "contracts/avatar.ts",
+      "bytes": 2082,
+      "sha256": "38cb9f0a802a8c4670b599b630269d46d137f19d7369790a72a755cf65f5df02",
+      "git_blob_sha": "5e77ef124c9fa8cbb174ffbcab220188432f8207",
+      "pack_reference_blob_sha": "5e77ef124c9fa8cbb174ffbcab220188432f8207",
+      "matches_pack_reference": true,
+      "symbol_present": true
+    },
+    {
+      "port_symbol": "AstrynPresentationMode",
+      "file": "contracts/presentation.ts",
+      "bytes": 1833,
+      "sha256": "76fd4c991d2fa90045164ff2a93cc7cb0b22dafef64992928da06159826114bb",
+      "git_blob_sha": "e3e6ef6f01ab79ee0971303b854bd8e5dcf47e7e",
+      "pack_reference_blob_sha": "e3e6ef6f01ab79ee0971303b854bd8e5dcf47e7e",
+      "matches_pack_reference": true,
+      "symbol_present": true
+    },
+    {
+      "port_symbol": "AstrynCharacterProfile",
+      "file": "contracts/character.ts",
+      "bytes": 3822,
+      "sha256": "bca72088ca6ab7c241b1fa36fa5e5750426baa5d540f9230e96fe890d551afb8",
+      "git_blob_sha": "29ebf2fab2dd359417473130356bd94a37fd362c",
+      "pack_reference_blob_sha": "29ebf2fab2dd359417473130356bd94a37fd362c",
+      "matches_pack_reference": true,
+      "symbol_present": true
+    }
+  ],
+  "protocol_markers": [
+    {
+      "marker": "ASTRYN_PROTOCOL_VERSION",
+      "file": "contracts/protocol.ts",
+      "present": true
+    },
+    {
+      "marker": "isTaskAuthoritative",
+      "file": "contracts/protocol.ts",
+      "present": true
+    },
+    {
+      "marker": "parseAstrynEventEnvelope",
+      "file": "contracts/protocol.ts",
+      "present": true
+    },
+    {
+      "marker": "createEvent",
+      "file": "contracts/events.ts",
+      "present": true
+    },
+    {
+      "marker": "KindToPayload",
+      "file": "contracts/events.ts",
+      "present": true
+    }
+  ],
+  "barrel_exports": {
+    "AstrynHostPort": "file_exported",
+    "AstrynConversationPort": "file_exported",
+    "AstrynMemoryPort": "file_exported",
+    "AstrynActionPort": "file_exported",
+    "AstrynContextPort": "file_exported",
+    "AstrynAvatarRenderer": "file_exported",
+    "AstrynPresentationMode": "file_exported",
+    "AstrynCharacterProfile": "file_exported"
+  },
+  "summary": {
+    "ports_present": 8,
+    "ports_total": 8,
+    "pack_identity_verified": true
+  }
+}
