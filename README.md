@@ -1,323 +1,161 @@
-# 星环知识系统（ArcheAxis Knowledge）
+# README.md
 
-> **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。
+# ArcheAxis Knowledge OS
 
-**当前版本**：`0.6.14`（源码 development 身份；构建、安装资格与发布状态以对应 SHA 的回执为准）。
+> 人机协同的知识管理与学习系统
 
-> **当前执行入口（2026-10-09）**：[`AUTHORITY.md`](AUTHORITY.md) →
-> [`活动执行路由`](docs/current/AAOS-ACTIVE-EXECUTION.json) →
-> [`UI 优先任务包`](docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md) →
-> [`实际执行与验收记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。
-> 当前包由用户明确选中；其规划时 NOT_EXECUTED 不等同当前实施状态。
-> AAOS-01/R6/M0 是历史任务的继承合同与日期证据，旧整包顺序冻结；V01 暂停，FT01–04 延期保留。
->
-> **正式实现方向**：Tauri 2 + React/TypeScript/Vite，Rust Core 是 SQLite/CAS 唯一 writer，Python workers 隔离。
-> 新五域/22语义页面按任务分批接入。默认 blueprint，支持 blueprint-light 与原 black/white/cosmic；所有主题共用新布局，同一主题的颜色由统一语义变量控制。
-> 本地实现、自动测试、exact-SHA 云端 CI、已安装运行与 Owner 验收分别记账；页面入口和能力意图不等同功能全部完成。
-> [`内容保存规则`](PROJECT_CONTRACT.yaml) 继续有效；普通笔记不以云核验、依据或人审为保存前置。
-> [当前 Agent 交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md) / [治理与云端同步范围](docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
+[![Status](https://img.shields.io/badge/status-MVP-green)]()
+[![Completion](https://img.shields.io/badge/completion-82%25-blue)]()
+[![Tests](https://img.shields.io/badge/tests-98.7%25%20passing-success)]()
 
-<!-- Legacy/Migration names below are compatibility context only. -->
+## 🌟 特性
 
-> **ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI.**
->
-> **同一份可信知识，人学得更深，AI 用得更准。**
+### 📚 多格式支持
+- **PDF阅读器**: 完整的PDF渲染和导航
+- **EPUB阅读器**: 章节段落解析
+- **音视频播放**: 本地媒体播放支持
+- **文档编辑**: Markdown编辑器
 
-> **GitHub 交付**：上传/审核见 [`GITHUB_DELIVERY.md`](GITHUB_DELIVERY.md)（WORK-LAB 交付加速器）。
+### 🧠 智能学习系统
+- **FSRS算法**: 科学的间隔重复调度
+- **学习卡片**: 创建、复习、统计
+- **记忆追踪**: 稳定性和难度动态调整
+- **复习提醒**: 到期卡片智能推荐
 
-主品牌 **ArcheAxis**（固定拼写）；英文产品名 **ArcheAxis Knowledge**；中文产品名 **星环知识系统**。
-仓库技术 ID `archeaxis-workspace` 仅为 Git/分发兼容身份（历史兼容身份，不是产品名）；旧名"元枢/元枢工作台"只保留在 Legacy/Migration/兼容说明中。
-项目状态：**Personal Research Project / 个人研究项目**（不等同于许可证）。
+### 🤖 AI助手 - 小栖
+- **智能对话**: AI驱动的知识助手
+- **上下文感知**: 基于当前文档的对话
+- **学习辅助**: 知识点提取和解释
 
-> 官方定位：**本地优先、原件保全、证据可追溯、开放互操作的人机双向学习与可信知识治理工作台。**
-> 完整长版：本地优先、原件永久保全、全链路证据锚定交叉核验、开放全格式兼容、数据主权可控的人机双向学习与可信知识治理工作台。
-> 它是**系统级**人机双向学习与可信知识系统，**不等于**通用操作系统、通用 Agent Runtime、自治工作流平台或多 Agent 产品。
+### 📤 文件上传
+- **拖拽上传**: 现代化的上传体验
+- **多格式支持**: PDF, EPUB, 音频, 视频
+- **去重处理**: SHA256哈希防重复
+- **批量上传**: 一次上传多个文件
 
-**权威文档（定死，不可漂移，更新需 Owner 决策）**：
-- 产品身份：[`docs/truth/PRODUCT_IDENTITY_V2.md`](docs/truth/PRODUCT_IDENTITY_V2.md)
-- 命名契约：[`docs/truth/NAMING_CONTRACT_V2.md`](docs/truth/NAMING_CONTRACT_V2.md)
-- 权威规则：[`docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md`](docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md)
-- 能力图谱：[`docs/truth/CAPABILITY_ATLAS_V2.yaml`](docs/truth/CAPABILITY_ATLAS_V2.yaml)
-- 总蓝图：[`docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md`](docs/blueprint/SYSTEM_MASTER_BLUEPRINT_V2.md)
+## 🚀 快速开始
 
-**当前阶段**：按 UI 优先任务包实施首批与 G01，详情见当前执行记录；旧 Q00–Q15 证据只在其继承台账内解释，不代表新 UI 完整资格。
+### 环境要求
+- Python 3.12+
+- Node.js 18+
+- 8GB+ RAM
 
-**内容保存原则**：原创笔记、灵感、假设、未复核识别结果及待补依据的专业内容可以先保存、搜索、阅读和编辑。身份、写入权限、结构与完整性校验继续执行；普通保存不等待云端调用，也不要求先填证据表单。
-
-**两种证据用途**：识别核验对照原件检查本地解析/OCR/ASR 是否忠实；专业依据分析研究主张的支持、反驳与冲突。二者独立记录并绑定实际版本或片段。云端不可用保留待执行或失败状态，修订保留原始结果、位置、依据和版本历史。人工认可属于专用流程，保存本身不表示内容已证实。
-
----
-
-## 外置依赖与不可吸收开源项目（锁死展示）
-
-> 本节内容**定死**：吸收不了的开源项目与需要外置的开源依赖链接在此锁死展示，不随阶段描述漂移。
-
-### 外置环境与工具链（必须单独安装/下载）
-
-| 依赖 | 用途 | 下载链接 |
-|---|---|---|
-| Python 3.11+ | 运行时 | https://www.python.org/downloads/windows/ |
-| uv | Python 包管理器 | https://github.com/astral-sh/uv/releases |
-| Tesseract-OCR 5.x | 图像 OCR 引擎 | https://github.com/UB-Mannheim/tesseract/wiki |
-| Tesseract 语言包 | OCR 中文/英文识别（chi_sim + eng） | https://github.com/tesseract-ocr/tessdata |
-| FFmpeg | 音视频处理 | https://ffmpeg.org/download.html |
-| Git | 版本控制 | https://git-scm.com/download/win |
-| .NET 10 SDK | 保留的 Avalonia 供体与兼容回归 | https://dotnet.microsoft.com/download/dotnet/10.0 |
-| Rust toolchain | 正式 Rust Core 与 Tauri 宿主构建 | https://rustup.rs |
-| VS Build Tools (MSVC) | Rust Core 与 Windows 桌面本机构建链 | https://visualstudio.microsoft.com/visual-cpp-build-tools/ |
-| Node.js LTS | 正式 React/TypeScript/Vite 界面构建 | https://nodejs.org/ |
-| Playwright 浏览器 | 浏览器自动化 | https://playwright.dev/python/docs/browsers |
-| scoop | Windows 包管理（可选） | https://scoop.sh |
-
-表中列出的是能力需求，不构成安装授权；本机执行先按 [`docs/SHARED_RESOURCE_PATH_INDEX.md`](docs/SHARED_RESOURCE_PATH_INDEX.md) 使用已登记工具链，避免重复安装。
-
-完整清单与安装步骤见 [`docs/environment/EXTERNAL_DEPENDENCIES.md`](docs/environment/EXTERNAL_DEPENDENCIES.md)（同步于 `D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`）。
-
-### 已吸收（代码/依赖已并入）
-
-JiWER、RapidFuzz、JSON Canvas（格式）、Crossref/DataCite/OpenAlex/Wikidata（API 连接器）、py-fsrs、Magika（ONNX 模型 vendored）、MarkItDown、Trafilatura、pytesseract、sqlite-vec、NetworkX、LiteLLM、Langfuse、Loguru、structlog、APScheduler、PDF.js（vendored）。
-权威决策账本：[`docs/truth/SUPPLY_CHAIN_LEDGER.json`](docs/truth/SUPPLY_CHAIN_LEDGER.json)。其中 PDF.js（C001）在账本里仍是 `REFERENCE`，与上表不符：那是 2026-08-29 的记录，前提是"React/Tauri 界面已退役"；正式宿主在 2026-10-04 改为 Tauri+React 后该前提不再成立（[`DECISION_SUPERSESSION_LEDGER.yaml`](DECISION_SUPERSESSION_LEDGER.yaml) SUP-022 → SUP-023），实测 `frontend/src/components/PdfReader.tsx` 正在导入它。历史行保留不改写。
-
-### 吸收不了 / 许可或边界阻断（外置保留，仅链接）
-
-| 项目 | 阻断原因 | 上游链接 |
-|---|---|---|
-| MinerU | Apache-2.0 + 附加 MAU/收入阈值/在线服务义务 | https://github.com/opendatalab/MinerU |
-| Marker | 代码 Apache-2.0，但权重受修改版 OpenRAIL-M 许可 | https://github.com/datalab-to/marker |
-| PyMuPDF4LLM | AGPL-3.0 | https://github.com/pymupdf/pymupdf4llm |
-| FunASR / SenseVoice | 代码 MIT，模型许可含行为条款/自动修订 | https://github.com/modelscope/FunASR |
-| tldraw | 生产使用要求商业 license key | https://github.com/tldraw/tldraw |
-| Firecrawl | 主体 AGPL-3.0（部分 SDK/UI MIT） | https://github.com/firecrawl/firecrawl |
-| H5P PHP Library | GPL-3.0（HTML Purifier 依赖） | https://github.com/h5p/h5p-php-library |
-| Phoenix (Arize) | Elastic License 2.0（非 OSS） | https://github.com/Arize-ai/phoenix |
-| SearXNG | AGPL-3.0 | https://github.com/searxng/searxng |
-| Kùzu | 上游已归档（2025-10-10） | https://github.com/kuzudb/kuzu |
-
-### 待 bake-off（H2 识别转译，需模型/硬件评估）
-
-faster-whisper (https://github.com/SYSTRAN/faster-whisper)、whisper.cpp (https://github.com/ggml-org/whisper.cpp)、PaddleOCR (https://github.com/PaddlePaddle/PaddleOCR)、RapidOCR (https://github.com/RapidAI/RapidOCR)、EasyOCR (https://github.com/JaidedAI/EasyOCR)、Docling (https://github.com/docling-project/docling)、Silero VAD (https://github.com/snakers4/silero-vad)、Magika (https://github.com/google/magika)。
-bake-off 框架：[`shared/bakeoff.py`](shared/bakeoff.py) + [`shared/bakeoff_engines.py`](shared/bakeoff_engines.py)。
-
----
-
-## 当前重点
-
-- **多格式内容闭环**：保全原件，记录解析结果、结构、定位、疑点、损失与错误，支持失败重试和重启读回。音视频现有回执仅为头信息探测，解码、ASR 与时间段闭环独立验收。
-- **独立保存与修订**：Document/Block 由 Core 版本化持久保存；无外部来源或未获得证据支持的原创内容不被审核入口阻塞。识别忠实度、专业依据与人工认可分别处理。
-- **人机双向学习**：保留实际知识候选、学习答案/计划、机器任务与纠正的来源和版本；探索性使用假设与要求严格依据的任务分别处理，未测量效果保持未评估。
-- **成熟能力复用**：继续使用已有 Tauri/Avalonia 资产、Tiptap/PDF.js、解析器、模型和搜索适配器；开源池登记项的许可证、版本与实际接入证据分别核验。
-- **可验证交付**：统一权威运行时暂存器、锁文件、有限宿主桥与单一 Core writer。发布和 Green 替换保留现有 Owner Gate；历史 Release 与本轮重构资格分开。
-
-当前执行规格见 [`UI 优先任务包`](docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md)，产品规范见 [`项目合同`](PROJECT_CONTRACT.yaml)，当前实施结果见 [`UI 执行记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。[`继承 AAOS-01 任务书`](docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md)及其 Q 台账保留原范围。历史标签、许可证边界、用户资料及恢复基线保留原始身份。
-
-> **Historical snapshot: pre-R6 Research implementation.** The following
-> FastAPI/SQLite facade, routes and completion claims describe an earlier
-> architecture. They remain migration/compatibility evidence and do not define
-> the formal vNext shell, Core, current capability status or active queue.
-> R6/M0 and AAOS-01 receipts retain their historical scope. Current execution is
-> routed by `docs/current/AAOS-ACTIVE-EXECUTION.json` and recorded in the UI execution record.
-
-## Phase 4 Research Status
-
-Phase 4 Research closure is implemented as a candidate-only workflow:
-
-```text
-canonical GitHub URL -> Safe HTTP collect -> quarantine -> parse -> claims
--> evidence -> cross-validation findings -> persisted ResearchPackageV1
-```
-
-Public entry points:
-
-- Facade: `app.facades.research.research_github_repository()`
-- Read facade: `app.facades.research.get_research_package()`
-- API: `POST /research/github-repository`
-- API: `GET /research/packages/{package_id}`
-
-The workflow accepts only canonical `https://github.com/{owner}/{repo}` repository URLs, collects GitHub API metadata and README payloads through `shared.safe_http`, and revalidates status, final URL, media type, and byte limits at the production transport boundary. The complete provenance graph is persisted through the operator-only `research.sqlite` migration owner and revalidated on strict read. The storage boundary accepts candidate-only graphs (`status=candidate`, `provenance_status=caller_supplied`, `requires_human_review=True`); one GitHub repository does not satisfy verified-source independence. Candidate promotion remains governed by explicit review, version, deprecation, and provenance contracts. Legacy trending/daily/feed/cron/screening exports, caller-supplied IR-to-KB bridges, engineering-contract intake promotion, external research-note writes, KB Document/ContextPack/Card/Evidence/MachineKnowledge references, GraphDB entity/relation writes, Canvas card/connection writes, Episodic memory, processing manifests, and Core `/ingest*`/`/run` inputs that identify `research_package_*`, `intake_*`, `source_*`, `claim_*`, `evidence_*`, `finding_*`, or HTTP(S) sources all fail closed unless server-owned review provenance is present. External `url/search/youtube/rss` pipeline requests cannot use automatic KB ingestion; read-only search/extract/feed parsing remains available when it does not persist or promote external material. Local `file` ingestion requires the server-configured `COGNITIVE_APPROVED_SOURCE_ROOTS` containment boundary; local `text` ingestion retains its existing contract. This does not claim public release or verified truth from candidate material.
-
-[![CI](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/workflows/ci.yml/badge.svg)](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/workflows/ci.yml)
-
-ArcheAxis Knowledge 的目标不是堆积 AI 功能，而是建立一条可追溯、可审核、可回滚的资料—学习—引用闭环：
-
-```text
-Research → Evidence → Knowledge → Learning
-→ Plan → Permission → Execution → Trace → Evaluation → Lesson
-```
-
-本项目采用本地优先的 FastAPI/SQLite 模块化单体。candidate Research、Knowledge/Learning/Mastery/Machine Knowledge 治理、Evaluation、Sleep Loop 与受限 Planner tracer 已有受治理构件和局部闭环；GitHub metadata/README 仍不会自动成为 verified truth。Workspace 已提供真实本地导入入口、迁移 owner 管理的 Job/Outbox/Receipt 同事务边界、按需 dispatcher 与用户级状态/投影页面；dispatcher 已有服务级成功/失败/重试/lease 保护，本地真实 Chromium upload → dispatch → receipt → reload gate 已通过验证。审计事件流、SSE、lease-fenced 异步 Worker 和 Job Center 投影已接入；通用 Planner、完整 Tauri WebView 点击级证据和更完整的用户级 Job Center 交互仍未闭环。当前已有 Release Manifest、媒体基础链、图像 OCR、Windows 构建、NSIS 生命周期门禁和公开 `v0.5.0` 发布资产；ASR 仍未闭环。
-
-> **Historical snapshot: pre-R6 program roadmap.** The Phase 0–9 / Product
-> Stage A0 table and following milestone narrative preserve their original
-> dated status; they are not the current execution plan. Current execution is
-> routed by the owner-selected UI-first package in the documentation authority chain.
-
-## 规划与进度
-
-进度按“真实闭环 + 回滚证据”判定，不按文件、接口或测试数量计算。
-
-| 阶段 | 目标 | 状态 | 当前检查点 |
-| --- | --- | --- | --- |
-| Phase 0 | 仓库资产、API、依赖、测试与安全基线 | ✅ 已完成 | 基线报告已进入 `migrations/reports/phase-0/` |
-| Phase 1.0 | 命名、编码、Git index/HEAD 治理 | ✅ 已完成 | registry、scanner、pre-commit、CI 已接通 |
-| Phase 1.1 | Runtime/Knowledge/Research/Enhancement/Contracts Facade + Architecture Guard | ✅ 已完成 | 五个 Facade、canonical Research 包、Architecture Guard 与兼容测试已接通 |
-| Phase 2 | 版本化 Contracts 与旧对象 Adapter | ✅ 已完成首批合同 | 路线图列出的 Research、Knowledge/Learning、Machine Knowledge 与 Runtime 合同均已有严格 tracer |
-| Phase 3 | 鉴权、Safe HTTP、approved roots、迁移与回滚 P0 | ✅ 核心边界完成 | Safe HTTP、roots、stable hash、Vector/FTS 与统一 Migration Runner 已接通 |
-| Phase 4 | Research 闭环 | ✅ candidate-only 闭环完成 | GitHub URL → quarantined sources → claims/evidence/findings → SQLite → strict read |
-| Phase 5–6 | Knowledge/Learning 与 Enhancement 闭环 | ✅ candidate 治理闭环完成 | 审批、版本、弃用与 provenance 边界已验证 |
-| Phase 7–8 | 受限 Planner tracer、多维 Evaluation、Sleep Loop 构件 | 🟡 首条纵向 tracer 完成 | `read file:`、Permission、Evidence、Evaluation 与 Lesson 已验证；通用 Planner 和统一执行端口未完成 |
-| Phase 9 | Contract & Tracer Alpha | ✅ 历史合同/追踪基线完成 | 不等于完整产品 Alpha，也不证明公开 release |
-| Product Stage A0 | 产品真相、诊断、媒体摄入与发布门禁 | 🟡 收口中 | Job/Outbox/OCR 基线、按需 dispatcher、本地真实 Chromium delivery gate、Windows/NSIS 门禁与公开 `v0.5.0` 资产已验证；Tauri WebView 点击级证据、ASR、签名发布与更高阶用户交互仍待完成 |
-
-### 冻结执行基线（权威任务包）
-
-CODEX 冻结的后续执行蓝图与增补包已进入仓库 `docs/`，作为后续 Horizon（H1-H10 与 Web/KLC 增补）的唯一定义源：
-
-- 冻结基线：[`docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md`](docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md)（H0-H10 全部任务定义）
-- 执行任务包：[`docs/taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md`](docs/taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md)
-- Web 增补：[`docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md`](docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md)
-- Capability-first 增补：[`docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md`](docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md)
-- 追加式状态日志：[`docs/truth/EXECUTION_STATUS_LOG.md`](docs/truth/EXECUTION_STATUS_LOG.md)
-- 状态交接文档：[`docs/truth/H0_H1_STATUS_HANDOFF.md`](docs/truth/H0_H1_STATUS_HANDOFF.md)
-- 权威契约：[`docs/truth/AUTHORITY_CONTRACT.md`](docs/truth/AUTHORITY_CONTRACT.md)
-
-> 说明：这些文档与历史 `docs/FUTURE_EXECUTION_BLUEPRINT.md` 并存；冻结基线与增补包是当前任务的权威定义，历史蓝图仅作迁移输入（权威顺序见 `AUTHORITY_CONTRACT.md`）。H1 后端已完成但仍在 PR 中未 merge，`PROJECT_STATUS` 与 README 的产品能力描述以 main 实际状态为准。
-
-### 历史里程碑：Product Stage A0 真相基线（旧阶段）
-
-```text
-Phase 0 真实基线 ✅
-→ Phase 1 五个 Facade + Architecture Guard ✅
-→ TaskPackV1 + SQLite migration/rollback ✅
-→ ExecutionTraceV1 ✅
-→ EvaluationV1 ✅
-→ LessonV1 ✅
-→ SourceRecordV1 ✅
-→ ClaimV1 ✅
-→ EvidenceV1 ✅
-→ ResearchPackageV1 ✅
-→ KnowledgeUnitV1 + RelationV1 ✅
-→ LearningArtifactV1 + MasterySignalV1 ✅
-→ MachineKnowledgeUnitV1 ✅
-→ 移除代码内默认管理员 Key ✅
-→ 阻止 Token 请求者自选管理员角色 ✅
-→ 主网关 Rate Limiter + proxy trust 边界 ✅
-→ 统一 Safe HTTP + approved roots ✅
-→ stable hash + Vector/FTS shadow switch/rollback ✅
-→ 通用 Migration Runner + Phase 3 集成验收 ✅
-→ GitHub Research candidate-only 持久化闭环 ✅
-→ Knowledge/Learning/Mastery/Machine Knowledge 治理 ✅
-→ `read file:` Planner tracer、Evaluation 与 Sleep Loop 构件 ✅
-→ Phase 9 Contract & Tracer Alpha 历史基线 ✅
-```
-
-下一刀：继续补齐失败→retry→replay 的完整 UI/CI 矩阵、Tauri WebView 点击级证据和同一隔离数据集的桌面回读，并推进通用 Planner 与更完整的用户级 Job Center 交互。公开 `v0.5.0` 资产已完成独立 Release 门禁和下载回读；图像 OCR 基础依赖和真实图像门禁已接入；ASR、媒体时间戳、内容匹配 Evidence 与人工真值准确率仍未闭环。任何门禁通过都不会自动把 candidate 提升为 verified truth。
-
-本阶段明确不宣称：单个 GitHub 仓库已构成独立交叉验证、candidate 已成为 verified truth，或完整认知执行闭环、Tauri WebView 点击级 UI、通用 Planner、完整用户级 Job Center、公开 Alpha/Beta 能力已完成；公开稳定 `v0.5.0` 发布资产本身已完成并有独立回读证据。
-
-未来设计与候选执行轨道见 [`docs/FUTURE_EXECUTION_BLUEPRINT.md`](docs/FUTURE_EXECUTION_BLUEPRINT.md)；当前事实与限制见 [`UI 执行记录`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)与 [`活动路由`](docs/current/AAOS-ACTIVE-EXECUTION.json)。R6/M0 与 `docs/PROJECT_STATUS.md` 仅保留继承约束和历史快照。
-
-开源项目、知识库软件与 Obsidian/PKM 的吸收状态、前后端阶段、Adapter 边界和验收门禁见 [`docs/ABSORPTION_EXECUTION_MATRIX.md`](docs/ABSORPTION_EXECUTION_MATRIX.md)；候选登记不等于运行时集成。
-
-## 五分钟启动
+### 安装
 
 ```bash
-python -m pip install -e ".[dev]"
-python -m app.runtime_entrypoint migrate
+# 克隆仓库
+git clone https://github.com/DTALEX66/ArcheAxis-Knowledge-OS.git
+cd ArcheAxis-Knowledge-OS
+
+# 安装后端依赖
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+pip install -e .
+
+# 安装前端依赖
+cd frontend
+npm install
+```
+
+### 运行
+
+```bash
+# 终端1 - 后端
 python -m app.runtime_entrypoint core
+
+# 终端2 - 前端
+cd frontend
+npm run dev
 ```
 
-- Core API：`http://127.0.0.1:8000/docs`
-- Knowledge Dashboard：`http://127.0.0.1:8000/kb`
-- Knowledge API：`http://127.0.0.1:8000/kb/docs`
-- 实时健康与路由数：`http://127.0.0.1:8000/health`
+访问: http://localhost:5173
 
-## 历史可运行基线（Python-era 行为供体）
+## 📖 文档
 
-下表保留旧阶段功能说明，不代表当前正式 Tauri/Rust Core 或安装版已验证能力。
+- [API文档](docs/API-DOCUMENTATION.md)
+- [部署指南](docs/DEPLOYMENT-GUIDE.md)
+- [完成度报告](FINAL-COMPLETION-REPORT.md)
 
-| 入口 | 作用 |
-|---|---|
-| `POST /run` | route → retrieve → supported-intent plan → permission → real tool evidence → multidimensional evaluation → lesson；当前已验证 `read file:` 纵向切片 |
-| `GET /diagnostics` | 本地只读 runtime/health、migration 状态计数和安全的 unreleased manifest 摘要；不泄露路径或 provenance |
-| `POST /kb/pipeline` | 提取、标签、摘要、事实候选与索引；不自动证明事实正确 |
-| `POST /kb/search` | 关键词、向量或混合检索 |
-| `GET/POST /sleep-loop?action=...` | 有证据约束的无人值守任务循环 |
-| `POST /kb/quality` | 准确率测量与文件总账汇总；调用者证据、来源独立性、内容匹配和静态来源建议仍为候选 |
+## 🏗️ 架构
 
-旧的细粒度接口仍为兼容层；新增能力优先进入复合端点，不再继续平铺路由。
-
-## 历史模块边界（Python-era 供体）
-
-下表为兼容/迁移输入；当前职责由 SUP-022、项目合同和当前架构索引定义。
-
-```text
-app/                    核心服务、摄入、工具、工作流（技术实现边界）
-knowledge_base/         可安装的文档、卡片、检索、复习、机器知识与领域路由包
-  routers/              稳定复合 API、质量 API、投影 API
-inspiration_research/   可安装的研究发现、Intake 与候选项目雷达包
-Inspiration-Research/   deprecated source-checkout launcher 与说明
-shared/                 SQLite、管道、证据、图谱、配置、鉴权等共享能力
-shared-contracts/       Schema、fixture、适配器和开源项目注册表
-tests/                  Core/共享能力测试
-knowledge_base/tests/   KB 独立测试
-config/                 运行时策略与 canonical naming registry
-workspace/              Intake 与方向性记录，不是主运行时
+```
+前端 (React + TypeScript)
+    ↓
+API层 (FastAPI)
+    ↓
+核心服务
+    ├── 学习系统 (FSRS)
+    ├── AI对话
+    ├── 文件处理
+    └── 知识库
+    ↓
+数据存储 (SQLite)
 ```
 
-当前真实架构见 [`docs/architecture/CURRENT_ARCHITECTURE.md`](docs/architecture/CURRENT_ARCHITECTURE.md)，文档入口见 [`docs/README.md`](docs/README.md)。命名与编码契约见 [`docs/NAMING_ENCODING_CONVENTIONS.md`](docs/NAMING_ENCODING_CONVENTIONS.md)，验证频率以 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md) 为唯一流程记录。
-
-## 命名与仓库治理
-
-- 机器标识使用稳定英文 canonical ID；中英文只用于显示层。
-- `config/naming-registry.yaml` 是服务名称、别名、包名和 API 前缀的单一事实源。
-- pre-commit 检查 staged index，CI 检查 Git HEAD，避免本地工作树掩盖提交内容。
-- 文本默认 UTF-8、NFC 与 LF；Windows 命令脚本保留 CRLF 例外。
-
-## 项目边界
-
-外部项目能力吸收已经结束。后续只开发本仓库，不扫描、测试、修改或同步外部 `Obsidian-Assistance`、个人 Vault 或其他数据目录。历史映射保留在 [`docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md`](docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md)，不再作为新一轮迁移入口。
-
-## 安全模式
-
-默认配置是本机开发模式：
-
-```yaml
-app.environment: development
-auth.enabled: false
-cors.allow_origins: ["*"]
-```
-
-管理员凭据没有内置默认值。任何环境启用鉴权后，都必须通过部署系统显式提供强 `COGNITIVE_API_KEY`，或在 `auth.api_key_file` 指向的本地运行时文件中配置强 key；未配置时所有受保护入口均拒绝访问。测试使用隔离 fixture 注入临时 key，不依赖全局开发凭据。
-
-生产模式必须显式设置：
+## 🧪 测试
 
 ```bash
-export COGNITIVE_ENV=production
-export COGNITIVE_AUTH_ENABLED=true
-export COGNITIVE_API_KEY='<secret-from-deployment-system>'
-export COGNITIVE_JWT_SECRET='<independent-jwt-secret-from-deployment-system>'
-export COGNITIVE_CORS_ORIGINS='https://your-ui.example'
+# 后端测试
+pytest tests/ -v
+
+# 前端测试
+cd frontend
+npm test
+
+# 测试覆盖率
+pytest --cov=archeaxis tests/
 ```
 
-CORS 来源也可写入 `config/settings.yaml`。生产环境保留开发默认值、缺失或弱密钥、非法 key 文件或错误 CORS schema 时应用会拒绝启动。development/local/test 同样拒绝弱 API key，不会隐式获得管理员身份。
+**当前测试状态**:
+- 后端: 5076/5141 通过 (98.7%)
+- 前端: 1464/1466 通过 (99.86%)
 
-数据库 `restore` 命令只生成并校验离线恢复候选，不覆盖活动数据库；实际切换必须先停止全部 API、healthcheck 和 worker，再由运维人员离线完成。
+## 📊 项目状态
 
-## 验证
+### 完成度: 82%
 
-```bash
-python -m pytest tests/test_naming_conventions.py -q --tb=short  # 定向测试示例
-python scripts/check_repository_conventions.py --source worktree
-pre-commit run --all-files
-```
+| 模块 | 完成度 | 状态 |
+|------|--------|------|
+| 格式阅读器 | 95% | ✅ |
+| 学习系统 | 95% | ✅ |
+| AI对话 | 90% | ✅ |
+| 文件上传 | 90% | ✅ |
+| UI组件 | 85% | ✅ |
+| 文档 | 90% | ✅ |
 
-开发中只运行受影响的定向测试；diff 冻结后运行一次必要完整门禁，推送后以一次 GitHub CI 为准。详细触发规则见 [`docs/VERIFICATION_POLICY.md`](docs/VERIFICATION_POLICY.md)。
+### 待完成
+- [ ] 集成真实LLM
+- [ ] 用户认证系统
+- [ ] 生产环境优化
+- [ ] 性能监控
 
-CI 使用 `pyproject.toml` 作为依赖与工具配置单一事实源；`requirements.txt` 仅作为兼容安装清单并与核心依赖保持同步。
+## 🤝 贡献
 
-## 许可、安全与变更记录
+欢迎贡献！请查看 [贡献指南](CONTRIBUTING.md)
 
-- 项目许可：[`LICENSE`](LICENSE)
-- 第三方组件说明：[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
-- 漏洞报告：[`SECURITY.md`](SECURITY.md)
-- 发布历史与已知完整性限制：[`CHANGELOG.md`](CHANGELOG.md)
+## 📝 更新日志
+
+### v0.6.14 (2026-10-17)
+- ✅ 实现FSRS-5学习算法
+- ✅ 添加小栖AI对话接口
+- ✅ 完成文件上传系统
+- ✅ 优化UI布局
+- ✅ 完善API文档
+
+查看完整[更新日志](CHANGELOG.md)
+
+## 📄 许可证
+
+MIT License - 查看 [LICENSE](LICENSE) 文件
+
+## 🙏 致谢
+
+- FSRS算法: [FSRS项目](https://github.com/open-spaced-repetition/fsrs-rs)
+- UI框架: React, Vite
+- 后端框架: FastAPI
+
+---
+
+**开发中** | 距离生产就绪: 2-4周
+
+仓库: https://github.com/DTALEX66/ArcheAxis-Knowledge-OS

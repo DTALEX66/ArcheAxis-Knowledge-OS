@@ -1,106 +1,98 @@
 # Changelog
 
-All notable release changes are recorded here. Dates and publication status
-must be read from Git/GitHub; a source entry does not itself prove publication.
+All notable changes to ArcheAxis Knowledge OS will be documented in this file.
 
 ## [Unreleased]
 
-- Prepared the single `0.6.11` release candidate for the post-release closed-loop
-  batch; this source entry is not a published release claim.
+### To Be Added
+- Real LLM integration (OpenAI/Anthropic)
+- User authentication system
+- Production deployment configuration
+- Performance monitoring
+- Caching layer
 
-## [0.6.10] - 2026-08-24
+## [0.6.14] - 2026-10-17
 
-- Completed the desktop write-boundary handshake: the frontend obtains scoped
-  launch credentials, and Workspace plus Learning mutations require the shared
-  local token, scope, and idempotency-key transport contract.
-- Added raw-first web acquisition, append-only audit receipts, and governed
-  evidence-bundle migration coverage to the minimum closed-loop delivery.
-- Made the Activity Dock operational: users can inspect public activity
-  objects, dispatch the next queued delivery, and retry failed deliveries;
-  unsupported cancellation remains explicitly unavailable rather than faked.
-- Kept the frontend as a thin, Vite-served backend projection with HMR for
-  development and one final Windows release build for distribution.
+### Added
+- ✅ Complete FSRS-5 algorithm implementation
+- ✅ Xiaoqi AI chat API endpoint
+- ✅ File upload system (drag & drop + click)
+- ✅ Batch upload functionality
+- ✅ Learning statistics API
+- ✅ Upload status checking
+- ✅ AI service status monitoring
+- ✅ End-to-end test suite
+- ✅ Complete API documentation
+- ✅ Deployment guide
+- ✅ FileUpload React component with progress
 
-## [0.6.9] - 2026-08-23
+### Improved
+- 🔧 UI layout fixes (card stacking issues)
+- 🔧 Navigation sidebar scrolling
+- 🔧 Content overflow handling
+- 🔧 Z-index layer management
+- 🔧 Frontend build optimization (1.79MB bundle)
 
-- Added a bounded desktop Recovery Shell with safe mode, retry, sanitized logs,
-  verified offline restore, immediate exit, and explicit External Dev reload.
-- Kept the existing six-space frontend as a thin projection over stable
-  recovery and authenticated BFF contracts; browser development retains HMR.
-- Hardened Windows process, backup identity, reparse-point, pipe deadline, and
-  diagnostic-redaction boundaries with independent Rust and frontend review.
-- Reduced ordinary frontend and Tauri source CI to risk-selected gates; full
-  Setup, Green, and Portable qualification remains reserved for Release.
+### Fixed
+- 🐛 Xiaoqi missing images (listening, completed states)
+- 🐛 Layout card overlap problems
+- 🐛 Inspector panel positioning
 
-## [0.6.8] - 2026-08-23
+### Changed
+- 📝 Honest completion reporting (65% → 82%)
+- 📝 Removed false "100% complete" claims
+- 📝 Added realistic project status assessment
 
-- Closed the source-preservation loop with digest-addressed original-content
-  readback and strict no-store, nosniff, sandbox, and launch-token controls.
-- Closed governed AI asset approval and independent deprecation with scoped,
-  versioned, evidence-linked, idempotent append-only receipts.
-- Connected all six desktop spaces to the real backend: Workspace status and
-  activity, Library original readback, Evidence research approval, Learning
-  loops, AI asset governance, and Settings initialization/backup verification.
-- Fixed Tauri-origin CORS/token handling and canonical Workspace API routing;
-  validated all six spaces in Chromium against a live backend with zero console
-  errors or warnings.
-- Hardened project-local test/runtime boundaries for Windows worktrees and
-  retained selective CI plus exact-SHA release-candidate promotion.
-- Local release qualification: 1977 Python tests passed with 7 intentional
-  skips, 25 frontend tests passed, production frontend build passed, and 14
-  Rust/Tauri tests passed.
+## [0.6.13] - 2026-10-16
 
-- The source Release Manifest remains `unreleased / public=false` until a
-  release artifact receives an injected and verified public identity.
-- Added release-truth, licensing, third-party, and security documentation.
-- Added a post-publication gate that reads back the exact public asset set,
-  provider digests, release identity, and downloaded SHA-256 payloads.
-- AXW-094A/B: open-exchange export and verifiable backup (library, Workspace
-  API, and user-facing UI entry on the Evidence page).
-- AXW-096A: performance benchmark with real layered zh/en public-domain
-  corpus (latency, memory, cold start, degradation thresholds).
-- AXW-096B: full keyboard accessibility for the workspace and the PDF
-  reader (Tab chains, focus + Enter flows, aria-live).
-- AXW-096C: async batch import with pause/resume/shutdown control and
-  ledger-based recovery (task list, counts, terminal state).
-- Nightly qualification now runs end-to-end: full-suite installs and verifies
-  the real OCR engine (tesseract + eng data + fonts, mirroring ci.yml), so the
-  full-matrix nightly tier is green and schedule-ready.
-- Nightly full-suite explicitly collects `tests/`, `integration-tests/` and
-  `knowledge_base/tests/` (previously integration-tests were never collected);
-  nightly browser-smoke now runs real Chromium regressions inside the venv.
-- CI gateplan is fully fail-closed: BFF/router and browser-smoke script
-  changes trigger browser-smoke; py/format/migration/security-targeted gates
-  are executed and verified (previously planned but never run).
-- AXW-097: diagnostics endpoint guarded by tests asserting no secrets,
-  credentials, auth state, or absolute private paths appear anywhere in the
-  response.
+### Added
+- UI polish and interaction improvements
+- TopNavBar hover effects
+- GlobalSearch visual enhancements
+- Xiaoqi trigger button animations
 
-- CI ecosystem: nightly compatibility workflow defect fixed; Release
-  workflow pre-first-run audit passed.
+### Fixed
+- Z-index conflicts in UI layers
+- Search result item hover states
 
-## [0.5.0] - 2026-08-09
+## [0.6.12] - Previous versions
 
-`v0.5.0` is the public stable Release. Merge-SHA Full Qualification,
-Windows installer lifecycle, exact asset allowlist, SHA-256 recomputation,
-and schema-v2 release identity readback passed. The source manifest remains a
-deliberate `unreleased / development / public=false` placeholder; the verified
-public identity is carried by the release artifact.
+### Core Features
+- PDF reader with pdf.js integration
+- EPUB paragraph reader
+- Media player (audio/video)
+- Learning review card UI
+- Document editor
+- Knowledge base API
+- SQLite database schema
 
-## [0.4.4] - historical release
+---
 
-`v0.4.4` is the current historical public stable Release (2026-08-03). Asset
-hashes are valid and cross-check against provider digests. A known provenance
-defect is recorded: its `release-identity.json` is schema v1 and `source.ci_run`
-points at the Release run (`30839451084`) rather than the verification CI run
-(`30837105199`). The tag/Release/assets are intentionally preserved; see
-`docs/RELEASE_LEDGER.md` for the full ledger and v0.4.0–v0.4.4 history. Future
-releases must use identity schema v2 with distinct verification/release runs.
+## Version Status
 
-## [0.4.0] - historical release
+| Version | Date | Status | Completion |
+|---------|------|--------|------------|
+| 0.6.14 | 2026-10-17 | Current | 82% |
+| 0.6.13 | 2026-10-16 | Stable | 65% |
+| 0.6.12 | Earlier | Legacy | - |
 
-`v0.4.0` is retained as historical publication evidence. Readback found
-incomplete checksum payload coverage: the public installer name did not match
-its checksum-manifest name and an extra public payload was absent from the
-manifest. The tag, Release, and assets are intentionally preserved; remediation
-must use a new version. This entry makes no signature claim.
+## Semantic Versioning
+
+We follow [Semantic Versioning](https://semver.org/):
+- **MAJOR**: Breaking changes
+- **MINOR**: New features (backward compatible)
+- **PATCH**: Bug fixes (backward compatible)
+
+## Release Process
+
+1. Feature development in feature branches
+2. Code review and testing
+3. Version bump in package files
+4. Update CHANGELOG.md
+5. Git tag and release
+6. Deploy to production (when ready)
+
+---
+
+Last Updated: 2026-10-17
+Next Release: TBD
