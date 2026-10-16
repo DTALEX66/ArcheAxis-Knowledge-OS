@@ -1,0 +1,83 @@
+/* File Upload Component Styles */
+
+.file-upload-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.file-upload-dropzone {
+  border: 2px dashed var(--ax-border);
+  border-radius: var(--ax-radius-lg);
+  padding: var(--ax-space-8);
+  text-align: center;
+  background: var(--ax-panel);
+  transition: all 250ms ease;
+  cursor: pointer;
+}
+
+.file-upload-dropzone:hover {
+  border-color: var(--ax-accent);
+  background: var(--ax-raised);
+}
+
+.file-upload-dropzone.uploading {
+  border-color: var(--ax-accent);
+  cursor: not-allowed;
+}
+
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ax-space-4);
+  cursor: pointer;
+  color: var(--ax-fg-secondary);
+}
+
+.file-upload-label svg {
+  color: var(--ax-accent);
+}
+
+.file-upload-label p {
+  margin: 0;
+}
+
+.file-upload-hint {
+  font-size: var(--ax-text-sm);
+  color: var(--ax-fg-tertiary);
+}
+
+.upload-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--ax-border);
+  border-top-color: var(--ax-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.upload-message {
+  margin-top: var(--ax-space-4);
+  padding: var(--ax-space-3) var(--ax-space-4);
+  border-radius: var(--ax-radius-md);
+  font-size: var(--ax-text-sm);
+}
+
+.upload-error {
+  background: var(--ax-danger-soft);
+  color: var(--ax-danger);
+  border: 1px solid var(--ax-danger);
+}
+
+.upload-success {
+  background: var(--ax-success-soft);
+  color: var(--ax-success);
+  border: 1px solid var(--ax-success);
+}

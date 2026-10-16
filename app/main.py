@@ -308,6 +308,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 # ── Mount packaged sub-applications (fault-tolerant) ──
 from app.api.learning import router as learning_router
 from app.api.ai_chat import router as ai_chat_router
+from app.api.upload import router as upload_router
 from app.capability.router import router as capability_router
 from app.workspace.router import router as workspace_router
 from app.workspace.system import router as system_router
@@ -342,6 +343,8 @@ app.include_router(capability_router)
 app.include_router(learning_router)
 
 app.include_router(ai_chat_router)
+
+app.include_router(upload_router)
 
 
 def _http_route_counts() -> dict[str, int]:
