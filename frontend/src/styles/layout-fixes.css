@@ -1,0 +1,26 @@
+/* Critical Layout Fixes */
+
+/* Remove conflicting position fixed/absolute */
+.ui-workspace-grid,
+.ui-workspace-grid > section {
+  position: relative !important;
+  width: 100% !important;
+}
+
+/* Prevent card overlap */
+.ui-workspace-grid > section {
+  margin-bottom: 24px;
+  clear: both;
+}
+
+/* Fix content overflow */
+.app-center {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Fix sidebar scroll */
+.navigation-sidebar {
+  position: relative !important;
+  overflow-y: auto !important;
+}

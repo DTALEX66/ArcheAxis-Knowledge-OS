@@ -1119,16 +1119,18 @@ tr:hover {
   line-height: 1.4;
 }
 
-/* Main content */
+/* Main content - Fixed overflow and layout */
 .app-center {
   flex: 1;
   padding: var(--ax-space-5);
   overflow-y: auto;
+  overflow-x: hidden;
   min-width: 0;
   background: var(--ax-canvas);
+  position: relative;
 }
 
-/* Inspector */
+/* Inspector - Fixed positioning */
 .inspector {
   width: 300px;
   min-width: 0;
@@ -1137,6 +1139,7 @@ tr:hover {
   background: var(--ax-panel);
   padding: var(--ax-space-4);
   overflow-y: auto;
+  position: relative;
 }
 
 .inspector-heading {

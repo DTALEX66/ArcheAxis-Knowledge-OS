@@ -1,0 +1,34 @@
+/* Critical UI Grid Layout Fixes */
+
+/* Prevent card stacking and overlap */
+.ui-workspace-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)) !important;
+  gap: 24px !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+.ui-workspace-grid > section {
+  position: relative !important;
+  background: var(--ax-panel) !important;
+  border: 1px solid var(--ax-border) !important;
+  border-radius: 8px !important;
+  padding: 24px !important;
+  min-height: 200px !important;
+}
+
+/* Fix navigation sidebar scroll */
+.navigation-sidebar,
+.ui-page-navigation {
+  position: relative !important;
+  height: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure content is scrollable */
+.space-view {
+  position: relative !important;
+  overflow-y: auto !important;
+}
