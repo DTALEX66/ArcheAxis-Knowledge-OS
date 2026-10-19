@@ -275,3 +275,10 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 - **保留**：`archives`(3595.5MB，`record-20261009` 原字节保全)、`backups`、`state`、`runs`、`audits`、`inputs`、`task-runtime`、`staging`、`acceptance`、`g`(298.7MB 待核) 等。
 
 **边界**：仅逻辑字节（未计硬链接/共享）；**Git 历史未改写**；未删除任何未知/共享对象；远端与 Actions 产物未处理（留 RC-P08）。
+
+## 2026-10-19 交付与门禁：提交、CI、A0 竞态修复
+
+- **提交并推送**：`5a2d5e6e605c600787b51bdb69d48301f5c41772`（UI-P02 术语收敛 8 处＋测试消费者＋本执行记录）已推送到 `origin/codex/sync-20261019`；远端读回 `5a2d5e6e`，**双端一致**。工作树干净。
+- **CI（新 SHA）**：`5a2d5e6e` 的 run `39280943472` 为 **queued／gateplan pending**（此前 `39271537141` 等为 cancelled）。**required exact-SHA CI 未完成** → PR194 不合并、不发布（RC-P03 继续受阻）。
+- **A0 门禁竞态修复**：[a0_browser_smoke.py](../../scripts/a0_browser_smoke.py#L1845-L1850) 的 `read_narrow_dock_library` 增加“等实际正文出现再断言”的 `wait_for_function`（检查编辑器 `innerText`），**断言不放宽**。复跑 A0：`status=PASS`、`errors=[]`、`base_commit=5a2d5e6e`。
+- **过程保留**：第一次尝试用 `get_by_text(...).wait_for()` 等待不可见、超时失败——方案无效已替换为 `innerText` 等待后通过；原始 run1 FAIL 与本次中间 FAIL 均保留，不改写成 PASS。

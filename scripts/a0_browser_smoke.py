@@ -1840,6 +1840,13 @@ def read_narrow_dock_library(browser, problems, theme, viewport=("1600x1000@100"
         reader = page.get_by_role("region", name="阅读与编辑文档视图", exact=True)
         editor = reader.get_by_role("textbox", name="文档草稿")
         editor.wait_for()
+        # 点击文档后正文异步载入；先等实际正文出现再断言，避免载入竞态造成的假 FAIL。
+        # 断言本身不放宽：正文未到达时这里的等待同样会超时失败。
+        page.wait_for_function("""() => {
+            const r = document.querySelector("[aria-label='阅读与编辑文档视图']");
+            const e = r && r.querySelector("[role='textbox'][aria-label='文档草稿']");
+            return !!e && e.innerText.includes("绑定历史正文 1 v1");
+        }""", timeout=15000)
         assert "绑定历史正文 1 v1" in editor.inner_text()
         reader_geometry = reader.evaluate("""node => {
           const box = el => { const r=el.getBoundingClientRect();
