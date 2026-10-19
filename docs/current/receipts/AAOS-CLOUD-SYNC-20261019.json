@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.cloud-sync/v1",
-  "observed_at": "2026-10-19T00:06:01.042203+00:00",
-  "status": "BLOCKED",
+  "observed_at": "2026-10-19T00:08:22.713458+00:00",
+  "status": "BRANCH_PUBLISHED",
   "owner_request": "全部上传 云端和本地仓库一致",
   "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
   "visibility": "PUBLIC",
@@ -57,7 +57,7 @@
       "observed_failure": "document_draft_loop::versioned_human_review_refuses_machine_and_stale_versions_without_partial_writes (9 passed/1 failed)",
       "note": "Preparation changes occurred during aggregate rerun; neither it nor its passed subsets qualify final commit. Targeted human guard process receipt remains separately bound and PASS."
     },
-    "full_ci": "NOT_EXECUTED_AT_PREPARATION; exact-SHA required a0-gates must succeed before merge",
+    "full_ci": "IN_PROGRESS_AT_OBSERVATION; query exact latest head run; no CI PASS claimed",
     "route_inventory": {
       "status": "PASS",
       "tests": 29
@@ -101,20 +101,35 @@
   },
   "product_status": "PARTIAL; upload is not installation, release, complete product testing or Owner acceptance",
   "preservation": "Existing frozen evidence and original 39 owner topics retain original bytes; ASTRYN source NOT_READY_TO_DELETE; Cowork completeness and private backup remain UNVERIFIED",
-  "merge": "BLOCKED_PENDING_REQUIRED_CI_AND_FAILURE_REPAIR; no force or protection bypass",
+  "merge": "NOT_EXECUTED; draft PR194, gate failures remain to be repaired before required CI qualification",
   "local_payload_commit": "653cf7215859803855713ccf11a883d6ede9a69d",
   "push": {
-    "status": "NOT_EXECUTED_POLICY_REJECTION",
+    "status": "PASS",
     "command": "git push -u origin codex/sync-20261019",
-    "reason": "approval required by policy, but AskForApproval is set to Never",
-    "owner_authorization": "ALREADY_GRANTED",
-    "bypass_or_retry_via_other_transport": "NOT_EXECUTED"
+    "exit_code": 0,
+    "path": "Normal approved SSH transport; policy changed to managed auto_review and Owner confirmed authorization",
+    "published_sha": "c402fce75ce833e79b3ba9454aa8774b1334f85b"
   },
   "remote_readback": {
     "main_sha": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
-    "delivery_branch": "ABSENT_HTTP_404",
-    "cloud_ci": "NOT_EXECUTED",
-    "pr": "NOT_CREATED",
-    "local_cloud_consistent": false
-  }
+    "delivery_branch_sha": "c402fce75ce833e79b3ba9454aa8774b1334f85b",
+    "local_head_at_readback": "c402fce75ce833e79b3ba9454aa8774b1334f85b",
+    "local_cloud_consistent_at_observation": true,
+    "latest_metadata_sha": "Resolve actual Git HEAD and remote branch after metadata push; this receipt cannot contain its own commit SHA",
+    "cloud_ci": "IN_PROGRESS_AT_OBSERVATION_NOT_PASS",
+    "ci_run_id": 39179377344,
+    "ci_sha": "c402fce75ce833e79b3ba9454aa8774b1334f85b",
+    "pr": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/194",
+    "pr_state": "DRAFT_OPEN",
+    "merged_main": false
+  },
+  "push_history": [
+    {
+      "status": "NOT_EXECUTED_POLICY_REJECTION",
+      "command": "git push -u origin codex/sync-20261019",
+      "reason": "approval required by policy, but AskForApproval is set to Never",
+      "owner_authorization": "ALREADY_GRANTED",
+      "bypass_or_retry_via_other_transport": "NOT_EXECUTED"
+    }
+  ]
 }

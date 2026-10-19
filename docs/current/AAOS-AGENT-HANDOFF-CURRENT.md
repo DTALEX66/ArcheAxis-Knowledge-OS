@@ -1,6 +1,4 @@
-> 当前交付阻塞：本地payload已提交653cf721；正常push被自动审批策略拒绝（需要审批但模式Never），远端main仍fe18fdc3、交付分支404，双端尚未一致。详见[阻塞回执](receipts/AAOS-CLOUD-SYNC-20261019.json)。用户上传授权已存在，勿反复索要同一授权或绕过执行策略。
-
-> 2026-10-19 Owner 要求全部上传与双端一致。公开交付准备见 [receipts/AAOS-CLOUD-SYNC-20261019.json](receipts/AAOS-CLOUD-SYNC-20261019.json)；实际提交、远端、PR及CI必须现场回读，不以准备回执推导已合并。能力开关human准入进程回归已通过；Executor禁用绕过、原生UI候选和超时候选仍未应用。下文“未上传”是此前观察，当前以Git/远端身份为准。
+> 2026-10-19 公开分支已正常推送：codex/sync-20261019，上传回读c402fce7与本地一致；草稿[PR194](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/194)。当前后继metadata与远端SHA需现场回读，见[交付回执](receipts/AAOS-CLOUD-SYNC-20261019.json)。此前审批阻塞已解除，历史失败仍保留。CI尚未通过、main未合并；完整门禁与产品仍PARTIAL，不将已上传等同产品完成。
 
 # 当前 Agent 接手入口
 
