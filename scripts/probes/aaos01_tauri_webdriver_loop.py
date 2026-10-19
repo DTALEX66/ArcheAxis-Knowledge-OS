@@ -1137,7 +1137,7 @@ def independent_material_mode(parser, args):
             args.grouped_machine_ack_loss, args.grouped_machine_cancel, args.closure_features,
             args.closure_downloads, args.synthetic_course_loop, args.synthetic_template_pagination,
             args.installed_draft_conflict_loop, args.character_memory_loop, args.configuration_plan_loop,
-            args.ui_import_manifest, args.ui_format_conversion, args.ui_format_reparse,
+            args.be10_handoff_reader_loop, args.ui_import_manifest, args.ui_format_conversion, args.ui_format_reparse,
             args.ui_format_citations, args.ui_original_text_citations, args.installer)):
         parser.error("independent material/companion cannot mix other journeys or installer qualification")
     if any(os.environ.get(key) == "1" for key in ("AAOS01_TEACHING_DRAFT_ONLY", "AAOS01_LEARNING_DRAFT_ONLY")):
@@ -1177,6 +1177,7 @@ def main():
     parser.add_argument("--native-driver", type=Path)
     parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
     parser.add_argument("--configuration-plan-loop", action="store_true", help="Explicit isolated BE08 native configuration and read-only plan journey; no installer or model execution")
+    parser.add_argument("--be10-handoff-reader-loop", action="store_true", help="Isolated page-16 pinned reader with synthetic UI note, actual Core read-only handoff, no receiver or model")
     parser.add_argument("--character-memory-loop", action="store_true", help="Explicit independent BE06 synthetic memory UI, cold reopen and owned local JSON download; no model or installed claim")
     parser.add_argument("--ui-import-manifest", type=Path, help="Explicit 18-format synthetic fixture identities for actual file input qualification")
     parser.add_argument("--ui-format-conversion", action="store_true", help="Execute actual UI content controls for explicit synthetic import manifest")
@@ -1254,6 +1255,15 @@ def main():
         parser.error("character-memory candidate qualification cannot mix other journeys or installer qualification")
     if args.configuration_plan_loop and any((args.character_memory_loop, args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.installer, args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss, args.grouped_machine_ack_loss, args.grouped_run_ai)):
         parser.error("configuration-plan candidate qualification cannot mix other journeys, models or installer qualification")
+    if args.be10_handoff_reader_loop and any((args.configuration_plan_loop, args.character_memory_loop, args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.ui_format_conversion, args.ui_format_reparse,
+            args.ui_format_citations, args.ui_original_text_citations, args.installer,
+            args.grouped_run_ai, args.grouped_model, args.grouped_save_deep_binding,
+            args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss,
+            args.grouped_machine_ack_loss, args.grouped_machine_cancel, args.closure_features,
+            args.closure_downloads, args.grouped_material_companion_loop,
+            args.grouped_material_companion_cancel, args.grouped_authored_intervention,
+            args.grouped_max_tokens, args.require_actual_ai_loop, material_mode)):
+        parser.error("BE10 page-16 reader cannot mix other journeys, model calls or installer qualification")
     host = args.host.resolve()
     tools = REPO / ".project-local/task-runtime/aaos01-tools"
     driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
@@ -1357,7 +1367,10 @@ def main():
             if isinstance(protocol, dict) and protocol.get("error"):
                 raise WebDriverProtocolError(protocol) from error
             raise RuntimeError(f"WebDriver {method} {path}: {body}") from error
-        if isinstance(value, dict) and value.get("error"):
+        # Successful script results are arbitrary JSON, including application
+        # objects with an "error" field. Protocol failures use the HTTP error
+        # branch above; keep malformed error checks for non-script commands.
+        if isinstance(value, dict) and value.get("error") and not path.endswith(("/execute/sync", "/execute/async")):
             raise WebDriverProtocolError(value)
         return value
 
@@ -1538,7 +1551,7 @@ def main():
         wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
         wait("const images=[...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length);return images.length>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
         receipt.setdefault("brand_images", []).append(js("return [...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))"))
-        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or material_mode:
+        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or args.be10_handoff_reader_loop or material_mode:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
@@ -1672,6 +1685,33 @@ def main():
             receipt["steps"].append("BE08 finite product configuration and read-only plan UI; no installation, model or Owner qualification")
             close_session()
             receipt["ok"] = receipt["configuration_plan_loop"]["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
+        if args.be10_handoff_reader_loop:
+            grouped = load("handoff_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            handoff = load("handoff_native_journey", REPO / "scripts/probes/aaos01_handoff_native_loop.py")
+            actions = []
+            def handoff_command(element_id, action, body):
+                if action == "pointer_click":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"pointer", "id":"handoff-owned-pointer", "parameters":{"pointerType":"mouse"},
+                        "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
+                                   {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
+                if action == "wheel":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"wheel", "id":"handoff-owned-scroll",
+                        "actions":[{"type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def handoff_restart():
+                close_session()
+                launch()
+            controls = grouped.GroupedUI(js, wait, ui_element, handoff_command, actions)
+            receipt["be10_handoff_reader_loop"] = {"ui_actions": actions}
+            handoff.run(ui=controls, bridge=bridge, js=js, wait=wait,
+                        restart=handoff_restart, screenshot=screenshot,
+                        report=receipt["be10_handoff_reader_loop"])
+            receipt["steps"].append("BE10 native page-16 pinned reader; fresh synthetic UI note; Core read-only during handoff; no external receiver or OS URI")
+            close_session()
+            receipt["ok"] = receipt["be10_handoff_reader_loop"]["status"] == "PASS"
             raise _GroupedJourneyCompleteError()
         if args.character_memory_loop:
             grouped = load("memory_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
