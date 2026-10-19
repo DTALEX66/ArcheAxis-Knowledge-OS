@@ -1,7 +1,7 @@
 {
   "schema": "archeaxis.cloud-sync/v1",
-  "observed_at": "2026-10-19T00:03:56.364230+00:00",
-  "status": "PREPARED_FOR_PUSH",
+  "observed_at": "2026-10-19T00:06:01.042203+00:00",
+  "status": "BLOCKED",
   "owner_request": "全部上传 云端和本地仓库一致",
   "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
   "visibility": "PUBLIC",
@@ -49,7 +49,14 @@
     "preflight_first": "FAIL; exact logs retained locally; conventions/path baseline debt, route inventory drift and two missed UI-host generated outputs detected",
     "architecture": "PASS after equivalent regex spelling correction; guard unchanged",
     "ui_host_generation": "PASS after canonical generator regeneration",
-    "rust_workspace": "FAIL: document_draft_loop::versioned_human_review_refuses_machine_and_stale_versions_without_partial_writes; 9 pass/1 fail in that suite; prior stale health-description assertion fixed",
+    "rust_workspace": {
+      "status": "INVALIDATED",
+      "child_exit_code": 101,
+      "source_consistent": false,
+      "wrapper_exit_code": 3,
+      "observed_failure": "document_draft_loop::versioned_human_review_refuses_machine_and_stale_versions_without_partial_writes (9 passed/1 failed)",
+      "note": "Preparation changes occurred during aggregate rerun; neither it nor its passed subsets qualify final commit. Targeted human guard process receipt remains separately bound and PASS."
+    },
     "full_ci": "NOT_EXECUTED_AT_PREPARATION; exact-SHA required a0-gates must succeed before merge",
     "route_inventory": {
       "status": "PASS",
@@ -94,5 +101,20 @@
   },
   "product_status": "PARTIAL; upload is not installation, release, complete product testing or Owner acceptance",
   "preservation": "Existing frozen evidence and original 39 owner topics retain original bytes; ASTRYN source NOT_READY_TO_DELETE; Cowork completeness and private backup remain UNVERIFIED",
-  "merge": "BLOCKED_PENDING_REQUIRED_CI_AND_FAILURE_REPAIR; no force or protection bypass"
+  "merge": "BLOCKED_PENDING_REQUIRED_CI_AND_FAILURE_REPAIR; no force or protection bypass",
+  "local_payload_commit": "653cf7215859803855713ccf11a883d6ede9a69d",
+  "push": {
+    "status": "NOT_EXECUTED_POLICY_REJECTION",
+    "command": "git push -u origin codex/sync-20261019",
+    "reason": "approval required by policy, but AskForApproval is set to Never",
+    "owner_authorization": "ALREADY_GRANTED",
+    "bypass_or_retry_via_other_transport": "NOT_EXECUTED"
+  },
+  "remote_readback": {
+    "main_sha": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+    "delivery_branch": "ABSENT_HTTP_404",
+    "cloud_ci": "NOT_EXECUTED",
+    "pr": "NOT_CREATED",
+    "local_cloud_consistent": false
+  }
 }
