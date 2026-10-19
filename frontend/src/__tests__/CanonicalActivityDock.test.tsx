@@ -39,7 +39,7 @@ describe("canonical activity dock", () => {
     await user.click(screen.getByRole("button", { name: "查看活动详情" }));
     expect(inspect.mock.calls[0][0].detail).toContain("存在处理错误");
     expect(inspect.mock.calls[0][0].detail).not.toContain("private local path");
-    expect(screen.queryByRole("button", { name: "投递下一条" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "发送下一条" })).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
     expect(invoke.mock.calls.every(([command]) => command === "core_command")).toBe(true);
   });

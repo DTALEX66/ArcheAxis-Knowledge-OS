@@ -60,6 +60,6 @@ describe("versioned content editor", () => {
     await waitFor(()=>expect(dirty).toHaveBeenCalledWith(false));
     fireEvent.click(screen.getByRole("button",{name:"保存草稿"}));
     expect(save).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole("status")).toHaveTextContent("当前持久化版本 2");
+    expect(screen.getByRole("status")).toHaveTextContent("当前已保存版本 2");
   });
 });

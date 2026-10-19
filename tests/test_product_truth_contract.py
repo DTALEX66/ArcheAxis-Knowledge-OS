@@ -5,10 +5,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_WORKSPACE = "Human–AI Learning Workspace"
-EXPECTED_POSITIONING = (
-    "ArcheAxis Knowledge — a local-first, evidence-driven, "
-    "bidirectional Human–AI Learning & Trusted-Knowledge Workspace for individuals and AI"
-)
+# Public prose may be Chinese; preserve the product meaning, not an old English sentence.
+EXPECTED_POSITIONING_TERMS = ("本地优先", "原件保全", "证据可追溯", "人机双向学习", "可信知识工作台")
 
 
 def test_public_product_truth_uses_learning_workspace_positioning() -> None:
@@ -21,7 +19,10 @@ def test_public_product_truth_uses_learning_workspace_positioning() -> None:
     assert manifest["product"]["english_name"] == "ArcheAxis Knowledge"
     assert manifest["product"]["name"] == "星环知识系统"
     assert manifest["product"]["workspace_english_name"] == EXPECTED_WORKSPACE
-    assert EXPECTED_POSITIONING in readme_head
+    introduction = next(line for line in readme_head.splitlines()
+                        if line.strip() and not line.startswith("#"))
+    for term in EXPECTED_POSITIONING_TERMS:
+        assert term in introduction, (term, introduction)
     assert "星环知识系统（ArcheAxis Knowledge）" in readme_head
     assert "认知闭环" not in readme_head
     assert 'description = "Local-first, evidence-driven Human–AI learning and knowledge workspace' in pyproject

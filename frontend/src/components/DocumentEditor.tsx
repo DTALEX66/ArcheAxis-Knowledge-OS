@@ -258,6 +258,6 @@ export function DocumentEditor({ content, version, onSave, onReadConflict, onRet
         <button type="button" onClick={()=>void save(comparison.current.version)}>{mergeMode?"明确采用合并稿并按已比较版本保存":"明确保留本稿并按已比较版本保存"}</button>
       </>:null}
     </section>:null}
-    <p role={failure ? "alert" : "status"}>{status} · 当前持久化版本 {currentVersion.current}</p>
+    <p role={failure ? "alert" : "status"}>{status} · 当前已保存版本 {currentVersion.current}</p>
   </section>;
 }

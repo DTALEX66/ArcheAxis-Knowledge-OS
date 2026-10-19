@@ -84,18 +84,18 @@ export function CharacterMemoryPanel() {
     {message?<p role={failed?"alert":"status"}>{message}</p>:null}
     {profile?<><p>当前存储 v{profile.revision} · {profile.enabled?"记忆已启用":"记忆已停用"} · {profile.memories.length} 条获准记忆</p>
       <details><summary>核对当前已存储档案</summary><p style={{whiteSpace:"pre-wrap"}}>偏好：{profile.preferences||"未填写"}</p><p style={{whiteSpace:"pre-wrap"}}>学习目标：{profile.learning_goals||"未填写"}</p></details>
-      <button disabled={disabled} onClick={()=>void write({operation:profile.enabled?"disable":"enable"})}>{profile.enabled?"停用记忆上下文":"明确启用记忆上下文"}</button>
+      <button disabled={disabled} onClick={()=>void write({operation:profile.enabled?"disable":"enable"})}>{profile.enabled?"停用陪伴记忆":"明确启用陪伴记忆"}</button>
       <button disabled={busy} onClick={()=>void download()}>导出当前记忆 JSON</button>
       <form onSubmit={event=>{event.preventDefault();void write({operation:"profile",preferences,learning_goals:goals});}} aria-label="编辑角色档案"><fieldset disabled={disabled}>
         <label>角色偏好<textarea value={preferences} onChange={event=>{serial.current++;setPreferences(event.target.value);}}/></label>
         <label>学习目标<textarea value={goals} onChange={event=>{serial.current++;setGoals(event.target.value);}}/></label>
-        <button type="submit">保存档案并读回</button>
+        <button type="submit">保存并核对档案</button>
       </fieldset></form>
       <ul>{profile.memories.map(row=><li key={row.id}><article aria-label={`获准记忆 ${row.id}`}><p style={{whiteSpace:"pre-wrap"}}>{row.text}</p><p>来源：{row.provenance}</p><small>{row.id}</small><button disabled={disabled} onClick={()=>editMemory(row.id)}>纠正此条</button><button disabled={disabled} onClick={event=>{forgetOrigin.current=event.currentTarget;setForgetTarget(row.id);setForgetOpen(true);}}>审阅遗忘此条</button></article></li>)}</ul>
       <form aria-label="编辑获准记忆" onSubmit={event=>{event.preventDefault();void write({operation:editing?"correct":"remember",memory:{id:editing??`memory_${crypto.randomUUID()}`,text:memoryText,provenance}});}}><fieldset disabled={disabled}>
         <legend>{editing?`纠正 ${editing}${selected?"":"（当前存储中已不存在）"}`:"明确记住一条"}</legend>
         <label>记忆内容<textarea value={memoryText} onChange={event=>{serial.current++;setMemoryText(event.target.value);}}/></label><label>记忆来源<input value={provenance} onChange={event=>{serial.current++;setProvenance(event.target.value);}}/></label>
-        <button type="submit">{editing?"保存纠正并读回":"明确记住并读回"}</button><button type="button" onClick={()=>{serial.current++;setEditing(null);setMemoryText("");setProvenance("");}}>取消此条本地编辑</button>
+        <button type="submit">{editing?"保存并核对纠正":"保存并核对这条记忆"}</button><button type="button" onClick={()=>{serial.current++;setEditing(null);setMemoryText("");setProvenance("");}}>取消此条本地编辑</button>
       </fieldset></form>
       <AaosDialog role="alertdialog" title="确认遗忘获准记忆" description="从当前记忆存储移除所选条目；原聊天与备份保留。" open={forgetOpen} onOpenChange={open=>{if(!busy)setForgetOpen(open);}} onCloseAutoFocus={event=>{const origin=forgetOrigin.current;if(origin?.isConnected&&!origin.disabled){event.preventDefault();origin.focus();}}} trigger={<button disabled={disabled||!profile.memories.length} onClick={event=>{forgetOrigin.current=event.currentTarget;setForgetTarget(null);}}>审阅遗忘全部记忆</button>}><p>{forgetTarget?`遗忘当前存储中的 ${forgetTarget}`:`遗忘当前存储的全部 ${profile.memories.length} 条记忆`}。保留偏好与学习目标；不宣称从历史聊天、备份或设备介质安全擦除。</p><button disabled={disabled} onClick={()=>void write(forgetTarget?{operation:"forget",id:forgetTarget}:{operation:"forget_all"})}>确认遗忘</button><button disabled={busy} onClick={()=>setForgetOpen(false)}>取消遗忘</button></AaosDialog>
     </>:null}

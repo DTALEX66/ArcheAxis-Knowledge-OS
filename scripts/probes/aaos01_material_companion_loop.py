@@ -148,7 +148,7 @@ def show_answer(ui, wait, scope, text):
 
 def recover_material(ui, wait, scope, text):
     # 切页会卸载组件；沿产品既有只读恢复入口找回原回执，不再确认执行。
-    ui.click_revealed("恢复最近同版本材料请求", scope)
+    ui.click_revealed("恢复本版材料的上次提问", scope)
     wait("return " + node(scope) + ".textContent.includes('原请求历史回执已读回；没有再次推理。')")
     show_answer(ui, wait, scope, text)
 
@@ -200,7 +200,7 @@ def run(ui, read, js, wait, screenshot, document, saved, stage):
         raw = document["text_projection"].encode("utf-16-le")
         assert selection["end_utf16"] == len(raw) // 2 and selection["quote_sha256"] == hashlib.sha256(raw.decode("utf-16-le").encode()).hexdigest()
         assert request["model_configuration"] == stage["resolved"]["material"]
-        ui.click_revealed("确认并提问或读回同一请求", scope)
+        ui.click_revealed("确认提问或查询原请求", scope)
         wait_execution(js, wait, stage, "material", preview)
         wait("return " + node(scope) + ".textContent.includes('回答已记录，仍是待判断的模型候选。')", seconds=150)
         expected.append(("material_question", False)); assert_calls(proof(js), expected)
@@ -295,7 +295,7 @@ def run_cancel(ui, read, js, wait, screenshot, document, stage, poll):
                 ui.type("材料问题", questions["material_question"], scope=scope)
                 ui.type("提问用途", "自有合成材料取消验证", scope=scope)
                 op, cancel_op, status_op = "material_question", "material_question_cancel", "material_question_status"
-                preview_label, execute_label, cancel_label = "预览材料提问", "确认并提问或读回同一请求", "取消材料提问"
+                preview_label, execute_label, cancel_label = "预览材料提问", "确认提问或查询原请求", "取消材料提问"
             else:
                 # 材料取消保留自有合成草稿；沿用产品的受信离开确认。
                 ui.page("14", confirm_navigation=True)
@@ -352,7 +352,7 @@ def reopen_cancel(ui, read, js, wait, screenshot, document, stage):
     install_observer(js, stage["questions"], include_cancel=True)
     try:
         scope = open_material(ui, wait, document)
-        ui.click_revealed("恢复最近同版本材料请求", scope)
+        ui.click_revealed("恢复本版材料的上次提问", scope)
         wait("return " + node(scope) + ".textContent.includes('原请求执行失败，历史回执已读回；没有再次推理。')")
         # The UI must restore this cancelled request, not a prior successful
         # request for the same document/version. A separate Core read is weaker.

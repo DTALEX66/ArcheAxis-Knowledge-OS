@@ -272,6 +272,6 @@ def test_cancel_reopen_accepts_actual_terminal_copy_without_weakening_identity(m
         run()
         assert stage["cold_reopen"]["status"] == "PASS"
         assert stage["cold_reopen"]["observed_after_attach_execution_calls"] == 0
-        assert actions == ["恢复最近同版本材料请求", "cancel-material-cold-reopen.png", "重读历史", "cancel-companion-cold-reopen.png"]
+        assert actions == ["恢复本版材料的上次提问", "cancel-material-cold-reopen.png", "重读历史", "cancel-companion-cold-reopen.png"]
     else:
         with pytest.raises(AssertionError): run()

@@ -529,7 +529,7 @@ describe("six-space real command loops", () => {
     render(<ActivityDock />);
 
     expect(await screen.findByText(/本地数据暂时不可用/)).toBeInTheDocument();
-    expect(screen.getByText("投递状态：不可用")).toBeInTheDocument();
+    expect(screen.getByText("发送状态：不可用")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("/workspace/api/v1/activity");
     expect(document.body).not.toHaveTextContent("-> 500");
   });
@@ -543,9 +543,9 @@ describe("six-space real command loops", () => {
     render(<ActivityDock />);
     await screen.findByText("暂无活动记录");
     await user.click(screen.getByRole("button", { name: "展开活动坞" }));
-    await user.click(screen.getByRole("button", { name: "投递下一条" }));
+    await user.click(screen.getByRole("button", { name: "发送下一条" }));
 
-    expect(await screen.findByText(/投递状态：本地数据暂时不可用/)).toBeInTheDocument();
+    expect(await screen.findByText(/发送状态：本地数据暂时不可用/)).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("/workspace/api/delivery");
   });
 
@@ -560,9 +560,9 @@ describe("six-space real command loops", () => {
     render(<ActivityDock />);
     await screen.findByText("暂无活动记录");
     await user.click(screen.getByRole("button", { name: "展开活动坞" }));
-    await user.click(screen.getByRole("button", { name: "投递下一条" }));
+    await user.click(screen.getByRole("button", { name: "发送下一条" }));
 
-    expect(await screen.findByText("投递状态：已重新入队；读回暂不可用")).toBeInTheDocument();
+    expect(await screen.findByText("发送状态：已重新排队；状态刷新暂不可用")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent("/workspace/api/v1/activity");
   });
 
@@ -614,11 +614,11 @@ describe("six-space real command loops", () => {
     expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({
       title: "资料导入", lifecycle: "失败", source: "https://example.test/raw",
     }));
-    await user.click(screen.getByRole("button", { name: "投递下一条" }));
-    await user.click(screen.getByRole("button", { name: "重试失败投递" }));
+    await user.click(screen.getByRole("button", { name: "发送下一条" }));
+    await user.click(screen.getByRole("button", { name: "重试发送失败的记录" }));
     expect(runtime.dispatchDelivery).toHaveBeenCalledOnce();
     expect(runtime.retryFailedDelivery).toHaveBeenCalledOnce();
-    expect(screen.getByText("投递状态：已重新入队")).toBeInTheDocument();
+    expect(screen.getByText("发送状态：已重新排队")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /取消投递/ })).not.toBeInTheDocument();
   });
 });

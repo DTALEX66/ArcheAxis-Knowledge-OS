@@ -11,8 +11,8 @@ it.each(["accepted","refused","wrong-id","missing-ack"])("checks the exact mater
   if(p.body.preview)return Promise.resolve({schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)});
   running=p.body;return new Promise(resolve=>{finish=resolve;});
  });
- render(<MaterialQuestionPanel material={material} text="saved"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");
- fireEvent.click(screen.getByText("确认并提问或读回同一请求"));fireEvent.click(await screen.findByText("取消材料提问"));
+ render(<MaterialQuestionPanel material={material} text="saved"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));fireEvent.click(await screen.findByText("取消材料提问"));
  await screen.findByText(mode==="accepted"?"取消已请求，等待实际回执；提供者停止状态未确认。":mode==="refused"?"该请求已不接受取消，请查询原请求终态。":"取消未确认；原请求仍保留，可重试取消或等待实际回执。");
  expect(bridge.call.mock.calls.find(c=>c[0]==="material_question_cancel")![1].body).toEqual({request_id:running.request_id});
  expect(bridge.call.mock.calls.filter(c=>c[0]==="material_question"&&!c[1].body.preview)).toHaveLength(1);
@@ -25,8 +25,8 @@ it.each(["reject","wrong-id","invalid-outcome"])("keeps recovered request locked
   if(++reads===1){if(mode==="reject")throw Error("SYNTHETIC status unavailable");return {schema:"archeaxis.material-answer/v1",request_id:mode==="wrong-id"?"other_request":request.request_id,outcome:mode==="invalid-outcome"?"invalid":"succeeded",answer:{answer:"unconfirmed answer"}};}
   return {schema:"archeaxis.material-answer/v1",request_id:request.request_id,outcome:"succeeded",answer:{answer:"SYNTHETIC confirmed recovery"}};
  });
- render(<MaterialQuestionPanel material={material} text="saved material"/>);fireEvent.click(screen.getByText("恢复最近同版本材料请求"));await screen.findByText("材料请求历史未确认，当前输入保留。");
- expect(screen.getByLabelText("材料问题")).toHaveValue("saved question");expect(screen.getByLabelText("材料模型通道")).toBeDisabled();expect(screen.getByText("确认并提问或读回同一请求")).toBeDisabled();expect(screen.queryByText("unconfirmed answer")).toBeNull();
+ render(<MaterialQuestionPanel material={material} text="saved material"/>);fireEvent.click(screen.getByText("恢复本版材料的上次提问"));await screen.findByText("材料请求历史未确认，当前输入保留。");
+ expect(screen.getByLabelText("材料问题")).toHaveValue("saved question");expect(screen.getByLabelText("材料模型通道")).toBeDisabled();expect(screen.getByText("确认提问或查询原请求")).toBeDisabled();expect(screen.queryByText("unconfirmed answer")).toBeNull();
  fireEvent.click(screen.getByText("查询未确认材料请求"));await screen.findByText("SYNTHETIC confirmed recovery");expect(bridge.call.mock.calls.at(-1)?.[1].body).toEqual({request_id:request.request_id});expect(bridge.call.mock.calls.every(c=>c[0]==="material_question_status")).toBe(true);
 });
 beforeEach(()=>{vi.stubGlobal("crypto",webcrypto);bridge.call.mockReset();bridge.configuration={revision:0};});afterEach(()=>vi.unstubAllGlobals());
@@ -40,44 +40,44 @@ it.each(["lost-response","invalid-receipt"])("retains a submitted %s request and
   if(p.body.preview)return {schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)};
   id=p.body.request_id;if(mode==="lost-response")throw Error("SYNTHETIC lost acknowledgement");return {schema:"wrong",request_id:id};
  });
- render(<MaterialQuestionPanel material={material} text="material"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");fireEvent.click(screen.getByText("确认并提问或读回同一请求"));await screen.findByText("材料请求状态未确认，请查询原请求。");
+ render(<MaterialQuestionPanel material={material} text="material"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("材料请求状态未确认，请查询原请求。");
  for(const label of ["材料问题","提问用途","材料模型通道","材料问答选区"])expect(screen.getByLabelText(label)).toBeDisabled();
- expect(screen.getByText("预览材料提问")).toBeDisabled();expect(screen.getByText("确认并提问或读回同一请求")).toBeDisabled();
+ expect(screen.getByText("预览材料提问")).toBeDisabled();expect(screen.getByText("确认提问或查询原请求")).toBeDisabled();
  fireEvent.click(screen.getByText("查询未确认材料请求"));await screen.findByText("SYNTHETIC recovered");expect(bridge.call.mock.calls.filter(c=>c[0]==="material_question")).toHaveLength(2);expect(bridge.call.mock.calls.find(c=>c[0]==="material_question_status")![1].body).toEqual({request_id:id});expect(screen.getByLabelText("材料模型通道")).toBeEnabled();
 });
 it("resolves the selected DEEP material lane once and freezes it across confirmation",async()=>{
  bridge.configuration={revision:3,workspace_id:"a".repeat(32),restore_epoch:"initial"};
  const resolved={workspace_id:"a".repeat(32),restore_epoch:"initial",schema:"archeaxis.resolved-model/v1",configuration_revision:3,purpose:"material",lane:"deep",profile_id:"mtp",profile:{endpoint:"http://127.0.0.1:1234/v1",protocol:"openai",model:"aaos-deep-27b-mtp",credential_ref:null,max_tokens:1024,timeout_s:120}};
  bridge.call.mockImplementation(async(op,p)=>op==="model_configuration_resolve"?resolved:p.body.preview?{schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}:{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"succeeded",answer:{answer:"SYNTHETIC DEEP"}});
- render(<MaterialQuestionPanel material={material} text="material"/>);fireEvent.change(screen.getByLabelText("材料模型通道"),{target:{value:"deep"}});fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");
+ render(<MaterialQuestionPanel material={material} text="material"/>);fireEvent.change(screen.getByLabelText("材料模型通道"),{target:{value:"deep"}});fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");
  expect(bridge.call.mock.calls.find(c=>c[0]==="model_configuration_resolve")![1].body).toEqual({purpose:"material",lane:"deep"});
  const preview=bridge.call.mock.calls.find(c=>c[0]==="material_question")![1].body;
  expect(preview).toMatchObject({model:"aaos-deep-27b-mtp",max_tokens:1024,model_configuration:resolved});
- fireEvent.click(screen.getByText("确认并提问或读回同一请求"));await screen.findByText("SYNTHETIC DEEP");
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("SYNTHETIC DEEP");
  expect(bridge.call.mock.calls.filter(c=>c[0]==="model_configuration_resolve")).toHaveLength(1);
  expect(bridge.call.mock.calls.filter(c=>c[0]==="material_question")[1][1].body).toEqual({...preview,preview:false,confirmed_plan_sha256:"b".repeat(64)});
- fireEvent.change(screen.getByLabelText("材料模型通道"),{target:{value:"fast"}});expect(screen.queryByText("确认并提问或读回同一请求")).toBeNull();
+ fireEvent.change(screen.getByLabelText("材料模型通道"),{target:{value:"fast"}});expect(screen.queryByText("确认提问或查询原请求")).toBeNull();
 });
 it("previews exact Unicode selection and executes only the explicitly confirmed frozen request",async()=>{
  bridge.call.mockImplementation(async(op,p)=>{expect(op).toBe("material_question");return p.body.preview?{schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64),plan:{destination:"LOCAL_LOOPBACK_ONLY"}}:{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"succeeded",answer:{answer:"SIMULATED answer"}};});
  render(<MaterialQuestionPanel material={material} text="前缀原文😀后缀"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"解释选区"}});
- const area=screen.getByLabelText("材料问答选区") as HTMLTextAreaElement;area.setSelectionRange(2,6);fireEvent.select(area);fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");expect(bridge.call).toHaveBeenCalledTimes(1);
+ const area=screen.getByLabelText("材料问答选区") as HTMLTextAreaElement;area.setSelectionRange(2,6);fireEvent.select(area);fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");expect(bridge.call).toHaveBeenCalledTimes(1);
  const preview=bridge.call.mock.calls[0][1].body;expect(preview.selection).toEqual({start_utf16:2,end_utf16:6,quote_sha256:Array.from(new Uint8Array(await webcrypto.subtle.digest("SHA-256",new TextEncoder().encode("原文😀")))).map(x=>x.toString(16).padStart(2,"0")).join("")});
- fireEvent.click(screen.getByText("确认并提问或读回同一请求"));await screen.findByText("SIMULATED answer");expect(bridge.call.mock.calls[1][1].body).toEqual({...preview,preview:false,confirmed_plan_sha256:"b".repeat(64)});
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("SIMULATED answer");expect(bridge.call.mock.calls[1][1].body).toEqual({...preview,preview:false,confirmed_plan_sha256:"b".repeat(64)});
 });
 it("changing objects discards delayed preview and never binds it to the new material",async()=>{
- let resolve!:(value:unknown)=>void;bridge.call.mockImplementation(()=>new Promise(r=>{resolve=r;}));const view=render(<MaterialQuestionPanel material={material} text="first"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(1));view.rerender(<MaterialQuestionPanel material={{...material,document_id:"doc_b"}} text="second"/>);await act(async()=>resolve({schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}));expect(screen.queryByText("确认并提问或读回同一请求")).toBeNull();
+ let resolve!:(value:unknown)=>void;bridge.call.mockImplementation(()=>new Promise(r=>{resolve=r;}));const view=render(<MaterialQuestionPanel material={material} text="first"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(1));view.rerender(<MaterialQuestionPanel material={{...material,document_id:"doc_b"}} text="second"/>);await act(async()=>resolve({schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}));expect(screen.queryByText("确认提问或查询原请求")).toBeNull();
 });
 it("maps textarea LF offsets to the original CRLF quote and clears selection on object change",async()=>{
  bridge.call.mockResolvedValue({schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)});
  const view=render(<MaterialQuestionPanel material={material} text={"前\r\n原文😀"}/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});
- const area=screen.getByLabelText("材料问答选区") as HTMLTextAreaElement;area.setSelectionRange(2,6);fireEvent.select(area);fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");expect(bridge.call.mock.calls[0][1].body.selection).toMatchObject({start_utf16:3,end_utf16:7});
+ const area=screen.getByLabelText("材料问答选区") as HTMLTextAreaElement;area.setSelectionRange(2,6);fireEvent.select(area);fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");expect(bridge.call.mock.calls[0][1].body.selection).toMatchObject({start_utf16:3,end_utf16:7});
  view.rerender(<MaterialQuestionPanel material={{...material,document_id:"doc_b"}} text="new"/>);expect(screen.getByText("整个已保存材料")).toBeTruthy();
 });
 it("reads a persisted same-version request without performing inference",async()=>{
  const request={request_id:"old_request",material:{block_id:null,content_sha256:material.content_sha256,document_id:material.document_id,kind:"document",version:1},selection:null,question:"old question",purpose:"learning",model:null,max_tokens:128,timeout_s:5,preview:false,confirmed_plan_sha256:null};
  bridge.call.mockImplementation(async(op,p)=>{expect(op).toBe("material_question_status");return p.body.request_id===null?{schema:"archeaxis.material-question-journal/v1",plans:[{request}]}:{schema:"archeaxis.material-answer/v1",request_id:"old_request",outcome:"succeeded",answer:{answer:"historical answer"}};});
- render(<MaterialQuestionPanel material={material} text="material"/>);fireEvent.click(screen.getByText("恢复最近同版本材料请求"));await screen.findByText("historical answer");expect(bridge.call).toHaveBeenCalledTimes(2);expect(screen.getByLabelText("材料问题")).toHaveProperty("value","old question");
+ render(<MaterialQuestionPanel material={material} text="material"/>);fireEvent.click(screen.getByText("恢复本版材料的上次提问"));await screen.findByText("historical answer");expect(bridge.call).toHaveBeenCalledTimes(2);expect(screen.getByLabelText("材料问题")).toHaveProperty("value","old question");
 });
 
 it("SIMULATED recovery restores original CRLF/emoji selection and queries the same frozen request",async()=>{
@@ -86,25 +86,25 @@ it("SIMULATED recovery restores original CRLF/emoji selection and queries the sa
  const request={request_id:"selected_request",material,selection:{start_utf16:3,end_utf16:7,quote_sha256},question:"恢复选区",purpose:"理解",model:null,max_tokens:128,timeout_s:5,preview:false,confirmed_plan_sha256:null};
  let statusReads=0;
  bridge.call.mockImplementation(async(op,p)=>op==="material_question_status"?(p.body.request_id===null?{schema:"archeaxis.material-question-journal/v1",plans:[{request}]}:++statusReads===1?{request_id:request.request_id,schema:"archeaxis.material-question-status/v1",execution_state:"UNKNOWN"}:{schema:"archeaxis.material-answer/v1",request_id:request.request_id,outcome:"succeeded",answer:{answer:"recovered selection answer"}}):{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"succeeded",answer:{answer:"recovered selection answer"}});
- render(<MaterialQuestionPanel material={material} text={text}/>);fireEvent.click(screen.getByText("恢复最近同版本材料请求"));
+ render(<MaterialQuestionPanel material={material} text={text}/>);fireEvent.click(screen.getByText("恢复本版材料的上次提问"));
  await screen.findByText(/执行结果尚未确认/);expect(screen.getByText("已选文本：原文😀")).toBeInTheDocument();
- expect(screen.getByText("确认并提问或读回同一请求")).toBeDisabled();fireEvent.click(screen.getByText("查询未确认材料请求"));await screen.findByText("recovered selection answer");
+ expect(screen.getByText("确认提问或查询原请求")).toBeDisabled();fireEvent.click(screen.getByText("查询未确认材料请求"));await screen.findByText("recovered selection answer");
  expect(bridge.call.mock.calls.some(([op])=>op==="material_question")).toBe(false);expect(bridge.call.mock.calls.at(-1)?.[1].body).toEqual({request_id:request.request_id});
 });
 
 it("SIMULATED recovery rejects a historical selection whose quote does not match this material",async()=>{
  const request={request_id:"bad_selection",material,selection:{start_utf16:0,end_utf16:4,quote_sha256:"f".repeat(64)},question:"bad",purpose:"理解",model:null,max_tokens:128,timeout_s:5};
  bridge.call.mockResolvedValue({schema:"archeaxis.material-question-journal/v1",plans:[{request}]});
- render(<MaterialQuestionPanel material={material} text="other material"/>);fireEvent.click(screen.getByText("恢复最近同版本材料请求"));
- await screen.findByText("材料请求历史未确认，当前输入保留。");expect(screen.queryByText("确认并提问或读回同一请求")).toBeNull();
+ render(<MaterialQuestionPanel material={material} text="other material"/>);fireEvent.click(screen.getByText("恢复本版材料的上次提问"));
+ await screen.findByText("材料请求历史未确认，当前输入保留。");expect(screen.queryByText("确认提问或查询原请求")).toBeNull();
  expect(bridge.call).toHaveBeenCalledTimes(1);
 });
 
 it("SIMULATED cancel refusal is shown and the same running request can be cancelled again",async()=>{
  let finish!:(value:unknown)=>void;
  bridge.call.mockImplementation((op,p)=>op==="material_question_cancel"?Promise.reject(new Error("HTTP 503")):p.body.preview?Promise.resolve({schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}):new Promise(r=>{finish=r;}));
- render(<MaterialQuestionPanel material={material} text="saved"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");
- fireEvent.click(screen.getByText("确认并提问或读回同一请求"));const cancel=await screen.findByText("取消材料提问");fireEvent.click(cancel);
+ render(<MaterialQuestionPanel material={material} text="saved"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));const cancel=await screen.findByText("取消材料提问");fireEvent.click(cancel);
  await screen.findByText("取消未确认；原请求仍保留，可重试取消或等待实际回执。");fireEvent.click(cancel);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="material_question_cancel")).toHaveLength(2));
  const request=bridge.call.mock.calls.find(([op,p])=>op==="material_question"&&!p.body.preview)![1].body;
  await act(async()=>finish({schema:"archeaxis.material-answer/v1",request_id:request.request_id,outcome:"succeeded",answer:{answer:"completed despite cancel failure"}}));await screen.findByText("completed despite cancel failure");
@@ -113,7 +113,7 @@ it("SIMULATED cancel refusal is shown and the same running request can be cancel
 it("SIMULATED late cancel ACK does not replace a completed request's result",async()=>{
  let finish!:(value:unknown)=>void,ack!:(value:unknown)=>void;
  bridge.call.mockImplementation((op,p)=>op==="material_question_cancel"?new Promise(r=>{ack=r;}):p.body.preview?Promise.resolve({schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}):new Promise(r=>{finish=r;}));
- render(<MaterialQuestionPanel material={material} text="saved"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");fireEvent.click(screen.getByText("确认并提问或读回同一请求"));fireEvent.click(await screen.findByText("取消材料提问"));
+ render(<MaterialQuestionPanel material={material} text="saved"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");fireEvent.click(screen.getByText("确认提问或查询原请求"));fireEvent.click(await screen.findByText("取消材料提问"));
  const request=bridge.call.mock.calls.find(([op,p])=>op==="material_question"&&!p.body.preview)![1].body;
  await act(async()=>finish({schema:"archeaxis.material-answer/v1",request_id:request.request_id,outcome:"succeeded",answer:{answer:"finished"}}));await screen.findByText("回答已记录，仍是待判断的模型候选。");
  await act(async()=>ack({request_id:request.request_id}));expect(screen.getByText("回答已记录，仍是待判断的模型候选。")).toBeInTheDocument();
@@ -123,8 +123,8 @@ it("closing a view does not cancel its recorded backend execution",async()=>{
  let finish!:(value:unknown)=>void;
  bridge.call.mockImplementation((op,p)=>{expect(op).toBe("material_question");return p.body.preview?Promise.resolve({schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}):new Promise(r=>{finish=r;});});
  const view=render(<MaterialQuestionPanel material={material} text="saved material"/>);
- fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");
- fireEvent.click(screen.getByText("确认并提问或读回同一请求"));await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));const request=bridge.call.mock.calls[1][1].body;
+ fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));await waitFor(()=>expect(bridge.call).toHaveBeenCalledTimes(2));const request=bridge.call.mock.calls[1][1].body;
  view.unmount();expect(bridge.call).toHaveBeenCalledTimes(2);
  await act(async()=>finish({schema:"archeaxis.material-answer/v1",request_id:request.request_id,outcome:"succeeded",answer:{answer:"late"}}));expect(bridge.call).toHaveBeenCalledTimes(2);
 });
@@ -133,17 +133,17 @@ it("freezes the configured Material profile once and keeps it for execution retr
  bridge.configuration={revision:1,workspace_id:"a".repeat(32),restore_epoch:"epoch"};
  const resolved={schema:"archeaxis.resolved-model/v1",workspace_id:"a".repeat(32),restore_epoch:"epoch",configuration_revision:1,configuration_sha256:"c".repeat(64),purpose:"material",lane:"fast",profile_id:"local",profile:{endpoint:"http://127.0.0.1:1234/v1",protocol:"openai",model:"fixed-material-model",credential_ref:null,max_tokens:512,timeout_s:9}};
  bridge.call.mockImplementation(async(op,p)=>op==="model_configuration_resolve"?resolved:p.body.preview?{schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}:{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"succeeded",answer:{answer:"configured"}});
- render(<MaterialQuestionPanel material={material} text="saved material"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");
+ render(<MaterialQuestionPanel material={material} text="saved material"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");
  expect(bridge.call.mock.calls[0]).toEqual(["model_configuration_resolve",{body:{purpose:"material",lane:"fast"}}]);
  const preview=bridge.call.mock.calls[1][1].body;expect(preview).toMatchObject({model_configuration:resolved,model:"fixed-material-model",max_tokens:512,timeout_s:9});
- fireEvent.click(screen.getByText("确认并提问或读回同一请求"));await screen.findByText("configured");expect(bridge.call.mock.calls[2][1].body.model_configuration).toEqual(resolved);expect(bridge.call.mock.calls.filter(([op])=>op==="model_configuration_resolve")).toHaveLength(1);
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("configured");expect(bridge.call.mock.calls[2][1].body.model_configuration).toEqual(resolved);expect(bridge.call.mock.calls.filter(([op])=>op==="model_configuration_resolve")).toHaveLength(1);
 });
 
 it("shows the actual material title bound to the frozen saved version without changing the confirmed request",async()=>{
  bridge.call.mockImplementation(async(_op,p)=>p.body.preview?{schema:"archeaxis.material-question-preview/v1",plan_sha256:"b".repeat(64)}:{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"failed",answer:null});
- render(<MaterialQuestionPanel material={material} text="original" materialTitle="已读材料标题"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"冻结问题"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认并提问或读回同一请求");
+ render(<MaterialQuestionPanel material={material} text="original" materialTitle="已读材料标题"/>);fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"冻结问题"}});fireEvent.click(screen.getByText("预览材料提问"));await screen.findByText("确认提问或查询原请求");
  expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent("《已读材料标题》，已保存文档第 1 版");const frozen=structuredClone(bridge.call.mock.calls[0][1].body);
- fireEvent.click(screen.getByText("确认并提问或读回同一请求"));await screen.findByText("执行失败或取消，原请求和材料保留。");expect(bridge.call.mock.calls[1][1].body).toEqual({...frozen,preview:false,confirmed_plan_sha256:"b".repeat(64)});expect(bridge.call.mock.calls[1][1].body).not.toHaveProperty("materialTitle");
+ fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("执行失败或取消，原请求和材料保留。");expect(bridge.call.mock.calls[1][1].body).toEqual({...frozen,preview:false,confirmed_plan_sha256:"b".repeat(64)});expect(bridge.call.mock.calls[1][1].body).not.toHaveProperty("materialTitle");
 });
 
 it.each(["execute","status","history"])("reports a failed material timeout after %s without repeating inference",async mode=>{
@@ -155,9 +155,9 @@ it.each(["execute","status","history"])("reports a failed material timeout after
   return {schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"failed",reason_code:"material_model_timeout",answer:null};
  });
  render(<MaterialQuestionPanel material={material} text="saved material"/>);
- if(mode==="history")fireEvent.click(screen.getByText("恢复最近同版本材料请求"));
+ if(mode==="history")fireEvent.click(screen.getByText("恢复本版材料的上次提问"));
  else {
-  fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));fireEvent.click(await screen.findByText("确认并提问或读回同一请求"));
+  fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));fireEvent.click(await screen.findByText("确认提问或查询原请求"));
   if(mode==="status")fireEvent.click(await screen.findByText("查询未确认材料请求"));
  }
  await screen.findByText("模型调用超时，未生成可用回答；原请求已保留，没有自动重试。");

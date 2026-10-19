@@ -277,7 +277,7 @@ describe("App shell", () => {
     expect(screen.getByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
     expect(screen.getByText(/本地核心启动超时；可查看安全诊断或重试/))
       .toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "重试" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "重试启动" })).toBeEnabled();
   });
 
   it("replaces the six-space workspace with the Recovery Shell after desktop bootstrap fails", async () => {

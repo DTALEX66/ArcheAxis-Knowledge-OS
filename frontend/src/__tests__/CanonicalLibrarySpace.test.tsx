@@ -118,7 +118,7 @@ describe("canonical content sample", () => {
     const textbox = await screen.findByRole("textbox", {name:"文档草稿"});
     fireEvent.compositionStart(textbox);
     act(() => {(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"导航仍保留未保存正文"}]}]},{emitUpdate:true});});
-    await screen.findByText(/尚未保存 · 当前持久化版本/);
+    await screen.findByText(/尚未保存 · 当前已保存版本/);
     bridge.call.mockClear(); onDirtyChange.mockClear();
     rerender(<CanonicalLibrarySpace onDirtyChange={onDirtyChange} navigation={{section:"versions",sequence:1}} />);
     expect(screen.getByLabelText("文档版本导航")).toHaveFocus();
@@ -266,7 +266,7 @@ describe("canonical content sample", () => {
     const textbox = screen.getByRole("textbox", {name:"文档草稿"});
     fireEvent.compositionStart(textbox);
     act(() => {(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"历史检查保持未保存草稿"}]}]},{emitUpdate:true});});
-    await screen.findByText(/尚未保存 · 当前持久化版本/);
+    await screen.findByText(/尚未保存 · 当前已保存版本/);
     onInspect.mockClear(); bridge.call.mockClear();
     await user.click(screen.getByRole("button", {name:"只读查看历史版本"}));
     await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({version:"1", lifecycle:expect.stringContaining("历史版本"), identityDetails:{document_id:doc.document_id,version:1,content_sha256:historicalHash,source_id:null,source_revision:null,raw_sha256:null}})));
@@ -353,7 +353,7 @@ describe("canonical content sample", () => {
     const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
     await user.click(screen.getByRole("button",{name:"新建原创笔记"}));
     fireEvent.compositionStart(textbox);act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"New unsaved text during request"}]}]},{emitUpdate:true});});
-    await screen.findByText(/尚未保存 · 当前持久化版本/);
+    await screen.findByText(/尚未保存 · 当前已保存版本/);
     await act(async()=>{complete(noteAck(request));});
     expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("New unsaved text during request");
     expect(screen.getByRole("button",{name:"原创笔记 · 文档"})).toBeInTheDocument();
@@ -446,7 +446,7 @@ describe("canonical content sample", () => {
     const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
     await user.click(screen.getByRole("button",{name:operation==="document_get"?"late reader · 文档":"读取并恢复版本"}));
     fireEvent.compositionStart(textbox);act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"Preserved while read pending"}]}]},{emitUpdate:true});});
-    await screen.findByText(/尚未保存 · 当前持久化版本/);
+    await screen.findByText(/尚未保存 · 当前已保存版本/);
     await act(async()=>{complete(operation==="document_get"?other:{...doc,version:2});});
     expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("Preserved while read pending");
   });

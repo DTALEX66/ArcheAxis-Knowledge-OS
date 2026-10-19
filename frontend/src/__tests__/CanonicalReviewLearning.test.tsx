@@ -29,7 +29,7 @@ describe("finite knowledge and learning commands",()=>{
   await user.click(await screen.findByRole("button",{name:"原创内容 · 版本 1"}));
   const textbox=await screen.findByRole("textbox",{name:"文档草稿"});
   fireEvent.compositionStart(textbox);act(()=>{(textbox as HTMLElement & {editor:Editor}).editor.commands.setContent({type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"Unsaved searched document"}]}]},{emitUpdate:true});});
-  await screen.findByText(/尚未保存 · 当前持久化版本/);
+  await screen.findByText(/尚未保存 · 当前已保存版本/);
   await user.click(screen.getByRole("button",{name:"关闭搜索文档"}));
   expect(screen.getByRole("textbox",{name:"文档草稿"})).toHaveTextContent("Unsaved searched document");
   await user.click(screen.getByRole("button",{name:"第二文档 · 版本 1"}));

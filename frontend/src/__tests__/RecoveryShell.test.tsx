@@ -66,7 +66,7 @@ describe("Recovery Shell", () => {
     render(<App />);
 
     const shell = await screen.findByRole("main", { name: "恢复工作台" });
-    expect(within(shell).getByRole("button", { name: "重试" })).toBeInTheDocument();
+    expect(within(shell).getByRole("button", { name: "重试启动" })).toBeInTheDocument();
     expect(within(shell).getByRole("button", { name: "安全诊断" })).toBeInTheDocument();
     expect(within(shell).getByRole("button", { name: "安全模式" })).toBeInTheDocument();
     expect(within(shell).getByRole("button", { name: "恢复备份" })).toBeInTheDocument();
@@ -112,7 +112,7 @@ describe("Recovery Shell", () => {
       });
     render(<App />);
 
-    await user.click(await screen.findByRole("button", { name: "重试" }));
+    await user.click(await screen.findByRole("button", { name: "重试启动" }));
 
     await waitFor(() => {
       expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
@@ -137,7 +137,7 @@ describe("Recovery Shell", () => {
 
     render(<App />);
 
-    expect(screen.getByRole("button", { name: "重试" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "重试启动" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "安全模式" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "退出" })).toBeDisabled();
   });
@@ -161,7 +161,7 @@ describe("Recovery Shell", () => {
     });
     render(<App />);
 
-    const retry = await screen.findByRole("button", { name: "重试" });
+    const retry = await screen.findByRole("button", { name: "重试启动" });
     const safeMode = screen.getByRole("button", { name: "安全模式" });
     act(() => {
       fireEvent.click(retry);

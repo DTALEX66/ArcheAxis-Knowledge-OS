@@ -46,7 +46,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Memory observer refu
     def remember(text):
         ui.type("记忆内容", text, "textarea", scope=scope)
         ui.type("记忆来源", "synthetic explicit human fixture", scope=scope)
-        ui.click("明确记住并读回", scope)
+        ui.click("保存并核对这条记忆", scope)
 
     def reopen(expected):
         collect()
@@ -62,7 +62,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Memory observer refu
     assert initial["revision"] == 0 and initial["memories"] == [] and not initial["enabled"]
     ui.type("角色偏好", "synthetic calm stepwise style", "textarea", scope=scope)
     ui.type("学习目标", "synthetic evidence-reading goal", "textarea", scope=scope)
-    ui.click("保存档案并读回", scope)
+    ui.click("保存并核对档案", scope)
     profile = saved(1)
     assert profile["preferences"] == "synthetic calm stepwise style"
     assert profile["learning_goals"] == "synthetic evidence-reading goal"
@@ -72,14 +72,14 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Memory observer refu
     row_scope = scope + "//article[@aria-label='获准记忆 " + first + "']"
     ui.click("纠正此条", row_scope)
     ui.type("记忆内容", "synthetic corrected approved memory", "textarea", scope=scope)
-    ui.click("保存纠正并读回", scope)
+    ui.click("保存并核对纠正", scope)
     profile = saved(3)
     assert profile["memories"][0] == {"id":first,"text":"synthetic corrected approved memory","provenance":"synthetic explicit human fixture"}
     remember("synthetic second approved memory")
     profile = saved(4)
     second = profile["memories"][1]["id"]
     assert second != first
-    ui.click("明确启用记忆上下文", scope)
+    ui.click("明确启用陪伴记忆", scope)
     profile = saved(5)
     assert profile["enabled"] is True
     context = bridge("character_memory_context")
@@ -106,7 +106,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Memory observer refu
     assert exported == {"schema":"archeaxis.memory-export/v1","profile":profile,"contains_personal_memory":True,"network_performed":False}
     report["download"] = {"path":str(files[0]),"bytes":files[0].stat().st_size,"sha256":hashlib.sha256(files[0].read_bytes()).hexdigest(),"exact_profile":True}
 
-    ui.click("停用记忆上下文", scope)
+    ui.click("停用陪伴记忆", scope)
     profile = saved(6)
     assert not profile["enabled"]
     context = bridge("character_memory_context")

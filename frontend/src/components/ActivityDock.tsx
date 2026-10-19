@@ -57,7 +57,7 @@ function CanonicalActivityDock({ onInspect, commandPaletteOpen = false }: DockPr
     return () => { alive = false; window.removeEventListener("archeaxis-job-changed", changed); };
   }, [refresh]);
   return <footer id="activity-dock" className="activity-dock" aria-label="活动坞">
-    <div className="activity-dock-summary"><span className="activity-dock-indicator" aria-hidden="true" /><span className="activity-dock-item">{message}</span>{message !== "就绪" || expanded ? <button type="button" onClick={() => setRefresh(value => value + 1)}>刷新任务</button> : null}<button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} title="展开/收起活动回执（Ctrl+Alt+J）" aria-keyshortcuts="Control+Alt+J" onClick={toggle}>{expanded ? "⌄" : "⌃"}</button></div>
+    <div className="activity-dock-summary"><span className="activity-dock-indicator" aria-hidden="true" /><span className="activity-dock-item">{message}</span>{message !== "就绪" || expanded ? <button type="button" onClick={() => setRefresh(value => value + 1)}>刷新任务</button> : null}<button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} title="展开/收起处理记录（Ctrl+Alt+J）" aria-keyshortcuts="Control+Alt+J" onClick={toggle}>{expanded ? "⌄" : "⌃"}</button></div>
     {expanded ? <div className="activity-dock-body">{jobs.map(job => <span className="activity-dock-item" key={job.job_id}>{job.name} · {stateLabel(job.state)} <button type="button" onClick={() => onInspect?.({ title: job.name, source: "Rust Core 任务记录", lifecycle: stateLabel(job.state), updatedAt: job.completed_at ?? job.created_at, detail: `任务 ${job.job_id}；尝试 ${job.attempt ?? "尚未执行"}${job.error ? "；存在处理错误，请在资料页面查看错误与重试" : ""}` })}>查看活动详情</button></span>)}<span className="activity-dock-item">处理成功不等同识别核验或专业依据已确认。</span></div> : null}
   </footer>;
 }
@@ -71,7 +71,7 @@ export function ActivityDock({ onInspect, commandPaletteOpen = false }: DockProp
 function LegacyActivityDock({ onInspect, commandPaletteOpen = false }: DockProps) {
   const [items, setItems] = useState<ActivityItemDto[]>([]);
   const [summary, setSummary] = useState("正在读取活动…");
-  const [delivery, setDelivery] = useState("投递状态：读取中");
+  const [delivery, setDelivery] = useState("发送状态：读取中");
   const { expanded, toggle } = useDockExpansion(commandPaletteOpen);
 
   async function refresh() {
@@ -80,8 +80,8 @@ function LegacyActivityDock({ onInspect, commandPaletteOpen = false }: DockProps
     setSummary(activity.items.length === 0 ? "暂无活动记录" : `最近活动：${activity.items.length}`);
     const failed = currentDelivery.summary.outbox.failed ?? 0;
     setDelivery(currentDelivery.summary.jobs === 0
-      ? "投递状态：暂无记录"
-      : failed > 0 ? `投递状态：失败 ${failed}` : "投递状态：可用");
+      ? "发送状态：暂无记录"
+      : failed > 0 ? `发送状态：失败 ${failed}` : "发送状态：可用");
   }
 
   useEffect(() => {
@@ -91,7 +91,7 @@ function LegacyActivityDock({ onInspect, commandPaletteOpen = false }: DockProps
       .catch((error: Error) => {
         if (!alive) return;
         setSummary(`活动不可用：${userErrorMessage(error.message)}`);
-        setDelivery("投递状态：不可用");
+        setDelivery("发送状态：不可用");
       });
     return () => { alive = false; };
   }, []);
@@ -101,16 +101,16 @@ function LegacyActivityDock({ onInspect, commandPaletteOpen = false }: DockProps
     try {
       result = await action();
     } catch (error) {
-      setDelivery(`投递状态：${userErrorMessage(error instanceof Error ? error.message : error)}`);
+      setDelivery(`发送状态：${userErrorMessage(error instanceof Error ? error.message : error)}`);
       return;
     }
     const verdict = stateLabel(result.status);
-    setDelivery(`投递状态：${verdict}`);
+    setDelivery(`发送状态：${verdict}`);
     try {
       await refresh();
-      setDelivery(`投递状态：${verdict}`);
+      setDelivery(`发送状态：${verdict}`);
     } catch {
-      setDelivery(`投递状态：${verdict}；读回暂不可用`);
+      setDelivery(`发送状态：${verdict}；状态刷新暂不可用`);
     }
   }
 
@@ -135,13 +135,13 @@ function LegacyActivityDock({ onInspect, commandPaletteOpen = false }: DockProps
         <span className="activity-dock-indicator" aria-hidden="true" />
         <span className="activity-dock-item">{summary}</span>
         <span className="activity-dock-item">{delivery}</span>
-        <button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} title="展开/收起活动回执（Ctrl+Alt+J）" aria-keyshortcuts="Control+Alt+J" onClick={toggle}>{expanded ? "⌄" : "⌃"}</button>
+        <button type="button" aria-label={expanded ? "折叠活动坞" : "展开活动坞"} aria-expanded={expanded} title="展开/收起处理记录（Ctrl+Alt+J）" aria-keyshortcuts="Control+Alt+J" onClick={toggle}>{expanded ? "⌄" : "⌃"}</button>
       </div>
       {expanded ? <div className="activity-dock-body">
         {items.slice(0, 3).map((item) => <span className="activity-dock-item" key={item.public_ref}>{item.label} · {stateLabel(item.state)} <button type="button" onClick={() => void inspect(item)}>查看活动详情</button></span>)}
-        <span className="activity-dock-item">来源：任务 / 投递 / 回执</span>
-        <button type="button" onClick={() => void operate(dispatchDelivery)}>投递下一条</button>
-        <button type="button" onClick={() => void operate(retryFailedDelivery)}>重试失败投递</button>
+        <span className="activity-dock-item">记录：处理任务 / 发送进度 / 处理结果</span>
+        <button type="button" onClick={() => void operate(dispatchDelivery)}>发送下一条</button>
+        <button type="button" onClick={() => void operate(retryFailedDelivery)}>重试发送失败的记录</button>
       </div> : null}
     </footer>
   );

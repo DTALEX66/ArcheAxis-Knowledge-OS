@@ -22,9 +22,14 @@ console.log(JSON.stringify(fn(w.document,w.getComputedStyle,w.XPathResult)));
 
 
 def evaluate(script, markup):
+    jsdom = REPO / "frontend/node_modules/jsdom"
+    if not (jsdom / "package.json").is_file():
+        raise RuntimeError("SIMULATED DOM tests require locked frontend dependencies: npm ci --prefix frontend")
     value = subprocess.run([shutil.which("node") or "node", "-e", HARNESS], input=json.dumps({
-        "script": script, "html": markup, "jsdom": str(REPO / "frontend/node_modules/jsdom")}),
-        capture_output=True, text=True, encoding="utf-8", check=True)
+        "script": script, "html": markup, "jsdom": str(jsdom)}),
+        capture_output=True, text=True, encoding="utf-8", timeout=30, check=False)
+    if value.returncode:
+        raise RuntimeError(f"SIMULATED DOM evaluation failed (exit {value.returncode}): {value.stderr[-2000:]}")
     return json.loads(value.stdout)
 
 

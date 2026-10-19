@@ -1553,7 +1553,7 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     stage["original_grant"] = document
     before_tasks = machine_tasks(read)
     ui.click("读取模型配置状态")
-    wait("return document.body.innerText.includes('模型身份、加载和推理接通尚未验证')")
+    wait("return document.body.innerText.includes('模型是否已加载和能否回答仍需实际验证')")
     configuration = read("machine_configuration")
     assert configuration["schema"] == "archeaxis.machine-configuration/v1"
     assert configuration["availability"] == "CONFIGURED_UNVERIFIED"

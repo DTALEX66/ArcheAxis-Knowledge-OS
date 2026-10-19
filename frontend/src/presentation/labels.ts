@@ -7,7 +7,7 @@ const STATE_LABELS: Record<string, string> = {
   pending: "待处理",
   failed: "失败",
   blocked: "已阻断",
-  delivered: "已投递",
+  delivered: "已发送",
   recorded: "已记录",
   missing: "缺失",
   candidate: "候选",
@@ -28,7 +28,7 @@ const STATE_LABELS: Record<string, string> = {
   retained: "已保留",
   immutable: "不可变",
   idle: "无待处理项",
-  requeued: "已重新入队",
+  requeued: "已重新排队",
 };
 
 export function stateLabel(value: unknown): string {

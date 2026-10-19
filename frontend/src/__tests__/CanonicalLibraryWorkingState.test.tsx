@@ -143,7 +143,7 @@ it("SIMULATED: known document ACK plus refused journal clear retries only the jo
   expect(session.getSnapshot().state.drafts["doc-a"]).toBeDefined();
   fireEvent.click(screen.getByRole("button",{name:"仅核对工作草稿保全"}));
   await waitFor(()=>expect(f.get().state.drafts["doc-a"]).toBeUndefined());
-  expect(await screen.findByText(/已保存 · 当前持久化版本 2/)).toBeInTheDocument();
+  expect(await screen.findByText(/已保存 · 当前已保存版本 2/)).toBeInTheDocument();
   await act(async()=>{await new Promise(resolve=>window.setTimeout(resolve,1000));});
   expect(bridge.call.mock.calls.filter(([op])=>op==="document_draft")).toHaveLength(1);
   expect(f.records.get("doc-a")?.version).toBe(2);

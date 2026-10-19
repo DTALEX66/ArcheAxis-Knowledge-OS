@@ -125,7 +125,7 @@ def test_returned_material_uses_readonly_recovery_before_waiting_for_answer():
         revealed = False
 
         def click_revealed(self, label, scope):
-            assert label == "恢复最近同版本材料请求" and scope == "//section"
+            assert label == "恢复本版材料的上次提问" and scope == "//section"
             self.recovered = True
 
         def reveal_selector(self, selector):
@@ -237,7 +237,7 @@ def test_cancel_journey_confirms_owned_material_draft_before_companion(monkeypat
             if label == "预览材料提问":
                 row = {"operation": "material_question", "preview": True,
                        "preview_response": preview}
-            elif label == "确认并提问或读回同一请求":
+            elif label == "确认提问或查询原请求":
                 row = {"operation": "material_question", "preview": False}
             else:
                 assert label == "取消材料提问"

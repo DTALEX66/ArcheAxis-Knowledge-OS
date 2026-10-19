@@ -245,8 +245,26 @@ def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
     branches = [int(value) for value in re.findall(r"if width <= (\d+):", smoke)]
     assert all(branch > 600 for branch in branches), branches
 
-    # The band between them asserts the reading column keeps its declared minimum.
-    assert re.search(
-        r"if width <= 1200:\s*\n(?:\s*#[^\n]*\n)*\s*assert geometry\[\"main\"\]\[\"width\"\] >= 280",
-        smoke,
-    )
+    # Exercise the actual gate, including the independent short-window branch.
+    # Boundary cases catch OR -> AND, a lowered 280px floor, or a moved cutoff.
+    gate = _load_smoke_module()
+    bands = {"navigation_trigger": ".ui-navigation-trigger"}
+    for width, height, required in ((1200, 761, True), (1201, 760, True),
+                                    (640, 480, True), (1201, 761, False)):
+        geometry = {
+            "scrollWidth": width, "clientWidth": width,
+            "dock": {"y": 100, "bottom": 120}, "rail": {"width": 0},
+            "main": {"x": 0, "bottom": 100, "width": 280},
+            "body": {"x": 0, "width": 280}, "inspector": None,
+            "devicePixelRatio": 1, "statusBarOverlaps": [], "missingBands": [],
+            "landmarkCount": len(bands), "expectedBands": sorted(bands),
+            "landmarkOverlaps": [], "clippedBands": [], "unreachableBands": [],
+            "unscrollableBands": [], "escapedChildren": [], "motionFast": "0ms",
+        }
+        assert gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands) is geometry
+        geometry["main"]["width"] = geometry["body"]["width"] = 279
+        if required:
+            with pytest.raises(AssertionError):
+                gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands)
+        else:
+            gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands)

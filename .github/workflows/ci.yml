@@ -222,6 +222,20 @@ jobs:
               output.write(f"TESSDATA_PREFIX={trained[0].parent}\n")
           PY
 
+      - name: Set up Node for OS-level DOM contract tests
+        uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install locked OS-level DOM dependencies
+        run: |
+          npm ci --prefix frontend --ignore-scripts --no-audit --no-fund
+          test -f frontend/node_modules/jsdom/package.json
+
+      - name: Install Chromium for OS-level layout regressions
+        run: python -m playwright install --with-deps chromium
       - name: Run OS-level tests
         run: python -m pytest tests/ -q --tb=short
 

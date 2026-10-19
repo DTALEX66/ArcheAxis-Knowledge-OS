@@ -38,3 +38,14 @@
 6. PR194 原 head1df9588a 的 CI39226421603 为 FAIL；本次修复须随交付核新的 head 与 required checks。未取得新 exact-SHA CI 资格前，不称整个产品或 main 已通过，不自动发布、替换 Green 或覆盖真实数据。
 
 这些欠账源于需求、实现、调用方和最终验收没有逐项收口，以及局部证据曾被越界解释。后续按原任务 ID 和唯一进度源实施；保留失败、先定向验证，再执行必需门禁，不靠新增审计批次或扩大忽略冲绿。
+
+## 继续执行的限定观察（2026-10-19 19:00）
+
+- `ec4b603d` 已提交并推送 PR194；该 SHA 的 Core/Host 构建、19524成员候选绑定通过。新原生旅程在推理前失败：探针仍等待已更名的模型配置提示，截图已实际查看。源码一致性 true，本任务进程和端口全部退出；没有把本次未执行的推理写成成功。原提示消费者已同步，配置 schema、UNKNOWN、无网络及无新增任务断言保留。
+- 继续收敛六个产品展示文件的保存版本、发送进度、陪伴记忆与材料提问用语，同时更新调用方、探针和测试。公共源码单 worker Vitest 为13文件、230/230 PASS；不是全前端或原生验收。探针分片首跑106 PASS/2 FAIL/168 subtests PASS，两个旧 fixture 文案同步后该文件18/18 PASS；另身份恢复53/53 PASS，不能重复相加。DOM错误诊断与阅读引用6项及23 subtests通过；原字节保全/批量读取55项通过。
+- 云端 run [39238544865](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39238544865) 的 browser-smoke 已成功，但 `test (3.12)` 的 OS-level 测试失败（82 failed、5467 passed、89 skipped、355 subtests passed，含子项计数，非覆盖率）。已通过 GitHub job logs 连接器读取实际日志，不能因 gh CLI 暂取不到日志就报告日志不存在。
+- 实际修复四类根因：OS job 为DOM和Chromium测试补齐锁定依赖前置；旧HTTP合同改由自有随机loopback服务运行；旧布局、中文定位及构建文本断言改为验证实际语义和边界；保全批量读取性能测试使用自己真实的manifest/member，不要求临时仓包含本项目全部历史。DOM harness 缺依赖或谓词错误会明确报错，并限制单次Node执行30秒，不再只抛隐藏stderr的错误。
+- 旧HTTP用例是 **LEGACY_COMPATIBILITY / SYNTHETIC**，挂真实legacy handlers，AI handler本身是模拟回复；不是正式app.main、Tauri或真实模型资格。fixture隔离数据、禁止代理、异常恢复环境/模块状态并核监听退出。最终CI前置/HTTP/导入顺序回归41/41 PASS；四处合同同步40/40 PASS，集合有重叠，不能相加。首轮缺少脚本导入路径导致3 FAIL，修复后上述41项通过，原失败保留。
+- BE10真实同仓Core/HTTP与Observer CLI进程联调15/15 PASS；只有合成临时业务数据，仍未取得真实外部产品、OS URI或安装验收。canonical dev.py在分片工具身份遇uv权限/缺PyYAML，保留失败，实际使用已跟踪cargo_test.bat、已登记MSVC工具和offline/locked执行，没有改权限或安装环境。
+
+上述新修复的exact-SHA CI及新候选原生完整链继续待验证；全局账号设置、完整私人会话、ASTRYN源删除、完整无障碍/性能、安装/升级/回滚和扩展生命周期等欠账继续成立。后继事实仍只写唯一实施进度，不追改历史失败。
