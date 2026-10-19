@@ -4367,5 +4367,111 @@
       ],
       "business_assertions": "Three exact snapshots, explicit save, independent B, all versions and normal restart retained"
     }
+  },
+  "closed_loop_definition_registration": {
+    "canonical": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+    "definition_id": "AAOS-SHORTEST-COMPLETE-LOOP-V2",
+    "sha256": "d5b8f95e460e389a235798cf9ae178d77d28256519abf42cccb0a405066f767a",
+    "source_quote": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#十五最快最短完整闭环唯一规范2026-10-19",
+    "supersession": "SUP-025",
+    "scope": "STRUCTURE_ONLY; not product implementation, current service availability, installed runtime or account memory verification",
+    "results": {
+      "authority_tests_passed": 19,
+      "document_drift": "PASS; 7 in-repo input hashes verified, 4 outside/private remain UNVERIFIED",
+      "conventions": "PASS",
+      "registration": "PASS; 15 canonical local links, 9 entry points, 7 dimensions and 6 journeys",
+      "first_registration_attempt": "FAIL in temporary checker: journey number shares table cell with descriptive text; corrected checker parser, no definition or product threshold weakened"
+    },
+    "receipts": [
+      {
+        "id": "product-loop-loop-definition-authority-20261019",
+        "receipt": ".project-local/runs/be268a2d33/product-loop-loop-definition-authority-20261019/artifacts/execution.json",
+        "source_commit": "762d35385f4be8d7b7dcd329de6b1ea4c18b312d",
+        "source_patch_sha256": "f974a0c71eaa8dea2bb0ed8af26f7ee26b86915efe0a46bbb2cfffebd0343e03",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_documentation_authority_index.py",
+          "tests/test_truth_authority_supersession.py",
+          "tests/test_runtime_delivery_authority.py",
+          "-q"
+        ],
+        "started_at": "2026-10-19T14:41:00.267922+00:00",
+        "ended_at": "2026-10-19T14:41:03.463731+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "product-loop-loop-definition-drift-20261019",
+        "receipt": ".project-local/runs/be268a2d33/product-loop-loop-definition-drift-20261019/artifacts/execution.json",
+        "source_commit": "762d35385f4be8d7b7dcd329de6b1ea4c18b312d",
+        "source_patch_sha256": "f974a0c71eaa8dea2bb0ed8af26f7ee26b86915efe0a46bbb2cfffebd0343e03",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/ci/check_document_authority.py"
+        ],
+        "started_at": "2026-10-19T14:41:03.337042+00:00",
+        "ended_at": "2026-10-19T14:41:04.876174+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "product-loop-loop-definition-conventions-20261019",
+        "receipt": ".project-local/runs/be268a2d33/product-loop-loop-definition-conventions-20261019/artifacts/execution.json",
+        "source_commit": "762d35385f4be8d7b7dcd329de6b1ea4c18b312d",
+        "source_patch_sha256": "f974a0c71eaa8dea2bb0ed8af26f7ee26b86915efe0a46bbb2cfffebd0343e03",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/check_repository_conventions.py"
+        ],
+        "started_at": "2026-10-19T14:41:06.749916+00:00",
+        "ended_at": "2026-10-19T14:41:09.744406+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "product-loop-loop-definition-registration-20261019",
+        "receipt": ".project-local/runs/be268a2d33/product-loop-loop-definition-registration-20261019/artifacts/execution.json",
+        "source_commit": "762d35385f4be8d7b7dcd329de6b1ea4c18b312d",
+        "source_patch_sha256": "f974a0c71eaa8dea2bb0ed8af26f7ee26b86915efe0a46bbb2cfffebd0343e03",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          ".project-local/artifacts/product-loop-20261019/check-loop-definition.py"
+        ],
+        "started_at": "2026-10-19T14:41:44.707787+00:00",
+        "ended_at": "2026-10-19T14:41:46.025700+00:00",
+        "exit_code": 1,
+        "child_exit_code": 1,
+        "status": "FAIL"
+      },
+      {
+        "id": "product-loop-loop-definition-registration2-20261019",
+        "receipt": ".project-local/runs/be268a2d33/product-loop-loop-definition-registration2-20261019/artifacts/execution.json",
+        "source_commit": "762d35385f4be8d7b7dcd329de6b1ea4c18b312d",
+        "source_patch_sha256": "f974a0c71eaa8dea2bb0ed8af26f7ee26b86915efe0a46bbb2cfffebd0343e03",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          ".project-local/artifacts/product-loop-20261019/check-loop-definition.py"
+        ],
+        "started_at": "2026-10-19T14:42:06.348441+00:00",
+        "ended_at": "2026-10-19T14:42:07.675407+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      }
+    ]
   }
 }

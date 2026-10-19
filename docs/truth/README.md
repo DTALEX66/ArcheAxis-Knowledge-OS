@@ -5,6 +5,7 @@
 本目录保留仍生效的产品规范与机器登记：
 
 - [产品身份](PRODUCT_IDENTITY_V2.md)、[命名合同 V2](NAMING_CONTRACT_V2.md)。
+- [最快最短完整闭环定义](CLOSED_LOOP_DEFINITION.md)：用户提及闭环时的唯一范围与验收定义，目标不等于实现进度。
 - [能力图谱](CAPABILITY_ATLAS_V2.yaml)、[需求追溯](REQUIREMENT_TRACE_V2.yaml)。
 - [吸收登记](CAPABILITY_ABSORPTION_REGISTRY.yaml)、[供应链登记](SUPPLY_CHAIN_LEDGER.json)。
 - [JSON Canvas 格式采用决定](JSON_CANVAS_ADOPTION.md)。

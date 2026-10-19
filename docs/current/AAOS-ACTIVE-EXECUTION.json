@@ -382,6 +382,7 @@
       "AUTHORITY.md",
       "AGENTS.md",
       "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "docs/truth/CLOSED_LOOP_DEFINITION.md",
       "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
       "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
       "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
@@ -396,7 +397,8 @@
       "session_reconciliation": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
       "codex_session_index": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md",
       "owner_dialogue_archive": "docs/history/owner-dialogue-20261019/README.md",
-      "owner_dialogue_coverage": "docs/history/owner-dialogue-20261019/decision-coverage.json"
+      "owner_dialogue_coverage": "docs/history/owner-dialogue-20261019/decision-coverage.json",
+      "closed_loop_definition": "docs/truth/CLOSED_LOOP_DEFINITION.md"
     },
     "verification": "索引仅导航；现场核对文件/manifest 哈希、版本、进程和源码资格，UNKNOWN 不升级为可用；新决定注明替代关系，实际进度只回写 active_progress",
     "evidence_navigation": {
@@ -452,7 +454,12 @@
       "Preserve data, databases including root archeaxis.sqlite, backups, user assets, preferences and unknown directories; no bulk deletion or incompatible real-data migration"
     ],
     "qualification": "UNVERIFIED; prior installed journey failure remains open; this grant does not turn failed CI into PASS",
-    "not_granted": ["Public release", "Real user data overwrite", "Unknown shared process termination", "Other deployment paths"]
+    "not_granted": [
+      "Public release",
+      "Real user data overwrite",
+      "Unknown shared process termination",
+      "Other deployment paths"
+    ]
   },
   "conversation_closeout": {
     "date": "2026-10-19",
@@ -462,5 +469,20 @@
     "automatic_continuation": false,
     "product_status": "PARTIAL",
     "scope": "Close this conversation and synchronize public task-owned branch; no new feature work in this closeout"
+  },
+  "closed_loop_definition": {
+    "id": "AAOS-SHORTEST-COMPLETE-LOOP-V2",
+    "source": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+    "owner_decided_at": "2026-10-19",
+    "role": "Normative scope and acceptance; no implementation or completion claim",
+    "aliases": [
+      "闭环",
+      "最短闭环",
+      "最快闭环",
+      "完整闭环",
+      "全链路跑通"
+    ],
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "supersession": "SUP-025"
   }
 }

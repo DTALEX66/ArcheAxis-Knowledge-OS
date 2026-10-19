@@ -5,6 +5,7 @@
 | 职责 | 规范入口 | 使用边界 |
 | --- | --- | --- |
 | 活跃范围、任务来源与接续顺序 | [活动指针](current/AAOS-ACTIVE-EXECUTION.json) | 由指针选择当前任务包及覆盖合同；不从文件日期或旧 COMPLETE 推断当前队列。 |
+| 闭环／最快最短完整闭环的含义 | [唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md) | 范围、兼容、免费检索、模型双通道及全链路验收的Owner规范；不另设进度，不缩成单次演示。 |
 | 实际实施进度与验收证据 | [唯一 UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md) | 回执只证明其绑定源码、对象和环境；规划包中的 NOT_EXECUTED 不回填为运行结果。 |
 | 当前交接与未完成事项 | [接手入口](current/AAOS-AGENT-HANDOFF-CURRENT.md)、[来源待办索引](current/AAOS-EXECUTION-BACKLOG-20261018.json) | 交接与待办用于续接，实际进度仍归唯一执行记录。 |
 | Owner 决定、范围与替代关系 | [当前决定](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[替代账本](../DECISION_SUPERSESSION_LEDGER.yaml)、[稳定真相](truth/README.md) | 决定出处与历史摘录由历史入口导航；实现证据不能取消已批准目标。 |

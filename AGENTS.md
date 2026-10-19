@@ -13,6 +13,8 @@ personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_IND
 
 ## 1. Project Mission
 
+用户提到“闭环／最短闭环／最快闭环／完整闭环／全链路跑通”时，必须先读唯一规范 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V2`），再读活动指针与实际进度。不得缩成单文件导入加一次模型回答；全面非企业知识库特色、免费外部检索、本地与云端模型均按该定义验收。该定义是目标，不是已完成声明。
+
 ArcheAxis Knowledge is a local-first, evidence-driven, bidirectional Human–AI
 Learning & Trusted-Knowledge Workspace. The current minimum closed loop is broad
 compatibility: absorbing mature capabilities from comparable software. The owner-selected current execution queue is `docs/taskpacks/aaos-ui-first-20261009/`,
