@@ -44,7 +44,7 @@ export function CharacterMemoryPanel() {
   async function write(command:MemoryCommand){
     if(!profile||pending||lock.current)return;
     let attempt:MemoryAttempt;
-    try{attempt=memoryAttempt(profile,command);}catch{note("输入超出记忆合同或来源未填写；当前文字保留，不执行写入。",true);return;}
+    try{attempt=memoryAttempt(profile,command);}catch{note("输入超出记忆允许范围或来源未填写；当前文字保留，不执行写入。",true);return;}
     sentSerial.current=serial.current;setPending(attempt);setObserved(null);setForgetOpen(false);
     await task(async request=>{
       await applyMemory(attempt);if(!current(request))return;

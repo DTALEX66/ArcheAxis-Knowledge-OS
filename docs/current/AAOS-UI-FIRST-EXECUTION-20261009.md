@@ -113,3 +113,165 @@ Owner要求新会话／其他Agent可接续的完整交接，并明确全量前�
 后继交接补齐：Owner新增分支合并、体积减重、本地／云端仓库及目录规范，已纳入RC-P01—08及活动指针repository_convergence。实查远端7个heads及3个开放Draft PR（192／193／194），tracking漏remaining-loop-stage1；大量供体不在祖先链，是否已有patch吸收待核，未合并／删除任何分支或文件。
 
 同时读回5836b906的CI39271537141 test (3.12)两项实际FAIL：PROJECT_CONTRACT新增closed_loop_definition遗漏严格Schema登记。已本地复现2失败／3通过，随后在既有Schema精确登记并要求该规范引用，保留额外字段拒绝、Rust单写者和普通保存边界，新增拒绝旧来源／假实施成功／丢引用的回归。相关合同与权威25项通过（含原失败），仅合同一致性修复，无新后端业务实现；新exact-SHA CI待验，旧安装grouped UI FAIL仍独立未闭环。
+
+## 2026-10-19 接手 UI-P01：现场核对与 22 角色覆盖映射
+
+本轮为全量前端优先的**首个实施分片 UI-P01**（映射 UF00/G01/H01）；只做只读核对、覆盖盘点与基线确认，不改产品源码、不新建第二进度。
+
+**现场核对（readback，2026-10-19，动态取 Git/远端，不据记录推导）**
+
+- 分支 `codex/sync-20261019`，HEAD `031fcfea847691f7d3eb1aef92646538a8b3aabd`，工作树干净（`git status --short` 空）。
+- 本地 HEAD = 远端 `origin/codex/sync-20261019` = `031fcfea`；`main` = `fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46`。
+- 实际远端 7 heads：`codex/sync-20261019`、`codex/character-memory-ui-20261015`、`codex/layout-preferences-20261014`、`codex/closure-integration-20261014`、`codex/remaining-loop-stage1-20261013`、`codex/ui-polish-20261013`、`main`；开放 PR 192／193／194 **均 Draft**。tracking 漏 `remaining-loop-stage1` 已于 RC 盘点记录。
+- 交接失败证据判读：`5836b906` 的 CI `test (3.12)` 两项 FAIL（Schema 漏登记 `closed_loop_definition`）已由 `031fcfea` 修复并进入当前 HEAD；`867d7c8a` 的 installer-lifecycle「grouped UI engineering journey」FAIL 仍为**独立未闭环**证据，编码于 [verify_nsis_install.ps1](../../desktop/scripts/verify_nsis_install.ps1) 的 `actual installed grouped UI engineering journey failed` → `aaos01_grouped_owner_loop.py`，本轮未执行安装，不宣称已消除。
+- 前端基线（本轮实测一次，不重复）：Node v24.21.0／vitest 2.1.9，`npx vitest run` → **182 文件 1844 用例全通过、无 skip、28.56s**。仅为 Vitest 前端套件，不代表 Python/Rust 全仓、安装、真实模型、视觉或需求覆盖率。
+
+**22 语义角色 → 生产路由 → 组件映射（依 [SpaceView.tsx](../../frontend/src/spaces/SpaceView.tsx) 实际路由与 [uiPages.ts](../../frontend/src/presentation/uiPages.ts) 注册，非计划 `/reference` 号）**
+
+| 角色ID / 页面 | space | 生产组件 |
+| --- | --- | --- |
+| 01 今日工作台 | workspace | CanonicalWorkspaceSpace（DockWorkspace 承载） |
+| 02 知识库 | library | CanonicalLibrarySpace（purpose=library） |
+| 03 阅读与编辑 | library | CanonicalLibrarySpace（purpose=reader）+ DocumentEditor/PDF/Media |
+| 04 双链与图谱 | vault | CanonicalRelationSpace + CollectionPanel |
+| 05 研究空间 | vault | CanonicalResearchSpace |
+| 06 学习路径 | learning | CanonicalLearningJourneySpace(pageId=06) |
+| 07 课程与视觉教学 | learning | CanonicalLearningJourneySpace(pageId=07)／KnowledgeCoursePanel |
+| 08 教学需求 | learning | CanonicalTeachingSpace |
+| 09 表达方案 | learning | CanonicalTeachingSpace |
+| 10 交付与版本 | learning | CanonicalTeachingSpace |
+| 11 练习/Teach-back | learning | CanonicalTeachingSpace |
+| 12 反馈与修订 | learning | CanonicalTeachingSpace |
+| 13 项目记忆与上下文 | ai-assets | CanonicalControlledAiSpace(pageId=13) + CharacterMemoryPanel |
+| 14 纠正、评测与复测 | ai-assets | CanonicalControlledAiSpace(pageId=14) |
+| 15 资源与扩展 | settings | CanonicalResourcesSpace |
+| 16 导入导出与互通 | exchange | ProjectHandoffReader + CanonicalExchangeSpace |
+| 17 全部能力与未来蓝图 | settings | CanonicalCapabilitiesSpace |
+| 18 能力详情 | settings | CanonicalCapabilitiesSpace(selectedCapabilityId) |
+| 19 设置、权限与恢复 | settings | ui-reliability-panel：BackupPanel + ModelConfigurationPanel + ConfigurationPlanPanel |
+| 20 版本、来源与历史 | library | VersionSourcePanel + CanonicalLibrarySpace(purpose=history) |
+| 21 画布与视觉表达 | learning | CanonicalExpressionSpace |
+| 22 任务与记录 | ai-assets | CanonicalControlledAiSpace(pageId=22) |
+
+说明：22 角色**不是 22 个独立路由**；`canonicalSurface` 将 9 个 space 收敛到 5 个 canonical surface，页面只覆盖语义角色。全 22 页 `implemented=true`（路由存在），未实现语义页由 `ui-pending-page` 兜底。
+
+**共享壳与弹层清单（全量 UI 范围，均已存在）**：TopNavBar、StatusBar、SpaceRail、ContextNav、ActivityDock、Inspector、CommandPalette（命令搜索）、NavTrail、AaosDialog（导航抽屉）、ThemePicker、ConversationPanel（小栖侧栏）、DiagnosticCenter（唯一运行诊断中心）、ConsoleWindow（`container: console / size`）、DockWorkspace、XiaoqiPanel。
+
+**已知未闭环／待验收（保留，不冒充通过）**：① 867d7c8a 安装 grouped UI FAIL；② 完整 A0 原 FAIL；③ 真实系统 DPI／物理 IME、完整无障碍（axe 仅部分页面）、动画/性能基线、真实 Core/模型与安装态、Owner 视觉验收；④ UI-FOLLOWUP-006 等历史项在限定浏览器范围关闭但未获全组合资格。
+
+**结论**：UI-P01 现场核对与覆盖映射 **PASS（结构／路由／基线层）**；真实视觉、安装态、DPI、无障碍与 Owner 验收 **NOT_EXECUTED**，整体仍 **PARTIAL**。
+
+**后续分片（本轮之后按序）**：UI-P02（工程术语收敛：普通页保留清晰中文，原始 ID/schema/payload 统一进 DiagnosticCenter）→ UI-P03—P05（主背景+内缩主控台、窗口调整、DockWorkspace 拆分，核已有实现只补差距）→ UI-P06—P08（响应/缩放、字号密度、玻璃五主题）→ UI-P09—P24。后端 BE-P01—P15 在前端阶段交付后执行；RC-P01—08 分批完成。
+
+## 2026-10-19 UI-P02 增量：普通页工程术语收敛
+
+背景：UI-P01 盘点确认普通业务页仍散落“合同”(contract) 等工程词。本轮只收敛**明确泄漏点**为清晰中文，不动诊断中心、兼容矩阵与能力投影页的权威词汇，不重构文案体系。
+
+**修改（产品源码）**
+
+- [CanonicalExchangeSpace.tsx](../../frontend/src/spaces/CanonicalExchangeSpace.tsx#L104)：`目录没有分页合同；未返回的身份不能当成不存在…` → `当前目录没有分页；未返回的记录不能当成不存在，也不能改用同名文件。`
+- [CanonicalTeachingSpace.tsx](../../frontend/src/spaces/CanonicalTeachingSpace.tsx#L266)：`由真实学习合同承接` → `由真实学习流程承接`（并规范 `Teach-back`/`Python` 间距）
+- [CanonicalWorkspaceSpace.tsx](../../frontend/src/spaces/CanonicalWorkspaceSpace.tsx#L30)：抛错 `工作区内容合同不兼容` → `工作区内容结构不兼容`
+- [ContextNav.tsx](../../frontend/src/components/ContextNav.tsx#L71)：`只显示缺少的合同…假入口` → `只显示缺少的条件…虚假入口`
+- [CharacterMemoryPanel.tsx](../../frontend/src/components/CharacterMemoryPanel.tsx#L47)：`输入超出记忆合同…` → `输入超出记忆允许范围…`
+- [core.ts](../../frontend/src/api/core.ts#L131)：ApiError `本地核心内容合同不兼容。` → `本地核心内容结构不兼容。`
+- [workspaceRestore.ts](../../frontend/src/api/workspaceRestore.ts#L6)：`恢复预检合同无效` → `恢复预检结果无效`；L14 `恢复完成合同无效` → `恢复完成结果无效`
+- [bindings.ts](../../frontend/src/templates/bindings.ts#L106)：`文档分页合同不完整` → `文档分页结果不完整`
+- 测试消费者同步：[CharacterMemoryPanel.test.tsx](../../frontend/src/__tests__/CharacterMemoryPanel.test.tsx#L64) 正则 `/输入超出记忆合同/` → `/输入超出记忆允许范围/`
+
+**验证**：定向 5 文件 **107 项 PASS**；`npx tsc --noEmit` **exit 0**；全套 `npx vitest run` **182 文件 1844 用例全通过、无 skip、29.00s**。仅 Vitest 前端套件，不代表视觉、安装态或真实 Core。
+
+**边界**：兼容矩阵/诊断页按需出现的 SHA/ID/回执等权威词**保留**，原始结构仍集中 `DiagnosticCenter`；“五类交换合同”等位于能力目录投影（`uiCapabilityIntent.ts`/`capability-catalog.ts`，改动需连同 fixture 同步），本轮未动，留 UI-P02/UF06 后续处理。
+
+**结论**：UI-P02 局部 **PASS**；普通页术语未全域收敛（兼容/能力投影域仍有工程词），整体仍 **PARTIAL**。
+
+## 2026-10-19 UI-P03—P05 复核 + A0 真实浏览器门禁（当前 HEAD）
+
+**UI-P03—P05 复核结论：实现已存在，本轮只核差距（不改产品源码）**
+
+- **UI-P03 主背景＋内缩主控台**：[ConsoleWindow.css](../../frontend/src/components/ConsoleWindow.css#L1) 建立 `container: console / size`；[glass-cabin.css](../../frontend/src/design-system/glass-cabin.css#L27-L38) 的 `cabin-shell` 按 `cqh/cqw` 内缩单圆角盒；背景用 `deep-space-background-20261015.png`。A0 geometry（1920×1080）实测主控台 `x96 y54 w1728 h972`，5 bands（top_navigation/status/rail/center/dock）无 clipped/overlap/escaped。
+- **UI-P04 窗口调整**：[ConsoleWindow.tsx](../../frontend/src/components/ConsoleWindow.tsx) 已实现标题区拖动、右下角 resize、方向键移动、Shift＋方向键调整、Esc／pointercancel 回滚、`constrainConsole` 防拖出可视区（最小 640×480）、窄窗（≤900×600）自动铺满。原生系统窗口边缘/标题栏调整属宿主职责，未在本轮原生/安装态验收。
+- **UI-P05 工作区拆分**：[DockWorkspace.tsx](../../frontend/src/workspace/DockWorkspace.tsx) 已实现左右/上下分栏、分隔条、标签、关闭/重开、浮动/停靠/最大化、锁定、预设/重置/保存/读取/应用/确认恢复布局，面板独立滚动（`.dock-slot{overflow:auto}`）；窄屏 `data-compact-reader` 隐藏标签。A0 canonical host surface 的 narrow-dock library/reader 在限定视口通过。
+
+**A0 真实浏览器门禁（Chromium 1228，SIMULATED host/Core fixture）**
+
+- 三次对照：run1（含本轮改动）**FAIL**（[a0_browser_smoke.py](../../scripts/a0_browser_smoke.py#L1843) 的 `read_narrow_dock_library` 在正文载入前抢先断言）；run2（暂存本轮前端改动＝HEAD 原样）**PASS**；run3（恢复本轮改动）**PASS**。
+- 证据：`scripts/a0_browser_smoke.py`，schema `archeaxis/canonical-browser-smoke/v4`，`status=PASS`，`errors=[]`，`base_commit=031fcfea847691f7d3eb1aef92646538a8b3aabd`；13 档视口×5 主题的几何/焦点/对比/品牌身份/导航抽屉/状态栏可访问性 + canonical host surface。
+- 判定：run1 失败是**正文载入竞态（测试侧）**，与本轮文案改动**无关**——失败路径不经过任何改动文件，且 run3 携带相同改动仍 PASS。原失败保留；建议后续给 `read_narrow_dock_library` 增加正文等待（**不改断言**），本轮**未修改门禁**以免掩蔽。
+- 边界：真实 Chromium + 合成 host/Core，**非**安装态 Tauri/WebView2、**非**物理 IME/DPI、**非** Owner 验收。故系统 DPI（UI-P06 物理部分）、真实后端（UI-P11/13/14）、安装态（UI-P24）仍 **NOT_EXECUTED**。
+
+**结论**：UI-P03—P05 **PASS（结构层＋A0 真实浏览器几何/主题）**；安装态、物理 DPI、Owner 视觉验收 **NOT_EXECUTED**，整体仍 **PARTIAL**。
+
+## 2026-10-19 RC-P01/P02 分支与 PR 盘点（只读，未合并／未删除）
+
+Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。本轮执行 **RC-P01/P02 只读盘点**（不合并、不删除、不改写历史）。
+
+**现场（fetch 后实测）**
+
+- 远端 7 heads：`main`=fe18fdc3、`codex/sync-20261019`=031fcfea、`codex/character-memory-ui-20261015`=02368f0e、`codex/layout-preferences-20261014`=9daf1221、`codex/closure-integration-20261014`=015a5cff、`codex/remaining-loop-stage1-20261013`=b2e283b6、`codex/ui-polish-20261013`=a69a55f7。
+- 本地 26 heads、1 worktree（仅主检出 `031fcfea [codex/sync-20261019]`）。本地 tracking 原缺 `remaining-loop-stage1`，`git fetch origin` 已补全（只读刷新）。
+- 开放 PR 均 Draft：192(layout-preferences, `CONFLICTING`)、193(character-memory-ui, `CONFLICTING`)、194(sync-20261019, `MERGEABLE`)。
+
+**patch 等价（`git cherry HEAD origin/<branch>`；`-`=已吸收，`+`=未吸收）**
+
+| 分支 | HEAD 祖先 | 独有 `+` | 判定 |
+| --- | --- | --- | --- |
+| codex/remaining-loop-stage1-20261013 | 是 | 0 | 已并入 current 线 |
+| codex/layout-preferences-20261014 (PR192) | 否 | 0（6/6 `-`） | 内容已吸收 |
+| codex/closure-integration-20261014 | 否 | 0（7/7 `-`） | 内容已吸收 |
+| codex/character-memory-ui-20261015 (PR193) | 否 | 0（55/55 `-`） | **完全吸收** |
+| codex/ui-polish-20261013 | 否 | 1（`a69a55f7`） | 唯一未吸收提交 |
+| `codex/sync-20261019` (PR194) | — | 当前 HEAD | 待审阅＋required CI |
+
+`ui-polish` 的 `a69a55f7` 含 `frontend/src/design-system/ui-polish.css`(≈350 行) 及 App/main/SpaceRail/tokens/ui-first/CanonicalWorkspaceSpace 与文档改动，与活动指针 `frontend_execution_overlay.ui_commit=a69a55f7` 记录的"独立 UI 分支纳入合并"一致。
+
+**结论与后续条件（本轮未执行 RC-P03/P04）**
+
+- **不盲合旧整包**：PR192/193 内容已 patch 吸收且仅 Draft+CONFLICTING，"非祖先"不等于缺功能；处置须审阅 ＋ required CI 后再定（保留/后继已包含/拆分）。本轮**未合并、未关闭、未删除**任何分支或 PR。
+- **PR194**：`MERGEABLE`，可入 main，但须**当前审阅 ＋ required exact-SHA CI 合格**；本轮未取得该 SHA 合格，**未 merge**。
+- **ui-polish 的 1 个 `+` 提交**：`+` 仅表示 patch 不重复、**不等于内容缺失**；需与 HEAD 逐文件比对后再定 cherry-pick/merge 或判为已演化覆盖。本轮未处置。
+- **本地 25 个非 HEAD 分支**（多为本地未推送）需逐分支 patch 等价与归属核对（RC-P02 后续）；本轮未删除任何分支/文件。
+- **RC-P04 清理条件**：证实无独有内容 ＋ PR 妥善处理 ＋ worktree/Agent 不占用 ＋ 授权读回；本轮不满足全部条件，**不执行删除**。
+
+## 2026-10-19 RC-P05 体积基线与归属（只读计量，未删除）
+
+测法与时间：PowerShell `Get-ChildItem -Recurse -File | Measure-Object Length -Sum`（**逻辑字节**，未计硬链接/共享）；Git 用 `git count-objects -vH`。2026-10-19。
+
+**全仓顶层（MB）**：`.project-local` **70670.5**、assets 997.4、`.venv` 903.9、docs 553.8、`.git` **442.7**、frontend 254.5、data 97.6，其余均 <15。Git 对象：in-pack 36493 对象／**size-pack 439.48 MiB**，loose 126／654.27 KiB。
+→ Owner 历史所说"50多GB"主体是 `.project-local` 的开发输出，不是工作区源码或 Git 历史。
+
+**`.project-local` 子项（MB／文件数）**
+
+| 子项 | MB | 文件数 | 归属/再生性初判 |
+| --- | --- | --- | --- |
+| build | 40368.5 | 74205 | Tauri/Core/frontend 构建输出 → 可重建 |
+| audits | 11767.4 | 28498 | 审计产出/证据 → **需逐项核是否含唯一失败证据** |
+| runs | 7104.2 | 73694 | 运行证据/候选 → 部分被回执引用 |
+| candidates | 4634.1 | 136671 | 构建候选 → 可重建 |
+| archives | 3595.5 | 560 | `record-20261009` 原始字节保全 → **KEEP** |
+| rt / rt-python-input | 616.0 / 594.7 | 19523 / 19097 | 运行临时/输入 → 可再生 |
+| cache | 518.9 | 15374 | 缓存 → 可再生 |
+| g | 298.7 | 1 | 单文件，身份**待核** |
+| inputs / task-runtime / tmp | 237.8 / 234.5 / 112.0 | 325 / 2744 / 1364 | 输入/运行临时 → 可再生 |
+| dep-src-clean / gh-cache / npm-cache / uv-cache | 93.3 / 2.2 / 0 / 0 | … | 依赖/缓存 → 可再生 |
+
+**分类（待授权，本轮未执行任何删除）**
+
+- **KEEP**：`archives`（原字节保全）、`backups`、`state`、被唯一执行记录/回执引用的失败证据。
+- **REGENERABLE_DELETE_CANDIDATE**：`build`、`candidates`、`cache`、`tmp`、`rt`、`rt-python-input`、`dep-src-clean`、`gh-cache`、`npm-cache`、`uv-cache`（构建缓存/候选，可重建）。
+- **UNRESOLVED**：`g`（单文件 298.7MB，身份未核）、`audits`/`runs` 内是否含**唯一**失败证据（须逐项核后再定）。
+
+**边界**：仅逻辑字节、未计共享；**未删除任何对象**；大范围删除需精确路径授权（活动指针 `bulk_delete=EXACT_PATH_GRANT_REQUIRED`；S01.A 明确"大量删除不在默认许可内"）。压缩/历史改写未授权。
+
+## 2026-10-19 RC-P06 本地减重（Owner 已明确授权，已执行）
+
+授权：Owner 明确"全部授权给你，不要打扰我"。范围＝可重建构建缓存（保留 archives、backups、被回执引用的证据与未知对象）。
+
+**执行与结果**
+
+- 删除：`.project-local/` 下 `build`(40368.5MB)、`candidates`(4634.1MB)、`tmp`(112.0)、`rt`(616.0)、`rt-python-input`(594.7)、`dep-src-clean`(93.3)、`gh-cache`(2.2)、`npm-cache`、`uv-cache`、`uv-cache-agent-icon`。
+- 读回：`.project-local` **70,670.5 MB → 23,730.9 MB**，释放 ≈ **46,939.6 MB（≈45.8 GB）**。
+- **PARTIAL/DENIED**：`.project-local/cache` 仅部分删除；`cache/pytest` 与 `cache/uv/sdists-v9/<hash>/.../archeaxis_workspace-0.6.14-0.editable-py3-none-any.whl` 返回 **Access denied**（≈518.9MB 未释放）。按治理**未改 ACL、未换身份绕过**，列为 **UNRESOLVED**。
+- **保留**：`archives`(3595.5MB，`record-20261009` 原字节保全)、`backups`、`state`、`runs`、`audits`、`inputs`、`task-runtime`、`staging`、`acceptance`、`g`(298.7MB 待核) 等。
+
+**边界**：仅逻辑字节（未计硬链接/共享）；**Git 历史未改写**；未删除任何未知/共享对象；远端与 Actions 产物未处理（留 RC-P08）。

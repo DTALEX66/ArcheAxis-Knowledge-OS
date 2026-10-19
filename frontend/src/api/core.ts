@@ -128,7 +128,7 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
     catch { throw new ApiError(502, "工作草稿保全回读格式无效，当前编辑内容仍保留。", "incompatible"); }
   }
   try { return operation === "ai_assets_list" || operation === "ai_asset_packet" ? assertAiAssetDto<T>(operation === "ai_assets_list" ? "AiAssetsPage" : "AssetPacketResponse",response.body) : operation === "collection_query" ? assertCollectionDto<T>("CollectionQueryDto",response.body) : teachingResponses[operation] ? assertTeachingDto<T>(teachingResponses[operation]!,response.body) : schema ? assertCoreDto<T>(schema, response.body) : response.body as T; }
-  catch { throw new ApiError(502, "本地核心内容合同不兼容。", "incompatible"); }
+  catch { throw new ApiError(502, "本地核心内容结构不兼容。", "incompatible"); }
 }
 
 export async function verifyCanonicalCore(): Promise<void> {

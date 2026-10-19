@@ -27,7 +27,7 @@ export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}
     setState("正在读取本地工作区…");setFailed(false);
     Promise.all([coreCommand<{documents:DocumentSummaryDto[]}>("documents_list"),coreCommand<LearningItemsDto>("learning_items")])
       .then(([docs,items])=>{
-        if (!Array.isArray(docs.documents) || !Array.isArray(items.items)) throw new Error("工作区内容合同不兼容");
+        if (!Array.isArray(docs.documents) || !Array.isArray(items.items)) throw new Error("工作区内容结构不兼容");
         if(alive){setDocuments(docs.documents);setLearning(items.items);setState("");}
       })
       .catch(error=>{if(alive){setState(coreFailureReason(error) ?? "本地工作区暂时无法读取，请重试。");setFailed(true);}});

@@ -68,7 +68,7 @@ export function ContextNav({
           );
         })}
       </ul>
-      <footer>待开发项只显示缺少的合同，不提供假入口</footer>
+      <footer>待开发项只显示缺少的条件，不提供虚假入口</footer>
     </nav>
   );
 }
