@@ -295,3 +295,16 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 **修复**：[aaos01_grouped_owner_loop.py](../../scripts/probes/aaos01_grouped_owner_loop.py#L558-L601) 的 `page()` 改为**可见导航面**——侧栏可见用侧栏，否则走 `.ui-navigation-drawer`；父/子两步都在可见面完成，抽屉激活后重新展开。**不使用 JS click 或 hash 绕过，断言不放宽**。
 
 **验证**：`py_compile` exit 0；探针合同测试 **71 passed**（test_native_preview_ci / test_owned_webdriver_transport / test_probe_identity_regression / test_native_owned_descendant_drain）。**安装态真实旅程资格仍待新 exact-SHA CI**（本地无法运行 NSIS 安装）→ 状态 **CANDIDATE_FIX / UNVERIFIED_RUNTIME**。
+
+## 2026-10-20 UI-P06—P15 状态核查（只补差距）
+
+- **UI-P06/P07/P08**：核心项（外层/主控台/Dock/portal 的容器响应、字号密度 token、玻璃单圆角盒＋五主题、对比/焦点）已由 **A0 13 档视口×5 主题**覆盖；物理系统 DPI 与 Owner 视觉验收属 **M01 → NOT_EXECUTED**。`tokens.css` 中按 viewport 的 `@media` 是**为 portal（位于 `console` 容器外）保留的有意设计**，不改为 `@container`。
+- **UI-P09 全导航/弹层**：A0 覆盖导航抽屉、设置菜单的命中/几何/字号；OK。
+- **UI-P10 键盘/输入**：App/ConsoleWindow 实现 IME composition 守卫、Esc 取消进行中手势、方向键移动/调整；组件测试覆盖。
+- **UI-P11 状态/反馈**：保存/未确认走 `workingNotice` 与 Core ACK 语义；202 取消/未确认不报成功有回归。
+- **UI-P12 导入**：`CanonicalExchangeSpace`/`FolderIngest` 已逐件结果与失败；**耐久批次跨重启**属 BE-P03 → 待后端。
+- **UI-P13 阅读编辑/版本**：`CanonicalLibrarySpace`(reader/history) + `VersionSourcePanel` 已有。
+- **UI-P14 免费检索界面**：**缺独立的外部（百科/社区/科研）检索 UI**；Crossref/OpenAlex/Wikidata 仅存在于生成的 `resource-catalog`/`capability-catalog` 与能力详情。真实三源检索属 **BE-P04** → **BLOCKED（后端未接线，前端不伪造）**。
+- **UI-P15 图谱**：`CanonicalRelationSpace` + `ConstellationGraph`（Neural 供体）已有；组件/几何测试覆盖；**FPS/GPU/内存性能未测**。
+
+**结论**：UI-P06—P15 组件/结构层基本就绪且有 A0 几何/主题覆盖；UI-P14 为具名后端阻断。整体仍 **PARTIAL**。
