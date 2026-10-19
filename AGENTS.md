@@ -2,6 +2,8 @@
 
 > **2026-10-19 当前路由与状态**：Owner 明确恢复当前产品任务，并要求今天停止额度监控；状态 RUNNING_BY_OWNER / PARTIAL。今天不查询额度、不因额度阈值停工。活动指针及唯一 UI 执行记录保存范围与实测；旧暂停仅为历史时点。六项增量仍冻结，V01 暂停、FT01–04 冻结。Owner 后继明确允许覆盖 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 的程序安装，具体范围、备份与资格条件见活动指针 `green_update_authorization`；公开发布和真实用户数据覆盖仍未授权。文件身份及旧路径按 [路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json) 核对。
 
+> **2026-10-19 最新执行优先级**：Owner要求全量前端先行，再推进后端与同候选完整闭环。分片由[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_priority_overlay`选择，配合[完整接手提示词](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)读取；原任务ID及唯一执行记录不变，不据交接整理宣称产品完成。
+
 > 全局执行标准（跨软件跨项目）：见 WORK-LAB `00-governance/global-execution-standard.md`（执行生命周期：理解→扫技能→分片→执行→验证→落地；全局边界：E盘禁访/数据不外溢/官方优先/全功率）。
 > 经验教训铁律（核实优先/治理最小化/官方优先）：见本项目 `LESSONS_LEARNED.md`。
 

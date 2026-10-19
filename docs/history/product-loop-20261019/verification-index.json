@@ -4473,5 +4473,128 @@
         "status": "LOCAL_PASS"
       }
     ]
+  },
+  "frontend_first_handoff_registration": {
+    "date": "2026-10-19",
+    "scope": "Public handoff, latest frontend-first order and fine-grained inherited task acceptance only; no product execution or installed qualification",
+    "handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+    "priority_source": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
+    "coverage": {
+      "frontend_slices": 24,
+      "backend_slices": 15,
+      "resolved_local_links": 32,
+      "progress_ledgers": 1
+    },
+    "canonical_closed_loop": "UNCHANGED; AAOS-SHORTEST-COMPLETE-LOOP-V2",
+    "initial_document_gate_failure": "AGENTS linked an EXECUTION-named planning overlay which the existing drift guard treated as a competing live progress record. Root entry now routes via active pointer execution_priority_overlay; guard unchanged; original FAIL retained.",
+    "evidence_boundary": "LOCAL_STRUCTURE_ONLY; product PARTIAL; historical installer FAIL remains open",
+    "runs": [
+      {
+        "id": "frontend-handoff-authority-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-authority-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "813591d5a401e7c084692650748e5a1a22af1370fbef6c9fd276ecfbefb1706b",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_documentation_authority_index.py",
+          "tests/test_truth_authority_supersession.py",
+          "tests/test_runtime_delivery_authority.py",
+          "-q"
+        ],
+        "started_at": "2026-10-19T14:57:18.917779+00:00",
+        "ended_at": "2026-10-19T14:57:22.053020+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "frontend-handoff-docgate-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-docgate-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "813591d5a401e7c084692650748e5a1a22af1370fbef6c9fd276ecfbefb1706b",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/ci/check_document_authority.py"
+        ],
+        "started_at": "2026-10-19T14:57:14.587466+00:00",
+        "ended_at": "2026-10-19T14:57:16.137867+00:00",
+        "exit_code": 1,
+        "child_exit_code": 1,
+        "status": "FAIL"
+      },
+      {
+        "id": "frontend-handoff-conventions-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-conventions-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "813591d5a401e7c084692650748e5a1a22af1370fbef6c9fd276ecfbefb1706b",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/check_repository_conventions.py"
+        ],
+        "started_at": "2026-10-19T14:57:12.290607+00:00",
+        "ended_at": "2026-10-19T14:57:15.289926+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "frontend-handoff-routing-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-routing-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "813591d5a401e7c084692650748e5a1a22af1370fbef6c9fd276ecfbefb1706b",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          ".project-local/artifacts/product-loop-20261019/check-frontend-handoff.py"
+        ],
+        "started_at": "2026-10-19T14:57:17.769569+00:00",
+        "ended_at": "2026-10-19T14:57:19.026997+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "frontend-handoff-docgate2-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-docgate2-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "48d9c42b52a7734cdae588595230b23b131c37a92584ba42200ca4d2448b2ff9",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/ci/check_document_authority.py"
+        ],
+        "started_at": "2026-10-19T14:58:12.883532+00:00",
+        "ended_at": "2026-10-19T14:58:14.384435+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "frontend-handoff-routing2-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-routing2-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "48d9c42b52a7734cdae588595230b23b131c37a92584ba42200ca4d2448b2ff9",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          ".project-local/artifacts/product-loop-20261019/check-frontend-handoff.py"
+        ],
+        "started_at": "2026-10-19T14:58:08.573036+00:00",
+        "ended_at": "2026-10-19T14:58:09.808099+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      }
+    ]
   }
 }
