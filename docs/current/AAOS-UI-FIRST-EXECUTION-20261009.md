@@ -1,5 +1,7 @@
 > 2026-10-19 同步交付切片：[receipts/AAOS-CLOUD-SYNC-20261019.json](receipts/AAOS-CLOUD-SYNC-20261019.json)。本机真实Core＋launch准入回归2 PASS（SYNTHETIC凭据），阻止machine修改能力开关；不等于完整HUB004。前端180文件/1831用例及TypeScript PASS；全仓库preflight仍有失败，完整CI与主线合入需现场核对。三个候选保持NOT_APPLIED；产品整体PARTIAL。
 
+> 2026-10-19 Owner 格式范围调整已登记（文档范围 PASS）：PSD、Illustrator AI、CDR、CAD、3D 专业源文件不再列入直接支持或默认扩展路线；外部导出图片／PDF后使用通用流程。规范依据为[决定第十节](AAOS-OSS-INTEGRATION-DECISION-20261019.md)和活动指针 `format_scope_override`，旧原包不改写。本次仅同步范围与导航，未新增转换器或取得运行／保真资格。
+
 # UI 优先首批执行与存储交接 · 2026-10-09
 
 > **2026-10-12 仓库接续**：PR #184 已并入 main；当前源码与分支/CI 身份读[接续记录](AAOS-REPOSITORY-CONTINUITY-20261012.md)。下方日期快照不表示当前未发布、旧分支仍活动或所有工作区相同；整体仍 PARTIAL。

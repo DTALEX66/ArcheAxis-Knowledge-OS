@@ -2,6 +2,8 @@
 
 # 当前 Agent 接手入口
 
+> 最新格式决定：PSD／Illustrator AI／CDR／CAD／3D 专业源文件已从直接支持及默认扩展路线移除；外部先导出图片／PDF，复用通用处理。读[决定第十节](AAOS-OSS-INTEGRATION-DECISION-20261019.md)与活动指针 `format_scope_override`，不要据旧 F16 或 CAD／3D 查看计划重新加入。
+
 > 2026-10-19 关键对话已另存[39项主题来源与决定路由](../history/owner-dialogue-20261019/README.md)。包含工具迁移与中文说明的精确回执入口；提问、决定、历史声明和工程推导分列。现行决定/进度仍按下方固定读序，不以快照推导实时资格。
 
 当前状态 **RUNNING_BY_OWNER / PARTIAL**。本文件只提供接续导航，不复制另一套权威、任务或资源配置。

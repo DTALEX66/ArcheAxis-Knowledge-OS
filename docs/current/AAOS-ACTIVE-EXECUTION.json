@@ -340,6 +340,17 @@
   "project_source_closure": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
   "backlog_source_index": "docs/current/AAOS-EXECUTION-BACKLOG-20261018.json",
   "oss_integration_owner_decision": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+  "format_scope_override": {
+    "decision_id": "OWNER-FORMAT-SCOPE-20261019",
+    "source": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+    "source_section": "十、专业源文件移出多格式目标（2026-10-19）",
+    "removed_direct_support_targets": ["PSD", "Illustrator AI", "CDR", "CAD engineering files", "3D model files"],
+    "professional_native_adapters": "REMOVED_FROM_TARGETS_AND_DEFAULT_EXTENSION_ROADMAP",
+    "external_export_route": "Export images or PDF in the original software, then use common image/PDF ingestion; no built-in professional conversion commitment",
+    "preservation_boundary": "Only actually imported common-format files; no implied native layers, CAD constraints, 3D structure or editable roundtrip",
+    "ai_term": "Illustrator .ai file, not artificial intelligence or model services",
+    "history": "Inherited F16 and frozen evidence retained; current decision supersedes professional native-format scope"
+  },
   "continuation_context": {
     "purpose": "换 Agent / 换会话先沿固定入口读回，不从旧摘要、私人记忆或默认安装位置推导当前事实",
     "read_order": [
