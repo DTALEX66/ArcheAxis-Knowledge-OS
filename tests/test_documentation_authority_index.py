@@ -209,8 +209,11 @@ def test_readme_marks_pre_r6_capability_and_phase_roadmaps_as_historical() -> No
 
 def test_live_delivery_and_navigation_do_not_reactivate_historical_pause() -> None:
     pointer = json.loads((ROOT / "docs/current/AAOS-ACTIVE-EXECUTION.json").read_text(encoding="utf-8"))
-    assert pointer["delivery_authorization"]["product_execution"].startswith(pointer["execution_control"]["state"])
-    assert pointer["governance_delivery"]["product_execution"].startswith(pointer["execution_control"]["state"])
+    # Delivery permission is independent of execution state: keep one live state.
+    for section in ("delivery_authorization", "governance_delivery"):
+        assert "product_execution" not in pointer[section]
+        assert pointer[section]["product_execution_ref"] == "#/execution_control"
+    assert pointer["execution_control"]["state"] in {"RUNNING_BY_OWNER", "PAUSED_BY_OWNER"}
     assert pointer["delivery_readback"]["local_worktrees_equal"] is False
     assert pointer["delivery_history"]["delivery_readback"]["state"] == "BRANCH_PUBLISHED"
     for relative in ("docs/README.md", "docs/DIRECTORY_AUTHORITY_INDEX.md",

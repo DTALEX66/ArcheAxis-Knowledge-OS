@@ -103,6 +103,39 @@ def validate_conflict_branch(args):
                         args.grouped_authored_intervention)), "Conflict branch cannot mix other fixtures"
 
 
+def navigate_rendered_product_page(ui, js, wait, page, accept_navigation_alert):
+    """Restored routes may have no hash; observe the page and use visible navigation."""
+    assert re.fullmatch(r"\d{2}", page), "Invalid product page"
+    observed = js(r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&
+ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ getComputedStyle(n).visibility==='visible';
+const pages=[...document.querySelectorAll('[aria-label="当前页面"][data-current-page-id]')].filter(visible);
+const drawer=visible(document.querySelector('button[aria-label="打开产品导航"]'));
+const sidebar=visible(document.querySelector('.navigation-sidebar'));
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ mode:drawer?'drawer':sidebar?'sidebar':null};
+""")
+    if observed["page"] == page:
+        return
+    assert observed["mode"] in {"drawer", "sidebar"}, "No visible product navigation"
+    if observed["mode"] == "drawer":
+        ui.click_selector('button[aria-label="打开产品导航"]', "css selector")
+        scope = ".ui-navigation-drawer"
+    else:
+        scope = ".navigation-sidebar"
+    selector = f'{scope} button[data-page-id="{page}"]'
+    wait("const n=document.querySelector(" + json.dumps(selector) + ");"
+         "if(!n||n.disabled||!n.getClientRects().length||n.closest('[hidden],[aria-hidden=\"true\"],[inert]'))return false;"
+         "for(let a=n;a;a=a.parentElement){const s=getComputedStyle(a);"
+         "if(s.display==='none'||s.visibility!=='visible')return false;}return true;")
+    ui.click_selector(selector, "css selector")
+    accept_navigation_alert()
+    wait("return [...document.querySelectorAll('[aria-label=\"当前页面\"][data-current-page-id]')]"
+         ".filter(n=>n.getClientRects().length>0).some(n=>n.getAttribute('data-current-page-id')==="
+         + json.dumps(page) + ")")
+
+
 def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     """Microsoft requires matching major/minor/build; patch updates are compatible.
 
@@ -1669,11 +1702,7 @@ def main():
             def accept_conflict_alert():
                 accept_native_alert(request, session, evidence)
             def conflict_navigate(page):
-                if js("return location.hash") == "#page=" + page:
-                    return
-                controls.click_selector(f'.navigation-sidebar button[data-page-id="{page}"]', "css selector")
-                accept_conflict_alert()
-                wait("return location.hash===" + json.dumps("#page=" + page))
+                navigate_rendered_product_page(controls, js, wait, page, accept_conflict_alert)
             def conflict_restart():
                 old_pid, old_session = owned_host.pid, session
                 close_session()

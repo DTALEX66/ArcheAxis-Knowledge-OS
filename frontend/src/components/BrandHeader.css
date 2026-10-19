@@ -3,12 +3,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--ax-space-4);
   padding: var(--ax-space-6) 0;
   margin-bottom: var(--ax-space-6);
   border-bottom: 1px solid var(--ax-border);
 }
 
 .brand-header-left {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--ax-space-4);
@@ -22,7 +24,12 @@
   filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
 }
 
-.brand-header-text h1 {
+.brand-header-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.brand-header-text h2 {
   font-size: var(--ax-text-2xl);
   font-weight: var(--ax-font-bold);
   margin: 0;
@@ -37,6 +44,8 @@
 
 .brand-header-actions {
   display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
   gap: var(--ax-space-3);
 }
 
@@ -80,7 +89,7 @@
   line-height: 1;
 }
 
-@media (max-width: 768px) {
+@container content (max-width: 768px) {
   .brand-header {
     flex-direction: column;
     align-items: flex-start;

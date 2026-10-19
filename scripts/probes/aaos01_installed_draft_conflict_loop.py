@@ -168,7 +168,7 @@ def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, 
         navigate("02")
         ui.click_selector('[aria-label="打开文档 ' + doc["title"] + '"]', "css selector")
         accept_navigation_alert()
-        wait("return location.hash==='#page=03' && !!document.querySelector(" + json.dumps(EDITOR) + ")")
+        wait("return !!document.querySelector('[aria-label=\"当前页面\"][data-current-page-id=\"03\"]') && !!document.querySelector(" + json.dumps(EDITOR) + ")")
     open_doc(a)
     ui.click("保存草稿")
     wait("return !!document.querySelector('[aria-label=\"文档版本冲突恢复\"]')")

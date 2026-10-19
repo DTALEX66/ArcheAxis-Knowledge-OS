@@ -18,6 +18,12 @@
       "query": "responsive layout",
       "stack": "html-tailwind",
       "results": 3
+    },
+    {
+      "query": "contrast transparency",
+      "domain": "ux",
+      "results": 3,
+      "scope": "glass-frame follow-up; local rule advice only, no measured contrast qualification"
     }
   ],
   "preflight": {

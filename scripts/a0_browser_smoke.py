@@ -121,6 +121,52 @@ def console_viewport(page) -> tuple[str, float, float, float]:
     return "console", width, height, 1
 
 
+def check_menu_text(menu) -> dict[str, object]:
+    """Shared production menus must retain readable labels, wrapping and caption hierarchy."""
+    result = menu.evaluate("""node => {
+      const font = n => parseFloat(getComputedStyle(n).fontSize);
+      const visible = n => n.getClientRects().length && getComputedStyle(n).visibility !== 'hidden';
+      return {overflow:node.scrollWidth>node.clientWidth+1,
+        labels:[...node.querySelectorAll('.space-rail-item,.space-section-button b,[role=option] b,[role=menuitem]')].filter(visible).map(font),
+        captions:[...node.querySelectorAll('.space-section-button small,[role=option] small')].filter(visible).map(font),
+        rows:[...node.querySelectorAll('.space-section-button')].filter(visible).map(n=>{
+          const b=n.querySelector('b').getBoundingClientRect(),s=n.querySelector('small').getBoundingClientRect();return s.y>=b.bottom-1;})};
+    }""")
+    assert not result['overflow'], result
+    assert result['labels'] and min(result['labels']) >= 14, result
+    assert not result['captions'] or min(result['captions']) >= 13, result
+    assert all(result['rows']), result
+    return result
+
+
+def check_business_controls(page) -> dict[str, object]:
+    """Detect nested content that clips actions despite a fitting outer Dock panel."""
+    result = page.locator('.app-center').evaluate("""node => {
+      const bounds=node.getBoundingClientRect();
+      const clipped=[...node.querySelectorAll('.space-view button')]
+        .filter(n=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden')
+        .map(n=>{const r=n.getBoundingClientRect();return {label:n.getAttribute('aria-label')||n.innerText,
+          x:r.x,right:r.right,y:r.y,bottom:r.bottom};})
+        .filter(r=>r.bottom>bounds.y&&r.y<bounds.bottom&&(r.x<bounds.x-1||r.right>bounds.right+1));
+      return {width:node.clientWidth,scrollWidth:node.scrollWidth,clipped};
+    }""")
+    assert result['scrollWidth'] <= result['width'] + 1, result
+    assert not result['clipped'], result
+    return result
+
+
+def check_settings_menu(page) -> list[dict[str, object]]:
+    """Require the popup to paint above content, rather than only fit its bounds."""
+    popup = page.locator('.cabin-settings[open] > div')
+    popup.wait_for(state='visible')
+    controls = popup.locator('select,button').all()
+    assert controls, 'settings popup lacks controls'
+    boxes = [visible_control_box(node) for node in controls]
+    assert all(box['reachable'] and box['width'] >= 24 and box['height'] >= 24
+               and box['fontSize'] >= 14 for box in boxes), boxes
+    return boxes
+
+
 def check_brand_identity(page, theme: str, viewport) -> dict[str, object]:
     """The top mark is required at every density; duplicate status branding has an explicit state."""
     compact = compact_chrome(console_viewport(page))
@@ -1518,6 +1564,7 @@ def check_product_navigation_targets(page) -> dict[str, object]:
         trigger.click()
         drawer=page.get_by_role('dialog', name='产品导航', exact=True)
         drawer.wait_for()
+        check_menu_text(drawer)
         node=drawer.locator(f'[data-page-id="{target}"]')
         node.scroll_into_view_if_needed()
         box=visible_control_box(node)
@@ -1527,7 +1574,8 @@ def check_product_navigation_targets(page) -> dict[str, object]:
         node.click()
         drawer.wait_for(state='detached')
         page.locator(f'[data-current-page-id="{target}"]').wait_for()
-        entries.append({'page_id':target,'target':box,'close':close})
+        content = check_business_controls(page)
+        entries.append({'page_id':target,'target':box,'close':close,'content':content})
     trigger.click()
     drawer=page.get_by_role('dialog', name='产品导航', exact=True)
     drawer.get_by_role('button', name='关闭导航', exact=True).click()
@@ -1664,18 +1712,35 @@ def read_top_navigation(browser, viewport, problems, theme):
         navigate_ui_page(page, "01")
         settings = page.get_by_label("界面设置", exact=True)
         settings.click()
+        check_settings_menu(page)
         page.get_by_label("导航呈现", exact=True).select_option("top")
         settings.click()
         page.locator('[data-working-state="ready"]').wait_for(state="attached")
         assert "读取未完成" not in page.get_by_role("contentinfo", name="活动坞", exact=True).inner_text()
         assert page.evaluate("localStorage.getItem('aaos.navigation-appearance.v1')") == "top"
         assert not page.locator('.navigation-sidebar').is_visible()
+        check_business_controls(page)
         nav = page.get_by_role("navigation", name="顶部空间导航", exact=True)
         if console_dimensions(page)[0] > 1200 and not compact_chrome(console_viewport(page)):
             assert nav.is_visible()
+            menus = []
+            for trigger in nav.locator('button[aria-haspopup="menu"]').all():
+                trigger.click()
+                opened = nav.get_by_role("menu")
+                opened.wait_for(state="visible")
+                metrics = check_menu_text(opened)
+                rect = opened.bounding_box()
+                shell = page.locator('.cabin-shell').bounding_box()
+                assert rect and shell and rect['x'] >= shell['x'] - 1 and rect['x'] + rect['width'] <= shell['x'] + shell['width'] + 1, rect
+                menus.append({"label": trigger.inner_text(), "metrics": metrics})
+                page.keyboard.press("Escape")
+                opened.wait_for(state="detached")
+                assert trigger.evaluate("node => node === document.activeElement")
+            assert len(menus) == 5, menus
             nav.get_by_role("button", name="知识", exact=True).click()
             menu = nav.get_by_role("menu", name="知识页面", exact=True)
             assert menu.get_by_role("menuitem").count() == 4
+            check_menu_text(menu)
             shot = ARTIFACTS / f"top-menu-{theme}-{label}.png"
             page.screenshot(path=str(shot), full_page=True)
             geometry = nav.evaluate("""node => {
@@ -1690,6 +1755,7 @@ def read_top_navigation(browser, viewport, problems, theme):
                 actions:bounds(document.querySelector('.workspace-start')),
                 overflow:document.documentElement.scrollWidth>innerWidth};
             }""")
+            geometry["menus"] = menus
             assert not geometry['overflow'], geometry
             assert len(geometry['entries']) == 7 and all(item['reachable'] for item in geometry['entries']), geometry
             assert geometry['menu']['right'] <= geometry['shell']['right'], geometry
@@ -2005,6 +2071,7 @@ def main() -> None:
 
                 page.get_by_role("button", name="打开全局命令").click()
                 page.get_by_role("dialog", name="全局命令").wait_for()
+                check_menu_text(page.locator('.command-palette'))
                 page.get_by_role("button", name="关闭全局命令").click()
                 # Focus contract, measured in the browser rather than in jsdom: closing
                 # with Escape returns focus to the trigger that opened it, and Ctrl+K

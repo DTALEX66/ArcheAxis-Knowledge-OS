@@ -84,13 +84,13 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
-    "state": "PAUSED_BY_OWNER",
+    "state": "RUNNING_BY_OWNER",
     "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
     "automatic_continuation": false,
-    "continuation_scope": "Owner allowance guard triggered 2026-10-19; explicit Owner instruction required to resume.",
+    "continuation_scope": "Complete the authorized current product work and verification; Owner disabled allowance monitoring and allowance-triggered stopping for 2026-10-19.",
     "previous_stop": {
       "state": "PAUSED_BY_OWNER",
       "stopped_after": "UF13 started local slice",
@@ -116,20 +116,34 @@
       "publication_boundary": "No secrets, private agent state, runtime/database/cache/archive payloads, unrelated dirty changes, QODER, release or Green replacement. Merge requires current review and full required CI.",
       "resumption": "Explicit Owner instruction; quota reset alone does not resume.",
       "threshold_observation": {
-        "observed_at": "2026-10-19T20:12:00+08:00",
-        "used_percent": 85,
-        "remaining_percent": 15,
-        "state": "TRIGGERED",
+        "observed_at": "2026-10-19T12:48:05Z",
+        "used_percent": 86,
+        "remaining_percent": 14,
+        "state": "TRIGGERED_AFTER_EXPLICIT_RESUME",
         "monitor_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED"
+      },
+      "today_override": {
+        "date": "2026-10-19",
+        "state": "DISABLED_BY_OWNER",
+        "instruction": "额度监控今天停止监控 赶紧完成任务",
+        "chat_polling": "STOPPED",
+        "automation_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED; not a blocker for product work"
       }
     },
     "last_pause": {
       "state": "PAUSED_BY_OWNER",
-      "reason": "Owner-confirmed account remaining <=15 percent reached",
+      "reason": "New allowance observation after explicit resume: used86%, remaining14%; Owner threshold applies again",
+      "observed_at": "2026-10-19T12:48:05Z",
       "receipt": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-      "observed_date": "2026-10-19",
-      "goal": "PAUSED",
+      "goal": "ALREADY_PAUSED_FROM_PRIOR_CHECKPOINT",
+      "monitor": "UNVERIFIED; no unknown automation configuration overwritten",
       "resumption": "Explicit Owner instruction; quota reset alone does not resume."
+    },
+    "last_resume": {
+      "date": "2026-10-19",
+      "owner_instruction": "额度监控今天停止监控 赶紧完成任务；不是停止额度监控了吗？；赶紧完成任务啊",
+      "scope": "Resume current density/glass and native navigation fixes, verification and authorized delivery",
+      "allowance_guard": "DISABLED_BY_OWNER_FOR_2026_10_19; no allowance polling or threshold stopping today"
     }
   },
   "delivery_authorization": {
@@ -140,8 +154,8 @@
     "push": "GRANTED_CURRENT_DELIVERY_SCOPE",
     "merge": "GRANTED_CURRENT_DELIVERY_SCOPE",
     "release_install": "NOT_GRANTED_FOR_OWNER_MACHINE_OR_GREEN",
-    "product_execution": "RUNNING_BY_OWNER / PARTIAL",
-    "future_grants": "Recorded task scope only; new sessions must resolve their current request, not inherit unrestricted permissions"
+    "future_grants": "Recorded task scope only; new sessions must resolve their current request, not inherit unrestricted permissions",
+    "product_execution_ref": "#/execution_control"
   },
   "delivery_readback": {
     "state": "MERGED_MAIN_BASELINE; current closure changes remain local until independently delivered",
@@ -186,8 +200,8 @@
   "governance_delivery": {
     "state": "MERGED_MAIN_BASELINE; subsequent authority metadata tracked by actual HEAD",
     "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
-    "product_execution": "RUNNING_BY_OWNER / PARTIAL",
-    "historical_readback": "delivery_history.governance_delivery"
+    "historical_readback": "delivery_history.governance_delivery",
+    "product_execution_ref": "#/execution_control"
   },
   "delivery_history": {
     "delivery_authorization": {

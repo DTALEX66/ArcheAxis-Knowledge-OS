@@ -18,7 +18,7 @@
 .expression-edge-list { min-width: 0; list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .expression-edge-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
 .expression-node:focus-visible, .expression-viewport:focus-visible { outline: 2px solid var(--ax-accent-bright); outline-offset: 2px; }
-@media (max-width: 520px) { .expression-properties, .expression-connect { grid-template-columns: minmax(0, 1fr); } .expression-viewport { height: 360px; } }
+@container content (max-width: 520px) { .expression-properties, .expression-connect { grid-template-columns: minmax(0, 1fr); } .expression-viewport { height: 360px; } }
 
 .expression-geometry-input { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px; }
 
