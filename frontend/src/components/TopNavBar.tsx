@@ -1,3 +1,4 @@
+import { useConsoleWindow } from "./ConsoleWindow";
 import { useAaosTheme } from '../design-system/ThemeProvider';
 import { AAOS_THEME_REGISTRY } from '../design-system/theme';
 import './TopNavBar.css';
@@ -25,18 +26,23 @@ export function TopNavBar({
   userName = 'User'
 }: TopNavBarProps) {
   const { theme } = useAaosTheme();
+  const consoleWindow = useConsoleWindow();
 
   return (
     <>
       <nav className="top-nav-bar">
         <div className="top-nav-container">
           {/* Left: Logo + Breadcrumbs */}
-          <div className="top-nav-left">
-            <img
+          <div className="top-nav-left" onPointerDown={event=>consoleWindow?.begin(event,"move")} onPointerMove={consoleWindow?.move} onPointerUp={consoleWindow?.end} onPointerCancel={consoleWindow?.cancel} onLostPointerCapture={consoleWindow?.end}>
+            {consoleWindow ? <button type="button" className="console-move-handle" aria-label="移动主控台" aria-describedby="console-window-help" onKeyDown={consoleWindow.keys} disabled={consoleWindow.mode!=="floating"} title={consoleWindow.mode==="floating"?"拖动移动；方向键移动，Shift加方向键调整大小":"铺满时无需移动"}><img
               src={AAOS_THEME_REGISTRY[theme].brandMark}
               alt="ArcheAxis"
               className="top-nav-logo"
-            />
+            /></button> : <img
+              src={AAOS_THEME_REGISTRY[theme].brandMark}
+              alt="ArcheAxis"
+              className="top-nav-logo"
+            />}
             <div className="top-nav-breadcrumb">
               {breadcrumbs.map((crumb, index) => (
                 <span key={index}>
@@ -83,6 +89,7 @@ export function TopNavBar({
 
           {/* Right: Actions */}
           <div className="top-nav-right">
+            {consoleWindow && <><button type="button" className="top-nav-action console-window-action" aria-label={consoleWindow.mode==="floating"?"铺满主控台":"还原主控台"} onClick={consoleWindow.toggle} disabled={consoleWindow.mode==="compact"} title={consoleWindow.mode==="compact"?"可用空间较小，主控台自动铺满":consoleWindow.mode==="full"?"还原主控台":"铺满主控台"}>{consoleWindow.mode==="floating"?"□":"▣"}</button><button type="button" className="top-nav-action console-window-action" aria-label="复位主控台" onClick={consoleWindow.reset} title="复位主控台的位置和大小">↺</button></>}
             <DiagnosticCenterTrigger />
             <button
               className={`top-nav-action ${notificationCount > 0 ? 'has-badge' : ''}`}

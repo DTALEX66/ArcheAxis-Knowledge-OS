@@ -1127,6 +1127,11 @@ fn main() {
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
                     .title("星环知识系统（ArcheAxis Knowledge）")
                     .inner_size(1280.0, 800.0)
+                    // 保留 Windows 原生标题栏与窗口调整；应用内主控台另在背景上内缩。
+                    .decorations(true)
+                    .resizable(true)
+                    .maximizable(true)
+                    .minimizable(true)
                     // The formal host had no minimum while the recovery entry declared one, so
                     // the product window could be dragged below the shell's layout floor: at a
                     // 520px viewport the measured scrollWidth is 640, i.e. 120px of the reading

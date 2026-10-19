@@ -1557,6 +1557,1038 @@
         "--grouped-save-deep-binding",
         "--require-actual-ai-loop"
       ]
+    },
+    {
+      "run": "product-loop-be10-probe-tests-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_patch_sha256_after": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:22:11.388416+00:00",
+      "ended_at": "2026-10-19T11:22:59.373837+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 47.98542039998574,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_aaos01_handoff_native_loop.py",
+        "tests/test_material_companion_native_probe.py",
+        "tests/test_probe_identity_regression.py"
+      ]
+    },
+    {
+      "run": "product-loop-core-be10-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_patch_sha256_after": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:23:19.367022+00:00",
+      "ended_at": "2026-10-19T11:23:22.458002+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 3.0909783000242896,
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "scripts\\ci\\cargo_test.bat",
+        "build",
+        "-p",
+        "archeaxis-api",
+        "--bin",
+        "archeaxis-api",
+        "--release",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-host-be10-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_patch_sha256_after": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:23:21.172762+00:00",
+      "ended_at": "2026-10-19T11:24:53.108427+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 91.93566550000105,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "scripts/runtime/frontend.mjs",
+        "tauri",
+        "--receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-20261019/artifacts/host-build.json",
+        "--",
+        "build",
+        "--no-bundle",
+        "--",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-stage-be10-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_patch_sha256_after": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:23:46.595558+00:00",
+      "ended_at": "2026-10-19T11:24:45.765630+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 59.17007160000503,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/release/stage_backend_runtime.py",
+        "--core",
+        ".project-local/build/cargo/release/archeaxis-api.exe",
+        "--runtime",
+        ".project-local/rt/runtime",
+        "--workers",
+        "services/python-workers",
+        "--external-root",
+        "D:/All projects/OS External Configuration",
+        "--out",
+        ".project-local/candidates/product-loop-be10-20261019/backend",
+        "--version",
+        "0.6.14-product-loop-be10",
+        "--source-commit",
+        "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+        "--source-tree",
+        "38dc4d72f26a9233299d8db72e94ac6e6e9433ad"
+      ]
+    },
+    {
+      "run": "product-loop-be10-shared-contract-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_patch_sha256_after": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:24:28.624661+00:00",
+      "ended_at": "2026-10-19T11:24:37.488870+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 8.864213499997277,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_material_independent_native_probe.py",
+        "tests/test_native_exit_ack.py",
+        "tests/test_owned_webdriver_transport.py",
+        "tests/test_native_owned_descendant_drain.py"
+      ]
+    },
+    {
+      "run": "product-loop-bind-be10-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_patch_sha256_after": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:25:13.611130+00:00",
+      "ended_at": "2026-10-19T11:25:32.753772+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 19.142645499960054,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/model-loop/bind_native_candidate.py",
+        "--host-receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-20261019/artifacts/host-build.json",
+        "--core-receipt",
+        ".project-local/runs/be268a2d33/product-loop-core-be10-20261019/artifacts/execution.json",
+        "--host-output",
+        ".project-local/build/tauri/release/ArcheAxis.exe",
+        "--core-output",
+        ".project-local/build/cargo/release/archeaxis-api.exe",
+        "--candidate-host",
+        ".project-local/candidates/product-loop-be10-20261019/backend/ArcheAxis.exe",
+        "--out",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-20261019/artifacts/native-candidate-build.json"
+      ]
+    },
+    {
+      "run": "product-loop-native-be10-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_patch_sha256_after": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T11:25:46.171814+00:00",
+      "ended_at": "2026-10-19T11:26:23.825571+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 37.65375680004945,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "--host",
+        ".project-local/candidates/product-loop-be10-20261019/backend/ArcheAxis.exe",
+        "--build-receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-20261019/artifacts/native-candidate-build.json",
+        "--driver",
+        "D:/All projects/OS External Configuration/toolchains/rust/cargo/bin/tauri-driver.exe",
+        "--native-driver",
+        ".project-local/tools/edge-155.0.4283.60/msedgedriver.exe",
+        "--session-timeout",
+        "180",
+        "--be10-handoff-reader-loop"
+      ]
+    },
+    {
+      "run": "product-loop-be10-ruff-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_patch_sha256_after": "a1c276b58264005b9064daeb5805b6f9fd8b9e8912e80221c1b053b6523e2e56",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:26:15.557293+00:00",
+      "ended_at": "2026-10-19T11:26:16.987926+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 1.4306381999631412,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "E9,F63,F7,F82",
+        "scripts/probes/aaos01_handoff_native_loop.py",
+        "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "tests/test_aaos01_handoff_native_loop.py"
+      ]
+    },
+    {
+      "run": "product-loop-core-be10-final-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:27:59.126640+00:00",
+      "ended_at": "2026-10-19T11:28:02.603332+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 3.4766946000163443,
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "scripts\\ci\\cargo_test.bat",
+        "build",
+        "-p",
+        "archeaxis-api",
+        "--bin",
+        "archeaxis-api",
+        "--release",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-host-be10-final-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:28:00.979142+00:00",
+      "ended_at": "2026-10-19T11:29:51.030555+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 110.05140890000621,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "scripts/runtime/frontend.mjs",
+        "tauri",
+        "--receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-final-20261019/artifacts/host-build.json",
+        "--",
+        "build",
+        "--no-bundle",
+        "--",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-be10-final-tests-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:27:59.898356+00:00",
+      "ended_at": "2026-10-19T11:28:03.438719+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 3.5403646000195295,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_aaos01_handoff_native_loop.py"
+      ]
+    },
+    {
+      "run": "product-loop-clone-be10-final-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T11:28:28.060778+00:00",
+      "ended_at": "2026-10-19T11:28:29.896547+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 1.8357695000013337,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/be10-next/clone_staged_runtime.py"
+      ]
+    },
+    {
+      "run": "product-loop-clone-be10-final2-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T11:28:58.695082+00:00",
+      "ended_at": "2026-10-19T11:29:40.217791+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 41.52270490000956,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/be10-next/clone_staged_runtime.py"
+      ]
+    },
+    {
+      "run": "product-loop-clone-be10-final3-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:30:23.495916+00:00",
+      "ended_at": "2026-10-19T11:30:41.029362+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 17.533446600020397,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/be10-next/clone_staged_runtime.py"
+      ]
+    },
+    {
+      "run": "product-loop-bind-be10-final-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:31:11.642046+00:00",
+      "ended_at": "2026-10-19T11:31:31.230004+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 19.58795930002816,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/model-loop/bind_native_candidate.py",
+        "--host-receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-final-20261019/artifacts/host-build.json",
+        "--core-receipt",
+        ".project-local/runs/be268a2d33/product-loop-core-be10-final-20261019/artifacts/execution.json",
+        "--host-output",
+        ".project-local/build/tauri/release/ArcheAxis.exe",
+        "--core-output",
+        ".project-local/build/cargo/release/archeaxis-api.exe",
+        "--candidate-host",
+        ".project-local/candidates/product-loop-be10-final-20261019/backend/ArcheAxis.exe",
+        "--out",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-final-20261019/artifacts/native-candidate-build.json"
+      ]
+    },
+    {
+      "run": "product-loop-native-be10-final-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T11:31:47.692992+00:00",
+      "ended_at": "2026-10-19T11:32:00.193789+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 12.500794499996118,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "--host",
+        ".project-local/candidates/product-loop-be10-final-20261019/backend/ArcheAxis.exe",
+        "--build-receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-final-20261019/artifacts/native-candidate-build.json",
+        "--driver",
+        "D:/All projects/OS External Configuration/toolchains/rust/cargo/bin/tauri-driver.exe",
+        "--native-driver",
+        ".project-local/tools/edge-155.0.4283.60/msedgedriver.exe",
+        "--session-timeout",
+        "180",
+        "--be10-handoff-reader-loop"
+      ]
+    },
+    {
+      "run": "product-loop-common-formats-be10-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_patch_sha256_after": "42f1825b88372b0e8b1b420fe942be6bde7ede1bc29f9d2dda1d694efa07c417",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:31:47.655321+00:00",
+      "ended_at": "2026-10-19T11:32:03.200698+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 15.54537209996488,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/probes/aaos01_common_formats_runtime_loop.py",
+        "--candidate",
+        ".project-local/candidates/product-loop-be10-final-20261019/backend"
+      ]
+    },
+    {
+      "run": "product-loop-be10-protocol-fix-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "77654a9f8dad8a93cb7083d9a575ce8fa2e71aa95fff664518c6f04f0edbb919",
+      "source_patch_sha256_after": "77654a9f8dad8a93cb7083d9a575ce8fa2e71aa95fff664518c6f04f0edbb919",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:33:37.411178+00:00",
+      "ended_at": "2026-10-19T11:33:46.798929+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 9.387745700019877,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_owned_webdriver_transport.py",
+        "tests/test_aaos01_handoff_native_loop.py",
+        "tests/test_native_exit_ack.py",
+        "tests/test_native_owned_descendant_drain.py",
+        "tests/test_material_independent_native_probe.py"
+      ]
+    },
+    {
+      "run": "product-loop-be10-final-conventions-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "77654a9f8dad8a93cb7083d9a575ce8fa2e71aa95fff664518c6f04f0edbb919",
+      "source_patch_sha256_after": "77654a9f8dad8a93cb7083d9a575ce8fa2e71aa95fff664518c6f04f0edbb919",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:34:23.284988+00:00",
+      "ended_at": "2026-10-19T11:34:27.055894+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 3.7709078999469057,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/check_repository_conventions.py",
+        "--source",
+        "worktree"
+      ]
+    },
+    {
+      "run": "product-loop-be10-final-ruff-20261019",
+      "source_commit": "95c3d2bd64e3aaf7f0af8c0c9b56b9b95c63f02a",
+      "source_patch_sha256": "77654a9f8dad8a93cb7083d9a575ce8fa2e71aa95fff664518c6f04f0edbb919",
+      "source_patch_sha256_after": "77654a9f8dad8a93cb7083d9a575ce8fa2e71aa95fff664518c6f04f0edbb919",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:34:21.994040+00:00",
+      "ended_at": "2026-10-19T11:34:23.848025+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 1.8539818999706767,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "E9,F63,F7,F82",
+        "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "scripts/probes/aaos01_handoff_native_loop.py",
+        "tests/test_aaos01_handoff_native_loop.py",
+        "tests/test_owned_webdriver_transport.py"
+      ]
+    },
+    {
+      "run": "product-loop-core-be10-b5c5-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:35:04.043643+00:00",
+      "ended_at": "2026-10-19T11:35:07.211799+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 3.1681546999607235,
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "scripts\\ci\\cargo_test.bat",
+        "build",
+        "-p",
+        "archeaxis-api",
+        "--bin",
+        "archeaxis-api",
+        "--release",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-host-be10-b5c5-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:35:04.297993+00:00",
+      "ended_at": "2026-10-19T11:36:44.480552+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 100.18255820003105,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "scripts/runtime/frontend.mjs",
+        "tauri",
+        "--receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-b5c5-20261019/artifacts/host-build.json",
+        "--",
+        "build",
+        "--no-bundle",
+        "--",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-stage-be10-b5c5-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:35:17.007286+00:00",
+      "ended_at": "2026-10-19T11:36:13.295715+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 56.288428400002886,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/release/stage_backend_runtime.py",
+        "--core",
+        ".project-local/build/cargo/release/archeaxis-api.exe",
+        "--runtime",
+        ".project-local/rt/runtime",
+        "--workers",
+        "services/python-workers",
+        "--external-root",
+        "D:/All projects/OS External Configuration",
+        "--out",
+        ".project-local/candidates/product-loop-be10-b5c5-20261019/backend",
+        "--version",
+        "0.6.14-product-loop-be10-b5c5",
+        "--source-commit",
+        "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+        "--source-tree",
+        "03ca6e00ddb471a0a551cdf0429f964abc342ecb"
+      ]
+    },
+    {
+      "run": "product-loop-common-formats-b5c5-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:36:42.524986+00:00",
+      "ended_at": "2026-10-19T11:37:02.776439+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 20.251447399961762,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/probes/aaos01_common_formats_runtime_loop.py",
+        "--candidate",
+        ".project-local/candidates/product-loop-be10-b5c5-20261019/backend"
+      ]
+    },
+    {
+      "run": "product-loop-bind-be10-b5c5-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:37:06.346010+00:00",
+      "ended_at": "2026-10-19T11:37:27.219224+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 20.87321200000588,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/model-loop/bind_native_candidate.py",
+        "--host-receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-b5c5-20261019/artifacts/host-build.json",
+        "--core-receipt",
+        ".project-local/runs/be268a2d33/product-loop-core-be10-b5c5-20261019/artifacts/execution.json",
+        "--host-output",
+        ".project-local/build/tauri/release/ArcheAxis.exe",
+        "--core-output",
+        ".project-local/build/cargo/release/archeaxis-api.exe",
+        "--candidate-host",
+        ".project-local/candidates/product-loop-be10-b5c5-20261019/backend/ArcheAxis.exe",
+        "--out",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-b5c5-20261019/artifacts/native-candidate-build.json"
+      ]
+    },
+    {
+      "run": "product-loop-native-be10-b5c5-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:37:40.614873+00:00",
+      "ended_at": "2026-10-19T11:38:14.710029+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 34.095149000000674,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "--host",
+        ".project-local/candidates/product-loop-be10-b5c5-20261019/backend/ArcheAxis.exe",
+        "--build-receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-be10-b5c5-20261019/artifacts/native-candidate-build.json",
+        "--driver",
+        "D:/All projects/OS External Configuration/toolchains/rust/cargo/bin/tauri-driver.exe",
+        "--native-driver",
+        ".project-local/tools/edge-155.0.4283.60/msedgedriver.exe",
+        "--session-timeout",
+        "180",
+        "--be10-handoff-reader-loop"
+      ]
+    },
+    {
+      "run": "product-loop-installer-navigation-contracts-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "2c842d2a6fe0e30ceb62f469680407e903f389804e77b4f2f52ad948bb174023",
+      "source_patch_sha256_after": "2c842d2a6fe0e30ceb62f469680407e903f389804e77b4f2f52ad948bb174023",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:46:19.865740+00:00",
+      "ended_at": "2026-10-19T11:46:43.381422+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 23.515683000034187,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_tauri_shell_authority.py",
+        "tests/test_grouped_native_owner_probe.py",
+        "tests/test_owned_webdriver_transport.py",
+        "tests/test_aaos01_handoff_native_loop.py"
+      ]
+    },
+    {
+      "run": "product-loop-installer-navigation-ui-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "2c842d2a6fe0e30ceb62f469680407e903f389804e77b4f2f52ad948bb174023",
+      "source_patch_sha256_after": "2c842d2a6fe0e30ceb62f469680407e903f389804e77b4f2f52ad948bb174023",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:46:19.056721+00:00",
+      "ended_at": "2026-10-19T11:46:28.008137+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 8.951409499975853,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "frontend/vite.config.ts",
+        "--maxWorkers",
+        "1",
+        "--minWorkers",
+        "1",
+        "src/__tests__/CompactObjectNavigation.test.tsx",
+        "src/__tests__/App.test.tsx",
+        "src/__tests__/ContextNav.test.tsx"
+      ]
+    },
+    {
+      "run": "product-loop-installer-navigation-types-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "2c842d2a6fe0e30ceb62f469680407e903f389804e77b4f2f52ad948bb174023",
+      "source_patch_sha256_after": "2c842d2a6fe0e30ceb62f469680407e903f389804e77b4f2f52ad948bb174023",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:46:20.058000+00:00",
+      "ended_at": "2026-10-19T11:46:29.827598+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 9.769595199963078,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "frontend/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "frontend/tsconfig.json"
+      ]
+    },
+    {
+      "run": "product-loop-installer-navigation-ruff-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "2c842d2a6fe0e30ceb62f469680407e903f389804e77b4f2f52ad948bb174023",
+      "source_patch_sha256_after": "2c842d2a6fe0e30ceb62f469680407e903f389804e77b4f2f52ad948bb174023",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:46:20.134799+00:00",
+      "ended_at": "2026-10-19T11:46:21.826460+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 1.691662599972915,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "E9,F63,F7,F82",
+        "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "tests/test_tauri_shell_authority.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-ui-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_patch_sha256_after": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:58:05.280584+00:00",
+      "ended_at": "2026-10-19T11:58:17.848210+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 12.56762530002743,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "frontend/vite.config.ts",
+        "--maxWorkers",
+        "1",
+        "--minWorkers",
+        "1",
+        "src/__tests__/ConsoleWindow.test.tsx",
+        "src/__tests__/CompactObjectNavigation.test.tsx",
+        "src/__tests__/App.test.tsx",
+        "src/__tests__/ContextNav.test.tsx"
+      ]
+    },
+    {
+      "run": "product-loop-console-contracts-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_patch_sha256_after": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:58:08.138475+00:00",
+      "ended_at": "2026-10-19T11:58:17.265163+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 9.126684999966528,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_a0_browser_smoke.py",
+        "tests/test_window_minimum_size.py",
+        "tests/test_tauri_shell_authority.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-types-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_patch_sha256_after": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:58:06.606854+00:00",
+      "ended_at": "2026-10-19T11:58:20.431986+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 13.825128099997528,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "frontend/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "frontend/tsconfig.json"
+      ]
+    },
+    {
+      "run": "product-loop-console-browser-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_patch_sha256_after": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T11:58:11.600475+00:00",
+      "ended_at": "2026-10-19T11:58:21.372833+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 9.772353899956215,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/console_browser.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-browser2-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_patch_sha256_after": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T11:58:57.428715+00:00",
+      "ended_at": "2026-10-19T11:59:05.524299+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 8.095581699977629,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/console_browser.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-browser3-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_patch_sha256_after": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T11:59:38.022261+00:00",
+      "ended_at": "2026-10-19T11:59:47.127016+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 9.104754000029061,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/console_browser.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-browser4-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_patch_sha256_after": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T12:00:42.704436+00:00",
+      "ended_at": "2026-10-19T12:00:53.656818+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 10.952376200002618,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/console_browser.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-host-build-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_patch_sha256_after": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T12:01:04.950821+00:00",
+      "ended_at": "2026-10-19T12:02:09.825677+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 64.87485239998205,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "scripts/runtime/frontend.mjs",
+        "tauri",
+        "--receipt",
+        ".project-local/runs/be268a2d33/product-loop-console-host-build-20261019/artifacts/host-build.json",
+        "--",
+        "build",
+        "--no-bundle",
+        "--",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-console-browser5-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "926728a383a498fd980f95884c5d179939401138f43dc6d5227a9a41383bf9dd",
+      "source_patch_sha256_after": "926728a383a498fd980f95884c5d179939401138f43dc6d5227a9a41383bf9dd",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T12:03:39.974934+00:00",
+      "ended_at": "2026-10-19T12:03:55.345012+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 15.370076399995014,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/console_browser.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-final-contracts-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "926728a383a498fd980f95884c5d179939401138f43dc6d5227a9a41383bf9dd",
+      "source_patch_sha256_after": "926728a383a498fd980f95884c5d179939401138f43dc6d5227a9a41383bf9dd",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T12:03:40.444211+00:00",
+      "ended_at": "2026-10-19T12:03:48.832473+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 8.388261899992358,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_top_navigation_window_controls.py",
+        "tests/test_a0_browser_smoke.py",
+        "tests/test_window_minimum_size.py",
+        "tests/test_tauri_shell_authority.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-final-ruff-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "926728a383a498fd980f95884c5d179939401138f43dc6d5227a9a41383bf9dd",
+      "source_patch_sha256_after": "926728a383a498fd980f95884c5d179939401138f43dc6d5227a9a41383bf9dd",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T12:03:40.008154+00:00",
+      "ended_at": "2026-10-19T12:03:41.347787+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 1.3396293999976479,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "--select",
+        "E9,F63,F7,F82",
+        "scripts/a0_browser_smoke.py",
+        "tests/test_window_minimum_size.py",
+        "tests/test_top_navigation_window_controls.py"
+      ]
+    },
+    {
+      "run": "product-loop-console-conventions-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "2bf13a3bf32dbc2ea1bee5b287f98b544b0b4f45d8d72a1ba4ade5fc5c7b18ad",
+      "source_patch_sha256_after": "2bf13a3bf32dbc2ea1bee5b287f98b544b0b4f45d8d72a1ba4ade5fc5c7b18ad",
+      "source_consistent": true,
+      "status": "FAIL",
+      "started_at": "2026-10-19T12:08:22.920609+00:00",
+      "ended_at": "2026-10-19T12:08:25.885949+00:00",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "seconds": 2.965339899994433,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/check_repository_conventions.py",
+        "--source",
+        "worktree"
+      ]
+    },
+    {
+      "run": "product-loop-console-conventions2-20261019",
+      "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "source_patch_sha256": "5476aaf29a14984918cff2c518b47c21e1ebe5794751398ec0d4f6bed7a5c974",
+      "source_patch_sha256_after": "5476aaf29a14984918cff2c518b47c21e1ebe5794751398ec0d4f6bed7a5c974",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T12:08:51.363461+00:00",
+      "ended_at": "2026-10-19T12:08:54.326932+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 2.9634668999933638,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/check_repository_conventions.py",
+        "--source",
+        "worktree"
+      ]
     }
   ],
   "native_ce3b": {
@@ -1637,5 +2669,353 @@
       "Candidate answers executed but not quality evaluated",
       "Not installed-runtime, full-format, full-accessibility, physical-DPI, performance-comparison or Owner acceptance"
     ]
+  },
+  "be10_native_b5c5": {
+    "source_commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+    "run": "product-loop-native-be10-b5c5-20261019",
+    "receipt_relative_path": ".project-local/runs/be268a2d33/webdriver-77ba355fa9ce/tmp/journey/receipt.json",
+    "receipt_sha256": "16ef7e7c68a347ca4c06f56ac93b35f1457f313edb5cc44820c2c90df087b3d1",
+    "ok": true,
+    "evidence_level": "REAL_TAURI_WEBDRIVER_WITH_SYNTHETIC_NOTE",
+    "status": "PASS",
+    "compiled_source_binding": "PASS",
+    "source_consistent": true,
+    "pinned": {
+      "status": "PASS",
+      "reference": {
+        "content_sha256": "914c6a88685b6fcc73fb89b0b126d598a236e78ddf1012c2d4f1f5d97d66c044",
+        "document_id": "doc_req_fb816254c83e3652c4399158c907878c13dc80a6fb3d97d91a2121a4c401832a",
+        "version": 2
+      },
+      "proposal_sha256": "1b5a42949d292c203903f9dfde3269a4c302d7fb510ce817d9a3b43b58d57d36",
+      "rendered_body_sha256": "67e7c88fc560f5a98b384efbab43dbeabca5a0ef6751a8c574da1e5a322e010f",
+      "diagnostic_body_excluded": true
+    },
+    "cold_reopen": "PASS",
+    "wrong_identity": {
+      "status": "PASS",
+      "ui_rejected": true,
+      "body_absent": true,
+      "proposal_retained": true
+    },
+    "expiry": {
+      "status": "PASS",
+      "body_absent": true,
+      "preview_cleared": true,
+      "proposal_retained": true
+    },
+    "core_calls": [
+      "documents_list",
+      "documents_list",
+      "document_get",
+      "ui_state_read",
+      "document_get",
+      "document_get"
+    ],
+    "owned_process_cleanup": true,
+    "owned_ports_released": true,
+    "remaining_owned_port_listeners": [],
+    "screenshots": [
+      {
+        "name": "be10-pinned-body.png",
+        "sha256": "5ebf5bda4eb4155e3d6b76735ea4699e78a0295d24a4bd1f2d92571a470786fe",
+        "bytes": 543253,
+        "viewed": true
+      },
+      {
+        "name": "be10-wrong-identity.png",
+        "sha256": "10a021848a030ed8607d234466cfc2e3e662d2c1001806f88ce33aff860119b4",
+        "bytes": 595817,
+        "viewed": false
+      },
+      {
+        "name": "be10-expired.png",
+        "sha256": "3b47ae4135da0c91688554f6835fa7f4c473aeb32da9754e6c5391cb563ca012",
+        "bytes": 592106,
+        "viewed": true
+      }
+    ],
+    "limits": [
+      "Same owned Core and Tauri host",
+      "No external receiver or OS URI",
+      "No model call or Owner acceptance"
+    ]
+  },
+  "common_formats_b5c5": {
+    "source": {
+      "commit": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+      "dirty": false,
+      "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "changes": []
+    },
+    "run": "product-loop-common-formats-b5c5-20261019",
+    "receipt_relative_path": ".project-local/runs/be268a2d33/b8fb229a6504/artifacts/common-formats.json",
+    "receipt_sha256": "125ee4a62d67e946909e0ffd7b16c47ded72e27e97a140b4df82f31b1209baba",
+    "ok": true,
+    "source_consistent": true,
+    "qualification": "INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART",
+    "materials": "SYNTHETIC_AUTHORED",
+    "execution": "ACTUAL_CANDIDATE_CORE_WORKERS",
+    "core": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\candidates\\product-loop-be10-b5c5-20261019\\backend\\core\\archeaxis-api.exe",
+      "sha256": "4ba296d4bbefcd6b454a9707c95fda557e79856d7e8d90d9e0e1c8ed22a7a25f",
+      "bytes": 16415744
+    },
+    "formats": [
+      {
+        "format": "docx",
+        "input_sha256": "2c9a58b69bd2d4a61de1e951ab0c61fb001240a28a0cd1d716b2f138b72fa79d",
+        "original_sha256": "2c9a58b69bd2d4a61de1e951ab0c61fb001240a28a0cd1d716b2f138b72fa79d",
+        "first_state": "succeeded",
+        "reparse_state": "succeeded",
+        "locations_per_job": 2,
+        "anchor_count": 4,
+        "restart_equal": true,
+        "loss_engine": "python-worker-office",
+        "loss_note": "paragraphs/tables extracted in document order; header/footer text and embedded-image OCR are separate lanes; media files (1) inventoried, not decoded"
+      },
+      {
+        "format": "xlsx",
+        "input_sha256": "e7a255e145aa3f3cbacb98d6d9df69cfdfa32945f189163b8ebbd12034ac2158",
+        "original_sha256": "e7a255e145aa3f3cbacb98d6d9df69cfdfa32945f189163b8ebbd12034ac2158",
+        "first_state": "succeeded",
+        "reparse_state": "succeeded",
+        "locations_per_job": 2,
+        "anchor_count": 4,
+        "restart_equal": true,
+        "loss_engine": "python-worker-office",
+        "loss_note": "cell values include formula text (data_only=False); cached computed values are NOT presented as live calculations; macros never executed; merged ranges reported per sheet only"
+      },
+      {
+        "format": "pptx",
+        "input_sha256": "191e4730b6af02ff640dec7ff077e9cc31fc47c30332b1172e2f3013994e8b0f",
+        "original_sha256": "191e4730b6af02ff640dec7ff077e9cc31fc47c30332b1172e2f3013994e8b0f",
+        "first_state": "succeeded",
+        "reparse_state": "succeeded",
+        "locations_per_job": 2,
+        "anchor_count": 4,
+        "restart_equal": true,
+        "loss_engine": "python-worker-office",
+        "loss_note": "slide order preserved; chart data is the file's own cached categories and values, never recomputed, and a series that only references a live spreadsheet is named as carrying no cached values; slide-image OCR and chart rendering are separate lanes"
+      },
+      {
+        "format": "pdf",
+        "input_sha256": "d9d57cda8865cf948eda063f9ea1bf0e17927dc45cefb1c8e40501aa929f3c87",
+        "original_sha256": "d9d57cda8865cf948eda063f9ea1bf0e17927dc45cefb1c8e40501aa929f3c87",
+        "first_state": "succeeded",
+        "reparse_state": "succeeded",
+        "locations_per_job": 2,
+        "anchor_count": 4,
+        "restart_equal": true,
+        "loss_engine": "pymupdf-native-pdf",
+        "loss_note": "1 engine message(s) diverted from stdout: Consider using the pymupdf_layout package for a greatly improved page layout analysis."
+      }
+    ],
+    "limits": [
+      "No installed UI/source-application navigation",
+      "Text PDF only; OCR separate",
+      "Formula text/cached chart data are not live calculation",
+      "No source package reconstruction",
+      "Independent reparse uses a new job; old pinned job remains valid, not superseded"
+    ]
+  },
+  "installer_navigation": {
+    "failed_ci": {
+      "run_id": 39241950317,
+      "head_sha": "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+      "job_id": 118035639007,
+      "status": "FAIL",
+      "error": "element not interactable",
+      "aggregate": "FAIL"
+    },
+    "failure_screenshot": {
+      "path": ".project-local/artifacts/product-loop-20261019/ci-live/installer-39241950317/runs/fd2a08c715/webdriver-5c3e951cffca/tmp/journey/failure.png",
+      "viewed": true,
+      "sha256": "50e19e75d01ebd37db084eea3c93e0d0048c423558f2aa0c703efd36f48c54d4"
+    },
+    "root_cause": "Compact layout hides sidebar object navigation while its replacement drawer contained only space navigation.",
+    "candidate_base": "b5c5d8f8b61684f9358a5b98ec86fcb641406064",
+    "candidate_patch_sha256": "1ec05a1b205baa4d6aceccea6013e163ee25be4bebb4549232cbb55b701c9645",
+    "overlay_tests": [
+      {
+        "mode": "baseline",
+        "evidence_level": "SIMULATED",
+        "report_sha256": "07f9bef8c2a1cf89894159c7f2160ca26c36fc17657305298ff1d0b16cf53646",
+        "tests": 36,
+        "passed": 34,
+        "failed": 2,
+        "success": false
+      },
+      {
+        "mode": "candidate",
+        "evidence_level": "SIMULATED",
+        "report_sha256": "ba9b1ee05c8d0bfa40992997c8d1bbaa1ec476afcc3762beafe2ea4f5eb600a4",
+        "tests": 36,
+        "passed": 36,
+        "failed": 0,
+        "success": true
+      }
+    ],
+    "public_product_validation_runs": [
+      "product-loop-installer-navigation-contracts-20261019",
+      "product-loop-installer-navigation-ui-20261019",
+      "product-loop-installer-navigation-types-20261019",
+      "product-loop-installer-navigation-ruff-20261019"
+    ],
+    "installed_after_fix": "NOT_EXECUTED",
+    "thresholds_changed": false,
+    "javascript_click_fallback": false
+  },
+  "console_window": {
+    "decision_id": "OWNER-DESKTOP-CONSOLE-20261019",
+    "status": "PASS",
+    "evidence_level": "SYNTHETIC",
+    "renderer": "REAL_CHROMIUM",
+    "source": "PUBLIC_PRODUCT_NO_OVERLAY",
+    "browser": {
+      "version": "149.0.7827.55",
+      "executable": "D:\\All projects\\OS External Configuration\\10-toolchains\\playwright\\chromium-1228\\chrome-win64\\chrome.exe",
+      "dpr": 1,
+      "reduced_motion": "reduce"
+    },
+    "theme": "cosmic",
+    "started_at": "2026-10-19T12:03:41.278292+00:00",
+    "ended_at": "2026-10-19T12:03:54.798147+00:00",
+    "steps": [
+      {
+        "action": "initial-inset",
+        "rect": {
+          "x": 80,
+          "y": 50,
+          "width": 1440,
+          "height": 900
+        }
+      },
+      {
+        "action": "keyboard-move",
+        "rect": {
+          "x": 90,
+          "y": 50,
+          "width": 1440,
+          "height": 900
+        }
+      },
+      {
+        "action": "keyboard-resize",
+        "rect": {
+          "x": 90,
+          "y": 50,
+          "width": 1430,
+          "height": 900
+        }
+      },
+      {
+        "action": "pointer-move",
+        "rect": {
+          "x": 66,
+          "y": 66,
+          "width": 1430,
+          "height": 900
+        }
+      },
+      {
+        "action": "pointer-resize-compact-content",
+        "rect": {
+          "x": 66,
+          "y": 66,
+          "width": 1110,
+          "height": 720
+        }
+      },
+      {
+        "action": "fill",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1600,
+          "height": 1000
+        }
+      },
+      {
+        "action": "restore",
+        "rect": {
+          "x": 66,
+          "y": 66,
+          "width": 1110,
+          "height": 720
+        }
+      },
+      {
+        "action": "reset",
+        "rect": {
+          "x": 80,
+          "y": 50,
+          "width": 1440,
+          "height": 900
+        }
+      },
+      {
+        "action": "outer-window-narrow",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 760,
+          "height": 800
+        }
+      }
+    ],
+    "service": {
+      "pid": 28216,
+      "port": 50165,
+      "command": [
+        "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vite\\bin\\vite.js",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "50165"
+      ],
+      "exit_code": 1,
+      "port_closed": true
+    },
+    "problems": [],
+    "reader_floor": {
+      "viewport": "640x480-console",
+      "evidence": "SIMULATED_HOST_CORE_FIXTURE",
+      "font_size": 17,
+      "line_height": 28.05,
+      "visible_reading_height": 138,
+      "minimum_visible_lines": 4,
+      "thresholds_changed": false
+    },
+    "screenshots": [
+      {
+        "path": ".project-local/runs/be268a2d33/product-loop-console-browser5-20261019/artifacts/browser-smoke/console-inset.png",
+        "sha256": "ef95d910d964e5514873e9293c90cc9bc60487056863201d2b94bca9c2db1bc7",
+        "viewed": true
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/product-loop-console-browser5-20261019/artifacts/browser-smoke/console-adjusted.png",
+        "sha256": "83b102685cecb4f5f4aea471f4bd971a50974b71022a314f5c659977e131fe51",
+        "viewed": true
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/product-loop-console-browser5-20261019/artifacts/browser-smoke/semantic-reader-cosmic-640x480-console.png",
+        "sha256": "bc5080255dab221a512da74df385d72d936589454a60e548be9b53dc36eacc21",
+        "viewed": true
+      }
+    ],
+    "build_run": "product-loop-console-host-build-20261019",
+    "build_source_patch_sha256": "8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9",
+    "product_source_changed_after_build": false,
+    "prior_failed_browser_runs": [
+      "product-loop-console-browser-20261019",
+      "product-loop-console-browser2-20261019",
+      "product-loop-console-browser3-20261019",
+      "product-loop-console-browser4-20261019"
+    ],
+    "native_window_physical_validation": "NOT_EXECUTED",
+    "installed_after_fix": "NOT_EXECUTED",
+    "whole_product": "PARTIAL"
   }
 }

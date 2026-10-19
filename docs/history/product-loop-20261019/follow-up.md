@@ -59,3 +59,47 @@
 - 上述修改已推送PR194；该SHA CI [39241950317](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39241950317) 的browser-smoke、contracts-vnext、security-targeted、green-candidate-vnext等已成功，其余作业仍运行，整体 **UNVERIFIED**。旧CI及原生FAIL保留，不因新局部通过追改。后继文档提交也不能转用该SHA为其他源码的资格。
 
 这补上了原生工程链与唯一进度源不同步两项缺口；本页其余欠账继续成立，尤其完整会话/账号设置、ASTRYN源删除、常用格式逐操作与知识库特色兼容、HUB004/真实外部对端、安装升级回滚、完整无障碍/性能和正式资产。BE10新原生探针仅在隔离候选中准备，未执行原生则不提升证据等级。其后继候选为本地`.project-local/artifacts/product-loop-20261019/be10-next/combined.patch`（SHA-256 `28a249b3b898c8f722be49fc000b097b87a343f67cf63cac4fbb7f0173e4f682`）；应用检查、编译与三个合成负例通过，未并入公开源码。下一切片复用既有page16与WebDriver，单独取得真实原生资格，不能从候选报告推导完成。
+
+## BE10与常用格式实际接续（2026-10-19）
+
+- 后继提交`b5c5d8f8b61684f9358a5b98ec86fcb641406064`将BE10探针并入既有WebDriver控制器。整合时修正测试导入路径；到期用例先真正打开正文再检查清空，避免仅有预览就声称正文撤回。第一次原生因旧按钮“新建原创笔记”失败，实际页面是“新建笔记”，失败截图已查看。第二次固定正文与身份已通过，但实际错工作区拒绝被共用驱动误判为协议错误；两次均source_consistent=true、清理成功，保留FAIL。
+- 根因是WebDriver成功脚本可返回任意JSON，业务对象的`error`字段被当成协议失败。修复仅成功execute/sync与execute/async结果的解释；HTTP错误和非脚本错误仍拒绝。真实loopback HTTP的正/负例、BE10与共享退出合同75项及5子项通过；先前74项、68项有重叠，不能相加。Ruff选定错误规则和仓库规范通过。
+- 干净`b5c5d8f8`重新构建Core/Host、绑定19524成员后，`product-loop-native-be10-b5c5-20261019`于19:37:40—19:38:14执行34.095秒，exit0、LOCAL_PASS、编译绑定PASS、源码一致。`webdriver-77ba355fa9ce`的本地human固定阅读通过：UI建立合成笔记；page16实际preview→snapshot；正文与选定版本/内容哈希一致；诊断核对proposal指纹及workspace/restore身份且不带editor_json；冷重开不恢复临时提案/正文；错误workspace明确拒绝并保留提案；已打开正文到期清空并保留提案。直接Core调用仅documents_list/document_get/ui_state_read。实际查看正文与到期截图；自身进程/端口清理读回成功，无残留。**REAL Tauri/Core + SYNTHETIC_NOTE，有限工程片PASS，BE10整体PARTIAL**；不含真实外部接收端、OS URI、选区/来源认证、安装或Owner验收。
+- 同一干净提交的`product-loop-common-formats-b5c5-20261019`20.251秒通过，子收据`b8fb229a6504/artifacts/common-formats.json`。四份项目编写的DOCX/XLSX/PPTX/文本PDF通过实际Core与worker：原件字节/SHA、text/structure/loss输出摘要、内容标记和明确损失、每作业两处定位及坏checksum拒绝、独立第二job重解析不覆盖历史anchors、Core重启后原件/输出/定位一致。每格式两job、四anchors，不能按此推算全格式或所有业务覆盖率。**INTEGRATED_SELECTED_CONTENT_LOCATION_REPARSE_RESTART / SYNTHETIC_AUTHORED**；不含OCR、公式实时计算、源应用渲染/编辑/包往返、批量UI或安装资格。原dirty-source四格式通过记录继续保留，不覆盖新干净提交的证据。
+- 只读分片核准正式App→DockWorkspace→SpaceView→CanonicalLibrarySpace→FolderIngest，逐件source_import/job_enqueue走Rust Core，JobContent已有正文/结构/损失/quality回读。legacy IntakeSpace与Python batch不是当前正式page02入口。**下一实际缺口是批次成员、相对路径、跳过/拒绝和逐行结果跨重启重建**；useJobJournal只恢复冻结job attempt。沿UF11复用已持久source/job/loss，不重造adapter，不把worker测试当持久批次资格。
+- 候选复用中间步骤先因空data预留目录的保守检查拒绝，再因Windows长路径复制失败；都未形成原生资格，记录保留。使用项目已有extended-path I/O完成中间复制；最终干净提交候选仍由canonical stage_backend_runtime入口新建，不改系统长路径/ACL/全局配置。
+- CI [39241950317](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39241950317)（PR head`ce3b04e8`）最终 **FAIL**：installer-lifecycle job118035639007在verify_nsis_install.ps1:387报实际安装原生旅程失败，底层element not interactable；a0-gates聚合随之失败。OS测试、浏览器、Core与构建等其余已执行作业通过。已读取实际job logs并下载特定8文件产物，正按receipt/截图定位不可交互位置；尚未声称修复或重跑通过。主流程暂停发布/合并资格提升，保留旧失败。
+
+## 安装CI的窄窗口导航修复
+
+实际查看CI的1028×749失败截图，并将receipt栈和native-driver最后一次选择/点击对应：被点击的是隐藏侧栏中的“来源锚点”。CSS在宽度≤1100或高度≤760隐藏侧栏，ContextNav却仅挂在侧栏，现有抽屉只有SpaceRail。它既是探针未走可见入口，也是产品实际缺少紧凑导航入口，不能仅扩大窗口或过滤selector掩盖。
+
+已补入现有产品导航抽屉，复用section可用性和activateSection；打开抽屉时撤下侧栏的重复ContextNav，避免重复heading ID。选择对象后待弹层关闭再交还焦点，Escape按原行为返回触发按钮。WebDriver观察可见布局后使用真实按钮点击，四区域焦点、原件/文档不变断言保留，点击拒绝或抽屉缺项继续报错，不进行JS点击、重试或静默回退。
+
+只读分片的旧产品+新回归2 RED/34 PASS，候选36/36 PASS，均SIMULATED。root应用后使用正式配置再次前端36/36 PASS；Python定向88项及150子项PASS，覆盖宽/窄scope、缺入口拒绝、原生拒绝透传、抽屉缺项超时及共享原生合同；TypeScript和Ruff选定错误规则通过。候选首次overlay模块解析失败保留在ignored审查目录，修复仅发生在隔离加载器。未将这些结果称为真实窄窗渲染、安装或全应用验收；后继exact-SHA CI须重新获得实际安装资格。原CI失败、源码检查点和完整未完成项继续保留。
+
+## 主背景与可调整主控台实际实施
+
+Owner两条新要求已进入现有决定第十二节与intake路由；实现不建立第二进度源。单一ConsoleWindow包住原有工作区，默认居中90%，提供移动、尺寸调整、铺满/还原和复位。方向键移动、Shift加方向键调整；Esc及pointercancel回滚进行中的手势，输入区焦点不阻止Esc取消，正文编辑按键不受影响。窗口受视口约束；外层宽≤900或高≤600时自动铺满并保留先前浮动几何。数据、工作区挂载和既有图谱/小栖不变；几何仅本会话，不宣称跨重启保存。主控台布局采用实际size container，现有导航portal保留在容器外。
+
+正式Windows Rust builder显式decorations/resizable/maximizable/minimizable=true，初始1280×800、最小640×480不变。原生系统标题栏与边缘、真实设备DPI和多屏移动尚未实机验证；不能从显式配置或浏览器模拟推断通过。
+
+| 定向验证 | 实际结果与边界 |
+| --- | --- |
+| 前端4文件 | 40/40 PASS；几何边界、拖动/调整/取消、输入焦点、工作区不重挂载及紧凑对象导航；SIMULATED |
+| Python窗口/导航合同 | 最终55/55 PASS，含新增顶栏正/负例18项；此前37项为重叠集合，不相加 |
+| TypeScript / Ruff | 类型检查、E9/F63/F7/F82选定错误规则PASS；非全量测试 |
+| 正式Host构建 | 2026-10-19T12:01:04Z—12:02:09Z，64.875秒、exit0、源码一致；TypeScript/Vite/Rust release通过，chunk与dead-code警告保留，无安装/发布 |
+| 公共源码浏览器 | 第五次13.52秒，9项主控台操作及640×480阅读门槛PASS；真实Chromium149.0.7827.55、DPR1、cosmic、reduced-motion=reduce，host/Core为受控合成fixture；SYNTHETIC |
+
+构建绑定base`b5c5d8f8`及补丁SHA-256`8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9`；构建期间没有公共写入，source_consistent=true。其后只同步测试门禁和文档，产品源码未再改动，不为此重复重建或再次调用27B。
+
+浏览器依次实测1600×1000下1440×900居中、键盘移动与调整、指针移动与缩至1110×720、抽屉导航与Escape焦点返回、铺满、精确还原、复位及外层760×800自动铺满。每步核正文未变、窗口和控制区仍在视口内；最后复用原read_semantic_reading测640×480，实际正文裁剪可见138px、字号17px/行高28.05px，保持四行、宽度及24px目标命中门槛。已实际查看最终内缩、调整后与640×480阅读截图；没有注入产品CSS、自动更新基准或向产品植入缺陷。
+
+先前四次浏览器FAIL保留：第一次读取React更新前几何，第二次Python Playwright wait_for_function参数错误，第三次铺满后几何读取过早，均在测试脚本修正条件等待/调用；第四次9项操作已通过，但旧门禁硬编码四个顶栏按钮拒绝新增两窗口控件。修门禁精确要求原四项加两窗口控件及可选隔离复查项，补缺失/隐藏/禁用错误/额外按钮/太小/裁剪/遮挡负例，不放宽原诊断或几何门槛。第五次通过，不追改前四次结果。
+
+第五次Vite为PID28216、127.0.0.1:50165，finally主动停止服务exit1、端口CLOSED，测试进程exit0；此前四次自有服务端口61871/58563/50864/55326也已关闭。只停止本任务创建的实例。截图、命令、时间、源码绑定及清理元数据见verification-index的console_window；截图和原始日志在ignored项目产物内，不上传业务正文或数据库。
+
+归档写入首次因Windows文本输出CRLF触发仓库规范FAIL，修正生成器显式LF后`product-loop-console-conventions2-20261019`通过，原失败保留；未放宽换行标准。普通沙箱启动项目Python的uv trampoline权限拒绝也保留，后续沿已授权的正常执行入口运行，没有改ACL或安装依赖。
+
+当前实现片PASS，总体仍PARTIAL。还需新exact-SHA完整CI及实际安装旅程、真实原生窗口/DPI、完整主题/长文本/无障碍与设备性能验收；本轮不激活系统级桌面、窗口群管理、多屏吸附或发布资格。原会话/账号设置、ASTRYN源保留、格式耐久批次、知识库特色、HUB004和真实外部BE10欠账继续成立。

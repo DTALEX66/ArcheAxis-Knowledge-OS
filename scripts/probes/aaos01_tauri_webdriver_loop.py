@@ -182,12 +182,27 @@ def xpath_literal(value: str) -> str:
     return "concat(" + ',"\'",'.join("'" + part + "'" for part in value.split("'")) + ")"
 
 
+def library_object_navigation_scope(js, wait, ui_click):
+    """Open the real compact navigation; DOM reads never activate hidden controls."""
+    observed = js("""const sidebar=document.querySelector('.navigation-sidebar');
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[inert]');
+return {sidebar:visible(sidebar),trigger:visible(document.querySelector('.ui-navigation-trigger'))};""")
+    if observed["sidebar"]:
+        return "//aside[contains(@class,'navigation-sidebar')]//ul[@aria-label='资料库对象导航']"
+    assert observed["trigger"], "Compact object navigation has no visible product navigation trigger"
+    ui_click("☰ 导航")
+    wait("""const drawer=document.querySelector('.ui-navigation-drawer');
+return !!drawer&&drawer.getClientRects().length>0&&
+drawer.querySelectorAll('ul[aria-label="资料库对象导航"] button').length===4;""")
+    return "//*[@role='dialog' and contains(@class,'ui-navigation-drawer')]//ul[@aria-label='资料库对象导航']"
+
+
 def navigation_button_selector(text: str, scope: str = "") -> str:
     if scope == "//ul[@aria-label='复习队列']":
         return f"{scope}//button[@data-learning-item-key={xpath_literal(text)} and not(ancestor-or-self::*[@hidden])]"
     # Object-navigation buttons contain a label and description. Match the exact
     # label child and click its actual parent button, rather than widening all labels.
-    if scope == "//ul[@aria-label='资料库对象导航']":
+    if scope.endswith("//ul[@aria-label='资料库对象导航']"):
         return f"{scope}//button[b[normalize-space(.)='{text}']]"
     return f"{scope}//button[normalize-space(.)='{text}']"
 
@@ -1823,11 +1838,11 @@ def main():
             raise _GroupedJourneyCompleteError
         # Same-space navigation must reach real object regions without writes
         # or a workspace remount, even before any source/document exists.
-        object_scope = "//ul[@aria-label='资料库对象导航']"
         wait("return document.querySelectorAll('ul[aria-label=\"资料库对象导航\"] button').length===4")
         empty_sources = bridge("sources_list")
         empty_documents = bridge("documents_list")
         for label, region in [("来源锚点", "来源版本证据"), ("文档版本", "文档版本导航"), ("已保存文档", "已保存文档"), ("来源原件", "保留原件")]:
+            object_scope = library_object_navigation_scope(js, wait, ui_click)
             ui_click(label, object_scope)
             wait(f"return document.activeElement?.getAttribute('aria-label')==={json.dumps(region)}")
         assert bridge("sources_list") == empty_sources

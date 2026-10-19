@@ -298,7 +298,7 @@
 .ui-relations-page fieldset legend { padding-inline: 8px; color: var(--ax-fg-secondary); font-size: 12px; }
 .ui-relations-page fieldset label { font-size: 12px; color: var(--ax-fg-secondary); gap: 8px; }
 .ui-relations-page > fieldset { margin-block: 20px; padding: 20px; }
-@media (min-width: 1200px) {
+@container console (min-width: 1200px) {
   .ui-relations-page > fieldset { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 20px; }
   .ui-relations-page > fieldset > ul { grid-column: 1 / -1; }
   .ui-relations-page > fieldset > button { justify-self: start; }
@@ -316,11 +316,11 @@
 .ui-learning-steps > li::marker { color: var(--ax-accent-bright); font-family: var(--ax-mono); }
 .app-shell details > summary { cursor: pointer; padding-block: 10px; }
 
-@media (max-width: 1100px) {
+@container console (max-width: 1100px) {
   .app-shell .app-center { padding: 24px; }
   .ui-workspace-grid { grid-template-columns: minmax(0, 1fr); }
 }
-@media (max-width: 640px) {
+@container console (max-width: 640px) {
   .app-shell .app-center { padding: 16px; }
   .app-shell .status-bar { gap: 8px; }
   .ui-page-heading { margin-bottom: 20px; gap: 12px; }

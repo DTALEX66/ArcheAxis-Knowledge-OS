@@ -107,9 +107,23 @@ def compact_chrome(viewport: tuple[str, int, int, float]) -> bool:
     return viewport[1] <= 1100 or viewport[2] <= 760
 
 
+def console_dimensions(page) -> tuple[float, float]:
+    """Use declared console geometry, never infer expected navigation from missing nodes."""
+    box = page.locator(".console-window").bounding_box()
+    if box is None:
+        box = page.locator(".app-shell").bounding_box()
+    assert box and box["width"] > 0 and box["height"] > 0, "missing console dimensions"
+    return box["width"], box["height"]
+
+
+def console_viewport(page) -> tuple[str, float, float, float]:
+    width, height = console_dimensions(page)
+    return "console", width, height, 1
+
+
 def check_brand_identity(page, theme: str, viewport) -> dict[str, object]:
     """The top mark is required at every density; duplicate status branding has an explicit state."""
-    compact = compact_chrome(viewport)
+    compact = compact_chrome(console_viewport(page))
     asset_theme = BRAND_THEME_ASSETS[theme]
     expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{asset_theme}.png")
     result = {}
@@ -173,11 +187,12 @@ def select_ui_theme(page, theme: str) -> None:
 
 
 def chrome_bands(page, *, library: bool = False) -> dict[str, str]:
-    # Expected structure is declared by viewport and surface, never inferred from missing nodes.
+    # Expected structure is declared by actual console size and surface, never by missing nodes.
+    width, height = console_dimensions(page)
     bands = {"top_navigation":".top-nav-bar", "status":".status-bar", "center":".app-center", "dock":".activity-dock"}
-    narrow = (compact_chrome(("current", page.viewport_size["width"], page.viewport_size["height"], 1))
+    narrow = (compact_chrome(("console", width, height, 1))
               or (page.locator(".cabin-shell").get_attribute("data-navigation-appearance") == "top"
-                  and page.viewport_size["width"] <= 1200))
+                  and width <= 1200))
     if narrow:
         assert not page.locator(".navigation-sidebar").is_visible(), "narrow sidebar consumes reading space"
         assert page.get_by_role("button", name="打开产品导航").is_visible(), "narrow navigation cannot be opened"
@@ -867,6 +882,7 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
             scrollWidth: document.documentElement.scrollWidth,
             clientWidth: document.documentElement.clientWidth,
             devicePixelRatio: window.devicePixelRatio,
+            console: box(document.querySelector(".console-window") ? ".console-window" : ".app-shell"),
             expectedBands: Object.keys(selectors).sort(),
             rail: box('.space-rail'),
             dock: box('.activity-dock'),
@@ -925,7 +941,8 @@ def check_geometry(
     assert not geometry["unscrollableBands"], geometry
     assert not geometry["escapedChildren"], geometry
     assert geometry["motionFast"] == "0ms", geometry
-    if width <= 1200 or height <= 760:
+    console = geometry.get("console", {"width": width, "height": height})
+    if console["width"] <= 1200 or console["height"] <= 760:
         # Compact chrome also serves short scaled desktop viewports. Keep the reading floor.
         assert geometry["main"]["width"] >= 280, geometry
     return geometry
@@ -1459,11 +1476,21 @@ def check_top_navigation_actions(page, *, diagnostics_suspended: bool) -> None:
     assert recheck.count() == int(diagnostics_suspended), 'diagnostic recheck disagrees with quarantine'
     if diagnostics_suspended:
         assert recheck.is_visible() and recheck.is_enabled(), 'diagnostic recheck unavailable'
-    assert actions.locator('button').count() == 4 + int(diagnostics_suspended), 'unexpected top navigation actions'
+    mode = page.locator('.console-window').get_attribute('data-console-mode')
+    assert mode in {'floating', 'full', 'compact'}, ('unknown console mode', mode)
+    toggle_name = '铺满主控台' if mode == 'floating' else '还原主控台'
+    for name, disabled in ((toggle_name, mode == 'compact'), ('复位主控台', False)):
+        node = actions.get_by_role('button', name=name, exact=True)
+        assert node.count() == 1 and node.is_visible(), ('missing console action', name)
+        assert node.is_disabled() == disabled, ('console action state', name, mode)
+        box = visible_control_box(node)
+        assert box['width'] >= 24 and box['height'] >= 24 and box['reachable'], box
+        assert abs(box['height'] - box['rawHeight']) <= 1 and abs(box['width'] - box['rawWidth']) <= 1, box
+    assert actions.locator('button').count() == 6 + int(diagnostics_suspended), 'unexpected top navigation actions'
 
 
 def check_shell_pointer_targets(page, *, diagnostics_suspended: bool = False) -> list[dict[str, object]]:
-    compact = compact_chrome(('current', page.viewport_size['width'], page.viewport_size['height'], 1))
+    compact = compact_chrome(console_viewport(page))
     check_top_navigation_actions(page, diagnostics_suspended=diagnostics_suspended)
     assert page.get_by_role('button', name='打开全局命令', exact=True).is_visible()
     assert page.get_by_label('界面设置', exact=True).is_visible()
@@ -1552,7 +1579,7 @@ def read_semantic_reading(browser, viewport, problems, theme):
             call["payload"].get("document_id") == "a0_target_1" for call in calls), calls
         assert not any(call["operation"] == "document_draft" for call in calls), calls
         inspector = page.get_by_role("complementary", name="检查器", exact=True)
-        if viewport[1] <= 900:
+        if console_dimensions(page)[0] <= 900:
             # Automatic document synchronization intentionally leaves narrow reading
             # space unobstructed. Exercise the real explicit Inspector control.
             assert inspector.count() == 0, "automatic inspection opened the narrow rail"
@@ -1567,7 +1594,8 @@ def read_semantic_reading(browser, viewport, problems, theme):
             return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}; };
           const center = document.querySelector('.app-center'), style = getComputedStyle(center);
           const containerWidth = center.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-          return {width:innerWidth,height:innerHeight,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details'),
+          const console=document.querySelector(".console-window")||document.querySelector(".app-shell"), size=console.getBoundingClientRect();
+          return {width:innerWidth,height:innerHeight,console_width:size.width,console_height:size.height,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details'),
             center:rect('.app-center'),body:rect('.app-body'),inspector:rect('.inspector'),
             scroll_width:document.documentElement.scrollWidth};
         }""")
@@ -1576,12 +1604,12 @@ def read_semantic_reading(browser, viewport, problems, theme):
         assert details["width"] > 100 and details["right"] <= geometry["width"] + 1, geometry
         # Side rails leave less room than the window width; the selected UI
         # stacks reading details below the document in a narrow content container.
-        if geometry["width"] > 1100 and geometry["container_width"] > 900:
+        if geometry["console_width"] > 1100 and geometry["container_width"] > 900:
             assert doc["right"] <= details["x"], geometry
         else:
             assert doc["bottom"] <= details["y"], geometry
-        compact = geometry["width"] <= 1100 or geometry["height"] <= 760
-        short_side = geometry["width"] >= 600 and geometry["height"] <= 600
+        compact = geometry["console_width"] <= 1100 or geometry["console_height"] <= 760
+        short_side = geometry["console_width"] >= 600 and geometry["console_height"] <= 600
         if short_side:
             assert geometry["center"]["right"] <= geometry["inspector"]["x"] + 1, geometry
             assert geometry["center"]["width"] >= 280 and geometry["inspector"]["width"] == 220, geometry
@@ -1643,7 +1671,7 @@ def read_top_navigation(browser, viewport, problems, theme):
         assert page.evaluate("localStorage.getItem('aaos.navigation-appearance.v1')") == "top"
         assert not page.locator('.navigation-sidebar').is_visible()
         nav = page.get_by_role("navigation", name="顶部空间导航", exact=True)
-        if width > 1200 and not compact_chrome(viewport):
+        if console_dimensions(page)[0] > 1200 and not compact_chrome(console_viewport(page)):
             assert nav.is_visible()
             nav.get_by_role("button", name="知识", exact=True).click()
             menu = nav.get_by_role("menu", name="知识页面", exact=True)

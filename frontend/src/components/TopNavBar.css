@@ -200,13 +200,13 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@container console (max-width: 1024px) {
   .top-nav-center {
     max-width: 300px;
   }
 }
 
-@media (max-width: 768px) {
+@container console (max-width: 768px) {
   .top-nav-container {
     padding: var(--ax-space-2) var(--ax-space-4);
   }

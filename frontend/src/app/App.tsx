@@ -20,6 +20,7 @@ import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView, canonicalSurface } from "../spaces/SpaceView";
 import { DockWorkspace, type DockNavigationTarget } from "../workspace/DockWorkspace";
 import { RecoveryShell } from "../components/RecoveryShell";
+import { ConsoleWindow } from "../components/ConsoleWindow";
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
 import { TopNavBar } from "../components/TopNavBar";
@@ -78,6 +79,7 @@ function AppBody() {
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
   const [navigationOpen,setNavigationOpen] = useState(false);
+  const drawerSection = useRef<SpaceSectionDef | null>(null);
   const [navigationAppearance,setNavigationAppearance] = useState<"sidebar" | "top">(() => {
     try { return localStorage.getItem("aaos.navigation-appearance.v1") === "top" ? "top" : "sidebar"; } catch { return "sidebar"; }
   });
@@ -344,7 +346,7 @@ function AppBody() {
     if(restoringRef.current)return;
     setInspectionTarget(target);
     // 窄窗口自动同步条目不抢占阅读区；显式检查仍可打开，已打开的检查器继续更新。
-    if (options?.reveal !== false || window.innerWidth > 900) setInspectorOpen(true);
+    if (options?.reveal !== false || (document.querySelector(".console-window")?.getBoundingClientRect().width || window.innerWidth) > 900) setInspectorOpen(true);
   }, []);
 
   const surface = canonicalSurface(activeSpace, desktop);
@@ -754,7 +756,7 @@ function AppBody() {
   ];
 
   return (
-    <div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""} data-navigation-appearance={navigationAppearance}>
+    <ConsoleWindow><div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""} data-navigation-appearance={navigationAppearance}>
       <TopNavBar
         breadcrumbs={[
           { label: currentSpaceLabel },
@@ -787,12 +789,12 @@ function AppBody() {
         inspectorOpen={inspectorOpen}
         onToggleInspector={toggleInspector}
       />
-      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} trigger={<button className="ui-navigation-trigger" aria-label="打开产品导航">☰ 导航</button>} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/></AaosDialog>}
+      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const section=drawerSection.current;drawerSection.current=null;if(section){event.preventDefault();activateSection(section);}}} trigger={<button className="ui-navigation-trigger" aria-label="打开产品导航">☰ 导航</button>} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;drawerSection.current=section;setNavigationOpen(false);}} />}</AaosDialog>}
       <div className="app-body" key={`workspace:${workspaceEpoch}`} aria-busy={workspaceRestoring}>
         {!learningFocus && <aside className="navigation-sidebar" aria-label="产品导航">
           <SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage} />
           {(!desktop||workingEntered)?<details className="companion-sidebar"><summary>小栖陪伴</summary><ConversationPanel slot="sidebar"/></details>:null}
-          {!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={activateSection} />}
+          {!navigationOpen && !selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={activateSection} />}
         </aside>}
         <main className="app-center" role="main" aria-label="当前空间内容">
           {searchedObject?<PinnedReferencePanel reference={searchedObject} expectedDocumentSha={searchedContentSha} onClose={()=>setSearchedObject(null)} onOpenReference={reference=>{setSearchedObject(reference);setSearchedContentSha(undefined);}}/>:null}
@@ -804,6 +806,6 @@ function AppBody() {
         {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>
       {!learningFocus && <ActivityDock key={`activity:${workspaceEpoch}`} onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
-    </div>
+    </div></ConsoleWindow>
   );
 }

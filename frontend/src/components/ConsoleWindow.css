@@ -1,0 +1,16 @@
+.console-window { position: fixed; container: console / size; min-width: 0; min-height: 0; }
+.console-window > .app-shell.cabin-shell { position: relative; box-sizing: border-box; width: 100% !important; height: 100% !important; margin: 0 !important; min-height: 0 !important; }
+.console-window-help { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.console-window .top-nav-left { touch-action: none; cursor: move; }
+.console-move-handle { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; padding: 0; min-width: 32px; height: 32px; border: 0; background: transparent; cursor: move; touch-action: none; }
+.console-window .top-nav-right .console-window-action { flex-shrink: 0; width: 32px; height: 32px; min-height: 32px; padding: 0; }
+.console-window .top-nav-container { min-width: 0; }
+.console-resize-handle { position: absolute; right: 4px; bottom: 4px; z-index: 60; width: 24px; height: 24px; min-height: 24px; padding: 0; cursor: nwse-resize; touch-action: none; color: var(--ax-fg); background: var(--ax-panel); border: 1px solid var(--ax-border); border-radius: 4px; }
+.console-window[data-console-mode="floating"] .activity-dock { padding-right: 32px; }
+.console-window:not([data-console-mode="floating"]) .console-resize-handle { display: none; }
+.console-window:not([data-console-mode="floating"]) .top-nav-left { cursor: default; }
+.console-window :is(.console-move-handle,.console-window-action,.console-resize-handle):focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+/* The existing navigation portal lives outside the size container. */
+.ui-navigation-drawer { padding: 12px; }
+.ui-navigation-drawer .space-rail-item { min-height: 36px; padding: 6px 10px; font-size: 14px; }
+.ui-navigation-drawer > button { position: sticky; top: 0; z-index: 2; background: var(--ax-panel); }

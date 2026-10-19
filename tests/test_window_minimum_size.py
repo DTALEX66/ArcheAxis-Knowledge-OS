@@ -109,10 +109,12 @@ def test_the_widest_component_is_measured_where_it_is_mounted() -> None:
     assert "read_library_geometry" in (ROOT / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")
     # Test the actual mounted-surface projection as well as the declared superset.
     wide = SimpleNamespace(viewport_size={"width": 1920, "height": 1080},
-                           locator=lambda _selector: SimpleNamespace(get_attribute=lambda _name: "side"))
+                           locator=lambda _selector: SimpleNamespace(get_attribute=lambda _name: "side",
+                               bounding_box=lambda: {"width": 1920, "height": 1080}))
     assert gate.library_bands(wide) == gate.LIBRARY_BANDS
     narrow = SimpleNamespace(viewport_size={"width": 640, "height": 480},
-                             locator=lambda _selector: SimpleNamespace(is_visible=lambda: False),
+                             locator=lambda _selector: SimpleNamespace(is_visible=lambda: False,
+                                 bounding_box=lambda: {"width": 640, "height": 480}),
                              get_by_role=lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: True))
     assert gate.library_bands(narrow) == {
         "top_navigation": ".top-nav-bar", "status": ".status-bar", "center": ".app-center",
@@ -138,3 +140,19 @@ def test_the_library_geometry_sweep_reaches_the_window_floor() -> None:
         f"sweep covers {sorted(sweeped)}")
     assert all(label in sizes for label in gate.LIBRARY_GEOMETRY_VIEWPORTS), (
         f"a declared library viewport is not in DESKTOP_MATRIX: {gate.LIBRARY_GEOMETRY_VIEWPORTS}")
+
+
+def test_console_size_controls_navigation_even_inside_a_wide_viewport() -> None:
+    gate = load_gate()
+    page = SimpleNamespace(viewport_size={"width": 1920, "height": 1080},
+        locator=lambda _selector: SimpleNamespace(is_visible=lambda: False,
+            bounding_box=lambda: {"width": 1000, "height": 700}),
+        get_by_role=lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: True))
+    assert "navigation_trigger" in gate.library_bands(page)
+    assert "rail" not in gate.library_bands(page)
+    page.get_by_role = lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: False)
+    with pytest.raises(AssertionError, match="narrow navigation cannot be opened"):
+        gate.library_bands(page)
+    page.locator = lambda _selector: SimpleNamespace(bounding_box=lambda: None)
+    with pytest.raises(AssertionError, match="missing console dimensions"):
+        gate.console_dimensions(page)
