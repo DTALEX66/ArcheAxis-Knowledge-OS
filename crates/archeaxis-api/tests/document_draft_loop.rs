@@ -673,7 +673,7 @@ async fn versioned_human_review_refuses_machine_and_stale_versions_without_parti
         queue["items"]
             .as_array()
             .unwrap()
-            .contains(&json!({"item_key":"fresh-card","next_review":null})),
+            .contains(&json!({"item_key":"fresh-card","next_review":null,"display_title":"same immutable body"})),
         "unreviewed referenced assessment must be visible: {queue}"
     );
     let count: i64 = conn

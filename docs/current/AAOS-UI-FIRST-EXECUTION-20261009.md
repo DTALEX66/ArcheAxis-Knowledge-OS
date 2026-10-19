@@ -1,3 +1,5 @@
+> 2026-10-19 实施接续：[执行准入与验证回执](receipts/AAOS-EXECUTION-ADMISSION-20261019.json)。共同执行入口已补默认/显式模型启停守卫、读失败拒绝、库存后重验、同一deadline和队列等待取消；超时探针保留MODEL_CALL_TIMEOUT，人工审核断言保留真实标题。最终Rust 55 PASS；Python 290 PASS / 3 FAIL（路径归属检查），145子测试PASS。21份冻结清单、954路径在实际index逐一核SHA/大小通过；8个CSV原字节及12份日志已补全，旧清单未改。规范检查仍49项失败，实际provider复测超时未修/未重跑，完整CI、原生和安装未获资格；整体PARTIAL。此前未应用提案仅是旧时点，准入与诊断切片现已应用；云端最新SHA按PR194现场回读。
+
 > 2026-10-19 同步交付切片：[receipts/AAOS-CLOUD-SYNC-20261019.json](receipts/AAOS-CLOUD-SYNC-20261019.json)。本机真实Core＋launch准入回归2 PASS（SYNTHETIC凭据），阻止machine修改能力开关；不等于完整HUB004。前端180文件/1831用例及TypeScript PASS；全仓库preflight仍有失败，完整CI与主线合入需现场核对。三个候选保持NOT_APPLIED；产品整体PARTIAL。
 
 > 2026-10-19 Owner 格式范围调整已登记（文档范围 PASS）：PSD、Illustrator AI、CDR、CAD、3D 专业源文件不再列入直接支持或默认扩展路线；外部导出图片／PDF后使用通用流程。规范依据为[决定第十节](AAOS-OSS-INTEGRATION-DECISION-20261019.md)和活动指针 `format_scope_override`，旧原包不改写。本次仅同步范围与导航，未新增转换器或取得运行／保真资格。

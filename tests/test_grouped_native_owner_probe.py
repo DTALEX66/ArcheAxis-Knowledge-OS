@@ -436,6 +436,26 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                 self.assertIn("保留恢复候选", actions)
                 self.assertTrue(any("delete window.__aaosRecoveryOriginal" in action for action in actions))
 
+    def test_timeout_diagnostic_retains_reason_without_automatic_unknown_retry(self):
+        probe = load_probe()
+
+        class UI:
+            def js(self, script):
+                if "dataset.retestFailure" in script:
+                    return json.dumps({"phase": "invoke", "status": 503, "code": "unavailable",
+                                       "reason_code": "MODEL_CALL_TIMEOUT", "private_question": "PRIVATE",
+                                       "diagnostics": {"elapsed_s": 118.03}})
+                return {"panel_present": True, "answer_visible": True, "retest_visible": False,
+                        "unknown": True, "retest_incomplete": True, "retest_refused": False,
+                        "retest_withheld": False, "same_request_retry": True}
+
+        observed = probe.machine_ui_diagnostic(UI())
+        self.assertEqual(observed["failure"], {"phase": "invoke", "status": 503, "code": "unavailable",
+                                              "reason_code": "MODEL_CALL_TIMEOUT"})
+        self.assertFalse(probe.retryable_retest_failure(observed))
+        self.assertNotIn("PRIVATE", json.dumps(observed))
+        self.assertNotIn("diagnostics", observed["failure"])
+
     def test_machine_diagnostic_is_bounded_and_does_not_copy_private_text(self):
         probe = load_probe()
         keys = ("panel_present", "answer_visible", "retest_visible", "unknown",

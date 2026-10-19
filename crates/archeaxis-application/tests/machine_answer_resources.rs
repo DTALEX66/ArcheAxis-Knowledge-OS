@@ -1,5 +1,4 @@
-//! Current Executor resources regression candidates, SYNTHETIC owned Python workers.
-//! NOT_EXECUTED until integrated and run by the canonical project launcher.
+//! Executor resource and admission regressions with SYNTHETIC owned Python workers.
 use archeaxis_application::executor::Executor;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -159,6 +158,334 @@ async fn inventory_settings_failure_refuses_before_owned_child_spawn() {
     assert_eq!(result["status"], "UNAVAILABLE");
     assert!(result["listed_model_count"].is_null());
     assert!(!dir.path().join("machine_resource_fixture.pid").exists());
+}
+
+#[tokio::test]
+async fn disabled_machine_refuses_all_model_choices_and_policies_before_spawn() {
+    use archeaxis_application::executor::{AnswerPolicy, Cancellation};
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(
+        dir.path(),
+        "print(json.dumps({'answer':'must not execute'}))",
+    )
+    .await;
+    executor
+        .store()
+        .submit_wait(|conn| {
+            archeaxis_store_sqlite::capability_settings::set_enabled(conn, "machine.answer", false)
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    for model in [None, Some("synthetic-model".into())] {
+        for policy in [AnswerPolicy::Grounded, AnswerPolicy::CompanionGeneral] {
+            let error = executor
+                .machine_answer_with_policy_detailed(
+                    "Synthetic context".into(),
+                    "Synthetic question".into(),
+                    128,
+                    Duration::from_secs(5),
+                    model.clone(),
+                    Cancellation::new(),
+                    None,
+                    policy,
+                )
+                .await
+                .unwrap_err();
+            assert_eq!(error.to_string(), "machine.answer capability disabled");
+            assert!(!dir.path().join("machine_resource_fixture.pid").exists());
+            assert_eq!(
+                std::fs::read_dir(dir.path().join("staging"))
+                    .unwrap()
+                    .count(),
+                0
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn unreadable_machine_settings_refuses_all_model_choices_before_spawn() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(
+        dir.path(),
+        "print(json.dumps({'answer':'must not execute'}))",
+    )
+    .await;
+    executor
+        .store()
+        .submit_wait(|conn| conn.execute("DROP TABLE capability_settings", []))
+        .await
+        .unwrap()
+        .unwrap();
+    for model in [None, Some("synthetic-model".into())] {
+        let error = executor
+            .machine_answer_selected(
+                "Synthetic context".into(),
+                "Synthetic question".into(),
+                128,
+                Duration::from_secs(5),
+                model,
+            )
+            .await
+            .unwrap_err();
+        assert_eq!(error, "machine capability settings unavailable");
+        assert!(!dir.path().join("machine_resource_fixture.pid").exists());
+        assert_eq!(
+            std::fs::read_dir(dir.path().join("staging"))
+                .unwrap()
+                .count(),
+            0
+        );
+    }
+}
+
+#[tokio::test]
+async fn default_machine_preserves_absent_setting_and_explicit_reenable() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(
+        dir.path(),
+        "print(json.dumps({'answer':'synthetic candidate'}))",
+    )
+    .await;
+    let first = executor
+        .machine_answer(
+            "Synthetic context".into(),
+            "Question".into(),
+            128,
+            Duration::from_secs(5),
+        )
+        .await
+        .unwrap();
+    assert_eq!(first["answer"], "synthetic candidate");
+    assert_owned_child_stopped(dir.path());
+    std::fs::remove_file(dir.path().join("machine_resource_fixture.pid")).unwrap();
+    executor
+        .store()
+        .submit_wait(|conn| {
+            archeaxis_store_sqlite::capability_settings::set_enabled(conn, "machine.answer", false)
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        executor
+            .machine_answer(
+                "Synthetic context".into(),
+                "Question".into(),
+                128,
+                Duration::from_secs(5)
+            )
+            .await
+            .unwrap_err(),
+        "machine.answer capability disabled"
+    );
+    assert!(!dir.path().join("machine_resource_fixture.pid").exists());
+    executor
+        .store()
+        .submit_wait(|conn| {
+            archeaxis_store_sqlite::capability_settings::set_enabled(conn, "machine.answer", true)
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    let restored = executor
+        .machine_answer(
+            "Synthetic context".into(),
+            "Question".into(),
+            128,
+            Duration::from_secs(5),
+        )
+        .await
+        .unwrap();
+    assert_eq!(restored["answer"], "synthetic candidate");
+    assert_owned_child_stopped(dir.path());
+}
+
+#[tokio::test]
+async fn selected_machine_rechecks_disable_after_inventory_before_answer_spawn() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(dir.path(), r#"base=Path(__file__)
+if '--probe' in sys.argv:
+    base.with_suffix('.probe-started').write_text('ready')
+    deadline=time.monotonic()+8
+    while not base.with_suffix('.probe-release').exists():
+        if time.monotonic() >= deadline:
+            raise RuntimeError('test release deadline')
+        time.sleep(0.01)
+    print(json.dumps({'inventory_status':'READ_VERIFIED','loaded_status':'UNKNOWN','inference_status':'NOT_EXECUTED','evidence_scope':'MODEL_INVENTORY_ONLY','available':['synthetic-model'],'model':'synthetic-model','capability':True,'availability':'MODEL_LISTED_INFERENCE_UNVERIFIED'}))
+else:
+    base.with_suffix('.answer-started').write_text('unexpected')
+    print(json.dumps({'answer':'must not execute','model':'synthetic-model','requested_model':'synthetic-model'}))"#).await;
+    let request_executor = executor.clone();
+    let pending = tokio::spawn(async move {
+        request_executor
+            .machine_answer_selected(
+                "Synthetic context".into(),
+                "Question".into(),
+                128,
+                Duration::from_secs(10),
+                Some("synthetic-model".into()),
+            )
+            .await
+    });
+    tokio::time::timeout(Duration::from_secs(5), async {
+        while !dir
+            .path()
+            .join("machine_resource_fixture.probe-started")
+            .exists()
+        {
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
+    executor
+        .store()
+        .submit_wait(|conn| {
+            archeaxis_store_sqlite::capability_settings::set_enabled(conn, "machine.answer", false)
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    std::fs::write(
+        dir.path().join("machine_resource_fixture.probe-release"),
+        "release",
+    )
+    .unwrap();
+    let error = pending.await.unwrap().unwrap_err();
+    assert_eq!(error, "machine.answer capability disabled");
+    assert!(
+        dir.path()
+            .join("machine_resource_fixture.probe-started")
+            .exists()
+    );
+    assert!(
+        !dir.path()
+            .join("machine_resource_fixture.answer-started")
+            .exists()
+    );
+    assert_owned_child_stopped(dir.path());
+}
+
+#[tokio::test]
+async fn machine_admission_wait_uses_the_original_deadline_without_spawn() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(
+        dir.path(),
+        "print(json.dumps({'answer':'must not execute'}))",
+    )
+    .await;
+    let store = executor.store().clone();
+    let (started, ready) = tokio::sync::oneshot::channel();
+    let (release, blocked) = std::sync::mpsc::channel();
+    let hold = tokio::spawn(async move {
+        store
+            .submit_wait(move |_| {
+                started.send(()).unwrap();
+                blocked.recv_timeout(Duration::from_secs(5)).unwrap();
+            })
+            .await
+            .unwrap();
+    });
+    ready.await.unwrap();
+    let started = Instant::now();
+    let result = executor
+        .machine_answer(
+            "Synthetic context".into(),
+            "Question".into(),
+            128,
+            Duration::from_secs(1),
+        )
+        .await;
+    let elapsed = started.elapsed();
+    release.send(()).unwrap();
+    hold.await.unwrap();
+    assert_eq!(
+        result.unwrap_err(),
+        "machine capability admission timed out"
+    );
+    assert!(elapsed < Duration::from_secs(3));
+    assert!(!dir.path().join("machine_resource_fixture.pid").exists());
+}
+
+#[tokio::test]
+async fn cancellation_interrupts_machine_admission_without_releasing_busy_store() {
+    use archeaxis_application::executor::Cancellation;
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(
+        dir.path(),
+        "print(json.dumps({'answer':'must not execute'}))",
+    )
+    .await;
+    let store = executor.store().clone();
+    let (started, ready) = tokio::sync::oneshot::channel();
+    let (release, blocked) = std::sync::mpsc::channel();
+    let hold = tokio::spawn(async move {
+        store
+            .submit_wait(move |_| {
+                started.send(()).unwrap();
+                blocked.recv_timeout(Duration::from_secs(8)).unwrap();
+            })
+            .await
+            .unwrap();
+    });
+    ready.await.unwrap();
+    let cancel = Cancellation::new();
+    let request = executor.machine_answer_configured_detailed(
+        "Synthetic context".into(),
+        "Question".into(),
+        128,
+        Duration::from_secs(10),
+        None,
+        cancel.clone(),
+        None,
+    );
+    tokio::pin!(request);
+    let waiting = tokio::time::timeout(Duration::from_millis(50), &mut request).await;
+    cancel.cancel();
+    let result = tokio::time::timeout(Duration::from_secs(2), &mut request).await;
+    // 即使断言失败，也先释放自有writer；取消必须在释放前返回，不能依赖队列完成。
+    release.send(()).unwrap();
+    hold.await.unwrap();
+    assert!(
+        waiting.is_err(),
+        "request must actually wait on the busy store"
+    );
+    assert_eq!(
+        result
+            .expect("cancellation must interrupt admission")
+            .unwrap_err()
+            .to_string(),
+        "machine worker cancelled"
+    );
+    assert!(!dir.path().join("machine_resource_fixture.pid").exists());
+}
+
+#[tokio::test]
+async fn unregistered_machine_does_not_fall_back_to_text_worker() {
+    let dir = tempfile::tempdir().unwrap();
+    let worker = dir.path().join("text_only.py");
+    std::fs::write(&worker, "from pathlib import Path\nPath(__file__).with_suffix('.spawned').write_text('unexpected')\n").unwrap();
+    let executor = Executor::open(
+        &dir.path().join("db.sqlite"),
+        &dir.path().join("staging"),
+        &python(),
+        &worker,
+    )
+    .await
+    .unwrap();
+    let error = executor
+        .machine_answer(
+            "Synthetic context".into(),
+            "Question".into(),
+            128,
+            Duration::from_secs(5),
+        )
+        .await
+        .unwrap_err();
+    assert_eq!(error, "no worker is registered for machine.answer");
+    assert!(!worker.with_extension("spawned").exists());
 }
 
 #[tokio::test]

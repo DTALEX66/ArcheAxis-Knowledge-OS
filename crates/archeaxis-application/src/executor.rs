@@ -184,6 +184,38 @@ impl Executor {
         Some((chosen.1.clone(), chosen.2))
     }
 
+    async fn assert_machine_enabled(
+        &self,
+        deadline: Instant,
+        cancel: &Cancellation,
+    ) -> Result<(), MachineFailure> {
+        let enabled = tokio::time::timeout(
+            deadline.saturating_duration_since(Instant::now()),
+            async {
+                // Store繁忙时仍响应取消；丢弃的只是只读请求，不启动worker。
+                tokio::select! {
+                    biased;
+                    _ = async {
+                        while !cancel.is_cancelled() {
+                            tokio::time::sleep(Duration::from_millis(20)).await;
+                        }
+                    } => Err(MachineFailure::from("machine worker cancelled")),
+                    result = self.store.submit_wait(|conn| {
+                        capability_settings::is_enabled(conn, "machine.answer")
+                    }) => result
+                        .map_err(|_| MachineFailure::from("machine capability settings unavailable"))?
+                        .map_err(|_| MachineFailure::from("machine capability settings unavailable")),
+                }
+            },
+        )
+        .await
+        .map_err(|_| "machine capability admission timed out")??;
+        if !enabled {
+            return Err("machine.answer capability disabled".into());
+        }
+        Ok(())
+    }
+
     /// One bounded local-model call. Runtime owns the shared admission lock.
     /// Returns the worker's candidate JSON without interpreting its answer as truth.
     pub async fn machine_answer(
@@ -334,9 +366,11 @@ impl Executor {
         if cancel.is_cancelled() {
             return Err("machine worker cancelled".into());
         }
+        // 模型为空只表示沿用启动配置，不能绕过能力启停；设置读失败时拒绝执行。
+        self.assert_machine_enabled(deadline, &cancel).await?;
         if let Some(selected) = &model {
             let inventory = tokio::time::timeout(
-                timeout,
+                deadline.saturating_duration_since(Instant::now()),
                 self.machine_inventory_configured(
                     configuration.as_ref().map(|c| c.profile.clone()),
                 ),
@@ -354,6 +388,8 @@ impl Executor {
             {
                 return Err("machine selection is not verified in local inventory".into());
             }
+            // 库存探测可能等待；期间被禁用后，不再准入新的回答worker。
+            self.assert_machine_enabled(deadline, &cancel).await?;
         }
         let worker = self
             .worker_for("machine.answer")

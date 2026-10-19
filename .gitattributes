@@ -77,3 +77,13 @@ docs/history/owner-dialogue-20261019/** -text
 docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/** -text
 docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/** -text
 docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/** -text
+
+# Oct13 immutable taskpack CSV: preserve the original CHECKSUMS bytes.
+"docs/authority/taskpack-20261013-backend-host/OPEN-SOURCE-REUSE-MATRIX.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/authority/taskpack-20261013-backend-host/TASK-CROSSWALK.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/AUDIT-CLOSURE.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/FEATURE-STATE-MATRIX.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/OPEN-SOURCE-REUSE-MATRIX.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/PAGE-MATRIX.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/TASK-CROSSWALK.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/design/COMPONENT-STATES.csv" -text whitespace=cr-at-eol,-blank-at-eol

@@ -1,0 +1,17 @@
+{"status":"FAIL","checks":[{"name":"wide-stale-truth","pass":true},{"name":"wide-no-horizontal-overflow","pass":true,"detail":{"client":578,"scroll":578,"rect":{"x":350,"width":580},"viewport":1280,"fonts":"loaded"}},{"name":"wide-focus-return","pass":true},{"name":"narrow-stale-truth","pass":true},{"name":"narrow-no-horizontal-overflow","pass":true,"detail":{"client":356,"scroll":356,"rect":{"x":16,"width":358},"viewport":390,"fonts":"loaded"}},{"name":"narrow-focus-return","pass":true},{"name":"identity-error-readable","pass":true},{"name":"failed-read-has-no-body","pass":true},{"name":"actual-exchange-still-mounted","pass":true},{"name":"no-unexpected-business-operation","pass":false}],"violations":0,"incomplete":6,"console_errors":[],"port":5173}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: no-unexpected-business-operation
+    at check (file:///D:/All%20projects/ArcheAxis-Knowledge-OS/.project-local/audits/be10-snapshot-integration-20261019/browser.mjs:25:82)
+    at file:///D:/All%20projects/ArcheAxis-Knowledge-OS/.project-local/audits/be10-snapshot-integration-20261019/browser.mjs:64:2 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.21.0

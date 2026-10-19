@@ -1835,7 +1835,7 @@ same_request_retry:[...(root?.querySelectorAll('button')??[])].some(b=>b.textCon
                     and data.get("code") in ("offline", "backend_starting", "migrating", "incompatible", "unauthorized", "unavailable", "unverified")
                     and (data.get("status") is None or type(data.get("status")) is int and 0 <= data["status"] <= 599)):
                 result["failure"] = {key: data[key] for key in ("phase", "status", "code")}
-                if data.get("reason_code") in {"MODEL_CALL_FAILED", "NO_FINAL_ANSWER", "EMPTY_ANSWER", "WORKER_TIMEOUT", "OUTPUT_LIMIT", "INVALID_OUTPUT", "PIPE_DRAIN_FAILED", "WORKER_FAILED"}:
+                if data.get("reason_code") in {"MODEL_CALL_FAILED", "MODEL_CALL_TIMEOUT", "NO_FINAL_ANSWER", "EMPTY_ANSWER", "WORKER_TIMEOUT", "OUTPUT_LIMIT", "INVALID_OUTPUT", "PIPE_DRAIN_FAILED", "WORKER_FAILED"}:
                     result["failure"]["reason_code"] = data["reason_code"]
         return result
     except Exception:

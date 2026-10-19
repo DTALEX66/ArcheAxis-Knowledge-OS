@@ -265,7 +265,8 @@ def test_path_scanner_reports_cross_platform_collisions_and_invalid_names() -> N
     assert codes == {"case-path-collision", "non-nfc-path", "windows-reserved-name"}
 
 
-def test_git_scanner_keeps_head_and_worktree_sources_separate(tmp_path: Path) -> None:
+def test_git_scanner_keeps_head_and_worktree_sources_separate(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("scripts.check_repository_conventions._PRESERVED_MANIFESTS", {})
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_path, check=True)
     subprocess.run(
@@ -291,7 +292,9 @@ def test_git_scanner_keeps_head_and_worktree_sources_separate(tmp_path: Path) ->
 def test_cli_scans_staged_index_and_returns_json_failure(
     tmp_path: Path,
     capsys,
+    monkeypatch,
 ) -> None:
+    monkeypatch.setattr("scripts.check_repository_conventions._PRESERVED_MANIFESTS", {})
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_path, check=True)
     subprocess.run(

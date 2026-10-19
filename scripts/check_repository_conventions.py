@@ -247,8 +247,403 @@ def normalize_text_bytes(path: str, content: bytes) -> bytes:
     return normalized.encode("utf-8")
 
 
-def scan_text_bytes(path: str, content: bytes) -> list[ConventionIssue]:
+
+# 冻结档案只按已审核的 manifest 原始字节和逐成员身份保全；不豁免目录。
+_PRESERVED_MANIFESTS = {'docs/history/oss-absorption-evidence/20261019-capability-course/MANIFEST.json': {'bytes': 4141,
+                                                                                   'sha256': '4fc05405e63084863b79629e1a715dd3d063d572512955fd4192a5d3e8b7c471',
+                                                                                   'schema': 'aaos.evidence-snapshot/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-companion-policy/MANIFEST.json': {'bytes': 2636,
+                                                                                  'sha256': '52636b1ab80db264541f66b1fe9f5a18e5edaf5a59214b3b61c3ebb32e7b6ff7',
+                                                                                  'schema': 'aaos.evidence-snapshot/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-companion-recovery/MANIFEST.json': {'bytes': 2457,
+                                                                                    'sha256': 'a0c183e57092922263d65d563002f5f15927832c0941a919b9205ffcb2737351',
+                                                                                    'schema': 'aaos.evidence-archive-manifest/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-consumer-integration/MANIFEST.json': {'bytes': 11648,
+                                                                                      'sha256': 'b416be12481bd7127525b6b895b475841ebbe35ef052ff38fd6c1add156533c6',
+                                                                                      'schema': 'archeaxis.frozen-checkpoint-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/MANIFEST.json': {'bytes': 754,
+                                                                                         'sha256': '1b4dbf1b10f85b9488e112bf4410426b4ac91c48ee7301b4cdef185ed0ac436a',
+                                                                                         'schema': 'aaos.archive-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/MANIFEST.json': {'bytes': 7638,
+                                                                                         'sha256': '4f93e06978e16cb919075aa149fe785d2f4c297ddb8b9ce5303cc2bd22cd8766',
+                                                                                         'schema': 'archeaxis.frozen-checkpoint-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-machine-deadline/MANIFEST.json': {'bytes': 2546,
+                                                                                  'sha256': '00eecd4b11a3d12f0c3e8dfa7def5850e3e06442045fd45170108f30d0748a2f',
+                                                                                  'schema': 'aaos.archive-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-material-companion/MANIFEST.json': {'bytes': 1158,
+                                                                                    'sha256': 'f6b2427e371d3ff4eb55102baa48ac6c6c9b59eeca2233390bcb7f8d4b728d5c',
+                                                                                    'schema': 'aaos.evidence-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-material-companion-final/MANIFEST.json': {'bytes': 1887,
+                                                                                          'sha256': 'b5dcda5f042b7fc8715be28085c05839edcbc6396e5ca33b584fc8e895aca9e7',
+                                                                                          'schema': 'aaos.evidence-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-material-companion-qualified/MANIFEST.json': {'bytes': 1303,
+                                                                                              'sha256': '1cc9845f808d388818a847a31f17d884f7c9f90badababd6e26c37460e130487',
+                                                                                              'schema': 'aaos.archive-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-material-companion-recovery/MANIFEST.json': {'bytes': 946,
+                                                                                             'sha256': 'e0e0a2007b7a07711b70159c907fe28a506b21a411501817be7f212f609076b6',
+                                                                                             'schema': 'aaos.evidence-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-observer-learning/MANIFEST.json': {'bytes': 8372,
+                                                                                   'sha256': '25047879921775738bf4f7dbb0a5ca195e962b0f611b5f50e290a8406ce7b553',
+                                                                                   'schema': 'archeaxis.frozen-checkpoint-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-review-cancellation/MANIFEST.json': {'bytes': 9122,
+                                                                                     'sha256': '93a879d1cd7e2a65ef8bce3b3f8b2dfccd076c53a91b16e38601fd513701198e',
+                                                                                     'schema': 'aaos.archive-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-review-title/MANIFEST.json': {'bytes': 8160,
+                                                                              'sha256': '52b380eb0ba47979a1af1c72327135640726b3d66f770766117b59d276de9671',
+                                                                              'schema': 'aaos.archive-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-timeout-metadata/MANIFEST.json': {'bytes': 5278,
+                                                                                  'sha256': '7e2168f413163f865b9ab156c7c18a924acf20891f1f45bc6a826f56547c87b9',
+                                                                                  'schema': 'aaos.evidence-snapshot/v1'},
+ 'docs/history/owner-dialogue-20261019/MANIFEST.json': {'bytes': 1128,
+                                                        'sha256': '5d40b24687d11fe3e78c29d11da093b5e6ee6d5d93ba2948fa49dcd9fe8681c3',
+                                                        'schema': 'archeaxis.frozen-owner-dialogue-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/MANIFEST.json': {'bytes': 14231,
+                                                                                          'sha256': '8bfe40a4fbe36c41cc8a8689fc54f5fc755637593189e5d4f4ac3268e4809bcd',
+                                                                                          'schema': 'archeaxis.frozen-checkpoint-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/MANIFEST.json': {'bytes': 23677,
+                                                                                       'sha256': 'eec74e86c98bf3bf30e0d556a8b3eb63b893669d3ad17c387bf9c3416a859326',
+                                                                                       'schema': 'archeaxis.frozen-checkpoint-members/v1'},
+ 'docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/MANIFEST.json': {'bytes': 18938,
+                                                                                         'sha256': '92513ff7711848bc42b016fb18166b03b5f49d8424d0a090bb957987daf34c8c',
+                                                                                         'schema': 'archeaxis.frozen-evidence/v1'},
+ 'docs/authority/taskpack-20261013-backend-host/CHECKSUMS.json': {'bytes': 5498,
+                                                                  'sha256': 'e48573bb4896cc8faae2421c220842713fe5058a8bce2fc803c70b76400555a0',
+                                                                  'schema': 'SHA-256'},
+ 'docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/CHECKSUMS.json': {'bytes': 17608,
+                                                                                'sha256': 'c0521792381b42d340567a41a706485a3df95a629d97f265f9ccf867ed7d9a90',
+                                                                                'schema': 'SHA-256'}}
+# 旧 hash-only manifest 不改写；另存本次审核的实际大小，拒绝仅 hash 无大小的信任。
+_PRESERVED_HASH_ONLY_MEMBER_SIZES = {'docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/MANIFEST.json': {'frontend-proposal-notes.md': 5647,
+                                                                                         'handoff-before-consolidation.md': 14077,
+                                                                                         'navigation-snapshot.json': 3407,
+                                                                                         'proposal-notes.md': 2584,
+                                                                                         'proposed-core.patch': 11018,
+                                                                                         'proposed-frontend.patch': 46897,
+                                                                                         'README.md': 1423},
+ 'docs/history/oss-absorption-evidence/20261019-machine-deadline/MANIFEST.json': {'COMMANDS.json': 12634,
+                                                                                  'machine-deadline-edge-red-1019.log.txt': 5313,
+                                                                                  'machine-deadline-sealed-api-1019.log.txt': 5193,
+                                                                                  'machine-deadline-sealed-python-1019.log.txt': 285,
+                                                                                  'machine-deadline-sealed-rust-1019.log.txt': 6749,
+                                                                                  'machine-timeout-core-final-1019.log.txt': 1762,
+                                                                                  'machine-timeout-host-final-1019.log.txt': 15499,
+                                                                                  'machine-timeout-red-1019.log.txt': 10021,
+                                                                                  'material-terminal-red-1019.log.txt': 11153,
+                                                                                  'promotion-helper.py.txt': 8435,
+                                                                                  'README.md': 3038,
+                                                                                  'READONLY-REVIEW.md': 751,
+                                                                                  'RECEIPT.json': 3279,
+                                                                                  'ROUTES-OBSERVED.json': 1959,
+                                                                                  'source-aaos01_material_companion_loop.py.txt': 16036,
+                                                                                  'source-executor.rs.txt': 65618,
+                                                                                  'source-machine_answer_resources.rs.txt': 17138,
+                                                                                  'source-machine_failure.rs.txt': 10060,
+                                                                                  'SOURCE-MAP.json': 1643,
+                                                                                  'source-material_question_api.rs.txt': 19342,
+                                                                                  'source-test_material_companion_native_probe.py.txt': 8263,
+                                                                                  'source-test_worker_machine_answer.py.txt': 28868,
+                                                                                  'source-worker_machine_answer.py.txt': 27458},
+ 'docs/history/oss-absorption-evidence/20261019-material-companion/MANIFEST.json': {'aaos01_grouped_owner_loop.py': 124319,
+                                                                                    'aaos01_material_companion_loop.py': 12858,
+                                                                                    'aaos01_tauri_webdriver_loop.py': 142866,
+                                                                                    'candidate-build.json': 3928,
+                                                                                    'core-build.json': 1397,
+                                                                                    'host-build.json': 1560,
+                                                                                    'native-execution.json': 2053,
+                                                                                    'native-result.json': 6930,
+                                                                                    'probe-tests.json': 1822,
+                                                                                    'README.md': 3477,
+                                                                                    'test_material_companion_native_probe.py': 4068},
+ 'docs/history/oss-absorption-evidence/20261019-material-companion-final/MANIFEST.json': {'aaos01_grouped_owner_loop.py': 125220,
+                                                                                          'aaos01_material_companion_loop.py': 13595,
+                                                                                          'candidate-build.json': 3920,
+                                                                                          'core-build.json': 1389,
+                                                                                          'failed-attempts.json': 9958,
+                                                                                          'host-build.json': 1547,
+                                                                                          'material-input-green-1019.json': 1408,
+                                                                                          'material-input-red-1019.json': 1345,
+                                                                                          'material-layout-green-1019.json': 1415,
+                                                                                          'material-layout-red-1019.json': 1346,
+                                                                                          'native-execution.json': 2057,
+                                                                                          'native-result.json': 5116,
+                                                                                          'probe-tests.json': 1427,
+                                                                                          'README.md': 3856,
+                                                                                          'READONLY-REVIEW.md': 2465,
+                                                                                          'terminal-failure-metadata.json': 826,
+                                                                                          'test_grouped_native_owner_probe.py': 87690,
+                                                                                          'test_material_companion_native_probe.py': 4995},
+ 'docs/history/oss-absorption-evidence/20261019-material-companion-qualified/MANIFEST.json': {'aaos01_grouped_owner_loop.py': 125220,
+                                                                                              'aaos01_material_companion_loop.py': 16036,
+                                                                                              'aaos01_tauri_webdriver_loop.py': 142866,
+                                                                                              'candidate-build.json': 4800,
+                                                                                              'machine-deadline-core-native-1019.json': 1395,
+                                                                                              'machine-deadline-host-native-1019.json': 1556,
+                                                                                              'machine-deadline-material-native-1019.json': 2073,
+                                                                                              'model-profile-observed.json': 982,
+                                                                                              'native-result.json': 7415,
+                                                                                              'README.md': 1656,
+                                                                                              'READONLY-REVIEW.md': 1025,
+                                                                                              'RECEIPT.json': 2632},
+ 'docs/history/oss-absorption-evidence/20261019-material-companion-recovery/MANIFEST.json': {'aaos01_material_companion_loop.py': 13595,
+                                                                                             'candidate-build.json': 3934,
+                                                                                             'core-build.json': 1404,
+                                                                                             'host-build.json': 1568,
+                                                                                             'native-execution.json': 2071,
+                                                                                             'native-result.json': 8076,
+                                                                                             'probe-tests.json': 1441,
+                                                                                             'README.md': 2178,
+                                                                                             'test_material_companion_native_probe.py': 4995},
+ 'docs/history/oss-absorption-evidence/20261019-review-cancellation/MANIFEST.json': {'browser/axe-results.json': 6643,
+                                                                                     'browser/browser-shutdown.json': 59,
+                                                                                     'browser/desktop-bounds.json': 297,
+                                                                                     'browser/environment.json': 239,
+                                                                                     'browser/shutdown.json': 133,
+                                                                                     'browser/summary.json': 3334,
+                                                                                     'browser-screenshots.json': 759,
+                                                                                     'candidate-build-before-navigation.json': 4707,
+                                                                                     'candidate-build.json': 4703,
+                                                                                     'decision-coverage.json': 1776,
+                                                                                     'failed-native-probe-source/aaos01_grouped_owner_loop.py': 126926,
+                                                                                     'failed-native-probe-source/aaos01_material_companion_loop.py': 25546,
+                                                                                     'failed-native-probe-source/aaos01_tauri_webdriver_loop.py': 143912,
+                                                                                     'failed-native-probe-source/second-attempt-material-companion.py': 25812,
+                                                                                     'handoff-before-update.md': 6446,
+                                                                                     'harness/archive-cancel.py': 4038,
+                                                                                     'harness/audit.spec.cjs': 7945,
+                                                                                     'harness/prepare.py': 2807,
+                                                                                     'harness/run.py': 302,
+                                                                                     'model-load-readback.json': 932,
+                                                                                     'native-result-first.json': 58860,
+                                                                                     'native-result-retry.json': 59056,
+                                                                                     'navigation-snapshot.json': 3721,
+                                                                                     'README.md': 1965,
+                                                                                     'READONLY-REVIEW.md': 4284,
+                                                                                     'RECEIPT.json': 4303,
+                                                                                     'runs/conversation-cancel-core-1019.json': 1452,
+                                                                                     'runs/conversation-cancel-core-1019.log': 3067,
+                                                                                     'runs/conversation-cancel-final-ui-1019.json': 1538,
+                                                                                     'runs/conversation-cancel-final-ui-1019.log': 458,
+                                                                                     'runs/conversation-cancel-probes-1019.json': 1795,
+                                                                                     'runs/conversation-cancel-probes-1019.log': 6013,
+                                                                                     'runs/conversation-identity-green-1019.json': 1537,
+                                                                                     'runs/conversation-identity-green-1019.log': 458,
+                                                                                     'runs/conversation-identity-red-1019.json': 1476,
+                                                                                     'runs/conversation-identity-red-1019.log': 2490,
+                                                                                     'runs/material-cancel-ack-red-1019.json': 1483,
+                                                                                     'runs/material-cancel-ack-red-1019.log': 49692,
+                                                                                     'runs/review-cancel-core-frozen-build-1019.json': 1401,
+                                                                                     'runs/review-cancel-core-frozen-build-1019.log': 1551,
+                                                                                     'runs/review-cancel-document-guard-probes-1019.json': 1440,
+                                                                                     'runs/review-cancel-document-guard-probes-1019.log': 202,
+                                                                                     'runs/review-cancel-frontend-full-1019.json': 1387,
+                                                                                     'runs/review-cancel-frontend-full-1019.log': 36542,
+                                                                                     'runs/review-cancel-host-frozen-build-1019.json': 1565,
+                                                                                     'runs/review-cancel-host-frozen-build-1019.log': 15516,
+                                                                                     'runs/review-cancel-model-load-1019.json': 1365,
+                                                                                     'runs/review-cancel-model-load-1019.log': 152,
+                                                                                     'runs/review-cancel-native-1019.json': 2087,
+                                                                                     'runs/review-cancel-native-1019.log': 7182,
+                                                                                     'runs/review-cancel-native-navigation-1019.json': 2110,
+                                                                                     'runs/review-cancel-native-navigation-1019.log': 7182,
+                                                                                     'runs/review-cancel-navigation-core-1019.json': 1397,
+                                                                                     'runs/review-cancel-navigation-core-1019.log': 1551,
+                                                                                     'runs/review-cancel-navigation-host-1019.json': 1559,
+                                                                                     'runs/review-cancel-navigation-host-1019.log': 15514,
+                                                                                     'runs/review-cancel-navigation-probes-1019.json': 1432,
+                                                                                     'runs/review-cancel-navigation-probes-1019.log': 202,
+                                                                                     'runs/review-cancel-probes-frozen-1019.json': 1424,
+                                                                                     'runs/review-cancel-probes-frozen-1019.log': 202,
+                                                                                     'runs/review-wrap-browser-green-1019.json': 1406,
+                                                                                     'runs/review-wrap-browser-green-1019.log': 625,
+                                                                                     'runs/review-wrap-browser-red-1019.json': 1395,
+                                                                                     'runs/review-wrap-browser-red-1019.log': 2650,
+                                                                                     'runs/review-wrap-build-1019.json': 1326,
+                                                                                     'runs/review-wrap-build-1019.log': 9677,
+                                                                                     'runs/review-wrap-contracts-1019.json': 1525,
+                                                                                     'runs/review-wrap-contracts-1019.log': 991,
+                                                                                     'source/crates/archeaxis-api/tests/conversation_api.rs': 15381,
+                                                                                     'source/frontend/src/__tests__/ConversationPanel.test.tsx': 15922,
+                                                                                     'source/frontend/src/__tests__/MaterialQuestionPanel.test.tsx': 20720,
+                                                                                     'source/frontend/src/api/conversation.ts': 4082,
+                                                                                     'source/frontend/src/components/MaterialQuestionPanel.tsx': 10815,
+                                                                                     'source/frontend/src/spaces/ui-first.css': 16492,
+                                                                                     'source/scripts/probes/aaos01_grouped_owner_loop.py': 126926,
+                                                                                     'source/scripts/probes/aaos01_material_companion_loop.py': 26343,
+                                                                                     'source/scripts/probes/aaos01_tauri_webdriver_loop.py': 143912,
+                                                                                     'source/tests/test_material_companion_native_probe.py': 12121,
+                                                                                     'source-identities.json': 1197},
+ 'docs/history/oss-absorption-evidence/20261019-review-title/MANIFEST.json': {'browser/axe-results.json': 6643,
+                                                                              'browser/browser-shutdown.json': 59,
+                                                                              'browser/checks.json': 1552,
+                                                                              'browser/environment.json': 239,
+                                                                              'browser/owned-processes.json': 770,
+                                                                              'browser/preflight.json': 5450,
+                                                                              'browser/screenshots.json': 833,
+                                                                              'browser/shutdown.json': 133,
+                                                                              'browser/summary.json': 2874,
+                                                                              'decision-coverage.json': 1776,
+                                                                              'frontend-build.json': 806,
+                                                                              'harness/archive.py': 9787,
+                                                                              'harness/audit.spec.cjs': 7346,
+                                                                              'harness/fixture-base.js': 3295,
+                                                                              'harness/fixture-title.js': 1470,
+                                                                              'harness/launch.cjs': 3252,
+                                                                              'harness/playwright.config.cjs': 305,
+                                                                              'harness/prepare.py': 2807,
+                                                                              'harness/run.py': 302,
+                                                                              'navigation-snapshot.json': 2155,
+                                                                              'README.md': 1779,
+                                                                              'RECEIPT.json': 6290,
+                                                                              'runs/review-selection-echo-red-1019.json': 1472,
+                                                                              'runs/review-selection-echo-red-1019.log': 1707,
+                                                                              'runs/review-title-binding-red-1019.json': 1487,
+                                                                              'runs/review-title-binding-red-1019.log': 2694,
+                                                                              'runs/review-title-browser-1019.json': 1390,
+                                                                              'runs/review-title-browser-1019.log': 3329,
+                                                                              'runs/review-title-browser-echo-1019.json': 1407,
+                                                                              'runs/review-title-browser-echo-1019.log': 625,
+                                                                              'runs/review-title-browser-final-1019.json': 1408,
+                                                                              'runs/review-title-browser-final-1019.log': 626,
+                                                                              'runs/review-title-contract-red-1019.json': 1417,
+                                                                              'runs/review-title-contract-red-1019.log': 2873,
+                                                                              'runs/review-title-core-final-1019.json': 1456,
+                                                                              'runs/review-title-core-final-1019.log': 3518,
+                                                                              'runs/review-title-echo-build-1019.json': 1338,
+                                                                              'runs/review-title-echo-build-1019.log': 9678,
+                                                                              'runs/review-title-echo-final-1019.json': 1379,
+                                                                              'runs/review-title-echo-final-1019.log': 35259,
+                                                                              'runs/review-title-echo-full-1019.json': 1371,
+                                                                              'runs/review-title-echo-full-1019.log': 37702,
+                                                                              'runs/review-title-probes-green-1019.json': 1798,
+                                                                              'runs/review-title-probes-green-1019.log': 211,
+                                                                              'runs/review-title-ui-red-1019.json': 1469,
+                                                                              'runs/review-title-ui-red-1019.log': 9925,
+                                                                              'screenshots.json': 759,
+                                                                              'source/crates/archeaxis-api/src/lib.rs': 109903,
+                                                                              'source/crates/archeaxis-api/tests/learning_state_api.rs': 27056,
+                                                                              'source/crates/archeaxis-domain/src/learning.rs': 39232,
+                                                                              'source/frontend/src/__tests__/CanonicalLearningDrafts.test.tsx': 12636,
+                                                                              'source/frontend/src/__tests__/CanonicalReviewLearning.test.tsx': 20846,
+                                                                              'source/frontend/src/__tests__/CoreBridge.test.ts': 8420,
+                                                                              'source/frontend/src/__tests__/LearningPracticeJourney.test.tsx': 13108,
+                                                                              'source/frontend/src/__tests__/LearningTitle.test.ts': 767,
+                                                                              'source/frontend/src/__tests__/LiveRegionBudget.test.tsx': 25489,
+                                                                              'source/frontend/src/__tests__/ThreeLevelNavigation.test.tsx': 9767,
+                                                                              'source/frontend/src/__tests__/UiFirstWorkspace.test.tsx': 8687,
+                                                                              'source/frontend/src/api/generated/core-contract.ts': 66390,
+                                                                              'source/frontend/src/presentation/learningJourney.ts': 2605,
+                                                                              'source/frontend/src/presentation/learningTitle.ts': 760,
+                                                                              'source/frontend/src/presentation/workspaceReview.ts': 1770,
+                                                                              'source/frontend/src/spaces/CanonicalLearningSpace.tsx': 24189,
+                                                                              'source/frontend/src/spaces/CanonicalTeachingSpace.tsx': 46092,
+                                                                              'source/frontend/src/spaces/CanonicalWorkspaceSpace.tsx': 6586,
+                                                                              'source/frontend/src/test/learningQueue.ts': 739,
+                                                                              'source/packages/contracts/v1/core-document.schema.json': 74929,
+                                                                              'source/scripts/probes/aaos01_grouped_owner_loop.py': 125392,
+                                                                              'source/scripts/probes/aaos01_tauri_webdriver_loop.py': 143402,
+                                                                              'source/tests/test_grouped_native_owner_probe.py': 88514,
+                                                                              'source/tests/test_tauri_shell_authority.py': 8494}}
+
+
+def _strict_json_pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key!r}")
+        result[key] = value
+    return result
+
+
+def validate_preserved_manifests(
+    contents: dict[str, bytes],
+    *,
+    registrations: dict | None = None,
+    hash_only_sizes: dict | None = None,
+) -> tuple[dict[str, tuple[int, str]], list[ConventionIssue]]:
+    """Validate only reviewed manifests, entirely inside one chosen Git snapshot.
+
+    Any failure rejects the complete preservation projection. Ordinary scanners
+    still inspect every path; no directory or unregistered member is exempted.
+    """
+    registrations = _PRESERVED_MANIFESTS if registrations is None else registrations
+    hash_only_sizes = (
+        _PRESERVED_HASH_ONLY_MEMBER_SIZES if hash_only_sizes is None else hash_only_sizes
+    )
+    pins: dict[str, tuple[int, str]] = {}
+    issues: list[ConventionIssue] = []
+    for manifest_path, registration in registrations.items():
+        try:
+            raw = contents.get(manifest_path)
+            if raw is None:
+                raise ValueError("registered manifest absent from selected source")
+            if (len(raw) != registration["bytes"]
+                    or hashlib.sha256(raw).hexdigest() != registration["sha256"]):
+                raise ValueError("registered manifest raw size/SHA-256 mismatch")
+            body = json.loads(raw.decode("utf-8"), object_pairs_hook=_strict_json_pairs)
+            if not isinstance(body, dict):
+                raise ValueError("manifest root must be an object")
+            if body.get("schema", body.get("algorithm")) != registration["schema"]:
+                raise ValueError("registered manifest schema mismatch")
+            if registration["schema"] == "SHA-256":
+                if body.get("excludes") != ["CHECKSUMS.json"]:
+                    raise ValueError("unexpected checksum exclusions")
+                members = body.get("files")
+            else:
+                if ("members" in body) == ("files" in body):
+                    raise ValueError("manifest needs exactly one member collection")
+                members = body.get("members", body.get("files"))
+            if isinstance(members, dict):
+                sizes = hash_only_sizes.get(manifest_path, {})
+                if set(sizes) != set(members):
+                    raise ValueError("hash-only manifest requires exact reviewed size pins")
+                members = [dict(path=p, sha256=digest, bytes=sizes[p])
+                           for p, digest in members.items()]
+            if not isinstance(members, list) or not members:
+                raise ValueError("manifest members must be a nonempty list")
+            seen: set[str] = set()
+            for member in members:
+                if not isinstance(member, dict):
+                    raise ValueError("manifest member must be an object")
+                local = member.get("path")
+                if (not isinstance(local, str) or not local or "\\" in local
+                        or ":" in local or local.startswith("/")
+                        or any(ord(character) < 32 for character in local)
+                        or any(p in {"", ".", ".."} for p in local.split("/"))
+                        or unicodedata.normalize("NFC", local) != local):
+                    raise ValueError("invalid relative member path")
+                folded = local.casefold()
+                if folded in seen:
+                    raise ValueError("duplicate or case-colliding member path")
+                seen.add(folded)
+                size, digest = member.get("bytes"), member.get("sha256")
+                if (type(size) is not int or size < 0 or not isinstance(digest, str)
+                        or re.fullmatch(r"[0-9a-f]{64}", digest) is None):
+                    raise ValueError("invalid member size/SHA-256")
+                path = str(PurePosixPath(manifest_path).parent / local)
+                content = contents.get(path)
+                if (content is None or len(content) != size
+                        or hashlib.sha256(content).hexdigest() != digest):
+                    raise ValueError(f"member absent or raw size/SHA-256 mismatch: {path}")
+                pin = (size, digest)
+                if path in pins and pins[path] != pin:
+                    raise ValueError(f"conflicting preservation identity: {path}")
+                pins[path] = pin
+            pins[manifest_path] = (len(raw), registration["sha256"])
+        except (ValueError, TypeError, KeyError, UnicodeDecodeError) as exc:
+            issues.append(ConventionIssue("preserved-manifest-mismatch", manifest_path, str(exc)))
+    return ({}, sorted(issues)) if issues else (pins, [])
+
+
+def scan_text_bytes(
+    path: str, content: bytes, *, preserved_pins: dict[str, tuple[int, str]] | None = None,
+) -> list[ConventionIssue]:
     """Return deterministic text-contract violations for one repository path."""
+    if preserved_pins is not None and path in preserved_pins:
+        size, digest = preserved_pins[path]
+        if len(content) != size or hashlib.sha256(content).hexdigest() != digest:
+            return [ConventionIssue("preserved-manifest-member-mismatch", path,
+                                    "validated member raw bytes changed")]
+        return []
     frozen_hash = _FROZEN_ORIGINALS.get(path)
     if frozen_hash and hashlib.sha256(content).hexdigest() != frozen_hash:
         return [ConventionIssue("frozen-original-mismatch", path,
@@ -554,22 +949,18 @@ def scan_git_repository(root: Path, *, source: str = "worktree") -> list[Convent
         blob_contents = dict(zip(paths, contents, strict=True))
 
     issues = scan_path_set(paths)
-    for path in paths:
-        if source == "worktree":
+    if source == "worktree":
+        for path in paths:
             candidate = root / Path(*PurePosixPath(path).parts)
             if not candidate.is_file():
-                issues.append(
-                    ConventionIssue(
-                        "missing-worktree-file",
-                        path,
-                        "tracked path is absent from the worktree",
-                    )
-                )
+                issues.append(ConventionIssue("missing-worktree-file", path,
+                                              "tracked path is absent from the worktree"))
                 continue
-            content = candidate.read_bytes()
-        else:
-            content = blob_contents[path]
-        issues.extend(scan_text_bytes(path, content))
+            blob_contents[path] = candidate.read_bytes()
+    preserved_pins, manifest_issues = validate_preserved_manifests(blob_contents)
+    issues.extend(manifest_issues)
+    for path, content in blob_contents.items():
+        issues.extend(scan_text_bytes(path, content, preserved_pins=preserved_pins))
         issues.extend(scan_naming_forbidden_terms(path, content))
         if path == "config/naming-registry.yaml":
             issues.extend(scan_naming_registry_bytes(path, content))

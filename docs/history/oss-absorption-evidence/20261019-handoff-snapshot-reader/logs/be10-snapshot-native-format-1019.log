@@ -1,0 +1,3 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo fmt --manifest-path src-tauri/Cargo.toml --all

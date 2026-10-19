@@ -1,0 +1,6 @@
+required fixed-reference snapshot HTTP200; observed HTTP404
+Traceback (most recent call last):
+  File "D:\All projects\ArcheAxis-Knowledge-OS\.project-local\audits\be10-snapshot-integration-20261019\baseline_red.py", line 39, in <module>
+    assert status==200,'EXPECTED_RED: previous exact owned Core has no fixed snapshot reader'
+           ^^^^^^^^^^^
+AssertionError: EXPECTED_RED: previous exact owned Core has no fixed snapshot reader
