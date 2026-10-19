@@ -1,6 +1,6 @@
 # 当前 Agent 接手入口
 
-状态 **RUNNING_BY_OWNER / PARTIAL**。本页只导航，不保存多轮测试快照；实际进度唯一来源为 [UI 执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。
+状态 **PAUSED_BY_OWNER / PARTIAL**：2026-10-19实测剩余额度15%，触发Owner已确认的停工交接条件。未经Owner明确恢复，不因额度重置自行续跑。本页只导航，不保存多轮测试快照；实际进度唯一来源为 [UI 执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。
 
 1. 先读 [根权威](../../AUTHORITY.md)、[AGENTS](../../AGENTS.md)、[活动指针](AAOS-ACTIVE-EXECUTION.json) 与 [文档职责索引](../DOCUMENTATION_AUTHORITY_INDEX.md)。
 2. 读 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md)、指针选择的任务来源与 [待办来源索引](AAOS-EXECUTION-BACKLOG-20261018.json)。既有实现先读源码及对应回执，避免重复实施。

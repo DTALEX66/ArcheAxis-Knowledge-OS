@@ -84,13 +84,13 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
-    "state": "RUNNING_BY_OWNER",
+    "state": "PAUSED_BY_OWNER",
     "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
-    "automatic_continuation": true,
-    "continuation_scope": "Current Owner-resumed chat execution; no background automation resumed",
+    "automatic_continuation": false,
+    "continuation_scope": "Owner allowance guard triggered 2026-10-19; explicit Owner instruction required to resume.",
     "previous_stop": {
       "state": "PAUSED_BY_OWNER",
       "stopped_after": "UF13 started local slice",
@@ -116,16 +116,20 @@
       "publication_boundary": "No secrets, private agent state, runtime/database/cache/archive payloads, unrelated dirty changes, QODER, release or Green replacement. Merge requires current review and full required CI.",
       "resumption": "Explicit Owner instruction; quota reset alone does not resume.",
       "threshold_observation": {
-        "observed_at": "2026-10-16T05:14:29+08:00",
+        "observed_at": "2026-10-19T20:12:00+08:00",
+        "used_percent": 85,
         "remaining_percent": 15,
-        "state": "TRIGGERED"
+        "state": "TRIGGERED",
+        "monitor_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED"
       }
     },
     "last_pause": {
       "state": "PAUSED_BY_OWNER",
       "reason": "Owner-confirmed account remaining <=15 percent reached",
-      "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
-      "resumed_on": "2026-10-18"
+      "receipt": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "observed_date": "2026-10-19",
+      "goal": "PAUSED",
+      "resumption": "Explicit Owner instruction; quota reset alone does not resume."
     }
   },
   "delivery_authorization": {
@@ -344,7 +348,13 @@
     "decision_id": "OWNER-FORMAT-SCOPE-20261019",
     "source": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
     "source_section": "十、专业源文件移出多格式目标（2026-10-19）",
-    "removed_direct_support_targets": ["PSD", "Illustrator AI", "CDR", "CAD engineering files", "3D model files"],
+    "removed_direct_support_targets": [
+      "PSD",
+      "Illustrator AI",
+      "CDR",
+      "CAD engineering files",
+      "3D model files"
+    ],
     "professional_native_adapters": "REMOVED_FROM_TARGETS_AND_DEFAULT_EXTENSION_ROADMAP",
     "external_export_route": "Export images or PDF in the original software, then use common image/PDF ingestion; no built-in professional conversion commitment",
     "preservation_boundary": "Only actually imported common-format files; no implied native layers, CAD constraints, 3D structure or editable roundtrip",

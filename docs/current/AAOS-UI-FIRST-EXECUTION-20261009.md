@@ -1,6 +1,6 @@
 # 当前实施进度
 
-状态 **RUNNING_BY_OWNER / PARTIAL**。本文件是 [活动指针](AAOS-ACTIVE-EXECUTION.json) 指定的唯一进度源；合同来源与范围按该指针及 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md) 解释。当前任务包为 `docs/taskpacks/aaos-ui-first-20261009/`，前后端覆盖合同按指针接续，原包不回填。
+状态 **PAUSED_BY_OWNER / PARTIAL**（2026-10-19剩余额度15%触发既有停工交接条件）。本文件是 [活动指针](AAOS-ACTIVE-EXECUTION.json) 指定的唯一进度源；合同来源与范围按该指针及 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md) 解释。当前任务包为 `docs/taskpacks/aaos-ui-first-20261009/`，前后端覆盖合同按指针接续，原包不回填。
 
 ## 已实施与证据边界
 
@@ -32,6 +32,14 @@
 本地前端定向40/40、最终Python合同55/55、TypeScript、选定Ruff规则通过。公共产品源码的Chromium试点9项交互通过，640×480阅读/导航/检查器门槛通过，正文可见138px、字号17px，保持四行与点击可达标准；真实渲染、host/Core为受控合成fixture，证据SYNTHETIC。已实际查看内缩、调整后及最小阅读截图，本任务服务PID28216/端口50165已停止并读回关闭。前三次浏览器失败分别为测试同步/调用问题，第四次9项产品操作通过但旧顶栏四按钮合同未接纳新增两按钮；同步调用方后第五次通过，全部FAIL保留。未放宽阅读或命中门槛。
 
 `product-loop-console-host-build-20261019`在稳定源码补丁`8225431e6374293ceffeb43c14315e0e2c2dbf4fc933db8f17e5234ccffc17c9`完成正式Host构建，exit0、source_consistent=true；其后只修改测试消费者与文档，产品源码未再变更。这是本地构建和有限浏览器通过，不是安装、真实Windows边缘拖拽/DPI、多屏或完整UI验收。新提交的exact-SHA CI仍须实际取得；总体保持PARTIAL。详细命令、失败与环境见既有跟进和验证元数据。
+
+## 2026-10-19额度检查点与新增要求
+
+当前执行 **PAUSED_BY_OWNER / PARTIAL**。2026-10-19T12:12Z附近实测适用Codex窗口used85%、remaining15%，触发活动指针中的Owner条件：停止新增开发/重验证，保存已完成、失败和未完成范围，公开任务改动提交推送并读回；未经Owner明确恢复，不因额度重置自动继续。主控台及窄窗导航功能检查点为`16e46a50`；其后交接文档不代表新产品资格。活动goal已按该明确条件暂停。automation`archeaxis`的view只返回界面卡片，暂停更新因缺kind被拒绝，且登记位置无可读配置，**监视器暂停UNVERIFIED**；未伪造已停或新建替代自动任务。
+
+最后一条Owner“所有菜单和主体文字内容的密集排列程度 文字大小等 一定给适配好了”已记入决定第十三节。只读确认的共用源码缺口：body14px/按钮13px/shell16px/portal继承不一致；命令菜单等仍有11px辅助硬编码；全局button nowrap的解除只按外层viewport；content.css与expression-board.css部分多列断点未跟随Dock/主控台；critical-layout-fixes.css最后用!important锁定网格最小400px。**静态证据PARTIAL，实际视觉复现UNVERIFIED，本项尚未修改产品**。
+
+恢复后的下一最小范围：先统一菜单/正文/辅助字号与间距token并让portal使用，修固定列宽及真实面板断点，按正式菜单/页面建立长中文与窄窗覆盖矩阵；复用现有浏览器与定向门禁，不能把当前阅读页9项试点外推所有界面。同步核新交付SHA的CI与安装失败是否消除，再继续UF11耐久批次等原闭环任务。原生系统DPI、完整无障碍/性能、Owner验收及其余已列欠账保持未完成。
 
 ## 历史与保留范围
 
