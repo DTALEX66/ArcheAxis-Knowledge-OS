@@ -308,3 +308,11 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 - **UI-P15 图谱**：`CanonicalRelationSpace` + `ConstellationGraph`（Neural 供体）已有；组件/几何测试覆盖；**FPS/GPU/内存性能未测**。
 
 **结论**：UI-P06—P15 组件/结构层基本就绪且有 A0 几何/主题覆盖；UI-P14 为具名后端阻断。整体仍 **PARTIAL**。
+
+## 2026-10-20 BE-P01/BE-P03 与 UI-P16—P24 源码核查（只读）
+
+**BE-P01 核心保存/恢复——已实现**：`archeaxis-api/src/documents.rs` create(`create_request_id`)/save(`expected_version`)/restore；`archeaxis-domain/src/document.rs` 幂等（`request_id`→`doc_req_*` 重复创建检测）＋版本冲突 `Error::Conflict(current)`；`archeaxis-store-sqlite/src/writer.rs` 单线程有界写队列（唯一 canonical writer）；`backup.rs`/`workspace_backup.rs` 备份 create/list/preview/restore（Online Backup API、sha256 与对象校验）。测试：`archeaxis-api/tests/document_draft_loop.rs`、`document_pagination.rs`、`archeaxis-domain/tests/backup_safety.rs`、`archeaxis-store-sqlite/tests/writer.rs`。
+
+**BE-P03 批次耐久——部分实现，真实缺口＝批次成员列表不持久化**：FolderIngest 逐文件 `source_import`＋`job_enqueue`（内容寻址 `job_id`），冻结请求经 `JobJournal` 跨重启找回（[FolderIngest.tsx](../../frontend/src/components/FolderIngest.tsx#L269)）；但 [FolderIngest.tsx:283](../../frontend/src/components/FolderIngest.tsx#L283) **明确声明“当前队列是本页面会话状态，不声称重启恢复”**——即**“哪些文件属于本批次”不跨重启重建**。补齐需 Core 批次 schema＋命令（较大改动，本轮**未实施**，避免未验证半成品破坏 Rust 构建/合同）。
+
+**UI-P16—P24——组件层已存在**：`presentation/uiPages.ts` 全 22 页 `implemented=true`，`SpaceView.tsx` 均有生产组件（无 `ui-pending-page` 兜底命中）；UI-P16 `CanonicalLearningJourneySpace`/`CanonicalTeachingSpace`/`KnowledgeCoursePanel`/`ImportedCoursePanel`；UI-P17 `ModelConfigurationPanel`/`MachineAnswerPanel`/`CanonicalAiJourneySpace`；UI-P18 `CanonicalCapabilitiesSpace`/`CanonicalResourcesSpace`；UI-P19 `XiaoqiPanel`/`XiaoqiAvatar`/`ConversationPanel`；UI-P20 `DiagnosticConsole`/`BackupPanel`/`VersionSourcePanel`。**缺口**：UI-P21 无障碍扫描仅覆盖少数页面（非全 22 页）；UI-P23 无全页面自动视觉回归（仅 A0 脚本）；UI-P22 性能基线未测。
