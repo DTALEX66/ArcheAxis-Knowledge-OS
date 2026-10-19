@@ -160,3 +160,50 @@ fn splitting_is_the_only_parameter_a_request_may_carry() {
     assert!(!split.parameters.contains_key("window"));
     assert!(media().splitting("  ").is_err());
 }
+
+#[test]
+fn pdf_runtime_dependency_is_bounded_and_required_only_for_pdf_admission() {
+    let legacy = decode_hello(&hello().to_string()).unwrap();
+    assert!(legacy.require_runtime_dependency("text.extract").is_ok());
+    assert_eq!(
+        legacy.require_runtime_dependency("pdf.extract"),
+        Err("PDF_DEPENDENCY_UNOBSERVED")
+    );
+    for (status, version, reason) in [
+        ("MISSING", Value::Null, Some("PDF_DEPENDENCY_MISSING")),
+        (
+            "VERSION_UNKNOWN",
+            Value::Null,
+            Some("PDF_DEPENDENCY_VERSION_UNKNOWN"),
+        ),
+        (
+            "IMPORT_FAILED",
+            Value::Null,
+            Some("PDF_DEPENDENCY_IMPORT_FAILED"),
+        ),
+        ("AVAILABLE", json!("1.28.2"), None),
+    ] {
+        let mut value = hello();
+        value["runtime_dependency"] = json!({"name":"pymupdf","status":status,"version":version});
+        let decoded = decode_hello(&value.to_string()).unwrap();
+        assert_eq!(
+            decoded.require_runtime_dependency("pdf.extract").err(),
+            reason
+        );
+    }
+    for dependency in [
+        Value::Null,
+        json!({"name":"pymupdf","status":"AVAILABLE","version":null}),
+        json!({"name":"pymupdf","status":"AVAILABLE","version":"pymupdf"}),
+        json!({"name":"pymupdf","status":"AVAILABLE","version":"1.0\n"}),
+        json!({"name":"pymupdf","status":"AVAILABLE","version":format!("{}\n", "1".repeat(64))}),
+        json!({"name":"pymupdf","status":"MISSING","version":"1.0"}),
+        json!({"name":"other","status":"AVAILABLE","version":"1.0"}),
+        json!({"name":"pymupdf","status":"MISSING"}),
+        json!({"name":"pymupdf","status":"MISSING","version":null,"extra":true}),
+    ] {
+        let mut value = hello();
+        value["runtime_dependency"] = dependency;
+        assert!(decode_hello(&value.to_string()).is_err(), "{value}");
+    }
+}

@@ -1,0 +1,1058 @@
+diff --git a/config/capability-packages/pdf-extract.manifest.json b/config/capability-packages/pdf-extract.manifest.json
+new file mode 100644
+--- /dev/null
++++ b/config/capability-packages/pdf-extract.manifest.json
+@@ -0,0 +1,94 @@
++{
++  "schema": "archeaxis.capability-package/v1",
++  "declaration": "DECLARATION_ONLY",
++  "package_id": "archeaxis.pdf-extract",
++  "version": "0.1.0",
++  "capability_ids": [
++    "CAP-0020"
++  ],
++  "resource_keys": [
++    "pymupdf"
++  ],
++  "contribution_points": [
++    "format_conversion"
++  ],
++  "compatibility": {
++    "host_versions": {
++      "minimum": "0.1.0",
++      "maximum_exclusive": "1.0.0"
++    },
++    "contract_refs": [
++      {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      }
++    ]
++  },
++  "runtime_capabilities": [
++    "pdf.extract"
++  ],
++  "permissions": {
++    "requested": [
++      "selected_source.read",
++      "derived_artifact.propose"
++    ],
++    "data_scope": "explicit_selected_objects_only",
++    "network": "none",
++    "cost": "none",
++    "explicit_grant_required": true,
++    "canonical_writer": "rust_core_only",
++    "credential_handling": "host_reference_only",
++    "local_to_cloud_fallback": "explicit_grant_only",
++    "grants_execution": false,
++    "grants_knowledge_acceptance": false
++  },
++  "dependencies": [
++    {
++      "resource_key": "pymupdf",
++      "requirement": "required",
++      "version_range": null
++    }
++  ],
++  "license": {
++    "expression": null,
++    "review": "UNVERIFIED",
++    "notice_refs": []
++  },
++  "inputs": [
++    {
++      "kind": "raw_asset_reference",
++      "contract": {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      },
++      "max_bytes": 1048576
++    }
++  ],
++  "outputs": [
++    {
++      "kind": "document_reference",
++      "contract": {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      },
++      "max_bytes": 1048576
++    }
++  ],
++  "lifecycle": {
++    "cancellation": "host_propagated",
++    "exit": "bounded_cleanup",
++    "timeout_ms": 120000,
++    "unknown_result": "preserve_unknown_no_auto_retry",
++    "cleanup_evidence": "required_before_confirmed_exit"
++  },
++  "fallback": {
++    "mode": "unavailable",
++    "losses": [],
++    "automatic": false
++  },
++  "update": {
++    "strategy": "reviewed_replacement_only",
++    "rollback": "preserve_previous_identity_and_originals",
++    "canonical_data_migration": false
++  }
++}
+diff --git a/frontend/src/__tests__/CapabilityPackageDetails.test.tsx b/frontend/src/__tests__/CapabilityPackageDetails.test.tsx
+new file mode 100644
+--- /dev/null
++++ b/frontend/src/__tests__/CapabilityPackageDetails.test.tsx
+@@ -0,0 +1,48 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++import { act, render, screen, within } from "@testing-library/react";
++import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
++import { CAPABILITY_PACKAGE_DETAILS } from "../api/generated/capability-package-details";
++import { scopedReadiness } from "../test/fixtures/readiness";
++const bridge = vi.hoisted(() => ({ call: vi.fn() }));
++vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
++vi.mock("../components/DiagnosticConsole", () => ({ RawReceiptButton: ({ label }: { label: string }) => <button>{label}</button> }));
++
++describe("page17 consumes verified manifest declaration without runtime authority", () => {
++  beforeEach(() => {
++    bridge.call.mockReset();
++    bridge.call.mockImplementation(async (_op: string, payload: { body: { scope: string; operations: string[] } }) => scopedReadiness(payload.body));
++  });
++  it("shows actual byte identity declaration only for its exact selected CAP", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    const pack = screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" });
++    expect(pack).toHaveTextContent("声明校验通过");
++    expect(pack).toHaveTextContent("pymupdf");
++    expect(pack).toHaveTextContent("不证明关联引擎内置、已安装或可用");
++    expect(within(pack).getByRole("button", { name: /包说明身份与来源/ })).toBeInTheDocument();
++    expect(CAPABILITY_PACKAGE_DETAILS.entries[0].identity.sha256).toMatch(/^[a-f0-9]{64}$/);
++    expect(bridge.call).toHaveBeenCalledTimes(1);
++    expect(bridge.call.mock.calls[0][0]).toBe("operation_readiness");
++  });
++  it("keeps unknown license, authenticity, qualification and runtime distinct", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    const pack = screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" });
++    expect(pack).toHaveTextContent("许可声明：UNKNOWN · 审查 UNVERIFIED");
++    expect(pack).toHaveTextContent("发布者真实性 UNVERIFIED");
++    expect(pack).toHaveTextContent("独立资格 UNKNOWN · 当前运行状态 UNKNOWN");
++    expect(pack).toHaveTextContent("均未授权执行");
++    expect(within(pack).queryByRole("button", { name: /安装|执行|启用|重试/ })).not.toBeInTheDocument();
++  });
++  it("does not borrow another CAP manifest and clears it on selection change", async () => {
++    let view!: ReturnType<typeof render>;
++    await act(async () => { view = render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    expect(screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" })).toBeInTheDocument();
++    await act(async () => { view.rerender(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0090" />); });
++    expect(screen.queryByRole("article", { name: "包说明 archeaxis.pdf-extract" })).not.toBeInTheDocument();
++    expect(screen.getByText(/此能力尚无已验证的包说明/)).toHaveTextContent("manifest 身份 UNKNOWN");
++  });
++  it("has no manifest display or additional package request before a CAP is selected", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />); });
++    expect(screen.queryByRole("region", { name: "能力包声明" })).not.toBeInTheDocument();
++    expect(bridge.call).not.toHaveBeenCalled();
++  });
++});
+diff --git a/frontend/src/api/generated/capability-package-details.ts b/frontend/src/api/generated/capability-package-details.ts
+new file mode 100644
+--- /dev/null
++++ b/frontend/src/api/generated/capability-package-details.ts
+@@ -0,0 +1,160 @@
++// Generated from exact builtin manifest and public validator inputs. Declaration only.
++import type { CapabilityManifestIdentity, CapabilityPackageManifest } from './capability-package';
++export type CapabilityPackageDetail = {
++  identity: CapabilityManifestIdentity; manifest: CapabilityPackageManifest; source_path: string;
++  validation: 'VALIDATED_DECLARATION'; host_version: string;
++  source_authenticity: 'UNVERIFIED'; qualification: 'UNKNOWN'; runtime: 'UNKNOWN';
++};
++export type CapabilityPackageDetailProjection = {
++  sources: { path: string; sha256: string }[]; entries: CapabilityPackageDetail[];
++};
++export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
++  "sources": [
++    {
++      "path": "config/capability-map.v1.json",
++      "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
++    },
++    {
++      "path": "config/capability-packages/pdf-extract.manifest.json",
++      "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
++    },
++    {
++      "path": "crates/archeaxis-api/Cargo.toml",
++      "sha256": "92aefb0bc36e94865983dfb768bdcc3abb1bbe41c204d503280f693df2da19ad"
++    },
++    {
++      "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++      "sha256": "445a062ba2737a8bc0b1406dbace47aeeaaa87b269bb4fc47dfb5e1d2d389ae5"
++    },
++    {
++      "path": "packages/contracts/v1/core-document.schema.json",
++      "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++    },
++    {
++      "path": "packages/contracts/v2/capability-package.schema.json",
++      "sha256": "248b38fbaf6ce16b87e7acdd4395f4515ba082977da0d6538fe8c14f9ac02d2f"
++    },
++    {
++      "path": "scripts/contracts/generate_capability_package_details.py",
++      "sha256": "3b9659ea88bf5477a1983a9cf776a072c6ab08090d96993231cd56ad705dfbfc"
++    },
++    {
++      "path": "scripts/contracts/validate_capability_package.py",
++      "sha256": "7575d12775fbbec60b697da10cd53f003f177845c735b90f4d2afdc6093eaef1"
++    },
++    {
++      "path": "services/python-workers/routes.json",
++      "sha256": "0ac3068fe9a9179eb6575609305d3eaf88e7d9d485a0794b7948333c0a70706f"
++    }
++  ],
++  "entries": [
++    {
++      "identity": {
++        "schema": "archeaxis.capability-package/v1",
++        "package_id": "archeaxis.pdf-extract",
++        "version": "0.1.0",
++        "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
++      },
++      "manifest": {
++        "schema": "archeaxis.capability-package/v1",
++        "declaration": "DECLARATION_ONLY",
++        "package_id": "archeaxis.pdf-extract",
++        "version": "0.1.0",
++        "capability_ids": [
++          "CAP-0020"
++        ],
++        "resource_keys": [
++          "pymupdf"
++        ],
++        "contribution_points": [
++          "format_conversion"
++        ],
++        "compatibility": {
++          "host_versions": {
++            "minimum": "0.1.0",
++            "maximum_exclusive": "1.0.0"
++          },
++          "contract_refs": [
++            {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            }
++          ]
++        },
++        "runtime_capabilities": [
++          "pdf.extract"
++        ],
++        "permissions": {
++          "requested": [
++            "selected_source.read",
++            "derived_artifact.propose"
++          ],
++          "data_scope": "explicit_selected_objects_only",
++          "network": "none",
++          "cost": "none",
++          "explicit_grant_required": true,
++          "canonical_writer": "rust_core_only",
++          "credential_handling": "host_reference_only",
++          "local_to_cloud_fallback": "explicit_grant_only",
++          "grants_execution": false,
++          "grants_knowledge_acceptance": false
++        },
++        "dependencies": [
++          {
++            "resource_key": "pymupdf",
++            "requirement": "required",
++            "version_range": null
++          }
++        ],
++        "license": {
++          "expression": null,
++          "review": "UNVERIFIED",
++          "notice_refs": []
++        },
++        "inputs": [
++          {
++            "kind": "raw_asset_reference",
++            "contract": {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            },
++            "max_bytes": 1048576
++          }
++        ],
++        "outputs": [
++          {
++            "kind": "document_reference",
++            "contract": {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            },
++            "max_bytes": 1048576
++          }
++        ],
++        "lifecycle": {
++          "cancellation": "host_propagated",
++          "exit": "bounded_cleanup",
++          "timeout_ms": 120000,
++          "unknown_result": "preserve_unknown_no_auto_retry",
++          "cleanup_evidence": "required_before_confirmed_exit"
++        },
++        "fallback": {
++          "mode": "unavailable",
++          "losses": [],
++          "automatic": false
++        },
++        "update": {
++          "strategy": "reviewed_replacement_only",
++          "rollback": "preserve_previous_identity_and_originals",
++          "canonical_data_migration": false
++        }
++      },
++      "source_path": "config/capability-packages/pdf-extract.manifest.json",
++      "validation": "VALIDATED_DECLARATION",
++      "host_version": "0.1.0",
++      "source_authenticity": "UNVERIFIED",
++      "qualification": "UNKNOWN",
++      "runtime": "UNKNOWN"
++    }
++  ]
++};
+diff --git a/frontend/src/components/CapabilityPackageDetails.tsx b/frontend/src/components/CapabilityPackageDetails.tsx
+new file mode 100644
+--- /dev/null
++++ b/frontend/src/components/CapabilityPackageDetails.tsx
+@@ -0,0 +1,22 @@
++import { CAPABILITY_PACKAGE_DETAILS } from "../api/generated/capability-package-details";
++import { RawReceiptButton } from "./DiagnosticConsole";
++
++/** 仅所选稳定CAP的构建时验证声明；不参与运行握手，也不授予安装、执行或许可资格。 */
++export function CapabilityPackageDetails({ capabilityId }: { capabilityId: string }) {
++  const rows = CAPABILITY_PACKAGE_DETAILS.entries.filter(row =>
++    (row.manifest.capability_ids as readonly string[]).includes(capabilityId));
++  return <section aria-label="能力包声明">
++    <h4>能力包声明</h4>
++    {!rows.length ? <p>此能力尚无已验证的包说明，manifest 身份 UNKNOWN；许可、资格与运行状态分别未知。</p> : rows.map(row => <article key={row.identity.sha256} aria-label={`包说明 ${row.identity.package_id}`}>
++      <p>包说明 {row.identity.package_id} · 声明版本 {row.identity.version}</p>
++      <p>声明校验通过：原字节身份、公共来源引用与构建宿主 {row.host_version} 兼容；发布者真实性 {row.source_authenticity}。</p>
++      <p>这里内置的是 manifest 说明，不证明关联引擎内置、已安装或可用。</p>
++      <p>贡献形式：{row.manifest.contribution_points.join("、")} · 来源稳定键：{row.manifest.resource_keys.join("、") || "无外部来源声明"}</p>
++      <p>许可声明：{row.manifest.license.expression ?? "UNKNOWN"} · 审查 {row.manifest.license.review}；声明校验不提供商业许可结论。</p>
++      <p>独立资格 {row.qualification} · 当前运行状态 {row.runtime}；当前健康与权限仍以下方范围化读回为准。</p>
++      <p>申请权限：{row.manifest.permissions.requested.join("、") || "无"} · 网络 {row.manifest.permissions.network} · 费用 {row.manifest.permissions.cost}；均未授权执行。</p>
++      <p>降级声明：{row.manifest.fallback.mode} · 损失 {row.manifest.fallback.losses.join("、") || "未声明损失"}；不自动降级或重试。</p>
++      <RawReceiptButton label={`包说明身份与来源 · ${row.identity.package_id}`} payload={{ identity: row.identity, source_path: row.source_path, sources: CAPABILITY_PACKAGE_DETAILS.sources }} />
++    </article>)}
++  </section>;
++}
+diff --git a/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx b/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx
+--- a/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx
++++ b/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx
+@@ -1,161 +1,163 @@
+-import { useEffect, useRef, useState } from "react";
+-import { AaosButton, AaosField, AaosTabs } from "../design-system/AaosPrimitives";
+-import { coreCommand } from "../api/core";
+-import { RawReceiptButton } from "../components/DiagnosticConsole";
+-import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generated/capability-catalog";
+-import { absorptionClassification, SURFACE_CLASS_LABEL, templatesRequiring } from "../templates/capabilityRequirements";
+-import { canNavigateToCapability, CAPABILITY_NAVIGATION_ENTRIES, CAPABILITY_PAGES, getCapabilityDestination, getCapabilityNextStep, navigationEntryMatches } from "../presentation/navigation";
+-import { Section } from "../components/RealData";
+-import { coreFailureReason } from "../presentation/labels";
+-import type { SpaceId } from "./spaces";
+-import type { ObjectTrailLevel } from "../components/NavTrail";
+-import { UI_CAPABILITY_INTENT, UI_CAPABILITY_SOURCE } from "../presentation/uiCapabilityIntent";
+-import { RESEARCH_BOUNDARIES } from "../presentation/researchBoundaries";
+-import { ModelTaskRoles } from "../components/ModelTaskRoles";
+-import { readScopedReadiness } from "../api/scopedReadiness";
+-import { capabilityPresentation, type CapabilityGroup } from "../presentation/capabilityCenter";
+-import "./capabilities.css";
+-
+-export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCapabilityId, navigation, onTrail }: { onNavigate: (id: SpaceId) => void; onOpenPage?: (id: string) => void; selectedCapabilityId?: string | null; navigation?: { section: string; sequence: number }; onTrail?: (levels: readonly ObjectTrailLevel[]) => void }) {
+-  const [selected, setSelected] = useState<CapabilityCatalogEntry | null>(() => CAPABILITY_CATALOG.entries.find((entry) => entry.atlas.capability_id === selectedCapabilityId) ?? null);
+-  const [activeTab, setActiveTab] = useState(selectedCapabilityId ? "details" : "catalog");
+-  const [query, setQuery] = useState("");
+-  const [category, setCategory] = useState<CapabilityGroup | "all">("all");
+-  const [observation, setObservation] = useState<{ capabilityId: string; sequence: number; expiresAt: number; rows: Map<string, Record<string, unknown>> } | null>(null);
+-  const live = observation && observation.capabilityId === selected?.atlas.capability_id && observation.expiresAt > Date.now() ? observation.rows : null;
+-  const [message, setMessage] = useState("");
+-  const [failureReason, setFailureReason] = useState<string | null>(null);
+-
+-  const sequence=useRef(0);
+-  async function refresh(target=selected) {
+-    const generation=++sequence.current;setObservation(null);setFailureReason(null);setMessage("正在读取所选能力的状态…");
+-    if(!target||!target.implementation.runtime_capabilities.length){setFailureReason(null);setMessage("请选择具体运行能力；目录声明不提供运行资格，不轮询全部引擎。");return;}
+-    const operations:readonly string[]=target.implementation.runtime_capabilities;
+-
+-    try {
+-      const scope=`view:${target.atlas.capability_id}`;
+-      const response = await coreCommand("operation_readiness",{body:{scope,operations}});
+-      if(generation!==sequence.current)return;
+-      const { snapshot, expiresAt } = readScopedReadiness(response, scope, operations);
+-      setObservation({capabilityId:target.atlas.capability_id,sequence:generation,expiresAt,
+-        rows:new Map(snapshot.operations.map(row=>[row.operation,{...row,enabled:row.permission==="ENABLED"?true:row.permission==="DISABLED"?false:undefined,health:row.connection}]))});
+-      setMessage("已读取当前视图的范围化状态；连接与运行资格分别保留未知，不加载模型。");
+-    } catch (error) {
+-      if(generation!==sequence.current)return;
+-      setObservation(null);
+-      setMessage("当前健康与权限读取失败，显示未知；目录详情仍可浏览。");
+-      setFailureReason(coreFailureReason(error));
+-    }
+-  }
+-
+-  useEffect(() => { void refresh(selected);return()=>{sequence.current++;}; }, [selected]);
+-  useEffect(()=>{if(!observation)return;const timer=setTimeout(()=>{if(sequence.current!==observation.sequence)return;setObservation(null);setMessage("状态已过期，连接、权限与资格降级未知；按当前视图显式刷新。");},Math.max(0,observation.expiresAt-Date.now()));return()=>clearTimeout(timer);},[observation]);
+-  useEffect(() => {
+-    const entry = CAPABILITY_CATALOG.entries.find((item) => item.atlas.capability_id === selectedCapabilityId) ?? null;
+-    setSelected(entry);
+-    if (entry) setActiveTab("details");
+-  }, [selectedCapabilityId]);
+-  useEffect(() => {
+-    if (!navigation?.sequence) return;
+-    setActiveTab(navigation.section === "details" ? "details" : "catalog");
+-  }, [navigation?.section, navigation?.sequence]);
+-  useEffect(() => {
+-    onTrail?.(selected ? [
+-      { id: "section:catalog", label: "能力目录与搜索", region: "catalog" },
+-      { id: selected.atlas.capability_id, label: selected.atlas.canonical_name, detail: `${selected.atlas.capability_id} · ${selected.implementation.state}`, region: "details" },
+-    ] : []);
+-  }, [selected, onTrail]);
+-
+-  const visible = CAPABILITY_NAVIGATION_ENTRIES.filter((entry) => navigationEntryMatches(entry, query)
+-    && (category === "all" || capabilityPresentation(entry.capability).group === category));
+-  const destination = selected ? getCapabilityDestination(selected) : undefined;
+-  const pageDestination = selected ? CAPABILITY_PAGES[selected.atlas.capability_id] : undefined;
+-  const hasDestination = Boolean(destination || (pageDestination && onOpenPage));
+-  // The reverse read of the template suite: derived from the same declarations the template surface
+-  // resolves against, so the two views cannot disagree, and it owns no second template list.
+-  const requiring = selected ? templatesRequiring(selected.atlas.capability_id) : [];
+-  const absorption = selected ? absorptionClassification(selected.atlas.capability_id) : null;
+-  const catalog = <div className="space-section-region" data-section="catalog" tabIndex={-1} aria-label="能力目录与搜索">
+-    <p>从这里发现内置工作流、可选扩展和未来能力。选择用途查看入口与条件；尚未接入的条目也保留说明。</p>
+-    <p>插件、技能与 MCP 是接入形式；当前目录不提供未经实现的安装或执行操作。</p>
+-    <AaosField label="查找能力" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="名称、ID、对象、依赖或旧入口别名" />
+-    <div className="capability-center-filters" role="group" aria-label="能力分类">{([
+-      ["all", "全部"], ["builtin", "内置能力"], ["extension", "扩展能力"], ["future", "未来规划"],
+-    ] as const).map(([id,label])=><AaosButton key={id} aria-pressed={category===id} onClick={()=>setCategory(id)}>{label}</AaosButton>)}</div>
+-    <div className="capability-actions"><AaosButton variant="secondary" onClick={() => void refresh()}>刷新当前健康与权限</AaosButton>
+-      <span>{CAPABILITY_CATALOG.entries.length} 项 Atlas 投影；筛选结果 {visible.length} 项。条目数量不是能力上限。</span></div>
+-    {!visible.length ? <p role="status">没有符合条件的能力；可以清空搜索或切换分类。</p> : null}
+-    <ul className="capability-directory capability-center-list">{visible.map((navigationEntry) => {const view=capabilityPresentation(navigationEntry.capability);return <li key={navigationEntry.entry_id}>
+-      <button data-entry-id={navigationEntry.entry_id} onClick={() => { setSelected(navigationEntry.capability); setActiveTab("details"); }}>
+-        <b>{navigationEntry.label}</b><span>{view.purpose}</span><small>{navigationEntry.entry_id} · {view.form}</small>
+-      </button>
+-      <span>{view.status}</span>
+-    </li>;})}</ul>
+-  </div>;
+-
+-  const details = <div className="space-section-region" data-section="details" tabIndex={-1} aria-label="能力详情">{selected ? <article aria-label="能力详情">
+-    <h4>{selected.atlas.canonical_name}</h4>
+-    <p>{capabilityPresentation(selected).purpose}</p>
+-    <p>稳定入口 ID {selected.atlas.capability_id}</p>
+-    <p>目录声明：{selected.atlas.authority_status} · 技术 {selected.atlas.technical_state} · 路线 {selected.atlas.roadmap_state} · 时段 {selected.atlas.activation_horizon}</p>
+-    <p>场景对象：{selected.atlas.objects.join("、")}</p><p>相关视图：{selected.atlas.views.join("、")}</p>
+-    <p>依赖声明：{selected.atlas.dependencies.length ? selected.atlas.dependencies.join("、") : "目录未列依赖"}</p>
+-    <p>执行前提：{selected.atlas.entry_gate.join("；") || "目录未列前提"}</p>
+-    <p>所需验收证据：{selected.atlas.exit_evidence.join("；") || "目录未列证据要求"}</p>
+-    <p>降级与回退：{selected.atlas.fallbacks.join("；") || "目录未列回退"}</p>
+-    <p>旧入口别名：{selected.atlas.origin_requirement_ids.join("、") || "目录未列旧别名"}</p>
+-    <section aria-label="设计细项与独立证据">
+-      <h4>新设计保留的细项</h4>
+-      <p>以下来自设计输入，逐项实施与独立资格证据为 UNKNOWN。父能力声明和运行握手不证明这些细项全部完成。</p>
+-      <ul>{(UI_CAPABILITY_INTENT[selected.atlas.capability_id] ?? []).map(intent => <li key={intent}>{intent} · 独立证据 UNKNOWN</li>)}</ul>
+-      <RawReceiptButton label="设计来源与校验指纹" payload={UI_CAPABILITY_SOURCE} />
+-    </section>
+-    <p>下一步：{getCapabilityNextStep(selected, Boolean(onOpenPage))}</p>
+-    {RESEARCH_BOUNDARIES[selected.atlas.capability_id] && <section aria-label="集合与研究实施边界">
+-      <h4>当前入口提供的范围</h4>
+-      <p>以下是本地入口范围，安装态、真人验收与来源平台语义资格仍分别核验。</p>
+-      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].available.map(item => <li key={item}>{item}</li>)}</ul>
+-      <h4>待实现或待独立资格验收</h4>
+-      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].pending.map(item => <li key={item}>{item} · 未执行</li>)}</ul>
+-    </section>}
+-    <p>{absorption?.sources.length ? "以下供体来源由现有稳定能力 ID 投影联接；分类与历史资格分别保留，不代表本轮运行通过。" : "供体映射未建立；不按相似名称推断已吸收关系。"}</p>
+-    <div>吸收来源分类：{absorption?.label}。{absorption?.sources.length
+-      ? <ul>{absorption!.sources.map((row) => <li key={`${row.source}/${row.surface_class}`}>{row.source}<p>类别：{SURFACE_CLASS_LABEL[row.surface_class]} · 历史验证层级 {row.verification_tier ?? "未分层"} · 历史可用登记：{row.currently_usable ? "是" : "否"}（不代表当前运行可用） · 跨词汇表分歧 {row.conflicts} 条</p></li>)}</ul>
+-      : <>候选类别为 {absorption!.classes.map((item) => item.label).join("、")}；{absorption?.reason}</>}
+-    </div>
+-    <h4>使用此能力的模板</h4>
+-    {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
+-      <b>{reference.template_id} {reference.template_name}</b>
+-      <small>{reference.declared} · {reference.join_label} · {reference.status_label}</small>
+-    </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
+-    <p>{requiring.length ? "此处只列声明了该 ID 的模板；模板不复制插件代码、依赖安装或连接配置。对象在资料库的「学科模板」展开区，本视图不建立第二份模板清单。" : "无声明联接时不提供跳转，避免打开一个没有对象的入口。"}</p>
+-    {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
+-    <h4>当前运行联接、权限与健康</h4>
+-    <ModelTaskRoles capabilities={live} scopeLabel={selected.atlas.canonical_name}/>
+-    <p>实现声明来源：config/capability-map.v1.json · {selected.implementation.state}。声明本身不证明本轮执行。</p>
+-    {selected.implementation.runtime_capabilities.length ? <ul>{selected.implementation.runtime_capabilities.map((capability) => {
+-      const observation = live?.get(capability);
+-      return <li key={capability}>{capability}<p>连接/权限：{typeof observation?.enabled === "boolean" ? (observation.enabled ? "允许" : "已禁用") : "未知"} · 即时健康：{typeof observation?.health === "string" ? observation.health : "未知"}</p><p>运行资格：{String(observation?.qualification??"UNKNOWN")} · 原因：{Array.isArray(observation?.reasons)?observation.reasons.join(" / "):"未观察或已过期"}</p>
+-        {/* The line above is the human-readable reading surface; the untouched handshake readback goes
+-            to the diagnostic console, the same channel this file already uses for the catalog sources. */}
+-        {observation ? <RawReceiptButton label={`Core 范围化状态原始读回 · ${capability}`} payload={observation} /> : null}</li>;
+-    })}</ul> : <p>{selected.implementation.state === "not_implemented" ? "没有当前运行实现，执行动作不可用。" : "此项声明为 Core 原生；worker 握手不提供该项的运行证据。"}</p>}
+-    <p>实际引擎身份、版本与产物质量需在具体 job 的质量回执核验。</p>
+-    {selected.atlas.capability_id === "CAP-0150" ? <p>完整模型治理仍待实现；已有模型连接与用途配置可单独查看，不代表整个能力已接入。<AaosButton disabled={!onOpenPage} disabledReason={!onOpenPage ? "当前宿主未提供模型配置页面导航" : undefined} onClick={()=>onOpenPage?.("19")}>查看现有模型配置</AaosButton></p> : null}
+-    <AaosButton variant="primary" disabled={!hasDestination || !canNavigateToCapability(selected)}
+-      disabledReason={!hasDestination ? "当前没有可打开的产品入口" : undefined} onClick={() => { if (pageDestination && onOpenPage) onOpenPage(pageDestination); else if (destination) onNavigate(destination); }}>
+-      {hasDestination ? "打开当前产品入口" : "当前执行入口尚未提供"}
+-    </AaosButton>
+-  </article> : <p>从目录选择能力，查看用途、前提、依赖、状态、降级和下一步。</p>}</div>;
+-
+-  return <Section title="能力中心">
+-    <AaosTabs label="能力目录视图" value={activeTab} onValueChange={setActiveTab} tabs={[
+-      { id: "catalog", label: "目录与搜索", content: catalog },
+-      { id: "details", label: "能力详情", content: details },
+-    ]} />
+-    {message ? <p role="status">{message}</p> : null}
+-    {failureReason ? <p className="state-reason">{failureReason}</p> : null}
+-    <p>此视图使用生成的 Atlas/implementation 投影，不建立第二份能力真值。</p>
+-    <RawReceiptButton label="目录投影来源与哈希" payload={CAPABILITY_CATALOG.sources} />
+-  </Section>;
+-}
++import { useEffect, useRef, useState } from "react";
++import { AaosButton, AaosField, AaosTabs } from "../design-system/AaosPrimitives";
++import { coreCommand } from "../api/core";
++import { RawReceiptButton } from "../components/DiagnosticConsole";
++import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generated/capability-catalog";
++import { absorptionClassification, SURFACE_CLASS_LABEL, templatesRequiring } from "../templates/capabilityRequirements";
++import { canNavigateToCapability, CAPABILITY_NAVIGATION_ENTRIES, CAPABILITY_PAGES, getCapabilityDestination, getCapabilityNextStep, navigationEntryMatches } from "../presentation/navigation";
++import { Section } from "../components/RealData";
++import { coreFailureReason } from "../presentation/labels";
++import type { SpaceId } from "./spaces";
++import type { ObjectTrailLevel } from "../components/NavTrail";
++import { UI_CAPABILITY_INTENT, UI_CAPABILITY_SOURCE } from "../presentation/uiCapabilityIntent";
++import { RESEARCH_BOUNDARIES } from "../presentation/researchBoundaries";
++import { ModelTaskRoles } from "../components/ModelTaskRoles";
++import { readScopedReadiness } from "../api/scopedReadiness";
++import { capabilityPresentation, type CapabilityGroup } from "../presentation/capabilityCenter";
++import { CapabilityPackageDetails } from "../components/CapabilityPackageDetails";
++import "./capabilities.css";
++
++export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCapabilityId, navigation, onTrail }: { onNavigate: (id: SpaceId) => void; onOpenPage?: (id: string) => void; selectedCapabilityId?: string | null; navigation?: { section: string; sequence: number }; onTrail?: (levels: readonly ObjectTrailLevel[]) => void }) {
++  const [selected, setSelected] = useState<CapabilityCatalogEntry | null>(() => CAPABILITY_CATALOG.entries.find((entry) => entry.atlas.capability_id === selectedCapabilityId) ?? null);
++  const [activeTab, setActiveTab] = useState(selectedCapabilityId ? "details" : "catalog");
++  const [query, setQuery] = useState("");
++  const [category, setCategory] = useState<CapabilityGroup | "all">("all");
++  const [observation, setObservation] = useState<{ capabilityId: string; sequence: number; expiresAt: number; rows: Map<string, Record<string, unknown>> } | null>(null);
++  const live = observation && observation.capabilityId === selected?.atlas.capability_id && observation.expiresAt > Date.now() ? observation.rows : null;
++  const [message, setMessage] = useState("");
++  const [failureReason, setFailureReason] = useState<string | null>(null);
++
++  const sequence=useRef(0);
++  async function refresh(target=selected) {
++    const generation=++sequence.current;setObservation(null);setFailureReason(null);setMessage("正在读取所选能力的状态…");
++    if(!target||!target.implementation.runtime_capabilities.length){setFailureReason(null);setMessage("请选择具体运行能力；目录声明不提供运行资格，不轮询全部引擎。");return;}
++    const operations:readonly string[]=target.implementation.runtime_capabilities;
++
++    try {
++      const scope=`view:${target.atlas.capability_id}`;
++      const response = await coreCommand("operation_readiness",{body:{scope,operations}});
++      if(generation!==sequence.current)return;
++      const { snapshot, expiresAt } = readScopedReadiness(response, scope, operations);
++      setObservation({capabilityId:target.atlas.capability_id,sequence:generation,expiresAt,
++        rows:new Map(snapshot.operations.map(row=>[row.operation,{...row,enabled:row.permission==="ENABLED"?true:row.permission==="DISABLED"?false:undefined,health:row.connection}]))});
++      setMessage("已读取当前视图的范围化状态；连接与运行资格分别保留未知，不加载模型。");
++    } catch (error) {
++      if(generation!==sequence.current)return;
++      setObservation(null);
++      setMessage("当前健康与权限读取失败，显示未知；目录详情仍可浏览。");
++      setFailureReason(coreFailureReason(error));
++    }
++  }
++
++  useEffect(() => { void refresh(selected);return()=>{sequence.current++;}; }, [selected]);
++  useEffect(()=>{if(!observation)return;const timer=setTimeout(()=>{if(sequence.current!==observation.sequence)return;setObservation(null);setMessage("状态已过期，连接、权限与资格降级未知；按当前视图显式刷新。");},Math.max(0,observation.expiresAt-Date.now()));return()=>clearTimeout(timer);},[observation]);
++  useEffect(() => {
++    const entry = CAPABILITY_CATALOG.entries.find((item) => item.atlas.capability_id === selectedCapabilityId) ?? null;
++    setSelected(entry);
++    if (entry) setActiveTab("details");
++  }, [selectedCapabilityId]);
++  useEffect(() => {
++    if (!navigation?.sequence) return;
++    setActiveTab(navigation.section === "details" ? "details" : "catalog");
++  }, [navigation?.section, navigation?.sequence]);
++  useEffect(() => {
++    onTrail?.(selected ? [
++      { id: "section:catalog", label: "能力目录与搜索", region: "catalog" },
++      { id: selected.atlas.capability_id, label: selected.atlas.canonical_name, detail: `${selected.atlas.capability_id} · ${selected.implementation.state}`, region: "details" },
++    ] : []);
++  }, [selected, onTrail]);
++
++  const visible = CAPABILITY_NAVIGATION_ENTRIES.filter((entry) => navigationEntryMatches(entry, query)
++    && (category === "all" || capabilityPresentation(entry.capability).group === category));
++  const destination = selected ? getCapabilityDestination(selected) : undefined;
++  const pageDestination = selected ? CAPABILITY_PAGES[selected.atlas.capability_id] : undefined;
++  const hasDestination = Boolean(destination || (pageDestination && onOpenPage));
++  // The reverse read of the template suite: derived from the same declarations the template surface
++  // resolves against, so the two views cannot disagree, and it owns no second template list.
++  const requiring = selected ? templatesRequiring(selected.atlas.capability_id) : [];
++  const absorption = selected ? absorptionClassification(selected.atlas.capability_id) : null;
++  const catalog = <div className="space-section-region" data-section="catalog" tabIndex={-1} aria-label="能力目录与搜索">
++    <p>从这里发现内置工作流、可选扩展和未来能力。选择用途查看入口与条件；尚未接入的条目也保留说明。</p>
++    <p>插件、技能与 MCP 是接入形式；当前目录不提供未经实现的安装或执行操作。</p>
++    <AaosField label="查找能力" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="名称、ID、对象、依赖或旧入口别名" />
++    <div className="capability-center-filters" role="group" aria-label="能力分类">{([
++      ["all", "全部"], ["builtin", "内置能力"], ["extension", "扩展能力"], ["future", "未来规划"],
++    ] as const).map(([id,label])=><AaosButton key={id} aria-pressed={category===id} onClick={()=>setCategory(id)}>{label}</AaosButton>)}</div>
++    <div className="capability-actions"><AaosButton variant="secondary" onClick={() => void refresh()}>刷新当前健康与权限</AaosButton>
++      <span>{CAPABILITY_CATALOG.entries.length} 项 Atlas 投影；筛选结果 {visible.length} 项。条目数量不是能力上限。</span></div>
++    {!visible.length ? <p role="status">没有符合条件的能力；可以清空搜索或切换分类。</p> : null}
++    <ul className="capability-directory capability-center-list">{visible.map((navigationEntry) => {const view=capabilityPresentation(navigationEntry.capability);return <li key={navigationEntry.entry_id}>
++      <button data-entry-id={navigationEntry.entry_id} onClick={() => { setSelected(navigationEntry.capability); setActiveTab("details"); }}>
++        <b>{navigationEntry.label}</b><span>{view.purpose}</span><small>{navigationEntry.entry_id} · {view.form}</small>
++      </button>
++      <span>{view.status}</span>
++    </li>;})}</ul>
++  </div>;
++
++  const details = <div className="space-section-region" data-section="details" tabIndex={-1} aria-label="能力详情">{selected ? <article aria-label="能力详情">
++    <h4>{selected.atlas.canonical_name}</h4>
++    <p>{capabilityPresentation(selected).purpose}</p>
++    <p>稳定入口 ID {selected.atlas.capability_id}</p>
++    <p>目录声明：{selected.atlas.authority_status} · 技术 {selected.atlas.technical_state} · 路线 {selected.atlas.roadmap_state} · 时段 {selected.atlas.activation_horizon}</p>
++    <p>场景对象：{selected.atlas.objects.join("、")}</p><p>相关视图：{selected.atlas.views.join("、")}</p>
++    <p>依赖声明：{selected.atlas.dependencies.length ? selected.atlas.dependencies.join("、") : "目录未列依赖"}</p>
++    <p>执行前提：{selected.atlas.entry_gate.join("；") || "目录未列前提"}</p>
++    <p>所需验收证据：{selected.atlas.exit_evidence.join("；") || "目录未列证据要求"}</p>
++    <p>降级与回退：{selected.atlas.fallbacks.join("；") || "目录未列回退"}</p>
++    <p>旧入口别名：{selected.atlas.origin_requirement_ids.join("、") || "目录未列旧别名"}</p>
++    <section aria-label="设计细项与独立证据">
++      <h4>新设计保留的细项</h4>
++      <p>以下来自设计输入，逐项实施与独立资格证据为 UNKNOWN。父能力声明和运行握手不证明这些细项全部完成。</p>
++      <ul>{(UI_CAPABILITY_INTENT[selected.atlas.capability_id] ?? []).map(intent => <li key={intent}>{intent} · 独立证据 UNKNOWN</li>)}</ul>
++      <RawReceiptButton label="设计来源与校验指纹" payload={UI_CAPABILITY_SOURCE} />
++    </section>
++    <p>下一步：{getCapabilityNextStep(selected, Boolean(onOpenPage))}</p>
++    {RESEARCH_BOUNDARIES[selected.atlas.capability_id] && <section aria-label="集合与研究实施边界">
++      <h4>当前入口提供的范围</h4>
++      <p>以下是本地入口范围，安装态、真人验收与来源平台语义资格仍分别核验。</p>
++      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].available.map(item => <li key={item}>{item}</li>)}</ul>
++      <h4>待实现或待独立资格验收</h4>
++      <ul>{RESEARCH_BOUNDARIES[selected.atlas.capability_id].pending.map(item => <li key={item}>{item} · 未执行</li>)}</ul>
++    </section>}
++    <p>{absorption?.sources.length ? "以下供体来源由现有稳定能力 ID 投影联接；分类与历史资格分别保留，不代表本轮运行通过。" : "供体映射未建立；不按相似名称推断已吸收关系。"}</p>
++    <div>吸收来源分类：{absorption?.label}。{absorption?.sources.length
++      ? <ul>{absorption!.sources.map((row) => <li key={`${row.source}/${row.surface_class}`}>{row.source}<p>类别：{SURFACE_CLASS_LABEL[row.surface_class]} · 历史验证层级 {row.verification_tier ?? "未分层"} · 历史可用登记：{row.currently_usable ? "是" : "否"}（不代表当前运行可用） · 跨词汇表分歧 {row.conflicts} 条</p></li>)}</ul>
++      : <>候选类别为 {absorption!.classes.map((item) => item.label).join("、")}；{absorption?.reason}</>}
++    </div>
++    <h4>使用此能力的模板</h4>
++    {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
++      <b>{reference.template_id} {reference.template_name}</b>
++      <small>{reference.declared} · {reference.join_label} · {reference.status_label}</small>
++    </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
++    <p>{requiring.length ? "此处只列声明了该 ID 的模板；模板不复制插件代码、依赖安装或连接配置。对象在资料库的「学科模板」展开区，本视图不建立第二份模板清单。" : "无声明联接时不提供跳转，避免打开一个没有对象的入口。"}</p>
++    {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
++    <CapabilityPackageDetails capabilityId={selected.atlas.capability_id} />
++    <h4>当前运行联接、权限与健康</h4>
++    <ModelTaskRoles capabilities={live} scopeLabel={selected.atlas.canonical_name}/>
++    <p>实现声明来源：config/capability-map.v1.json · {selected.implementation.state}。声明本身不证明本轮执行。</p>
++    {selected.implementation.runtime_capabilities.length ? <ul>{selected.implementation.runtime_capabilities.map((capability) => {
++      const observation = live?.get(capability);
++      return <li key={capability}>{capability}<p>连接/权限：{typeof observation?.enabled === "boolean" ? (observation.enabled ? "允许" : "已禁用") : "未知"} · 即时健康：{typeof observation?.health === "string" ? observation.health : "未知"}</p><p>运行资格：{String(observation?.qualification??"UNKNOWN")} · 原因：{Array.isArray(observation?.reasons)?observation.reasons.join(" / "):"未观察或已过期"}</p>
++        {/* The line above is the human-readable reading surface; the untouched handshake readback goes
++            to the diagnostic console, the same channel this file already uses for the catalog sources. */}
++        {observation ? <RawReceiptButton label={`Core 范围化状态原始读回 · ${capability}`} payload={observation} /> : null}</li>;
++    })}</ul> : <p>{selected.implementation.state === "not_implemented" ? "没有当前运行实现，执行动作不可用。" : "此项声明为 Core 原生；worker 握手不提供该项的运行证据。"}</p>}
++    <p>实际引擎身份、版本与产物质量需在具体 job 的质量回执核验。</p>
++    {selected.atlas.capability_id === "CAP-0150" ? <p>完整模型治理仍待实现；已有模型连接与用途配置可单独查看，不代表整个能力已接入。<AaosButton disabled={!onOpenPage} disabledReason={!onOpenPage ? "当前宿主未提供模型配置页面导航" : undefined} onClick={()=>onOpenPage?.("19")}>查看现有模型配置</AaosButton></p> : null}
++    <AaosButton variant="primary" disabled={!hasDestination || !canNavigateToCapability(selected)}
++      disabledReason={!hasDestination ? "当前没有可打开的产品入口" : undefined} onClick={() => { if (pageDestination && onOpenPage) onOpenPage(pageDestination); else if (destination) onNavigate(destination); }}>
++      {hasDestination ? "打开当前产品入口" : "当前执行入口尚未提供"}
++    </AaosButton>
++  </article> : <p>从目录选择能力，查看用途、前提、依赖、状态、降级和下一步。</p>}</div>;
++
++  return <Section title="能力中心">
++    <AaosTabs label="能力目录视图" value={activeTab} onValueChange={setActiveTab} tabs={[
++      { id: "catalog", label: "目录与搜索", content: catalog },
++      { id: "details", label: "能力详情", content: details },
++    ]} />
++    {message ? <p role="status">{message}</p> : null}
++    {failureReason ? <p className="state-reason">{failureReason}</p> : null}
++    <p>此视图使用生成的 Atlas/implementation 投影，不建立第二份能力真值。</p>
++    <RawReceiptButton label="目录投影来源与哈希" payload={CAPABILITY_CATALOG.sources} />
++  </Section>;
++}
+diff --git a/frontend/vite.config.ts b/frontend/vite.config.ts
+--- a/frontend/vite.config.ts
++++ b/frontend/vite.config.ts
+@@ -1,72 +1,76 @@
+-/// <reference types="vitest" />
+-import { fileURLToPath } from "node:url";
+-import { join, resolve } from "node:path";
+-import { defineConfig } from "vite";
+-import react from "@vitejs/plugin-react";
+-import { verifyBuildEnvironment } from "../scripts/runtime/frontend_paths.mjs";
+-
+-// AXW-UI-801: App Shell built with Vite; dev server binds loopback only.
+-// Tauri integration: build output goes to the project-owned build root.
+-// AXW-UI-804: Vitest (jsdom) runs component tests; setup file registers
+-// @testing-library/jest-dom matchers.
+-// Resolve this from the configuration module rather than process.cwd(). Tauri
+-// may invoke the frontend through a Windows Junction to shorten NSIS paths;
+-// a cwd-derived root would then make index.html appear outside the bundle.
+-const frontendRoot = fileURLToPath(new URL(".", import.meta.url));
+-const projectRunRoot = process.env.ARCHEAXIS_RUN_ROOT;
+-const viteCacheRoot = projectRunRoot
+-  ? join(projectRunRoot, "cache", "vite")
+-  : fileURLToPath(new URL("../.project-local/build/vite-cache", import.meta.url));
+-
+-export default defineConfig(({ command }) => {
+-  const frontendDist = process.env.ARCHEAXIS_FRONTEND_DIST;
+-  if (command === "build" && !frontendDist) throw new Error("Use npm run build: frontend output requires the project run router");
+-  if (command === "build") verifyBuildEnvironment(resolve(frontendRoot, ".."));
+-  return {
+-  root: frontendRoot,
+-  cacheDir: viteCacheRoot,
+-  plugins: [react(), { name: "canonical-frontend-output", apply: "build", configResolved(config) {
+-    if (resolve(config.build.outDir) !== resolve(frontendDist!)) throw new Error("Vite output override rejected by the project run router");
+-  } }],
+-  server: {
+-    host: "127.0.0.1",
+-    port: 5173,
+-    strictPort: true,
+-    // Development-only loopback bridge for browser-based integration checks.
+-    // Tauri/Green uses its desktop runtime client instead of this proxy.
+-    proxy: {
+-      "/api": {
+-        target: "http://127.0.0.1:8000",
+-        changeOrigin: true,
+-      },
+-      "/workspace/api": {
+-        target: "http://127.0.0.1:8000",
+-        changeOrigin: true,
+-        // The browser origin remains the Vite loopback port.  The Core
+-        // correctly rejects cross-origin workspace writes, so make the
+-        // development-only bridge present the target's loopback origin.
+-        // Tauri/Green does not use this proxy or this header rewrite.
+-        configure(proxy) {
+-          proxy.on("proxyReq", (proxyReq) => {
+-            proxyReq.setHeader("origin", "http://127.0.0.1:8000");
+-          });
+-        },
+-      },
+-    },
+-  },
+-  build: {
+-    outDir: frontendDist ?? fileURLToPath(new URL("../.project-local/build/unrouted-frontend-dist", import.meta.url)),
+-    // The canonical output is outside the frontend source root; clear only
+-    // that project-owned generated directory before each production build.
+-    emptyOutDir: true,
+-    sourcemap: false,
+-    // Relative asset URLs so the bundle also works when served from
+-    // file:// (green distribution bootstrap/ directory beside the exe).
+-    base: "./",
+-  },
+-  test: {
+-    environment: "jsdom",
+-    setupFiles: ["./src/test/setup.ts"],
+-  },
+-  };
+-});
++/// <reference types="vitest" />
++import { execFileSync } from "node:child_process";
++import { fileURLToPath } from "node:url";
++import { join, resolve } from "node:path";
++import { defineConfig } from "vite";
++import react from "@vitejs/plugin-react";
++import { projectPython, verifyBuildEnvironment } from "../scripts/runtime/frontend_paths.mjs";
++
++// AXW-UI-801: App Shell built with Vite; dev server binds loopback only.
++// Tauri integration: build output goes to the project-owned build root.
++// AXW-UI-804: Vitest (jsdom) runs component tests; setup file registers
++// @testing-library/jest-dom matchers.
++// Resolve this from the configuration module rather than process.cwd(). Tauri
++// may invoke the frontend through a Windows Junction to shorten NSIS paths;
++// a cwd-derived root would then make index.html appear outside the bundle.
++const frontendRoot = fileURLToPath(new URL(".", import.meta.url));
++const projectRunRoot = process.env.ARCHEAXIS_RUN_ROOT;
++const viteCacheRoot = projectRunRoot
++  ? join(projectRunRoot, "cache", "vite")
++  : fileURLToPath(new URL("../.project-local/build/vite-cache", import.meta.url));
++
++export default defineConfig(({ command }) => {
++  // 只检查不生成：来源、版本或原字节漂移时禁止继续使用旧能力包详情。
++  const root = resolve(frontendRoot, "..");
++  execFileSync(projectPython(root), ["-B", join(root, "scripts/contracts/generate_capability_package_details.py"), "--check"], { cwd: root, stdio: "pipe" });
++  const frontendDist = process.env.ARCHEAXIS_FRONTEND_DIST;
++  if (command === "build" && !frontendDist) throw new Error("Use npm run build: frontend output requires the project run router");
++  if (command === "build") verifyBuildEnvironment(resolve(frontendRoot, ".."));
++  return {
++  root: frontendRoot,
++  cacheDir: viteCacheRoot,
++  plugins: [react(), { name: "canonical-frontend-output", apply: "build", configResolved(config) {
++    if (resolve(config.build.outDir) !== resolve(frontendDist!)) throw new Error("Vite output override rejected by the project run router");
++  } }],
++  server: {
++    host: "127.0.0.1",
++    port: 5173,
++    strictPort: true,
++    // Development-only loopback bridge for browser-based integration checks.
++    // Tauri/Green uses its desktop runtime client instead of this proxy.
++    proxy: {
++      "/api": {
++        target: "http://127.0.0.1:8000",
++        changeOrigin: true,
++      },
++      "/workspace/api": {
++        target: "http://127.0.0.1:8000",
++        changeOrigin: true,
++        // The browser origin remains the Vite loopback port.  The Core
++        // correctly rejects cross-origin workspace writes, so make the
++        // development-only bridge present the target's loopback origin.
++        // Tauri/Green does not use this proxy or this header rewrite.
++        configure(proxy) {
++          proxy.on("proxyReq", (proxyReq) => {
++            proxyReq.setHeader("origin", "http://127.0.0.1:8000");
++          });
++        },
++      },
++    },
++  },
++  build: {
++    outDir: frontendDist ?? fileURLToPath(new URL("../.project-local/build/unrouted-frontend-dist", import.meta.url)),
++    // The canonical output is outside the frontend source root; clear only
++    // that project-owned generated directory before each production build.
++    emptyOutDir: true,
++    sourcemap: false,
++    // Relative asset URLs so the bundle also works when served from
++    // file:// (green distribution bootstrap/ directory beside the exe).
++    base: "./",
++  },
++  test: {
++    environment: "jsdom",
++    setupFiles: ["./src/test/setup.ts"],
++  },
++  };
++});
+diff --git a/scripts/contracts/generate_capability_package_details.py b/scripts/contracts/generate_capability_package_details.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/contracts/generate_capability_package_details.py
+@@ -0,0 +1,123 @@
++"""从明确内置说明原字节生成只读能力详情；不注册、安装或执行任何引擎。"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import stat
++import tomllib
++from pathlib import Path
++
++from validate_capability_package import ManifestValidationError, parse_manifest_bytes
++
++# 这是随产品审阅的说明字节入口，不是运行引擎/安装状态注册表，也不自动枚举目录。
++BUILTIN_MANIFEST = "config/capability-packages/pdf-extract.manifest.json"
++TARGET = "frontend/src/api/generated/capability-package-details.ts"
++SOURCES = (
++    "packages/contracts/v2/capability-package.schema.json",
++    "scripts/contracts/validate_capability_package.py",
++    "scripts/contracts/generate_capability_package_details.py",
++    "config/capability-map.v1.json",
++    "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++    "services/python-workers/routes.json",
++    "crates/archeaxis-api/Cargo.toml",
++)
++MAX_PUBLIC_BYTES = 4194304
++
++
++def read_public(root: Path, name: str, limit=MAX_PUBLIC_BYTES):
++    # 调用方仅传固定公开输入或已经由现有validator验证的公共引用；读取前再次拒绝链接。
++    if not name or any(x in ("", ".", "..") for x in name.split("/")) or ":" in name or "\\" in name:
++        raise ManifestValidationError("MANIFEST_PROJECTION_PATH_REJECTED")
++    current = root
++    try:
++        for part in name.split("/"):
++            current /= part
++            info = current.lstat()
++            if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
++                raise ManifestValidationError("MANIFEST_PROJECTION_LINK_REJECTED")
++        if not stat.S_ISREG(info.st_mode) or info.st_size > limit:
++            raise ManifestValidationError("MANIFEST_PROJECTION_SIZE_REJECTED")
++        with current.open("rb") as handle:
++            raw = handle.read(limit + 1)
++        if len(raw) > limit:
++            raise ManifestValidationError("MANIFEST_PROJECTION_SIZE_REJECTED")
++        return raw
++    except OSError:
++        raise ManifestValidationError("MANIFEST_PROJECTION_SOURCE_UNAVAILABLE") from None
++
++
++def build(root: Path):
++    raw = read_public(root, BUILTIN_MANIFEST, 262144)
++    identity = parse_manifest_bytes(raw, root)
++    manifest = json.loads(raw)
++    catalog = json.loads(read_public(root, SOURCES[4]))["entries"]
++    by_key = {item["stable_key"]: item for item in catalog}
++    # 本切片只接受目录已明确联接的来源，不能用相似名/候选CAP建立新的吸收事实。
++    for key in manifest["resource_keys"]:
++        row = by_key[key]
++        if row.get("atlas_capability_id") not in manifest["capability_ids"]:
++            raise ManifestValidationError("MANIFEST_PROJECTION_CATALOG_JOIN_UNCONFIRMED")
++        route = row["route_binding"].get("named_route")
++        if route and route not in manifest["runtime_capabilities"]:
++            raise ManifestValidationError("MANIFEST_PROJECTION_ROUTE_JOIN_UNCONFIRMED")
++    paths = set(SOURCES) | {BUILTIN_MANIFEST}
++    refs = manifest["compatibility"]["contract_refs"] + manifest["license"]["notice_refs"]
++    refs += [item["contract"] for item in manifest["inputs"] + manifest["outputs"]]
++    paths.update(ref["path"] for ref in refs)
++    sources = [{"path": name, "sha256": hashlib.sha256(read_public(root, name)).hexdigest()}
++               for name in sorted(paths)]
++    host = tomllib.loads(read_public(root, "crates/archeaxis-api/Cargo.toml").decode("utf-8"))["package"]["version"]
++    return {"sources": sources, "entries": [{
++        "identity": identity,
++        "manifest": manifest,
++        "source_path": BUILTIN_MANIFEST,
++        "validation": "VALIDATED_DECLARATION",
++        "host_version": host,
++        "source_authenticity": "UNVERIFIED",
++        "qualification": "UNKNOWN",
++        "runtime": "UNKNOWN",
++    }]}
++
++
++TYPES = """import type { CapabilityManifestIdentity, CapabilityPackageManifest } from './capability-package';
++export type CapabilityPackageDetail = {
++  identity: CapabilityManifestIdentity; manifest: CapabilityPackageManifest; source_path: string;
++  validation: 'VALIDATED_DECLARATION'; host_version: string;
++  source_authenticity: 'UNVERIFIED'; qualification: 'UNKNOWN'; runtime: 'UNKNOWN';
++};
++export type CapabilityPackageDetailProjection = {
++  sources: { path: string; sha256: string }[]; entries: CapabilityPackageDetail[];
++};
++"""
++
++
++def generate(root: Path):
++    payload = build(root)
++    return ("// Generated from exact builtin manifest and public validator inputs. Declaration only.\n"
++            + TYPES + "export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = "
++            + json.dumps(payload, ensure_ascii=False, indent=2) + ";\n")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
++    parser.add_argument("--output", type=Path)
++    parser.add_argument("--check", action="store_true")
++    args = parser.parse_args()
++    try:
++        rendered = generate(args.root)
++        target = args.output or args.root / TARGET
++        if args.check:
++            if not target.is_file() or target.read_text(encoding="utf-8") != rendered:
++                raise ManifestValidationError("MANIFEST_PROJECTION_STALE")
++        else:
++            target.parent.mkdir(parents=True, exist_ok=True)
++            target.write_text(rendered, encoding="utf-8", newline="\n")
++    except (ManifestValidationError, OSError, ValueError, KeyError):
++        # 不回显manifest、路径、来源正文、license任意文本或解析器错误。
++        raise SystemExit("MANIFEST_PROJECTION_CHECK_FAILED") from None
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tests/contract/test_capability_package_details.py b/tests/contract/test_capability_package_details.py
+new file mode 100644
+--- /dev/null
++++ b/tests/contract/test_capability_package_details.py
+@@ -0,0 +1,101 @@
++"""已应用manifest合同的真实业务消费；临时镜像测试不提供引擎/许可/运行资格。"""
++import hashlib
++import importlib.util
++import json
++import shutil
++import subprocess
++import sys
++from pathlib import Path
++
++import pytest
++
++ROOT = Path(__file__).resolve().parents[2]
++SCRIPTS = ROOT / "scripts/contracts"
++sys.path.insert(0, str(SCRIPTS))
++spec = importlib.util.spec_from_file_location("details", SCRIPTS / "generate_capability_package_details.py")
++DETAILS = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(DETAILS)
++
++
++@pytest.fixture
++def local(tmp_path):
++    for source in DETAILS.build(ROOT)["sources"]:
++        name = source["path"]
++        dest = tmp_path / name
++        dest.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copyfile(ROOT / name, dest)
++    return tmp_path
++
++
++def mutate(root, change):
++    path = root / DETAILS.BUILTIN_MANIFEST
++    manifest = json.loads(path.read_text(encoding="utf-8"))
++    change(manifest)
++    path.write_text(json.dumps(manifest), encoding="utf-8")
++
++
++def test_actual_builtin_bytes_are_consumed_as_identity_only():
++    data = DETAILS.build(ROOT)
++    row = data["entries"][0]
++    assert row["identity"]["sha256"] == hashlib.sha256((ROOT / DETAILS.BUILTIN_MANIFEST).read_bytes()).hexdigest()
++    assert row["manifest"]["package_id"] == "archeaxis.pdf-extract"
++    assert row["manifest"]["capability_ids"] == ["CAP-0020"]
++    assert row["manifest"]["resource_keys"] == ["pymupdf"]
++    assert row["manifest"]["license"] == {"expression": None, "review": "UNVERIFIED", "notice_refs": []}
++    assert row["source_authenticity"] == "UNVERIFIED"
++    assert row["qualification"] == row["runtime"] == "UNKNOWN"
++    assert row["manifest"]["permissions"]["grants_execution"] is False
++    assert "installed" not in row
++    for source in data["sources"]:
++        assert source["sha256"] == hashlib.sha256((ROOT / source["path"]).read_bytes()).hexdigest()
++
++
++@pytest.mark.parametrize("change,code", [
++    (lambda m: m["capability_ids"].append("CAP-9999"), "MANIFEST_SCHEMA_REJECTED"),
++    (lambda m: m["resource_keys"].append("unknown-donor"), "MANIFEST_CATALOG_REFERENCE_UNKNOWN"),
++    (lambda m: m["compatibility"]["host_versions"].update(minimum="9.0.0", maximum_exclusive="10.0.0"), "MANIFEST_HOST_INCOMPATIBLE"),
++    (lambda m: m["inputs"][0]["contract"].update(sha256="0" * 64), "MANIFEST_SOURCE_DRIFT"),
++    (lambda m: m.update(capability_ids=["CAP-0090"], runtime_capabilities=[]), "MANIFEST_PROJECTION_CATALOG_JOIN_UNCONFIRMED"),
++    (lambda m: m.update(runtime_capabilities=[]), "MANIFEST_PROJECTION_ROUTE_JOIN_UNCONFIRMED"),
++], ids=["unknown-cap", "unknown-key", "host-incompatible", "source-hash-drift", "wrong-cap-join", "wrong-route-join"])
++def test_unverified_or_mismatched_declarations_do_not_generate_fallback(local, change, code):
++    mutate(local, change)
++    with pytest.raises(DETAILS.ManifestValidationError, match="^" + code + "$"):
++        DETAILS.generate(local)
++
++
++def test_changed_raw_bytes_change_identity_even_for_same_declaration(local):
++    before = DETAILS.build(local)["entries"][0]["identity"]
++    path = local / DETAILS.BUILTIN_MANIFEST
++    path.write_bytes(path.read_bytes() + b" ")
++    after = DETAILS.build(local)["entries"][0]["identity"]
++    assert before["sha256"] != after["sha256"]
++    assert before["version"] == after["version"]
++
++
++def test_missing_manifest_does_not_invent_identity(local):
++    (local / DETAILS.BUILTIN_MANIFEST).unlink()
++    with pytest.raises(DETAILS.ManifestValidationError, match="^MANIFEST_PROJECTION_SOURCE_UNAVAILABLE$"):
++        DETAILS.build(local)
++
++
++def test_cli_check_blocks_old_generated_projection_on_manifest_drift(local):
++    target = local / DETAILS.TARGET
++    target.parent.mkdir(parents=True, exist_ok=True)
++    target.write_text(DETAILS.generate(local), encoding="utf-8")
++    command = [sys.executable, "-B", str(SCRIPTS / "generate_capability_package_details.py"), "--root", str(local), "--check"]
++    assert subprocess.run(command, capture_output=True).returncode == 0
++    before = target.read_bytes()
++    (local / DETAILS.BUILTIN_MANIFEST).write_bytes((local / DETAILS.BUILTIN_MANIFEST).read_bytes() + b" ")
++    result = subprocess.run(command, capture_output=True)
++    assert result.returncode != 0
++    assert result.stderr.strip() == b"MANIFEST_PROJECTION_CHECK_FAILED"
++    assert result.stdout == b""
++    assert target.read_bytes() == before  # 保全旧字节，但门禁拒绝继续启动/构建。
++
++
++def test_frontend_config_has_mandatory_readonly_check():
++    source = (ROOT / "frontend/vite.config.ts").read_text(encoding="utf-8")
++    assert 'generate_capability_package_details.py' in source
++    assert '"--check"' in source
++    assert source.index('generate_capability_package_details.py') < source.index('if (command === "build"')

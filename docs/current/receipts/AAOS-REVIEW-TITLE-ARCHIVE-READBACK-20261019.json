@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "evidence_level": "STRUCTURE_ONLY",
+  "observed_at": "2026-10-18T19:23:15.090700+00:00",
+  "archive_members_verified": 71,
+  "unchanged_source_files_verified": 24,
+  "current_navigation_targets_verified": 26,
+  "decision_categories": 9,
+  "git_status_entries": 254,
+  "git_status_sha256": "588c4f42387810138dbbda20ef96a9a02a275e24217c0ca3d9661320f9b4fd4e",
+  "current_project": "PARTIAL",
+  "cloud_sync": "NOT_EXECUTED",
+  "complete_private_transcripts": "UNVERIFIED"
+}

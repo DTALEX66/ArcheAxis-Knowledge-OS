@@ -1,0 +1,31 @@
+{
+  "schema": "archeaxis.runtime-migration/v1",
+  "date": "2026-10-18",
+  "records": [
+    {
+      "original": "config/model-profiles/local-2026-09-05.yaml",
+      "archive": "docs/history/runtime-migration-20261018/config/model-profiles/local-2026-09-05.yaml",
+      "bytes": 1856,
+      "sha256": "d75c14b4d8f4309bf1adeb0fcb62198aaeb19583d8234e8868996c9827aa0866",
+      "state": "FROZEN_HISTORICAL_NOT_RUNTIME_CONFIGURATION"
+    },
+    {
+      "original": "config/model-profiles/r6-capability-pool.json",
+      "archive": "docs/history/runtime-migration-20261018/config/model-profiles/r6-capability-pool.json",
+      "bytes": 1603,
+      "sha256": "2e066bbc12d3b811c06a08d3e7c3ae6824b6407b8cba11787cfccc582580e644",
+      "state": "FROZEN_HISTORICAL_NOT_RUNTIME_CONFIGURATION"
+    }
+  ],
+  "authority": "Current Owner request: LM Studio; update, migrate, archive and clean obsolete project runtime configuration",
+  "runtime": "LM Studio / OpenAI-compatible API; no automatic Ollama route",
+  "snapshot_records": [
+    {
+      "original": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "archive": "docs/history/runtime-migration-20261018/AAOS-AGENT-HANDOFF-before-runtime-migration.md",
+      "bytes": 8645,
+      "sha256": "95ae8f798e633773b074e95c549f9e109b58c69d222fd65407d0a6c32e685e50",
+      "state": "FROZEN_HISTORICAL_SNAPSHOT_CURRENT_ENTRY_REWRITTEN"
+    }
+  ]
+}

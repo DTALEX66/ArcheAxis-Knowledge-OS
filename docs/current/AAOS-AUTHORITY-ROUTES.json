@@ -27,7 +27,7 @@
       "role": "LIVE_NAVIGATION"
     },
     {
-      "path": "AAOS-后续执行交接提示词-20261009.md",
+      "path": "docs/history/handoff-archive-20261018/AAOS-后续执行交接提示词-20261009.md",
       "role": "HISTORICAL_HANDOFF"
     },
     {
@@ -59,7 +59,7 @@
       "role": "LIVE_NAVIGATION"
     },
     {
-      "path": "HERMES_HANDOFF.md",
+      "path": "docs/history/handoff-archive-20261018/HERMES_HANDOFF.md",
       "role": "HISTORICAL_HANDOFF"
     },
     {
@@ -282,6 +282,31 @@
       "old_path": "docs/operations/digest-canonicalization.md",
       "canonical_path": "docs/vnext-seed/operations/digest-canonicalization.md",
       "policy": "locator migration only; never recreate duplicate normative text"
+    },
+    {
+      "old_path": "DONE.txt",
+      "canonical_path": "docs/history/handoff-archive-20261018/DONE.txt",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "old_path": "AUTONOMOUS-EXECUTION-SUMMARY.md",
+      "canonical_path": "docs/history/handoff-archive-20261018/AUTONOMOUS-EXECUTION-SUMMARY.md",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "old_path": "NIGHT-EXECUTION-SUMMARY.md",
+      "canonical_path": "docs/history/handoff-archive-20261018/NIGHT-EXECUTION-SUMMARY.md",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "old_path": "AAOS-后续执行交接提示词-20261009.md",
+      "canonical_path": "docs/history/handoff-archive-20261018/AAOS-后续执行交接提示词-20261009.md",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "old_path": "HERMES_HANDOFF.md",
+      "canonical_path": "docs/history/handoff-archive-20261018/HERMES_HANDOFF.md",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
     }
   ],
   "consumer_policy": {

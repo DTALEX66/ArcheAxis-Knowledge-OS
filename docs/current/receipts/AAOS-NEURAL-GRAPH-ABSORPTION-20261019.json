@@ -1,0 +1,263 @@
+{
+  "schema": "aaos.oss-ui-absorption/v1",
+  "observed_utc": "2026-10-18T16:13:23.772121+00:00",
+  "status": "PARTIAL",
+  "tested_scope_status": "PASS",
+  "evidence_level": {
+    "source_integration": "INTEGRATED",
+    "browser": "REAL_CHROMIUM_RENDERING / SYNTHETIC_CORE",
+    "upstream_research": "STATIC_SOURCE"
+  },
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "qualified_dirty_patch_sha256": "0c32b22ef72b3a11f94164019166154e5a0484f85d0c30ad3165901670edc87d",
+  "dirty": true,
+  "scope": "graph presentation absorption and UI-FOLLOWUP-006; original five UI audit fixes retained",
+  "full_frontend": {
+    "files": 171,
+    "tests": 1661,
+    "passed": 1661,
+    "failed": 0,
+    "skipped": 0,
+    "execution": ".project-local/runs/be268a2d33/ui-neural-final-full-1019/artifacts/execution.json",
+    "command": {
+      "command": [
+        "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "--maxWorkers=2",
+        "--minWorkers=2",
+        "--reporter=default",
+        "--reporter=json",
+        "--outputFile=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ui-neural-final-full-1019\\artifacts\\vitest.json"
+      ],
+      "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend",
+      "started": "2026-10-18T16:05:11.685163+00:00",
+      "ended": "2026-10-18T16:07:52.805935+00:00",
+      "seconds": 161.12077570002293,
+      "exit_code": 0,
+      "scope": "full frontend Vitest suite"
+    },
+    "report_sha256": "414a3c981df873ab7e4b66702d5224a1c735955a84071504057ae2d30f098490"
+  },
+  "build": {
+    "schema": "archeaxis.frontend-build/v1",
+    "mode": "build",
+    "exit_code": 0,
+    "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bf375a504c8b",
+    "frontend_dist": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bf375a504c8b\\artifacts\\frontend-dist",
+    "tauri_config": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\bf375a504c8b\\tmp\\tauri-build.json",
+    "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+    "source_patch_sha256": "0c32b22ef72b3a11f94164019166154e5a0484f85d0c30ad3165901670edc87d",
+    "source_patch_sha256_after": "0c32b22ef72b3a11f94164019166154e5a0484f85d0c30ad3165901670edc87d",
+    "source_consistent": true
+  },
+  "browser": {
+    "checks": 14,
+    "passed": 14,
+    "axe_scans": 14,
+    "axe_violations": 0,
+    "axe_incomplete": 23,
+    "screenshots_viewed": 20,
+    "out": ".project-local/runs/be268a2d33/ui-neural-final-browser-1019/artifacts/ui-pilot",
+    "execution": {
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+      "dirty": true,
+      "source_patch_sha256": "0c32b22ef72b3a11f94164019166154e5a0484f85d0c30ad3165901670edc87d",
+      "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "started_at": "2026-10-18T16:06:50.422161+00:00",
+      "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ui-neural-final-browser-1019",
+      "executable": "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+      "argument_count": 2,
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-neural-absorption-20261018/run.py"
+      ],
+      "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+      "boundary": "environment-routing-not-sandbox",
+      "child_exit_code": 0,
+      "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256_after": "0c32b22ef72b3a11f94164019166154e5a0484f85d0c30ad3165901670edc87d",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ui-neural-final-browser-1019\\logs\\execution.log",
+      "exit_code": 0,
+      "ended_at": "2026-10-18T16:07:26.858808+00:00",
+      "seconds": 36.43664580001496
+    },
+    "environment": {
+      "browser": "155.0.8059.80",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "DPR": 1,
+      "locale": "zh-CN",
+      "timezone": "Asia/Shanghai",
+      "profile": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ui-neural-final-browser-1019\\artifacts\\ui-pilot\\browser-profile",
+      "workers": 1,
+      "evidence": "REAL_CHROMIUM_RENDERING / SYNTHETIC_HOST_CORE",
+      "baseline": "no screenshot baseline created or updated"
+    },
+    "shutdown": {
+      "server_pid": 7740,
+      "port": 41730,
+      "server_listening": false,
+      "test_exit_code": 0,
+      "ended": "2026-10-18T16:07:26.248Z"
+    },
+    "browser_shutdown": {
+      "closed": true,
+      "time": "2026-10-18T16:07:26.032Z",
+      "profile": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ui-neural-final-browser-1019\\artifacts\\ui-pilot\\browser-profile"
+    },
+    "postflight": {
+      "observed_utc": "2026-10-18T16:11:45.6133116Z",
+      "owned_pids_alive": [],
+      "listeners": [],
+      "port": 41730,
+      "status": "PASS"
+    },
+    "dock_close_transitions": [
+      {
+        "title": "今日工作台",
+        "page": "01",
+        "remaining": [
+          "今日工作台",
+          "阅读与编辑",
+          "研究空间"
+        ]
+      },
+      {
+        "title": "研究空间",
+        "page": "05",
+        "remaining": [
+          "阅读与编辑",
+          "研究空间"
+        ]
+      },
+      {
+        "title": "阅读与编辑",
+        "page": "03",
+        "remaining": [
+          "阅读与编辑"
+        ]
+      }
+    ]
+  },
+  "qualified_source_files": {
+    "THIRD_PARTY_NOTICES.md": "0d38b51c193dbf9905d95365d42fc84772386dcd39e0c7fcac9798e70de32634",
+    "frontend/src/__tests__/AppDockNavigation.test.tsx": "82a2853a3798dd748b567ea8041e3e122746cfec9786d0eb7a23cd2ecb0b2e1b",
+    "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx": "f99d194c5b12ce1e985c0a5941d34ef87b533294ce6fb05606c4c8bf539de125",
+    "frontend/src/__tests__/ConstellationGraph.test.tsx": "20f2fe39b8a0021c9bb1afe20bc9ae45d54710fe17582c4537769b501f1c9a63",
+    "frontend/src/__tests__/DockLayout.test.ts": "35721014a49a04656e0bd0e29f72596944e25d373d6d963854647102d0f97bfc",
+    "frontend/src/__tests__/DockWorkspace.test.tsx": "6ee483b22d8d52d46ee1653508158aee81d57e8fe2e64bed681dc8646b4a9325",
+    "frontend/src/__tests__/NeuralGraph.test.ts": "c3a1740ecacd5b3446979227cfcb01c72a28008a74c4b916dc64a9f93a1d4c1d",
+    "frontend/src/__tests__/UIAuditRemediation.test.tsx": "ee68c4d8affe09f907437a057379513e2363b840e0976fade6ca69efeaa20f6e",
+    "frontend/src/app/App.tsx": "d7ca88e36593872f72f2ea4c25a770b91a8360ec376c27a1ee64eb6b21eb2bcf",
+    "frontend/src/components/CommandPalette.tsx": "d533555894d7518a83c9d6b75bc59aa7d1567a098b8e9c7db791e42c84104349",
+    "frontend/src/components/ConstellationGraph.css": "d518d97b18ffb2fcf2e1f34448ea9a694924949f425e080e77685e8c6f3db755",
+    "frontend/src/components/ConstellationGraph.tsx": "7d731b010174dfea49a127c581ca51cc4c134006d04b39e68589b80e0865f52f",
+    "frontend/src/components/Inspector.tsx": "789429a17f02cd7befda012153e1aa5566071116c71693b78406c3e97d912845",
+    "frontend/src/components/TopNavBar.tsx": "53f08fdb7734f06d54fde1204838498db9db8d1c99c150b5ccdacf2f95ab9b72",
+    "frontend/src/components/neural-creator-NOTICE.txt": "413c23077792524cebf12972819d23ee8a03fafa00d90828e5c75b60fadda8cb",
+    "frontend/src/presentation/keyboardShortcuts.ts": "87a23cb6b799891c8e5f802de4b8d9083a32860170757a649436b974b2fe3ef3",
+    "frontend/src/presentation/navigation.ts": "ce42cf5e7801a409b3b25487c96163ed02fe207134af4c37c3fe8a2ded9cc6b5",
+    "frontend/src/presentation/neuralGraph.ts": "4641ccb74c4f4ac39262689ec85107b19ff4db85d3f65cc8a19e89dcf90d2ef2",
+    "frontend/src/spaces/CanonicalLibrarySpace.tsx": "0cd46d6d4204a6d90550cdd6fb00de0fe4130032b3d7156f258ae1179a5b2141",
+    "frontend/src/spaces/CanonicalRelationSpace.tsx": "79dd58154b3bcbb67259b27703d8904f53328cbfda8ea7edd434dabada25170d",
+    "frontend/src/spaces/SpaceView.tsx": "b3248e4ed000f9fb949c7e54e3ddaece3928eef60bd9dca2dfe00a4dbb04d3bc",
+    "frontend/src/spaces/ui-first.css": "8bd6981bb801314738668f478fb0333d172458786da29a7b6d56271746135544",
+    "frontend/src/workspace/DockWorkspace.tsx": "6565611f84a20ef7e87238ae7cac602912f4890df1d4f3d972e454f9db39900d",
+    "frontend/src/workspace/dock-workspace.css": "afc40832ecacd2ac062d77e30ab9dfed2e81a32aca2e10edcf534e8bba501f4a",
+    "frontend/src/workspace/dockLayout.ts": "2a35838f8e0a4b67e6bbd160d2a5c86bd54bc114b2408d07cf6e50abc4974b79"
+  },
+  "license": {
+    "status": "PASS",
+    "notice_sha256": "413c23077792524cebf12972819d23ee8a03fafa00d90828e5c75b60fadda8cb",
+    "full_upstream_license_preserved": true,
+    "embedded_base64_exact_match": [
+      ".project-local/runs/be268a2d33/bf375a504c8b/artifacts/frontend-dist/assets/index-CyoG28dQ.js"
+    ]
+  },
+  "archives": [
+    {
+      "repository": "Linye-ai/neural-creator-dashboard",
+      "commit": "e12317fbc570fd290654db7692e2a1b4bdd7fcb5",
+      "scope": "source",
+      "members": 43,
+      "manifest": ".project-local\\archives\\oss-intake-20261018\\neural-creator-dashboard\\e12317fbc570fd290654db7692e2a1b4bdd7fcb5\\MANIFEST.json",
+      "manifest_sha256": "3a625c236f5e24dd78696d4dd232f3bf2c9dc7bc1575c3ae4f5f325d0d839643",
+      "package": {
+        "path": "upstream-source.zip",
+        "bytes": 168639,
+        "sha256": "cbe46e146536318043fa3bd48e030454622d99f5ffa90d2fe9f03b2f28278e69"
+      }
+    },
+    {
+      "repository": "SENLIN-SAMA/win-.-",
+      "commit": "aa64bc73c03110f9529bae288e70d2a3fc32760f",
+      "scope": "manuals-only",
+      "members": 3,
+      "manifest": ".project-local\\archives\\oss-intake-20261018\\win-.-\\aa64bc73c03110f9529bae288e70d2a3fc32760f\\MANIFEST.json",
+      "manifest_sha256": "e14f6434b9055137a76e52a06c23dc4306ca5e4ab79037eaa444716e86241cdd",
+      "package": null
+    },
+    {
+      "repository": "THU-MAIC/OpenMAIC",
+      "commit": "6b83751a87896df99c47e98c20cea40cec09efb4",
+      "scope": "selected public source",
+      "members": 18,
+      "manifest": ".project-local/archives/oss-intake-20261019/OpenMAIC/6b83751a87896df99c47e98c20cea40cec09efb4/MANIFEST.json",
+      "manifest_sha256": "8b74b44fe27ab1ea2e6446b05f16abbe3c046d074af698889725be632b85b83f"
+    }
+  ],
+  "findings": [
+    {
+      "id": "UI-FOLLOWUP-006",
+      "status": "CLOSED_FOR_TESTED_BROWSER_SCOPE",
+      "regression": "9 App/Dock tests plus actual Delete/group-close/middle-close route assertions"
+    },
+    {
+      "id": "OSS-GRAPH-001",
+      "status": "PASS",
+      "scope": "stable geometry, cluster fan/context column, neighbors, bounded curves, particles, zoom/pan, fixed references"
+    },
+    {
+      "id": "OSS-GRAPH-002",
+      "status": "PASS",
+      "scope": "MIT notice retained in source and production bundle; fixed-version archives verified"
+    },
+    {
+      "id": "OSS-GB-001",
+      "status": "PASS",
+      "scope": "reference research only; source/license reuse BLOCKED"
+    },
+    {
+      "id": "OSS-OMA-001",
+      "status": "PASS",
+      "scope": "static research and 18-file selected-source archive only"
+    }
+  ],
+  "not_executed": [
+    "new graph against actual Core/installed WebView2",
+    "native graph lifecycle and installed qualification",
+    "physical IME and full assistive technology",
+    "commercial usability/complete WCAG",
+    "FPS/GPU/memory/power baseline",
+    "upstream screenshot or pixel parity",
+    "GlassBoard code/asset import",
+    "OpenMAIC adapter/runtime/model/deployment"
+  ],
+  "retained_failure_runs": [
+    "ui-graph-dock-full-1018",
+    "ui-neural-browser-1018",
+    "ui-neural-final-browser-1018",
+    "ui-dock-sync-review-red-1018",
+    "ui-graph-dock-targeted-1018"
+  ],
+  "documentation_written_after_validation": true,
+  "boundary": "no commit/push/release/install/Green replacement; no dependency/provider/global config change; unknown prior modifications preserved"
+}

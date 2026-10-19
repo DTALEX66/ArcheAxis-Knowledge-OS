@@ -1,0 +1,620 @@
+{
+  "scope": "有限本项目证据身份，不含凭据/私人会话/浏览器profile；忽略载荷不随Git克隆",
+  "files": [
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-20261019/CURRENT.md",
+      "bytes": 3764,
+      "sha256": "06e56df3366cdaec8280a87a49005ef4c5fe9af527314a67062ccd1af26ab65a"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-20261019/be10-native-preview-revision.patch",
+      "bytes": 79809,
+      "sha256": "aa0c154d2725a3b746a6812286c65d55dd281574de3f041d2a1b7ce669260551"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-20261019/ci-native-artifact-binding.json",
+      "bytes": 728,
+      "sha256": "102c084892371791ce4e17112e697b937a8dc9e69b7648879db5f0fa13367c05"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-20261019/code-manifest.json",
+      "bytes": 4423,
+      "sha256": "52a27d0926421821bfb9134973123747fbd0eaaf1e32e1001b323f35995b8eca"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-20261019/generation-chain.json",
+      "bytes": 1691,
+      "sha256": "01f2e94962d76816d739c63c81ab1d3e71bb3b323d0ec2cfbfb356ab4558340a"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-20261019/qualification-inherited-state-baseline.json",
+      "bytes": 26658,
+      "sha256": "6f026221020548abd195f068786a59a24a34ca00bf4e8d71d9d8edf8417111b4"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-20261019/validation-summary.json",
+      "bytes": 13245,
+      "sha256": "7b72b43d28026b4b1a85991dc7a7a7ab34245c9857c726ac34db08a78a1ded09"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-20261019/validation.json",
+      "bytes": 56613,
+      "sha256": "02e169f5b0e7d8a5b11cfa04c499fb5c7486f8a7807a171c70cc8406c66532e5"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-review-20261019/CONTINUITY-INCREMENT-EVIDENCE.json",
+      "bytes": 5411,
+      "sha256": "c56865db96c2f8c7198df889fd8b07971cfc210ae908b8dffc948e1c49b3dbce"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-review-20261019/CONTINUITY-INCREMENT-REVIEW.md",
+      "bytes": 3262,
+      "sha256": "78c2dc1c2e38b6f3d1dd54b797f3b364febc4db2cb4a912561e4541dc0b5d5e9"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-review-20261019/FINAL-MANIFEST-READBACK.json",
+      "bytes": 8086,
+      "sha256": "4c7eec9801cb72854b7621ceec3582a4d9d3674952365a57cfd05e44877cb7d7"
+    },
+    {
+      "path": ".project-local/audits/be10-native-preview-revision-review-20261019/FINAL-REVIEW.md",
+      "bytes": 3340,
+      "sha256": "782197fc29cfc8737803a462173a69affb9528b55babdc38134a60746b01352b"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/FINAL-LINT-DELTA.json",
+      "bytes": 54635,
+      "sha256": "97a04206710b25b43f77e223b4757750eed770a24b0540e822c1f0c1ba8d2d9f"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/LINT-BASELINE.json",
+      "bytes": 23465,
+      "sha256": "87c2b42f0fd4e023901da7f77e97971bf0d609933a888eabb0674412d1d384cd"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/PROCESS-READBACK.json",
+      "bytes": 358,
+      "sha256": "b7a01fe2d5ed008b82b6be178ff6bdf7c36935f491188e36f6938503e6103578"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/SHARED-NAVIGATION-READBACK.json",
+      "bytes": 1907,
+      "sha256": "60d2eeb0e3045a6979a48b84cdaf2667cfe60e759b81df94fedd599b4dcad4c8"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/be10-applied.json",
+      "bytes": 4516,
+      "sha256": "caae23247f11f3cceedae6bdedbb4849d29f673a7a238e18bdfcba84ed37e644"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/format-applied.json",
+      "bytes": 13007,
+      "sha256": "3d96c8eeb13e115fe4d8bcc9124bab9fdb4453af479b11609a14627a644a6a7a"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/generation-applied.json",
+      "bytes": 2103,
+      "sha256": "1790355a9010e5708c68897a18b406f92f874f739d77f7ab510eda10d7337b5c"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/generation-commands.json",
+      "bytes": 1611,
+      "sha256": "42f0fc3669a541341a0c56ad7ae9fdcc7b8e55a7a28698f9cef43a52952f7f60"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-frontend-checks.json",
+      "bytes": 1560,
+      "sha256": "1d6ff8dfbc854b4074f3d5ee9084c003ac0187b2c822328ade8c6d950e21c57a"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-frontend-typecheck.log",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-frontend-ui-regressions.log",
+      "bytes": 565,
+      "sha256": "b065198df4b8230448027731b8710bb19130819f12073706c701cb61c9f6dc47"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-native-checks.json",
+      "bytes": 1467,
+      "sha256": "c5e8b7b2b72e607c07baeca9abd4cd8387c8d79fcab524d37e94773a48e4382c"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-native-finite-native-preview.log",
+      "bytes": 5446,
+      "sha256": "718e984de9a2547dd1fa11e70d7b2c6f369c7f30cedf9a0110bd8a73dfbae1ec"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-native-native-format.log",
+      "bytes": 262,
+      "sha256": "af408191804b8312b030b2dd76939c494a21912d67e0461e82ba003bbeb0cf83"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-python-checks.json",
+      "bytes": 1246,
+      "sha256": "4d1f73b137333aec08df43af281a40b4840102be680b7a16d091e8ea785a8687"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-python-regressions.log",
+      "bytes": 678,
+      "sha256": "bf171ec21f493b11ed39be036966fc75e49bdf6a6f27f1201300c2fcd4411da0"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-rust-api.log",
+      "bytes": 6294,
+      "sha256": "a3b2e1c757be73087a73f26bae6afb0073f9826e3eae56485a687dd6d4ac546c"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-rust-application.log",
+      "bytes": 5059,
+      "sha256": "b83c56712827e55d610ef497aa17d62d05579179670e2310b13eb97bc1a6a962"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-rust-checks.json",
+      "bytes": 3674,
+      "sha256": "e45fa3f2b60ca726d1f81bf369151640052ca52ff02e790122c1708d17fa51c6"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-rust-contracts.log",
+      "bytes": 1644,
+      "sha256": "4eda8abf71972e51f6b4263bb667550d4a1ad0dac2309d975c3da2db49e3318c"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-rust-protocol.log",
+      "bytes": 1116,
+      "sha256": "cd65b91b94961c4cfb632d0bdd95b52cc55e70d622f3d0627b94e42089ce6846"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-rust-workspace-format.log",
+      "bytes": 184,
+      "sha256": "0331802bd73210794f0a8e4efac5ab7b5dc2c2be85dbabd14c53a189ccbcc9b3"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-sources-capability-details.log",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-sources-checks.json",
+      "bytes": 1890,
+      "sha256": "14e10f44ef9c6a4bb2d3f9e88eb1946cf3c0e92fd634b721194f1fa88234eef0"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-sources-node-details.log",
+      "bytes": 1019,
+      "sha256": "c4612828276d0d90ac40e3cbbf5a4b34575355467564a47dbe8fc8f8bf6fa1e5"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/main-sources-resource-catalog.log",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/native-owned-binding.json",
+      "bytes": 505,
+      "sha256": "7345e90e5d7af961ccf83bed1a21b36cbbc137b1aa62db3ac3ed326bd5677b23"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/native-routed-actual-preview-consumer.log",
+      "bytes": 6141,
+      "sha256": "efbeb5f7ac4a6edc1d5fc95561226452c5560d76e53e60b5f7c1b2b59630b46d"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/native-routed-checks.json",
+      "bytes": 1430,
+      "sha256": "39f70e879b042966feb721882fa30da8a6c8287d98dac5a794a7febe3eef13f9"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/native-routed-current-frontend-build.log",
+      "bytes": 8695,
+      "sha256": "28272066a3166e87bdeca2f4ef85aa7af7a326fbec3ebb35c7ca50e7ac7f1393"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/pdf-applied.json",
+      "bytes": 6074,
+      "sha256": "00fcc7d4f7e76b3b9f6cf47d16a4146d973435ebbff38a4d2d2695e4c51f89d1"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/.github/workflows/ci.yml",
+      "bytes": 86840,
+      "sha256": "748746fdd62685d3de878654f16bd100f9ba6b588806bcc4a393eb8d6c24f385"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/config/capability-packages/pdf-extract.manifest.json",
+      "bytes": 2375,
+      "sha256": "d16cbc49ec6feae44452bed2b54b999ef6b17899f93430f332c5007b5e668241"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/src/format_qualification.rs",
+      "bytes": 7154,
+      "sha256": "482129a7b3ba2437d3f442eccf6358e72d8ddf2cf712d15a5346c2934b562512"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/src/lib.rs",
+      "bytes": 109954,
+      "sha256": "af0222202600bc73e66d47ac8fa530806bf2c63d4ad558dba9ee54dd9e6c8b54"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/src/runtime/colearning.rs",
+      "bytes": 53070,
+      "sha256": "f6e242e8cc02cb490794dfe0cd6b9552fd7fe9ed78fd8ebcc6a2e21b13e88d5a"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/src/runtime/conversation.rs",
+      "bytes": 23003,
+      "sha256": "9e3346c350e6e1d6a74ae0680119099ce809463e85d6a10019e816236bd99227"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/src/runtime/execution_claim.rs",
+      "bytes": 16255,
+      "sha256": "caf282adb15b3105bf9955ec9842f736094156a8a26c2ca9f8d8ab0d31c8e3be"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/src/runtime/material_questions.rs",
+      "bytes": 15834,
+      "sha256": "7859c67f0d212d1e22d56ecca115c397b14050e7744a025e8c8b556bd2fc8feb"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/src/runtime/readiness.rs",
+      "bytes": 2964,
+      "sha256": "98431b52bf8841bc086dd766c5a65a49318e406e938d8e0408d2a6791f40cac1"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/tests/contract_machine_answer.rs",
+      "bytes": 48047,
+      "sha256": "46888b07bf61cbc3dda23f8e598c9582d9015a3f9878d329b19ed12a2814d3bb"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/tests/conversation_api.rs",
+      "bytes": 29342,
+      "sha256": "3002d5ea263146a462621b57d4a747c9eda55a9e1eb1edf6e6cf56578107de31"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/tests/document_draft_loop.rs",
+      "bytes": 45768,
+      "sha256": "7cd0bf66d525ffed0cd8e0ebc885651b135a317e883661215cddb94b91371600"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/tests/file_format_qualification.rs",
+      "bytes": 14636,
+      "sha256": "a11364b41c4ddbc3a8adc4d5e9ec0321a8749177f4322c35eea612e285303dab"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/tests/learning_state_api.rs",
+      "bytes": 27056,
+      "sha256": "0555193f4b9aa3d0c40473029f3c37cc600ee81494f84e95816d5e430ec3143e"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/tests/material_question_api.rs",
+      "bytes": 19699,
+      "sha256": "bf8a768c9ac69420b20cd210d9391fc8066ff2a4534c6fb73317ee537096ef66"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-api/tests/operation_readiness_api.rs",
+      "bytes": 3273,
+      "sha256": "7191ad414ea5ba210088f7b3b30d76ceee6247ca34a2c0370a80582aa58b66ee"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-application/src/attempts.rs",
+      "bytes": 33470,
+      "sha256": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-application/src/executor.rs",
+      "bytes": 67197,
+      "sha256": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-application/src/executor/health.rs",
+      "bytes": 6048,
+      "sha256": "81787479619bd9b3284258f7035238bdbe7edb703e9f9a14bacaf32ea9ba576b"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-application/src/executor/machine_failure.rs",
+      "bytes": 14312,
+      "sha256": "b40e288c16f47b9d36a5d8fea2d251991d6e5364f4f6174d4b056e3cfdea12e6"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-application/tests/machine_answer_resources.rs",
+      "bytes": 19369,
+      "sha256": "b9b948365d3a579a4217a5baf810ea6ae69181906105779d42beb2211d1dbfec"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-application/tests/receipt_spans.rs",
+      "bytes": 5005,
+      "sha256": "58195ec7f55c3a9d222ee906e05fde39fd5d52530ece445adc57e11ad5a19d77"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-application/tests/worker_health_contract.rs",
+      "bytes": 3879,
+      "sha256": "b353fd6cf438a15b2ea13e28e6b8c219c1d64ff5c4381098a4b2d9a4ba394b38"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-contracts/src/lib.rs",
+      "bytes": 424,
+      "sha256": "f0ff5140b137ee93e7e86fe6c0bab322c8a908df001b04a28037ef5bb460c9ed"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-domain/src/learning.rs",
+      "bytes": 39232,
+      "sha256": "3365ec343fa94b3158794ce706fabadbda796c73ba3afdf4a05d163c64b4124e"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-sidecar-protocol/src/worker.rs",
+      "bytes": 11946,
+      "sha256": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs",
+      "bytes": 7060,
+      "sha256": "5d5ea6ddeeecbbdeb236ae717cb445d413b2c264041ac38546631af72a57b235"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "bytes": 313236,
+      "sha256": "e027edde570aaffb9f99fa27c2c626c49acecd2f85497bfff9a989f029cf05c0"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/frontend/src/__tests__/OperationReadiness.test.tsx",
+      "bytes": 1857,
+      "sha256": "06f87c3c2a25a4c01af8932f3fed34a473d011e38b315dc69f7684085eb7414f"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/frontend/src/api/generated/capability-package-details.ts",
+      "bytes": 5794,
+      "sha256": "712144d4a73272d57fe9b0549179888edc797f12fbf368b3464336d02e982e44"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/frontend/src/api/generated/core-contract.ts",
+      "bytes": 66390,
+      "sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/frontend/src/api/generated/resource-catalog.ts",
+      "bytes": 666785,
+      "sha256": "c8bda5e35b5aebb877b0ff55d093b9ed3035211dae1599e0422b4893c317df88"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/packages/contracts/v1/core-command.schema.json",
+      "bytes": 3415,
+      "sha256": "fbbd6074b2c37a15f6c1d02d8704b484775f51fa86f565dfc2f3dd191ef7aae2"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/packages/contracts/v1/core-document.schema.json",
+      "bytes": 74929,
+      "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/packages/contracts/v1/worker-protocol.schema.json",
+      "bytes": 5840,
+      "sha256": "0c6c92239263fce326c370ace2277e858535880dbcccc1f559030c6b4c2a4250"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/scripts/probes/aaos01_material_companion_loop.py",
+      "bytes": 26613,
+      "sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/services/python-workers/document/worker_pdf.py",
+      "bytes": 26115,
+      "sha256": "2fc56a31015eac6d503edca58799d02e1707ebf45fa3ab480cbe7fa0a17a03b2"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/services/python-workers/transport/text_ndjson.py",
+      "bytes": 41662,
+      "sha256": "733db640a4adb45e9556b0956f32554ebd1c2e6147afed2b8664ce03287181c7"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/src-tauri/src/core_bridge.rs",
+      "bytes": 73028,
+      "sha256": "020627b10b49e748c74ce71575fe8a2b85b7f7ba7162e2c63111be06db86f1de"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/preimages/tests/test_material_companion_native_probe.py",
+      "bytes": 14440,
+      "sha256": "ef82f4e00205af5a7ccbec96dccae68b5a4e477197cf6072dc4187ca5500ba39"
+    },
+    {
+      "path": ".project-local/audits/implementation-continuation-20261019/python-style-applied.json",
+      "bytes": 402,
+      "sha256": "a75e7834114d300f10cc4d2c4630af5b44170328fcdff3c8a86e9be11969adfd"
+    },
+    {
+      "path": ".project-local/audits/material-context-quality-20261019/CURRENT.md",
+      "bytes": 291,
+      "sha256": "ace653feca51e00df2cf5d6660cac6a2a65b26d04a65ca4e6b70fba5b4671f3a"
+    },
+    {
+      "path": ".project-local/audits/material-context-quality-20261019/EVIDENCE.json",
+      "bytes": 4844,
+      "sha256": "f0d568a417d31930dc82764f66203dcc0b07b8ddfaf93c4201d139601a8292ae"
+    },
+    {
+      "path": ".project-local/audits/material-context-quality-20261019/REVIEW.md",
+      "bytes": 7084,
+      "sha256": "0f27c797527da22558dec0b11b318c6d110f2b1528d0236d02d94045764cc847"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-cross-review-20261019/REVIEW.md",
+      "bytes": 4976,
+      "sha256": "170be34fc7d9041449a449669bbb2732585aad46f8a0cb652213f5d5551a4d8d"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-cross-review-20261019/final-readback.json",
+      "bytes": 5043,
+      "sha256": "40c13de9086b7c303c3a552d7d71143681331a80261c8953bc56664f2d7f2b44"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-cross-review-20261019/schema-version-evidence.json",
+      "bytes": 960,
+      "sha256": "eb277bc1f0ff0c0110aad1963f8ea24d49d2a1d5be4f5e4246034e44643d2ecd"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-cross-review-20261019/schema-version-final.json",
+      "bytes": 1410,
+      "sha256": "b660b70bb626bb35a911cb7aae881d66182cc608d275c0bba87e8d7bb81f1125"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-runtime-20261019/CURRENT.json",
+      "bytes": 580,
+      "sha256": "fb1886ae592179fae4fede7ec664ebfa76972d2028a86faf3e86c30904b424a4"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-runtime-20261019/FINAL-VERIFICATION.json",
+      "bytes": 8734,
+      "sha256": "707542a88b75a9da2f8bba03e92f14dfb4a64af94b1f9b05df80964b0c949908"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-runtime-20261019/MANIFEST.json",
+      "bytes": 6412,
+      "sha256": "3687d6096d9c6770aef594f9a8eaa0cc332470867d8885117ab4fa1e85b327a4"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-runtime-20261019/README.md",
+      "bytes": 4834,
+      "sha256": "21ed6802a13c80760bb15d7ce89ab17c91a242136e1789c0e7e896817d8c3b6d"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-runtime-20261019/commands.jsonl",
+      "bytes": 16415,
+      "sha256": "22226009cc24a81ef90b8c57ac44de6dae82c4bec35a519086e3e57dc29b18be"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-runtime-20261019/proposed-core.patch",
+      "bytes": 43513,
+      "sha256": "20aeac16e6901af82483f50c124bd085af68f95ac93fb7ac9382f89c5678164b"
+    },
+    {
+      "path": ".project-local/audits/pdf-readiness-runtime-20261019/verification.json",
+      "bytes": 21074,
+      "sha256": "6675c87889ab217b15ade27fa9722fada9db9884f3d1076013498817cf3b4240"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuation-workspace-rustfmt-baseline-1019/artifacts/execution.json",
+      "bytes": 1327,
+      "sha256": "18e7e0620c3fb1e11793362c30c01573a58a782c70dd3ce92e5bba1eda6a32ab"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuation-workspace-rustfmt-baseline-1019/logs/execution.log",
+      "bytes": 81083,
+      "sha256": "96a9c271a5264386d1a52390459c14787d33776ea31fe520b5e3a50b3e0dac11"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-final-python-1019/artifacts/execution.json",
+      "bytes": 1359,
+      "sha256": "5fb1248705f0690e2ebd50b78911940cb2ee9f3d9fca468b3698876b8a70ec0e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-final-python-1019/logs/execution.log",
+      "bytes": 651,
+      "sha256": "226a3178382c382a211fc63cd1aa8b29e0f305b215800807678a79aa53bd8ad7"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-frontend-1019/artifacts/execution.json",
+      "bytes": 1368,
+      "sha256": "6386e0a5e5648a9e729874c32873a62cd845222c70299ef00826ed247ed4865e"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-frontend-1019/logs/execution.log",
+      "bytes": 67,
+      "sha256": "95b1be79c6f82c3cd30551bd25695641bfbf88a4c0ed130d97cbc0ee3abf1087"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-native-1019/artifacts/execution.json",
+      "bytes": 1359,
+      "sha256": "697872cafef371206e1c8ab2a711bdd46bd061395d2e7b41c8b4be8c498133c4"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-native-1019/logs/execution.log",
+      "bytes": 5658,
+      "sha256": "a9c06dca31558feeb83432e249e040b97a9d91fb47be4ee5e14bd1531359e181"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-python-1019/artifacts/execution.json",
+      "bytes": 1361,
+      "sha256": "b729b6b5c14b75f8650678465d71733fcd973227542fd63d3f39aa9ba310f3e1"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-python-1019/logs/execution.log",
+      "bytes": 46,
+      "sha256": "c7973af05d662c230d6e15e68f66d0583c13583232f3fedec9f32a5e2b8cc458"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-rust-1019/artifacts/execution.json",
+      "bytes": 1355,
+      "sha256": "a11238eab8b0e4dda42311dcaffb8085fa4b2b65e0658fec632913f7e14c179a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-rust-1019/logs/execution.log",
+      "bytes": 118,
+      "sha256": "46df42dc0749fa1931a3814d919797768e722e1e2b98da8afe0565dba0eb7351"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-sources-1019/artifacts/execution.json",
+      "bytes": 1364,
+      "sha256": "4f478059cbc6dcb9ec3bd9d377ffc60ade7a2a77a62701850f5d843a8652a89d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-main-sources-1019/logs/execution.log",
+      "bytes": 99,
+      "sha256": "01200812b04e3563308eb1c72221a0641af95a3167ca5f10ce24cf10b03ab7a2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-native-routed-1019/artifacts/execution.json",
+      "bytes": 1359,
+      "sha256": "d8c2235641cb3d3c632e5b5487762a5aae614733aa9acdf69f0c26fee13c250a"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-native-routed-1019/artifacts/frontend-for-native.json",
+      "bytes": 806,
+      "sha256": "58f9ced939b032cc5ce7f18129596794bbfe895282d351c7a0d61fe199c40763"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuity-native-routed-1019/logs/execution.log",
+      "bytes": 63,
+      "sha256": "1e98291e85ec9dee46a9182e066eb063aea4992acf29e9d8ed51b7f7af2f8b7b"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/material-context-wire-offline-1019/artifacts/execution.json",
+      "bytes": 1452,
+      "sha256": "40d17896ebc782dc2ed92299b7494f2f4b3be9d951bb825bf1bced251912b3bf"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/material-context-wire-offline-1019/logs/execution.log",
+      "bytes": 551,
+      "sha256": "72ba85096fa1d6eb3a66fc6d56a40011626e6845c32fc8b2a9ee887a618162fd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/material-summary-identity-green-1019/artifacts/execution.json",
+      "bytes": 1515,
+      "sha256": "0312ab8a9cfd0c01fa1959c6751b5c191acde83c254a952f75b1e1f6fcc41ec2"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/material-summary-identity-green-1019/logs/execution.log",
+      "bytes": 634,
+      "sha256": "69bd67f190a24399ccc732e70cd2e4f181dbd7c940b805b771bdbbc9709764fc"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/material-summary-identity-red-1019/artifacts/execution.json",
+      "bytes": 1433,
+      "sha256": "59982178935876c27359b9b068c0bf1dc8f1abfabe4da8e2ff57a31bd5004a0d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/material-summary-identity-red-1019/logs/execution.log",
+      "bytes": 8506,
+      "sha256": "cf513f1ea5d7a515d56c362afd4f9ee7bf926e1e1e682bd36958945742064187"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/material-summary-lint-1019/artifacts/execution.json",
+      "bytes": 1419,
+      "sha256": "cc7e63e67a0bc064850fb6295b0a00440133685fd9d7ace266bc3ab32d7d856d"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/material-summary-lint-1019/logs/execution.log",
+      "bytes": 9624,
+      "sha256": "610faae16a5112a15ad291e6ae51fa520b18ab524b1004b70cbda30618c0aa0b"
+    }
+  ]
+}

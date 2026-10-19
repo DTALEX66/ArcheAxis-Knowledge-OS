@@ -63,7 +63,7 @@
 # probe.reaches = 该探针通过所能证明的上限），索引记录实测；两者不符时测试必须红。
 # =============================================================================
 schema_version: "1.0"
-updated: "2026-10-08"
+updated: "2026-10-18"
 source_of_truth: "docs/environment/EXTERNAL_DEPENDENCIES.md"
 description: "ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读清单，四处读取方共用的唯一绑定）"
 
@@ -775,59 +775,26 @@ capabilities:
       required_by: [file-detection]
       local_only: true
 
-    # 以下四条是**项目真实消费的本机模型通道**（此前只写死在 Python 源码里，索引完全没有
-    # 覆盖）：worker_caption.py / machine/worker_machine_answer.py 硬编码
-    # http://127.0.0.1:11434 与 http://127.0.0.1:1234/v1，只能被 ARCHEAXIS_CAPTION_* 顶掉。
-    # 本机 2026-10-08 实测（不是沿用任何历史说法）：11434 **连接被拒绝**（WinError 10061，
-    # 端口关闭），1234 **在线**并列出 6 个模型，/v1/embeddings 真跑通（1024 维，2.8s）。
-    # 因此这里不写"Ollama 被阻塞"，只写探针在本机答了什么。
-    - name: ollama-local-runtime
-      resource_id: ext.models.ollama-local-runtime
-      type: model_endpoint
-      role: caption
-      purpose: "Ollama 本机推理通道（worker_caption 早期唯一写死的通道，/api/tags 列模型、/api/generate 出文）"
-      version_range: "any local build"
-      version_identification: "GET /api/tags 应答的 models[].name 列表"
-      platform: windows-x64
-      license: "MIT (the Ollama runtime licence; per-model weights carry their own cards)"
-      asset_license: "Served weights are licensed per upstream model card; nothing here restates them"
-      source_url: "https://ollama.com/"
-      install_method: system
-      endpoint:
-        protocol: ollama
-        base_url: "http://127.0.0.1:11434"
-        list_path: /api/tags
-      project_entry: "tool_paths.endpoint_resources(role=\"caption\") -> services/python-workers/vision/worker_caption.py"
-      writability: project_writable
-      healthcheck_command: "GET http://127.0.0.1:11434/api/tags"
-      probe:
-        kind: http_get
-        expect_status: 200
-        expect_pattern: "models"
-        timeout_seconds: 5
-        reaches: VERSION_PROBED
-      fallback: "通道不答即记 unavailable 并写出实测错误；不自动拉起 ollama serve，不改宿主服务配置"
-      failure_message: "ollama-local-runtime: no HTTP answer on 127.0.0.1:11434 (this host refused the connection); caption lane falls back to any OpenAI-compatible lane the declaration names"
-      required_by: [workspace-ui, asr-pipeline]
-      local_only: true
-
+    # 当前本地服务统一为 LM Studio；自动发现不探测或回退 Ollama。
+    # 旧声明与模型 profile 已移至 docs/history/runtime-migration-20261018/。
+    # 库存、加载、推理、embedding 与 rerank 各自验证，不沿用历史成功状态。
     - name: openai-compatible-local-runtime
       resource_id: ext.models.openai-compatible-local-runtime
       type: model_endpoint
       role: caption
-      purpose: "OpenAI 兼容的本机模型通道（LM Studio 形态：/v1/models 列模型、/v1/chat/completions 出文），本机的视觉描述 lane 实际由它答"
+      purpose: "当前本地模型服务：LM Studio（OpenAI-compatible API），文本回答、视觉描述与 embedding 共用此服务；不自动探测或回退 Ollama"
       version_range: "any OpenAI-compatible server"
       version_identification: "GET /v1/models 的 data[].id 列表（本机实测 6 项）"
       platform: windows-x64
       license: "n/a (the lane is a protocol, not a shipped component; the serving app is the host's own install)"
       asset_license: "Served weights are licensed per upstream model card; per-model rows below name the identity the host answers with"
-      source_url: "https://platform.openai.com/docs/api-reference/chat"
+      source_url: "https://lmstudio.ai/docs/developer/openai-compat"
       install_method: system
       endpoint:
         protocol: openai
         base_url: "http://127.0.0.1:1234/v1"
         list_path: /models
-      project_entry: "tool_paths.endpoint_resources(role=\"caption\") -> services/python-workers/vision/worker_caption.py"
+      project_entry: "tool_paths.local_runtime_lanes() -> machine/worker_machine_answer.py and vision/worker_caption.py"
       writability: project_writable
       healthcheck_command: "GET http://127.0.0.1:1234/v1/models"
       probe:
@@ -845,7 +812,7 @@ capabilities:
       resource_id: ext.models.local-vision-caption-model
       type: model
       role: caption
-      purpose: "图示/场景描述使用的视觉模型身份（两个本机 runtime 对同一权重命名不同：ollama 的 qwen2.5vl:7b 与 OpenAI 通道的 qwen2.5-vl-7b-instruct）"
+      purpose: "LM Studio 视觉描述模型身份 qwen2.5-vl-7b-instruct；服务模型身份与磁盘权重身份分别验证"
       version_range: "qwen2.5-vl-7b-instruct"
       version_identification: "所属 lane 的模型列表里出现该 id（身份由 lane 答出的 id 确定，不是由源码常量确定）"
       platform: windows-x64
@@ -876,7 +843,7 @@ capabilities:
       resource_id: ext.models.local-embedding-model
       type: model
       role: embedding
-      purpose: "检索 embedding 通道（config/model-profiles/r6-capability-pool.json 的 ollama/qwen3:8b 与 app/rag/embedder.py 写死的 127.0.0.1:11434；本机实际由 OpenAI 兼容 lane 的 qwen3-embedding-0.6b 作答）"
+      purpose: "LM Studio embedding 通道；模型清单、实际向量输出和检索接入分别验证；旧 Ollama profile 已迁移到 docs/history/runtime-migration-20261018/"
       version_range: "text-embedding-qwen3-embedding-0.6b"
       version_identification: "POST /v1/embeddings 返回向量维度（真跑一次小输入，不是看模型列表）"
       platform: windows-x64

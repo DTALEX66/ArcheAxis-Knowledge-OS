@@ -1,0 +1,131 @@
+{
+  "proposals": [
+    {
+      "name": "python-hook-rejected",
+      "status_at_checkpoint": "NOT_APPLIED_REJECTED_P1_PYTHON_ENTRY_DEPENDENCY",
+      "source": ".project-local/audits/capability-manifest-consumer-next-20261019",
+      "members": [
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/capability-manifest-consumer.patch",
+          "bytes": 64596,
+          "sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/code-manifest.json",
+          "bytes": 2591,
+          "sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/CURRENT.md",
+          "bytes": 3079,
+          "sha256": "bbe25abc55bb6796502c5f91f75a769435bb9610d3b7bbf4fa5e28d8e55b96ee"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/DELIVERY.md",
+          "bytes": 1585,
+          "sha256": "7a1ff617a59fcfde5e117aba7e603ddcdcd02643a56955bb2ac92fa998bee704"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/FINAL-READBACK.json",
+          "bytes": 420,
+          "sha256": "5e7ab8767bc9a18d6b9c21890c28d881b1ee7e11b51bcde351aa7ab45d1efa9c"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/validation.json",
+          "bytes": 6223,
+          "sha256": "a71dc1576de33dbdc1d8c3d5e5e4a72c4be272d21bccd8c7cc054a0bf7fdcec6"
+        }
+      ]
+    },
+    {
+      "name": "duplicate-imports-rejected",
+      "status_at_checkpoint": "NOT_APPLIED_REJECTED_TS2300",
+      "source": ".project-local/audits/capability-manifest-consumer-node-next-20261019",
+      "members": [
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-next-20261019/capability-manifest-consumer-node.patch",
+          "bytes": 46014,
+          "sha256": "c0d004392d1b5ff4cf7690fe356bc71afcf0ab967bd30c7382d2d85c11ea73c3"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-next-20261019/code-manifest.json",
+          "bytes": 3415,
+          "sha256": "24cb2b5dfce8c40b3860c14f56c4cf4418f4f7aa60c99074caefdb6424f93b59"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-next-20261019/CURRENT.md",
+          "bytes": 3311,
+          "sha256": "7667e3e6dd42e0092d4b8c34243e92fdb780e166a42d7f27ce66e129f68ebdfe"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-next-20261019/DELIVERY.md",
+          "bytes": 1665,
+          "sha256": "44bf78b4174b75a743318340964a05ffc20be8a3fd644c078b5c37e01cb8cde8"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-next-20261019/FAILURES.md",
+          "bytes": 1403,
+          "sha256": "69a6ce2b5e2bcbe5d926c8ba6a5a3b30f2b52992688a4f3c217efa0b42e6f916"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-next-20261019/FINAL-READBACK.json",
+          "bytes": 3809,
+          "sha256": "34dc47ba71e25c4cb8f7c41fc03ad607a7c5fff6b3da4a1b7f79083e0d4c2a4f"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-next-20261019/validation.json",
+          "bytes": 7137,
+          "sha256": "d7231289c93c0b95cbc37f18a220ddab67169b4da0ab9cbc81e6f1caeb26eca9"
+        }
+      ]
+    },
+    {
+      "name": "corrected-node-applied",
+      "status_at_checkpoint": "LATER_APPLIED_MAIN_TARGETED_PASS",
+      "source": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019",
+      "members": [
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019/capability-manifest-consumer-node-corrected.patch",
+          "bytes": 45365,
+          "sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019/code-manifest.json",
+          "bytes": 4045,
+          "sha256": "f579475f95b706eb9d62cd0c2c889ec0511e4b36787317112380219913540976"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019/CURRENT.md",
+          "bytes": 2731,
+          "sha256": "2b44d5cc2af6b4556513a7ee0cbb6569bac7202de6968a84480982e41ad3ce5c"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019/DELIVERY.md",
+          "bytes": 2876,
+          "sha256": "07b5ac937324aeaf5ad85d2f619cec1c8bf7994556eb2a177424bdcc2f62640b"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019/FINAL-READBACK.json",
+          "bytes": 916,
+          "sha256": "b076532e0b28973981c769436a7df75bad010d727f9ad584073e31aeac863963"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019/ROOT-CAUSE.json",
+          "bytes": 1417,
+          "sha256": "be6711cfa54c2080fe8c85c8869db4084fc4957f27b68156cd7fc29a56b5906e"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019/ROOT-CAUSE.md",
+          "bytes": 2255,
+          "sha256": "e7927684f1f575a5c90eb0945ab58b0abfcac153616d4d6c74a0364c7f907901"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-node-corrected-20261019/validation.json",
+          "bytes": 67302,
+          "sha256": "b911b10d8bea8e2e222712b633635d2fe4e007c25c0fa1689c048feb637793f3"
+        }
+      ]
+    }
+  ],
+  "boundary": "原提案快照中的NOT_APPLIED是当时时点；只有修正Node版后来应用。不得串行叠加旧补丁。"
+}

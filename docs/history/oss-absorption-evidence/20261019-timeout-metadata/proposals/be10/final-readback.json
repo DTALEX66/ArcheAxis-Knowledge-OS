@@ -1,0 +1,95 @@
+{
+  "state": "ISOLATED_PROPOSAL_PASS_NOT_APPLIED",
+  "observed_at": "2026-10-18T21:16:39.751512+00:00",
+  "head": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "git_status_porcelain_sha256": "684ec61bc2b570c6a27940606c240ddcf8327e169a0893cf5a06ea80cc24e64f",
+  "git_status_entry_count": 266,
+  "patch_sha256": "4c0a09cf75101e641987e93fe2b4e6a1929786ddeb011da7993ddc2ad579c817",
+  "manifest_sha256": "e3d07a6678cd65ad4cac70f268fcd5ff2700c813f34c245a6a2a7dc2b9d3d210",
+  "apply_check_exit_code": 0,
+  "proposal_files_readback": [
+    {
+      "path": "crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/launch.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer/client.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_api.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_client.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_process.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_observer.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/tests/project_observer.rs",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "packages/contracts/v2/project-observer.cases.json",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "packages/contracts/v2/project-observer.schema.json",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "tests/contract/test_project_observer_contract.py",
+      "manifest_match": true,
+      "mirror_match": true
+    }
+  ],
+  "old_raw_files_verified": 6,
+  "owned_process_count": 0,
+  "product_files_written": [],
+  "fixed_entry": "CURRENT.md",
+  "evidence": "SYNTHETIC_FIXTURE_REAL_LOOPBACK_PROCESS_INTEGRATION",
+  "current_selected_tests": 21,
+  "external_native_acceptance": "NOT_EXECUTED",
+  "complete_BE10": "PARTIAL"
+}

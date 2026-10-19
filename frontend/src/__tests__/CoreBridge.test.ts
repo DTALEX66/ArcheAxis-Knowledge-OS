@@ -77,3 +77,36 @@ it.each(["SYNTHETIC_PRIVATE","__proto__"])("SIMULATED unknown machine reason %s 
   expect(error.machineFailure).toBeUndefined();
   expect(error.message).not.toContain(reason_code);
 });
+
+it.each(["machine_answer","machine_retest"] as const)("SIMULATED %s keeps a typed timeout and finite phase without claiming success",async operation=>{
+ const diagnostics={request_stage:"model_request",discovery_elapsed_s:0.25,elapsed_s:5,error_type:"TimeoutError"};
+ window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:503,body:{schema:"archeaxis.machine-call-failure/v1",operation:operation==="machine_answer"?"answer":"retest",reason_code:"MODEL_CALL_TIMEOUT",execution_state:"UNVERIFIED",answer_published:false,diagnostics:{...diagnostics,raw:"PRIVATE"}}})}};
+ const error=await coreCommand(operation,{}).catch(error=>error);expect(error).toBeInstanceOf(ApiError);
+ if(!(error instanceof ApiError))throw Error("Expected finite timeout");
+ expect(error.machineFailure).toEqual({reason_code:"MODEL_CALL_TIMEOUT",execution_state:"UNVERIFIED",answer_published:false,diagnostics});expect(error.message).toContain("模型服务调用超时");expect(JSON.stringify(error)).not.toContain("PRIVATE");
+});
+
+it.each(["machine_answer","machine_retest"] as const)("SIMULATED %s preserves measured failure fields and strips raw provider data",async(operation)=>{
+  const diagnostics={requested_model:"synthetic-model",observed_model:null,finish_reason:"length",answer_source:"reasoning_content",elapsed_s:2.5,max_tokens:2048,usage:{input_tokens:12,output_tokens:2048}};
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:503,body:{schema:"archeaxis.machine-call-failure/v1",operation:operation==="machine_answer"?"answer":"retest",reason_code:"NO_FINAL_ANSWER",execution_state:"UNVERIFIED",answer_published:false,diagnostics:{...diagnostics,stderr:"SYNTHETIC_PRIVATE",usage:{...diagnostics.usage,raw:"SYNTHETIC_PRIVATE"}}}})}};
+  const error=await coreCommand(operation,{}).catch(error=>error);
+  expect(error).toBeInstanceOf(ApiError);
+  if (!(error instanceof ApiError)) throw new Error("Expected finite Core failure");
+  expect(error.machineFailure?.diagnostics).toEqual(diagnostics);
+  expect(JSON.stringify(error)).not.toContain("SYNTHETIC_PRIVATE");
+});
+
+
+it("SIMULATED learning titles remain optional for an older Core and accept 80 Unicode scalars",async()=>{
+  const legacy={items:[{item_key:"original-long-item-key",next_review:null}],count:1};
+  const invoke=vi.fn().mockResolvedValue({status:200,body:legacy});window.__TAURI__={core:{invoke}};
+  await expect(coreCommand("learning_items")).resolves.toEqual(legacy);
+  const current={items:[{...legacy.items[0],display_title:"🛰".repeat(80)}],count:1};
+  invoke.mockResolvedValue({status:200,body:current});
+  await expect(coreCommand("learning_items")).resolves.toEqual(current);
+});
+it.each([null,"","🛰".repeat(81),42])("SIMULATED rejects a supplied malformed learning title %s",async(display_title)=>{
+  const body={items:[{item_key:"original-long-item-key",next_review:null,display_title}],count:1};
+  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body})}};
+  await expect(coreCommand("learning_items")).rejects.toMatchObject({status:502,code:"incompatible"});
+});

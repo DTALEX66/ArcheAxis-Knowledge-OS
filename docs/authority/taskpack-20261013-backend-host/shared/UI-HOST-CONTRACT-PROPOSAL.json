@@ -1,0 +1,438 @@
+{
+  "schema": "archeaxis.ui-host.contract-proposal/v1",
+  "state": "PROPOSED_REQUIRES_BE01_FORMAL_ADMISSION",
+  "contract_owner": "AX-HOST-20261013/BE01",
+  "transport": "finite native host bridge; existing Core operations reused; logical names are not existing Tauri commands",
+  "operations": [
+    {
+      "id": "capability.catalog.read",
+      "owner_task": "BE07",
+      "meaning": "read-only catalog"
+    },
+    {
+      "id": "capability.status.read",
+      "owner_task": "BE07",
+      "meaning": "range-bound actual readiness"
+    },
+    {
+      "id": "model.configuration.read",
+      "owner_task": "BE04",
+      "meaning": "masked current config"
+    },
+    {
+      "id": "model.configuration.write",
+      "owner_task": "BE04",
+      "meaning": "CAS typed configuration"
+    },
+    {
+      "id": "credential.bind",
+      "owner_task": "BE04",
+      "meaning": "native secure store, transient input"
+    },
+    {
+      "id": "credential.revoke",
+      "owner_task": "BE04",
+      "meaning": "scope-aware revocation"
+    },
+    {
+      "id": "model.inventory.read",
+      "owner_task": "BE04",
+      "meaning": "no inference or implicit load"
+    },
+    {
+      "id": "model.test",
+      "owner_task": "BE04",
+      "meaning": "explicit bounded trial"
+    },
+    {
+      "id": "model.binding.write",
+      "owner_task": "BE04",
+      "meaning": "purpose/global/workspace override"
+    },
+    {
+      "id": "layout.read",
+      "owner_task": "BE02",
+      "meaning": "separate preferences"
+    },
+    {
+      "id": "layout.write",
+      "owner_task": "BE02",
+      "meaning": "CAS and schema revision"
+    },
+    {
+      "id": "material.context.prepare",
+      "owner_task": "BE03",
+      "meaning": "version and bounded selection"
+    },
+    {
+      "id": "material.answer",
+      "owner_task": "BE03",
+      "meaning": "authorized source-linked question"
+    },
+    {
+      "id": "companion.send",
+      "owner_task": "BE05",
+      "meaning": "finite host-admitted session request"
+    },
+    {
+      "id": "companion.cancel",
+      "owner_task": "BE05",
+      "meaning": "cancel request, then authoritative result"
+    },
+    {
+      "id": "companion.history.read",
+      "owner_task": "BE05",
+      "meaning": "shared session continuity"
+    },
+    {
+      "id": "character.profile.read",
+      "owner_task": "BE06",
+      "meaning": "typed versioned profile"
+    },
+    {
+      "id": "character.profile.write",
+      "owner_task": "BE06",
+      "meaning": "CAS human preferences"
+    },
+    {
+      "id": "memory.list",
+      "owner_task": "BE06",
+      "meaning": "purpose-bound projection"
+    },
+    {
+      "id": "memory.correct",
+      "owner_task": "BE06",
+      "meaning": "versioned human correction"
+    },
+    {
+      "id": "memory.forget",
+      "owner_task": "BE06",
+      "meaning": "explicit deletion scope"
+    },
+    {
+      "id": "memory.export",
+      "owner_task": "BE06",
+      "meaning": "explicit user selection"
+    },
+    {
+      "id": "module.catalog.read",
+      "owner_task": "BE08",
+      "meaning": "installed/candidate distinction"
+    },
+    {
+      "id": "configuration.plan.read",
+      "owner_task": "BE08",
+      "meaning": "read-only reviewed plan"
+    },
+    {
+      "id": "deployment.plan.read",
+      "owner_task": "BE08",
+      "meaning": "no implicit install"
+    },
+    {
+      "id": "view.draft.read",
+      "owner_task": "BE09",
+      "meaning": "only registered draft types"
+    },
+    {
+      "id": "view.draft.write",
+      "owner_task": "BE09",
+      "meaning": "bounded typed draft, not arbitrary DB write"
+    },
+    {
+      "id": "project.handshake",
+      "owner_task": "BE10",
+      "meaning": "identity/version/capabilities"
+    },
+    {
+      "id": "project.objects.read",
+      "owner_task": "BE10",
+      "meaning": "read-only remote references"
+    },
+    {
+      "id": "project.handoff.preview",
+      "owner_task": "BE10",
+      "meaning": "write remains unavailable until admitted"
+    },
+    {
+      "id": "format.qualification.read",
+      "owner_task": "BE11",
+      "meaning": "operation/profile-specific evidence"
+    },
+    {
+      "id": "receipt.read",
+      "owner_task": "BE12",
+      "meaning": "query original request when unknown"
+    }
+  ],
+  "request_envelope": {
+    "schema_version": "1",
+    "request_id": "bounded unique request ID",
+    "workspace_id": "existing Core workspace identity",
+    "operation": "one enumerated logical operation",
+    "scope_ref": "host-issued authorized scope where applicable",
+    "expected_revision": "required for configuration/layout/profile/draft writes",
+    "input_ref": "one formally admitted operation DTO; no arbitrary executable payload"
+  },
+  "response_envelope": {
+    "request_id": "same request ID",
+    "operation": "same operation",
+    "outcome": "READ_OK|APPLIED|ACCEPTED|REJECTED|UNAVAILABLE|UNKNOWN",
+    "build_identity": "actual host version and source",
+    "result_ref": "typed object or job/receipt reference",
+    "reason_code": "specific known reason or null",
+    "status_revision": "actual revision",
+    "checked_at": "host timestamp",
+    "expires_at": "optional freshness boundary"
+  },
+  "object_ref_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "namespace": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "object_id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      },
+      "revision": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      }
+    },
+    "required": [
+      "namespace",
+      "object_id",
+      "revision"
+    ]
+  },
+  "configuration": {
+    "fields": [
+      "connection_id",
+      "provider_id",
+      "adapter_id",
+      "access_method",
+      "destination_ref",
+      "credential_ref",
+      "enabled",
+      "revision"
+    ],
+    "purposes": [
+      "conversation_learning",
+      "deep_research",
+      "vision",
+      "embedding",
+      "rerank",
+      "asr",
+      "tts"
+    ],
+    "secret_handling": "credential entry transient to native secure store; read only masked status/reference; launch-token never enters React",
+    "logical_modes": [
+      "FAST",
+      "DEEP"
+    ],
+    "binding_rules": [
+      "logical mode maps to real provider/model, not a fixed model name",
+      "bounded request budget and queue",
+      "embedding change requires index compatibility and rebuild plan"
+    ]
+  },
+  "layout": {
+    "fields": [
+      "schema_version",
+      "workspace_id",
+      "device_id",
+      "revision",
+      "preset_id",
+      "registered_panels",
+      "dock_tree",
+      "floating_bounds"
+    ],
+    "rules": [
+      "no business content or secrets",
+      "registered component keys only",
+      "CAS",
+      "unknown component and screen-bound recovery"
+    ]
+  },
+  "context": {
+    "fields": [
+      "object_ref",
+      "selection_ref",
+      "source_provenance",
+      "purpose",
+      "destination_ref",
+      "scope_ref"
+    ],
+    "rules": [
+      "no full-library default",
+      "no ordinary-save universal approval",
+      "version-bound sources",
+      "no silent cloud fallback"
+    ]
+  },
+  "conversation": {
+    "fields": [
+      "session_id",
+      "request_id",
+      "intent",
+      "character_profile_ref",
+      "context_refs",
+      "model_binding_ref"
+    ],
+    "intents": [
+      "material_learning",
+      "ordinary_companion",
+      "bounded_action_proposal"
+    ],
+    "stream_fields": [
+      "schema_version",
+      "session_id",
+      "request_id",
+      "sequence",
+      "event_type",
+      "typed_event_payload"
+    ],
+    "events": [
+      "text.delta",
+      "text.completed",
+      "request.failed",
+      "cancel.requested",
+      "cancel.completed",
+      "request.unknown",
+      "receipt.available"
+    ],
+    "rules": [
+      "late cancelled events discarded",
+      "unknown result query original request",
+      "one audio and expensive renderer owner",
+      "shared manager outlives presentation views"
+    ]
+  },
+  "speech_optional": {
+    "state": "FRONTEND_FIELDS_NOW_RUNTIME_OPTIONAL",
+    "fields": [
+      "session_id",
+      "utterance_id",
+      "chunk_id",
+      "sequence",
+      "audio_ref",
+      "sample_rate",
+      "start_offset_ms",
+      "viseme_events",
+      "subtitle_segments",
+      "locale",
+      "provenance",
+      "end_of_utterance"
+    ],
+    "rules": [
+      "audio playback clock is master",
+      "cancel stops audio/subtitles/mouth",
+      "no phoneme events means basic amplitude mouth only"
+    ]
+  },
+  "memory": {
+    "fields": [
+      "memory_ref",
+      "source_ref",
+      "purpose",
+      "revision",
+      "deletion_scope",
+      "retention_note"
+    ],
+    "scopes": [
+      "active_context",
+      "conversation_history",
+      "long_term_memory",
+      "derived_index_cache",
+      "backup_retention"
+    ],
+    "rules": [
+      "Core sole writer",
+      "human correction and forgetting readback",
+      "no second long-term store in ASTRYN"
+    ]
+  },
+  "readiness": {
+    "axes": [
+      "implementation",
+      "dependency",
+      "connection",
+      "qualification",
+      "authorization",
+      "object_scope",
+      "health"
+    ],
+    "presentation": [
+      "green_ready",
+      "red_reason",
+      "amber_unverified_expired_or_partial"
+    ],
+    "required": [
+      "operation_id",
+      "scope_ref",
+      "build_identity",
+      "reason_code",
+      "checked_at",
+      "expires_at",
+      "status_revision"
+    ],
+    "rules": [
+      "routing is not readiness",
+      "one ready child is not all ready",
+      "revalidate before execution"
+    ]
+  },
+  "project_exchange": {
+    "fields": [
+      "namespace",
+      "protocol_version",
+      "remote_identity_ref",
+      "object_ref",
+      "freshness",
+      "capabilities",
+      "authorization_ref",
+      "request_id",
+      "idempotency_key",
+      "receipt_ref"
+    ],
+    "first_release": "read-only handshake and references",
+    "future": [
+      "context_package",
+      "task_proposal",
+      "asset_manifest",
+      "knowledge_candidate",
+      "authorized_write_receipt"
+    ],
+    "rules": [
+      "independent stores and credentials",
+      "WORKLAB Observer read-only",
+      "DESIGNLAB native host remains editor",
+      "candidate not automatic admission",
+      "at least once with dedupe, not exactly once"
+    ]
+  },
+  "errors": [
+    "HOST_CONTRACT_MISSING",
+    "MODEL_UNAVAILABLE",
+    "UNCONFIGURED",
+    "DEPENDENCY_MISSING",
+    "UNAUTHORIZED",
+    "VERSION_INCOMPATIBLE",
+    "REVISION_CONFLICT",
+    "STATUS_EXPIRED",
+    "RESULT_UNKNOWN",
+    "FUTURE_NOT_ACTIVE"
+  ],
+  "formalization_gate": [
+    "BE01 publishes request/response JSON Schema and Rust/TS DTOs for each admitted operation",
+    "bind exact finite native command route",
+    "contract and negative tests",
+    "all consumers pin identical version and checksum"
+  ]
+}

@@ -1,5 +1,6 @@
 // Native finite business commands only. No URL, method or credential reaches UI.
 import { ApiError } from "./client";
+import { readMachineFailureDiagnostics } from "./machineFailure";
 import { jobAdmissionRefusal } from "./jobAdmission";
 import { readMachineAdmissionRefusal } from "./machineAdmission";
 import { assertCoreDto, type CoreOperation } from "./generated/core-contract";
@@ -8,6 +9,7 @@ import { assertTeachingDto } from "./generated/teaching-contract";
 import { assertCollectionDto } from "./generated/collection-contract";
 import { assertUiWorkingState } from "./generated/ui-working-state-contract";
 import { assertLayoutDto } from "./generated/layout-contract";
+import { assertHandoffDto } from "./generated/project-handoff";
 export type { CoreOperation } from "./generated/core-contract";
 const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_list:"RecordPage",teaching_get:"RecordView",teaching_create:"WriteReceipt",
@@ -49,6 +51,22 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
   const response = result as { status?: unknown; body?: unknown };
   if (typeof response.status !== "number" || !Number.isInteger(response.status)) throw new ApiError(502, "本地核心状态无效。", "incompatible");
   if (response.status < 200 || response.status >= 300) {
+    if (operation === "project_handoff_preview" || operation === "project_handoff_snapshot") {
+      const code = (response.body as {code?:unknown} | null)?.code;
+      const messages: Record<string,string> = {
+        IDENTITY_MISMATCH: "工作区身份或恢复版本已变化；请重新取得引用，原页面仍保留。",
+        NOT_FOUND: "此工作区没有指定的固定版本；未读取其他文档。",
+        REFERENCE_MISMATCH: "固定版本指纹不一致；未替换为其他版本。",
+        CONTENT_INVALID: "固定正文完整性核对失败；原文档未改变，请查看本地数据状态。",
+        EXPIRED: "上下文引用已到期；请重新取得引用。",
+        TOO_LARGE: "固定正文超过当前阅读限额；未截断或替换正文。",
+        HUMAN_REQUIRED: "请在本机桌面的人类会话中读取此引用。",
+        INVALID_INPUT: "上下文引用格式或有效期不符；请重新取得引用。",
+      };
+      const prefix = operation === "project_handoff_preview" ? "HANDOFF_PREVIEW_" : "HANDOFF_SNAPSHOT_";
+      const message = typeof code === "string" && code.startsWith(prefix) ? messages[code.slice(prefix.length)] : undefined;
+      throw new ApiError(response.status, message ?? "固定引用核对未完成；保留原页面后重试。", response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
+    }
     if (operation === "job_execute" && response.status === 409) {
       const p = payload as { job_id: string; request_id: string; body: { deadline_ms: number; split: boolean; words: boolean } };
       const admission = p.body && jobAdmissionRefusal(response.body, p);
@@ -60,13 +78,14 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
       && refusal.operation === (operation === "machine_answer" ? "answer" : "retest")
       && refusal.execution_state === "UNVERIFIED" && refusal.answer_published === false) {
       const reasons:Record<string,string> = {
-        MODEL_CALL_FAILED:"模型服务调用失败", NO_FINAL_ANSWER:"模型未返回最终答案",
+        MODEL_CALL_FAILED:"模型服务调用失败", MODEL_CALL_TIMEOUT:"模型服务调用超时", NO_FINAL_ANSWER:"模型未返回最终答案",
         EMPTY_ANSWER:"模型答案为空", WORKER_TIMEOUT:"模型执行超时", OUTPUT_LIMIT:"模型输出超过限额",
         INVALID_OUTPUT:"模型输出格式无效", PIPE_DRAIN_FAILED:"模型进程输出收尾未确认", WORKER_FAILED:"模型执行失败",
       };
       if(typeof refusal.reason_code === "string" && Object.prototype.hasOwnProperty.call(reasons,refusal.reason_code)) {
+        const diagnostics=readMachineFailureDiagnostics(refusal.diagnostics);
         throw new ApiError(503,`${reasons[refusal.reason_code]}；执行状态未确认，保留原请求。`,"unavailable",undefined,undefined,undefined,
-          {reason_code:refusal.reason_code,execution_state:"UNVERIFIED",answer_published:false});
+          {reason_code:refusal.reason_code,execution_state:"UNVERIFIED",answer_published:false,...(diagnostics?{diagnostics}:{})});
       }
     }
     if (["machine_answer","machine_retest"].includes(operation) && refusal?.schema === "archeaxis.context-admission-refusal/v1") {
@@ -98,6 +117,10 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
   if (["layout_read", "layout_write", "layout_recover"].includes(operation)) {
     try { return assertLayoutDto<T>("Snapshot", response.body); }
     catch { throw new ApiError(502, "布局回读格式无效，请保留当前布局。", "incompatible"); }
+  }
+  if (operation === "project_handoff_preview" || operation === "project_handoff_snapshot") {
+    try { return assertHandoffDto<T>(operation === "project_handoff_preview" ? "Preview" : "Snapshot", response.body); }
+    catch { throw new ApiError(502, "上下文引用回读格式不兼容，未打开正文。", "incompatible"); }
   }
   const schema = responseSchemas[operation];
   if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_clear_machine", "ui_state_recover"].includes(operation)) {

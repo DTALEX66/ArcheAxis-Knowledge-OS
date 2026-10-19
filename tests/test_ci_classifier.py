@@ -361,7 +361,7 @@ def test_vnext_lane_paths_trigger_their_own_gates() -> None:
         "crates/archeaxis-domain/src/knowledge.rs": "rust-vnext",
         "packages/contracts/v1/quality-report.schema.json": "contracts-vnext",
         "services/python-workers/media/worker_transcribe.py": "workers-vnext",
-        "config/model-profiles/local-2026-09-05.yaml": "workers-vnext",
+        "config/model-profiles/current-local.yaml": "workers-vnext",
     }
     for path, gate in cases.items():
         plan = classify_paths([path])

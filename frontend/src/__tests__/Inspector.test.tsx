@@ -3,6 +3,7 @@ import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Inspector, InspectionTarget } from "../components/Inspector";
+import {DiagnosticCenter} from "../components/DiagnosticConsole";
 import { StatusBar } from "../components/StatusBar";
 
 const target: InspectionTarget = { title: "样板条目", source: "CAS 原件 / Rust Core", lifecycle: "已保存；核验与依据分析独立记录" };
@@ -33,4 +34,13 @@ describe("Inspector dismissal", () => {
     expect(screen.queryByRole("complementary", { name: "检查器" })).not.toBeInTheDocument();
     expect(document.activeElement).toBe(screen.getByRole("button", { name: "展开检查器" }));
   });
+});
+
+it("keeps object identity out of the business explanation while publishing complete structured source diagnostics",async()=>{
+ const identity={document_id:"doc_"+"x".repeat(120),version:7,content_sha256:"a".repeat(64),source_id:"src_exact",source_revision:"revision_exact"};
+ const value={...target,title:"中文长标题".repeat(12),detail:"已关联来源原件；保存不表示已证实。",identityDetails:identity};
+ render(<><Inspector target={value}/><DiagnosticCenter/></>);
+ const inspector=screen.getByRole("complementary",{name:"检查器"});expect(inspector).toHaveTextContent(value.title);expect(inspector).toHaveTextContent(value.detail);expect(inspector).not.toHaveTextContent(identity.document_id);expect(inspector).not.toHaveTextContent(identity.content_sha256);
+ await userEvent.setup().click(screen.getByRole("button",{name:/条目身份与来源指纹/}));
+ expect(screen.getByRole("dialog").querySelector("pre")?.textContent).toBe(JSON.stringify(identity,null,2));expect(value.identityDetails).toBe(identity);
 });

@@ -1,0 +1,95 @@
+{
+  "schema": "aaos.review-title-evidence/v1",
+  "observed_at": "2026-10-18T19:22:18.515144+00:00",
+  "status": "PARTIAL",
+  "implementation": "APPLIED",
+  "archive": "docs/history/oss-absorption-evidence/20261019-review-title",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_files": {
+    "crates/archeaxis-domain/src/learning.rs": "3365ec343fa94b3158794ce706fabadbda796c73ba3afdf4a05d163c64b4124e",
+    "crates/archeaxis-api/src/lib.rs": "9d2780009a5f62e6f83661d479cb22787af48badab86f11d1521e20adf3d00e6",
+    "packages/contracts/v1/core-document.schema.json": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76",
+    "crates/archeaxis-api/tests/learning_state_api.rs": "0555193f4b9aa3d0c40473029f3c37cc600ee81494f84e95816d5e430ec3143e",
+    "frontend/src/api/generated/core-contract.ts": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+    "frontend/src/presentation/learningTitle.ts": "4e5023b7c3fb3fb5b35cdc57aef236be37282850b45225a8160c2a8b4cf27581",
+    "frontend/src/test/learningQueue.ts": "76c8aaae05b4cf9f2c5b7ca881dae6ff57bfda27d31bf9040593e433d689bb46",
+    "frontend/src/spaces/CanonicalLearningSpace.tsx": "2dcc46266588fb261f1c69d00799fd193237539fdf0deac5946aea2bb30a03d3",
+    "frontend/src/spaces/CanonicalWorkspaceSpace.tsx": "8de4dc7987c37c3d2344ec0f0abd042dc278e58bb2a821f87160072b4052fc68",
+    "frontend/src/presentation/workspaceReview.ts": "3c2d3dcbbc7c34e8165f5b4992aaf32fe60c390248836ede1b77346384f1fa27",
+    "frontend/src/presentation/learningJourney.ts": "1862e7e0593b1c3a797ef69eb70f978639f3a95a1ae4b20b601cfb86d0045442",
+    "frontend/src/spaces/CanonicalTeachingSpace.tsx": "382a07067982237cccbe5cd303a813fd8623296a9408e45430a2a23eb43f9bb4",
+    "frontend/src/__tests__/CanonicalLearningDrafts.test.tsx": "dbb9ab988f48fb4e355dfe61b5ecdd1c2e3c3b70b2022000cc2ca3d9968da337",
+    "frontend/src/__tests__/CanonicalReviewLearning.test.tsx": "4aa942b90e25f68d6aafc184e7e6ea5d656bece80aaaea73578620d99d69e5cc",
+    "frontend/src/__tests__/LearningPracticeJourney.test.tsx": "bb5e3265aa3c4613d55ccd7704926ac1fa93b8913e389f2d12b14a7816b4fbe5",
+    "frontend/src/__tests__/LiveRegionBudget.test.tsx": "f88f6da74183efec5e082c863a214c8042dd2251b643098d1f5dd1c6a9eb3428",
+    "frontend/src/__tests__/ThreeLevelNavigation.test.tsx": "fb01149bcfb058ba2ed3e6f774ee25d66337af1f54af91c320ecd9b455713b3e",
+    "frontend/src/__tests__/UiFirstWorkspace.test.tsx": "7a8a9b3139c155f7dac13d5f84e633f6d73ae2b58c6d68f3c261adcd98b197fb",
+    "frontend/src/__tests__/CoreBridge.test.ts": "28470e479b4b24dc9b3efb2827443ba039394874dfcec5534a6717c089e991e6",
+    "frontend/src/__tests__/LearningTitle.test.ts": "d08d67f52a929defc88fa9ab45bffe278385ce72b9781bc90f9e9e11f9d4e2a1",
+    "scripts/probes/aaos01_grouped_owner_loop.py": "9347142843cb01e692a62977a51da3bab380619c18cc40b866e1979b74f1abd1",
+    "scripts/probes/aaos01_tauri_webdriver_loop.py": "048069b6cb3a12f3c612a6a8d85888f61a6f89b47d6942cf71e9582927a352ef",
+    "tests/test_grouped_native_owner_probe.py": "c9a99cbddf6fd65a04497e9fd25740c12ad88460f75069c5e3868e7ce41c2525",
+    "tests/test_tauri_shell_authority.py": "0c72dfa9fcd8f03da0771c043019f24c72e9e51daec3f2d0a33b250d6a5f522b"
+  },
+  "qualifications": {
+    "frontend": "176 files / 1741 tests PASS; React/jsdom, SYNTHETIC Core",
+    "core": "14 Rust API/course tests PASS; isolated SQLite/CAS and synthetic records",
+    "probes": "80 Python tests + 145 subtests PASS; selector contract checks",
+    "build": "TypeScript / Vite PASS; 056543a77b63",
+    "browser": "real Chrome production bundle, SYNTHETIC Core, 3 checks PASS, 3 screenshots reviewed",
+    "axe": "queue scope: zero violations, one incomplete color-contrast rule; not full compliance",
+    "native_for_this_patch": "NOT_EXECUTED",
+    "installed": "NOT_EXECUTED"
+  },
+  "source_binding": "Each execution receipt retains its own exact patch. Core/probe files unchanged after their tests; later React selection fix and test-only restore fixture repair do not grant a universal all-repo patch qualification.",
+  "remaining": [
+    {
+      "severity": "P2",
+      "location": "1280px desktop review queue",
+      "observed": "80-scalar long button text clipped horizontally in screenshot 01; 640px wraps",
+      "next": "bounded wrapping for review buttons at desktop and narrow widths, measure both viewports"
+    },
+    {
+      "severity": "UNVERIFIED",
+      "location": "review queue contrast",
+      "observed": "axe color-contrast incomplete due overlap/pseudo background",
+      "next": "manual contrast verification with rendered background"
+    },
+    {
+      "severity": "NOT_EXECUTED",
+      "location": "native candidate",
+      "observed": "prior qualified candidate does not include title/selection changes",
+      "next": "build and qualify owned isolated candidate before claiming native pass"
+    }
+  ],
+  "preserved_failures": [
+    "review-title-contract-red-1019",
+    "review-title-ui-red-1019",
+    "review-title-binding-red-1019",
+    "review-selection-echo-red-1019",
+    "review-title-echo-full-1019",
+    "review-title-browser-1019"
+  ],
+  "test_fixture_correction": "restore_epoch must be initial or 32 hex characters; invalid restored fixture replaced, then full suite PASS",
+  "no_commit_push_cloud_release": true,
+  "complete_private_transcripts": "UNVERIFIED",
+  "whole_project": "PARTIAL",
+  "screenshots": [
+    {
+      "path": ".project-local/runs/be268a2d33/review-title-browser-echo-1019/artifacts/ui-pilot/01-readable-title-desktop.png",
+      "sha256": "844c235f42f9a770a8982b73cb07edd48124dc0f0bf2f1450cd473f1ec3a95e4",
+      "visually_reviewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/review-title-browser-echo-1019/artifacts/ui-pilot/02-readable-title-narrow.png",
+      "sha256": "39b4b8013020935cb31e2bef66f923aab9d1489be5ed0857b99a80c90b215812",
+      "visually_reviewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/review-title-browser-echo-1019/artifacts/ui-pilot/03-legacy-title-fallback.png",
+      "sha256": "646a6234129992c37d4e3b2b45a0278c79833bfc6f649308ca589307b600cc00",
+      "visually_reviewed": true
+    }
+  ],
+  "navigation_targets_verified": 18
+}

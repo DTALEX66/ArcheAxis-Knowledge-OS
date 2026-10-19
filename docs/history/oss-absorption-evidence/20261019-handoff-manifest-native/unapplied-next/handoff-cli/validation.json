@@ -1,0 +1,149 @@
+{
+  "state": "ISOLATED_PROPOSAL_PASS_NOT_APPLIED",
+  "final_selected_tests": 20,
+  "new_real_core_cli_tests": 6,
+  "existing_observer_process_tests": 6,
+  "pure_projection_regressions": 8,
+  "source_baseline_unchanged": true,
+  "apply_check": {
+    "exit_code": 0,
+    "stderr": ""
+  },
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "preimage_match": true,
+      "proposal_hash_match": true,
+      "tested_mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_process.rs",
+      "preimage_match": true,
+      "proposal_hash_match": true,
+      "tested_mirror_match": true
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "preimage_match": true,
+      "proposal_hash_match": true,
+      "tested_mirror_match": true
+    },
+    {
+      "path": "docs/contracts/project-handoff-v1.md",
+      "preimage_match": true,
+      "proposal_hash_match": true,
+      "tested_mirror_match": true
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "be10-cli-green-initial-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-cli-green-initial-1019/artifacts/execution.json",
+      "receipt_sha256": "cde3e0aea433d7eb224019ae30d101f57d29071685e4729e395c9e4b9f8fc318",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-cli-consumer-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "project_handoff_process",
+        "--test",
+        "project_observer_process",
+        "--test",
+        "project_handoff_projection",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "started_at": "2026-10-18T21:55:33.193559+00:00",
+      "ended_at": "2026-10-18T21:56:06.859602+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "results": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.93s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.79s"
+      ],
+      "qualification": "HISTORICAL_PRE_AUTH_CASES"
+    },
+    {
+      "run_id": "be10-cli-red-reference-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-cli-red-reference-1019/artifacts/execution.json",
+      "receipt_sha256": "511b1b220087287831469360436c14136df40383c26a88e01e06b383c8ee0a53",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-cli-consumer-next-20261019/run_validation.py",
+        "red",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "project_handoff_process",
+        "stale_unlisted_and_invalid_contracts_are_never_prepared_as_current",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "started_at": "2026-10-18T21:56:36.756514+00:00",
+      "ended_at": "2026-10-18T21:56:49.404186+00:00",
+      "child_exit_code": 101,
+      "exit_code": 101,
+      "source_consistent": true,
+      "status": "FAIL",
+      "results": [
+        "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.07s"
+      ],
+      "qualification": "EXPECTED_RED_OWNED_MIRROR"
+    },
+    {
+      "run_id": "be10-cli-green-final-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-cli-green-final-1019/artifacts/execution.json",
+      "receipt_sha256": "b27328ebe74ca1b6568402f5e531c07057950745d4e7d044e2f83f1776f5d130",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-cli-consumer-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "project_handoff_process",
+        "--test",
+        "project_observer_process",
+        "--test",
+        "project_handoff_projection",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "started_at": "2026-10-18T21:56:56.435559+00:00",
+      "ended_at": "2026-10-18T21:57:19.198015+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "results": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.04s",
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.72s"
+      ],
+      "qualification": "FINAL_FROZEN_GREEN"
+    }
+  ],
+  "product_writes": [],
+  "user_services_started": [],
+  "browser_started": false,
+  "external_product_ui_native": "NOT_EXECUTED",
+  "installation": "NOT_EXECUTED"
+}

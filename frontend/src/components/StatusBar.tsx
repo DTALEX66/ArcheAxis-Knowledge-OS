@@ -19,6 +19,7 @@ interface StatusBarProps {
   onOpenCapability?: (id: string) => void;
   selectedCapabilityId?: string | null;
   onCommandPaletteOpenChange?: (open: boolean) => void;
+  commandPaletteOpenRequest?: number;
   inspectorOpen?: boolean;
   onToggleInspector?: () => void;
   navigationAppearance?: "sidebar" | "top";
@@ -43,6 +44,7 @@ export function StatusBar({
   onOpenCapability,
   selectedCapabilityId,
   onCommandPaletteOpenChange,
+  commandPaletteOpenRequest,
   inspectorOpen = true,
   onToggleInspector = () => {},
   navigationAppearance = "sidebar", onNavigationAppearance, pageId, learningFocus = false,
@@ -63,7 +65,7 @@ export function StatusBar({
         {externalDev ? <span className="dev-marker">开发</span> : null}
       </div>
       {navigationAppearance === "top" && !learningFocus && onPage ? <SpaceTopNavigation activeSpace={activeSpace} pageId={pageId} onPage={onPage} activeCapabilityId={selectedCapabilityId}/> : null}
-      <CommandPalette onPage={onPage} onOpenObject={onOpenObject} onNavigate={onNavigate} onOpenCapability={onOpenCapability} onOpenChange={onCommandPaletteOpenChange} />
+      <CommandPalette openRequest={commandPaletteOpenRequest} onPage={onPage} onOpenObject={onOpenObject} onNavigate={onNavigate} onOpenCapability={onOpenCapability} onOpenChange={onCommandPaletteOpenChange} />
       {activeSpace !== "workspace" && navigationAppearance !== "top" ? <ThemePicker /> : null}
       <div className="status-bar-center">
         <span

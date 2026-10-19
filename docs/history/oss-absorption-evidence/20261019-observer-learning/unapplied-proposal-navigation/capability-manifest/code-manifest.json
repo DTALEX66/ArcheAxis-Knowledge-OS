@@ -1,0 +1,58 @@
+{
+  "state": "ISOLATED_PROPOSAL_PASS_NOT_APPLIED",
+  "patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+  "files": [
+    {
+      "path": "docs/contracts/capability-package-v1.md",
+      "before_sha256": null,
+      "after_sha256": "633ec5ba2f2f66eb357dd8fa601b7be367ecb0d7e1fbca9066311a929927f474",
+      "bytes": 4683
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package.ts",
+      "before_sha256": null,
+      "after_sha256": "966d8e53f9e885b29806b180d57b28fd4529d5ff62cfc841964aaa4805e27c8d",
+      "bytes": 3571
+    },
+    {
+      "path": "packages/contracts/v2/capability-package.cases.json",
+      "before_sha256": null,
+      "after_sha256": "830abe8da0797b775edcef934d19f5df8e0299e4c9072b50d61573558a978d88",
+      "bytes": 163318
+    },
+    {
+      "path": "packages/contracts/v2/capability-package.schema.json",
+      "before_sha256": null,
+      "after_sha256": "248b38fbaf6ce16b87e7acdd4395f4515ba082977da0d6538fe8c14f9ac02d2f",
+      "bytes": 13258
+    },
+    {
+      "path": "scripts/contracts/generate_capability_package.py",
+      "before_sha256": null,
+      "after_sha256": "f578564e00ae13bab9d53352d6102032f35781fdfecbbe75defcb4da37621c37",
+      "bytes": 2294
+    },
+    {
+      "path": "scripts/contracts/validate_capability_package.py",
+      "before_sha256": null,
+      "after_sha256": "7575d12775fbbec60b697da10cd53f003f177845c735b90f4d2afdc6093eaef1",
+      "bytes": 6905
+    },
+    {
+      "path": "tests/contract/test_capability_package_contract.py",
+      "before_sha256": null,
+      "after_sha256": "d1a9eb2177d165aefd80cb5bfeb8e2dc3c2818d6da3392123d02fb351308bed0",
+      "bytes": 4176
+    }
+  ],
+  "apply_check_exit_code": 0,
+  "all_paths_new": true,
+  "proposal_unchanged_during_gates": true,
+  "product_paths_not_written": true,
+  "checks": [
+    "pytest-acceptance",
+    "typescript-acceptance",
+    "ruff-acceptance"
+  ],
+  "product_writes": []
+}

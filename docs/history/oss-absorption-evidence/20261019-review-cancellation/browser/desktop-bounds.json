@@ -1,0 +1,18 @@
+{
+  "queueWidth": 798,
+  "queueScrollWidth": 798,
+  "buttons": [
+    {
+      "width": 798,
+      "scrollWidth": 796,
+      "clientWidth": 796,
+      "whiteSpace": "normal"
+    },
+    {
+      "width": 798,
+      "scrollWidth": 796,
+      "clientWidth": 796,
+      "whiteSpace": "normal"
+    }
+  ]
+}

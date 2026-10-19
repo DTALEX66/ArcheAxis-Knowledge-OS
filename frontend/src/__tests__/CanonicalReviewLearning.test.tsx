@@ -1,3 +1,6 @@
+import {findLearningItemButton,getLearningItemButton} from "../test/learningQueue";
+import {useDiagnostics, resetDiagnostics} from "../presentation/diagnostics";
+import {renderHook} from "@testing-library/react";
 import {CoreWorkingStateProvider} from "../presentation/useCoreWorkingState";
 import {CoreWorkingStateSession,type WorkingRead} from "../presentation/coreWorkingState";
 import type { Editor } from "@tiptap/core";
@@ -6,8 +9,10 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { CanonicalKnowledgeSpace } from "../spaces/CanonicalKnowledgeSpace";
 import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
+import {useState} from "react";
 const bridge = vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
+beforeEach(resetDiagnostics);
 describe("finite knowledge and learning commands",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
  it("guards both closing and replacing an unsaved search document",async()=>{
@@ -56,11 +61,11 @@ describe("finite knowledge and learning commands",()=>{
   });
   render(<CanonicalKnowledgeSpace/>);const user=userEvent.setup();
   await user.click(screen.getByRole("button",{name:"搜索"}));await user.click(await screen.findByRole("button",{name:"候选正文"}));
-  const qualificationDebug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  const qualificationDebug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
   await user.click(screen.getByRole("button",{name:/Core 证据与资格回执/}));
-  expect(qualificationDebug.mock.calls.some(([,label,payload])=>label==="Core 证据与资格回执"&&JSON.stringify(payload).includes('"local_execution_pass":false'))).toBe(true);
+  expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="Core 证据与资格回执"&&JSON.stringify(payload).includes('"local_execution_pass":false'))).toBe(true);
   expect(screen.queryByText(/local_execution_pass/)).not.toBeInTheDocument();
-  qualificationDebug.mockRestore();
+  expect(qualificationDebug).not.toHaveBeenCalled(); qualificationDebug.mockRestore();
   expect(screen.getByRole("button",{name:"接受当前候选"})).toBeDisabled();
   await user.type(screen.getByLabelText("审核者"),"测试使用者");await user.type(screen.getByLabelText("审核备注"),"保留判断依据");
   await user.click(screen.getByRole("button",{name:"接受当前候选"}));
@@ -74,17 +79,17 @@ describe("finite knowledge and learning commands",()=>{
    if(op==="learning_history") return {events:[]};
    if(op==="learning_review") throw new Error("unconfirmed");
   });
-  render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a1"}));
-  const machineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await findLearningItemButton("a1"));
+  const machineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
   await user.click(await screen.findByRole("button",{name:/机器能力/}));
-  expect(machineDebug.mock.calls.some(([,label,payload])=>label==="机器能力记录回执"&&JSON.stringify(payload).includes("not_recorded"))).toBe(true);
+  expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="机器能力记录回执"&&JSON.stringify(payload).includes("not_recorded"))).toBe(true);
   expect(screen.queryByText(/not_recorded/)).not.toBeInTheDocument();
-  machineDebug.mockRestore();await user.type(screen.getByLabelText("本次答案"),"本次实际答案");
+  expect(machineDebug).not.toHaveBeenCalled(); machineDebug.mockRestore();await user.type(screen.getByLabelText("本次答案"),"本次实际答案");
   expect(screen.getByText("实际问题")).toBeInTheDocument();expect(screen.queryByText("绑定修订中的核对内容")).not.toBeInTheDocument();
   await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));expect(screen.getByText("绑定修订中的核对内容")).toBeInTheDocument();
   await user.click(screen.getByLabelText("回答不正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"1");
   await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/提交未确认/);
-  await user.click(screen.getByRole("button",{name:"a1"}));
+  await user.click(getLearningItemButton("a1"));
   expect(screen.getByLabelText("本次答案")).toHaveValue("本次实际答案");
   expect(screen.getByLabelText("本次答案")).toBeDisabled();
   expect(screen.getByLabelText("学习者自评")).toBeDisabled();
@@ -123,7 +128,7 @@ describe("finite knowledge and learning commands",()=>{
    if(op==="learning_history")return {events:[]};if(op==="learning_review")throw new Error("synthetic ACK unknown");throw new Error("unexpected mutation");
   });
   render(<CoreWorkingStateProvider session={session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);const user=userEvent.setup();
-  await screen.findByRole("button",{name:"a2"});expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).toHaveLength(0);
+  await findLearningItemButton("a2");expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).toHaveLength(0);
   await user.click(screen.getByRole("button",{name:"恢复复习请求 a2"}));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("answer_a2"));expect(screen.getByLabelText("本次答案")).toBeDisabled();
   await user.click(screen.getByRole("button",{name:"恢复复习请求 a1"}));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("answer_a1"));
   expect(session.getSnapshot().state.pending_reviews).toEqual(server.state.pending_reviews);expect(write).not.toHaveBeenCalled();expect(bridge.call.mock.calls.filter(([op])=>op==="learning_review")).toHaveLength(0);
@@ -138,9 +143,78 @@ describe("finite knowledge and learning commands",()=>{
    if(op==="learning_history")return {events:reviewed?[{event_id:"event"}]:[]};
    if(op==="learning_review"){reviewed=true;return {next_review:"tomorrow"};}throw new Error("unexpected");
   });
-  render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a1"}));
+  render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await findLearningItemButton("a1"));
   await user.type(screen.getByLabelText("本次答案"),"answer");await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));await user.click(screen.getByLabelText("回答正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"3");await user.click(screen.getByRole("button",{name:"记录复习结果"}));
   await screen.findByText("已读回新状态");expect(screen.getByLabelText("本次答案")).toHaveValue("");expect(screen.getByLabelText("本次答案")).not.toBeDisabled();expect(screen.getByText(/已读回 1 条复习事件/)).toBeInTheDocument();
  });
 
+});
+
+
+it("SIMULATED queue and breadcrumb show shared titles while selecting each exact long item key",async()=>{
+  bridge.call.mockReset();
+  const keys=[`course:${"a".repeat(64)}:artifact:${"b".repeat(64)}`,`course:${"c".repeat(64)}:artifact:${"d".repeat(64)}`];
+  bridge.call.mockImplementation(async(operation:string,payload:Record<string,unknown>={})=>{
+    if(operation==="learning_items")return {items:keys.map(item_key=>({item_key,display_title:"同名学习主题",next_review:null})),count:2};
+    if(operation==="learning_state")return {item_key:payload.item_key,learner:{assessment:{assessment_id:`assessment_${payload.item_key}`,question:"固定问题",content:"固定核对内容",knowledge_version:"fixed-version"}},machine:{status:"not_recorded"}};
+    if(operation==="learning_history")return {events:[]};
+    throw new Error(operation);
+  });
+  const onTrail=vi.fn(),selected=vi.fn();render(<CanonicalLearningSpace onTrail={onTrail} onItemSelected={selected}/>);
+  await waitFor(()=>expect(screen.getAllByRole("button",{name:"同名学习主题"})).toHaveLength(2));
+  for(const key of keys){
+    const button=getLearningItemButton(key);expect(button).toHaveTextContent("同名学习主题");
+    expect(screen.queryByRole("button",{name:key})).not.toBeInTheDocument();
+    fireEvent.click(button);
+    await waitFor(()=>expect(onTrail).toHaveBeenLastCalledWith([
+      expect.objectContaining({id:"section:review"}),
+      expect.objectContaining({id:`item:${key}`,label:"同名学习主题"}),
+    ]));
+    expect(screen.getByLabelText("学习项目键")).toHaveValue(key);
+  }
+  expect(selected.mock.calls).toEqual(keys.map(key=>[key]));
+  expect(bridge.call.mock.calls.filter(([operation])=>operation==="learning_state").map(([,payload])=>payload)).toEqual(keys.map(item_key=>({item_key})));
+  expect(bridge.call.mock.calls.some(([operation])=>["learning_review","assessment_create","learning_reference"].includes(operation))).toBe(false);
+});
+
+it("SIMULATED shell selection echo does not reread the just-opened learning item",async()=>{
+ bridge.call.mockReset();
+ bridge.call.mockImplementation(async(operation:string,payload:Record<string,unknown>={})=>{
+  if(operation==="learning_items")return {items:[{item_key:"echo-key",display_title:"固定学习主题",next_review:null}],count:1};
+  if(operation==="learning_state")return {item_key:payload.item_key,learner:{},machine:{status:"not_recorded"}};
+  if(operation==="learning_history")return {events:[]};
+  throw new Error(operation);
+ });
+ function ShellEcho(){const [key,setKey]=useState<string>();return <CanonicalLearningSpace initialItemKey={key} onItemSelected={setKey}/>;}
+ render(<ShellEcho/>);fireEvent.click(await screen.findByRole("button",{name:"固定学习主题"}));
+ await screen.findByRole("heading",{name:"复习题"});await act(async()=>{await Promise.resolve();});
+ expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).toEqual([["learning_state",{item_key:"echo-key"}]]);
+ expect(bridge.call.mock.calls.filter(([op])=>op==="learning_history")).toEqual([["learning_history",{item_key:"echo-key"}]]);
+});
+
+it.each([
+ ["workspace","b".repeat(32),"initial",false],
+ ["restore epoch","a".repeat(32),"b".repeat(32),false],
+ ["recovery confirmation","a".repeat(32),"initial",true],
+] as const)("SIMULATED selection dedup does not hide a changed %s",async(_label,workspace_id,restore_epoch,recovery)=>{
+ bridge.call.mockReset();
+ bridge.call.mockImplementation(async(operation:string,payload:Record<string,unknown>={})=>{
+  if(operation==="learning_items")return {items:[{item_key:"echo-key",display_title:"固定学习主题",next_review:null}],count:1};
+  if(operation==="learning_state")return {item_key:payload.item_key,learner:{},machine:{status:"not_recorded"}};
+  if(operation==="learning_history")return {events:[]};
+  throw new Error(operation);
+ });
+ const initial:WorkingRead={schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:"06",pending_original:null},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false};
+ async function sessionFor(read:WorkingRead){const session=new CoreWorkingStateSession({read:async()=>structuredClone(read),write:vi.fn().mockRejectedValue(new Error("unexpected write")),clearSaved:vi.fn(),recover:vi.fn()});await session.load();return session;}
+ const first=await sessionFor(initial),next=await sessionFor({...initial,workspace_id,restore_epoch,recovery_requires_confirmation:recovery});
+ const view=(session:CoreWorkingStateSession)=><CoreWorkingStateProvider session={session}><CanonicalLearningSpace initialItemKey="echo-key"/></CoreWorkingStateProvider>;
+ const {rerender}=render(view(first));await screen.findByRole("heading",{name:"复习题"});
+ expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).toHaveLength(1);
+ rerender(view(next));await act(async()=>{await Promise.resolve();});
+ if(recovery){
+  expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).toHaveLength(1);
+  const ready=await sessionFor({...initial,workspace_id,restore_epoch,recovery_requires_confirmation:false});rerender(view(ready));
+ }
+ await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).toHaveLength(2));
+ expect(bridge.call.mock.calls.every(([op])=>["learning_items","learning_state","learning_history"].includes(op))).toBe(true);
 });

@@ -1,6 +1,6 @@
-"""
-Integration test for FileUpload component
-"""
+/**
+ * Integration test for FileUpload component
+ */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FileUpload } from '../components/FileUpload';
 import { describe, it, expect, vi } from 'vitest';

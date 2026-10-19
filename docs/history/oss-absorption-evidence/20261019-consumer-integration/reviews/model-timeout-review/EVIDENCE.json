@@ -1,0 +1,96 @@
+{
+  "schema": "aaos.readonly-model-timeout-review/v1",
+  "observed_utc": "2026-10-18T22:08:57.072488+00:00",
+  "status": "PARTIAL",
+  "root_cause": "UNVERIFIED",
+  "operations": {
+    "product_writes": false,
+    "inference": false,
+    "model_load_unload": false,
+    "configuration_changes": false,
+    "private_logs_or_databases_read": false,
+    "loopback_get_only": true
+  },
+  "latest_native": {
+    "receipt": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/receipt.json",
+    "sha256": "a885ff1601ded0649852dc7f653796906dec57976053e3edc278b580ad5e0257",
+    "overall": "FAIL",
+    "operation": "retest",
+    "error": "MODEL_CALL_TIMEOUT",
+    "request_stage": "model_request",
+    "elapsed_s": 118.03,
+    "timeout_s": 118,
+    "max_tokens": 1024,
+    "requested_model": "aaos-deep-27b-mtp",
+    "provider_stop_state": "UNKNOWN",
+    "usage": null,
+    "published_answer": false
+  },
+  "hardware": {
+    "cpu": "Intel Core i5-14600KF",
+    "cores": 14,
+    "logical_processors": 20,
+    "physical_ram_bytes": 68487733248,
+    "gpu": "NVIDIA GeForce RTX 5060",
+    "gpu_total_mib": 8151,
+    "snapshot_gpu_used_mib": 7336,
+    "snapshot_gpu_free_mib": 560,
+    "snapshot_gpu_util_percent": 2,
+    "snapshot_limitation": "Instantaneous total device values outside failed inference, not per-model allocation or proof of OOM/idle during timeout."
+  },
+  "declared_and_read_back_load": {
+    "gpu_ratio": 0.4,
+    "context_length": 2048,
+    "max_parallel_predictions": 1,
+    "flash_attention": true,
+    "speculative_draft_mtp": true,
+    "offload_kv_cache_to_gpu": false,
+    "draft_max_tokens": 2,
+    "draft_min_tokens": 1,
+    "registered_model_size_bytes": 14252845984,
+    "reasoning_default_inventory": "on",
+    "actual_failed_call_reasoning_tokens": "UNVERIFIED"
+  },
+  "owned_synthetic_prompt_reconstruction": {
+    "context_utf8_bytes": 252,
+    "question_utf8_bytes": 65,
+    "prompt_utf8_bytes": 642,
+    "prompt_codepoints": 642,
+    "prompt_sha256": "1a91e99276cad632e39d15a763aad5e583499c9160a00a905150327243dad0e3",
+    "http_body_reconstruction_bytes": 753,
+    "tokenizer_count": "UNVERIFIED",
+    "wire_capture": "NOT_EXECUTED",
+    "limits": "Reconstructed only from accepted correction, original question and current worker template. No raw text copied. Chat template/tokenization/actual wire not captured."
+  },
+  "current_application_request": {
+    "explicit_fields": [
+      "model",
+      "max_tokens",
+      "messages"
+    ],
+    "not_explicit": [
+      "stream",
+      "temperature",
+      "seed",
+      "stop",
+      "reasoning mode",
+      "context overflow policy"
+    ],
+    "max_tokens_is_model_output_budget_not_word_limit": true,
+    "historical_sdk_smoke_not_identical_application_parameters": true
+  },
+  "next_measurement": {
+    "requires_separate_authorized_run": true,
+    "preserve_model_profile_timeout_and_standards": true,
+    "minimum": [
+      "Record bounded request-body byte lengths and selected inference-policy presence/version without text.",
+      "Split coarse model_request into bounded connection/response-header/body-read/parse timings; retain strict allowlists and old-receipt compatibility.",
+      "If supported by the exact server build, capture provider-reported prompt/output/reasoning counts, TTFT, final stop reason and MTP accepted/rejected counters for the same owned synthetic call. Missing values remain UNKNOWN.",
+      "Distinguish queue/prefill/decode/read from a socket timeout before proposing performance changes."
+    ]
+  },
+  "authorization_boundary": [
+    "No automatic profile change, higher token/context/timeout budget, reasoning override, provider fallback, draft configuration or GPU resource redistribution.",
+    "Any profile/resource experiment must be separately bounded, preserve current baseline, avoid shared-service changes without explicit authorization, and compare equivalent inputs/output conditions."
+  ]
+}

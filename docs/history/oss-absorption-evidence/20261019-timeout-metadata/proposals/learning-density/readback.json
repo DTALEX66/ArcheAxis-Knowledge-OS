@@ -1,0 +1,44 @@
+{
+  "checked_at": "2026-10-18T21:20:30.849171+00:00",
+  "patch_sha256": "70b66e7f13729ea7c15b82ff4820cfb6f4d685405e9789a1db2d0829711e1a89",
+  "patch_matches_manifest": true,
+  "source_and_proposal_checks": [
+    {
+      "path": "frontend/src/spaces/CanonicalLearningSpace.tsx",
+      "live_matches_preimage": true,
+      "proposal_matches_hash": true
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalTeachingSpace.tsx",
+      "live_matches_preimage": true,
+      "proposal_matches_hash": true
+    },
+    {
+      "path": "frontend/src/__tests__/LearningPracticeJourney.test.tsx",
+      "live_matches_preimage": true,
+      "proposal_matches_hash": true
+    },
+    {
+      "path": "frontend/src/__tests__/CanonicalLearningDensity.test.tsx",
+      "live_matches_preimage": true,
+      "proposal_matches_hash": true
+    },
+    {
+      "path": "frontend/src/__tests__/CanonicalLearningDrafts.test.tsx",
+      "live_matches_preimage": true,
+      "proposal_matches_hash": true
+    }
+  ],
+  "patch_apply_check_exit_code": 0,
+  "proposal_directory_ignored": true,
+  "git_status_exit_code": 0,
+  "files": {
+    "learning-density.patch": "70b66e7f13729ea7c15b82ff4820cfb6f4d685405e9789a1db2d0829711e1a89",
+    "source-manifest.json": "fdf2f182864c1172f54bb3772c4140024c8c97a446693c7e7ce40eacf373dc1a",
+    "verification-summary.json": "0da558f83ebdf7f35e66774277ca83082d88c4ca4a0c55483dea72787be4e256",
+    "DELIVERY.md": "d24debe90d45ac4e93dd2471ea777a844cc21e7873cd24a7b5c3177e5d4d6754",
+    "git-status-final.txt": "913f1db22cf1c89e4dd356b6f16736136c533ec6a3d73102c001762e8bada0c1"
+  },
+  "native_candidate_touched": false,
+  "product_writes": false
+}

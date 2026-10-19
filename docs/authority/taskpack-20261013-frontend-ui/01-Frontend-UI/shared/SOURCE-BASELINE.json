@@ -1,0 +1,34 @@
+{
+  "main_repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+  "observed_main_sha": "be79ff90e7394247171afc311b002eb96ff0581e",
+  "ASTRYN_observed_sha": "9cf9a44441d24706211633f0759146872a726a0c",
+  "WORKLAB_repository": "DTALEX66/WORK-LAB",
+  "DESIGNLAB_repository": "DTALEX66/DESIGN-LAB",
+  "execution_instruction": "Resolve current Git and authority again; fixed observation does not grant runtime qualification.",
+  "source_documents": [
+    {
+      "name": "AAOS-UI-v1-Final-Spec.docx",
+      "version": 1
+    },
+    {
+      "name": "ArcheAxis-UI-Navigation-v1.json",
+      "version": 0
+    },
+    {
+      "name": "ArcheAxis-UI-Multidimensional-Audit.docx",
+      "version": 0
+    }
+  ],
+  "coverage": {
+    "pages": 22,
+    "families": 16,
+    "original_intents": 186,
+    "primary": 7,
+    "secondary_records": 37,
+    "canonical_secondary": 34,
+    "third_records": 173,
+    "canonical_third": 158,
+    "future_targets": 15,
+    "interop_targets": 6
+  }
+}

@@ -1,5 +1,8 @@
 import { CoreWorkingStateSession, type WorkingRead } from "../presentation/coreWorkingState";
 import { CoreWorkingStateProvider, useCoreWorkingState } from "../presentation/useCoreWorkingState";
+import {CompanionSessionProvider} from "../companion/CompanionSessionProvider";
+import {ConversationPanel} from "../components/ConversationPanel";
+import {DiagnosticCenter, DiagnosticCenterTrigger} from "../components/DiagnosticConsole";
 import { coreCommand } from "../api/core";
 import { AaosDialog } from "../design-system/AaosPrimitives";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
@@ -12,7 +15,7 @@ import { SpaceRail } from "../components/SpaceRail";
 import { ActivityDock } from "../components/ActivityDock";
 import { Inspector, type InspectionTarget } from "../components/Inspector";
 import { SpaceView, canonicalSurface } from "../spaces/SpaceView";
-import { DockWorkspace } from "../workspace/DockWorkspace";
+import { DockWorkspace, type DockNavigationTarget } from "../workspace/DockWorkspace";
 import { RecoveryShell } from "../components/RecoveryShell";
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
@@ -61,11 +64,12 @@ export function App() {
     window.addEventListener("workspace-invalidated",reset);
     return()=>window.removeEventListener("workspace-invalidated",reset);
   },[]);
-  return <CoreWorkingStateProvider session={session}><AppBody /></CoreWorkingStateProvider>;
+  return <CoreWorkingStateProvider session={session}><CompanionSessionProvider><AppBody /><DiagnosticCenter /></CompanionSessionProvider></CoreWorkingStateProvider>;
 }
 function AppBody() {
   const working=useCoreWorkingState();
   const hydratedSession=useRef<CoreWorkingStateSession|null>(null);
+  const adoptingWorkingScene=useRef(false);
   const [workingEntered,setWorkingEntered]=useState(false);
   const desktop = Boolean(window.__TAURI__?.core?.invoke);
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
@@ -80,6 +84,9 @@ function AppBody() {
   };
   const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));
   const [openedDocumentId,setOpenedDocumentId] = useState<string|undefined>();
+  const [activeDockPanelId,setActiveDockPanelId] = useState<string>();
+  const [dockNavigationRevision,setDockNavigationRevision] = useState(0);
+  const requestDockNavigation = useCallback(() => {setActiveDockPanelId(undefined);setDockNavigationRevision(value=>value+1);},[]);
   const [initialLearningItemKey, setInitialLearningItemKey] = useState<string|undefined>();
   const composing = useRef(false);
   const [selectedCapabilityId, setSelectedCapabilityId] = useState<string | null>(initialNavigation?.capabilityId ?? null);
@@ -96,6 +103,7 @@ function AppBody() {
   );
   const operation = useRef({ epoch: 0, mounted: true });
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [commandPaletteRequest, setCommandPaletteRequest] = useState(0);
   const [searchedObject,setSearchedObject]=useState<ObjectReference|null>(null);
   const [searchedContentSha,setSearchedContentSha]=useState<string>();
   const draftDirty = useRef(false);
@@ -165,6 +173,7 @@ function AppBody() {
       // Every mounted data view and editor belongs to the replaced workspace.
       draftOwners.current.clear(); draftDirty.current = false; setUnsavedDrafts(false);
       setWorkspaceEpoch(value => value + 1);
+      requestDockNavigation();
       setUiPageId("01"); setActiveSpace("workspace"); setOpenedDocumentId(undefined); setInitialLearningItemKey(undefined);
       setSelectedCapabilityId(null); setInspectionTarget(null); setObjectTrail([]);
       setSearchedObject(null);
@@ -213,6 +222,7 @@ function AppBody() {
   const navigate = useCallback((id: SpaceId) => {
     if (restoringRef.current || composing.current) return false;
     if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return false;
+    requestDockNavigation();
     setNavigationOpen(false);
     setUiPageId(id === "workspace" ? "01" : undefined);
     setActiveSpace(id);
@@ -231,6 +241,7 @@ function AppBody() {
     const page=findUiPage(id);
     if (!page || restoringRef.current || composing.current) return;
     if (uiPageId === id && activeSpace === page.space && !selectedCapabilityId) {
+      requestDockNavigation();
       setNavigationOpen(false);
       const hash=`#page=${encodeURIComponent(id)}`;
       if(window.location.hash!==hash) window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
@@ -242,13 +253,31 @@ function AppBody() {
     const retainedAiJourney = uiPageId !== undefined &&
       ["13", "14", "22"].includes(uiPageId) && ["13", "14", "22"].includes(id) &&
       activeSpace === "ai-assets" && page.space === "ai-assets" && !selectedCapabilityId;
-    if (retainedAiJourney) setNavigationOpen(false);
+    if (retainedAiJourney) {setNavigationOpen(false);requestDockNavigation();}
     else if (!navigate(page.space)) return;
     setUiPageId(id);
     const hash=`#page=${encodeURIComponent(id)}`;
     window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
     navigationHash.current=hash;
   },[navigate, uiPageId, activeSpace, selectedCapabilityId]);
+  const activateDockView = useCallback((target:DockNavigationTarget) => {
+    if(restoringRef.current||composing.current)return false;
+    const page=findUiPage(target.uiPageId??"");if(!page)return false;
+    const capability=target.selectedCapabilityId??null;
+    const reader=["02","03","20"].includes(page.id);
+    const same=uiPageId===page.id&&activeSpace===target.spaceId&&selectedCapabilityId===capability&&(!reader||openedDocumentId===target.initialDocumentId);
+    const retainedAiJourney=uiPageId!==undefined&&["13","14","22"].includes(uiPageId)&&["13","14","22"].includes(page.id)&&activeSpace==="ai-assets"&&target.spaceId==="ai-assets"&&!selectedCapabilityId&&!capability;
+    if(!same&&!retainedAiJourney&&draftDirty.current&&!window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？"))return false;
+    // Dock 已完成激活；这里只采纳显示状态，保留完整对象面板身份，不发送打开请求。
+    setActiveDockPanelId(target.panelId);setUiPageId(page.id);setActiveSpace(target.spaceId);setSelectedCapabilityId(capability);
+    if(reader)setOpenedDocumentId(target.initialDocumentId);
+    setNavigationOpen(false);
+    if(!same){setInspectionTarget(null);setObjectTrail([]);setSectionNotice(null);}
+    if(target.spaceId!=="learning"&&learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
+    const hash=capability?`#capability/${encodeURIComponent(capability)}`:`#page=${encodeURIComponent(page.id)}`;
+    window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);navigationHash.current=hash;
+    return true;
+  },[uiPageId,activeSpace,selectedCapabilityId,openedDocumentId,learningFocus]);
   const openDocument = useCallback((id:string) => {
     if(!navigate("library"))return;
     setUiPageId("03");setOpenedDocumentId(id);
@@ -268,6 +297,7 @@ function AppBody() {
     const entry = EFFECTIVE_NAVIGATION_ENTRIES.find((item) => item.entry_id === id && item.capability);
     if (!entry?.capability) return;
     if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return;
+    requestDockNavigation();
     setNavigationOpen(false);
     setUiPageId("18");
     setActiveSpace("settings");
@@ -295,6 +325,7 @@ function AppBody() {
       }
       if(target.spaceId!=="learning"&&learningFocus){setLearningFocus(false);window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:false}));}
       navigationHash.current = window.location.hash;
+      requestDockNavigation();
       setUiPageId(target.capabilityId ? "18" : target.pageId);
       setActiveSpace(target.spaceId);
       setSelectedCapabilityId(target.capabilityId);
@@ -306,10 +337,11 @@ function AppBody() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, [learningFocus, uiPageId, activeSpace, selectedCapabilityId]);
 
-  const inspect = useCallback((target: InspectionTarget) => {
+  const inspect = useCallback((target: InspectionTarget, options?: { reveal?: boolean }) => {
     if(restoringRef.current)return;
     setInspectionTarget(target);
-    setInspectorOpen(true);
+    // 窄窗口自动同步条目不抢占阅读区；显式检查仍可打开，已打开的检查器继续更新。
+    if (options?.reveal !== false || window.innerWidth > 900) setInspectorOpen(true);
   }, []);
 
   const surface = canonicalSurface(activeSpace, desktop);
@@ -630,6 +662,7 @@ function AppBody() {
       if(snapshot.status==="blocked")return;
       if(hydratedSession.current!==working.session) {
         hydratedSession.current=working.session;
+        requestDockNavigation();
         const page=findUiPage(snapshot.state.page_id??"");
         if(page){setUiPageId(page.id);setActiveSpace(page.space);setSelectedCapabilityId(null);}
         setOpenedDocumentId(snapshot.state.active_document??undefined);
@@ -647,7 +680,7 @@ function AppBody() {
     draftDirty.current=draftOwners.current.size>0;setUnsavedDrafts(draftDirty.current);
   },[desktop,working.state,working.status,workspaceEpoch]);
   useEffect(()=>{
-    if(!desktop||!workingEntered||working.status==="blocked"||working.status==="recovery")return;
+    if(!desktop||!workingEntered||adoptingWorkingScene.current||working.status==="blocked"||working.status==="recovery")return;
     if(working.state.page_id!==(uiPageId??null))working.session.rememberScene(uiPageId??null);
   },[desktop,workingEntered,uiPageId,working.session,working.state.page_id,working.status]);
   useEffect(()=>{
@@ -660,21 +693,25 @@ function AppBody() {
       const read=await working.session.load();
       const view=working.session.getSnapshot();
       if(!read.recovery_requires_confirmation&&view.status!=="blocked") {
-        if(hydratedSession.current!==working.session){const page=findUiPage(view.state.page_id??"");if(page){setUiPageId(page.id);setActiveSpace(page.space);}setOpenedDocumentId(view.state.active_document??undefined);hydratedSession.current=working.session;}
+        if(hydratedSession.current!==working.session){requestDockNavigation();setSelectedCapabilityId(null);const page=findUiPage(view.state.page_id??"");if(page){setUiPageId(page.id);setActiveSpace(page.space);}setOpenedDocumentId(view.state.active_document??undefined);hydratedSession.current=working.session;}
         setWorkingEntered(true);
       }
     }catch{/* Session retains the exact local draft and displays the refusal. */}
   }
   async function decideWorkingRecovery(action:"preserve"|"discard") {
+    // 恢复回执发布到采纳页面之间，禁止旧页面把恢复场景写回覆盖。
+    adoptingWorkingScene.current=true;
     try {
       await working.session.recover(action);
       const view=working.session.getSnapshot();
       if(view.status!=="ready")return;
+      requestDockNavigation();setSelectedCapabilityId(null);
       const page=findUiPage(view.state.page_id??"");
-      if(page){setUiPageId(page.id);setActiveSpace(page.space);}
+      if(page){setUiPageId(page.id);setActiveSpace(page.space);const hash=`#page=${encodeURIComponent(page.id)}`;window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);navigationHash.current=hash;}
       setOpenedDocumentId(view.state.active_document??undefined);
       hydratedSession.current=working.session;setWorkingEntered(true);
     }catch{/* Explicit choice may still be refused; no candidate replaces local input. */}
+    finally{adoptingWorkingScene.current=false;}
   }
   const workingNotice=desktop?<section aria-label="工作草稿保全" data-working-state={working.status} role={working.error?"alert":"status"}>
     <p>{working.status==="ready"?"工作状态已由 Core 保全；正文保存以各文档版本回执为准。":working.status==="saving"?"正在保全工作草稿…":working.status==="loading"?"正在读取工作草稿；编辑入口等待身份核对。":"工作草稿仍保留，持久化尚未全部确认。"}</p>
@@ -695,6 +732,7 @@ function AppBody() {
         onRestoreBackup={restoreBackup}
         onReloadCurrentCore={reloadCurrentCore}
       />
+      <DiagnosticCenterTrigger />
       </>
     );
   }
@@ -714,6 +752,8 @@ function AppBody() {
           ...(uiPageId ? [{ label: findUiPage(uiPageId)?.label ?? '' }] : [])
         ]}
         notificationCount={0}
+        onSettings={() => openPage("19")}
+        onSearch={() => { if (!restoringRef.current) setCommandPaletteRequest(value => value + 1); }}
         userName="User"
       />
       {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
@@ -733,6 +773,7 @@ function AppBody() {
         onOpenCapability={openCapability}
         selectedCapabilityId={selectedCapabilityId}
         onCommandPaletteOpenChange={setCommandPaletteOpen}
+        commandPaletteOpenRequest={commandPaletteRequest}
         onOpenObject={(reference,sha)=>{if(!restoringRef.current){setSearchedObject(reference);setSearchedContentSha(sha);}}}
         inspectorOpen={inspectorOpen}
         onToggleInspector={toggleInspector}
@@ -741,6 +782,7 @@ function AppBody() {
       <div className="app-body" key={`workspace:${workspaceEpoch}`} aria-busy={workspaceRestoring}>
         {!learningFocus && <aside className="navigation-sidebar" aria-label="产品导航">
           <SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage} />
+          {(!desktop||workingEntered)?<details className="companion-sidebar"><summary>小栖陪伴</summary><ConversationPanel slot="sidebar"/></details>:null}
           {!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={activateSection} />}
         </aside>}
         <main className="app-center" role="main" aria-label="当前空间内容">
@@ -748,7 +790,7 @@ function AppBody() {
           <NavTrail levels={trailLevels} onJump={focusRegion} />
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
           <div className="ui-page-heading" role="group" aria-label="当前页面" data-current-page-id={uiPageId ?? ""}><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>{findUiPage(uiPageId ?? "")?.group ?? "个人工作区"}</small></div>
-          {(!desktop||workingEntered)?(desktop?<DockWorkspace initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">工作状态尚未核对；请使用上方读回或明确恢复入口。</p>}
+          {(!desktop||workingEntered)?(desktop?<DockWorkspace activePanelId={activeDockPanelId} navigationRevision={dockNavigationRevision} onActivateView={activateDockView} initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">工作状态尚未核对；请使用上方读回或明确恢复入口。</p>}
         </main>
         {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>

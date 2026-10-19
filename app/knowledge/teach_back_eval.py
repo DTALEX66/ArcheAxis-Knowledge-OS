@@ -167,12 +167,12 @@ def grade_with_llm(restatement: str, reference: str, *,
     None when no provider is configured — callers MUST fall back to the rubric.
     Model confidence is a hint only; the human truth flag stays authoritative.
     """
+    if not model:
+        return None
     try:
         import litellm  # type: ignore
     except ImportError:
         return None
-    if not model:
-        model = "ollama/llama3.1"
     system = (
         "You grade a learner's teach-back restatement of a concept. "
         "Return JSON only: {accuracy:0..1, coverage:0..1, paraphrase:0..1, organization:0..1, rationale:str}."

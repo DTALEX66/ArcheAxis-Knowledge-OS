@@ -2,6 +2,7 @@ import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { webcrypto } from "node:crypto";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { CanonicalResearchSpace, parseResearch, type ResearchValue } from "../spaces/CanonicalResearchSpace";
 import type { DocumentDto } from "../api/generated/core-contract";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
@@ -20,6 +21,28 @@ beforeEach(()=>{vi.stubGlobal("crypto",webcrypto);docs=new Map([["doc_a",dto("do
  throw new Error(`unimplemented fixture operation ${op}`);
 };bridge.call.mockImplementation(original);});
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
+
+it.each(["cancel","escape","add"])("returns the reference picker to its actual keyboard opener after %s",async action=>{
+ render(<CanonicalResearchSpace/>);await openA();const user=userEvent.setup();
+ const opener=screen.getByRole("button",{name:"添加材料或待整理说明"});opener.focus();await user.keyboard("{Enter}");
+ const dialog=await screen.findByRole("dialog",{name:"选择研究引用"});
+ if(action==="escape")await user.keyboard("{Escape}");
+ else if(action==="cancel")await user.click(within(dialog).getByRole("button",{name:"取消引用选择"}));
+ else{await within(dialog).findByRole("option",{name:/真实来源/});await user.selectOptions(within(dialog).getByLabelText("引用原件"),"source_actual");await user.click(within(dialog).getByRole("button",{name:"添加所选引用"}));}
+ await waitFor(()=>expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+ expect(opener).toHaveFocus();expect(requests).toHaveLength(0);
+ expect(screen.getByLabelText("研究问题")).toHaveValue("A");
+});
+it.each(["cancel","escape","switch"])("restores keyboard focus and preserves dirty research through switch dialog %s",async action=>{
+ render(<CanonicalResearchSpace/>);await openA();editQuestion("未保存研究");const user=userEvent.setup();
+ const opener=screen.getByRole("button",{name:"doc_b · 版本 1"});opener.focus();await user.keyboard("{Enter}");
+ const dialog=await screen.findByRole("dialog",{name:"保留研究草稿并切换"});
+ if(action==="escape")await user.keyboard("{Escape}");
+ else await user.click(within(dialog).getByRole("button",{name:action==="cancel"?"取消切换":"保留草稿并切换"}));
+ await waitFor(()=>expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+ expect(opener).toHaveFocus();expect(requests).toHaveLength(0);
+ await waitFor(()=>expect(screen.getByLabelText("研究问题")).toHaveValue(action==="switch"?"B":"未保存研究"));
+});
 
 it.each([false,true])("captures exact original quote into version metadata; mismatched anchor=%s retains notes",async mismatch=>{
  const raw=new TextEncoder().encode("甲😀\r\n乙");

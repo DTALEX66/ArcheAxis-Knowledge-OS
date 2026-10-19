@@ -20,6 +20,7 @@ that a resource is available.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -58,6 +59,12 @@ def test_index_covers_exactly_the_declared_entries():
     indexed = {(row["category"], row["name"]) for row in index["entries"]}
     expected = {(entry["category"], entry["name"]) for entry in declared_entries()}
     assert indexed == expected, f"index and manifest disagree: {indexed ^ expected}"
+
+
+def test_index_is_bound_to_the_current_manifest_bytes():
+    assert index_document()["manifest_sha256"] == hashlib.sha256(MANIFEST.read_bytes()).hexdigest(), (
+        "capability declaration changed without regenerating its external-resource index"
+    )
 
 
 def test_every_row_carries_the_binding_fields_a_consumer_needs():

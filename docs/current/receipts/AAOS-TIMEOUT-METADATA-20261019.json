@@ -1,0 +1,135 @@
+{
+  "schema": "archeaxis.timeout-metadata-checkpoint/v1",
+  "status": "PARTIAL",
+  "product_status": "PARTIAL",
+  "evidence_level": "MIXED_STRUCTURAL_SYNTHETIC_CORE_NATIVE_REAL_MODEL_SYNTHETIC_MATERIAL",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "archive": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/README.md",
+  "archive_manifest_sha256": "7e2168f413163f865b9ab156c7c18a924acf20891f1f45bc6a826f56547c87b9",
+  "frozen_members": 30,
+  "task_changed_source_files": 31,
+  "source_identity_manifest": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/SOURCE-MANIFEST.json",
+  "source_delta_scope": "Against preserved dirty preimages; not full Git HEAD delta",
+  "executions": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/EXECUTIONS.json",
+  "native": {
+    "overall": "FAIL",
+    "source_patch_sha256": "3251f7a0aa430f6bc2ed94ae8515b59e498816da3b0ba00f2b9d47544fba0567",
+    "material_and_companion": "PASS_REAL_MODEL_SYNTHETIC_MATERIAL_NOT_QUALITY_QUALIFICATION",
+    "same_process_cold_reopen_backup_restore": "PASS_LIMITED_READBACK",
+    "startup_execution_calls": "UNVERIFIED",
+    "cancellation": "NOT_EXECUTED",
+    "failure": "Probe reader raw document ID visibility assertion after metadata presentation change",
+    "model_latency_s": {
+      "material": 79.97,
+      "companion": 107.7
+    },
+    "performance_qualification": "UNVERIFIED",
+    "screenshots_actually_viewed": 8,
+    "owned_process_cleanup": true,
+    "owned_ports_released": true
+  },
+  "unapplied_proposals": [
+    {
+      "kind": "BE10",
+      "entry": "proposals/be10/CURRENT.md",
+      "patch_sha256": "4c0a09cf75101e641987e93fe2b4e6a1929786ddeb011da7993ddc2ad579c817",
+      "status": "NOT_APPLIED",
+      "isolated_selected_tests": 21
+    },
+    {
+      "kind": "learning-density",
+      "entry": "proposals/learning-density/DELIVERY.md",
+      "patch_sha256": "70b66e7f13729ea7c15b82ff4820cfb6f4d685405e9789a1db2d0829711e1a89",
+      "status": "NOT_APPLIED",
+      "isolated_tests": 49,
+      "evidence_level": "SYNTHETIC"
+    }
+  ],
+  "owner_dialogue_originals": "docs/history/owner-dialogue-20261019/README.md",
+  "owner_dialogue_topics": 39,
+  "full_private_transcript": "UNVERIFIED",
+  "navigation_preimages": ".project-local/archives/owner-continuity-checkpoint-20261019/before-manifest.json",
+  "publication": {
+    "commit_push": "NOT_EXECUTED",
+    "cloud_backup": "NOT_EXECUTED",
+    "release_green_replacement": "NOT_EXECUTED"
+  },
+  "checks": [
+    {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/owner-dialogue-20261019/verify_archive.py",
+        "--require-local-attachments"
+      ],
+      "started_at": "2026-10-18T21:24:00.573836+00:00",
+      "ended_at": "2026-10-18T21:24:00.706198+00:00",
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"evidence_level\": \"STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION\",\n  \"frozen_members\": 6,\n  \"source_records\": 39,\n  \"current_reference_targets\": 28,\n  \"local_attachments_checked\": 3,\n  \"local_attachment_status\": \"PASS\",\n  \"product_status\": \"PARTIAL\",\n  \"full_private_transcript\": \"UNVERIFIED\"\n}\n",
+      "stderr": "",
+      "existing_line_ending_warnings": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/oss-absorption-evidence/20261019-timeout-metadata/verify_snapshot.py",
+        "--require-local-evidence"
+      ],
+      "started_at": "2026-10-18T21:24:00.706214+00:00",
+      "ended_at": "2026-10-18T21:24:00.836585+00:00",
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"evidence_level\": \"STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION\",\n  \"frozen_members\": 30,\n  \"local_screenshots_checked\": 8,\n  \"local_evidence\": \"PASS\",\n  \"product_status\": \"PARTIAL\"\n}\n",
+      "stderr": "",
+      "existing_line_ending_warnings": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-18T21:24:00.836603+00:00",
+      "ended_at": "2026-10-18T21:24:01.000300+00:00",
+      "exit_code": 0,
+      "stdout": "input hashes: verified 7, outside/private UNVERIFIED 4\ndocument authority: single current record, root references resolve, in-repository hashes checked (external sources remain UNVERIFIED), coverage complete\n",
+      "stderr": "",
+      "existing_line_ending_warnings": 0,
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-18T21:24:01.000314+00:00",
+      "ended_at": "2026-10-18T21:24:01.095457+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "existing_line_ending_warnings": 28,
+      "status": "PASS"
+    }
+  ],
+  "navigation_regressions": {
+    "status": "PASS",
+    "count": 17,
+    "receipt": ".project-local/runs/be268a2d33/owner-continuity-checkpoint-final-1019/artifacts/execution.json",
+    "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+    "source_patch_sha256": "d7e302b0308c310d1c67a0ae50ba4f2150ad0e982f90732ef2fd525ac0499ac6",
+    "source_consistent": true,
+    "started_at": "2026-10-18T21:23:24.670173+00:00",
+    "ended_at": "2026-10-18T21:23:27.768207+00:00",
+    "scope": "Documentation authority and supersession; not product tests"
+  },
+  "observed_at": "2026-10-18T21:24:01.095657+00:00"
+}

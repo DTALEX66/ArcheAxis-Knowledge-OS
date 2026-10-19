@@ -1,11 +1,28 @@
+> 2026-10-19 公开仓库同步及未应用候选：见[交付准备回执](current/receipts/AAOS-CLOUD-SYNC-20261019.json)，实际Git/远端身份与exact-SHA CI现场回读。
+
 # Documentation Authority Index
+
+> 2026-10-19 后继限定增量：[固定引用全文／现有page16消费回执](current/receipts/AAOS-HANDOFF-SNAPSHOT-READER-20261019.json)、[本轮源码与失败证据归档](history/oss-absorption-evidence/20261019-handoff-snapshot-reader/README.md)。替代前轮“snapshot／UI未应用”的当前状态，旧快照保留原SHA；仍非原生UI、外部产品、安装或整个BE10通过。39项对话及规范路径继续沿原固定读序，不复制第二权威或资源默认值。
+
+> 对话保全：[关键来源、39项映射及工具迁移定位](history/owner-dialogue-20261019/README.md)。该目录角色为历史来源快照，现行决定及任务状态仍经活动指针解析；10/18会话对账已加FE18后继替代说明。
+
+> 2026-10-19 当前限定增量：[对话接续／BE10预览／PDF依赖与版本回执](current/receipts/AAOS-CONTINUITY-NATIVE-PDF-20261019.json)、[实际源码与失败冻结快照](history/oss-absorption-evidence/20261019-continuity-native-pdf/README.md)。后继BE10修订及PDF切片已应用，旧12提案NOT_APPLIED仅为历史；68项继承资格不提升。定向验证不等于原生UI、完整BE10、安装或模型质量通过。权威/规划/路径/外置库仍按固定接续导航，实际进度只归唯一UI记录。
+
+> 历史资格导航：[标题与取消边界](history/oss-absorption-evidence/20261019-review-cancellation/README.md)、[前序原生材料/陪伴恢复](history/oss-absorption-evidence/20261019-material-companion-qualified/README.md)、[deadline修复](history/oss-absorption-evidence/20261019-machine-deadline/README.md)、[原请求恢复](history/oss-absorption-evidence/20261019-companion-recovery/README.md)、[更早超时/失败](history/oss-absorption-evidence/20261019-material-companion-final/README.md)。旧索引原字节已归入本轮快照；这些都是历史证据，不是第二个当前入口。
+
+> 2026-10-19 开源吸收与扩展形式的 Owner 决定：[决定、对话摘要、任务与蓝图映射](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)。由活动指针路由；不建立第二份进度台账，不把规划当实现。
+
+> 后继能力中心/课程切片：[限定回执](current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json)、[可复现脚本与证据快照](history/oss-absorption-evidence/20261019-capability-course/README.md)。活动指针 `continuation_context` 是换 Agent 的路径导航；快照、旧测试数量和本地 PASS 均不代替当前资格或云端备份。
+
+> 2026-10-18 审计与测试解释：[逐轮覆盖/标准差距](current/AAOS-AUDIT-TEST-COVERAGE-20261018.md)、[实际前端用例清单](current/receipts/AAOS-FRONTEND-TEST-CASES-20261018.json)、[诊断与导航原生修复收据](current/receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json)。仅作证据导航，进度仍在活动指针指定记录。
+> 后继失败测量贯通与候选更新：[验证收据](current/receipts/AAOS-MACHINE-FAILURE-DIAGNOSTICS-20261018.json)。
 
 > 本地/云端仓库身份、分支保留及换会话接续：[接续记录](current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。路径和 SHA 是可核对的观察，不是永久环境或新权限。
 
 > **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](current/AAOS-AUTHORITY-ROUTES.json)核对。
 
 > **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
-> 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
+> 10/09 的新布局适用于全部主题；当时默认 `blueprint` 的描述已由后续 UI 方向覆盖，现行策略读活动指针 `theme_policy`。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
 > 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
 
 
@@ -190,7 +207,7 @@ release status, or task order:
 - `current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md` (historical proposal; output-root and UI-host target superseded by current project authority)
 - `ABSORPTION_EXECUTION_MATRIX.md` (2026-08-11 frozen snapshot)
 - `PROJECT_STATUS.md`
-- `../HERMES_HANDOFF.md`
+- `history/handoff-archive-20261018/HERMES_HANDOFF.md` (original bytes archived; old path resolves through AAOS-AUTHORITY-ROUTES.json)
 - `superpowers/specs/2026-08-23-six-space-closed-loop-design.md`
 
 Their status banners are intentional. Physical relocation or deletion requires a
@@ -295,3 +312,23 @@ The full source package, its unpacked contents, and the two supplied reports are
 ## 全仓路径与软件读取入口 · 2026-10-10
 
 [路径身份注册](current/AAOS-AUTHORITY-ROUTES.json)按exact路径、历史/继承/冻结规则和失效别名解析文档，不能只依赖名称CURRENT。规范digest原路径已修复；当前系统边界读 [SYSTEM_BOUNDARY](SYSTEM_BOUNDARY.md)，原Release/FastAPI/Avalonia正文仅为历史。软件入口AGENTS、CLAUDE、GEMINI与Copilot都回到同一根权威，不各建一套规则。
+
+
+## 2026-10-19 Observer与学习密度接续
+
+[本轮限定回执](current/receipts/AAOS-OBSERVER-LEARNING-20261019.json)与[冻结快照](history/oss-absorption-evidence/20261019-observer-learning/README.md)保存20文件应用、1文件身份断言修正、前端初轮FAIL和复验、BE10首切片及后续提案NOT_APPLIED导航。实际状态仍只写UI执行记录；39项Owner原话、权威/路径/规划/外置库仍由既有索引路由，不把归档或隔离验证当正式产品完成。
+
+
+## 2026-10-19 handoff／能力包manifest与原生失败接续
+
+[限定回执](current/receipts/AAOS-HANDOFF-MANIFEST-NATIVE-20261019.json)与[冻结快照](history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md)保存本轮22文件实际应用、3处测试import修正、主仓验证及真实原生复测MODEL_CALL_TIMEOUT失败。已应用合同不再作为未应用提案；后续CLI/page17消费另记NOT_APPLIED。39项Owner来源、权威/规划/入口/共享库仍由既有规范索引路由，实际状态只记唯一UI执行记录；本地归档不代表完整私人会话、云同步或产品完成。
+
+
+## 2026-10-19 CLI/page17消费与独立取消接续
+
+[限定回执](current/receipts/AAOS-CONSUMER-INTEGRATION-20261019.json)与[冻结快照](history/oss-absorption-evidence/20261019-consumer-integration/README.md)保存本轮17文件实际应用、拒绝提案/修正版来源、正式仓验证与原生结果。旧NOT_APPLIED不覆盖后继实施；39项Owner原话及权威/规划/共享路径仍从既有规范入口解析，实际状态只记唯一UI记录。本地归档不等于完整私人会话、云同步或产品完成。
+
+
+## 2026-10-19 原字节与测量接续
+
+[限定回执](current/receipts/AAOS-CHECKOUT-MEASUREMENT-20261019.json)与[冻结快照](history/oss-absorption-evidence/20261019-checkout-and-measurement/README.md)保存18文件实际应用、11次执行所属源码、原生恢复及低效用观察、Git检出字节校验、BE10后继12文件正式应用阻断。原39主题不回写，现行权威/规划/共享库从既有规范源解析，实际进度仍只写唯一UI记录；本地归档不等于完整私人会话、云同步、安装或产品完成。

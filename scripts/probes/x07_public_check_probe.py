@@ -9,10 +9,12 @@ any model failure is NOT support). Prints JSON; exit 0 only on full support.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
 import sys
 import urllib.request
+from pathlib import Path
 
 CLAIM = "地球的平均半径约为 6371 公里"
 URL = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&explaintext=1&redirects=1&titles=Earth"
@@ -46,14 +48,12 @@ def evidence_quote(extract: str) -> tuple[bool, str, str]:
 
 
 def local_judge(extract: str) -> str:
-    prompt = ("判断来源是否支持该主张。只答：支持/不支持/无法判断，加一句理由。\n"
-              f"主张：{CLAIM}\n来源：{extract[:900]}\n")
-    body = json.dumps({"model": "qwen3:8b", "stream": False, "messages": [
-        {"role": "user", "content": prompt}]}).encode("utf-8")
-    req = urllib.request.Request("http://127.0.0.1:11434/api/chat", data=body,
-                                 headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=200) as resp:
-        return json.loads(resp.read().decode("utf-8")).get("message", {}).get("content", "").strip()
+    worker = Path(__file__).resolve().parents[2] / "services/python-workers/machine/worker_machine_answer.py"
+    spec = importlib.util.spec_from_file_location("public_check_machine", worker)
+    machine = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(machine)
+    question = f"判断来源是否支持该主张：{CLAIM}。只答：支持/不支持/无法判断，加一句理由。"
+    return machine.answer(extract[:900], question, timeout_s=200, max_tokens=4096)["answer"].strip()
 
 
 def parse_verdict(verdict: str) -> tuple[bool, str]:

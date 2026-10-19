@@ -1,0 +1,25 @@
+{
+  "preserved_failures": [
+    {
+      "stage": "original_eol_regression",
+      "result": "9 PASS / 1 FAIL",
+      "reason": "Git clean changes original CRLF manifest identity; actual Node guard rejects stale projection",
+      "receipt": "verification.json"
+    },
+    {
+      "stage": "first_full_archive_fixture",
+      "result": "FAIL before Git execution",
+      "reason": "Win32 deep owned fixture path exceeds conventional 260-character path limit",
+      "failed_member_suffix": "20261019-consumer-integration/proposals/corrected-node-applied/capability-manifest-consumer-node-corrected.patch",
+      "scope": "ignored owned fixture only",
+      "resolution": "Python extended paths and child-process-only Git core.longpaths=true; final full checkout PASS"
+    },
+    {
+      "stage": "existing_resource_catalog_baseline",
+      "result": "FAIL",
+      "reason": "Existing qualification references drift from current generated core-contract and THIRD_PARTY_NOTICES bytes",
+      "receipt": "CASCADE-EVIDENCE.json",
+      "fixed_in_this_proposal": false
+    }
+  ]
+}

@@ -1,0 +1,529 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.capability-package/v1",
+  "title": "有限声明式能力包合同；不是注册器或授权",
+  "description": "Strict declaration only. Catalog/CAP/runtime links, ranges, paths and source hashes require semantic validation. No installed/enabled/connected/qualified state, executable commands, endpoint, secret or model routing is accepted. Manifest identity hashes exact external UTF-8 bytes, not a self-hash.",
+  "$ref": "#/$defs/CapabilityPackageManifest",
+  "$defs": {
+    "CapabilityPackageId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$(?![\\s\\S])",
+      "maxLength": 96
+    },
+    "CapabilityPackageVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})$(?![\\s\\S])",
+      "maxLength": 29
+    },
+    "CapabilityContributionPoint": {
+      "enum": [
+        "format_conversion",
+        "template",
+        "learning_activity",
+        "graph_visual",
+        "model_service",
+        "tool_protocol"
+      ]
+    },
+    "CapabilityManifestIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "package_id",
+        "version",
+        "sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.capability-package/v1"
+        },
+        "package_id": {
+          "$ref": "#/$defs/CapabilityPackageId"
+        },
+        "version": {
+          "$ref": "#/$defs/CapabilityPackageVersion"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$(?![\\s\\S])",
+          "maxLength": 64
+        }
+      }
+    },
+    "CapabilityPublicSourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?:packages/contracts/[A-Za-z0-9_./-]+\\.schema\\.json|docs/[A-Za-z0-9_./-]+\\.(?:md|json|yaml)|LICENSE|THIRD_PARTY_NOTICES\\.md)$(?![\\s\\S])",
+          "maxLength": 240
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$(?![\\s\\S])",
+          "maxLength": 64
+        }
+      }
+    },
+    "CapabilityVersionRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "maximum_exclusive"
+      ],
+      "properties": {
+        "minimum": {
+          "$ref": "#/$defs/CapabilityPackageVersion"
+        },
+        "maximum_exclusive": {
+          "$ref": "#/$defs/CapabilityPackageVersion"
+        }
+      }
+    },
+    "CapabilityPackageDependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "resource_key",
+        "requirement",
+        "version_range"
+      ],
+      "properties": {
+        "resource_key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$(?![\\s\\S])",
+          "maxLength": 96
+        },
+        "requirement": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "version_range": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CapabilityVersionRange"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "CapabilityDataContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "contract",
+        "max_bytes"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "raw_asset_reference",
+            "document_reference",
+            "source_anchor",
+            "text",
+            "learning_candidate",
+            "graph_projection",
+            "model_context",
+            "tool_request",
+            "receipt"
+          ]
+        },
+        "contract": {
+          "$ref": "#/$defs/CapabilityPublicSourceReference"
+        },
+        "max_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16777216
+        }
+      }
+    },
+    "CapabilityPackagePermissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "data_scope",
+        "network",
+        "cost",
+        "explicit_grant_required",
+        "canonical_writer",
+        "credential_handling",
+        "local_to_cloud_fallback",
+        "grants_execution",
+        "grants_knowledge_acceptance"
+      ],
+      "properties": {
+        "requested": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "selected_source.read",
+              "derived_artifact.propose",
+              "learning_activity.propose",
+              "graph_projection.propose",
+              "model.local.invoke",
+              "model.remote.invoke",
+              "tool.protocol.connect"
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 7,
+          "uniqueItems": true
+        },
+        "data_scope": {
+          "const": "explicit_selected_objects_only"
+        },
+        "network": {
+          "enum": [
+            "none",
+            "loopback",
+            "explicit_remote"
+          ]
+        },
+        "cost": {
+          "enum": [
+            "none",
+            "may_charge"
+          ]
+        },
+        "explicit_grant_required": {
+          "const": true
+        },
+        "canonical_writer": {
+          "const": "rust_core_only"
+        },
+        "credential_handling": {
+          "const": "host_reference_only"
+        },
+        "local_to_cloud_fallback": {
+          "const": "explicit_grant_only"
+        },
+        "grants_execution": {
+          "const": false
+        },
+        "grants_knowledge_acceptance": {
+          "const": false
+        }
+      }
+    },
+    "CapabilityPackageLifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cancellation",
+        "exit",
+        "timeout_ms",
+        "unknown_result",
+        "cleanup_evidence"
+      ],
+      "properties": {
+        "cancellation": {
+          "enum": [
+            "host_propagated",
+            "not_applicable"
+          ]
+        },
+        "exit": {
+          "enum": [
+            "bounded_cleanup",
+            "not_applicable"
+          ]
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120000
+        },
+        "unknown_result": {
+          "const": "preserve_unknown_no_auto_retry"
+        },
+        "cleanup_evidence": {
+          "const": "required_before_confirmed_exit"
+        }
+      }
+    },
+    "CapabilityPackageFallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "losses",
+        "automatic"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "unavailable",
+            "degraded"
+          ]
+        },
+        "losses": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "structure",
+              "layout",
+              "source_anchors",
+              "fidelity",
+              "capability_subset"
+            ]
+          },
+          "minItems": 0,
+          "maxItems": 5,
+          "uniqueItems": true
+        },
+        "automatic": {
+          "const": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "degraded"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "losses": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "CapabilityPackageUpdatePolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy",
+        "rollback",
+        "canonical_data_migration"
+      ],
+      "properties": {
+        "strategy": {
+          "const": "reviewed_replacement_only"
+        },
+        "rollback": {
+          "const": "preserve_previous_identity_and_originals"
+        },
+        "canonical_data_migration": {
+          "const": false
+        }
+      }
+    },
+    "CapabilityPackageLicense": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expression",
+        "review",
+        "notice_refs"
+      ],
+      "properties": {
+        "expression": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9().+ -]+$(?![\\s\\S])",
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "review": {
+          "enum": [
+            "UNVERIFIED",
+            "DECLARED_ONLY"
+          ]
+        },
+        "notice_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CapabilityPublicSourceReference"
+          },
+          "minItems": 0,
+          "maxItems": 8,
+          "uniqueItems": true
+        }
+      }
+    },
+    "CapabilityPackageManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "declaration",
+        "package_id",
+        "version",
+        "capability_ids",
+        "resource_keys",
+        "contribution_points",
+        "compatibility",
+        "runtime_capabilities",
+        "permissions",
+        "dependencies",
+        "license",
+        "inputs",
+        "outputs",
+        "lifecycle",
+        "fallback",
+        "update"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.capability-package/v1"
+        },
+        "declaration": {
+          "const": "DECLARATION_ONLY"
+        },
+        "package_id": {
+          "$ref": "#/$defs/CapabilityPackageId"
+        },
+        "version": {
+          "$ref": "#/$defs/CapabilityPackageVersion"
+        },
+        "capability_ids": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "CAP-0010",
+              "CAP-0020",
+              "CAP-0030",
+              "CAP-0040",
+              "CAP-0050",
+              "CAP-0060",
+              "CAP-0070",
+              "CAP-0080",
+              "CAP-0090",
+              "CAP-0100",
+              "CAP-0110",
+              "CAP-0120",
+              "CAP-0130",
+              "CAP-0140",
+              "CAP-0150",
+              "CAP-0160"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "resource_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$(?![\\s\\S])",
+            "maxLength": 96
+          },
+          "minItems": 0,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "contribution_points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CapabilityContributionPoint"
+          },
+          "minItems": 1,
+          "maxItems": 6,
+          "uniqueItems": true
+        },
+        "compatibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "host_versions",
+            "contract_refs"
+          ],
+          "properties": {
+            "host_versions": {
+              "$ref": "#/$defs/CapabilityVersionRange"
+            },
+            "contract_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/CapabilityPublicSourceReference"
+              },
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true
+            }
+          }
+        },
+        "runtime_capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9_]*)+$(?![\\s\\S])",
+            "maxLength": 96
+          },
+          "minItems": 0,
+          "maxItems": 32,
+          "uniqueItems": true
+        },
+        "permissions": {
+          "$ref": "#/$defs/CapabilityPackagePermissions"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CapabilityPackageDependency"
+          },
+          "minItems": 0,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "license": {
+          "$ref": "#/$defs/CapabilityPackageLicense"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CapabilityDataContract"
+          },
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CapabilityDataContract"
+          },
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/CapabilityPackageLifecycle"
+        },
+        "fallback": {
+          "$ref": "#/$defs/CapabilityPackageFallback"
+        },
+        "update": {
+          "$ref": "#/$defs/CapabilityPackageUpdatePolicy"
+        }
+      }
+    }
+  }
+}

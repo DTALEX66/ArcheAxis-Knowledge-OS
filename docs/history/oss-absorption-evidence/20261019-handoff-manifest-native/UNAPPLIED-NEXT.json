@@ -1,0 +1,80 @@
+{
+  "proposals": [
+    {
+      "name": "manifest-consumer",
+      "root": ".project-local/audits/capability-manifest-consumer-next-20261019",
+      "status": "NOT_APPLIED",
+      "qualification": "隔离提案；必须读CURRENT并重新核preimage，不能继承已应用合同资格",
+      "observed_files": [
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/capability-manifest-consumer.patch",
+          "bytes": 64596,
+          "sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/code-manifest.json",
+          "bytes": 2591,
+          "sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/CURRENT.md",
+          "bytes": 3079,
+          "sha256": "bbe25abc55bb6796502c5f91f75a769435bb9610d3b7bbf4fa5e28d8e55b96ee"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/DELIVERY.md",
+          "bytes": 1585,
+          "sha256": "7a1ff617a59fcfde5e117aba7e603ddcdcd02643a56955bb2ac92fa998bee704"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/FINAL-READBACK.json",
+          "bytes": 420,
+          "sha256": "5e7ab8767bc9a18d6b9c21890c28d881b1ee7e11b51bcde351aa7ab45d1efa9c"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/validation.json",
+          "bytes": 6223,
+          "sha256": "a71dc1576de33dbdc1d8c3d5e5e4a72c4be272d21bccd8c7cc054a0bf7fdcec6"
+        }
+      ]
+    },
+    {
+      "name": "handoff-cli",
+      "root": ".project-local/audits/be10-cli-consumer-next-20261019",
+      "status": "NOT_APPLIED",
+      "qualification": "隔离提案；必须读CURRENT并重新核preimage，不能继承已应用合同资格",
+      "observed_files": [
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/be10-cli-consumer.patch",
+          "bytes": 31572,
+          "sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/code-manifest.json",
+          "bytes": 1328,
+          "sha256": "3bef40e1fd4d04a53beb357458edb9cbc0d03d1430732885980a8405c2fe18bf"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/CURRENT.md",
+          "bytes": 2325,
+          "sha256": "4cfd9c7fe9f595df46ed3250d609ca5bf4dbc4425a97a56ed1821d678a17a331"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/DELIVERY.md",
+          "bytes": 2230,
+          "sha256": "ca10eff580ccb6ea05225deba41a610f418e6c9e88cbd99b57659ef02435984e"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/final-readback.json",
+          "bytes": 1242,
+          "sha256": "1ea78a185714c9e5989b9fae41cb7d8ebe550bad92fca8d4fccc467dd595ac07"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/validation.json",
+          "bytes": 5171,
+          "sha256": "85784536b3070d24fa54fa01a4f37e93e90bb4d9ce78b4e617b61902e56d3e5a"
+        }
+      ]
+    }
+  ]
+}

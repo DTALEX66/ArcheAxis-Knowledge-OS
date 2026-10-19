@@ -1,0 +1,52 @@
+{
+  "status": "PASS",
+  "checks": {
+    "baseline_generation_red": {
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\resource-catalog-source-rebind-20261019\\baseline-v2\\scripts\\contracts\\generate_resource_catalog.py\", line 168, in <module>\n    main()\n    ~~~~^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\resource-catalog-source-rebind-20261019\\baseline-v2\\scripts\\contracts\\generate_resource_catalog.py\", line 157, in main\n    output = generate(build(args.root, args.overlay))\n                      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\resource-catalog-source-rebind-20261019\\baseline-v2\\scripts\\contracts\\generate_resource_catalog.py\", line 125, in build\n    validate_qualification_sources(root, qualification)\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\resource-catalog-source-rebind-20261019\\baseline-v2\\scripts\\contracts\\generate_resource_catalog.py\", line 75, in validate_qualification_sources\n    raise ValueError(f\"Qualification source drift: {reference['path']}\")\nValueError: Qualification source drift: frontend/src/api/generated/core-contract.ts\n"
+    },
+    "baseline_contract_red": {
+      "exit_code": 1,
+      "stdout": "F...............                                                         [100%]\n================================== FAILURES ===================================\n_______ test_lossless_original_surface_overlay_ledger_and_all_conflicts _______\n\n    def test_lossless_original_surface_overlay_ledger_and_all_conflicts():\n>       result = projection.build(ROOT)\n                 ^^^^^^^^^^^^^^^^^^^^^^\n\n.project-local\\audits\\resource-catalog-source-rebind-20261019\\baseline-v2\\tests\\contract\\test_resource_catalog_projection.py:17: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n.project-local\\audits\\resource-catalog-source-rebind-20261019\\baseline-v2\\scripts\\contracts\\generate_resource_catalog.py:125: in build\n    validate_qualification_sources(root, qualification)\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n\nroot = WindowsPath('D:/All projects/ArcheAxis-Knowledge-OS/.project-local/audits/resource-catalog-source-rebind-20261019/baseline-v2')\nqualification = {'schema': 'archeaxis.resource-qualification-overlay/v1', 'observed_at': '2026-10-10T06:02:38.098939+08:00', 'selected...resolving a name mismatch does not prove installed qualification'], 'scope': 'UF10/O01 current page'}, ...}, ...], ...}\n\n    def validate_qualification_sources(root: Path, qualification):\n        checked = {}\n        for reference in qualification_source_refs(qualification):\n            source = public_source_path(root, reference[\"path\"])\n            digest = reference[\"sha256\"]\n            if not isinstance(digest, str) or len(digest) != 64 or any(c not in \"0123456789abcdef\" for c in digest):\n                raise ValueError(\"Qualification source SHA must be lowercase SHA-256\")\n            if not source.is_file():\n                raise ValueError(f\"Qualification source missing: {reference['path']}\")\n            actual = checked.get(reference[\"path\"])\n            if actual is None:\n                actual = hashlib.sha256(source.read_bytes()).hexdigest()\n                checked[reference[\"path\"]] = actual\n            if actual != digest:\n>               raise ValueError(f\"Qualification source drift: {reference['path']}\")\nE               ValueError: Qualification source drift: frontend/src/api/generated/core-contract.ts\n\n.project-local\\audits\\resource-catalog-source-rebind-20261019\\baseline-v2\\scripts\\contracts\\generate_resource_catalog.py:75: ValueError\n=========================== short test summary info ===========================\nFAILED .project-local\\audits\\resource-catalog-source-rebind-20261019\\baseline-v2\\tests\\contract\\test_resource_catalog_projection.py::test_lossless_original_surface_overlay_ledger_and_all_conflicts\n1 failed, 15 passed in 10.26s\n",
+      "stderr": ""
+    },
+    "candidate_generate": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "candidate_generation": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "candidate_contract": {
+      "exit_code": 0,
+      "stdout": "................                                                         [100%]\n16 passed in 9.34s\n",
+      "stderr": ""
+    },
+    "candidate_core_generate": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "clean_generation": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "clean_contract": {
+      "exit_code": 0,
+      "stdout": "................                                                         [100%]\n16 passed in 9.20s\n",
+      "stderr": ""
+    },
+    "patch_apply": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "actual_models_services_browser": "NOT_EXECUTED",
+  "production_writes": false
+}

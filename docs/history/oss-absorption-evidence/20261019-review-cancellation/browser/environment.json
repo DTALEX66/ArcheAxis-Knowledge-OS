@@ -1,0 +1,12 @@
+{
+  "browser": "155.0.8059.80",
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "DPR": 1,
+  "locale": "zh-CN",
+  "workers": 1,
+  "baseline": "none created or updated",
+  "evidence": "ACTUAL_PRODUCTION_BUNDLE / SYNTHETIC_CORE"
+}

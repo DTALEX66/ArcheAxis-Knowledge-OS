@@ -1,4 +1,5 @@
-import type { ModelConfiguration, ModelLane, ResolvedModel } from "../api/generated/model-configuration-contract";
+import { resolveProductModel } from "../runtime/modelBinding";
+import type { ModelLane } from "../api/generated/model-configuration-contract";
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { ContextConsumptionDto, MachineTaskRowDto, MachineTasksPageDto, MachineConfigurationDto, MachineInventoryDto, MachineJournalStatusDto, MachineCancelDto } from "../api/generated/core-contract";
@@ -72,7 +73,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   const [uncertain, setUncertain] = useState(false);
   const [withheld, setWithheld] = useState(false);
   const [admissionRefusal,setAdmissionRefusal]=useState<MachineAdmissionRefusal|null>(null);
-  const [retestFailure,setRetestFailure]=useState<{phase:string;status:number|null;code:string;reason_code?:string}|null>(null);
+  const [retestFailure,setRetestFailure]=useState<{phase:string;status:number|null;code:string;reason_code?:string;diagnostics?:Record<string,unknown>}|null>(null);
+  const [answerFailure,setAnswerFailure]=useState<ApiError["machineFailure"]|null>(null);
   const frozenAnswer = useRef<Record<string, unknown> | null>(null);
   const frozenRetest = useRef<Record<string, unknown> | null>(null);
   const dirtyOwner = useId(); const savedReview = useRef("");
@@ -83,6 +85,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     frozenAnswer.current = null; frozenRetest.current = null; savedReview.current = "";
     pendingAnswer.current=null;pendingRetest.current=null;setRestoredPending(false);setWithheldAudit(null);setSelectedJournal("");
     setRetestFailure(null);
+    setAnswerFailure(null);
     inventoryPending.current = false; setInventoryBusy(false); setInventory(null); setModelConfiguration(null); setSelectedModel(""); setMaxTokens(2048);
     setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setQuestion(""); setCorrected(""); setNote(""); setReviewNote(""); setReviewer(""); setCorrectionAuthor("");
@@ -369,10 +372,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   }
 
   async function configuredRequest(purpose:"answer"|"retest") {
-    const configuration=await coreCommand<ModelConfiguration>("model_configuration_get");
-    if(configuration.revision===0)return {};
-    const frozen=await coreCommand<ResolvedModel>("model_configuration_resolve",{body:{purpose,lane}});
-    if(frozen.purpose!==purpose||frozen.lane!==lane||frozen.configuration_revision!==configuration.revision||frozen.workspace_id!==configuration.workspace_id||frozen.restore_epoch!==configuration.restore_epoch)throw new Error("配置身份已变化");
+    const frozen=await resolveProductModel(purpose,lane);
+    if(!frozen)return {};
     return {model_configuration:frozen,model:frozen.profile.model,max_tokens:Math.min(maxTokens,frozen.profile.max_tokens),timeout_s:frozen.profile.timeout_s};
   }
   async function ask() {
@@ -385,6 +386,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     const request = frozenAnswer.current ?? Object.freeze({knowledge_id:knowledgeId,question:question.trim(),max_tokens:maxTokens,timeout_s:120,
       ...(selectedModel ? {model:selectedModel} : {}), ...(contextGrant ? {context_grant:structuredClone(contextGrant)} : {}), ...(assetContextGrant ? {asset_context_grant:{...structuredClone(assetContextGrant),request_id:`assetanswer_${crypto.randomUUID()}`,consumer:"local-machine",operation:"answer"}} : {}), client_request_id:`machine_${crypto.randomUUID()}`, ...binding});
     frozenAnswer.current = request;
+    setAnswerFailure(null);
     setBusy(true); setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setAdmissionRefusal(null);
     setCorrected(""); setNote(""); setReviewNote(""); setMessage("正在执行本地机器回答，等待真实回执…");
@@ -402,6 +404,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       if (requestLive(generation)) { frozenAnswer.current = null; setUncertain(false); setAnswer(response); setTask(proof); onTask?.(String(response.answer_id)); setMessage("本地回答已持久化读回；可能为同请求的历史重放。它仍是候选，不是已接受知识或能力评分。"); }
     } catch (reason) {
       if (requestLive(generation)) {
+        if(reason instanceof ApiError && reason.machineFailure)setAnswerFailure(reason.machineFailure);
         if (reason instanceof ApiError && reason.machineAdmission) {
           const refusal=await readMachineAdmissionRefusal(reason.machineAdmission,"answer",request);
           if(!requestLive(generation))return;
@@ -491,6 +494,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     const request = frozenRetest.current ?? { ...binding, retest_of: failedTaskId, knowledge_id: candidateId, question: originalQuestion, max_tokens: maxTokens, timeout_s: 120, ...(selectedModel ? {model:selectedModel} : typeof record(answer.request??{}).model === "string" ? {model:record(answer.request).model} : {}), ...(retestContextGrant ? {context_grant:structuredClone(retestContextGrant)} : {}), ...(retestAssetContextGrant ? {asset_context_grant:{...structuredClone(retestAssetContextGrant),request_id:`assetretest_${crypto.randomUUID()}`,consumer:"local-machine",operation:"retest"}} : {}), ...binding };
     frozenRetest.current=request;
     setRetestFailure(null);
+    setAnswerFailure(null);
     let phase = "invoke";
     setAdmissionRefusal(null); setBusy(true); setMessage("正在以已审核纠正知识重答原问题；Core 回执与任务读回确认前不显示为完成…");
     try {
@@ -531,13 +535,14 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         else if (reason instanceof ApiError && reason.execution) {frozenRetest.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `复测推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存，不自动重跑。` : "复测推理已执行，答案未发布；审计持久化未确认，不自动重跑。");}
         else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {setMessage("Core 明确拒绝复测请求；仅说明本次拒绝，历史执行仍未确认。原冻结复测、回答与纠正保留，请读取历史核对，不自动换授权或重跑。");}
         else {setUncertain(true);setMessage("复测未完成或持久化读回未确认。" + (reason instanceof ApiError && reason.machineFailure ? reason.message : "") + "保留纠正与原失败回执；先核对终态，不再次推理。");}
-        setRetestFailure({phase,status:reason instanceof ApiError ? reason.status : null,code:reason instanceof ApiError ? reason.code : "unverified",...(reason instanceof ApiError && reason.machineFailure ? {reason_code:reason.machineFailure.reason_code}: {})});
+        setRetestFailure({phase,status:reason instanceof ApiError ? reason.status : null,code:reason instanceof ApiError ? reason.code : "unverified",...(reason instanceof ApiError && reason.machineFailure ? {reason_code:reason.machineFailure.reason_code,...(reason.machineFailure.diagnostics?{diagnostics:reason.machineFailure.diagnostics}:{})}: {})});
         setUncertain(true);
       }
     } finally { if (requestLive(generation)) setBusy(false); }
   }
 
   return <section aria-label="知识到机器回答" className="ui-machine-answer" data-retest-failure={retestFailure?JSON.stringify(retestFailure):undefined}>
+    {answerFailure?<RawReceiptButton label="回答失败脱敏诊断" payload={answerFailure}/>:null}
     {retestFailure?<RawReceiptButton label="复测失败脱敏诊断" payload={retestFailure}/>:null}
     {admissionRefusal?<section aria-label="恢复授权拒绝" data-context-admission-refusal={JSON.stringify(admissionRefusal)}><p>拒绝依据：恢复后的旧授权隔离。仅确认本次调用未执行；历史执行 UNVERIFIED。</p><RawReceiptButton label="恢复授权拒绝回执" payload={admissionRefusal}/></section>:null}
     {withheld ? <><p>先读取并核对已保存的扣留审计；审计未确认时保留执行屏障。</p><button disabled={busy||!withheldAudit||!working} onClick={()=>void finishWithheld()}>结束已执行但未发布的请求，保留草稿</button></> : null}

@@ -268,6 +268,7 @@ async fn successful_execution_without_usable_receipt_is_not_qualified() {
         "unreadable",
         "missing_engine",
         "missing_version",
+        "pdf_placeholder_version",
         "bad_text_metadata",
         "bad_receipt_metadata",
         "bad_receipt_hash",
@@ -292,6 +293,10 @@ async fn successful_execution_without_usable_receipt_is_not_qualified() {
             .unwrap();
         conn.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES('job',1,'request','{}','succeeded')",[]).unwrap();
         let mut receipt = json!({"engine":"test-controlled","engine_version":"1","losses":[]});
+        if case == "pdf_placeholder_version" {
+            receipt["engine"] = json!("pymupdf-native-pdf");
+            receipt["engine_version"] = json!("pymupdf");
+        }
         if case == "missing_engine" {
             receipt.as_object_mut().unwrap().remove("engine");
         }
@@ -354,4 +359,106 @@ async fn successful_execution_without_usable_receipt_is_not_qualified() {
             assert_eq!(value["loss"]["status"], "unknown", "{case}");
         }
     }
+}
+
+#[tokio::test]
+async fn static_unknown_pdf_can_execute_with_live_version_and_qualify_its_file() {
+    let d = tempfile::tempdir().unwrap();
+    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").expect("declared Python"));
+    let generated = std::process::Command::new(&python).args(["-B","-c",
+        "import pymupdf,sys;d=pymupdf.open();d.new_page().insert_text((72,100),'PDF qualification 6371 km');sys.stdout.buffer.write(d.tobytes())"]).output().unwrap();
+    assert!(
+        generated.status.success(),
+        "required project PDF dependency missing"
+    );
+    let e = archeaxis_application::executor::Executor::open_routes(
+        &d.path().join("db"),
+        &d.path().join("staging"),
+        &python,
+        &repo.join("services/python-workers/transport/text_ndjson.py"),
+        &[(
+            "pdf.extract",
+            repo.join("services/python-workers/document/worker_pdf.py"),
+        )],
+    )
+    .await
+    .unwrap();
+    let app = archeaxis_api::runtime::router(e.clone());
+    let (_, static_read) = call(
+        &app,
+        "POST",
+        "/api/v1/operation-readiness",
+        json!({"scope":"pdf-before-run","operations":["pdf.extract"]}),
+    )
+    .await;
+    assert_eq!(static_read["operations"][0]["dependencies"], "UNKNOWN");
+    archeaxis_api::runtime::readiness::require_execution_dependencies(&e, "pdf.extract")
+        .await
+        .unwrap();
+    let (status,import) = call(&app,"POST","/api/v1/imports",json!({"name":"controlled.pdf","content_base64":base64::engine::general_purpose::STANDARD.encode(generated.stdout)})).await;
+    assert_eq!(status, StatusCode::ACCEPTED, "{import}");
+    let source = import["source_id"].as_str().unwrap();
+    let (status, _) = call(
+        &app,
+        "POST",
+        "/api/v1/jobs",
+        json!({"job_id":"pdf-current","kind":"pdf","input_ref":source}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::ACCEPTED);
+    let (status, started) = call(
+        &app,
+        "POST",
+        "/api/v1/jobs/pdf-current/executions",
+        json!({"deadline_ms":30000}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::ACCEPTED, "{started}");
+    tokio::time::timeout(Duration::from_secs(30), async {
+        loop {
+            let (_, job) = call(&app, "GET", "/api/v1/jobs/pdf-current", Value::Null).await;
+            if job["state"] == "succeeded" || job["state"] == "failed" {
+                assert_eq!(job["state"], "succeeded", "{job}");
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
+    let (status, qualified) = call(
+        &app,
+        "GET",
+        &format!("/api/v1/sources/{source}/jobs/pdf-current/format-qualification"),
+        Value::Null,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(
+        qualified["operations"]["extract"]["status"], "QUALIFIED",
+        "{qualified}"
+    );
+    assert!(archeaxis_application::attempts::pdf_engine_version(
+        qualified["engine_version"].as_str().unwrap()
+    ));
+    let saved: String = e
+        .store()
+        .submit_wait(|c| {
+            c.query_row(
+                "SELECT content FROM job_outputs WHERE job_id='pdf-current' AND kind='loss_report'",
+                [],
+                |r| r.get(0),
+            )
+        })
+        .await
+        .unwrap()
+        .unwrap();
+    let loss: Value = serde_json::from_str(&saved).unwrap();
+    assert_eq!(loss["engine_version"], qualified["engine_version"]);
+    assert_eq!(
+        loss["params"]["runtime_dependency"]["version"],
+        qualified["engine_version"]
+    );
+    assert_eq!(qualified["operations"]["roundtrip"]["status"], "UNVERIFIED");
 }

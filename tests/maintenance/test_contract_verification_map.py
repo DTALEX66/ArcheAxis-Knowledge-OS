@@ -26,6 +26,8 @@ RUNBOOK = REPO / "docs/current/AAOS-BACKEND-ACCEPTANCE-RUNBOOK-20261001.md"
 # Contract section number -> (artifact, what the artifact establishes). Keyed by number rather
 # than title, because the titles carry suffixes that change as the document is edited.
 COVERAGE: dict[str, tuple[str, str]] = {
+    "16": ("crates/archeaxis-api/tests/project_handoff_snapshot_queue.rs",
+           "human-only fixed snapshot, expiry and queue/transaction guards; no knowledge acceptance or execution grant"),
     "15": ("crates/archeaxis-api/tests/file_format_qualification.rs",
            "source/job binding, real text and DOCX workers, persisted qualification and corrupt or missing evidence downgrade"),
     "14": ("tests/maintenance/test_contract_route_inventory.py",
@@ -58,6 +60,9 @@ COVERAGE: dict[str, tuple[str, str]] = {
 
 # A section can have more than one checker; each is listed so none can be dropped silently.
 ALSO_CHECKS: dict[str, list[str]] = {
+    "16": ["crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+           "crates/archeaxis-api/tests/project_handoff_process.rs",
+           "tests/maintenance/test_contract_route_inventory.py"],
     "14": ["tests/maintenance/test_contract_number_consistency.py"],
     "10": ["tests/maintenance/test_contract_number_consistency.py"],
     "11": ["tests/maintenance/test_contract_number_consistency.py"],

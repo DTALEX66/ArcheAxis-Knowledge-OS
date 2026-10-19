@@ -1,0 +1,214 @@
+{
+  "observed_at": "2026-10-18T21:08:42.341475+00:00",
+  "review_mode": "READ_ONLY_STATIC_AND_RECEIPT_READBACK",
+  "patch_sha256": "1642aa55797fa212d559690174aefc265348077935da5d23d8c3bb501c72cc8d",
+  "expected_patch_match": true,
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "proposal_sha256": "766214fce769240751b82266cef1f169d3810d87f7075ef7e7895812311a9769",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/launch.rs",
+      "proposal_sha256": "cec839d9a8c50392c36fa711ddf0c080713f13788a05cf13a7d13043d6a5ce4a",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "proposal_sha256": "4e62c9201668cc750036cd1c5a91a04f1f8b0bbed9de6ceda0f23e9e795d2ab4",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer/client.rs",
+      "proposal_sha256": "51994499bc73b8d46fd2ed41068112e8c1279485840358accfda68919dbd7baf",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer.rs",
+      "proposal_sha256": "307a9e7f8798ce95a4c309c0ffdc65519e68b1d33057da83447c68ed04ee1400",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_api.rs",
+      "proposal_sha256": "0e668c049dd1ef7ec72b71fd83135513e698a102c98fad0166acafddb6fc4cbb",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_client.rs",
+      "proposal_sha256": "1ae85523ea2131ffcb4a5b61c2a97faf51a33f9e3ddb406b6c67fbceb4f40ab5",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_process.rs",
+      "proposal_sha256": "0a86e3a3ac2c0267c47227ffb6a547602ffb8ee2ee555fe1d6068afc6588223e",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "proposal_sha256": "1cdbaf6078ff8754b6b6335d18ae8ebcdb5983f4116e2f162387a4e387d628d7",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_observer.rs",
+      "proposal_sha256": "c54fb79907330bf8419ccdedcedb72b4834db8d6a96fd32a349c899aae110a9f",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/tests/project_observer.rs",
+      "proposal_sha256": "24838da12a47803a34180472a207b17c1c2ba5d8f118f73b971462adaaf31ed1",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "proposal_sha256": "b732d24ab1731d1889e3ad0bb8c28040522eccff03e775799a2227315d77bc80",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "packages/contracts/v2/project-observer.cases.json",
+      "proposal_sha256": "f01139dac07b1530317ce51fe7f8e700505118aad79bcdca4d07787df90e3111",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "packages/contracts/v2/project-observer.schema.json",
+      "proposal_sha256": "9743c4f80dd424da62068b5a062f9d97d01aea7c760c1bbb9d394dc3159aff5c",
+      "manifest_match": true,
+      "mirror_match": true
+    },
+    {
+      "path": "tests/contract/test_project_observer_contract.py",
+      "proposal_sha256": "470f10ff7449e6ad3198c9546dfbbd7b24016f626f2475285ac35b1cf3a708c3",
+      "manifest_match": true,
+      "mirror_match": true
+    }
+  ],
+  "receipts": [
+    {
+      "run_id": "be10-proposal-admission-api-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-api-final-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-contract-final-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-contract-python-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "INVALIDATED",
+      "exit_code": 3,
+      "source_consistent": false
+    },
+    {
+      "run_id": "be10-proposal-contract-rust-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-legacy-launch-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-legacy-roles-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "INVALIDATED",
+      "exit_code": 3,
+      "source_consistent": false
+    },
+    {
+      "run_id": "be10-proposal-prepare-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-process-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-process-1019b",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-python-final-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-regressions-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "FAIL",
+      "exit_code": 101,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-regressions-1019b",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-proposal-v2-final-1019",
+      "receipt_exists": true,
+      "hash_match": true,
+      "status": "INVALIDATED",
+      "exit_code": 3,
+      "source_consistent": false
+    }
+  ],
+  "tests_executed_by_reviewer": [],
+  "product_files_written": []
+}

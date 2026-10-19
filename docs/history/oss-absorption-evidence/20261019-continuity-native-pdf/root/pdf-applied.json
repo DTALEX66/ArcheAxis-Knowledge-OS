@@ -1,0 +1,132 @@
+{
+  "mode": "pdf",
+  "manifest_sha256": "3687d6096d9c6770aef594f9a8eaa0cc332470867d8885117ab4fa1e85b327a4",
+  "files": [
+    {
+      "path": "services/python-workers/document/worker_pdf.py",
+      "before_sha256": "2fc56a31015eac6d503edca58799d02e1707ebf45fa3ab480cbe7fa0a17a03b2",
+      "after_sha256": "a804baab5c7f5947281f29e70e1c5cc7664b1e816060c7c085c68b07f6c2f333",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 27506
+    },
+    {
+      "path": "services/python-workers/transport/text_ndjson.py",
+      "before_sha256": "733db640a4adb45e9556b0956f32554ebd1c2e6147afed2b8664ce03287181c7",
+      "after_sha256": "10fdd391ba932b9c1c610795bb4ed1004769cca60581f5d59cde720b18d07dce",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 41988
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/src/worker.rs",
+      "before_sha256": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e",
+      "after_sha256": "aea8c3ba1c57a45a4d9e492b35d0f7b64e5275f666a7d0f872a9f755e2a9434f",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 13937
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs",
+      "before_sha256": "5d5ea6ddeeecbbdeb236ae717cb445d413b2c264041ac38546631af72a57b235",
+      "after_sha256": "29805bdbe896b957108458c7b08ad3b3d035d9a9a5715a12f3b4f222e1992964",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 8789
+    },
+    {
+      "path": "crates/archeaxis-application/src/attempts.rs",
+      "before_sha256": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e",
+      "after_sha256": "3a20c56ea43ed0f3aeefe5bf34bef267ba6e53d1cced69217f6fdcc33bb00ce5",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 33831
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "before_sha256": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360",
+      "after_sha256": "5126e3cd3ee3e503e4d73f0e32c761fbe56ec418491d5dc2fde6eb2c97245aa8",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 68119
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/health.rs",
+      "before_sha256": "81787479619bd9b3284258f7035238bdbe7edb703e9f9a14bacaf32ea9ba576b",
+      "after_sha256": "1f72c3998b6b950a06662b755e2e6eb3906036e78f19d6ec9d2b7a714f4586c4",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 6827
+    },
+    {
+      "path": "crates/archeaxis-application/tests/worker_health_contract.rs",
+      "before_sha256": "b353fd6cf438a15b2ea13e28e6b8c219c1d64ff5c4381098a4b2d9a4ba394b38",
+      "after_sha256": "1c874bbe7ddd315199adf9a0c48bcd4ed6f786cad6f8a0b6561ec814264591ca",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 9218
+    },
+    {
+      "path": "crates/archeaxis-application/tests/receipt_spans.rs",
+      "before_sha256": "58195ec7f55c3a9d222ee906e05fde39fd5d52530ece445adc57e11ad5a19d77",
+      "after_sha256": "3777fdd5f0382a27d3f45b17e825c923a2f7c9c33ad361f272dc223951c1734c",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 5358
+    },
+    {
+      "path": "crates/archeaxis-api/src/format_qualification.rs",
+      "before_sha256": "482129a7b3ba2437d3f442eccf6358e72d8ddf2cf712d15a5346c2934b562512",
+      "after_sha256": "5c6a73d307875218e416f81893c222a3d0e5b9d36977e88bd029d5392c9b8400",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 7553
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/readiness.rs",
+      "before_sha256": "98431b52bf8841bc086dd766c5a65a49318e406e938d8e0408d2a6791f40cac1",
+      "after_sha256": "074a72479ea9269731e6ac8d42bbaf8806f1c53c2c560bc847b06da049aa7bda",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 3866
+    },
+    {
+      "path": "crates/archeaxis-api/tests/file_format_qualification.rs",
+      "before_sha256": "a11364b41c4ddbc3a8adc4d5e9ec0321a8749177f4322c35eea612e285303dab",
+      "after_sha256": "66e7b0c3b6e1dd219818e65c5d9faf5bedc320ce0c485c68bbb89d8a0c69b566",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 18044
+    },
+    {
+      "path": "crates/archeaxis-api/tests/operation_readiness_api.rs",
+      "before_sha256": "7191ad414ea5ba210088f7b3b30d76ceee6247ca34a2c0370a80582aa58b66ee",
+      "after_sha256": "8c048c3bde8350fa02ea6d3c3f7b803574b1ba0eaf070ff54f3c4a8f034256ad",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 4327
+    },
+    {
+      "path": "packages/contracts/v1/core-document.schema.json",
+      "before_sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76",
+      "after_sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 74952
+    },
+    {
+      "path": "packages/contracts/v1/worker-protocol.schema.json",
+      "before_sha256": "0c6c92239263fce326c370ace2277e858535880dbcccc1f559030c6b4c2a4250",
+      "after_sha256": "a327049e171a226736aca327655c46b72943803ceda7e8feb0babf1c6b7a0431",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 7185
+    },
+    {
+      "path": "frontend/src/__tests__/OperationReadiness.test.tsx",
+      "before_sha256": "06f87c3c2a25a4c01af8932f3fed34a473d011e38b315dc69f7684085eb7414f",
+      "after_sha256": "7ceb7972d236c1912a6d185493ad9385a66dc3d701a6925ea7e0b334b9f38917",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 2842
+    },
+    {
+      "path": "tests/test_pdf_runtime_dependency.py",
+      "before_sha256": null,
+      "after_sha256": "477a40cba57f012a294e2d00777b09da77367f4177a3a4f4cf082a0158a0e838",
+      "application": "APPLIED_EXACT_BYTES",
+      "bytes": 4611
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "after_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
+      "application": "DEFERRED_REGENERATE_FROM_MERGED_SOURCE_SCHEMAS",
+      "bytes": 66441
+    }
+  ]
+}

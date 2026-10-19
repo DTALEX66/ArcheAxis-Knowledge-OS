@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { RawReceiptButton } from "./DiagnosticConsole";
 import { stateLabel } from "../presentation/labels";
 
 export interface InspectionTarget {
@@ -7,6 +8,7 @@ export interface InspectionTarget {
   lifecycle: string;
   rawSha256?: string;
   detail?: string;
+  identityDetails?: Record<string,unknown>;
   version?: string;
   evidenceSource?: string;
   updatedAt?: string;
@@ -26,10 +28,12 @@ export interface InspectionTarget {
   }>;
 }
 
+export type InspectionHandler = (target: InspectionTarget, options?: { reveal?: boolean }) => void;
+
 // Right inspector: source/evidence/conflict/version (task pack §15.3).
 export function Inspector({ target, onClose }: { target: InspectionTarget | null; onClose?: () => void }) {
   useEffect(() => {
-    const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") onClose?.(); };
+    const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape" && !event.defaultPrevented && !document.querySelector('[role="dialog"][data-state="open"]')) onClose?.(); };
     window.addEventListener("keydown", dismiss);
     return () => {
       window.removeEventListener("keydown", dismiss);
@@ -59,6 +63,7 @@ export function Inspector({ target, onClose }: { target: InspectionTarget | null
           ))}</dd></> : null}
           {target.detail ? <><dt>说明</dt><dd>{target.detail}</dd></> : null}
         </dl>
+        {target.identityDetails?<RawReceiptButton label="条目身份与来源指纹" visibleLabel="核对身份与来源指纹" category="data" payload={target.identityDetails}/>:null}
       </aside>
     );
   }

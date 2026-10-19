@@ -5,6 +5,7 @@
 > **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。
 
 本文件是仓库的**导航入口**，不是新的真值来源。它只回答"该读哪个文件"，每一项都指向本仓已存在的规范文件。
+换 Agent／换会话先读[活动指针的 continuation_context](docs/current/AAOS-ACTIVE-EXECUTION.json)，再读[当前对话决定及替代关系](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[接手入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录。权威、规划、会话来源及外置共用库按该指针导航，先读回登记再核实现场；不从旧摘要或私人记忆猜路径。
 此前两处记录写"根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）"（`docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md`、
 `docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md`）；这两处是当时的实测，保留不改写；本文件使该引用可解析。
 
@@ -56,7 +57,7 @@
 - **正式宿主**：Tauri 2 + React/TypeScript/Vite + Rust Core 单写者（[`DECISION_SUPERSESSION_LEDGER.yaml`](DECISION_SUPERSESSION_LEDGER.yaml) SUP-021 → SUP-022）；Avalonia 为供体并冻结。
 - `docs/taskpacks/README.md` 曾自称"唯一当前任务包"，已作废该表述并指向上述入口。
 
-> 2026-10-06 的 AAOS-01 接手纠错属于该阶段历史。本次用户已明确选中 10/09 UI 优先队列和 G01；旧 R6/M0/AAOS-01 整包顺序冻结，有效约束继承。V01 仍暂停，FT01–04 保留未来意图。新布局适用于所有主题；blueprint 默认，旧配色可切换且同一主题全局一致。
+> 2026-10-06 的 AAOS-01 接手纠错属于该阶段历史。10/09 用户选中 UI 优先队列和 G01；旧 R6/M0/AAOS-01 整包顺序冻结，有效约束继承。V01 仍暂停，FT01–04 保留未来意图。新布局适用于所有主题；当时的 blueprint 默认已由后续 UI 方向覆盖，现行主题策略读活动指针 theme_policy，同一主题全局一致。
 
 当前交接见 [`docs/current/AAOS-AGENT-HANDOFF-CURRENT.md`](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)，本地/云端漂移与未发布范围见 [`docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md`](docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
 

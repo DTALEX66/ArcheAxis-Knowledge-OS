@@ -1,0 +1,28 @@
+{
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+  "dirty": true,
+  "source_patch_sha256": "f83d7580142a740bf1b58bbd1c3111977b0646c43a9580934c25ee6e7c0f092f",
+  "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "started_at": "2026-10-18T17:34:08.763966+00:00",
+  "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-recovery-red-1019",
+  "executable": ".venv/Scripts/python.exe",
+  "argument_count": 3,
+  "command": [
+    ".venv/Scripts/python.exe",
+    ".project-local/audits/oss-integration-decision-20261019/verify_import.py",
+    "src/__tests__/ConversationPanel.test.tsx",
+    "src/__tests__/CompanionSession.test.tsx"
+  ],
+  "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "boundary": "environment-routing-not-sandbox",
+  "child_exit_code": 1,
+  "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256_after": "f83d7580142a740bf1b58bbd1c3111977b0646c43a9580934c25ee6e7c0f092f",
+  "source_consistent": true,
+  "status": "FAIL",
+  "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-recovery-red-1019\\logs\\execution.log",
+  "exit_code": 1,
+  "ended_at": "2026-10-18T17:34:18.339381+00:00",
+  "seconds": 9.575410899997223
+}

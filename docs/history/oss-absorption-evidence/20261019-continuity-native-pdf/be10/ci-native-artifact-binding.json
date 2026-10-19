@@ -1,0 +1,10 @@
+{
+  "core_built_sha256": "c3daaa5f7dea1c7e504486983d49e3f24dbaedd6e87a639e283b2fd9289f232b",
+  "bound_core_sha256": "c3daaa5f7dea1c7e504486983d49e3f24dbaedd6e87a639e283b2fd9289f232b",
+  "bound_core": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\be10-native-preview-revision-20261019\\ci-binding-fixture\\release\\archeaxis-api.exe",
+  "source": "fresh owned isolated debug Core copied to fixed release-named CI wiring fixture",
+  "release_optimization": "NOT_EXECUTED",
+  "cloud_CI": "NOT_EXECUTED",
+  "candidate_CI_sha256": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+  "candidate_native_test_sha256": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7"
+}

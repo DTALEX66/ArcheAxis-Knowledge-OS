@@ -2,7 +2,7 @@
 export type ResourceJson = null | boolean | number | string | ResourceJson[] | { [key: string]: ResourceJson };
 export type ResourceObject = { [key: string]: ResourceJson };
 export type ResourceClass = "enableable_plugin" | "absorbed_algorithm" | "ux_donor" | "format_spec" | "base_dependency" | "future_candidate" | "not_adopted";
-export type ResourceEvidence = { state: string; value: ResourceJson; source_refs: { path: string; sha256: string }[] };
+export type ResourceEvidence = { state: string; value: ResourceJson; source_refs: { path: string; sha256: string }[]; previous_state_before_source_relocation?: string };
 export type ResourceQualification = { stable_key: string; disposition: string; reason: string; activation: { state: string; conditions: ResourceJson; scope: ResourceJson }; evidence: { version: ResourceEvidence; license: ResourceEvidence; permissions: ResourceEvidence; runtime: ResourceEvidence; qualification: ResourceEvidence; source_refs: ResourceJson }; [key: string]: ResourceJson };
 export type ResourceEntry = { stable_key: string; display_names: string[]; surface_class: ResourceClass; absorption_mode: string; classification_reason: string; declared_runtime_route: string | null; original_surface: ResourceObject; ledger: ResourceObject | null; qualification: ResourceQualification };
 export type ResourceCatalog = { schema: string; sources: { path: string; sha256: string }[]; crosswalk_metadata: ResourceObject; qualification_metadata: ResourceObject; freeze_register: ResourceObject; entries: ResourceEntry[] };
@@ -11,11 +11,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
   "sources": [
     {
       "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
-      "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
+      "sha256": "445a062ba2737a8bc0b1406dbace47aeeaaa87b269bb4fc47dfb5e1d2d389ae5"
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "627091eca33f19f1057bd53686dc158732886866d4e12cb08638ef2b36af471d"
+      "sha256": "e16b5cb4bc2737f20cff8abcf81ac63d2fa0c7e235c961fa6c1ca15e8b22b02a"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -34,7 +34,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     "purpose": "One honest surface_class per open-source absorption entry, joining the A-E reuse-verification vocabulary to the capability absorption registry's allowed_absorption_modes, so the UI can show absorption sources without rendering all of them as enable-able plugins.",
     "generator": {
       "path": "scripts/audit/build_oss_absorption_crosswalk.py",
-      "sha256": "f4802c4f4be790fef0ca385fc528211992714f91c7edebbe4af0c57df555d45c"
+      "sha256": "e2a6925a7cdefcf1c82a39ee50ac206bc2a66aa9996256e765e647da0eace186"
     },
     "producing_command": [
       "<python>",
@@ -115,12 +115,12 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     "class_counts": {
       "base_dependency": 20,
-      "absorbed_algorithm": 16,
+      "absorbed_algorithm": 15,
       "future_candidate": 10,
       "enableable_plugin": 7,
       "not_adopted": 11,
       "format_spec": 3,
-      "ux_donor": 1
+      "ux_donor": 2
     },
     "class_order": [
       "enableable_plugin",
@@ -179,8 +179,8 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "bytes": 8562
       },
       "scripts/audit/oss_disposition_evidence.py": {
-        "sha256": "4900fd22b84ba7ba5f05a56ec52510c63b7a8ca7e21de073abf8dec1c2f71de2",
-        "bytes": 18439
+        "sha256": "fe1dfdb9f9ff29c3ba7baec84fbcf2a648def927a93c07797768e3c90051f5c2",
+        "bytes": 19527
       }
     },
     "limits": [
@@ -207,7 +207,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     ],
     "sources": [
       {
-        "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+        "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
         "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
       },
       {
@@ -223,7 +223,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
       },
       {
-        "path": "frontend/package-lock.json",
+        "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
         "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
       },
       {
@@ -236,7 +236,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "THIRD_PARTY_NOTICES.md",
-        "sha256": "8d15693693371a22ef5fb157de83523af576718338f914855a2dc1c075c7f260"
+        "sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09"
       },
       {
         "path": "scripts/release_sbom.py",
@@ -397,6 +397,95 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "current_digest": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775",
       "targeted_evidence": ".project-local/runs/ba8e5e5614/course-format-ui-1016/artifacts/execution.json",
       "tests": "59 frontend regressions; per-file schema plus route maintenance 44 tests; TypeScript PASS. Native bridge and combined gate pending separate receipts."
+    },
+    "reference_relocation_20261018": {
+      "source": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+      "snapshot": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
+      "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1",
+      "reason": "Original qualification binds this historical crosswalk; retain exact bytes while the current projection is corrected. No runtime qualification promoted.",
+      "additional_historical_sources": [
+        {
+          "original_path": "LICENSE",
+          "snapshot": "docs/history/oss-absorption-evidence/20261018/original-references/LICENSE",
+          "sha256": "b247e647f770f10e281cd662a1b1626461469d056c8b5c65e0c94c87a724f334",
+          "source_commit": "058fcf6fb9210b5ee381e76675f62d230977df97",
+          "references_relocated": 2,
+          "path": "docs/history/oss-absorption-evidence/20261018/original-references/LICENSE"
+        },
+        {
+          "original_path": "frontend/package-lock.json",
+          "snapshot": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
+          "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89",
+          "source_commit": "dff65c1b4fdf3d03c03d7445563c592cd1922f28",
+          "references_relocated": 5,
+          "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json"
+        }
+      ],
+      "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json"
+    },
+    "source_binding_review_20261019": {
+      "scope": "Reviewed source-contract and attribution notice bytes only; no runtime observation or qualification granted.",
+      "qualification": "NOT_GRANTED_BY_HASH_REBIND",
+      "changes": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775",
+          "current_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+          "affected_stable_keys": [
+            "archeaxiscoreknowledge",
+            "capcoreknowledge"
+          ],
+          "reason": "Original generator with current schemas adds only optional LearningItemsDto.items[].display_title (string length 1..80). All other generated definitions including DocumentDto unchanged; command/format schemas and generator unchanged."
+        },
+        {
+          "path": "THIRD_PARTY_NOTICES.md",
+          "previous_sha256": "8d15693693371a22ef5fb157de83523af576718338f914855a2dc1c075c7f260",
+          "current_sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09",
+          "reason": "Retain existing attribution text and append already integrated Neural Creator visual algorithm source/adaptation/NOTICE routing; current mutable notice bytes normalized LF for Git-clean-stable exact SHA. This is an attribution declaration, not independent upstream rights/license qualification."
+        }
+      ],
+      "current_runtime": "UNKNOWN_NOT_REOBSERVED_BY_THIS_SOURCE_REVIEW",
+      "historical_qualification": "INHERITED_ONLY values and original evidence retained as historical registration; currently_usable is not current host qualification.",
+      "license_installation_execution": "NO_NEW_QUALIFICATION_OR_AUTHORIZATION",
+      "acceptance_boundary": "Existing exact-source runtime/native receipts retain their own identity; changed projection bytes require separate build/native qualification if included in a new candidate."
+    },
+    "native_preview_pdf_source_binding_review_20261019": {
+      "observed_at": "2026-10-18T23:16:49.675361+00:00",
+      "qualification": "NOT_GRANTED_BY_HASH_REBIND",
+      "changes": [
+        {
+          "stable_key": "archeaxiscoreknowledge",
+          "pointer": "/entries/3/evidence/version/source_refs/1",
+          "previous_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+          "current_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc"
+        },
+        {
+          "stable_key": "capcoreknowledge",
+          "pointer": "/entries/5/evidence/version/source_refs/1",
+          "previous_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+          "current_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc"
+        }
+      ],
+      "reason": "Reviewed finite human metadata preview CoreOperation and dependency UNKNOWN observation enum. Document DTO and permission model unchanged; 68 inherited entries retain all prior states/values; runtime NOT_RUN and license observations are not promoted.",
+      "source_schema_sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6",
+      "current_runtime": "UNKNOWN_NOT_REOBSERVED_BY_THIS_SOURCE_REVIEW"
+    },
+    "handoff_snapshot_source_binding_review_20261019": {
+      "observed_at": "2026-10-18T23:37:45.717548+00:00",
+      "qualification": "NOT_GRANTED_BY_HASH_REBIND",
+      "reason": "Only finite local-human project_handoff_snapshot CoreOperation added. All existing document DTO bytes and 68 inherited state/value fields preserved; no runtime/license/installation promotion.",
+      "changes": [
+        {
+          "pointer": "/entries/3/evidence/version/source_refs/1",
+          "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
+          "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+        },
+        {
+          "pointer": "/entries/5/evidence/version/source_refs/1",
+          "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
+          "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+        }
+      ]
     }
   },
   "freeze_register": {
@@ -575,7 +664,8 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "mentioned_only": {
               "antiword": [
-                "services/python-workers/tool_paths.py:54"
+                "services/python-workers/tool_paths.py:54",
+                "frontend/src/api/conversionKinds.ts:38"
               ]
             }
           },
@@ -665,7 +755,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "MSYS2 packaging 0.37-3; the binary self-reports 'Version: 0.37  (21 Oct 2005)'",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -682,7 +772,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -703,7 +793,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -717,7 +807,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -734,7 +824,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -745,7 +835,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -826,7 +916,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "mentioned_only": {
               "Apache Tika": [
-                "services/python-workers/document/worker_office.py:772",
+                "services/python-workers/document/worker_office.py:773",
                 "crates/archeaxis-application/src/attempts.rs:297"
               ],
               "tika": [
@@ -922,7 +1012,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "4.1.0 (tika-app distribution)",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -939,7 +1029,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -960,7 +1050,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -974,7 +1064,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -992,7 +1082,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1003,7 +1093,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -1169,7 +1259,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "uv.lock",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1186,7 +1276,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1207,7 +1297,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -1221,7 +1311,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -1238,7 +1328,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1249,7 +1339,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -1388,26 +1478,27 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775"
+                "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
               }
             ]
           },
           "license": {
-            "state": "FIRST_PARTY_PROJECT_LICENSE",
+            "state": "HISTORICAL_SOURCE_NOT_CURRENT",
             "value": {
               "code": "Project LICENSE; third-party dependencies retain independent licenses",
               "weights": "NOT_APPLICABLE"
             },
             "source_refs": [
               {
-                "path": "LICENSE",
+                "path": "docs/history/oss-absorption-evidence/20261018/original-references/LICENSE",
                 "sha256": "b247e647f770f10e281cd662a1b1626461469d056c8b5c65e0c94c87a724f334"
               },
               {
                 "path": "Cargo.lock",
                 "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
               }
-            ]
+            ],
+            "previous_state_before_source_relocation": "FIRST_PARTY_PROJECT_LICENSE"
           },
           "permissions": {
             "state": "DECLARED_INHERITED",
@@ -1421,7 +1512,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -1435,7 +1526,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -1450,7 +1541,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1461,7 +1552,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -1521,7 +1612,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "tool_invoked": {
               "Azul Zulu Community JRE 21": [
                 "zulu-jre",
-                "services/python-workers/document/worker_office.py:740",
+                "services/python-workers/document/worker_office.py:741",
                 "services/python-workers/tool_paths.py:56"
               ]
             }
@@ -1609,7 +1700,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "Zulu build unknown, JAVA_VERSION 21.0.12.1",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1626,7 +1717,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1647,7 +1738,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -1661,7 +1752,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -1678,7 +1769,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1689,7 +1780,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -1814,26 +1905,27 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775"
+                "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
               }
             ]
           },
           "license": {
-            "state": "FIRST_PARTY_PROJECT_LICENSE",
+            "state": "HISTORICAL_SOURCE_NOT_CURRENT",
             "value": {
               "code": "Project LICENSE; third-party dependencies retain independent licenses",
               "weights": "NOT_APPLICABLE"
             },
             "source_refs": [
               {
-                "path": "LICENSE",
+                "path": "docs/history/oss-absorption-evidence/20261018/original-references/LICENSE",
                 "sha256": "b247e647f770f10e281cd662a1b1626461469d056c8b5c65e0c94c87a724f334"
               },
               {
                 "path": "Cargo.lock",
                 "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
               }
-            ]
+            ],
+            "previous_state_before_source_relocation": "FIRST_PARTY_PROJECT_LICENSE"
           },
           "permissions": {
             "state": "DECLARED_INHERITED",
@@ -1847,7 +1939,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -1861,7 +1953,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -1876,7 +1968,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -1887,7 +1979,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -1946,8 +2038,8 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "hits": {
             "pipeline_invoked": {
               "Chromium": [
-                ".github/workflows/ci.yml:677",
-                ".github/workflows/nightly.yml:82"
+                ".github/workflows/ci.yml:707",
+                ".github/workflows/nightly.yml:89"
               ]
             },
             "imported_in_source": {
@@ -1963,7 +2055,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "mentioned_only": {
               "Chromium": [
-                "services/python-workers/README.md:31",
+                "services/python-workers/README.md:35",
                 "services/python-workers/tool_paths.py:55",
                 "app/ingestion/web_screenshot.py:1"
               ]
@@ -2052,7 +2144,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "build 1228; the launched browser self-reported 149.0.7827.55",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2069,7 +2161,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2090,7 +2182,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2104,7 +2196,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2121,7 +2213,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2132,7 +2224,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -2235,7 +2327,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2252,7 +2344,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2273,7 +2365,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2287,7 +2379,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2302,7 +2394,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2313,7 +2405,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -2469,7 +2561,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "uv.lock",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2486,7 +2578,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2507,7 +2599,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2521,7 +2613,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2538,7 +2630,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2549,7 +2641,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -2688,7 +2780,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2705,7 +2797,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2726,7 +2818,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2740,7 +2832,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2757,7 +2849,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2768,7 +2860,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -2839,7 +2931,8 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "shared/evidence_connectors.py:4"
               ],
               "crossref": [
-                "shared/pipeline.py:11"
+                "shared/pipeline.py:11",
+                "frontend/src/presentation/uiCapabilityIntent.ts:128"
               ]
             }
           },
@@ -2921,7 +3014,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2938,7 +3031,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -2959,7 +3052,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2973,7 +3066,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -2990,7 +3083,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3001,7 +3094,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -3154,7 +3247,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3171,7 +3264,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3192,7 +3285,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -3206,7 +3299,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -3223,7 +3316,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3234,7 +3327,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -3416,7 +3509,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "v1.5.17",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3433,7 +3526,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3454,7 +3547,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -3468,7 +3561,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -3488,7 +3581,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3499,7 +3592,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -3643,7 +3736,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3660,7 +3753,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3681,7 +3774,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -3695,7 +3788,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -3712,7 +3805,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3723,7 +3816,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -3850,7 +3943,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3867,7 +3960,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3888,7 +3981,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -3902,7 +3995,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -3919,7 +4012,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -3930,7 +4023,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -4006,6 +4099,14 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "requirements.txt:21"
               ]
             },
+            "pipeline_invoked": {
+              "faster-whisper": [
+                "scripts/ci/common_asr.lock.json:3"
+              ],
+              "faster_whisper": [
+                "scripts/ci/run_common_speech_candidate.py:28"
+              ]
+            },
             "tool_invoked": {
               "faster-whisper": [
                 "faster-whisper",
@@ -4024,7 +4125,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "faster-whisper": [
                 "shared/bakeoff_engines.py:156",
                 "services/python-workers/media/worker_transcribe.py:4",
-                "services/python-workers/README.md:19"
+                "services/python-workers/README.md:23"
               ],
               "faster_whisper": [
                 "shared/bakeoff_engines.py:159",
@@ -4106,7 +4207,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4123,7 +4224,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4144,7 +4245,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -4158,7 +4259,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -4175,7 +4276,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4186,7 +4287,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -4246,9 +4347,9 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "hits": {
             "pipeline_invoked": {
               "FFmpeg": [
-                ".github/workflows/ci.yml:192",
-                ".github/workflows/nightly.yml:87",
-                "scripts/ci/check_vnext_workers.py:243"
+                ".github/workflows/ci.yml:213",
+                ".github/workflows/nightly.yml:94",
+                "scripts/ci/check_vnext_workers.py:253"
               ]
             },
             "imported_in_source": {
@@ -4273,7 +4374,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "mentioned_only": {
               "FFmpeg": [
                 "shared/adapter_contract.py:63",
-                "services/python-workers/README.md:20",
+                "services/python-workers/README.md:24",
                 "services/python-workers/tool_paths.py:9"
               ]
             }
@@ -4321,7 +4422,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4338,7 +4439,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4359,7 +4460,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -4373,7 +4474,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -4388,7 +4489,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4399,7 +4500,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -4518,7 +4619,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4535,7 +4636,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4556,7 +4657,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -4570,7 +4671,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -4585,7 +4686,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4596,7 +4697,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -4672,7 +4773,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "pipeline_invoked": {
               "fsrs": [
-                ".github/workflows/vnext-ci.yml:90"
+                ".github/workflows/vnext-ci.yml:52"
               ]
             },
             "imported_in_source": {
@@ -4684,9 +4785,8 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "stub_only": {
               "fsrs": [
-                "crates/archeaxis-api/src/lib.rs:635",
-                "crates/archeaxis-api/tests/contract_constant_fields.rs:332",
-                "crates/archeaxis-api/tests/contract_review_cost.rs:206"
+                "crates/archeaxis-api/src/lib.rs:808",
+                "crates/archeaxis-application/src/scheduler.rs:171"
               ]
             },
             "mentioned_only": {
@@ -4856,7 +4956,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -4870,7 +4970,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -4887,7 +4987,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -4898,7 +4998,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -4957,7 +5057,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "hits": {
             "mentioned_only": {
               "SenseVoice": [
-                "services/python-workers/README.md:47",
+                "services/python-workers/README.md:51",
                 "app/ingestion/asr_adapter.py:95"
               ]
             }
@@ -5025,7 +5125,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5042,7 +5142,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5063,7 +5163,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5077,7 +5177,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5092,7 +5192,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5103,7 +5203,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -5162,10 +5262,12 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "hits": {
             "pipeline_invoked": {
               "Gitleaks": [
-                ".github/workflows/ci.yml:172"
+                ".github/workflows/ci.yml:170",
+                "scripts/ci/local_verify.py:238"
               ],
               "gitleaks": [
-                ".github/workflows/ci.yml:172"
+                ".github/workflows/ci.yml:170",
+                "scripts/ci/local_verify.py:238"
               ]
             }
           },
@@ -5247,7 +5349,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5264,7 +5366,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5285,7 +5387,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5299,7 +5401,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5316,7 +5418,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5327,7 +5429,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -5430,7 +5532,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5447,7 +5549,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5468,7 +5570,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5482,7 +5584,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5497,7 +5599,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5508,7 +5610,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -5627,7 +5729,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5644,7 +5746,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5665,7 +5767,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5679,7 +5781,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5694,7 +5796,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5705,7 +5807,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -5866,7 +5968,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5883,7 +5985,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5904,7 +6006,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5918,7 +6020,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -5935,7 +6037,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -5946,7 +6048,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -6144,7 +6246,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6163,7 +6265,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6177,7 +6279,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6194,7 +6296,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6205,7 +6307,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -6344,7 +6446,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6363,7 +6465,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6377,7 +6479,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6392,7 +6494,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6403,7 +6505,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -6540,7 +6642,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6557,7 +6659,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6578,7 +6680,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6592,7 +6694,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6607,7 +6709,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6618,7 +6720,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -6774,7 +6876,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "uv.lock",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6791,7 +6893,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6812,7 +6914,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6826,7 +6928,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -6843,7 +6945,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6854,7 +6956,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -6950,7 +7052,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6967,7 +7069,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -6988,7 +7090,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -7002,7 +7104,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -7017,7 +7119,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7028,7 +7130,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -7125,7 +7227,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7142,7 +7244,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7163,7 +7265,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -7177,7 +7279,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -7192,7 +7294,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7203,7 +7305,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -7292,11 +7394,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "mentioned_only": {
               "litellm": [
-                "services/python-workers/machine/document_check.py:43",
+                "services/python-workers/machine/document_check.py:85",
                 "app/memory/reasoning_memory.py:11"
               ],
               "LiteLLM": [
-                "services/python-workers/machine/document_check.py:43",
+                "services/python-workers/machine/document_check.py:85",
                 "app/memory/reasoning_memory.py:11"
               ]
             }
@@ -7394,7 +7496,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "uv.lock",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7411,7 +7513,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7432,7 +7534,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -7446,7 +7548,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -7463,7 +7565,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7474,7 +7576,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -7647,7 +7749,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "uv.lock",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7664,7 +7766,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7685,7 +7787,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -7699,7 +7801,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -7717,7 +7819,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7728,7 +7830,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -7808,14 +7910,6 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "shared/models/magika"
               ]
             },
-            "imported_in_source": {
-              "magika": [
-                "frontend/src/__tests__/ContentDetectionPanel.test.tsx:14"
-              ],
-              "Magika": [
-                "frontend/src/__tests__/ContentDetectionPanel.test.tsx:14"
-              ]
-            },
             "stub_only": {
               "magika": [
                 "services/python-workers/document/worker_detect.py:70"
@@ -7886,14 +7980,6 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                   ],
                   "Magika": [
                     "shared/models/magika"
-                  ]
-                },
-                "imported_in_source": {
-                  "magika": [
-                    "frontend/src/__tests__/ContentDetectionPanel.test.tsx:14"
-                  ],
-                  "Magika": [
-                    "frontend/src/__tests__/ContentDetectionPanel.test.tsx:14"
                   ]
                 },
                 "stub_only": {
@@ -7978,7 +8064,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -7995,7 +8081,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8016,7 +8102,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8030,7 +8116,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8047,7 +8133,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8058,7 +8144,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -8116,7 +8202,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "hits": {
             "pipeline_invoked": {
               "Marker": [
-                ".github/workflows/ci.yml:51"
+                ".github/workflows/ci.yml:50"
               ]
             },
             "imported_in_source": {
@@ -8129,13 +8215,12 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "stub_only": {
               "Marker": [
                 "services/python-workers/media/worker_transcribe.py:123",
-                "services/python-workers/media/worker_video.py:132",
-                "frontend/src/__tests__/StatusBar.test.tsx:27"
+                "services/python-workers/media/worker_video.py:132"
               ]
             },
             "mentioned_only": {
               "Marker": [
-                "services/python-workers/vision/worker_caption.py:67",
+                "services/python-workers/vision/worker_caption.py:70",
                 "app/ingestion/raw_asset.py:187",
                 "app/setup/setup_status.py:37"
               ]
@@ -8168,7 +8253,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "hits": {
                 "pipeline_invoked": {
                   "Marker": [
-                    ".github/workflows/ci.yml:51"
+                    ".github/workflows/ci.yml:50"
                   ]
                 },
                 "imported_in_source": {
@@ -8181,13 +8266,12 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "stub_only": {
                   "Marker": [
                     "services/python-workers/media/worker_transcribe.py:123",
-                    "services/python-workers/media/worker_video.py:132",
-                    "frontend/src/__tests__/StatusBar.test.tsx:27"
+                    "services/python-workers/media/worker_video.py:132"
                   ]
                 },
                 "mentioned_only": {
                   "Marker": [
-                    "services/python-workers/vision/worker_caption.py:67",
+                    "services/python-workers/vision/worker_caption.py:70",
                     "app/ingestion/raw_asset.py:187",
                     "app/setup/setup_status.py:37"
                   ]
@@ -8240,7 +8324,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8257,7 +8341,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8278,7 +8362,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8292,7 +8376,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8307,7 +8391,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8318,7 +8402,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -8546,7 +8630,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "0.1.6 (uv.lock)",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8563,7 +8647,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8584,7 +8668,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8598,7 +8682,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8615,7 +8699,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8626,7 +8710,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -8745,7 +8829,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8762,7 +8846,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8783,7 +8867,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8797,7 +8881,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8812,7 +8896,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8823,7 +8907,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -8942,7 +9026,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8959,7 +9043,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -8980,7 +9064,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -8994,7 +9078,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9009,7 +9093,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9020,7 +9104,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -9189,7 +9273,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9206,7 +9290,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9227,7 +9311,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9241,7 +9325,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9258,7 +9342,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9269,7 +9353,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -9451,7 +9535,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "uv.lock",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9468,7 +9552,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9489,7 +9573,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9503,7 +9587,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9520,7 +9604,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9531,7 +9615,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -9605,10 +9689,12 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "mentioned_only": {
               "OpenAlex": [
-                "shared/pipeline.py:198"
+                "shared/pipeline.py:198",
+                "frontend/src/presentation/uiCapabilityIntent.ts:128"
               ],
               "openalex": [
-                "shared/pipeline.py:198"
+                "shared/pipeline.py:198",
+                "frontend/src/presentation/uiCapabilityIntent.ts:128"
               ]
             }
           },
@@ -9690,7 +9776,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9707,7 +9793,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9728,7 +9814,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9742,7 +9828,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9759,7 +9845,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9770,7 +9856,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -9877,7 +9963,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9894,7 +9980,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9915,7 +10001,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9929,7 +10015,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -9944,7 +10030,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -9955,7 +10041,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -10068,7 +10154,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10085,7 +10171,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10106,7 +10192,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -10120,7 +10206,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -10135,7 +10221,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10146,7 +10232,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -10251,7 +10337,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10268,7 +10354,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10289,7 +10375,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -10303,7 +10389,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -10318,7 +10404,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10329,7 +10415,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -10461,7 +10547,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10478,7 +10564,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10499,7 +10585,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -10513,7 +10599,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -10530,7 +10616,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10541,7 +10627,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -10617,29 +10703,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "frontend/package-lock.json:packages"
               ]
             },
-            "imported_in_source": {
-              "pdf.js": [
-                "frontend/src/__tests__/PdfReader.test.tsx:7",
-                "frontend/src/components/PdfReader.tsx:3"
-              ],
-              "PDF.js": [
-                "frontend/src/__tests__/PdfReader.test.tsx:7",
-                "frontend/src/components/PdfReader.tsx:3"
-              ]
-            },
             "mentioned_only": {
               "pdf.js": [
                 "app/evidence/pdf_serve.py:1",
                 "app/workspace/router.py:332",
-                "frontend/src/spaces/CanonicalLibrarySpace.tsx:22"
+                "frontend/src/spaces/CanonicalLibrarySpace.tsx:35"
               ],
               "PDF.js": [
                 "app/evidence/pdf_serve.py:1",
                 "app/workspace/router.py:332",
-                "frontend/src/spaces/CanonicalLibrarySpace.tsx:22"
+                "frontend/src/spaces/CanonicalLibrarySpace.tsx:35"
               ],
               "pdfjs-dist": [
-                "frontend/src/__tests__/PdfReader.test.tsx:7",
                 "frontend/src/components/PdfReader.tsx:3"
               ]
             }
@@ -10749,7 +10824,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "6.4.299 (frontend/package-lock.json)",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10766,7 +10841,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10787,7 +10862,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -10801,7 +10876,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -10818,7 +10893,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10829,7 +10904,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -10948,7 +11023,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10965,7 +11040,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -10986,7 +11061,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11000,7 +11075,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11015,7 +11090,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11026,7 +11101,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -11085,7 +11160,8 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "hits": {
             "pipeline_invoked": {
               "pip-audit": [
-                ".github/workflows/ci.yml:159"
+                ".github/workflows/ci.yml:157",
+                "scripts/ci/local_verify.py:238"
               ]
             }
           },
@@ -11165,7 +11241,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11182,7 +11258,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11203,7 +11279,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11217,7 +11293,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11234,7 +11310,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11245,7 +11321,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -11301,8 +11377,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "hits": {
             "mentioned_only": {
               "prosemirror": [
-                "frontend/src/spaces/CanonicalLibrarySpace.tsx:24",
-                "frontend/src/test/setup.ts:7"
+                "frontend/src/spaces/CanonicalLibrarySpace.tsx:37"
               ]
             }
           },
@@ -11368,7 +11443,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         },
         "evidence": {
           "version": {
-            "state": "LOCK_PINNED",
+            "state": "HISTORICAL_SOURCE_NOT_CURRENT",
             "value": [
               {
                 "name": "prosemirror-changeset",
@@ -11464,17 +11539,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             ],
             "source_refs": [
               {
-                "path": "frontend/package-lock.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
                 "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               },
               {
                 "path": "frontend/package.json",
                 "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
               }
-            ]
+            ],
+            "previous_state_before_source_relocation": "LOCK_PINNED"
           },
           "license": {
-            "state": "LOCK_METADATA_AND_OFFICIAL_READBACK",
+            "state": "HISTORICAL_SOURCE_NOT_CURRENT",
             "value": {
               "code": "MIT",
               "weights": "NOT_APPLICABLE",
@@ -11485,10 +11561,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "frontend/package-lock.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
                 "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               }
-            ]
+            ],
+            "previous_state_before_source_relocation": "LOCK_METADATA_AND_OFFICIAL_READBACK"
           },
           "permissions": {
             "state": "DECLARED_INHERITED",
@@ -11506,7 +11583,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11520,7 +11597,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11535,7 +11612,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11546,7 +11623,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -11619,40 +11696,24 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "pyproject.toml:79"
               ]
             },
-            "imported_in_source": {
-              "PyMuPDF": [
-                "crates/archeaxis-api/tests/source_transform_readback.rs:55",
-                "crates/archeaxis-application/src/attempts.rs:16",
-                "crates/archeaxis-application/tests/pdf_job_end_to_end.rs:157"
-              ],
-              "pymupdf": [
-                "crates/archeaxis-api/tests/source_transform_readback.rs:55",
-                "crates/archeaxis-application/src/attempts.rs:16",
-                "crates/archeaxis-application/tests/pdf_job_end_to_end.rs:157"
-              ]
-            },
             "stub_only": {
               "PyMuPDF": [
-                "services/python-workers/document/worker_office.py:496",
-                "crates/archeaxis-application/src/executor.rs:519",
-                "crates/archeaxis-application/tests/pdf_ocr_chain.rs:106"
+                "services/python-workers/document/worker_office.py:497"
               ],
               "pymupdf": [
-                "services/python-workers/document/worker_office.py:496",
-                "crates/archeaxis-application/src/executor.rs:519",
-                "crates/archeaxis-application/tests/pdf_ocr_chain.rs:106"
+                "services/python-workers/document/worker_office.py:497"
               ]
             },
             "mentioned_only": {
               "PyMuPDF": [
                 "shared/media_extractor.py:4",
                 "services/python-workers/document/worker_pdf.py:36",
-                "services/python-workers/README.md:16"
+                "services/python-workers/README.md:20"
               ],
               "pymupdf": [
                 "shared/media_extractor.py:4",
                 "services/python-workers/document/worker_pdf.py:36",
-                "services/python-workers/README.md:16"
+                "services/python-workers/README.md:20"
               ]
             }
           },
@@ -11751,7 +11812,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11765,7 +11826,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11780,7 +11841,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11791,7 +11852,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -11910,7 +11971,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11927,7 +11988,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11948,7 +12009,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11962,7 +12023,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -11977,7 +12038,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -11988,7 +12049,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -12066,17 +12127,17 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "pipeline_invoked": {
               "tesseract": [
-                ".github/workflows/ci.yml:192",
-                ".github/workflows/nightly.yml:79",
-                "scripts/ci/check_vnext_workers.py:271"
+                ".github/workflows/ci.yml:213",
+                ".github/workflows/nightly.yml:86",
+                "scripts/ci/check_vnext_workers.py:281"
               ],
               "Tesseract": [
-                ".github/workflows/ci.yml:192",
-                ".github/workflows/nightly.yml:79",
-                "scripts/ci/check_vnext_workers.py:271"
+                ".github/workflows/ci.yml:213",
+                ".github/workflows/nightly.yml:86",
+                "scripts/ci/check_vnext_workers.py:281"
               ],
               "pytesseract": [
-                ".github/workflows/ci.yml:585"
+                ".github/workflows/ci.yml:615"
               ]
             },
             "imported_in_source": {
@@ -12141,12 +12202,12 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "mentioned_only": {
               "tesseract": [
                 "shared/adapter_contract.py:63",
-                "services/python-workers/README.md:21",
+                "services/python-workers/README.md:25",
                 "services/python-workers/tool_paths.py:7"
               ],
               "Tesseract": [
                 "shared/adapter_contract.py:63",
-                "services/python-workers/README.md:21",
+                "services/python-workers/README.md:25",
                 "services/python-workers/tool_paths.py:7"
               ],
               "pytesseract": [
@@ -12230,7 +12291,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "system binary",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12247,7 +12308,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12268,7 +12329,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -12282,7 +12343,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -12300,7 +12361,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12311,7 +12372,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -12426,7 +12487,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12443,7 +12504,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12464,7 +12525,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -12478,7 +12539,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -12493,7 +12554,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12504,7 +12565,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -12665,7 +12726,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12682,7 +12743,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12703,7 +12764,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -12717,7 +12778,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -12734,7 +12795,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12745,7 +12806,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -12822,7 +12883,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "mentioned_only": {
               "RapidOCR": [
-                "services/python-workers/README.md:32"
+                "services/python-workers/README.md:36"
               ]
             }
           },
@@ -12881,7 +12942,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 },
                 "mentioned_only": {
                   "RapidOCR": [
-                    "services/python-workers/README.md:32"
+                    "services/python-workers/README.md:36"
                   ]
                 }
               }
@@ -12946,7 +13007,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12963,7 +13024,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -12984,7 +13045,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -12998,7 +13059,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -13015,7 +13076,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13026,7 +13087,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -13145,7 +13206,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13162,7 +13223,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13183,7 +13244,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -13197,7 +13258,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -13212,7 +13273,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13223,7 +13284,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -13459,7 +13520,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13476,7 +13537,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13497,7 +13558,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -13511,7 +13572,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -13528,7 +13589,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13539,7 +13600,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -13757,7 +13818,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13774,7 +13835,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13795,7 +13856,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -13809,7 +13870,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -13826,7 +13887,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -13837,7 +13898,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -14022,7 +14083,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "uv.lock",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14039,7 +14100,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14060,7 +14121,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -14074,7 +14135,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -14091,7 +14152,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14102,7 +14163,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -14253,7 +14314,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "uv.lock",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14270,7 +14331,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14291,7 +14352,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -14305,7 +14366,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -14323,7 +14384,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14334,7 +14395,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -14497,7 +14558,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14514,7 +14575,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14535,7 +14596,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -14549,7 +14610,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -14566,7 +14627,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14577,7 +14638,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -14594,9 +14655,9 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "ueberdosis/tiptap",
         "Tiptap"
       ],
-      "surface_class": "absorbed_algorithm",
-      "absorption_mode": "PYTHON_WORKER",
-      "classification_reason": "no single atlas capability joins it: capability ids ['document.edit'] appear in neither config/capability-map.v1.json runtime_capabilities nor docs/truth/CAPABILITY_ATLAS_V2.yaml dependencies",
+      "surface_class": "ux_donor",
+      "absorption_mode": "DIRECT_DEPENDENCY",
+      "classification_reason": "the donor is declared only in the client manifest scope (frontend/package.json, frontend/package-lock.json) and no atlas capability joins it, so it is a UI-layer donor.",
       "declared_runtime_route": null,
       "original_surface": {
         "stable_key": "tiptap",
@@ -14617,38 +14678,48 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         },
         "verification_tier": "B",
         "currently_usable": false,
-        "absorption_mode": "PYTHON_WORKER",
+        "absorption_mode": "DIRECT_DEPENDENCY",
         "declared_modes": {
           "capability_absorption_registry": null,
           "capability_absorption_registry_status": null,
           "supply_chain_ledger": null,
-          "derived_mode": "PYTHON_WORKER"
+          "derived_mode": "DIRECT_DEPENDENCY"
         },
         "atlas_capability_id": null,
         "map_state": null,
         "adoption": {
-          "artifact": "imported_in_source",
+          "artifact": "package_declared",
           "carried": true,
           "terms": [
             "tiptap",
             "Tiptap"
           ],
           "hits": {
-            "imported_in_source": {
+            "package_declared": {
               "tiptap": [
-                "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx:1",
-                "frontend/src/__tests__/CanonicalReviewLearning.test.tsx:1",
-                "frontend/src/__tests__/TemplateBindings.test.tsx:55"
+                "frontend/package.json:dependencies",
+                "frontend/package-lock.json:packages"
               ],
               "Tiptap": [
-                "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx:1",
-                "frontend/src/__tests__/CanonicalReviewLearning.test.tsx:1",
-                "frontend/src/__tests__/TemplateBindings.test.tsx:55"
+                "frontend/package.json:dependencies",
+                "frontend/package-lock.json:packages"
+              ]
+            },
+            "mentioned_only": {
+              "tiptap": [
+                "frontend/src/components/DocumentEditor.tsx:2",
+                "frontend/src/presentation/coreWorkingState.ts:1",
+                "frontend/src/presentation/originalNoteWrite.ts:1"
+              ],
+              "Tiptap": [
+                "frontend/src/components/DocumentEditor.tsx:2",
+                "frontend/src/presentation/coreWorkingState.ts:1",
+                "frontend/src/presentation/originalNoteWrite.ts:1"
               ]
             }
           },
           "bound_resource_entries": [],
-          "direct_declaration": false,
+          "direct_declaration": true,
           "ledger_reported_evidence_state": null
         },
         "route_binding": {
@@ -14660,10 +14731,10 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           ],
           "enableable": false,
           "degrade_reason": "no single atlas capability joins it: capability ids ['document.edit'] appear in neither config/capability-map.v1.json runtime_capabilities nor docs/truth/CAPABILITY_ATLAS_V2.yaml dependencies",
-          "frontend_only_client": false
+          "frontend_only_client": true
         },
-        "surface_class": "absorbed_algorithm",
-        "surface_class_reason": "no single atlas capability joins it: capability ids ['document.edit'] appear in neither config/capability-map.v1.json runtime_capabilities nor docs/truth/CAPABILITY_ATLAS_V2.yaml dependencies",
+        "surface_class": "ux_donor",
+        "surface_class_reason": "the donor is declared only in the client manifest scope (frontend/package.json, frontend/package-lock.json) and no atlas capability joins it, so it is a UI-layer donor.",
         "conflicts": [
           {
             "reason": "capability-id-is-not-a-declared-route",
@@ -14697,7 +14768,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         },
         "evidence": {
           "version": {
-            "state": "LOCK_PINNED",
+            "state": "HISTORICAL_SOURCE_NOT_CURRENT",
             "value": [
               {
                 "name": "@tiptap/core",
@@ -14898,17 +14969,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             ],
             "source_refs": [
               {
-                "path": "frontend/package-lock.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
                 "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               },
               {
                 "path": "frontend/package.json",
                 "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
               }
-            ]
+            ],
+            "previous_state_before_source_relocation": "LOCK_PINNED"
           },
           "license": {
-            "state": "LOCK_METADATA_AND_OFFICIAL_READBACK",
+            "state": "HISTORICAL_SOURCE_NOT_CURRENT",
             "value": {
               "code": "MIT",
               "weights": "NOT_APPLICABLE",
@@ -14919,10 +14991,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "frontend/package-lock.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
                 "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
               }
-            ]
+            ],
+            "previous_state_before_source_relocation": "LOCK_METADATA_AND_OFFICIAL_READBACK"
           },
           "permissions": {
             "state": "DECLARED_INHERITED",
@@ -14940,7 +15013,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -14954,7 +15027,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -14969,7 +15042,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -14980,7 +15053,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -15099,7 +15172,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15116,7 +15189,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15137,7 +15210,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -15151,7 +15224,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -15166,7 +15239,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15177,7 +15250,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -15259,23 +15332,23 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "trafilatura": [
                 "shared/adapter_fixtures.py:117",
                 "shared/web_search.py:104",
-                "services/python-workers/machine/document_check.py:152"
+                "services/python-workers/machine/document_check.py:203"
               ],
               "Trafilatura": [
                 "shared/adapter_fixtures.py:117",
                 "shared/web_search.py:104",
-                "services/python-workers/machine/document_check.py:152"
+                "services/python-workers/machine/document_check.py:203"
               ]
             },
             "mentioned_only": {
               "trafilatura": [
                 "shared/pipeline.py:105",
-                "services/python-workers/README.md:34",
+                "services/python-workers/README.md:38",
                 "services/python-workers/web/worker_webpage.py:15"
               ],
               "Trafilatura": [
                 "shared/pipeline.py:105",
-                "services/python-workers/README.md:34",
+                "services/python-workers/README.md:38",
                 "services/python-workers/web/worker_webpage.py:15"
               ]
             }
@@ -15430,7 +15503,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -15444,7 +15517,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -15461,7 +15534,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15472,7 +15545,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -15525,12 +15598,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "atlas_capability_id": null,
         "map_state": null,
         "adoption": {
-          "artifact": "NONE",
+          "artifact": "mentioned_only",
           "carried": false,
           "terms": [
             "WeKnora"
           ],
-          "hits": {},
+          "hits": {
+            "mentioned_only": {
+              "WeKnora": [
+                "frontend/src/presentation/uiCapabilityIntent.ts:150"
+              ]
+            }
+          },
           "bound_resource_entries": [],
           "direct_declaration": false,
           "ledger_reported_evidence_state": null
@@ -15568,7 +15647,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15585,7 +15664,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15606,7 +15685,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -15620,7 +15699,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -15635,7 +15714,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15646,7 +15725,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -15808,7 +15887,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15825,7 +15904,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15846,7 +15925,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -15860,7 +15939,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -15877,7 +15956,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -15888,7 +15967,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -16051,7 +16130,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16068,7 +16147,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16089,7 +16168,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -16103,7 +16182,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -16120,7 +16199,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16131,7 +16210,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -16196,14 +16275,14 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "imported_in_source": {
               "xlrd": [
-                "services/python-workers/document/worker_office.py:570"
+                "services/python-workers/document/worker_office.py:571"
               ]
             },
             "mentioned_only": {
               "xlrd": [
                 "services/python-workers/transport/text_ndjson.py:341",
                 "crates/archeaxis-application/src/attempts.rs:294",
-                "crates/archeaxis-application/tests/office_job_end_to_end.rs:84"
+                "frontend/src/api/conversionKinds.ts:39"
               ]
             }
           },
@@ -16291,7 +16370,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": "2.0.2",
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16308,7 +16387,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16329,7 +16408,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -16343,7 +16422,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -16361,7 +16440,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16372,7 +16451,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
@@ -16493,7 +16572,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "value": null,
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16510,7 +16589,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16531,7 +16610,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -16545,7 +16624,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               }
             ]
@@ -16562,7 +16641,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+                "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
@@ -16573,7 +16652,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           },
           "source_refs": [
             {
-              "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+              "path": "docs/history/oss-absorption-evidence/20261018/before-production-scope-repair.json",
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {

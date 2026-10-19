@@ -1,0 +1,33 @@
+{
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+  "dirty": true,
+  "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+  "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "started_at": "2026-10-18T21:49:42.095802+00:00",
+  "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\final-integrated-python-lint-1019",
+  "executable": ".venv/Scripts/python.exe",
+  "argument_count": 8,
+  "command": [
+    ".venv/Scripts/python.exe",
+    "-m",
+    "ruff",
+    "check",
+    "--no-cache",
+    "scripts/contracts/generate_capability_package.py",
+    "scripts/contracts/validate_capability_package.py",
+    "tests/contract/test_capability_package_contract.py",
+    "tests/contract/test_project_handoff_contract.py"
+  ],
+  "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "boundary": "environment-routing-not-sandbox",
+  "child_exit_code": 0,
+  "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256_after": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+  "source_consistent": true,
+  "status": "LOCAL_PASS",
+  "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\final-integrated-python-lint-1019\\logs\\execution.log",
+  "exit_code": 0,
+  "ended_at": "2026-10-18T21:49:43.826801+00:00",
+  "seconds": 1.7309975000098348
+}

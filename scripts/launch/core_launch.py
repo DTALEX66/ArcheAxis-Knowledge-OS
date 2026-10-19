@@ -595,7 +595,7 @@ def main(argv: list[str] | None = None) -> int:
     report["dependencies"] = checks
     report["dependencies_ok"] = all(c["ok"] for c in checks)
 
-    for name, port in (("deeptutor backend", 8001), ("deeptutor frontend", 3782), ("ollama", 11434)):
+    for name, port in (("deeptutor backend", 8001), ("deeptutor frontend", 3782), ("lm studio", 1234)):
         report[f"port_{port}_{name.replace(' ', '_')}"] = port_in_use(port)
 
     if args.check:

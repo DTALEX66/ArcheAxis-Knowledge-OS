@@ -1,0 +1,265 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ❯ src/__tests__/CanonicalReviewLearning.test.tsx (8 tests | 1 failed | 7 skipped) 1018ms
+   × SIMULATED queue and breadcrumb show shared titles while selecting each exact long item key 1018ms
+     → Unable to find role="button" and name "同名学习主题"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"space-card"[39m
+    [36m>[39m
+      [36m<h3>[39m
+        [0m学习[0m
+      [36m</h3>[39m
+      [36m<button[39m
+        [33maria-pressed[39m=[32m"false"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0m进入聚焦模式[0m
+      [36m</button>[39m
+      [36m<p>[39m
+        [0m学习者记录与机器能力分别显示。记录复习结果不会自动证明机器能力或知识正确性。[0m
+      [36m</p>[39m
+      [36m<button>[39m
+        [0m刷新学习队列[0m
+      [36m</button>[39m
+      [36m<ul[39m
+        [33maria-label[39m=[32m"复习队列"[39m
+        [33mdata-section[39m=[32m"review"[39m
+        [33mtabindex[39m=[32m"-1"[39m
+      [36m>[39m
+        [36m<li>[39m
+          [36m<button>[39m
+            [0mcourse:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb[0m
+          [36m</button>[39m
+          [0m · 下次复习 [0m
+          [0m未安排[0m
+        [36m</li>[39m
+        [36m<li>[39m
+          [36m<button>[39m
+            [0mcourse:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd[0m
+          [36m</button>[39m
+          [0m · 下次复习 [0m
+          [0m未安排[0m
+        [36m</li>[39m
+      [36m</ul>[39m
+      [36m<form>[39m
+        [36m<label>[39m
+          [0m学习项目键 [0m
+          [36m<input[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<button[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0m读取项目[0m
+        [36m</button>[39m
+      [36m</form>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"space-card"[39m
+      [36m>[39m
+        [36m<h3>[39m
+          [0m学习[0m
+        [36m</h3>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"false"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0m进入聚焦模式[0m
+        [36m</button>[39m
+        [36m<p>[39m
+          [0m学习者记录与机器能力分别显示。记录复习结果不会自动证明机器能力或知识正确性。[0m
+        [36m</p>[39m
+        [36m<button>[39m
+          [0m刷新学习队列[0m
+        [36m</button>[39m
+        [36m<ul[39m
+          [33maria-label[39m=[32m"复习队列"[39m
+          [33mdata-section[39m=[32m"review"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [36m<li>[39m
+            [36m<button>[39m
+              [0mcourse:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb[0m
+            [36m</button>[39m
+            [0m · 下次复习 [0m
+            [0m未安排[0m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<button>[39m
+              [0mcourse:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd[0m
+            [36m</button>[39m
+            [0m · 下次复习 [0m
+            [0m未安排[0m
+          [36m</li>[39m
+        [36m</ul>[39m
+        [36m<form>[39m
+          [36m<label>[39m
+            [0m学习项目键 [0m
+            [36m<input[39m
+              [33mvalue[39m=[32m""[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mdisabled[39m=[32m""[39m
+          [36m>[39m
+            [0m读取项目[0m
+          [36m</button>[39m
+        [36m</form>[39m
+      [36m</section>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/CanonicalReviewLearning.test.tsx > SIMULATED queue and breadcrumb show shared titles while selecting each exact long item key
+TestingLibraryElementError: Unable to find role="button" and name "同名学习主题"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33mclass[39m=[32m"space-card"[39m
+    [36m>[39m
+      [36m<h3>[39m
+        [0m学习[0m
+      [36m</h3>[39m
+      [36m<button[39m
+        [33maria-pressed[39m=[32m"false"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0m进入聚焦模式[0m
+      [36m</button>[39m
+      [36m<p>[39m
+        [0m学习者记录与机器能力分别显示。记录复习结果不会自动证明机器能力或知识正确性。[0m
+      [36m</p>[39m
+      [36m<button>[39m
+        [0m刷新学习队列[0m
+      [36m</button>[39m
+      [36m<ul[39m
+        [33maria-label[39m=[32m"复习队列"[39m
+        [33mdata-section[39m=[32m"review"[39m
+        [33mtabindex[39m=[32m"-1"[39m
+      [36m>[39m
+        [36m<li>[39m
+          [36m<button>[39m
+            [0mcourse:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb[0m
+          [36m</button>[39m
+          [0m · 下次复习 [0m
+          [0m未安排[0m
+        [36m</li>[39m
+        [36m<li>[39m
+          [36m<button>[39m
+            [0mcourse:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd[0m
+          [36m</button>[39m
+          [0m · 下次复习 [0m
+          [0m未安排[0m
+        [36m</li>[39m
+      [36m</ul>[39m
+      [36m<form>[39m
+        [36m<label>[39m
+          [0m学习项目键 [0m
+          [36m<input[39m
+            [33mvalue[39m=[32m""[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<button[39m
+          [33mdisabled[39m=[32m""[39m
+        [36m>[39m
+          [0m读取项目[0m
+        [36m</button>[39m
+      [36m</form>[39m
+    [36m</section>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"space-card"[39m
+      [36m>[39m
+        [36m<h3>[39m
+          [0m学习[0m
+        [36m</h3>[39m
+        [36m<button[39m
+          [33maria-pressed[39m=[32m"false"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0m进入聚焦模式[0m
+        [36m</button>[39m
+        [36m<p>[39m
+          [0m学习者记录与机器能力分别显示。记录复习结果不会自动证明机器能力或知识正确性。[0m
+        [36m</p>[39m
+        [36m<button>[39m
+          [0m刷新学习队列[0m
+        [36m</button>[39m
+        [36m<ul[39m
+          [33maria-label[39m=[32m"复习队列"[39m
+          [33mdata-section[39m=[32m"review"[39m
+          [33mtabindex[39m=[32m"-1"[39m
+        [36m>[39m
+          [36m<li>[39m
+            [36m<button>[39m
+              [0mcourse:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb[0m
+            [36m</button>[39m
+            [0m · 下次复习 [0m
+            [0m未安排[0m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<button>[39m
+              [0mcourse:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd[0m
+            [36m</button>[39m
+            [0m · 下次复习 [0m
+            [0m未安排[0m
+          [36m</li>[39m
+        [36m</ul>[39m
+        [36m<form>[39m
+          [36m<label>[39m
+            [0m学习项目键 [0m
+            [36m<input[39m
+              [33mvalue[39m=[32m""[39m
+            [36m/>[39m
+          [36m</label>[39m
+          [36m<button[39m
+            [33mdisabled[39m=[32m""[39m
+          [36m>[39m
+            [0m读取项目[0m
+          [36m</button>[39m
+        [36m</form>[39m
+      [36m</section>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+ ❯ Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ src/__tests__/CanonicalReviewLearning.test.tsx:162:9
+    160|   });
+    161|   const onTrail=vi.fn(),selected=vi.fn();render(<CanonicalLearningSpac…
+    162|   await waitFor(()=>expect(screen.getAllByRole("button",{name:"同名学…
+       |         ^
+    163|   for(const key of keys){
+    164|     const button=getLearningItemButton(key);expect(button).toHaveTextC…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 7 skipped (8)
+   Start at  03:11:27
+   Duration  2.23s (transform 367ms, setup 87ms, collect 546ms, tests 1.02s, environment 275ms, prepare 66ms)
+

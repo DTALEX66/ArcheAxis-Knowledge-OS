@@ -1,0 +1,145 @@
+{
+  "runs": [
+    {
+      "ok": false,
+      "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+      "host": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\candidates\\closure-20261018\\backend\\ArcheAxis.exe",
+        "sha256": "ecae4487d797501f39f4f9cbab625c3ba9335f2d31e7b3dafeeca1222e2df555",
+        "bytes": 47266816
+      },
+      "compiled_source_binding": {
+        "status": "PASS",
+        "build_receipt": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\closure-native-stage\\candidate-build-current-20261018T201326Z.json",
+          "sha256": "67cef6f6e10e0cc21d9e84c268b360bee6a82a39f508755f5eeb41ea283dab19",
+          "bytes": 4683
+        },
+        "core_sha256": "6f35e32fc1c3b0f072c2cb7e7240b954afa665061b37d3c25e04dd7f158cc803"
+      },
+      "source_patch_sha256": "95aa0a028d1ae5aaa28890a12158d3843088b401c4a8522aad1169ac1669b141",
+      "source_consistent": true,
+      "owned_process_cleanup": true,
+      "owned_ports_released": true,
+      "remaining_same_creation_owned_hosts": [],
+      "remaining_owned_port_listeners": [],
+      "error": "WebDriverProtocolError: {'data': {'text': '草稿尚未保存，请先保留文字。仍要离开吗？'}, 'error': 'unexpected alert open', 'message': 'unexpected alert open: {Alert text : 草稿尚未保存，请先保留文字。仍要离开吗？}\\n  (Session info: MicrosoftEdge=155.0.4283.62)', '",
+      "run_id": "webdriver-1c027a83036d",
+      "full_receipt_path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/receipt.json",
+      "full_receipt_identity": {
+        "bytes": 416034,
+        "sha256": "47b8c875bd3a1d7e3a9f58b9eef66c8f214b7d91de33ad2060c21b5ea9f7294d"
+      },
+      "screenshots": [
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/grouped-learning-review.png",
+          "bytes": 964480,
+          "sha256": "a21d6f70b5781650d1a9e2d9aa4a4a1e91838b8ad1852b79042565a09aadc897",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/material-companion-completed.png",
+          "bytes": 1257941,
+          "sha256": "372b549432410316595557a44d544c969fb62f5cd7579e3200bcaca58bafd02d",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/material-completed.png",
+          "bytes": 1253229,
+          "sha256": "ce60f436bf37c7bd7c9c580669450b0636ac27138ebf54edabb03d8cc09c297d",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/material-cold_reopen.png",
+          "bytes": 1260050,
+          "sha256": "42894a0e0391da3cb41b4941aff4ce77048f88e560d60af4e984e622fb9963b8",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/companion-cold_reopen.png",
+          "bytes": 1212349,
+          "sha256": "fdf896a1128b0c81a1dba5f91804ced1c17afd987aa6e4d58a572e62d82f7241",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/material-backup_restore.png",
+          "bytes": 1257447,
+          "sha256": "f22012e2f0a690ac28910ec389a4efd930e849a01c90ca86acb6d1d231d2a970",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/companion-backup_restore.png",
+          "bytes": 1214267,
+          "sha256": "2705267b9dbc932daa96c9a998f97183acf7f36bd6573ef103d5843dedf8669d",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-1c027a83036d/tmp/journey/cancel-material.png",
+          "bytes": 1262829,
+          "sha256": "dc8be580cf47812b03da7de1e75756ae33b68bd29bec1cdcc55724a09c96c15e",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        }
+      ]
+    },
+    {
+      "ok": false,
+      "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+      "host": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\candidates\\closure-20261018\\backend\\ArcheAxis.exe",
+        "sha256": "c48579f57ec5f7a6982ae800ff4bc30a1f7172bff94bf7e933f9683d3bcbb04b",
+        "bytes": 47266816
+      },
+      "compiled_source_binding": {
+        "status": "PASS",
+        "build_receipt": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\closure-native-stage\\candidate-build-current-20261018T203027Z.json",
+          "sha256": "6d2b0b54c122a3da8ee06f3300d66c59ae1a82c017d1224cac08aec23eda8cc1",
+          "bytes": 4699
+        },
+        "core_sha256": "4bfd7c91432b7cf250e44a2c6539b3ac5f8dbaf64daf6afa247a01225fa63f3b"
+      },
+      "source_patch_sha256": "282d6ddc2cf645f817879a4a82e7cf7e2d941cf88516becebe85041696504527",
+      "source_consistent": true,
+      "owned_process_cleanup": true,
+      "owned_ports_released": true,
+      "remaining_same_creation_owned_hosts": [],
+      "remaining_owned_port_listeners": [],
+      "error": "AssertionError: material execution failed: material_model_call_failed",
+      "run_id": "webdriver-7b78ea17f24b",
+      "full_receipt_path": ".project-local/runs/be268a2d33/webdriver-7b78ea17f24b/tmp/journey/receipt.json",
+      "full_receipt_identity": {
+        "bytes": 202348,
+        "sha256": "1b7d27512d3892e71165a4abd602014b4775c7e9f0c76ebb855d8dd3b5d3bcdd"
+      },
+      "screenshots": [
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-7b78ea17f24b/tmp/journey/grouped-learning-review.png",
+          "bytes": 960076,
+          "sha256": "da802f37d4b845aa7037861a37ac78880af6b7c7ae1b22d29f784085cdbe6075",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/webdriver-7b78ea17f24b/tmp/journey/failure.png",
+          "bytes": 1255123,
+          "sha256": "4c9e95880912aa0b0a5b54804c7f23a0286278626c9236b7bc6bc60205e970a4",
+          "actually_viewed": true,
+          "stored": "project-local ignored; not copied into public snapshot"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    "Earlier source material cancellation PASS; companion cancellation blocked before send",
+    "Latest source material request timed out at 118.03 seconds; companion/cancel/reopen steps not reached",
+    "No installed qualification; no server-side stop claim; semantic label patch is later than candidate"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "typescript-acceptance",
+  "command": [
+    "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\typescript\\bin\\tsc",
+    "-p",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace\\tsconfig.json"
+  ],
+  "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace",
+  "started_at": "2026-10-18T21:38:00.022875+00:00",
+  "ended_at": "2026-10-18T21:38:00.426310+00:00",
+  "exit_code": 0,
+  "evidence_level": "SYNTHETIC_ISOLATED_CONTRACT_NOT_RUNTIME",
+  "patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+  "log": "typescript-acceptance.log"
+}

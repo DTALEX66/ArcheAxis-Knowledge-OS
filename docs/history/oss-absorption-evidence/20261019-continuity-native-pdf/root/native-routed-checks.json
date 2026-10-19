@@ -1,0 +1,40 @@
+[
+  {
+    "name": "current-frontend-build",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "scripts/runtime/frontend.mjs",
+      "build",
+      "--receipt",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\continuity-native-routed-1019\\artifacts\\frontend-for-native.json"
+    ],
+    "started_at": "2026-10-18T23:20:28.902896+00:00",
+    "ended_at": "2026-10-18T23:20:41.958204+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/implementation-continuation-20261019/native-routed-current-frontend-build.log",
+    "log_sha256": "28272066a3166e87bdeca2f4ef85aa7af7a326fbec3ebb35c7ca50e7ac7f1393"
+  },
+  {
+    "name": "actual-preview-consumer",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "test",
+      "--manifest-path",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\src-tauri\\Cargo.toml",
+      "--offline",
+      "--locked",
+      "--test",
+      "project_handoff_preview",
+      "--",
+      "--test-threads=1"
+    ],
+    "started_at": "2026-10-18T23:20:41.959262+00:00",
+    "ended_at": "2026-10-18T23:21:04.210529+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/implementation-continuation-20261019/native-routed-actual-preview-consumer.log",
+    "log_sha256": "efbeb5f7ac4a6edc1d5fc95561226452c5560d76e53e60b5f7c1b2b59630b46d"
+  }
+]

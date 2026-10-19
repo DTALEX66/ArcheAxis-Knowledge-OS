@@ -45,7 +45,13 @@ pub async fn current(executor: &Executor, q: Query) -> Result<Snapshot, StatusCo
             } else {
                 None
             };
-            readiness::observe(name, implemented, dependencies, permission, expires)
+            let pdf = name == "pdf.extract";
+            let mut row = readiness::observe(name, implemented, dependencies, permission, expires);
+            if pdf && dependencies {
+                row.dependencies = "UNKNOWN".into();
+                row.reasons.push("PDF_ENGINE_NOT_OBSERVED".into());
+            }
+            row
         })
         .collect();
     Ok(readiness::snapshot(q.scope, now, rows))
@@ -72,10 +78,28 @@ pub async fn require_execution_dependencies(
     .map_err(|_| "READINESS_UNAVAILABLE".to_string())?;
     let row = &s.operations[0];
     if row.implementation != "IMPLEMENTED"
-        || row.dependencies != "AVAILABLE"
+        || !(row.dependencies == "AVAILABLE"
+            || (operation == "pdf.extract" && row.dependencies == "UNKNOWN"))
         || row.permission != "ENABLED"
     {
         return Err("OPERATION_DEPENDENCIES_OR_PERMISSION_UNAVAILABLE".into());
+    }
+    if row.dependencies == "UNKNOWN" {
+        // Explicit admission may probe; the passive scope read above never does.
+        let provider = executor
+            .registered_routes()
+            .into_iter()
+            .find(|(name, path, _)| *name == operation && path.is_file())
+            .ok_or("OPERATION_DEPENDENCY_PROVIDER_MISSING")?;
+        let observed = executor
+            .provider_health(operation, &provider.1, provider.2)
+            .await;
+        if observed["status"] != "handshake_ready" {
+            return Err(observed["reason"]
+                .as_str()
+                .unwrap_or("OPERATION_DEPENDENCY_UNVERIFIED")
+                .into());
+        }
     }
     Ok(())
 }

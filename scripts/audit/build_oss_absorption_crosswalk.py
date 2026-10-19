@@ -129,6 +129,9 @@ NON_RUNTIME_DISPOSITIONS = {"EVALUATE", "REFERENCE", "DEFER", "BENCHMARK", "REVI
 NOT_ADOPTED_DISPOSITIONS = {"REJECT-CORE", "REVIEW-BLOCK"}
 CARRIED_ARTIFACTS = ("package_declared", "vendored", "imported_in_source", "pipeline_invoked",
                      "tool_invoked")
+# Reviewed donor -> exact package names. A monorepo's scoped packages establish
+# dependency carriage without crediting a label string or an unrelated suffix.
+DONOR_PACKAGES = {"tiptap": ("@tiptap/core", "@tiptap/pm", "@tiptap/react", "@tiptap/starter-kit")}
 # A first-party code path that implements a capability for an external service (a REST donor) is
 # absorbed by writing a client, not by adding a dependency.
 FIRST_PARTY_CLIENT_MODES = {"CONTRACT_ADAPTER"}
@@ -360,7 +363,9 @@ class ArtifactProbe:
     def package_declared(self, terms: list[str]) -> dict[str, list[str]]:
         found: dict[str, list[str]] = {}
         for term in terms:
-            for key in {norm(term), norm(term).replace("-", "")}:
+            keys = {norm(term), norm(term).replace("-", "")}
+            keys.update(norm(package) for package in DONOR_PACKAGES.get(norm(term), ()))
+            for key in sorted(keys):
                 for location in self.declared_packages.get(key, []):
                     if location not in found.setdefault(term, []):
                         found[term].append(location)
@@ -464,6 +469,8 @@ class ArtifactProbe:
                 continue
             for path in sorted(base.rglob("*.py")):
                 if any(part in self.evidence.SKIP_DIRS for part in path.relative_to(self.root).parts):
+                    continue
+                if not self.evidence.runtime_source_path(path.relative_to(self.root)):
                     continue
                 files.append(path)
         return files

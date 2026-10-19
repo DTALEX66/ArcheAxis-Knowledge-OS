@@ -174,7 +174,17 @@ def navigate_compatibility_space(js, wait, space: str) -> None:
     wait("return location.hash===" + json.dumps("#space=" + space) + " && [...document.querySelectorAll('h1,h2,h3')].some(h=>h.textContent.trim()===" + json.dumps(heading) + ")")
 
 
+def xpath_literal(value: str) -> str:
+    if "'" not in value:
+        return "'" + value + "'"
+    if '"' not in value:
+        return '"' + value + '"'
+    return "concat(" + ',"\'",'.join("'" + part + "'" for part in value.split("'")) + ")"
+
+
 def navigation_button_selector(text: str, scope: str = "") -> str:
+    if scope == "//ul[@aria-label='复习队列']":
+        return f"{scope}//button[@data-learning-item-key={xpath_literal(text)} and not(ancestor-or-self::*[@hidden])]"
     # Object-navigation buttons contain a label and description. Match the exact
     # label child and click its actual parent button, rather than widening all labels.
     if scope == "//ul[@aria-label='资料库对象导航']":
@@ -1058,8 +1068,8 @@ def synthetic_course_loop(bridge, bridge_status, js, wait, ui_click, ui_type, sc
     key = suggested["item_key"]
     assert len(key) == 159 and created["course"]["status"] == "candidate" and created["human_review_required"] is True
     ui_click("由课程课时建立学习问题")
-    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent===" + json.dumps(key) + ")")
-    ui_click(key)
+    wait("return [...document.querySelectorAll('ul[aria-label=\"复习队列\"] button[data-learning-item-key]')].some(b=>b.getAttribute('data-learning-item-key')===" + json.dumps(key) + ")")
+    ui_click(key, "//ul[@aria-label='复习队列']")
     wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('本次答案'))")
     assessment = bridge("assessment_get", {"item_key": key})
     state = bridge("learning_state", {"item_key": key})
@@ -1110,6 +1120,56 @@ def synthetic_template_pagination(bridge, js, wait, ui_click, screenshot):
         "page_sizes":[len(first["documents"]),len(second["documents"])],"cross_page_backlink":"PASS","relation_total":1}
 
 
+def independent_material_mode(parser, args):
+    mode = "recovery" if args.material_companion_recovery_loop else "cancel" if args.material_companion_cancel_loop else None
+    if mode is None:
+        if args.material_companion_actual_model or args.material_companion_model:
+            parser.error("independent material/companion options require an explicit independent mode")
+        return None
+    if not args.material_companion_actual_model or not args.material_companion_model:
+        parser.error("independent material/companion requires explicit --material-companion-actual-model and --material-companion-model")
+    if not re.fullmatch(r"[A-Za-z0-9_.:/@+-]{1,256}", args.material_companion_model):
+        parser.error("invalid independent material/companion model identity")
+    if any((args.grouped_common_owner_loop, args.grouped_run_ai, args.grouped_authored_intervention,
+            args.grouped_model, args.grouped_save_deep_binding, args.grouped_material_companion_loop,
+            args.grouped_material_companion_cancel, args.grouped_max_tokens, args.require_actual_ai_loop,
+            args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss,
+            args.grouped_machine_ack_loss, args.grouped_machine_cancel, args.closure_features,
+            args.closure_downloads, args.synthetic_course_loop, args.synthetic_template_pagination,
+            args.installed_draft_conflict_loop, args.character_memory_loop, args.configuration_plan_loop,
+            args.ui_import_manifest, args.ui_format_conversion, args.ui_format_reparse,
+            args.ui_format_citations, args.ui_original_text_citations, args.installer)):
+        parser.error("independent material/companion cannot mix other journeys or installer qualification")
+    if any(os.environ.get(key) == "1" for key in ("AAOS01_TEACHING_DRAFT_ONLY", "AAOS01_LEARNING_DRAFT_ONLY")):
+        parser.error("independent material/companion cannot mix draft isolation modes")
+    return mode
+
+
+def independent_element_command(request, session, element_id, action, body):
+    if action == "pointer_click":
+        return request("POST", f"/session/{session}/actions", {"actions":[{
+            "type":"pointer", "id":"independent-owned-pointer", "parameters":{"pointerType":"mouse"},
+            "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
+                       {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
+    if action == "wheel":
+        return request("POST", f"/session/{session}/actions", {"actions":[{
+            "type":"wheel", "id":"independent-owned-scroll", "actions":[{
+                "type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
+    return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+
+
+def run_material_independent_branch(*, mode, selected_model, grouped, js, wait, element, command, bridge, restart, screenshot, accept_navigation_alert, receipt):
+    actions = []
+    section = receipt["material_companion_independent"] = {"actions": actions}
+    ui = grouped.GroupedUI(js, wait, element, command, actions, accept_navigation_alert)
+    helper = load("independent_material_native_journey", REPO / "scripts/probes/aaos01_material_independent_loop.py")
+    material = load("independent_material_controls", REPO / "scripts/probes/aaos01_material_companion_loop.py")
+    helper.run(mode=mode, ui=ui, read=grouped.readonly_bridge(bridge), js=js, wait=wait,
+               restart=restart, screenshot=screenshot, grouped=grouped, material=material,
+               selected_model=selected_model, report=section)
+    return section["engineering_status"] == "PASS"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", type=Path, required=True)
@@ -1135,6 +1195,9 @@ def main():
     parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
     parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
     parser.add_argument("--grouped-model", help="Explicit already-authorized local model choice through the formal UI; no endpoint or global configuration change")
+    parser.add_argument("--grouped-save-deep-binding", action="store_true", help="Save answer/retest DEEP bindings through UI on the fresh synthetic workspace; require frozen binding receipts and cold reopen")
+    parser.add_argument("--grouped-material-companion-loop", action="store_true", help="Extend saved-DEEP actual-model journey to material/companion UI calls, readonly receipts and cold/restore reopen on the synthetic workspace")
+    parser.add_argument("--grouped-material-companion-cancel", action="store_true", help="After the material/companion journey, cancel one admitted request per purpose through UI and verify cold readback; provider stop remains UNKNOWN")
     parser.add_argument("--grouped-max-tokens", type=int, choices=[2048,4096], help="Explicit per-task output budget through the formal UI")
     parser.add_argument("--require-actual-ai-loop", action="store_true", help="Require actual answer, adopted engineering correction, independent retest and restore refusal; no Owner or accuracy qualification")
     parser.add_argument("--synthetic-course-loop", action="store_true", help="Explicit authored fixture with synthetic review actor; never human signoff")
@@ -1150,7 +1213,13 @@ def main():
         type=Path,
         help="Exact parent-verified NSIS installer identity; does not itself establish installation",
     )
+    independent_modes = parser.add_mutually_exclusive_group()
+    independent_modes.add_argument("--material-companion-recovery-loop", action="store_true", help="Independent actual material/companion, cold and backup recovery on fresh synthetic data; no answer/retest qualification")
+    independent_modes.add_argument("--material-companion-cancel-loop", action="store_true", help="Independent admitted material/companion UI cancel and cold recovery; no prior successful generation or provider-stop claim")
+    parser.add_argument("--material-companion-actual-model", action="store_true", help="Explicit actual model opt-in only for an independent material/companion mode")
+    parser.add_argument("--material-companion-model", help="Explicit authorized local model for independent material/companion; no global provider changes")
     args = parser.parse_args()
+    material_mode = independent_material_mode(parser, args)
     assert not args.ui_original_text_citations or args.ui_import_manifest is not None, "Original text citations require synthetic import manifest"
     assert not args.ui_format_citations or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI citations require explicit synthetic import and conversion"
     assert not args.ui_format_reparse or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI reparse requires explicit synthetic import and conversion"
@@ -1170,8 +1239,14 @@ def main():
         parser.error("closure features require the grouped native journey")
     if args.grouped_model and not args.grouped_run_ai:
         parser.error("explicit local selection requires an actual-model grouped journey")
+    if args.grouped_save_deep_binding and (not args.require_actual_ai_loop or not args.grouped_model or args.grouped_machine_ack_loss or args.grouped_machine_cancel):
+        parser.error("saved DEEP binding requires explicit model and required actual AI loop; separate ACK-loss/cancellation qualification")
     if args.grouped_max_tokens and not args.grouped_run_ai:
         parser.error("explicit output budget requires an actual-model grouped journey")
+    if args.grouped_material_companion_loop and not args.grouped_save_deep_binding:
+        parser.error("material/companion requires --grouped-save-deep-binding and its actual-model requirements")
+    if args.grouped_material_companion_cancel and not args.grouped_material_companion_loop:
+        parser.error("material/companion cancellation requires --grouped-material-companion-loop")
     if args.grouped_common_owner_loop and (args.synthetic_course_loop or args.synthetic_template_pagination):
         parser.error("grouped qualification cannot mix compatibility fixtures")
     validate_conflict_branch(args)
@@ -1461,7 +1536,9 @@ def main():
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
         wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
-        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop:
+        wait("const images=[...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length);return images.length>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
+        receipt.setdefault("brand_images", []).append(js("return [...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))"))
+        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or material_mode:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
@@ -1617,6 +1694,32 @@ def main():
             close_session()
             receipt["ok"] = receipt["character_memory_loop"]["status"] == "PASS"
             raise _GroupedJourneyCompleteError()
+        if material_mode:
+            grouped = load("independent_material_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            def material_command(element_id, action, body):
+                return independent_element_command(request, session, element_id, action, body)
+            def material_restart():
+                close_session()
+                launch()
+            def material_accept_navigation_alert():
+                try:
+                    text = request("GET", f"/session/{session}/alert/text")
+                except WebDriverProtocolError as error:
+                    if error.value.get("error") != "no such alert":
+                        raise
+                    receipt["steps"].append("Owned material navigation required no native confirmation")
+                    return
+                assert text == "草稿尚未保存，请先保留文字。仍要离开吗？", "Unexpected material navigation confirmation"
+                request("POST", f"/session/{session}/alert/accept", {})
+                receipt["steps"].append("Trusted confirmation to leave only an owned synthetic material draft")
+            receipt["ok"] = run_material_independent_branch(
+                mode=material_mode, selected_model=args.material_companion_model, grouped=grouped,
+                js=js, wait=wait, element=ui_element, command=material_command, bridge=bridge,
+                restart=material_restart, screenshot=screenshot,
+                accept_navigation_alert=material_accept_navigation_alert, receipt=receipt)
+            receipt["steps"].append("Independent material/companion " + material_mode + "; no full grouped AI chain or Owner qualification")
+            close_session()
+            raise _GroupedJourneyCompleteError()
         if args.grouped_common_owner_loop:
             grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
             def grouped_element_command(element_id, action, body):
@@ -1669,6 +1772,9 @@ def main():
                 download_control=grouped_download_control if args.closure_downloads else None,
                 selected_model=args.grouped_model,
                 selected_max_tokens=args.grouped_max_tokens,
+                save_deep_binding=args.grouped_save_deep_binding,
+                material_companion_loop=args.grouped_material_companion_loop,
+                material_companion_cancel=args.grouped_material_companion_cancel,
                 accept_navigation_alert=grouped_accept_navigation_alert,
             )
             receipt["steps"].append("Current grouped UI authored same-object engineering journey; see explicit partial/NOT_EXECUTED stages")

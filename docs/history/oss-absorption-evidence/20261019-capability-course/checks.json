@@ -1,0 +1,97 @@
+[
+  {
+    "name": "capability catalog: filters/search/future details stay read-only",
+    "status": "PASS",
+    "start": "2026-10-18T17:16:44.973Z",
+    "end": "2026-10-18T17:16:46.492Z",
+    "detail": {
+      "axe": [],
+      "calls": 0
+    }
+  },
+  {
+    "name": "capability scoped state: history and partial model settings are explicit",
+    "status": "PASS",
+    "start": "2026-10-18T17:16:46.492Z",
+    "end": "2026-10-18T17:16:46.998Z",
+    "detail": {
+      "modelCalls": []
+    }
+  },
+  {
+    "name": "course preview and keyboard reference practice do not write or execute HTML",
+    "status": "PASS",
+    "start": "2026-10-18T17:16:46.998Z",
+    "end": "2026-10-18T17:16:48.341Z",
+    "detail": {
+      "options": [
+        {
+          "height": 44,
+          "width": 804,
+          "inputWidth": 13,
+          "inputCenterOffset": 0,
+          "display": "grid"
+        },
+        {
+          "height": 44,
+          "width": 804,
+          "inputWidth": 13,
+          "inputCenterOffset": 0,
+          "display": "grid"
+        }
+      ],
+      "axe": [],
+      "geometry": {
+        "width": 1280,
+        "scrollWidth": 1280,
+        "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+        "fonts": "loaded"
+      }
+    }
+  },
+  {
+    "name": "unknown save keeps original request; synthetic reopen reparses the original",
+    "status": "PASS",
+    "start": "2026-10-18T17:16:48.342Z",
+    "end": "2026-10-18T17:16:49.769Z",
+    "detail": {
+      "requests": [
+        "course_import_eb5514221b99724c584fe6beca350d29f246561c47576d7ce99d9f623bd87b1e",
+        "course_import_eb5514221b99724c584fe6beca350d29f246561c47576d7ce99d9f623bd87b1e"
+      ],
+      "saved": 1,
+      "axe": []
+    }
+  },
+  {
+    "name": "unsupported input and list failure never look successful",
+    "status": "PASS",
+    "start": "2026-10-18T17:16:49.770Z",
+    "end": "2026-10-18T17:16:50.853Z",
+    "detail": {
+      "axe": []
+    }
+  },
+  {
+    "name": "narrow window and reduced motion: readable controls without horizontal page overflow",
+    "status": "PASS",
+    "start": "2026-10-18T17:16:50.853Z",
+    "end": "2026-10-18T17:16:52.422Z",
+    "detail": {
+      "course": {
+        "width": 640,
+        "scrollWidth": 640,
+        "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+        "fonts": "loaded"
+      },
+      "hub": {
+        "width": 640,
+        "scrollWidth": 640,
+        "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+        "fonts": "loaded"
+      },
+      "axe": [],
+      "reducedMotion": true
+    }
+  }
+]

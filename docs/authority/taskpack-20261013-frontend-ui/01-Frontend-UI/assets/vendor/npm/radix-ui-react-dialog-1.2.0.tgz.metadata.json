@@ -1,0 +1,36 @@
+{
+  "name": "@radix-ui/react-dialog",
+  "version": "1.2.0",
+  "filename": "radix-ui-react-dialog-1.2.0.tgz",
+  "source_url": "https://registry.npmjs.org/@radix-ui/react-dialog/-/react-dialog-1.2.0.tgz",
+  "registry_url": "https://registry.npmjs.org/@radix-ui/react-dialog/1.2.0",
+  "integrity": "sha512-l5CX8HdNL+9cc4s7HkNyplumSA3FIx68sg9dttBHKr286fRBwq1MBniDVTeI/tkof92/APntMQvC1YG1Khb0Cg==",
+  "sha256": "535f2e39d1bfd6b8f45942674f6b4827416b5041e49335d3554e494ca73f3e40",
+  "bytes": 15532,
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+    "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+    "@types/react": "*",
+    "@types/react-dom": "*"
+  },
+  "dependencies": {
+    "aria-hidden": "^1.2.4",
+    "@radix-ui/react-id": "1.1.4",
+    "@radix-ui/primitive": "1.1.7",
+    "react-remove-scroll": "^2.7.2",
+    "@radix-ui/react-slot": "1.4.0",
+    "@radix-ui/react-portal": "1.1.18",
+    "@radix-ui/react-context": "1.2.2",
+    "@radix-ui/react-presence": "1.1.11",
+    "@radix-ui/react-primitive": "2.1.11",
+    "@radix-ui/react-focus-scope": "1.2.0",
+    "@radix-ui/react-compose-refs": "1.1.5",
+    "@radix-ui/react-focus-guards": "1.1.6",
+    "@radix-ui/react-dismissable-layer": "1.1.20",
+    "@radix-ui/react-use-layout-effect": "1.1.4",
+    "@radix-ui/react-use-controllable-state": "1.2.6"
+  },
+  "installed": false,
+  "verification": "package identity and registry SRI verified; registry signatures not independently verified"
+}

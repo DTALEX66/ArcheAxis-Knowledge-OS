@@ -1,5 +1,11 @@
 # AAOS backend acceptance runbook — 2026-10-01
 
+## 2026-10-19 local-human handoff contract §16
+
+From the repository root, run `cargo test -p archeaxis-api --test project_handoff_snapshot_queue --test project_handoff_preview_process --test project_handoff_process`.
+These owned-process tests cover bounded human preview/snapshot reads and their refusal paths; they do not qualify installed-host UI or external delivery.
+Run `python -m pytest tests/maintenance/test_contract_route_inventory.py tests/maintenance/test_contract_number_consistency.py tests/maintenance/test_contract_verification_map.py -q` for the published route/schema inventory and checker links.
+
 How to reproduce, on this branch, the two results the loop claims:
 
 1. **Capability readiness** — whether each capability route a runtime declares is actually

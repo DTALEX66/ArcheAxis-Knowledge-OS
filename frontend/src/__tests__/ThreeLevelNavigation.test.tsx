@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import {getLearningItemButton} from "../test/learningQueue";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -131,9 +132,9 @@ describe("UI-02 levels reach the objects Core actually returns", () => {
     expect(document.activeElement).toBe(region);
   });
 
-  it("publishes the real learning item key as the tertiary level of the review group", async () => {
+  it("keeps the real learning item identity while publishing its readable tertiary label", async () => {
     bridge.call.mockImplementation(async (operation: string) => {
-      if (operation === "learning_items") return { items: [{ item_key: "item_ui02", next_review: "2026-10-09T00:00:00Z" }] };
+      if (operation === "learning_items") return { items: [{ item_key: "item_ui02", display_title: "固定复习主题", next_review: "2026-10-09T00:00:00Z" }] };
       if (operation === "learning_state") return { item_key: "item_ui02", learner: {}, machine: { status: "not_recorded" } };
       if (operation === "learning_history") return { events: [] };
       throw new Error(operation);
@@ -142,10 +143,10 @@ describe("UI-02 levels reach the objects Core actually returns", () => {
     render(<CanonicalLearningSpace onTrail={onTrail} />);
     const queue = await screen.findByLabelText("复习队列");
     expect(queue).toHaveAttribute("data-section", "review");
-    await userEvent.setup().click(screen.getByRole("button", { name: "item_ui02" }));
+    await userEvent.setup().click(getLearningItemButton("item_ui02"));
     await waitFor(() => expect(onTrail).toHaveBeenCalledWith([
       expect.objectContaining({ id: "section:review", region: "review" }),
-      expect.objectContaining({ id: "item:item_ui02", label: "item_ui02", detail: "下次复习 2026-10-09T00:00:00Z", region: "review" }),
+      expect.objectContaining({ id: "item:item_ui02", label: "固定复习主题", detail: "下次复习 2026-10-09T00:00:00Z", region: "review" }),
     ]));
   });
 

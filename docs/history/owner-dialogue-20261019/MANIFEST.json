@@ -1,0 +1,36 @@
+{
+  "schema": "archeaxis.frozen-owner-dialogue-members/v1",
+  "scope": "冻结来源摘录和导航观察；不冻结current状态或忽略载荷",
+  "members": [
+    {
+      "path": "attachments.json",
+      "bytes": 1574,
+      "sha256": "060064d85556cd0cf9cb84f70ed3481e1c7a85ac1d899f91ccbe6e76b814d937"
+    },
+    {
+      "path": "decision-coverage.json",
+      "bytes": 28199,
+      "sha256": "44df71303ea45987ef49b6636aba5a02e6fc9b2e36baa5613b27983c8e14954c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2446,
+      "sha256": "f19920905f05529cfbfa918bab52969d8384b6b0e2349547aff00eb4c9f36ead"
+    },
+    {
+      "path": "SOURCE-EXCERPTS.md",
+      "bytes": 18733,
+      "sha256": "0bfc55724b65dcec1f9639d1f0edab0092030ad726764c81c52e552e062bc121"
+    },
+    {
+      "path": "tool-migration-navigation.json",
+      "bytes": 2253,
+      "sha256": "4321b955112a255fba74bd33f471a3d0d56677ccb7db31145e9dc4eaadcb7260"
+    },
+    {
+      "path": "verify_archive.py",
+      "bytes": 5650,
+      "sha256": "c0817ca285e30cb14dfa6351231536091387c06d3fb7288616b53e5abdd2d586"
+    }
+  ]
+}

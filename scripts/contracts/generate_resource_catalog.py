@@ -136,7 +136,7 @@ def build(root: Path, overlay: Path | None = None):
 TYPES = '''export type ResourceJson = null | boolean | number | string | ResourceJson[] | { [key: string]: ResourceJson };
 export type ResourceObject = { [key: string]: ResourceJson };
 export type ResourceClass = "enableable_plugin" | "absorbed_algorithm" | "ux_donor" | "format_spec" | "base_dependency" | "future_candidate" | "not_adopted";
-export type ResourceEvidence = { state: string; value: ResourceJson; source_refs: { path: string; sha256: string }[] };
+export type ResourceEvidence = { state: string; value: ResourceJson; source_refs: { path: string; sha256: string }[]; previous_state_before_source_relocation?: string };
 export type ResourceQualification = { stable_key: string; disposition: string; reason: string; activation: { state: string; conditions: ResourceJson; scope: ResourceJson }; evidence: { version: ResourceEvidence; license: ResourceEvidence; permissions: ResourceEvidence; runtime: ResourceEvidence; qualification: ResourceEvidence; source_refs: ResourceJson }; [key: string]: ResourceJson };
 export type ResourceEntry = { stable_key: string; display_names: string[]; surface_class: ResourceClass; absorption_mode: string; classification_reason: string; declared_runtime_route: string | null; original_surface: ResourceObject; ledger: ResourceObject | null; qualification: ResourceQualification };
 export type ResourceCatalog = { schema: string; sources: { path: string; sha256: string }[]; crosswalk_metadata: ResourceObject; qualification_metadata: ResourceObject; freeze_register: ResourceObject; entries: ResourceEntry[] };

@@ -1,0 +1,22 @@
+{
+  "schema": "aaos.resource-source-rebind-proposal/v1",
+  "files": [
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "before_sha256": "0d38b51c193dbf9905d95365d42fc84772386dcd39e0c7fcac9798e70de32634",
+      "after_sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09"
+    },
+    {
+      "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "before_sha256": "c44a0d42553b1db09f4f8baa2ba0869450e93d89c18f476cac23e5029084dfac",
+      "after_sha256": "e027edde570aaffb9f99fa27c2c626c49acecd2f85497bfff9a989f029cf05c0"
+    },
+    {
+      "path": "frontend/src/api/generated/resource-catalog.ts",
+      "before_sha256": "ea3f6f33ccbe8768ecffac81ed019f70e2b8ffa714720df2758ba5cc29614645",
+      "after_sha256": "c8bda5e35b5aebb877b0ff55d093b9ed3035211dae1599e0422b4893c317df88"
+    }
+  ],
+  "patch_sha256": "4fbb5f6a1fa9d5ca8d31a30c4cb7845767e8f95bd206af07957bab7bcd3c32e2",
+  "frozen_members_modified": 0
+}

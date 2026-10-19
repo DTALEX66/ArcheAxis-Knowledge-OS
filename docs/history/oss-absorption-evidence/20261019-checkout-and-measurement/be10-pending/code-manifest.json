@@ -1,0 +1,83 @@
+{
+  "state": "ISOLATED_PROPOSAL_PASS_NOT_APPLIED",
+  "frozen_at": "2026-10-18T22:47:35.262965+00:00",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "before_sha256": "af0222202600bc73e66d47ac8fa530806bf2c63d4ad558dba9ee54dd9e6c8b54",
+      "after_sha256": "e6e4a456091682f0e33ac3c47705a5b608d2dd515edacb1d5626fedb330d60b7",
+      "bytes": 110125
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "6a8408e9c4a1ddcc630a71d3199c607a6d89bb265fb13a975701e834d2237206",
+      "bytes": 4439
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+      "before_sha256": null,
+      "after_sha256": "27350ad121f1a4f1c2b9117694ff418aaaa2acd1177e65b9a57be8114bcb3f2e",
+      "bytes": 13572
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "before_sha256": "f0ff5140b137ee93e7e86fe6c0bab322c8a908df001b04a28037ef5bb460c9ed",
+      "after_sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "bytes": 457
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "4677dba97b8af8048739f2fb4349605d4124352d315ea738c297e3ff19aa63d2",
+      "bytes": 2231
+    },
+    {
+      "path": "docs/contracts/project-handoff-preview-v1.md",
+      "before_sha256": null,
+      "after_sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "bytes": 3974
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.cases.json",
+      "before_sha256": null,
+      "after_sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "bytes": 28578
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.schema.json",
+      "before_sha256": null,
+      "after_sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "bytes": 1675
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "before_sha256": "020627b10b49e748c74ce71575fe8a2b85b7f7ba7162e2c63111be06db86f1de",
+      "after_sha256": "10ccf97376e3b9b5f15f115aaa8dd1ffe85bb4130ebc36613813297d0e5218b6",
+      "bytes": 73704
+    },
+    {
+      "path": "src-tauri/tests/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "5b30cdfc4f104820ca20ede927eeea388b2297eb708fe613682f11fe9c467d69",
+      "bytes": 4798
+    },
+    {
+      "path": "tests/contract/test_project_handoff_preview_contract.py",
+      "before_sha256": null,
+      "after_sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "bytes": 1153
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "before_sha256": "fbbd6074b2c37a15f6c1d02d8704b484775f51fa86f565dfc2f3dd191ef7aae2",
+      "after_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "bytes": 3450
+    }
+  ],
+  "patch": "be10-native-preview.patch",
+  "patch_sha256": "46d1312c965151a6ef72cb837be9d6c198a7069c482cc8164a52d3481ec1e9b4",
+  "product_writes": [],
+  "dependency_lock_config_changes": [],
+  "writer": "root only; proposal never applied by this agent"
+}

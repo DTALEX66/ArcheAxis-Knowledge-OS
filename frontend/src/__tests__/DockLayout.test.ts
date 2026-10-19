@@ -8,6 +8,14 @@ function dock(){const element=document.createElement("div");document.body.append
 beforeEach(()=>{vi.spyOn(HTMLElement.prototype,"getBoundingClientRect").mockImplementation(function(this:HTMLElement){const x=parseFloat(this.style.left)||0,y=parseFloat(this.style.top)||0,width=this.style.width.endsWith("%")?1000:parseFloat(this.style.width)||1000,height=this.style.height.endsWith("%")?700:parseFloat(this.style.height)||700;return {x,y,left:x,top:y,right:x+width,bottom:y+height,width,height,toJSON(){return {};}};});});
 afterEach(()=>vi.restoreAllMocks());
 describe("real Dockview finite layout serialization",()=>{
+ it("preserves the full active object presentation in a docked tab group",()=>{
+  const d=dock(),identity={workspaceId:"workspace",epoch:"initial",locked:false};try{
+   d.api.addPanel({id:"03",component:"business"});d.api.addPanel({id:"document.doc_a",component:"business",position:{referencePanel:"03",direction:"within"}});
+   const saved=captureLayout(d.api,"reading",identity);expect(saved.dock_tree).toEqual({kind:"tabs",panels:["03","document.doc_a"],active:"document.doc_a"});
+   // 合同保存组内活动标签；恢复初期全局 activeGroup 可以尚未指定。
+   restoreLayout(d.api,saved,identity);expect(d.api.getPanel("document.doc_a")!.group.activePanel?.id).toBe("document.doc_a");expect(captureLayout(d.api,"reading",identity)).toEqual(saved);
+  }finally{d.dispose();}
+ });
  it("persists empty, all-floating grouped tabs, stable object bindings and lock in v2",()=>{
   const d=dock(),identity={workspaceId:"workspace",epoch:"initial",locked:true};try{
    expect(captureLayout(d.api,"default",identity).dock_tree).toEqual({kind:"empty"});

@@ -1,0 +1,11 @@
+{
+  "mode": "python-style",
+  "files": [
+    {
+      "path": "tests/test_pdf_runtime_dependency.py",
+      "before_sha256": "477a40cba57f012a294e2d00777b09da77367f4177a3a4f4cf082a0158a0e838",
+      "after_sha256": "df8bbc460076f71485a6611a56ce54d90b1bc54ff0f9582367556367c74e1f7a",
+      "review": "ruff import排序及格式化，AST按独立imports排序后其余语义一致"
+    }
+  ]
+}

@@ -129,3 +129,17 @@ source and package licensing; it does not claim a built or released artifact.
 - Apache Tika 4.1.0 (`tika-app` distribution), Apache License 2.0 - https://tika.apache.org/ ; used only as a probed external sidecar for `.ppt` text extraction, resolved from the declared external tool root and never bundled with this repository.
 - Azul Zulu Community JRE 21.0.12.1 (build 21.52.203), GPLv2 with the Classpath Exception - https://www.azul.com/downloads/ ; the runtime that executes the Tika sidecar above. Local placement under the external tool root, not a system install and not redistributed here.
 - Third-party test fixture: `tests/fixtures/golden/golden-ppt-anchor.ppt` - a Microsoft PowerPoint 97 presentation redistributed under Apache-2.0 from Apache Tika's microsoft-module test resources, pinned commit b8a6916eab70ccdb5d4551c69be1a46af29c2cff (tag 3.3.2), 16,384 bytes, sha256 499ccd0de7c0778afa4f6ed08793afd2406b62547373a619a5a78658ae65c4b7, git blob b48cfaf2bd7045c21c5f65e1478725e8cee84ed7.
+
+
+## Neural Creator Dashboard — visual algorithm adaptation (2026-10-18)
+
+Source: https://github.com/Linye-ai/neural-creator-dashboard/tree/e12317fbc570fd290654db7692e2a1b4bdd7fcb5
+
+MIT, Copyright (c) 2026 linye-ai. The complete upstream permission notice and
+adaptation map are retained in `frontend/src/components/neural-creator-NOTICE.txt`
+and referenced as a Vite URL asset by the production constellation renderer.
+The adapter uses the existing Core fixed-version SVG graph; it does not include
+the upstream shell, importer, localStorage, sample content or astronomical tables.
+
+中文说明：本次吸收星团布局、聚焦展开、曲线与光点的呈现算法；保留完整版权许可，
+不新增知识推断或业务存储。GlassBoard 仅为文档设计参考，未复制其程序或资源。

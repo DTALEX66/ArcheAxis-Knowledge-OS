@@ -2,14 +2,18 @@
 
 import ast
 import copy
+import os
+from tests.dom_harness import evaluate, reader_dom
 import hashlib
 import importlib.util
 import json
+import shutil
+import subprocess
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(os.environ.get("AAOS_PROBE_TEST_ROOT", str(Path(__file__).resolve().parents[1])))
 
 
 def load_probe():
@@ -21,6 +25,156 @@ def load_probe():
 
 
 class GroupedNativeProbeTests(unittest.TestCase):
+    def test_saved_binding_probe_refuses_existing_configuration_before_ui_writes(self):
+        probe = load_probe()
+        class UI:
+            def __getattr__(self, name):
+                raise AssertionError('Existing workspace must not be edited')
+        existing = {'revision': 1, 'profiles': {'owned': {}}, 'bindings': []}
+        with self.assertRaisesRegex(AssertionError, 'fresh isolated'):
+            probe.save_deep_model_binding(UI(), lambda *a: existing, lambda *a: None, {}, 'aaos-deep-27b-mtp')
+
+    def test_saved_binding_receipt_rejects_stale_purpose_profile_epoch_or_budget(self):
+        probe = load_probe()
+        resolved = {'schema': 'archeaxis.resolved-model/v1', 'configuration_revision': 1,
+                    'configuration_sha256': 'a'*64, 'workspace_id': 'w', 'restore_epoch': 'initial',
+                    'purpose': 'answer', 'lane': 'deep', 'profile_id': 'local',
+                    'profile': {'model': 'aaos-deep-27b-mtp', 'endpoint': 'http://127.0.0.1:1234/v1',
+                                'protocol': 'openai', 'max_tokens': 1024, 'timeout_s': 120, 'credential_ref': None}}
+        saved = {'resolved': {'answer': resolved}}
+        value = {'request': {'model_configuration': resolved, 'resolved_model': resolved,
+                            'model': resolved['profile']['model'], 'max_tokens': 1024, 'timeout_s': 120}}
+        probe.assert_saved_model_request(value, saved, 'answer')
+        for key, wrong in [('purpose', 'retest'), ('configuration_revision', 0), ('restore_epoch', 'old'),
+                           ('profile_id', 'other'), ('configuration_sha256', 'b'*64)]:
+            bad = copy.deepcopy(value); bad['request']['model_configuration'][key] = wrong
+            with self.subTest(key=key), self.assertRaises(AssertionError):
+                probe.assert_saved_model_request(bad, saved, 'answer')
+        bad = copy.deepcopy(value); bad['request']['max_tokens'] = 2048
+        with self.assertRaises(AssertionError): probe.assert_saved_model_request(bad, saved, 'answer')
+
+    def test_saved_binding_retest_requires_executor_binding_not_only_request_selection(self):
+        probe = load_probe()
+        resolved = {'purpose':'retest','lane':'deep','profile':{'model':'aaos-deep-27b-mtp','max_tokens':1024,'timeout_s':120}}
+        saved = {'resolved':{'retest':resolved}}
+        value = {'request':{'model_configuration':resolved,'model':'aaos-deep-27b-mtp','max_tokens':1024,'timeout_s':120},
+                 'execution_request':{'resolved_model':resolved}}
+        probe.assert_saved_model_request(value, saved, 'retest')
+        wrong = copy.deepcopy(value); wrong['execution_request']['resolved_model']['lane'] = 'fast'
+        with self.assertRaises(AssertionError): probe.assert_saved_model_request(wrong, saved, 'retest')
+
+    def test_saved_configuration_reopen_allows_only_current_restore_epoch_change(self):
+        probe = load_probe()
+        saved = {'schema':'archeaxis.model-configuration/v1','revision':1,'profiles':{'local':{'model':'selected'}},
+                 'bindings':[{'purpose':'answer','lane':'deep','profile_id':'local'}], 'workspace_id':'w','restore_epoch':'initial'}
+        class UI:
+            def page(self, *_): pass
+            def click_revealed(self, *_): pass
+        for restored in (False, True):
+            current = {**copy.deepcopy(saved),'restore_epoch':'restored' if restored else 'initial'}
+            def read(op, *_): return current if op == 'model_configuration_get' else {'restore_epoch':'restored'}
+            stage = {'saved_deep_binding':{'configuration':saved}}
+            probe.read_saved_model_configuration(UI(), read, lambda *_:None, stage, restored=restored)
+            for field in ('revision','profiles','bindings','workspace_id','restore_epoch'):
+                bad = {**current,field:'wrong'}
+                def bad_read(op, *_): return bad if op == 'model_configuration_get' else {'restore_epoch':'restored'}
+                with self.subTest(restored=restored,field=field), self.assertRaises(AssertionError):
+                    probe.read_saved_model_configuration(UI(),bad_read,lambda *_:None,stage,restored=restored)
+
+    def test_restore_refusal_digest_binds_current_saved_model_and_effective_budget(self):
+        probe = load_probe()
+        document = {'document_id':'d','version':1,'content_sha256':'a'*64,
+                    'editor_json':{'attrs':{'archeaxis_context_grant':{'purpose':'p'}}}}
+        binding = {'purpose':'answer','lane':'deep','restore_epoch':'restored',
+                   'profile':{'model':'aaos-deep-27b-mtp','max_tokens':1024,'timeout_s':120}}
+        request = {'operation':'answer','request':{'knowledge_id':'k','question':'q','max_tokens':1024,'timeout_s':120,
+                   'context_grant':probe.grant_snapshot(document),'asset_context_grant':None,'client_request_id':'machine_new',
+                   'retest_of':None,'model':'aaos-deep-27b-mtp','model_configuration':binding}}
+        receipt = {'schema':'archeaxis.context-admission-refusal/v1','reason_code':'RESTORED_GRANT_FENCED',
+                   'execution_state':'NOT_EXECUTED','execution_scope':'CURRENT_INVOCATION','prior_request_execution':'UNVERIFIED',
+                   'answer_published':False,'operation':'answer','knowledge_id':'k','retest_of':None,
+                   'client_request_id':'machine_new','grant':{k:document[k] for k in ('document_id','version','content_sha256')},
+                   'request_sha256':hashlib.sha256(json.dumps(request,sort_keys=True,separators=(',',':')).encode()).hexdigest()}
+        probe.restored_admission_receipt(receipt,document,'k','q',binding)
+        for key, value in [('max_tokens',2048),('model','other')]:
+            wrong = copy.deepcopy(binding); wrong['profile'][key] = value
+            with self.subTest(key=key), self.assertRaises(AssertionError):
+                probe.restored_admission_receipt(receipt,document,'k','q',wrong)
+        with self.assertRaises(AssertionError): probe.restored_admission_receipt(receipt,document,'k','q')
+
+    def test_inventory_retries_only_reads_and_retains_failure_observations(self):
+        probe = load_probe()
+        for succeed in (True, False):
+            texts = iter(["清单读取未确认；模型数量与可用性未知。"] * 2 +
+                         ["清单已读取，共 6 项；声明模型已列出。" if succeed else "清单读取未确认；模型数量与可用性未知。"])
+            clicks, proof = [], {}
+            class UI:
+                def click_revealed(self, label, clicks=clicks):
+                    clicks.append(label)
+                def js(self, script, texts=texts):
+                    return next(texts)
+            with self.subTest(succeed=succeed), patch.object(probe.time, "sleep", lambda _: None):
+                if succeed:
+                    self.assertIn("共 6 项", probe.read_local_model_inventory(UI(), lambda *a, **kw: None, proof, "initial"))
+                else:
+                    with self.assertRaisesRegex(AssertionError, "remains unverified"):
+                        probe.read_local_model_inventory(UI(), lambda *a, **kw: None, proof, "initial")
+            self.assertEqual(clicks, ["探测本地模型清单"] * 3)
+            self.assertEqual(len(proof["inventory_observations"]), 3)
+            self.assertTrue(all(row["inference_retried"] is False for row in proof["inventory_observations"]))
+
+    def test_reveal_observer_scrolls_horizontal_table_but_refuses_hidden_overflow(self):
+        probe = load_probe()
+        scripts = []
+        def js(script):
+            scripts.append(script)
+            return {"ready": True}
+        probe.GroupedUI(js, lambda _: None, lambda *_: "node", lambda *_: None, []).reveal_selector("//button")
+        harness = r"""
+const nav={parentElement:null,clientLeft:0,clientTop:0,clientWidth:217,clientHeight:400,
+ scrollWidth:500,scrollHeight:400,scrollLeft:0,scrollTop:0,
+ getBoundingClientRect:()=>({left:322,right:539,top:100,bottom:500})};
+const target={parentElement:nav,getBoundingClientRect:()=>({left:640,right:688,top:200,bottom:240,width:48,height:40}),contains:n=>n===target};
+nav.contains=n=>n===nav||n===target;
+const innerWidth=1000,innerHeight=700;
+const document={evaluate:()=>({singleNodeValue:target}),elementFromPoint:x=>x>=322&&x<539?nav:null};
+const XPathResult={FIRST_ORDERED_NODE_TYPE:1};
+let overflow='auto';const getComputedStyle=()=>({overflowX:overflow,overflowY:'auto'});
+const observe=new Function('document','XPathResult','innerWidth','innerHeight','getComputedStyle',SOURCE);
+const observeNow=()=>observe(document,XPathResult,innerWidth,innerHeight,getComputedStyle);
+const scroll=observeNow();overflow='hidden';const hidden=observeNow();
+console.log(JSON.stringify({scroll,hidden}));
+""".replace("SOURCE", json.dumps(scripts[0]))
+        result = subprocess.run([shutil.which("node") or "node", "-e", harness], capture_output=True, text=True, check=True)
+        proof = json.loads(result.stdout)
+        self.assertEqual(proof["scroll"]["wheel"]["deltaX"], 240)
+        self.assertEqual(proof["scroll"]["wheel"]["deltaY"], 0)
+        self.assertNotIn("wheel", proof["hidden"])
+
+    def test_pointer_observer_reads_semantic_page_identity_instead_of_old_title(self):
+        probe = load_probe()
+        scripts = []
+        trace = {"events": [{"type": kind, "phase": "capture", "trusted": True, "targetPage": "06"}
+                            for kind in ("pointerdown", "pointerup", "click")],
+                 "samples": [{"phase": "click+1000", "hashPage": "06", "renderPage": "06", "currentPages": ["06"]}]}
+        def js(script):
+            scripts.append(script)
+            return trace if script.startswith("return {events:") else None
+        ui = probe.GroupedUI(js, lambda _: None, lambda *_: "node", lambda *_: None, [])
+        ui.pointer_page("06")
+        # Execute the actual observer against the current semantic DOM contract.
+        # The obsolete display label deliberately disagrees with the rendered ID.
+        harness = """
+const button={dataset:{pageId:'06'},getBoundingClientRect:()=>({x:0,y:0,width:40,height:20})};
+const root={querySelectorAll:()=>[button]};
+const document={querySelector:s=>s==='.navigation-sidebar'?root:s==='.ui-page-heading'?{dataset:{currentPageId:'06'}}:s==='.ui-page-heading small'?{textContent:'UI / 20'}:s.includes('button')?button:null};
+const location={hash:'#page=06'},window={addEventListener:()=>{},removeEventListener:()=>{}};
+eval(OBSERVER);
+console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
+""".replace("OBSERVER", json.dumps(scripts[0]))
+        result = subprocess.run([shutil.which("node") or "node", "-e", harness], capture_output=True, text=True, check=True)
+        self.assertEqual(json.loads(result.stdout)["renderPage"], "06")
+
     def test_revealed_click_is_one_pointer_click_after_hit_testing(self):
         probe = load_probe()
         commands = []
@@ -52,6 +206,47 @@ class GroupedNativeProbeTests(unittest.TestCase):
             with patch.object(probe.time, "sleep", lambda _:None), self.assertRaises(failure):
                 ui.reveal_selector("//button[@id='target']")
             self.assertEqual(len(commands), expected_calls)
+
+    def test_reveal_waits_for_retained_panel_layout_before_trusted_click(self):
+        probe = load_probe()
+        commands, evidence = [], []
+        values = iter([
+            {"ready": False, "reason": "No reachable scroll container", "target": {"x": 1043, "y": 679}},
+            {"ready": True, "point": {"x": 770, "y": 679}},
+        ])
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+            lambda *args: commands.append(args), evidence)
+        with patch.object(probe.time, "sleep", lambda _: None):
+            ui.click_revealed_selector("//button[@id='restored-document']")
+        self.assertEqual(commands, [(None, "pointer_click", {"x": 770, "y": 679})])
+        self.assertTrue(any(row["action"] == "wait_for_target_layout" for row in evidence))
+
+    def test_type_replaces_react_controlled_value_instead_of_appending_after_clear(self):
+        probe = load_probe()
+        expected = "http://127.0.0.1:1234/v1"
+        field = {"value": expected, "selected": False}
+        commands = []
+
+        def command(element, operation, payload):
+            commands.append(operation)
+            if operation == "clear":
+                # 模拟 React 在 WebDriver clear 后重绘旧受控值。
+                field["value"] = expected
+            if operation == "value":
+                if payload["text"] == "\ue009a\ue000":
+                    field["selected"] = True
+                else:
+                    field["value"] = payload["text"] if field["selected"] else field["value"] + payload["text"]
+                    field["selected"] = False
+
+        def wait(script):
+            if 'Object.is(n.value,' in script:
+                self.assertEqual(field["value"], expected)
+
+        ui = probe.GroupedUI(lambda _: None, wait, lambda *_: "endpoint", command, [])
+        ui.type("本地服务地址", expected)
+        self.assertEqual(field["value"], expected)
+        self.assertNotIn("clear", commands)
 
     def test_review_navigation_requires_the_exact_retained_unsubmitted_draft(self):
         probe = load_probe()
@@ -359,6 +554,19 @@ class GroupedNativeProbeTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaisesRegex(AssertionError, field):
                 self.probe.assert_assessment({**pin, field: "another"}, pin)
 
+    def test_learning_queue_selector_uses_identity_with_same_titles_and_hidden_views(self):
+        from lxml import etree
+        tree = etree.Element("ul", {"aria-label": "复习队列"})
+        key = "course:one'quoted\"name:artifact:exact"
+        first = etree.SubElement(tree, "button", {"data-learning-item-key": key})
+        first.text = "同名学习主题"
+        etree.SubElement(tree, "button", {"data-learning-item-key": "other"}).text = first.text
+        hidden = etree.SubElement(tree, "li", {"hidden": ""})
+        etree.SubElement(hidden, "button", {"data-learning-item-key": key}).text = first.text
+        selector = self.probe.button_selector(key, "//ul[@aria-label='复习队列']")
+        self.assertEqual(tree.xpath(selector), [first])
+        self.assertIn("@data-learning-item-key", selector)
+
     def test_selectors_quote_and_hidden_boundary(self):
         self.assertTrue(self.probe.xpath_literal("one'quoted\"name").startswith("concat("))
         self.assertIn("ancestor-or-self::*[@hidden]", self.probe.button_selector("保存草稿"))
@@ -387,7 +595,7 @@ class GroupedNativeProbeTests(unittest.TestCase):
         folder = ROOT / ".project-local" / "artifacts" / "unittest-fixture-no-files-written"
         ui.upload_directory(folder)
         self.assertEqual(
-            [row[1] for row in commands], ["click", "clear", "value", "click", "value", "value"]
+            [row[1] for row in commands], ["click", "click", "value", "value", "click", "value", "value"]
         )
         self.assertTrue(all(row[0] == "actual-element" for row in commands))
         self.assertEqual(commands[-1][2]["text"], str(folder.resolve()))
@@ -830,7 +1038,7 @@ class GroupedNativeProbeTests(unittest.TestCase):
             with self.subTest(mutation=mutation):
                 self.exercise_simulated_ai(True, mutation)
 
-    def exercise_simulated_ai(self, intervention, mutation=None):
+    def exercise_simulated_ai(self, intervention, mutation=None, selected_max_tokens=None, save_deep_binding=False):
         docs, tasks, actions, reads, fields = {}, {}, [], [], {}
         knowledge = {
             "knowledge_id": "original-knowledge",
@@ -840,10 +1048,18 @@ class GroupedNativeProbeTests(unittest.TestCase):
         candidate = {}
         bound = [knowledge["knowledge_id"]]
         probe = self.probe
+        saved_configuration = {}
+        def save_binding(ui, read, wait, stage, model, purposes):
+            profile = {"model":model,"max_tokens":1024,"timeout_s":120}
+            saved_configuration.update(resolved={p:{"purpose":p,"lane":"deep","profile":profile} for p in purposes})
+            stage["saved_deep_binding"] = copy.deepcopy(saved_configuration)
 
         class UI:
             def page(self, page):
                 actions.append(("page", page))
+
+            def click_revealed(self, label, scope=""):
+                actions.append(("revealed_click", label, scope))
 
             def js(self, script):
                 assert '本地模型清单探测结果' in script
@@ -898,6 +1114,12 @@ class GroupedNativeProbeTests(unittest.TestCase):
                             ).hexdigest(),
                         },
                     }
+                    if selected_max_tokens is not None:
+                        body["request"]["max_tokens"] = 1024 if save_deep_binding else selected_max_tokens
+                    if save_deep_binding:
+                        resolved = saved_configuration["resolved"]["answer"]
+                        body["answer"].update(requested_model=resolved["profile"]["model"], observed_model=resolved["profile"]["model"], answer_source="content")
+                        body["request"].update(model_configuration=copy.deepcopy(resolved),resolved_model=copy.deepcopy(resolved),model=resolved["profile"]["model"],timeout_s=120)
                     if mutation in ("undeclared_model", "stub_model", "mock_model"):
                         body["answer"]["model"] = {"undeclared_model": "configured-model", "stub_model": "local-stub", "mock_model": "mock-qwen"}[mutation]
                     if mutation == "wrong_original_request":
@@ -1015,16 +1237,13 @@ class GroupedNativeProbeTests(unittest.TestCase):
             raise AssertionError("Unexpected op " + op)
 
         result = {}
-        stage = probe.run_ai_stage(
-            UI(),
-            read,
-            lambda _: "",
-            lambda *_, **__: None,
-            {"knowledge_id": knowledge["knowledge_id"]},
-            result,
-            True,
-            intervention,
-        )
+        with patch.object(probe, "save_deep_model_binding", save_binding), patch.object(probe, "select_saved_deep_lane", lambda *_:None):
+            stage = probe.run_ai_stage(
+                UI(), read, lambda _: "", lambda *_, **__: None,
+                {"knowledge_id": knowledge["knowledge_id"]}, result, True, intervention,
+                selected_model=probe.ai_receipt_contract()[1][0]["model"] if save_deep_binding else None,
+                selected_max_tokens=selected_max_tokens, save_deep_binding=save_deep_binding,
+            )
         if mutation in ("undeclared_model", "stub_model", "mock_model", "wrong_original_request"):
             self.assertEqual(stage["status"], "UNVERIFIED")
             self.assertEqual(stage["receipt_binding"]["status"], "UNVERIFIED")
@@ -1255,6 +1474,9 @@ class GroupedNativeProbeTests(unittest.TestCase):
             "title": "source.txt",
             "document_id": "document-exact",
             "source_revision": "a" * 64,
+            "source_id": "source-exact", "version": 1,
+            "content_sha256": hashlib.sha256(text.encode()).hexdigest(),
+            "text_projection": text,
         }
         transform = {
             "source_id": "source-exact",
@@ -1275,7 +1497,9 @@ class GroupedNativeProbeTests(unittest.TestCase):
 
             def click_selector(self, selector):
                 actions.append(("selector", selector))
-                if "禁用 text.extract" in selector:
+                if "查看原始回执（诊断）：文档身份与来源指纹" in selector:
+                    state["diagnostic"] = True
+                elif "禁用 text.extract" in selector:
                     state["enabled"] = False
                 elif "打开文档" in selector:
                     assert state["page"] == "#page=02", "document selection requires library page"
@@ -1318,6 +1542,8 @@ class GroupedNativeProbeTests(unittest.TestCase):
                 elif label == "恢复冻结现场 " + frozen["request_id"]:
                     self_test.assertIsNotNone(state["journal"])
                     state["hydrated"] = True
+                elif label == "关闭诊断中心":
+                    state["diagnostic"] = False
                 elif label not in {"重新读取当前宿主能力", "整理此来源为知识候选"}:
                     raise AssertionError("unexpected click " + label)
 
@@ -1360,6 +1586,8 @@ class GroupedNativeProbeTests(unittest.TestCase):
             raise AssertionError("unexpected operation")
 
         def js(script):
+            if script.startswith("const visible=n") or script.startswith("const rows="):
+                return evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False)))
             if "const root=" in script:
                 return {
                     "page": state["page"],
@@ -1382,6 +1610,8 @@ class GroupedNativeProbeTests(unittest.TestCase):
                     state["journal"]["body"]["deadline_ms"] = 1
 
         def wait(script, *args, **kwargs):
+            if "data-current-page-id" in script or "诊断控制台" in script:
+                assert evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False))), "Rendered reader predicate failed; business page does not expose raw ID"
             if script == "return location.hash==='#page=03'":
                 assert state["page"] == "#page=03", "hydrated scene needs real same-page URL navigation"
 

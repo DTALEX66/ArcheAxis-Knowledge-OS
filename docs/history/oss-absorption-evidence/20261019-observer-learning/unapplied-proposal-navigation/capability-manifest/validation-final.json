@@ -1,0 +1,27 @@
+{
+  "run": "isolated-capability-manifest-final",
+  "started_at": "2026-10-18T21:34:54.515270+00:00",
+  "ended_at": "2026-10-18T21:34:56.298958+00:00",
+  "command": [
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "-m",
+    "pytest",
+    "-c",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace\\pytest.ini",
+    "--confcutdir",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace\\tests\\contract\\test_capability_package_contract.py",
+    "-q",
+    "--basetemp",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\test-final-tmp",
+    "-o",
+    "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\pytest-final-cache"
+  ],
+  "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace",
+  "exit_code": 0,
+  "evidence_level": "SYNTHETIC_ISOLATED_SCHEMA_CATALOG_JOIN_NO_RUNTIME",
+  "log": "pytest-final.log"
+}

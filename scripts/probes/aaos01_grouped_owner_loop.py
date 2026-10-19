@@ -44,11 +44,16 @@ READ_OPERATIONS = frozenset(
         "capabilities_list",
         "machine_tasks_list",
         "machine_configuration",
+        "model_configuration_get",
+        "model_configuration_resolve",
         "machine_task_get",
         "machine_contexts_list",
         "ui_state_read",
         "ui_state_machine_status",
         "workspace_backups",
+        "material_question_status",
+        "conversation_history",
+        "conversation_status",
     }
 )
 
@@ -174,6 +179,8 @@ def select_full_quote(ui, js, wait, text, result):
 
 
 def button_selector(label: str, scope: str = "") -> str:
+    if scope == "//ul[@aria-label='复习队列']":
+        return f"{scope}//button[@data-learning-item-key={xpath_literal(label)} and not(ancestor-or-self::*[@hidden])]"
     return f"{scope}//button[normalize-space(.)={xpath_literal(label)} and not(ancestor-or-self::*[@hidden])]"
 
 
@@ -394,11 +401,40 @@ class GroupedUI:
         return self.element(using, selector)
 
     def click(self, label, scope=""):
+        if label == "读取项目":
+            self.open_learning_disclosure("manual")
+        elif scope == "//ul[@aria-label='复习队列']":
+            self.open_learning_disclosure("queue")
         selector = button_selector(label, scope)
         self.click_selector(selector)
 
+    def open_learning_disclosure(self, kind):
+        label = {"manual": "按键定位学习项目", "queue": "学习队列工具"}[kind]
+        script = "const label=" + json.dumps(label) + ";" + r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
+const page=pages.length===1?pages[0].getAttribute('data-current-page-id'):null;
+const nodes=[...document.querySelectorAll('details')].filter(n=>n.getAttribute('aria-label')===label&&visible(n));
+const queues=[...document.querySelectorAll('ul[aria-label="复习队列"]')].filter(visible);
+return {page,count:nodes.length,open:nodes.length===1?nodes[0].open:null,
+ summary:nodes.length===1&&visible(nodes[0].querySelector(':scope>summary')),visible_queues:queues.length};"""
+        observed = self.js(script)
+        assert observed["page"] in ("06", "11", "12"), "Learning disclosure belongs to another/hidden page"
+        if kind == "queue" and observed["count"] == 0:
+            assert observed["visible_queues"] == 1, "No unambiguous visible learning queue"
+            return
+        assert observed["count"] == 1 and observed["summary"], "Missing/hidden/ambiguous learning disclosure"
+        if not observed["open"]:
+            self.click_revealed_selector("//details[@aria-label=" + xpath_literal(label) + " and not(ancestor-or-self::*[@hidden])]/summary")
+            current = self.js(script)
+            assert current["page"] == observed["page"] and current["count"] == 1 and current["summary"] and current["open"], "Learning disclosure did not open on the original page"
+
     def reveal_selector(self, selector):
         """Use real wheel input; observe every clipping ancestor before the final click."""
+        if "@aria-label='复习队列'" in selector:
+            self.open_learning_disclosure("queue")
         self.find(selector)
         script = "const n=document.evaluate(" + json.dumps(selector) + ",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;" + r"""
 if(!n)return {ready:false};
@@ -407,25 +443,37 @@ let left=0,top=0,right=innerWidth,bottom=innerHeight;const scroll=[];
 for(let a=n.parentElement;a;a=a.parentElement){const s=getComputedStyle(a),b=a.getBoundingClientRect();
  if(s.overflowX!=='visible'){left=Math.max(left,b.left+a.clientLeft);right=Math.min(right,b.left+a.clientLeft+a.clientWidth);}
  if(s.overflowY!=='visible'){top=Math.max(top,b.top+a.clientTop);bottom=Math.min(bottom,b.top+a.clientTop+a.clientHeight);}
- if(/auto|scroll/.test(s.overflowY)&&a.scrollHeight>a.clientHeight+1)scroll.push(a);
+ if((/auto|scroll/.test(s.overflowY)&&a.scrollHeight>a.clientHeight+1)||(/auto|scroll/.test(s.overflowX)&&a.scrollWidth>a.clientWidth+1))scroll.push(a);
 }
 const hit=document.elementFromPoint(px,py);
 if(r.width>0&&r.height>0&&px>left&&px<right&&py>top&&py<bottom&&hit&&n.contains(hit))return {ready:true,point:{x:Math.floor(px),y:Math.floor(py)}};
 for(const a of scroll){let b=a.getBoundingClientRect(),l=Math.max(0,b.left),t=Math.max(0,b.top),rr=Math.min(innerWidth,b.right),bb=Math.min(innerHeight,b.bottom);
  for(let p=a.parentElement;p;p=p.parentElement){const s=getComputedStyle(p),q=p.getBoundingClientRect();if(s.overflowX!=='visible'){l=Math.max(l,q.left+p.clientLeft);rr=Math.min(rr,q.left+p.clientLeft+p.clientWidth);}if(s.overflowY!=='visible'){t=Math.max(t,q.top+p.clientTop);bb=Math.min(bb,q.top+p.clientTop+p.clientHeight);}}
- const dy=py>=bb?240:py<=t?-240:0;
- if(!dy||bb<=t||rr<=l||(dy>0&&a.scrollTop+a.clientHeight>=a.scrollHeight-1)||(dy<0&&a.scrollTop<=0))continue;
+ const style=getComputedStyle(a);
+ let dy=/auto|scroll/.test(style.overflowY)?(py>=bb?240:py<=t?-240:0):0;
+ let dx=/auto|scroll/.test(style.overflowX)?(px>=rr?240:px<=l?-240:0):0;
+ if((dy>0&&a.scrollTop+a.clientHeight>=a.scrollHeight-1)||(dy<0&&a.scrollTop<=0))dy=0;
+ if((dx>0&&a.scrollLeft+a.clientWidth>=a.scrollWidth-1)||(dx<0&&a.scrollLeft<=0))dx=0;
+ if((!dx&&!dy)||bb<=t||rr<=l)continue;
  const x=Math.floor((l+rr)/2),y=Math.floor((t+bb)/2),origin=document.elementFromPoint(x,y);
- if(origin&&a.contains(origin))return {ready:false,wheel:{x,y,deltaX:0,deltaY:dy},scrollTop:a.scrollTop};
+ if(origin&&a.contains(origin))return {ready:false,wheel:{x,y,deltaX:dx,deltaY:dy},scrollTop:a.scrollTop,scrollLeft:a.scrollLeft};
 }
 return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},clip:{left,top,right,bottom},hit:hit?.tagName};
 """
+        unsettled = 0
         for _ in range(16):
             observed = self.js(script)
             if observed.get("ready"):
                 self.evidence.append({"action":"target_visible_and_hit_tested", "selector":selector, **observed.get("point",{})})
                 return observed
-            assert observed.get("wheel"), observed
+            if not observed.get("wheel"):
+                # 刚激活的保留面板可能先有 DOM、后完成 Dock/ResizeObserver 布局。
+                # 仅等有限次重新观察；永久遮挡仍失败，不绕过命中检查或强制点击。
+                unsettled += 1
+                assert unsettled < 6, observed
+                self.evidence.append({"action": "wait_for_target_layout", "selector": selector, "observation": observed})
+                time.sleep(.15)
+                continue
             self.command(None, "wheel", observed["wheel"])
             self.evidence.append({"action":"trusted_wheel", **observed["wheel"]})
             time.sleep(.15)
@@ -465,10 +513,16 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         self.evidence.append({"action": "trusted_click", "using": using, "selector": selector})
 
     def type(self, label, value, tag="input", scope=""):
+        if label == "学习项目键":
+            self.open_learning_disclosure("manual")
         selector = label_selector(label, tag, scope)
         element = self.find(selector)
-        self.command(element, "clear", {})
-        self.command(element, "value", {"text": value})
+        # WebDriver clear 可能未同步 React 受控状态；可信全选后原位替换。
+        self.command(element, "click", {})
+        self.command(element, "value", {"text": "\ue009a\ue000"})
+        self.command(element, "value", {"text": value if value else "\ue003"})
+        node = "document.evaluate(" + json.dumps(selector) + ",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue"
+        self.wait("const n=" + node + ";return !!n&&Object.is(n.value," + json.dumps(value) + ")")
         self.evidence.append({"action": "trusted_type", "selector": selector})
 
     def keys(self, selector, keys, using="xpath"):
@@ -543,12 +597,12 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
     def pointer_page(self, page_id):
         selector = f'.navigation-sidebar button[data-page-id="{page_id}"]'
         self.find(selector, "css selector")
-        self.js("""(() => {
-const root=document.querySelector('.navigation-sidebar'), requested=document.querySelector(""" + json.dumps(selector) + """);
+        self.js(r"""(() => {
+const root=document.querySelector('.navigation-sidebar'), requested=document.querySelector(""" + json.dumps(selector) + r""");
 const out={events:[],samples:[]}, id=n=>/^\d{2}$/.test(n?.dataset?.pageId??'')?n.dataset.pageId:null;
 const rect=n=>{if(!n)return null;const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
 const scroll=()=>['.navigation-sidebar','.navigation-sidebar .space-rail','.navigation-sidebar .ui-page-navigation'].map(scope=>({scope,top:document.querySelector(scope)?.scrollTop??null}));
-const route=()=>({hashPage:location.hash.match(/^#page=(\d{2})$/)?.[1]??null,renderPage:document.querySelector('.ui-page-heading small')?.textContent?.match(/^UI \/ (\d{2})$/)?.[1]??null,currentPages:[...root.querySelectorAll('button[data-page-id][aria-current="page"]')].map(id)});
+const route=()=>({hashPage:location.hash.match(/^#page=(\d{2})$/)?.[1]??null,renderPage:(value=>/^\d{2}$/.test(value??'')?value:null)(document.querySelector('.ui-page-heading')?.dataset.currentPageId),currentPages:[...root.querySelectorAll('button[data-page-id][aria-current="page"]')].map(id)});
 const sample=phase=>{if(out.samples.length<40)out.samples.push({phase,t:performance.now(),...route(),requestedRect:rect(requested),scroll:scroll()});};
 const listeners=[];
 for(const type of ['pointerdown','pointerup','pointercancel','mousedown','mouseup','click','focusin'])for(const capture of [true,false]){
@@ -852,8 +906,13 @@ def run_grouped_loop(
     download_control=None,
     selected_model=None,
     selected_max_tokens=None,
+    save_deep_binding=False,
+    material_companion_loop=False,
+    material_companion_cancel=False,
     accept_navigation_alert=None,
 ):
+    assert not material_companion_loop or (save_deep_binding and require_actual_ai_loop and run_ai), "Material/companion requires saved DEEP actual-model qualification"
+    assert not material_companion_cancel or material_companion_loop, "Cancellation requires the explicit material/companion journey"
     teaching_only = os.environ.get("AAOS01_TEACHING_DRAFT_ONLY") == "1"
     learning_only = os.environ.get("AAOS01_LEARNING_DRAFT_ONLY") == "1"
     if teaching_only and learning_only:
@@ -1137,13 +1196,38 @@ def run_grouped_loop(
     result["stages"].append(
         {"id": "review", "status": "PASS", "state": learning, "history": history}
     )
+    title_row = next(item for item in read("learning_items")["items"] if item["item_key"] == key)
+    title_selector = button_selector(key, "//ul[@aria-label='复习队列']")
+    ui.reveal_selector(title_selector)
+    title_layout = js("const b=document.evaluate(" + json.dumps(title_selector) + ",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;return {label:b.textContent,width:b.getBoundingClientRect().width,scrollWidth:b.scrollWidth,clientWidth:b.clientWidth,queueWidth:b.closest('ul').clientWidth,queueScrollWidth:b.closest('ul').scrollWidth}")
+    assert title_layout["label"] == title_row["display_title"] and title_layout["label"] != key
+    assert 0 < len(title_layout["label"]) <= 80
+    assert title_layout["width"] <= title_layout["queueWidth"] and title_layout["scrollWidth"] <= title_layout["clientWidth"]
+    assert title_layout["queueScrollWidth"] <= title_layout["queueWidth"]
+    result["review_title"] = {"status": "PASS", "item_key": key, "projection": title_row, "layout": title_layout}
     screenshot("grouped-learning-review.png")
-    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart, machine_cancel)
+    purposes = ("answer", "retest", "material", "companion") if material_companion_loop else ("answer", "retest")
+    ai_stage = run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention, selected_model, selected_max_tokens, machine_ack_loss, restart, machine_cancel, save_deep_binding, purposes)
     result["stages"].append(ai_stage)
     if machine_ack_loss:
         require_machine_ack_recovery(ai_stage)
     if require_actual_ai_loop and ai_stage.get("retest") != "EXECUTED_CANDIDATE_NOT_EVALUATED":
         raise AssertionError("Actual AI retest unverified; preserve frozen request and failure diagnostics before backup navigation")
+    if material_companion_loop:
+        mc = _read_module("aaos_material_companion", Path(__file__).with_name("aaos01_material_companion_loop.py"))
+        result["material_companion"] = {}
+        mc.run(ui, read, js, wait, screenshot, document, ai_stage["saved_deep_binding"], result["material_companion"])
+        if selected_max_tokens is not None:
+            for purpose in ("material", "companion"):
+                record_output_budget(ai_stage, selected_max_tokens, purpose,
+                                     result["material_companion"]["receipts"][purpose]["plan"]["request"])
+    if save_deep_binding:
+        tasks_before_reopen = machine_tasks(read)
+        restart()
+        read_saved_model_configuration(ui, read, wait, ai_stage, restored=False)
+        assert machine_tasks(read) == tasks_before_reopen, "Configuration reopen dispatched inference"
+        if material_companion_loop:
+            mc.reopen(ui, read, js, wait, screenshot, document, result["material_companion"], "cold_reopen")
     ui.page("19")
     backup_ids={row['backup_id'] for row in read('workspace_backups')['backups']}
     ui.click("创建一致备份")
@@ -1163,6 +1247,10 @@ def run_grouped_loop(
         and after["state"] == before["recovery_candidates"]
     )
     restart()
+    if save_deep_binding:
+        read_saved_model_configuration(ui, read, wait, ai_stage, restored=True)
+        if material_companion_loop:
+            mc.reopen(ui, read, js, wait, screenshot, document, result["material_companion"], "backup_restore")
     assert read("document_get", {"document_id": document["document_id"]}) == document
     assert read("knowledge_get", {"id": pin["knowledge_id"]}) == knowledge
     assert read("learning_history", {"item_key": key}) == history
@@ -1198,11 +1286,7 @@ def run_grouped_loop(
     else:
         ui.page("06")
     ui.click(key, "//ul[@aria-label='复习队列']")
-    wait(
-        "return document.body.innerText.includes('知识修订：' + "
-        + json.dumps(pin["knowledge_id"])
-        + ")"
-    )
+    result["restored_learning"] = restored_learning_view(ui, read, js, wait, key, assessment)
     result["stages"].append(
         {
             "id": "recover",
@@ -1230,6 +1314,11 @@ def run_grouped_loop(
     if closure_features:
         helper = _read_module("aaos_closure_features",Path(__file__).with_name("aaos01_closure_features.py"))
         helper.run(ui=ui,read=read,bridge=bridge,js=js,wait=wait,restart=restart,work=work,report=result,download_control=download_control)
+    if material_companion_cancel:
+        result["material_companion_cancellation"] = {}
+        mc.run_cancel(ui, read, js, wait, screenshot, document, result["material_companion_cancellation"], poll)
+        restart()
+        mc.reopen_cancel(ui, read, js, wait, screenshot, document, result["material_companion_cancellation"])
     result["engineering_status"] = "PASS"
     result["status"] = "PARTIAL"  # Missing Owner/model correction evidence remains explicit.
     return result
@@ -1324,7 +1413,99 @@ def confirm_owned_machine_cancellation(ui, wait, report):
     return report
 
 
-def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None, machine_cancel=False):
+def read_local_model_inventory(ui, wait, stage, phase):
+    """Bounded explicit read-only retries; preserve every failed observation, never inference."""
+    rows = stage.setdefault("inventory_observations", [])
+    for attempt in range(1, 4):
+        wait("return [...document.querySelectorAll('button')].some(n=>n.textContent==='探测本地模型清单'&&!n.disabled)")
+        ui.click_revealed("探测本地模型清单")
+        try:
+            wait("const n=document.querySelector('[aria-label=\"本地模型清单探测结果\"]');return !!n && !n.textContent.includes('正在读取') && !n.textContent.includes('清单未探测或读取失败')", seconds=30)
+            text = ui.js("return document.querySelector('[aria-label=\"本地模型清单探测结果\"]')?.textContent")
+        except TimeoutError:
+            text = ui.js("return document.querySelector('[aria-label=\"本地模型清单探测结果\"]')?.textContent")
+        rows.append({"phase":phase,"attempt":attempt,"text":text,"inference_retried":False})
+        if isinstance(text, str) and text.strip().startswith("清单已读取，共 "):
+            return text
+        if attempt < 3:
+            time.sleep(1)
+    raise AssertionError("Local inventory remains unverified after three explicit read-only observations")
+
+
+def save_deep_model_binding(ui, read, wait, stage, model, purposes=("answer", "retest")):
+    """Explicit finite configuration on the harness's fresh synthetic workspace only."""
+    before = read("model_configuration_get")
+    assert before["revision"] == 0 and before["profiles"] == {} and before["bindings"] == [], "Requires fresh isolated model configuration"
+    assert isinstance(model, str) and re.fullmatch(r"[A-Za-z0-9_.:/@+-]{1,256}", model)
+    tasks = machine_tasks(read)
+    scope = "//section[@aria-label='产品模型与用途绑定']"
+    ui.page("19")
+    ui.click_revealed("读取模型配置", scope)
+    ui.type("本地服务地址", "http://127.0.0.1:1234/v1", scope=scope)
+    ui.type("模型名称", model, scope=scope)
+    ui.type("最大输出 token", "1024", scope=scope)
+    ui.type("超时秒数", "120", scope=scope)
+    ui.click_revealed("测试连接", scope)
+    wait("return document.querySelector('[aria-label=\"产品模型与用途绑定\"]').textContent.includes('目录读取成功，已找到所选模型')")
+    assert set(purposes) <= {"answer", "retest", "material", "companion"} and len(set(purposes)) == len(purposes)
+    for purpose in purposes:
+        selector = scope + "/descendant::label[contains(.,'" + purpose + " / DEEP')]/select"
+        ui.reveal_selector(selector)
+        ui.click_selector(selector + "/option[@value='local']")
+    ui.click_revealed("保存配置与用途绑定", scope)
+    wait("return document.querySelector('[aria-label=\"产品模型与用途绑定\"]').textContent.includes('已保存版本 1')")
+    saved = read("model_configuration_get")
+    profile = {"endpoint":"http://127.0.0.1:1234/v1", "protocol":"openai", "model":model,
+               "credential_ref":None, "max_tokens":1024, "timeout_s":120}
+    assert saved["revision"] == 1 and saved["profiles"] == {"local": profile}
+    assert sorted(saved["bindings"], key=lambda row: row["purpose"]) == [
+        {"purpose":purpose, "lane":"deep", "profile_id":"local"} for purpose in sorted(purposes)]
+    assert saved["workspace_id"] == before["workspace_id"] and saved["restore_epoch"] == before["restore_epoch"]
+    resolved = {purpose: read("model_configuration_resolve", {"body":{"purpose":purpose,"lane":"deep"}}) for purpose in purposes}
+    for purpose, value in resolved.items():
+        assert value["purpose"] == purpose and value["lane"] == "deep" and value["profile_id"] == "local"
+        assert value["profile"] == profile and value["configuration_revision"] == saved["revision"]
+        assert value["workspace_id"] == saved["workspace_id"] and value["restore_epoch"] == saved["restore_epoch"]
+    assert machine_tasks(read) == tasks, "Configuration save or directory diagnosis dispatched inference"
+    stage["saved_deep_binding"] = {"status":"SAVED_NOT_YET_EXECUTED", "configuration":saved, "resolved":resolved,
+                                   "configuration_inference_calls":0, "compatibility_model_selection":"NOT_USED"}
+
+
+def assert_saved_model_request(value, saved, purpose):
+    expected = saved["resolved"][purpose]
+    request = value["request"]
+    assert request["model_configuration"] == expected, "Frozen saved model binding mismatch"
+    execution = value["execution_request"] if purpose == "retest" else request
+    assert execution["resolved_model"] == expected, "Resolved model receipt mismatch"
+    assert request["model"] == expected["profile"]["model"]
+    assert request["max_tokens"] == expected["profile"]["max_tokens"] == 1024
+    assert request["timeout_s"] == expected["profile"]["timeout_s"] == 120
+
+
+def select_saved_deep_lane(ui, wait):
+    selector = "//label[contains(.,'用途执行通道')]/select"
+    ui.reveal_selector(selector)
+    ui.click_selector(selector + "/option[@value='deep']")
+    wait("return [...document.querySelectorAll('label')].find(n=>n.textContent.includes('用途执行通道'))?.querySelector('select')?.value==='deep'")
+
+
+def read_saved_model_configuration(ui, read, wait, stage, *, restored):
+    saved = stage["saved_deep_binding"]["configuration"]
+    ui.page("19")
+    ui.click_revealed("读取模型配置", "//section[@aria-label='产品模型与用途绑定']")
+    wait("return document.querySelector('[aria-label=\"产品模型与用途绑定\"]').textContent.includes('已读取版本 1')")
+    current = read("model_configuration_get")
+    if not restored:
+        assert current == saved, "Saved configuration changed across cold reopen"
+    else:
+        for key in ("schema", "revision", "profiles", "bindings", "workspace_id"):
+            assert current[key] == saved[key], "Restored configuration mismatch: " + key
+        assert current["restore_epoch"] == read("ui_state_read")["restore_epoch"]
+        assert current["restore_epoch"] != saved["restore_epoch"], "Restore epoch did not advance"
+    stage["saved_deep_binding"]["restore_readback" if restored else "cold_reopen"] = {"status":"PASS", "configuration":current}
+
+
+def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=False, selected_model=None, selected_max_tokens=None, machine_ack_loss=False, restart=None, machine_cancel=False, save_deep_binding=False, purposes=("answer", "retest")):
     stage = {
         "id": "distill",
         "status": "NOT_EXECUTED",
@@ -1362,6 +1543,9 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     }
     knowledge = read("knowledge_get", {"id": pin["knowledge_id"]})
     assert knowledge["knowledge_id"] == pin["knowledge_id"] and knowledge["status"] == "accepted"
+    if save_deep_binding:
+        assert run_ai and selected_model and not machine_ack_loss and not machine_cancel
+        save_deep_model_binding(ui, read, wait, stage, selected_model, purposes)
     ui.page("13")
     purpose = "Grouped native original " + pin["knowledge_id"]
     document = create_ui_grant(ui, read, wait, pin["knowledge_id"], "answer", purpose)
@@ -1378,18 +1562,18 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
     assert all(configuration[key] is None for key in ["model_identity", "usage", "cost"])
     assert machine_tasks(read) == before_tasks
     stage["configuration_read"] = {"status":"PASS", "configuration":configuration, "machine_tasks_unchanged":True}
-    ui.click("探测本地模型清单")
-    wait("return document.querySelector('[aria-label=\"本地模型清单探测结果\"]')?.textContent.includes('清单已读取')", seconds=30)
-    inventory_text = ui.js("return document.querySelector('[aria-label=\"本地模型清单探测结果\"]')?.textContent")
+    inventory_text = read_local_model_inventory(ui, wait, stage, "initial")
     assert isinstance(inventory_text, str)
     inventory_match = re.fullmatch(r"清单已读取，共 (\d+) 项；声明模型(已列出|未列出)。加载状态未知，推理尚未验证。", inventory_text.strip())
     assert inventory_match and 0 <= int(inventory_match[1]) <= 256
     assert machine_tasks(read) == before_tasks
     stage["inventory_read"] = {"status":"PASS", "evidence_scope":"FORMAL_UI_LOCAL_INVENTORY_ONLY", "listed_model_count":int(inventory_match[1]), "selected_model_listed":inventory_match[2] == "已列出", "loaded_status":"UNKNOWN", "inference_status":"NOT_EXECUTED", "machine_tasks_unchanged":True}
-    if selected_model is not None:
+    if save_deep_binding:
+        select_saved_deep_lane(ui, wait)
+    elif selected_model is not None:
         assert isinstance(selected_model,str) and selected_model.strip() == selected_model and 0 < len(selected_model.encode()) <= 256
-        ui.click_selector("descendant::label[contains(.,'本次本地回答模型')]/select/option[@value=" + xpath_literal(selected_model) + "]")
-        wait("return Array.from(document.querySelectorAll('label')).find(n=>n.textContent.includes('本次本地回答模型'))?.querySelector('select')?.value === " + json.dumps(selected_model))
+        ui.click_selector("descendant::label[contains(.,'兼容模式本地回答模型')]/select/option[@value=" + xpath_literal(selected_model) + "]")
+        wait("return Array.from(document.querySelectorAll('label')).find(n=>n.textContent.includes('兼容模式本地回答模型'))?.querySelector('select')?.value === " + json.dumps(selected_model))
     question = "Explain why original bytes and a versioned document are distinct."
     if selected_max_tokens is not None:
         assert selected_max_tokens in (2048,4096)
@@ -1436,9 +1620,8 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         ui.page("14");ui.click("刷新上下文列表");ui.click("选择原知识授权 "+document["title"])
         wait("return [...document.querySelectorAll('label')].some(n=>n.textContent.startsWith('实际问题'))")
         if selected_model is not None:
-            ui.click("探测本地模型清单")
-            wait("return document.querySelector('[aria-label=\"本地模型清单探测结果\"]')?.textContent.includes('清单已读取')",seconds=30)
-            ui.click_selector("descendant::label[contains(.,'本次本地回答模型')]/select/option[@value="+xpath_literal(selected_model)+"]")
+            read_local_model_inventory(ui, wait, stage, "after_cancel_restart")
+            ui.click_selector("descendant::label[contains(.,'兼容模式本地回答模型')]/select/option[@value="+xpath_literal(selected_model)+"]")
         if selected_max_tokens is not None:
             ui.click_selector("descendant::label[contains(.,'本次输出预算')]/select/option[@value="+xpath_literal(str(selected_max_tokens))+ "]")
         ui.type("实际问题",question,"textarea")
@@ -1470,8 +1653,9 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         recover_machine_ack(ui, read, js, wait, restart, document, task, stage)
     original = assert_inference_task(task, pin["knowledge_id"], question, grant)
     if selected_max_tokens is not None:
-        assert original["request"]["max_tokens"] == selected_max_tokens
-        stage["explicit_output_budget"] = selected_max_tokens
+        record_output_budget(stage, selected_max_tokens, "answer", original["request"])
+    if save_deep_binding:
+        assert_saved_model_request(original, stage["saved_deep_binding"], "answer")
     if selected_model is not None:
         assert original["request"]["model"] == original["answer"]["requested_model"] == original["answer"]["observed_model"] == original["answer"]["model"] == selected_model
         stage["explicit_model_selection"] = {"status":"PASS", "model":selected_model,"surface":"TRUSTED_NATIVE_UI"}
@@ -1723,6 +1907,8 @@ def run_authored_intervention(ui, read, wait, stage, result):
         "Retest reused original grant"
     )
     stage["retest_grant"] = document
+    if stage.get("saved_deep_binding"):
+        select_saved_deep_lane(ui, wait)
     ui.click("以已接受纠正知识运行独立复测", scope)
     wait(
         "return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('Core 明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')",
@@ -1758,6 +1944,11 @@ def run_authored_intervention(ui, read, wait, stage, result):
     value = assert_inference_task(
         retest, accepted["knowledge_id"], original["question"], grant, "runtime.retest"
     )
+    if stage.get("saved_deep_binding"):
+        assert_saved_model_request(value, stage["saved_deep_binding"], "retest")
+        stage["saved_deep_binding"]["status"] = "ANSWER_RETEST_FROZEN_BINDINGS_VERIFIED"
+    if stage.get("explicit_output_budget"):
+        record_output_budget(stage, stage["explicit_output_budget"]["requested_cli_max_tokens"], "retest", value["request"])
     assert read("knowledge_get", {"id": accepted["knowledge_id"]}) == accepted, (
         "Retest knowledge changed during inference"
     )
@@ -1780,7 +1971,7 @@ def run_authored_intervention(ui, read, wait, stage, result):
     result["actual_task_id"] = retest["task_id"]
 
 
-def restored_admission_receipt(receipt, document, knowledge_id, question):
+def restored_admission_receipt(receipt, document, knowledge_id, question, model_configuration=None):
     """Validate a Core-bound redacted receipt actually observed on the trusted UI."""
     assert isinstance(receipt, dict), "Missing typed restore admission receipt"
     expected = {
@@ -1804,6 +1995,11 @@ def restored_admission_receipt(receipt, document, knowledge_id, question):
         "context_grant": grant_snapshot(document), "asset_context_grant": None,
         "client_request_id": client, "retest_of": None,
     }}
+    if model_configuration is not None:
+        request["request"].update(model=model_configuration["profile"]["model"],
+                                  model_configuration=model_configuration,
+                                  max_tokens=min(2048, model_configuration["profile"]["max_tokens"]),
+                                  timeout_s=model_configuration["profile"]["timeout_s"])
     digest = hashlib.sha256(json.dumps(request, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
     assert receipt.get("request_sha256") == digest, "Restore admission frozen request digest mismatch"
     assert set(receipt) == set(expected) | {"client_request_id", "request_sha256"}, "Unbounded restore receipt"
@@ -1833,13 +2029,19 @@ def restored_grant_refusal(ui, read, wait, stage):
     ui.click("刷新上下文列表")
     ui.click("选择原知识授权 " + document["title"])
     wait("return !!document.querySelector('[aria-label=\"原知识当前正文\"]')")
+    current_binding = None
+    if stage.get("saved_deep_binding"):
+        select_saved_deep_lane(ui, wait)
+        current_binding = read("model_configuration_resolve", {"body":{"purpose":"answer","lane":"deep"}})
+        assert current_binding["restore_epoch"] == read("ui_state_read")["restore_epoch"]
+        assert current_binding["profile"] == stage["saved_deep_binding"]["configuration"]["profiles"]["local"]
     ui.type("实际问题", stage["original_answer"]["question"], "textarea")
     # New UI client request; it cannot succeed through cached old-answer replay.
     ui.click("执行本地机器回答")
     wait("return document.body.innerText.includes('Core 明确拒绝此回答请求')", seconds=150)
     receipt = restored_admission_receipt(ui.js("""const n=document.querySelector('[aria-label="恢复授权拒绝"]');
       return n?JSON.parse(n.dataset.contextAdmissionRefusal):null;"""), document,
-      stage["original_answer"]["knowledge_id"], stage["original_answer"]["question"])
+      stage["original_answer"]["knowledge_id"], stage["original_answer"]["question"], current_binding)
     after = machine_tasks(read)
     assert after == before, "Restored grant refusal created/changed a machine task"
     assert read("document_get", {"document_id": document["document_id"]}) == document
@@ -1926,6 +2128,96 @@ def assert_text_output(output, text):
     assert metadata["sha256"] == hashlib.sha256(text.encode()).hexdigest()
 
 
+LEARNING_RESTORE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().length>0&&
+ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+  const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
+const articles=[...document.querySelectorAll('.ui-learning-review article')].filter(n=>visible(n)&&
+ [...n.children].some(c=>c.tagName==='H3'&&c.textContent==='复习题'&&visible(c)));
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ count:articles.length,paragraphs:articles.length===1?[...articles[0].children].filter(c=>c.tagName==='P'&&visible(c)).map(c=>c.innerText):[]};"""
+
+
+def restored_learning_view(ui, read, js, wait, key, assessment):
+    """Recover business question + its current diagnostic identity and full Core snapshot."""
+    wait("const v=(function(){" + LEARNING_RESTORE_OBSERVATION + "})();return v.page==='06'&&v.count===1&&v.paragraphs.includes(" + json.dumps(assessment["question"]) + ")")
+    view = js(LEARNING_RESTORE_OBSERVATION)
+    assert view["page"] == "06" and view["count"] == 1 and assessment["question"] in view["paragraphs"], "Restored learning question mismatch"
+    ui.click_revealed_selector("//article[h3[.='复习题'] and not(ancestor-or-self::*[@hidden])]//button[@aria-label='查看原始回执（诊断）：学习项目与题目版本']")
+    try:
+        wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'))")
+        identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
+        expected = {"item_key":key, **{k:assessment[k] for k in ("assessment_id", "question_version", "knowledge_id", "knowledge_version", "source_id", "anchor_id") if k in assessment}}
+        assert identity == expected, "Rendered learning identity mismatch (including same-question items)"
+        assert read("assessment_get", {"item_key":key}) == assessment, "Restored Core assessment changed"
+    finally:
+        ui.click_revealed("关闭诊断中心", "//*[@role='dialog']")
+    assert js(LEARNING_RESTORE_OBSERVATION) == view, "Learning view changed during identity verification"
+    return {"status":"PASS", "view":view, "identity":identity, "core_assessment_equal":True}
+
+
+def record_output_budget(stage, requested, purpose, request):
+    """Report CLI intent separately from the purpose-bound persisted request."""
+    saved = stage.get("saved_deep_binding")
+    expected = saved["resolved"][purpose] if saved else None
+    if expected:
+        assert request["model_configuration"] == expected, "Budget configuration binding mismatch"
+    effective = request["max_tokens"]
+    assert effective == (min(requested, expected["profile"]["max_tokens"]) if expected else requested), "Effective output budget mismatch"
+    report = stage.setdefault("explicit_output_budget", {
+        "requested_cli_max_tokens": requested,
+        "requested_surface": "CLI_VIA_PER_TASK_UI",
+        "effective_by_purpose": {},
+    })
+    assert report["requested_cli_max_tokens"] == requested
+    report["effective_by_purpose"][purpose] = {
+        "max_tokens": effective,
+        "source": "SAVED_DEEP_BINDING" if expected else "COMPATIBILITY_PER_TASK_UI",
+        "evidence": "PERSISTED_REQUEST",
+    }
+
+
+READER_RESTORE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().length>0&&
+ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+  const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
+const readers=[...document.querySelectorAll('[aria-label="阅读与编辑文档视图"]')].filter(visible);
+const reader=readers.length===1?readers[0]:null;
+const titles=reader?[...reader.querySelectorAll('article[aria-label="文档正文与编辑"]>header>h2')].filter(visible):[];
+const bodies=reader?[...reader.querySelectorAll('[aria-label="版本化草稿编辑器"] .ProseMirror,[aria-label="共享文档当前内容"]')].filter(visible):[];
+const meta=reader?.querySelector('.ui-document-meta');
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ reader_count:readers.length,title:titles.length===1?titles[0].innerText:null,
+ text:bodies.length===1?bodies[0].innerText:null,
+ version:visible(meta)?Number(meta.textContent.match(/· v(\\d+) ·/)?.[1]??NaN):null};"""
+
+
+def restored_reader(ui, read, js, wait, document):
+    """Bind the rendered business view to its user-opened diagnostic and Core identity."""
+    wait("const v=(function(){" + READER_RESTORE_OBSERVATION + "})();return v.page==='03'&&v.reader_count===1&&v.title!==null&&v.text!==null")
+    view = js(READER_RESTORE_OBSERVATION)
+    assert view["page"] == "03" and view["reader_count"] == 1
+    assert view["title"] == document["title"], "Restored reader title mismatch"
+    normalize = lambda value: value.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
+    assert isinstance(view["text"], str) and normalize(view["text"]) == normalize(document["text_projection"]), "Restored reader content mismatch"
+    assert view["version"] == document["version"], "Restored reader version mismatch"
+    scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
+    ui.click_revealed_selector(scope + "//button[@aria-label='查看原始回执（诊断）：文档身份与来源指纹']")
+    try:
+        wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('文档身份与来源指纹 ·'))")
+        identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('文档身份与来源指纹 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
+        expected = {key: document[key] for key in ("document_id", "source_id", "source_revision", "content_sha256")}
+        assert identity == expected, "Rendered reader identity mismatch (including same-title documents)"
+        assert read("document_get", {"document_id": document["document_id"]}) == document, "Restored Core document changed"
+    finally:
+        ui.click_revealed("关闭诊断中心", "//*[@role='dialog']")
+    # Closing the owned diagnostic must return to the same rendered document.
+    assert js(READER_RESTORE_OBSERVATION) == view, "Reader changed during identity verification"
+    return {"status": "PASS", "view": view, "identity": identity, "core_document_equal": True}
+
+
 def capability_refusal_recovery(
     ui, read, js, wait, restart, pin, document, expected_text, report=None
 ):
@@ -1994,8 +2286,7 @@ def capability_refusal_recovery(
     restart()
     frozen_job_journal(read("ui_state_read"), frozen, pin["source_id"], document["source_revision"], "text")
     capability_permission(read, False)
-    assert read("document_get", {"document_id": document["document_id"]}) == document
-    wait("return document.querySelector('[aria-label=\"当前页面\"]')?.getAttribute('data-current-page-id')==='03' && !!document.querySelector('[aria-label=\"阅读与编辑文档视图\"]') && document.body.innerText.includes(" + json.dumps(document["document_id"]) + ")")
+    result["restored_reader"] = restored_reader(ui, read, js, wait, document)
     # Hydration restores the scene, while a fresh host URL has no hash. Use the
     # actual same-page control to normalize it without changing the frozen intent.
     ui.page("03")

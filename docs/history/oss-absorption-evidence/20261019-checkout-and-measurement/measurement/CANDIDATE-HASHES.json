@@ -1,0 +1,13 @@
+{
+  "tests/test_machine_request_measurements.py": "4fc2b6bc27ca9142d5b35662b8aa1ea58514bb80565ad59951d8c7dfe8d84820",
+  "tests/contract/test_machine_failure_diagnostics.py": "0af17de522a42637cdc656d9f313b90bc43b7352d73a09339e2be0a4ad98c4a8",
+  "services/python-workers/machine/worker_machine_answer.py": "4e8d1eeb32a0cc8f055b78f9fb5631e4a85555debea2c2f2e25c29a5a7641e09",
+  "packages/contracts/v1/openapi-outline.yaml": "a02f211226733e8ead395a080395c9165cddefc051d8bcd6d5d7673e0e905e09",
+  "packages/contracts/v2/conversation.schema.json": "8c9647ece0f3893fc3e1eced2d270ed97a29b2d555ed60764136c116b54696e1",
+  "packages/contracts/v2/material-question.schema.json": "3b91aba301f56061f3562b693790650caf8a0b6469557feff7c03e24a3f205a1",
+  "frontend/src/api/machineFailure.ts": "a31b9f53afd926fa9c896a6ff223e6c93fed2be2d28ddb7008ba6dd81d28f6a8",
+  "frontend/src/__tests__/MachineFailureDiagnostics.test.ts": "9e129a67081409dc3af7cc1245604e66f59e8ff986b81aeced53e198afb7fc98",
+  "frontend/src/api/generated/conversation.ts": "8bc51b8675709601281a132626079dcd1bf43bac587b751f3d0234fd4e8ce14a",
+  "frontend/src/api/generated/material-question.ts": "37db792a97cddca9e730dfb45dd1546c80f8ad03a92ff9ebadfcd3f1a1c3e63b",
+  "crates/archeaxis-application/src/executor/machine_failure.rs": "b40e288c16f47b9d36a5d8fea2d251991d6e5364f4f6174d4b056e3cfdea12e6"
+}

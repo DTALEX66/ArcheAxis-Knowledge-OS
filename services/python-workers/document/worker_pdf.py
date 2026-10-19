@@ -30,11 +30,11 @@ import hashlib
 import importlib.util
 import io
 import json
+import re
 import sys
 from pathlib import Path
 
 ENGINE = "pymupdf-native-pdf"
-ENGINE_VERSION = "pymupdf"
 # R08: identity advertised in the sidecar handshake for this route.
 WORKER_IDENTITY = "python-worker-pdf-ndjson"
 
@@ -150,17 +150,40 @@ def _page_facts(page, engine_messages: list[str]) -> dict:
     return facts
 
 
-def _open_document(raw: bytes):
-    """Open a PDF in memory with the available native engine."""
-    module = None
+def _runtime_dependency():
+    """Import only: no document, inference, installation or engine qualification."""
+    observation = {"name": "pymupdf", "status": "MISSING", "version": None}
     for name in ("pymupdf", "fitz"):
         try:
-            module = __import__(name)
-            break
-        except ImportError:
-            continue
-    if module is None:  # pragma: no cover - engine availability
-        raise RuntimeError("no native PDF engine available (pymupdf/pdfminer)")
+            # Native import chatter must never become an NDJSON frame.
+            with contextlib.redirect_stdout(io.StringIO()):
+                module = __import__(name)
+        except ModuleNotFoundError as exc:
+            if exc.name == name:
+                continue
+            return None, {**observation, "status": "IMPORT_FAILED"}
+        except Exception:
+            return None, {**observation, "status": "IMPORT_FAILED"}
+        if not callable(getattr(module, "open", None)):
+            return None, {**observation, "status": "IMPORT_FAILED"}
+        # Observe the loaded module, not unrelated/stale distribution metadata.
+        for value in (getattr(module, "__version__", None), getattr(module, "VersionBind", None)):
+            if isinstance(value, str) and re.fullmatch(r"[0-9][0-9A-Za-z.+_-]{0,63}", value):
+                return module, {**observation, "status": "AVAILABLE", "version": value}
+        return module, {**observation, "status": "VERSION_UNKNOWN"}
+    return None, observation
+
+
+def _required_engine():
+    module, observation = _runtime_dependency()
+    if observation["status"] != "AVAILABLE":
+        raise RuntimeError("PDF_DEPENDENCY_" + observation["status"])
+    return module, observation
+
+
+def _open_document(raw: bytes):
+    """Open a PDF in memory with the available native engine."""
+    module, _ = _required_engine()
     try:
         # `pymupdf.open` accepts a stream + filetype, same as the legacy alias.
         return module.open(stream=raw, filetype="pdf")
@@ -286,6 +309,7 @@ def _ordered_page_text(page, engine_text: str, engine_messages: list[str]) -> tu
 
 
 def extract(path: str, ocr_dir: Path | None = None) -> dict:
+    _, dependency = _required_engine()
     raw = Path(path).read_bytes()
     document = _open_document(raw)
     pages = list(document)
@@ -434,8 +458,9 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
     table_finder = any(callable(getattr(page, "find_tables", None)) for page in pages)
     loss_receipt = {
         "engine": ENGINE,
-        "engine_version": ENGINE_VERSION,
+        "engine_version": dependency["version"],
         "params": {
+            "runtime_dependency": dependency,
             "pages": len(pages),
             "cap_anchors": MAX_ANCHORS,
             "coverage_unit": "line anchors",
@@ -507,7 +532,7 @@ def extract(path: str, ocr_dir: Path | None = None) -> dict:
         loss_receipt["loss_note"] += "; zero-page PDF has no coverage to claim"
     return {
         "engine": ENGINE,
-        "engine_version": ENGINE_VERSION,
+        "engine_version": dependency["version"],
         "text": text,
         "structure": anchors,
         "loss_receipt": loss_receipt,
@@ -543,7 +568,9 @@ def main() -> int:
         # attempt directory itself is temporary, so renders must not live there.
         parser.add_argument("--artifact-root", type=Path, default=None)
         args = parser.parse_args()
-        return transport.serve_stdio(WORKER_IDENTITY, ["pdf.extract"], args.staging_root, args.artifact_root)
+        _, dependency = _runtime_dependency()
+        return transport.serve_stdio(WORKER_IDENTITY, ["pdf.extract"], args.staging_root, args.artifact_root,
+                                     runtime_dependency=dependency)
 
     with contextlib.suppress(AttributeError, OSError):
         sys.stdout.reconfigure(encoding="utf-8")

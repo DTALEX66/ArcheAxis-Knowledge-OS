@@ -70,6 +70,14 @@
 .ui-course-list li { border:1px solid var(--ax-border); border-radius:8px; padding:16px; background:var(--ax-panel); }
 .ui-course-list small { display:block; margin-top:8px; color:var(--ax-fg-secondary); }
 .ui-learning-review { margin-top:24px; }
+/* Review titles follow the available pane width, including narrow desktop docks. */
+.app-shell [data-section="review"] button[data-learning-item-key] {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
 .ui-learning-journey pre { white-space:pre-wrap; overflow-wrap:anywhere; }
 .ui-learning-journey details { margin:16px 0; }
 .ui-learning-journey .library-document { margin-top:20px; }
@@ -187,6 +195,18 @@
 }
 
 /* Keep a retained inspector usable without consuming the reader's narrow width. */
+@media (max-width: 900px) {
+  .app-shell .app-body { flex-direction: column; }
+  .app-shell .app-body > .app-center { min-height: 0; }
+  .app-shell .app-body > .inspector {
+    flex: 0 1 40%;
+    width: 100%;
+    max-height: 40%;
+    min-height: 0;
+    border-left: 0;
+    border-top: 1px solid var(--ax-border);
+  }
+}
 /* App Shell Layout - Fixed */
 .app-shell {
   display: flex;
@@ -223,3 +243,26 @@
   overflow-y: auto;
   border-left: 1px solid var(--ax-border);
 }
+
+.companion-home, .companion-sidebar {
+  margin-block: 12px;
+  padding: 12px;
+  border: 1px solid var(--ax-border);
+  border-radius: 8px;
+  background: var(--ax-panel);
+  overflow-wrap: anywhere;
+}
+.companion-home > summary, .companion-sidebar > summary { cursor: pointer; }
+.companion-sidebar label { display: grid; gap: 4px; margin-block: 8px; }
+.companion-sidebar select, .companion-sidebar textarea { width: 100%; min-width: 0; box-sizing: border-box; }
+.companion-sidebar button { max-width: 100%; white-space: normal; }
+
+/* Companion expansion must never consume the navigation's entire flex height. */
+.app-shell .navigation-sidebar > .space-rail { flex: 1 0 180px; min-height: 180px; }
+.companion-sidebar { flex: 0 0 auto; max-height: 40%; min-height: 0; overflow: auto; }
+.diagnostic-center { width: min(920px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; }
+.diagnostic-center pre { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; }
+.diagnostic-center-trigger { flex-shrink: 0; white-space: nowrap; }
+.document-snapshot-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.frozen-request-summary { overflow-wrap: anywhere; }
+@media(max-width:640px){.app-shell[data-cabin-page="03"] .ui-page-heading{margin-bottom:12px;padding-bottom:10px;gap:8px}.app-shell[data-cabin-page="03"] .ui-page-heading h1{font-size:22px}.app-shell .ui-reader-document{padding:16px}.app-shell .ui-reader-document h2{font-size:24px;line-height:1.4;margin:8px 0 16px;overflow-wrap:anywhere}.app-shell .ui-reader-toolbar{gap:8px;margin-bottom:12px}.app-shell .ui-reader-layout{gap:16px}}

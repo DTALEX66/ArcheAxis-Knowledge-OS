@@ -1,0 +1,257 @@
+[
+  {
+    "file": "frontend/src/__tests__/CompanionSession.test.tsx",
+    "tests": [
+      {
+        "name": "shares draft, selected session and frozen material across three slots, with one catalog under StrictMode",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "admits only one execution when two slots confirm synchronously, and removing a view never cancels it",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "retains UNKNOWN and the original ID when all views unmount and return",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "recovers the original answer and request index, then deduplicates a later history replay",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "refreshes terminal status history without replacing already loaded events",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "fences a delayed status-history refresh after workspace retirement",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "keeps a completed execution visible when only its subsequent history read fails",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "never displays another session's status answer or a retired workspace's late receipt",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "invalidates a delayed preview only when its initiating reader context changes",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "fences old workspace responses without leaking the old draft into a replacement service",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "retiring a workspace while model resolution is pending prevents any old preview command",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "a blocked working-state status cannot be unlocked by an identity callback captured while ready",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "accepts a terminal receipt from later history pages after a lost execution acknowledgment",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "an unconfirmed workspace invalidation pauses sending and keeps the admitted ID instead of clearing it",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "a previous terminal request cannot suppress invalidation of the next delayed material preview",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "does not lose a delayed catalog when a new session is created first",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "a recovered terminal receipt overrides a stale EXECUTING history index for the next preview",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "exposes a single-flight catalog retry after a failed initial read",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "keeps the restore barrier across ordinary state readbacks, then requires a fresh matching identity after finish",
+        "status": "passed",
+        "failure": []
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/__tests__/ConversationPanel.test.tsx",
+    "tests": [
+      {
+        "name": "preserves the submitted UNKNOWN request after reject history reload",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "preserves the submitted UNKNOWN request after empty-history history reload",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "does not preview or infer an unconfigured DEEP companion request",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "freezes the selected DEEP lane for companion or material conversation (false)",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "freezes the selected DEEP lane for companion or material conversation (true)",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "reads persisted sessions without inference; explicit preview and confirmation freeze one request",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "a delayed material preview cannot bind to a replacement object",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "cancellation sends the exact session/request and leaves completion to the actual receipt",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "rejects cross-session late fragments and conflicting sequence identities while deduplicating replay",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "closing a presentation neither cancels nor repeats the admitted request, and reopening only reads history",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "drives Xiaoqi from confirmed request lifecycle and waits for a cancellation terminal",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "keeps a submitted status request distinct from an unsubmitted preview",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "keeps a submitted lost-response request distinct from an unsubmitted preview",
+        "status": "passed",
+        "failure": []
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/__tests__/DiagnosticPresentation.test.tsx",
+    "tests": [
+      {
+        "name": "shows the actual unsaved snapshot text while preserving unsupported structure in diagnostics",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "keeps the frozen purpose, material, model and destination visible with a stable material identity",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "never presents a legacy candidate destination as the actual selected model or loaded endpoint",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "makes opaque content visible without changing the retained payload",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "distinguishes same-version frozen materials and a conversion source",
+        "status": "passed",
+        "failure": []
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/__tests__/ModelBinding.test.ts",
+    "tests": [
+      {
+        "name": "allows the legacy FAST path without resolving but refuses an unconfigured DEEP request",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "refuses changed destination identity {\"lane\":\"fast\"}",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "refuses changed destination identity {\"purpose\":\"embedding\"}",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "refuses changed destination identity {\"configuration_revision\":4}",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "refuses changed destination identity {\"workspace_id\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "refuses changed destination identity {\"restore_epoch\":\"changed\"}",
+        "status": "passed",
+        "failure": []
+      }
+    ]
+  },
+  {
+    "file": "frontend/src/__tests__/XiaoqiIntegration.test.tsx",
+    "tests": [
+      {
+        "name": "Xiaoqi source integration preserves the nine source assets byte for byte with original provenance",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "Xiaoqi source integration exposes keyboard interaction through a native button",
+        "status": "passed",
+        "failure": []
+      },
+      {
+        "name": "Xiaoqi source integration reports image failure and recovers when a different real state is presented",
+        "status": "passed",
+        "failure": []
+      }
+    ]
+  }
+]

@@ -280,18 +280,23 @@
         "destination_candidates": {
           "type": "array",
           "items": {
-            "enum": [
-              "http://127.0.0.1:11434",
-              "http://127.0.0.1:1234/v1"
-            ]
+            "type": "string",
+            "maxLength": 256
           },
-          "maxItems": 2
+          "minItems": 1,
+          "maxItems": 1
         },
         "selection_policy": {
-          "const": "existing_owned_local_worker_probe"
+          "enum": [
+            "existing_owned_local_worker_probe",
+            "frozen_material_purpose_profile"
+          ]
         },
         "network_scope": {
-          "const": "fixed_owned_local_worker"
+          "enum": [
+            "fixed_owned_local_worker",
+            "configured_numeric_loopback_endpoint"
+          ]
         },
         "restore_epoch": {
           "type": "string"
@@ -420,6 +425,9 @@
             "UNKNOWN",
             "NOT_REQUESTED"
           ]
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/MachineFailureDiagnostics"
         }
       },
       "required": [
@@ -774,6 +782,154 @@
         "workspace_id",
         "restore_epoch"
       ]
+    },
+    "MachineFailureDiagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "requested_model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9_.:/@+-]{1,256}$",
+          "maxLength": 256
+        },
+        "observed_model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9_.:/@+-]{1,256}$",
+          "maxLength": 256
+        },
+        "finish_reason": {
+          "enum": [
+            "stop",
+            "length",
+            "tool_calls",
+            "function_call",
+            "content_filter",
+            "error"
+          ]
+        },
+        "answer_source": {
+          "enum": [
+            "content",
+            "reasoning_content",
+            "response",
+            "none"
+          ]
+        },
+        "error_type": {
+          "enum": [
+            "HTTPError",
+            "URLError",
+            "TimeoutError",
+            "ConnectionError",
+            "OSError",
+            "ValueError",
+            "TypeError",
+            "KeyError",
+            "IndexError",
+            "JSONDecodeError"
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "http_status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "input_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "output_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "total_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "request_stage": {
+          "enum": [
+            "service_discovery",
+            "model_request",
+            "response_deadline",
+            "worker_deadline"
+          ]
+        },
+        "discovery_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "request_phase": {
+          "enum": [
+            "http_open",
+            "body_read",
+            "json_parse",
+            "response_validation"
+          ]
+        },
+        "http_open_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "body_read_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "json_parse_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "prompt_utf8_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "serialized_request_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "response_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
     }
   }
 }

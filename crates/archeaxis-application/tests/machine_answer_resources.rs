@@ -239,6 +239,55 @@ async fn one_second_timeout_proves_actual_owned_pid_is_no_longer_running() {
 }
 
 #[tokio::test]
+async fn answer_passes_a_bounded_timeout_to_the_owned_worker() {
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(dir.path(), "budget=int(sys.argv[sys.argv.index('--timeout-s')+1])\nprint(json.dumps({'answer':'synthetic','received_timeout_s':budget}))").await;
+    let answer = executor
+        .machine_answer(
+            "synthetic".into(),
+            "question".into(),
+            128,
+            Duration::from_secs(10),
+        )
+        .await
+        .unwrap();
+    let budget = answer["received_timeout_s"].as_u64().unwrap();
+    assert!((1..=10).contains(&budget));
+    assert_owned_child_stopped(dir.path());
+}
+
+#[tokio::test]
+async fn hard_deadline_retains_bounded_measurements_and_reaps_owned_worker() {
+    use archeaxis_application::executor::Cancellation;
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(dir.path(), "time.sleep(60)").await;
+    let error = executor
+        .machine_answer_configured_detailed(
+            "SYNTHETIC_PRIVATE_CONTEXT".into(),
+            "SYNTHETIC_PRIVATE_QUESTION".into(),
+            128,
+            Duration::from_secs(1),
+            None,
+            Cancellation::new(),
+            None,
+        )
+        .await
+        .unwrap_err();
+    assert_eq!(error.reason_code(), "WORKER_TIMEOUT");
+    let diagnostics = error
+        .diagnostics()
+        .expect("hard deadlines retain Core measurements");
+    assert_eq!(diagnostics["timeout_s"], 1);
+    assert_eq!(diagnostics["max_tokens"], 128);
+    assert_eq!(diagnostics["error_type"], "TimeoutError");
+    assert!(diagnostics["requested_model"].is_null());
+    assert!(diagnostics.get("observed_model").is_none());
+    assert!(diagnostics["elapsed_s"].as_f64().unwrap() >= 1.0);
+    assert!(!diagnostics.to_string().contains("SYNTHETIC_PRIVATE"));
+    assert_owned_child_stopped(dir.path());
+}
+
+#[tokio::test]
 async fn invalid_input_and_budget_are_rejected_before_worker_spawn() {
     let dir = tempfile::tempdir().unwrap();
     let executor = fixture(
@@ -396,6 +445,7 @@ async fn environment_probe_child() {
 async fn nonzero_worker_keeps_only_allowlisted_reason_and_never_accepts_answer() {
     for (code, expected) in [
         ("NO_FINAL_ANSWER", "NO_FINAL_ANSWER"),
+        ("MODEL_CALL_TIMEOUT", "MODEL_CALL_TIMEOUT"),
         ("SYNTHETIC_PRIVATE", "WORKER_FAILED"),
     ] {
         let dir = tempfile::tempdir().unwrap();
@@ -410,6 +460,81 @@ async fn nonzero_worker_keeps_only_allowlisted_reason_and_never_accepts_answer()
             .await
             .unwrap_err();
         assert_eq!(error, format!("machine failure: {expected}"));
+        assert_owned_child_stopped(dir.path());
+    }
+}
+
+// 实际启动隔离的自有合成worker读取argv；不调用真实模型服务。
+#[tokio::test]
+async fn legacy_detailed_answer_keeps_grounded_policy_and_prompt_version() {
+    use archeaxis_application::executor::Cancellation;
+    let dir = tempfile::tempdir().unwrap();
+    let executor = fixture(
+        dir.path(),
+        concat!(
+            "policy=sys.argv[sys.argv.index('--answer-policy')+1]\n",
+            "version=sys.argv[sys.argv.index('--prompt-version')+1]\n",
+            "print(json.dumps({'answer':'synthetic candidate','answer_policy':policy,'prompt_version':version}))"
+        ),
+    )
+    .await;
+    let answer = executor
+        .machine_answer_configured_detailed(
+            "Synthetic context".into(),
+            "Synthetic question".into(),
+            128,
+            Duration::from_secs(10),
+            None,
+            Cancellation::new(),
+            None,
+        )
+        .await
+        .unwrap();
+    assert_eq!(answer["answer_policy"], "grounded");
+    assert_eq!(answer["prompt_version"], "archeaxis.vnext/v1 2026-10-02");
+    assert_owned_child_stopped(dir.path());
+}
+
+#[tokio::test]
+async fn explicit_finite_answer_policy_reaches_owned_worker_with_matching_version() {
+    use archeaxis_application::executor::{AnswerPolicy, Cancellation};
+    for (policy, expected_policy, expected_version) in [
+        (
+            AnswerPolicy::Grounded,
+            "grounded",
+            "archeaxis.vnext/v1 2026-10-02",
+        ),
+        (
+            AnswerPolicy::CompanionGeneral,
+            "companion_general",
+            "archeaxis.companion/v1 2026-10-19",
+        ),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let executor = fixture(
+            dir.path(),
+            concat!(
+                "policy=sys.argv[sys.argv.index('--answer-policy')+1]\n",
+                "version=sys.argv[sys.argv.index('--prompt-version')+1]\n",
+                "print(json.dumps({'answer':'synthetic candidate','answer_policy':policy,'prompt_version':version}))"
+            ),
+        )
+        .await;
+        let answer = executor
+            .machine_answer_with_policy_detailed(
+                "Synthetic context".into(),
+                "Synthetic question".into(),
+                128,
+                Duration::from_secs(10),
+                None,
+                Cancellation::new(),
+                None,
+                policy,
+            )
+            .await
+            .unwrap();
+        assert_eq!(answer["answer_policy"], expected_policy);
+        assert_eq!(answer["prompt_version"], expected_version);
         assert_owned_child_stopped(dir.path());
     }
 }

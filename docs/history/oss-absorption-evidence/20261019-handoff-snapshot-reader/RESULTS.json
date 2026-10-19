@@ -1,0 +1,80 @@
+{
+  "overall": "PARTIAL",
+  "public_delivery": "UNCOMMITTED_LOCAL_ONLY",
+  "owner_topics": 39,
+  "product_scope": "BE10 LOCAL_HUMAN_READ_ONLY fixed snapshot and existing page16 reader",
+  "applied_source_paths": 23,
+  "passes": {
+    "frontend": {
+      "files": 5,
+      "tests": 90
+    },
+    "python_contracts": 26,
+    "api_process_tests": 22,
+    "rust_contract_tests": 2,
+    "shared_cases": {
+      "preview": 16,
+      "snapshot": 14
+    },
+    "native_finite_consumer_tests": 29,
+    "typescript": true,
+    "production_frontend_build": true,
+    "generation_and_authority": true
+  },
+  "browser": {
+    "status": "PASS_SYNTHETIC_BROWSER",
+    "evidence_level": "SYNTHETIC actual product page source with finite mocked bridge",
+    "browser_version": "155.0.8059.80",
+    "viewports": [
+      "1280x900",
+      "390x844"
+    ],
+    "dpr": 1,
+    "theme": "cosmic",
+    "reduced_motion": "reduce",
+    "screenshots_viewed": [
+      "wide.png",
+      "narrow.png",
+      "identity-error.png"
+    ],
+    "visual_observation": "正文和中文状态可读，宽窄无横向溢出；长正文在对话框内滚动，关闭按钮可能在折叠下方，Escape已验证返回入口；不据此认定完整可用性/无障碍",
+    "automatic_violations": 0,
+    "automatic_incomplete": 6,
+    "full_accessibility": "UNVERIFIED",
+    "performance": "UNVERIFIED"
+  },
+  "failures_preserved": [
+    "old owned Core snapshot route 404 EXPECTED_RED",
+    "format mutations outer exit3 source_consistent=false not PASS",
+    "frontend initial Windows fixture URL error exit1",
+    "browser CJS/ESM entry import failures exit1",
+    "browser initial operation whitelist omitted existing read-only teaching_list exit1; source inspected, exact read-only operation added, no write wildcard"
+  ],
+  "unchanged_qualification": {
+    "inherited_entries": 68,
+    "promotions": 0,
+    "source_sha_references_refreshed": 2
+  },
+  "process_cleanup": {
+    "owned_browser_port_5173": "CLOSED",
+    "owned_browser_and_core_processes": "NONE_AT_READBACK",
+    "native_ephemeral_port": "UNVERIFIED_NOT_EXPORTED_BY_FIXTURE",
+    "first_inspection_shell_self_match": "PRESERVED_THEN_FILTERED_BY_EXECUTABLE_NAME_NO_PROCESS_TERMINATED"
+  },
+  "not_executed": [
+    "whole repository full suite",
+    "native UI launch for current snapshot reader",
+    "OS URI registration / real external WORK-LAB or DESIGN-LAB handoff",
+    "installed runtime / Owner acceptance",
+    "model quality/performance and original full AI retest timeout repair",
+    "HUB004 installation/update and all-format qualification"
+  ],
+  "continuity": {
+    "original39": "FROZEN_UNCHANGED",
+    "private_Cowork_full_transcript": "UNVERIFIED",
+    "cloud_backup": "UNVERIFIED",
+    "ASTRYN_source": "NOT_READY_TO_DELETE",
+    "whole_product": "PARTIAL"
+  },
+  "source_binding_note": "每组execution保留各自patch；最终frontend/native/browser为2064eb2e1f87ffbb2b535e5ae73acc9f514cd5a7a4c3b7163766c3ae6bb72bef，不将较早Rust/Python验证宣称为最终全仓测试"
+}

@@ -1,0 +1,12 @@
+{
+  "frontend/src/spaces/ui-first.css": "1a5da3a232d9a0a4a484dbc20c22c217143cea0702ea5f04200b96eb9e3070d6",
+  "frontend/src/api/conversation.ts": "bdf9d189c716278ff5046ccf2d78c0f0a8f0c5e4e3a15431188c9371d616c779",
+  "frontend/src/components/MaterialQuestionPanel.tsx": "ba6ac6b37f24d5ecd5fe3d3706be3534336022e4a3621fb931131af99a21fb52",
+  "frontend/src/__tests__/ConversationPanel.test.tsx": "b59efc8b8ef800dba3afda5072142675eb472c408372d2f5bc094d655989efa5",
+  "frontend/src/__tests__/MaterialQuestionPanel.test.tsx": "c63954152981651202f5931a2231f816498fef7178fc90df5647667f90279e12",
+  "crates/archeaxis-api/tests/conversation_api.rs": "f4f036ecbe4149aaa31cdcb253fc7f4a4eaf6c8a5a1c63f315140632392f1988",
+  "scripts/probes/aaos01_material_companion_loop.py": "23d369143842c24b941988bbf1db1bdcad940829c31de216bbf90d3ce3b250d1",
+  "scripts/probes/aaos01_grouped_owner_loop.py": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c",
+  "scripts/probes/aaos01_tauri_webdriver_loop.py": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa",
+  "tests/test_material_companion_native_probe.py": "e2143fcc17055eb7303498b1a04ab4d1b9b5b0c8fbffd1650cd22eeb5319a019"
+}

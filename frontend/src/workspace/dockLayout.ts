@@ -33,7 +33,7 @@ export function restoreLayout(api:DockviewApi,layout:LayoutLayout,identity?:{wor
  if(new Set(normalized).size!==normalized.length)throw new Error("旧布局存在重复业务宿主；请明确恢复为默认布局");
  let sequence=0;
  const panels:SerializedDockview["panels"]={};
- const leaf=(ids:string[],active:string,size:number):Node=>({type:"leaf",size,data:{id:`restored_${++sequence}`,views:ids.map(presentationPanelId),activeView:businessPanelId(active)}});
+ const leaf=(ids:string[],active:string,size:number):Node=>({type:"leaf",size,data:{id:`restored_${++sequence}`,views:ids.map(presentationPanelId),activeView:presentationPanelId(active)}});
  const walk=(tree:LayoutDock,parent:Orientation,size:number):Node=>{
   if(tree.kind==="empty")return {type:"branch",size,data:[]};
   if(tree.kind==="tabs")return leaf(tree.panels,tree.active,size);

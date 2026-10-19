@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy, type RenderTask } from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import { focusVisibleTarget } from "../presentation/focus";
 
 // The worker is bundled by Vite; source documents never fetch a remote viewer.
 GlobalWorkerOptions.workerSrc = workerUrl;
@@ -17,6 +18,11 @@ export function PdfReader({ bytes, page, onPageChange, focusRequest = 0 }: {
   const [error, setError] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
   const region = useRef<HTMLElement>(null);
+  const focusIntent = useRef<{owner: Element | null; pending: boolean}>({owner:null,pending:false});
+  useEffect(() => {
+    // Record the explicit jump's focus owner before loading or drawing can finish.
+    focusIntent.current = {owner: window.document.activeElement, pending: Number.isFinite(focusRequest) && focusRequest > 0};
+  }, [focusRequest]);
   useEffect(() => {
     let alive = true;
     setDocument(null);
@@ -29,6 +35,7 @@ export function PdfReader({ bytes, page, onPageChange, focusRequest = 0 }: {
     if (!document) return;
     let alive = true;
     let rendering: RenderTask | undefined;
+    const intent = focusIntent.current;
     const requested = Math.max(1, Math.min(document.numPages, page));
     document.getPage(requested).then((loaded) => {
       if (!alive || !canvas.current) return;
@@ -39,7 +46,12 @@ export function PdfReader({ bytes, page, onPageChange, focusRequest = 0 }: {
       if (!context) throw new Error("canvas unavailable");
       rendering = loaded.render({ canvasContext: context, canvas: canvas.current, viewport });
       return rendering.promise;
-    }).then(() => { if (alive) region.current?.focus(); }).catch((cause: Error) => {
+    }).then(() => {
+      if (alive && rendering && intent === focusIntent.current && intent.pending) {
+        intent.pending = false;
+        if (window.document.activeElement === intent.owner) focusVisibleTarget(region.current, null);
+      }
+    }).catch((cause: Error) => {
       if (alive && cause.name !== "RenderingCancelledException") setError(true);
     });
     return () => { alive = false; rendering?.cancel(); };

@@ -1,0 +1,1114 @@
+{
+  "schema": "aaos.ui-first-task-plan/1",
+  "plan_id": "AAOS-UI-FIRST-PLAN-20261009",
+  "created_at": "2026-10-09T12:27:16.995716+00:00",
+  "status": "PLANNING_READY",
+  "implementation_status": "NOT_EXECUTED",
+  "authority_role": "USER_REQUEST_DERIVED_PLAN_NOT_AUTOMATIC_AUTHORITY_PROMOTION",
+  "execution_scope": "NO_IMPLEMENTATION_IN_THIS_TURN",
+  "default_future_slice": "S1",
+  "first_slice_tasks": [
+    "UF00",
+    "UF01",
+    "UF02",
+    "UF03",
+    "CB01",
+    "UF04",
+    "UF06"
+  ],
+  "first_slice_acceptance": "真实工作台/知识库/编辑保存重启 + 系统恢复 + 16父能力可发现 + 新Shell视觉与无障碍回归；真人/安装资格单列。",
+  "independent_queues": [
+    "S01",
+    "V01"
+  ],
+  "frozen_future": [
+    "FT01",
+    "FT02",
+    "FT03",
+    "FT04"
+  ],
+  "tasks": [
+    {
+      "id": "UF00",
+      "title": "最小基线接手与页面承接核对",
+      "phase": "S0",
+      "depends_on": [],
+      "page_ids": [
+        "20"
+      ],
+      "write_set": [
+        "docs/current/",
+        "docs/CONFIGURATION_AUTHORITY_INDEX.md",
+        "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+        "AUTHORITY.md",
+        "AGENTS.md"
+      ],
+      "implementation": [
+        "现场读回两目录 branch/HEAD/status 与全部未提交修改，确认本切片唯一 writer；本轮快照不能当下一轮当前事实",
+        "确认 SUP-022 与 10/04 Q 规范有效条款；将 10/09 用户优先级、产品与 UI 增量写入现有当前入口，不伪造 SUP 编号",
+        "把 22 页面职责映射到现有 route、对象、读写合同与缺口；逻辑页面不强制 22 个独立路由",
+        "保留原始档案和旧日期证据，停止旧包自动执行，仅冻结已被取代条款"
+      ],
+      "acceptance": [
+        "有效基线与 dirty 保护清单可回读；未丢失未提交改动",
+        "页面→源码→合同→验收映射明确；缺失权威标 AUTHORITY_REFERENCE_MISSING",
+        "只做支撑 UI 的入口修正，不以全仓治理完结作为启动 UI 的前提"
+      ],
+      "verification": [
+        "git status --short；git diff --stat",
+        "读取现有 Authority、合同与来源 SHA；结构门禁按 changed-path 发现"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF01",
+      "title": "正式 UI 视觉、资产与公共 Shell",
+      "phase": "S1",
+      "depends_on": [
+        "UF00"
+      ],
+      "page_ids": [
+        "01",
+        "02",
+        "03",
+        "17",
+        "18",
+        "19",
+        "20"
+      ],
+      "write_set": [
+        "frontend/src/",
+        "frontend/src/assets/",
+        "frontend/src/presentation/",
+        "frontend/src/styles/",
+        "frontend/src/__tests__/",
+        "scripts/a0_browser_smoke.py"
+      ],
+      "implementation": [
+        "以新 22 页参考、tokens.css 和资产清单更新真实 React Shell；沿用现有黑/白/cosmic 主题与业主 emblem",
+        "保留一级域/二级页/三级对象、搜索命令、历史路由、窄窗抽屉、可键盘操作和动效降级",
+        "复用已修复状态栏、Inspector、焦点与 A0；截图只作比较，业务图形用真实对象或清楚的 unavailable",
+        "登记逐资产哈希、许可、用途、打包与主题差异；包内字体是候选，不强制新增字体或升级依赖"
+      ],
+      "acceptance": [
+        "主要布局、字体、色彩、间距与原图同尺寸对照；差异有理由和来源",
+        "宽窄窗、三主题、焦点/弹窗/返回与状态栏回归无已知 T1–T5 倒退",
+        "演示笔记、假 KPI 和占位按钮未冒充业务结果"
+      ],
+      "verification": [
+        "现有前端类型检查、受影响 Vitest",
+        "现有 A0 与状态栏故障注入回归；真实 DPI/IME 留 M01"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF02",
+      "title": "同一套页面与有限运行适配器",
+      "phase": "S1",
+      "depends_on": [
+        "UF01"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "frontend/src/spaces/SpaceView.tsx",
+        "frontend/src/lib/",
+        "frontend/src/spaces/",
+        "src-tauri/src/core_bridge.rs",
+        "packages/contracts/"
+      ],
+      "implementation": [
+        "移除 desktop 与 browser 业务页面分裂，React 页面只接现有统一数据接口；transport 随宿主适配",
+        "复用现有 Tauri production frontendDist/custom protocol 修复和 Core bridge，不重造 router 或本地 DB",
+        "将四个 canonical surface 向真实页面职责拆分；保留 legacy route/deep-link 兼容入口与无后端状态"
+      ],
+      "acceptance": [
+        "桌面/浏览器挂同一业务页面；浏览器没有 Core 时明确不可用，不能回退假业务数据",
+        "Rust Core 仍是 SQLite/CAS 唯一 writer；不存在 UI localStorage 第二业务库",
+        "原生产 custom protocol、有限命令、权限与历史路由不退化"
+      ],
+      "verification": [
+        "前端适配器/路由回归与严格合同校验",
+        "隔离 Core+Tauri 原生回读；非交互优先，真实窗口启动遵守确认边界"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF03",
+      "title": "工作台、知识库、阅读编辑真实闭环",
+      "phase": "S1",
+      "depends_on": [
+        "UF02"
+      ],
+      "page_ids": [
+        "01",
+        "02",
+        "03"
+      ],
+      "write_set": [
+        "frontend/src/spaces/",
+        "frontend/src/components/",
+        "frontend/src/lib/",
+        "frontend/src/editor/",
+        "crates/archeaxis-core/",
+        "crates/archeaxis-api/",
+        "packages/contracts/"
+      ],
+      "implementation": [
+        "接续 CanonicalLibrary/CanonicalKnowledge 与成熟 Tiptap，不新造编辑器",
+        "普通文本/笔记/草稿不需依据、云服务、额度或网络即可保存；内容身份与核验、采用、掌握、AI 资格分别展示",
+        "新建→中文编辑→保存→检索→引用→版本查看→退出重启回读；原件/CAS/未知载荷保持",
+        "编辑上下文和草稿恢复、空态、错误、权限、冲突及取消必须实际可用"
+      ],
+      "acceptance": [
+        "隔离本地数据根的 Core 实际持久化与重启回读通过，原始来源哈希不变",
+        "离线未配置模型照常保存；保存失败不会显示成功或吞草稿",
+        "一份真实 ID/版本可从列表进入正文、原件与历史；来源未绑定可区分"
+      ],
+      "verification": [
+        "现有 document/block/draft/reader 定向合同与前端测试",
+        "隔离 GUI/Core 持久化 journey；物理中文输入另列 M01"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF04",
+      "title": "系统可靠性、版本与工作区恢复入口",
+      "phase": "S1",
+      "depends_on": [
+        "UF03",
+        "CB01"
+      ],
+      "page_ids": [
+        "19",
+        "20"
+      ],
+      "write_set": [
+        "frontend/src/components/BackupPanel.tsx",
+        "frontend/src/spaces/SettingsSpace.tsx",
+        "frontend/src/lib/",
+        "frontend/src/spaces/"
+      ],
+      "implementation": [
+        "将已存在备份创建/列表接到系统页，使用 Core 实际返回标识和元数据，校对旧正则/显示名差异",
+        "增加选择→完整性及兼容预检→明确确认→恢复→故障反馈→重启回读；版本恢复和工作区恢复分别表达",
+        "普通保存、草稿恢复、Document 版本恢复、AI 撤回、整个 workspace 恢复是五类动作"
+      ],
+      "acceptance": [
+        "备份列表到恢复完成是一条真实用户路径；schema/ID 不匹配显示真实错误",
+        "独立数据根恢复后 DB/CAS/对象/引用/草稿回读一致，失败不破坏原库",
+        "用户确认只作用于选择的恢复目标，不以脚本 21 步历史 PASS 替代当前 UI 验收"
+      ],
+      "verification": [
+        "BackupPanel/SettingsSpace 定向前端与 bridge 合同",
+        "隔离备份/损坏包/不兼容/取消/重启回读；禁用正式库作为测试材料"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF05",
+      "title": "学习路径与课程主旅程",
+      "phase": "S1b",
+      "depends_on": [
+        "UF03"
+      ],
+      "page_ids": [
+        "06",
+        "07"
+      ],
+      "write_set": [
+        "frontend/src/components/KnowledgeCoursePanel.tsx",
+        "frontend/src/spaces/CanonicalLearning.tsx",
+        "frontend/src/lib/",
+        "crates/archeaxis-core/",
+        "packages/contracts/"
+      ],
+      "implementation": [
+        "复用已有课程生成/查看/render 与学习对象，不新建教学平台或数据库",
+        "按已有 Profile/Recipe/Event 模型承接诊断、先修缺口、负荷、编码、复习提取、训练实战、Teach-back、元认知与反馈画像巩固；尚无模型的子项进入详情并挂可验收后续缺口",
+        "课程绑定知识不可变版本，目标/场景/练习/rubric/进度/events 与 renderer 能力分开",
+        "保留旧知识/课程绑定；stale binding 提示，不偷偷升级老课或旧事件 rubric"
+      ],
+      "acceptance": [
+        "知识→学习路径→课程→真实练习入口可回读，缺项不靠假进度补齐",
+        "课程离线保存及重启有效；源版本更新时旧绑定仍能解析",
+        "8 renderer 名称不被宣称为 8 个真实引擎"
+      ],
+      "verification": [
+        "现有 course/learning 合同、前端及版本绑定测试",
+        "隔离 course 生成、保存、阅读、学习事件重启回读"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF06",
+      "title": "全部能力及细项可发现性",
+      "phase": "S1",
+      "depends_on": [
+        "UF02"
+      ],
+      "page_ids": [
+        "17",
+        "18"
+      ],
+      "write_set": [
+        "frontend/src/spaces/CanonicalCapabilities.tsx",
+        "frontend/src/presentation/",
+        "docs/truth/",
+        "docs/current/",
+        "crates/archeaxis-api/"
+      ],
+      "implementation": [
+        "能力目录从现有 CAP/registry/证据投影生成；16 父项全部可搜索和进入详情",
+        "对照原蓝图、97 资产来源、新任务书与 186 设计细项，建立子项/别名/依赖/供体/承接任务映射",
+        "当前可用、实现程度、资格、冻结执行及未来意图独立显示；缺证据 UNKNOWN",
+        "旧 REQUIREMENT_TRACE 的依据前置条款按新普通保存决定纠正适用范围；不创建第二进度数据库"
+      ],
+      "acceptance": [
+        "没有能力被只因延期而删除；父项/细项和名称别名可发现",
+        "独立核对来源与实际投影，186 设计文本不自证明需求已全覆盖",
+        "每个缺口可回到任务与来源；历史 PASS 未显示成当前可用"
+      ],
+      "verification": [
+        "registry 合同、搜索/别名/状态投影测试",
+        "96 跟踪项和 16 CAP 完整核对；缺失细项来源明确标记"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF07",
+      "title": "教学需求到反馈修订与人工交换",
+      "phase": "S2",
+      "depends_on": [
+        "UF05",
+        "CB02"
+      ],
+      "page_ids": [
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "16"
+      ],
+      "write_set": [
+        "frontend/src/spaces/",
+        "frontend/src/components/",
+        "frontend/src/lib/",
+        "packages/contracts/",
+        "crates/archeaxis-core/",
+        "crates/archeaxis-api/"
+      ],
+      "implementation": [
+        "串联需求→表达方案审阅→交付登记/版本→练习 Teach-back→反馈修订→再交付，优先手工导入导出",
+        "A 知识读取、B 观察候选、C 需求方案、D 交付登记、E 反馈修订复用现有对象；不造五个微服务",
+        "采纳动作只能由真实 actor 权限触发；专业依据/识别质量/表达适配/操作故障/掌握/AI 资格六类反馈分别负责",
+        "外部内容为非特权材料，带目的/授权/撤回/哈希/幂等/重试/版本关系，表达修订不改知识正文"
+      ],
+      "acceptance": [
+        "用隔离真实 Core ID 实跑整条路径并重启；重复导入/交付不重复创建",
+        "新知识版本、旧课程绑定、旧评分事件和修订 lineage 都可读",
+        "人工试学结果单列，合成 actor 或演示答案不算真人效果",
+        "AAOS 可独立完成；未写其他项目或共享库"
+      ],
+      "verification": [
+        "现有教学/course/delivery/actor 幂等负例与 UI tests",
+        "本地两次手工交换、校验/损坏/重复/权限拒绝/撤回回读；真实试学 M01"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF08",
+      "title": "双链图谱与研究工作面",
+      "phase": "S3",
+      "depends_on": [
+        "UF03",
+        "CB03"
+      ],
+      "page_ids": [
+        "04",
+        "05"
+      ],
+      "write_set": [
+        "frontend/src/spaces/",
+        "frontend/src/components/",
+        "crates/archeaxis-core/",
+        "crates/archeaxis-api/"
+      ],
+      "implementation": [
+        "复用知识关系、别名、锚点、搜索和投影；图谱不是新的主存储",
+        "节点/边/反链能跳回真实文档和来源；图形不可用有列表降级",
+        "研究问题、材料、假设、方法、反证与结论通过既有空间文档承接；学术接口/GraphRAG 作为可选合格供体"
+      ],
+      "acceptance": [
+        "图与列表查询同一对象/版本，增删关系可重启回读",
+        "研究结论的来源与依据独立呈现，离线不制造学术检索结果"
+      ],
+      "verification": [
+        "关系/反链/索引与组件定向回归",
+        "Core 数据变更→投影→来源跳转回读"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF09",
+      "title": "AI 记忆、纠正评测复测与受限回执",
+      "phase": "S3",
+      "depends_on": [
+        "UF07"
+      ],
+      "page_ids": [
+        "13",
+        "14",
+        "22"
+      ],
+      "write_set": [
+        "frontend/src/spaces/",
+        "frontend/src/components/",
+        "frontend/src/lib/",
+        "crates/archeaxis-core/",
+        "crates/archeaxis-api/",
+        "packages/contracts/"
+      ],
+      "implementation": [
+        "复用已有 machine correction/retest 和有限任务接口，补 memory→候选→回答→评测→采纳→复测→撤回旅程",
+        "记忆/知识包/规则技能/用途/范围/时效/版本/客户端消费只在产品授权范围内；不读取私人 Agent native session",
+        "模型存在、可发现、可加载、调用成功、端到端有效五层分别报告；预算、超时与资源串行按真实状态",
+        "AI 生成身份不能伪装 human，原答案与 rubric 版本不改写；通用 Agent Runtime 与参数训练独立延期"
+      ],
+      "acceptance": [
+        "来源授权与最小权限合同、human 假冒拒绝和撤回后的消费行为可验",
+        "有现有可用模型时真实 isolated 调用并记录；缺模型 NOT_RUN，不下载大模型或伪造 REAL",
+        "机器资格不等于人类掌握或专业知识可信"
+      ],
+      "verification": [
+        "现有 correction/retest/permission/receipt 负例回归",
+        "可用模型条件下同 Core 持久化、重启、撤回；否则保留明确环境缺项"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF10",
+      "title": "资源、开源吸收与模板入口",
+      "phase": "S3",
+      "depends_on": [
+        "UF06",
+        "O01"
+      ],
+      "page_ids": [
+        "15"
+      ],
+      "write_set": [
+        "frontend/src/templates/",
+        "frontend/src/components/",
+        "frontend/src/spaces/",
+        "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+        "config/",
+        "packages/contracts/"
+      ],
+      "implementation": [
+        "复用已有模板与 28 学科登记、真实对象版本/坐标/引用和成熟编辑器属性；不再实现已存在 cursor 分页",
+        "资源入口分别显示可用插件、吸收算法、SDK/API/CLI、内容参考、候选和冻结供体",
+        "只接当页所需供体，复核 68 surface 记录及 115 冲突的适用项；不安装整个 369/691 池",
+        "模板共用 capability 与 versioned binding，超页数量/空页/循环 cursor/重启均可验"
+      ],
+      "acceptance": [
+        "模板创建→编辑→保存→再载入→重启的内容/位置/引用不丢失",
+        "供体模式、版本、许可证与可用资格不混淆；索引数量不是集成数量",
+        "分页当前实现被复用并经新切片测试，未默认为仍有旧 100 条限制"
+      ],
+      "verification": [
+        "现有模板 binding/editor attrs/cursor 回归",
+        "隔离真实 Core 模板规模与重启验证；外部 API 缺环境单列"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF11",
+      "title": "导入导出、多格式与平台互通",
+      "phase": "S3",
+      "depends_on": [
+        "UF07",
+        "CB04"
+      ],
+      "page_ids": [
+        "16"
+      ],
+      "write_set": [
+        "frontend/src/spaces/",
+        "frontend/src/components/",
+        "scripts/",
+        "workers/",
+        "packages/contracts/",
+        "crates/archeaxis-core/",
+        "docs/current/"
+      ],
+      "implementation": [
+        "人工教学交换已在 UF07 完成；这里扩展真实 worker/adapter 与现有 profiles",
+        "每种格式独立记录正文/结构/定位/损失/启动/安装态，不以文件扩展名支持冒充保真",
+        "功能等价、数据兼容、双向往返、增量同步四类独立验收；完整平台范围保留，按实际 profile 分批",
+        "未知原始字段、媒体与 CAS 保留；原始字节不格式化，失败仍保留原件"
+      ],
+      "acceptance": [
+        "选定格式/平台对象往返、损失报告及引用定位可回读",
+        "没有默默吞未知 payload；不把 fixture 通过等同正式旧库全迁移"
+      ],
+      "verification": [
+        "现有格式矩阵、worker/Core 合同和 profile 验证",
+        "isolated 导入/导出/第二次导入幂等/损坏材料回读"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF12",
+      "title": "基础画布与视觉表达",
+      "phase": "S2",
+      "depends_on": [
+        "UF07"
+      ],
+      "page_ids": [
+        "21"
+      ],
+      "write_set": [
+        "frontend/src/spaces/",
+        "frontend/src/components/",
+        "frontend/src/templates/",
+        "crates/archeaxis-core/",
+        "packages/contracts/"
+      ],
+      "implementation": [
+        "先完成课程/表达方案关联的图文、节点关系、布局与媒体引用，SVG/Canvas 是可编辑表达",
+        "复用对象版本、坐标和 CAS，不把参考截图当地业务画布",
+        "动画产物、参数仿真、空间场景/XR 的基础元数据与能力详情保留，高级引擎留 FT01/FT02"
+      ],
+      "acceptance": [
+        "编辑表达→保存→退出→重启后图文、布局、媒体引用完整",
+        "导出的表达 revision 不改知识正文；不宣称基础图文已实现物理模拟或 XR"
+      ],
+      "verification": [
+        "已有 canvas/layout/template 合同与组件回归",
+        "隔离 Core 保存、再载入、引用缺失和表达修订回读"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "UF13",
+      "title": "当前 UI 切片统一验证与交接",
+      "phase": "FINAL",
+      "depends_on": [
+        "UF04",
+        "UF06",
+        "UF08",
+        "UF09",
+        "UF10",
+        "UF11",
+        "UF12"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        "scripts/a0_browser_smoke.py",
+        "frontend/src/__tests__/",
+        ".project-local/runs/"
+      ],
+      "implementation": [
+        "按已实施范围逐页留同尺寸参考/真实界面、后端 ID/版本、差异与未接通项；运行现有门禁",
+        "记录源码快照、工具版本、命令、退出码、前后哈希和日志；源变化 INVALIDATED",
+        "更新现有 Q/F/开放台账有效承接与六类验收，不把计划/LOCAL_PASS 当完成产品",
+        "先交付小切片并持续收口，不要求等 22 页全做完才展示首批 UI"
+      ],
+      "acceptance": [
+        "已实施页面无演示数据冒充，原生与 browser 运行界线明确",
+        "本地行为、安装生命周期、人工交换、真人试学、长期效果、治理分别记账",
+        "所有未运行/失败/缺环境/云端额度问题仍可见，required skip 不算 PASS"
+      ],
+      "verification": [
+        "现有受影响门禁与 canonical quick/full（先核对当前脚本及暂停任务授权）",
+        "当前工作区快照本地结果；物理/native/install/manual 交 M01"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "AFTER_IMPLEMENTED_SLICES",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "CB01",
+      "title": "工作区恢复有限契约及隔离恢复后端",
+      "phase": "S1",
+      "depends_on": [
+        "UF00"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "crates/archeaxis-core/",
+        "crates/archeaxis-api/",
+        "src-tauri/src/core_bridge.rs",
+        "packages/contracts/",
+        "frontend/src/lib/"
+      ],
+      "implementation": [
+        "核对既有 backup/create/list、离线恢复脚本、真正 Core backup_id/filename/schema 与 document_restore",
+        "在现有恢复底座上补受限的 preview/validate/restore/restart 语义与权限，尽量复用而非另写恢复引擎",
+        "需要新字段/命令时按合同版本化，不将任意路径开放给 WebView，不偷改 strict v1",
+        "恢复操作处理一致快照、CAS 引用、兼容性、取消、失败与原库保全"
+      ],
+      "acceptance": [
+        "真实 backup ID 可被前端消费，preview/readback 和拒绝路径明确",
+        "原库/坏包/不同 schema/WAL/重启场景在独立 fixture 中可验，恢复失败原目标不损坏"
+      ],
+      "verification": [
+        "已有 backup/restore/core bridge 合同与独立恢复回归",
+        "不使用正式库或原始恢复档案，不安装/卸载宿主"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "CB02",
+      "title": "教学交换和修订合同最小补齐",
+      "phase": "S2",
+      "depends_on": [
+        "UF05"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "packages/contracts/",
+        "crates/archeaxis-core/",
+        "crates/archeaxis-api/",
+        "src-tauri/src/core_bridge.rs",
+        "frontend/src/lib/"
+      ],
+      "implementation": [
+        "A–E 语义映射现有 source/knowledge/course/delivery/learning-event/correction 对象，列出实缺字段",
+        "补 schema version、stable ID、purpose/scope/privacy/withdrawal、idempotency/hash/retry 与 lineage",
+        "权限从真实 actor 产生，producer 不能自报 human；外部教材不提升执行权限"
+      ],
+      "acceptance": [
+        "旧 v1 包继续验证、新字段按版本扩展；重复/冲突/伪冒/撤回负例 fail closed",
+        "版本 lineage 和知识/课程/表达独立，历史 event rubric 不被替换"
+      ],
+      "verification": [
+        "现有跨语言严格合同/权限回归",
+        "隔离 import/export→Core→重启→withdraw/readback"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "CB03",
+      "title": "集合、属性、关系、视图与公式增量",
+      "phase": "S3",
+      "depends_on": [
+        "UF03"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "crates/archeaxis-core/",
+        "crates/archeaxis-api/",
+        "packages/contracts/",
+        "frontend/src/lib/"
+      ],
+      "implementation": [
+        "复核 F02 的既有实现与缺口，按集合/属性/关系/过滤视图/公式拆可交付子项；只补实际缺口",
+        "复用 Document/Block/source/CAS、版本与 unknown payload；不重建知识主库",
+        "公式执行限制、版本变更和索引投影归 Core 合同"
+      ],
+      "acceptance": [
+        "每个子项都有源条款、真实写读和离线重启证据，未实现细项在 UF06 可见",
+        "关系/视图不会变成第二 writer，错误公式不会静默成功"
+      ],
+      "verification": [
+        "现有对象/关系/视图/公式测试，缺口补针对性回归"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "CB04",
+      "title": "格式、worker 资格与旧库迁移缺口",
+      "phase": "S3",
+      "depends_on": [
+        "UF03"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "workers/",
+        "src/",
+        "scripts/",
+        "crates/archeaxis-core/",
+        "packages/contracts/",
+        "docs/current/"
+      ],
+      "implementation": [
+        "复用已存在 workers 和格式矩阵，逐项辨别 Linux/Windows/外部工具/模型依赖",
+        "普通导入保留原件；OCR/ASR/图像/Office/PDF/HTML/media/canvas 不共用虚假 PASS",
+        "旧非空库迁移按明确批准来源做只读快照→隔离目标→差分/哈希/引用/重启/回滚；未获来源许可先 NOT_RUN",
+        "无需为 UI 首批等待全格式或全旧库迁移收口"
+      ],
+      "acceptance": [
+        "格式证据足以说明内容/结构/定位/损失边界，缺引擎报告真实原因",
+        "fixture、isolated REAL Core 与正式用户旧库资格分开；源哈希/未知载荷未丢失"
+      ],
+      "verification": [
+        "现有 worker/Core/迁移/备份入口；按合同发现，禁用正式恢复材料"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "O01",
+      "title": "开源池、模板供体及依赖维护核对",
+      "phase": "S3",
+      "depends_on": [
+        "UF00"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+        "docs/current/",
+        "config/",
+        "frontend/src/templates/",
+        "scripts/release_sbom.py",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "implementation": [
+        "读取 OSS/Qoder 交接与现有 68 surface，按供体身份/吸收方式/许可/版本/权限/实测资格解释冲突",
+        "当前 115 冲突涉及 59 记录，仅处理当前页面所需项；其余记录冻结及激活条件",
+        "28 学科模板与供体目录复用同 capability，不独立维护第二状态库；不用来源行数考核集成率",
+        "承接 F14 当前所用依赖版本矩阵、既有 SBOM/NOTICE 入口和可迁出；升级需独立数据副本演练、锁文件与回退，不擅自 major/global upgrade，退出演练由 UF11/M01 承接"
+      ],
+      "acceptance": [
+        "每个所选供体有采用/候选/延期/拒绝与证据原因；完整池意图未删除",
+        "共享文件从已存在分支/dirty 实现人工审阅集成，不盲目 cherry-pick 不同祖先分支"
+      ],
+      "verification": [
+        "JSON 唯一 ID、引用与 selected scope 事实核对；官方许可/版本仅在具体选型执行时核实"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "G01",
+      "title": "冻结旧执行路由与更新消费者投影",
+      "phase": "SUPPORT",
+      "depends_on": [
+        "UF00"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        "docs/truth/",
+        "docs/CONFIGURATION_AUTHORITY_INDEX.md",
+        "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+        "AUTHORITY.md",
+        "AGENTS.md",
+        "workspace/intake/"
+      ],
+      "implementation": [
+        "按 FREEZE-REGISTER 逻辑冻结过时栈/重复任务/已替代门槛，保留原件与日期绑定证据",
+        "活动任务、能力投影、引用入口、context 消费者和有限 gate 同步；不构建新治理平台",
+        "本规划 ID UF/CB 等只是工作切片，不是 CAP/Q/F/SUP 编号；执行再按当前权限写现有 live ledger"
+      ],
+      "acceptance": [
+        "旧冻结任务不再被自动重复执行，仍可检索且可恢复；当前入口无旧 formal-Avalonia 误导",
+        "历史 PASS/FAIL 不改写，不以挪目录假装闭环完成"
+      ],
+      "verification": [
+        "现有 document-authority/path-conventions/引用门禁；changed paths 定向检查"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "S01",
+      "title": "整仓体积、历史跟踪及外溢剩余审计",
+      "phase": "INDEPENDENT",
+      "depends_on": [
+        "UF00"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        "docs/history/",
+        ".project-local/archives/",
+        "scripts/maintenance/"
+      ],
+      "implementation": [
+        "重新计量当前项目已授权范围，分 Git 对象/活跃 worktree/缓存/安装器/恢复材料/来源/历史证据，不沿用旧 50GB 数字",
+        "Record 121 项已保全与去重约 2.206GB是子项成果；不是全仓体积或全体外溢关闭",
+        "docs/history 1007 条本地 exclude 不等于删除或长期跟踪裁决；Qoder 1114/475.3MiB是旧快照，不 git add .",
+        "有用材料留本仓，允许无损压缩/合并与关键信息摘要，保留原始恢复配方/哈希/来源；未知和他项目对象不动",
+        "大量删除/工作树退役须给当前 exact path 清单与回读后获得独立授权",
+        "三个明确子项S01.A/B/C按总交接和独立清理提示词推进；UI首批后继续，保留本轮NOT_EXECUTED。"
+      ],
+      "acceptance": [
+        "计量与每类归属可验证；未知 UNRESOLVED；删除前后保全与字节哈希可核对",
+        "不迁到外库；不删除安装器、原始素材、恢复材料或历史失败证据来省空间",
+        "同时满足A计量/保全、B外溢归属/readback、C长期裁决状态；任一未决不得宣告三项全部完成。"
+      ],
+      "verification": [
+        "只读 inventory/归属/哈希/压缩恢复验证；不在首批 UI 自动执行"
+      ],
+      "risk": "AUDIT_THEN_EXACT_PATH_APPROVAL",
+      "activation": "INCLUDED_IN_FUTURE_HANDOFF_AFTER_UI_NOT_CURRENT_EXECUTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE",
+      "subtasks": [
+        {
+          "id": "S01.A",
+          "title": "整仓体积的全面保全清理",
+          "depends_on": [],
+          "status": "NOT_EXECUTED",
+          "source_roots": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS"
+          ],
+          "acceptance": [
+            "同口径前后实测",
+            "逐路径归属/处置/授权/readback",
+            "项目内原字节恢复及SHA验证",
+            "未知/受保护项保留"
+          ]
+        },
+        {
+          "id": "S01.B",
+          "title": "外溢数据归属、迁移合并与清理",
+          "depends_on": [],
+          "status": "NOT_EXECUTED",
+          "source_roots": [
+            "D:\\tmp",
+            "D:\\All projects\\dsh-acl-reports-20261003",
+            "D:\\All projects\\.aaos-stray-archive-20261001",
+            "D:\\All projects\\.aaos-root-backup-20261001"
+          ],
+          "exact_file_sources": "其他D根12临时文件仅既有迁移清单exact path，不扩盘扫描",
+          "acceptance": [
+            "创建/用途/项目归属证据",
+            "来源目的哈希/字节对应",
+            "目的地恢复先于来源删除授权",
+            "剩余未决逐项登记，不假0"
+          ],
+          "prerequisite_milestone": "S01.A初始只读计量/归属；不要求A清理处置全部完成，可共享盘点后分轨串行收口"
+        },
+        {
+          "id": "S01.C",
+          "title": "docs/history长期保留及Git跟踪裁决",
+          "depends_on": [],
+          "status": "NOT_EXECUTED",
+          "source_roots": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\docs\\history",
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\worktrees\\gov-ui-20261008\\docs\\history"
+          ],
+          "acceptance": [
+            "tracked/untracked/ignored当前盘点",
+            "逐类长期保留/跟踪决定",
+            "原件哈希/恢复/索引仍有效",
+            "本地exclude/审批/规则落地/Git交付分开报告"
+          ],
+          "prerequisite_milestone": "S01.A初始只读计量/归属；不要求A清理处置全部完成，可共享盘点后分轨串行收口"
+        }
+      ],
+      "handoff": "HANDOFF-STORAGE-CLEANUP.md"
+    },
+    {
+      "id": "V01",
+      "title": "已暂停的本地验证与 CI 节流承接",
+      "phase": "INDEPENDENT",
+      "depends_on": [
+        "UF00"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "scripts/ci/local_verify.py",
+        "scripts/ci/run_tests.ps1",
+        ".github/workflows/",
+        "scripts/runtime/",
+        "docs/current/"
+      ],
+      "implementation": [
+        "此线曾被用户停止；新 UI 规划不视为恢复旧 CI 工作的许可，留作单独后续切片",
+        "dirty 中 local_verify.py/workflows 已有实现，先审阅实际 quick/full、串行锁、快照 INVALIDATED 与缺环境报告，不重复建立测试体系",
+        "核对 push/PR 重复重型检查、concurrency、新提交取消、快检前置、显式验收候选安装与稳定 required summary",
+        "根 pycache/egg-info 精确允许分类仍保持未知文件检查；无 global install/模型下载/网络权限变化"
+      ],
+      "acceptance": [
+        "可本地/Linux/Windows/外部依赖/人工清单与当前 CI 一致；每次命令/版本/时间/退出码/日志齐全",
+        "云额度停跑 CLOUD_BLOCKED 不当代码 FAIL；本地通过不冒充 exact-SHA cloud PASS",
+        "本轮不自动推送、合并、触发重跑或删除历史 artifact"
+      ],
+      "verification": [
+        "先查看现有入口，再按获选切片运行 quick/full；云端与安装人工独立"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "SEPARATE_USER_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "H01",
+      "title": "独立细项基线与历史覆盖差距",
+      "phase": "SUPPORT",
+      "depends_on": [
+        "UF00"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        "docs/truth/",
+        "docs/history/",
+        "workspace/intake/"
+      ],
+      "implementation": [
+        "旧 270 来源键完整承接，补 Q/F、新 96 项及 UI/OSS/对话，来源键加 namespace 避免 Q00/T1 重名",
+        "原蓝图、97资产表与六来源文已找回；不再开重复找文件任务；未知更细来源不能写成已读",
+        "从独立来源对照 186 设计文本与实际 CAP 子项，防止设计/代码自身证明需求完备",
+        "当前可见用户对话提炼稳定决定和未闭环问题；不扫描私人 native sessions"
+      ],
+      "acceptance": [
+        "每条已知来源任务都有合并/保留/冻结/独立挂起去向与理由",
+        "权威缺失或无法证实的历史全文/细项完整性明确 UNVERIFIED，不阻塞已知首批 UI"
+      ],
+      "verification": [
+        "来源 ID 唯一性、96/22/270 覆盖和原文 hash 对照"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "FUTURE_SLICE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "M01",
+      "title": "原生、安装、人工试学与长期效果资格",
+      "phase": "ACCEPTANCE",
+      "depends_on": [
+        "UF04",
+        "UF05",
+        "UF06"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        ".project-local/runs/"
+      ],
+      "implementation": [
+        "物理 100/125/150/200% DPI、中文 IME、键盘/读屏、窗口缩放、reduced-motion 与普通用户 AQ26 单列",
+        "AQ27 Core 自动资格已有历史 isolated 证据；新快照重新验证，不再整项错标全部待人审",
+        "当前候选安装/卸载/升级/回滚/快捷方式/实际 WebView2/原 Green 根身份分别核；真实安装或反复窗口须先说明影响并确认",
+        "三项目可先人工交换；真人试学、回流修订与长期效果按真实时间/人物证据，禁止 synthetic 冒充"
+      ],
+      "acceptance": [
+        "独立列治理/本地行为/安装/交换/真实试学/长期效果六类状态，不强造全通过",
+        "未执行/缺工具/用户未参与项保持 NOT_RUN 或人工待验收；不自动发布"
+      ],
+      "verification": [
+        "选定候选 exact source/artifact hash；当前端到端日志与真实人工回执"
+      ],
+      "risk": "MANUAL_INSTALL_CONFIRMATION",
+      "activation": "OWNER_ACCEPTANCE_SELECTION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "FT01",
+      "title": "动态表达与参数仿真分轨",
+      "phase": "FROZEN_FUTURE",
+      "depends_on": [
+        "UF12"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        "docs/truth/"
+      ],
+      "implementation": [
+        "保存动画产物、参数模型、算法/单位/条件/结果与 renderer 元数据意图；当前只保留发现入口",
+        "引擎、依赖、预算与真实案例独立评估后再选切片，不自动装全部渲染器"
+      ],
+      "acceptance": [
+        "能力详情完整；激活时动态产物与参数仿真分别验收"
+      ],
+      "verification": [
+        "当前仅来源/详情覆盖；引擎验证 NOT_RUN"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "EXPLICIT_FUTURE_ACTIVATION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "FT02",
+      "title": "空间记忆及 3D/VR/AR/XR",
+      "phase": "FROZEN_FUTURE",
+      "depends_on": [
+        "UF12"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        "docs/truth/"
+      ],
+      "implementation": [
+        "保存 2D/2.5D/3D/知识宫殿/VR/AR/XR 的资源、布局、定位、事件与长期意图",
+        "高级空间引擎与硬件需求由独立后续决定，不因基础画布完成宣称实现"
+      ],
+      "acceptance": [
+        "延期不从可发现详情消失；激活需具体硬件/引擎/案例资格"
+      ],
+      "verification": [
+        "当前仅意图与依赖可追溯；硬件/引擎 NOT_RUN"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "EXPLICIT_FUTURE_ACTIVATION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "FT03",
+      "title": "同步、多端、可选训练与维护扩展",
+      "phase": "FROZEN_FUTURE",
+      "depends_on": [
+        "UF06"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        "docs/truth/"
+      ],
+      "implementation": [
+        "保留多端/Web/mobile/加密/增量同步、参数训练可选实验和成本维护退出目标",
+        "当前核心体验不依赖外部同步、训练或付费，按具体需求选独立切片"
+      ],
+      "acceptance": [
+        "未来范围及激活条件可查，不将参数训练当 AI 知识纠正的必要前置"
+      ],
+      "verification": [
+        "当前仅来源追踪；真实同步/训练 NOT_RUN"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "EXPLICIT_FUTURE_ACTIVATION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    },
+    {
+      "id": "FT04",
+      "title": "可选科研接口与高级 Agent/Marketplace",
+      "phase": "FROZEN_FUTURE",
+      "depends_on": [
+        "UF09"
+      ],
+      "page_ids": [],
+      "write_set": [
+        "docs/current/",
+        "docs/truth/"
+      ],
+      "implementation": [
+        "保留科研/GraphRAG/外部学术供体、通用 Agent 编排与 Marketplace 长期意图",
+        "当前只复用受限任务/工具/回执；不构建新 Agent OS 或强制三项目实时互联"
+      ],
+      "acceptance": [
+        "被保留的目标与当前必要接口分开，激活须许可/资源/权限/模型环境与验收"
+      ],
+      "verification": [
+        "当前仅详情/来源；在线第三方与高级 Runtime NOT_RUN"
+      ],
+      "risk": "LOCAL_CODE",
+      "activation": "EXPLICIT_FUTURE_ACTIVATION",
+      "status": "NOT_EXECUTED",
+      "evidence_level": "NO_EVIDENCE"
+    }
+  ],
+  "acceptance_channels": [
+    "governance",
+    "local_behavior",
+    "installation_lifecycle",
+    "manual_exchange",
+    "real_learning_trial",
+    "long_term_benefit"
+  ],
+  "conditional_dependencies": [
+    {
+      "task": "UF11",
+      "depends_on": "CB03",
+      "condition": "使用集合/关系/公式/复杂视图的高级互通 profile；基本 Markdown/人工交换无需等待全部F02"
+    },
+    {
+      "task": "FT02",
+      "depends_on": "FT01",
+      "condition": "空间场景需要参数仿真时"
+    },
+    {
+      "task": "FT03",
+      "depends_on": "UF04",
+      "condition": "启用同步协同/设备端前先有一致快照恢复资格"
+    },
+    {
+      "task": "FT03",
+      "depends_on": "UF11",
+      "condition": "跨平台数据同步使用已资格化profile"
+    },
+    {
+      "task": "FT04",
+      "depends_on": "O01",
+      "condition": "实际激活第三方科研/高级Agent供体前核许可/预算/权限"
+    }
+  ],
+  "default_followup_tasks": [
+    "S01"
+  ],
+  "handoff_scope_update": {
+    "at": "2026-10-09T12:40:57.966212+00:00",
+    "reason": "用户要求将整仓50多GB清理、外溢清理、docs/history长期跟踪裁决明确加入交接",
+    "current_execution": "DOCUMENT_UPDATE_ONLY",
+    "UI_priority": "PRESERVED",
+    "CI": "PAUSED_NOT_RESUMED"
+  }
+}

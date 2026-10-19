@@ -1,0 +1,39 @@
+{
+  "schema": "aaos.archive-checks/v1",
+  "checks": [
+    {
+      "check": "document authority",
+      "status": "fulfilled",
+      "value": {
+        "chunk_id": "09474b",
+        "wall_time_seconds": 0.2982526,
+        "exit_code": 0,
+        "original_token_count": 53,
+        "output": "input hashes: verified 7, outside/private UNVERIFIED 4\r\ndocument authority: single current record, root references resolve, in-repository hashes checked (external sources remain UNVERIFIED), coverage complete\r\n"
+      }
+    },
+    {
+      "check": "git diff --check",
+      "status": "fulfilled",
+      "value": {
+        "chunk_id": "59a653",
+        "wall_time_seconds": 0.2000374,
+        "exit_code": 0,
+        "original_token_count": 0,
+        "output": ""
+      }
+    },
+    {
+      "check": "owned process and port cleanup",
+      "status": "fulfilled",
+      "value": {
+        "chunk_id": "786215",
+        "wall_time_seconds": 1.0118203,
+        "exit_code": 0,
+        "original_token_count": 27,
+        "output": "{\r\n  \"checked_at\": \"2026-10-19T03:22:58.1097708+08:00\",\r\n  \"owned_processes\": [],\r\n  \"listeners\": []\r\n}\r\n"
+      }
+    }
+  ],
+  "note": "Execution results preserved; archive hashes and current navigation readback are recorded separately."
+}

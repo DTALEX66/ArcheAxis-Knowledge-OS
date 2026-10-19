@@ -660,7 +660,7 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
       the other's own subtree.
     * Clipped is not the same as reachable. A band that is clipped by an ancestor which cannot
       scroll is invisible with no way back, which is worse than overlap - so every clipped band is
-      checked against its nearest scroll ancestor, and one that cannot be scrolled into view is
+      checked against its nearest overflowing scroll ancestor, and one that cannot be scrolled into view is
       reported separately rather than passing as "no overlap".
     """
     return page.evaluate(
@@ -703,7 +703,10 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
             let ancestor = node.parentElement;
             while (ancestor) {
               const style = getComputedStyle(ancestor);
-              if (['auto', 'scroll'].includes(style.overflowY)) return ancestor;
+              // An unconstrained auto wrapper grows with its content. Keep looking for
+              // the bounded outer scroller instead of reporting that reachable content is lost.
+              if (['auto', 'scroll'].includes(style.overflowY)
+                  && ancestor.scrollHeight > ancestor.clientHeight) return ancestor;
               if (['hidden', 'clip'].includes(style.overflowY)) return null;
               ancestor = ancestor.parentElement;
             }

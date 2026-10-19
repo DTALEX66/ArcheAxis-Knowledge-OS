@@ -1,0 +1,44 @@
+{
+  "observed_at": "2026-10-18T20:09:17.958160+00:00",
+  "evidence_level": "LOCAL_FILE_AND_RECORDED_RECEIPT_READBACK",
+  "migration_receipt": ".project-local/runs/be268a2d33/codex-visual-install-20261018/artifacts/migration.json",
+  "migration_receipt_sha256": "423c43ac2c38edecce747f5cf9fd893ad4857fe3fe8be063194a3721637cb392",
+  "recorded_fields": {
+    "startUtc": "2026-10-18T14:36:35.494474+00:00",
+    "endUtc": "2026-10-18T14:38:02.547618+00:00",
+    "source": "C:\\Users\\ALEX\\Documents\\Codex\\2026-10-18\\codex-codex-ui-ux-work-lab\\outputs\\visual-tool-lab",
+    "destination": "C:\\Users\\ALEX\\.codex\\tools\\visual-tool-lab",
+    "sourceFiles": 2034,
+    "sourceBytes": 87860444,
+    "byteIntegrity": "PASS: every previously enumerated source/runtime file preserved; extra long-path task cache entries recorded separately",
+    "oldToolPathAbsent": true,
+    "oldRuntimePathAbsent": true,
+    "pluginSourceHashMatch": true
+  },
+  "current_source_absent": true,
+  "current_old_runtime_absent": true,
+  "current_files": [
+    {
+      "path": "C:\\Users\\ALEX\\.codex\\tools\\visual-tool-lab\\CURRENT-INSTALLATION.md",
+      "bytes": 1536,
+      "sha256": "5674362fe1d3f84d52cd74a0e4bbdd5b025630ed358037f3aa49ddc9ecbd0c91"
+    },
+    {
+      "path": "C:\\Users\\ALEX\\.codex\\tools\\visual-tool-lab\\package-lock.json",
+      "bytes": 7463,
+      "sha256": "51f9b21da11477ed7f02bcda370ec9a4f741cc2d96cda46a5c172a1bcea8e6fe"
+    },
+    {
+      "path": "C:\\Users\\ALEX\\.codex\\plugins\\cache\\alex-local-tools\\visual-audit-tools\\1.0.0\\skills\\visual-project-audit\\SKILL.md",
+      "bytes": 2575,
+      "sha256": "56d6c7075def4a2147248d817101ff0fbbce83c8c60a16d7b5553dff85bfb506"
+    },
+    {
+      "path": "C:\\Users\\ALEX\\.codex\\plugins\\cache\\alex-local-tools\\visual-audit-tools\\1.0.0\\skills\\visual-project-audit\\references\\runtime.json",
+      "bytes": 1111,
+      "sha256": "86828dde62bf318210f87163e1869a067a50830258e9e7be8d7d9fce525df0e7"
+    }
+  ],
+  "automatic_discovery_in_this_session": "UNVERIFIED",
+  "scope": "仅归档指定视觉工具迁移入口和中文安装说明；不重新安装/删除，不等同截图全部技能插件可用或当前会话自动发现。"
+}

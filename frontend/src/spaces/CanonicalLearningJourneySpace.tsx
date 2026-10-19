@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { courseLearningTarget } from "../presentation/courseLearningTarget";
 import { coreCommand } from "../api/core";
 import { coreFailureReason } from "../presentation/labels";
@@ -9,6 +9,7 @@ import type { ObjectTrailLevel } from "../components/NavTrail";
 
 type CourseRow = { manifest_id: string; title: string; stale: boolean; status: "candidate"; human_review_required: true };
 type KnowledgeRow = { knowledge_id: string; head: string };
+const ImportedCoursePanel = lazy(() => import("../components/ImportedCoursePanel").then(module => ({ default: module.ImportedCoursePanel })));
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid learning projection");
   return value as Record<string, unknown>;
@@ -41,6 +42,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
   const [courseId, setCourseId] = useState<string>();
   const [returnItemKey, setReturnItemKey] = useState<string>();
   const [courseRead, setCourseRead] = useState(0);
+  const [externalCourseOpen, setExternalCourseOpen] = useState(false);
   const [itemKey, setItemKey] = useState<string | undefined>(initialItemKey);
   const working = useOptionalCoreWorkingState();
   useEffect(() => {
@@ -105,6 +107,9 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
       <div className="ui-content-panel">
         <h2>{pageId === "07" ? "从知识到课程与练习" : "继续你的学习路径"}</h2>
         <p>选择已保存课程，读取绑定的知识版本，再进入真实练习。课程候选、复习记录和掌握资格分别记录。</p>
+        <details onToggle={event => setExternalCourseOpen(event.currentTarget.open)}><summary>外部课程与测验</summary>
+          {externalCourseOpen ? <Suspense fallback={<p role="status">正在打开课程导入…</p>}><ImportedCoursePanel /></Suspense> : null}
+        </details>
         <ol className="ui-learning-steps" aria-label="学习旅程"><li>选择知识或课程</li><li>阅读绑定版本与学习目标</li><li>独立作答和核对</li><li>记录反馈，按真实安排复习</li></ol>
         <section aria-label="已保存课程"><div className="ui-library-toolbar"><h3>已保存课程</h3><button disabled={loading} onClick={() => void load()}>刷新课程</button></div>
           {loading ? <p role="status">正在读取课程…</p> : null}

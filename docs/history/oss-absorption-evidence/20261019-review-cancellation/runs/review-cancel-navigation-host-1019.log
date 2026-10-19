@@ -1,0 +1,167 @@
+warning: in the working copy of 'THIRD_PARTY_NOTICES.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-api/tests/conversation_api.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-api/tests/material_question_api.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-application/tests/machine_answer_resources.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/DOCUMENTATION_AUTHORITY_INDEX.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/current/AAOS-ACTIVE-EXECUTION.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/ConversationPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/DockWorkspace.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/LiveRegionBudget.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/MaterialQuestionPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/api/generated/conversation.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/api/generated/material-question.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/App.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ConversationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/MaterialQuestionPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ModelConfigurationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/SpaceView.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/ui-first.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/DockWorkspace.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/dock-workspace.css', CRLF will be replaced by LF the next time Git touches it
+        Info Looking up installed tauri packages to check mismatched versions...
+     Running beforeBuildCommand `npm --prefix ../frontend run build`
+
+> archeaxis-knowledge-frontend@0.6.14 build
+> node ../scripts/runtime/frontend.mjs build
+
+[build-timing] frontend-typecheck: PASS 6.790s; D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\90163d88d5c2\artifacts\bt-34c83628.json
+vite v5.4.21 building for production...
+transforming...
+✓ 348 modules transformed.
+rendering chunks...
+computing gzip size...
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/index.html                                              0.52 kB │ gzip:   0.34 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/aaos-brand-mark-cosmic-bLvxzA9b.png             12.92 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/aaos-brand-mark-black-983Gq3QE.png              12.93 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/aaos-brand-mark-white-oRGwNmhR.png              13.33 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/pdf.worker.min-CjEcRF4W.mjs                  1,264.34 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/idle-BidrzR8f.png                            2,262.93 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/deep-space-background-20261015-Bv2uooL6.png  2,710.01 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/speaking-CJ_zdu-E.png                        2,822.69 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/awaiting_approval-CBHlPKKn.png               2,907.39 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/executing-BjajoVot.png                       3,024.37 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/listening-4fTDHf-4.png                       3,374.22 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/interrupted-BL96UV4u.png                     3,414.87 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/failed-C7RGHyo7.png                          4,922.68 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/completed-jF_IpipA.png                       4,978.69 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/thinking-Cy0c68P_.png                        5,043.62 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/DocumentEditor-BFRcWqb7.css                      0.28 kB │ gzip:   0.20 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/ImportedCoursePanel-C4zEV8kL.css                 0.43 kB │ gzip:   0.24 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/index-iQMyw_Ng.css                             299.99 kB │ gzip:  38.33 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/ImportedCoursePanel-Bv_lRjuE.js                 14.05 kB │ gzip:   6.75 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/DocumentEditor-CXR7heUZ.js                     409.54 kB │ gzip: 131.06 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/PdfReader-ohZr6Bgp.js                          484.56 kB │ gzip: 145.47 kB
+../.project-local/runs/be268a2d33/90163d88d5c2/artifacts/frontend-dist/assets/index-D_zm7zol.js                            1,856.70 kB │ gzip: 484.67 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.66s
+[build-timing] frontend-vite: PASS 3.352s; D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\90163d88d5c2\artifacts\bt-34c83628.json
+warning: in the working copy of 'THIRD_PARTY_NOTICES.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-api/tests/conversation_api.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-api/tests/material_question_api.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-application/tests/machine_answer_resources.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/DOCUMENTATION_AUTHORITY_INDEX.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/current/AAOS-ACTIVE-EXECUTION.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/ConversationPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/DockWorkspace.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/LiveRegionBudget.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/MaterialQuestionPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/api/generated/conversation.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/api/generated/material-question.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/App.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ConversationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/MaterialQuestionPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ModelConfigurationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/SpaceView.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/ui-first.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/DockWorkspace.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/dock-workspace.css', CRLF will be replaced by LF the next time Git touches it
+   Compiling archeaxis-desktop v0.6.14 (D:\All projects\ArcheAxis-Knowledge-OS\src-tauri)
+warning: method `read` is never used
+ --> src\credentials.rs:4:8
+  |
+2 | pub trait Vault {
+  |           ----- method in this trait
+3 |     fn write(&self, reference: &str, value: &[u8]) -> Result<(), &'static str>;
+4 |     fn read(&self, reference: &str) -> Result<Vec<u8>, &'static str>;
+  |        ^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `CredReadW` is never used
+  --> src\credentials.rs:59:12
+   |
+59 |         fn CredReadW(
+   |            ^^^^^^^^^
+
+warning: function `CredFree` is never used
+  --> src\credentials.rs:66:12
+   |
+66 |         fn CredFree(buffer: *mut c_void);
+   |            ^^^^^^^^
+
+warning: associated items `failed`, `safe_mode`, `may_start_core`, `may_run_migrations`, and `recovery_operations_available` are never used
+    --> src\recovery.rs:1204:12
+     |
+1203 | impl RecoveryState {
+     | ------------------ associated items in this implementation
+1204 |     pub fn failed(message: &str) -> Self {
+     |            ^^^^^^
+...
+1237 |     pub fn safe_mode(&self) -> bool {
+     |            ^^^^^^^^^
+...
+1241 |     pub fn may_start_core(&self) -> bool {
+     |            ^^^^^^^^^^^^^^
+...
+1245 |     pub fn may_run_migrations(&self) -> bool {
+     |            ^^^^^^^^^^^^^^^^^^
+...
+1249 |     pub fn recovery_operations_available(&self) -> bool {
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: associated function `failed` is never used
+    --> src\recovery.rs:1345:12
+     |
+1344 | impl RecoveryStatusDto {
+     | ---------------------- associated function in this implementation
+1345 |     pub fn failed(message: &str, backups: Vec<String>) -> Self {
+     |            ^^^^^^
+
+warning: function `resolve_runtime` is never used
+  --> src\..\..\desktop\src-tauri\src\runtime.rs:58:8
+   |
+58 | pub fn resolve_runtime(
+   |        ^^^^^^^^^^^^^^^
+
+warning: `archeaxis-desktop` (bin "ArcheAxis") generated 6 warnings
+    Finished `release` profile [optimized] target(s) in 35.67s
+       Built application at: D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\tauri\release\ArcheAxis.exe
+[build-timing] tauri-with-bundle: PASS 48.333s; D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\90163d88d5c2\artifacts\bt-c93a78e4.json
+warning: in the working copy of 'THIRD_PARTY_NOTICES.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-api/tests/conversation_api.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-api/tests/material_question_api.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'crates/archeaxis-application/tests/machine_answer_resources.rs', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/DOCUMENTATION_AUTHORITY_INDEX.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/current/AAOS-ACTIVE-EXECUTION.json', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/ConversationPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/DockWorkspace.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/LiveRegionBudget.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/MaterialQuestionPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/api/generated/conversation.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/api/generated/material-question.ts', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/App.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ConversationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/MaterialQuestionPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ModelConfigurationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/SpaceView.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/ui-first.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/DockWorkspace.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/dock-workspace.css', CRLF will be replaced by LF the next time Git touches it
+[frontend] receipt=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\review-cancel-navigation-host-1019\artifacts\host-build.json; dist=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\90163d88d5c2\artifacts\frontend-dist

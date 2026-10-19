@@ -1,0 +1,88 @@
+{
+  "scope": "isolated proposal only; no product application",
+  "evidence_level": "SYNTHETIC",
+  "status": "PARTIAL",
+  "unit_verdict": "PASS",
+  "baseline": {
+    "files": 5,
+    "tests": 49,
+    "passed": 41,
+    "failed": 8,
+    "child_exit_code": 1,
+    "wrapper_exit_code": 1,
+    "failed_cases": [
+      "SYNTHETIC manual exact-key locating is opt-in and sends the unchanged key after explicit expansion",
+      "SYNTHETIC selected learning object uses its queue title without printing version identity or revealing the answer",
+      "SYNTHETIC missing display title is explicitly unverified and never replaced by the opaque key or the hidden answer",
+      "SYNTHETIC the existing diagnostic channel preserves all exact assessment identity fields without opening the answer",
+      "SYNTHETIC entering an answer does not put the opaque item and revision back into the collapsed draft summary",
+      "SYNTHETIC page11 presents the verified course title and publishes all binding identities only on request",
+      "SYNTHETIC page12 presents the verified course title and publishes all binding identities only on request",
+      "SYNTHETIC unresolved learning object explicitly withholds its title and still exposes identity failure"
+    ]
+  },
+  "proposal": {
+    "files": 5,
+    "tests": 49,
+    "passed": 49,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "run_receipts": {
+    "negative": {
+      "started_at": "2026-10-18T21:18:11.000137+00:00",
+      "ended_at": "2026-10-18T21:18:25.352443+00:00",
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        ".project-local/audits/ui-semantics-next-20261019/learning-density-proposal/original.config.mjs"
+      ],
+      "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\learning-density-original-verified",
+      "child_exit_code": 1,
+      "exit_code": 1,
+      "source_consistent": true
+    },
+    "positive": {
+      "started_at": "2026-10-18T21:20:04.057320+00:00",
+      "ended_at": "2026-10-18T21:20:18.401635+00:00",
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "frontend/node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        ".project-local/audits/ui-semantics-next-20261019/learning-density-proposal/validation.config.mjs"
+      ],
+      "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\learning-density-stable",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true
+    }
+  },
+  "native_screenshot": {
+    "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-415f723fdf9f\\tmp\\journey\\grouped-learning-review.png",
+    "sha256": "9595babd287866ca329ff3d93980578686909360f872a656f3aa499f607d29d7",
+    "actually_viewed": true,
+    "qualification": "existing native screenshot finding, not proposed native pass"
+  },
+  "patch_apply_check": {
+    "status": "PASS",
+    "exit_code": 0
+  },
+  "not_executed": [
+    "product application",
+    "TypeScript for proposed files",
+    "Vite/Tauri build for proposal",
+    "proposed native visual/keyboard/overflow validation",
+    "full product suite",
+    "exact-SHA CI",
+    "installed runtime",
+    "Owner acceptance"
+  ],
+  "failure_history": [
+    "positive-first-attempt.json: jsdom did not implement native details+Enter default activation; no product keyboard handler added; final test proves explicit click expansion only",
+    "original-test-selector-error.json / positive-test-selector-error.json: corrected test locator for oversized journal fixture assessment_1; preserved historical failure artifacts",
+    "positive-invalidated.json: 49 test child PASS but global dirty patch changed during wrapper run; wrapper INVALIDATED/exit3, never counted as valid gate PASS; stable final run repeated after root paused writes"
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "proposals": [
+    {
+      "name": "probe",
+      "root": ".project-local/audits/probe-identity-fix-20261019",
+      "status": "NOT_APPLIED",
+      "qualification": "仅隔离提案验证；正式仓集成/原生/安装NOT_EXECUTED",
+      "receipts_at_observation": [
+        {
+          "path": ".project-local/audits/probe-identity-fix-20261019/README.md",
+          "bytes": 4565,
+          "sha256": "05927e359ab40b3fa144f8f70ae936eb611cf91d0cc73d8831869cfe5d45f9e0"
+        },
+        {
+          "path": ".project-local/audits/probe-identity-fix-20261019/hashes.json",
+          "bytes": 1611,
+          "sha256": "25fc06e832f6dd6d44a9cbef9a66c16f45bb09dd3f8b75cb273864a21e1ad73f"
+        },
+        {
+          "path": ".project-local/audits/probe-identity-fix-20261019/proposed.patch",
+          "bytes": 41818,
+          "sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4"
+        },
+        {
+          "path": ".project-local/audits/probe-identity-fix-20261019/source-before.json",
+          "bytes": 1498,
+          "sha256": "edbb308e0f92d4da85499468cbaf8aaf47f3fe2790d61278c2a4a71ad9428687"
+        },
+        {
+          "path": ".project-local/audits/probe-identity-fix-20261019/verification.json",
+          "bytes": 2132,
+          "sha256": "70be3182dcbb82030fe35974ca8c99006329ad57c70f65930f469a26b16b1df3"
+        }
+      ]
+    },
+    {
+      "name": "be10-handoff",
+      "root": ".project-local/audits/be10-handoff-next-20261019",
+      "status": "NOT_APPLIED",
+      "qualification": "仅隔离提案验证；正式仓集成/原生/安装NOT_EXECUTED",
+      "receipts_at_observation": [
+        {
+          "path": ".project-local/audits/be10-handoff-next-20261019/CURRENT.md",
+          "bytes": 1180,
+          "sha256": "db3390d3e8e09abfaf6dab7c189bfd573e5c2ba88be6cff70b391e0696c6b575"
+        },
+        {
+          "path": ".project-local/audits/be10-handoff-next-20261019/DELIVERY.md",
+          "bytes": 3241,
+          "sha256": "942a9a4b61ec1ea32f37c96c1327aecd5c1f9a399dcbd437a2b824d7f53190d8"
+        },
+        {
+          "path": ".project-local/audits/be10-handoff-next-20261019/baseline.json",
+          "bytes": 2554,
+          "sha256": "36abc36cf964c077e6df4bbd75cb8ad7c1986b67a17870bec3efde04fe3923f5"
+        },
+        {
+          "path": ".project-local/audits/be10-handoff-next-20261019/be10-handoff.patch",
+          "bytes": 164362,
+          "sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997"
+        },
+        {
+          "path": ".project-local/audits/be10-handoff-next-20261019/code-manifest.json",
+          "bytes": 3521,
+          "sha256": "b48f6d955fc89aeef477d3a28967a767a8af80793bfe77aa68dddada9bd6fabc"
+        },
+        {
+          "path": ".project-local/audits/be10-handoff-next-20261019/final-readback.json",
+          "bytes": 2179,
+          "sha256": "0b5ddbc7deb8304be8e83e8744ca5ebee3c056a6f97b4d0dfc56d54cc1163d24"
+        },
+        {
+          "path": ".project-local/audits/be10-handoff-next-20261019/validation-baseline.json",
+          "bytes": 26778,
+          "sha256": "970472a9ef429585c03388f1e631c90c5192473210430381239e92713503ae82"
+        },
+        {
+          "path": ".project-local/audits/be10-handoff-next-20261019/validation.json",
+          "bytes": 10697,
+          "sha256": "9f2ed66c61c5b9e9c716c94314ba90d4fc59ca62e50f940a8c825266302ab3b8"
+        }
+      ]
+    },
+    {
+      "name": "capability-manifest",
+      "root": ".project-local/audits/capability-manifest-next-20261019",
+      "status": "NOT_APPLIED",
+      "qualification": "仅隔离提案验证；正式仓集成/原生/安装NOT_EXECUTED",
+      "receipts_at_observation": [
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/CURRENT.md",
+          "bytes": 3138,
+          "sha256": "fbcafa660e81fb08440fc0155e6a75e3bf4bcd65085b81dea0eaeb8331dc837c"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/ENVIRONMENT.json",
+          "bytes": 560,
+          "sha256": "81aef2e607eb8184c3477287a1a646cc69863c8e59ad742b0618e54155cd6b1e"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/FAILURES.md",
+          "bytes": 933,
+          "sha256": "399cc3f5f3f1b254f989c6c8e673ee32c459200acfde9a0d77981038ec7058ad"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/READBACK.json",
+          "bytes": 3410,
+          "sha256": "bae731e593a91d923b0d3fa2efa5d36f53893a95be7b364f8f58ee03a6abb43e"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/SOURCE-REFERENCES.json",
+          "bytes": 995,
+          "sha256": "03c5d04d90353fe8fcbbc9b65a42ef52f980573a907717573272227ae91f3ee4"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/capability-manifest.patch",
+          "bytes": 206324,
+          "sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/code-manifest.json",
+          "bytes": 1996,
+          "sha256": "b6cfe6063d7e0d790620a694cb94e8b715ae8d031b7e746c5a532c6fd9741493"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/pytest-acceptance.json",
+          "bytes": 1441,
+          "sha256": "a730d0bb900b8fc270f835b33b2b695018e74320043ad4523be54e0ee260c2b2"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/pytest-final-v2.json",
+          "bytes": 1434,
+          "sha256": "8e6de700d6c487d3897ea04d9dd95daeaf789e62f52c9141faff517d2e5d429d"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/ruff-acceptance.json",
+          "bytes": 1144,
+          "sha256": "31a8361e3bb8de55db090ff9a965f91cb7df57d965970020f3a1186df4c75816"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/typescript-acceptance.json",
+          "bytes": 826,
+          "sha256": "ee981c6070fd32921793415d35f53b5027a6f3b13a3b8a4b11698f028d9231c3"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/typescript.json",
+          "bytes": 805,
+          "sha256": "ba9615b6b3d0f919857eb0680a78054e9d78b7a06a54d1392e0f5d22420dc9f0"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/validation-final.json",
+          "bytes": 1365,
+          "sha256": "1a6b473229c92f613124d9f887d2b025ab09ed1d550f8a84d25ea62cab5a17fc"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-next-20261019/validation-first.json",
+          "bytes": 1353,
+          "sha256": "6294a213a487fa4500617a493d15c92ca5f2145a9e1b47913e86489a217eab10"
+        }
+      ]
+    }
+  ]
+}

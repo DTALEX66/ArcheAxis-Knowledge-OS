@@ -1,0 +1,28 @@
+{
+  "name": "pytest-acceptance",
+  "command": [
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "-m",
+    "pytest",
+    "-c",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace\\pytest.ini",
+    "--confcutdir",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace\\tests\\contract\\test_capability_package_contract.py",
+    "-q",
+    "--basetemp",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\test-acceptance-tmp",
+    "-o",
+    "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\pytest-acceptance-cache"
+  ],
+  "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-next-20261019\\validation-workspace",
+  "started_at": "2026-10-18T21:38:00.022244+00:00",
+  "ended_at": "2026-10-18T21:38:02.769727+00:00",
+  "exit_code": 0,
+  "evidence_level": "SYNTHETIC_ISOLATED_CONTRACT_NOT_RUNTIME",
+  "patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+  "log": "pytest-acceptance.log"
+}

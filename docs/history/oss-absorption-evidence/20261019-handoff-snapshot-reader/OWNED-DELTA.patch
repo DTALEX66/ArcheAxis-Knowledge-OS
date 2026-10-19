@@ -1,0 +1,2328 @@
+--- a/crates/archeaxis-api/src/lib.rs
++++ b/crates/archeaxis-api/src/lib.rs
+@@ -108,6 +108,11 @@
+         .route(
+             "/api/v1/project-handoff/preview",
+             post(project_handoff_preview::preview)
++                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
++        )
++        .route(
++            "/api/v1/project-handoff/snapshot",
++            post(project_handoff_preview::snapshot)
+                 .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+         )
+         .merge(ui_routes)
+--- a/crates/archeaxis-api/src/project_handoff_preview.rs
++++ b/crates/archeaxis-api/src/project_handoff_preview.rs
+@@ -1,4 +1,4 @@
+-//! 原逻辑project.handoff.preview的本地human入口；无正文/写入/投递/外部连接。
++//! 本地human预览及显式固定正文读取；无写入、投递或外部连接。
+ use crate::{AppState, project_handoff::proposal_fingerprint, project_observer::now_ms};
+ use archeaxis_contracts::{
+     project_handoff::{AuthorizationScope, Handoff, Payload, Unverified},
+@@ -15,6 +15,7 @@
+     response::{IntoResponse, Response},
+ };
+ use rusqlite::OptionalExtension;
++use sha2::{Digest, Sha256};
+ 
+ fn error(status: StatusCode, code: &'static str) -> Response {
+     (
+@@ -24,6 +25,103 @@
+         ),
+     )
+         .into_response()
++}
++
++/// 同一读取快照内重核恢复身份和原字节，不复用预览时点作为正文授权。
++pub(crate) async fn snapshot(
++    State(store): State<AppState>,
++    uri: Uri,
++    headers: HeaderMap,
++    bytes: Bytes,
++) -> Response {
++    use archeaxis_contracts::project_handoff_preview::{SNAPSHOT_SCHEMA, Snapshot, SnapshotScope};
++    if crate::request_actor(&headers) != Ok("human") {
++        return error(StatusCode::FORBIDDEN, "HANDOFF_SNAPSHOT_HUMAN_REQUIRED");
++    }
++    if uri.query().is_some() || bytes.len() > 65_536 {
++        return error(StatusCode::BAD_REQUEST, "HANDOFF_SNAPSHOT_INVALID_INPUT");
++    }
++    let proposal: Handoff = match serde_json::from_slice(&bytes) {
++        Ok(value) => value,
++        Err(_) => return error(StatusCode::BAD_REQUEST, "HANDOFF_SNAPSHOT_INVALID_INPUT"),
++    };
++    if !proposal.valid(now_ms()) || !matches!(proposal.payload, Payload::Context { .. }) {
++        return error(StatusCode::BAD_REQUEST, "HANDOFF_SNAPSHOT_INVALID_INPUT");
++    }
++    let result = store.submit(move |conn| -> Result<Snapshot, (&'static str, StatusCode)> {
++        let unavailable = || ("HANDOFF_SNAPSHOT_UNAVAILABLE", StatusCode::SERVICE_UNAVAILABLE);
++        let tx = conn.transaction().map_err(|_| unavailable())?;
++        let workspace = existing_workspace_id(&tx).map_err(|_| unavailable())?.ok_or_else(unavailable)?;
++        let epoch = authorization_fence::authorization_epoch(&tx).map_err(|_| unavailable())?.unwrap_or_else(|| "initial".into());
++        if proposal.producer.workspace_id != workspace || proposal.producer.restore_epoch != epoch {
++            return Err(("HANDOFF_SNAPSHOT_IDENTITY_MISMATCH", StatusCode::CONFLICT));
++        }
++        let Payload::Context { source, .. } = &proposal.payload else { unreachable!() };
++        let reference = &source.reference;
++        let version = i64::try_from(reference.version).map_err(|_| ("HANDOFF_SNAPSHOT_INVALID_INPUT", StatusCode::BAD_REQUEST))?;
++        // 先在同事务检查长度，再读取原始UTF-8。拒绝超限，绝不截断或换最新版。
++        let length: Option<i64> = tx.query_row(
++            "SELECT length(CAST(v.editor_json AS BLOB)) FROM documents d JOIN document_versions v ON v.document_id=d.document_id WHERE d.document_id=?1 AND v.version=?2",
++            rusqlite::params![reference.document_id,version], |row| row.get(0)).optional().map_err(|_| unavailable())?;
++        let Some(length) = length else { return Err(("HANDOFF_SNAPSHOT_NOT_FOUND", StatusCode::NOT_FOUND)); };
++        if !(0..=8 * 1024 * 1024).contains(&length) {
++            return Err(("HANDOFF_SNAPSHOT_TOO_LARGE", StatusCode::PAYLOAD_TOO_LARGE));
++        }
++        let (current, raw, stored_hash): (i64, String, String) = tx.query_row(
++            "SELECT d.current_version,v.editor_json,v.content_sha256 FROM documents d JOIN document_versions v ON v.document_id=d.document_id WHERE d.document_id=?1 AND v.version=?2",
++            rusqlite::params![reference.document_id,version], |row| Ok((row.get(0)?,row.get(1)?,row.get(2)?))).map_err(|_| unavailable())?;
++        if current <= 0 || format!("{:x}", Sha256::digest(raw.as_bytes())) != stored_hash {
++            return Err(("HANDOFF_SNAPSHOT_CONTENT_INVALID", StatusCode::CONFLICT));
++        }
++        if stored_hash != reference.content_sha256 {
++            return Err(("HANDOFF_SNAPSHOT_REFERENCE_MISMATCH", StatusCode::CONFLICT));
++        }
++        // 不返回未被上述原字节hash覆盖的current title、projection或blocks。
++        let editor_json: serde_json::Value = serde_json::from_str(&raw).map_err(|_| unavailable())?;
++        if !editor_json.is_object() || editor_json["type"] != "doc" {
++            return Err(("HANDOFF_SNAPSHOT_CONTENT_INVALID", StatusCode::CONFLICT));
++        }
++        let checked_at_ms = now_ms();
++        let value = Snapshot {
++            schema: SNAPSHOT_SCHEMA.into(), checked_at_ms, expires_at_ms: proposal.expires_at_ms,
++            proposal_sha256: proposal_fingerprint(&proposal).map_err(|_| unavailable())?,
++            producer: proposal.producer.clone(), reference: reference.clone(),
++            reference_state: if current == version { ReferenceState::Current } else { ReferenceState::Stale },
++            source_authentication: Unverified::Unverified, selection_qualification: Unverified::Unverified,
++            scope: SnapshotScope::LocalHumanReadOnly, editor_json,
++            grants_execution: false, grants_knowledge_acceptance: false,
++        };
++        if !value.valid(checked_at_ms) {
++            return Err(("HANDOFF_SNAPSHOT_EXPIRED", StatusCode::CONFLICT));
++        }
++        tx.commit().map_err(|_| unavailable())?;
++        Ok(value)
++    }).await;
++    match result {
++        Ok(Ok(value)) if !value.valid(now_ms()) => {
++            error(StatusCode::CONFLICT, "HANDOFF_SNAPSHOT_EXPIRED")
++        }
++        Ok(Ok(value)) => match serde_json::to_vec(&value) {
++            Ok(bytes) if bytes.len() <= 24 * 1024 * 1024 && !value.valid(now_ms()) => {
++                error(StatusCode::CONFLICT, "HANDOFF_SNAPSHOT_EXPIRED")
++            }
++            Ok(bytes) if bytes.len() <= 24 * 1024 * 1024 => (
++                [(axum::http::header::CONTENT_TYPE, "application/json")],
++                bytes,
++            )
++                .into_response(),
++            Ok(_) => error(StatusCode::PAYLOAD_TOO_LARGE, "HANDOFF_SNAPSHOT_TOO_LARGE"),
++            Err(_) => error(
++                StatusCode::SERVICE_UNAVAILABLE,
++                "HANDOFF_SNAPSHOT_UNAVAILABLE",
++            ),
++        },
++        Ok(Err((code, status))) => error(status, code),
++        Err(_) => error(
++            StatusCode::SERVICE_UNAVAILABLE,
++            "HANDOFF_SNAPSHOT_UNAVAILABLE",
++        ),
++    }
+ }
+ pub(crate) async fn preview(
+     State(store): State<AppState>,
+--- a/crates/archeaxis-api/tests/project_handoff_preview_process.rs
++++ b/crates/archeaxis-api/tests/project_handoff_preview_process.rs
+@@ -193,6 +193,168 @@
+         launch(json!([grant(&workspace, &reference.document_id)])),
+     );
+     (dir, db, workspace, reference, owned, port)
++}
++
++fn snapshot_reply(port: u16, token: &str, value: &Value) -> (u16, Value) {
++    let (status, body) = request(
++        port,
++        token,
++        "POST",
++        "/api/v1/project-handoff/snapshot",
++        "Content-Type: application/json\r\n",
++        &value.to_string(),
++    );
++    (status, serde_json::from_str(&body).unwrap())
++}
++
++#[test]
++fn human_snapshot_is_fixed_raw_hash_checked_and_reads_no_unhashed_projection_or_title() {
++    let (_dir, db, workspace, reference, _core, port) = setup();
++    let mut conn = rusqlite::Connection::open(&db).unwrap();
++    // 合成负例：独立projection/blocks及current标题不属于editor原字节身份。
++    conn.execute("UPDATE document_versions SET text_projection='UNHASHED WRONG PROJECTION' WHERE document_id=?1", [&reference.document_id]).unwrap();
++    conn.execute(
++        "UPDATE document_blocks SET text_projection='UNHASHED WRONG BLOCK' WHERE document_id=?1",
++        [&reference.document_id],
++    )
++    .unwrap();
++    let input = proposal(&workspace, &reference);
++    let before = snapshot(&db);
++    let (status, body) = snapshot_reply(port, HUMAN, &input);
++    assert_eq!(status, 200);
++    let decoded: archeaxis_contracts::project_handoff_preview::Snapshot =
++        serde_json::from_value(body.clone()).unwrap();
++    assert!(decoded.valid(archeaxis_api::project_observer::now_ms()));
++    assert_eq!(body["reference"], serde_json::to_value(&reference).unwrap());
++    assert_eq!(body["reference_state"], "CURRENT");
++    assert_eq!(body["scope"], "LOCAL_HUMAN_READ_ONLY");
++    assert!(
++        body["editor_json"]
++            .to_string()
++            .contains("SYNTHETIC PRIVATE BODY")
++    );
++    for bad in [
++        "UNHASHED WRONG",
++        "private title",
++        "source_id",
++        "text_projection",
++        "blocks",
++        HUMAN,
++        OBSERVER,
++    ] {
++        assert!(!body.to_string().contains(bad));
++    }
++    assert_eq!(before, snapshot(&db));
++    // 保存新版本由fixture执行，历史snapshot必须仍回原正文，不读v2或当前header。
++    archeaxis_domain::document::save(&mut conn,&reference.document_id,1,json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"NEW VERSION NEVER SUBSTITUTE"}]}]})).unwrap();
++    let before = snapshot(&db);
++    let (status, stale) = snapshot_reply(port, HUMAN, &input);
++    assert_eq!(status, 200);
++    assert_eq!(stale["reference_state"], "STALE");
++    assert_eq!(body["editor_json"], stale["editor_json"]);
++    assert_eq!(before, snapshot(&db));
++}
++
++#[test]
++fn snapshot_denies_observer_machine_expiry_bad_reference_and_private_input_without_writes() {
++    let (_dir, db, workspace, reference, _core, port) = setup();
++    let input = proposal(&workspace, &reference);
++    let before = snapshot(&db);
++    for token in [MACHINE, OBSERVER, "invalid"] {
++        assert!(matches!(snapshot_reply(port, token, &input).0, 401 | 403));
++    }
++    for (field, value, status) in [
++        ("document_id", json!("missing_document"), 404),
++        ("version", json!(999), 404),
++        ("content_sha256", json!("f".repeat(64)), 409),
++    ] {
++        let mut altered = input.clone();
++        altered["payload"]["source"]["reference"][field] = value;
++        let (actual, body) = snapshot_reply(port, HUMAN, &altered);
++        assert_eq!(actual, status);
++        assert!(!body.to_string().contains("PRIVATE BODY"));
++    }
++    for field in ["workspace_id", "restore_epoch"] {
++        let mut v = input.clone();
++        v["producer"][field] = json!("f".repeat(32));
++        assert_eq!(snapshot_reply(port, HUMAN, &v).0, 409);
++    }
++    let mut expired = input.clone();
++    expired["created_at_ms"] = json!(1);
++    expired["expires_at_ms"] = json!(2);
++    assert_eq!(snapshot_reply(port, HUMAN, &expired).0, 400);
++    let mut private = input.clone();
++    private["body"] = json!("not permitted");
++    assert_eq!(snapshot_reply(port, HUMAN, &private).0, 400);
++    assert_eq!(
++        request(
++            port,
++            HUMAN,
++            "POST",
++            "/api/v1/project-handoff/snapshot?url=invalid",
++            "Content-Type: application/json\r\n",
++            &input.to_string()
++        )
++        .0,
++        400
++    );
++    assert_eq!(
++        request(
++            port,
++            HUMAN,
++            "POST",
++            "/api/v1/project-handoff/snapshot",
++            "Content-Type: application/json\r\n",
++            &" ".repeat(65_537)
++        )
++        .0,
++        413
++    );
++    assert_eq!(before, snapshot(&db));
++}
++
++#[test]
++fn snapshot_rechecks_restore_after_preview_and_rejects_corrupted_stored_editor() {
++    let (_dir, db, workspace, reference, _core, port) = setup();
++    let input = proposal(&workspace, &reference);
++    assert_eq!(preview(port, HUMAN, &input).0, 200);
++    let mut conn = rusqlite::Connection::open(&db).unwrap();
++    let tx = conn.transaction().unwrap();
++    archeaxis_store_sqlite::authorization_fence::install_after_restore(&tx).unwrap();
++    tx.commit().unwrap();
++    let before = snapshot(&db);
++    assert_eq!(snapshot_reply(port, HUMAN, &input).0, 409);
++    assert_eq!(before, snapshot(&db));
++    drop(_core);
++    // 新建独立合成fixture，不将恢复epoch重设为旧值。
++    let (_dir, db, workspace, reference, _core, port) = setup();
++    let conn = rusqlite::Connection::open(&db).unwrap();
++    conn.execute(
++        "UPDATE document_versions SET editor_json='{}' WHERE document_id=?1 AND version=1",
++        [&reference.document_id],
++    )
++    .unwrap();
++    let before = snapshot(&db);
++    let (status, body) = snapshot_reply(port, HUMAN, &proposal(&workspace, &reference));
++    assert_eq!(status, 409);
++    assert_eq!(body["code"], "HANDOFF_SNAPSHOT_CONTENT_INVALID");
++    assert_eq!(before, snapshot(&db));
++}
++
++#[test]
++fn snapshot_rejects_oversized_stored_body_without_truncation_or_business_writes() {
++    let (_dir, db, workspace, reference, _core, port) = setup();
++    let conn = rusqlite::Connection::open(&db).unwrap();
++    conn.execute(
++        "UPDATE document_versions SET editor_json=?1 WHERE document_id=?2 AND version=1",
++        rusqlite::params!["x".repeat(8 * 1024 * 1024 + 1), reference.document_id],
++    )
++    .unwrap();
++    let before = snapshot(&db);
++    let (status, body) = snapshot_reply(port, HUMAN, &proposal(&workspace, &reference));
++    assert_eq!(status, 413);
++    assert_eq!(body["code"], "HANDOFF_SNAPSHOT_TOO_LARGE");
++    assert_eq!(before, snapshot(&db));
+ }
+ #[test]
+ fn human_preview_reads_real_fixed_metadata_and_leaves_all_business_tables_unchanged() {
+--- a/crates/archeaxis-api/tests/project_handoff_snapshot_queue.rs
++++ b/crates/archeaxis-api/tests/project_handoff_snapshot_queue.rs
+@@ -0,0 +1,138 @@
++//! Owned in-process router/Store queue regression, not launch-token or native qualification.
++use archeaxis_store_sqlite::writer::Store;
++use axum::{body::Body, http::Request};
++use http_body_util::BodyExt;
++use serde_json::{Value, json};
++use std::{
++    future::{Future, poll_fn},
++    pin::Pin,
++    sync::mpsc,
++    task::Poll,
++    time::{Duration, Instant},
++};
++use tower::ServiceExt;
++
++async fn poll_once<F: Future>(mut future: Pin<&mut F>) -> Poll<F::Output> {
++    poll_fn(|cx| Poll::Ready(future.as_mut().poll(cx))).await
++}
++
++// Assertion failure must release the owned Store callback before Store::drop joins it.
++struct ReleaseOnDrop(Option<mpsc::Sender<()>>);
++impl ReleaseOnDrop {
++    fn release(&mut self) {
++        if let Some(sender) = self.0.take() {
++            let _ = sender.send(());
++        }
++    }
++}
++impl Drop for ReleaseOnDrop {
++    fn drop(&mut self) {
++        self.release();
++    }
++}
++
++fn wait_until_expired(expires_at_ms: u64) {
++    // Wait for the actual production clock predicate, not an assumed scheduling delay.
++    // A fixed outer bound turns a stalled/backwards clock into a test failure.
++    let outer = Instant::now() + Duration::from_secs(5);
++    let (_sender, receiver) = mpsc::channel::<()>();
++    loop {
++        let now = archeaxis_api::project_observer::now_ms();
++        if now > expires_at_ms {
++            return;
++        }
++        assert!(
++            Instant::now() < outer,
++            "owned deadline clock did not advance"
++        );
++        let remaining = Duration::from_millis(expires_at_ms.saturating_sub(now) + 1);
++        let budget = remaining.min(outer.saturating_duration_since(Instant::now()));
++        assert!(matches!(
++            receiver.recv_timeout(budget),
++            Err(mpsc::RecvTimeoutError::Timeout)
++        ));
++    }
++}
++
++#[tokio::test]
++async fn accepted_snapshot_expires_while_queued_and_returns_no_body_or_writes() {
++    let directory = tempfile::tempdir().unwrap();
++    let store = Store::open(&directory.path().join("owned.sqlite")).unwrap();
++    let (workspace, reference, before_changes) = store
++        .submit(|conn| {
++            let workspace = archeaxis_domain::ui_state::workspace_id(conn).unwrap();
++            let document = archeaxis_domain::document::create_optional(
++                conn,
++                None,
++                None,
++                "SYNTHETIC queue-only title",
++                json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"SYNTHETIC QUEUED BODY MUST NOT RETURN"}]}]}),
++            )
++            .unwrap();
++            let reference = json!({
++                "document_id":document["document_id"],
++                "version":document["version"],
++                "content_sha256":document["content_sha256"],
++            });
++            (workspace, reference, conn.total_changes())
++        })
++        .await
++        .unwrap();
++    let app = archeaxis_api::router(store.clone());
++    let (entered_tx, entered_rx) = mpsc::channel();
++    let (release_tx, release_rx) = mpsc::channel();
++    let mut release = ReleaseOnDrop(Some(release_tx));
++    let mut blocker = Box::pin(store.submit(move |_| {
++        entered_tx.send(()).unwrap();
++        release_rx
++            .recv_timeout(Duration::from_secs(10))
++            .expect("owned queue blocker was not released");
++    }));
++    assert!(poll_once(blocker.as_mut()).await.is_pending());
++    entered_rx
++        .recv_timeout(Duration::from_secs(2))
++        .expect("owned Store callback did not start");
++
++    let created_at_ms = archeaxis_api::project_observer::now_ms();
++    let expires_at_ms = created_at_ms + 2_000;
++    let proposal = json!({
++        "schema":"archeaxis.project-handoff/v1",
++        "protocol":"archeaxis.project-observer/v1",
++        "idempotency_key":"1".repeat(32),
++        "producer":{"namespace":"archeaxis","workspace_id":workspace,"restore_epoch":"initial"},
++        "consumer":{"namespace":"work-lab","instance_id":"2".repeat(32)},
++        "created_at_ms":created_at_ms,"expires_at_ms":expires_at_ms,
++        "authority":"PREPARATION_ONLY",
++        "payload":{"kind":"context","source":{"reference":reference,"selection":{"kind":"whole_object"},"selection_qualification":"UNVERIFIED"},"purpose":"research","authorization_scope":"REFERENCE_METADATA_ONLY"},
++    });
++    let mut request = Box::pin(
++        app.oneshot(
++            Request::builder()
++                .method("POST")
++                .uri("/api/v1/project-handoff/snapshot")
++                .header("content-type", "application/json")
++                .header("x-archeaxis-actor", "human")
++                .body(Body::from(proposal.to_string()))
++                .unwrap(),
++        ),
++    );
++    // With the complete in-memory body and a ready Router, this drives input admission
++    // through the Store oneshot wait. HTTP 400 later would fail, not silently count as expiry.
++    assert!(poll_once(request.as_mut()).await.is_pending());
++    assert!(archeaxis_api::project_observer::now_ms() < expires_at_ms);
++    wait_until_expired(expires_at_ms);
++    release.release();
++    blocker.await.unwrap();
++    let response = request.await.unwrap();
++    assert_eq!(response.status().as_u16(), 409);
++    let bytes = response.into_body().collect().await.unwrap().to_bytes();
++    let body: Value = serde_json::from_slice(&bytes).unwrap();
++    assert_eq!(body["code"], "HANDOFF_SNAPSHOT_EXPIRED");
++    assert!(body.get("editor_json").is_none());
++    assert!(body.get("reference").is_none());
++    assert!(!String::from_utf8_lossy(&bytes).contains("SYNTHETIC QUEUED BODY"));
++    assert_eq!(
++        store.submit(|conn| conn.total_changes()).await.unwrap(),
++        before_changes
++    );
++}
+--- a/crates/archeaxis-contracts/src/project_handoff_preview.rs
++++ b/crates/archeaxis-contracts/src/project_handoff_preview.rs
+@@ -2,6 +2,48 @@
+ use crate::project_handoff::{AuthorizationScope, Handoff, Payload, Unverified};
+ use crate::project_observer::{self, NavigationState};
+ use serde::{Deserialize, Serialize};
++
++/// 正文仅供本机human阅读；它不是Observer输出，也不是提案授予的新权限。
++#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
++#[serde(deny_unknown_fields)]
++pub struct Snapshot {
++    pub schema: String,
++    pub checked_at_ms: u64,
++    pub expires_at_ms: u64,
++    pub proposal_sha256: String,
++    pub producer: project_observer::ProducerIdentity,
++    pub reference: project_observer::ObjectReference,
++    pub reference_state: ReferenceState,
++    pub source_authentication: Unverified,
++    pub selection_qualification: Unverified,
++    pub scope: SnapshotScope,
++    pub editor_json: serde_json::Value,
++    pub grants_execution: bool,
++    pub grants_knowledge_acceptance: bool,
++}
++#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
++pub enum SnapshotScope {
++    #[serde(rename = "LOCAL_HUMAN_READ_ONLY")]
++    LocalHumanReadOnly,
++}
++pub const SNAPSHOT_SCHEMA: &str = "archeaxis.project-handoff-snapshot/v1";
++impl Snapshot {
++    pub fn valid(&self, now_ms: u64) -> bool {
++        self.schema == SNAPSHOT_SCHEMA
++            && self.producer.valid()
++            && self.reference.valid()
++            && project_observer::hex(&self.proposal_sha256, 64)
++            && self.checked_at_ms <= now_ms
++            && self.expires_at_ms > now_ms
++            && self.expires_at_ms.saturating_sub(self.checked_at_ms)
++                <= project_observer::FRESHNESS_MS
++            && self.reference_state != ReferenceState::NotFound
++            && self.editor_json.is_object()
++            && self.editor_json["type"] == "doc"
++            && !self.grants_execution
++            && !self.grants_knowledge_acceptance
++    }
++}
+ 
+ pub const SCHEMA: &str = "archeaxis.project-handoff-preview/v1";
+ #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
+@@ -44,7 +86,24 @@
+ 
+ #[cfg(test)]
+ mod tests {
+-    use super::Preview;
++    use super::{Preview, Snapshot};
++    #[test]
++    fn shared_snapshot_cases_preserve_strict_local_read_contract() {
++        let cases: serde_json::Value = serde_json::from_str(include_str!(
++            "../../../packages/contracts/v2/project-handoff-snapshot.cases.json"
++        ))
++        .unwrap();
++        for case in cases.as_array().unwrap() {
++            let accepted = serde_json::from_value::<Snapshot>(case["value"].clone())
++                .is_ok_and(|value| value.valid(case["now_ms"].as_u64().unwrap()));
++            assert_eq!(
++                accepted,
++                case["runtime_valid"].as_bool().unwrap(),
++                "{}",
++                case["name"]
++            );
++        }
++    }
+     #[test]
+     fn shared_preview_cases_decode_and_validate_real_dto() {
+         let cases: serde_json::Value = serde_json::from_str(include_str!(
+--- a/docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json
++++ b/docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json
+@@ -373,7 +373,7 @@
+             },
+             {
+               "path": "frontend/src/api/generated/core-contract.ts",
+-              "sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc"
++              "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+             }
+           ]
+         },
+@@ -597,7 +597,7 @@
+             },
+             {
+               "path": "frontend/src/api/generated/core-contract.ts",
+-              "sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc"
++              "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+             }
+           ]
+         },
+@@ -8032,5 +8032,22 @@
+     "reason": "Reviewed finite human metadata preview CoreOperation and dependency UNKNOWN observation enum. Document DTO and permission model unchanged; 68 inherited entries retain all prior states/values; runtime NOT_RUN and license observations are not promoted.",
+     "source_schema_sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6",
+     "current_runtime": "UNKNOWN_NOT_REOBSERVED_BY_THIS_SOURCE_REVIEW"
++  },
++  "handoff_snapshot_source_binding_review_20261019": {
++    "observed_at": "2026-10-18T23:37:45.717548+00:00",
++    "qualification": "NOT_GRANTED_BY_HASH_REBIND",
++    "reason": "Only finite local-human project_handoff_snapshot CoreOperation added. All existing document DTO bytes and 68 inherited state/value fields preserved; no runtime/license/installation promotion.",
++    "changes": [
++      {
++        "pointer": "/entries/3/evidence/version/source_refs/1",
++        "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
++        "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
++      },
++      {
++        "pointer": "/entries/5/evidence/version/source_refs/1",
++        "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
++        "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
++      }
++    ]
+   }
+ }
+--- a/frontend/src/__tests__/ProjectHandoffContract.test.ts
++++ b/frontend/src/__tests__/ProjectHandoffContract.test.ts
+@@ -0,0 +1,70 @@
++import { afterEach, describe, expect, it, vi } from "vitest";
++import { createHash, webcrypto } from "node:crypto";
++import { readFileSync } from "node:fs";
++import { resolve } from "node:path";
++import { assertHandoffDto } from "../api/generated/project-handoff";
++import { assertPreview, assertSnapshot, parseContextProposal, verifyProposalFingerprint } from "../api/projectHandoff";
++import { coreCommand } from "../api/core";
++
++const previews = JSON.parse(readFileSync(resolve(process.cwd(), "../packages/contracts/v2/project-handoff-preview.cases.json"), "utf8"));
++const snapshots: Array<{name:string;value:Record<string,any>;schema_valid:boolean}> = JSON.parse(readFileSync(resolve(process.cwd(), "../packages/contracts/v2/project-handoff-snapshot.cases.json"), "utf8"));
++afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); delete window.__TAURI__; });
++function setup() {
++  vi.useFakeTimers(); vi.setSystemTime(previews[0].now_ms); vi.stubGlobal("crypto", webcrypto);
++  const proposal = parseContextProposal(JSON.stringify(previews[0].value.proposal));
++  return { proposal, preview: structuredClone(previews[0].value), snapshot: structuredClone(snapshots[0].value) };
++}
++describe("fixed local handoff consumption", () => {
++  it.each(snapshots)("enforces shared snapshot schema: $name", (sample) => {
++    const decode = () => assertHandoffDto("Snapshot", sample.value);
++    if (sample.schema_valid) expect(decode).not.toThrow(); else expect(decode).toThrow();
++  });
++  it("rejects ambiguous duplicate keys, escaped duplicates, oversized UTF8 and non-context proposals before sending", () => {
++    const { proposal } = setup();
++    const text = JSON.stringify(proposal);
++    for (const field of ['"schema":"wrong",', '"sch\\u0065ma":"wrong",']) expect(() => parseContextProposal("{" + field + text.slice(1))).toThrow(/重复/);
++    expect(() => parseContextProposal("中文".repeat(22_000))).toThrow(/64KiB/);
++    expect(() => parseContextProposal(JSON.stringify({...proposal, token:"fixture"}))).toThrow();
++    expect(() => parseContextProposal(text.replace('"kind":"context"', '"kind":"receipt"'))).toThrow();
++  });
++  it("checks semantic ranges and rejects unsafe numeric document identity", () => {
++    const { proposal } = setup();
++    for (const selection of [{kind:"text_range",block_id:"b",start_utf16:2,end_utf16:1}, {kind:"time_range",start_ms:4,end_ms:4}, {kind:"page_range",first_page:4,last_page:1}]) {
++      const invalid=structuredClone(proposal); invalid.payload.source.selection=selection as typeof invalid.payload.source.selection;
++      expect(() => parseContextProposal(JSON.stringify(invalid))).toThrow();
++    }
++    proposal.payload.source.reference.version=Number.MAX_SAFE_INTEGER+1;
++    expect(() => parseContextProposal(JSON.stringify(proposal))).toThrow();
++  });
++  it("binds preview to the original context and checks Core-compatible canonical fingerprint", async () => {
++    const { proposal, preview } = setup();
++    function sorted(v: unknown): unknown { return Array.isArray(v) ? v.map(sorted) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b)).map(([k,x])=>[k,sorted(x)])) : v; }
++    preview.proposal_sha256=createHash("sha256").update("archeaxis.project-handoff/v1\0").update(JSON.stringify(sorted(proposal))).digest("hex");
++    expect(assertPreview(preview,proposal)).toEqual(preview);
++    await expect(verifyProposalFingerprint(proposal,preview.proposal_sha256)).resolves.toBeUndefined();
++    await expect(verifyProposalFingerprint(proposal,"f".repeat(64))).rejects.toThrow(/指纹/);
++    preview.proposal.consumer.instance_id="f".repeat(32);
++    expect(() => assertPreview(preview,proposal)).toThrow(/当前引用/);
++  });
++  it("requires snapshot identity, epoch, digest and fresh deadline for both current and historical body", () => {
++    const { proposal, snapshot } = setup();
++    for (const state of ["CURRENT","STALE"]) expect(assertSnapshot({...snapshot,reference_state:state},proposal,snapshot.proposal_sha256).reference_state).toBe(state);
++    const wrong=structuredClone(snapshot);wrong.reference.version++;
++    expect(() => assertSnapshot(wrong,proposal,snapshot.proposal_sha256)).toThrow();
++    wrong.reference=snapshot.reference;wrong.producer.restore_epoch="f".repeat(32);
++    expect(() => assertSnapshot(wrong,proposal,snapshot.proposal_sha256)).toThrow();
++    expect(() => assertSnapshot(snapshot,proposal,"b".repeat(64))).toThrow();
++    vi.setSystemTime(proposal.expires_at_ms);
++    expect(() => assertSnapshot(snapshot,proposal,snapshot.proposal_sha256)).toThrow(/过期/);
++  });
++  it("finite Core client rejects unknown/body privilege fields and never treats HTTP errors as snapshots", async () => {
++    const { proposal, snapshot } = setup();
++    const invoke=vi.fn().mockResolvedValue({status:200,body:snapshot});window.__TAURI__={core:{invoke}};
++    await expect(coreCommand("project_handoff_snapshot",{body:proposal})).resolves.toEqual(snapshot);
++    for (const body of [{...snapshot,token:"fixture"},{...snapshot,grants_execution:true},{...snapshot,scope:"OBSERVER_READ"}]) {
++      invoke.mockResolvedValue({status:200,body});await expect(coreCommand("project_handoff_snapshot",{body:proposal})).rejects.toThrow(/格式/);
++    }
++    invoke.mockResolvedValue({status:409,body:{code:"HANDOFF_SNAPSHOT_IDENTITY_MISMATCH"}});
++    await expect(coreCommand("project_handoff_snapshot",{body:proposal})).rejects.toThrow(/工作区身份或恢复版本/);
++  });
++});
+--- a/frontend/src/__tests__/ProjectHandoffReader.test.tsx
++++ b/frontend/src/__tests__/ProjectHandoffReader.test.tsx
+@@ -0,0 +1,120 @@
++import { createHash, webcrypto } from "node:crypto";
++import { afterEach, beforeEach, expect, it, vi } from "vitest";
++import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
++import userEvent from "@testing-library/user-event";
++import { useState } from "react";
++import { ProjectHandoffReader } from "../components/ProjectHandoffReader";
++import { SpaceView } from "../spaces/SpaceView";
++import { resetDiagnostics, useDiagnostics } from "../presentation/diagnostics";
++const bridge = vi.hoisted(() => ({call:vi.fn(),mounts:0}));
++vi.mock("../api/core", () => ({coreCommand:bridge.call}));
++vi.mock("../spaces/CanonicalExchangeSpace", () => ({CanonicalExchangeSpace:() => {
++  const [value,setValue] = useState(() => {bridge.mounts++;return "原交换草稿";});
++  return <label>原交换草稿<input aria-label="原交换草稿" value={value} onChange={e=>setValue(e.target.value)}/></label>;
++}}));
++const canonical = (v:unknown):unknown => Array.isArray(v) ? v.map(canonical) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).sort(([a],[b])=>a < b ? -1 : a > b ? 1 : 0).map(([k,x])=>[k,canonical(x)])) : v;
++function fixture(id="doc_a", version=2) {
++  const now=Date.now();
++  const proposal={schema:"archeaxis.project-handoff/v1",protocol:"archeaxis.project-observer/v1",idempotency_key:"2".repeat(32),producer:{namespace:"archeaxis",workspace_id:"a".repeat(32),restore_epoch:"initial"},consumer:{namespace:"work-lab",instance_id:"b".repeat(32)},created_at_ms:now,expires_at_ms:now+30000,authority:"PREPARATION_ONLY",payload:{kind:"context",source:{reference:{document_id:id,version,content_sha256:"c".repeat(64)},selection:{kind:"whole_object"},selection_qualification:"UNVERIFIED"},purpose:"learning",authorization_scope:"REFERENCE_METADATA_ONLY"}};
++  const sha=createHash("sha256").update("archeaxis.project-handoff/v1\0"+JSON.stringify(canonical(proposal))).digest("hex");
++  const preview={schema:"archeaxis.project-handoff-preview/v1",checked_at_ms:now,expires_at_ms:proposal.expires_at_ms,proposal,proposal_sha256:sha,reference_state:"CURRENT",source_authentication:"UNVERIFIED",authority:"REFERENCE_METADATA_ONLY",navigation:"UNAVAILABLE",grants_execution:false,grants_knowledge_acceptance:false};
++  const snapshot={schema:"archeaxis.project-handoff-snapshot/v1",checked_at_ms:now,expires_at_ms:proposal.expires_at_ms,proposal_sha256:sha,producer:proposal.producer,reference:proposal.payload.source.reference,reference_state:"CURRENT",source_authentication:"UNVERIFIED",selection_qualification:"UNVERIFIED",scope:"LOCAL_HUMAN_READ_ONLY",editor_json:{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:`固定正文 ${id} v${version}`},{type:"hardBreak"},{type:"text",text:"第二行"}]}]},grants_execution:false,grants_knowledge_acceptance:false};
++  return {proposal,preview,snapshot};
++}
++let data:ReturnType<typeof fixture>;
++beforeEach(()=>{
++  vi.stubGlobal("crypto",webcrypto);data=fixture();bridge.mounts=0;bridge.call.mockReset();bridge.call.mockImplementation(async(op:string)=>op==="project_handoff_preview"?data.preview:data.snapshot);
++});
++afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
++async function openAndPaste(value:unknown=data.proposal) {
++  await userEvent.setup().click(screen.getByRole("button",{name:"预览跨项目引用"}));
++  fireEvent.change(screen.getByRole("textbox",{name:"上下文提案 JSON"}),{target:{value:JSON.stringify(value)}});
++}
++async function preview() {fireEvent.click(screen.getByRole("button",{name:"预览引用信息"}));await screen.findByRole("region",{name:"提案只读预览"});}
++async function body() {fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));await screen.findByLabelText("固定版本全文");}
++it("SIMULATED two explicit actions are required and exact body stays inert with line breaks",async()=>{
++  render(<ProjectHandoffReader/>);await openAndPaste();expect(bridge.call).not.toHaveBeenCalled();await preview();
++  expect(bridge.call.mock.calls.map(x=>x[0])).toEqual(["project_handoff_preview"]);expect(screen.getByText(/选区尚未核验/)).toBeInTheDocument();expect(screen.queryByLabelText("固定版本全文")).toBeNull();
++  await body();expect(screen.getByLabelText("固定版本全文").textContent).toBe("固定正文 doc_a v2\n第二行");expect(document.querySelector('[contenteditable="true"]')).toBeNull();
++  expect(bridge.call.mock.calls).toEqual([["project_handoff_preview",{body:data.proposal}],["project_handoff_snapshot",{body:data.proposal}]]);
++});
++it("SIMULATED stale fixed version is readable without replacing it with current",async()=>{
++  data.preview.reference_state="STALE";data.snapshot.reference_state="STALE";
++  render(<ProjectHandoffReader/>);await openAndPaste();await preview();expect(screen.getByText(/不替代为新版/)).toBeInTheDocument();await body();expect(screen.getByLabelText("固定版本全文")).toHaveTextContent("v2");
++});
++it("SIMULATED NOT_FOUND never reads a substitute body",async()=>{
++  data.preview.reference_state="NOT_FOUND";render(<ProjectHandoffReader/>);await openAndPaste();await preview();expect(screen.getByRole("button",{name:"打开固定版本全文"})).toBeDisabled();expect(bridge.call).toHaveBeenCalledTimes(1);
++});
++it.each(["invalid-json","oversize","task","expired"])("SIMULATED rejects %s before native invocation",async kind=>{
++  render(<ProjectHandoffReader/>);await openAndPaste(kind==="task"?{...data.proposal,payload:{kind:"task_proposal"}}:kind==="expired"?{...data.proposal,expires_at_ms:Date.now()-1}:data.proposal);
++  if(kind==="invalid-json"||kind==="oversize")fireEvent.change(screen.getByRole("textbox"),{target:{value:kind==="invalid-json"?"{":" ".repeat(65537)}});
++  // Oversize whitespace would leave the preview button disabled; include a non-whitespace byte.
++  if(kind==="oversize")fireEvent.change(screen.getByRole("textbox"),{target:{value:'{"x":"'+"x".repeat(65537)+'"}'}});
++  fireEvent.click(screen.getByRole("button",{name:"预览引用信息"}));await screen.findByRole("alert");expect(bridge.call).not.toHaveBeenCalled();
++});
++it.each(["reference","producer","sha","authority"])("SIMULATED rejects a successful wrong %s snapshot before exposing text",async kind=>{
++  if(kind==="reference")data.snapshot.reference={...data.snapshot.reference,document_id:"other"};
++  if(kind==="producer")data.snapshot.producer={...data.snapshot.producer,restore_epoch:"e".repeat(32)};
++  if(kind==="sha")data.snapshot.proposal_sha256="f".repeat(64);
++  if(kind==="authority")data.snapshot.grants_execution=true;
++  render(<ProjectHandoffReader/>);await openAndPaste();await preview();fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));await screen.findByRole("alert");expect(screen.queryByLabelText("固定版本全文")).toBeNull();
++});
++it("SIMULATED duplicate clicks invoke once; changing input cancels the old queued response",async()=>{
++  let resolve!:(x:unknown)=>void;bridge.call.mockImplementation(()=>new Promise(r=>resolve=r));render(<ProjectHandoffReader/>);await openAndPaste();const button=screen.getByRole("button",{name:"预览引用信息"});fireEvent.click(button);fireEvent.click(button);expect(bridge.call).toHaveBeenCalledTimes(1);
++  const second=fixture("doc_b");fireEvent.change(screen.getByRole("textbox"),{target:{value:JSON.stringify(second.proposal)}});await act(async()=>resolve(data.preview));expect(screen.queryByRole("region",{name:"提案只读预览"})).toBeNull();
++  bridge.call.mockResolvedValue(second.preview);await preview();expect(screen.getByRole("region",{name:"提案只读预览"})).toHaveTextContent("第 2 版");expect(bridge.call).toHaveBeenLastCalledWith("project_handoff_preview",{body:second.proposal});
++});
++it("SIMULATED close discards a pending body and returns focus to the real opener",async()=>{
++  render(<ProjectHandoffReader/>);await openAndPaste();await preview();let resolve!:(x:unknown)=>void;bridge.call.mockImplementation(()=>new Promise(r=>resolve=r));fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));fireEvent.click(screen.getByRole("button",{name:"关闭并返回"}));await waitFor(()=>expect(screen.getByRole("button",{name:"预览跨项目引用"})).toHaveFocus());await act(async()=>resolve(data.snapshot));expect(screen.queryByRole("dialog")).toBeNull();await openAndPaste();expect(screen.queryByLabelText("固定版本全文")).toBeNull();
++});
++it("SIMULATED Escape closes and restores focus without writing",async()=>{
++  render(<ProjectHandoffReader/>);await openAndPaste();await userEvent.setup().keyboard("{Escape}");await waitFor(()=>expect(screen.getByRole("button",{name:"预览跨项目引用"})).toHaveFocus());expect(bridge.call).not.toHaveBeenCalled();
++});
++it.each(["workspace-invalidated","workspace-restore-start"])("SIMULATED %s clears old input and rejects late body",async event=>{
++  render(<ProjectHandoffReader/>);await openAndPaste();await preview();let resolve!:(x:unknown)=>void;bridge.call.mockImplementation(()=>new Promise(r=>resolve=r));fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));act(()=>window.dispatchEvent(new CustomEvent(event,{detail:{confirmed:true}})));await act(async()=>resolve(data.snapshot));expect(screen.queryByLabelText("固定版本全文")).toBeNull();expect(screen.getByRole("textbox")).toHaveValue("");expect(screen.getByRole("button",{name:"预览引用信息"})).toBeDisabled();
++});
++it("SIMULATED snapshot expiry removes already rendered body without another read",async()=>{
++  render(<ProjectHandoffReader/>);await openAndPaste();await preview();data.snapshot.expires_at_ms=Date.now()+5000;vi.useFakeTimers();await act(async()=>{fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));});expect(screen.getByLabelText("固定版本全文")).toBeInTheDocument();await act(async()=>{await vi.advanceTimersByTimeAsync(5001);});expect(screen.queryByLabelText("固定版本全文")).toBeNull();expect(screen.getByRole("alert")).toHaveTextContent("到期");expect(bridge.call).toHaveBeenCalledTimes(2);
++});
++it("SIMULATED a body completed after its deadline is rejected",async()=>{
++  render(<ProjectHandoffReader/>);await openAndPaste();await preview();let resolve!:(x:unknown)=>void;bridge.call.mockImplementation(()=>new Promise(r=>resolve=r));fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));vi.spyOn(Date,"now").mockReturnValue(data.proposal.expires_at_ms);await act(async()=>resolve(data.snapshot));expect(screen.queryByLabelText("固定版本全文")).toBeNull();vi.restoreAllMocks();
++});
++it("SIMULATED parking the owning page closes the portal and cannot expose a late body",async()=>{
++  const host=document.createElement("div");document.body.append(host);const rendered=render(<ProjectHandoffReader/>,{container:host});await openAndPaste();await preview();let resolve!:(x:unknown)=>void;bridge.call.mockImplementation(()=>new Promise(r=>resolve=r));fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));act(()=>{host.hidden=true;});await waitFor(()=>expect(screen.queryByRole("dialog")).toBeNull());await act(async()=>resolve(data.snapshot));expect(screen.queryByLabelText("固定版本全文")).toBeNull();rendered.unmount();host.remove();
++});
++it("SIMULATED real page16 route keeps the Exchange component and local draft mounted across close",async()=>{
++  render(<SpaceView spaceId="exchange" uiPageId="16" onInspect={()=>{}} onNavigate={()=>{}}/>);fireEvent.change(screen.getByRole("textbox",{name:"原交换草稿"}),{target:{value:"保留修改"}});await openAndPaste();await preview();await body();fireEvent.click(screen.getByRole("button",{name:"关闭并返回"}));expect(screen.getByRole("textbox",{name:"原交换草稿"})).toHaveValue("保留修改");expect(bridge.mounts).toBe(1);expect(bridge.call.mock.calls.every(([op])=>op==="project_handoff_preview"||op==="project_handoff_snapshot")).toBe(true);
++});
++
++it("SIMULATED real digest verification rejects a well-shaped but wrong preview fingerprint",async()=>{
++  data.preview.proposal_sha256="f".repeat(64);render(<ProjectHandoffReader/>);await openAndPaste();fireEvent.click(screen.getByRole("button",{name:"预览引用信息"}));expect(await screen.findByRole("alert")).toHaveTextContent("指纹");expect(screen.queryByRole("button",{name:"打开固定版本全文"})).toBeNull();expect(bridge.call).toHaveBeenCalledTimes(1);
++});
++it("SIMULATED restore pause refuses newly pasted input until finish without reusing old approval",async()=>{
++  render(<ProjectHandoffReader/>);await openAndPaste();await preview();act(()=>window.dispatchEvent(new Event("workspace-restore-start")));fireEvent.change(screen.getByRole("textbox"),{target:{value:JSON.stringify(data.proposal)}});expect(screen.getByRole("button",{name:"预览引用信息"})).toBeDisabled();act(()=>window.dispatchEvent(new Event("workspace-restore-finish")));expect(screen.getByRole("button",{name:"预览引用信息"})).toBeEnabled();expect(screen.queryByRole("button",{name:"打开固定版本全文"})).toBeNull();expect(bridge.call).toHaveBeenCalledTimes(1);
++});
++
++it("SIMULATED a future or malformed body projection cannot unmount the reader or underlying Exchange",async()=>{
++  vi.spyOn(console,"error").mockImplementation(()=>{});data.snapshot.editor_json={type:"doc",content:"opaque"} as never;
++  render(<SpaceView spaceId="exchange" uiPageId="16" onInspect={()=>{}} onNavigate={()=>{}}/>);await openAndPaste();await preview();fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));expect(await screen.findByRole("alert")).toHaveTextContent("原文档未改变");expect(screen.getByRole("button",{name:/跨项目固定正文身份/})).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"关闭并返回"}));expect(screen.getByRole("textbox",{name:"原交换草稿"})).toHaveValue("原交换草稿");expect(bridge.mounts).toBe(1);
++});
++
++it("SIMULATED a change after CURRENT preview is clearly disclosed by the STALE snapshot",async()=>{
++  data.preview.reference_state="CURRENT";data.snapshot.reference_state="STALE";
++  render(<ProjectHandoffReader/>);await openAndPaste();await preview();await body();
++  expect(screen.getByRole("region",{name:"本机固定版本只读正文"})).toHaveTextContent("读取时当前保存版本已变化");
++  expect(screen.getByRole("region",{name:"提案只读预览"})).toHaveTextContent("预览时");
++});
++
++it("SIMULATED explicit diagnostics preserve identity only and cannot retain body after close or invalidation",async()=>{
++  resetDiagnostics();
++  function Probe(){return <output data-testid="diagnostic-probe">{JSON.stringify(useDiagnostics())}</output>;}
++  render(<><ProjectHandoffReader/><Probe/></>);await openAndPaste();await preview();await body();
++  expect(screen.queryByRole("button",{name:/固定版本全文结构记录/})).toBeNull();
++  fireEvent.click(screen.getByRole("button",{name:/跨项目固定正文身份/}));
++  const output=screen.getByTestId("diagnostic-probe");
++  expect(output.textContent).toContain("LOCAL_HUMAN_READ_ONLY");
++  expect(output.textContent).not.toContain("editor_json");expect(output.textContent).not.toContain("固定正文 doc_a");
++  fireEvent.click(screen.getByRole("button",{name:"关闭并返回"}));
++  act(()=>window.dispatchEvent(new Event("workspace-invalidated")));
++  expect(output.textContent).not.toContain("固定正文 doc_a");resetDiagnostics();
++});
+--- a/frontend/src/api/core.ts
++++ b/frontend/src/api/core.ts
+@@ -9,6 +9,7 @@
+ import { assertCollectionDto } from "./generated/collection-contract";
+ import { assertUiWorkingState } from "./generated/ui-working-state-contract";
+ import { assertLayoutDto } from "./generated/layout-contract";
++import { assertHandoffDto } from "./generated/project-handoff";
+ export type { CoreOperation } from "./generated/core-contract";
+ const teachingResponses: Partial<Record<CoreOperation,string>> = {
+   teaching_list:"RecordPage",teaching_get:"RecordView",teaching_create:"WriteReceipt",
+@@ -50,6 +51,22 @@
+   const response = result as { status?: unknown; body?: unknown };
+   if (typeof response.status !== "number" || !Number.isInteger(response.status)) throw new ApiError(502, "本地核心状态无效。", "incompatible");
+   if (response.status < 200 || response.status >= 300) {
++    if (operation === "project_handoff_preview" || operation === "project_handoff_snapshot") {
++      const code = (response.body as {code?:unknown} | null)?.code;
++      const messages: Record<string,string> = {
++        IDENTITY_MISMATCH: "工作区身份或恢复版本已变化；请重新取得引用，原页面仍保留。",
++        NOT_FOUND: "此工作区没有指定的固定版本；未读取其他文档。",
++        REFERENCE_MISMATCH: "固定版本指纹不一致；未替换为其他版本。",
++        CONTENT_INVALID: "固定正文完整性核对失败；原文档未改变，请查看本地数据状态。",
++        EXPIRED: "上下文引用已到期；请重新取得引用。",
++        TOO_LARGE: "固定正文超过当前阅读限额；未截断或替换正文。",
++        HUMAN_REQUIRED: "请在本机桌面的人类会话中读取此引用。",
++        INVALID_INPUT: "上下文引用格式或有效期不符；请重新取得引用。",
++      };
++      const prefix = operation === "project_handoff_preview" ? "HANDOFF_PREVIEW_" : "HANDOFF_SNAPSHOT_";
++      const message = typeof code === "string" && code.startsWith(prefix) ? messages[code.slice(prefix.length)] : undefined;
++      throw new ApiError(response.status, message ?? "固定引用核对未完成；保留原页面后重试。", response.status === 401 || response.status === 403 ? "unauthorized" : "unavailable");
++    }
+     if (operation === "job_execute" && response.status === 409) {
+       const p = payload as { job_id: string; request_id: string; body: { deadline_ms: number; split: boolean; words: boolean } };
+       const admission = p.body && jobAdmissionRefusal(response.body, p);
+@@ -101,6 +118,10 @@
+     try { return assertLayoutDto<T>("Snapshot", response.body); }
+     catch { throw new ApiError(502, "布局回读格式无效，请保留当前布局。", "incompatible"); }
+   }
++  if (operation === "project_handoff_preview" || operation === "project_handoff_snapshot") {
++    try { return assertHandoffDto<T>(operation === "project_handoff_preview" ? "Preview" : "Snapshot", response.body); }
++    catch { throw new ApiError(502, "上下文引用回读格式不兼容，未打开正文。", "incompatible"); }
++  }
+   const schema = responseSchemas[operation];
+   if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_clear_machine", "ui_state_recover"].includes(operation)) {
+     try { return assertUiWorkingState<T>("Read", response.body); }
+--- a/frontend/src/api/generated/core-contract.ts
++++ b/frontend/src/api/generated/core-contract.ts
+@@ -1,5 +1,5 @@
+ // Generated by scripts/contracts/generate_core_document.py. Edit the JSON Schema.
+-export type CoreOperation = "system_version" | "project_handoff_preview" | "source_import" | "sources_list" | "source_jobs" | "source_job_format_qualification" | "source_members" | "source_pages" | "source_original" | "documents_list" | "document_create" | "document_get" | "document_graph" | "collection_query" | "document_draft" | "document_version" | "document_restore" | "document_export" | "document_package_export" | "document_package_import" | "document_export_save" | "jobs_get" | "job_quality" | "anchors_list" | "anchor_create" | "anchor_resolve" | "search" | "knowledge_get" | "knowledge_qualification" | "knowledge_review" | "course_from_knowledge" | "course_list" | "course_get" | "course_render" | "learning_items" | "learning_state" | "learning_history" | "learning_review" | "capabilities_list" | "capability_set_enabled" | "job_enqueue" | "job_execute" | "job_output" | "assessment_create" | "assessment_get" | "learning_reference" | "machine_answer" | "machine_correction" | "machine_retest" | "machine_task_get" | "source_job_transform" | "knowledge_from_transform" | "workspace_backup" | "workspace_backups" | "ui_state_read" | "ui_state_write" | "ui_state_clear_saved" | "ui_state_recover" | "document_checks" | "document_check_record" | "document_check_execute" | "teaching_list" | "teaching_get" | "teaching_create" | "teaching_withdraw" | "teaching_export" | "teaching_import_preview" | "teaching_import" | "machine_tasks_list" | "machine_contexts_list" | "machine_rubrics_list" | "machine_rubric_create" | "machine_evaluations_list" | "machine_evaluation_create" | "machine_answer_snapshot" | "job_execution_status" | "job_execution_cancel" | "ai_assets_list" | "ai_asset_packet" | "ui_state_clear_job" | "machine_configuration" | "machine_inventory" | "ui_state_clear_machine" | "ui_state_machine_status" | "ui_state_cancel_machine" | "layout_read" | "layout_write" | "layout_recover" | "material_question" | "material_question_cancel" | "material_question_status" | "material_context_prepare" | "model_configuration_get" | "model_configuration_put" | "model_configuration_resolve" | "conversation_session_create" | "conversation_history" | "conversation_request" | "conversation_cancel" | "conversation_status" | "character_memory_get" | "character_memory_apply" | "character_memory_context" | "character_memory_export" | "operation_readiness" | "configuration_plans_read";
++export type CoreOperation = "system_version" | "project_handoff_preview" | "project_handoff_snapshot" | "source_import" | "sources_list" | "source_jobs" | "source_job_format_qualification" | "source_members" | "source_pages" | "source_original" | "documents_list" | "document_create" | "document_get" | "document_graph" | "collection_query" | "document_draft" | "document_version" | "document_restore" | "document_export" | "document_package_export" | "document_package_import" | "document_export_save" | "jobs_get" | "job_quality" | "anchors_list" | "anchor_create" | "anchor_resolve" | "search" | "knowledge_get" | "knowledge_qualification" | "knowledge_review" | "course_from_knowledge" | "course_list" | "course_get" | "course_render" | "learning_items" | "learning_state" | "learning_history" | "learning_review" | "capabilities_list" | "capability_set_enabled" | "job_enqueue" | "job_execute" | "job_output" | "assessment_create" | "assessment_get" | "learning_reference" | "machine_answer" | "machine_correction" | "machine_retest" | "machine_task_get" | "source_job_transform" | "knowledge_from_transform" | "workspace_backup" | "workspace_backups" | "ui_state_read" | "ui_state_write" | "ui_state_clear_saved" | "ui_state_recover" | "document_checks" | "document_check_record" | "document_check_execute" | "teaching_list" | "teaching_get" | "teaching_create" | "teaching_withdraw" | "teaching_export" | "teaching_import_preview" | "teaching_import" | "machine_tasks_list" | "machine_contexts_list" | "machine_rubrics_list" | "machine_rubric_create" | "machine_evaluations_list" | "machine_evaluation_create" | "machine_answer_snapshot" | "job_execution_status" | "job_execution_cancel" | "ai_assets_list" | "ai_asset_packet" | "ui_state_clear_job" | "machine_configuration" | "machine_inventory" | "ui_state_clear_machine" | "ui_state_machine_status" | "ui_state_cancel_machine" | "layout_read" | "layout_write" | "layout_recover" | "material_question" | "material_question_cancel" | "material_question_status" | "material_context_prepare" | "model_configuration_get" | "model_configuration_put" | "model_configuration_resolve" | "conversation_session_create" | "conversation_history" | "conversation_request" | "conversation_cancel" | "conversation_status" | "character_memory_get" | "character_memory_apply" | "character_memory_context" | "character_memory_export" | "operation_readiness" | "configuration_plans_read";
+ export type DocumentPackageDto = { schema: "archeaxis.document-package/v1"; document: DocumentDto; objects: Array<{ source_id: string; sha256: string; original_name: string; bytes: Array<number> }>; historical_anchors: Array<{  }> };
+ export type DocumentPackageImportDto = { schema: "archeaxis.document-package-import/v1"; package_sha256: string; document: DocumentDto; source_mapping: {  }; historical_anchors: Array<{  }>; anchor_registration: "NOT_EXECUTED"; knowledge_admission: "NOT_EXECUTED" };
+ export type MachineJournalStatusDto = { schema: "archeaxis.machine-journal-status/v1"; journal_id: string; status: "UNKNOWN" | "FAILED" | "CANCELLED_LOCAL_WORKER"; can_clear: boolean; task_id: string | null; attempt: number | null; max_attempts: 3; provider_stop_state: "UNKNOWN" };
+--- a/frontend/src/api/generated/project-handoff.ts
++++ b/frontend/src/api/generated/project-handoff.ts
+@@ -0,0 +1,50 @@
++// Generated by scripts/contracts/generate_project_handoff.py; edit canonical JSON Schema.
++export type ProducerIdentity = { namespace: "archeaxis"; workspace_id: string; restore_epoch: string };
++export type ConsumerIdentity = { namespace: "work-lab" | "design-lab"; instance_id: string };
++export type ObjectReference = { document_id: string; version: number; content_sha256: string };
++export type Selection = { kind: "whole_object" } | { kind: "text_range"; block_id: string; start_utf16: number; end_utf16: number } | { kind: "page_range"; first_page: number; last_page: number } | { kind: "time_range"; start_ms: number; end_ms: number };
++export type SelectedReference = { reference: ObjectReference; selection: Selection; selection_qualification: "UNVERIFIED" };
++export type CapabilityLink = { capability_id: "CAP-0010" | "CAP-0020" | "CAP-0030" | "CAP-0040" | "CAP-0050" | "CAP-0060" | "CAP-0070" | "CAP-0080" | "CAP-0090" | "CAP-0100" | "CAP-0110" | "CAP-0120" | "CAP-0130" | "CAP-0140" | "CAP-0150" | "CAP-0160"; contribution_point: "format_conversion" | "template" | "learning_activity" | "graph_visual" | "model_service" | "tool_protocol"; manifest_identity: "UNKNOWN" };
++export type LossEvidence = { state: "UNKNOWN" } | { state: "RECEIPT_REFERENCE"; reference: ObjectReference };
++export type AssetEntry = { reference: ObjectReference; source_reference: ObjectReference; relationship: "ORIGINAL" | "DERIVED"; format: "text" | "pdf" | "office" | "html" | "image" | "audio" | "video" | "canvas" | "unknown"; format_qualification: "UNVERIFIED"; loss: LossEvidence };
++export type ProposalReference = { idempotency_key: string; proposal_sha256: string; kind: "context" | "task_proposal" | "asset_manifest" | "knowledge_candidate" };
++export type Context = { kind: "context"; source: SelectedReference; purpose: "learning" | "research" | "conversion" | "visualization"; authorization_scope: "REFERENCE_METADATA_ONLY" };
++export type TaskProposal = { kind: "task_proposal"; target: ObjectReference; context: Array<SelectedReference>; goal: "prepare_learning_activity" | "prepare_research_plan" | "prepare_format_conversion" | "prepare_graph_view"; capability: CapabilityLink; execution_authority: "NOT_GRANTED" };
++export type AssetManifest = { kind: "asset_manifest"; assets: Array<AssetEntry> };
++export type KnowledgeCandidate = { kind: "knowledge_candidate"; candidate_id: string; candidate_revision: number; claim_sha256: string; basis: ObjectReference; evidence: Array<SelectedReference>; review_state: "PENDING_HUMAN_REVIEW"; evidence_support: "NOT_ASSESSED" };
++export type Receipt = { kind: "receipt"; proposal: ProposalReference; state: "PREPARED" | "REJECTED" | "UNKNOWN" | "CONFLICT"; reason: "NONE" | "UNOBSERVED" | "TIMEOUT" | "DISCONNECTED" | "EXPIRED" | "STALE_REFERENCE" | "IDENTITY_MISMATCH" | "UNSUPPORTED" | "IDEMPOTENCY_CONFLICT" };
++export type Handoff = { schema: "archeaxis.project-handoff/v1"; protocol: "archeaxis.project-observer/v1"; idempotency_key: string; producer: ProducerIdentity; consumer: ConsumerIdentity; created_at_ms: number; expires_at_ms: number; authority: "PREPARATION_ONLY"; payload: Context | TaskProposal | AssetManifest | KnowledgeCandidate | Receipt };
++export type Preview = { schema: "archeaxis.project-handoff-preview/v1"; checked_at_ms: number; expires_at_ms: number; proposal: Handoff; proposal_sha256: string; reference_state: "CURRENT" | "STALE" | "NOT_FOUND"; source_authentication: "UNVERIFIED"; authority: "REFERENCE_METADATA_ONLY"; navigation: "UNAVAILABLE"; grants_execution: false; grants_knowledge_acceptance: false };
++export type Snapshot = { schema: "archeaxis.project-handoff-snapshot/v1"; checked_at_ms: number; expires_at_ms: number; proposal_sha256: string; producer: ProducerIdentity; reference: ObjectReference; reference_state: "CURRENT" | "STALE"; source_authentication: "UNVERIFIED"; selection_qualification: "UNVERIFIED"; scope: "LOCAL_HUMAN_READ_ONLY"; editor_json: { type: "doc" }; grants_execution: false; grants_knowledge_acceptance: false };
++const definitions: Record<string, any> = {"ProducerIdentity": {"type": "object", "additionalProperties": false, "properties": {"namespace": {"const": "archeaxis"}, "workspace_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}, "restore_epoch": {"type": "string", "pattern": "^(initial|[0-9a-f]{32})$"}}, "required": ["namespace", "workspace_id", "restore_epoch"]}, "ConsumerIdentity": {"type": "object", "additionalProperties": false, "properties": {"namespace": {"enum": ["work-lab", "design-lab"]}, "instance_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}}, "required": ["namespace", "instance_id"]}, "ObjectReference": {"type": "object", "additionalProperties": false, "properties": {"document_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,128}$"}, "version": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807}, "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}, "required": ["document_id", "version", "content_sha256"]}, "Selection": {"oneOf": [{"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "whole_object"}}, "required": ["kind"]}, {"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "text_range"}, "block_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,128}$"}, "start_utf16": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, "end_utf16": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}}, "required": ["kind", "block_id", "start_utf16", "end_utf16"]}, {"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "page_range"}, "first_page": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}, "last_page": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}}, "required": ["kind", "first_page", "last_page"]}, {"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "time_range"}, "start_ms": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, "end_ms": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}}, "required": ["kind", "start_ms", "end_ms"]}]}, "SelectedReference": {"type": "object", "additionalProperties": false, "properties": {"reference": {"$ref": "#/$defs/ObjectReference"}, "selection": {"$ref": "#/$defs/Selection"}, "selection_qualification": {"const": "UNVERIFIED"}}, "required": ["reference", "selection", "selection_qualification"]}, "CapabilityLink": {"type": "object", "additionalProperties": false, "properties": {"capability_id": {"enum": ["CAP-0010", "CAP-0020", "CAP-0030", "CAP-0040", "CAP-0050", "CAP-0060", "CAP-0070", "CAP-0080", "CAP-0090", "CAP-0100", "CAP-0110", "CAP-0120", "CAP-0130", "CAP-0140", "CAP-0150", "CAP-0160"]}, "contribution_point": {"enum": ["format_conversion", "template", "learning_activity", "graph_visual", "model_service", "tool_protocol"]}, "manifest_identity": {"const": "UNKNOWN"}}, "required": ["capability_id", "contribution_point", "manifest_identity"]}, "LossEvidence": {"oneOf": [{"type": "object", "additionalProperties": false, "properties": {"state": {"const": "UNKNOWN"}}, "required": ["state"]}, {"type": "object", "additionalProperties": false, "properties": {"state": {"const": "RECEIPT_REFERENCE"}, "reference": {"$ref": "#/$defs/ObjectReference"}}, "required": ["state", "reference"]}]}, "AssetEntry": {"type": "object", "additionalProperties": false, "properties": {"reference": {"$ref": "#/$defs/ObjectReference"}, "source_reference": {"$ref": "#/$defs/ObjectReference"}, "relationship": {"enum": ["ORIGINAL", "DERIVED"]}, "format": {"enum": ["text", "pdf", "office", "html", "image", "audio", "video", "canvas", "unknown"]}, "format_qualification": {"const": "UNVERIFIED"}, "loss": {"$ref": "#/$defs/LossEvidence"}}, "required": ["reference", "source_reference", "relationship", "format", "format_qualification", "loss"]}, "ProposalReference": {"type": "object", "additionalProperties": false, "properties": {"idempotency_key": {"type": "string", "pattern": "^[0-9a-f]{32}$"}, "proposal_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "kind": {"enum": ["context", "task_proposal", "asset_manifest", "knowledge_candidate"]}}, "required": ["idempotency_key", "proposal_sha256", "kind"]}, "Context": {"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "context"}, "source": {"$ref": "#/$defs/SelectedReference"}, "purpose": {"enum": ["learning", "research", "conversion", "visualization"]}, "authorization_scope": {"const": "REFERENCE_METADATA_ONLY"}}, "required": ["kind", "source", "purpose", "authorization_scope"]}, "TaskProposal": {"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "task_proposal"}, "target": {"$ref": "#/$defs/ObjectReference"}, "context": {"type": "array", "items": {"$ref": "#/$defs/SelectedReference"}, "minItems": 1, "maxItems": 32}, "goal": {"enum": ["prepare_learning_activity", "prepare_research_plan", "prepare_format_conversion", "prepare_graph_view"]}, "capability": {"$ref": "#/$defs/CapabilityLink"}, "execution_authority": {"const": "NOT_GRANTED"}}, "required": ["kind", "target", "context", "goal", "capability", "execution_authority"]}, "AssetManifest": {"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "asset_manifest"}, "assets": {"type": "array", "items": {"$ref": "#/$defs/AssetEntry"}, "minItems": 1, "maxItems": 32}}, "required": ["kind", "assets"]}, "KnowledgeCandidate": {"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "knowledge_candidate"}, "candidate_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,128}$"}, "candidate_revision": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}, "claim_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "basis": {"$ref": "#/$defs/ObjectReference"}, "evidence": {"type": "array", "items": {"$ref": "#/$defs/SelectedReference"}, "minItems": 1, "maxItems": 32}, "review_state": {"const": "PENDING_HUMAN_REVIEW"}, "evidence_support": {"const": "NOT_ASSESSED"}}, "required": ["kind", "candidate_id", "candidate_revision", "claim_sha256", "basis", "evidence", "review_state", "evidence_support"]}, "Receipt": {"type": "object", "additionalProperties": false, "properties": {"kind": {"const": "receipt"}, "proposal": {"$ref": "#/$defs/ProposalReference"}, "state": {"enum": ["PREPARED", "REJECTED", "UNKNOWN", "CONFLICT"]}, "reason": {"enum": ["NONE", "UNOBSERVED", "TIMEOUT", "DISCONNECTED", "EXPIRED", "STALE_REFERENCE", "IDENTITY_MISMATCH", "UNSUPPORTED", "IDEMPOTENCY_CONFLICT"]}}, "required": ["kind", "proposal", "state", "reason"]}, "Handoff": {"$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "archeaxis.project-handoff/v1", "type": "object", "additionalProperties": false, "properties": {"schema": {"const": "archeaxis.project-handoff/v1"}, "protocol": {"const": "archeaxis.project-observer/v1"}, "idempotency_key": {"type": "string", "pattern": "^[0-9a-f]{32}$"}, "producer": {"$ref": "#/$defs/ProducerIdentity"}, "consumer": {"$ref": "#/$defs/ConsumerIdentity"}, "created_at_ms": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, "expires_at_ms": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}, "authority": {"const": "PREPARATION_ONLY"}, "payload": {"oneOf": [{"$ref": "#/$defs/Context"}, {"$ref": "#/$defs/TaskProposal"}, {"$ref": "#/$defs/AssetManifest"}, {"$ref": "#/$defs/KnowledgeCandidate"}, {"$ref": "#/$defs/Receipt"}]}}, "required": ["schema", "protocol", "idempotency_key", "producer", "consumer", "created_at_ms", "expires_at_ms", "authority", "payload"]}, "Preview": {"$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "archeaxis.project-handoff-preview/v1", "type": "object", "additionalProperties": false, "properties": {"schema": {"const": "archeaxis.project-handoff-preview/v1"}, "checked_at_ms": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, "expires_at_ms": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}, "proposal": {"allOf": [{"$ref": "#/$defs/Handoff"}, {"properties": {"payload": {"properties": {"kind": {"const": "context"}}}}}]}, "proposal_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "reference_state": {"enum": ["CURRENT", "STALE", "NOT_FOUND"]}, "source_authentication": {"const": "UNVERIFIED"}, "authority": {"const": "REFERENCE_METADATA_ONLY"}, "navigation": {"const": "UNAVAILABLE"}, "grants_execution": {"const": false}, "grants_knowledge_acceptance": {"const": false}}, "required": ["schema", "checked_at_ms", "expires_at_ms", "proposal", "proposal_sha256", "reference_state", "source_authentication", "authority", "navigation", "grants_execution", "grants_knowledge_acceptance"]}, "Snapshot": {"$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "archeaxis.project-handoff-snapshot/v1", "type": "object", "additionalProperties": false, "properties": {"schema": {"const": "archeaxis.project-handoff-snapshot/v1"}, "checked_at_ms": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}, "expires_at_ms": {"type": "integer", "minimum": 1, "maximum": 9007199254740991}, "proposal_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"}, "producer": {"$ref": "#/$defs/ProducerIdentity"}, "reference": {"$ref": "#/$defs/ObjectReference"}, "reference_state": {"enum": ["CURRENT", "STALE"]}, "source_authentication": {"const": "UNVERIFIED"}, "selection_qualification": {"const": "UNVERIFIED"}, "scope": {"const": "LOCAL_HUMAN_READ_ONLY"}, "editor_json": {"type": "object", "properties": {"type": {"const": "doc"}}, "required": ["type"]}, "grants_execution": {"const": false}, "grants_knowledge_acceptance": {"const": false}}, "required": ["schema", "checked_at_ms", "expires_at_ms", "proposal_sha256", "producer", "reference", "reference_state", "source_authentication", "selection_qualification", "scope", "editor_json", "grants_execution", "grants_knowledge_acceptance"]}};
++
++function valid(node: any, value: unknown): boolean {
++  if (!node) return false;
++  if (node.$ref) return valid(definitions[node.$ref.split('/').pop()], value);
++  if ('const' in node && value !== node.const) return false;
++  if (node.enum && !node.enum.includes(value)) return false;
++  if (node.allOf && !node.allOf.every((x: any) => valid(x, value))) return false;
++  if (node.oneOf && node.oneOf.filter((x: any) => valid(x, value)).length !== 1) return false;
++  if (node.type === 'string' && (typeof value !== 'string' ||
++      (node.minLength !== undefined && [...value].length < node.minLength) ||
++      (node.maxLength !== undefined && [...value].length > node.maxLength) ||
++      (node.pattern && !new RegExp(node.pattern.replace(/\$$/, '(?![\\s\\S])')).test(value)))) return false;
++  if (node.type === 'integer' && (typeof value !== 'number' || !Number.isSafeInteger(value) ||
++      (node.minimum !== undefined && value < node.minimum) || (node.maximum !== undefined && value > node.maximum))) return false;
++  if (node.type === 'boolean' && typeof value !== 'boolean') return false;
++  if (node.type === 'array' && (!Array.isArray(value) ||
++      (node.minItems !== undefined && value.length < node.minItems) ||
++      (node.maxItems !== undefined && value.length > node.maxItems) || !value.every(x => valid(node.items, x)))) return false;
++  if (node.type === 'object' || node.properties) {
++    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
++    const record = value as Record<string, unknown>;
++    if (!(node.required || []).every((key: string) => Object.hasOwn(record, key))) return false;
++    if (node.additionalProperties === false && Object.keys(record).some(key => !Object.hasOwn(node.properties || {}, key))) return false;
++    if (!Object.entries(node.properties || {}).every(([key, child]) => !Object.hasOwn(record, key) || valid(child, record[key]))) return false;
++  }
++  return true;
++}
++export function assertHandoffDto<T>(name: 'Handoff' | 'Preview' | 'Snapshot', value: unknown): T {
++  if (!valid(definitions[name], value)) throw new Error('上下文引用格式不兼容，未打开正文。');
++  return value as T;
++}
+--- a/frontend/src/api/generated/resource-catalog.ts
++++ b/frontend/src/api/generated/resource-catalog.ts
+@@ -15,7 +15,7 @@
+     },
+     {
+       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+-      "sha256": "f7ec182d3988748a9d6e21c1683c389726e3b0fa069906d9ba5b7163723607f8"
++      "sha256": "e16b5cb4bc2737f20cff8abcf81ac63d2fa0c7e235c961fa6c1ca15e8b22b02a"
+     },
+     {
+       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+@@ -469,6 +469,23 @@
+       "reason": "Reviewed finite human metadata preview CoreOperation and dependency UNKNOWN observation enum. Document DTO and permission model unchanged; 68 inherited entries retain all prior states/values; runtime NOT_RUN and license observations are not promoted.",
+       "source_schema_sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6",
+       "current_runtime": "UNKNOWN_NOT_REOBSERVED_BY_THIS_SOURCE_REVIEW"
++    },
++    "handoff_snapshot_source_binding_review_20261019": {
++      "observed_at": "2026-10-18T23:37:45.717548+00:00",
++      "qualification": "NOT_GRANTED_BY_HASH_REBIND",
++      "reason": "Only finite local-human project_handoff_snapshot CoreOperation added. All existing document DTO bytes and 68 inherited state/value fields preserved; no runtime/license/installation promotion.",
++      "changes": [
++        {
++          "pointer": "/entries/3/evidence/version/source_refs/1",
++          "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
++          "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
++        },
++        {
++          "pointer": "/entries/5/evidence/version/source_refs/1",
++          "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
++          "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
++        }
++      ]
+     }
+   },
+   "freeze_register": {
+@@ -1461,7 +1478,7 @@
+               },
+               {
+                 "path": "frontend/src/api/generated/core-contract.ts",
+-                "sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc"
++                "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+               }
+             ]
+           },
+@@ -1888,7 +1905,7 @@
+               },
+               {
+                 "path": "frontend/src/api/generated/core-contract.ts",
+-                "sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc"
++                "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+               }
+             ]
+           },
+--- a/frontend/src/api/projectHandoff.ts
++++ b/frontend/src/api/projectHandoff.ts
+@@ -0,0 +1,65 @@
++import { assertHandoffDto, type Handoff, type Preview, type Snapshot, type Context } from "./generated/project-handoff";
++export type { Preview, Snapshot } from "./generated/project-handoff";
++export type ContextProposal = Handoff & { payload: Context };
++
++function stable(value: unknown): string {
++  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
++  if (value && typeof value === "object") return `{${Object.entries(value).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([k,v]) => `${JSON.stringify(k)}:${stable(v)}`).join(",")}}`;
++  return JSON.stringify(value);
++}
++function context(value: unknown, now: number): ContextProposal {
++  const proposal = assertHandoffDto<Handoff>("Handoff", value);
++  if (proposal.payload.kind !== "context" || proposal.created_at_ms > now || proposal.expires_at_ms <= now ||
++      proposal.expires_at_ms - proposal.created_at_ms > 30_000) throw new Error("上下文引用已过期或用途不支持，请重新取得引用。");
++  const selection = proposal.payload.source.selection;
++  if ((selection.kind === "text_range" && selection.start_utf16 >= selection.end_utf16) ||
++      (selection.kind === "page_range" && selection.first_page > selection.last_page) ||
++      (selection.kind === "time_range" && selection.start_ms >= selection.end_ms)) throw new Error("引用范围无效，未读取正文。");
++  return proposal as ContextProposal;
++}
++/** 与Core相同的v1域分隔与规范JSON；元数据指纹不是身份签名或执行权。 */
++export async function verifyProposalFingerprint(proposal: ContextProposal, expected: string): Promise<void> {
++  const bytes = new TextEncoder().encode("archeaxis.project-handoff/v1\0" + stable(proposal));
++  const digest = await crypto.subtle.digest("SHA-256", bytes);
++  const actual = Array.from(new Uint8Array(digest)).map(x => x.toString(16).padStart(2, "0")).join("");
++  if (actual !== expected) throw new Error("预览指纹与原上下文引用不符，未打开正文。");
++}
++export function parseContextProposal(text: string): ContextProposal {
++  if (new TextEncoder().encode(text).length > 65_536) throw new Error("上下文引用超过64KiB，未发送。");
++  let value: unknown;
++  try { value = JSON.parse(text); } catch { throw new Error("请输入完整的上下文引用JSON。"); }
++  // JSON.parse会静默覆盖重名键；在已校验语法的有限输入上另检解码后的键名。
++  const tokens = text.match(/"(?:[^"\\]|\\.)*"|[{}\[\]:,]/g) ?? [];
++  const stack: Array<Set<string> | null> = [];
++  for (let i = 0; i < tokens.length; i++) {
++    const token = tokens[i];
++    if (token === "{" || token === "[") {
++      stack.push(token === "{" ? new Set() : null);
++      if (stack.length > 128) throw new Error("上下文引用层级过深，未发送。");
++    } else if (token === "}" || token === "]") stack.pop();
++    else if (token.startsWith('"') && tokens[i + 1] === ":") {
++      const keys = stack[stack.length - 1], key: string = JSON.parse(token);
++      if (keys?.has(key)) throw new Error("上下文引用包含重复字段，未发送。");
++      keys?.add(key);
++    }
++  }
++  return context(value, Date.now());
++}
++export function assertPreview(value: unknown, proposal: ContextProposal, now = Date.now()): Preview {
++  context(proposal, now);
++  const reply = assertHandoffDto<Preview>("Preview", value);
++  if (stable(reply.proposal) !== stable(proposal) || reply.checked_at_ms < proposal.created_at_ms || reply.checked_at_ms > now ||
++      reply.expires_at_ms > proposal.expires_at_ms || reply.expires_at_ms <= now || reply.expires_at_ms - reply.checked_at_ms > 30_000) {
++    throw new Error("预览与当前引用或有效期不符，请重新预览。");
++  }
++  return reply;
++}
++export function assertSnapshot(value: unknown, proposal: ContextProposal, expectedProposalSha: string, now = Date.now()): Snapshot {
++  context(proposal, now);
++  const reply = assertHandoffDto<Snapshot>("Snapshot", value);
++  if (reply.proposal_sha256 !== expectedProposalSha || stable(reply.producer) !== stable(proposal.producer) ||
++      stable(reply.reference) !== stable(proposal.payload.source.reference) || reply.checked_at_ms < proposal.created_at_ms ||
++      reply.checked_at_ms > now || reply.expires_at_ms > proposal.expires_at_ms || reply.expires_at_ms <= now ||
++      reply.expires_at_ms - reply.checked_at_ms > 30_000) throw new Error("正文与固定引用或有效期不符，未替换为其他版本。");
++  return reply;
++}
+--- a/frontend/src/components/DocumentSnapshot.tsx
++++ b/frontend/src/components/DocumentSnapshot.tsx
+@@ -10,6 +10,6 @@
+   return (node.content ?? []).map(previewText).join(inline ? "" : "\n");
+ }
+ /** A read-only text projection of this exact snapshot; no editor or business writes. */
+-export function DocumentSnapshot({value, label}: {value: JSONContent; label: string}) {
+-  return <><pre className="document-snapshot-text" aria-label={label}>{previewText(value)}</pre><RawReceiptButton label={`${label}结构记录`} payload={value} category="data"/></>;
++export function DocumentSnapshot({value, label, showRaw = true}: {value: JSONContent; label: string; showRaw?: boolean}) {
++  return <><pre className="document-snapshot-text" aria-label={label}>{previewText(value)}</pre>{showRaw ? <RawReceiptButton label={`${label}结构记录`} payload={value} category="data"/> : null}</>;
+ }
+--- a/frontend/src/components/ProjectHandoffReader.tsx
++++ b/frontend/src/components/ProjectHandoffReader.tsx
+@@ -0,0 +1,132 @@
++import { Component, useEffect, useRef, useState } from "react";
++import type { JSONContent } from "@tiptap/core";
++import { coreCommand } from "../api/core";
++import { parseContextProposal, assertPreview, assertSnapshot, verifyProposalFingerprint, type ContextProposal, type Preview, type Snapshot } from "../api/projectHandoff";
++import { AaosDialog } from "../design-system/AaosPrimitives";
++import { focusVisibleTarget } from "../presentation/focus";
++import { DocumentSnapshot } from "./DocumentSnapshot";
++import { RawReceiptButton } from "./DiagnosticConsole";
++
++// Stored future/opaque nodes remain intact; a projection failure must not unmount Exchange.
++class SnapshotProjection extends Component<{value: JSONContent}, {failed:boolean}> {
++  state = {failed:false};
++  static getDerivedStateFromError() { return {failed:true}; }
++  render() {
++    return this.state.failed ? <p role="alert">固定正文结构暂不能预览；原文档未改变，本次未展示不支持的结构。</p>
++      : <DocumentSnapshot value={this.props.value} label="固定版本全文" showRaw={false} />;
++  }
++}
++
++/** Local human reads only: the proposal never grants navigation, execution or acceptance. */
++export function ProjectHandoffReader() {
++  const [open, setOpen] = useState(false);
++  const [text, setText] = useState("");
++  const [preview, setPreview] = useState<Preview | null>(null);
++  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
++  const [busy, setBusy] = useState(false);
++  const [error, setError] = useState("");
++  const [paused, setPaused] = useState(false);
++  const restoring = useRef(false);
++  const root = useRef<HTMLElement>(null), trigger = useRef<HTMLButtonElement>(null);
++  const generation = useRef(0), locked = useRef(false), mounted = useRef(false), opened = useRef(false);
++  const approved = useRef<ContextProposal | null>(null);
++  // Radix marks the opener tree aria-hidden while its own modal portal is open.
++  const visible = () => {
++    if (!root.current?.isConnected || root.current.closest('[hidden],[inert]') || (!opened.current && root.current.closest('[aria-hidden="true"]'))) return false;
++    for (let node: HTMLElement | null = root.current; node; node = node.parentElement) {
++      const style = getComputedStyle(node);
++      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse") return false;
++    }
++    return true;
++  };
++  function clear(message = "") {
++    generation.current++; locked.current = false; approved.current = null;
++    setPreview(null); setSnapshot(null); setBusy(false); setError(message);
++  }
++  function changeOpen(next: boolean) {
++    if (next && !visible()) return;
++    opened.current = next; clear(); setText(""); setOpen(next);
++  }
++  useEffect(() => {
++    mounted.current = true;
++    const invalidate = () => { clear("工作区已变化；请重新取得并粘贴当前提案。"); setText(""); };
++    window.addEventListener("workspace-invalidated", invalidate);
++    const pause = () => { restoring.current = true; setPaused(true); invalidate(); };
++    const resume = () => { restoring.current = false; setPaused(false); };
++    window.addEventListener("workspace-restore-start", pause);
++    window.addEventListener("workspace-restore-finish", resume);
++    return () => { mounted.current = false; generation.current++; locked.current = false;
++      window.removeEventListener("workspace-invalidated", invalidate);
++      window.removeEventListener("workspace-restore-start", pause);
++      window.removeEventListener("workspace-restore-finish", resume);
++    };
++  }, []);
++  useEffect(() => {
++    if (!preview) return;
++    const timer = window.setTimeout(() => clear("提案已到期；正文已关闭，请重新取得提案。"), Math.max(0, Math.min(preview.expires_at_ms, snapshot?.expires_at_ms ?? preview.expires_at_ms) - Date.now()));
++    return () => window.clearTimeout(timer);
++  }, [preview, snapshot]);
++  useEffect(() => {
++    if (!open) return;
++    // Dock retains parked views. A portal must not keep their body visible.
++    const observer = new MutationObserver(() => {
++      if (opened.current && !visible()) { opened.current = false; clear(); setText(""); setOpen(false); }
++    });
++    observer.observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["hidden","inert","aria-hidden","style","class"]});
++    return () => observer.disconnect();
++  }, [open]);
++  const current = (request: number) => mounted.current && !restoring.current && opened.current && visible() && request === generation.current;
++  async function read(body: boolean) {
++    if (locked.current || restoring.current || !opened.current || !visible()) return;
++    locked.current = true; setBusy(true); setError("");
++    const request = ++generation.current;
++    try {
++      if (body) {
++        if (!preview || !approved.current) throw new Error("请先明确预览当前提案。");
++        const proposal = approved.current;
++        assertPreview(preview, proposal);
++        if (preview.reference_state === "NOT_FOUND") throw new Error("此本机工作区未找到引用，未读取其他对象。");
++        const value = await coreCommand<unknown>("project_handoff_snapshot", {body:proposal});
++        const bound = assertSnapshot(value, proposal, preview.proposal_sha256);
++        if (current(request)) setSnapshot(bound);
++      } else {
++        setPreview(null); setSnapshot(null); approved.current = null;
++        const proposal = parseContextProposal(text);
++        const value = await coreCommand<unknown>("project_handoff_preview", {body:proposal});
++        const bound = assertPreview(value, proposal);
++        await verifyProposalFingerprint(proposal, bound.proposal_sha256);
++        assertPreview(bound, proposal); // Digest work may finish after expiry or another selection.
++        if (current(request)) { approved.current = proposal; setPreview(bound); }
++      }
++    } catch (cause) {
++      if (current(request)) { setSnapshot(null); setError(cause instanceof Error ? cause.message : "只读核验失败；未打开正文。"); }
++    } finally {
++      if (current(request)) { locked.current = false; setBusy(false); }
++    }
++  }
++  return <section ref={root} tabIndex={-1} aria-label="跨项目固定引用">
++    <AaosDialog title="跨项目固定引用阅读" description="只在本机读取固定版本；不会执行提案或接纳知识。关闭后返回原交换页面。"
++      open={open} onOpenChange={changeOpen} trigger={<button ref={trigger} type="button">预览跨项目引用</button>}
++      onCloseAutoFocus={event => { event.preventDefault(); focusVisibleTarget(trigger.current, root.current); }}>
++      <label>上下文提案 JSON<textarea aria-label="上下文提案 JSON" value={text} onChange={event => {clear();setText(event.target.value);}} /></label>
++      <button type="button" disabled={paused || busy || !text.trim()} onClick={() => void read(false)}>预览引用信息</button>
++      {paused ? <p role="status">恢复核对中，暂不读取引用。</p> : null}
++      {busy ? <p role="status">正在核对本机固定引用…</p> : null}
++      {error ? <p role="alert">{error}</p> : null}
++      {preview && preview.proposal.payload.kind === "context" ? <section aria-label="提案只读预览">
++        <h3>本机文档第 {preview.proposal.payload.source.reference.version} 版</h3>
++        <p>来源身份尚未认证（UNVERIFIED）；所声明选区尚未核验（UNVERIFIED）。</p>
++        <p>仅显示固定版本全文；不保证所声明选区已定位或内容已获依据支持。</p>
++        <p>{preview.reference_state === "CURRENT" ? "预览时，此引用与当前保存版本一致。" : preview.reference_state === "STALE" ? "预览时，当前保存版本已变化；可明确读取所引用的旧版，不替代为新版。" : "本机未找到此引用，正文不可用。"}</p>
++        <RawReceiptButton label="跨项目引用预览" payload={preview} category="data" />
++        <button type="button" disabled={paused || busy || preview.reference_state === "NOT_FOUND" || snapshot !== null} onClick={() => void read(true)}>打开固定版本全文</button>
++      </section> : null}
++      {snapshot ? <section aria-label="本机固定版本只读正文"><p>本机固定版本 · 第 {snapshot.reference.version} 版 · 只读</p>
++        <p>{snapshot.reference_state === "STALE" ? "读取时当前保存版本已变化；这里保留并显示引用的旧版全文。" : "读取时此固定版本仍与当前保存版本一致。"}</p>
++        <SnapshotProjection key={`${snapshot.proposal_sha256}:${snapshot.reference.document_id}:${snapshot.reference.version}`} value={snapshot.editor_json as JSONContent} />
++        <RawReceiptButton label="跨项目固定正文身份" payload={Object.fromEntries(Object.entries(snapshot).filter(([key]) => key !== "editor_json"))} category="data" />
++      </section> : null}
++      <button type="button" onClick={() => changeOpen(false)}>关闭并返回</button>
++    </AaosDialog>
++  </section>;
++}
+--- a/frontend/src/spaces/SpaceView.tsx
++++ b/frontend/src/spaces/SpaceView.tsx
+@@ -1,167 +1,168 @@
+-import {CanonicalControlledAiSpace} from "./CanonicalControlledAiSpace";
+-import { findUiPage } from "../presentation/uiPages";
+-import { CanonicalWorkspaceSpace } from "./CanonicalWorkspaceSpace";
+-import { SpaceId } from "./spaces";
+-import { useEffect, useRef, useState } from "react";
+-import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
+-import { CanonicalKnowledgeSpace } from "./CanonicalKnowledgeSpace";
+-import { CanonicalLearningJourneySpace } from "./CanonicalLearningJourneySpace";
+-import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
+-import { CanonicalTeachingSpace } from "./CanonicalTeachingSpace";
+-import { CanonicalExchangeSpace } from "./CanonicalExchangeSpace";
+-import { CanonicalExpressionSpace } from "./CanonicalExpressionSpace";
+-import { CanonicalResearchSpace } from "./CanonicalResearchSpace";
+-import { CanonicalRelationSpace } from "./CanonicalRelationSpace";
+-import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
+-import { CollectionPanel } from "../components/CollectionPanel";
+-import type { ObjectReference } from "../api/generated/research-contract";
+-import { CanonicalCapabilitiesSpace } from "./CanonicalCapabilitiesSpace";
+-import { CanonicalResourcesSpace } from "./CanonicalResourcesSpace";
+-import { BackupPanel } from "../components/BackupPanel";
+-import { ModelConfigurationPanel } from "../components/ModelConfigurationPanel";
+-import { ConfigurationPlanPanel } from "../components/ConfigurationPlanPanel";
+-import { VersionSourcePanel } from "../components/VersionSourcePanel";
+-import type { InspectionHandler } from "../components/Inspector";
+-import type { ObjectTrailLevel } from "../components/NavTrail";
+-import type { CanonicalSurface } from "../presentation/spaceSections";
+-import { usePerformanceMonitor } from "../runtime/performance";
+-
+-// The desktop shell routes spaces onto canonical surfaces; the secondary level and
+-// the object trail must describe the surface that is really rendered, not the space name.
+-export function canonicalSurface(spaceId: SpaceId, desktop: boolean): CanonicalSurface {
+-  void desktop;
+-  switch (spaceId) {
+-    case "workspace": return "canonical_workspace";
+-    case "settings":
+-      return "canonical_capabilities";
+-    case "library":
+-    case "intake":
+-    case "exchange":
+-      return "canonical_library";
+-    case "vault":
+-    case "evidence":
+-    case "ai-assets":
+-      return "canonical_knowledge";
+-    case "learning":
+-      return "canonical_learning";
+-  }
+-}
+-
+-import type { SourceJourneyTarget, CandidateJourneyTarget } from "../presentation/sourceJourney";
+-
+-export type SpaceNavigation = { spaceId: SpaceId; section: string; sequence: number };
+-
+-function navigationFor(spaceId: SpaceId, navigation?: SpaceNavigation) {
+-  return navigation && navigation.spaceId === spaceId
+-    ? { section: navigation.section, sequence: navigation.sequence }
+-    : undefined;
+-}
+-
+-// SpaceView renders the active space content (AXW-UI-802).
+-export function SpaceView({
+-  spaceId,
+-  onInspect,
+-  onNavigate,
+-  onOpenCapability, onOpenPage,
+-  navigation,
+-  selectedCapabilityId, uiPageId, initialDocumentId, onOpenDocument, hasUnsavedDrafts,
+-  onTrail,
+-  initialLearningItemKey, onReviewItem,
+-  activationRevision, sourceJourney,
+-}: {
+-  spaceId: SpaceId;
+-  onInspect: InspectionHandler;
+-  onNavigate: (id: SpaceId) => void;
+-  onOpenCapability?: (id: string) => void; onOpenPage?: (id:string)=>void;
+-  navigation?: SpaceNavigation;
+-  selectedCapabilityId?: string | null;
+-  uiPageId?: string; initialDocumentId?: string; onOpenDocument?: (id:string)=>void;
+-  hasUnsavedDrafts?: boolean;
+-  onTrail?: (levels: readonly ObjectTrailLevel[]) => void;
+-  initialLearningItemKey?: string; onReviewItem?: (key:string)=>void;
+-  activationRevision?: number;
+-  sourceJourney?: {target?:SourceJourneyTarget;onChange:(target?:SourceJourneyTarget)=>void};
+-}) {
+-   usePerformanceMonitor("SpaceView");
+-  const [localSourceTarget,setLocalSourceTarget]=useState<SourceJourneyTarget>();
+-  const sourceTarget=sourceJourney?sourceJourney.target:localSourceTarget;
+-  const setSourceTarget=sourceJourney?.onChange??setLocalSourceTarget;
+-  const working=useOptionalCoreWorkingState();
+-  const pendingReviews=Object.values(working?.state.pending_reviews??{});
+-  const recoveredReview=useRef<{scope:string;itemKey?:string}>({scope:""});
+-  const reviewScope=working?.server?`${working.server.workspace_id}:${working.server.restore_epoch}`:"";
+-  if(recoveredReview.current.scope!==reviewScope)recoveredReview.current={scope:reviewScope};
+-  if(pendingReviews.length===1)recoveredReview.current.itemKey=pendingReviews[0].item_key;
+-  const pendingReviewItemKey=recoveredReview.current.itemKey;
+-  const [candidateTarget,setCandidateTarget]=useState<CandidateJourneyTarget>();
+-  const externalDocument=useRef(initialDocumentId);
+-  useEffect(()=>{if(externalDocument.current!==initialDocumentId){externalDocument.current=initialDocumentId;if(!sourceJourney)setLocalSourceTarget(undefined);}},[initialDocumentId,sourceJourney]);
+-  const openJourneyDocument=(id:string)=>{setSourceTarget(undefined);onOpenDocument?.(id);};
+-  const candidateReview=(target?:CandidateJourneyTarget)=>{if(target)setCandidateTarget(target);else onNavigate("vault");};
+-  useEffect(()=>{if(sourceTarget)setCandidateTarget(undefined);},[sourceTarget]);
+-  useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed){setLocalSourceTarget(undefined);setCandidateTarget(undefined);}};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[]);
+-  const view = useRef<HTMLDivElement>(null);
+-  const [pinnedReference,setPinnedReference]=useState<ObjectReference|null>(null);
+-  useEffect(()=>{setPinnedReference(null);},[uiPageId,spaceId]);
+-  useEffect(() => {
+-    // Reuse the Avalonia AaosTheme route opacity transition (180ms), keeping
+-    // the existing content mounted so navigation never resets draft state.
+-    const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+-    if (motionPreference?.matches || document.visibilityState === "hidden" || !document.hasFocus() ||
+-        typeof view.current?.animate !== "function") return;
+-    const transition = view.current.animate(
+-      [{ opacity: 0 }, { opacity: 1 }],
+-      { duration: 180, easing: "ease-out" },
+-    );
+-    const stop = () => transition.cancel();
+-    const onVisibility = () => { if (document.visibilityState === "hidden") stop(); };
+-    const onPreference = () => { if (motionPreference?.matches) stop(); };
+-    window.addEventListener("blur", stop);
+-    document.addEventListener("visibilitychange", onVisibility);
+-    motionPreference?.addEventListener("change", onPreference);
+-    return () => {
+-      window.removeEventListener("blur", stop);
+-      document.removeEventListener("visibilitychange", onVisibility);
+-      motionPreference?.removeEventListener("change", onPreference);
+-      stop();
+-    };
+-  }, [spaceId]);
+-  const content = (() => {
+-  if (selectedCapabilityId) {
+-    return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} selectedCapabilityId={selectedCapabilityId} navigation={navigation} onTrail={onTrail} />;
+-  }
+-  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace activationRevision={activationRevision} purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
+-  if (uiPageId === "21") return <CanonicalExpressionSpace onTrail={onTrail} onOpenCapability={onOpenCapability}/>;
+-  if (uiPageId === "04") return <CanonicalRelationSpace onOpenReference={setPinnedReference} renderCollection={(document,envelope,change,pending,readOnly)=>{
+-    const attrs=envelope.attrs && typeof envelope.attrs==="object" && !Array.isArray(envelope.attrs) ? envelope.attrs as Record<string,unknown> : {};
+-    return <CollectionPanel document={document} value={attrs.archeaxis_collection} readOnly={readOnly} onPendingEditChange={pending} onOpenReference={setPinnedReference} onChange={value=>change({...envelope,attrs:{...attrs,archeaxis_collection:value}})}/>;
+-  }}/>;
+-  if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onTrail={onTrail}/>;
+-  if(uiPageId&&["13","14","22"].includes(uiPageId))return <CanonicalControlledAiSpace pageId={uiPageId} initialLearningItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onOpenReference={setPinnedReference}/>;
+-  if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
+-  if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+-  if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+-  if (uiPageId === "16") return <CanonicalExchangeSpace onReadSource={target=>{setSourceTarget(target);setCandidateTarget(undefined);onOpenPage?.("03");}} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+-  const semanticPage = uiPageId ? findUiPage(uiPageId) : undefined;
+-  if (semanticPage && !semanticPage.implemented) return <section className="ui-pending-page" aria-label={semanticPage.label}><h2>此页面尚未接通</h2><p>能力意图和页面入口已保留；当前没有此页面的完整真实用户路径。</p><p>承接任务 {semanticPage.task} · UI / {semanticPage.id}</p><button onClick={()=>onNavigate("settings")}>查看能力、依赖与系统状态</button></section>;
+-  if (spaceId === "workspace") return <CanonicalWorkspaceSpace onNavigate={id=>{if(uiPageId === "01" && onOpenPage && (id === "library" || id === "settings")) onOpenPage(id === "library" ? "02" : "17"); else onNavigate(id);}} onOpenDocument={onOpenDocument} onReviewItem={onReviewItem}/>;
+-  if (uiPageId === "19") return <section className="ui-reliability-panel" aria-label="系统与可靠性" data-section="backup" tabIndex={-1}>
+-    <h2>本地工作区与恢复</h2><p>普通笔记与草稿可先保存，依据分析、专业采用与 AI 资格分别记录。</p>
+-    <BackupPanel hasUnsavedDrafts={hasUnsavedDrafts} /><p>权限配置界面尚未接通。恢复通过本地宿主执行，浏览器未连接时明确不可用。</p>
+-    <section aria-label="产品模型与用途绑定"><ModelConfigurationPanel /></section>
+-    <ConfigurationPlanPanel />
+-  </section>;
+-  if (uiPageId === "20") return <><VersionSourcePanel /><CanonicalLibrarySpace activationRevision={activationRevision} purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /></>;
+-  if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+-  switch (spaceId) {
+-    case "library": case "intake": case "exchange":
+-      return <CanonicalLibrarySpace activationRevision={activationRevision} initialDocumentId={initialDocumentId} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
+-    case "vault": case "evidence": case "ai-assets":
+-      return <CanonicalKnowledgeSpace onLearning={()=>onNavigate("learning")} onTrail={onTrail}/>;
+-    case "learning": return <CanonicalLearningJourneySpace onOpenPage={onOpenPage} onTrail={onTrail}/>;
+-    case "settings": return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
+-  }
+-  })();
+-
+-  return <div ref={view} className="space-view" data-motion="enter">{content}{candidateTarget?<section aria-label="同源候选审核"><button onClick={()=>setCandidateTarget(undefined)}>关闭候选审核</button><CanonicalKnowledgeSpace key={candidateTarget.knowledge_id} initialCandidate={candidateTarget} showMachine={false} onLearning={key=>{if(key)onReviewItem?.(key);else onOpenPage?.("06");}}/></section>:null}{pinnedReference && <PinnedReferencePanel reference={pinnedReference} onClose={()=>setPinnedReference(null)} onOpenReference={setPinnedReference}/>}</div>;
+-}
++import {CanonicalControlledAiSpace} from "./CanonicalControlledAiSpace";
++import { findUiPage } from "../presentation/uiPages";
++import { CanonicalWorkspaceSpace } from "./CanonicalWorkspaceSpace";
++import { SpaceId } from "./spaces";
++import { useEffect, useRef, useState } from "react";
++import { CanonicalLibrarySpace } from "./CanonicalLibrarySpace";
++import { CanonicalKnowledgeSpace } from "./CanonicalKnowledgeSpace";
++import { CanonicalLearningJourneySpace } from "./CanonicalLearningJourneySpace";
++import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
++import { CanonicalTeachingSpace } from "./CanonicalTeachingSpace";
++import { CanonicalExchangeSpace } from "./CanonicalExchangeSpace";
++import { CanonicalExpressionSpace } from "./CanonicalExpressionSpace";
++import { CanonicalResearchSpace } from "./CanonicalResearchSpace";
++import { CanonicalRelationSpace } from "./CanonicalRelationSpace";
++import { ProjectHandoffReader } from "../components/ProjectHandoffReader";
++import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
++import { CollectionPanel } from "../components/CollectionPanel";
++import type { ObjectReference } from "../api/generated/research-contract";
++import { CanonicalCapabilitiesSpace } from "./CanonicalCapabilitiesSpace";
++import { CanonicalResourcesSpace } from "./CanonicalResourcesSpace";
++import { BackupPanel } from "../components/BackupPanel";
++import { ModelConfigurationPanel } from "../components/ModelConfigurationPanel";
++import { ConfigurationPlanPanel } from "../components/ConfigurationPlanPanel";
++import { VersionSourcePanel } from "../components/VersionSourcePanel";
++import type { InspectionHandler } from "../components/Inspector";
++import type { ObjectTrailLevel } from "../components/NavTrail";
++import type { CanonicalSurface } from "../presentation/spaceSections";
++import { usePerformanceMonitor } from "../runtime/performance";
++
++// The desktop shell routes spaces onto canonical surfaces; the secondary level and
++// the object trail must describe the surface that is really rendered, not the space name.
++export function canonicalSurface(spaceId: SpaceId, desktop: boolean): CanonicalSurface {
++  void desktop;
++  switch (spaceId) {
++    case "workspace": return "canonical_workspace";
++    case "settings":
++      return "canonical_capabilities";
++    case "library":
++    case "intake":
++    case "exchange":
++      return "canonical_library";
++    case "vault":
++    case "evidence":
++    case "ai-assets":
++      return "canonical_knowledge";
++    case "learning":
++      return "canonical_learning";
++  }
++}
++
++import type { SourceJourneyTarget, CandidateJourneyTarget } from "../presentation/sourceJourney";
++
++export type SpaceNavigation = { spaceId: SpaceId; section: string; sequence: number };
++
++function navigationFor(spaceId: SpaceId, navigation?: SpaceNavigation) {
++  return navigation && navigation.spaceId === spaceId
++    ? { section: navigation.section, sequence: navigation.sequence }
++    : undefined;
++}
++
++// SpaceView renders the active space content (AXW-UI-802).
++export function SpaceView({
++  spaceId,
++  onInspect,
++  onNavigate,
++  onOpenCapability, onOpenPage,
++  navigation,
++  selectedCapabilityId, uiPageId, initialDocumentId, onOpenDocument, hasUnsavedDrafts,
++  onTrail,
++  initialLearningItemKey, onReviewItem,
++  activationRevision, sourceJourney,
++}: {
++  spaceId: SpaceId;
++  onInspect: InspectionHandler;
++  onNavigate: (id: SpaceId) => void;
++  onOpenCapability?: (id: string) => void; onOpenPage?: (id:string)=>void;
++  navigation?: SpaceNavigation;
++  selectedCapabilityId?: string | null;
++  uiPageId?: string; initialDocumentId?: string; onOpenDocument?: (id:string)=>void;
++  hasUnsavedDrafts?: boolean;
++  onTrail?: (levels: readonly ObjectTrailLevel[]) => void;
++  initialLearningItemKey?: string; onReviewItem?: (key:string)=>void;
++  activationRevision?: number;
++  sourceJourney?: {target?:SourceJourneyTarget;onChange:(target?:SourceJourneyTarget)=>void};
++}) {
++   usePerformanceMonitor("SpaceView");
++  const [localSourceTarget,setLocalSourceTarget]=useState<SourceJourneyTarget>();
++  const sourceTarget=sourceJourney?sourceJourney.target:localSourceTarget;
++  const setSourceTarget=sourceJourney?.onChange??setLocalSourceTarget;
++  const working=useOptionalCoreWorkingState();
++  const pendingReviews=Object.values(working?.state.pending_reviews??{});
++  const recoveredReview=useRef<{scope:string;itemKey?:string}>({scope:""});
++  const reviewScope=working?.server?`${working.server.workspace_id}:${working.server.restore_epoch}`:"";
++  if(recoveredReview.current.scope!==reviewScope)recoveredReview.current={scope:reviewScope};
++  if(pendingReviews.length===1)recoveredReview.current.itemKey=pendingReviews[0].item_key;
++  const pendingReviewItemKey=recoveredReview.current.itemKey;
++  const [candidateTarget,setCandidateTarget]=useState<CandidateJourneyTarget>();
++  const externalDocument=useRef(initialDocumentId);
++  useEffect(()=>{if(externalDocument.current!==initialDocumentId){externalDocument.current=initialDocumentId;if(!sourceJourney)setLocalSourceTarget(undefined);}},[initialDocumentId,sourceJourney]);
++  const openJourneyDocument=(id:string)=>{setSourceTarget(undefined);onOpenDocument?.(id);};
++  const candidateReview=(target?:CandidateJourneyTarget)=>{if(target)setCandidateTarget(target);else onNavigate("vault");};
++  useEffect(()=>{if(sourceTarget)setCandidateTarget(undefined);},[sourceTarget]);
++  useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed){setLocalSourceTarget(undefined);setCandidateTarget(undefined);}};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[]);
++  const view = useRef<HTMLDivElement>(null);
++  const [pinnedReference,setPinnedReference]=useState<ObjectReference|null>(null);
++  useEffect(()=>{setPinnedReference(null);},[uiPageId,spaceId]);
++  useEffect(() => {
++    // Reuse the Avalonia AaosTheme route opacity transition (180ms), keeping
++    // the existing content mounted so navigation never resets draft state.
++    const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
++    if (motionPreference?.matches || document.visibilityState === "hidden" || !document.hasFocus() ||
++        typeof view.current?.animate !== "function") return;
++    const transition = view.current.animate(
++      [{ opacity: 0 }, { opacity: 1 }],
++      { duration: 180, easing: "ease-out" },
++    );
++    const stop = () => transition.cancel();
++    const onVisibility = () => { if (document.visibilityState === "hidden") stop(); };
++    const onPreference = () => { if (motionPreference?.matches) stop(); };
++    window.addEventListener("blur", stop);
++    document.addEventListener("visibilitychange", onVisibility);
++    motionPreference?.addEventListener("change", onPreference);
++    return () => {
++      window.removeEventListener("blur", stop);
++      document.removeEventListener("visibilitychange", onVisibility);
++      motionPreference?.removeEventListener("change", onPreference);
++      stop();
++    };
++  }, [spaceId]);
++  const content = (() => {
++  if (selectedCapabilityId) {
++    return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} selectedCapabilityId={selectedCapabilityId} navigation={navigation} onTrail={onTrail} />;
++  }
++  if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace activationRevision={activationRevision} purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
++  if (uiPageId === "21") return <CanonicalExpressionSpace onTrail={onTrail} onOpenCapability={onOpenCapability}/>;
++  if (uiPageId === "04") return <CanonicalRelationSpace onOpenReference={setPinnedReference} renderCollection={(document,envelope,change,pending,readOnly)=>{
++    const attrs=envelope.attrs && typeof envelope.attrs==="object" && !Array.isArray(envelope.attrs) ? envelope.attrs as Record<string,unknown> : {};
++    return <CollectionPanel document={document} value={attrs.archeaxis_collection} readOnly={readOnly} onPendingEditChange={pending} onOpenReference={setPinnedReference} onChange={value=>change({...envelope,attrs:{...attrs,archeaxis_collection:value}})}/>;
++  }}/>;
++  if (uiPageId === "05") return <CanonicalResearchSpace onOpenReference={setPinnedReference} onTrail={onTrail}/>;
++  if(uiPageId&&["13","14","22"].includes(uiPageId))return <CanonicalControlledAiSpace pageId={uiPageId} initialLearningItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onOpenReference={setPinnedReference}/>;
++  if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
++  if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;
++  if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
++  if (uiPageId === "16") return <><ProjectHandoffReader /><CanonicalExchangeSpace onReadSource={target=>{setSourceTarget(target);setCandidateTarget(undefined);onOpenPage?.("03");}} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/></>;
++  const semanticPage = uiPageId ? findUiPage(uiPageId) : undefined;
++  if (semanticPage && !semanticPage.implemented) return <section className="ui-pending-page" aria-label={semanticPage.label}><h2>此页面尚未接通</h2><p>能力意图和页面入口已保留；当前没有此页面的完整真实用户路径。</p><p>承接任务 {semanticPage.task} · UI / {semanticPage.id}</p><button onClick={()=>onNavigate("settings")}>查看能力、依赖与系统状态</button></section>;
++  if (spaceId === "workspace") return <CanonicalWorkspaceSpace onNavigate={id=>{if(uiPageId === "01" && onOpenPage && (id === "library" || id === "settings")) onOpenPage(id === "library" ? "02" : "17"); else onNavigate(id);}} onOpenDocument={onOpenDocument} onReviewItem={onReviewItem}/>;
++  if (uiPageId === "19") return <section className="ui-reliability-panel" aria-label="系统与可靠性" data-section="backup" tabIndex={-1}>
++    <h2>本地工作区与恢复</h2><p>普通笔记与草稿可先保存，依据分析、专业采用与 AI 资格分别记录。</p>
++    <BackupPanel hasUnsavedDrafts={hasUnsavedDrafts} /><p>权限配置界面尚未接通。恢复通过本地宿主执行，浏览器未连接时明确不可用。</p>
++    <section aria-label="产品模型与用途绑定"><ModelConfigurationPanel /></section>
++    <ConfigurationPlanPanel />
++  </section>;
++  if (uiPageId === "20") return <><VersionSourcePanel /><CanonicalLibrarySpace activationRevision={activationRevision} purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /></>;
++  if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} onTrail={onTrail}/>;
++  switch (spaceId) {
++    case "library": case "intake": case "exchange":
++      return <CanonicalLibrarySpace activationRevision={activationRevision} initialDocumentId={initialDocumentId} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
++    case "vault": case "evidence": case "ai-assets":
++      return <CanonicalKnowledgeSpace onLearning={()=>onNavigate("learning")} onTrail={onTrail}/>;
++    case "learning": return <CanonicalLearningJourneySpace onOpenPage={onOpenPage} onTrail={onTrail}/>;
++    case "settings": return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
++  }
++  })();
++
++  return <div ref={view} className="space-view" data-motion="enter">{content}{candidateTarget?<section aria-label="同源候选审核"><button onClick={()=>setCandidateTarget(undefined)}>关闭候选审核</button><CanonicalKnowledgeSpace key={candidateTarget.knowledge_id} initialCandidate={candidateTarget} showMachine={false} onLearning={key=>{if(key)onReviewItem?.(key);else onOpenPage?.("06");}}/></section>:null}{pinnedReference && <PinnedReferencePanel reference={pinnedReference} onClose={()=>setPinnedReference(null)} onOpenReference={setPinnedReference}/>}</div>;
++}
+--- a/packages/contracts/v1/core-command.schema.json
++++ b/packages/contracts/v1/core-command.schema.json
+@@ -12,6 +12,7 @@
+       "enum": [
+         "system_version",
+         "project_handoff_preview",
++        "project_handoff_snapshot",
+         "source_import",
+         "sources_list",
+         "source_jobs",
+--- a/packages/contracts/v2/project-handoff-snapshot.cases.json
++++ b/packages/contracts/v2/project-handoff-snapshot.cases.json
+@@ -0,0 +1,567 @@
++[
++  {
++    "name": "current-local-only",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": true
++  },
++  {
++    "name": "stale-is-exact-history",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "STALE",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": true
++  },
++  {
++    "name": "reject-scope-2",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "OBSERVER_READ",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-grants_execution-3",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": true,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-grants_knowledge_acceptance-4",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": true
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-reference_state-5",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "NOT_FOUND",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-source_authentication-6",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "VERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-selection_qualification-7",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "VERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-editor_json-8",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": [],
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-editor_json-9",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "html"
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-token-10",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false,
++      "token": "secret fixture"
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "reject-proposal_sha256-11",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false
++  },
++  {
++    "name": "expired",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 10000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": false
++  },
++  {
++    "name": "future-observation",
++    "value": {
++      "schema": "archeaxis.project-handoff-snapshot/v1",
++      "checked_at_ms": 10001,
++      "expires_at_ms": 40000,
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "producer": {
++        "namespace": "archeaxis",
++        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++        "restore_epoch": "initial"
++      },
++      "reference": {
++        "document_id": "doc_a",
++        "version": 2,
++        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++      },
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "selection_qualification": "UNVERIFIED",
++      "scope": "LOCAL_HUMAN_READ_ONLY",
++      "editor_json": {
++        "type": "doc",
++        "content": [
++          {
++            "type": "paragraph",
++            "content": [
++              {
++                "type": "text",
++                "text": "SYNTHETIC 中文 fixed body"
++              }
++            ]
++          }
++        ]
++      },
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    },
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": false
++  }
++]
+--- a/packages/contracts/v2/project-handoff-snapshot.schema.json
++++ b/packages/contracts/v2/project-handoff-snapshot.schema.json
+@@ -0,0 +1,20 @@
++{
++  "$schema": "https://json-schema.org/draft/2020-12/schema",
++  "$id": "archeaxis.project-handoff-snapshot/v1",
++  "type": "object", "additionalProperties": false,
++  "properties": {
++    "schema": {"const": "archeaxis.project-handoff-snapshot/v1"},
++    "checked_at_ms": {"type": "integer", "minimum": 0, "maximum": 9007199254740991},
++    "expires_at_ms": {"type": "integer", "minimum": 1, "maximum": 9007199254740991},
++    "proposal_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
++    "producer": {"$ref": "project-handoff.schema.json#/$defs/ProducerIdentity"},
++    "reference": {"$ref": "project-handoff.schema.json#/$defs/ObjectReference"},
++    "reference_state": {"enum": ["CURRENT", "STALE"]},
++    "source_authentication": {"const": "UNVERIFIED"},
++    "selection_qualification": {"const": "UNVERIFIED"},
++    "scope": {"const": "LOCAL_HUMAN_READ_ONLY"},
++    "editor_json": {"type": "object", "properties": {"type": {"const": "doc"}}, "required": ["type"]},
++    "grants_execution": {"const": false}, "grants_knowledge_acceptance": {"const": false}
++  },
++  "required": ["schema", "checked_at_ms", "expires_at_ms", "proposal_sha256", "producer", "reference", "reference_state", "source_authentication", "selection_qualification", "scope", "editor_json", "grants_execution", "grants_knowledge_acceptance"]
++}
+--- a/scripts/contracts/generate_project_handoff.py
++++ b/scripts/contracts/generate_project_handoff.py
+@@ -0,0 +1,108 @@
++"""从既有严格Handoff及本机preview/snapshot规范生成消费合同。"""
++
++import argparse
++import json
++from pathlib import Path
++
++from generate_core_document import ts as core_ts
++
++ROOT = Path(__file__).resolve().parents[2]
++TARGET = ROOT / "frontend/src/api/generated/project-handoff.ts"
++
++
++def ts(node):
++    if "oneOf" in node:
++        return " | ".join(ts(child) for child in node["oneOf"])
++    if "allOf" in node:
++        return ts(node["allOf"][0])
++    if node.get("type") == "object":
++        required = node.get("required", [])
++        fields = "; ".join(
++            f"{key}{'' if key in required else '?'}: {ts(value)}"
++            for key, value in node.get("properties", {}).items()
++        )
++        return "{ " + fields + " }"
++    if node.get("type") == "array":
++        return f"Array<{ts(node['items'])}>"
++    return core_ts(node)
++
++
++def generate():
++    folder = ROOT / "packages/contracts/v2"
++    base = json.loads((folder / "project-handoff.schema.json").read_text(encoding="utf-8"))
++    definitions = base.pop("$defs")
++    definitions["Handoff"] = base
++    for name, file in [
++        ("Preview", "project-handoff-preview.schema.json"),
++        ("Snapshot", "project-handoff-snapshot.schema.json"),
++    ]:
++        definitions[name] = json.loads((folder / file).read_text(encoding="utf-8"))
++
++    def local(node):
++        if isinstance(node, list):
++            return [local(child) for child in node]
++        if not isinstance(node, dict):
++            return node
++        result = {key: local(value) for key, value in node.items()}
++        ref = result.get("$ref", "")
++        if ref == "project-handoff.schema.json":
++            result["$ref"] = "#/$defs/Handoff"
++        elif ref.startswith("project-handoff.schema.json#/"):
++            result["$ref"] = ref.split(".json", 1)[1]
++        return result
++
++    definitions = local(definitions)
++    out = "// Generated by scripts/contracts/generate_project_handoff.py; edit canonical JSON Schema.\n"
++    out += (
++        "\n".join(f"export type {name} = {ts(node)};" for name, node in definitions.items()) + "\n"
++    )
++    out += (
++        "const definitions: Record<string, any> = "
++        + json.dumps(definitions, ensure_ascii=False)
++        + ";\n"
++    )
++    out += """
++function valid(node: any, value: unknown): boolean {
++  if (!node) return false;
++  if (node.$ref) return valid(definitions[node.$ref.split('/').pop()], value);
++  if ('const' in node && value !== node.const) return false;
++  if (node.enum && !node.enum.includes(value)) return false;
++  if (node.allOf && !node.allOf.every((x: any) => valid(x, value))) return false;
++  if (node.oneOf && node.oneOf.filter((x: any) => valid(x, value)).length !== 1) return false;
++  if (node.type === 'string' && (typeof value !== 'string' ||
++      (node.minLength !== undefined && [...value].length < node.minLength) ||
++      (node.maxLength !== undefined && [...value].length > node.maxLength) ||
++      (node.pattern && !new RegExp(node.pattern.replace(/\\$$/, '(?![\\\\s\\\\S])')).test(value)))) return false;
++  if (node.type === 'integer' && (typeof value !== 'number' || !Number.isSafeInteger(value) ||
++      (node.minimum !== undefined && value < node.minimum) || (node.maximum !== undefined && value > node.maximum))) return false;
++  if (node.type === 'boolean' && typeof value !== 'boolean') return false;
++  if (node.type === 'array' && (!Array.isArray(value) ||
++      (node.minItems !== undefined && value.length < node.minItems) ||
++      (node.maxItems !== undefined && value.length > node.maxItems) || !value.every(x => valid(node.items, x)))) return false;
++  if (node.type === 'object' || node.properties) {
++    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
++    const record = value as Record<string, unknown>;
++    if (!(node.required || []).every((key: string) => Object.hasOwn(record, key))) return false;
++    if (node.additionalProperties === false && Object.keys(record).some(key => !Object.hasOwn(node.properties || {}, key))) return false;
++    if (!Object.entries(node.properties || {}).every(([key, child]) => !Object.hasOwn(record, key) || valid(child, record[key]))) return false;
++  }
++  return true;
++}
++export function assertHandoffDto<T>(name: 'Handoff' | 'Preview' | 'Snapshot', value: unknown): T {
++  if (!valid(definitions[name], value)) throw new Error('上下文引用格式不兼容，未打开正文。');
++  return value as T;
++}
++"""
++    return out
++
++
++if __name__ == "__main__":
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--check", action="store_true")
++    args = parser.parse_args()
++    result = generate()
++    if args.check:
++        if not TARGET.is_file() or TARGET.read_text(encoding="utf-8") != result:
++            raise SystemExit("project-handoff generated DTO drift")
++    else:
++        TARGET.write_text(result, encoding="utf-8", newline="\n")
+--- a/src-tauri/src/core_bridge.rs
++++ b/src-tauri/src/core_bridge.rs
+@@ -34,6 +34,7 @@
+ pub enum Operation {
+     SystemVersion,
+     ProjectHandoffPreview,
++    ProjectHandoffSnapshot,
+     SourceImport,
+     SourcesList,
+     SourceJobs,
+@@ -247,7 +248,7 @@
+     };
+     Ok(match request.operation {
+         SystemVersion => ("GET", "/api/v1/system/version".into(), None),
+-        ProjectHandoffPreview => {
++        ProjectHandoffPreview | ProjectHandoffSnapshot => {
+             // 仅已有human会话的本地metadata预览；无URL、凭据或任意命令入口。
+             if p.as_object().is_none_or(|fields| fields.len() != 1)
+                 || !p.get("body").is_some_and(Value::is_object)
+@@ -256,7 +257,11 @@
+             }
+             (
+                 "POST",
+-                "/api/v1/project-handoff/preview".into(),
++                if matches!(request.operation, ProjectHandoffSnapshot) {
++                    "/api/v1/project-handoff/snapshot".into()
++                } else {
++                    "/api/v1/project-handoff/preview".into()
++                },
+                 Some(body()?),
+             )
+         }
+@@ -1004,7 +1009,7 @@
+         }
+         Operation::MachineRetest => 135,
+         Operation::WorkspaceBackup => 120,
+-        Operation::ProjectHandoffPreview => 3,
++        Operation::ProjectHandoffPreview | Operation::ProjectHandoffSnapshot => 3,
+         // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media
+         // jobs run past both, so the transport must outlive them.
+         Operation::JobExecute => 320,
+@@ -1014,7 +1019,10 @@
+ }
+ 
+ fn request_byte_limit(operation: &Operation) -> usize {
+-    if matches!(operation, Operation::ProjectHandoffPreview) {
++    if matches!(
++        operation,
++        Operation::ProjectHandoffPreview | Operation::ProjectHandoffSnapshot
++    ) {
+         65_536
+     } else if matches!(operation, Operation::DocumentPackageImport) {
+         16 * 1024 * 1024
+--- a/src-tauri/tests/project_handoff_preview.rs
++++ b/src-tauri/tests/project_handoff_preview.rs
+@@ -62,10 +62,11 @@
+         .as_str()
+         .unwrap()
+         .to_owned();
++    let body_text = format!("PRIVATE NATIVE BODY{}", "中".repeat(24_000));
+     let document = call(
+         port,
+         "document_create",
+-        json!({"body":{"create_request_id":"synthetic-preview-create","source_id":null,"source_revision":null,"title":"PRIVATE NATIVE TITLE","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"PRIVATE NATIVE BODY"}]}]}}}),
++        json!({"body":{"create_request_id":"synthetic-preview-create","source_id":null,"source_revision":null,"title":"PRIVATE NATIVE TITLE","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":body_text}]}]}}}),
+     );
+     assert!(matches!(document.status, 200 | 201));
+     let now = std::time::SystemTime::now()
+@@ -89,6 +90,30 @@
+     ] {
+         assert!(!reply.body.to_string().contains(forbidden));
+     }
++    // 正文有限桥须支持超过metadata 64KiB的固定正文，并且不返回当前标题。
++    let read = call(port, "project_handoff_snapshot", json!({"body":proposal}));
++    assert_eq!(read.status, 200);
++    assert!(read.body.to_string().len() > 65_536);
++    assert_eq!(read.body["proposal_sha256"], reply.body["proposal_sha256"]);
++    assert_eq!(
++        read.body["reference"],
++        proposal["payload"]["source"]["reference"]
++    );
++    assert_eq!(
++        read.body["editor_json"]["content"][0]["content"][0]["text"],
++        body_text
++    );
++    assert!(read.body.get("title").is_none());
++    let changed = call(
++        port,
++        "document_draft",
++        json!({"document_id":document.body["document_id"],"body":{"expected_version":1,"editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"NEW BODY NEVER SUBSTITUTE"}]}]}}}),
++    );
++    assert_eq!(changed.status, 200);
++    let old = call(port, "project_handoff_snapshot", json!({"body":proposal}));
++    assert_eq!(old.status, 200);
++    assert_eq!(old.body["reference_state"], "STALE");
++    assert_eq!(old.body["editor_json"], read.body["editor_json"]);
+     for payload in [
+         json!({"body":proposal,"url":"https://invalid.test"}),
+         json!({"body":proposal,"token":HUMAN}),
+@@ -115,4 +140,11 @@
+     assert!(
+         matches!(core_bridge::execute(port,HUMAN,request),Err(code) if code=="CORE_TRANSPORT_FAILED")
+     );
++    let request = serde_json::from_value(
++        json!({"operation":"project_handoff_snapshot","payload":{"body":proposal}}),
++    )
++    .unwrap();
++    assert!(
++        matches!(core_bridge::execute(port,HUMAN,request),Err(code) if code=="CORE_TRANSPORT_FAILED")
++    );
+ }
+--- a/tests/contract/test_project_handoff_snapshot_contract.py
++++ b/tests/contract/test_project_handoff_snapshot_contract.py
+@@ -0,0 +1,27 @@
++"""本机正文不成为Observer字段；共用正负案例验证严格schema。"""
++
++import json
++from pathlib import Path
++from urllib.parse import urljoin
++
++from jsonschema import Draft202012Validator
++from referencing import Registry, Resource
++
++ROOT = Path(__file__).resolve().parents[2]
++FOLDER = ROOT / "packages/contracts/v2"
++
++
++def test_snapshot_shared_cases_preserve_local_human_scope_and_strict_identity():
++    schema = json.loads(
++        (FOLDER / "project-handoff-snapshot.schema.json").read_text(encoding="utf-8")
++    )
++    base = json.loads((FOLDER / "project-handoff.schema.json").read_text(encoding="utf-8"))
++    cases = json.loads((FOLDER / "project-handoff-snapshot.cases.json").read_text(encoding="utf-8"))
++    Draft202012Validator.check_schema(schema)
++    registry = Registry().with_resource(
++        urljoin(schema["$id"], "project-handoff.schema.json"), Resource.from_contents(base)
++    )
++    validator = Draft202012Validator(schema, registry=registry)
++    assert len(cases) >= 14
++    for case in cases:
++        assert validator.is_valid(case["value"]) == case["schema_valid"], case["name"]

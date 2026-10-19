@@ -30,7 +30,62 @@
           }
         },
         "capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
-        "schemas": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+        "schemas": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "runtime_dependency": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "status",
+            "version"
+          ],
+          "properties": {
+            "name": {
+              "const": "pymupdf"
+            },
+            "status": {
+              "enum": [
+                "AVAILABLE",
+                "MISSING",
+                "VERSION_UNKNOWN",
+                "IMPORT_FAILED"
+              ]
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64,
+            "pattern": "^[0-9][0-9A-Za-z.+_-]{0,63}(?![\\s\\S])"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "AVAILABLE"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "version": {
+                    "type": "string"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "version": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
+        }
       }
     },
     "assetRef": {

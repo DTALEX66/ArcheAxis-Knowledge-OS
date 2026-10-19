@@ -1,0 +1,279 @@
+{
+  "state": "ISOLATED_PROPOSAL_PASS_NOT_APPLIED",
+  "patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+  "final_selected_tests": 12,
+  "shared_handoff_cases": 67,
+  "nonreceipt_positive_projections": 11,
+  "runs": [
+    {
+      "run_id": "be10-handoff-contract-python-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-handoff-contract-python-1019/artifacts/execution.json",
+      "receipt_sha256": "1479850e17b70dd775343fcb1a253563bbc9742c64e2364ac2b9d8fe544ab0a5",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-handoff-next-20261019/run_validation.py",
+        "python"
+      ],
+      "started_at": "2026-10-18T21:35:02.261426+00:00",
+      "ended_at": "2026-10-18T21:35:05.399449+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_passed": 2,
+      "qualification": "HISTORICAL_PRE_DIGEST_OR_FAILURE",
+      "results": [
+        "2 passed in 0.44s"
+      ]
+    },
+    {
+      "run_id": "be10-handoff-contract-rust-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-handoff-contract-rust-1019/artifacts/execution.json",
+      "receipt_sha256": "2b7bbf5e625ef660b26038e8d6db1e1f19cd7a3bec7d36710f6ef71e1b2e869d",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-handoff-next-20261019/run_validation.py",
+        "rust",
+        "test",
+        "-p",
+        "archeaxis-contracts",
+        "--test",
+        "project_handoff",
+        "--test",
+        "project_observer",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "started_at": "2026-10-18T21:34:45.445331+00:00",
+      "ended_at": "2026-10-18T21:34:53.178435+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_passed": 9,
+      "qualification": "HISTORICAL_PRE_DIGEST_OR_FAILURE",
+      "results": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    },
+    {
+      "run_id": "be10-handoff-green-dto-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-handoff-green-dto-1019/artifacts/execution.json",
+      "receipt_sha256": "14fff4b4652af965c92d715c3f982feda303b01630b2a5166ef9741b80f502c9",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-handoff-next-20261019/run_validation.py",
+        "rust",
+        "test",
+        "-p",
+        "archeaxis-contracts",
+        "--test",
+        "project_handoff",
+        "--test",
+        "project_observer",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "started_at": "2026-10-18T21:39:47.273658+00:00",
+      "ended_at": "2026-10-18T21:39:51.444141+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_passed": 2,
+      "qualification": "FINAL_ISOLATED_PROPOSAL_PASS",
+      "results": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    },
+    {
+      "run_id": "be10-handoff-green-projection-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-handoff-green-projection-1019/artifacts/execution.json",
+      "receipt_sha256": "2d0227926c43680426fc8bb2c2875584bf1d63b01dd4a845601162f0215628bd",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-handoff-next-20261019/run_validation.py",
+        "rust",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "project_handoff_projection",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "started_at": "2026-10-18T21:38:58.042004+00:00",
+      "ended_at": "2026-10-18T21:39:01.261756+00:00",
+      "child_exit_code": 101,
+      "exit_code": 101,
+      "status": "FAIL",
+      "source_consistent": true,
+      "observed_passed": 0,
+      "qualification": "HISTORICAL_PRE_DIGEST_OR_FAILURE",
+      "results": [
+        "test result: FAILED. 7 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ]
+    },
+    {
+      "run_id": "be10-handoff-green-python-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-handoff-green-python-1019/artifacts/execution.json",
+      "receipt_sha256": "4ae5c9c81f6ad8d710a8110336dce2e02316fadb5022dc6dca894042ba0eb4dd",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-handoff-next-20261019/run_validation.py",
+        "python"
+      ],
+      "started_at": "2026-10-18T21:40:14.401468+00:00",
+      "ended_at": "2026-10-18T21:40:17.397132+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_passed": 2,
+      "qualification": "FINAL_ISOLATED_PROPOSAL_PASS",
+      "results": [
+        "2 passed in 0.33s"
+      ]
+    },
+    {
+      "run_id": "be10-handoff-green-rebuilt-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-handoff-green-rebuilt-1019/artifacts/execution.json",
+      "receipt_sha256": "f5a16ab3ee8c768067e3e4099d9544ad6eafb2da1bfaa0d9c22ad3f95eb23b07",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-handoff-next-20261019/run_validation.py",
+        "rust",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "project_handoff_projection",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "started_at": "2026-10-18T21:39:25.058017+00:00",
+      "ended_at": "2026-10-18T21:39:45.114569+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_passed": 8,
+      "qualification": "FINAL_ISOLATED_PROPOSAL_PASS",
+      "results": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ]
+    },
+    {
+      "run_id": "be10-handoff-red-binding-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-handoff-red-binding-1019/artifacts/execution.json",
+      "receipt_sha256": "ca377b67c2d131d25ff91c2b974ce9223830dfc07adb28de25d5d05ee1052f72",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-handoff-next-20261019/run_validation.py",
+        "rust-red-key-only",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "project_handoff_projection",
+        "receipt_fingerprint_rejects_same_key_kind_with_changed_payload",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "started_at": "2026-10-18T21:37:52.893126+00:00",
+      "ended_at": "2026-10-18T21:38:19.490433+00:00",
+      "child_exit_code": 101,
+      "exit_code": 101,
+      "status": "FAIL",
+      "source_consistent": true,
+      "observed_passed": 0,
+      "qualification": "EXPECTED_RED_OWNED_MIRROR_KEY_ONLY_COMPARISON",
+      "results": [
+        "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s"
+      ]
+    }
+  ],
+  "readback": [
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_projection.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/tests/project_handoff.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "docs/contracts/project-handoff-v1.md",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff.cases.json",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff.schema.json",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "tests/contract/test_project_handoff_contract.py",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    }
+  ],
+  "limitations": [
+    "Schema/DTO and pure metadata projection only; no authentication bypass or arbitrary I/O/HTTP write entry",
+    "No real delivery, persisted deduplication, exactly-once, external product UI/native/deep-link/installed qualification or Owner acceptance",
+    "Shared cases use synthetic references; pure projections do not verify private selection text, semantic evidence support or format engines",
+    "Caller must obtain snapshot through existing authenticated ObserverClient; typed DTO alone is not authenticated",
+    "HUB003 manifest remains separate NOT_APPLIED proposal and identity strictly UNKNOWN-only; no copied package permissions or runtime registry"
+  ],
+  "failure_history": [
+    "Expected RED: only owned temp mirror reverted to earlier key/kind-only matching, the new conflicting-content regression failed. Final product/proposal was not weakened.",
+    "First restoration used copy2 with older mtime; Cargo reused RED artifact and 7/8 passed. Preserved as FAIL, not accepted. Wrapper now compares content and uses copyfile to update changed mtimes; actual API recompilation passed 8/8.",
+    "Earlier 66-case contract/Python passes predate receipt digest and are historical only; final passes are 67-case DTO/schema plus digest projection."
+  ]
+}

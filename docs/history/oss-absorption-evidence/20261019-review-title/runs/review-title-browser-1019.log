@@ -1,0 +1,51 @@
+{"dependencies_verified": 4, "build": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\61539a4a8ed7\\artifacts\\frontend-dist", "out": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\review-title-browser-1019\\artifacts\\ui-pilot"}
+
+Running 1 test using 1 worker
+
+(node:42776) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/1] audit.spec.cjs:5:1 › review titles preserve identity, legacy fallback and readable narrow layout
+  1) audit.spec.cjs:5:1 › review titles preserve identity, legacy fallback and readable narrow layout 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 19
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "ended": "2026-10-18T19:15:57.873Z",
+    +     "error": "Error: expect(received).toEqual(expected) // deep equality
+    +
+    + - Expected  - 0
+    + + Received  + 2
+    +
+    +   Array [
+    +     \"course:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",
+    + +   \"course:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",
+    + +   \"course:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",
+    +     \"course:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",
+    +   ]",
+    +     "name": "same readable title selects each original identity using keyboard",
+    +     "started": "2026-10-18T19:15:57.494Z",
+    +     "status": "FAIL",
+    +   },
+    + ]
+
+      38 |   const calls=await page.evaluate(()=>window.__TITLE_PILOT__.calls);const forbidden=calls.filter(c=>/learning_review|assessment_create|learning_reference|machine_answer|conversation_execute|course_from_knowledge/.test(c.operation||''));expect(forbidden).toEqual([]);
+      39 |   write('summary.json',{status:checks.some(c=>c.status==='FAIL')?'PARTIAL':'PASS',evidence:'REAL_CHROME / PRODUCTION_BUNDLE / SYNTHETIC_CORE',checks,shots,errors,network,forbiddenCalls:forbidden,notExecuted:['real Core browser bridge','native host','installed runtime','screen reader','performance benchmark']});
+    > 40 |   expect(checks.filter(c=>c.status==='FAIL')).toEqual([]);expect(errors).toEqual([]);
+         |                                               ^
+      41 |  }finally{if(context){await context.tracing.stop({path:path.join(out,'trace.zip')});await context.close();}write('browser-shutdown.json',{closed:!!context,ended:new Date().toISOString()});}
+      42 | });
+      43 |
+        at D:\All projects\ArcheAxis-Knowledge-OS\.project-local\audits\review-title-ui\audit.spec.cjs:40:47
+
+    Error Context: ..\..\runs\be268a2d33\review-title-browser-1019\artifacts\ui-pilot\test-results\audit-review-titles-preser-2d0a1--and-readable-narrow-layout\error-context.md
+
+
+  1 failed
+    audit.spec.cjs:5:1 › review titles preserve identity, legacy fallback and readable narrow layout 

@@ -1,0 +1,163 @@
+{
+  "ok": false,
+  "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+  "source_patch_sha256": "3251f7a0aa430f6bc2ed94ae8515b59e498816da3b0ba00f2b9d47544fba0567",
+  "source_consistent": true,
+  "error": "TimeoutError: Window assertion deadline: return document.querySelector('[aria-label=\"当前页面\"]')?.getAttribute('data-current-page-id')==='03' && !!document.querySelector('[aria-label=\"阅读与编辑文档视图\"]') && document.body.innerText.includes(\"doc_req_bd74fab9d442e2d1de788de461eb097e1d07ee25bae8691ca5e6ba73fc205e75\")",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_tauri_webdriver_loop.py\", line 1677, in main\n    grouped.run_grouped_loop(\n    ~~~~~~~~~~~~~~~~~~~~~~~~^\n        bridge=bridge, js=js, wait=wait, element=ui_element,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<17 lines>...\n        accept_navigation_alert=grouped_accept_navigation_alert,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_grouped_owner_loop.py\", line 1271, in run_grouped_loop\n    capability_refusal_recovery(\n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        ui, read, js, wait, restart, pin, document, text, result[\"capability_toggle\"]\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_grouped_owner_loop.py\", line 2168, in capability_refusal_recovery\n    wait(\"return document.querySelector('[aria-label=\\\"当前页面\\\"]')?.getAttribute('data-current-page-id')==='03' && !!document.querySelector('[aria-label=\\\"阅读与编辑文档视图\\\"]') && document.body.innerText.includes(\" + json.dumps(document[\"document_id\"]) + \")\")\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_tauri_webdriver_loop.py\", line 1414, in wait\n    raise TimeoutError(\"Window assertion deadline: \" + script)\nTimeoutError: Window assertion deadline: return document.querySelector('[aria-label=\"当前页面\"]')?.getAttribute('data-current-page-id')==='03' && !!document.querySelector('[aria-label=\"阅读与编辑文档视图\"]') && document.body.innerText.includes(\"doc_req_bd74fab9d442e2d1de788de461eb097e1d07ee25bae8691ca5e6ba73fc205e75\")\n",
+  "owned_process_cleanup": true,
+  "owned_identity_collection_verified": true,
+  "owned_ports_released": true,
+  "remaining_same_creation_owned_hosts": [],
+  "remaining_owned_port_listeners": [],
+  "source_receipt": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/receipt.json",
+  "source_receipt_identity": {
+    "bytes": 335960,
+    "sha256": "522e874c301154dd2da26b0e457da0cb71fe2c1f8b3cab89148d3eb90deb1907"
+  },
+  "material_companion": {
+    "status": "PASS_REAL_MODEL_SYNTHETIC_MATERIAL_NOT_QUALITY_QUALIFICATION",
+    "startup_execution_calls": "UNVERIFIED",
+    "same_process_recovery": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "additional_observed_ui_execution_calls": 0
+    },
+    "cold_reopen": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "observed_after_attach_ui_execution_calls": 0,
+      "startup_execution_calls": "UNVERIFIED"
+    },
+    "backup_restore": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "observed_after_attach_ui_execution_calls": 0,
+      "startup_execution_calls": "UNVERIFIED"
+    }
+  },
+  "execution_results": {
+    "material": {
+      "http_status": 200,
+      "bridge_error": null,
+      "response": {
+        "outcome": "succeeded",
+        "plan_sha256": "fecc85430a0c95e6f6fd32371246d0eb2102f95c2439d96134944c3768f28772",
+        "provider_stop_state": "NOT_REQUESTED",
+        "reason_code": null,
+        "request_id": "7f19b4df-1b68-41da-9ffb-fa9b8ca7b997",
+        "schema": "archeaxis.material-answer/v1",
+        "task_id": "material_answer_426884df31250a61e94c475121bdad1aed4864f5e6d4215b02c1ad779e8a4361"
+      }
+    },
+    "companion": {
+      "http_status": 200,
+      "bridge_error": null,
+      "response": {
+        "plan_sha256": "ace8f82d8ea6fc37f6e964b20c41553e7deabb96323dad67a6292e97cffd93f4",
+        "provider_stop_state": "UNKNOWN",
+        "reason_code": null,
+        "request_id": "8fa06f9d-8254-423b-90cc-70d5f3117616",
+        "schema": "archeaxis.conversation-receipt/v1",
+        "session_id": "93e6ad3e-3555-4dde-9da9-d2b16be6d3e2",
+        "state": "completed"
+      }
+    }
+  },
+  "model_observations": {
+    "material": {
+      "elapsed_s": 79.97,
+      "requested_model": "aaos-deep-27b-mtp",
+      "observed_model": "aaos-deep-27b-mtp",
+      "max_tokens": 1024,
+      "finish_reason": "stop",
+      "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+      "answer_policy": "grounded",
+      "usage": {
+        "input_tokens": 214,
+        "output_tokens": 240,
+        "total_tokens": 454
+      }
+    },
+    "companion": {
+      "elapsed_s": 107.7,
+      "requested_model": "aaos-deep-27b-mtp",
+      "observed_model": "aaos-deep-27b-mtp",
+      "max_tokens": 1024,
+      "finish_reason": "stop",
+      "prompt_version": "archeaxis.companion/v1 2026-10-19",
+      "answer_policy": "companion_general",
+      "usage": {
+        "input_tokens": 253,
+        "output_tokens": 291,
+        "total_tokens": 544
+      }
+    }
+  },
+  "cancellation": "NOT_EXECUTED_AFTER_PROBE_IDENTITY_ASSERTION_FAILURE",
+  "limits": [
+    "REAL model and native UI/Core; SYNTHETIC material, not quality or installed qualification",
+    "CLI requested 2048, saved purpose profile effective 1024; old explicit_output_budget field is ambiguous",
+    "Probe raw document ID visibility assertion conflicts with metadata presentation; not yet fixed",
+    "Cancellation recovery selector still expects old status text; update without weakening identity checks",
+    "No performance improvement conclusion; previous timeout remains historical evidence"
+  ],
+  "screenshots": [
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/grouped-learning-review.png",
+      "bytes": 964456,
+      "sha256": "9595babd287866ca329ff3d93980578686909360f872a656f3aa499f607d29d7",
+      "inspection": "ACTUALLY_VIEWED",
+      "inspection_round": "PRIOR_ROOT_INSPECTION"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/material-companion-completed.png",
+      "bytes": 1259370,
+      "sha256": "f440485d1926b9159e1a52244308059bf6842f8127c4098e01393602b519803f",
+      "inspection": "ACTUALLY_VIEWED",
+      "inspection_round": "PRIOR_ROOT_INSPECTION"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/material-completed.png",
+      "bytes": 1230806,
+      "sha256": "95273b1e4ffdb36fbc4915a4a68a4684bb1170ab67e0bcad9c74bb4debbe4093",
+      "inspection": "ACTUALLY_VIEWED",
+      "inspection_round": "PRIOR_ROOT_INSPECTION"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/material-cold_reopen.png",
+      "bytes": 1234622,
+      "sha256": "b2de7b3297344854573c01cd28ef4cb518c14c4b651985a4e0dc4aa42638494e",
+      "inspection": "ACTUALLY_VIEWED",
+      "inspection_round": "CURRENT_CHECKPOINT"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/companion-cold_reopen.png",
+      "bytes": 1213849,
+      "sha256": "6dc54d140cf76dd60517635b162f15d41bf9731b74ef1b29ef600933660cf327",
+      "inspection": "ACTUALLY_VIEWED",
+      "inspection_round": "CURRENT_CHECKPOINT"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/material-backup_restore.png",
+      "bytes": 1231558,
+      "sha256": "32b41470c8ef23f3279df423b2e5cbe3b748eddcae230d6e71e9c313422753b9",
+      "inspection": "ACTUALLY_VIEWED",
+      "inspection_round": "CURRENT_CHECKPOINT"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/companion-backup_restore.png",
+      "bytes": 1214282,
+      "sha256": "9c03ecb4307eb28e59c34f144fbdef790b3af8cbeb3159c4c4813144410f125e",
+      "inspection": "ACTUALLY_VIEWED",
+      "inspection_round": "CURRENT_CHECKPOINT"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-415f723fdf9f/tmp/journey/failure.png",
+      "bytes": 1295302,
+      "sha256": "f12768a11e17f07bc327db6bfb9dc1759d82fcfecd4ca5801d97886b11181c7b",
+      "inspection": "ACTUALLY_VIEWED",
+      "inspection_round": "CURRENT_CHECKPOINT"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
 import { CAPABILITY_CATALOG } from "../api/generated/capability-catalog";
+import { scopedReadiness } from "../test/fixtures/readiness";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const repository=basename(process.cwd()) === "frontend" ? resolve(process.cwd(),"..") : process.cwd();
 describe("single-source capability exploration",()=>{
@@ -24,7 +25,7 @@ describe("single-source capability exploration",()=>{
   expect(bridge.call).not.toHaveBeenCalled();
  });
  it("separates observed handshake/permissions from implementation declaration and routes only a real UI",async()=>{
-  bridge.call.mockImplementation(async(_op:string,p:{body:{scope:string,operations:string[]}})=>({schema:"archeaxis.operation-readiness/v1",scope:p.body.scope,expires_at_ms:Date.now()+30000,models_loaded:false,network_performed:false,execution_authorized:false,operations:p.body.operations.map(operation=>({operation,permission:"DISABLED",connection:"UNKNOWN",qualification:"UNVERIFIED",reasons:["CAPABILITY_DISABLED"]}))}));const navigate=vi.fn();render(<CanonicalCapabilitiesSpace onNavigate={navigate}/>);
+  bridge.call.mockImplementation(async(_op:string,p:{body:{scope:string,operations:string[]}})=>{const snapshot=scopedReadiness(p.body);snapshot.operations.forEach(row=>{row.permission="DISABLED";row.reasons=["CAPABILITY_DISABLED"];});return snapshot;});const navigate=vi.fn();render(<CanonicalCapabilitiesSpace onNavigate={navigate}/>);
   await userEvent.setup().click(screen.getByRole("button",{name:/CAP-0050/}));await screen.findByText(/已读取当前视图/);
   expect(screen.getByText(/连接\/权限/)).toHaveTextContent("已禁用");expect(screen.getByText(/连接\/权限/)).toHaveTextContent("UNKNOWN");
   expect(screen.getByText(/实际引擎身份/)).toBeInTheDocument();await userEvent.setup().click(screen.getByRole("button",{name:"打开当前产品入口"}));expect(navigate).toHaveBeenCalledWith("vault");

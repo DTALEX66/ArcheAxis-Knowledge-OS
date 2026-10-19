@@ -43,23 +43,33 @@ pub(super) fn probe(
                 {
                     return Err("incompatible derived worker hello".into());
                 }
-                Ok(capability.to_string())
+                Ok(serde_json::json!({"worker_identity":capability,"runtime_dependency":null}))
             })
         } else {
             handshake(staging, python, worker, capability, allow_site)
         };
         match checked {
             Ok(identity) => ("handshake_ready", Ok(identity)),
-            Err(reason) => ("handshake_failed", Err(reason)),
+            Err(reason) => (
+                match reason.as_str() {
+                    "PDF_DEPENDENCY_MISSING" => "dependency_missing",
+                    "PDF_DEPENDENCY_VERSION_UNKNOWN" => "dependency_version_unknown",
+                    "PDF_DEPENDENCY_IMPORT_FAILED" => "dependency_import_failed",
+                    "PDF_DEPENDENCY_UNOBSERVED" => "dependency_unobserved",
+                    _ => "handshake_failed",
+                },
+                Err(reason),
+            ),
         }
     };
     serde_json::json!({
         "status":observation.0, "checked_at_unix_ms":checked_at,
-        "worker_identity":observation.1.as_ref().ok(),
+        "worker_identity":observation.1.as_ref().ok().map(|v| &v["worker_identity"]),
+        "runtime_dependency":observation.1.as_ref().ok().map(|v| &v["runtime_dependency"]),
         "reason":observation.1.as_ref().err(),
         "task_executed":false, "timeout_ms":2000,
         "protocol":if derived_protocol { "archeaxis.derived-worker-hello/v1" } else { "NDJSON" },
-        "basis":if derived_protocol { "live --hello: protocol and declared capability; a job has to run to verify dependencies, engines and output" } else { "live NDJSON hello: protocol, worker identity and advertised capability; a job has to run to verify engines and output" },
+        "basis":if derived_protocol { "live --hello: protocol and declared capability; a job has to run to verify dependencies, engines and output" } else { "live NDJSON hello: protocol, worker identity and advertised capability; PDF additionally imports its required engine and observes its version; no document executed or output qualified" },
     })
 }
 
@@ -69,7 +79,7 @@ fn handshake(
     worker: &Path,
     capability: &str,
     allow_site: bool,
-) -> Result<String, String> {
+) -> Result<serde_json::Value, String> {
     let dir = tempfile::tempdir_in(staging).map_err(|e| e.to_string())?;
     let mut command = Command::new(python);
     command.arg("-B");
@@ -138,7 +148,8 @@ fn handshake(
                     "worker does not advertise requested capability {capability}"
                 ));
             }
-            Ok(hello.worker.name)
+            hello.require_runtime_dependency(capability).map_err(str::to_string)?;
+            Ok(serde_json::json!({"worker_identity":hello.worker.name,"runtime_dependency":hello.runtime_dependency}))
         });
     // Windows venv launchers may own a second Python process. Close the
     // input-free handshake normally before killing the launcher: EOF lets the

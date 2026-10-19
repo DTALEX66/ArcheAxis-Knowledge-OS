@@ -1,0 +1,156 @@
+{
+  "reviewed_at": "2026-10-18T17:20:31.364786+00:00",
+  "method": "All 11 final PNG files opened with view_image and visually inspected by the agent; not inferred from accessibility tree",
+  "findings": "Final course options align control and text in one row; final catalog cards stack purpose and status; long Chinese and narrow viewport inspected. Scroll-container crops are not whole-page screenshots.",
+  "screenshots": [
+    {
+      "name": "01-capability-center-desktop",
+      "file": "01-capability-center-desktop.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/01-capability-center-desktop.png",
+      "sha256": "b3daff74d9d2fdf0b4aa5a883f0f4017a945cfb31e5fc97b7e11a57aaaa2f3c3"
+    },
+    {
+      "name": "10-capability-cards-desktop",
+      "file": "10-capability-cards-desktop.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/10-capability-cards-desktop.png",
+      "sha256": "bf646b551ea707742defa7622daffb40b522d50e593317f499d1aab98babb218"
+    },
+    {
+      "name": "02-future-capability-details",
+      "file": "02-future-capability-details.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/02-future-capability-details.png",
+      "sha256": "2f625ac054e3138816a2075d48ee534e54ca3e4ff67f59f51ae8c26ced7bbf9e"
+    },
+    {
+      "name": "03-scoped-capability-details",
+      "file": "03-scoped-capability-details.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/03-scoped-capability-details.png",
+      "sha256": "9f245ef161f8d17b7434e80757e848d070c8fb34f8e190e0b094c8206bbe80b5"
+    },
+    {
+      "name": "04-course-preview-desktop",
+      "file": "04-course-preview-desktop.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/04-course-preview-desktop.png",
+      "sha256": "2e5721efdd93a3950e527f65522b38c5dc81d1398c051b4131cac833211484c5"
+    },
+    {
+      "name": "09-course-options-desktop",
+      "file": "09-course-options-desktop.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/09-course-options-desktop.png",
+      "sha256": "2052c0507cc6cac5807ae35a2924a4f027998ebfcccf65916e2633995cd3cffe"
+    },
+    {
+      "name": "05-course-unknown-save",
+      "file": "05-course-unknown-save.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/05-course-unknown-save.png",
+      "sha256": "8d4c2978ca7ce28f6f9e04b8b23693164b3d9b9db6b6fb8d9695796ddc694ab1"
+    },
+    {
+      "name": "06-course-explicit-failure",
+      "file": "06-course-explicit-failure.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/06-course-explicit-failure.png",
+      "sha256": "f93b5f9aa7ad8a9d6b14f5459fd4f001350f5ece76026d429049a0306d91851a"
+    },
+    {
+      "name": "07-course-narrow",
+      "file": "07-course-narrow.png",
+      "viewport": {
+        "width": 640,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/07-course-narrow.png",
+      "sha256": "0f2acdfe6b2889ea86fc35a55e373e251eee349e5c7173ad2135b58547fa054b"
+    },
+    {
+      "name": "08-capability-center-narrow",
+      "file": "08-capability-center-narrow.png",
+      "viewport": {
+        "width": 640,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/08-capability-center-narrow.png",
+      "sha256": "b3911dfab3549e1b692a7a835f33b6ac562e1f96949ddf0509fd395fe99b2f20"
+    },
+    {
+      "name": "11-capability-cards-narrow",
+      "file": "11-capability-cards-narrow.png",
+      "viewport": {
+        "width": 640,
+        "height": 900
+      },
+      "theme": "cosmic",
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "DPR": 1,
+      "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/11-capability-cards-narrow.png",
+      "sha256": "055d7ba8f2f5537b56d995b0b62061df1b977a880092d92a56f112012162b4ac"
+    }
+  ],
+  "not_claimed": [
+    "pixel parity with upstream",
+    "all themes or DPI",
+    "screen-reader or full accessibility compliance",
+    "full product visual acceptance"
+  ]
+}

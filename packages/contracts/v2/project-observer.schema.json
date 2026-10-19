@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis.project-observer/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "archeaxis.project-observer-response/v1"
+    },
+    "protocol": {
+      "const": "archeaxis.project-observer/v1"
+    },
+    "producer": {
+      "$ref": "#/$defs/ProducerIdentity"
+    },
+    "consumer": {
+      "$ref": "#/$defs/ConsumerIdentity"
+    },
+    "checked_at_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "expires_at_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "payload": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Handshake"
+        },
+        {
+          "$ref": "#/$defs/Objects"
+        },
+        {
+          "$ref": "#/$defs/ObjectStatus"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "protocol",
+    "producer",
+    "consumer",
+    "checked_at_ms",
+    "expires_at_ms",
+    "payload"
+  ],
+  "$defs": {
+    "ProducerIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "const": "archeaxis"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[0-9a-f]{32})$"
+        }
+      },
+      "required": [
+        "namespace",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "ConsumerIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "enum": [
+            "work-lab",
+            "design-lab"
+          ]
+        },
+        "instance_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{32}$"
+        }
+      },
+      "required": [
+        "namespace",
+        "instance_id"
+      ]
+    },
+    "ObjectReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9223372036854775807
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256"
+      ]
+    },
+    "Handshake": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "handshake"
+        },
+        "operations": {
+          "const": [
+            "handshake",
+            "objects.read",
+            "object.status"
+          ]
+        },
+        "authority": {
+          "const": "REFERENCE_ONLY"
+        },
+        "grants_execution": {
+          "const": false
+        },
+        "grants_knowledge_acceptance": {
+          "const": false
+        }
+      },
+      "required": [
+        "kind",
+        "operations",
+        "authority",
+        "grants_execution",
+        "grants_knowledge_acceptance"
+      ]
+    },
+    "Objects": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "objects"
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ObjectReference"
+          },
+          "maxItems": 32,
+          "uniqueItems": true
+        },
+        "navigation": {
+          "const": "UNAVAILABLE"
+        }
+      },
+      "required": [
+        "kind",
+        "objects",
+        "navigation"
+      ]
+    },
+    "ObjectStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "object_status"
+        },
+        "reference": {
+          "$ref": "#/$defs/ObjectReference"
+        },
+        "state": {
+          "enum": [
+            "CURRENT",
+            "STALE"
+          ]
+        },
+        "navigation": {
+          "const": "UNAVAILABLE"
+        }
+      },
+      "required": [
+        "kind",
+        "reference",
+        "state",
+        "navigation"
+      ]
+    }
+  },
+  "description": "Finite metadata only. Time ordering, expiry, duplicate document IDs and expected identity are additionally enforced by the actual adapter. No delivery, execution, acceptance or navigation handler is granted."
+}

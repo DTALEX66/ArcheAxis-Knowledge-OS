@@ -1,0 +1,304 @@
+{
+  "schema": "aaos.continuation-archive-readback/v1",
+  "started_at": "2026-10-18T16:55:47.575033+00:00",
+  "finished_at": "2026-10-18T16:56:34.625984+00:00",
+  "status": "PASS",
+  "evidence": "STRUCTURAL_ONLY; product checks separately qualified in referenced receipt",
+  "commands": [
+    {
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-18T16:56:34.261781+00:00",
+      "finished_at": "2026-10-18T16:56:34.576618+00:00",
+      "seconds": 0.31483460002345964,
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "AAOS-资料索引.md",
+        "docs/SHARED_RESOURCE_PATH_INDEX.md",
+        "docs/current/AAOS-ACTIVE-EXECUTION.json",
+        "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+        "workspace/intake/20261019-oss-graph-and-classroom.md",
+        "frontend/src/adapters/openmaicCourse.ts",
+        "frontend/src/presentation/importedCourse.ts",
+        "frontend/src/presentation/importedCourseStorage.ts",
+        "frontend/src/components/ImportedCoursePanel.tsx",
+        "frontend/src/spaces/CanonicalLearningJourneySpace.tsx",
+        "frontend/src/__tests__/OpenMaicCourse.test.ts",
+        "frontend/src/__tests__/ImportedCourseStorage.test.ts",
+        "frontend/src/__tests__/ImportedCoursePanel.test.tsx",
+        "frontend/src/test/fixtures/openmaic.ts",
+        "packages/contracts/learning/v1/imported-course.schema.json",
+        "crates/archeaxis-api/tests/document_draft_loop.rs",
+        "docs/current/receipts/AAOS-OPENMAIC-IMPORT-20261019.json",
+        "docs/current/receipts/AAOS-CONTINUATION-ARCHIVE-20261019.json"
+      ],
+      "started_at": "2026-10-18T16:56:34.576630+00:00",
+      "finished_at": "2026-10-18T16:56:34.625964+00:00",
+      "seconds": 0.049343999999109656,
+      "exit_code": 0
+    }
+  ],
+  "routing_files_verified": 14,
+  "local_links": [
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\AAOS-AUTHORITY-ROUTES.json"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\receipts\\AAOS-LOCAL-MODEL-SELECTION-20261011.json"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "config\\environment\\capability-requirements.yaml"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "config\\environment\\external-resources-index.json"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "services\\python-workers\\tool_paths.py"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\CONFIGURATION_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\DIRECTORY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\DOCUMENTATION_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\authority\\taskpack-1004-aaos01\\01_完整执行任务书.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\authority\\taskpack-0919-r6\\EXECUTOR-START.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\R6-EXECUTION.md"
+    },
+    {
+      "from": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "target": "docs\\current\\M0-DIRECTION-OVERRIDE-20260920.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-PROJECT-CLOSURE-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-SESSION-RECONCILIATION-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-CODEX-SESSION-INDEX-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-LOCAL-LLM-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\history\\runtime-migration-20261018\\README.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\history\\handoff-archive-20261018\\README.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\DIRECTORY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "workspace\\intake\\20261018-xiaoqi-in-project.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-XIAOQI-MIGRATION-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-AUDIT-TEST-COVERAGE-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\receipts\\AAOS-DIAGNOSTIC-CENTER-20261018.json"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-OSS-UI-DONORS-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "AAOS-资料索引.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-OSS-UI-DONORS-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\receipts\\AAOS-NEURAL-GRAPH-ABSORPTION-20261019.json"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-OPENMAIC-ABSORPTION-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-OPENMAIC-ABSORPTION-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\receipts\\AAOS-OPENMAIC-IMPORT-20261019.json"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\truth\\CAPABILITY_ATLAS_V2.yaml"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "AAOS-资料索引.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-PROJECT-CLOSURE-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-AUTHORITY-ROUTES.json"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\SHARED_RESOURCE_PATH_INDEX.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\environment\\EXTERNAL_DEPENDENCIES.md"
+    },
+    {
+      "from": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "target": "docs\\current\\AAOS-LOCAL-LLM-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+      "target": "docs\\current\\AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+      "target": "docs\\current\\receipts\\AAOS-OPENMAIC-IMPORT-20261019.json"
+    },
+    {
+      "from": "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+      "target": "docs\\current\\receipts\\AAOS-OPENMAIC-IMPORT-20261019.json"
+    },
+    {
+      "from": "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+      "target": "docs\\current\\AAOS-UI-FIRST-EXECUTION-20261009.md"
+    }
+  ],
+  "documents_sha256": {
+    "AAOS-资料索引.md": "7b1e8eceee8e10e84a5f339f97ea30ac0782f587c6167fba50896a5b9f1090a2",
+    "docs/SHARED_RESOURCE_PATH_INDEX.md": "733ac5a3fc1b1eba0f30bbd741ec8080ea7b86563a54e1a8e4ec3e008aa9b75b",
+    "docs/current/AAOS-ACTIVE-EXECUTION.json": "96bceff34d9d4a96bf36617aa0bb0789809bbd0c2921e8d452893fc6da03fbe8",
+    "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md": "8382bf128af239a501b0605c990d2fe7554cb0271b53b097e4251aec58f5083f",
+    "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md": "315da4a5d9bf97df2377e6b05186f56be5bddc420f4c8bb4de7d21e2e11f822f",
+    "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md": "0230b433643ebde8eec12416eeee88e8266eb13bbe15a5c3be5c3251acaf75e9",
+    "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md": "57ebcb2eee9960788d2547e74468657313a639b9f4a8dd8bcc8e7a74f954dba5",
+    "docs/DOCUMENTATION_AUTHORITY_INDEX.md": "6e28f097fffad9c7e16a055417d32261f80e4ba8e76927c098f4121f97213af6",
+    "workspace/intake/20261019-oss-graph-and-classroom.md": "4cb4abf5f1285171e7a57a6562bdee1b760f96723a7c401fef453439b3d43b8e"
+  },
+  "product_receipt": "docs/current/receipts/AAOS-OPENMAIC-IMPORT-20261019.json",
+  "product_receipt_sha256": "5ba3765e1afd775bf306e1c2c1b8be6e09efbd31fc1b9e2aa81413baf1ada63b",
+  "source_hashes_unchanged_during_archive_write": true,
+  "runtime_index_bound_to_manifest": true,
+  "developer_tool_lock_and_four_packages_verified": true,
+  "developer_tool_runtime_reference_sha256": "86828dde62bf318210f87163e1869a067a50830258e9e7be8d7d9fce525df0e7",
+  "upstream_archive_files_verified": 21,
+  "boundary": "repo-local archive/routing plus read-only named developer-tool metadata; no private session or credential access; no installation/deletion/global change",
+  "previous_failed_receipt": ".project-local/runs/be268a2d33/continuation-archive-readback-1019/artifacts/archive-readback.json",
+  "resolved_issue": "removed only the extra EOF blank introduced by our execution-note append; preserved failed check",
+  "readback_receipt": ".project-local/runs/be268a2d33/continuation-archive-stable-1019/artifacts/archive-readback.json",
+  "not_claimed": [
+    "full native session export",
+    "automatic skill discovery in this session",
+    "product acceptance",
+    "future agent behavior guarantee",
+    "commit or remote backup"
+  ],
+  "source_mutating_check_runs": [
+    ".project-local/runs/be268a2d33/continuation-archive-readback-1019/artifacts/execution.json",
+    ".project-local/runs/be268a2d33/continuation-archive-final-1019/artifacts/execution.json"
+  ],
+  "source_mutating_check_runs_status": "INVALIDATED by canonical dev runner because archive documents were written during execution; inner checks preserved separately",
+  "qualification_execution": ".project-local/runs/be268a2d33/continuation-archive-stable-1019/artifacts/execution.json"
+}

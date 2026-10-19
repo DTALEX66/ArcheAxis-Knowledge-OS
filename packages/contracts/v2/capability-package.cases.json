@@ -1,0 +1,5645 @@
+[
+  {
+    "name": "synthetic-format-declaration",
+    "schema_valid": true,
+    "semantic_valid": true,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "synthetic-template",
+    "schema_valid": true,
+    "semantic_valid": true,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.template",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0060"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "template"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "synthetic-learning_activity",
+    "schema_valid": true,
+    "semantic_valid": true,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.learning-activity",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0040"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "learning_activity"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "synthetic-graph_visual",
+    "schema_valid": true,
+    "semantic_valid": true,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.graph-visual",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0110"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "graph_visual"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "synthetic-model_service",
+    "schema_valid": true,
+    "semantic_valid": true,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.model-service",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0150"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "model_service"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "synthetic-tool_protocol",
+    "schema_valid": true,
+    "semantic_valid": true,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.tool-protocol",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0100"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "tool_protocol"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "declared-degradation-with-losses",
+    "schema_valid": true,
+    "semantic_valid": true,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "degraded",
+        "losses": [
+          "layout",
+          "fidelity"
+        ],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "declared-remote-no-authority",
+    "schema_valid": true,
+    "semantic_valid": true,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0150"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "model_service"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [],
+      "permissions": {
+        "requested": [
+          "model.remote.invoke"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "explicit_remote",
+        "cost": "may_charge",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-installed",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "installed": true
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-enabled",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "enabled": true
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-connected",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "connected": true
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-qualified",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "qualified": true
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-endpoint",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "endpoint": "SYNTHETIC_PRIVATE_VALUE"
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-api_key",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "api_key": "SYNTHETIC_PRIVATE_VALUE"
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-command",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "command": "SYNTHETIC_PRIVATE_VALUE"
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-script",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "script": "SYNTHETIC_PRIVATE_VALUE"
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-provider",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "provider": "SYNTHETIC_PRIVATE_VALUE"
+    }
+  },
+  {
+    "name": "reject-runtime-or-executable-database_path",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      },
+      "database_path": "SYNTHETIC_PRIVATE_VALUE"
+    }
+  },
+  {
+    "name": "reject-unknown-nested",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false,
+        "token": "SYNTHETIC_PRIVATE_VALUE"
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-execution-grant",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": true,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-knowledge-acceptance",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": true
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-writer-replacement",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "plugin",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-automatic-cloud",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "automatic",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-arbitrary-data",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "all_files",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-automatic-fallback",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": true
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-degradation-without-loss",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "degraded",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-new-cap",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-9999"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-duplicate-cap",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020",
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-contribution-unknown",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "agent_runtime"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-prerelease-unimplemented",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "1.0.0-rc.1",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-negative-budget",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": -1,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-cancel-unknown",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "best_effort",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-unknown-success",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "assume_success",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-data-migration",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": true
+      }
+    }
+  },
+  {
+    "name": "reject-schema-drift",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v2",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-empty-output",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-range-order",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "1.0.0",
+          "maximum_exclusive": "0.1.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-host-incompatible",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "2.0.0",
+          "maximum_exclusive": "3.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-resource-not-in-catalog",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "not_in_recorded_catalog"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-dependency-not-in-catalog",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "not_in_recorded_catalog",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-route-not-in-existing-routes",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "any.execute"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-route-not-mapped-to-cap",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0150"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-contract-sha-mismatch",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-path-traversal",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/../../.env",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/../../.env",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/../../.env",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-public-looking-traversal",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "docs/../../private.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "docs/../../private.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "docs/../../private.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-private-segment",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "docs/private/data.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "docs/private/data.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "docs/private/data.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-absolute-path",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "E:/private/model.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "E:/private/model.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "E:/private/model.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-dependency-range-order",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": {
+            "minimum": "2.0.0",
+            "maximum_exclusive": "1.0.0"
+          }
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-duplicate-dependency-identity",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        },
+        {
+          "resource_key": "pymupdf",
+          "requirement": "optional",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-license-declaration-without-expression",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "DECLARED_ONLY",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-remote-permission-without-remote-boundary",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "model.remote.invoke"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-runtime-without-cancel",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "not_applicable",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-runtime-without-bounded-exit",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "not_applicable",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-contract-ref-using-public-doc",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "docs/current/README.md",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-contract-ref-in-private-dir",
+    "schema_valid": true,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/private/test.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-package-id-newline",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.package\n",
+      "version": "0.1.0",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  },
+  {
+    "name": "reject-version-newline",
+    "schema_valid": false,
+    "semantic_valid": false,
+    "value": {
+      "schema": "archeaxis.capability-package/v1",
+      "declaration": "DECLARATION_ONLY",
+      "package_id": "synthetic.pdf-adapter",
+      "version": "0.1.0\n",
+      "capability_ids": [
+        "CAP-0020"
+      ],
+      "resource_keys": [
+        "pymupdf"
+      ],
+      "contribution_points": [
+        "format_conversion"
+      ],
+      "compatibility": {
+        "host_versions": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "1.0.0"
+        },
+        "contract_refs": [
+          {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          }
+        ]
+      },
+      "runtime_capabilities": [
+        "pdf.extract"
+      ],
+      "permissions": {
+        "requested": [
+          "selected_source.read",
+          "derived_artifact.propose"
+        ],
+        "data_scope": "explicit_selected_objects_only",
+        "network": "none",
+        "cost": "none",
+        "explicit_grant_required": true,
+        "canonical_writer": "rust_core_only",
+        "credential_handling": "host_reference_only",
+        "local_to_cloud_fallback": "explicit_grant_only",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "dependencies": [
+        {
+          "resource_key": "pymupdf",
+          "requirement": "required",
+          "version_range": null
+        }
+      ],
+      "license": {
+        "expression": null,
+        "review": "UNVERIFIED",
+        "notice_refs": []
+      },
+      "inputs": [
+        {
+          "kind": "raw_asset_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "outputs": [
+        {
+          "kind": "document_reference",
+          "contract": {
+            "path": "packages/contracts/v1/core-document.schema.json",
+            "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+          },
+          "max_bytes": 1048576
+        }
+      ],
+      "lifecycle": {
+        "cancellation": "host_propagated",
+        "exit": "bounded_cleanup",
+        "timeout_ms": 120000,
+        "unknown_result": "preserve_unknown_no_auto_retry",
+        "cleanup_evidence": "required_before_confirmed_exit"
+      },
+      "fallback": {
+        "mode": "unavailable",
+        "losses": [],
+        "automatic": false
+      },
+      "update": {
+        "strategy": "reviewed_replacement_only",
+        "rollback": "preserve_previous_identity_and_originals",
+        "canonical_data_migration": false
+      }
+    }
+  }
+]

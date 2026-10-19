@@ -82,6 +82,7 @@ pub(super) fn record_failure(conn: &Connection, id: &str, error: &str) -> rusqli
             | "machine worker returned no candidate answer"
             | "machine worker model selection mismatch"
             | "machine failure: MODEL_CALL_FAILED"
+            | "machine failure: MODEL_CALL_TIMEOUT"
             | "machine failure: NO_FINAL_ANSWER"
             | "machine failure: EMPTY_ANSWER"
             | "machine failure: WORKER_FAILED"
@@ -97,11 +98,11 @@ pub(super) fn record_failure(conn: &Connection, id: &str, error: &str) -> rusqli
 pub(super) fn record_terminal_failure(
     conn: &mut Connection,
     id: &str,
-    error: &str,
+    error: &archeaxis_application::executor::MachineFailure,
     identity: &Value,
 ) -> rusqlite::Result<()> {
     let tx = conn.savepoint()?;
-    record_failure(&tx, id, error)?;
+    record_failure(&tx, id, error.message())?;
     let raw: String = tx.query_row(
         "SELECT value FROM workspace_meta WHERE key=?1",
         [key(id)],
@@ -120,16 +121,19 @@ pub(super) fn record_terminal_failure(
         "failure_{}",
         super::withheld::digest(&format!("{id}:{attempt}"))
     );
-    let doc = json!({
+    let mut doc = json!({
         "schema":"archeaxis.machine-execution-failed/v1", "audit_task_id":task_id,
         "operation":identity["operation"], "knowledge_id":identity["knowledge_id"],
         "client_request_id":identity["client_request_id"], "retest_of":identity["retest_of"],
         "admission_request_sha256":identity["admission_request_sha256"],
         "request_sha256":claim["request_sha256"], "attempt":attempt,"max_attempts":MAX_ATTEMPTS,
-        "reason_code":error, "execution_state":"UNVERIFIED", "answer_published":false,
+        "reason_code":error.message(), "execution_state":"UNVERIFIED", "answer_published":false,
         "provider_stop_state":"UNKNOWN", "usage":null,"cost":null,
         "authority":"historical_execution_audit"
     });
+    if let Some(diagnostics) = error.diagnostics() {
+        doc["diagnostics"] = diagnostics.clone();
+    }
     let serialized = doc.to_string();
     archeaxis_domain::machine::record_machine_task_in_transaction(
         &tx,
@@ -143,7 +147,7 @@ pub(super) fn record_terminal_failure(
             model_version: "UNKNOWN_WORKER_MODEL",
             scope: "runtime.execution.failed",
             outcome: "failed",
-            failure: Some(error),
+            failure: Some(error.message()),
             retest_of: identity["retest_of"].as_str(),
         },
     )?;
@@ -176,6 +180,18 @@ pub(super) fn known_failure(conn: &Connection, id: &str) -> rusqlite::Result<()>
 mod tests {
     use super::*;
     #[test]
+    fn typed_timeout_releases_only_the_matching_finite_retry_barrier() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("CREATE TABLE workspace_meta(key TEXT PRIMARY KEY,value TEXT NOT NULL)")
+            .unwrap();
+        let request = json!({"question":"synthetic"});
+        admit(&conn, "timeout", &request).unwrap();
+        record_failure(&conn, "timeout", "machine failure: MODEL_CALL_TIMEOUT").unwrap();
+        assert!(admit(&conn, "timeout", &json!({"question":"changed"})).is_err());
+        admit(&conn, "timeout", &request).unwrap();
+        assert_eq!(attempt(&conn, "timeout").unwrap(), 2);
+    }
+    #[test]
     fn terminal_failure_is_redacted_durable_and_attempt_bound() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("terminal.sqlite");
@@ -188,7 +204,7 @@ mod tests {
         record_terminal_failure(
             &mut conn,
             "fixed",
-            "machine failure: MODEL_CALL_FAILED",
+            &"machine failure: MODEL_CALL_FAILED".into(),
             &identity,
         )
         .unwrap();
@@ -217,7 +233,7 @@ mod tests {
         record_terminal_failure(
             &mut conn,
             "fixed",
-            "machine failure: MODEL_CALL_FAILED",
+            &"machine failure: MODEL_CALL_FAILED".into(),
             &identity,
         )
         .unwrap();
@@ -252,7 +268,7 @@ mod tests {
             record_terminal_failure(
                 &mut conn,
                 "fixed",
-                "machine failure: MODEL_CALL_FAILED",
+                &"machine failure: MODEL_CALL_FAILED".into(),
                 &json!({"operation":"answer"})
             )
             .is_err()

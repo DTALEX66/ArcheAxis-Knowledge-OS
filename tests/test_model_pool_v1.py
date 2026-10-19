@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_repository_model_pool_has_role_specific_fallbacks():
-    payload = json.loads((ROOT / "config/model-profiles/r6-capability-pool.json").read_text(encoding="utf-8"))
+    payload = json.loads((ROOT / "docs/history/runtime-migration-20261018/config/model-profiles/r6-capability-pool.json").read_text(encoding="utf-8"))
     pool = ModelCapabilityPoolV1.model_validate(payload)
     assert {entry.role for entry in pool.entries} >= {"asr", "ocr", "vision_caption", "llm_text", "embedding"}
     assert all(entry.fallback for entry in pool.entries)
@@ -22,7 +22,7 @@ def test_repository_model_pool_has_role_specific_fallbacks():
 
 
 def test_model_entry_rejects_missing_fallback_and_negative_memory():
-    payload = json.loads((ROOT / "config/model-profiles/r6-capability-pool.json").read_text(encoding="utf-8"))
+    payload = json.loads((ROOT / "docs/history/runtime-migration-20261018/config/model-profiles/r6-capability-pool.json").read_text(encoding="utf-8"))
     bad = {**payload, "entries": [{**payload["entries"][0], "fallback": ""}]}
     with pytest.raises(ValidationError):
         ModelCapabilityPoolV1.model_validate(bad)
@@ -33,7 +33,7 @@ def test_model_entry_rejects_missing_fallback_and_negative_memory():
 
 @pytest.mark.parametrize("status", ["measured_current", "measured_historical"])
 def test_measured_model_entry_requires_evidence_reference(status):
-    payload = json.loads((ROOT / "config/model-profiles/r6-capability-pool.json").read_text(encoding="utf-8"))
+    payload = json.loads((ROOT / "docs/history/runtime-migration-20261018/config/model-profiles/r6-capability-pool.json").read_text(encoding="utf-8"))
     bad = {
         **payload,
         "entries": [{**payload["entries"][0], "status": status, "evidence_refs": []}],

@@ -5,11 +5,14 @@ mod derived;
 mod dispatch;
 mod health;
 mod inventory;
+mod machine_failure;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
 };
 use archeaxis_store_sqlite::capability_settings;
 use archeaxis_store_sqlite::{raw_objects, writer::Store};
+pub use machine_failure::MachineFailure;
+use machine_failure::{accept_success, remaining_worker_timeout};
 use std::{
     io::{Read, Write},
     path::{Path, PathBuf},
@@ -22,6 +25,27 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+
+/// Core根据用途选定的有限回答策略；不得以前端任意字符串放宽材料约束。
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AnswerPolicy {
+    Grounded,
+    CompanionGeneral,
+}
+impl AnswerPolicy {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Grounded => "grounded",
+            Self::CompanionGeneral => "companion_general",
+        }
+    }
+    pub const fn prompt_version(self) -> &'static str {
+        match self {
+            Self::Grounded => "archeaxis.vnext/v1 2026-10-02",
+            Self::CompanionGeneral => "archeaxis.companion/v1 2026-10-19",
+        }
+    }
+}
 
 #[derive(Clone, Default)]
 pub struct Cancellation(Arc<AtomicBool>);
@@ -216,6 +240,54 @@ impl Executor {
         cancel: Cancellation,
         configuration: Option<archeaxis_domain::model_configuration::Resolved>,
     ) -> Result<serde_json::Value, String> {
+        self.machine_answer_configured_detailed(
+            context,
+            question,
+            max_tokens,
+            timeout,
+            model,
+            cancel,
+            configuration,
+        )
+        .await
+        .map_err(|error| error.to_string())
+    }
+
+    pub async fn machine_answer_configured_detailed(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+        model: Option<String>,
+        cancel: Cancellation,
+        configuration: Option<archeaxis_domain::model_configuration::Resolved>,
+    ) -> Result<serde_json::Value, MachineFailure> {
+        // 继承调用仍严格依据材料；普通陪伴必须由Core显式选择新策略。
+        self.machine_answer_with_policy_detailed(
+            context,
+            question,
+            max_tokens,
+            timeout,
+            model,
+            cancel,
+            configuration,
+            AnswerPolicy::Grounded,
+        )
+        .await
+    }
+
+    pub async fn machine_answer_with_policy_detailed(
+        &self,
+        context: String,
+        question: String,
+        max_tokens: u64,
+        timeout: Duration,
+        model: Option<String>,
+        cancel: Cancellation,
+        configuration: Option<archeaxis_domain::model_configuration::Resolved>,
+        policy: AnswerPolicy,
+    ) -> Result<serde_json::Value, MachineFailure> {
         if let Some(c) = &configuration {
             if c.profile.credential_ref.is_some() {
                 return Err("LOCAL_CREDENTIAL_NOT_SUPPORTED".into());
@@ -257,7 +329,8 @@ impl Executor {
         {
             return Err("invalid machine answer budget or input".into());
         }
-        let deadline = Instant::now() + timeout;
+        let started = Instant::now();
+        let deadline = started + timeout;
         if cancel.is_cancelled() {
             return Err("machine worker cancelled".into());
         }
@@ -288,12 +361,17 @@ impl Executor {
             .ok_or("no worker is registered for machine.answer")?;
         let python = self.python.clone();
         let staging = self.staging.clone();
-        tokio::task::spawn_blocking(move || -> Result<serde_json::Value, String> {
+        tokio::task::spawn_blocking(move || -> Result<serde_json::Value, MachineFailure> {
             if cancel.is_cancelled() {
                 return Err("machine worker cancelled".into());
             }
             if Instant::now() >= deadline {
-                return Err("machine selection budget exhausted".into());
+                return Err(MachineFailure::timed_out(
+                    model.as_deref(),
+                    max_tokens,
+                    timeout,
+                    started.elapsed(),
+                ));
             }
             let dir = tempfile::tempdir_in(&staging).map_err(|_| "machine staging unavailable")?;
             let context_path = dir.path().join("context.txt");
@@ -356,6 +434,10 @@ impl Executor {
                 .arg(&question)
                 .arg("--max-tokens")
                 .arg(max_tokens.to_string())
+                .arg("--answer-policy")
+                .arg(policy.as_str())
+                .arg("--prompt-version")
+                .arg(policy.prompt_version())
                 .current_dir(dir.path())
                 .stdin(Stdio::null())
                 .stdout(Stdio::piped())
@@ -365,6 +447,20 @@ impl Executor {
                 use std::os::windows::process::CommandExt;
                 command.creation_flags(0x08000000);
             }
+            // 暂存与命令准备也消耗预算；已过期就不启动新的worker。
+            if cancel.is_cancelled() {
+                return Err("machine worker cancelled".into());
+            }
+            let worker_timeout =
+                remaining_worker_timeout(Instant::now(), deadline).ok_or_else(|| {
+                    MachineFailure::timed_out(
+                        model.as_deref(),
+                        max_tokens,
+                        timeout,
+                        started.elapsed(),
+                    )
+                })?;
+            command.arg("--timeout-s").arg(worker_timeout.to_string());
             let mut child = OwnedChild(command.spawn().map_err(|_| "machine worker spawn failed")?);
             let stdout = child.0.stdout.take().ok_or("machine stdout unavailable")?;
             let stderr = child.0.stderr.take().ok_or("machine stderr unavailable")?;
@@ -395,7 +491,7 @@ impl Executor {
             let (send, receive) = mpsc::channel();
             let reader = bounded_reader(stdout, MAX_OUTPUT, send.clone(), true);
             let err_reader = bounded_reader(stderr, MAX_STDERR, send, false);
-            let result = (|| -> Result<serde_json::Value, String> {
+            let result = (|| -> Result<serde_json::Value, MachineFailure> {
                 let mut out = None;
                 let mut errors_finished = false;
                 let mut exit_status = None;
@@ -403,6 +499,14 @@ impl Executor {
                 loop {
                     if cancel.is_cancelled() {
                         return Err("machine worker cancelled".into());
+                    }
+                    if Instant::now() >= deadline {
+                        return Err(MachineFailure::timed_out(
+                            model.as_deref(),
+                            max_tokens,
+                            timeout,
+                            started.elapsed(),
+                        ));
                     }
                     while let Ok((is_stdout, result)) = receive.try_recv() {
                         let bytes = result?;
@@ -425,26 +529,7 @@ impl Executor {
                             .get_or_insert_with(|| Instant::now() + Duration::from_secs(1));
                         if errors_finished && out.is_some() {
                             if !status.success() {
-                                let failure = serde_json::from_slice::<serde_json::Value>(
-                                    out.as_ref().unwrap(),
-                                )
-                                .ok();
-                                let code = failure
-                                    .as_ref()
-                                    .filter(|value| {
-                                        value["schema"] == "archeaxis.machine-worker-failure/v1"
-                                    })
-                                    .and_then(|value| value["reason_code"].as_str())
-                                    .filter(|code| {
-                                        matches!(
-                                            *code,
-                                            "MODEL_CALL_FAILED"
-                                                | "NO_FINAL_ANSWER"
-                                                | "EMPTY_ANSWER"
-                                        )
-                                    })
-                                    .unwrap_or("WORKER_FAILED");
-                                return Err(format!("machine failure: {code}"));
+                                return Err(MachineFailure::from_worker(out.as_ref().unwrap()));
                             }
                             break;
                         }
@@ -453,26 +538,25 @@ impl Executor {
                         }
                     }
                     if Instant::now() >= deadline {
-                        return Err("machine worker timed out".into());
+                        return Err(MachineFailure::timed_out(
+                            model.as_deref(),
+                            max_tokens,
+                            timeout,
+                            started.elapsed(),
+                        ));
                     }
                     thread::sleep(Duration::from_millis(10));
                 }
                 let value: serde_json::Value = serde_json::from_slice(&out.unwrap())
                     .map_err(|_| "machine worker returned invalid JSON")?;
-                if !value.is_object()
-                    || !value["answer"]
-                        .as_str()
-                        .is_some_and(|s| !s.trim().is_empty())
-                {
-                    return Err("machine worker returned no candidate answer".into());
-                }
-                if model.as_ref().is_some_and(|selected| {
-                    value["requested_model"].as_str() != Some(selected.as_str())
-                        || value["model"].as_str() != Some(selected.as_str())
-                }) {
-                    return Err("machine worker model selection mismatch".into());
-                }
-                Ok(value)
+                accept_success(
+                    value,
+                    model.as_deref(),
+                    max_tokens,
+                    started,
+                    timeout,
+                    Instant::now(),
+                )
             })();
             // No orphaned direct child on timeout/overflow/pipe error.
             let cleanup_failed = match child.0.try_wait() {
@@ -1112,6 +1196,9 @@ fn run_worker(
                 req.capability
             )));
         }
+        hello
+            .require_runtime_dependency(&req.capability)
+            .map_err(|e| Failure::Failed(e.into()))?;
         let mut stdin = child.0.stdin.take().unwrap();
         writeln!(
             stdin,
@@ -1157,6 +1244,25 @@ fn run_worker(
                 )
                 .map_err(|e| Failure::Failed(format!("invalid staged output: {e}")))?,
             );
+        }
+        if req.capability == "pdf.extract" {
+            let receipt = response
+                .outputs
+                .iter()
+                .zip(&payloads)
+                .find(|(output, _)| output.kind == "loss_report")
+                .and_then(|(_, wire)| serde_json::from_slice::<serde_json::Value>(wire).ok())
+                .ok_or_else(|| Failure::Failed("PDF_RUNTIME_RECEIPT_MISSING".into()))?;
+            let dependency = hello.runtime_dependency.as_ref().unwrap();
+            if receipt["engine"] != "pymupdf-native-pdf"
+                || receipt["engine_version"].as_str() != dependency.version.as_deref()
+                || receipt["params"]["runtime_dependency"]
+                    != serde_json::to_value(dependency).unwrap()
+            {
+                return Err(Failure::Failed(
+                    "PDF_RUNTIME_RECEIPT_IDENTITY_MISMATCH".into(),
+                ));
+            }
         }
         Ok((response, payloads))
     })();

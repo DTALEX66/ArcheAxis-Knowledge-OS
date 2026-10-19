@@ -1,0 +1,93 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo test -p archeaxis-api --test material_question_api --test conversation_api --test contract_machine_answer --offline --locked -- --test-threads=1
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on build directory
+warning: unused import: `OptionalExtension`
+ --> crates\archeaxis-domain\src\ai_asset.rs:7:28
+  |
+7 | use rusqlite::{Connection, OptionalExtension};
+  |                            ^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `self`
+ --> crates\archeaxis-domain\src\asset_context_grant.rs:4:16
+  |
+4 |     document::{self, Error},
+  |                ^^^^
+
+warning: `archeaxis-domain` (lib) generated 2 warnings (run `cargo fix --lib -p archeaxis-domain` to apply 2 suggestions)
+   Compiling archeaxis-application v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application)
+warning: function `stable_id` is never used
+  --> crates\archeaxis-application\src\lib.rs:45:4
+   |
+45 | fn stable_id(prefix: &str, seed: &str) -> String {
+   |    ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `worker` is never read
+  --> crates\archeaxis-application\src\executor.rs:58:5
+   |
+54 | pub struct Executor {
+   |            -------- field in this struct
+...
+58 |     worker: PathBuf,
+   |     ^^^^^^
+   |
+   = note: `Executor` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+   Compiling archeaxis-api v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api)
+warning: `archeaxis-application` (lib) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.09s
+     Running tests\contract_machine_answer.rs (.project-local\build\cargo\debug\deps\contract_machine_answer-7bb09eda2f8da023.exe)
+
+running 20 tests
+test a_disabled_capability_refuses_before_the_model_runs ... ok
+test a_free_text_context_is_refused_because_grounding_is_the_point ... ok
+test a_question_is_required_rather_than_answering_nothing ... ok
+test active_personal_knowledge_is_allowed_but_superseded_knowledge_is_not ... ok
+test actual_failure_status_and_clear_do_not_repeat_worker ... ok
+test an_answer_is_either_a_labelled_candidate_or_a_named_failure ... ok
+test an_unknown_knowledge_item_is_a_not_found_rather_than_a_free_answer ... ok
+test candidate_and_deprecated_knowledge_are_refused_before_inference ... ok
+test configuration_read_never_executes_worker_or_creates_machine_tasks ... ok
+test explicit_model_is_verified_frozen_and_retest_cache_is_model_bound ... ok
+test failed_answer_retry_budget_stops_before_fourth_worker_invocation ... ok
+test failed_retest_measurements_survive_api_history_and_restart ... ok
+test failed_worker_diagnostic_is_safe_and_never_creates_success_task ... ok
+test failed_worker_measurements_survive_api_history_and_restart ... ok
+test inventory_is_input_free_and_projects_no_private_worker_fields ... ok
+test journal_cancellation_is_attempt_bound_and_terminal_readback_follows_owned_cleanup ... ok
+test machine_journal_clear_is_human_only_and_does_not_invoke_worker ... ok
+test persisted_answer_correction_review_and_retest_form_one_chain ... ok
+test unfinished_durable_claim_refuses_before_worker_invocation ... ok
+test unfinished_retest_claim_cannot_be_bypassed_by_changing_knowledge_body ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.26s
+
+     Running tests\conversation_api.rs (.project-local\build\cargo\debug\deps\conversation_api-4ed403d23ba6e9c6.exe)
+
+running 4 tests
+test cancellation_is_request_bound_and_publishes_no_late_answer ... ok
+test failed_conversation_measurements_survive_restart_without_repeating_worker ... ok
+test material_and_companion_history_replay_restart_and_presentation_reads_never_repeat_inference ... ok
+test unfinished_request_restart_returns_unknown_without_retry_and_finite_fields_reject_expansion ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s
+
+     Running tests\material_question_api.rs (.project-local\build\cargo\debug\deps\material_question_api-4b293108da237cf7.exe)
+
+running 6 tests
+test cancellation_preserves_frozen_material_request_and_returns_no_answer ... ok
+test failed_material_measurements_survive_restart_without_repeating_worker ... ok
+test hard_timeout_measurements_survive_reopen_without_repeating_inference ... ok
+test imported_text_extracts_and_answers_without_entering_accepted_knowledge ... ok
+test new_unaccepted_material_is_bound_confirmed_and_exactly_replayed_after_restart ... ok
+test transform_binding_and_unicode_selection_refuse_wrong_identity_without_knowledge ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.10s
+

@@ -1,0 +1,2976 @@
+{
+  "status": "PASS",
+  "scope": "SYNTHETIC_ISOLATED_GIT_CHECKOUT",
+  "checks": {
+    "clean_node_guard": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "clean_python_details": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "node_suite": {
+      "exit_code": 0,
+      "stdout": "✔ guard succeeds from frontend cwd with no usable Python and empty PATH (94.5486ms)\n✔ manifest raw whitespace drift is rejected and exact restoration succeeds (45.018ms)\n✔ fixed validator generator host and schema drift cannot keep old projection (91.0297ms)\n✔ tampered sources cannot grant private path reads or duplicate source identity (54.7302ms)\n✔ generated runtime flags identity manifest payload header and suffix tampering fail (71.6674ms)\n✔ duplicate JSON keys and excessive nesting are rejected without evaluation (9.4101ms)\n✔ public references cannot escape to protected absolute private or traversal paths (37.615ms)\n✔ missing and oversized fixed source or target are bounded failures (55.6761ms)\n✔ linked public schema directory is rejected before reading its target (11.9012ms)\n✔ Git clean checkout preserves declaration identity and frozen archive bytes (153.6129ms)\nℹ tests 10\nℹ suites 0\nℹ pass 10\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 708.6767\n",
+      "stderr": ""
+    },
+    "node_with_inherited_git_context": {
+      "exit_code": 0,
+      "stdout": "✔ Git clean checkout preserves declaration identity and frozen archive bytes (159.6058ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 238.9456\n",
+      "stderr": ""
+    },
+    "python_details_suite": {
+      "exit_code": 0,
+      "stdout": "...........                                                              [100%]\n11 passed in 0.98s\n",
+      "stderr": ""
+    },
+    "patch_apply_check": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "frozen_manifest_count": 16,
+  "frozen_member_count": 470,
+  "frozen_originals_modified": 0,
+  "frozen_readback": [
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-capability-course/MANIFEST.json",
+      "before_sha256": "4fc05405e63084863b79629e1a715dd3d063d572512955fd4192a5d3e8b7c471",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/audit.spec.cjs",
+          "sha256": "5fc65308663e996c68b09dcd259176a6b222331ea343cf07a0fa025c9874ee53",
+          "crlf": 79,
+          "checkout_sha256": "5fc65308663e996c68b09dcd259176a6b222331ea343cf07a0fa025c9874ee53"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/axe-results.json",
+          "sha256": "8060388c5faae57b366cc58ce6b22084d5c478a0156f89225a5222e2f17b5f3d",
+          "crlf": 0,
+          "checkout_sha256": "8060388c5faae57b366cc58ce6b22084d5c478a0156f89225a5222e2f17b5f3d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/browser-shutdown.json",
+          "sha256": "7921c3b3d3e41d0ec984bfa3558de521d0e590f9d5ded429c4b5000fb0f8582d",
+          "crlf": 0,
+          "checkout_sha256": "7921c3b3d3e41d0ec984bfa3558de521d0e590f9d5ded429c4b5000fb0f8582d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/checks.json",
+          "sha256": "5a6346ecc5198bcd1f6c91bb285d4492d033ad58583ed40c5f7999a27ec4d3e5",
+          "crlf": 0,
+          "checkout_sha256": "5a6346ecc5198bcd1f6c91bb285d4492d033ad58583ed40c5f7999a27ec4d3e5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/environment.json",
+          "sha256": "51604e0b503680a5b5854a16ba6b212f778802dfd6c636195cc7056be985ca6d",
+          "crlf": 0,
+          "checkout_sha256": "51604e0b503680a5b5854a16ba6b212f778802dfd6c636195cc7056be985ca6d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/expanded-fixture.js",
+          "sha256": "0fcb74bc0e09075f1fc694f7e95573f3729bf5602afa4b982df20977b7e13bf3",
+          "crlf": 156,
+          "checkout_sha256": "0fcb74bc0e09075f1fc694f7e95573f3729bf5602afa4b982df20977b7e13bf3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/final-browser-launcher.log",
+          "sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e",
+          "crlf": 51,
+          "checkout_sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/final-build-launcher.log",
+          "sha256": "5eb31c157df75a15e41ae7372c423a2cec5c3d5b7600bfd4164d3e8ebd3130da",
+          "crlf": 39,
+          "checkout_sha256": "5eb31c157df75a15e41ae7372c423a2cec5c3d5b7600bfd4164d3e8ebd3130da"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/final-full-launcher.log",
+          "sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e",
+          "crlf": 51,
+          "checkout_sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/fixture.js",
+          "sha256": "2ce4c3a3f64657e7286872e0e45c6d264db6669702f4bfa486bca5411866fa01",
+          "crlf": 0,
+          "checkout_sha256": "2ce4c3a3f64657e7286872e0e45c6d264db6669702f4bfa486bca5411866fa01"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/launch.cjs",
+          "sha256": "8870bb9a33df66b61df554374cff554e44e3f8383a678832d19367ee7955adb6",
+          "crlf": 12,
+          "checkout_sha256": "8870bb9a33df66b61df554374cff554e44e3f8383a678832d19367ee7955adb6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/owned-processes.json",
+          "sha256": "74b28a681c8128c089121503cd70e98fb6932482922b1ecb06c27cddc6dd6b51",
+          "crlf": 0,
+          "checkout_sha256": "74b28a681c8128c089121503cd70e98fb6932482922b1ecb06c27cddc6dd6b51"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/playwright.config.cjs",
+          "sha256": "70f19b8bff1161c6b1e0a3d33fa35e2b54f371711beedf2c3bff37463ca3ba41",
+          "crlf": 2,
+          "checkout_sha256": "70f19b8bff1161c6b1e0a3d33fa35e2b54f371711beedf2c3bff37463ca3ba41"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/postflight.json",
+          "sha256": "486d3789cc47f3c4083d12759719405dafb2010976b4429d3a315817c92c5268",
+          "crlf": 47,
+          "checkout_sha256": "486d3789cc47f3c4083d12759719405dafb2010976b4429d3a315817c92c5268"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/preflight.json",
+          "sha256": "50a3c4080295fe229d4484cf32d9e82373fff39f1da729cb1679e7f649f43b1c",
+          "crlf": 85,
+          "checkout_sha256": "50a3c4080295fe229d4484cf32d9e82373fff39f1da729cb1679e7f649f43b1c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/prepare.py",
+          "sha256": "c5da26905d9f7d2bc52feeb0c27000963f9afc6c20c78082c00548a6df37c333",
+          "crlf": 0,
+          "checkout_sha256": "c5da26905d9f7d2bc52feeb0c27000963f9afc6c20c78082c00548a6df37c333"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/README.md",
+          "sha256": "08d567b8ea79ead0cd4651f900b908c6a1838b00d0f8bf9d80264d56411e2535",
+          "crlf": 0,
+          "checkout_sha256": "08d567b8ea79ead0cd4651f900b908c6a1838b00d0f8bf9d80264d56411e2535"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/run.py",
+          "sha256": "7a566394f9edfefff87c6db70c3ca9d041ed95472bffc420abd8d98d44c58238",
+          "crlf": 0,
+          "checkout_sha256": "7a566394f9edfefff87c6db70c3ca9d041ed95472bffc420abd8d98d44c58238"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/screenshots.json",
+          "sha256": "f24c57e770c6753e04b3ddc67c4c3b653f17fd8bff480c961050cfa4f6992324",
+          "crlf": 0,
+          "checkout_sha256": "f24c57e770c6753e04b3ddc67c4c3b653f17fd8bff480c961050cfa4f6992324"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/shutdown.json",
+          "sha256": "ba2ea8291d699208d48e28024f8785a28cab7b823bfd2f56d107513642898901",
+          "crlf": 0,
+          "checkout_sha256": "ba2ea8291d699208d48e28024f8785a28cab7b823bfd2f56d107513642898901"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/style-browser-launcher.log",
+          "sha256": "6f5b23735eec4115b18f1e84fe09e8a7cd5a5c230930ea90294608f5c2c74a4e",
+          "crlf": 34,
+          "checkout_sha256": "6f5b23735eec4115b18f1e84fe09e8a7cd5a5c230930ea90294608f5c2c74a4e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/style-build-launcher.log",
+          "sha256": "5eb31c157df75a15e41ae7372c423a2cec5c3d5b7600bfd4164d3e8ebd3130da",
+          "crlf": 39,
+          "checkout_sha256": "5eb31c157df75a15e41ae7372c423a2cec5c3d5b7600bfd4164d3e8ebd3130da"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/style-final-launcher.log",
+          "sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e",
+          "crlf": 51,
+          "checkout_sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/summary.json",
+          "sha256": "39de264ebd455d78d10c8f875d10bed9097ef991b9ce3423fa2b098ea589a8f4",
+          "crlf": 0,
+          "checkout_sha256": "39de264ebd455d78d10c8f875d10bed9097ef991b9ce3423fa2b098ea589a8f4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-capability-course/visual-review.json",
+          "sha256": "2de1ffda967cfe3e0f2601c4cb3dbf5fb57b209748ae0903f2427fb71507b0df",
+          "crlf": 156,
+          "checkout_sha256": "2de1ffda967cfe3e0f2601c4cb3dbf5fb57b209748ae0903f2427fb71507b0df"
+        }
+      ],
+      "checkout_sha256": "4fc05405e63084863b79629e1a715dd3d063d572512955fd4192a5d3e8b7c471"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/MANIFEST.json",
+      "before_sha256": "52636b1ab80db264541f66b1fe9f5a18e5edaf5a59214b3b61c3ebb32e7b6ff7",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/BE10-READONLY-PROPOSAL.md",
+          "sha256": "31d0286d7f07e5da6c190fbcab91b995b10dd6738801b6f3e40475902a094719",
+          "crlf": 0,
+          "checkout_sha256": "31d0286d7f07e5da6c190fbcab91b995b10dd6738801b6f3e40475902a094719"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/document-index-before-update.md",
+          "sha256": "e047c20aafb4e3769ba822d85a51c9b4d6331193b305e979c9718f42b22910ae",
+          "crlf": 314,
+          "checkout_sha256": "e047c20aafb4e3769ba822d85a51c9b4d6331193b305e979c9718f42b22910ae"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/EXECUTIONS.json",
+          "sha256": "30fea8b643a8d544e215d5db18c6c0f1266fcb0029179a54de3138b7828eb52e",
+          "crlf": 502,
+          "checkout_sha256": "30fea8b643a8d544e215d5db18c6c0f1266fcb0029179a54de3138b7828eb52e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/handoff-before-update.md",
+          "sha256": "67c7953680f6806ece986749fa61394e74497ccd5a33624388298a1ef481f69c",
+          "crlf": 47,
+          "checkout_sha256": "67c7953680f6806ece986749fa61394e74497ccd5a33624388298a1ef481f69c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/INTERMEDIATE-FAILURES.json",
+          "sha256": "36d36a9cdebf50fb0a3b2d9b066a4c2b2efa4d67828a610b02a398ecd297897a",
+          "crlf": 196,
+          "checkout_sha256": "36d36a9cdebf50fb0a3b2d9b066a4c2b2efa4d67828a610b02a398ecd297897a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/MODEL-OBSERVATION.json",
+          "sha256": "06128af195c363a4bc2b1d141805e6bee209570eecffd5d66055c16c4997cdea",
+          "crlf": 0,
+          "checkout_sha256": "06128af195c363a4bc2b1d141805e6bee209570eecffd5d66055c16c4997cdea"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/native-material-failure-diagnostics.json",
+          "sha256": "a3c16a9be07435f96a4083ba14b99eaa79727cafe885e7a75152e0ff3b89927f",
+          "crlf": 19,
+          "checkout_sha256": "a3c16a9be07435f96a4083ba14b99eaa79727cafe885e7a75152e0ff3b89927f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/NATIVE-READBACK.json",
+          "sha256": "28e4cda1ddb4913f6ad4baa749b42a6bf33fa56ead3c50d68e873021b137ec55",
+          "crlf": 145,
+          "checkout_sha256": "28e4cda1ddb4913f6ad4baa749b42a6bf33fa56ead3c50d68e873021b137ec55"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/navigation-proposal-validation.json",
+          "sha256": "feba2c1edc201b5ed729ddb738b41aeb1cb8d9b87fe6496ea1df439c60f3a1e4",
+          "crlf": 36,
+          "checkout_sha256": "feba2c1edc201b5ed729ddb738b41aeb1cb8d9b87fe6496ea1df439c60f3a1e4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+          "sha256": "a62b0e30290055897c6c868f2094f72122ea73f862f4b803b5d6d389c193be76",
+          "crlf": 0,
+          "checkout_sha256": "a62b0e30290055897c6c868f2094f72122ea73f862f4b803b5d6d389c193be76"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/real-companion-worker.json",
+          "sha256": "5a42fdad4b0c68f81e506f57d8ef0267773a24340fb16fe046be104cbe3c2ce3",
+          "crlf": 52,
+          "checkout_sha256": "5a42fdad4b0c68f81e506f57d8ef0267773a24340fb16fe046be104cbe3c2ce3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/ruff-before-after.json",
+          "sha256": "7c42208814edc01e603d8c2e5af6ac2942aa97d9b1f001ffd0761fcd13b5baef",
+          "crlf": 32,
+          "checkout_sha256": "7c42208814edc01e603d8c2e5af6ac2942aa97d9b1f001ffd0761fcd13b5baef"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/SOURCE-MANIFEST.json",
+          "sha256": "bd9a6d6c1d2d619267bb01313e4506d7b23c64788b0eaadf97675a40b2b3bc5b",
+          "crlf": 160,
+          "checkout_sha256": "bd9a6d6c1d2d619267bb01313e4506d7b23c64788b0eaadf97675a40b2b3bc5b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/task-delta.diff",
+          "sha256": "1195eecec10b47898349bcb83a526cba44da7e3b82206130b1a92d21d0a3f493",
+          "crlf": 1143,
+          "checkout_sha256": "1195eecec10b47898349bcb83a526cba44da7e3b82206130b1a92d21d0a3f493"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/UI-READONLY-REVIEW.md",
+          "sha256": "3d670d9926aaf8797bac6ac09da5f5d84333c47ebcf7ec26240b4973d65adc63",
+          "crlf": 28,
+          "checkout_sha256": "3d670d9926aaf8797bac6ac09da5f5d84333c47ebcf7ec26240b4973d65adc63"
+        }
+      ],
+      "checkout_sha256": "52636b1ab80db264541f66b1fe9f5a18e5edaf5a59214b3b61c3ebb32e7b6ff7"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/MANIFEST.json",
+      "before_sha256": "a0c183e57092922263d65d563002f5f15927832c0941a919b9205ffcb2737351",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/build_invalid_path-execution.json",
+          "sha256": "011107c1b996ad2bcd35c89130784343afa817a56db504285482c271754d2199",
+          "crlf": 29,
+          "checkout_sha256": "011107c1b996ad2bcd35c89130784343afa817a56db504285482c271754d2199"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/build-execution.json",
+          "sha256": "803ed5b434de6ccc2f2dbbbf29b2d39e7f0b28e45c177d292fda899954718bf8",
+          "crlf": 29,
+          "checkout_sha256": "803ed5b434de6ccc2f2dbbbf29b2d39e7f0b28e45c177d292fda899954718bf8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/final-execution.json",
+          "sha256": "96174db906ddbbb03fce6745eaac27ea60b088213ffdf03e9c13311093c854a3",
+          "crlf": 31,
+          "checkout_sha256": "96174db906ddbbb03fce6745eaac27ea60b088213ffdf03e9c13311093c854a3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/final-test-command.json",
+          "sha256": "428aed1f23e49d452538b51169a5564b020a0c9077864d3556a10c5240872db0",
+          "crlf": 20,
+          "checkout_sha256": "428aed1f23e49d452538b51169a5564b020a0c9077864d3556a10c5240872db0"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/final-tests.json",
+          "sha256": "452cada73ab5d86e521ce679de614c3e7ae9a67995e397bc473662806a63ee4d",
+          "crlf": 257,
+          "checkout_sha256": "452cada73ab5d86e521ce679de614c3e7ae9a67995e397bc473662806a63ee4d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/frontend-build.json",
+          "sha256": "113825a022102e4ab93b0d3becf87ec4b3f9b839c5e891a768d4997b140ae0cb",
+          "crlf": 0,
+          "checkout_sha256": "113825a022102e4ab93b0d3becf87ec4b3f9b839c5e891a768d4997b140ae0cb"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/green-execution.json",
+          "sha256": "7a37781d21824c55d5bfe1c7c2772c144a318bd42cdff3553d1d2b61252a7d1d",
+          "crlf": 28,
+          "checkout_sha256": "7a37781d21824c55d5bfe1c7c2772c144a318bd42cdff3553d1d2b61252a7d1d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/green-test-command.json",
+          "sha256": "fc74ab26d8a17a882591b9e320e11a6f32b332f64c6648a1b4d5a284451b6e9b",
+          "crlf": 17,
+          "checkout_sha256": "fc74ab26d8a17a882591b9e320e11a6f32b332f64c6648a1b4d5a284451b6e9b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/green-tests.json",
+          "sha256": "1098f4ad34fc4be479182132b0927a7d321ba897c2e13bdbb96afbb91ce2e83e",
+          "crlf": 162,
+          "checkout_sha256": "1098f4ad34fc4be479182132b0927a7d321ba897c2e13bdbb96afbb91ce2e83e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/README.md",
+          "sha256": "b4b500deb99049e18b5b76819429c77bd4cfea6d7279fc1a74880d7a5910cd20",
+          "crlf": 0,
+          "checkout_sha256": "b4b500deb99049e18b5b76819429c77bd4cfea6d7279fc1a74880d7a5910cd20"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/READONLY-REVIEW.md",
+          "sha256": "e308b0a075d2722bfba8a661c899feee874c84e79c2733ac288c31ba1d0b5314",
+          "crlf": 0,
+          "checkout_sha256": "e308b0a075d2722bfba8a661c899feee874c84e79c2733ac288c31ba1d0b5314"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/red-execution.json",
+          "sha256": "47999db2bf5ab54b0951e549325d1f7293e84a53bad4da9544a005599cd41dc8",
+          "crlf": 28,
+          "checkout_sha256": "47999db2bf5ab54b0951e549325d1f7293e84a53bad4da9544a005599cd41dc8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/red-test-command.json",
+          "sha256": "623bc02e0be5e373c26487bc102753dd07fc183f2525dabfd6574b4515480f2a",
+          "crlf": 17,
+          "checkout_sha256": "623bc02e0be5e373c26487bc102753dd07fc183f2525dabfd6574b4515480f2a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/red-tests.json",
+          "sha256": "c5cb320f94309a80a20b5df2d00f8e511c4d2aa6bd4e4232791e8d42d79534d1",
+          "crlf": 174,
+          "checkout_sha256": "c5cb320f94309a80a20b5df2d00f8e511c4d2aa6bd4e4232791e8d42d79534d1"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/verify_frontend.py",
+          "sha256": "8e52c6585a85ee099f6995e90c261ca8e16b228e364af9a58a7f0da4af68df3d",
+          "crlf": 0,
+          "checkout_sha256": "8e52c6585a85ee099f6995e90c261ca8e16b228e364af9a58a7f0da4af68df3d"
+        }
+      ],
+      "checkout_sha256": "a0c183e57092922263d65d563002f5f15927832c0941a919b9205ffcb2737351"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/MANIFEST.json",
+      "before_sha256": "b416be12481bd7127525b6b895b475841ebbe35ef052ff38fd6c1add156533c6",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/EXECUTION-READBACK.json",
+          "sha256": "b479beb8002786f8c3aefcfdd181d0fcd33293f5501261253ac7b1eb8e614867",
+          "crlf": 243,
+          "checkout_sha256": "b479beb8002786f8c3aefcfdd181d0fcd33293f5501261253ac7b1eb8e614867"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-candidate-promotion-1019.json",
+          "sha256": "b007507c084371e03da949d13d3c4b6ec7f2c07010f4f6347d252af440df2e9f",
+          "crlf": 31,
+          "checkout_sha256": "b007507c084371e03da949d13d3c4b6ec7f2c07010f4f6347d252af440df2e9f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-cli-main-1019.json",
+          "sha256": "aded34dd82ba3c5a3954154f6722ce22bf08a03e68c094e4476156b9a5eb8503",
+          "crlf": 38,
+          "checkout_sha256": "aded34dd82ba3c5a3954154f6722ce22bf08a03e68c094e4476156b9a5eb8503"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-cli-rustfmt-1019.json",
+          "sha256": "c19adfb5242a20e3d5b1e4e213ffdce0fdfdef7e52b473346e192ba6ee6c903a",
+          "crlf": 32,
+          "checkout_sha256": "c19adfb5242a20e3d5b1e4e213ffdce0fdfdef7e52b473346e192ba6ee6c903a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-final-core-1019.json",
+          "sha256": "85ec2f270c37bb8b093638defb91df4b9223e328e018925786d6a35adea3b244",
+          "crlf": 36,
+          "checkout_sha256": "85ec2f270c37bb8b093638defb91df4b9223e328e018925786d6a35adea3b244"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-final-host-1019.json",
+          "sha256": "58dfb31407e62f9487ad07dfc262ad2798a7775779278f7437982a8cc7b150cf",
+          "crlf": 35,
+          "checkout_sha256": "58dfb31407e62f9487ad07dfc262ad2798a7775779278f7437982a8cc7b150cf"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-frontend-full-1019.json",
+          "sha256": "6a1c4c94d7a0864fd08d7867beb7136c0a92233ccd66ee67151dfc478068ac19",
+          "crlf": 33,
+          "checkout_sha256": "6a1c4c94d7a0864fd08d7867beb7136c0a92233ccd66ee67151dfc478068ac19"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-hub-main-checks-1019.json",
+          "sha256": "d3e41fd78c66c856b713626e23a95fe963acf8c53b07418d2a719bf108d1f7e2",
+          "crlf": 29,
+          "checkout_sha256": "d3e41fd78c66c856b713626e23a95fe963acf8c53b07418d2a719bf108d1f7e2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-independent-cancel-native-1019.json",
+          "sha256": "c3e0a5feac36e4a99a83ac77d4de78c5791de0fef19d9d470349f3a8c37813f9",
+          "crlf": 41,
+          "checkout_sha256": "c3e0a5feac36e4a99a83ac77d4de78c5791de0fef19d9d470349f3a8c37813f9"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-independent-probe-main-1019.json",
+          "sha256": "fb239b86a21f3cdaca38d768ad5b25de2e832e61974a8b37524190475fd6dac1",
+          "crlf": 37,
+          "checkout_sha256": "fb239b86a21f3cdaca38d768ad5b25de2e832e61974a8b37524190475fd6dac1"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/consumer-model-load-1019.json",
+          "sha256": "0c18f6a131eb69ded396104a09d0b0005540e2980b9ea51da92fa8ccd08ef8d9",
+          "crlf": 28,
+          "checkout_sha256": "0c18f6a131eb69ded396104a09d0b0005540e2980b9ea51da92fa8ccd08ef8d9"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/hub-node-consumer-frozen-1019.json",
+          "sha256": "7c34821695442dacfa199fc8676e91fc33f8ca50a225d949198652ab58ba0edf",
+          "crlf": 27,
+          "checkout_sha256": "7c34821695442dacfa199fc8676e91fc33f8ca50a225d949198652ab58ba0edf"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/executions/hub-node-corrected-1019.json",
+          "sha256": "91be60e45fec790d3281a25236cdf49cd5e0cc651dbf0c543c0d9bd75842b529",
+          "crlf": 27,
+          "checkout_sha256": "91be60e45fec790d3281a25236cdf49cd5e0cc651dbf0c543c0d9bd75842b529"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/native/candidate-build.json",
+          "sha256": "6359c092182d49fa52ef7ec2d65b092029d6ab01b53877a58a683f7b2c1abc05",
+          "crlf": 0,
+          "checkout_sha256": "6359c092182d49fa52ef7ec2d65b092029d6ab01b53877a58a683f7b2c1abc05"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/native/model-load.json",
+          "sha256": "a40311a43ea270b59e9f712b9b9b351bbff044d333a899ec918e102f5bc4bfe8",
+          "crlf": 0,
+          "checkout_sha256": "a40311a43ea270b59e9f712b9b9b351bbff044d333a899ec918e102f5bc4bfe8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/native/receipt.json",
+          "sha256": "427075b89bf431a09df7f875aebc090270af834d066a5fa6c167b5592d3f36b5",
+          "crlf": 2487,
+          "checkout_sha256": "427075b89bf431a09df7f875aebc090270af834d066a5fa6c167b5592d3f36b5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/native/VISUAL-READBACK.json",
+          "sha256": "eb49b9f239db64ee66e1c19bce63e74cd60ee6030bdcb0558a40e45339adfc95",
+          "crlf": 39,
+          "checkout_sha256": "eb49b9f239db64ee66e1c19bce63e74cd60ee6030bdcb0558a40e45339adfc95"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/NAVIGATION-OBSERVATION.json",
+          "sha256": "1b3d8edb1f3ae72fee3d04097869db347bb7a182aae7afcde591837f3b17788e",
+          "crlf": 161,
+          "checkout_sha256": "1b3d8edb1f3ae72fee3d04097869db347bb7a182aae7afcde591837f3b17788e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/OWNED-DELTA.patch",
+          "sha256": "8b251db15aaf5ac9328dbbc74a48a93cb5c12da44276a3dc2ac1d19728cd4ed7",
+          "crlf": 2051,
+          "checkout_sha256": "8b251db15aaf5ac9328dbbc74a48a93cb5c12da44276a3dc2ac1d19728cd4ed7"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/PROPOSAL-LIFECYCLE.json",
+          "sha256": "99e484e9b650cdee1ebdbef06c3e059b652ee842cb7320f8a9f33c0ecb37464e",
+          "crlf": 131,
+          "checkout_sha256": "99e484e9b650cdee1ebdbef06c3e059b652ee842cb7320f8a9f33c0ecb37464e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/corrected-node-applied/capability-manifest-consumer-node-corrected.patch",
+          "sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+          "crlf": 0,
+          "checkout_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/corrected-node-applied/code-manifest.json",
+          "sha256": "f579475f95b706eb9d62cd0c2c889ec0511e4b36787317112380219913540976",
+          "crlf": 93,
+          "checkout_sha256": "f579475f95b706eb9d62cd0c2c889ec0511e4b36787317112380219913540976"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/corrected-node-applied/CURRENT.md",
+          "sha256": "2b44d5cc2af6b4556513a7ee0cbb6569bac7202de6968a84480982e41ad3ce5c",
+          "crlf": 13,
+          "checkout_sha256": "2b44d5cc2af6b4556513a7ee0cbb6569bac7202de6968a84480982e41ad3ce5c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/corrected-node-applied/DELIVERY.md",
+          "sha256": "07b5ac937324aeaf5ad85d2f619cec1c8bf7994556eb2a177424bdcc2f62640b",
+          "crlf": 17,
+          "checkout_sha256": "07b5ac937324aeaf5ad85d2f619cec1c8bf7994556eb2a177424bdcc2f62640b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/corrected-node-applied/FINAL-READBACK.json",
+          "sha256": "b076532e0b28973981c769436a7df75bad010d727f9ad584073e31aeac863963",
+          "crlf": 17,
+          "checkout_sha256": "b076532e0b28973981c769436a7df75bad010d727f9ad584073e31aeac863963"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/corrected-node-applied/ROOT-CAUSE.json",
+          "sha256": "be6711cfa54c2080fe8c85c8869db4084fc4957f27b68156cd7fc29a56b5906e",
+          "crlf": 0,
+          "checkout_sha256": "be6711cfa54c2080fe8c85c8869db4084fc4957f27b68156cd7fc29a56b5906e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/corrected-node-applied/ROOT-CAUSE.md",
+          "sha256": "e7927684f1f575a5c90eb0945ab58b0abfcac153616d4d6c74a0364c7f907901",
+          "crlf": 11,
+          "checkout_sha256": "e7927684f1f575a5c90eb0945ab58b0abfcac153616d4d6c74a0364c7f907901"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/corrected-node-applied/validation.json",
+          "sha256": "b911b10d8bea8e2e222712b633635d2fe4e007c25c0fa1689c048feb637793f3",
+          "crlf": 1118,
+          "checkout_sha256": "b911b10d8bea8e2e222712b633635d2fe4e007c25c0fa1689c048feb637793f3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/duplicate-imports-rejected/capability-manifest-consumer-node.patch",
+          "sha256": "c0d004392d1b5ff4cf7690fe356bc71afcf0ab967bd30c7382d2d85c11ea73c3",
+          "crlf": 0,
+          "checkout_sha256": "c0d004392d1b5ff4cf7690fe356bc71afcf0ab967bd30c7382d2d85c11ea73c3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/duplicate-imports-rejected/code-manifest.json",
+          "sha256": "24cb2b5dfce8c40b3860c14f56c4cf4418f4f7aa60c99074caefdb6424f93b59",
+          "crlf": 93,
+          "checkout_sha256": "24cb2b5dfce8c40b3860c14f56c4cf4418f4f7aa60c99074caefdb6424f93b59"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/duplicate-imports-rejected/CURRENT.md",
+          "sha256": "7667e3e6dd42e0092d4b8c34243e92fdb780e166a42d7f27ce66e129f68ebdfe",
+          "crlf": 16,
+          "checkout_sha256": "7667e3e6dd42e0092d4b8c34243e92fdb780e166a42d7f27ce66e129f68ebdfe"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/duplicate-imports-rejected/DELIVERY.md",
+          "sha256": "44bf78b4174b75a743318340964a05ffc20be8a3fd644c078b5c37e01cb8cde8",
+          "crlf": 9,
+          "checkout_sha256": "44bf78b4174b75a743318340964a05ffc20be8a3fd644c078b5c37e01cb8cde8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/duplicate-imports-rejected/FAILURES.md",
+          "sha256": "69a6ce2b5e2bcbe5d926c8ba6a5a3b30f2b52992688a4f3c217efa0b42e6f916",
+          "crlf": 8,
+          "checkout_sha256": "69a6ce2b5e2bcbe5d926c8ba6a5a3b30f2b52992688a4f3c217efa0b42e6f916"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/duplicate-imports-rejected/FINAL-READBACK.json",
+          "sha256": "34dc47ba71e25c4cb8f7c41fc03ad607a7c5fff6b3da4a1b7f79083e0d4c2a4f",
+          "crlf": 96,
+          "checkout_sha256": "34dc47ba71e25c4cb8f7c41fc03ad607a7c5fff6b3da4a1b7f79083e0d4c2a4f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/duplicate-imports-rejected/validation.json",
+          "sha256": "d7231289c93c0b95cbc37f18a220ddab67169b4da0ab9cbc81e6f1caeb26eca9",
+          "crlf": 163,
+          "checkout_sha256": "d7231289c93c0b95cbc37f18a220ddab67169b4da0ab9cbc81e6f1caeb26eca9"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/python-hook-rejected/capability-manifest-consumer.patch",
+          "sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f",
+          "crlf": 627,
+          "checkout_sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/python-hook-rejected/code-manifest.json",
+          "sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e",
+          "crlf": 69,
+          "checkout_sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/python-hook-rejected/CURRENT.md",
+          "sha256": "bbe25abc55bb6796502c5f91f75a769435bb9610d3b7bbf4fa5e28d8e55b96ee",
+          "crlf": 29,
+          "checkout_sha256": "bbe25abc55bb6796502c5f91f75a769435bb9610d3b7bbf4fa5e28d8e55b96ee"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/python-hook-rejected/DELIVERY.md",
+          "sha256": "7a1ff617a59fcfde5e117aba7e603ddcdcd02643a56955bb2ac92fa998bee704",
+          "crlf": 13,
+          "checkout_sha256": "7a1ff617a59fcfde5e117aba7e603ddcdcd02643a56955bb2ac92fa998bee704"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/python-hook-rejected/FINAL-READBACK.json",
+          "sha256": "5e7ab8767bc9a18d6b9c21890c28d881b1ee7e11b51bcde351aa7ab45d1efa9c",
+          "crlf": 11,
+          "checkout_sha256": "5e7ab8767bc9a18d6b9c21890c28d881b1ee7e11b51bcde351aa7ab45d1efa9c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/proposals/python-hook-rejected/validation.json",
+          "sha256": "a71dc1576de33dbdc1d8c3d5e5e4a72c4be272d21bccd8c7cc054a0bf7fdcec6",
+          "crlf": 150,
+          "checkout_sha256": "a71dc1576de33dbdc1d8c3d5e5e4a72c4be272d21bccd8c7cc054a0bf7fdcec6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/readbacks/cli-applied.json",
+          "sha256": "8d2f374cd565d54d2134587abc24cbfd6b55e4bf718af05444421824c8bc506f",
+          "crlf": 37,
+          "checkout_sha256": "8d2f374cd565d54d2134587abc24cbfd6b55e4bf718af05444421824c8bc506f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/readbacks/final-state.json",
+          "sha256": "97a70726331cb06dc3ab7444e13178231b7ef1c60dd00ec70ae2a2df4b70062d",
+          "crlf": 0,
+          "checkout_sha256": "97a70726331cb06dc3ab7444e13178231b7ef1c60dd00ec70ae2a2df4b70062d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/readbacks/hub-applied.json",
+          "sha256": "b046f8a862815a39bded9e25da13b6f427abc5ec84556dd6ee0f09612b3ec71a",
+          "crlf": 87,
+          "checkout_sha256": "b046f8a862815a39bded9e25da13b6f427abc5ec84556dd6ee0f09612b3ec71a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/readbacks/hub-apply-byte-readback.json",
+          "sha256": "3dd0784c429125d5f8068d5b909302af787d468f9e5ca7eff938d8a7f2d6e268",
+          "crlf": 68,
+          "checkout_sha256": "3dd0784c429125d5f8068d5b909302af787d468f9e5ca7eff938d8a7f2d6e268"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/readbacks/hub-main-validation.json",
+          "sha256": "469c3dbcc080df053ed47d083231fa1733b819e62c696148c8c8587a41945866",
+          "crlf": 90,
+          "checkout_sha256": "469c3dbcc080df053ed47d083231fa1733b819e62c696148c8c8587a41945866"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/readbacks/native-applied.json",
+          "sha256": "734d2cc36c4313617dbc76da0927d5ca143b7302d14890e5425bada7ca730cf0",
+          "crlf": 30,
+          "checkout_sha256": "734d2cc36c4313617dbc76da0927d5ca143b7302d14890e5425bada7ca730cf0"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/README.md",
+          "sha256": "3c5d6e18a1d843e10df5d37ad13e831651d32ac90f0c21adfb73beb47f9af6a7",
+          "crlf": 13,
+          "checkout_sha256": "3c5d6e18a1d843e10df5d37ad13e831651d32ac90f0c21adfb73beb47f9af6a7"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/cli-cross-review/EVIDENCE.json",
+          "sha256": "1a6fba3dd7ec89eaf3c6eafcd9ad666b66828d9e6657cc31749f24685878070f",
+          "crlf": 111,
+          "checkout_sha256": "1a6fba3dd7ec89eaf3c6eafcd9ad666b66828d9e6657cc31749f24685878070f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/cli-cross-review/REVIEW.md",
+          "sha256": "03075b51593de2fc13cc5e4cb38d1f90ce88d22840d385a75a4ce704729c238d",
+          "crlf": 24,
+          "checkout_sha256": "03075b51593de2fc13cc5e4cb38d1f90ce88d22840d385a75a4ce704729c238d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/dialogue-continuity-review/EVIDENCE.json",
+          "sha256": "afbced7f565c3dca41f4a6213f4f6a6fcf4f7d224c207608d4a944f401a41636",
+          "crlf": 0,
+          "checkout_sha256": "afbced7f565c3dca41f4a6213f4f6a6fcf4f7d224c207608d4a944f401a41636"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/dialogue-continuity-review/REVIEW.md",
+          "sha256": "b4108344581445ac4ff235c0e2b37fc1c950f6d2ba4d3c401e761298b7d4ee91",
+          "crlf": 0,
+          "checkout_sha256": "b4108344581445ac4ff235c0e2b37fc1c950f6d2ba4d3c401e761298b7d4ee91"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/hub-cross-review/REVIEW.md",
+          "sha256": "f3ebdd99c424506ab08c97e5cd9dbf0a006659a8f0f40147fe9bebc8662450a3",
+          "crlf": 0,
+          "checkout_sha256": "f3ebdd99c424506ab08c97e5cd9dbf0a006659a8f0f40147fe9bebc8662450a3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/model-timeout-review/EVIDENCE.json",
+          "sha256": "8c745a0d25f70bdc070ffeb6f67e516c6cd1c685a16c7323920f6f540a9f432e",
+          "crlf": 96,
+          "checkout_sha256": "8c745a0d25f70bdc070ffeb6f67e516c6cd1c685a16c7323920f6f540a9f432e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/model-timeout-review/REVIEW.md",
+          "sha256": "6ca41dd40a9dd34ef0d91ca4a89c50318e5d4d1981a087773f4ab3a6e320b211",
+          "crlf": 26,
+          "checkout_sha256": "6ca41dd40a9dd34ef0d91ca4a89c50318e5d4d1981a087773f4ab3a6e320b211"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/model-timeout-review/SOURCE-MANIFEST.json",
+          "sha256": "3a7c27b9d11948d92625653ae247fe88ee09f8e22a04501c6ffb1995e1dc5ba8",
+          "crlf": 74,
+          "checkout_sha256": "3a7c27b9d11948d92625653ae247fe88ee09f8e22a04501c6ffb1995e1dc5ba8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/native-cross-review/EVIDENCE.json",
+          "sha256": "c1ff121c9b22faf9df25a24df37decf2c0439925b1be3b2dcad03eda24ebe6e4",
+          "crlf": 58,
+          "checkout_sha256": "c1ff121c9b22faf9df25a24df37decf2c0439925b1be3b2dcad03eda24ebe6e4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/native-cross-review/REVIEW.md",
+          "sha256": "7bd260a5710eef66fdac2d16a3ef63536bbea6c33773dddbf03f7763bc532b7d",
+          "crlf": 14,
+          "checkout_sha256": "7bd260a5710eef66fdac2d16a3ef63536bbea6c33773dddbf03f7763bc532b7d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/node-corrected-cross-review/EVIDENCE.json",
+          "sha256": "4133ce72e22adc1de343685a8467d0928097d44a90e4550849609a1eac3065e4",
+          "crlf": 187,
+          "checkout_sha256": "4133ce72e22adc1de343685a8467d0928097d44a90e4550849609a1eac3065e4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/node-corrected-cross-review/REVIEW.md",
+          "sha256": "7248092b4dfc835063df54ce3fb89e78155ec743687e34abdabb02b95b98ad08",
+          "crlf": 10,
+          "checkout_sha256": "7248092b4dfc835063df54ce3fb89e78155ec743687e34abdabb02b95b98ad08"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/node-cross-review/EVIDENCE.json",
+          "sha256": "3529a803a846609d8a95db0a370f4d74e798b5654866814044b2b6c5161a750f",
+          "crlf": 152,
+          "checkout_sha256": "3529a803a846609d8a95db0a370f4d74e798b5654866814044b2b6c5161a750f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/reviews/node-cross-review/REVIEW.md",
+          "sha256": "488c83b634cf8ee060e62b96cd2552eeceae2f83441797cea1323a447d8add70",
+          "crlf": 13,
+          "checkout_sha256": "488c83b634cf8ee060e62b96cd2552eeceae2f83441797cea1323a447d8add70"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/SOURCE-IDENTITY.json",
+          "sha256": "44a6b8dc13783d1a2f7d4a79b4542b8205a5d1159d3bd64d4d671c15af87659d",
+          "crlf": 127,
+          "checkout_sha256": "44a6b8dc13783d1a2f7d4a79b4542b8205a5d1159d3bd64d4d671c15af87659d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/verify_snapshot.py",
+          "sha256": "23830b15389a801cf3e792cfbd9ca944252b8ef94e58f1ba7d50edf0d7cdc60e",
+          "crlf": 69,
+          "checkout_sha256": "23830b15389a801cf3e792cfbd9ca944252b8ef94e58f1ba7d50edf0d7cdc60e"
+        }
+      ],
+      "checkout_sha256": "b416be12481bd7127525b6b895b475841ebbe35ef052ff38fd6c1add156533c6"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/MANIFEST.json",
+      "before_sha256": "1b4dbf1b10f85b9488e112bf4410426b4ac91c48ee7301b4cdef185ed0ac436a",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/frontend-proposal-notes.md",
+          "sha256": "0ee2b70f7b14a762dab3c6794fe5a902f5360fae3865f59547548775fe2f9352",
+          "crlf": 0,
+          "checkout_sha256": "0ee2b70f7b14a762dab3c6794fe5a902f5360fae3865f59547548775fe2f9352"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/handoff-before-consolidation.md",
+          "sha256": "1be998ef9d02efe93d71c36d2f38b25e09061d98bfdaba18a10c25ac72e2a28b",
+          "crlf": 97,
+          "checkout_sha256": "1be998ef9d02efe93d71c36d2f38b25e09061d98bfdaba18a10c25ac72e2a28b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/navigation-snapshot.json",
+          "sha256": "a9c20f219616ce7c6421343feab7138b39953ae2d79a3f85c26064dd1f542949",
+          "crlf": 32,
+          "checkout_sha256": "a9c20f219616ce7c6421343feab7138b39953ae2d79a3f85c26064dd1f542949"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/proposal-notes.md",
+          "sha256": "902a2535add57271b2c7219d1823831959c71a021d4e01abbb27c74b01cbc3ca",
+          "crlf": 0,
+          "checkout_sha256": "902a2535add57271b2c7219d1823831959c71a021d4e01abbb27c74b01cbc3ca"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/proposed-core.patch",
+          "sha256": "d591607ce31fad56405da0f1007512ca4c0ffda7d89d34d16cdaf949a361ee55",
+          "crlf": 0,
+          "checkout_sha256": "d591607ce31fad56405da0f1007512ca4c0ffda7d89d34d16cdaf949a361ee55"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/proposed-frontend.patch",
+          "sha256": "73551dc2b7cabd94e0c15edda157e5c9e5510ea1f2b1d26611b18c52b815ed15",
+          "crlf": 0,
+          "checkout_sha256": "73551dc2b7cabd94e0c15edda157e5c9e5510ea1f2b1d26611b18c52b815ed15"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/README.md",
+          "sha256": "8c600b55b19042d74e9cc0349cbce0ea6f7d3dda86b14f1121269cd23029b8c8",
+          "crlf": 9,
+          "checkout_sha256": "8c600b55b19042d74e9cc0349cbce0ea6f7d3dda86b14f1121269cd23029b8c8"
+        }
+      ],
+      "checkout_sha256": "1b4dbf1b10f85b9488e112bf4410426b4ac91c48ee7301b4cdef185ed0ac436a"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/MANIFEST.json",
+      "before_sha256": "4f93e06978e16cb919075aa149fe785d2f4c297ddb8b9ce5303cc2bd22cd8766",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/EXECUTION-READBACK.json",
+          "sha256": "387a6a6dde2d0a0b70511cf0b68945981b2844544b3828a11f18737b48c81f8e",
+          "crlf": 312,
+          "checkout_sha256": "387a6a6dde2d0a0b70511cf0b68945981b2844544b3828a11f18737b48c81f8e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integrated-candidate-promotion-1019.json",
+          "sha256": "1924c6d6d6b7041e6158cbd5a9e7d386d5a2fb96d283bccba4482eb60dedd94a",
+          "crlf": 29,
+          "checkout_sha256": "1924c6d6d6b7041e6158cbd5a9e7d386d5a2fb96d283bccba4482eb60dedd94a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integrated-core-1019.json",
+          "sha256": "e2dd6e63bbe19fc834fa7964d99fb0c958b29a39d30c3ce236cf474ae6a1b014",
+          "crlf": 36,
+          "checkout_sha256": "e2dd6e63bbe19fc834fa7964d99fb0c958b29a39d30c3ce236cf474ae6a1b014"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integrated-host-1019.json",
+          "sha256": "97212b76ee209cb9a012934bd1b89dd629ea32213b32e73db44eed74c3fadb92",
+          "crlf": 35,
+          "checkout_sha256": "97212b76ee209cb9a012934bd1b89dd629ea32213b32e73db44eed74c3fadb92"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integrated-python-lint-1019.json",
+          "sha256": "55e31db2f2ce08354a766c17955a38940377a03e24ef5aec807073ed7daf565a",
+          "crlf": 33,
+          "checkout_sha256": "55e31db2f2ce08354a766c17955a38940377a03e24ef5aec807073ed7daf565a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integrated-rustfmt-1019.json",
+          "sha256": "2b1624fd82156fd2e97cfaedacdd170103a566f044b95af4405d0bd7018c8260",
+          "crlf": 34,
+          "checkout_sha256": "2b1624fd82156fd2e97cfaedacdd170103a566f044b95af4405d0bd7018c8260"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integration-generated-check-1019.json",
+          "sha256": "55ab2d9ca0b53e8fedcace34f79d5fda85a8d3912e89647309ddbfb53bd4f350",
+          "crlf": 30,
+          "checkout_sha256": "55ab2d9ca0b53e8fedcace34f79d5fda85a8d3912e89647309ddbfb53bd4f350"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integration-host-build-1019.json",
+          "sha256": "d6e37d1ef95eacd450e5348cfbf56f9f40b46b36f79fca3cdc793c76a4afe72e",
+          "crlf": 35,
+          "checkout_sha256": "d6e37d1ef95eacd450e5348cfbf56f9f40b46b36f79fca3cdc793c76a4afe72e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integration-new-python-lint-1019.json",
+          "sha256": "8ece0faa4ca82e4bd89ab456448e31f9426dd8fddfddecc1a6ee5515353a8e17",
+          "crlf": 33,
+          "checkout_sha256": "8ece0faa4ca82e4bd89ab456448e31f9426dd8fddfddecc1a6ee5515353a8e17"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integration-python-contracts-1019.json",
+          "sha256": "7e82d8bc3001939f60904e05bd400bed54321671fd7d0fe4b7c54d09c0b522e5",
+          "crlf": 34,
+          "checkout_sha256": "7e82d8bc3001939f60904e05bd400bed54321671fd7d0fe4b7c54d09c0b522e5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integration-rust-api-1019.json",
+          "sha256": "470113d157386ae3b54c8dee26410ae4f53fac15c0c3a8c60ede3c1bf27e014c",
+          "crlf": 46,
+          "checkout_sha256": "470113d157386ae3b54c8dee26410ae4f53fac15c0c3a8c60ede3c1bf27e014c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/final-integration-rust-contracts-1019.json",
+          "sha256": "cc2bbf3f7cbc53522f131472287548ecd82ef39571574b45e30aaae828fb314b",
+          "crlf": 37,
+          "checkout_sha256": "cc2bbf3f7cbc53522f131472287548ecd82ef39571574b45e30aaae828fb314b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/integrated-handoff-native-1019.json",
+          "sha256": "10fc027b306cf05a009e3bb4e71424ab6cce5002dd72c98330dffa34f9b70e4d",
+          "crlf": 48,
+          "checkout_sha256": "10fc027b306cf05a009e3bb4e71424ab6cce5002dd72c98330dffa34f9b70e4d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/integrated-probe-identity-1019.json",
+          "sha256": "24d8fbf021a50f11675a485aba08a365c5f5502834d5a5392de0672f1a46f78e",
+          "crlf": 34,
+          "checkout_sha256": "24d8fbf021a50f11675a485aba08a365c5f5502834d5a5392de0672f1a46f78e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/integrated-probe-package-imports-1019.json",
+          "sha256": "1586490d5fbe1e3a50edc8402239f293e7e317a94f959613cfb2f4c2a36fcabc",
+          "crlf": 34,
+          "checkout_sha256": "1586490d5fbe1e3a50edc8402239f293e7e317a94f959613cfb2f4c2a36fcabc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/native-llm-profile-inspect-1019.json",
+          "sha256": "20b2de10bd0117b868cc953becec506d88a561fd751820b4446abbd5983dc8f5",
+          "crlf": 28,
+          "checkout_sha256": "20b2de10bd0117b868cc953becec506d88a561fd751820b4446abbd5983dc8f5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/executions/native-llm-profile-load-1019.json",
+          "sha256": "3e30d202c7de5fce10f83bce104189ba5a7011c654e501a21ceee732cb685682",
+          "crlf": 28,
+          "checkout_sha256": "3e30d202c7de5fce10f83bce104189ba5a7011c654e501a21ceee732cb685682"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/candidate-build.json",
+          "sha256": "699b858246752cd719220bed4d2e664a9a47dbfac4d4430d3dbe1ba2952c5b6b",
+          "crlf": 0,
+          "checkout_sha256": "699b858246752cd719220bed4d2e664a9a47dbfac4d4430d3dbe1ba2952c5b6b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/FAILURE-METADATA.json",
+          "sha256": "285b8083108d62420295760255392e3ce5c8a601bf99887e40466c839e03ecec",
+          "crlf": 40,
+          "checkout_sha256": "285b8083108d62420295760255392e3ce5c8a601bf99887e40466c839e03ecec"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/failure-review/evidence.json",
+          "sha256": "118fba256e33d478b79e1643f0de1f36b9ee427807c350904fd1fd8184f7f12d",
+          "crlf": 0,
+          "checkout_sha256": "118fba256e33d478b79e1643f0de1f36b9ee427807c350904fd1fd8184f7f12d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/failure-review/REVIEW.md",
+          "sha256": "9e2b2989418c248a43d497f5b5aee137b448a387bc4ee57d7e6534e90fc26043",
+          "crlf": 0,
+          "checkout_sha256": "9e2b2989418c248a43d497f5b5aee137b448a387bc4ee57d7e6534e90fc26043"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/lm-studio-load.json",
+          "sha256": "9c40ca5b02cb6ad5466172b1bda768dce8abd0fefa25183bd05f83f365806cf2",
+          "crlf": 0,
+          "checkout_sha256": "9c40ca5b02cb6ad5466172b1bda768dce8abd0fefa25183bd05f83f365806cf2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/receipt.json",
+          "sha256": "a885ff1601ded0649852dc7f653796906dec57976053e3edc278b580ad5e0257",
+          "crlf": 2373,
+          "checkout_sha256": "a885ff1601ded0649852dc7f653796906dec57976053e3edc278b580ad5e0257"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/VISUAL-READBACK.json",
+          "sha256": "a139d12680383a18994ea17ed8c060c4fc0c2ca9ee9d27b4c4045a91bab1b796",
+          "crlf": 40,
+          "checkout_sha256": "a139d12680383a18994ea17ed8c060c4fc0c2ca9ee9d27b4c4045a91bab1b796"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/NAVIGATION-OBSERVATION.json",
+          "sha256": "f6ea1b9ec7e4c0af72e9782b2c2b9ca0764f40c85bbb9430644dfe8ef055f69a",
+          "crlf": 161,
+          "checkout_sha256": "f6ea1b9ec7e4c0af72e9782b2c2b9ca0764f40c85bbb9430644dfe8ef055f69a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/OWNED-DELTA.patch",
+          "sha256": "18a0b78af327bf1fb8eae60e0b1e3b330de56546dd6e37a8b6661d12c75a3d87",
+          "crlf": 12068,
+          "checkout_sha256": "18a0b78af327bf1fb8eae60e0b1e3b330de56546dd6e37a8b6661d12c75a3d87"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+          "sha256": "630b5a02b343841c8745da9a0d05d47240913f02ed256a25ccfdfc19b548f9a4",
+          "crlf": 14,
+          "checkout_sha256": "630b5a02b343841c8745da9a0d05d47240913f02ed256a25ccfdfc19b548f9a4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/SOURCE-IDENTITY.json",
+          "sha256": "068e1d2e5a3b964c9b292d8f0802d37b0a3e92ad7e4a01897ae6804230badd1a",
+          "crlf": 188,
+          "checkout_sha256": "068e1d2e5a3b964c9b292d8f0802d37b0a3e92ad7e4a01897ae6804230badd1a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/handoff-cli/be10-cli-consumer.patch",
+          "sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16",
+          "crlf": 0,
+          "checkout_sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/handoff-cli/code-manifest.json",
+          "sha256": "3bef40e1fd4d04a53beb357458edb9cbc0d03d1430732885980a8405c2fe18bf",
+          "crlf": 33,
+          "checkout_sha256": "3bef40e1fd4d04a53beb357458edb9cbc0d03d1430732885980a8405c2fe18bf"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/handoff-cli/CURRENT.md",
+          "sha256": "4cfd9c7fe9f595df46ed3250d609ca5bf4dbc4425a97a56ed1821d678a17a331",
+          "crlf": 15,
+          "checkout_sha256": "4cfd9c7fe9f595df46ed3250d609ca5bf4dbc4425a97a56ed1821d678a17a331"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/handoff-cli/DELIVERY.md",
+          "sha256": "ca10eff580ccb6ea05225deba41a610f418e6c9e88cbd99b57659ef02435984e",
+          "crlf": 13,
+          "checkout_sha256": "ca10eff580ccb6ea05225deba41a610f418e6c9e88cbd99b57659ef02435984e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/handoff-cli/final-readback.json",
+          "sha256": "1ea78a185714c9e5989b9fae41cb7d8ebe550bad92fca8d4fccc467dd595ac07",
+          "crlf": 35,
+          "checkout_sha256": "1ea78a185714c9e5989b9fae41cb7d8ebe550bad92fca8d4fccc467dd595ac07"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/handoff-cli/validation.json",
+          "sha256": "85784536b3070d24fa54fa01a4f37e93e90bb4d9ce78b4e617b61902e56d3e5a",
+          "crlf": 149,
+          "checkout_sha256": "85784536b3070d24fa54fa01a4f37e93e90bb4d9ce78b4e617b61902e56d3e5a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/manifest-consumer/capability-manifest-consumer.patch",
+          "sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f",
+          "crlf": 627,
+          "checkout_sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/manifest-consumer/code-manifest.json",
+          "sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e",
+          "crlf": 69,
+          "checkout_sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/manifest-consumer/CURRENT.md",
+          "sha256": "bbe25abc55bb6796502c5f91f75a769435bb9610d3b7bbf4fa5e28d8e55b96ee",
+          "crlf": 29,
+          "checkout_sha256": "bbe25abc55bb6796502c5f91f75a769435bb9610d3b7bbf4fa5e28d8e55b96ee"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/manifest-consumer/DELIVERY.md",
+          "sha256": "7a1ff617a59fcfde5e117aba7e603ddcdcd02643a56955bb2ac92fa998bee704",
+          "crlf": 13,
+          "checkout_sha256": "7a1ff617a59fcfde5e117aba7e603ddcdcd02643a56955bb2ac92fa998bee704"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/manifest-consumer/FINAL-READBACK.json",
+          "sha256": "5e7ab8767bc9a18d6b9c21890c28d881b1ee7e11b51bcde351aa7ab45d1efa9c",
+          "crlf": 11,
+          "checkout_sha256": "5e7ab8767bc9a18d6b9c21890c28d881b1ee7e11b51bcde351aa7ab45d1efa9c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/unapplied-next/manifest-consumer/validation.json",
+          "sha256": "a71dc1576de33dbdc1d8c3d5e5e4a72c4be272d21bccd8c7cc054a0bf7fdcec6",
+          "crlf": 150,
+          "checkout_sha256": "a71dc1576de33dbdc1d8c3d5e5e4a72c4be272d21bccd8c7cc054a0bf7fdcec6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/UNAPPLIED-NEXT.json",
+          "sha256": "88e7897d8f87fb60c8689aca006494df353035ca0d2e9cf3e548eb19346fe016",
+          "crlf": 80,
+          "checkout_sha256": "88e7897d8f87fb60c8689aca006494df353035ca0d2e9cf3e548eb19346fe016"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/verify_snapshot.py",
+          "sha256": "305f99431113a21e673b30f94a8f9369ee8f43063b1eb304e47585b20ee6748e",
+          "crlf": 69,
+          "checkout_sha256": "305f99431113a21e673b30f94a8f9369ee8f43063b1eb304e47585b20ee6748e"
+        }
+      ],
+      "checkout_sha256": "4f93e06978e16cb919075aa149fe785d2f4c297ddb8b9ce5303cc2bd22cd8766"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/MANIFEST.json",
+      "before_sha256": "00eecd4b11a3d12f0c3e8dfa7def5850e3e06442045fd45170108f30d0748a2f",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/COMMANDS.json",
+          "sha256": "83bf72dd8ca11f9c2f9790353e8e8b32eeac2ec47d419725d70b127c279b9eaa",
+          "crlf": 295,
+          "checkout_sha256": "83bf72dd8ca11f9c2f9790353e8e8b32eeac2ec47d419725d70b127c279b9eaa"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/machine-deadline-edge-red-1019.log.txt",
+          "sha256": "e540aea15a7b06dcf9f546310b6307536b685eb9854d537673556a199bddd782",
+          "crlf": 96,
+          "checkout_sha256": "e540aea15a7b06dcf9f546310b6307536b685eb9854d537673556a199bddd782"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/machine-deadline-sealed-api-1019.log.txt",
+          "sha256": "18662aaea3db5e1fcd3fe97c18121db33d27023a4c62e66a9c98e78940091692",
+          "crlf": 93,
+          "checkout_sha256": "18662aaea3db5e1fcd3fe97c18121db33d27023a4c62e66a9c98e78940091692"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/machine-deadline-sealed-python-1019.log.txt",
+          "sha256": "927d72ca0f8b783c97a19530e4b5a87d2154a8b2a2217c9357f0b6361664e193",
+          "crlf": 4,
+          "checkout_sha256": "927d72ca0f8b783c97a19530e4b5a87d2154a8b2a2217c9357f0b6361664e193"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/machine-deadline-sealed-rust-1019.log.txt",
+          "sha256": "67b154a37e2b618e3ab70423f3d685e634147a88f3f93a83246a2ff5adcc540f",
+          "crlf": 108,
+          "checkout_sha256": "67b154a37e2b618e3ab70423f3d685e634147a88f3f93a83246a2ff5adcc540f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/machine-timeout-core-final-1019.log.txt",
+          "sha256": "e6adf1cdb1eb47f9a82866c2dd9b0f32a77d38006f9237a36e72038455946e76",
+          "crlf": 41,
+          "checkout_sha256": "e6adf1cdb1eb47f9a82866c2dd9b0f32a77d38006f9237a36e72038455946e76"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/machine-timeout-host-final-1019.log.txt",
+          "sha256": "7873ea3a3d7f475a20a655248930658bdc3b17e76e52ff8ff0efa806bd070d9b",
+          "crlf": 167,
+          "checkout_sha256": "7873ea3a3d7f475a20a655248930658bdc3b17e76e52ff8ff0efa806bd070d9b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/machine-timeout-red-1019.log.txt",
+          "sha256": "0885378e8b4204c0a874eb342b876b73aba993b476f07aad841bb7d919f9709f",
+          "crlf": 174,
+          "checkout_sha256": "0885378e8b4204c0a874eb342b876b73aba993b476f07aad841bb7d919f9709f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/material-terminal-red-1019.log.txt",
+          "sha256": "6fcbfb1d81c14f2c369779dac29360f0cded0d23250f4c10c7e8665a7f0e5853",
+          "crlf": 141,
+          "checkout_sha256": "6fcbfb1d81c14f2c369779dac29360f0cded0d23250f4c10c7e8665a7f0e5853"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/promotion-helper.py.txt",
+          "sha256": "946ca19943dcc982c85b52cac99b3aeae1e227be9de73862ec7abb4701e3f4e3",
+          "crlf": 142,
+          "checkout_sha256": "946ca19943dcc982c85b52cac99b3aeae1e227be9de73862ec7abb4701e3f4e3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/README.md",
+          "sha256": "75e098cb58af0494c2f5e6893c98f3caba3c29f5442366351a6f9f136b99306e",
+          "crlf": 24,
+          "checkout_sha256": "75e098cb58af0494c2f5e6893c98f3caba3c29f5442366351a6f9f136b99306e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/READONLY-REVIEW.md",
+          "sha256": "ab66538aa83f8db30f06c6ca87affc81f67818429107bdf674a5e29d591ca75c",
+          "crlf": 9,
+          "checkout_sha256": "ab66538aa83f8db30f06c6ca87affc81f67818429107bdf674a5e29d591ca75c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/RECEIPT.json",
+          "sha256": "523ae5298a1665b618de18e344e39ffca066c889c542cef7fe02d4aa42f23beb",
+          "crlf": 64,
+          "checkout_sha256": "523ae5298a1665b618de18e344e39ffca066c889c542cef7fe02d4aa42f23beb"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/ROUTES-OBSERVED.json",
+          "sha256": "65de86c76d3749b3445986ff6786c88def19d4c2bcc5c9ad2e6a08d30a70e214",
+          "crlf": 30,
+          "checkout_sha256": "65de86c76d3749b3445986ff6786c88def19d4c2bcc5c9ad2e6a08d30a70e214"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/source-aaos01_material_companion_loop.py.txt",
+          "sha256": "a3a186a2e36e631048e67e75f9756f3c29e865d18149989d49918a1a581a351f",
+          "crlf": 0,
+          "checkout_sha256": "a3a186a2e36e631048e67e75f9756f3c29e865d18149989d49918a1a581a351f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/source-executor.rs.txt",
+          "sha256": "940fcf6948cf6c096e9ff146781e24e88cb7fdd67773e260f824084e3b7dfb57",
+          "crlf": 0,
+          "checkout_sha256": "940fcf6948cf6c096e9ff146781e24e88cb7fdd67773e260f824084e3b7dfb57"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/source-machine_answer_resources.rs.txt",
+          "sha256": "22a6e8080d90fc96277c8d4616966ea46652d7e11ff3da72006208743e62e08b",
+          "crlf": 464,
+          "checkout_sha256": "22a6e8080d90fc96277c8d4616966ea46652d7e11ff3da72006208743e62e08b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/source-machine_failure.rs.txt",
+          "sha256": "5aa213f646529a52a78a6b2f148d799bbc2d751bb8ade90292801f77ffb3c76d",
+          "crlf": 0,
+          "checkout_sha256": "5aa213f646529a52a78a6b2f148d799bbc2d751bb8ade90292801f77ffb3c76d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/SOURCE-MAP.json",
+          "sha256": "5c4d4c3cd2e94c387915802d174b7f5db24ae2e833ee0d9ff4ab94189513dab2",
+          "crlf": 34,
+          "checkout_sha256": "5c4d4c3cd2e94c387915802d174b7f5db24ae2e833ee0d9ff4ab94189513dab2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/source-material_question_api.rs.txt",
+          "sha256": "f8e69401363eccd634e9b2ce3a669516630d0f5b42dc00a72b207be4a2374d2f",
+          "crlf": 385,
+          "checkout_sha256": "f8e69401363eccd634e9b2ce3a669516630d0f5b42dc00a72b207be4a2374d2f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/source-test_material_companion_native_probe.py.txt",
+          "sha256": "b7243e807ce7258252f14c2742336706aa8b06172f1f4222be4e8b4cbd23bce4",
+          "crlf": 0,
+          "checkout_sha256": "b7243e807ce7258252f14c2742336706aa8b06172f1f4222be4e8b4cbd23bce4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/source-test_worker_machine_answer.py.txt",
+          "sha256": "be5fc7717b60308c43f62110bffd2c8ad0a078dd0d1f6069e20b3a19ac70ac4c",
+          "crlf": 0,
+          "checkout_sha256": "be5fc7717b60308c43f62110bffd2c8ad0a078dd0d1f6069e20b3a19ac70ac4c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/source-worker_machine_answer.py.txt",
+          "sha256": "5be94f873b7efb412c1ce3994f32ed7862d2095c72fd570e314fb56f350244ba",
+          "crlf": 0,
+          "checkout_sha256": "5be94f873b7efb412c1ce3994f32ed7862d2095c72fd570e314fb56f350244ba"
+        }
+      ],
+      "checkout_sha256": "00eecd4b11a3d12f0c3e8dfa7def5850e3e06442045fd45170108f30d0748a2f"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion/MANIFEST.json",
+      "before_sha256": "f6b2427e371d3ff4eb55102baa48ac6c6c9b59eeca2233390bcb7f8d4b728d5c",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/aaos01_grouped_owner_loop.py",
+          "sha256": "d0ca93a1bca1baffa96113073d1c3ab522dabbe8786f36e4031cff0d9c92f353",
+          "crlf": 0,
+          "checkout_sha256": "d0ca93a1bca1baffa96113073d1c3ab522dabbe8786f36e4031cff0d9c92f353"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/aaos01_material_companion_loop.py",
+          "sha256": "e3b905420039c85990252c0334666c0ef81b2941192050b7313cd0d159c16224",
+          "crlf": 0,
+          "checkout_sha256": "e3b905420039c85990252c0334666c0ef81b2941192050b7313cd0d159c16224"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/aaos01_tauri_webdriver_loop.py",
+          "sha256": "f948a27efa6732cd13703a37cbd4774bad0b55aae2bb347173309765335be130",
+          "crlf": 0,
+          "checkout_sha256": "f948a27efa6732cd13703a37cbd4774bad0b55aae2bb347173309765335be130"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/candidate-build.json",
+          "sha256": "fdd15952515be16b9888ebfce41f077bece7f4dee75a710f34fceb4d4f149609",
+          "crlf": 0,
+          "checkout_sha256": "fdd15952515be16b9888ebfce41f077bece7f4dee75a710f34fceb4d4f149609"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/core-build.json",
+          "sha256": "69198ddf9bf87f7965b8e170b7397df2adcfcec59d6e2ce95a8fed9d7782fa83",
+          "crlf": 36,
+          "checkout_sha256": "69198ddf9bf87f7965b8e170b7397df2adcfcec59d6e2ce95a8fed9d7782fa83"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/host-build.json",
+          "sha256": "0dda12886bc6d40e45b58a5ed7302a088c79ee209524962491086a60172c3cb6",
+          "crlf": 35,
+          "checkout_sha256": "0dda12886bc6d40e45b58a5ed7302a088c79ee209524962491086a60172c3cb6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/native-execution.json",
+          "sha256": "472062956e505db6b13a8b61383386bac299ef3a4ac7f40fd145fd35ba7b8eea",
+          "crlf": 47,
+          "checkout_sha256": "472062956e505db6b13a8b61383386bac299ef3a4ac7f40fd145fd35ba7b8eea"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/native-result.json",
+          "sha256": "6f847995d7852b0688e20ab11ef31e78adcdb3930deab6b798457763eadf7e9e",
+          "crlf": 132,
+          "checkout_sha256": "6f847995d7852b0688e20ab11ef31e78adcdb3930deab6b798457763eadf7e9e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/probe-tests.json",
+          "sha256": "39156b2a8e649c684ac4c3c956a6a790aa3fc6440e262d53a42b9acddaab8b35",
+          "crlf": 34,
+          "checkout_sha256": "39156b2a8e649c684ac4c3c956a6a790aa3fc6440e262d53a42b9acddaab8b35"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/README.md",
+          "sha256": "6904472f587380c431d7e6eccce10d05e11dbd26e291e041cfb2a02a29cf1f8b",
+          "crlf": 0,
+          "checkout_sha256": "6904472f587380c431d7e6eccce10d05e11dbd26e291e041cfb2a02a29cf1f8b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion/test_material_companion_native_probe.py",
+          "sha256": "fba8874eb28b537af78e8b86bb207b2dd79d93c1833234bf5d231902a2ab427e",
+          "crlf": 0,
+          "checkout_sha256": "fba8874eb28b537af78e8b86bb207b2dd79d93c1833234bf5d231902a2ab427e"
+        }
+      ],
+      "checkout_sha256": "f6b2427e371d3ff4eb55102baa48ac6c6c9b59eeca2233390bcb7f8d4b728d5c"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/MANIFEST.json",
+      "before_sha256": "b5dcda5f042b7fc8715be28085c05839edcbc6396e5ca33b584fc8e895aca9e7",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/aaos01_grouped_owner_loop.py",
+          "sha256": "ac6aa884a259322bdc26c0f721206579b71658119b02c2798753b5c4d4b47467",
+          "crlf": 0,
+          "checkout_sha256": "ac6aa884a259322bdc26c0f721206579b71658119b02c2798753b5c4d4b47467"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/aaos01_material_companion_loop.py",
+          "sha256": "4718cfdc37b64a1f32c523b26cb1f773187ecb1da8d68fcd788f1dc80d3bde61",
+          "crlf": 0,
+          "checkout_sha256": "4718cfdc37b64a1f32c523b26cb1f773187ecb1da8d68fcd788f1dc80d3bde61"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/candidate-build.json",
+          "sha256": "a931ef6239d08557e26c0cbb6a9bbfac5baa6bd54ac325197c1b6fa90d39a5d6",
+          "crlf": 0,
+          "checkout_sha256": "a931ef6239d08557e26c0cbb6a9bbfac5baa6bd54ac325197c1b6fa90d39a5d6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/core-build.json",
+          "sha256": "cc30c594f98cc38acafa393bba4edc5a4430f90e37738fbf6c8c600d2f3ac62e",
+          "crlf": 36,
+          "checkout_sha256": "cc30c594f98cc38acafa393bba4edc5a4430f90e37738fbf6c8c600d2f3ac62e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/failed-attempts.json",
+          "sha256": "a5c7e33ed858e3ef80b9274415704ddf5fd215f1121a5ccb20a90cbf8d8cd74f",
+          "crlf": 124,
+          "checkout_sha256": "a5c7e33ed858e3ef80b9274415704ddf5fd215f1121a5ccb20a90cbf8d8cd74f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/host-build.json",
+          "sha256": "db9ce4707014a9e7e6770fbee551f91576ea779020717d0b30f179aeed144158",
+          "crlf": 35,
+          "checkout_sha256": "db9ce4707014a9e7e6770fbee551f91576ea779020717d0b30f179aeed144158"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/material-input-green-1019.json",
+          "sha256": "46a6264f09bd05a817084b4b9eda5073633e34176d1ac340c48e0a9cea611de9",
+          "crlf": 31,
+          "checkout_sha256": "46a6264f09bd05a817084b4b9eda5073633e34176d1ac340c48e0a9cea611de9"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/material-input-red-1019.json",
+          "sha256": "77c79f0d92764882b358c95e9e4e7e7afd69d4e40d88ffc0aa8ec97e51110aaf",
+          "crlf": 31,
+          "checkout_sha256": "77c79f0d92764882b358c95e9e4e7e7afd69d4e40d88ffc0aa8ec97e51110aaf"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/material-layout-green-1019.json",
+          "sha256": "3544cc4c82e6b5be1dd5c7c97343a39813c98ba1e269454ed39b68c9901cdd70",
+          "crlf": 31,
+          "checkout_sha256": "3544cc4c82e6b5be1dd5c7c97343a39813c98ba1e269454ed39b68c9901cdd70"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/material-layout-red-1019.json",
+          "sha256": "8520b32d0cab0876ecc8c26f16a59b0f84b9f1ed121aad1e778180d6e4a3da8d",
+          "crlf": 31,
+          "checkout_sha256": "8520b32d0cab0876ecc8c26f16a59b0f84b9f1ed121aad1e778180d6e4a3da8d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/native-execution.json",
+          "sha256": "1e1f39856731faa34ace888e6b5a480f1837573c707060c6a79c9fb77e84c002",
+          "crlf": 47,
+          "checkout_sha256": "1e1f39856731faa34ace888e6b5a480f1837573c707060c6a79c9fb77e84c002"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/native-result.json",
+          "sha256": "205a93b62373220108049f7ba2d2b305141ee30fdf4e5169b32b2e81167167cb",
+          "crlf": 89,
+          "checkout_sha256": "205a93b62373220108049f7ba2d2b305141ee30fdf4e5169b32b2e81167167cb"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/probe-tests.json",
+          "sha256": "cf0667b7dd67b053ca62953193d50a4e6adc2e8608af305a0eb925b41f3e6aec",
+          "crlf": 31,
+          "checkout_sha256": "cf0667b7dd67b053ca62953193d50a4e6adc2e8608af305a0eb925b41f3e6aec"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/README.md",
+          "sha256": "e4fed9d0029fd15792db86087410a49c04f1a115c9f15ecede57ee7a5785cbca",
+          "crlf": 0,
+          "checkout_sha256": "e4fed9d0029fd15792db86087410a49c04f1a115c9f15ecede57ee7a5785cbca"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/READONLY-REVIEW.md",
+          "sha256": "f20fc15d040b28ac1ccd3bfb124b2f4301aa11353f30fdf7546a025aad612286",
+          "crlf": 0,
+          "checkout_sha256": "f20fc15d040b28ac1ccd3bfb124b2f4301aa11353f30fdf7546a025aad612286"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/terminal-failure-metadata.json",
+          "sha256": "1f013b9b2bcdf572cc052df68b3d289c623634c4acb5fcae4b47cac04e33ee01",
+          "crlf": 18,
+          "checkout_sha256": "1f013b9b2bcdf572cc052df68b3d289c623634c4acb5fcae4b47cac04e33ee01"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/test_grouped_native_owner_probe.py",
+          "sha256": "6cb352d6c3361e334cb9392355a603a6ed85bcde3a479aaee66697e42db77a11",
+          "crlf": 0,
+          "checkout_sha256": "6cb352d6c3361e334cb9392355a603a6ed85bcde3a479aaee66697e42db77a11"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/test_material_companion_native_probe.py",
+          "sha256": "e33f51bf728e0b89ffabdeddbe21eb645ccef020285761336520750b512f016e",
+          "crlf": 0,
+          "checkout_sha256": "e33f51bf728e0b89ffabdeddbe21eb645ccef020285761336520750b512f016e"
+        }
+      ],
+      "checkout_sha256": "b5dcda5f042b7fc8715be28085c05839edcbc6396e5ca33b584fc8e895aca9e7"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/MANIFEST.json",
+      "before_sha256": "1cc9845f808d388818a847a31f17d884f7c9f90badababd6e26c37460e130487",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/aaos01_grouped_owner_loop.py",
+          "sha256": "ac6aa884a259322bdc26c0f721206579b71658119b02c2798753b5c4d4b47467",
+          "crlf": 0,
+          "checkout_sha256": "ac6aa884a259322bdc26c0f721206579b71658119b02c2798753b5c4d4b47467"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/aaos01_material_companion_loop.py",
+          "sha256": "a3a186a2e36e631048e67e75f9756f3c29e865d18149989d49918a1a581a351f",
+          "crlf": 0,
+          "checkout_sha256": "a3a186a2e36e631048e67e75f9756f3c29e865d18149989d49918a1a581a351f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/aaos01_tauri_webdriver_loop.py",
+          "sha256": "f948a27efa6732cd13703a37cbd4774bad0b55aae2bb347173309765335be130",
+          "crlf": 0,
+          "checkout_sha256": "f948a27efa6732cd13703a37cbd4774bad0b55aae2bb347173309765335be130"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/candidate-build.json",
+          "sha256": "73ecfcd831c143c5a78d8cf5aad447cd5025dbe2f8d47b0e9685d1d377c683b4",
+          "crlf": 99,
+          "checkout_sha256": "73ecfcd831c143c5a78d8cf5aad447cd5025dbe2f8d47b0e9685d1d377c683b4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/machine-deadline-core-native-1019.json",
+          "sha256": "a7cbbe4b25d0f915efa928d687d08b9eb5a951e05b2d623fe2355ee908555265",
+          "crlf": 36,
+          "checkout_sha256": "a7cbbe4b25d0f915efa928d687d08b9eb5a951e05b2d623fe2355ee908555265"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/machine-deadline-host-native-1019.json",
+          "sha256": "9390ff179bdd433644352420171d13268395b50d96fed74ec560e907b93622c3",
+          "crlf": 35,
+          "checkout_sha256": "9390ff179bdd433644352420171d13268395b50d96fed74ec560e907b93622c3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/machine-deadline-material-native-1019.json",
+          "sha256": "93faf356d5f5415432650f30924aa6f4ca2c263dd760904e80afd2eebe0f295d",
+          "crlf": 47,
+          "checkout_sha256": "93faf356d5f5415432650f30924aa6f4ca2c263dd760904e80afd2eebe0f295d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/model-profile-observed.json",
+          "sha256": "166ba6e78f053324a89b70fddccc7c7e3278b8bfc8e9104569fb56d1a370f9e9",
+          "crlf": 33,
+          "checkout_sha256": "166ba6e78f053324a89b70fddccc7c7e3278b8bfc8e9104569fb56d1a370f9e9"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/native-result.json",
+          "sha256": "ca66ab74834ee5984b45f5e9657fd80608d6794f15498cc88b95bc407a2ada3e",
+          "crlf": 207,
+          "checkout_sha256": "ca66ab74834ee5984b45f5e9657fd80608d6794f15498cc88b95bc407a2ada3e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md",
+          "sha256": "9f9c32d72459fd2d8f6cbdebd0d5702f9fe2c54f5b346893522b47868cba78c6",
+          "crlf": 9,
+          "checkout_sha256": "9f9c32d72459fd2d8f6cbdebd0d5702f9fe2c54f5b346893522b47868cba78c6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/READONLY-REVIEW.md",
+          "sha256": "94a6f5039e78ddcd2587c9f3e5a2c0f9418b845edaf9cbd112872e1188d03149",
+          "crlf": 7,
+          "checkout_sha256": "94a6f5039e78ddcd2587c9f3e5a2c0f9418b845edaf9cbd112872e1188d03149"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/RECEIPT.json",
+          "sha256": "8cb108a5124adb85580689d28ba6d7561739da335e535a629be303b1fc1454d4",
+          "crlf": 54,
+          "checkout_sha256": "8cb108a5124adb85580689d28ba6d7561739da335e535a629be303b1fc1454d4"
+        }
+      ],
+      "checkout_sha256": "1cc9845f808d388818a847a31f17d884f7c9f90badababd6e26c37460e130487"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/MANIFEST.json",
+      "before_sha256": "e0e0a2007b7a07711b70159c907fe28a506b21a411501817be7f212f609076b6",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/aaos01_material_companion_loop.py",
+          "sha256": "4718cfdc37b64a1f32c523b26cb1f773187ecb1da8d68fcd788f1dc80d3bde61",
+          "crlf": 0,
+          "checkout_sha256": "4718cfdc37b64a1f32c523b26cb1f773187ecb1da8d68fcd788f1dc80d3bde61"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/candidate-build.json",
+          "sha256": "4da497a4755bea754a2ae64bae6941df7dca8147f0e2de149525847d6a8295bf",
+          "crlf": 0,
+          "checkout_sha256": "4da497a4755bea754a2ae64bae6941df7dca8147f0e2de149525847d6a8295bf"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/core-build.json",
+          "sha256": "5739ec77c5f7d6807d8cd7af516f02038c4a0104365aafeed9b05f10db44cd99",
+          "crlf": 36,
+          "checkout_sha256": "5739ec77c5f7d6807d8cd7af516f02038c4a0104365aafeed9b05f10db44cd99"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/host-build.json",
+          "sha256": "5cbf5bf5ac587810449c6f72645a56f0786611eedff7b1d88ca348117b2bedab",
+          "crlf": 35,
+          "checkout_sha256": "5cbf5bf5ac587810449c6f72645a56f0786611eedff7b1d88ca348117b2bedab"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/native-execution.json",
+          "sha256": "d289e5c198a8e20ffd563417d854aa9b0bc3a25b6727d839593f7694e9766b72",
+          "crlf": 47,
+          "checkout_sha256": "d289e5c198a8e20ffd563417d854aa9b0bc3a25b6727d839593f7694e9766b72"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/native-result.json",
+          "sha256": "1f45d048a2335e4dc4af66009fc1f6c78b2a58b792f47d8c7c0ffc66765b71ae",
+          "crlf": 165,
+          "checkout_sha256": "1f45d048a2335e4dc4af66009fc1f6c78b2a58b792f47d8c7c0ffc66765b71ae"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/probe-tests.json",
+          "sha256": "1c828e69510689520ff56f0971cbbf911a2c9ae763a376808ca19cfa7553721f",
+          "crlf": 31,
+          "checkout_sha256": "1c828e69510689520ff56f0971cbbf911a2c9ae763a376808ca19cfa7553721f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/README.md",
+          "sha256": "fa6b45fefd4a4253c410a75ca6a07fd3581b79d517303fc794a1aa0fad6b183b",
+          "crlf": 0,
+          "checkout_sha256": "fa6b45fefd4a4253c410a75ca6a07fd3581b79d517303fc794a1aa0fad6b183b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/test_material_companion_native_probe.py",
+          "sha256": "e33f51bf728e0b89ffabdeddbe21eb645ccef020285761336520750b512f016e",
+          "crlf": 0,
+          "checkout_sha256": "e33f51bf728e0b89ffabdeddbe21eb645ccef020285761336520750b512f016e"
+        }
+      ],
+      "checkout_sha256": "e0e0a2007b7a07711b70159c907fe28a506b21a411501817be7f212f609076b6"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/MANIFEST.json",
+      "before_sha256": "25047879921775738bf4f7dbb0a5ca195e962b0f611b5f50e290a8406ce7b553",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/EXECUTION-READBACK.json",
+          "sha256": "fc0180415ef3baad50f824c66a3c4da59ae07ce99104d5236c095908669e4cca",
+          "crlf": 183,
+          "checkout_sha256": "fc0180415ef3baad50f824c66a3c4da59ae07ce99104d5236c095908669e4cca"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-be10-api-1019.json",
+          "sha256": "623a28075a68ff4ad4c09a7c15b23eb72eb729e5dd50bd1d70aa1fc522613278",
+          "crlf": 44,
+          "checkout_sha256": "623a28075a68ff4ad4c09a7c15b23eb72eb729e5dd50bd1d70aa1fc522613278"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-frontend-full-1019.json",
+          "sha256": "fec40ca4226a7a2cce9850669d274950dbd0650fe1770f536cb3e996b7a3ae38",
+          "crlf": 33,
+          "checkout_sha256": "fec40ca4226a7a2cce9850669d274950dbd0650fe1770f536cb3e996b7a3ae38"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-frontend-full-aligned-1019.json",
+          "sha256": "5394e1fffe655151a2e04b3ce68b30ebf56fae548ea8ee517c6f17ef06599b3e",
+          "crlf": 33,
+          "checkout_sha256": "5394e1fffe655151a2e04b3ce68b30ebf56fae548ea8ee517c6f17ef06599b3e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-learning-build-1019.json",
+          "sha256": "0bf7381adb90266e36abaaf77a8988e300983bff1ae25d92ecce42c0267acab6",
+          "crlf": 29,
+          "checkout_sha256": "0bf7381adb90266e36abaaf77a8988e300983bff1ae25d92ecce42c0267acab6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-learning-ui-1019.json",
+          "sha256": "d5da88efae9779867b8d8ddac3c83569eff11d213dfa6e883230c80ebf3fb4c5",
+          "crlf": 38,
+          "checkout_sha256": "d5da88efae9779867b8d8ddac3c83569eff11d213dfa6e883230c80ebf3fb4c5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-library-identity-1019.json",
+          "sha256": "240fda83b14d5f3ab27cd4042cbb2410ec72b173b6b71b0e6527e93c0661566f",
+          "crlf": 34,
+          "checkout_sha256": "240fda83b14d5f3ab27cd4042cbb2410ec72b173b6b71b0e6527e93c0661566f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-observer-contract-python-1019.json",
+          "sha256": "a370a50ad1898974366cc82d69bb89ab29bf52b7b0b75627156ce0afa799714c",
+          "crlf": 32,
+          "checkout_sha256": "a370a50ad1898974366cc82d69bb89ab29bf52b7b0b75627156ce0afa799714c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-observer-contract-rust-1019.json",
+          "sha256": "55a41e3b43cbd430bbc7b4c493d1130b513bdc3be30d4b78257758bd9df9cc4e",
+          "crlf": 35,
+          "checkout_sha256": "55a41e3b43cbd430bbc7b4c493d1130b513bdc3be30d4b78257758bd9df9cc4e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/executions/integration-observer-rustfmt-check-1019.json",
+          "sha256": "70c2dcc06b90f447f5358ecd5195798550a822012eb5905b4fa1865b8a01d997",
+          "crlf": 38,
+          "checkout_sha256": "70c2dcc06b90f447f5358ecd5195798550a822012eb5905b4fa1865b8a01d997"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/NAVIGATION-OBSERVATION.json",
+          "sha256": "6577f8dbd0d8426e30a2c27bda90fb234cd36dcd4219a0d85848fd2699955cd9",
+          "crlf": 163,
+          "checkout_sha256": "6577f8dbd0d8426e30a2c27bda90fb234cd36dcd4219a0d85848fd2699955cd9"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/OWNED-DELTA.patch",
+          "sha256": "1e7eeebe06aa9e49f749b10f8660c2a616203574610038893bf7b0e12d3edfc6",
+          "crlf": 3181,
+          "checkout_sha256": "1e7eeebe06aa9e49f749b10f8660c2a616203574610038893bf7b0e12d3edfc6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/README.md",
+          "sha256": "191289a0c938409d861b5090d3b1c6f8ab9f2f0f1971386939ccc6bdec49b20b",
+          "crlf": 13,
+          "checkout_sha256": "191289a0c938409d861b5090d3b1c6f8ab9f2f0f1971386939ccc6bdec49b20b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/SOURCE-IDENTITY.json",
+          "sha256": "2f586cb0a54e987843beca1b4d6cd2d703168b6dd7e350ffb1e80c69aeed92b2",
+          "crlf": 133,
+          "checkout_sha256": "2f586cb0a54e987843beca1b4d6cd2d703168b6dd7e350ffb1e80c69aeed92b2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/be10-handoff/baseline.json",
+          "sha256": "36abc36cf964c077e6df4bbd75cb8ad7c1986b67a17870bec3efde04fe3923f5",
+          "crlf": 77,
+          "checkout_sha256": "36abc36cf964c077e6df4bbd75cb8ad7c1986b67a17870bec3efde04fe3923f5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/be10-handoff/be10-handoff.patch",
+          "sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+          "crlf": 3749,
+          "checkout_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/be10-handoff/code-manifest.json",
+          "sha256": "b48f6d955fc89aeef477d3a28967a767a8af80793bfe77aa68dddada9bd6fabc",
+          "crlf": 95,
+          "checkout_sha256": "b48f6d955fc89aeef477d3a28967a767a8af80793bfe77aa68dddada9bd6fabc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/be10-handoff/CURRENT.md",
+          "sha256": "db3390d3e8e09abfaf6dab7c189bfd573e5c2ba88be6cff70b391e0696c6b575",
+          "crlf": 0,
+          "checkout_sha256": "db3390d3e8e09abfaf6dab7c189bfd573e5c2ba88be6cff70b391e0696c6b575"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/be10-handoff/DELIVERY.md",
+          "sha256": "942a9a4b61ec1ea32f37c96c1327aecd5c1f9a399dcbd437a2b824d7f53190d8",
+          "crlf": 0,
+          "checkout_sha256": "942a9a4b61ec1ea32f37c96c1327aecd5c1f9a399dcbd437a2b824d7f53190d8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/be10-handoff/final-readback.json",
+          "sha256": "0b5ddbc7deb8304be8e83e8744ca5ebee3c056a6f97b4d0dfc56d54cc1163d24",
+          "crlf": 65,
+          "checkout_sha256": "0b5ddbc7deb8304be8e83e8744ca5ebee3c056a6f97b4d0dfc56d54cc1163d24"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/be10-handoff/validation-baseline.json",
+          "sha256": "970472a9ef429585c03388f1e631c90c5192473210430381239e92713503ae82",
+          "crlf": 530,
+          "checkout_sha256": "970472a9ef429585c03388f1e631c90c5192473210430381239e92713503ae82"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/be10-handoff/validation.json",
+          "sha256": "9f2ed66c61c5b9e9c716c94314ba90d4fc59ca62e50f940a8c825266302ab3b8",
+          "crlf": 279,
+          "checkout_sha256": "9f2ed66c61c5b9e9c716c94314ba90d4fc59ca62e50f940a8c825266302ab3b8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/capability-manifest.patch",
+          "sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+          "crlf": 0,
+          "checkout_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/code-manifest.json",
+          "sha256": "b6cfe6063d7e0d790620a694cb94e8b715ae8d031b7e746c5a532c6fd9741493",
+          "crlf": 58,
+          "checkout_sha256": "b6cfe6063d7e0d790620a694cb94e8b715ae8d031b7e746c5a532c6fd9741493"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/CURRENT.md",
+          "sha256": "fbcafa660e81fb08440fc0155e6a75e3bf4bcd65085b81dea0eaeb8331dc837c",
+          "crlf": 20,
+          "checkout_sha256": "fbcafa660e81fb08440fc0155e6a75e3bf4bcd65085b81dea0eaeb8331dc837c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/ENVIRONMENT.json",
+          "sha256": "81aef2e607eb8184c3477287a1a646cc69863c8e59ad742b0618e54155cd6b1e",
+          "crlf": 15,
+          "checkout_sha256": "81aef2e607eb8184c3477287a1a646cc69863c8e59ad742b0618e54155cd6b1e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/FAILURES.md",
+          "sha256": "399cc3f5f3f1b254f989c6c8e673ee32c459200acfde9a0d77981038ec7058ad",
+          "crlf": 7,
+          "checkout_sha256": "399cc3f5f3f1b254f989c6c8e673ee32c459200acfde9a0d77981038ec7058ad"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/pytest-acceptance.json",
+          "sha256": "a730d0bb900b8fc270f835b33b2b695018e74320043ad4523be54e0ee260c2b2",
+          "crlf": 28,
+          "checkout_sha256": "a730d0bb900b8fc270f835b33b2b695018e74320043ad4523be54e0ee260c2b2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/pytest-final-v2.json",
+          "sha256": "8e6de700d6c487d3897ea04d9dd95daeaf789e62f52c9141faff517d2e5d429d",
+          "crlf": 28,
+          "checkout_sha256": "8e6de700d6c487d3897ea04d9dd95daeaf789e62f52c9141faff517d2e5d429d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/READBACK.json",
+          "sha256": "bae731e593a91d923b0d3fa2efa5d36f53893a95be7b364f8f58ee03a6abb43e",
+          "crlf": 112,
+          "checkout_sha256": "bae731e593a91d923b0d3fa2efa5d36f53893a95be7b364f8f58ee03a6abb43e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/ruff-acceptance.json",
+          "sha256": "31a8361e3bb8de55db090ff9a965f91cb7df57d965970020f3a1186df4c75816",
+          "crlf": 20,
+          "checkout_sha256": "31a8361e3bb8de55db090ff9a965f91cb7df57d965970020f3a1186df4c75816"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/SOURCE-REFERENCES.json",
+          "sha256": "03c5d04d90353fe8fcbbc9b65a42ef52f980573a907717573272227ae91f3ee4",
+          "crlf": 32,
+          "checkout_sha256": "03c5d04d90353fe8fcbbc9b65a42ef52f980573a907717573272227ae91f3ee4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/typescript-acceptance.json",
+          "sha256": "ee981c6070fd32921793415d35f53b5027a6f3b13a3b8a4b11698f028d9231c3",
+          "crlf": 16,
+          "checkout_sha256": "ee981c6070fd32921793415d35f53b5027a6f3b13a3b8a4b11698f028d9231c3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/typescript.json",
+          "sha256": "ba9615b6b3d0f919857eb0680a78054e9d78b7a06a54d1392e0f5d22420dc9f0",
+          "crlf": 16,
+          "checkout_sha256": "ba9615b6b3d0f919857eb0680a78054e9d78b7a06a54d1392e0f5d22420dc9f0"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/validation-final.json",
+          "sha256": "1a6b473229c92f613124d9f887d2b025ab09ed1d550f8a84d25ea62cab5a17fc",
+          "crlf": 27,
+          "checkout_sha256": "1a6b473229c92f613124d9f887d2b025ab09ed1d550f8a84d25ea62cab5a17fc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/capability-manifest/validation-first.json",
+          "sha256": "6294a213a487fa4500617a493d15c92ca5f2145a9e1b47913e86489a217eab10",
+          "crlf": 27,
+          "checkout_sha256": "6294a213a487fa4500617a493d15c92ca5f2145a9e1b47913e86489a217eab10"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/probe/hashes.json",
+          "sha256": "25fc06e832f6dd6d44a9cbef9a66c16f45bb09dd3f8b75cb273864a21e1ad73f",
+          "crlf": 0,
+          "checkout_sha256": "25fc06e832f6dd6d44a9cbef9a66c16f45bb09dd3f8b75cb273864a21e1ad73f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/probe/proposed.patch",
+          "sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+          "crlf": 15,
+          "checkout_sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/probe/README.md",
+          "sha256": "05927e359ab40b3fa144f8f70ae936eb611cf91d0cc73d8831869cfe5d45f9e0",
+          "crlf": 0,
+          "checkout_sha256": "05927e359ab40b3fa144f8f70ae936eb611cf91d0cc73d8831869cfe5d45f9e0"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/probe/source-before.json",
+          "sha256": "edbb308e0f92d4da85499468cbaf8aaf47f3fe2790d61278c2a4a71ad9428687",
+          "crlf": 31,
+          "checkout_sha256": "edbb308e0f92d4da85499468cbaf8aaf47f3fe2790d61278c2a4a71ad9428687"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/unapplied-proposal-navigation/probe/verification.json",
+          "sha256": "70be3182dcbb82030fe35974ca8c99006329ad57c70f65930f469a26b16b1df3",
+          "crlf": 0,
+          "checkout_sha256": "70be3182dcbb82030fe35974ca8c99006329ad57c70f65930f469a26b16b1df3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/UNAPPLIED-PROPOSALS.json",
+          "sha256": "61e0b93ec071bc21a853b5f1d0e56acc25c984d78e4cdfc0ccfd9d93f0219d30",
+          "crlf": 163,
+          "checkout_sha256": "61e0b93ec071bc21a853b5f1d0e56acc25c984d78e4cdfc0ccfd9d93f0219d30"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/verify_snapshot.py",
+          "sha256": "861bf2697669569410fd73aed1ea3937f1b9474b88ad6b89ab83003ee18a15d5",
+          "crlf": 63,
+          "checkout_sha256": "861bf2697669569410fd73aed1ea3937f1b9474b88ad6b89ab83003ee18a15d5"
+        }
+      ],
+      "checkout_sha256": "25047879921775738bf4f7dbb0a5ca195e962b0f611b5f50e290a8406ce7b553"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/MANIFEST.json",
+      "before_sha256": "93a879d1cd7e2a65ef8bce3b3f8b2dfccd076c53a91b16e38601fd513701198e",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/browser/axe-results.json",
+          "sha256": "5a75586bdcd7e329e586400babc64e13db64dfe27633dd2855b1f594c26fc18e",
+          "crlf": 0,
+          "checkout_sha256": "5a75586bdcd7e329e586400babc64e13db64dfe27633dd2855b1f594c26fc18e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/browser/browser-shutdown.json",
+          "sha256": "3cb99a86de5440e349cc46f8796651110399765571e57620155662b324344efc",
+          "crlf": 0,
+          "checkout_sha256": "3cb99a86de5440e349cc46f8796651110399765571e57620155662b324344efc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/browser/desktop-bounds.json",
+          "sha256": "138da9c2567186de2ecd774c59cccfc7e57631a94d2ebba3d6c8c8f5f723c7b4",
+          "crlf": 0,
+          "checkout_sha256": "138da9c2567186de2ecd774c59cccfc7e57631a94d2ebba3d6c8c8f5f723c7b4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/browser/environment.json",
+          "sha256": "b7a6440d9e7154bd49b4ea46648bd54f55d1821eb2fe31d8b2bc50a6380017b3",
+          "crlf": 0,
+          "checkout_sha256": "b7a6440d9e7154bd49b4ea46648bd54f55d1821eb2fe31d8b2bc50a6380017b3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/browser/shutdown.json",
+          "sha256": "6775fc5a02dd76df1fc6a96d21f3c64ebdbab006f2ea6d68c1eda13a8fc5429c",
+          "crlf": 0,
+          "checkout_sha256": "6775fc5a02dd76df1fc6a96d21f3c64ebdbab006f2ea6d68c1eda13a8fc5429c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/browser/summary.json",
+          "sha256": "b9aed064e6f66fcefb5749fb50d32d7c11b84cbc61bc5e94f1170b6340d1a7b6",
+          "crlf": 0,
+          "checkout_sha256": "b9aed064e6f66fcefb5749fb50d32d7c11b84cbc61bc5e94f1170b6340d1a7b6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/browser-screenshots.json",
+          "sha256": "aa7ce546bcf4ed21f8c8f5d6bb6891da990e183edc10bbf64d3398b943076ac4",
+          "crlf": 17,
+          "checkout_sha256": "aa7ce546bcf4ed21f8c8f5d6bb6891da990e183edc10bbf64d3398b943076ac4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/candidate-build-before-navigation.json",
+          "sha256": "b444042b5f0e552e0541b0a044009a1993638ff22a59f7017acda3cd03a5d7d3",
+          "crlf": 0,
+          "checkout_sha256": "b444042b5f0e552e0541b0a044009a1993638ff22a59f7017acda3cd03a5d7d3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/candidate-build.json",
+          "sha256": "7f4d1ec4869f68aab12a1bb1e95da4c0f3476595c7b34967a9a425495a1b0638",
+          "crlf": 0,
+          "checkout_sha256": "7f4d1ec4869f68aab12a1bb1e95da4c0f3476595c7b34967a9a425495a1b0638"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/decision-coverage.json",
+          "sha256": "bd73c5545853a212d25326ca2a2d35884764efc154f74b351315ad39cba8a7a2",
+          "crlf": 47,
+          "checkout_sha256": "bd73c5545853a212d25326ca2a2d35884764efc154f74b351315ad39cba8a7a2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/failed-native-probe-source/aaos01_grouped_owner_loop.py",
+          "sha256": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c",
+          "crlf": 0,
+          "checkout_sha256": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/failed-native-probe-source/aaos01_material_companion_loop.py",
+          "sha256": "bd622257266324d703041604c7621e55f5c0eab97b8d560fe2219863cb5010d3",
+          "crlf": 361,
+          "checkout_sha256": "bd622257266324d703041604c7621e55f5c0eab97b8d560fe2219863cb5010d3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/failed-native-probe-source/aaos01_tauri_webdriver_loop.py",
+          "sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa",
+          "crlf": 0,
+          "checkout_sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/failed-native-probe-source/second-attempt-material-companion.py",
+          "sha256": "82c7b2b6ae49ae3aa30594919f833fa12358bcbf5ca16c1909b1b15cf8482604",
+          "crlf": 365,
+          "checkout_sha256": "82c7b2b6ae49ae3aa30594919f833fa12358bcbf5ca16c1909b1b15cf8482604"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/handoff-before-update.md",
+          "sha256": "f9781c8c04e33707772362a1e42e4ce0d02596653b393be294542ca46ef2398c",
+          "crlf": 0,
+          "checkout_sha256": "f9781c8c04e33707772362a1e42e4ce0d02596653b393be294542ca46ef2398c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/harness/archive-cancel.py",
+          "sha256": "e29ece6537e32c1a729b0857c1553efb5e16dfeea251f684a86eb8b60696eabc",
+          "crlf": 39,
+          "checkout_sha256": "e29ece6537e32c1a729b0857c1553efb5e16dfeea251f684a86eb8b60696eabc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/harness/audit.spec.cjs",
+          "sha256": "d2f7621a75d7add64b0de39a8e1db97e0207acd324f25adb5703965d145ecf30",
+          "crlf": 0,
+          "checkout_sha256": "d2f7621a75d7add64b0de39a8e1db97e0207acd324f25adb5703965d145ecf30"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/harness/prepare.py",
+          "sha256": "cc1eeaf3e4885a442f9ce9abdc5dc73f7944529f4c66b25626b1b2b6c646b842",
+          "crlf": 0,
+          "checkout_sha256": "cc1eeaf3e4885a442f9ce9abdc5dc73f7944529f4c66b25626b1b2b6c646b842"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/harness/run.py",
+          "sha256": "3f5d168d521e1b03aa88e430679dcfcbd9e1cd67700681bc3f58bc85d5539f44",
+          "crlf": 0,
+          "checkout_sha256": "3f5d168d521e1b03aa88e430679dcfcbd9e1cd67700681bc3f58bc85d5539f44"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/model-load-readback.json",
+          "sha256": "6d8816f11b55ae6cdf4980dca409585148d3db0555410b97f56a61ed417bb144",
+          "crlf": 0,
+          "checkout_sha256": "6d8816f11b55ae6cdf4980dca409585148d3db0555410b97f56a61ed417bb144"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/native-result-first.json",
+          "sha256": "5ca80cb6cba99131e109dab5ca036d2736fe5a8cd98a2a0c8c90ebcddc731fea",
+          "crlf": 1344,
+          "checkout_sha256": "5ca80cb6cba99131e109dab5ca036d2736fe5a8cd98a2a0c8c90ebcddc731fea"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/native-result-retry.json",
+          "sha256": "b7664c24fd3e4619222f1cc51b71820c60fc6e413f86f3ef9aa0f2505cc9b7b4",
+          "crlf": 1344,
+          "checkout_sha256": "b7664c24fd3e4619222f1cc51b71820c60fc6e413f86f3ef9aa0f2505cc9b7b4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/navigation-snapshot.json",
+          "sha256": "deabcaf907f90ccf95fb78e0da936cf6df2abbf7309f0b6595941a49763c5db1",
+          "crlf": 33,
+          "checkout_sha256": "deabcaf907f90ccf95fb78e0da936cf6df2abbf7309f0b6595941a49763c5db1"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/README.md",
+          "sha256": "f66a5b693d6bcfcda458088fdebd195e84e9c895381c87e9ad7e0c5d743f0f26",
+          "crlf": 9,
+          "checkout_sha256": "f66a5b693d6bcfcda458088fdebd195e84e9c895381c87e9ad7e0c5d743f0f26"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/READONLY-REVIEW.md",
+          "sha256": "8693bb2bbe3f9b3483f46086d93c5cad189a893487d9af3a0cd22a9bf2682f05",
+          "crlf": 27,
+          "checkout_sha256": "8693bb2bbe3f9b3483f46086d93c5cad189a893487d9af3a0cd22a9bf2682f05"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/RECEIPT.json",
+          "sha256": "41a3a3e255381579f1b8601ba41a79ae8c61c3ff91449373dcb5c1490f0949f5",
+          "crlf": 51,
+          "checkout_sha256": "41a3a3e255381579f1b8601ba41a79ae8c61c3ff91449373dcb5c1490f0949f5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-cancel-core-1019.json",
+          "sha256": "72ab9f484b81fe43e15fc7876fb959b8e4445eee86793263ef928486bc410882",
+          "crlf": 39,
+          "checkout_sha256": "72ab9f484b81fe43e15fc7876fb959b8e4445eee86793263ef928486bc410882"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-cancel-core-1019.log",
+          "sha256": "6fbd7340272c61a4abe24eb698cf41686b17581cb1dfa8e5388c80697e61d865",
+          "crlf": 62,
+          "checkout_sha256": "6fbd7340272c61a4abe24eb698cf41686b17581cb1dfa8e5388c80697e61d865"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-cancel-final-ui-1019.json",
+          "sha256": "ed4861bce634e306d4caffcf168dc2e8742da60a81fa549fbf1784133f447e2c",
+          "crlf": 32,
+          "checkout_sha256": "ed4861bce634e306d4caffcf168dc2e8742da60a81fa549fbf1784133f447e2c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-cancel-final-ui-1019.log",
+          "sha256": "b60c9db9eacf4863c276e6ae9afb0edbed51cdc409f355b28dabad01e598ad2c",
+          "crlf": 12,
+          "checkout_sha256": "b60c9db9eacf4863c276e6ae9afb0edbed51cdc409f355b28dabad01e598ad2c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-cancel-probes-1019.json",
+          "sha256": "7ac3893351d7c76732b685ef1361b1b3eaa77180aed23a4a9312ac970dd01fbc",
+          "crlf": 34,
+          "checkout_sha256": "7ac3893351d7c76732b685ef1361b1b3eaa77180aed23a4a9312ac970dd01fbc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-cancel-probes-1019.log",
+          "sha256": "6ea5ef946a675a587e97bd12b8f0845be36b5a62861148e51d67e3288374e16a",
+          "crlf": 81,
+          "checkout_sha256": "6ea5ef946a675a587e97bd12b8f0845be36b5a62861148e51d67e3288374e16a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-identity-green-1019.json",
+          "sha256": "dc224168654f8c6c77d5d52f60a8e40a3300fef0dd0e34f8a5bcd7f6fda5b068",
+          "crlf": 32,
+          "checkout_sha256": "dc224168654f8c6c77d5d52f60a8e40a3300fef0dd0e34f8a5bcd7f6fda5b068"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-identity-green-1019.log",
+          "sha256": "89a149d8dd7fa135dd3b02d42390e9df8584d1680e06ca3ee35791a31a08ea82",
+          "crlf": 12,
+          "checkout_sha256": "89a149d8dd7fa135dd3b02d42390e9df8584d1680e06ca3ee35791a31a08ea82"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-identity-red-1019.json",
+          "sha256": "c23400495c0ea98dd3a13cdcf6c57263e5631d9ad25ac8ee9259d2c909ce07e6",
+          "crlf": 32,
+          "checkout_sha256": "c23400495c0ea98dd3a13cdcf6c57263e5631d9ad25ac8ee9259d2c909ce07e6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/conversation-identity-red-1019.log",
+          "sha256": "774ff7f9ed260e9f3f9f553f03c0f8bf44a35f16af7d629b6cf86904293b5789",
+          "crlf": 74,
+          "checkout_sha256": "774ff7f9ed260e9f3f9f553f03c0f8bf44a35f16af7d629b6cf86904293b5789"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/material-cancel-ack-red-1019.json",
+          "sha256": "d8fa796ded48d757c355e58f86c44ae1041fe403f376a56abedd87d92e2a5673",
+          "crlf": 32,
+          "checkout_sha256": "d8fa796ded48d757c355e58f86c44ae1041fe403f376a56abedd87d92e2a5673"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/material-cancel-ack-red-1019.log",
+          "sha256": "b3e17d3e40c409ec37fcb82676eeea49d7d1cced4c0be6a07dafa3ab1aad6eab",
+          "crlf": 1487,
+          "checkout_sha256": "b3e17d3e40c409ec37fcb82676eeea49d7d1cced4c0be6a07dafa3ab1aad6eab"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-core-frozen-build-1019.json",
+          "sha256": "e84f6352648487a1f7eefb5038cfd0d0a4239ce7a793028b3f0c29c2baeb2d67",
+          "crlf": 36,
+          "checkout_sha256": "e84f6352648487a1f7eefb5038cfd0d0a4239ce7a793028b3f0c29c2baeb2d67"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-core-frozen-build-1019.log",
+          "sha256": "51a0a45ee6ed0f055939ce180d472253e00b31d396944116420a59d01de4d025",
+          "crlf": 39,
+          "checkout_sha256": "51a0a45ee6ed0f055939ce180d472253e00b31d396944116420a59d01de4d025"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-document-guard-probes-1019.json",
+          "sha256": "0f2b001f52b9f1921f7dcf769799116ed38baa68ad15301174078c45b142ebe5",
+          "crlf": 31,
+          "checkout_sha256": "0f2b001f52b9f1921f7dcf769799116ed38baa68ad15301174078c45b142ebe5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-document-guard-probes-1019.log",
+          "sha256": "f7bf1dea347102a3ec8f3493df7243dad1fdd2b9a31541726a73029a1299c084",
+          "crlf": 3,
+          "checkout_sha256": "f7bf1dea347102a3ec8f3493df7243dad1fdd2b9a31541726a73029a1299c084"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-frontend-full-1019.json",
+          "sha256": "b2bb5e0faed5c420fb4b2cbba757e28a4d49179e3b975654ee1549b4c5472c82",
+          "crlf": 29,
+          "checkout_sha256": "b2bb5e0faed5c420fb4b2cbba757e28a4d49179e3b975654ee1549b4c5472c82"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-frontend-full-1019.log",
+          "sha256": "f3fbdd68b212387d6ffff7cbe4031503cfba6560b92065081e94bc29d1b9b35b",
+          "crlf": 396,
+          "checkout_sha256": "f3fbdd68b212387d6ffff7cbe4031503cfba6560b92065081e94bc29d1b9b35b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-host-frozen-build-1019.json",
+          "sha256": "f8235b7590e7be4ae45b261b8de878c2352da0da16c14d1ca3dfc954ab354aff",
+          "crlf": 35,
+          "checkout_sha256": "f8235b7590e7be4ae45b261b8de878c2352da0da16c14d1ca3dfc954ab354aff"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-host-frozen-build-1019.log",
+          "sha256": "59149007e25099398032120caedc57fd6ded74ef06e734febae63ea92a027bd0",
+          "crlf": 167,
+          "checkout_sha256": "59149007e25099398032120caedc57fd6ded74ef06e734febae63ea92a027bd0"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-model-load-1019.json",
+          "sha256": "71e718fb4febe546f0a58bc20230e16f74b1ea97a60ad637fbdb933701d1d2a4",
+          "crlf": 28,
+          "checkout_sha256": "71e718fb4febe546f0a58bc20230e16f74b1ea97a60ad637fbdb933701d1d2a4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-model-load-1019.log",
+          "sha256": "ff9c925d0a7a9b6b5f7320752b6d1c672ac597d3135be39d4e120ce139e1b42d",
+          "crlf": 1,
+          "checkout_sha256": "ff9c925d0a7a9b6b5f7320752b6d1c672ac597d3135be39d4e120ce139e1b42d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-native-1019.json",
+          "sha256": "0e91adefadd4931366e041033126b98cb1ffccf95b5b73d4945a1183598b56b9",
+          "crlf": 48,
+          "checkout_sha256": "0e91adefadd4931366e041033126b98cb1ffccf95b5b73d4945a1183598b56b9"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-native-1019.log",
+          "sha256": "98ec4b8d2b4bab24304b663296a638efa9b762452a1e66eb081824a77cd69438",
+          "crlf": 43,
+          "checkout_sha256": "98ec4b8d2b4bab24304b663296a638efa9b762452a1e66eb081824a77cd69438"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-native-navigation-1019.json",
+          "sha256": "20294bd96635684a29abe270498a8f2d37a30d78ce6125f32afb0392cf494546",
+          "crlf": 48,
+          "checkout_sha256": "20294bd96635684a29abe270498a8f2d37a30d78ce6125f32afb0392cf494546"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-native-navigation-1019.log",
+          "sha256": "b9a9035e4f1a6271b29cfd220a2cbcb3de632220e59172aaf4b5013f773052d0",
+          "crlf": 43,
+          "checkout_sha256": "b9a9035e4f1a6271b29cfd220a2cbcb3de632220e59172aaf4b5013f773052d0"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-navigation-core-1019.json",
+          "sha256": "1482856fa01f429ffdcae22e34c3f60245a66bb33a4fbb490a21c8dde47169da",
+          "crlf": 36,
+          "checkout_sha256": "1482856fa01f429ffdcae22e34c3f60245a66bb33a4fbb490a21c8dde47169da"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-navigation-core-1019.log",
+          "sha256": "51a0a45ee6ed0f055939ce180d472253e00b31d396944116420a59d01de4d025",
+          "crlf": 39,
+          "checkout_sha256": "51a0a45ee6ed0f055939ce180d472253e00b31d396944116420a59d01de4d025"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-navigation-host-1019.json",
+          "sha256": "7434a15893cb769bc1ec55a4e6eb773b006ff26deee60d720016a85fce9d714d",
+          "crlf": 35,
+          "checkout_sha256": "7434a15893cb769bc1ec55a4e6eb773b006ff26deee60d720016a85fce9d714d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-navigation-host-1019.log",
+          "sha256": "9e0cc667a61e33490d7a2c7ee297f06d63be1308954f0da3eaa2afe91346d5b6",
+          "crlf": 167,
+          "checkout_sha256": "9e0cc667a61e33490d7a2c7ee297f06d63be1308954f0da3eaa2afe91346d5b6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-navigation-probes-1019.json",
+          "sha256": "4bff9efa0e7d4f32a73d9e5d0e407c3098ba6641a65b83b6af839b51641b9e88",
+          "crlf": 31,
+          "checkout_sha256": "4bff9efa0e7d4f32a73d9e5d0e407c3098ba6641a65b83b6af839b51641b9e88"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-navigation-probes-1019.log",
+          "sha256": "d3fb4f69d5c45b2b36aaa0f8dfcb6fcdfffc5e341752b2937f43d469a75d3092",
+          "crlf": 3,
+          "checkout_sha256": "d3fb4f69d5c45b2b36aaa0f8dfcb6fcdfffc5e341752b2937f43d469a75d3092"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-probes-frozen-1019.json",
+          "sha256": "1e818c431c0418745a26bf7358f951fdb077ffe89dd1ae6936bd9fb2e1ef9148",
+          "crlf": 31,
+          "checkout_sha256": "1e818c431c0418745a26bf7358f951fdb077ffe89dd1ae6936bd9fb2e1ef9148"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-cancel-probes-frozen-1019.log",
+          "sha256": "af70ef135bc7310ecb50646385f803f2c6815df3aceca6c774d6fd3174dfe4ef",
+          "crlf": 3,
+          "checkout_sha256": "af70ef135bc7310ecb50646385f803f2c6815df3aceca6c774d6fd3174dfe4ef"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-wrap-browser-green-1019.json",
+          "sha256": "57558fe340d09f79fdf40926f386bd97539bd12094e43ca246ddf838b201c32a",
+          "crlf": 30,
+          "checkout_sha256": "57558fe340d09f79fdf40926f386bd97539bd12094e43ca246ddf838b201c32a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-wrap-browser-green-1019.log",
+          "sha256": "dde705d9ecaed6f597de9c61a36c488146f8664a70a93c2a7218b6622166459f",
+          "crlf": 10,
+          "checkout_sha256": "dde705d9ecaed6f597de9c61a36c488146f8664a70a93c2a7218b6622166459f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-wrap-browser-red-1019.json",
+          "sha256": "19578ceced49d9eda93fe01e3ed5fdc290a37ad835ec436c727efb0920dd55f2",
+          "crlf": 30,
+          "checkout_sha256": "19578ceced49d9eda93fe01e3ed5fdc290a37ad835ec436c727efb0920dd55f2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-wrap-browser-red-1019.log",
+          "sha256": "ec6404cbf40fb9e1962eafed870592d101e4d188f92721adf74b61c6dca103b3",
+          "crlf": 44,
+          "checkout_sha256": "ec6404cbf40fb9e1962eafed870592d101e4d188f92721adf74b61c6dca103b3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-wrap-build-1019.json",
+          "sha256": "5523711c81603f3f955098a8718b37d7048d3ce965b4f9d2053c83db97235d7f",
+          "crlf": 27,
+          "checkout_sha256": "5523711c81603f3f955098a8718b37d7048d3ce965b4f9d2053c83db97235d7f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-wrap-build-1019.log",
+          "sha256": "236abc1a04edcff8b5d4a7a62e5323fb4217ed739968105125db219ae47d13d4",
+          "crlf": 76,
+          "checkout_sha256": "236abc1a04edcff8b5d4a7a62e5323fb4217ed739968105125db219ae47d13d4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-wrap-contracts-1019.json",
+          "sha256": "46e7e96665f99cdef3c9888022de882f3ee762b80207bc0c0766a50e2b5bfd67",
+          "crlf": 32,
+          "checkout_sha256": "46e7e96665f99cdef3c9888022de882f3ee762b80207bc0c0766a50e2b5bfd67"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/runs/review-wrap-contracts-1019.log",
+          "sha256": "3592e9f6d138fb0e8dfe6d9148fbc990872265185c6612eb75a5ae610240029e",
+          "crlf": 16,
+          "checkout_sha256": "3592e9f6d138fb0e8dfe6d9148fbc990872265185c6612eb75a5ae610240029e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/crates/archeaxis-api/tests/conversation_api.rs",
+          "sha256": "f4f036ecbe4149aaa31cdcb253fc7f4a4eaf6c8a5a1c63f315140632392f1988",
+          "crlf": 366,
+          "checkout_sha256": "f4f036ecbe4149aaa31cdcb253fc7f4a4eaf6c8a5a1c63f315140632392f1988"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/frontend/src/__tests__/ConversationPanel.test.tsx",
+          "sha256": "b59efc8b8ef800dba3afda5072142675eb472c408372d2f5bc094d655989efa5",
+          "crlf": 112,
+          "checkout_sha256": "b59efc8b8ef800dba3afda5072142675eb472c408372d2f5bc094d655989efa5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/frontend/src/__tests__/MaterialQuestionPanel.test.tsx",
+          "sha256": "c63954152981651202f5931a2231f816498fef7178fc90df5647667f90279e12",
+          "crlf": 140,
+          "checkout_sha256": "c63954152981651202f5931a2231f816498fef7178fc90df5647667f90279e12"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/frontend/src/api/conversation.ts",
+          "sha256": "bdf9d189c716278ff5046ccf2d78c0f0a8f0c5e4e3a15431188c9371d616c779",
+          "crlf": 0,
+          "checkout_sha256": "bdf9d189c716278ff5046ccf2d78c0f0a8f0c5e4e3a15431188c9371d616c779"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/frontend/src/components/MaterialQuestionPanel.tsx",
+          "sha256": "ba6ac6b37f24d5ecd5fe3d3706be3534336022e4a3621fb931131af99a21fb52",
+          "crlf": 48,
+          "checkout_sha256": "ba6ac6b37f24d5ecd5fe3d3706be3534336022e4a3621fb931131af99a21fb52"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/frontend/src/spaces/ui-first.css",
+          "sha256": "1a5da3a232d9a0a4a484dbc20c22c217143cea0702ea5f04200b96eb9e3070d6",
+          "crlf": 1,
+          "checkout_sha256": "1a5da3a232d9a0a4a484dbc20c22c217143cea0702ea5f04200b96eb9e3070d6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/scripts/probes/aaos01_grouped_owner_loop.py",
+          "sha256": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c",
+          "crlf": 0,
+          "checkout_sha256": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/scripts/probes/aaos01_material_companion_loop.py",
+          "sha256": "23d369143842c24b941988bbf1db1bdcad940829c31de216bbf90d3ce3b250d1",
+          "crlf": 372,
+          "checkout_sha256": "23d369143842c24b941988bbf1db1bdcad940829c31de216bbf90d3ce3b250d1"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/scripts/probes/aaos01_tauri_webdriver_loop.py",
+          "sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa",
+          "crlf": 0,
+          "checkout_sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source/tests/test_material_companion_native_probe.py",
+          "sha256": "e2143fcc17055eb7303498b1a04ab4d1b9b5b0c8fbffd1650cd22eeb5319a019",
+          "crlf": 179,
+          "checkout_sha256": "e2143fcc17055eb7303498b1a04ab4d1b9b5b0c8fbffd1650cd22eeb5319a019"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/source-identities.json",
+          "sha256": "5da669d6224e6c14afdca2b4310907587ffd7dce702e86d8d757ff6c2390bbd7",
+          "crlf": 12,
+          "checkout_sha256": "5da669d6224e6c14afdca2b4310907587ffd7dce702e86d8d757ff6c2390bbd7"
+        }
+      ],
+      "checkout_sha256": "93a879d1cd7e2a65ef8bce3b3f8b2dfccd076c53a91b16e38601fd513701198e"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-review-title/MANIFEST.json",
+      "before_sha256": "52b380eb0ba47979a1af1c72327135640726b3d66f770766117b59d276de9671",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/axe-results.json",
+          "sha256": "5a75586bdcd7e329e586400babc64e13db64dfe27633dd2855b1f594c26fc18e",
+          "crlf": 0,
+          "checkout_sha256": "5a75586bdcd7e329e586400babc64e13db64dfe27633dd2855b1f594c26fc18e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/browser-shutdown.json",
+          "sha256": "e62e71333a5f5d97ca7a96fd78e26718c00b4dbf8295f88f89dc14b2d739a5f3",
+          "crlf": 0,
+          "checkout_sha256": "e62e71333a5f5d97ca7a96fd78e26718c00b4dbf8295f88f89dc14b2d739a5f3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/checks.json",
+          "sha256": "f7d0f42efec13a237e655c1dd566cb5796c807d68a02ee5e9a0be71bab43c0b1",
+          "crlf": 0,
+          "checkout_sha256": "f7d0f42efec13a237e655c1dd566cb5796c807d68a02ee5e9a0be71bab43c0b1"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/environment.json",
+          "sha256": "b7a6440d9e7154bd49b4ea46648bd54f55d1821eb2fe31d8b2bc50a6380017b3",
+          "crlf": 0,
+          "checkout_sha256": "b7a6440d9e7154bd49b4ea46648bd54f55d1821eb2fe31d8b2bc50a6380017b3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/owned-processes.json",
+          "sha256": "1804c56a2940a1802a0ca51a5bb3618f80c5871c908e441ce29ec2619351fff2",
+          "crlf": 0,
+          "checkout_sha256": "1804c56a2940a1802a0ca51a5bb3618f80c5871c908e441ce29ec2619351fff2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/preflight.json",
+          "sha256": "8b0431e9a36d5963b993e78e0fba6fea5f11445cab0039786eca282ce465487f",
+          "crlf": 80,
+          "checkout_sha256": "8b0431e9a36d5963b993e78e0fba6fea5f11445cab0039786eca282ce465487f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/screenshots.json",
+          "sha256": "040ec76c30846b4f9e0c623d33af1a1a3168f2fd6fb52bf518f05a2fcd8e805d",
+          "crlf": 0,
+          "checkout_sha256": "040ec76c30846b4f9e0c623d33af1a1a3168f2fd6fb52bf518f05a2fcd8e805d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/shutdown.json",
+          "sha256": "0e3e836bda2d2c508093106d5f0c9812adca75af03bdff2262e104d66c09aedf",
+          "crlf": 0,
+          "checkout_sha256": "0e3e836bda2d2c508093106d5f0c9812adca75af03bdff2262e104d66c09aedf"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/browser/summary.json",
+          "sha256": "b674bd63f2ecb0d7935f0d3d588aa9bc87c821cd6e8a0e00980cb9031ac2402d",
+          "crlf": 0,
+          "checkout_sha256": "b674bd63f2ecb0d7935f0d3d588aa9bc87c821cd6e8a0e00980cb9031ac2402d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/decision-coverage.json",
+          "sha256": "bd73c5545853a212d25326ca2a2d35884764efc154f74b351315ad39cba8a7a2",
+          "crlf": 47,
+          "checkout_sha256": "bd73c5545853a212d25326ca2a2d35884764efc154f74b351315ad39cba8a7a2"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/frontend-build.json",
+          "sha256": "a66510c9e4303a67c05707e3a52d69028167e18ff6c13ef4cfb65d7fafb9eb28",
+          "crlf": 0,
+          "checkout_sha256": "a66510c9e4303a67c05707e3a52d69028167e18ff6c13ef4cfb65d7fafb9eb28"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/harness/archive.py",
+          "sha256": "efc905e16e110727f04af6df4b4b7ad3e801f050d0002772734987ba47e4cb5a",
+          "crlf": 0,
+          "checkout_sha256": "efc905e16e110727f04af6df4b4b7ad3e801f050d0002772734987ba47e4cb5a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/harness/audit.spec.cjs",
+          "sha256": "ad719e19368cf2b5c2370f481a83066796ac38596fd3ae0bd4184114e996c8ed",
+          "crlf": 0,
+          "checkout_sha256": "ad719e19368cf2b5c2370f481a83066796ac38596fd3ae0bd4184114e996c8ed"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/harness/fixture-base.js",
+          "sha256": "2ce4c3a3f64657e7286872e0e45c6d264db6669702f4bfa486bca5411866fa01",
+          "crlf": 0,
+          "checkout_sha256": "2ce4c3a3f64657e7286872e0e45c6d264db6669702f4bfa486bca5411866fa01"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/harness/fixture-title.js",
+          "sha256": "2f0b1578ddab4eceb5e097acf34451203a0f408875ea4445c8c1063f16198b01",
+          "crlf": 0,
+          "checkout_sha256": "2f0b1578ddab4eceb5e097acf34451203a0f408875ea4445c8c1063f16198b01"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/harness/launch.cjs",
+          "sha256": "8870bb9a33df66b61df554374cff554e44e3f8383a678832d19367ee7955adb6",
+          "crlf": 12,
+          "checkout_sha256": "8870bb9a33df66b61df554374cff554e44e3f8383a678832d19367ee7955adb6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/harness/playwright.config.cjs",
+          "sha256": "70f19b8bff1161c6b1e0a3d33fa35e2b54f371711beedf2c3bff37463ca3ba41",
+          "crlf": 2,
+          "checkout_sha256": "70f19b8bff1161c6b1e0a3d33fa35e2b54f371711beedf2c3bff37463ca3ba41"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/harness/prepare.py",
+          "sha256": "cc1eeaf3e4885a442f9ce9abdc5dc73f7944529f4c66b25626b1b2b6c646b842",
+          "crlf": 0,
+          "checkout_sha256": "cc1eeaf3e4885a442f9ce9abdc5dc73f7944529f4c66b25626b1b2b6c646b842"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/harness/run.py",
+          "sha256": "3f5d168d521e1b03aa88e430679dcfcbd9e1cd67700681bc3f58bc85d5539f44",
+          "crlf": 0,
+          "checkout_sha256": "3f5d168d521e1b03aa88e430679dcfcbd9e1cd67700681bc3f58bc85d5539f44"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/navigation-snapshot.json",
+          "sha256": "9ab9ce58c4287a6c13ccf9137f6fb365e4bafa75708d2c3416aaecc781786815",
+          "crlf": 23,
+          "checkout_sha256": "9ab9ce58c4287a6c13ccf9137f6fb365e4bafa75708d2c3416aaecc781786815"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/README.md",
+          "sha256": "042b739ee1c583666e7de06378eeaea08747f37986c3f2de7419e11ffa2327de",
+          "crlf": 9,
+          "checkout_sha256": "042b739ee1c583666e7de06378eeaea08747f37986c3f2de7419e11ffa2327de"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/RECEIPT.json",
+          "sha256": "128ccbf8ef2fbfba9fcb6c15f0ec201aaa0453a753a5d4210763697029cfb14e",
+          "crlf": 95,
+          "checkout_sha256": "128ccbf8ef2fbfba9fcb6c15f0ec201aaa0453a753a5d4210763697029cfb14e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-selection-echo-red-1019.json",
+          "sha256": "94349c5ae08fa1b269b5fc843f616ae28bc5eaf47f6dcb5b3b2719ddd7188867",
+          "crlf": 32,
+          "checkout_sha256": "94349c5ae08fa1b269b5fc843f616ae28bc5eaf47f6dcb5b3b2719ddd7188867"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-selection-echo-red-1019.log",
+          "sha256": "bd938115b904fc89c6193faf5f2b6c98bade03b7b54af5707b03fa4cbea3f4ea",
+          "crlf": 45,
+          "checkout_sha256": "bd938115b904fc89c6193faf5f2b6c98bade03b7b54af5707b03fa4cbea3f4ea"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-binding-red-1019.json",
+          "sha256": "bda8d2beafe7dd05e462284f2c171f29854185d6c577eeddeb3f67c87266c585",
+          "crlf": 38,
+          "checkout_sha256": "bda8d2beafe7dd05e462284f2c171f29854185d6c577eeddeb3f67c87266c585"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-binding-red-1019.log",
+          "sha256": "2a023d1b968a5988dd0fbb18278f11ade4dea3236d135ac9733fb4b6b416a776",
+          "crlf": 62,
+          "checkout_sha256": "2a023d1b968a5988dd0fbb18278f11ade4dea3236d135ac9733fb4b6b416a776"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-browser-1019.json",
+          "sha256": "652a3b804c548c009702932b7507e974234a7484a70a660700066569ed264686",
+          "crlf": 30,
+          "checkout_sha256": "652a3b804c548c009702932b7507e974234a7484a70a660700066569ed264686"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-browser-1019.log",
+          "sha256": "610e6e956a76a1e678c2d37a3a661033da27d14fab7a79740a0f4151a3b73647",
+          "crlf": 51,
+          "checkout_sha256": "610e6e956a76a1e678c2d37a3a661033da27d14fab7a79740a0f4151a3b73647"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-browser-echo-1019.json",
+          "sha256": "a5d6285ee35b0d60ec9cdae1e60314e7495e29d8e006151de7b7ac5ae2defb3a",
+          "crlf": 30,
+          "checkout_sha256": "a5d6285ee35b0d60ec9cdae1e60314e7495e29d8e006151de7b7ac5ae2defb3a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-browser-echo-1019.log",
+          "sha256": "831c4a2be06657994e26abc9705ae4b555424aea610592239b1150dfa2cf4e16",
+          "crlf": 10,
+          "checkout_sha256": "831c4a2be06657994e26abc9705ae4b555424aea610592239b1150dfa2cf4e16"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-browser-final-1019.json",
+          "sha256": "ccb8a2d4b853f23501edc50eb1f38c0f2acff4b0903a746960f76cf7e4b61b7f",
+          "crlf": 30,
+          "checkout_sha256": "ccb8a2d4b853f23501edc50eb1f38c0f2acff4b0903a746960f76cf7e4b61b7f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-browser-final-1019.log",
+          "sha256": "4c370bfbb0feed8f0a33452703a6e098e96712a31e6ff2e93fd381824416ecdc",
+          "crlf": 10,
+          "checkout_sha256": "4c370bfbb0feed8f0a33452703a6e098e96712a31e6ff2e93fd381824416ecdc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-contract-red-1019.json",
+          "sha256": "169bfcda8081378996be60df738905b841862725afbfbfa2e5fe018e76eaf913",
+          "crlf": 30,
+          "checkout_sha256": "169bfcda8081378996be60df738905b841862725afbfbfa2e5fe018e76eaf913"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-contract-red-1019.log",
+          "sha256": "ec524217ea6f844780610e2e77fa6556932b07ad452f7c7872123483db02b71e",
+          "crlf": 51,
+          "checkout_sha256": "ec524217ea6f844780610e2e77fa6556932b07ad452f7c7872123483db02b71e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-core-final-1019.json",
+          "sha256": "f2974d6697d644d7d6d15678ed09a16239a5dfc6d106e9f73ea135683650ed25",
+          "crlf": 39,
+          "checkout_sha256": "f2974d6697d644d7d6d15678ed09a16239a5dfc6d106e9f73ea135683650ed25"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-core-final-1019.log",
+          "sha256": "9379366d8c056e3e6d1a7440de970ffc821a849652c907028da4ea835cf2e0fc",
+          "crlf": 68,
+          "checkout_sha256": "9379366d8c056e3e6d1a7440de970ffc821a849652c907028da4ea835cf2e0fc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-echo-build-1019.json",
+          "sha256": "d9057df4e000da552e7d37bb00861fec56faf85330cfbc35f37e8036375b1e4f",
+          "crlf": 27,
+          "checkout_sha256": "d9057df4e000da552e7d37bb00861fec56faf85330cfbc35f37e8036375b1e4f"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-echo-build-1019.log",
+          "sha256": "6e212b572a9b82a970b12277af183d9246a18d24c7f35d846984892663dabef7",
+          "crlf": 76,
+          "checkout_sha256": "6e212b572a9b82a970b12277af183d9246a18d24c7f35d846984892663dabef7"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-echo-final-1019.json",
+          "sha256": "a2dfbd6b155d6b43bf6dfb217075f2cc2d2dc5889b2f4617f48cce6edd515308",
+          "crlf": 29,
+          "checkout_sha256": "a2dfbd6b155d6b43bf6dfb217075f2cc2d2dc5889b2f4617f48cce6edd515308"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-echo-final-1019.log",
+          "sha256": "736182d023f0700028cb48eb9e5b5cab3e7340e54463013af5a987ef1305b556",
+          "crlf": 384,
+          "checkout_sha256": "736182d023f0700028cb48eb9e5b5cab3e7340e54463013af5a987ef1305b556"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-echo-full-1019.json",
+          "sha256": "5043b1e051b1dfc9aea10bd4af1475786285fd7c97ff3a63bc8642e249fdea1a",
+          "crlf": 29,
+          "checkout_sha256": "5043b1e051b1dfc9aea10bd4af1475786285fd7c97ff3a63bc8642e249fdea1a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-echo-full-1019.log",
+          "sha256": "2531ffda36c76b5cd10c54844c08d68cb791bf2118f7c8cc7dda947b4c24d6ec",
+          "crlf": 417,
+          "checkout_sha256": "2531ffda36c76b5cd10c54844c08d68cb791bf2118f7c8cc7dda947b4c24d6ec"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-probes-green-1019.json",
+          "sha256": "17a34e7ca687f6130411c71772544dc4fbf3a184ac05e19687f1ae352445b2da",
+          "crlf": 34,
+          "checkout_sha256": "17a34e7ca687f6130411c71772544dc4fbf3a184ac05e19687f1ae352445b2da"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-probes-green-1019.log",
+          "sha256": "6bc20433aff30e818dba7ca49263eff3ddf5ffebbfeec6d8c4b7bde77569f44c",
+          "crlf": 4,
+          "checkout_sha256": "6bc20433aff30e818dba7ca49263eff3ddf5ffebbfeec6d8c4b7bde77569f44c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-ui-red-1019.json",
+          "sha256": "53f79ade7a785e71f1b707974b0492688e99bc1b3a61177c0f2ad54b28e23aec",
+          "crlf": 32,
+          "checkout_sha256": "53f79ade7a785e71f1b707974b0492688e99bc1b3a61177c0f2ad54b28e23aec"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/runs/review-title-ui-red-1019.log",
+          "sha256": "8565e7f54d526f24ab38ce94c2c7b63a951a6c71c44d5b5aff747044c5105238",
+          "crlf": 265,
+          "checkout_sha256": "8565e7f54d526f24ab38ce94c2c7b63a951a6c71c44d5b5aff747044c5105238"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/screenshots.json",
+          "sha256": "05e31b3d74d8a39067db344cd9090c3b1902ffe8163e7d666e3831261b79f938",
+          "crlf": 17,
+          "checkout_sha256": "05e31b3d74d8a39067db344cd9090c3b1902ffe8163e7d666e3831261b79f938"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/crates/archeaxis-api/src/lib.rs",
+          "sha256": "9d2780009a5f62e6f83661d479cb22787af48badab86f11d1521e20adf3d00e6",
+          "crlf": 0,
+          "checkout_sha256": "9d2780009a5f62e6f83661d479cb22787af48badab86f11d1521e20adf3d00e6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/crates/archeaxis-api/tests/learning_state_api.rs",
+          "sha256": "0555193f4b9aa3d0c40473029f3c37cc600ee81494f84e95816d5e430ec3143e",
+          "crlf": 0,
+          "checkout_sha256": "0555193f4b9aa3d0c40473029f3c37cc600ee81494f84e95816d5e430ec3143e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/crates/archeaxis-domain/src/learning.rs",
+          "sha256": "3365ec343fa94b3158794ce706fabadbda796c73ba3afdf4a05d163c64b4124e",
+          "crlf": 0,
+          "checkout_sha256": "3365ec343fa94b3158794ce706fabadbda796c73ba3afdf4a05d163c64b4124e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/__tests__/CanonicalLearningDrafts.test.tsx",
+          "sha256": "dbb9ab988f48fb4e355dfe61b5ecdd1c2e3c3b70b2022000cc2ca3d9968da337",
+          "crlf": 0,
+          "checkout_sha256": "dbb9ab988f48fb4e355dfe61b5ecdd1c2e3c3b70b2022000cc2ca3d9968da337"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/__tests__/CanonicalReviewLearning.test.tsx",
+          "sha256": "4aa942b90e25f68d6aafc184e7e6ea5d656bece80aaaea73578620d99d69e5cc",
+          "crlf": 0,
+          "checkout_sha256": "4aa942b90e25f68d6aafc184e7e6ea5d656bece80aaaea73578620d99d69e5cc"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/__tests__/CoreBridge.test.ts",
+          "sha256": "28470e479b4b24dc9b3efb2827443ba039394874dfcec5534a6717c089e991e6",
+          "crlf": 0,
+          "checkout_sha256": "28470e479b4b24dc9b3efb2827443ba039394874dfcec5534a6717c089e991e6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/__tests__/LearningPracticeJourney.test.tsx",
+          "sha256": "bb5e3265aa3c4613d55ccd7704926ac1fa93b8913e389f2d12b14a7816b4fbe5",
+          "crlf": 0,
+          "checkout_sha256": "bb5e3265aa3c4613d55ccd7704926ac1fa93b8913e389f2d12b14a7816b4fbe5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/__tests__/LearningTitle.test.ts",
+          "sha256": "d08d67f52a929defc88fa9ab45bffe278385ce72b9781bc90f9e9e11f9d4e2a1",
+          "crlf": 0,
+          "checkout_sha256": "d08d67f52a929defc88fa9ab45bffe278385ce72b9781bc90f9e9e11f9d4e2a1"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/__tests__/LiveRegionBudget.test.tsx",
+          "sha256": "f88f6da74183efec5e082c863a214c8042dd2251b643098d1f5dd1c6a9eb3428",
+          "crlf": 445,
+          "checkout_sha256": "f88f6da74183efec5e082c863a214c8042dd2251b643098d1f5dd1c6a9eb3428"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/__tests__/ThreeLevelNavigation.test.tsx",
+          "sha256": "fb01149bcfb058ba2ed3e6f774ee25d66337af1f54af91c320ecd9b455713b3e",
+          "crlf": 0,
+          "checkout_sha256": "fb01149bcfb058ba2ed3e6f774ee25d66337af1f54af91c320ecd9b455713b3e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/__tests__/UiFirstWorkspace.test.tsx",
+          "sha256": "7a8a9b3139c155f7dac13d5f84e633f6d73ae2b58c6d68f3c261adcd98b197fb",
+          "crlf": 0,
+          "checkout_sha256": "7a8a9b3139c155f7dac13d5f84e633f6d73ae2b58c6d68f3c261adcd98b197fb"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/api/generated/core-contract.ts",
+          "sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+          "crlf": 0,
+          "checkout_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/presentation/learningJourney.ts",
+          "sha256": "1862e7e0593b1c3a797ef69eb70f978639f3a95a1ae4b20b601cfb86d0045442",
+          "crlf": 0,
+          "checkout_sha256": "1862e7e0593b1c3a797ef69eb70f978639f3a95a1ae4b20b601cfb86d0045442"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/presentation/learningTitle.ts",
+          "sha256": "4e5023b7c3fb3fb5b35cdc57aef236be37282850b45225a8160c2a8b4cf27581",
+          "crlf": 0,
+          "checkout_sha256": "4e5023b7c3fb3fb5b35cdc57aef236be37282850b45225a8160c2a8b4cf27581"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/presentation/workspaceReview.ts",
+          "sha256": "3c2d3dcbbc7c34e8165f5b4992aaf32fe60c390248836ede1b77346384f1fa27",
+          "crlf": 0,
+          "checkout_sha256": "3c2d3dcbbc7c34e8165f5b4992aaf32fe60c390248836ede1b77346384f1fa27"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/spaces/CanonicalLearningSpace.tsx",
+          "sha256": "2dcc46266588fb261f1c69d00799fd193237539fdf0deac5946aea2bb30a03d3",
+          "crlf": 0,
+          "checkout_sha256": "2dcc46266588fb261f1c69d00799fd193237539fdf0deac5946aea2bb30a03d3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/spaces/CanonicalTeachingSpace.tsx",
+          "sha256": "382a07067982237cccbe5cd303a813fd8623296a9408e45430a2a23eb43f9bb4",
+          "crlf": 0,
+          "checkout_sha256": "382a07067982237cccbe5cd303a813fd8623296a9408e45430a2a23eb43f9bb4"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/spaces/CanonicalWorkspaceSpace.tsx",
+          "sha256": "8de4dc7987c37c3d2344ec0f0abd042dc278e58bb2a821f87160072b4052fc68",
+          "crlf": 0,
+          "checkout_sha256": "8de4dc7987c37c3d2344ec0f0abd042dc278e58bb2a821f87160072b4052fc68"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/frontend/src/test/learningQueue.ts",
+          "sha256": "76c8aaae05b4cf9f2c5b7ca881dae6ff57bfda27d31bf9040593e433d689bb46",
+          "crlf": 0,
+          "checkout_sha256": "76c8aaae05b4cf9f2c5b7ca881dae6ff57bfda27d31bf9040593e433d689bb46"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/packages/contracts/v1/core-document.schema.json",
+          "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76",
+          "crlf": 0,
+          "checkout_sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/scripts/probes/aaos01_grouped_owner_loop.py",
+          "sha256": "9347142843cb01e692a62977a51da3bab380619c18cc40b866e1979b74f1abd1",
+          "crlf": 0,
+          "checkout_sha256": "9347142843cb01e692a62977a51da3bab380619c18cc40b866e1979b74f1abd1"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/scripts/probes/aaos01_tauri_webdriver_loop.py",
+          "sha256": "048069b6cb3a12f3c612a6a8d85888f61a6f89b47d6942cf71e9582927a352ef",
+          "crlf": 0,
+          "checkout_sha256": "048069b6cb3a12f3c612a6a8d85888f61a6f89b47d6942cf71e9582927a352ef"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/tests/test_grouped_native_owner_probe.py",
+          "sha256": "c9a99cbddf6fd65a04497e9fd25740c12ad88460f75069c5e3868e7ce41c2525",
+          "crlf": 0,
+          "checkout_sha256": "c9a99cbddf6fd65a04497e9fd25740c12ad88460f75069c5e3868e7ce41c2525"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/source/tests/test_tauri_shell_authority.py",
+          "sha256": "0c72dfa9fcd8f03da0771c043019f24c72e9e51daec3f2d0a33b250d6a5f522b",
+          "crlf": 0,
+          "checkout_sha256": "0c72dfa9fcd8f03da0771c043019f24c72e9e51daec3f2d0a33b250d6a5f522b"
+        }
+      ],
+      "checkout_sha256": "52b380eb0ba47979a1af1c72327135640726b3d66f770766117b59d276de9671"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/MANIFEST.json",
+      "before_sha256": "7e2168f413163f865b9ab156c7c18a924acf20891f1f45bc6a826f56547c87b9",
+      "members": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/candidate-build-binding.json",
+          "sha256": "926fb19bc470faba4c7c0a6b55784dd17f104cc88bf78e579da5b52255d4e3d8",
+          "crlf": 0,
+          "checkout_sha256": "926fb19bc470faba4c7c0a6b55784dd17f104cc88bf78e579da5b52255d4e3d8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/CONTINUATION.json",
+          "sha256": "48f621076346f20390a663a15ba0b73d80061be12163876198283f501737a5a6",
+          "crlf": 40,
+          "checkout_sha256": "48f621076346f20390a663a15ba0b73d80061be12163876198283f501737a5a6"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/EXECUTIONS.json",
+          "sha256": "bf4b01e8f2cfb7a9a694455b64a287c0139f1e73c68ef42f45ddcd99bb35d4c5",
+          "crlf": 498,
+          "checkout_sha256": "bf4b01e8f2cfb7a9a694455b64a287c0139f1e73c68ef42f45ddcd99bb35d4c5"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/NATIVE-READBACK.json",
+          "sha256": "2cd825595955140062e7e0f34bce8d807cf6076d8b13bb67858c9c91c5dc335c",
+          "crlf": 163,
+          "checkout_sha256": "2cd825595955140062e7e0f34bce8d807cf6076d8b13bb67858c9c91c5dc335c"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/be10-observer.patch",
+          "sha256": "4c0a09cf75101e641987e93fe2b4e6a1929786ddeb011da7993ddc2ad579c817",
+          "crlf": 1073,
+          "checkout_sha256": "4c0a09cf75101e641987e93fe2b4e6a1929786ddeb011da7993ddc2ad579c817"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/code-manifest.json",
+          "sha256": "e3d07a6678cd65ad4cac70f268fcd5ff2700c813f34c245a6a2a7dc2b9d3d210",
+          "crlf": 103,
+          "checkout_sha256": "e3d07a6678cd65ad4cac70f268fcd5ff2700c813f34c245a6a2a7dc2b9d3d210"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/CURRENT.md",
+          "sha256": "3f4a9c9a8e9e1187731b8c5405bc77798482b94f1b31267623365c1fc95f265d",
+          "crlf": 0,
+          "checkout_sha256": "3f4a9c9a8e9e1187731b8c5405bc77798482b94f1b31267623365c1fc95f265d"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/deadline-fix.diff",
+          "sha256": "439bca64b6d6ca32ad6a9ec031f88a495d599362a0ed483b36baf864774a4288",
+          "crlf": 0,
+          "checkout_sha256": "439bca64b6d6ca32ad6a9ec031f88a495d599362a0ed483b36baf864774a4288"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/deadline-revision.json",
+          "sha256": "b32e4ad6600f5991ab43e177552d2ff088ada67d07598dfde74ddc297d7491b0",
+          "crlf": 297,
+          "checkout_sha256": "b32e4ad6600f5991ab43e177552d2ff088ada67d07598dfde74ddc297d7491b0"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/DELIVERY.md",
+          "sha256": "2be061c2bbdcdb9aed456fe126f9b53fc8d4af18bc69096cfc8ea8db3317cdc8",
+          "crlf": 0,
+          "checkout_sha256": "2be061c2bbdcdb9aed456fe126f9b53fc8d4af18bc69096cfc8ea8db3317cdc8"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/final-readback.json",
+          "sha256": "441f008404a81a555a4f96dee1895315497631cddada013950e7642491128603",
+          "crlf": 95,
+          "checkout_sha256": "441f008404a81a555a4f96dee1895315497631cddada013950e7642491128603"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/independent-review/READBACK.json",
+          "sha256": "c7b7b24d6f7378d8fbc1849027bfe779c9276cd68f7c4e21efad91f88d5c562a",
+          "crlf": 214,
+          "checkout_sha256": "c7b7b24d6f7378d8fbc1849027bfe779c9276cd68f7c4e21efad91f88d5c562a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/independent-review/REVIEW.md",
+          "sha256": "9e572837ec316b9254eef96d671c6d76aeb808e44bc6071638abbd02c874f782",
+          "crlf": 46,
+          "checkout_sha256": "9e572837ec316b9254eef96d671c6d76aeb808e44bc6071638abbd02c874f782"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/be10/validation.json",
+          "sha256": "2b66ebcd3a44eaa3307bedba1f998821b03f04fd2096d01950c68629f57a85be",
+          "crlf": 506,
+          "checkout_sha256": "2b66ebcd3a44eaa3307bedba1f998821b03f04fd2096d01950c68629f57a85be"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/learning-density/DELIVERY.md",
+          "sha256": "d24debe90d45ac4e93dd2471ea777a844cc21e7873cd24a7b5c3177e5d4d6754",
+          "crlf": 40,
+          "checkout_sha256": "d24debe90d45ac4e93dd2471ea777a844cc21e7873cd24a7b5c3177e5d4d6754"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/learning-density/learning-density.patch",
+          "sha256": "70b66e7f13729ea7c15b82ff4820cfb6f4d685405e9789a1db2d0829711e1a89",
+          "crlf": 0,
+          "checkout_sha256": "70b66e7f13729ea7c15b82ff4820cfb6f4d685405e9789a1db2d0829711e1a89"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/learning-density/original-result.json",
+          "sha256": "de80614b62c4ca55f41b47901e7c54fdacb71bbcc7e863fd25bc55b3c301848b",
+          "crlf": 0,
+          "checkout_sha256": "de80614b62c4ca55f41b47901e7c54fdacb71bbcc7e863fd25bc55b3c301848b"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/learning-density/positive-invalidated.json",
+          "sha256": "d3e5e06c62f33c52831a889a71649f269a1c0ef05daf7649fb4a25ae940910c3",
+          "crlf": 0,
+          "checkout_sha256": "d3e5e06c62f33c52831a889a71649f269a1c0ef05daf7649fb4a25ae940910c3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/learning-density/readback.json",
+          "sha256": "208c752dc6ff858ef6f2f589038a84e8ed5c86da7aace28e2640b697655713d1",
+          "crlf": 43,
+          "checkout_sha256": "208c752dc6ff858ef6f2f589038a84e8ed5c86da7aace28e2640b697655713d1"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/learning-density/source-manifest.json",
+          "sha256": "fdf2f182864c1172f54bb3772c4140024c8c97a446693c7e7ce40eacf373dc1a",
+          "crlf": 53,
+          "checkout_sha256": "fdf2f182864c1172f54bb3772c4140024c8c97a446693c7e7ce40eacf373dc1a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/learning-density/validation-result.json",
+          "sha256": "2d526b0f4fc9d3eae1bff2dbddeacea84d07969877b8e6a165718219f2cda49e",
+          "crlf": 0,
+          "checkout_sha256": "2d526b0f4fc9d3eae1bff2dbddeacea84d07969877b8e6a165718219f2cda49e"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/learning-density/verification-summary.json",
+          "sha256": "0da558f83ebdf7f35e66774277ca83082d88c4ca4a0c55483dea72787be4e256",
+          "crlf": 87,
+          "checkout_sha256": "0da558f83ebdf7f35e66774277ca83082d88c4ca4a0c55483dea72787be4e256"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/proposals/README.md",
+          "sha256": "137415e6ecbc132232c12eb8ae9d8984289c5b0542a9d9e5f16713f4e4686d67",
+          "crlf": 8,
+          "checkout_sha256": "137415e6ecbc132232c12eb8ae9d8984289c5b0542a9d9e5f16713f4e4686d67"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/README.md",
+          "sha256": "6348d414e8e2a0b04648fb110c0fd862a1a3dd8eaf4f6e760a6e638a4eafbb2a",
+          "crlf": 24,
+          "checkout_sha256": "6348d414e8e2a0b04648fb110c0fd862a1a3dd8eaf4f6e760a6e638a4eafbb2a"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/review-source-identities.json",
+          "sha256": "55537da980ed64275e18759518565e0bd5bf90c723a0d3f0f6ac22f16d4a5207",
+          "crlf": 120,
+          "checkout_sha256": "55537da980ed64275e18759518565e0bd5bf90c723a0d3f0f6ac22f16d4a5207"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/ruff-delta.json",
+          "sha256": "cb6e41a547016e91c78e17f8aeb458bf062bf204274cad532680135ff3875d73",
+          "crlf": 137,
+          "checkout_sha256": "cb6e41a547016e91c78e17f8aeb458bf062bf204274cad532680135ff3875d73"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/SOURCE-MANIFEST.json",
+          "sha256": "a3d9ab6859f0897e5bff16a338753d5f97089ff1fceb823c4dcffe0d1d7042df",
+          "crlf": 190,
+          "checkout_sha256": "a3d9ab6859f0897e5bff16a338753d5f97089ff1fceb823c4dcffe0d1d7042df"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/SOURCE-REVIEW.md",
+          "sha256": "b9b234dd3f6bd276a2d5ab74d958b35b27aae9a226e65a50583c99909f317540",
+          "crlf": 18,
+          "checkout_sha256": "b9b234dd3f6bd276a2d5ab74d958b35b27aae9a226e65a50583c99909f317540"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/task-delta.patch",
+          "sha256": "a7b733a65e29cb6c908e26cbf69d926f767fdf80c9274fc4e9f4e981984e3ff3",
+          "crlf": 2251,
+          "checkout_sha256": "a7b733a65e29cb6c908e26cbf69d926f767fdf80c9274fc4e9f4e981984e3ff3"
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/verify_snapshot.py",
+          "sha256": "f4b1fc8ef01997d2101f9b32ba33aefcaccc0e1df72faa50bec55a042d702db8",
+          "crlf": 0,
+          "checkout_sha256": "f4b1fc8ef01997d2101f9b32ba33aefcaccc0e1df72faa50bec55a042d702db8"
+        }
+      ],
+      "checkout_sha256": "7e2168f413163f865b9ab156c7c18a924acf20891f1f45bc6a826f56547c87b9"
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261019/MANIFEST.json",
+      "before_sha256": "5d40b24687d11fe3e78c29d11da093b5e6ee6d5d93ba2948fa49dcd9fe8681c3",
+      "members": [
+        {
+          "path": "docs/history/owner-dialogue-20261019/attachments.json",
+          "sha256": "060064d85556cd0cf9cb84f70ed3481e1c7a85ac1d899f91ccbe6e76b814d937",
+          "crlf": 29,
+          "checkout_sha256": "060064d85556cd0cf9cb84f70ed3481e1c7a85ac1d899f91ccbe6e76b814d937"
+        },
+        {
+          "path": "docs/history/owner-dialogue-20261019/decision-coverage.json",
+          "sha256": "44df71303ea45987ef49b6636aba5a02e6fc9b2e36baa5613b27983c8e14954c",
+          "crlf": 555,
+          "checkout_sha256": "44df71303ea45987ef49b6636aba5a02e6fc9b2e36baa5613b27983c8e14954c"
+        },
+        {
+          "path": "docs/history/owner-dialogue-20261019/README.md",
+          "sha256": "f19920905f05529cfbfa918bab52969d8384b6b0e2349547aff00eb4c9f36ead",
+          "crlf": 17,
+          "checkout_sha256": "f19920905f05529cfbfa918bab52969d8384b6b0e2349547aff00eb4c9f36ead"
+        },
+        {
+          "path": "docs/history/owner-dialogue-20261019/SOURCE-EXCERPTS.md",
+          "sha256": "0bfc55724b65dcec1f9639d1f0edab0092030ad726764c81c52e552e062bc121",
+          "crlf": 318,
+          "checkout_sha256": "0bfc55724b65dcec1f9639d1f0edab0092030ad726764c81c52e552e062bc121"
+        },
+        {
+          "path": "docs/history/owner-dialogue-20261019/tool-migration-navigation.json",
+          "sha256": "4321b955112a255fba74bd33f471a3d0d56677ccb7db31145e9dc4eaadcb7260",
+          "crlf": 44,
+          "checkout_sha256": "4321b955112a255fba74bd33f471a3d0d56677ccb7db31145e9dc4eaadcb7260"
+        },
+        {
+          "path": "docs/history/owner-dialogue-20261019/verify_archive.py",
+          "sha256": "c0817ca285e30cb14dfa6351231536091387c06d3fb7288616b53e5abdd2d586",
+          "crlf": 0,
+          "checkout_sha256": "c0817ca285e30cb14dfa6351231536091387c06d3fb7288616b53e5abdd2d586"
+        }
+      ],
+      "checkout_sha256": "5d40b24687d11fe3e78c29d11da093b5e6ee6d5d93ba2948fa49dcd9fe8681c3"
+    }
+  ],
+  "production_writes": false,
+  "runtime_models_services_browser": "NOT_EXECUTED",
+  "run_path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\hub-lifecycle-gap-20261019\\verification-runs\\7d4d65357d02"
+}

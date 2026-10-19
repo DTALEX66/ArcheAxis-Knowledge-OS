@@ -1,3 +1,4 @@
+import {findLearningItemButton,getLearningItemButton} from "../test/learningQueue";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -26,21 +27,21 @@ function fixture() {
 it("preserves independent unsubmitted answers and checks when switching a -> b -> a",async()=>{
   const f=fixture();await f.session.load();
   render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));
+  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));
   await user.type(await screen.findByLabelText("本次答案"),"  answer A\n第二行  ");
   await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));
   await user.click(screen.getByLabelText("回答正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"3");
-  await user.click(screen.getByRole("button",{name:"b"}));
+  await user.click(getLearningItemButton("b"));
   await user.type(await screen.findByLabelText("本次答案"),"answer B");
-  await user.click(screen.getByRole("button",{name:"a"}));
+  await user.click(getLearningItemButton("a"));
   await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("  answer A\n第二行  "));
   expect(screen.getByLabelText("回答正确")).toBeChecked();expect(screen.getByLabelText("学习者自评")).toHaveValue("3");
-  await user.click(screen.getByRole("button",{name:"b"}));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("answer B"));
+  await user.click(getLearningItemButton("b"));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("answer B"));
   expect(call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
 });
 it("reopens an unsubmitted answer from a new Core working-state session without creating a review event",async()=>{
   const f=fixture();await f.session.load();const first=render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));await user.type(await screen.findByLabelText("本次答案"),"尚未提交的答案");
+  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"尚未提交的答案");
   await act(async()=>{await f.session.flush();});first.unmount();
   const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();render(<CoreWorkingStateProvider session={reopened}><CanonicalLearningSpace initialItemKey="a"/></CoreWorkingStateProvider>);
   await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("尚未提交的答案"));
@@ -49,10 +50,10 @@ it("reopens an unsubmitted answer from a new Core working-state session without 
 });
 it("retains an old assessment answer separately when the item's current assessment changes",async()=>{
   const f=fixture();await f.session.load();render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));await user.type(await screen.findByLabelText("本次答案"),"original revision answer");
-  await user.click(screen.getByRole("button",{name:"b"}));await screen.findByText("question b");
+  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"original revision answer");
+  await user.click(getLearningItemButton("b"));await screen.findByText("question b");
   const original=call.getMockImplementation()!;call.mockImplementation(async(op,payload)=>op==="learning_state"&&payload.item_key==="a"?{item_key:"a",learner:{assessment:assessment("a","v2")},machine:{status:"not_recorded"}}:original(op,payload));
-  await user.click(screen.getByRole("button",{name:"a"}));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue(""));
+  await user.click(getLearningItemButton("a"));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue(""));
   await user.type(screen.getByLabelText("本次答案"),"new revision answer");
   expect(f.session.getSnapshot().state.learning_drafts?.assessment_a_v1.answer).toBe("original revision answer");
   expect(f.session.getSnapshot().state.learning_drafts?.assessment_a_v2.answer).toBe("new revision answer");
@@ -63,7 +64,7 @@ it("ignores a delayed question readback after another question has been edited",
   const f=fixture();await f.session.load();let release!:(value:unknown)=>void;
   const original=call.getMockImplementation()!;call.mockImplementation(async(op,payload)=>op==="learning_state"&&payload.item_key==="a"?new Promise(resolve=>{release=resolve;}):original(op,payload));
   render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));await user.click(screen.getByRole("button",{name:"b"}));
+  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.click(getLearningItemButton("b"));
   await user.type(await screen.findByLabelText("本次答案"),"belongs to B");
   await act(async()=>release({item_key:"a",learner:{assessment:assessment("a")},machine:{status:"not_recorded"}}));
   expect(screen.getByText("question b")).toBeInTheDocument();expect(screen.getByLabelText("本次答案")).toHaveValue("belongs to B");
@@ -73,8 +74,8 @@ it("keeps both drafts on an uncertain review and clears only the exactly submitt
   const f=fixture();await f.session.load();let attempts=0;
   const original=call.getMockImplementation()!;call.mockImplementation(async(op,payload)=>{if(op==="learning_review"){if(++attempts===1)throw new Error("lost receipt");return {next_review_days:1};}return original(op,payload);});
   render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"b"}));await user.type(await screen.findByLabelText("本次答案"),"answer B");
-  await user.click(screen.getByRole("button",{name:"a"}));await user.type(await screen.findByLabelText("本次答案"),"  answer A  ");
+  const user=userEvent.setup();await user.click(await findLearningItemButton("b"));await user.type(await screen.findByLabelText("本次答案"),"answer B");
+  await user.click(getLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"  answer A  ");
   await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));await user.click(screen.getByLabelText("回答正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"3");
   await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/复习提交未确认/);
   const frozen=structuredClone(f.session.getSnapshot().state.pending_reviews);
@@ -98,8 +99,8 @@ it("opens the pinned learning draft only after the user preserves a restore cand
 });
 it("discards only an explicitly confirmed draft and resets the current answer after Core ACK",async()=>{
   const f=fixture();await f.session.load();render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));await user.type(await screen.findByLabelText("本次答案"),"discard only on request");
-  await user.click(screen.getByText("学习草稿 a · v1"));const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"discard only on request");
+  await user.click(screen.getByLabelText("保留的学习答案 assessment_a_v1").closest("details")!.querySelector("summary")!);const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
   await user.click(screen.getByRole("button",{name:"丢弃草稿 a"}));expect(f.session.getSnapshot().state.learning_drafts?.assessment_a_v1.answer).toBe("discard only on request");
   confirm.mockReturnValue(true);await user.click(screen.getByRole("button",{name:"丢弃草稿 a"}));await screen.findByText("Core 已确认丢弃这份学习草稿。");
   expect(f.session.getSnapshot().state.learning_drafts).toBeUndefined();expect(screen.getByLabelText("本次答案")).toHaveValue("");
@@ -112,6 +113,6 @@ it("refuses an oversized review journal before freezing input and permits freein
   await screen.findByLabelText("本次答案");const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/复习请求保全将超过 1 MiB/);
   expect(screen.getByLabelText("本次答案")).toBeEnabled();expect(f.session.getSnapshot().status).toBe("ready");expect(f.session.getSnapshot().state.pending_reviews).toBeUndefined();expect(f.transport.write).not.toHaveBeenCalled();
   expect(call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
-  vi.spyOn(window,"confirm").mockReturnValue(true);await user.click(screen.getByText("学习草稿 item1 · v1"));await user.click(screen.getByRole("button",{name:"丢弃草稿 item1"}));await screen.findByText("Core 已确认丢弃这份学习草稿。");
+  vi.spyOn(window,"confirm").mockReturnValue(true);await user.click(screen.getByLabelText("保留的学习答案 assessment_1").closest("details")!.querySelector("summary")!);await user.click(screen.getByRole("button",{name:"丢弃草稿 item1"}));await screen.findByText("Core 已确认丢弃这份学习草稿。");
   expect(Object.keys(f.session.getSnapshot().state.learning_drafts??{})).toHaveLength(14);expect(f.session.getSnapshot().status).toBe("ready");
 });

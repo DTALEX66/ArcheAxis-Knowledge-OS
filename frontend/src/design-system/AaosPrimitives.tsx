@@ -46,7 +46,7 @@ type DialogProps = {
   role?: "dialog" | "alertdialog";
   title: string;
   description: string;
-  trigger: React.ReactElement;
+  trigger?: React.ReactElement;
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -58,7 +58,7 @@ type DialogProps = {
 
 export function AaosDialog({ role = "dialog", title, description, trigger, children, open, onOpenChange, overlayClassName, contentClassName, onOpenAutoFocus, onCloseAutoFocus }: DialogProps) {
   return <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-    <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
+    {trigger ? <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger> : null}
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className={classes("aaos-dialog-overlay", overlayClassName)} />
       <DialogPrimitive.Content role={role} className={classes("aaos-dialog-content", contentClassName)} onOpenAutoFocus={onOpenAutoFocus} onCloseAutoFocus={onCloseAutoFocus}>

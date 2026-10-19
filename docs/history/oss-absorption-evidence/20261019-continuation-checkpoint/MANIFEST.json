@@ -1,0 +1,12 @@
+{
+  "schema": "aaos.archive-members/v1",
+  "members": {
+    "frontend-proposal-notes.md": "0ee2b70f7b14a762dab3c6794fe5a902f5360fae3865f59547548775fe2f9352",
+    "handoff-before-consolidation.md": "1be998ef9d02efe93d71c36d2f38b25e09061d98bfdaba18a10c25ac72e2a28b",
+    "navigation-snapshot.json": "a9c20f219616ce7c6421343feab7138b39953ae2d79a3f85c26064dd1f542949",
+    "proposal-notes.md": "902a2535add57271b2c7219d1823831959c71a021d4e01abbb27c74b01cbc3ca",
+    "proposed-core.patch": "d591607ce31fad56405da0f1007512ca4c0ffda7d89d34d16cdaf949a361ee55",
+    "proposed-frontend.patch": "73551dc2b7cabd94e0c15edda157e5c9e5510ea1f2b1d26611b18c52b815ed15",
+    "README.md": "8c600b55b19042d74e9cc0349cbce0ea6f7d3dda86b14f1121269cd23029b8c8"
+  }
+}

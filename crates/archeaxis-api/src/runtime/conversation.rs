@@ -1,5 +1,6 @@
 //! Finite, project-owned buffered conversation. No generic agent/tool runtime.
 use super::*;
+use archeaxis_application::executor::AnswerPolicy;
 use archeaxis_domain::material_question::{self as material, Material, Selection};
 use serde::Serialize;
 fn digest(text: &str) -> String {
@@ -151,6 +152,21 @@ pub(super) struct RequestBody {
     preview: bool,
     confirmed_plan_sha256: Option<String>,
 }
+// Policy is derived from the finite purpose, never a client-controlled template.
+fn answer_policy(purpose: &Purpose) -> AnswerPolicy {
+    match purpose {
+        Purpose::Companion => AnswerPolicy::CompanionGeneral,
+        Purpose::MaterialLearning => AnswerPolicy::Grounded,
+    }
+}
+fn answer_policy_matches(answer: &Value, plan: &Value) -> bool {
+    ["answer_policy", "prompt_version"].iter().all(|field| {
+        let expected = plan[*field].as_str();
+        expected.is_some()
+            && answer[*field].as_str() == expected
+            && answer["loss_receipt"]["params"][*field].as_str() == expected
+    })
+}
 fn prepare(conn: &rusqlite::Connection, body: &RequestBody) -> rusqlite::Result<(String, Value)> {
     let configuration = archeaxis_domain::model_configuration::read(conn)?;
     if configuration.revision > 0 || body.model_configuration.is_some() {
@@ -216,8 +232,11 @@ fn prepare(conn: &rusqlite::Connection, body: &RequestBody) -> rusqlite::Result<
     }
     let epoch = archeaxis_domain::ui_state::machine_execution_epoch(conn)
         .map_err(|_| error("restore_epoch_unavailable"))?;
-    let plan = json!({"schema":"archeaxis.conversation-plan/v1","request":body,"consumer":"archeaxis","session_sequence":journal["last_sequence"],"context_sha256":digest(&context),"material_proof":proof,"restore_epoch":epoch,"delivery":"BUFFERED","destination":"LOCAL_LOOPBACK_ONLY","destination_candidates":["http://127.0.0.1:11434","http://127.0.0.1:1234/v1"],"model_binding":"legacy_owned_local_probe","character_context":preferences,"usage":null,"cost":null});
+    let plan = json!({"schema":"archeaxis.conversation-plan/v1","request":body,"consumer":"archeaxis","session_sequence":journal["last_sequence"],"context_sha256":digest(&context),"material_proof":proof,"restore_epoch":epoch,"delivery":"BUFFERED","destination":"LOCAL_LOOPBACK_ONLY","destination_candidates":["http://127.0.0.1:1234/v1"],"model_binding":"legacy_owned_local_probe","character_context":preferences,"usage":null,"cost":null});
     let mut plan = plan;
+    let policy = answer_policy(&body.purpose);
+    plan["answer_policy"] = json!(policy.as_str());
+    plan["prompt_version"] = json!(policy.prompt_version());
     if let Some(config) = &body.model_configuration {
         plan["destination_candidates"] = json!([config.profile.endpoint]);
         plan["model_binding"] = json!("frozen_purpose_profile");
@@ -338,7 +357,7 @@ pub(super) async fn request(
     };
     let result = runtime
         .executor
-        .machine_answer_configured(
+        .machine_answer_with_policy_detailed(
             context,
             body.question.clone(),
             body.max_tokens,
@@ -346,6 +365,7 @@ pub(super) async fn request(
             body.model.clone(),
             lease.cancel.clone(),
             body.model_configuration.clone(),
+            answer_policy(&body.purpose),
         )
         .await;
     let cancelled = match lease.close() {
@@ -359,17 +379,27 @@ pub(super) async fn request(
     };
     if result
         .as_ref()
-        .is_err_and(|e| e.contains("cleanup incomplete"))
+        .is_err_and(|e| e.message().contains("cleanup incomplete"))
     {
         return fail(
             StatusCode::SERVICE_UNAVAILABLE,
             "conversation_cleanup_unknown",
         );
     }
+    let diagnostics = if cancelled {
+        None
+    } else {
+        result.as_ref().err().and_then(|e| e.diagnostics()).cloned()
+    };
     let (state, answer, reason) = if cancelled {
         ("cancelled", Value::Null, Some("conversation_cancelled"))
     } else {
         match result {
+            Ok(answer) if !answer_policy_matches(&answer, &plan) => (
+                "failed",
+                Value::Null,
+                Some("conversation_answer_policy_unverified"),
+            ),
             Ok(answer)
                 if answer["endpoint"].as_str().is_some_and(|e| {
                     if let Some(config) = &body.model_configuration {
@@ -377,7 +407,7 @@ pub(super) async fn request(
                             && answer["model"].as_str() == Some(config.profile.model.as_str())
                             && answer["protocol"].as_str() == Some(config.profile.protocol.as_str())
                     } else {
-                        ["http://127.0.0.1:11434", "http://127.0.0.1:1234/v1"].contains(&e)
+                        e == "http://127.0.0.1:1234/v1"
                     }
                 }) =>
             {
@@ -388,10 +418,18 @@ pub(super) async fn request(
                 Value::Null,
                 Some("conversation_destination_unverified"),
             ),
+            Err(error)
+                if matches!(error.reason_code(), "MODEL_CALL_TIMEOUT" | "WORKER_TIMEOUT") =>
+            {
+                ("failed", Value::Null, Some("conversation_model_timeout"))
+            }
             Err(_) => ("failed", Value::Null, Some("conversation_model_failed")),
         }
     };
-    let receipt = json!({"schema":"archeaxis.conversation-receipt/v1","session_id":body.session_id,"request_id":body.request_id,"state":state,"answer":answer,"reason_code":reason,"plan":plan,"plan_sha256":plan_sha,"delivery":"BUFFERED","provider_stop_state":"UNKNOWN","authority":"candidate","grants_knowledge_acceptance":false});
+    let mut receipt = json!({"schema":"archeaxis.conversation-receipt/v1","session_id":body.session_id,"request_id":body.request_id,"state":state,"answer":answer,"reason_code":reason,"plan":plan,"plan_sha256":plan_sha,"delivery":"BUFFERED","provider_stop_state":"UNKNOWN","authority":"candidate","grants_knowledge_acceptance":false});
+    if let Some(diagnostics) = diagnostics {
+        receipt["diagnostics"] = diagnostics;
+    }
     let result = runtime
         .executor
         .store()

@@ -1,0 +1,47 @@
+{
+  "schema": "archeaxis.handoff-archive/v1",
+  "date": "2026-10-18",
+  "records": [
+    {
+      "original": "DONE.txt",
+      "archive": "docs/history/handoff-archive-20261018/DONE.txt",
+      "bytes": 487,
+      "sha256": "4ea0a31b58f280af2d279b2efab419d1cf55ce0da9fd5930891a67ea862255dc",
+      "state": "FROZEN_HISTORICAL_NOT_CURRENT_EXECUTION",
+      "replaced_by": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "original": "AUTONOMOUS-EXECUTION-SUMMARY.md",
+      "archive": "docs/history/handoff-archive-20261018/AUTONOMOUS-EXECUTION-SUMMARY.md",
+      "bytes": 2679,
+      "sha256": "94c5ec3b36e1f7a9d66f36fe0e4b309aa6bc62d48f4b7f8efadba4e375e23294",
+      "state": "FROZEN_HISTORICAL_NOT_CURRENT_EXECUTION",
+      "replaced_by": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "original": "NIGHT-EXECUTION-SUMMARY.md",
+      "archive": "docs/history/handoff-archive-20261018/NIGHT-EXECUTION-SUMMARY.md",
+      "bytes": 1869,
+      "sha256": "7ac31d417e55c70d44055574a691ab6ce6dc57adaab0a1e39c6f3345c7cd212a",
+      "state": "FROZEN_HISTORICAL_NOT_CURRENT_EXECUTION",
+      "replaced_by": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "original": "AAOS-后续执行交接提示词-20261009.md",
+      "archive": "docs/history/handoff-archive-20261018/AAOS-后续执行交接提示词-20261009.md",
+      "bytes": 19944,
+      "sha256": "f5b553011c8bd0310007c617ca649d5d013fb9e1e5ce8420174a1add3cb6f01b",
+      "state": "FROZEN_HISTORICAL_NOT_CURRENT_EXECUTION",
+      "replaced_by": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "original": "HERMES_HANDOFF.md",
+      "archive": "docs/history/handoff-archive-20261018/HERMES_HANDOFF.md",
+      "bytes": 23537,
+      "sha256": "908af021cbbe84a31566e5ba557a3f0378069e436120bc5c26588aa3c05a520d",
+      "state": "FROZEN_HISTORICAL_NOT_CURRENT_EXECUTION",
+      "replaced_by": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    }
+  ],
+  "policy": "Original bytes preserved. Old completion/push/architecture claims are historical assertions, not current verified state."
+}

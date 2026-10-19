@@ -1,0 +1,137 @@
+{
+  "observed_at": "2026-10-19T07:12:52.840104+08:00",
+  "scope": "READ_ONLY_INCREMENTAL_OWNER_CONTINUITY_REVIEW",
+  "frozen_members": [
+    {
+      "path": "attachments.json",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "path": "decision-coverage.json",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "path": "README.md",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "path": "SOURCE-EXCERPTS.md",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "path": "tool-migration-navigation.json",
+      "bytes_match": true,
+      "sha256_match": true
+    },
+    {
+      "path": "verify_archive.py",
+      "bytes_match": true,
+      "sha256_match": true
+    }
+  ],
+  "topic_count": 39,
+  "unique_topic_ids": 39,
+  "current_reference_count": 28,
+  "missing_current_references": [],
+  "source_sha256": {
+    "docs/history/owner-dialogue-20261019/MANIFEST.json": "5d40b24687d11fe3e78c29d11da093b5e6ee6d5d93ba2948fa49dcd9fe8681c3",
+    "docs/history/owner-dialogue-20261019/decision-coverage.json": "44df71303ea45987ef49b6636aba5a02e6fc9b2e36baa5613b27983c8e14954c",
+    "docs/history/owner-dialogue-20261019/SOURCE-EXCERPTS.md": "0bfc55724b65dcec1f9639d1f0edab0092030ad726764c81c52e552e062bc121",
+    "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md": "8d6d52d40a95a0e66c6b988fc0e7f9ad0132a64e8579006d57e3733e1e1f7c56",
+    "docs/current/AAOS-ACTIVE-EXECUTION.json": "2813bc7a8dca71f130ea6d4c205a8fc7b955e7de2344a95eb7c69b7bf93b19ed",
+    "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md": "f08a075248e6f94feb3eea55702d6824088be9e7d7deae4113e6facd4f203d4e",
+    "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md": "59bf1aca3fcc9baeb6c4afa7214dd9777d3ff260662101b2153dc4ce32fb79fc",
+    "docs/DOCUMENTATION_AUTHORITY_INDEX.md": "bda88c32bf4e33b056cd570ee95ecce149e3ced1fd7958885eed9de8dfb09770",
+    "docs/SHARED_RESOURCE_PATH_INDEX.md": "26beceaebe944f9b56f841a2efc441617a803d16dce1d12d06f724ab99a447a0",
+    ".project-local/audits/be10-native-preview-revision-20261019/code-manifest.json": "52a27d0926421821bfb9134973123747fbd0eaaf1e32e1001b323f35995b8eca",
+    ".project-local/audits/be10-native-preview-revision-20261019/be10-native-preview-revision.patch": "aa0c154d2725a3b746a6812286c65d55dd281574de3f041d2a1b7ce669260551"
+  },
+  "be10_live_candidate_comparison": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+      "state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "sha256": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+      "state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff_preview.rs",
+      "sha256": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+      "state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+      "sha256": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+      "state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff_preview.rs",
+      "sha256": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+      "state": "AFTER"
+    },
+    {
+      "path": "docs/contracts/project-handoff-preview-v1.md",
+      "sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "state": "AFTER"
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "state": "BEFORE"
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "state": "AFTER"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.cases.json",
+      "sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "state": "AFTER"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.schema.json",
+      "sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "state": "AFTER"
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "sha256": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+      "state": "AFTER"
+    },
+    {
+      "path": "src-tauri/tests/project_handoff_preview.rs",
+      "sha256": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+      "state": "AFTER"
+    },
+    {
+      "path": "tests/contract/test_project_handoff_preview_contract.py",
+      "sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "state": "AFTER"
+    },
+    {
+      "path": "tests/test_native_preview_ci.py",
+      "sha256": "3b7da3132ec180171f0629aefc095b1ec809483a6ccccb3bbf3a1f419791a496",
+      "state": "AFTER"
+    }
+  ],
+  "not_executed": [
+    "canonical gate",
+    "product execution",
+    "Core/model/browser/service start",
+    "private session scan",
+    "public/product write"
+  ]
+}

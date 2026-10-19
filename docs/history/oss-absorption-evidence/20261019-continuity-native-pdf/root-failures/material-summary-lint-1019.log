@@ -1,0 +1,178 @@
+B905 `zip()` without an explicit `strict=` parameter
+  --> scripts\probes\aaos01_material_companion_loop.py:84:31
+   |
+82 |     rows = value["rows"]
+83 |     assert len(rows) == len(expected), "Unexpected UI inference operation count"
+84 |     for row, (op, preview) in zip(rows, expected):
+   |                               ^^^^^^^^^^^^^^^^^^^
+85 |         assert row["operation"] == op and row["preview"] is preview and row["own"]
+86 |         assert row["completed"] and row["status"] == 200 and not row.get("error")
+   |
+help: Add explicit value for parameter `strict=`
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:195:53
+    |
+193 |         ui.click_revealed("预览材料提问", scope)
+194 |         wait("return !!" + node(scope) + ".querySelector('[aria-label=\"待确认请求\"]')")
+195 |         expected.append(("material_question", True)); assert_calls(proof(js), expected)
+    |                                                     ^
+196 |         preview = proof(js)["rows"][-1]["preview_response"]; stage["material_preview"] = preview
+197 |         request = preview["plan"]["request"]
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:196:60
+    |
+194 | …     wait("return !!" + node(scope) + ".querySelector('[aria-label=\"待确认请求\"]')")
+195 | …     expected.append(("material_question", True)); assert_calls(proof(js), expected)
+196 | …     preview = proof(js)["rows"][-1]["preview_response"]; stage["material_preview"] = preview
+    |                                                          ^
+197 | …     request = preview["plan"]["request"]
+198 | …     assert request["material"] == {"kind": "document", "document_id": document["document_id"], "version": document["version"], "con…
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:199:41
+    |
+197 | …     request = preview["plan"]["request"]
+198 | …     assert request["material"] == {"kind": "document", "document_id": document["document_id"], "version": document["version"], "con…
+199 | …     selection = request["selection"]; assert selection and selection["start_utf16"] == 0
+    |                                       ^
+200 | …     raw = document["text_projection"].encode("utf-16-le")
+201 | …     assert selection["end_utf16"] == len(raw) // 2 and selection["quote_sha256"] == hashlib.sha256(raw.decode("utf-16-le").encode()…
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:206:54
+    |
+204 |         wait_execution(js, wait, stage, "material", preview)
+205 |         wait("return " + node(scope) + ".textContent.includes('回答已记录，仍是待判断的模型候选。')", seconds=150)
+206 |         expected.append(("material_question", False)); assert_calls(proof(js), expected)
+    |                                                      ^
+207 |         assert proof(js)["rows"][-1]["request"] == {**request, "preview": False, "confirmed_plan_sha256": preview["plan_sha256"]}
+208 |         ui.page("14")
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:216:56
+    |
+214 |         ui.click_revealed("预览会话请求", scope)
+215 |         wait("return !!" + node(scope) + ".querySelector('[aria-label=\"待确认请求\"]')")
+216 |         expected.append(("conversation_request", True)); assert_calls(proof(js), expected)
+    |                                                        ^
+217 |         preview = proof(js)["rows"][-1]["preview_response"]; stage["companion_preview"] = preview
+218 |         request = preview["plan"]["request"]
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:217:60
+    |
+215 |         wait("return !!" + node(scope) + ".querySelector('[aria-label=\"待确认请求\"]')")
+216 |         expected.append(("conversation_request", True)); assert_calls(proof(js), expected)
+217 |         preview = proof(js)["rows"][-1]["preview_response"]; stage["companion_preview"] = preview
+    |                                                            ^
+218 |         request = preview["plan"]["request"]
+219 |         assert request["material"] is None and request["model_configuration"] == stage["resolved"]["companion"]
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:223:57
+    |
+221 |         wait_execution(js, wait, stage, "companion", preview)
+222 |         wait("return " + node(scope) + ".textContent.includes('回执与历史已读回；回答仍需你判断。')", seconds=150)
+223 |         expected.append(("conversation_request", False)); assert_calls(proof(js), expected)
+    |                                                         ^
+224 |         assert proof(js)["rows"][-1]["request"] == {**request, "preview": False, "confirmed_plan_sha256": preview["plan_sha256"]}
+225 |         stage["receipts"] = read_receipts(read, stage)
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:311:40
+    |
+309 |             ui.click_revealed(preview_label, scope)
+310 |             wait("return !!" + node(scope) + ".querySelector('[aria-label=\"待确认请求\"]')")
+311 |             expected.append((op, True)); assert_calls(proof(js), expected)
+    |                                        ^
+312 |             preview = proof(js)["rows"][-1]["preview_response"]
+313 |             request = preview["plan"]["request"]
+    |
+
+B023 Function definition does not bind loop variable `identity`
+   --> scripts\probes\aaos01_material_companion_loop.py:322:200
+    |
+320 | …
+321 | …
+322 | …ence": 0, "limit": 64}}, lambda h: any(r.get("request_id") == identity["request_id"] for r in h["requests"]), seconds=10)
+    |                                                                ^^^^^^^^
+323 | …10)
+324 | …
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:333:63
+    |
+331 |             item["receipt"] = read(status_op, {"body": identity})
+332 |             assert_cancelled_receipt(item["receipt"], preview, purpose)
+333 |             expected.extend([(op, False), (cancel_op, False)]); assert_calls(proof(js), expected)
+    |                                                               ^
+334 |             message = "执行失败或取消，原请求和材料保留。" if purpose == "material" else "cancelled"
+335 |             if purpose == "material":
+    |
+
+E702 Multiple statements on one line (semicolon)
+   --> scripts\probes\aaos01_material_companion_loop.py:372:37
+    |
+370 |         sid = stage["purposes"]["companion"]["identity"]["session_id"]
+371 |         selector = scope + "//label[contains(.,'已保存会话')]/select"
+372 |         ui.reveal_selector(selector); ui.click_selector(selector + "/option[@value=" + literal(sid) + "]")
+    |                                     ^
+373 |         wait("return " + node(scope) + ".textContent.includes('当前会话：')")
+374 |         ui.click_revealed("重读历史", scope)
+    |
+
+N818 Exception name `StopBeforeUI` should be named with an Error suffix
+  --> tests\test_material_companion_native_probe.py:25:11
+   |
+23 | def test_summary_probe_asks_about_selected_body_and_records_case_identity(monkeypatch, text):
+24 |     """真正run入口的问句与样本绑定；隔离随机ID不伪装为另一份材料。"""
+25 |     class StopBeforeUI(Exception):
+   |           ^^^^^^^^^^^^
+26 |         pass
+   |
+
+E702 Multiple statements on one line (semicolon)
+  --> tests\test_material_companion_native_probe.py:67:37
+   |
+65 |     mutations = [lambda r: r.update(request_id="other"), lambda r: r.update(plan_sha256="b" * 64), lambda r: r.update(authority="accep…
+66 |     for mutate in mutations:
+67 |         bad = copy.deepcopy(receipt); mutate(bad)
+   |                                     ^
+68 |         with pytest.raises(AssertionError):
+69 |             probe.assert_bound_receipt(bad, preview, resolved, purpose)
+   |
+
+B023 Function definition does not bind loop variable `rows`
+   --> tests\test_material_companion_native_probe.py:184:64
+    |
+182 |     assert probe.wait_execution(lambda _: None, lambda *args, **kwargs: None, {}, "material", preview) == receipt
+183 |     for rows in [[{**row, "terminal_response": {**receipt, "plan_sha256": "wrong"}}], [row, row]]:
+184 |         monkeypatch.setattr(probe, "proof", lambda _: {"rows": rows, "overflow": False})
+    |                                                                ^^^^
+185 |         with pytest.raises(AssertionError):
+186 |             probe.wait_execution(lambda _: None, lambda *args, **kwargs: None, {}, "material", preview)
+    |
+
+N818 Exception name `Alert` should be named with an Error suffix
+   --> tests\test_material_companion_native_probe.py:191:11
+    |
+189 | @pytest.mark.parametrize("synchronous_alert", [False, True])
+190 | def test_owned_cancel_document_selection_confirms_its_guard_before_reader(synchronous_alert):
+191 |     class Alert(Exception):
+    |           ^^^^^
+192 |         value = {"error": "unexpected alert open"}
+193 |     class UI:
+    |
+
+Found 16 errors.
+No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).

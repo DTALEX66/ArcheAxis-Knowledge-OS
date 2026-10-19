@@ -1,0 +1,565 @@
+{
+  "schema": "archeaxis.project-closure-validation/v1",
+  "observed_at": "2026-10-18T09:12:18.118092+00:00",
+  "overall": "PARTIAL",
+  "scope": "Registered source convergence, production import custody guard, truthful donor evidence and selected multi-format/native engineering qualification",
+  "source_closure": {
+    "path": "docs/current/receipts/AAOS-SOURCE-CLOSURE-20261018.json",
+    "sha256": "8f7b5f272663b0929fe6d08aa4b7f0e9b17125d80eb06afdc17706bb0efa0c42"
+  },
+  "source_binding": "Current product gates/compiler/runtime stage share dirty patch e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f. Later ownership-path and reporting edits are documentation only, checked separately. Earlier receipts keep their own patches; no exact-SHA CI or installed qualification is claimed.",
+  "frontend": {
+    "status": "PASS",
+    "files": 159,
+    "tests": 1527,
+    "evidence_level": "SYNTHETIC",
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-lm-final-frontend/artifacts/execution.json",
+      "sha256": "4bba295e04a8c2acd14a863c50dc5354bf9aa11c63bb9c65bbb7692d440396a4",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f",
+      "source_consistent": true
+    }
+  },
+  "typescript_vite": {
+    "status": "PASS",
+    "bundle_warning_retained": true,
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/closure-native-host-lm-studio/artifacts/host-build.json",
+      "sha256": "fb2681a52e06c7fd9679c0d5857e8c689a0c7e6d7a7ca63038a453810495d70e"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-host-lm-studio/artifacts/execution.json",
+      "sha256": "6b312e647fcba750683e9e5feab6bffa685259320837f10ef4b71ff6cf5aac26",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f",
+      "source_consistent": true
+    }
+  },
+  "python_contracts": [
+    {
+      "tests": 98,
+      "subtests": 126,
+      "status": "PASS",
+      "scope": "Current archive, package identity, donor audit, crosswalk, document/catalog and native probe contracts; Windows fixture retains exact long historical paths",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/closure-python-final-long-path/artifacts/execution.json",
+        "sha256": "3585a2dd5d983737a107fcd10c668ead2bf2b4bc7a8ec5bdd8c7a68edad03424",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "source_patch_sha256": "7bb5d09241a342ee1f3d010a9b8204afb72bc5296f3abf7e1f2a83069fae8b73",
+        "source_consistent": true
+      }
+    },
+    {
+      "tests": 22,
+      "deselected": 2,
+      "status": "PASS",
+      "scope": "Current archive/package/evidence/catalog regressions; two full audit scans were selected out after their earlier passing run",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/closure-doc-catalog-final/artifacts/execution.json",
+        "sha256": "b3eb49c6e1484a937083f3e607ea5270902465f556c30539b3228fdc128eec94",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "source_patch_sha256": "ee32db887725a1ff61f3529890a66d323c194e21837f697cf744567f66a58e93",
+        "source_consistent": true
+      }
+    }
+  ],
+  "rust_format_source_apis": {
+    "status": "PASS",
+    "tests": 9,
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-rust-formats/artifacts/execution.json",
+      "sha256": "ffacb9329ae59ad48ef9e1f7b9379373ab5d4bda10df25455e2f25dbf7108a8d",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "9e09a61e967f3a30359194b5cc76c6f302cd32224654ce4c3f97d96ba4c0ac5d",
+      "source_consistent": true
+    }
+  },
+  "document_authority": {
+    "status": "PASS",
+    "external_private_inputs": "4 UNVERIFIED; no secret access",
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-authority-fixed/artifacts/execution.json",
+      "sha256": "7aa503395a354db8844d0d9c49f61f3890744a181a8302d9e21c795d260b290d",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "b57d6270f6a71fb30eb1ffa1d163e418d59da881c47b1fde655d2c73ec20d043",
+      "source_consistent": true
+    }
+  },
+  "native_dependency_cache": {
+    "status": "PASS_LOCKED_CRATE_HASHES",
+    "scope": "Project-local only; shared toolchain cache read-only; no lockfile/version change",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/closure-tauri-fetch/artifacts/cache-reuse.json",
+      "sha256": "b1f5d4f5428c0e8fc066fcc9b1ec5520989e00439b83a6d857ee86cc7ba24531"
+    },
+    "cancelled_download_execution": {
+      "path": ".project-local/runs/be268a2d33/closure-tauri-fetch/artifacts/execution.json",
+      "sha256": "96af53db8f54c971e65912970c87e35cf8669c18684c01903949037d7326af77",
+      "status": "FAIL",
+      "exit_code": 4294967295,
+      "source_patch_sha256": "b57d6270f6a71fb30eb1ffa1d163e418d59da881c47b1fde655d2c73ec20d043",
+      "source_consistent": true
+    },
+    "cancel_note": "Only the identity-verified task fetch child was stopped when exact locked crates were found in the shared public dependency cache; this interrupted fetch is not a product build failure."
+  },
+  "common_formats": {
+    "status": "PASS",
+    "evidence_level": "INTEGRATED",
+    "materials": "SYNTHETIC_AUTHORED",
+    "formats": [
+      "docx",
+      "xlsx",
+      "pptx",
+      "pdf"
+    ],
+    "operations": "actual Core/worker content, location, independent reparse, restart and original-byte checks",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/8f4cb50cea71/artifacts/common-formats.json",
+      "sha256": "7824e31a82ae0a25aa2722105c5da9243b44bcfc311913edea932450d57c387a"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-common-formats/artifacts/execution.json",
+      "sha256": "8ee8367bcb09812ecd6e47526240ed4f09add2de9cea7a6f7689cb6aed5e22d4",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "9e09a61e967f3a30359194b5cc76c6f302cd32224654ce4c3f97d96ba4c0ac5d",
+      "source_consistent": true
+    },
+    "limits": [
+      "Text PDF only; OCR separate",
+      "No source-package reconstruction or live formula calculation",
+      "No installed source application or UI qualification"
+    ]
+  },
+  "light_format_waves": [
+    {
+      "wave": "A",
+      "status": "PASS",
+      "cases": 12,
+      "formats": [
+        "canvas",
+        "docx",
+        "html",
+        "mp4",
+        "pdf",
+        "png",
+        "pptx",
+        "srt",
+        "txt",
+        "wav",
+        "xlsx",
+        "zip"
+      ],
+      "evidence_level": "INTEGRATED",
+      "materials": "PROJECT_AUTHORED_FIXTURES_REAL_CORE_EXECUTION",
+      "scope": "CORE_WORKER_API_AND_FILE_READBACK_NOT_INSTALLED_UI",
+      "limits": [
+        "Native Obsidian application not launched",
+        "EPUB source chapter/paragraph facts asserted against the fixture; Core EPUB receipt-native locator validates immutable source, job/attempt, paragraph and result SHA; original visual layout is not rendered",
+        "Audio/video use media.probe only; no decoding, ASR or time-range content claim"
+      ],
+      "receipt": {
+        "path": ".project-local/task-runtime/aaos01-light/49d50832dced4a7ea23d5fc32f1f0409/receipt.json",
+        "sha256": "10cb01b899c9daf384da3e961e7dd9f16b2486df6380722a11cc2e284aa54582"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/closure-light-wave-a/artifacts/execution.json",
+        "sha256": "0c53dd547aa498efbca7f8d82d695e27b7fe154c7b1128e64734144ea39f382e",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "source_patch_sha256": "ee32db887725a1ff61f3529890a66d323c194e21837f697cf744567f66a58e93",
+        "source_consistent": true
+      }
+    },
+    {
+      "wave": "B",
+      "status": "PASS",
+      "cases": 13,
+      "formats": [
+        "csv",
+        "eml",
+        "epub",
+        "json",
+        "jsonl",
+        "toml",
+        "tsv",
+        "xml",
+        "yaml"
+      ],
+      "evidence_level": "INTEGRATED",
+      "materials": "PROJECT_AUTHORED_FIXTURES_REAL_CORE_EXECUTION",
+      "scope": "CORE_WORKER_API_AND_FILE_READBACK_NOT_INSTALLED_UI",
+      "limits": [
+        "Native Obsidian application not launched",
+        "EPUB source chapter/paragraph facts asserted against the fixture; Core EPUB receipt-native locator validates immutable source, job/attempt, paragraph and result SHA; original visual layout is not rendered",
+        "Audio/video use media.probe only; no decoding, ASR or time-range content claim"
+      ],
+      "receipt": {
+        "path": ".project-local/task-runtime/aaos01-light/cafb8444ba0a40e182d97e6b109d0682/receipt.json",
+        "sha256": "ba1e10c577826f0773778596c58d81e7863ce38807ee93b3915e8fe6a13de3c5"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/closure-light-formats/artifacts/execution.json",
+        "sha256": "4a3b7deaa51217ca8cdd3d62cf86c93d34825ff3e84f1dc9a8bc26a4bad8a92a",
+        "status": "LOCAL_PASS",
+        "exit_code": 0,
+        "source_patch_sha256": "ee32db887725a1ff61f3529890a66d323c194e21837f697cf744567f66a58e93",
+        "source_consistent": true
+      }
+    }
+  ],
+  "native_candidate": {
+    "status": "FAIL",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-83a6cf4e1840/tmp/journey/receipt.json",
+      "sha256": "c9d3df0eb23a2f4bc5bed99afddd33f1142d5873c91c7baf2f55c349edb9c03e"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-actual-27b-qualified/artifacts/execution.json",
+      "sha256": "26757f3cdf24e914af71d07b931c9eda3f3e13198637d1f79968627599fe91b4",
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "1419a1621fb683bfb4542bf3788b502068ea7a0130c8583d6a530fff0853fdb0",
+      "source_consistent": true
+    },
+    "build": {
+      "path": ".project-local/runs/be268a2d33/closure-native-stage/candidate-build-lm-studio.json",
+      "sha256": "f7de289f0782ba8be33944cb791b07785e5348fd02e600bd7585166220af50a2"
+    }
+  },
+  "native_actual_4b_with_no_final_answer": {
+    "status": "FAIL",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-9d04f7a6575e/tmp/journey/receipt.json",
+      "sha256": "d9cf93b72d83d1143342c5ca99d88d4b7357de2fb6c77ddc94348c76e94f226a"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-actual-4b-ordinary-qualified/artifacts/execution.json",
+      "sha256": "79d32d79db8a77fad59d16563d8900486d11eb1db6dd2f2c5a52e04b30f9cc2c",
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "1419a1621fb683bfb4542bf3788b502068ea7a0130c8583d6a530fff0853fdb0",
+      "source_consistent": true
+    }
+  },
+  "native_actual_cancellation_with_retest_failure": {
+    "status": "FAIL",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-702b412276a4/tmp/journey/receipt.json",
+      "sha256": "b3ed722883ecb98776b7be0ec464b38de9617bc68526669d608d09b9db03f06f"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-actual-4b-inventory-qualified/artifacts/execution.json",
+      "sha256": "498b2e6a1a967852661f34825eeb94494f344ad5d5f9fd0e7793e4388fc68091",
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "1419a1621fb683bfb4542bf3788b502068ea7a0130c8583d6a530fff0853fdb0",
+      "source_consistent": true
+    }
+  },
+  "native_without_model_baseline": {
+    "status": "PASS",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-e66c56692989/tmp/journey/receipt.json",
+      "sha256": "df595da43649edcd0ea91f3c972b84b98fe126a33d20032d46223ef0cbc74e11"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-grouped-final/artifacts/execution.json",
+      "sha256": "950229017dd1678f65f44dc4d44634b4ec14f4c342255fdf316b3651a77e8724",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "7bb5d09241a342ee1f3d010a9b8204afb72bc5296f3abf7e1f2a83069fae8b73",
+      "source_consistent": true
+    }
+  },
+  "native_actual_answer_and_retest_before_horizontal_probe_fix": {
+    "status": "FAIL",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-b56cc86a3ef9/tmp/journey/receipt.json",
+      "sha256": "cb02e4f2f4038a7b4238edfa2d9042e17b071c99fbb099a7a1f97c44893ed149"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-actual-4b-answer/artifacts/execution.json",
+      "sha256": "e9a1f09b0e1bce78776b4d379df1aa84039fb5e6321aedb13293e4a96e1508f1",
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "da2261f35367666b8339078eeda24719ebee22fc9c12a7d777d13407b3db14bd",
+      "source_consistent": true
+    }
+  },
+  "native_cancellation_before_revealed_inventory_click": {
+    "status": "FAIL",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-27ffb8ff7fe5/tmp/journey/receipt.json",
+      "sha256": "c596ec733ed085581b890fbdbad8d280582860d0f8bbd457c95943a6f2361df7"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-actual-4b-confirmed/artifacts/execution.json",
+      "sha256": "b8d40df31b9676cea971690f5c43a24a07b43418bd9d1782f502e4117c01646f",
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "da2261f35367666b8339078eeda24719ebee22fc9c12a7d777d13407b3db14bd",
+      "source_consistent": true
+    }
+  },
+  "local_model_inventory": {
+    "status": "READ_VERIFIED",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/closure-native-stage/local-model-inventory-confirmed.json",
+      "sha256": "9158f149589a70dfbd870c1e96abb1ffe889fbf708c180cb6b9e82b3d4b9b67e"
+    },
+    "limits": [
+      "Model presence is not inference",
+      "Exact service-to-weight-file identity UNVERIFIED",
+      "No shared configuration or model files changed"
+    ]
+  },
+  "native_configuration_plan": {
+    "status": "PASS",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-445a1659fd16/tmp/journey/receipt.json",
+      "sha256": "e0e0d512b4a30fa2da7cf597cac18c872b6eed549601cfe7cfd5c25c33d50588"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-configuration-final/artifacts/execution.json",
+      "sha256": "b3bf5b8d2399537c1630f1fc49a087c8bebfdbc2400922059741249e5f35d05f",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "62c9772c5a6483ade02ef709b412be26fe258e3cb559f8ac0459d0cf02d39266",
+      "source_consistent": true
+    }
+  },
+  "native_character_memory": {
+    "status": "PASS",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-9c92dbfce8ef/tmp/journey/receipt.json",
+      "sha256": "edd07830411afb72e0e7f4bad4c9b0924b691a02323fa7db969617f87bea969f"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-memory-final/artifacts/execution.json",
+      "sha256": "4605d54d5df35ad7be8415912fb66b667a9f4a8239ce9bd8d3309d3491d5f006",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "62c9772c5a6483ade02ef709b412be26fe258e3cb559f8ac0459d0cf02d39266",
+      "source_consistent": true
+    }
+  },
+  "native_previous_failure": {
+    "status": "FAIL",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/webdriver-1e2afc47221e/tmp/journey/receipt.json",
+      "sha256": "a76e9e16fac0d248497a6bcd632a685fadd9562a69c513e58e8b0faee0a9ca5f"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-native-grouped/artifacts/execution.json",
+      "sha256": "f8dabcf9d1f91636633c10921072f35df71ebd43b4f8e44473eefbf56fead4ab",
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "b57d6270f6a71fb30eb1ffa1d163e418d59da881c47b1fde655d2c73ec20d043",
+      "source_consistent": true
+    }
+  },
+  "native_probe_guards": {
+    "status": "PASS",
+    "tests": 49,
+    "subtests": 128,
+    "evidence_level": "SIMULATED_OBSERVER_DOM",
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-inventory-retry-guards/artifacts/execution.json",
+      "sha256": "45c967312c57612718e8bded5ef7cf72737515a1f23766a10550dd4f7362c1c6",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "1419a1621fb683bfb4542bf3788b502068ea7a0130c8583d6a530fff0853fdb0",
+      "source_consistent": true
+    }
+  },
+  "absorption": {
+    "research_candidates": 369,
+    "cross_table_records": 701,
+    "current_surface_sources": 68,
+    "retained_conflicts": 115,
+    "class_counts": {
+      "base_dependency": 20,
+      "absorbed_algorithm": 15,
+      "future_candidate": 10,
+      "enableable_plugin": 7,
+      "not_adopted": 11,
+      "format_spec": 3,
+      "ux_donor": 2
+    },
+    "scope": "Production evidence excludes tests/fixtures and quoted labels; exact Tiptap scoped-package aliases; historical qualification source bytes preserved without promotion to current runtime acceptance"
+  },
+  "retained_failure_runs": [
+    "closure-native-host",
+    "closure-authority-check",
+    "closure-build-final",
+    "closure-frontend-all",
+    "closure-front-final",
+    "custody-red-20261018",
+    "closure-native-grouped",
+    "closure-pointer-red",
+    "closure-python-native-corrected",
+    "closure-native-actual-4b",
+    "closure-native-actual-4b-confirmed",
+    "closure-native-actual-4b-answer",
+    "closure-horizontal-red",
+    "closure-horizontal-green",
+    "closure-horizontal-guards",
+    "closure-native-actual-4b-complete"
+  ],
+  "remaining": [
+    "Complete Cowork native conversation body remains UNVERIFIED",
+    "Full application assistive technology and device performance acceptance",
+    "All visual requirements and Owner acceptance",
+    "Current installed five journeys and installation qualification",
+    "Current real promotional captures and support/restore proof",
+    "Current exact-SHA CI and delivery review",
+    "Per-source license and operation-specific qualification across the remaining open-source pool"
+  ],
+  "preservation": {
+    "native_sessions_unchanged": true,
+    "registered_source_originals_unchanged": true,
+    "green_unchanged": true,
+    "provider_auth_global_config_unchanged": true,
+    "no_commit_push_merge_release": true
+  },
+  "local_27b_worker": {
+    "status": "PASS",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/closure-local-27b-worker/artifacts/local-27b-worker.json",
+      "sha256": "60d8e5b0bfbe98f1286bd05a2464a5b94e245e8ac26b1942aa4ea24a803f98bb"
+    },
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-local-27b-worker/artifacts/execution.json",
+      "sha256": "f5e532ad3cdb4a162b12a0ab0bc1c6b0c2973d84dda64ed76957f90c2a4a079f",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "1419a1621fb683bfb4542bf3788b502068ea7a0130c8583d6a530fff0853fdb0",
+      "source_consistent": true
+    },
+    "scope": "Actual staged production worker; synthetic marker only; separate from native UI and model accuracy"
+  },
+  "isolated_inventory_diagnostic": {
+    "status": "PASS",
+    "attempts": 3,
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/closure-inventory-isolated/artifacts/isolated-inventory.json",
+      "sha256": "d49b66b82341cb987f559cff7c51581c80f18f15004a7da3b86823dbed9286e4"
+    },
+    "scope": "Exact clean child environment; native intermittent failure root cause remains UNVERIFIED"
+  },
+  "current_lm_studio": {
+    "status": "PASS_CONFIGURATION_AND_MEMBER_INTEGRITY",
+    "automatic_endpoint": "http://127.0.0.1:1234/v1",
+    "automatic_ollama_probe_or_fallback": false,
+    "inventory": {
+      "path": ".project-local/runs/be268a2d33/closure-lm-staged-probes/inventory.json",
+      "sha256": "4775dbaf0549200a867573c58b441a703988099d14f027f943130b9651579953"
+    },
+    "promotion": {
+      "path": ".project-local/runs/be268a2d33/runtime-migration-20261018/result.json",
+      "sha256": "be7ca97baebdd7faf14c4c2e63b60540838ffe07f477038a4989c6155702da6e"
+    },
+    "candidate": {
+      "path": ".project-local/runs/be268a2d33/closure-native-stage/candidate-build-lm-studio.json",
+      "sha256": "f7de289f0782ba8be33944cb791b07785e5348fd02e600bd7585166220af50a2"
+    },
+    "limits": [
+      "Inventory is not inference",
+      "Prior real-model native attempts retain FAIL/PARTIAL; current candidate complete AI journey NOT_EXECUTED",
+      "No global software uninstall or shared model changes",
+      "Manual IPv6 diagnostic input and native CSP support differ; UNVERIFIED; current IPv4 127.0.0.1 default is verified."
+    ]
+  },
+  "current_python": {
+    "status": "PASS",
+    "tests": 173,
+    "subtests": 18,
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-lm-final-python/artifacts/execution.json",
+      "sha256": "69a9578eadd1fcf654868f3c9df30412722e0b8f14c367b51401b3dddefe70ab",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f",
+      "source_consistent": true
+    }
+  },
+  "current_index_authority": {
+    "status": "PASS",
+    "tests": 29,
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-lm-final-index-tests/artifacts/execution.json",
+      "sha256": "619996fd3d98716c547a9c1d4bb43698af626b7c9e701424991dd595114fb999",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f",
+      "source_consistent": true
+    }
+  },
+  "current_rust_routing": {
+    "status": "PASS",
+    "tests": 7,
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-lm-final-rust/artifacts/execution.json",
+      "sha256": "a1702d4d0d6cbe8aa5eb91d678fb626485f6d586f42df5995354e5a8826c70ab",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f",
+      "source_consistent": true
+    }
+  },
+  "current_ruff_delta": {
+    "status": "PASS_DELTA_ONLY",
+    "new": 0,
+    "inherited": 89,
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-lm-final-ruff/artifacts/execution.json",
+      "sha256": "bcc92ca97dd1222a620f22460b2cbedb90972647428a01a221e337343166113f",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f",
+      "source_consistent": true
+    }
+  },
+  "current_core_build": {
+    "path": ".project-local/runs/be268a2d33/closure-core-lm-studio/artifacts/execution.json",
+    "sha256": "b478b19635a1f2f2dc176a67b8ef25d9154dfb5db9ca8e74ee5706664958ebeb",
+    "status": "LOCAL_PASS",
+    "exit_code": 0,
+    "source_patch_sha256": "e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f",
+    "source_consistent": true
+  },
+  "handoff_archive": {
+    "path": "docs/history/handoff-archive-20261018/MANIFEST.json",
+    "sha256": "186237276f4ef37ec38b23b587e82ba5aca9cdf137965e1f559b56d57325583d"
+  },
+  "runtime_profile_archive": {
+    "path": "docs/history/runtime-migration-20261018/MANIFEST.json",
+    "sha256": "0a5ead620fcc1be998a21c54cfd15239d98f54430ed5c1d8ef32fd677f60580f"
+  },
+  "post_reporting_documentation_gate": {
+    "tests": 28,
+    "status": "PASS",
+    "path": ".project-local/runs/be268a2d33/closure-lm-doc-final/artifacts/execution.json",
+    "sha256": "ee3fdab80bf2dc2c8a81ef1e16737228cb23ef301cefd81dfddc3262968d37ce",
+    "source_patch_sha256": "e6c98aa0ed7cc2512ab90b4a9d5b087e666fa209ac498d2cab0017e7662b6482",
+    "note": "Subsequent additions only record this gate, known IPv6 limitation and verified temporary-stage retirement."
+  },
+  "temporary_duplicate_stage_retirement": {
+    "status": "PASS",
+    "evidence_level": "REAL_FILESYSTEM_HASH_READBACK",
+    "path": ".project-local/runs/be268a2d33/runtime-migration-20261018/result-staging-retirement.json",
+    "sha256": "58b8f5799052ea2285d836c72e4dcf7840ecb1863462ef33eaa21d94c7e015a5",
+    "removed_files": 19523,
+    "removed_logical_bytes": 645768541,
+    "net_logical_bytes_after_manifest_and_plan": 636636873,
+    "note": "Current-run temporary third copy only, not old six runtimes; run scripts/logs/receipts excluded from net logical calculation; candidate and .rt preserved."
+  }
+}

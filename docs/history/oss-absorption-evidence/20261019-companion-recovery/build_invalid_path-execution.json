@@ -1,0 +1,29 @@
+{
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+  "dirty": true,
+  "source_patch_sha256": "420773b590aa27dd9f2ce2ca102187e3c3948c17e1d85ea53275a5089c30f742",
+  "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "started_at": "2026-10-18T17:36:07.242856+00:00",
+  "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-recovery-build-1019",
+  "executable": "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+  "argument_count": 4,
+  "command": [
+    "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+    "scripts/runtime/frontend.mjs",
+    "build",
+    "--receipt",
+    ".project-local/audits/capability-course-20261019/companion-recovery-build.json"
+  ],
+  "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "boundary": "environment-routing-not-sandbox",
+  "child_exit_code": 2,
+  "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256_after": "420773b590aa27dd9f2ce2ca102187e3c3948c17e1d85ea53275a5089c30f742",
+  "source_consistent": true,
+  "status": "FAIL",
+  "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-recovery-build-1019\\logs\\execution.log",
+  "exit_code": 2,
+  "ended_at": "2026-10-18T17:36:12.368696+00:00",
+  "seconds": 5.125838500011014
+}

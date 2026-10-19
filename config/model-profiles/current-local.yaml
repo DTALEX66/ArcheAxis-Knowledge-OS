@@ -1,0 +1,8 @@
+# Explicit OCR probe profile. Current model endpoints are declared only in
+# config/environment/capability-requirements.yaml; historical measurements live
+# under docs/history/runtime-migration-20261018/ and do not certify current runs.
+schema: archeaxis.model-profile/v1
+profile: local-current
+ocr:
+  engine: tesseract
+  tessdata_dir: "D:/All projects/OS External Configuration/10-toolchains/scoop/apps/tesseract-languages/current"

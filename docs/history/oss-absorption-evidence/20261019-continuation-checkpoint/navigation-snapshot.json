@@ -1,0 +1,32 @@
+{
+  "schema": "aaos.navigation-snapshot/v1",
+  "observed_at": "2026-10-18T19:09:08.424775+00:00",
+  "scope": "public project navigation only; no runtime qualification",
+  "members": {
+    "AAOS-资料索引.md": "7b1e8eceee8e10e84a5f339f97ea30ac0782f587c6167fba50896a5b9f1090a2",
+    "AGENTS.md": "28ef7d28c0d6fa35d72add9d2709d1f501d66e56b495184a5f443460c8033670",
+    "AUTHORITY.md": "d3db94691e9d3fdba45b287114e5506443696463005d5e128ab855febd77671b",
+    "config/environment/capability-requirements.yaml": "47245bf7b555ccbe4a8560bbed9ab5b59daf7ae796250fc79af52f6dfe28b3d3",
+    "config/environment/external-resources-index.json": "ffa139e5f639839ca33cb6feee63bf155fab73ddb076530f1fa7b13a7669e19a",
+    "docs/DOCUMENTATION_AUTHORITY_INDEX.md": "f56a68f385bad6c021c6a5cba7699de929df10215324d21bde18f0b828f7f5d9",
+    "docs/SHARED_RESOURCE_PATH_INDEX.md": "733ac5a3fc1b1eba0f30bbd741ec8080ea7b86563a54e1a8e4ec3e008aa9b75b",
+    "docs/current/AAOS-ACTIVE-EXECUTION.json": "4dfc227c7c40e57a350a7d795f566ce4fd7fe8cea4a038ec7278e29c30fa6a61",
+    "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md": "aa6f86112faa5feb86fdf4be9c3080fd946e6c2b61b5906b986a31a50badd4ad",
+    "docs/current/AAOS-AUTHORITY-ROUTES.json": "d176dc99304fa7eddcda592cc6daf65878289a5b3cbdf8f00e415146a76e2ca1",
+    "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md": "63da791e5aac5613d2b3a7d3cd04923919278b6b50355e0e0c4e1b664a158887",
+    "docs/current/AAOS-LOCAL-LLM-20261018.md": "c068a3d8c0adab2292083326dfb15709ad063c0d0a9b7369ced44b398887df7e",
+    "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md": "00bf68b09fdf8ce7c5576254202163175ed81328452520370f501750556f965e",
+    "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md": "4c70eb049c75220ae177d58d598a1d6e9cfc36c6f60508555a1387b3b64b0041",
+    "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md": "3ed7dac444d64e839d6e1efb08bbedc27958b78eb2ad5cab54ff20888903c756",
+    "docs/current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json": "80393aacb85955d627c0b3ea81d312629f0813d87c7df562fccabdf490779c91",
+    "docs/current/receipts/AAOS-COMPANION-RECOVERY-20261019.json": "e5f3bf17f3957aba0bc31a4342d446d5075c6c71f6df3f1148fcaece75ae6b4f",
+    "docs/current/receipts/AAOS-MACHINE-DEADLINE-20261019.json": "523ae5298a1665b618de18e344e39ffca066c889c542cef7fe02d4aa42f23beb",
+    "docs/current/receipts/AAOS-MATERIAL-COMPANION-QUALIFIED-20261019.json": "8cb108a5124adb85580689d28ba6d7561739da335e535a629be303b1fc1454d4",
+    "docs/history/oss-absorption-evidence/20261019-capability-course/README.md": "08d567b8ea79ead0cd4651f900b908c6a1838b00d0f8bf9d80264d56411e2535",
+    "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/README.md": "8c600b55b19042d74e9cc0349cbce0ea6f7d3dda86b14f1121269cd23029b8c8",
+    "docs/history/oss-absorption-evidence/20261019-machine-deadline/README.md": "75e098cb58af0494c2f5e6893c98f3caba3c29f5442366351a6f9f136b99306e",
+    "docs/history/oss-absorption-evidence/20261019-material-companion-final/README.md": "e4fed9d0029fd15792db86087410a49c04f1a115c9f15ecede57ee7a5785cbca",
+    "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md": "9f9c32d72459fd2d8f6cbdebd0d5702f9fe2c54f5b346893522b47868cba78c6",
+    "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/README.md": "fa6b45fefd4a4253c410a75ca6a07fd3581b79d517303fc794a1aa0fad6b183b"
+  }
+}

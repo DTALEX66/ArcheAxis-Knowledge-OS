@@ -4,27 +4,16 @@ use super::*;
 use archeaxis_domain::context_grant::{self, Consumption, Operation};
 use archeaxis_domain::{knowledge, machine};
 
-fn machine_failure(operation: &str, error: &str) -> Response {
-    let reason = match error {
-        "machine failure: MODEL_CALL_FAILED" => "MODEL_CALL_FAILED",
-        "machine failure: NO_FINAL_ANSWER" => "NO_FINAL_ANSWER",
-        "machine failure: EMPTY_ANSWER" | "machine worker returned no candidate answer" => {
-            "EMPTY_ANSWER"
-        }
-        "machine worker timed out" => "WORKER_TIMEOUT",
-        "machine worker output exceeds bound" => "OUTPUT_LIMIT",
-        "machine worker returned invalid JSON" => "INVALID_OUTPUT",
-        "machine worker pipe drain unavailable" => "PIPE_DRAIN_FAILED",
-        _ => "WORKER_FAILED",
-    };
-    (
-        StatusCode::SERVICE_UNAVAILABLE,
-        Json(json!({
-            "schema":"archeaxis.machine-call-failure/v1", "operation":operation,
-            "reason_code":reason, "execution_state":"UNVERIFIED", "answer_published":false
-        })),
-    )
-        .into_response()
+fn machine_failure(
+    operation: &str,
+    error: &archeaxis_application::executor::MachineFailure,
+) -> Response {
+    let mut value = json!({"schema":"archeaxis.machine-call-failure/v1", "operation":operation,
+        "reason_code":error.reason_code(), "execution_state":"UNVERIFIED", "answer_published":false});
+    if let Some(diagnostics) = error.diagnostics() {
+        value["diagnostics"] = diagnostics.clone();
+    }
+    (StatusCode::SERVICE_UNAVAILABLE, Json(value)).into_response()
 }
 
 fn now_seconds() -> u64 {
@@ -569,11 +558,11 @@ pub(super) async fn machine_answer(
         match super::readiness::require_execution_dependencies(&runtime.executor, "machine.answer")
             .await
         {
-            Err(reason) => Err(reason),
+            Err(reason) => Err(reason.into()),
             Ok(()) => {
                 runtime
                     .executor
-                    .machine_answer_configured(
+                    .machine_answer_configured_detailed(
                         text,
                         body.question.clone(),
                         effective_tokens,
@@ -603,7 +592,7 @@ pub(super) async fn machine_answer(
         }
     };
     let execution = if cancelled && execution.is_ok() {
-        Err("machine worker cancelled".to_owned())
+        Err("machine worker cancelled".into())
     } else {
         execution
     };
@@ -1043,11 +1032,11 @@ pub(super) async fn run_retest(
         match super::readiness::require_execution_dependencies(&runtime.executor, "machine.answer")
             .await
         {
-            Err(reason) => Err(reason),
+            Err(reason) => Err(reason.into()),
             Ok(()) => {
                 runtime
                     .executor
-                    .machine_answer_configured(
+                    .machine_answer_configured_detailed(
                         admitted_text,
                         body.question.clone(),
                         body.max_tokens.unwrap_or(2048),
@@ -1077,7 +1066,7 @@ pub(super) async fn run_retest(
         }
     };
     let execution = if cancelled && execution.is_ok() {
-        Err("machine worker cancelled".to_owned())
+        Err("machine worker cancelled".into())
     } else {
         execution
     };

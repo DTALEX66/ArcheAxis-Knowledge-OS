@@ -1,22 +1,55 @@
-import {coreCommand} from "../api/core";
-import type {ModelConfiguration,ResolvedModel} from "../api/generated/model-configuration-contract";
-import {useEffect,useRef,useState} from "react";
-import {conversation,conversationConsumer,mergeConversationEvents} from "../api/conversation";
-import type {ConversationSessionDto,ConversationSummaryDto,ConversationRequestDto,ConversationPreviewDto,ConversationReceiptDto,ConversationStatusDto,MaterialContextDto,MaterialSelectionDto} from "../api/generated/conversation";
+import type {ModelLane} from "../api/generated/model-configuration-contract";
+import {useEffect,useRef,useSyncExternalStore} from "react";
+import type {MaterialContextDto,MaterialSelectionDto} from "../api/generated/conversation";
+import {CompanionSession} from "../companion/CompanionSession";
+import {useOptionalCompanionSession,useStandaloneCompanionSession,useCompanionIdentityVerification} from "../companion/CompanionSessionProvider";
 import {RawReceiptButton} from "./DiagnosticConsole";
+import {FrozenRequestSummary} from "./FrozenRequestSummary";
+import {XiaoqiAvatar} from "./XiaoqiAvatar";
+import type {XiaoqiState} from "../companion/xiaoqiAssets";
 function answerText(value:unknown):string{if(!value||typeof value!=="object")return "";const answer=(value as Record<string,unknown>).answer;return typeof answer==="string"?answer:"";}
-/** AAOS typed consumer only. ASTRYN integration is explicitly unverified. */
-export function ConversationPanel({material,selection}:{material?:MaterialContextDto;selection?:MaterialSelectionDto}){
- const [sessions,setSessions]=useState<ConversationSummaryDto[]>([]),[current,setCurrent]=useState<ConversationSessionDto|null>(null),[question,setQuestion]=useState(""),[preview,setPreview]=useState<ConversationPreviewDto|null>(null),[result,setResult]=useState<ConversationReceiptDto|ConversationStatusDto|null>(null),[message,setMessage]=useState(""),[busy,setBusy]=useState(false);
- const epoch=useRef(0),active=useRef<ConversationRequestDto|null>(null),frozen=useRef<ConversationRequestDto|null>(null);
+type Props={materialTitle?:string;material?:MaterialContextDto;selection?:MaterialSelectionDto;slot?:"home"|"reader"|"sidebar"|"full"};
+export function ConversationPanel(props:Props){
+ const shared=useOptionalCompanionSession();
+ return shared?<ConversationView {...props} session={shared}/>:<StandaloneConversation {...props}/>;
+}
+function StandaloneConversation(props:Props){const session=useStandaloneCompanionSession();return <ConversationView {...props} session={session}/>;}
+function ConversationView({material,materialTitle,selection,slot="full",session}:Props&{session:CompanionSession}){
+ const {sessions,current,question,lane,preview,result,message,busy,paused,active,outstandingId,confirmedReceipts}=useSyncExternalStore(session.subscribe,session.getSnapshot,session.getSnapshot);
+ const verifyIdentity=useCompanionIdentityVerification();
+ const view=useRef({});
  const contextKey=JSON.stringify({material,selection});
- useEffect(()=>{const e=++epoch.current;frozen.current=null;setPreview(null);setResult(null);setBusy(false);void conversation.history({session_id:null,after_sequence:0,limit:64}).then(value=>{if(e===epoch.current&&"sessions" in value)setSessions(value.sessions);}).catch(()=>{if(e===epoch.current)setMessage("会话目录暂未确认，请重读或创建。");});return()=>{epoch.current++;active.current=null;};},[contextKey]);
- async function load(id:string){if(!id)return;const e=++epoch.current;frozen.current=null;setPreview(null);setResult(null);setBusy(true);try{const value=await conversation.history({session_id:id,after_sequence:0,limit:64});if(e!==epoch.current||!("events" in value))return;setCurrent(value);setMessage("历史已读回；切换呈现不会创建推理。未完成请求保持 UNKNOWN。");}catch{if(e===epoch.current)setMessage("会话历史未确认。");}finally{if(e===epoch.current)setBusy(false);}}
- async function more(){if(!current)return;const e=epoch.current;setBusy(true);try{const history=await conversation.history({session_id:current.session_id,after_sequence:current.events.at(-1)?.sequence??0,limit:64});if(e===epoch.current&&"events" in history)setCurrent({...history,events:mergeConversationEvents(current.events,history.events,current.session_id)});}catch{if(e===epoch.current)setMessage("后续事件未确认，已读历史保留。");}finally{if(e===epoch.current)setBusy(false);}}
- async function create(){const e=++epoch.current;setBusy(true);try{const value=await conversation.create({session_id:crypto.randomUUID(),title:"本地陪伴会话",consumer:conversationConsumer});if(e!==epoch.current)return;setCurrent(value);setSessions(s=>[{session_id:value.session_id,title:value.title,last_sequence:value.last_sequence,consumer:conversationConsumer},...s]);frozen.current=null;setPreview(null);setResult(null);}catch{if(e===epoch.current)setMessage("会话创建未确认。");}finally{if(e===epoch.current)setBusy(false);}}
- async function prepare(){if(!current)return;const e=epoch.current;setBusy(true);try{const body:ConversationRequestDto={session_id:current.session_id,request_id:crypto.randomUUID(),purpose:material?"material_learning":"companion",material:material??null,selection:selection??null,question,model:null,max_tokens:2048,timeout_s:120,preview:true,confirmed_plan_sha256:null};const configuration=await coreCommand<ModelConfiguration>("model_configuration_get");if(configuration.revision>0){const resolved=await coreCommand<ResolvedModel>("model_configuration_resolve",{body:{purpose:material?"material":"companion",lane:"fast"}});body.model_configuration=resolved;body.model=resolved.profile.model;body.max_tokens=Math.min(body.max_tokens,resolved.profile.max_tokens);body.timeout_s=resolved.profile.timeout_s;}const value=await conversation.preview(body);if(e!==epoch.current)return;frozen.current={...body,preview:false,confirmed_plan_sha256:value.plan_sha256};setPreview(value);setMessage("核对当前会话、问题、历史上下文和本地目的地后确认。");}catch{if(e===epoch.current)setMessage("请求预览失败：可能有未确认的旧请求或材料版本不符。");}finally{if(e===epoch.current)setBusy(false);}}
- async function execute(){const body=frozen.current;if(!body)return;const e=epoch.current;active.current=body;setBusy(true);try{const value=await conversation.execute(body);if(e!==epoch.current)return;setResult(value);const history=await conversation.history({session_id:body.session_id,after_sequence:0,limit:64});if(e===epoch.current&&"events" in history)setCurrent(history);setMessage("回执与历史已读回；回答仍是模型候选。该请求不会静默重复推理。");}catch{if(e===epoch.current)setMessage("执行结果 UNKNOWN；保留冻结请求，重读状态，不新建推理。");}finally{if(active.current?.request_id===body.request_id)active.current=null;if(e===epoch.current)setBusy(false);}}
- async function readRequest(requestId:string){if(!current)return;const e=epoch.current;setBusy(true);try{const value=await conversation.status({session_id:current.session_id,request_id:requestId});if(e!==epoch.current)return;setResult(value);setMessage("仅查询原请求，不再次推理。");}catch{if(e===epoch.current)setMessage("请求状态未确认。");}finally{if(e===epoch.current)setBusy(false);}}
- async function cancel(){if(!active.current)return;const e=epoch.current;try{const value=await conversation.cancel(active.current);if(e===epoch.current)setMessage(value.cancel_requested?"取消已请求；等待终态回执，provider 停止仍为 UNKNOWN。":"该请求已不接受取消，请读回终态。");}catch{if(e===epoch.current)setMessage("取消确认失败，请查询同一请求。");}}
- return <section aria-label="正式陪伴会话"><h3>{material?"材料学习会话":"本地陪伴会话"}</h3><p>完整回答形成后发布回执（BUFFERED）。回答仍是模型候选。</p><button disabled={busy} onClick={()=>void create()}>新建陪伴会话</button><label>已保存会话<select disabled={busy} value={current?.session_id??""} onChange={e=>void load(e.target.value)}><option value="">选择会话</option>{sessions.map(s=><option key={s.session_id} value={s.session_id}>{s.title} · {s.session_id}</option>)}</select></label>{current?<><p>会话 {current.session_id} · sequence {current.last_sequence}</p><button disabled={busy} onClick={()=>void load(current.session_id)}>重读历史</button>{current.events.map(event=><div key={event.sequence}><small>{event.sequence} · {event.request_id} · {event.kind}</small>{event.kind==="accepted"?<p>{"question" in event.data?event.data.question:""}</p>:null}{event.kind==="completed"&&"answer" in event.data&&answerText(event.data.answer)!==""?<p style={{whiteSpace:"pre-wrap"}}>{answerText(event.data.answer)}</p>:null}</div>)}{(current.events.at(-1)?.sequence??0)<current.last_sequence?<button disabled={busy} onClick={()=>void more()}>读取后续会话事件</button>:null}{current.requests.map(r=><button key={r.request_id} disabled={busy} onClick={()=>void readRequest(r.request_id)}>查询 {r.request_id} · {r.state}</button>)}<label>会话问题<textarea disabled={busy} value={question} onChange={e=>{frozen.current=null;setPreview(null);setQuestion(e.target.value);}}/></label><button disabled={busy||!question.trim()} onClick={()=>void prepare()}>预览会话请求</button>{preview?<><RawReceiptButton label="会话冻结请求与目的地" payload={preview}/><button disabled={busy} onClick={()=>void execute()}>确认执行同一会话请求</button></>:null}{busy&&active.current?<button onClick={()=>void cancel()}>取消会话请求</button>:null}</>:null}{result?<RawReceiptButton label="原请求会话回执" payload={result}/>:null}{message?<p role="status">{message}</p>:null}</section>;
+ useEffect(()=>{session.contextChanged(view.current,contextKey);},[session,contextKey]);
+ const terminal=session.terminal(),uncertain=session.uncertain();
+ const lastKind=current?.events.at(-1)?.kind;
+ const visibleState:XiaoqiState=busy&&active?"thinking":terminal==="cancelled"?"interrupted":terminal==="failed"?"failed":terminal==="completed"?"completed":uncertain?"idle":preview?"awaiting_approval":lastKind==="cancelled"?"interrupted":lastKind==="failed"?"failed":lastKind==="completed"?"completed":"idle";
+ const requestState = (state: string) => ({completed: "已完成", failed: "未完成", cancelled: "已取消", EXECUTING: "结果待确认"}[state] ?? "待核对");
+ return <section aria-label={slot==="full"?"正式陪伴会话":`${{home:"首页",reader:"阅读区",sidebar:"侧栏"}[slot]}小栖会话`} data-companion-slot={slot}>
+  <XiaoqiAvatar state={visibleState}/><h3>{material?"材料学习会话":"本地陪伴会话"}</h3>
+  <p>回答完成后会显示在这里，内容仍需你判断。</p>
+  {paused&&verifyIdentity?<button onClick={()=>void verifyIdentity()}>核对陪伴工作区</button>:null}
+  <button disabled={busy||paused} onClick={()=>void session.refreshCatalog()}>重读会话目录</button>
+  <button disabled={busy||paused} onClick={()=>void session.create()}>新建陪伴会话</button>
+  <label>已保存会话<select disabled={busy||paused} value={current?.session_id??""} onChange={e=>void session.load(e.target.value)}><option value="">选择会话</option>{sessions.map((s,index)=><option key={s.session_id} value={s.session_id}>{s.title} · {index+1}</option>)}</select></label>
+  {current?<>
+   <p>当前会话：{current.title}</p><RawReceiptButton label="会话运行记录" payload={current} visibleLabel="查看会话诊断"/>
+   <button disabled={busy||paused} onClick={()=>void session.load(current.session_id)}>重读历史</button>
+   {current.events.map(event=><div key={event.sequence}>
+    {event.kind==="accepted"?<p>{"question" in event.data?event.data.question:""}</p>:null}
+    {event.kind==="completed"&&"answer" in event.data&&answerText(event.data.answer)!==""?<p style={{whiteSpace:"pre-wrap"}}>{answerText(event.data.answer)}</p>:null}
+    {event.kind==="failed"||event.kind==="cancelled"?<p>{requestState(event.kind)}，可以查看诊断或查询原请求。</p>:null}
+   </div>)}
+   {confirmedReceipts.filter(r=>r.state==="completed"&&answerText(r.answer)!==""&&!current.events.some(e=>e.request_id===r.request_id&&e.kind==="completed"&&"answer" in e.data&&answerText(e.data.answer)!=="")).map(r=><p key={r.request_id} style={{whiteSpace:"pre-wrap"}}>{answerText(r.answer)}</p>)}
+   {(current.events.at(-1)?.sequence??0)<current.last_sequence?<button disabled={busy||paused} onClick={()=>void session.more()}>读取后续会话事件</button>:null}
+   {current.requests.map((r,index)=><button key={r.request_id} disabled={busy||paused} onClick={()=>void session.readRequest(r.request_id)}>查询第 {index+1} 次提问 · {requestState(confirmedReceipts.find(receipt=>receipt.request_id===r.request_id)?.state??r.state)}</button>)}
+   <label>会话模型通道<select disabled={busy||paused||uncertain} value={lane} onChange={e=>{session.setLane(e.target.value as ModelLane);}}><option value="fast">快速</option><option value="deep">深度</option></select></label>
+   <label>会话问题<textarea disabled={busy||paused} value={question} onChange={e=>{session.setQuestion(e.target.value);}}/></label>
+   <button disabled={busy||paused||uncertain||!question.trim()} onClick={()=>void session.prepare({material,selection},view.current)}>预览会话请求</button>
+   {preview?<><FrozenRequestSummary request={preview.plan.request} materialPresentation={material&&materialTitle?{identity:material,title:materialTitle}:undefined} destinationCandidates={preview.plan.destination_candidates}/><RawReceiptButton label="会话冻结请求与目的地" payload={preview} category="runtime"/><button disabled={busy||paused||uncertain} onClick={()=>void session.execute()}>确认执行同一会话请求</button></>:null}
+   {busy&&active?<button onClick={()=>void session.cancel()}>取消会话请求</button>:null}
+  </>:null}
+  {uncertain&&outstandingId?<><p role="status">请求状态未确认，请查询原请求。</p><button disabled={busy||paused} onClick={()=>void session.readRequest(outstandingId)}>查询未确认请求</button></>:null}
+  {result?<RawReceiptButton label="原请求会话回执" payload={result}/>:null}
+  {message?<p role="status">{message}</p>:null}
+ </section>;
 }

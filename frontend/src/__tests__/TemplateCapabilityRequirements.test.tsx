@@ -368,7 +368,7 @@ describe("app shell wiring of the template→capability route", () => {
       expect(within(table).getAllByText("无 ID，不可跳转")).toHaveLength(5);
       fireEvent.change(screen.getByLabelText("模板"), { target: { value: "T2" } });
       fireEvent.click(await screen.findByRole("button", { name: "打开能力详情 CAP-0020 · html.structure" }));
-      expect(await screen.findByRole("heading", { name: "全能力目录" })).toBeInTheDocument();
+      expect(await screen.findByRole("heading", { name: "能力中心" })).toBeInTheDocument();
       expect(screen.getByRole("article", { name: "能力详情" })).toHaveTextContent("CAP-0020");
       expect(window.location.hash).toBe("#capability/CAP-0020");
     } finally {

@@ -1,0 +1,18 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo test --offline --locked -p archeaxis-sidecar-protocol --test worker_protocol
+
+running 6 tests
+test splitting_is_the_only_parameter_a_request_may_carry ... ok
+test handshake_requires_supported_versions_and_actual_text_capability ... ok
+test pdf_runtime_dependency_is_bounded_and_required_only_for_pdf_admission ... ok
+test errors_are_explicit_and_unknown_duplicate_or_oversized_frames_fail ... ok
+test schema_integer_spellings_and_failed_terminal_shape_are_checked ... ok
+test result_identity_and_full_output_set_cannot_be_forged_or_dropped ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+   Compiling archeaxis-sidecar-protocol v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-sidecar-protocol)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.85s
+     Running tests\worker_protocol.rs (.project-local\build\cargo\debug\deps\worker_protocol-538f0e466bb01122.exe)

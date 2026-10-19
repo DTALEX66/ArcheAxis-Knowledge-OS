@@ -1,0 +1,841 @@
+diff --git a/services/python-workers/document/worker_pdf.py b/services/python-workers/document/worker_pdf.py
+--- a/services/python-workers/document/worker_pdf.py
++++ b/services/python-workers/document/worker_pdf.py
+@@ -30,11 +30,11 @@
+ import importlib.util
+ import io
+ import json
++import re
+ import sys
+ from pathlib import Path
+ 
+ ENGINE = "pymupdf-native-pdf"
+-ENGINE_VERSION = "pymupdf"
+ # R08: identity advertised in the sidecar handshake for this route.
+ WORKER_IDENTITY = "python-worker-pdf-ndjson"
+ 
+@@ -150,17 +150,40 @@
+     return facts
+ 
+ 
++def _runtime_dependency():
++    """Import only: no document, inference, installation or engine qualification."""
++    observation = {"name": "pymupdf", "status": "MISSING", "version": None}
++    for name in ("pymupdf", "fitz"):
++        try:
++            # Native import chatter must never become an NDJSON frame.
++            with contextlib.redirect_stdout(io.StringIO()):
++                module = __import__(name)
++        except ModuleNotFoundError as exc:
++            if exc.name == name:
++                continue
++            return None, {**observation, "status": "IMPORT_FAILED"}
++        except Exception:
++            return None, {**observation, "status": "IMPORT_FAILED"}
++        if not callable(getattr(module, "open", None)):
++            return None, {**observation, "status": "IMPORT_FAILED"}
++        # Observe the loaded module, not unrelated/stale distribution metadata.
++        for value in (getattr(module, "__version__", None), getattr(module, "VersionBind", None)):
++            if isinstance(value, str) and re.fullmatch(r"[0-9][0-9A-Za-z.+_-]{0,63}", value):
++                return module, {**observation, "status": "AVAILABLE", "version": value}
++        return module, {**observation, "status": "VERSION_UNKNOWN"}
++    return None, observation
++
++
++def _required_engine():
++    module, observation = _runtime_dependency()
++    if observation["status"] != "AVAILABLE":
++        raise RuntimeError("PDF_DEPENDENCY_" + observation["status"])
++    return module, observation
++
++
+ def _open_document(raw: bytes):
+     """Open a PDF in memory with the available native engine."""
+-    module = None
+-    for name in ("pymupdf", "fitz"):
+-        try:
+-            module = __import__(name)
+-            break
+-        except ImportError:
+-            continue
+-    if module is None:  # pragma: no cover - engine availability
+-        raise RuntimeError("no native PDF engine available (pymupdf/pdfminer)")
++    module, _ = _required_engine()
+     try:
+         # `pymupdf.open` accepts a stream + filetype, same as the legacy alias.
+         return module.open(stream=raw, filetype="pdf")
+@@ -286,6 +309,7 @@
+ 
+ 
+ def extract(path: str, ocr_dir: Path | None = None) -> dict:
++    _, dependency = _required_engine()
+     raw = Path(path).read_bytes()
+     document = _open_document(raw)
+     pages = list(document)
+@@ -434,8 +458,9 @@
+     table_finder = any(callable(getattr(page, "find_tables", None)) for page in pages)
+     loss_receipt = {
+         "engine": ENGINE,
+-        "engine_version": ENGINE_VERSION,
++        "engine_version": dependency["version"],
+         "params": {
++            "runtime_dependency": dependency,
+             "pages": len(pages),
+             "cap_anchors": MAX_ANCHORS,
+             "coverage_unit": "line anchors",
+@@ -507,7 +532,7 @@
+         loss_receipt["loss_note"] += "; zero-page PDF has no coverage to claim"
+     return {
+         "engine": ENGINE,
+-        "engine_version": ENGINE_VERSION,
++        "engine_version": dependency["version"],
+         "text": text,
+         "structure": anchors,
+         "loss_receipt": loss_receipt,
+@@ -543,7 +568,9 @@
+         # attempt directory itself is temporary, so renders must not live there.
+         parser.add_argument("--artifact-root", type=Path, default=None)
+         args = parser.parse_args()
+-        return transport.serve_stdio(WORKER_IDENTITY, ["pdf.extract"], args.staging_root, args.artifact_root)
++        _, dependency = _runtime_dependency()
++        return transport.serve_stdio(WORKER_IDENTITY, ["pdf.extract"], args.staging_root, args.artifact_root,
++                                     runtime_dependency=dependency)
+ 
+     with contextlib.suppress(AttributeError, OSError):
+         sys.stdout.reconfigure(encoding="utf-8")
+diff --git a/services/python-workers/transport/text_ndjson.py b/services/python-workers/transport/text_ndjson.py
+--- a/services/python-workers/transport/text_ndjson.py
++++ b/services/python-workers/transport/text_ndjson.py
+@@ -772,7 +772,7 @@
+     sys.stdout.buffer.flush()
+ 
+ 
+-def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path, artifact_root: Path | None = None) -> int:
++def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path, artifact_root: Path | None = None, *, runtime_dependency: dict | None = None) -> int:
+     """R08: one stdio job loop for every route.
+ 
+     The worker identity and the advertised capabilities are the only per-route
+@@ -783,7 +783,8 @@
+     emit({"schema": "archeaxis.worker-hello/v1", "type": "hello",
+           "protocol": {"major": 1, "min_minor": 0, "max_minor": 0},
+           "worker": {"name": worker_name, "version": "1"},
+-          "capabilities": list(capabilities), "schemas": OUTPUT_SCHEMAS})
++          "capabilities": list(capabilities), "schemas": OUTPUT_SCHEMAS,
++          **({"runtime_dependency": runtime_dependency} if runtime_dependency is not None else {})})
+     request = None
+     response = response_for(request)
+     try:
+@@ -803,6 +804,8 @@
+         advertised = request.get("capability") if isinstance(request, dict) else None
+         if advertised not in capabilities:
+             raise Rejected("unsupported capability")
++        if runtime_dependency is not None and runtime_dependency["status"] != "AVAILABLE":
++            raise Rejected("PDF_DEPENDENCY_" + runtime_dependency["status"], "AAK-DEP-001")
+         outputs, measurements, warnings = execute(request, staging_root, artifact_root)
+         response.update(status="succeeded", outputs=outputs, measurements=measurements, warnings=warnings)
+     except Rejected as exc:
+diff --git a/crates/archeaxis-sidecar-protocol/src/worker.rs b/crates/archeaxis-sidecar-protocol/src/worker.rs
+--- a/crates/archeaxis-sidecar-protocol/src/worker.rs
++++ b/crates/archeaxis-sidecar-protocol/src/worker.rs
+@@ -26,6 +26,26 @@
+ pub struct Worker {
+     pub name: String,
+     pub version: String,
++}
++#[derive(Debug, Serialize, Deserialize)]
++#[serde(deny_unknown_fields)]
++pub struct RuntimeDependency {
++    pub name: String,
++    pub status: String,
++    #[serde(deserialize_with = "required_version")]
++    pub version: Option<String>,
++}
++impl RuntimeDependency {
++    fn valid(&self) -> bool {
++        self.name == "pymupdf" && match self.status.as_str() {
++            "AVAILABLE" => self.version.as_ref().is_some_and(|s| {
++                !s.is_empty() && s.len() <= 64 && s.as_bytes()[0].is_ascii_digit()
++                    && s.bytes().all(|b| b.is_ascii_alphanumeric() || b".+_-".contains(&b))
++            }),
++            "MISSING" | "VERSION_UNKNOWN" | "IMPORT_FAILED" => self.version.is_none(),
++            _ => false,
++        }
++    }
+ }
+ #[derive(Debug, Serialize, Deserialize)]
+ #[serde(deny_unknown_fields)]
+@@ -37,6 +57,22 @@
+     pub worker: Worker,
+     pub capabilities: Vec<String>,
+     pub schemas: Vec<String>,
++    #[serde(default, deserialize_with = "runtime_dependency", skip_serializing_if = "Option::is_none")]
++    pub runtime_dependency: Option<RuntimeDependency>,
++}
++impl Hello {
++    /// PDF requires a fresh observation before any request contents are sent.
++    /// Other legacy routes keep their existing hello contract.
++    pub fn require_runtime_dependency(&self, capability: &str) -> Result<()> {
++        if capability != "pdf.extract" { return Ok(()); }
++        match self.runtime_dependency.as_ref().map(|d| d.status.as_str()) {
++            Some("AVAILABLE") => Ok(()),
++            Some("MISSING") => Err("PDF_DEPENDENCY_MISSING"),
++            Some("VERSION_UNKNOWN") => Err("PDF_DEPENDENCY_VERSION_UNKNOWN"),
++            Some("IMPORT_FAILED") => Err("PDF_DEPENDENCY_IMPORT_FAILED"),
++            _ => Err("PDF_DEPENDENCY_UNOBSERVED"),
++        }
++    }
+ }
+ #[derive(Debug, Serialize, Deserialize)]
+ #[serde(deny_unknown_fields)]
+@@ -263,6 +299,7 @@
+             .all(|schema| hello.schemas.iter().any(|s| s == schema))
+         || !unique(&hello.capabilities)
+         || !unique(&hello.schemas)
++        || hello.runtime_dependency.as_ref().is_some_and(|d| !d.valid())
+     {
+         return Err("incompatible worker hello");
+     }
+@@ -320,3 +357,11 @@
+     }
+     Ok(result)
+ }
++
++fn required_version<'de, D: serde::Deserializer<'de>>(d: D) -> std::result::Result<Option<String>, D::Error> {
++    Option::<String>::deserialize(d)
++}
++
++fn runtime_dependency<'de, D: serde::Deserializer<'de>>(d: D) -> std::result::Result<Option<RuntimeDependency>, D::Error> {
++    RuntimeDependency::deserialize(d).map(Some)
++}
+diff --git a/crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs b/crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs
+--- a/crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs
++++ b/crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs
+@@ -160,3 +160,35 @@
+     assert!(!split.parameters.contains_key("window"));
+     assert!(media().splitting("  ").is_err());
+ }
++
++#[test]
++fn pdf_runtime_dependency_is_bounded_and_required_only_for_pdf_admission() {
++    let legacy = decode_hello(&hello().to_string()).unwrap();
++    assert!(legacy.require_runtime_dependency("text.extract").is_ok());
++    assert_eq!(legacy.require_runtime_dependency("pdf.extract"), Err("PDF_DEPENDENCY_UNOBSERVED"));
++    for (status, version, reason) in [
++        ("MISSING", Value::Null, Some("PDF_DEPENDENCY_MISSING")),
++        ("VERSION_UNKNOWN", Value::Null, Some("PDF_DEPENDENCY_VERSION_UNKNOWN")),
++        ("IMPORT_FAILED", Value::Null, Some("PDF_DEPENDENCY_IMPORT_FAILED")),
++        ("AVAILABLE", json!("1.28.2"), None),
++    ] {
++        let mut value = hello();
++        value["runtime_dependency"] = json!({"name":"pymupdf","status":status,"version":version});
++        let decoded = decode_hello(&value.to_string()).unwrap();
++        assert_eq!(decoded.require_runtime_dependency("pdf.extract").err(), reason);
++    }
++    for dependency in [
++        Value::Null,
++        json!({"name":"pymupdf","status":"AVAILABLE","version":null}),
++        json!({"name":"pymupdf","status":"AVAILABLE","version":"pymupdf"}),
++        json!({"name":"pymupdf","status":"AVAILABLE","version":"1.0\n"}),
++        json!({"name":"pymupdf","status":"AVAILABLE","version":format!("{}\n", "1".repeat(64))}),
++        json!({"name":"pymupdf","status":"MISSING","version":"1.0"}),
++        json!({"name":"other","status":"AVAILABLE","version":"1.0"}),
++        json!({"name":"pymupdf","status":"MISSING"}),
++        json!({"name":"pymupdf","status":"MISSING","version":null,"extra":true}),
++    ] {
++        let mut value = hello(); value["runtime_dependency"] = dependency;
++        assert!(decode_hello(&value.to_string()).is_err(), "{value}");
++    }
++}
+diff --git a/crates/archeaxis-application/src/attempts.rs b/crates/archeaxis-application/src/attempts.rs
+--- a/crates/archeaxis-application/src/attempts.rs
++++ b/crates/archeaxis-application/src/attempts.rs
+@@ -11,9 +11,13 @@
+ /// R08: engine identities a successful receipt may report, one per extraction
+ /// route. The worker must name the engine it actually used; the Core no longer
+ /// requires the text engine from every route.
++pub fn pdf_engine_version(version: &str) -> bool {
++    !version.is_empty() && version.len() <= 64 && version.as_bytes()[0].is_ascii_digit()
++        && version.bytes().all(|b| b.is_ascii_alphanumeric() || b".+_-".contains(&b))
++}
++
+ pub const ENGINE_PROFILES: &[(&str, &str)] = &[
+     ("python-worker-text", "0.1.0"),
+-    ("pymupdf-native-pdf", "pymupdf"),
+     ("python-worker-ocr", "0.1.0"),
+     ("python-worker-archive", "0.1.0"),
+     ("python-worker-media", "0.1.0"),
+@@ -593,9 +597,12 @@
+     let structure = structure.ok_or(JobError::InvalidReceipt("missing structure"))?;
+     let loss = loss.ok_or(JobError::InvalidReceipt("missing loss receipt"))?;
+     loss.validate().map_err(JobError::InvalidReceipt)?;
+-    if !ENGINE_PROFILES
+-        .iter()
+-        .any(|(name, version)| loss.engine == *name && loss.engine_version == *version)
++    let engine_valid = if loss.engine == "pymupdf-native-pdf" {
++        req.capability == "pdf.extract" && pdf_engine_version(&loss.engine_version)
++    } else {
++        ENGINE_PROFILES.iter().any(|(name, version)| loss.engine == *name && loss.engine_version == *version)
++    };
++    if !engine_valid
+         || !same_spans(&structure, &expected)
+         || loss.covered != Some(structure.len() as u64)
+         || loss.total != Some(total as u64)
+diff --git a/crates/archeaxis-application/src/executor.rs b/crates/archeaxis-application/src/executor.rs
+--- a/crates/archeaxis-application/src/executor.rs
++++ b/crates/archeaxis-application/src/executor.rs
+@@ -1171,6 +1171,8 @@
+                 req.capability
+             )));
+         }
++        hello.require_runtime_dependency(&req.capability)
++            .map_err(|e| Failure::Failed(e.into()))?;
+         let mut stdin = child.0.stdin.take().unwrap();
+         writeln!(
+             stdin,
+@@ -1216,6 +1218,19 @@
+                 )
+                 .map_err(|e| Failure::Failed(format!("invalid staged output: {e}")))?,
+             );
++        }
++        if req.capability == "pdf.extract" {
++            let receipt = response.outputs.iter().zip(&payloads)
++                .find(|(output, _)| output.kind == "loss_report")
++                .and_then(|(_, wire)| serde_json::from_slice::<serde_json::Value>(wire).ok())
++                .ok_or_else(|| Failure::Failed("PDF_RUNTIME_RECEIPT_MISSING".into()))?;
++            let dependency = hello.runtime_dependency.as_ref().unwrap();
++            if receipt["engine"] != "pymupdf-native-pdf"
++                || receipt["engine_version"].as_str() != dependency.version.as_deref()
++                || receipt["params"]["runtime_dependency"] != serde_json::to_value(dependency).unwrap()
++            {
++                return Err(Failure::Failed("PDF_RUNTIME_RECEIPT_IDENTITY_MISMATCH".into()));
++            }
+         }
+         Ok((response, payloads))
+     })();
+diff --git a/crates/archeaxis-application/src/executor/health.rs b/crates/archeaxis-application/src/executor/health.rs
+--- a/crates/archeaxis-application/src/executor/health.rs
++++ b/crates/archeaxis-application/src/executor/health.rs
+@@ -43,23 +43,30 @@
+                 {
+                     return Err("incompatible derived worker hello".into());
+                 }
+-                Ok(capability.to_string())
++                Ok(serde_json::json!({"worker_identity":capability,"runtime_dependency":null}))
+             })
+         } else {
+             handshake(staging, python, worker, capability, allow_site)
+         };
+         match checked {
+             Ok(identity) => ("handshake_ready", Ok(identity)),
+-            Err(reason) => ("handshake_failed", Err(reason)),
++            Err(reason) => (match reason.as_str() {
++                "PDF_DEPENDENCY_MISSING" => "dependency_missing",
++                "PDF_DEPENDENCY_VERSION_UNKNOWN" => "dependency_version_unknown",
++                "PDF_DEPENDENCY_IMPORT_FAILED" => "dependency_import_failed",
++                "PDF_DEPENDENCY_UNOBSERVED" => "dependency_unobserved",
++                _ => "handshake_failed",
++            }, Err(reason)),
+         }
+     };
+     serde_json::json!({
+         "status":observation.0, "checked_at_unix_ms":checked_at,
+-        "worker_identity":observation.1.as_ref().ok(),
++        "worker_identity":observation.1.as_ref().ok().map(|v| &v["worker_identity"]),
++        "runtime_dependency":observation.1.as_ref().ok().map(|v| &v["runtime_dependency"]),
+         "reason":observation.1.as_ref().err(),
+         "task_executed":false, "timeout_ms":2000,
+         "protocol":if derived_protocol { "archeaxis.derived-worker-hello/v1" } else { "NDJSON" },
+-        "basis":if derived_protocol { "live --hello: protocol and declared capability; a job has to run to verify dependencies, engines and output" } else { "live NDJSON hello: protocol, worker identity and advertised capability; a job has to run to verify engines and output" },
++        "basis":if derived_protocol { "live --hello: protocol and declared capability; a job has to run to verify dependencies, engines and output" } else { "live NDJSON hello: protocol, worker identity and advertised capability; PDF additionally imports its required engine and observes its version; no document executed or output qualified" },
+     })
+ }
+ 
+@@ -69,7 +76,7 @@
+     worker: &Path,
+     capability: &str,
+     allow_site: bool,
+-) -> Result<String, String> {
++) -> Result<serde_json::Value, String> {
+     let dir = tempfile::tempdir_in(staging).map_err(|e| e.to_string())?;
+     let mut command = Command::new(python);
+     command.arg("-B");
+@@ -138,7 +145,8 @@
+                     "worker does not advertise requested capability {capability}"
+                 ));
+             }
+-            Ok(hello.worker.name)
++            hello.require_runtime_dependency(capability).map_err(str::to_string)?;
++            Ok(serde_json::json!({"worker_identity":hello.worker.name,"runtime_dependency":hello.runtime_dependency}))
+         });
+     // Windows venv launchers may own a second Python process. Close the
+     // input-free handshake normally before killing the launcher: EOF lets the
+diff --git a/crates/archeaxis-application/tests/worker_health_contract.rs b/crates/archeaxis-application/tests/worker_health_contract.rs
+--- a/crates/archeaxis-application/tests/worker_health_contract.rs
++++ b/crates/archeaxis-application/tests/worker_health_contract.rs
+@@ -93,7 +93,7 @@
+         ("office.structure", "document/worker_office.py"),
+     ] {
+         let health = executor
+-            .provider_health(capability, &worker(relative), false)
++            .provider_health(capability, &worker(relative), capability == "pdf.extract")
+             .await;
+         assert_eq!(
+             health["status"], "handshake_ready",
+@@ -103,3 +103,86 @@
+         assert_eq!(std::fs::read_dir(&staging).unwrap().count(), 0);
+     }
+ }
++
++#[tokio::test]
++async fn pdf_health_observes_actual_dependency_without_a_document() {
++    let dir = tempfile::tempdir().unwrap();
++    let executor = Executor::open(&dir.path().join("db"), &dir.path().join("staging"), &python(), &worker("transport/text_ndjson.py")).await.unwrap();
++    let pdf = worker("document/worker_pdf.py");
++    let missing = executor.provider_health("pdf.extract", &pdf, false).await;
++    assert_eq!(missing["status"], "dependency_missing", "{missing}");
++    assert_eq!(missing["reason"], "PDF_DEPENDENCY_MISSING");
++    let observed = executor.provider_health("pdf.extract", &pdf, true).await;
++    assert_eq!(observed["status"], "handshake_ready", "{observed}");
++    assert_eq!(observed["runtime_dependency"]["status"], "AVAILABLE");
++    assert_ne!(observed["runtime_dependency"]["version"], "pymupdf");
++    assert_eq!(observed["task_executed"], false);
++    assert_eq!(std::fs::read_dir(dir.path().join("staging")).unwrap().count(), 0);
++    let jobs: i64 = executor.store().submit_wait(|c| c.query_row("SELECT COUNT(*) FROM jobs", [], |r| r.get(0))).await.unwrap().unwrap();
++    assert_eq!(jobs, 0);
++}
++
++#[tokio::test]
++async fn pdf_dependency_rejection_sends_no_request_and_persists_failed_attempt() {
++    use archeaxis_application::{executor::Cancellation, jobs};
++    use archeaxis_domain::source::{self, ImportOutcome};
++    for status in ["MISSING", "VERSION_UNKNOWN", "IMPORT_FAILED", "UNOBSERVED"] {
++        let dir = tempfile::tempdir().unwrap();
++        let script = dir.path().join("pdf.py");
++        let observation = if status == "UNOBSERVED" { String::new() } else {
++            format!(",'runtime_dependency':{{'name':'pymupdf','status':'{status}','version':None}}")
++        };
++        std::fs::write(&script, format!(r#"import json,pathlib,sys
++print(json.dumps({{'schema':'archeaxis.worker-hello/v1','type':'hello',
++'protocol':{{'major':1,'min_minor':0,'max_minor':0}},'worker':{{'name':'python-worker-pdf-ndjson','version':'1'}},
++'capabilities':['pdf.extract'],'schemas':['archeaxis.text/v1','archeaxis.document-structure/v1','archeaxis.loss-receipt/v1']{observation}}}),flush=True)
++if sys.stdin.buffer.read(): pathlib.Path(__file__).with_suffix('.leaked').touch()
++"#)).unwrap();
++        let executor = Executor::open_routes(&dir.path().join("db"), &dir.path().join("staging"), &python(), &script, &[("pdf.extract",script.clone())]).await.unwrap();
++        executor.store().submit_wait(|c| {
++            let source = match source::import_source(c,b"%PDF-controlled", "controlled.pdf",None).unwrap() {
++                ImportOutcome::Imported{source_id,..} | ImportOutcome::Duplicate{source_id,..} => source_id,
++            };
++            jobs::enqueue(c,"pdf-job","pdf",&source).unwrap();
++        }).await.unwrap();
++        let error = executor.execute("pdf-job","run",5000,&Cancellation::new()).await.unwrap_err();
++        assert!(error.contains(&format!("PDF_DEPENDENCY_{status}")), "{error}");
++        assert!(!script.with_extension("leaked").exists(), "Core must reject before writing request contents");
++        executor.store().submit_wait(|c| {
++            assert_eq!(jobs::job_state(c,"pdf-job").unwrap().as_deref(), Some("failed"));
++            let outputs: i64 = c.query_row("SELECT COUNT(*) FROM job_outputs",[],|r|r.get(0)).unwrap();
++            assert_eq!(outputs,0);
++            let attempts: i64 = c.query_row("SELECT COUNT(*) FROM job_attempts WHERE state='failed'",[],|r|r.get(0)).unwrap();
++            assert_eq!(attempts,1);
++        }).await.unwrap();
++    }
++}
++
++#[tokio::test]
++async fn pdf_file_receipt_must_match_the_same_process_hello_version() {
++    use archeaxis_application::{executor::Cancellation,jobs};
++    use archeaxis_domain::source::{self,ImportOutcome};
++    let d = tempfile::tempdir().unwrap();
++    let pdf = std::process::Command::new(python()).args(["-B","-c","import pymupdf,sys;d=pymupdf.open();d.new_page().insert_text((72,100),'runtime version identity');sys.stdout.buffer.write(d.tobytes())"]).output().unwrap();
++    assert!(pdf.status.success());
++    let script = d.path().join("mismatch.py");
++    std::fs::write(&script,format!(r#"import importlib.util,sys
++spec=importlib.util.spec_from_file_location('pdf_wrapper',{})
++m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
++real=m._runtime_dependency
++def wrong_hello():
++    engine,observed=real()
++    return engine,{{**observed,'version':'9.99.99'}}
++m._runtime_dependency=wrong_hello
++sys.exit(m.main())
++"#,serde_json::to_string(&worker("document/worker_pdf.py").to_str().unwrap()).unwrap())).unwrap();
++    let e=Executor::open_routes(&d.path().join("db"),&d.path().join("staging"),&python(),&script,&[("pdf.extract",script.clone())]).await.unwrap();
++    e.store().submit_wait(move |c| {
++        let source=match source::import_source(c,&pdf.stdout,"controlled.pdf",None).unwrap() {ImportOutcome::Imported{source_id,..}|ImportOutcome::Duplicate{source_id,..}=>source_id};
++        jobs::enqueue(c,"job","pdf",&source).unwrap();
++    }).await.unwrap();
++    let error=e.execute("job","mismatch",10000,&Cancellation::new()).await.unwrap_err();
++    assert!(error.contains("PDF_RUNTIME_RECEIPT_IDENTITY_MISMATCH"),"{error}");
++    let outputs:i64=e.store().submit_wait(|c|c.query_row("SELECT COUNT(*) FROM job_outputs",[],|r|r.get(0))).await.unwrap().unwrap();
++    assert_eq!(outputs,0);
++}
+diff --git a/crates/archeaxis-application/tests/receipt_spans.rs b/crates/archeaxis-application/tests/receipt_spans.rs
+--- a/crates/archeaxis-application/tests/receipt_spans.rs
++++ b/crates/archeaxis-application/tests/receipt_spans.rs
+@@ -95,7 +95,7 @@
+     let (response, bytes) = pdf_style_output(
+         &req,
+         json!(["page-1", "line-1"]),
+-        ("pymupdf-native-pdf", "pymupdf"),
++        ("pymupdf-native-pdf", "1.28.2"),
+     );
+     attempts::finish(&mut conn, &req, &response, &bytes).unwrap();
+     assert_eq!(
+@@ -124,7 +124,7 @@
+     let (response, bytes) = pdf_style_output(
+         &req,
+         json!(["page-1", "line-9"]),
+-        ("pymupdf-native-pdf", "pymupdf"),
++        ("pymupdf-native-pdf", "1.28.2"),
+     );
+     assert!(
+         attempts::finish(&mut conn, &req, &response, &bytes).is_err(),
+@@ -146,3 +146,11 @@
+         "only declared route engines may complete a job"
+     );
+ }
++
++#[test]
++fn a_package_name_is_not_an_observed_pdf_engine_version() {
++    let (_dir, mut conn) = setup();
++    let req = attempts::claim(&mut conn,"j","r",5000).unwrap();
++    let (response,bytes) = pdf_style_output(&req,json!(["page-1","line-1"]),("pymupdf-native-pdf","pymupdf"));
++    assert!(attempts::finish(&mut conn,&req,&response,&bytes).is_err());
++}
+diff --git a/crates/archeaxis-api/src/format_qualification.rs b/crates/archeaxis-api/src/format_qualification.rs
+--- a/crates/archeaxis-api/src/format_qualification.rs
++++ b/crates/archeaxis-api/src/format_qualification.rs
+@@ -37,6 +37,15 @@
+         {
+             return None;
+         }
++    }
++    // Historical PDF receipts used the package name as a fabricated version.
++    // Preserve stored execution/output evidence while withholding version-bound qualification.
++    if receipt["engine"] == "pymupdf-native-pdf"
++        && !receipt["engine_version"].as_str().is_some_and(|s| {
++            archeaxis_application::attempts::pdf_engine_version(s)
++        })
++    {
++        return None;
+     }
+     Some(receipt)
+ }
+diff --git a/crates/archeaxis-api/src/runtime/readiness.rs b/crates/archeaxis-api/src/runtime/readiness.rs
+--- a/crates/archeaxis-api/src/runtime/readiness.rs
++++ b/crates/archeaxis-api/src/runtime/readiness.rs
+@@ -45,7 +45,13 @@
+             } else {
+                 None
+             };
+-            readiness::observe(name, implemented, dependencies, permission, expires)
++            let pdf = name == "pdf.extract";
++            let mut row = readiness::observe(name, implemented, dependencies, permission, expires);
++            if pdf && dependencies {
++                row.dependencies = "UNKNOWN".into();
++                row.reasons.push("PDF_ENGINE_NOT_OBSERVED".into());
++            }
++            row
+         })
+         .collect();
+     Ok(readiness::snapshot(q.scope, now, rows))
+@@ -72,10 +78,20 @@
+     .map_err(|_| "READINESS_UNAVAILABLE".to_string())?;
+     let row = &s.operations[0];
+     if row.implementation != "IMPLEMENTED"
+-        || row.dependencies != "AVAILABLE"
++        || !(row.dependencies == "AVAILABLE" || (operation == "pdf.extract" && row.dependencies == "UNKNOWN"))
+         || row.permission != "ENABLED"
+     {
+         return Err("OPERATION_DEPENDENCIES_OR_PERMISSION_UNAVAILABLE".into());
+     }
++    if row.dependencies == "UNKNOWN" {
++        // Explicit admission may probe; the passive scope read above never does.
++        let provider = executor.registered_routes().into_iter()
++            .find(|(name, path, _)| *name == operation && path.is_file())
++            .ok_or("OPERATION_DEPENDENCY_PROVIDER_MISSING")?;
++        let observed = executor.provider_health(operation, &provider.1, provider.2).await;
++        if observed["status"] != "handshake_ready" {
++            return Err(observed["reason"].as_str().unwrap_or("OPERATION_DEPENDENCY_UNVERIFIED").into());
++        }
++    }
+     Ok(())
+ }
+diff --git a/crates/archeaxis-api/tests/file_format_qualification.rs b/crates/archeaxis-api/tests/file_format_qualification.rs
+--- a/crates/archeaxis-api/tests/file_format_qualification.rs
++++ b/crates/archeaxis-api/tests/file_format_qualification.rs
+@@ -268,6 +268,7 @@
+         "unreadable",
+         "missing_engine",
+         "missing_version",
++        "pdf_placeholder_version",
+         "bad_text_metadata",
+         "bad_receipt_metadata",
+         "bad_receipt_hash",
+@@ -292,6 +293,10 @@
+             .unwrap();
+         conn.execute("INSERT INTO job_attempts(job_id,attempt,request_id,request_json,state) VALUES('job',1,'request','{}','succeeded')",[]).unwrap();
+         let mut receipt = json!({"engine":"test-controlled","engine_version":"1","losses":[]});
++        if case == "pdf_placeholder_version" {
++            receipt["engine"] = json!("pymupdf-native-pdf");
++            receipt["engine_version"] = json!("pymupdf");
++        }
+         if case == "missing_engine" {
+             receipt.as_object_mut().unwrap().remove("engine");
+         }
+@@ -355,3 +360,42 @@
+         }
+     }
+ }
++
++#[tokio::test]
++async fn static_unknown_pdf_can_execute_with_live_version_and_qualify_its_file() {
++    let d = tempfile::tempdir().unwrap();
++    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
++    let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").expect("declared Python"));
++    let generated = std::process::Command::new(&python).args(["-B","-c",
++        "import pymupdf,sys;d=pymupdf.open();d.new_page().insert_text((72,100),'PDF qualification 6371 km');sys.stdout.buffer.write(d.tobytes())"]).output().unwrap();
++    assert!(generated.status.success(),"required project PDF dependency missing");
++    let e = archeaxis_application::executor::Executor::open_routes(&d.path().join("db"),&d.path().join("staging"),&python,
++        &repo.join("services/python-workers/transport/text_ndjson.py"),&[("pdf.extract",repo.join("services/python-workers/document/worker_pdf.py"))]).await.unwrap();
++    let app = archeaxis_api::runtime::router(e.clone());
++    let (_,static_read) = call(&app,"POST","/api/v1/operation-readiness",json!({"scope":"pdf-before-run","operations":["pdf.extract"]})).await;
++    assert_eq!(static_read["operations"][0]["dependencies"],"UNKNOWN");
++    archeaxis_api::runtime::readiness::require_execution_dependencies(&e,"pdf.extract").await.unwrap();
++    let (status,import) = call(&app,"POST","/api/v1/imports",json!({"name":"controlled.pdf","content_base64":base64::engine::general_purpose::STANDARD.encode(generated.stdout)})).await;
++    assert_eq!(status,StatusCode::ACCEPTED,"{import}");
++    let source = import["source_id"].as_str().unwrap();
++    let (status,_) = call(&app,"POST","/api/v1/jobs",json!({"job_id":"pdf-current","kind":"pdf","input_ref":source})).await;
++    assert_eq!(status,StatusCode::ACCEPTED);
++    let (status,started) = call(&app,"POST","/api/v1/jobs/pdf-current/executions",json!({"deadline_ms":30000})).await;
++    assert_eq!(status,StatusCode::ACCEPTED,"{started}");
++    tokio::time::timeout(Duration::from_secs(30),async {
++        loop {
++            let (_,job) = call(&app,"GET","/api/v1/jobs/pdf-current",Value::Null).await;
++            if job["state"] == "succeeded" || job["state"] == "failed" { assert_eq!(job["state"],"succeeded","{job}");break; }
++            tokio::time::sleep(Duration::from_millis(10)).await;
++        }
++    }).await.unwrap();
++    let (status,qualified) = call(&app,"GET",&format!("/api/v1/sources/{source}/jobs/pdf-current/format-qualification"),Value::Null).await;
++    assert_eq!(status,StatusCode::OK);
++    assert_eq!(qualified["operations"]["extract"]["status"],"QUALIFIED","{qualified}");
++    assert!(archeaxis_application::attempts::pdf_engine_version(qualified["engine_version"].as_str().unwrap()));
++    let saved: String = e.store().submit_wait(|c|c.query_row("SELECT content FROM job_outputs WHERE job_id='pdf-current' AND kind='loss_report'",[],|r|r.get(0))).await.unwrap().unwrap();
++    let loss: Value = serde_json::from_str(&saved).unwrap();
++    assert_eq!(loss["engine_version"],qualified["engine_version"]);
++    assert_eq!(loss["params"]["runtime_dependency"]["version"],qualified["engine_version"]);
++    assert_eq!(qualified["operations"]["roundtrip"]["status"],"UNVERIFIED");
++}
+diff --git a/crates/archeaxis-api/tests/operation_readiness_api.rs b/crates/archeaxis-api/tests/operation_readiness_api.rs
+--- a/crates/archeaxis-api/tests/operation_readiness_api.rs
++++ b/crates/archeaxis-api/tests/operation_readiness_api.rs
+@@ -104,3 +104,19 @@
+     );
+     assert!(!worker.with_extension("spawned").exists());
+ }
++
++#[tokio::test]
++async fn pdf_static_readiness_never_claims_engine_available_or_spawns_worker() {
++    let d = tempfile::tempdir().unwrap();
++    let worker = d.path().join("pdf.py");
++    std::fs::write(&worker,"raise AssertionError('static readiness spawned PDF')").unwrap();
++    let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").expect("declared Python"));
++    let e = Executor::open_routes(&d.path().join("db"), &d.path().join("staging"), &python, &worker, &[("pdf.extract",worker.clone())]).await.unwrap();
++    let app = archeaxis_api::runtime::router(e);
++    let (status, value) = call(&app,"POST","/api/v1/operation-readiness","human",json!({"scope":"pdf-test","operations":["pdf.extract"]})).await;
++    assert_eq!(status,200);
++    assert_eq!(value["operations"][0]["dependencies"],"UNKNOWN");
++    assert_eq!(value["aggregate"],"UNVERIFIED");
++    assert!(value["operations"][0]["reasons"].as_array().unwrap().contains(&json!("PDF_ENGINE_NOT_OBSERVED")));
++    assert_eq!(std::fs::read_dir(d.path().join("staging")).unwrap().count(),0);
++}
+diff --git a/packages/contracts/v1/core-document.schema.json b/packages/contracts/v1/core-document.schema.json
+--- a/packages/contracts/v1/core-document.schema.json
++++ b/packages/contracts/v1/core-document.schema.json
+@@ -2940,7 +2940,8 @@
+         "dependencies": {
+           "enum": [
+             "AVAILABLE",
+-            "MISSING"
++            "MISSING",
++            "UNKNOWN"
+           ]
+         },
+         "connection": {
+diff --git a/packages/contracts/v1/worker-protocol.schema.json b/packages/contracts/v1/worker-protocol.schema.json
+--- a/packages/contracts/v1/worker-protocol.schema.json
++++ b/packages/contracts/v1/worker-protocol.schema.json
+@@ -30,7 +30,62 @@
+           }
+         },
+         "capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+-        "schemas": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
++        "schemas": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
++        "runtime_dependency": {
++          "type": "object",
++          "additionalProperties": false,
++          "required": [
++            "name",
++            "status",
++            "version"
++          ],
++          "properties": {
++            "name": {
++              "const": "pymupdf"
++            },
++            "status": {
++              "enum": [
++                "AVAILABLE",
++                "MISSING",
++                "VERSION_UNKNOWN",
++                "IMPORT_FAILED"
++              ]
++            },
++            "version": {
++              "type": [
++                "string",
++                "null"
++              ],
++              "maxLength": 64,
++            "pattern": "^[0-9][0-9A-Za-z.+_-]{0,63}(?![\\s\\S])"
++            }
++          },
++          "allOf": [
++            {
++              "if": {
++                "properties": {
++                  "status": {
++                    "const": "AVAILABLE"
++                  }
++                }
++              },
++              "then": {
++                "properties": {
++                  "version": {
++                    "type": "string"
++                  }
++                }
++              },
++              "else": {
++                "properties": {
++                  "version": {
++                    "type": "null"
++                  }
++                }
++              }
++            }
++          ]
++        }
+       }
+     },
+     "assetRef": {
+diff --git a/frontend/src/__tests__/OperationReadiness.test.tsx b/frontend/src/__tests__/OperationReadiness.test.tsx
+--- a/frontend/src/__tests__/OperationReadiness.test.tsx
++++ b/frontend/src/__tests__/OperationReadiness.test.tsx
+@@ -6,3 +6,20 @@
+ afterEach(()=>{vi.useRealTimers();bridge.call.mockReset();});
+ it("SIMULATED selected-view readiness never probes all engines and expires to UNKNOWN",async()=>{vi.useFakeTimers();bridge.call.mockImplementation(async(op:string,p:{body:{scope:string,operations:string[]}})=>{expect(op).toBe("operation_readiness");return scopedReadiness(p.body,Date.now(),1000);});await act(async()=>{render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0050"/>);});expect(bridge.call).toHaveBeenCalledTimes(1);expect(bridge.call.mock.calls[0][1].body.scope).toBe("view:CAP-0050");expect(screen.getByRole("status")).toHaveTextContent("不加载模型");await act(async()=>{vi.advanceTimersByTime(1001);});expect(screen.getByRole("status")).toHaveTextContent("状态已过期");expect(screen.getByText(/连接\/权限/)).toHaveTextContent("未知");expect(bridge.call).toHaveBeenCalledTimes(1);});
+ it("SIMULATED wrong scope response is rejected instead of reusing a ready child",async()=>{bridge.call.mockResolvedValue({schema:"archeaxis.operation-readiness/v1",scope:"other-view",expires_at_ms:Date.now()+30000,models_loaded:false,network_performed:false,execution_authorized:false,operations:[{operation:"machine.answer",permission:"ENABLED",connection:"READY"}]});render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0050"/>);expect(await screen.findByText(/显示未知/)).toBeInTheDocument();expect(screen.getByText(/连接\/权限/)).toHaveTextContent("未知");});
++
++it("SIMULATED PDF static UNKNOWN is observed and keeps the guarded product entrance reachable", async()=>{
++  const navigate=vi.fn();
++  bridge.call.mockImplementation(async(_op:string,p:{body:{scope:string,operations:string[]}})=>{
++    const snapshot=scopedReadiness(p.body);
++    snapshot.operations.forEach(row=>{if(row.operation === "pdf.extract") {row.dependencies="UNKNOWN";row.reasons=["PDF_ENGINE_NOT_OBSERVED"];}});
++    return snapshot;
++  });
++  await act(async()=>{render(<CanonicalCapabilitiesSpace onNavigate={navigate} selectedCapabilityId="CAP-0020"/>);});
++  expect(screen.getByRole("status")).toHaveTextContent("已读取当前视图");
++  expect(screen.getByText(/运行资格：.*PDF_ENGINE_NOT_OBSERVED/)).toBeInTheDocument();
++  const entry=screen.getByRole("button",{name:"打开当前产品入口"});
++  expect(entry).toBeEnabled();
++  await act(async()=>{entry.click();});
++  expect(navigate).toHaveBeenCalledTimes(1);
++  expect(bridge.call).toHaveBeenCalledTimes(1);
++});
+diff --git a/tests/test_pdf_runtime_dependency.py b/tests/test_pdf_runtime_dependency.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_pdf_runtime_dependency.py
+@@ -0,0 +1,82 @@
++"""Input-free dependency hello and version-bound PDF receipts, no model/service."""
++import importlib.util
++import json
++from pathlib import Path
++import subprocess
++import sys
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++WORKER = ROOT / "services/python-workers/document/worker_pdf.py"
++
++
++def hello(mode):
++    # The hook isolates dependencies only in this child; no package install/removal.
++    program = r"""
++import builtins, runpy, sys, types
++real = builtins.__import__
++mode, worker, staging = sys.argv[1:]
++def restricted(name, *args, **kwargs):
++    if name in ('pymupdf','fitz'):
++        if mode.startswith('version:'): return types.SimpleNamespace(__version__=mode[8:], open=lambda **kw: (_ for _ in ()).throw(AssertionError('opened document during hello')))
++        if mode == 'missing': raise ModuleNotFoundError(name=name)
++        if mode == 'broken': raise ImportError('native library unavailable')
++        if mode == 'unversioned': return types.SimpleNamespace(open=lambda **kw: (_ for _ in ()).throw(AssertionError('opened document during hello')))
++        if mode == 'wrong-module': return types.SimpleNamespace(__version__='1.0.0')
++    return real(name, *args, **kwargs)
++builtins.__import__ = restricted
++sys.argv = [worker, '--staging-root', staging]
++runpy.run_path(worker, run_name='__main__')
++"""
++    with tempfile.TemporaryDirectory() as d:
++        out = subprocess.run([sys.executable, '-B', '-c', program, mode, str(WORKER), d], input=b'', capture_output=True, timeout=10)
++        frames = [json.loads(line) for line in out.stdout.splitlines()]
++        import jsonschema
++        schema = json.loads((ROOT/'packages/contracts/v1/worker-protocol.schema.json').read_text(encoding='utf-8'))
++        jsonschema.Draft202012Validator(schema['$defs']['hello']).validate(frames[0])
++        return frames[0]
++
++
++class PdfDependencyTests(unittest.TestCase):
++    def assert_observed(self, mode, status):
++        value = hello(mode)
++        self.assertEqual(value['type'], 'hello')
++        self.assertEqual(value.get('runtime_dependency'), {'name':'pymupdf', 'status':status, 'version':None})
++        # A route is a declaration, never proof that its required engine works.
++        self.assertIn('pdf.extract', value['capabilities'])
++
++    def test_missing_dependency_is_not_healthy_hello(self): self.assert_observed('missing', 'MISSING')
++    def test_native_import_failure_is_distinct(self): self.assert_observed('broken', 'IMPORT_FAILED')
++    def test_missing_version_is_distinct_without_opening_document(self): self.assert_observed('unversioned', 'VERSION_UNKNOWN')
++    def test_unrelated_fitz_package_is_not_pdf_engine(self): self.assert_observed('wrong-module', 'IMPORT_FAILED')
++    def test_real_hello_observes_version_but_executes_no_document(self):
++        import pymupdf
++        value = hello('real')
++        self.assertEqual(value['runtime_dependency'], {'name':'pymupdf','status':'AVAILABLE','version':pymupdf.__version__})
++
++    def test_schema_worker_and_core_share_absolute_version_boundary(self):
++        import jsonschema
++        schema = json.loads((ROOT/'packages/contracts/v1/worker-protocol.schema.json').read_text(encoding='utf-8'))
++        validator = jsonschema.Draft202012Validator(schema['$defs']['hello'])
++        for version in ('1.0\n', '1'*64+'\n'):
++            with self.subTest(version=repr(version)):
++                value = hello('version:'+version)
++                self.assertEqual(value['runtime_dependency']['status'], 'VERSION_UNKNOWN')
++                value['runtime_dependency'] = {'name':'pymupdf','status':'AVAILABLE','version':version}
++                self.assertTrue(list(validator.iter_errors(value)))
++
++    def test_file_receipt_has_actual_loaded_engine_version(self):
++        import pymupdf
++        spec = importlib.util.spec_from_file_location('pdf_dependency_test_worker', WORKER)
++        worker = importlib.util.module_from_spec(spec); spec.loader.exec_module(worker)
++        with tempfile.TemporaryDirectory() as d:
++            path = Path(d)/'controlled.pdf'
++            doc = pymupdf.open(); doc.new_page().insert_text((72,100),'Controlled PDF 6371 km'); doc.save(path); doc.close()
++            result = worker.extract(str(path))
++        self.assertIn('6371 km', result['text'])
++        self.assertEqual(result['engine_version'], pymupdf.__version__)
++        self.assertEqual(result['loss_receipt']['engine_version'], pymupdf.__version__)
++        self.assertEqual(result['loss_receipt']['params']['runtime_dependency'], {'name':'pymupdf','status':'AVAILABLE','version':pymupdf.__version__})
++
++if __name__ == '__main__': unittest.main()

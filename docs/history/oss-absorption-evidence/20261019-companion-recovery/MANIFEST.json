@@ -1,0 +1,80 @@
+{
+  "files": [
+    {
+      "sha256": "011107c1b996ad2bcd35c89130784343afa817a56db504285482c271754d2199",
+      "bytes": 1438,
+      "path": "build_invalid_path-execution.json"
+    },
+    {
+      "sha256": "803ed5b434de6ccc2f2dbbbf29b2d39e7f0b28e45c177d292fda899954718bf8",
+      "bytes": 1475,
+      "path": "build-execution.json"
+    },
+    {
+      "sha256": "96174db906ddbbb03fce6745eaac27ea60b088213ffdf03e9c13311093c854a3",
+      "bytes": 1558,
+      "path": "final-execution.json"
+    },
+    {
+      "sha256": "428aed1f23e49d452538b51169a5564b020a0c9077864d3556a10c5240872db0",
+      "bytes": 844,
+      "path": "final-test-command.json"
+    },
+    {
+      "sha256": "452cada73ab5d86e521ce679de614c3e7ae9a67995e397bc473662806a63ee4d",
+      "bytes": 8516,
+      "path": "final-tests.json"
+    },
+    {
+      "sha256": "113825a022102e4ab93b0d3becf87ec4b3f9b839c5e891a768d4997b140ae0cb",
+      "bytes": 806,
+      "path": "frontend-build.json"
+    },
+    {
+      "sha256": "7a37781d21824c55d5bfe1c7c2772c144a318bd42cdff3553d1d2b61252a7d1d",
+      "bytes": 1412,
+      "path": "green-execution.json"
+    },
+    {
+      "sha256": "fc74ab26d8a17a882591b9e320e11a6f32b332f64c6648a1b4d5a284451b6e9b",
+      "bytes": 698,
+      "path": "green-test-command.json"
+    },
+    {
+      "sha256": "1098f4ad34fc4be479182132b0927a7d321ba897c2e13bdbb96afbb91ce2e83e",
+      "bytes": 5461,
+      "path": "green-tests.json"
+    },
+    {
+      "sha256": "b4b500deb99049e18b5b76819429c77bd4cfea6d7279fc1a74880d7a5910cd20",
+      "bytes": 2713,
+      "path": "README.md"
+    },
+    {
+      "sha256": "e308b0a075d2722bfba8a661c899feee874c84e79c2733ac288c31ba1d0b5314",
+      "bytes": 4230,
+      "path": "READONLY-REVIEW.md"
+    },
+    {
+      "sha256": "47999db2bf5ab54b0951e549325d1f7293e84a53bad4da9544a005599cd41dc8",
+      "bytes": 1402,
+      "path": "red-execution.json"
+    },
+    {
+      "sha256": "623bc02e0be5e373c26487bc102753dd07fc183f2525dabfd6574b4515480f2a",
+      "bytes": 696,
+      "path": "red-test-command.json"
+    },
+    {
+      "sha256": "c5cb320f94309a80a20b5df2d00f8e511c4d2aa6bd4e4232791e8d42d79534d1",
+      "bytes": 6924,
+      "path": "red-tests.json"
+    },
+    {
+      "sha256": "8e52c6585a85ee099f6995e90c261ca8e16b228e364af9a58a7f0da4af68df3d",
+      "bytes": 814,
+      "path": "verify_frontend.py"
+    }
+  ],
+  "schema": "aaos.evidence-archive-manifest/v1"
+}

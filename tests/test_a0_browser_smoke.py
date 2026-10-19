@@ -56,6 +56,46 @@ def _load_smoke_module():
     return module
 
 
+@pytest.mark.parametrize('inner_overflow,inner_height,unreachable', [
+    ('auto', 'auto', False),
+    ('hidden', '80px', True),
+    ('clip', '80px', True),
+])
+def test_real_browser_reachability_skips_nonoverflowing_auto_but_keeps_clip_barriers(
+    inner_overflow, inner_height, unreachable,
+):
+    """Real layout regression: an auto wrapper is not necessarily the scroller."""
+    smoke = _load_smoke_module()
+    with smoke.sync_playwright() as playwright:
+        options = {'headless': True}
+        if sys.platform == 'win32':
+            executable = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert executable, 'declared project Chromium required; do not install implicitly'
+            options['executable_path'] = executable
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={'width': 800, 'height': 600})
+            page.set_content(f'''<style>
+                body {{margin:0}}
+                .outer {{height:120px;width:300px;overflow:auto}}
+                .inner {{overflow:{inner_overflow};height:{inner_height}}}
+                #templates {{height:500px;display:flex;flex-direction:column;justify-content:flex-end}}
+                button {{height:32px}}
+                </style><div class="outer"><div class="inner"><section id="templates">
+                <button>模板操作</button></section></div></div>''')
+            measured = smoke.measure_geometry(page, {'templates': '#templates'})
+            assert bool(measured['unreachableBands']) is unreachable, measured
+            if not unreachable:
+                button = page.get_by_role('button', name='模板操作')
+                button.scroll_into_view_if_needed()
+                assert button.evaluate('''e => {const r=e.getBoundingClientRect();
+                    return r.y>=0 && r.bottom<=120 && e.contains(document.elementFromPoint(
+                        r.x+r.width/2,r.y+r.height/2));}''')
+                button.click(timeout=3000)
+        finally:
+            browser.close()
+
+
 def _install_vite_entrypoint_fixture(smoke, monkeypatch, tmp_path):
     """Provide the only local prerequisite that Windows start_vite validates."""
     vite = tmp_path / "frontend" / "node_modules" / "vite" / "bin" / "vite.js"

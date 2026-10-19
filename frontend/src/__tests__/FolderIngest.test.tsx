@@ -3,14 +3,15 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { FolderIngest } from "../components/FolderIngest";
 import { ApiError, type JobAdmissionRefusal } from "../api/client";
+import { createHash, webcrypto } from "node:crypto";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn(), open: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
 
-const HASH = "3f78698a3d7a32944baa70b1b8677e2c9a3d0b9c1e2f3a4b5c6d7e8f90a1b2c3";
+const HASH = createHash("sha256").update("x").digest("hex");
 
 /** A file as a directory picker reports it: its path inside the picked folder, and readable bytes. */
-function picked(path: string, text = "x") {
+function picked(path: string, text = path.endsWith("/b.md") ? "b" : "x") {
   const name = path.split("/").pop() ?? path;
   const file = new File([text], name);
   Object.defineProperty(file, "webkitRelativePath", { value: path });
@@ -28,7 +29,7 @@ const statuses = new Map<string, Status>(), requests = new Map<string, string>()
 let enqueueState = "queued", executionState = "succeeded";
 let view: ReturnType<typeof render>;
 function sourceFor(name: string) { return `src_${name.replace(/[^a-zA-Z0-9_-]/g,"_")}`; }
-function hashFor(name: string) { return name.endsWith("b.md") ? "b".repeat(64) : HASH; }
+function hashOfBase64(content: unknown) { return createHash("sha256").update(Buffer.from(String(content), "base64")).digest("hex"); }
 function status(job_id: string, input_ref: string, state: string, request_id: string | null = null, attempt: number | null = request_id ? 1 : null) {
   return { job_id, input_ref, state, request_id, attempt, error: state === "failed" ? "SIMULATED worker failure" : null,
     attempts: request_id ? [{ attempt, request_id, state, budget:{deadline_ms:90000,split:false,words:false}, continuation:{new_attempt_eligible_state:["failed","cancelled"].includes(state),resume_status:"NOT_SUPPORTED"} }] : [] };
@@ -36,7 +37,7 @@ function status(job_id: string, input_ref: string, state: string, request_id: st
 function deferred<T>() { let resolve!: (value:T)=>void; const promise = new Promise<T>(yes=>{resolve=yes;}); return {promise,resolve}; }
 async function fixture(operation: string, payload: Record<string,unknown>): Promise<unknown> {
   const body = payload.body as Record<string,unknown>;
-  if (operation === "source_import") { const name=String(body.name); return {source_id:sourceFor(name),sha256:hashFor(name),duplicate:false}; }
+  if (operation === "source_import") { const name=String(body.name); return {source_id:sourceFor(name),sha256:hashOfBase64(body.content_base64),duplicate:false}; }
   if (operation === "job_enqueue") { const job=String(body.job_id); statuses.set(job,status(job,String(body.input_ref),enqueueState,enqueueState==="queued"?null:"historical_request")); return {job_id:job,state:enqueueState}; }
   if (operation === "job_execution_status") { const stored=statuses.get(String(payload.job_id)); if(!stored)throw new Error("SIMULATED missing job"); return structuredClone(stored); }
   if (operation === "job_execute") {
@@ -52,9 +53,20 @@ async function fixture(operation: string, payload: Record<string,unknown>): Prom
 
 describe("folder ingest", () => {
   beforeEach(() => {
+    vi.stubGlobal("crypto", webcrypto);
     bridge.call.mockReset(); bridge.open.mockReset(); statuses.clear(); requests.clear(); enqueueState="queued"; executionState="succeeded";
     bridge.call.mockImplementation(fixture);
     view = render(<FolderIngest onOpenSource={bridge.open} />);
+  });
+
+  it("SIMULATED rejects a well-shaped receipt for different bytes and never queues conversion", async () => {
+    bridge.call.mockImplementation(async (op:string,p:Record<string,unknown>) => op === "source_import"
+      ? {source_id:"wrong-content",sha256:"0".repeat(64),duplicate:false} : fixture(op,p));
+    upload([picked("册/a.md")]);
+    await screen.findByText("原件导入未确认",{exact:true});
+    expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("原件已保管 0");
+    expect(screen.queryByRole("button",{name:"打开保留原件"})).toBeNull();
+    expect(bridge.call.mock.calls.some(([op]) => op === "job_enqueue" || op === "job_execute")).toBe(false);
   });
 
   it("queues by the full hash with the kind in the identity, and uses a stable batch id as provenance", async () => {
@@ -63,6 +75,9 @@ describe("folder ingest", () => {
     await waitFor(() => expect(bridge.call).toHaveBeenCalledWith("source_import", expect.objectContaining({
       body: expect.objectContaining({ name: "笔记/a.md", origin_kind: "path", origin_name: "a.md" }),
     })));
+    // Wait for the second file's actual result before asserting the whole batch.
+    // The first source_import call does not mean both asynchronous hashes finished.
+    expect(await screen.findByText("原件已保管，无转换通路")).toBeInTheDocument();
     // A03: the job id carries the kind and the full digest, not a 12-char truncation.
     expect(bridge.call).toHaveBeenCalledWith("job_enqueue", {
       body: { job_id: `folder-text-${HASH}`, kind: "text", input_ref: sourceFor("笔记/a.md") },
@@ -76,7 +91,6 @@ describe("folder ingest", () => {
     // A .bin has no mapped Core route: the original is kept, and no job is invented for it.
     expect(imports).toHaveLength(2);
     expect(bridge.call.mock.calls.filter(([operation]) => operation === "job_enqueue")).toHaveLength(1);
-    expect(await screen.findByText("原件已保管，无转换通路")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("已入队 1");
     expect(screen.getByRole("status")).toHaveTextContent("仅保管 1");
   });
@@ -142,16 +156,40 @@ describe("folder ingest", () => {
 
   it("advances a 201-file folder across batches so none is left behind (A01)", async () => {
     const many = Array.from({ length: 201 }, (_, index) => picked(`册/f${index}.bin`));
+    const input = screen.getByLabelText("选择文件夹");
     upload(many);
 
-    await waitFor(() => expect(bridge.call.mock.calls.filter(([operation]) => operation === "source_import")).toHaveLength(200));
+    // Observe the batch's completion boundary. Repeated missing-role queries
+    // format the growing table on every row mutation and starve async digests.
+    const completed = () => waitFor(() => expect(input).toBeEnabled(), {
+      container: input, timeout: 10000,
+      mutationObserverOptions: { attributes: true, attributeFilter: ["disabled"] },
+    });
+    await completed();
+    expect(bridge.call.mock.calls.filter(([operation]) => operation === "source_import")).toHaveLength(200);
     expect(screen.getByRole("status")).toHaveTextContent("剩余 1 项待下一批");
     expect(screen.queryByText("跳过：超过本次上限")).not.toBeInTheDocument();
 
     await userEvent.setup().click(screen.getByRole("button", { name: /下一批（剩余 1）/ }));
-    await waitFor(() => expect(bridge.call.mock.calls.filter(([operation]) => operation === "source_import")).toHaveLength(201));
+    await completed();
+    expect(bridge.call.mock.calls.filter(([operation]) => operation === "source_import")).toHaveLength(201);
     expect(screen.getByRole("status")).toHaveTextContent("全部处理完毕");
     expect(screen.queryByRole("button", { name: /下一批/ })).not.toBeInTheDocument();
+  }, 15000);
+
+  it("SIMULATED reselecting the same root/path imports updated bytes as a new batch and keeps earlier rows",async()=>{
+    upload([picked("册/a.bin","before")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1));await waitFor(()=>expect(screen.getByLabelText("选择文件夹")).not.toBeDisabled());
+    upload([picked("册/a.bin","after")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(2));
+    const calls=bridge.call.mock.calls.filter(([op])=>op==="source_import").map(([,p])=>p.body);
+    expect(calls[0].origin_ref).not.toBe(calls[1].origin_ref);expect(calls[0].content_base64).not.toBe(calls[1].content_base64);
+    await waitFor(()=>expect(view.container.querySelectorAll("tbody tr")).toHaveLength(2));
+  });
+
+  it("SIMULATED separate same-name roots use distinct provenance but preserve content-addressed conversion identity",async()=>{
+    upload([picked("册/a.md","same")]);await screen.findByText("已入队",{exact:true});
+    upload([picked("册/a.md","same")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(2));
+    const queued=bridge.call.mock.calls.filter(([op])=>op==="job_enqueue");expect(queued).toHaveLength(2);expect(queued[0][1].body.job_id).toBe(queued[1][1].body.job_id);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(0);
   });
 
   it("retains uncertain enqueue identity and reconciles without another import or execute",async()=>{
@@ -226,7 +264,7 @@ describe("folder ingest", () => {
     expect(within(successRow).getByText("已成功",{exact:true})).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button",{name:"重试失败项（新请求）"}));
     await waitFor(()=>expect(screen.getAllByText("已成功",{exact:true})).toHaveLength(2));
-    const executed=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(executed).toHaveLength(1);expect(executed[0][1].job_id).toBe(`folder-text-${"b".repeat(64)}`);
+    const executed=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(executed).toHaveLength(1);expect(executed[0][1].job_id).toBe(`folder-text-${createHash("sha256").update("second").digest("hex")}`);
     expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(2);
     expect(bridge.call.mock.calls.filter(([op])=>op==="job_enqueue")).toHaveLength(2);
   });

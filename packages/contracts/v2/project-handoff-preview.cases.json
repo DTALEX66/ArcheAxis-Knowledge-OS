@@ -1,0 +1,831 @@
+[
+  {
+    "name": "CURRENT",
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": true,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "STALE",
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": true,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "STALE",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "NOT_FOUND",
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": true,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "NOT_FOUND",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "reject_source_authentication",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "AUTHENTICATED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "reject_authority",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "EXECUTION",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "reject_navigation",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "AVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "reject_grants_execution",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": true,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "reject_grants_knowledge_acceptance",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": true
+    }
+  },
+  {
+    "name": "reject_reference_state",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "SUCCESS",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "reject_proposal_sha256",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "reject_body",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false,
+      "body": "PRIVATE"
+    }
+  },
+  {
+    "name": "expiry_not_beyond_proposal",
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40001,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "future_checked",
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10001,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "expired_preview",
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 10000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "expired_proposal",
+    "now_ms": 40000,
+    "schema_valid": true,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "context",
+          "source": {
+            "reference": {
+              "document_id": "doc_a",
+              "version": 2,
+              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "selection": {
+              "kind": "whole_object"
+            },
+            "selection_qualification": "UNVERIFIED"
+          },
+          "purpose": "learning",
+          "authorization_scope": "REFERENCE_METADATA_ONLY"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  },
+  {
+    "name": "only_context",
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-handoff-preview/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal": {
+        "schema": "archeaxis.project-handoff/v1",
+        "protocol": "archeaxis.project-observer/v1",
+        "idempotency_key": "22222222222222222222222222222222",
+        "producer": {
+          "namespace": "archeaxis",
+          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "restore_epoch": "initial"
+        },
+        "consumer": {
+          "namespace": "work-lab",
+          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "created_at_ms": 10000,
+        "expires_at_ms": 40000,
+        "authority": "PREPARATION_ONLY",
+        "payload": {
+          "kind": "task_proposal",
+          "target": {
+            "document_id": "doc_a",
+            "version": 2,
+            "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "context": [
+            {
+              "reference": {
+                "document_id": "doc_a",
+                "version": 2,
+                "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "selection": {
+                "kind": "whole_object"
+              },
+              "selection_qualification": "UNVERIFIED"
+            }
+          ],
+          "goal": "prepare_learning_activity",
+          "capability": {
+            "capability_id": "CAP-0060",
+            "contribution_point": "learning_activity",
+            "manifest_identity": "UNKNOWN"
+          },
+          "execution_authority": "NOT_GRANTED"
+        }
+      },
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "authority": "REFERENCE_METADATA_ONLY",
+      "navigation": "UNAVAILABLE",
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    }
+  }
+]

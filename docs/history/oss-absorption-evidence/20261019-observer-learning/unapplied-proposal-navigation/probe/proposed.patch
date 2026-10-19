@@ -1,0 +1,677 @@
+diff --git a/scripts/probes/aaos01_grouped_owner_loop.py b/scripts/probes/aaos01_grouped_owner_loop.py
+--- a/scripts/probes/aaos01_grouped_owner_loop.py
++++ b/scripts/probes/aaos01_grouped_owner_loop.py
+@@ -401,11 +401,40 @@
+         return self.element(using, selector)
+ 
+     def click(self, label, scope=""):
++        if label == "读取项目":
++            self.open_learning_disclosure("manual")
++        elif scope == "//ul[@aria-label='复习队列']":
++            self.open_learning_disclosure("queue")
+         selector = button_selector(label, scope)
+         self.click_selector(selector)
+ 
++    def open_learning_disclosure(self, kind):
++        label = {"manual": "按键定位学习项目", "queue": "学习队列工具"}[kind]
++        script = "const label=" + json.dumps(label) + ";" + r"""
++const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
++ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
++ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
++const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
++const page=pages.length===1?pages[0].getAttribute('data-current-page-id'):null;
++const nodes=[...document.querySelectorAll('details')].filter(n=>n.getAttribute('aria-label')===label&&visible(n));
++const queues=[...document.querySelectorAll('ul[aria-label="复习队列"]')].filter(visible);
++return {page,count:nodes.length,open:nodes.length===1?nodes[0].open:null,
++ summary:nodes.length===1&&visible(nodes[0].querySelector(':scope>summary')),visible_queues:queues.length};"""
++        observed = self.js(script)
++        assert observed["page"] in ("06", "11", "12"), "Learning disclosure belongs to another/hidden page"
++        if kind == "queue" and observed["count"] == 0:
++            assert observed["visible_queues"] == 1, "No unambiguous visible learning queue"
++            return
++        assert observed["count"] == 1 and observed["summary"], "Missing/hidden/ambiguous learning disclosure"
++        if not observed["open"]:
++            self.click_revealed_selector("//details[@aria-label=" + xpath_literal(label) + " and not(ancestor-or-self::*[@hidden])]/summary")
++            current = self.js(script)
++            assert current["page"] == observed["page"] and current["count"] == 1 and current["summary"] and current["open"], "Learning disclosure did not open on the original page"
++
+     def reveal_selector(self, selector):
+         """Use real wheel input; observe every clipping ancestor before the final click."""
++        if "@aria-label='复习队列'" in selector:
++            self.open_learning_disclosure("queue")
+         self.find(selector)
+         script = "const n=document.evaluate(" + json.dumps(selector) + ",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;" + r"""
+ if(!n)return {ready:false};
+@@ -484,6 +513,8 @@
+         self.evidence.append({"action": "trusted_click", "using": using, "selector": selector})
+ 
+     def type(self, label, value, tag="input", scope=""):
++        if label == "学习项目键":
++            self.open_learning_disclosure("manual")
+         selector = label_selector(label, tag, scope)
+         element = self.find(selector)
+         # WebDriver clear 可能未同步 React 受控状态；可信全选后原位替换。
+@@ -1186,6 +1217,10 @@
+         mc = _read_module("aaos_material_companion", Path(__file__).with_name("aaos01_material_companion_loop.py"))
+         result["material_companion"] = {}
+         mc.run(ui, read, js, wait, screenshot, document, ai_stage["saved_deep_binding"], result["material_companion"])
++        if selected_max_tokens is not None:
++            for purpose in ("material", "companion"):
++                record_output_budget(ai_stage, selected_max_tokens, purpose,
++                                     result["material_companion"]["receipts"][purpose]["plan"]["request"])
+     if save_deep_binding:
+         tasks_before_reopen = machine_tasks(read)
+         restart()
+@@ -1251,11 +1286,7 @@
+     else:
+         ui.page("06")
+     ui.click(key, "//ul[@aria-label='复习队列']")
+-    wait(
+-        "return document.body.innerText.includes('知识修订：' + "
+-        + json.dumps(pin["knowledge_id"])
+-        + ")"
+-    )
++    result["restored_learning"] = restored_learning_view(ui, read, js, wait, key, assessment)
+     result["stages"].append(
+         {
+             "id": "recover",
+@@ -1622,8 +1653,7 @@
+         recover_machine_ack(ui, read, js, wait, restart, document, task, stage)
+     original = assert_inference_task(task, pin["knowledge_id"], question, grant)
+     if selected_max_tokens is not None:
+-        assert original["request"]["max_tokens"] == (1024 if save_deep_binding else selected_max_tokens)
+-        stage["explicit_output_budget"] = selected_max_tokens
++        record_output_budget(stage, selected_max_tokens, "answer", original["request"])
+     if save_deep_binding:
+         assert_saved_model_request(original, stage["saved_deep_binding"], "answer")
+     if selected_model is not None:
+@@ -1917,6 +1947,8 @@
+     if stage.get("saved_deep_binding"):
+         assert_saved_model_request(value, stage["saved_deep_binding"], "retest")
+         stage["saved_deep_binding"]["status"] = "ANSWER_RETEST_FROZEN_BINDINGS_VERIFIED"
++    if stage.get("explicit_output_budget"):
++        record_output_budget(stage, stage["explicit_output_budget"]["requested_cli_max_tokens"], "retest", value["request"])
+     assert read("knowledge_get", {"id": accepted["knowledge_id"]}) == accepted, (
+         "Retest knowledge changed during inference"
+     )
+@@ -2096,6 +2128,96 @@
+     assert metadata["sha256"] == hashlib.sha256(text.encode()).hexdigest()
+ 
+ 
++LEARNING_RESTORE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().length>0&&
++ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
++ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
++  const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
++const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
++const articles=[...document.querySelectorAll('.ui-learning-review article')].filter(n=>visible(n)&&
++ [...n.children].some(c=>c.tagName==='H3'&&c.textContent==='复习题'&&visible(c)));
++return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
++ count:articles.length,paragraphs:articles.length===1?[...articles[0].children].filter(c=>c.tagName==='P'&&visible(c)).map(c=>c.innerText):[]};"""
++
++
++def restored_learning_view(ui, read, js, wait, key, assessment):
++    """Recover business question + its current diagnostic identity and full Core snapshot."""
++    wait("const v=(function(){" + LEARNING_RESTORE_OBSERVATION + "})();return v.page==='06'&&v.count===1&&v.paragraphs.includes(" + json.dumps(assessment["question"]) + ")")
++    view = js(LEARNING_RESTORE_OBSERVATION)
++    assert view["page"] == "06" and view["count"] == 1 and assessment["question"] in view["paragraphs"], "Restored learning question mismatch"
++    ui.click_revealed_selector("//article[h3[.='复习题'] and not(ancestor-or-self::*[@hidden])]//button[@aria-label='查看原始回执（诊断）：学习项目与题目版本']")
++    try:
++        wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'))")
++        identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
++        expected = {"item_key":key, **{k:assessment[k] for k in ("assessment_id", "question_version", "knowledge_id", "knowledge_version", "source_id", "anchor_id") if k in assessment}}
++        assert identity == expected, "Rendered learning identity mismatch (including same-question items)"
++        assert read("assessment_get", {"item_key":key}) == assessment, "Restored Core assessment changed"
++    finally:
++        ui.click_revealed("关闭诊断中心", "//*[@role='dialog']")
++    assert js(LEARNING_RESTORE_OBSERVATION) == view, "Learning view changed during identity verification"
++    return {"status":"PASS", "view":view, "identity":identity, "core_assessment_equal":True}
++
++
++def record_output_budget(stage, requested, purpose, request):
++    """Report CLI intent separately from the purpose-bound persisted request."""
++    saved = stage.get("saved_deep_binding")
++    expected = saved["resolved"][purpose] if saved else None
++    if expected:
++        assert request["model_configuration"] == expected, "Budget configuration binding mismatch"
++    effective = request["max_tokens"]
++    assert effective == (min(requested, expected["profile"]["max_tokens"]) if expected else requested), "Effective output budget mismatch"
++    report = stage.setdefault("explicit_output_budget", {
++        "requested_cli_max_tokens": requested,
++        "requested_surface": "CLI_VIA_PER_TASK_UI",
++        "effective_by_purpose": {},
++    })
++    assert report["requested_cli_max_tokens"] == requested
++    report["effective_by_purpose"][purpose] = {
++        "max_tokens": effective,
++        "source": "SAVED_DEEP_BINDING" if expected else "COMPATIBILITY_PER_TASK_UI",
++        "evidence": "PERSISTED_REQUEST",
++    }
++
++
++READER_RESTORE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().length>0&&
++ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
++ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
++  const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
++const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
++const readers=[...document.querySelectorAll('[aria-label="阅读与编辑文档视图"]')].filter(visible);
++const reader=readers.length===1?readers[0]:null;
++const titles=reader?[...reader.querySelectorAll('article[aria-label="文档正文与编辑"]>header>h2')].filter(visible):[];
++const bodies=reader?[...reader.querySelectorAll('[aria-label="版本化草稿编辑器"] .ProseMirror,[aria-label="共享文档当前内容"]')].filter(visible):[];
++const meta=reader?.querySelector('.ui-document-meta');
++return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
++ reader_count:readers.length,title:titles.length===1?titles[0].innerText:null,
++ text:bodies.length===1?bodies[0].innerText:null,
++ version:visible(meta)?Number(meta.textContent.match(/· v(\\d+) ·/)?.[1]??NaN):null};"""
++
++
++def restored_reader(ui, read, js, wait, document):
++    """Bind the rendered business view to its user-opened diagnostic and Core identity."""
++    wait("const v=(function(){" + READER_RESTORE_OBSERVATION + "})();return v.page==='03'&&v.reader_count===1&&v.title!==null&&v.text!==null")
++    view = js(READER_RESTORE_OBSERVATION)
++    assert view["page"] == "03" and view["reader_count"] == 1
++    assert view["title"] == document["title"], "Restored reader title mismatch"
++    normalize = lambda value: value.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
++    assert isinstance(view["text"], str) and normalize(view["text"]) == normalize(document["text_projection"]), "Restored reader content mismatch"
++    assert view["version"] == document["version"], "Restored reader version mismatch"
++    scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
++    ui.click_revealed_selector(scope + "//button[@aria-label='查看原始回执（诊断）：文档身份与来源指纹']")
++    try:
++        wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('文档身份与来源指纹 ·'))")
++        identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('文档身份与来源指纹 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
++        expected = {key: document[key] for key in ("document_id", "source_id", "source_revision", "content_sha256")}
++        assert identity == expected, "Rendered reader identity mismatch (including same-title documents)"
++        assert read("document_get", {"document_id": document["document_id"]}) == document, "Restored Core document changed"
++    finally:
++        ui.click_revealed("关闭诊断中心", "//*[@role='dialog']")
++    # Closing the owned diagnostic must return to the same rendered document.
++    assert js(READER_RESTORE_OBSERVATION) == view, "Reader changed during identity verification"
++    return {"status": "PASS", "view": view, "identity": identity, "core_document_equal": True}
++
++
+ def capability_refusal_recovery(
+     ui, read, js, wait, restart, pin, document, expected_text, report=None
+ ):
+@@ -2164,8 +2286,7 @@
+     restart()
+     frozen_job_journal(read("ui_state_read"), frozen, pin["source_id"], document["source_revision"], "text")
+     capability_permission(read, False)
+-    assert read("document_get", {"document_id": document["document_id"]}) == document
+-    wait("return document.querySelector('[aria-label=\"当前页面\"]')?.getAttribute('data-current-page-id')==='03' && !!document.querySelector('[aria-label=\"阅读与编辑文档视图\"]') && document.body.innerText.includes(" + json.dumps(document["document_id"]) + ")")
++    result["restored_reader"] = restored_reader(ui, read, js, wait, document)
+     # Hydration restores the scene, while a fresh host URL has no hash. Use the
+     # actual same-page control to normalize it without changing the frozen intent.
+     ui.page("03")
+diff --git a/scripts/probes/aaos01_material_companion_loop.py b/scripts/probes/aaos01_material_companion_loop.py
+--- a/scripts/probes/aaos01_material_companion_loop.py
++++ b/scripts/probes/aaos01_material_companion_loop.py
+@@ -344,7 +344,7 @@
+     try:
+         scope = open_material(ui, wait, document)
+         ui.click_revealed("恢复最近同版本材料请求", scope)
+-        wait("return " + node(scope) + ".textContent.includes('原请求历史回执已读回；没有再次推理。')")
++        wait("return " + node(scope) + ".textContent.includes('原请求执行失败，历史回执已读回；没有再次推理。')")
+         # The UI must restore this cancelled request, not a prior successful
+         # request for the same document/version. A separate Core read is weaker.
+         request = stage["purposes"]["material"]["preview"]["plan"]["request"]
+@@ -363,6 +363,7 @@
+         ui.reveal_selector(selector); ui.click_selector(selector + "/option[@value=" + literal(sid) + "]")
+         wait("return " + node(scope) + ".textContent.includes('当前会话：')")
+         ui.click_revealed("重读历史", scope)
++        wait("return " + node(scope) + ".textContent.includes('请求已取消，没有生成可用回答；原请求已保留。')")
+         wait("return !!" + node(scope) + ".querySelector('.xiaoqi-avatar[data-visible-state=\"interrupted\"]')")
+         history = read("conversation_history", {"body": {"session_id": sid, "after_sequence": 0, "limit": 64}})
+         assert history == stage["purposes"]["companion"]["history"]
+diff --git a/tests/test_grouped_native_owner_probe.py b/tests/test_grouped_native_owner_probe.py
+--- a/tests/test_grouped_native_owner_probe.py
++++ b/tests/test_grouped_native_owner_probe.py
+@@ -2,6 +2,8 @@
+ 
+ import ast
+ import copy
++import os
++from dom_harness import evaluate, reader_dom
+ import hashlib
+ import importlib.util
+ import json
+@@ -11,7 +13,7 @@
+ from pathlib import Path
+ from unittest.mock import patch
+ 
+-ROOT = Path(__file__).resolve().parents[1]
++ROOT = Path(os.environ.get("AAOS_PROBE_TEST_ROOT", str(Path(__file__).resolve().parents[1])))
+ 
+ 
+ def load_probe():
+@@ -1036,7 +1038,7 @@
+             with self.subTest(mutation=mutation):
+                 self.exercise_simulated_ai(True, mutation)
+ 
+-    def exercise_simulated_ai(self, intervention, mutation=None):
++    def exercise_simulated_ai(self, intervention, mutation=None, selected_max_tokens=None, save_deep_binding=False):
+         docs, tasks, actions, reads, fields = {}, {}, [], [], {}
+         knowledge = {
+             "knowledge_id": "original-knowledge",
+@@ -1046,6 +1048,11 @@
+         candidate = {}
+         bound = [knowledge["knowledge_id"]]
+         probe = self.probe
++        saved_configuration = {}
++        def save_binding(ui, read, wait, stage, model, purposes):
++            profile = {"model":model,"max_tokens":1024,"timeout_s":120}
++            saved_configuration.update(resolved={p:{"purpose":p,"lane":"deep","profile":profile} for p in purposes})
++            stage["saved_deep_binding"] = copy.deepcopy(saved_configuration)
+ 
+         class UI:
+             def page(self, page):
+@@ -1107,6 +1114,12 @@
+                             ).hexdigest(),
+                         },
+                     }
++                    if selected_max_tokens is not None:
++                        body["request"]["max_tokens"] = 1024 if save_deep_binding else selected_max_tokens
++                    if save_deep_binding:
++                        resolved = saved_configuration["resolved"]["answer"]
++                        body["answer"].update(requested_model=resolved["profile"]["model"], observed_model=resolved["profile"]["model"], answer_source="content")
++                        body["request"].update(model_configuration=copy.deepcopy(resolved),resolved_model=copy.deepcopy(resolved),model=resolved["profile"]["model"],timeout_s=120)
+                     if mutation in ("undeclared_model", "stub_model", "mock_model"):
+                         body["answer"]["model"] = {"undeclared_model": "configured-model", "stub_model": "local-stub", "mock_model": "mock-qwen"}[mutation]
+                     if mutation == "wrong_original_request":
+@@ -1224,16 +1237,13 @@
+             raise AssertionError("Unexpected op " + op)
+ 
+         result = {}
+-        stage = probe.run_ai_stage(
+-            UI(),
+-            read,
+-            lambda _: "",
+-            lambda *_, **__: None,
+-            {"knowledge_id": knowledge["knowledge_id"]},
+-            result,
+-            True,
+-            intervention,
+-        )
++        with patch.object(probe, "save_deep_model_binding", save_binding), patch.object(probe, "select_saved_deep_lane", lambda *_:None):
++            stage = probe.run_ai_stage(
++                UI(), read, lambda _: "", lambda *_, **__: None,
++                {"knowledge_id": knowledge["knowledge_id"]}, result, True, intervention,
++                selected_model=probe.ai_receipt_contract()[1][0]["model"] if save_deep_binding else None,
++                selected_max_tokens=selected_max_tokens, save_deep_binding=save_deep_binding,
++            )
+         if mutation in ("undeclared_model", "stub_model", "mock_model", "wrong_original_request"):
+             self.assertEqual(stage["status"], "UNVERIFIED")
+             self.assertEqual(stage["receipt_binding"]["status"], "UNVERIFIED")
+@@ -1464,6 +1474,9 @@
+             "title": "source.txt",
+             "document_id": "document-exact",
+             "source_revision": "a" * 64,
++            "source_id": "source-exact", "version": 1,
++            "content_sha256": hashlib.sha256(text.encode()).hexdigest(),
++            "text_projection": text,
+         }
+         transform = {
+             "source_id": "source-exact",
+@@ -1484,7 +1497,9 @@
+ 
+             def click_selector(self, selector):
+                 actions.append(("selector", selector))
+-                if "禁用 text.extract" in selector:
++                if "查看原始回执（诊断）：文档身份与来源指纹" in selector:
++                    state["diagnostic"] = True
++                elif "禁用 text.extract" in selector:
+                     state["enabled"] = False
+                 elif "打开文档" in selector:
+                     assert state["page"] == "#page=02", "document selection requires library page"
+@@ -1527,6 +1542,8 @@
+                 elif label == "恢复冻结现场 " + frozen["request_id"]:
+                     self_test.assertIsNotNone(state["journal"])
+                     state["hydrated"] = True
++                elif label == "关闭诊断中心":
++                    state["diagnostic"] = False
+                 elif label not in {"重新读取当前宿主能力", "整理此来源为知识候选"}:
+                     raise AssertionError("unexpected click " + label)
+ 
+@@ -1569,6 +1586,8 @@
+             raise AssertionError("unexpected operation")
+ 
+         def js(script):
++            if script.startswith("const visible=n") or script.startswith("const rows="):
++                return evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False)))
+             if "const root=" in script:
+                 return {
+                     "page": state["page"],
+@@ -1591,6 +1610,8 @@
+                     state["journal"]["body"]["deadline_ms"] = 1
+ 
+         def wait(script, *args, **kwargs):
++            if "data-current-page-id" in script or "诊断控制台" in script:
++                assert evaluate(script, reader_dom(document, diagnostic=state.get("diagnostic", False))), "Rendered reader predicate failed; business page does not expose raw ID"
+             if script == "return location.hash==='#page=03'":
+                 assert state["page"] == "#page=03", "hydrated scene needs real same-page URL navigation"
+ 
+diff --git a/tests/dom_harness.py b/tests/dom_harness.py
+new file mode 100644
+--- /dev/null
++++ b/tests/dom_harness.py
+@@ -0,0 +1,40 @@
++"""SIMULATED DOM evaluation: actual probe JS, no browser/service/model."""
++import html
++import json
++import os
++import shutil
++import subprocess
++from pathlib import Path
++
++REPO = Path(os.environ.get("AAOS_PROBE_SOURCE_REPO", str(Path(__file__).resolve().parents[1])))
++HARNESS = r"""
++const fs=require('fs');const x=JSON.parse(fs.readFileSync(0,'utf8'));
++const {JSDOM}=require(x.jsdom);const w=new JSDOM(x.html).window;
++Object.defineProperty(w.HTMLElement.prototype,'innerText',{get(){return this.textContent;}});
++w.HTMLElement.prototype.getClientRects=function(){
++ for(let n=this;n;n=n.parentElement){const s=w.getComputedStyle(n);
++ if(n.hidden||s.display==='none'||s.visibility==='hidden'||s.visibility==='collapse')return [];
++ if(n.tagName==='DETAILS'&&!n.open&&n!==this&&!n.querySelector(':scope>summary')?.contains(this))return [];}
++ return [{width:100,height:30}];};
++const fn=new Function('document','getComputedStyle','XPathResult',x.script);
++console.log(JSON.stringify(fn(w.document,w.getComputedStyle,w.XPathResult)));
++"""
++
++
++def evaluate(script, markup):
++    value = subprocess.run([shutil.which("node") or "node", "-e", HARNESS], input=json.dumps({
++        "script": script, "html": markup, "jsdom": str(REPO / "frontend/node_modules/jsdom")}),
++        capture_output=True, text=True, encoding="utf-8", check=True)
++    return json.loads(value.stdout)
++
++
++def reader_dom(document, *, diagnostic=False, identity=None, hidden="", page="03", title=None, text=None, version=None):
++    title = document["title"] if title is None else title
++    text = document["text_projection"] if text is None else text
++    version = document["version"] if version is None else version
++    markup = '<main aria-label="当前页面" data-current-page-id="' + page + '"></main>'
++    markup += '<section aria-label="阅读与编辑文档视图" ' + hidden + '><article aria-label="文档正文与编辑"><header><p class="ui-document-meta">关联原件文档 · v' + str(version) + ' · 无需依据即可保存</p><h2>' + html.escape(title) + '</h2></header><section aria-label="版本化草稿编辑器"><div class="ProseMirror">' + html.escape(text) + '</div></section></article></section>'
++    if diagnostic:
++        identity = identity if identity is not None else {k:document[k] for k in ("document_id", "source_id", "source_revision", "content_sha256")}
++        markup += '<div role="dialog"><section aria-label="诊断控制台"><details open><summary>文档身份与来源指纹 · 操作与回执 · synthetic</summary><pre>' + html.escape(json.dumps(identity)) + '</pre></details></section></div>'
++    return markup
+diff --git a/tests/test_probe_identity_regression.py b/tests/test_probe_identity_regression.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_probe_identity_regression.py
+@@ -0,0 +1,277 @@
++"""SIMULATED positive/negative journey regression; no inference or service."""
++import copy
++import html
++import importlib.util
++import json
++import os
++from pathlib import Path
++
++import pytest
++
++from dom_harness import evaluate, reader_dom
++
++ROOT = Path(os.environ.get("AAOS_PROBE_TEST_ROOT", str(Path(__file__).resolve().parents[1])))
++
++
++def load(name, filename):
++    spec = importlib.util.spec_from_file_location(name, ROOT / "scripts/probes" / filename)
++    value = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(value)
++    return value
++
++
++DOCUMENT = {"document_id": "owned-document", "source_id": "owned-source", "version": 12,
++            "source_revision": "a" * 64, "content_sha256": "b" * 64,
++            "title": "相同 '标题\" 🧭", "text_projection": "Authored 合成正文\n第二行\n",
++            "editor_json": {"type": "doc", "content": []}}
++
++
++def test_saved_deep_journey_reports_2048_intent_and_1024_persisted_budget():
++    from test_grouped_native_owner_probe import GroupedNativeProbeTests
++    case = GroupedNativeProbeTests()
++    case.setUp()
++    result = case.exercise_simulated_ai(False, selected_max_tokens=2048, save_deep_binding=True)
++    budget = result["ai_progress"]["explicit_output_budget"]
++    assert isinstance(budget, dict), "Scalar CLI value misreports saved DEEP effective budget"
++    assert budget["requested_cli_max_tokens"] == 2048
++    assert budget["effective_by_purpose"]["answer"]["max_tokens"] == 1024
++
++
++@pytest.mark.parametrize("kind", ["manual", "queue"])
++@pytest.mark.parametrize("scene", ["closed", "open", "hidden", "aria-hidden", "wrong-page", "ambiguous", "click-rebound", "unwrapped"])
++def test_learning_disclosure_uses_owned_visible_summary_without_executing(kind, scene):
++    probe = load("identity_disclosure", "aaos01_grouped_owner_loop.py")
++    label = {"manual":"按键定位学习项目", "queue":"学习队列工具"}[kind]
++    state = {"open":scene == "open", "page":"19" if scene == "wrong-page" else "12"}
++    actions = []
++
++    def js(script):
++        hidden = ' hidden' if scene == "hidden" else ' aria-hidden="true"' if scene == "aria-hidden" else ""
++        inner = '<ul aria-label="复习队列"><li><button data-learning-item-key="owned">业务标题</button></li></ul>' if kind == "queue" else '<form><label>学习项目键<input value="owned"></label><button>读取项目</button></form>'
++        disclosure = '<details aria-label="' + label + '"' + (' open' if state["open"] else '') + hidden + '><summary>业务入口</summary>' + inner + '</details>'
++        markup = '<div aria-label="当前页面" data-current-page-id="' + state["page"] + '"></div>'
++        markup += inner if scene == "unwrapped" else disclosure
++        if scene == "ambiguous": markup += disclosure
++        # A retained hidden page must never become the clicked target.
++        markup += '<section hidden>' + disclosure + '</section>'
++        return evaluate(script, markup)
++
++    ui = probe.GroupedUI(js, lambda *_:None, lambda *_:None, lambda *_:pytest.fail("Disclosure must not execute/submit"), [])
++
++    def click(selector):
++        assert "summary" in selector and label in selector
++        actions.append(selector)
++        state["open"] = True  # The trusted summary click is the only state transition.
++        if scene == "click-rebound": state["page"] = "06"
++
++    ui.click_revealed_selector = click
++    if scene in ("closed", "open") or scene == "unwrapped" and kind == "queue":
++        ui.open_learning_disclosure(kind)
++        assert len(actions) == (1 if scene == "closed" else 0)
++    else:
++        with pytest.raises(AssertionError): ui.open_learning_disclosure(kind)
++        assert len(actions) == (1 if scene == "click-rebound" else 0)
++
++
++def test_manual_type_read_and_identity_queue_click_open_the_existing_disclosure_first():
++    probe = load("identity_disclosure_callers", "aaos01_grouped_owner_loop.py")
++    actions = []
++    ui = probe.GroupedUI(lambda _:None, lambda *_:None, lambda *_:"node", lambda *a:actions.append(("input", a[1])), [])
++    ui.open_learning_disclosure = lambda kind:actions.append(("disclosure",kind))
++    ui.click_selector = lambda selector:actions.append(("click",selector))
++    ui.type("学习项目键", "owned-identity")
++    assert actions[0] == ("disclosure","manual")
++    actions.clear(); ui.click("读取项目")
++    assert actions[0] == ("disclosure","manual") and "读取项目" in actions[1][1]
++    actions.clear(); ui.click("owned-identity", "//ul[@aria-label='复习队列']")
++    assert actions[0] == ("disclosure","queue") and "@data-learning-item-key='owned-identity'" in actions[1][1]
++
++
++def test_review_title_reveal_opens_queue_before_layout_hit_test(monkeypatch):
++    probe = load("identity_disclosure_layout", "aaos01_grouped_owner_loop.py")
++    actions = []
++    ui = probe.GroupedUI(lambda _:actions.append("hit-test") or {"ready":True}, lambda *_:None,lambda *_:"node",lambda *_:None,[])
++    ui.open_learning_disclosure = lambda kind:actions.append("open-" + kind)
++    monkeypatch.setattr(probe.time,"sleep",lambda *_:None)
++    ui.reveal_selector(probe.button_selector("owned", "//ul[@aria-label='复习队列']"))
++    assert actions == ["open-queue","hit-test"]
++
++
++@pytest.mark.parametrize("change", [None, "same-question-item", "same-question-assessment", "knowledge-version", "source", "hidden", "wrong-page", "wrong-question", "core"])
++def test_learning_restore_binds_rendered_question_diagnostic_and_full_core(change):
++    probe = load("identity_learning_restore", "aaos01_grouped_owner_loop.py")
++    key = "course:owned:artifact:owned"
++    assessment = {"assessment_id":"owned-assessment","question_version":2,"knowledge_id":"owned-knowledge","knowledge_version":"owned-knowledge","source_id":"owned-source","anchor_id":"owned-anchor","question":"相同业务问题？","content":"synthetic answer"}
++    expected = {"item_key":key,**{k:assessment[k] for k in ("assessment_id","question_version","knowledge_id","knowledge_version","source_id","anchor_id")}}
++    identity = copy.deepcopy(expected)
++    fields = {"same-question-item":"item_key","same-question-assessment":"assessment_id","knowledge-version":"knowledge_version","source":"source_id"}
++    if change in fields: identity[fields[change]] = "foreign"
++    state = {"diagnostic":False}
++    clicks = []
++
++    def js(script):
++        question = "wrong question" if change == "wrong-question" else assessment["question"]
++        markup = '<div aria-label="当前页面" data-current-page-id="' + ('12' if change == "wrong-page" else '06') + '"></div><div class="ui-learning-review"' + (' hidden' if change == "hidden" else '') + '><article><h3>复习题</h3><p>' + question + '</p></article></div>'
++        if state["diagnostic"]:
++            markup += '<div role="dialog"><section aria-label="诊断控制台"><details open><summary>学习项目与题目版本 · 对象与来源 · synthetic</summary><pre>' + html.escape(json.dumps(identity)) + '</pre></details></section></div>'
++        return evaluate(script, markup)
++
++    class UI:
++        def click_revealed_selector(self, selector):
++            assert "学习项目与题目版本" in selector
++            clicks.append("diagnostic"); state["diagnostic"] = True
++        def click_revealed(self,label,scope):
++            assert label == "关闭诊断中心"
++            clicks.append("close"); state["diagnostic"] = False
++
++    def wait(script): assert js(script), "Wrong or hidden business learning view"
++    def read(op,payload):
++        assert op == "assessment_get" and payload == {"item_key":key}
++        return {**assessment,"content":"changed answer"} if change == "core" else copy.deepcopy(assessment)
++
++    if change is None:
++        result = probe.restored_learning_view(UI(),read,js,wait,key,assessment)
++        assert result["status"] == "PASS" and result["identity"] == expected
++        assert clicks == ["diagnostic","close"]
++    else:
++        with pytest.raises(AssertionError): probe.restored_learning_view(UI(),read,js,wait,key,assessment)
++        if clicks: assert clicks[-1] == "close"
++
++
++@pytest.mark.parametrize("change", [None, "title", "text", "version", "hidden", "aria-hidden", "css-hidden", "page", "same-title-id", "source", "hash", "revision", "core", "changed-after-close"])
++def test_reader_binds_visible_business_content_and_current_ui_identity(change):
++    probe = load("identity_reader", "aaos01_grouped_owner_loop.py")
++    state = {"diagnostic": False, "closed": False}
++    identity = {k: DOCUMENT[k] for k in ("document_id", "source_id", "source_revision", "content_sha256")}
++    fields = {"same-title-id":"document_id", "source":"source_id", "hash":"content_sha256", "revision":"source_revision"}
++    if change in fields:
++        identity[fields[change]] = "wrong-object"
++    clicks, reads = [], []
++
++    def js(script):
++        options = {"diagnostic":state["diagnostic"], "identity":identity}
++        options.update({
++            "title": {"title":"wrong", "changed-after-close":"wrong" if state["closed"] else DOCUMENT["title"]}.get(change),
++            "text": "wrong body" if change == "text" else None,
++            "version": 1 if change == "version" else None,
++            "hidden": {"hidden":"hidden", "aria-hidden":'aria-hidden="true"', "css-hidden":'style="display:none"'}.get(change, ""),
++            "page": "02" if change == "page" else "03",
++        })
++        return evaluate(script, reader_dom(DOCUMENT, **options))
++
++    def wait(script):
++        assert js(script), "Rendered reader is hidden or wrong page"
++
++    class UI:
++        def click_revealed_selector(self, selector):
++            assert "文档身份与来源指纹" in selector
++            clicks.append("diagnostic")
++            state["diagnostic"] = True
++
++        def click_revealed(self, label, scope):
++            assert label == "关闭诊断中心"
++            clicks.append("close")
++            state.update(diagnostic=False, closed=True)
++
++    def read(op, payload):
++        assert op == "document_get" and payload == {"document_id":DOCUMENT["document_id"]}
++        reads.append(op)
++        return {**DOCUMENT, "editor_json": {}} if change == "core" else copy.deepcopy(DOCUMENT)
++
++    if change is None:
++        value = probe.restored_reader(UI(), read, js, wait, DOCUMENT)
++        assert value["status"] == "PASS" and value["identity"] == identity
++        assert clicks == ["diagnostic", "close"] and reads == ["document_get"]
++    else:
++        with pytest.raises(AssertionError):
++            probe.restored_reader(UI(), read, js, wait, DOCUMENT)
++        if "diagnostic" in clicks:
++            assert clicks[-1] == "close", "Owned diagnostic must close even after identity rejection"
++
++
++@pytest.mark.parametrize("saved", [False, True])
++@pytest.mark.parametrize("requested", [2048, 4096])
++def test_budget_report_distinguishes_cli_intent_and_purpose_effective_request(saved, requested):
++    probe = load("identity_budget", "aaos01_grouped_owner_loop.py")
++    purposes = ("answer", "retest", "material", "companion") if saved else ("answer",)
++    resolved = {p:{"purpose":p,"lane":"deep","profile":{"max_tokens":1024}} for p in purposes}
++    stage = {"saved_deep_binding":{"resolved":resolved}} if saved else {}
++    for purpose in purposes:
++        request = {"max_tokens":1024 if saved else requested}
++        if saved:
++            request["model_configuration"] = resolved[purpose]
++        original = copy.deepcopy(request)
++        probe.record_output_budget(stage, requested, purpose, request)
++        assert request == original, "Reporting must never change payload/model budget"
++        row = stage["explicit_output_budget"]["effective_by_purpose"][purpose]
++        assert row == {"max_tokens":original["max_tokens"],"source":"SAVED_DEEP_BINDING" if saved else "COMPATIBILITY_PER_TASK_UI","evidence":"PERSISTED_REQUEST"}
++        assert stage["explicit_output_budget"]["requested_cli_max_tokens"] == requested
++        with pytest.raises(AssertionError):
++            probe.record_output_budget(stage, requested, purpose, {**request,"max_tokens":999})
++        if saved:
++            wrong = copy.deepcopy(request); wrong["model_configuration"]["purpose"] = "foreign"
++            with pytest.raises(AssertionError):
++                probe.record_output_budget(stage, requested, purpose, wrong)
++
++
++def cancellation_stage():
++    stage = {"questions":{},"purposes":{}}
++    for purpose in ("material", "companion"):
++        request = {"request_id":purpose + "-original", "session_id":"owned-session", "question":"owned " + purpose,"purpose":"synthetic cancellation"}
++        preview = {"plan":{"request":request},"plan_sha256":"c" * 64}
++        receipt = {**preview,"request_id":request["request_id"],"session_id":"owned-session",
++                   "answer":None,"provider_stop_state":"UNKNOWN","authority":"candidate","grants_knowledge_acceptance":False,
++                   "schema":"archeaxis.material-answer/v1" if purpose == "material" else "archeaxis.conversation-receipt/v1",
++                   "outcome":"failed","state":"cancelled","reason_code":"material_question_cancelled" if purpose == "material" else "conversation_cancelled"}
++        identity = {"request_id":request["request_id"]}
++        if purpose == "companion": identity["session_id"] = "owned-session"
++        stage["purposes"][purpose] = {"preview":preview,"receipt":receipt,"identity":identity,"history":{"session_id":"owned-session","events":[{"kind":"cancelled"}]}}
++    return stage
++
++
++@pytest.mark.parametrize("mutation", [None, "wrong-material-id", "wrong-plan", "answer", "wrong-restored-input", "wrong-history", "execution"])
++def test_cancel_reopen_accepts_actual_terminal_copy_without_weakening_identity(monkeypatch, mutation):
++    probe = load("identity_cancel", "aaos01_material_companion_loop.py")
++    stage = cancellation_stage()
++    if mutation == "wrong-plan": stage["purposes"]["material"]["receipt"]["plan_sha256"] = "wrong"
++    if mutation == "answer": stage["purposes"]["material"]["receipt"]["answer"] = {"answer":"late answer"}
++    actions = []
++    monkeypatch.setattr(probe, "install_observer", lambda *a,**k:None)
++    monkeypatch.setattr(probe, "remove_observer", lambda *a:{})
++    monkeypatch.setattr(probe, "open_material", lambda *a:"//section[@aria-label='固定版本材料问答']")
++    monkeypatch.setattr(probe, "proof", lambda *a:{"overflow":False,"rows":[{"operation":"conversation_request"}] if mutation == "execution" else []})
++
++    class UI:
++        def click_revealed(self, label, scope): actions.append(label)
++        def page(self, page): assert page == "14"
++        def reveal_selector(self, selector): pass
++        def click_selector(self, selector): assert "owned-session" in selector
++
++    def js(script):
++        question = "wrong" if mutation == "wrong-restored-input" else "owned material"
++        markup = '<section aria-label="固定版本材料问答"><label>材料问题<input value="' + question + '"></label><input value="synthetic cancellation"><select><option value="deep" selected>deep</option></select><p role="status">原请求执行失败，历史回执已读回；没有再次推理。</p></section><section aria-label="正式陪伴会话"><p>当前会话：owned-session</p><p>请求已取消，没有生成可用回答；原请求已保留。</p><div class="xiaoqi-avatar" data-visible-state="interrupted"></div></section>'
++        return evaluate(script, markup)
++
++    def read(op, payload):
++        if op == "conversation_history":
++            assert payload["body"]["session_id"] == "owned-session"
++            return {} if mutation == "wrong-history" else stage["purposes"]["companion"]["history"]
++        purpose = "material" if op == "material_question_status" else "companion"
++        assert payload == {"body":stage["purposes"][purpose]["identity"]}
++        value = copy.deepcopy(stage["purposes"][purpose]["receipt"])
++        if mutation == "wrong-material-id" and purpose == "material": value["request_id"] = "other"
++        return value
++
++    def wait(script):
++        assert js(script), "Actual terminal copy predicate failed"
++
++    def run():
++        probe.reopen_cancel(UI(),read,js,wait,actions.append,{},stage)
++
++    if mutation is None:
++        run()
++        assert stage["cold_reopen"]["status"] == "PASS"
++        assert stage["cold_reopen"]["observed_after_attach_execution_calls"] == 0
++        assert actions == ["恢复最近同版本材料请求", "cancel-material-cold-reopen.png", "重读历史", "cancel-companion-cold-reopen.png"]
++    else:
++        with pytest.raises(AssertionError): run()

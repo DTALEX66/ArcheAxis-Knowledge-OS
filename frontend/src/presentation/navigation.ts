@@ -23,10 +23,43 @@ export const CAPABILITY_DESTINATIONS: Readonly<Partial<Record<string, SpaceId>>>
   "CAP-0040": "learning", "CAP-0050": "vault", "CAP-0110": "vault", "CAP-0140": "library",
 };
 
+// Existing page identities, not execution grants. More precise than a space's
+// default page; App owns draft guards and restoration when opening them.
+export const CAPABILITY_PAGES: Readonly<Partial<Record<string, string>>> = {
+  "CAP-0010":"02", "CAP-0020":"16", "CAP-0030":"03", "CAP-0040":"06",
+  "CAP-0050":"13", "CAP-0060":"07", "CAP-0090":"05", "CAP-0110":"04",
+  "CAP-0120":"19", "CAP-0140":"19",
+};
+
 // Space IDs remain route identities; capability IDs come only from the generated
 // Atlas/map projection. This is presentation glue, not a second capability registry.
+const PAGE_PURPOSES: Readonly<Record<string, string>> = {
+  "01": "继续最近的工作，查看待办与学习进展",
+  "02": "查找、整理和打开知识资料",
+  "03": "阅读资料、编辑正文并保留版本",
+  "04": "沿双向链接探索知识关系",
+  "05": "收集研究材料，组织问题与引用",
+  "06": "安排学习目标与复习步骤",
+  "07": "组织课程内容与视觉教学材料",
+  "08": "记录学习对象、目标与教学需求",
+  "09": "整理讲解思路与表达方案",
+  "10": "查看教学交付内容与版本",
+  "11": "通过练习与复述检查理解",
+  "12": "汇总反馈并修订学习内容",
+  "13": "管理项目记忆与模型上下文",
+  "14": "查看纠正记录、评测与复测结果",
+  "15": "浏览资源与扩展的适用条件",
+  "16": "导入、导出并交换常用格式",
+  "17": "浏览能力范围、当前入口与后续规划",
+  "18": "查看能力说明、使用条件与替代方式",
+  "19": "管理偏好、模型连接、权限与恢复",
+  "20": "追溯内容版本、来源与修改历史",
+  "21": "用画布组织材料与视觉表达",
+  "22": "查看受限任务的状态、结果与回执",
+};
+
 export const EFFECTIVE_NAVIGATION_ENTRIES: readonly EffectiveNavigationEntry[] = [
-  ...UI_PAGES.map((page)=>({entry_id:`page:${page.id}`,label:page.label,description:`UI / ${page.id} · ${page.implemented ? "已有关联底座，完整资格独立核实" : "页面尚未接通"} · ${page.task}`,group_id:page.group,aliases:[`page=${page.id}`],keywords:[page.task, uiEntryForPage(page.id)?.label ?? ""],page})),
+  ...UI_PAGES.map((page)=>({entry_id:`page:${page.id}`,label:page.label,description:page.implemented ? PAGE_PURPOSES[page.id] ?? `打开${page.label}` : "页面尚未接通，查看相关能力与替代入口",group_id:page.group,aliases:[`page=${page.id}`],keywords:[page.task, uiEntryForPage(page.id)?.label ?? ""],page})),
   ...SPACES.map((space) => ({
     entry_id: `space:${space.id}`,
     label: space.label,
@@ -39,10 +72,11 @@ export const EFFECTIVE_NAVIGATION_ENTRIES: readonly EffectiveNavigationEntry[] =
   ...CAPABILITY_CATALOG.entries.map((capability) => ({
     entry_id: capability.atlas.capability_id,
     label: capability.atlas.canonical_name,
-    description: `${capability.atlas.authority_status} · ${capability.atlas.technical_state}`,
+    description: capability.implementation.state === "not_implemented" ? "尚未实现，查看使用前提与替代方式" : "查看当前入口、适用范围与使用条件",
     group_id: capability.atlas.product_layer,
     aliases: capability.atlas.origin_requirement_ids as readonly string[],
     keywords: [
+      capability.atlas.authority_status, capability.atlas.technical_state,
       ...(UI_CAPABILITY_INTENT[capability.atlas.capability_id] ?? []),
       ...capability.atlas.objects,
       ...capability.atlas.views,
@@ -74,8 +108,8 @@ export function canNavigateToCapability(capability: CapabilityCatalogEntry): boo
   return capability.implementation.state !== "not_implemented";
 }
 
-export function getCapabilityNextStep(capability: CapabilityCatalogEntry): string {
-  if (canNavigateToCapability(capability) && getCapabilityDestination(capability)) {
+export function getCapabilityNextStep(capability: CapabilityCatalogEntry, hasPageNavigation = false): string {
+  if (canNavigateToCapability(capability) && (getCapabilityDestination(capability) || (hasPageNavigation && CAPABILITY_PAGES[capability.atlas.capability_id]))) {
     return "通过当前 AAOS 产品入口继续；运行资格和产物质量仍需独立回执。";
   }
   if (canNavigateToCapability(capability)) return "当前有实现声明，但尚未关联可打开的产品动作入口；先补齐领域契约与入口映射，勿推断可执行。";

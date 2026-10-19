@@ -1,0 +1,384 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ✓ src/__tests__/CoreWorkingState.test.ts (53 tests) 188ms
+ ✓ src/__tests__/MaterialQuestionPanel.test.tsx (17 tests) 650ms
+ ✓ src/__tests__/CanonicalTeachingDrafts.test.tsx (17 tests) 809ms
+ ✓ src/__tests__/CompanionSession.test.tsx (19 tests) 1411ms
+ ✓ src/__tests__/CanonicalExpressionBoard.test.tsx (27 tests) 633ms
+ ✓ src/__tests__/JobContent.test.tsx (33 tests) 2038ms
+   ✓ Core job content > publishes nothing when ASR is still leased at the wait deadline, and stays retryable 742ms
+   ✓ Core job content > requires real completion and reads all persisted outputs with actual engine proof 343ms
+ ✓ src/__tests__/LiveRegionBudget.test.tsx (21 tests) 1798ms
+ ✓ src/__tests__/CanonicalExpressionSpace.test.tsx (24 tests) 2579ms
+   ✓ keeps object drafts through cancelled and confirmed switching and theme rerender 325ms
+ ✓ src/__tests__/TemplateBindings.test.tsx (21 tests) 928ms
+   ✓ SIMULATED host binding; Core persistence is separately integrated > creates, saves a reference, opens its real object and reloads its persisted binding 421ms
+ ✓ src/__tests__/TemplateCapabilityRequirements.test.tsx (16 tests) 1678ms
+   ✓ app shell wiring of the template→capability route > moves from a template requirement row to the capability detail and writes the hash route 445ms
+ ✓ src/__tests__/RecoveryShell.test.tsx (15 tests) 1877ms
+   ✓ Recovery Shell > shows only Tauri-provided sanitized logs and restores only a selected opaque backup 321ms
+   ✓ Recovery Shell > keeps async recovery actions live through a real StrictMode effect replay 385ms
+ ✓ src/__tests__/CanonicalRelationSpace.test.tsx (17 tests) 1930ms
+ ✓ src/__tests__/KnowledgeCoursePanel.test.tsx (22 tests) 3093ms
+   ✓ course return through the real learning components (simulated Core) > returns generated course to its pinned lesson without regeneration 507ms
+   ✓ course return through the real learning components (simulated Core) > returns saved course to its pinned lesson without regeneration 405ms
+   ✓ course return through the real learning components (simulated Core) > returns stale-on-return course to its pinned lesson without regeneration 379ms
+   ✓ course return through the real learning components (simulated Core) > returns changed-knowledge-on-return course to its pinned lesson without regeneration 369ms
+ ✓ src/__tests__/CanonicalReviewLearning.test.tsx (12 tests) 3144ms
+   ✓ finite knowledge and learning commands > guards both closing and replacing an unsaved search document 638ms
+   ✓ finite knowledge and learning commands > shows evidence before a user's version-checked review and preserves note on conflict 553ms
+   ✓ finite knowledge and learning commands > separates machine state and retries the same review event after unconfirmed response 702ms
+   ✓ finite knowledge and learning commands > reads the updated state after a confirmed review while the submission is still busy 456ms
+ ✓ src/__tests__/CanonicalResearchSpace.test.tsx (31 tests) 3756ms
+   ✓ returns the reference picker to its actual keyboard opener after cancel 346ms
+ ✓ src/__tests__/FolderIngest.test.tsx (30 tests) 4269ms
+   ✓ folder ingest > advances a 201-file folder across batches so none is left behind (A01) 2657ms
+   ✓ folder ingest > requests current Core cancellation with the exact execution identity; 202 is not terminal 350ms
+ ✓ src/__tests__/CheckPanel.test.tsx (30 tests) 4449ms
+   ✓ independent document checks > SIMULATED: records the exact independent query without executing it 423ms
+   ✓ independent document checks > reads historical checks without restoring text and explicitly selects a revision rationale 353ms
+ ✓ src/__tests__/MachineAnswerPanelScoped.test.tsx (19 tests) 4652ms
+   ✓ freezes unscoped launch-default answers across lost acknowledgments 386ms
+   ✓ SIMULATED real scoped Panel lostACK contracts > keeps exact request identity and original context across an unknown acknowledgment 421ms
+   ✓ SIMULATED real scoped Panel lostACK contracts > lostACK retest freezes the original purpose even when props change 435ms
+   ✓ SIMULATED real scoped Panel lostACK contracts > restored retest freezes the original purpose even when props change 389ms
+   ✓ SIMULATED real scoped Panel lostACK contracts > forbidden retest freezes the original purpose even when props change 456ms
+ ✓ src/__tests__/ConversationPanel.test.tsx (13 tests) 909ms
+ ✓ src/__tests__/App.test.tsx (30 tests) 3723ms
+   ✓ App shell > keeps one formal Control+K palette after shell rerenders and navigates by keyboard 356ms
+   ✓ App shell > keeps one formal Meta+K palette after shell rerenders and navigates by keyboard 328ms
+   ✓ App shell > keeps future capabilities selectable in command search and opens their full details 419ms
+   ✓ App shell > moves from the Recovery Shell into the workspace when background startup becomes ready 311ms
+ ✓ src/__tests__/MachineAnswerPanelAssets.test.tsx (17 tests) 880ms
+ ✓ src/__tests__/MachineJournalPanel.test.tsx (11 tests) 2430ms
+   ✓ SIMULATED journal ACK loss prevents inference and reopening restores a read-only pending answer 375ms
+   ✓ SIMULATED duplicate frozen requests retire individually with external clear false 412ms
+   ✓ SIMULATED duplicate frozen requests retire individually with external clear true 313ms
+ ✓ src/__tests__/CollectionPanel.test.tsx (23 tests) 1669ms
+ ✓ src/__tests__/LearningPracticeJourney.test.tsx (14 tests) 1438ms
+   ✓ SIMULATED mounted accepted knowledge→actual course/assessment→page11 practice→page12 review keeps one immutable object 480ms
+ ✓ src/__tests__/MachineAnswerPanel.test.tsx (9 tests) 3146ms
+   ✓ SIMULATED machine candidate UI with Core bridge fixtures > keeps failed answer measurements in the shared diagnostic center and preserves input without retry 344ms
+   ✓ SIMULATED machine candidate UI with Core bridge fixtures > reads a persisted answer and requires explicit human correction fields without accepting 1146ms
+   ✓ persisted correction and withdrawal history > requested accepted action cannot be confirmed by a candidate readback 581ms
+ ✓ src/__tests__/BoundedJobPanel.test.tsx (12 tests) 1482ms
+   ✓ BoundedJobPanel isolated finite-port behavior > polls persisted terminal state without treating execute acknowledgement as success 339ms
+ ✓ src/__tests__/ControlledAiJourney.test.tsx (5 tests) 1172ms
+   ✓ SIMULATED actual mounted 13→14 correction/review→13 independent grant→14 retest→22 exact readback retains one source journey 1054ms
+ ✓ src/__tests__/ClosedLoopSpaces.test.tsx (32 tests) 6558ms
+   ✓ six-space real command loops > creates and verifies a named backup 409ms
+   ✓ six-space real command loops > uses product labels for readiness and withholds Settings endpoint errors 358ms
+   ✓ six-space real command loops > blocks workspace creation when health preflight is not ready 481ms
+   ✓ six-space real command loops > checks four-library health before creating a first workspace 592ms
+   ✓ six-space real command loops > does not treat a malformed backup verification as success 359ms
+   ✓ six-space real command loops > requires all four advanced library paths before health preflight 1424ms
+ ✓ src/__tests__/JobContentManualExecution.test.tsx (15 tests) 942ms
+   ✓ SIMULATED manual finite execution boundaries > cancel 202 is pending and actual success wins the cancellation race 326ms
+ ✓ src/__tests__/CharacterMemoryPanel.test.tsx (22 tests) 4706ms
+   ✓ SIMULATED saves profile, remembers, corrects and reopens the same persisted memory identity 1126ms
+   ✓ SIMULATED CAS conflict preserves edits and only explicit adoption uses the freshly read revision 453ms
+ ✓ src/__tests__/SemanticReadingLayout.test.tsx (10 tests) 4029ms
+   ✓ semantic 02 and 03 layouts > SIMULATED: new workspace shortcut opens semantic 02 while the old hash retains its compatibility surface 352ms
+   ✓ semantic 02 and 03 layouts > SIMULATED: 02 opens the actual Core document ID in 03 and keeps tools on their intended surfaces 437ms
+   ✓ semantic 02 and 03 layouts > SIMULATED: App refuses navigation away from a composing dirty 03 draft and saves unknown payload intact 625ms
+   ✓ semantic 02 and 03 layouts > SIMULATED: auxiliary tools collapse without losing input, hiding list errors or starting inference 712ms
+   ✓ semantic 02 and 03 layouts > SIMULATED: same reader page is a no-op and the selected real Document survives another daily workflow 1075ms
+   ✓ semantic 02 and 03 layouts > SIMULATED: search filters loaded summaries and paging failure retains existing document rows 328ms
+ ✓ src/__tests__/CanonicalExchangeSpace.test.tsx (16 tests) 1438ms
+ ✓ src/__tests__/DockWorkspace.test.tsx (11 tests) 911ms
+ ✓ src/__tests__/SourceCandidateJourney.test.tsx (10 tests) 4279ms
+   ✓ SIMULATED real Dockview transfers the exact source/job into a distinct reader host (initial page 16) 671ms
+   ✓ SIMULATED real Dockview transfers the exact source/job into a distinct reader host (initial page 03) 427ms
+   ✓ SIMULATED refused Dock navigation leaves the retained reader unchanged and discards the pending source 1011ms
+   ✓ SIMULATED mounted grouped UI preserves exact source/job/transform/anchor/candidate and requires explicit human review 538ms
+   ✓ SIMULATED refuses candidate readback bound to a different source and never grants review 469ms
+   ✓ SIMULATED refuses STALE candidate locator even when the reading locator is CURRENT 419ms
+   ✓ SIMULATED refuses UNSUPPORTED candidate locator even when the reading locator is CURRENT 413ms
+ ✓ src/__tests__/CanonicalLibraryWorkingState.test.tsx (4 tests) 2095ms
+   ✓ SIMULATED: mounted formal Library reloads two independent Core-journal drafts into a new Provider session 498ms
+   ✓ SIMULATED: known document ACK plus refused journal clear retries only the journal without a second body version 1217ms
+ ✓ src/__tests__/TemplateWriteLifecycle.test.tsx (14 tests) 581ms
+ ✓ src/__tests__/CanonicalLearningRetainedReview.test.tsx (6 tests) 807ms
+ ✓ src/__tests__/DiagnosticCenter.test.tsx (8 tests) 1595ms
+   ✓ filters explicit categories and keeps records after closing and reopening 546ms
+ ✓ src/__tests__/CanonicalAiAssetsSpace.test.tsx (11 tests) 1292ms
+   ✓ saves incomplete inert candidates for all five kinds without knowledge or rubric prerequisite 445ms
+ ✓ src/__tests__/RuntimeClient.test.ts (14 tests) 14ms
+ ✓ src/__tests__/AppDockNavigation.test.tsx (9 tests) 4146ms
+   ✓ actual App/Dock sync native activation and close fallback without reopening the closed tab 665ms
+   ✓ same-page navigation reopens the final closed view with the exact retained draft 314ms
+   ✓ refused, composing and restoring native tab changes retain the accepted view and draft 535ms
+   ✓ late layout hydration keeps the accepted object presentation instead of replacing it with singleton 03 419ms
+   ✓ native return to an AI family restores the last requested receipt page and retained session 396ms
+   ✓ native object activation preserves full document identity and does not overwrite the singleton reader 480ms
+   ✓ explicit working recovery adopts its scene without overwriting a retained document object host 858ms
+ ✓ src/__tests__/CanonicalResourcesSpace.test.tsx (18 tests) 4733ms
+   ✓ resource source catalog > shows allseven classes and donor modes without installation or qualification claims 393ms
+   ✓ resource source catalog > searches the lastentry and原冲突, retains declared reasons and frozen activation 958ms
+   ✓ resource source catalog > shows live route permission separately and does not promote donor qualification 341ms
+   ✓ resource source catalog > keeps the complete catalog when handshake is unavailable or malformed 329ms
+   ✓ resource source catalog > changes one explicit setting and confirms a fresh readback rather than optimistic success 551ms
+   ✓ resource source catalog > does not repeat an uncertain write; reads the persisted decision even when the ACK is lost 490ms
+   ✓ resource source catalog > rejects a mismatched ACK and a readback that contradicts the requested setting 342ms
+   ✓ resource source catalog > locks refresh and duplicate decisions while one setting write is pending 512ms
+ ✓ src/__tests__/LibraryRefresh.test.tsx (10 tests) 763ms
+ ✓ src/__tests__/CanonicalLibrarySpace.test.tsx (44 tests) 9214ms
+   ✓ canonical content sample > SIMULATED: CURRENT locator must be independently revalidated before navigation 440ms
+   ✓ canonical content sample > SIMULATED: a source draft retries the identical frozen request after a lost ACK 348ms
+   ✓ canonical content sample > SIMULATED: a delayed list snapshot cannot downgrade a document save acknowledged during refresh 330ms
+   ✓ canonical content sample > SIMULATED: keeps independent dirty drafts when switching between document tabs 473ms
+   ✓ canonical content sample > saves an explicitly selected revision basis without requiring check execution 364ms
+   ✓ canonical content sample > SIMULATED: imports a 6 MiB original without invoking conversion 313ms
+   ✓ canonical content sample > SIMULATED: imports a 26 MiB original without invoking conversion 1062ms
+   ✓ canonical content sample > refuses an export whose save receipt does not agree with the export it just proved 408ms
+   ✓ canonical content sample > reads hashed original, records a canonical reference and restores by optimistic version 426ms
+ ✓ src/__tests__/DocumentConflictRecovery.test.tsx (8 tests) 6629ms
+   ✓ SIMULATED mounted formal conflict compares exact snapshots, explicitly saves A and preserves independent B 1411ms
+   ✓ SIMULATED merge is explicit, a second 409 preserves merged content and stops automatic retries 1186ms
+   ✓ SIMULATED 403 identifies permission refusal, preserves draft and does not retry after more editing 1084ms
+   ✓ SIMULATED conflict resolution known ACK plus failed journal cleanup retries journal only 1264ms
+   ✓ SIMULATED a journal CAS refusal cannot become a document comparison or send a body 1090ms
+ ✓ src/__tests__/SpaceView.test.tsx (15 tests) 163ms
+ ✓ src/__tests__/CoreBridge.test.ts (24 tests) 19ms
+ ✓ src/__tests__/ConstellationGraph.test.tsx (9 tests) 970ms
+   ✓ SIMULATED preserves 1000 edges and every node while reducing decoration 372ms
+ ✓ src/__tests__/ThreeLevelNavigation.test.tsx (13 tests) 683ms
+ ✓ src/__tests__/CanonicalLearningDrafts.test.tsx (8 tests) 4702ms
+   ✓ preserves independent unsubmitted answers and checks when switching a -> b -> a 1111ms
+   ✓ retains an old assessment answer separately when the item's current assessment changes 1013ms
+   ✓ ignores a delayed question readback after another question has been edited 373ms
+   ✓ keeps both drafts on an uncertain review and clears only the exactly submitted draft after confirmation 838ms
+   ✓ discards only an explicitly confirmed draft and resets the current answer after Core ACK 671ms
+   ✓ refuses an oversized review journal before freezing input and permits freeing another draft 420ms
+ ✓ src/__tests__/CanonicalAiJourneySpace.test.tsx (11 tests) 952ms
+ ✓ src/__tests__/CollectionIntegrationReview.test.tsx (8 tests) 1510ms
+   ✓ real Panel pending invalid JSON blocks save/switch/history and fires Shell dirty; cancel releases 349ms
+ ✓ src/__tests__/CoreFailureStates.test.tsx (15 tests) 2002ms
+   ✓ UI-03 distinct failure states > clears an old capability failure only after a validated successful refresh 465ms
+ ✓ src/__tests__/UiFirstWorkspace.test.tsx (9 tests) 661ms
+ ✓ src/__tests__/EpubParagraphs.test.tsx (7 tests) 272ms
+ ✓ src/__tests__/TranscriptionIntegration.test.tsx (5 tests) 782ms
+ ✓ src/__tests__/AppSceneNavigationGuard.test.tsx (12 tests) 3176ms
+   ✓ SIMULATED App guards leaving when only a frozen review is pending 382ms
+   ✓ SIMULATED App guards an unsubmitted learning draft even outside the learning page 330ms
+   ✓ SIMULATED mounted App retains a dirty AI journey across receipt panels and still guards leaving 570ms
+   ✓ SIMULATED mounted App with real CoreWorkingStateSession navigates while only scene CAS ACK is pending 348ms
+   ✓ SIMULATED scene-only unknown ACK retains journal error without claiming a content draft 452ms
+ ✓ src/__tests__/CanonicalActivityDock.test.tsx (10 tests) 518ms
+ ✓ src/__tests__/ModelConfiguration.test.tsx (12 tests) 5381ms
+   ✓ generates a two-model draft from live inventory and saves eight missing lanes through the original CAS 309ms
+   ✓ keeps edited custom profiles, existing bindings and embedding identity while filling missing lanes 604ms
+   ✓ switches to existing names without overwriting them and preserves incomplete edits across profile switches 1133ms
+   ✓ treats new profile name constructor as an own draft without prototype lookup 580ms
+   ✓ treats new profile name toString as an own draft without prototype lookup 565ms
+   ✓ treats new profile name __proto__ as an own draft without prototype lookup 581ms
+   ✓ blocks a DEEP machine answer before first configuration without invoking inference 339ms
+   ✓ SIMULATED edits one profile and writes fenced CAS plus purpose/lane bindings 364ms
+   ✓ SIMULATED resolves DEEP once and freezes effective destination and budgets before answer 312ms
+ ✓ src/__tests__/ImportedCourseStorage.test.ts (10 tests) 40ms
+ ✓ src/__tests__/TranscriptionCues.test.tsx (9 tests) 260ms
+ ✓ src/__tests__/NeuralGraph.test.ts (10 tests) 371ms
+   ✓ constellation presentation geometry > bounds 1000 parallel/reciprocal paths and distinct self-loops inside a fitted geometry envelope 303ms
+ ✓ src/__tests__/AiAssetPacketPanel.test.tsx (6 tests) 576ms
+ ✓ src/__tests__/FormatQualificationPanel.test.tsx (11 tests) 284ms
+ ✓ src/__tests__/LearningSpace.test.tsx (9 tests) 2466ms
+   ✓ LearningSpace > submits a teach-back and shows rubric scores 1019ms
+   ✓ LearningSpace loop views > generates quiz items and grades MCQ 546ms
+   ✓ LearningSpace loop views > builds a learning path from a prerequisite graph 357ms
+ ✓ src/__tests__/CapabilityCenter.test.tsx (22 tests) 1780ms
+   ✓ capability center uses existing identities without inventing runtime availability > filters the existing catalog, keeps future details and never installs or probes during browsing 657ms
+   ✓ capability center uses existing identities without inventing runtime availability > ignores a late old-scope resolve and clears old failure while reading a new scope 330ms
+   ✓ capability center uses existing identities without inventing runtime availability > ignores a late old-scope reject and clears old failure while reading a new scope 319ms
+ ✓ src/__tests__/PdfPageRecognition.test.tsx (10 tests) 1182ms
+ ✓ src/__tests__/ImportedCoursePanel.test.tsx (6 tests) 1406ms
+   ✓ optional external course import and reference practice > only writes after explicit preview confirmation, uses literal text, and does not record mastery 374ms
+   ✓ optional external course import and reference practice > lists only on request, reads selected documents, and never presents a failed list as empty 351ms
+   ✓ optional external course import and reference practice > does not publish a late unmounted reply into a reopened panel; reselect retains the frozen request 316ms
+ ✓ src/__tests__/UiHost.test.ts (15 tests) 15ms
+ ✓ src/__tests__/CanonicalLearningJourney.test.tsx (8 tests) 861ms
+ ✓ src/__tests__/MachineInventory.test.tsx (5 tests) 1255ms
+   ✓ keeps a previous explicit choice visible when inventory refresh fails 343ms
+   ✓ binds explicit model selection to a frozen lost-ACK retry 687ms
+ ✓ src/__tests__/DockLayout.test.ts (6 tests) 166ms
+ ✓ src/__tests__/CanonicalContextSpace.test.tsx (4 tests) 370ms
+ ✓ src/__tests__/CommandPalette.test.tsx (12 tests) 1392ms
+   ✓ CommandPalette > returns to the visible global trigger when navigation leaves the opener removed 374ms
+ ✓ src/__tests__/WorkspaceRestore.test.tsx (7 tests) 1374ms
+ ✓ src/__tests__/CandidateSavedGuard.test.tsx (5 tests) 3617ms
+   ✓ SIMULATED mounted App source candidate readback clears only saved draft and learning navigation needs no unsaved confirm 1984ms
+   ✓ SIMULATED mounted candidate lost ack keeps its draft dirty 418ms
+   ✓ SIMULATED mounted candidate wrong provenance keeps its draft dirty 374ms
+   ✓ SIMULATED mounted candidate wrong body keeps its draft dirty 357ms
+   ✓ SIMULATED mounted delayed candidate body readback preserves later input and dirty owner 480ms
+ ✓ src/__tests__/IntakeSpace.test.tsx (5 tests) 1650ms
+   ✓ IntakeSpace > imports a URL and renders the multi-format receipt 628ms
+   ✓ IntakeSpace > surfaces a conversion failure as an error instead of partial truth 616ms
+ ✓ src/__tests__/VaultSpace.test.tsx (4 tests) 1711ms
+   ✓ VaultSpace > reads a markdown file into the editor and saves with optimistic lock 521ms
+   ✓ VaultSpace > reports an optimistic-lock conflict and asks to re-read 344ms
+   ✓ VaultSpace > searches the vault and opens a matching file 564ms
+ ✓ src/__tests__/GlobalObjectSearch.test.tsx (6 tests) 1254ms
+   ✓ SIMULATED: opens exact document version/SHA and immutable knowledge identity using Core search 334ms
+   ✓ mounts actual content search in the global command and closes after opening the selected object 489ms
+ ✓ src/__tests__/JobContentPinnedResult.test.tsx (14 tests) 345ms
+ ✓ src/__tests__/JobJournalRecovery.test.tsx (6 tests) 2663ms
+   ✓ SIMULATED real components rehydrate exact Core journal without automatic work > manual remount and new App session recover same job/request/source/kind/budget before explicit retry 443ms
+   ✓ SIMULATED real components rehydrate exact Core journal without automatic work > bounded fresh selection protects the manual-owned job and explicitly restores its original request 514ms
+   ✓ SIMULATED real components rehydrate exact Core journal without automatic work > bounded fresh selection protects the folder-owned job and explicitly restores its original request 660ms
+   ✓ SIMULATED real components rehydrate exact Core journal without automatic work > bounded fresh selection protects the bounded-owned job and explicitly restores its original request 582ms
+ ✓ src/__tests__/PdfReader.test.tsx (5 tests) 711ms
+ ✓ src/__tests__/MachineAdmission.test.ts (12 tests) 22ms
+ ✓ src/__tests__/SpaceRail.test.tsx (7 tests) 1609ms
+   ✓ SpaceRail > keeps every space button keyboard-focusable (Tab order + focus-visible) 559ms
+ ✓ src/__tests__/UiCapabilityIntent.test.tsx (22 tests) 1186ms
+   ✓ preserved independent design intentions > keeps the new five-domain navigation while the former palettes change only presentation 421ms
+ ✓ src/__tests__/MachineEvaluationPanel.test.tsx (7 tests) 7417ms
+   ✓ SIMULATED finite human machine evaluation UI > binds the actual original answer and pinned rubric; never sends trusted actor from reviewer annotation 1100ms
+   ✓ SIMULATED finite human machine evaluation UI > retries the exact frozen evaluation request after lost ACK and verifies original snapshot hashes 1043ms
+   ✓ SIMULATED finite human machine evaluation UI > does not let a new task hint replace unsaved judgments and uses separate dirty owners 1098ms
+   ✓ SIMULATED finite human machine evaluation UI > retains rubric request identity after lost ACK and can reconcile with GET without another POST 590ms
+   ✓ SIMULATED finite human machine evaluation UI > does not report success when Core rejects machine identity or readback answer hashes differ 1150ms
+   ✓ SIMULATED finite human machine evaluation UI > keeps an edited evaluation while reading a pinned historical evaluation document 1199ms
+   ✓ SIMULATED finite human machine evaluation UI > withholds success when the saved evaluation binds another original answer hash 1235ms
+ ✓ src/__tests__/FrozenCapabilityRecovery.test.tsx (9 tests) 281ms
+ ✓ src/__tests__/DiagnosticPresentation.test.tsx (5 tests) 234ms
+ ✓ src/__tests__/AssetConsumption.test.ts (14 tests) 14ms
+ ✓ src/__tests__/PinnedReferencePanel.test.tsx (6 tests) 236ms
+ ✓ src/__tests__/ContainerMemberChain.test.tsx (3 tests) 1289ms
+   ✓ container member chain > promotes only the human-selected span, with the UTF-16 offsets the Core validates 788ms
+   ✓ container member chain > refuses to present a receipt that is not a human-review candidate as promoted 335ms
+ ✓ src/__tests__/UIAuditRemediation.test.tsx (6 tests) 887ms
+   ✓ 审计缺陷回归：实际 App 与 SIMULATED 业务子端口 > 窄窗口自动更新检查对象保留阅读区，显式打开与已打开检查器仍正常 463ms
+ ✓ src/__tests__/DailyAppNavigation.test.tsx (3 tests) 1085ms
+   ✓ actual App navigation guard with SIMULATED child ports > retains a selected Document and same-page draft without resetting it through navigate 525ms
+   ✓ actual App navigation guard with SIMULATED child ports > does not set a review target on refused, composing or restoring navigation 306ms
+ ✓ src/__tests__/OsuiProductionContract.test.tsx (9 tests) 2791ms
+   ✓ OSUI v3 production contract > exposes the new five domains with preserved semantic pages and a detail-only page 18 412ms
+   ✓ OSUI v3 production contract > uses the global command palette to reach an actual content surface 596ms
+   ✓ OSUI v3 production contract > traps command focus, hides the background, supports arrows, and restores focus 651ms
+   ✓ OSUI v3 production contract > makes every Workbench quick action operable 567ms
+ ✓ src/__tests__/theme-preference.test.ts (5 tests) 9ms
+ ✓ src/__tests__/folderIngestExecution.test.ts (7 tests) 11ms
+ ✓ src/__tests__/LocalDocumentSearch.test.tsx (9 tests) 379ms
+ ✓ src/__tests__/AssetMachineGrantPanel.test.tsx (3 tests) 448ms
+ ✓ src/__tests__/TranscriptionReopen.test.tsx (3 tests) 483ms
+ ✓ src/__tests__/ExchangeProof.test.ts (12 tests) 52ms
+ ✓ src/__tests__/DocumentEditor.test.tsx (4 tests) 371ms
+ ✓ src/__tests__/DailyNavigation.test.tsx (4 tests) 486ms
+   ✓ five daily navigation > shows five daily and two fixed entries while preserving research, canvas and receipt children 317ms
+ ✓ src/__tests__/UserJourneys.test.tsx (17 tests) 6502ms
+   ✓ SIMULATED configuration read → diagnose → save → read > starts a new profile at LM Studio without overwriting existing profiles or bindings 303ms
+   ✓ SIMULATED configuration read → diagnose → save → read > diagnoses openai at http://127.0.0.1:1234/v1 and preserves bindings 815ms
+   ✓ SIMULATED configuration read → diagnose → save → read > diagnoses openai at http://127.0.0.1:1234/v1/ and preserves bindings 894ms
+   ✓ SIMULATED configuration read → diagnose → save → read > diagnoses openai at http://127.0.0.1:1234 and preserves bindings 685ms
+   ✓ SIMULATED configuration read → diagnose → save → read > diagnoses ollama at http://127.0.0.1:11434/ and preserves bindings 1181ms
+   ✓ SIMULATED configuration read → diagnose → save → read > retains input after HTTP failure and supports retry 576ms
+   ✓ SIMULATED configuration read → diagnose → save → read > discards a late diagnosis after a profile edit 414ms
+ ✓ src/__tests__/OpenMaicCourse.test.ts (18 tests) 11ms
+ ✓ src/__tests__/WorkspaceController.test.ts (5 tests) 11ms
+ ✓ src/__tests__/JobContentGenericPersisted.test.tsx (19 tests) 531ms
+ ✓ src/__tests__/ExchangePinnedIntegration.test.tsx (4 tests) 519ms
+ ✓ src/__tests__/Performance.test.ts (12 tests) 6ms
+ ✓ src/__tests__/StatusBar.test.tsx (6 tests) 448ms
+ ✓ src/__tests__/KnowledgeReferenceJump.test.tsx (4 tests) 180ms
+ ✓ src/__tests__/CanonicalMachineReceiptsSpace.test.tsx (5 tests) 294ms
+ ✓ src/__tests__/CanonicalCapabilitiesSpace.test.tsx (4 tests) 585ms
+ ✓ src/__tests__/ModelConnectionNative.test.ts (8 tests) 14ms
+ ✓ src/__tests__/LmStudioPreset.test.ts (5 tests) 7ms
+ ✓ src/__tests__/CanonicalMachineReceiptTaskState.test.tsx (1 test) 312ms
+   ✓ parent and receipt-list refresh preserve pending cancellation, frozen budget and committed checkpoint 311ms
+ ✓ src/__tests__/navigation-projection.test.ts (3 tests) 9ms
+ ✓ src/__tests__/RealData.test.tsx (7 tests) 123ms
+ ✓ src/__tests__/PortableDocumentExchange.test.tsx (2 tests) 204ms
+ ✓ src/__tests__/StructureCitations.test.tsx (20 tests) 2098ms
+ ✓ src/__tests__/SpaceTopNavigation.test.tsx (9 tests) 733ms
+   ✓ alternate top navigation > supports horizontal keys, menu keys, Escape and outside dismissal 303ms
+ ✓ src/__tests__/CanvasInteraction.test.tsx (5 tests) 780ms
+   ✓ SIMULATED Escape cancels editing without saving and restores the edit trigger focus 351ms
+ ✓ src/__tests__/CanonicalLibraryLease.test.tsx (2 tests) 410ms
+   ✓ integrated library lease consumers with synthetic Core receipts > mounts only one editor for duplicate object views and independently writes another object 336ms
+ ✓ src/__tests__/CanonicalTeachingSpace.test.tsx (49 tests) 19313ms
+   ✓ SIMULATED preparation rejects a consistent but wrong identity in save ACK and readback 334ms
+   ✓ SIMULATED preparation keeps empty paragraphs and updates the same document with exact CAS revision 432ms
+   ✓ SIMULATED remount reopens exact plain paragraphs and saves the latest document with CAS 622ms
+   ✓ SIMULATED preparation reopens the current head instead of saving with a stale list revision 313ms
+   ✓ SIMULATED body draft saving preserves unsaved purpose changes instead of marking a title rename saved 893ms
+   ✓ SIMULATED draft rejects consistent wrong title ACK and readback against the frozen existing title 500ms
+   ✓ SIMULATED starting a new preparation preserves current text and creates another document without replacing the original 616ms
+   ✓ SIMULATED complete requirement/proposal/delivery/teachback/feedback/revision/redelivery sends the actual parent IDs 4362ms
+   ✓ persists incomplete preparation body without knowledge then keeps formal registration separate 327ms
+   ✓ uncertain create retries the identical client record and frozen content 743ms
+   ✓ cannot derive from a withdrawn parent or substitute arbitrary parent IDs 663ms
+   ✓ withdraw cancellation writes nothing; confirmation uses the actual selected ID and reads back withdrawn 575ms
+   ✓ file JSON requires Core preview and separate confirmation, imports exact selected bundle without running material 381ms
+   ✓ binds Teach-back to the real parent course/knowledge assessment without inventing a score 1032ms
+   ✓ cannot attach an assessment whose immutable knowledge differs 414ms
+   ✓ Core actor refusal keeps the exact uncertain record for retry and never shows persisted success 929ms
+   ✓ preparation lost create ack retries stable request and original snapshot without duplicate documents 432ms
+   ✓ withdrawal dialog traps Tab and Escape restores trigger without mutation 429ms
+   ✓ exchange dialog Escape and cancel return to preview trigger without import 403ms
+ ✓ src/__tests__/CanvasBoard.test.tsx (6 tests) 170ms
+ ✓ src/__tests__/SettingsSpace.test.tsx (4 tests) 230ms
+ ✓ src/__tests__/ConfigurationPlanPanel.test.tsx (3 tests) 319ms
+ ✓ src/__tests__/LayoutPreferencesPanel.test.tsx (3 tests) 163ms
+ ✓ src/__tests__/ObjectReferencePicker.test.tsx (3 tests) 228ms
+ ✓ src/__tests__/ContentDetectionPanel.test.tsx (3 tests) 298ms
+ ✓ src/__tests__/AiAssetContract.test.ts (13 tests) 9ms
+ ✓ src/__tests__/jobContentExecution.test.ts (9 tests) 26ms
+ ✓ src/__tests__/CharacterMemoryBridge.test.ts (6 tests) 8ms
+ ✓ src/__tests__/OriginalTextCitation.test.tsx (5 tests) 281ms
+ ✓ src/__tests__/SpecializedLeaseConsumers.test.tsx (2 tests) 307ms
+ ✓ src/__tests__/CanonicalCapabilityDonorMapping.test.tsx (2 tests) 198ms
+ ✓ src/__tests__/JobAdmission.test.ts (9 tests) 7ms
+ ✓ src/__tests__/AssetMachineSlots.test.tsx (3 tests) 158ms
+ ✓ src/__tests__/LibraryPagination.test.tsx (2 tests) 288ms
+ ✓ src/__tests__/MediaEstimate.test.ts (7 tests) 7ms
+ ✓ src/__tests__/ContextNav.test.tsx (3 tests) 175ms
+ ✓ src/__tests__/ExchangeSpace.test.tsx (3 tests) 501ms
+   ✓ ExchangeSpace > exports an exchange package and shows the receipt 321ms
+ ✓ src/__tests__/MediaReader.test.tsx (3 tests) 112ms
+ ✓ src/__tests__/LayoutPort.test.ts (2 tests) 9ms
+ ✓ src/__tests__/DocumentBusinessSessions.test.ts (3 tests) 7ms
+ ✓ src/__tests__/XiaoqiIntegration.test.tsx (3 tests) 187ms
+ ✓ src/__tests__/FileUpload.test.tsx (4 tests) 82ms
+ ✓ src/__tests__/TeachingContract.test.ts (3 tests) 5ms
+ ✓ src/__tests__/MediaReconciliation.test.tsx (1 test) 331ms
+   ✓ keeps one owned media reader when reopening the same source 329ms
+ ✓ src/__tests__/DiagnosticConsole.test.tsx (3 tests) 306ms
+ ✓ src/__tests__/Accessibility.test.tsx (4 tests) 91ms
+ ✓ src/__tests__/AccessibilityAudit.test.tsx (4 tests) 101ms
+ ✓ src/__tests__/MachineExecutionRefusal.test.ts (3 tests) 4ms
+ ✓ src/__tests__/OperationReadiness.test.tsx (2 tests) 169ms
+ ✓ src/__tests__/PresentationLabels.test.ts (4 tests) 6ms
+ ✓ src/__tests__/ModelBinding.test.ts (6 tests) 6ms
+ ✓ src/__tests__/MediaRoutes.test.tsx (2 tests) 417ms
+ ✓ src/__tests__/Inspector.test.tsx (2 tests) 201ms
+ ✓ src/__tests__/BackupPanel.test.tsx (2 tests) 318ms
+ ✓ src/__tests__/KnowledgeReviewRecovery.test.tsx (3 tests) 2533ms
+   ✓ keeps an unsubmitted note when recovery reloads the same candidate 1440ms
+   ✓ a failed qualification read does not approve or block a human choice 548ms
+   ✓ a pending qualification read does not approve or block a human choice 544ms
+ ✓ src/__tests__/SpaceDescription.test.ts (2 tests) 3ms
+ ✓ src/__tests__/LearningApi.test.ts (1 test) 6ms
+ ✓ src/__tests__/originalTextSelection.test.ts (2 tests) 7ms
+ ✓ src/__tests__/BrandTheme.test.tsx (5 tests) 393ms
+ ✓ src/__tests__/ModelTaskRoles.test.tsx (2 tests) 38ms
+ ✓ src/__tests__/MonochromeThemeContract.test.mjs (1 test) 2ms
+ ✓ src/__tests__/ConversionKindsLegacy.test.ts (5 tests) 4ms
+ ✓ src/__tests__/StyleRuleCoverage.test.ts (2 tests) 66ms
+ ✓ src/__tests__/FailedReadIsNotEmptyResult.test.ts (15 tests) 112ms
+ ✓ src/__tests__/MachineFailureDiagnostics.test.ts (1 test) 3ms
+ ✓ src/__tests__/AaosStatusBadge.test.tsx (3 tests) 29ms
+ ✓ src/__tests__/LearningTitle.test.ts (7 tests) 3ms
+ ✓ src/__tests__/UiFirstThemes.test.ts (1 test) 1ms
+ ✓ src/__tests__/WorkspaceStateSemantics.test.ts (7 tests) 2ms
+ ✓ src/__tests__/ViteDevProxy.test.mjs (1 test) 38ms
+ ✓ src/__tests__/NoFabricatedCoreData.test.ts (17 tests) 503ms
+ ✓ src/__tests__/UiHostContractPanel.test.tsx (1 test) 122ms
+
+ Test Files  176 passed (176)
+      Tests  1741 passed (1741)
+   Start at  03:20:27
+   Duration  24.98s (transform 8.37s, setup 31.19s, collect 42.06s, tests 220.98s, environment 109.37s, prepare 16.10s)
+

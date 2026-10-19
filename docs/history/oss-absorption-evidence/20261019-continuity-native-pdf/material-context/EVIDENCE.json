@@ -1,0 +1,118 @@
+{
+  "schema": "aaos.material-context-quality-review/v1",
+  "time_utc": "2026-10-18T22:58:18.943717+00:00",
+  "status": "PARTIAL_ROOT_CAUSE_UNVERIFIED",
+  "evidence_level": "REAL_NATIVE_SYNTHETIC_SAMPLE_PLUS_READONLY_SOURCE_RECONSTRUCTION",
+  "receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-0c6c5309cd12/tmp/journey/receipt.json",
+    "sha256": "e1df045abc5f5881c2e42c09395aac0f42946d414fdc6a34ab7ecfbab9737e3e",
+    "expected_sha_matches": true
+  },
+  "synthetic_sample": {
+    "document_text": "Independent synthetic material 59a40506553e4814bb3de90b0e65e99f. ArcheAxis keeps a versioned local note for reading and review.",
+    "question": "合成材料 91375d0555ef：请用一句中文概括所选材料的主题。",
+    "answer": "上下文未提供合成材料 91375d0555ef 的主题，无法概括。",
+    "source_nonce": "59a40506553e4814bb3de90b0e65e99f",
+    "question_nonce": "91375d0555ef",
+    "question_nonce_in_document": false,
+    "selection": {
+      "end_utf16": 127,
+      "quote_sha256": "9d995968e30c89e85fb9e4a538c74f408bc428155af4802b5a676e19fbac7ba4",
+      "start_utf16": 0
+    },
+    "context_proof": {
+      "authority": "unverified_material",
+      "bytes": 127,
+      "context_sha256": "9d995968e30c89e85fb9e4a538c74f408bc428155af4802b5a676e19fbac7ba4",
+      "material": {
+        "block_id": null,
+        "content_sha256": "31595b2d7d6a5fcc0d1a6489d60a231b7c78d03ddfc2f4b7d1da2c46fbf652f5",
+        "document_id": "doc_req_5b06dd37b5b8b813d9ff4d4001c5989ee59ddac087cac1e7257664e9005d0c85",
+        "kind": "document",
+        "version": 2
+      },
+      "provenance": {
+        "source_id": null,
+        "source_revision": null
+      },
+      "selection": {
+        "end_utf16": 127,
+        "quote_sha256": "9d995968e30c89e85fb9e4a538c74f408bc428155af4802b5a676e19fbac7ba4",
+        "start_utf16": 0
+      }
+    },
+    "document_core_sha256": "31595b2d7d6a5fcc0d1a6489d60a231b7c78d03ddfc2f4b7d1da2c46fbf652f5"
+  },
+  "answer_metadata": {
+    "elapsed_s": 79.95,
+    "max_tokens": 1024,
+    "finish_reason": "stop",
+    "truncated": false,
+    "usage": {
+      "input_tokens": 210,
+      "output_tokens": 252,
+      "total_tokens": 462
+    },
+    "answer_policy": "grounded",
+    "answer_source": "content",
+    "observed_model": "aaos-deep-27b-mtp",
+    "prompt_version": "archeaxis.vnext/v1 2026-10-02"
+  },
+  "reconstructed_not_wire_observed": {
+    "grounded_template_equal_pre_measurement": true,
+    "original_worker_preimage_sha256": "510c4973bc3c749cb2c5c0189d57245dcb2701c1e0c9c7da03622aed253a1e3d",
+    "prompt_utf8_bytes": 528,
+    "prompt_sha256": "bc8ecc7c056b9250471419a37005e06af88bec8ea55a1f2f7823fa240c4cacb9",
+    "serialized_request_bytes": 700,
+    "user_message_count": 1,
+    "explicit_system_message_count": 0,
+    "context_occurs_in_prompt": true,
+    "context_precedes_question": true,
+    "actual_native_request_bytes": "UNVERIFIED_NOT_RECORDED",
+    "provider_system_chat_template": "UNVERIFIED_NOT_READ",
+    "provider_reasoning_text": "UNVERIFIED_NOT_READ",
+    "provider_phase_times": "UNVERIFIED",
+    "actual_reasoning_tokens": "UNVERIFIED_output_tokens_252_IS_TOTAL_REPORTED_NOT_FINAL_TEXT_ONLY"
+  },
+  "sources": [
+    {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "sha256": "4e8d1eeb32a0cc8f055b78f9fb5631e4a85555debea2c2f2e25c29a5a7641e09"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/material_question.rs",
+      "sha256": "5fc9d72de730b761c65c0b8f56d45ea3f4b277c3a61c9bd5eb8bbd3ee51b4c22"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/material_questions.rs",
+      "sha256": "7859c67f0d212d1e22d56ecca115c397b14050e7744a025e8c8b556bd2fc8feb"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "sha256": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "sha256": "b40e288c16f47b9d36a5d8fea2d251991d6e5364f4f6174d4b056e3cfdea12e6"
+    },
+    {
+      "path": "scripts/probes/aaos01_material_companion_loop.py",
+      "sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f"
+    },
+    {
+      "path": "scripts/probes/aaos01_material_independent_loop.py",
+      "sha256": "c0c4c223721bb0b24cd3aa3c59b342736851e0d00f42c1c5e8ad94a3f845a108"
+    },
+    {
+      "path": "tests/test_worker_machine_answer.py",
+      "sha256": "d0d70a7b4cb79d0ab4fd101f49de3089d18c76a646ef2f7a43c6294f868065d5"
+    },
+    {
+      "path": ".project-local/audits/recovery-measurement-integration-20261019/NATIVE-READBACK.json",
+      "sha256": "55df7fb7ab20dea0f4f7d38dc07bcd3d47e36279fe1d46030a2a7db307a2c37d"
+    }
+  ],
+  "product_writes": [],
+  "model_calls": "NOT_EXECUTED",
+  "tests_executed": "NOT_EXECUTED_READONLY_AST_AND_SHA_ASSERTIONS_ONLY"
+}

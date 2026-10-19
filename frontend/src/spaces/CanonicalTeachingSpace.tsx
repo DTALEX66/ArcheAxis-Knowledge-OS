@@ -15,6 +15,8 @@ import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState
 import type { TeachingDraft } from "../presentation/coreWorkingState";
 
 import {resolveLearningJourney,type LearningJourneyTarget} from "../presentation/learningJourney";
+import {learningTitle} from "../presentation/learningTitle";
+import {RawReceiptButton} from "../components/DiagnosticConsole";
 
 type Kind = TeachingRecord["kind"];
 type Knowledge = { knowledge_id: string; head: string };
@@ -263,7 +265,7 @@ function TeachingEditor({pageId="08", onOpenPage, onTrail, initialItemKey}:Teach
       {parent&&courseId?<button disabled={busy} onClick={()=>void chooseCourse(courseId)}>核对父课程并读取练习入口</button>:null}
       {pageId==="11"?<><button disabled={busy||!itemKey||pending} onClick={()=>void readAssessment()}>读取绑定的真实学习问题</button><button disabled={busy||!itemKey} onClick={()=>setPractice(value=>!value)}>打开真实练习队列</button><p>独立作答/成绩记录由真实学习合同承接；Teach-back只是手工记录，不调用旧Python评分。</p></>:null}
     </aside></div>
-    {initialItemKey&&["11","12"].includes(pageId)?<section aria-label="同对象练习与复习"><h3>此学习项目的练习与复习</h3><p>{initialItemKey}</p>{journey?<><p>知识 {journey.knowledge_id} · 问题 {journey.assessment_id}{journey.course?` · 课程 ${journey.course.id} · 课时 ${journey.course.artifactId}`:""}</p><CanonicalLearningSpace key={journey.item_key} initialItemKey={journey.item_key} expectedJourney={journey} onReturnCourse={journey.course?returnCourse:undefined} onTrail={onTrail}/></>:journeyFailure?<p role="alert">同对象学习身份未核对，不能提交结果。{journeyFailure}</p>:<p role="status">正在核对原学习项目、知识与问题身份…</p>}</section>:null}
+    {initialItemKey&&["11","12"].includes(pageId)?<section aria-label="同对象练习与复习"><h3>{learningTitle(journey?.display_title, "学习项目（标题尚未核对）")}</h3>{journey?<><RawReceiptButton label="同对象学习身份" category="data" payload={journey} /><CanonicalLearningSpace key={journey.item_key} initialItemKey={journey.item_key} expectedJourney={journey} onReturnCourse={journey.course?returnCourse:undefined} onTrail={onTrail}/></>:journeyFailure?<p role="alert">同对象学习身份未核对，不能提交结果。{journeyFailure}</p>:<p role="status">正在核对原学习项目、知识与问题身份…</p>}</section>:null}
     {returnedCourse?.course?<section aria-label="原课程与绑定版本"><h3>当前学习问题绑定的原课程</h3><p>仅阅读本题绑定的知识修订 {returnedCourse.knowledge_version}；不创建或升级课程、问题和复习记录。</p><button type="button" onClick={()=>setReturnedCourse(undefined)}>关闭课程并继续编辑</button><KnowledgeCoursePanel key={courseRead} readOnly courseId={returnedCourse.course.id} knowledgeId={returnedCourse.knowledge_id} expectedItemKey={returnedCourse.item_key} expectedCourse={returnedCourse.course}/></section>:null}
     {!initialItemKey&&practice&&itemKey?<CanonicalLearningSpace initialItemKey={itemKey} onTrail={onTrail}/>:null}
 

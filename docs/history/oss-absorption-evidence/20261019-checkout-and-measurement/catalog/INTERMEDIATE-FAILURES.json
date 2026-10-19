@@ -1,0 +1,8 @@
+{
+  "stage": "initial_isolated_source_closure",
+  "status": "FAIL",
+  "reason": "Initial fixture copied qualification SHA references but omitted resource generator's additional fixed current crosswalk/freeze inputs. candidate_generate exited nonzero; run stopped before any product write.",
+  "preserved_directories": ["proposal", "baseline"],
+  "resolution": "New proposal-v2/baseline-v2 add explicit fixed generator dependencies; original preimages verified identical before reuse.",
+  "product_defect": false
+}

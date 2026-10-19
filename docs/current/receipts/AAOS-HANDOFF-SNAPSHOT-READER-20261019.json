@@ -1,0 +1,202 @@
+{
+  "schema": "archeaxis.handoff-snapshot-reader-receipt/v1",
+  "observed_at": "2026-10-18T23:48:34.260017+00:00",
+  "overall": "PARTIAL",
+  "archive": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/README.md",
+  "manifest": {
+    "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/MANIFEST.json",
+    "bytes": 18938,
+    "sha256": "92513ff7711848bc42b016fb18166b03b5f49d8424d0a090bb957987daf34c8c"
+  },
+  "frozen_members": 108,
+  "source_paths": 23,
+  "owner_topics": 39,
+  "fixed_handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+  "unique_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "results": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/RESULTS.json",
+  "public_delivery": "UNCOMMITTED_LOCAL_ONLY",
+  "archival_validation": "PASS_LOCAL_HASH_NAVIGATION_AND_ISOLATED_GIT_BYTES",
+  "actual_checks": {
+    "frontend": {
+      "files": 5,
+      "tests": 90
+    },
+    "python_contracts": 26,
+    "api_process_tests": 22,
+    "rust_contract_tests": 2,
+    "shared_cases": {
+      "preview": 16,
+      "snapshot": 14
+    },
+    "native_finite_consumer_tests": 29,
+    "typescript": true,
+    "production_frontend_build": true,
+    "generation_and_authority": true
+  },
+  "browser": {
+    "status": "PASS_SYNTHETIC_BROWSER",
+    "evidence_level": "SYNTHETIC actual product page source with finite mocked bridge",
+    "browser_version": "155.0.8059.80",
+    "viewports": [
+      "1280x900",
+      "390x844"
+    ],
+    "dpr": 1,
+    "theme": "cosmic",
+    "reduced_motion": "reduce",
+    "screenshots_viewed": [
+      "wide.png",
+      "narrow.png",
+      "identity-error.png"
+    ],
+    "visual_observation": "正文和中文状态可读，宽窄无横向溢出；长正文在对话框内滚动，关闭按钮可能在折叠下方，Escape已验证返回入口；不据此认定完整可用性/无障碍",
+    "automatic_violations": 0,
+    "automatic_incomplete": 6,
+    "full_accessibility": "UNVERIFIED",
+    "performance": "UNVERIFIED"
+  },
+  "not_executed": [
+    "whole repository full suite",
+    "native UI launch for current snapshot reader",
+    "OS URI registration / real external WORK-LAB or DESIGN-LAB handoff",
+    "installed runtime / Owner acceptance",
+    "model quality/performance and original full AI retest timeout repair",
+    "HUB004 installation/update and all-format qualification"
+  ],
+  "validation_observed_at": "2026-10-18T23:49:44.262908+00:00",
+  "validation_scope": {
+    "status": "PASS",
+    "evidence_level": "STRUCTURAL_HASH_AND_GIT_BYTES_NOT_PRODUCT_QUALIFICATION",
+    "frozen_members": 108,
+    "navigation_targets": 36,
+    "local_evidence_checked": 88,
+    "git_roundtrip_files": 117,
+    "whole_product": "PARTIAL",
+    "private_full_transcript": "UNVERIFIED"
+  },
+  "original_dialogue_validation": {
+    "status": "PASS",
+    "evidence_level": "STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION",
+    "frozen_members": 6,
+    "source_records": 39,
+    "current_reference_targets": 28,
+    "local_attachments_checked": 0,
+    "local_attachment_status": "NOT_EXECUTED",
+    "product_status": "PARTIAL",
+    "full_private_transcript": "UNVERIFIED"
+  },
+  "previous_checkpoint_validation": {
+    "status": "PASS",
+    "evidence_level": "STRUCTURAL_HASH_AND_GIT_BYTES_NOT_PRODUCT_QUALIFICATION",
+    "frozen_members": 134,
+    "navigation_targets": 35,
+    "local_evidence_checked": 123,
+    "git_roundtrip_files": "NOT_EXECUTED",
+    "whole_product": "PARTIAL",
+    "private_full_transcript": "UNVERIFIED"
+  },
+  "validation_execution": {
+    "path": ".project-local/runs/be268a2d33/be10-snapshot-archive-final-1019/artifacts/execution.json",
+    "sha256": "8cdee3126f2c8c46e44dac38ebd14dcf85c3235c60a7d01e483f6e67a0a11ee9",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "6f2fd1a200fed2ecbd2bc6e4c2c1fc10a91e3284a614f7965df3f4bb18d32e63"
+  },
+  "validation_commands": [
+    {
+      "name": "new-checkpoint",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\docs\\history\\oss-absorption-evidence\\20261019-handoff-snapshot-reader\\verify_snapshot.py",
+        "--require-local-evidence",
+        "--git-checkout"
+      ],
+      "started_at": "2026-10-18T23:49:08.271370+00:00",
+      "ended_at": "2026-10-18T23:49:08.956228+00:00",
+      "exit_code": 0,
+      "log": ".project-local/audits/be10-snapshot-integration-20261019/archive-final-new-checkpoint.log",
+      "sha256": "eca869cee34f1f2d3da729786e92a4c868daa8963ffcd98a6a5c5cf7371113b9"
+    },
+    {
+      "name": "original39",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/owner-dialogue-20261019/verify_archive.py"
+      ],
+      "started_at": "2026-10-18T23:49:08.956591+00:00",
+      "ended_at": "2026-10-18T23:49:09.171773+00:00",
+      "exit_code": 0,
+      "log": ".project-local/audits/be10-snapshot-integration-20261019/archive-final-original39.log",
+      "sha256": "3945f620f53a6acd0554c15b04434817c24f11e1595aa98ecf76bb633d95ec5e"
+    },
+    {
+      "name": "previous134",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/verify_snapshot.py",
+        "--require-local-evidence"
+      ],
+      "started_at": "2026-10-18T23:49:09.172063+00:00",
+      "ended_at": "2026-10-18T23:49:09.488804+00:00",
+      "exit_code": 0,
+      "log": ".project-local/audits/be10-snapshot-integration-20261019/archive-final-previous134.log",
+      "sha256": "efaa583e5e1629a13de267b015d6994025a4d0dbc33cab6e02e5ffe8361ce6e5"
+    },
+    {
+      "name": "authority",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-18T23:49:09.489095+00:00",
+      "ended_at": "2026-10-18T23:49:09.739293+00:00",
+      "exit_code": 0,
+      "log": ".project-local/audits/be10-snapshot-integration-20261019/archive-final-authority.log",
+      "sha256": "3d966d3bd7e450f69bf6fc3fab56deb24c27a2f9c4bc3df059d116c7015830ff"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-18T23:49:09.739573+00:00",
+      "ended_at": "2026-10-18T23:49:09.842383+00:00",
+      "exit_code": 0,
+      "log": ".project-local/audits/be10-snapshot-integration-20261019/archive-final-diff.log",
+      "sha256": "d8946caa63ff879e4e341cea24e6fcc9d21820bce953c73f61ea43f0a8e6fb60"
+    }
+  ],
+  "final_readback": {
+    "status": "PASS",
+    "public_source_paths_unchanged_after_validation": 23,
+    "preexisting_status_paths_preserved": 355,
+    "new_status_paths": [
+      "docs/current/receipts/AAOS-HANDOFF-SNAPSHOT-READER-20261019.json"
+    ],
+    "inherited_qualification_entries_preserved": 68,
+    "qualification_promotions": 0,
+    "scope": "structural/source identity and Git status; not installed product or cloud synchronization"
+  },
+  "process_readback": {
+    "observed_at": "2026-10-18T23:48:30.4207446Z",
+    "browser_port": 5173,
+    "listeners": [],
+    "exact_owned_core_or_browser_processes": [],
+    "scope": "chrome profile or exact owned Core executable; first readback included inspecting pwsh and is preserved separately",
+    "native_ephemeral_port_readback": "UNVERIFIED"
+  }
+}

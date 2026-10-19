@@ -1,0 +1,555 @@
+{
+  "schema": "archeaxis.owner-dialogue-archive/v1",
+  "observed_at": "2026-10-18T20:09:17.958160+00:00",
+  "records": [
+    {
+      "id": "OD-001",
+      "topic": "历史交接声明",
+      "source_kind": "HISTORICAL_CLAIM",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "状态: PARTIAL",
+      "interpretation": "156文件/1492用例及五改六增属于用户转交的历史报告，不能作为当前整仓资格。",
+      "current_references": [
+        "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+        "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-002",
+      "topic": "接手",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "你来全部接手",
+      "interpretation": "项目内继续执行；历史结论与当前源码分开。",
+      "current_references": [
+        "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-003",
+      "topic": "跨客户端整合",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "检查本项目在CODEX和CLAUDE CODE里的会话 整合下",
+      "interpretation": "按已授权本项目范围读取来源，保留父子/fork关系与缺失边界。",
+      "current_references": [
+        "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+        "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-004",
+      "topic": "客户端名称",
+      "source_kind": "CONTEXT",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "这些是桌面客户端的名称",
+      "interpretation": "截图确认Claude Desktop的Code/Cowork界面与标题，不将界面名称推成独立软件或完整正文。",
+      "current_references": [
+        "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-005",
+      "topic": "已归档来源查找",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "要么在本地的任务库里呢 要么在云端GPT里呢  不是已经归档了吗？本地项目库里找不到吗？",
+      "interpretation": "先查仓库资料索引、manifest和精确来源；Cowork任务化交接包不冒充逐字正文。",
+      "current_references": [
+        "AAOS-资料索引.md",
+        "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-006",
+      "topic": "路径记忆",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "加入记忆里  各类路径 不要老让我提醒",
+      "interpretation": "稳定偏好可存授权记忆；项目权威和实际路径仍以仓库索引为准。",
+      "current_references": [
+        "docs/SHARED_RESOURCE_PATH_INDEX.md",
+        "docs/current/AAOS-AUTHORITY-ROUTES.json"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-007",
+      "topic": "开始执行",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "全部开始吧",
+      "interpretation": "按现行范围推进，不能以归档代替产品实施。",
+      "current_references": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-008",
+      "topic": "Codex记录",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "CODEX的会话你也整理加入进去",
+      "interpretation": "Codex来源纳入统一对账与专项索引；不重复计算委派/自动审批成果。",
+      "current_references": [
+        "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+        "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.json"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-009",
+      "topic": "仓内收敛与格式",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "所有记录历史资料权威规划等关键信息确保全部收敛到项目仓库内",
+      "interpretation": "维护原件、衍生物、索引及来源；最快闭环、完整架构和多格式要求保留，降级需明确损失。",
+      "current_references": [
+        "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-010",
+      "topic": "模型库存",
+      "source_kind": "QUESTION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "模型库不是有模型吗？本地模型呢？",
+      "interpretation": "库存、加载、真实调用和效果分别核验；优先复用已登记共享权重。",
+      "current_references": [
+        "docs/current/AAOS-LOCAL-LLM-20261018.md",
+        "docs/SHARED_RESOURCE_PATH_INDEX.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-011",
+      "topic": "默认运行时",
+      "source_kind": "QUESTION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "规划里不是不要OLLAMA了吗  使用LM STUDIO吗 怎么还使用OLLAMA  ？  你分析调研好了 到底是用哪个？",
+      "interpretation": "现行决定已收敛LM Studio；不恢复Ollama默认回退。用户此句是质询，不能称其已指定所有加载参数。",
+      "current_references": [
+        "docs/current/AAOS-LOCAL-LLM-20261018.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "config/model-profiles/lm-studio.json"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-012",
+      "topic": "旧入口漂移",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "旧代码和旧索引路径等关键信息 都更新多少次了 ？为什么总犯这种错误问题呢？哪的毛病",
+      "interpretation": "检索入口须指向有效文件，旧路径保留身份和替代关系；不能从旧摘要推导当前状态。",
+      "current_references": [
+        "docs/current/AAOS-AUTHORITY-ROUTES.json",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-013",
+      "topic": "迁移冻结清理",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "该更新更新旧的迁移冻结删除清理，你倒是执行啊",
+      "interpretation": "逐对象确认归属、替代入口和保全；保存未知dirty修改，不能推为共享库批量删除授权。",
+      "current_references": [
+        "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+        "docs/DIRECTORY_AUTHORITY_INDEX.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-014",
+      "topic": "旧运行时退役",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "全部给我配置好更新好，旧运行时该删除的删除",
+      "interpretation": "依据已核实迁移回执退役旧项目运行时；不清共享权重或未知环境。",
+      "current_references": [
+        "docs/history/runtime-migration-20261018/README.md",
+        "docs/current/AAOS-LOCAL-LLM-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-015",
+      "topic": "旧文件目录",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "旧文件目录该迁移归档的也做好",
+      "interpretation": "有唯一来源价值的材料保全，冗余且可再生对象按明细处理。",
+      "current_references": [
+        "docs/history/handoff-archive-20261018/README.md",
+        "docs/current/AAOS-PROJECT-CLOSURE-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-016",
+      "topic": "仓库维护",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "保持仓库所有的都为最新最干净的状态，不要老犯这种低级错误",
+      "interpretation": "入口保持现行，历史证据保留自己的时间与资格；整洁不等于抹除失败或未知修改。",
+      "current_references": [
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "docs/DOCUMENTATION_AUTHORITY_INDEX.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-017",
+      "topic": "并行与效率",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "加快速度  按任务难度匹配模型和推理  并行智能体，不要总让催你并你 不行就加入记忆里",
+      "interpretation": "独立任务可并行，单一write set一个writer；本句不授予擅改全局provider/auth权限。",
+      "current_references": [
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "AGENTS.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-018",
+      "topic": "旧摘要归档",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "旧的交接和摘要总结等信息也归档，该删除的删除，没用的留个记录存档等关键信息，完全没必要的可以删除啊？你认为呢？",
+      "interpretation": "记录保全/替代/删除依据，不用删除历史失败制造全绿。",
+      "current_references": [
+        "docs/history/handoff-archive-20261018/README.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-019",
+      "topic": "小栖归属更新",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "还有小栖虚拟人物  本地仓库和云端也并入到本项目里来，不在独立开发，直接适配到项目里",
+      "interpretation": "替代旧FE18/QODER独立归属；复用AAOS Core、会话、模型与记忆真值，不代表源仓已可删。",
+      "current_references": [
+        "workspace/intake/20261018-xiaoqi-in-project.md",
+        "docs/current/AAOS-XIAOQI-MIGRATION-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-020",
+      "topic": "27B与加速",
+      "source_kind": "QUESTION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "27B 不是有加速方案吗？没部署上吗？LLM呢？上次在LM STUDIO里也下载了  没配置上吗？",
+      "interpretation": "下载、绑定、加载参数、实际推理、性能和质量分别有证据；不能由模型存在推导加速达标。",
+      "current_references": [
+        "docs/current/AAOS-LOCAL-LLM-20261018.md",
+        "config/model-profiles/lm-studio.json",
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-021",
+      "topic": "停滞与进展",
+      "source_kind": "QUESTION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "为什么显示目标停滞？",
+      "interpretation": "与后续“一下午了什么都没完成”质询一起保留：应报告实际产出、未完成和阻塞，不作无后台任务的承诺。",
+      "current_references": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-022",
+      "topic": "具体成果质询",
+      "source_kind": "QUESTION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "你这一下午了 什么都没完成吗？",
+      "interpretation": "报告产品实际变化与验证，不用计划、报告份数或归档数量代替产品进度。",
+      "current_references": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-023",
+      "topic": "ASTRYN删除资格",
+      "source_kind": "QUESTION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "D:\\All projects\\ASTRYN  完成迁移了吗？云端和本地是否能删除了？",
+      "interpretation": "这是资格询问，不是无条件删除指令；迁移完整性和独有资产未核实时保留源。",
+      "current_references": [
+        "docs/current/AAOS-XIAOQI-MIGRATION-20261018.md",
+        "workspace/intake/20261018-xiaoqi-in-project.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-024",
+      "topic": "诊断归类",
+      "source_kind": "QUESTION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "前端界面的工程性的内容或者是运行诊断的内容，是不是要进行区分和归类啊  不能哪块都有吧？是不是要一个归纳收敛的地方啊",
+      "interpretation": "工程落实：业务页只留必要状态和下一步，详细诊断集中已有入口，不能多处铺满工程字段。",
+      "current_references": [
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "docs/current/receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-025",
+      "topic": "审计与商用验收",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "各轮审计与测试的实际覆盖范围、验证要点与产出结论是什么？",
+      "interpretation": "长消息摘录：要求逐轮说明标准、商用路径、全量测试边界、实际业务风险，以及点击测试发现并闭环的缺陷；数量和随机点击不构成资格。",
+      "current_references": [
+        "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+        "docs/current/receipts/AAOS-FRONTEND-TEST-CASES-20261018.json"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-026",
+      "topic": "独立工具项目试点",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "结合本项目，测试下新装的技能和插件下面是另一个会话给的提示词，只看关键性内容",
+      "interpretation": "长提示词摘要：先核对真实项目与工具，复用固定版本，隔离服务/浏览器，真实看截图，区分SYNTHETIC/集成/原生，不把样例当项目通过。后续安装授权只覆盖指定工具迁移，不解除项目边界。",
+      "current_references": [
+        "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+        "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+        "docs/SHARED_RESOURCE_PATH_INDEX.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-027",
+      "topic": "技能正式装载",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "如果可用没问题，把这些技能插件迁移到CODEX能发现的技能和插件库里，也就正式装载到CODEX里，并写好中文注释",
+      "interpretation": "先验证可用再适配Codex可发现库；工具/插件/上游参考分型，中文说明。工具存在与本会话原生发现分开。",
+      "current_references": [
+        "docs/SHARED_RESOURCE_PATH_INDEX.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-028",
+      "topic": "工具安装分型",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "能装载到CODEX就装载 ，装载不了 看看是不是能迁移到共用工具库里还是配置到C盘CODEX里呢？你自行分型看哪个合适",
+      "interpretation": "允许指定工具按适配性选择Codex插件、共享工具根或来源存档；不泛化为修改所有用户级配置。",
+      "current_references": [
+        "docs/SHARED_RESOURCE_PATH_INDEX.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-029",
+      "topic": "迁移后旧路径",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "原有路径的在安装迁移完想着删除掉",
+      "interpretation": "先迁移核验，再处理该工具旧路径；不为重复执行而重建旧目录，不扩大到其他软件。",
+      "current_references": [
+        "docs/SHARED_RESOURCE_PATH_INDEX.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-030",
+      "topic": "回到产品实施",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "回到本项目，按照审计结果执行，随时调用技能和插件",
+      "interpretation": "工具是支持产品修复与验收的手段；本轮归档不构成原队列完成。",
+      "current_references": [
+        "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+        "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-031",
+      "topic": "Neural Creator研究",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "https://github.com/Linye-ai/neural-creator-dashboard",
+      "interpretation": "并行审计与归档供体，实际吸收按固定版本、合同、许可与效果证据判断。",
+      "current_references": [
+        "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-032",
+      "topic": "GlassBoard研究",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "https://github.com/SENLIN-SAMA/win-.-",
+      "interpretation": "界面与交互供参考；许可和源代码资格与外观价值分别判断。",
+      "current_references": [
+        "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-033",
+      "topic": "图谱交互视觉",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "主要就要的图谱交互和视觉算法 吸收合适的进来，不合适的改造它，有缺陷的修复它，尽可能还原它的效果",
+      "interpretation": "复用现有渲染器与大地图/内缩/人物窗口，优先吸收图谱算法和行为，验证效果与风险。",
+      "current_references": [
+        "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "docs/current/receipts/AAOS-NEURAL-GRAPH-ABSORPTION-20261019.json"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-034",
+      "topic": "OpenMAIC研究",
+      "source_kind": "REQUEST",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "https://github.com/THU-MAIC/OpenMAIC?tab=readme-ov-file#-quick-start",
+      "interpretation": "核查适配价值；当前严格quiz子集、原件及损失边界与完整课堂分开。",
+      "current_references": [
+        "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-035",
+      "topic": "择优合并与许可",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "有冲突的开源项目或者有重复的  可以合并或者择优融入，需要付费许可的，能复刻自研就复刻自研，非常的复杂的就延后到未来蓝图里",
+      "interpretation": "能力级择优；独立实现不复制未授权源码/资产或绕收费限制；复杂能力明确依赖与恢复条件。",
+      "current_references": [
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-036",
+      "topic": "扩展接入形式",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "注意原先规划的  能以模板插件技能MCP等接口接入未展示形式可以按照这种形式展现，不然项目整体会比较臃肿",
+      "interpretation": "用合适的模板/技能/插件/适配器/MCP/API等组织扩展，回归现有业务流程，不另建重复壳或第二数据真值。",
+      "current_references": [
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-037",
+      "topic": "内置能力市场",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "相当于自带一个内置的插件技能MCP的内置市场（未来能力未接入的也可以在里面展现出来，这样的话前端界面布局就更清爽一点了）",
+      "interpretation": "当前可见长句摘录：内置目录/管理方向明确选中，替代把整个市场一律推迟的旧解释；未来条目不可冒充已启用。",
+      "current_references": [
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-038",
+      "topic": "模型是否属于底座",
+      "source_kind": "QUESTION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "本地模型和云端模型你觉得也这样吗？还是算底座能力呢？当然（最短闭环、完整架构和多格式底座）核心优势和核心的能力一定要强，因为需要适配大量的能力",
+      "interpretation": "Owner明确强核心；统一模型治理属底座、具体provider/模型经适配器接入是现有工程分析，不能伪称Owner已指定全部合同字段。",
+      "current_references": [
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "docs/current/AAOS-LOCAL-LLM-20261018.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    },
+    {
+      "id": "OD-039",
+      "topic": "持久归档接续",
+      "source_kind": "DECISION",
+      "source": "CURRENT_USER_SUPPLIED_CONVERSATION",
+      "excerpt": "这些对话和决定的内容一定要做好归档，避免换AGENT或者换会话又忘了，尤其不要像各类权威/路径/规划/入口/各类外置共用库等那样总是忘记了",
+      "interpretation": "决定→固定入口→当前进度→路径manifest→现场核验；新决定标来源与替代，不能仅依赖私人记忆或对话窗口。",
+      "current_references": [
+        "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+        "docs/current/AAOS-ACTIVE-EXECUTION.json",
+        "docs/SHARED_RESOURCE_PATH_INDEX.md"
+      ],
+      "execution_status": "RESOLVE_LIVE_PROGRESS_AND_RECEIPTS",
+      "source_completeness": "SELECTED_EXCERPT_NOT_FULL_TRANSCRIPT"
+    }
+  ],
+  "scope": "当前可见对话的39项主题摘录；不保证私人客户端全文齐备",
+  "current_decision_source": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+  "current_progress_source": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+}

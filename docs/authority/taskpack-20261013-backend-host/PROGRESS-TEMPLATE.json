@@ -1,0 +1,149 @@
+{
+  "schema": "archeaxis.task-progress.template/v1",
+  "state": "TEMPLATE_NOT_AUTHORITY",
+  "task_updates": [
+    {
+      "task_id": "BE00",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE01",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE02",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE03",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE04",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE05",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE06",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE07",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE08",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE09",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE10",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE11",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    },
+    {
+      "task_id": "BE12",
+      "state": "PLANNED",
+      "implementation": "NOT_EXECUTED",
+      "tests": "NOT_EXECUTED",
+      "runtime": "UNVERIFIED",
+      "installation": "NOT_EXECUTED",
+      "evidence_refs": [],
+      "blocker": null,
+      "rollback_handle": null
+    }
+  ]
+}

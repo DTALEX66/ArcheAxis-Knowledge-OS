@@ -93,7 +93,7 @@ authorities:
     write_mode: serial-grant
     note: R5 exact-path ownership; changes still require the applicable owner scope.
     protected_resource: repository-metadata
-  - path: HERMES_HANDOFF.md
+  - path: docs/history/handoff-archive-20261018/HERMES_HANDOFF.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
@@ -237,7 +237,7 @@ authorities:
     write_mode: serial-grant
     protected_resource: governance
     note: Public software adapter; routes to AGENTS/AUTHORITY, not private configuration.
-  - path: AAOS-后续执行交接提示词-20261009.md
+  - path: docs/history/handoff-archive-20261018/AAOS-后续执行交接提示词-20261009.md
     owner: owner-integrator
     execution_lane: owner
     write_mode: serial-grant

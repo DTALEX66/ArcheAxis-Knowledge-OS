@@ -4,6 +4,7 @@
 输出：通过 `ARCHEAXIS_RUN_ROOT` 路由到当前运行的 `artifacts/pipeline/eval-retrieval/`。
 """
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -12,7 +13,8 @@ import time
 import urllib.request
 from pathlib import Path
 
-sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding='utf-8')
 
 FIXED_QUERIES = [
     "三段论的结构", "如何提高记忆力", "进步本的方法", "费曼学习法", "复合增长的计算",
@@ -36,11 +38,16 @@ def build_corpus(pdf_path: str, cap: int = 400):
     return chunks[:cap]
 
 def embed(texts):
-    req = urllib.request.Request("http://127.0.0.1:11434/api/embed",
-        data=json.dumps({"model": "qwen3-embedding:0.6b", "input": texts}).encode(),
+    transport = Path(__file__).resolve().parents[2] / "services/python-workers/local_http.py"
+    spec = importlib.util.spec_from_file_location("retrieval_local_http", transport)
+    local_http = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(local_http)
+    req = urllib.request.Request("http://127.0.0.1:1234/v1/embeddings",
+        data=json.dumps({"model": "text-embedding-qwen3-embedding-0.6b", "input": texts}).encode(),
         headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.load(r)["embeddings"]
+    with local_http.local_urlopen(req, timeout=60) as r:
+        rows = json.load(r)["data"]
+    return [row["embedding"] for row in sorted(rows, key=lambda row: row["index"])]
 
 def cos(a, b):
     return sum(x * y for x, y in zip(a, b, strict=True))

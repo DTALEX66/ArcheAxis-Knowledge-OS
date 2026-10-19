@@ -12,6 +12,90 @@ beforeEach(()=>{vi.stubGlobal("ResizeObserver",ResizeObserverStub);counters.moun
 afterEach(()=>{vi.unstubAllGlobals();delete window.__TAURI__;});
 const props={spaceId:"library" as const,uiPageId:"03",onInspect:vi.fn(),onNavigate:vi.fn(),onOpenPage:vi.fn()};
 describe("actual Dockview retained business consumer",()=>{
+ it.each([
+  {spaceId:"ai-assets" as const,pages:[["13","项目记忆与上下文"],["14","纠正、评测与复测"],["22","受限任务与回执"]]},
+  {spaceId:"library" as const,pages:[["02","知识库"],["03","阅读与编辑"],["20","版本、来源与历史"]]},
+ ])("labels accepted semantic pages in a single retained $spaceId business host",async({spaceId,pages})=>{
+  const activate=vi.fn(()=>true);
+  const view=render(<DockWorkspace {...props} spaceId={spaceId} uiPageId={pages[0][0]} onActivateView={activate}/>);
+  const draft=await screen.findByLabelText(`draft-${pages[0][0]}`);fireEvent.change(draft,{target:{value:"same retained semantic draft"}});
+  for(const [page,title] of pages){
+   view.rerender(<DockWorkspace {...props} spaceId={spaceId} uiPageId={page} onActivateView={activate}/>);
+   await waitFor(()=>expect(screen.getByRole("tab",{name:title})).toHaveAttribute("aria-selected","true"));
+   expect(screen.getByRole("button",{name:`关闭视图 ${title}`})).toBeInTheDocument();
+   expect(screen.getByLabelText(`draft-${page}`)).toBe(draft);expect(draft).toHaveValue("same retained semantic draft");
+  }
+  expect(counters.mounts).toBe(1);expect(view.container.querySelector(".dock-workspace")).toHaveAttribute("data-panel-count","1");expect(activate).not.toHaveBeenCalled();
+ });
+ it.each([["14","ai-assets","纠正、评测与复测"],["20","library","版本、来源与历史"]] as const)("keeps initial %s titles through close, reopen and explicit layout restoration",async(page,spaceId,title)=>{
+  const view=render(<DockWorkspace {...props} uiPageId={page} spaceId={spaceId}/>);
+  const draft=await screen.findByLabelText(`draft-${page}`);fireEvent.change(draft,{target:{value:"semantic reopen draft"}});
+  expect(screen.getByRole("tab",{name:title})).toHaveAttribute("aria-selected","true");
+  fireEvent.click(screen.getByRole("button",{name:`关闭视图 ${title}`}));
+  expect(screen.queryByRole("tab",{name:title})).not.toBeInTheDocument();
+  view.rerender(<DockWorkspace {...props} uiPageId={page} spaceId={spaceId} navigationRevision={1}/>);
+  await waitFor(()=>expect(screen.getByRole("tab",{name:title})).toHaveAttribute("aria-selected","true"));expect(draft).toHaveValue("semantic reopen draft");
+  fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"重置视图布局"}));
+  view.rerender(<DockWorkspace {...props} uiPageId={page} spaceId={spaceId} navigationRevision={2}/>);
+  await waitFor(()=>expect(screen.getByRole("tab",{name:title})).toHaveAttribute("aria-selected","true"));expect(screen.getByLabelText(`draft-${page}`)).toBe(draft);expect(draft).toHaveValue("semantic reopen draft");
+ });
+ it("keeps the accepted semantic title and draft when a native activation is refused",async()=>{
+  const activate=vi.fn(()=>false);const view=render(<DockWorkspace {...props} spaceId="ai-assets" uiPageId="14" onActivateView={activate}/>);
+  const draft=await screen.findByLabelText("draft-14");fireEvent.change(draft,{target:{value:"refusal retains accepted semantic page"}});
+  view.rerender(<DockWorkspace {...props} spaceId="settings" uiPageId="17" onActivateView={activate}/>);await screen.findByRole("tab",{name:"全部能力与未来蓝图"});
+  activate.mockClear();const target=screen.getByRole("tab",{name:"纠正、评测与复测"});target.focus();fireEvent.keyDown(target,{key:"Enter"});
+  await waitFor(()=>expect(screen.getByRole("tab",{name:"全部能力与未来蓝图"})).toHaveAttribute("aria-selected","true"));
+  expect(activate).toHaveBeenCalledTimes(1);expect(activate).toHaveBeenCalledWith(expect.objectContaining({panelId:"13",uiPageId:"14"}));
+  expect(screen.getByRole("tab",{name:"纠正、评测与复测"})).toBeInTheDocument();expect(draft).toHaveValue("refusal retains accepted semantic page");
+ });
+ it("keeps object document titles distinct while the singleton changes semantic page and layout is restored",async()=>{
+  const view=render(<DockWorkspace {...props} initialDocumentId="doc-a"/>);await screen.findByLabelText("draft-03:doc-a");
+  fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
+  await screen.findByRole("tab",{name:"文档 doc-a"});
+  view.rerender(<DockWorkspace {...props} uiPageId="20" initialDocumentId="doc-b"/>);
+  await screen.findByRole("tab",{name:"版本、来源与历史"});expect(screen.getByRole("tab",{name:"文档 doc-a"})).toBeInTheDocument();expect(screen.getByLabelText("draft-03:doc-a")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button",{name:"重置视图布局"}));
+  fireEvent.click(screen.getByRole("button",{name:"重开文档 doc-a"}));
+  await waitFor(()=>expect(screen.getByRole("tab",{name:"文档 doc-a"})).toHaveAttribute("aria-selected","true"));expect(screen.queryByRole("tab",{name:"document.doc-a"})).not.toBeInTheDocument();
+ });
+
+ it("opens ordinary navigation in the current tab group instead of creating an unsolicited split",async()=>{
+  const view=render(<DockWorkspace {...props}/>);
+  const draft=await screen.findByLabelText("draft-03");
+  fireEvent.change(draft,{target:{value:"navigation draft"}});
+  view.rerender(<DockWorkspace {...props} uiPageId="17" spaceId="settings"/>);
+  await screen.findByLabelText("draft-17");
+  expect(view.container.querySelectorAll(".dv-groupview")).toHaveLength(1);
+  view.rerender(<DockWorkspace {...props}/>);
+  await waitFor(()=>expect(draft).toBeVisible());expect(draft).toHaveValue("navigation draft");
+ });
+ it("keeps tabs free of nested controls and closes the owning group without losing drafts",async()=>{
+  const view=render(<DockWorkspace {...props}/>);
+  const draft=await screen.findByLabelText("draft-03");
+  fireEvent.change(draft,{target:{value:"audit retained draft"}});
+  fireEvent.click(screen.getByText("布局与面板"));
+  fireEvent.click(screen.getByRole("button",{name:"左右分栏"}));
+  await screen.findByLabelText("draft-17");
+  for(const tab of view.container.querySelectorAll('[role="tab"]')) expect(tab.querySelector('button,[role="button"],input,a[href]')).toBeNull();
+  // 此时全局活动面板在右侧；关闭左组必须使用左组自己的 activePanel。
+  fireEvent.click(screen.getByRole("button",{name:"关闭视图 阅读与编辑"}));
+  expect(screen.queryByRole("tab",{name:"阅读与编辑"})).not.toBeInTheDocument();
+  expect(screen.getByRole("tab",{name:"全部能力与未来蓝图"})).toBeInTheDocument();
+  expect(screen.getByLabelText("draft-17")).toBeVisible();
+  view.rerender(<DockWorkspace {...props} uiPageId="17"/>);
+  view.rerender(<DockWorkspace {...props}/>);
+  await waitFor(()=>expect(screen.getByLabelText("draft-03")).toBeVisible());
+  expect(screen.getByLabelText("draft-03")).toBe(draft);
+  expect(draft).toHaveValue("audit retained draft");
+  expect(counters.mounts).toBe(2);
+ });
+ it("returns focus to layout controls when the final group close removes its button",async()=>{
+  render(<DockWorkspace {...props}/>);
+  const close=await screen.findByRole("button",{name:"关闭视图 阅读与编辑"});
+  close.focus();fireEvent.click(close);
+  await waitFor(()=>expect(screen.getByText("布局与面板")).toHaveFocus());
+  expect(screen.queryByRole("tab",{name:"阅读与编辑"})).not.toBeInTheDocument();
+ });
  it("shows required layout recovery without opening layout controls",async()=>{
   counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
   window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body:{workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:"LAYOUT_RESTORE_CONFIRMATION_REQUIRED"}})}};
@@ -26,8 +110,10 @@ describe("actual Dockview retained business consumer",()=>{
   const invoke=vi.fn().mockResolvedValue({status:200,body:{workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:null}});window.__TAURI__={core:{invoke}};
   render(<DockWorkspace {...props} spaceId="settings" uiPageId="14"/>);
   await waitFor(()=>expect(screen.getByLabelText("draft-14")).toBeVisible());
-  await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeInTheDocument());
+  await screen.findByRole("tab",{name:"今日工作台"});
+  expect(screen.getByRole("tab",{name:"纠正、评测与复测"})).toHaveAttribute("aria-selected","true");
   expect(screen.getByLabelText("draft-14")).toBeVisible();
+  expect(document.querySelectorAll(".dv-groupview")).toHaveLength(1);
   expect(invoke.mock.calls.map(call=>call[1].request.operation)).toEqual(["layout_read"]);
  });
  it("SIMULATED late layout hydration opens the latest navigation and retains existing business drafts",async()=>{
@@ -38,7 +124,8 @@ describe("actual Dockview retained business consumer",()=>{
   view.rerender(<DockWorkspace {...props} spaceId="settings" uiPageId="14"/>);
   await waitFor(()=>expect(screen.getByLabelText("draft-14")).toBeVisible());
   resolve({status:200,body:{workspace_id:"a".repeat(32),restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:null}});
-  await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeInTheDocument());
+  await screen.findByRole("tab",{name:"今日工作台"});
+  expect(screen.getByRole("tab",{name:"纠正、评测与复测"})).toHaveAttribute("aria-selected","true");
   expect(screen.getByLabelText("draft-14")).toBeVisible();expect(screen.getByLabelText("draft-03")).toHaveValue("retained during hydration");
   expect(invoke.mock.calls.map(call=>call[1].request.operation)).toEqual(["layout_read"]);
  });
@@ -62,7 +149,7 @@ describe("actual Dockview retained business consumer",()=>{
   expect(view.container.querySelectorAll(".dv-groupview").length).toBeGreaterThanOrEqual(2);
   expect(view.container.querySelector(".dock-workspace")).not.toHaveAttribute("data-compact-reader");
   fireEvent.click(screen.getByRole("button",{name:"重置视图布局"}));
-  await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeInTheDocument());
+  await screen.findByRole("tab",{name:"今日工作台"});
   view.rerender(<DockWorkspace {...props} uiPageId="17" spaceId="settings"/>);
   view.rerender(<DockWorkspace {...props}/>);
   await waitFor(()=>expect(screen.getByLabelText("draft-03")).toHaveValue("unsaved retained"));

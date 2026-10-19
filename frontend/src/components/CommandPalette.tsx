@@ -5,8 +5,10 @@ import { canNavigateToCapability, EFFECTIVE_NAVIGATION_ENTRIES, navigationEntryM
 import type { SpaceId } from "../spaces/spaces";
 import { GlobalObjectSearch } from "./GlobalObjectSearch";
 import type { ObjectReference } from "../api/generated/research-contract";
+import { focusVisibleTarget } from "../presentation/focus";
+import { commandKeyLabel } from "../presentation/keyboardShortcuts";
 
-export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onPage, onOpenObject }: { onNavigate: (id: SpaceId) => void; onOpenCapability?: (id: string) => void; onOpenChange?: (open: boolean) => void; onPage?: (id:string)=>void; onOpenObject?:(reference:ObjectReference,contentSha?:string)=>void }) {
+export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onPage, onOpenObject, openRequest = 0 }: { onNavigate: (id: SpaceId) => void; onOpenCapability?: (id: string) => void; onOpenChange?: (open: boolean) => void; onPage?: (id:string)=>void; onOpenObject?:(reference:ObjectReference,contentSha?:string)=>void; openRequest?: number }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -16,6 +18,7 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
   const inputRef = useRef<HTMLInputElement>(null);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const previousFocus = useRef<HTMLElement | null>(null);
+  const consumedOpenRequest = useRef(0);
 
   useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
   useEffect(() => () => { onOpenChange?.(false); }, [onOpenChange]);
@@ -28,6 +31,12 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
       : triggerRef.current;
     setOpen(true);
   }, []);
+
+  useEffect(() => {
+    if (openRequest === consumedOpenRequest.current) return;
+    consumedOpenRequest.current = openRequest;
+    if (openRequest > 0) openPalette();
+  }, [openRequest, openPalette]);
 
   const closePalette = useCallback(() => {
     openRef.current = false;
@@ -92,14 +101,14 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
   };
   const onCloseAutoFocus = (event: Event) => {
     event.preventDefault();
-    (previousFocus.current ?? triggerRef.current)?.focus();
+    focusVisibleTarget(previousFocus.current, triggerRef.current);
   };
 
   return <AaosDialog
     title="全局命令"
     description="搜索页面与能力；未来能力可查看前提、依赖和降级方式。"
     trigger={<button ref={triggerRef} type="button" className="command-trigger" aria-label="打开全局命令" aria-keyshortcuts="Control+K">
-      <span aria-hidden="true">⌕</span><span>搜索页面与能力</span><kbd>Ctrl K</kbd>
+      <span aria-hidden="true">⌕</span><span>搜索页面与能力</span><kbd>{commandKeyLabel()} K</kbd>
     </button>}
     open={open}
     onOpenChange={onDialogOpenChange}

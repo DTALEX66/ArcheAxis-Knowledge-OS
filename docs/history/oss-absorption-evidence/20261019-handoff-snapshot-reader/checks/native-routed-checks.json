@@ -1,0 +1,40 @@
+[
+  {
+    "name": "current-frontend-build",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "scripts/runtime/frontend.mjs",
+      "build",
+      "--receipt",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\be10-snapshot-native-1019\\artifacts\\frontend-for-native.json"
+    ],
+    "started_at": "2026-10-18T23:45:14.251128+00:00",
+    "ended_at": "2026-10-18T23:45:27.485139+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/native-routed-current-frontend-build.log",
+    "log_sha256": "48df0019805498a9921dc30c227b059e3884d40e31c03f3dc102c1c3ad4eb3ee"
+  },
+  {
+    "name": "actual-preview-consumer",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "test",
+      "--manifest-path",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\src-tauri\\Cargo.toml",
+      "--offline",
+      "--locked",
+      "--test",
+      "project_handoff_preview",
+      "--",
+      "--test-threads=1"
+    ],
+    "started_at": "2026-10-18T23:45:27.486165+00:00",
+    "ended_at": "2026-10-18T23:45:50.229910+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/native-routed-actual-preview-consumer.log",
+    "log_sha256": "72c6415be26f88f37523f3c12b63a51050e60c495ca6cb8a226bf5425a1be19b"
+  }
+]

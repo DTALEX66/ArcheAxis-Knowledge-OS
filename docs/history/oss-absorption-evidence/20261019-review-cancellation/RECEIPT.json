@@ -1,0 +1,51 @@
+{
+  "schema": "aaos.review-cancellation-evidence/v1",
+  "recorded_at": "2026-10-18T20:00:43.901682+00:00",
+  "status": "PARTIAL",
+  "whole_project": "PARTIAL",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_files_sha256": {
+    "frontend/src/spaces/ui-first.css": "1a5da3a232d9a0a4a484dbc20c22c217143cea0702ea5f04200b96eb9e3070d6",
+    "frontend/src/api/conversation.ts": "bdf9d189c716278ff5046ccf2d78c0f0a8f0c5e4e3a15431188c9371d616c779",
+    "frontend/src/components/MaterialQuestionPanel.tsx": "ba6ac6b37f24d5ecd5fe3d3706be3534336022e4a3621fb931131af99a21fb52",
+    "frontend/src/__tests__/ConversationPanel.test.tsx": "b59efc8b8ef800dba3afda5072142675eb472c408372d2f5bc094d655989efa5",
+    "frontend/src/__tests__/MaterialQuestionPanel.test.tsx": "c63954152981651202f5931a2231f816498fef7178fc90df5647667f90279e12",
+    "crates/archeaxis-api/tests/conversation_api.rs": "f4f036ecbe4149aaa31cdcb253fc7f4a4eaf6c8a5a1c63f315140632392f1988",
+    "scripts/probes/aaos01_material_companion_loop.py": "23d369143842c24b941988bbf1db1bdcad940829c31de216bbf90d3ce3b250d1",
+    "scripts/probes/aaos01_grouped_owner_loop.py": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c",
+    "scripts/probes/aaos01_tauri_webdriver_loop.py": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa",
+    "tests/test_material_companion_native_probe.py": "e2143fcc17055eb7303498b1a04ab4d1b9b5b0c8fbffd1650cd22eeb5319a019"
+  },
+  "archive": "docs/history/oss-absorption-evidence/20261019-review-cancellation",
+  "implementation": "APPLIED",
+  "qualifications": {
+    "frontend": "176 files / 1747 tests PASS; React/jsdom and SYNTHETIC Core",
+    "core": "10 Rust conversation/material API integration tests PASS; isolated SQLite/CAS and synthetic workers",
+    "probe_regression": "86 Python tests + 145 subtests PASS; final document guard change included",
+    "build": "Core / TypeScript / Vite / Tauri PASS; compiler receipts retain exact patch; final probe-only document guard fix not included in those source patches",
+    "browser": "3 checks PASS; Chrome production bundle + SYNTHETIC Core; 3 screenshots reviewed; 1280/640 long titles bounded",
+    "native": "Two journeys FAIL before cancellation requests; title projection, actual LM Studio 27B material/companion execution, same-process recovery, cold reopen and backup readback phases PASS on each own patch; 14 screenshots viewed",
+    "native_cancel": "NOT_EXECUTED; final probe-only document guard correction passed regression, not native re-run",
+    "accessibility": "queue axe: zero violations, one color-contrast incomplete; not full compliance",
+    "installed": "NOT_EXECUTED",
+    "owner_acceptance": "UNVERIFIED"
+  },
+  "native_sources": [
+    "5993008071b4ec0dccedd9e19d8896fc96eb22ade108cb92390aa369b8198fa2",
+    "af63a79fac4a3420d033aed42403d1069e0ebe1043b64e165028985336065ff3"
+  ],
+  "remaining": [
+    "native cancellation and cold-reopen qualification after final document guard correction",
+    "companion quality: separate grounded material policy from general advice with version-bound plan/worker contracts",
+    "visible internal keys and engineering density, tab/content overlap, manual contrast",
+    "BE10 independent Observer, finite read-only ports and actual adapter",
+    "HUB003/004, unified model base, full formats, installed lifecycle and Owner acceptance"
+  ],
+  "archive_scope": "Visible dialogue decisions/navigation plus task-owned source, raw red/green commands/times/exits, filtered synthetic native evidence and screenshot hashes; no private client transcript rescan",
+  "source_binding": "Each test/build/native receipt retains its own patch. Later probe/document edits do not retroactively change prior results. Exact current product source files and archived sources are hashed separately.",
+  "cloud_backup": "NOT_EXECUTED",
+  "complete_private_transcripts": "UNVERIFIED",
+  "commit_push_release": "NOT_EXECUTED",
+  "model_load": "Existing authorized deep-mtp profile loaded/read back with MTP + flashAttention + 0.4 GPU ratio; retained TTL1800, no weights/global provider changes; not a performance benchmark",
+  "archive_readback": "docs/current/receipts/AAOS-REVIEW-CANCELLATION-ARCHIVE-READBACK-20261019.json"
+}

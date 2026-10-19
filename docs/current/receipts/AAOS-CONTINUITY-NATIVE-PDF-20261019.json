@@ -1,0 +1,75 @@
+{
+  "schema": "archeaxis.continuity-native-pdf-receipt/v1",
+  "observed_at": "2026-10-18T23:23:04.183073+00:00",
+  "overall": "PARTIAL",
+  "archive": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/README.md",
+  "manifest": {
+    "path": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/MANIFEST.json",
+    "bytes": 23677,
+    "sha256": "eec74e86c98bf3bf30e0d556a8b3eb63b893669d3ad17c387bf9c3416a859326"
+  },
+  "frozen_members": 134,
+  "source_paths": 51,
+  "owner_topics": 39,
+  "fixed_handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+  "unique_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "results": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/RESULTS.json",
+  "archival_validation": "PASS_LOCAL_HASH_NAVIGATION_AND_ISOLATED_GIT_BYTES",
+  "public_delivery": "UNCOMMITTED_LOCAL_ONLY",
+  "validation_observed_at": "2026-10-18T23:24:54.672843+00:00",
+  "validation_scope": {
+    "status": "PASS",
+    "evidence_level": "STRUCTURAL_HASH_AND_GIT_BYTES_NOT_PRODUCT_QUALIFICATION",
+    "frozen_members": 134,
+    "navigation_targets": 35,
+    "local_evidence_checked": 123,
+    "git_roundtrip_files": 143,
+    "whole_product": "PARTIAL",
+    "private_full_transcript": "UNVERIFIED"
+  },
+  "previous_checkpoint_validation": {
+    "status": "PASS",
+    "evidence_level": "STRUCTURAL_AND_GIT_BYTE_READBACK_NOT_PRODUCT_QUALIFICATION",
+    "frozen_members": 84,
+    "navigation_targets": 35,
+    "local_evidence_checked": 100,
+    "git_checkout_files": 572,
+    "product_status": "PARTIAL"
+  },
+  "validation_execution": {
+    "path": ".project-local/runs/be268a2d33/continuity-archive-final-1019/artifacts/execution.json",
+    "sha256": "66578ea5477741886874ef46ba5f9ae703b6d0fa627140703843654c0ef2f1a9",
+    "source_patch_sha256": "94fbd7cc1d44582641712ab174af1e906dedc5d027ff5188b42a9053e89dd9ce",
+    "exit_code": 0,
+    "source_consistent": true
+  },
+  "actual_checks": {
+    "python": "105 PASS plus 49 subtests; final style 11 PASS overlaps",
+    "frontend": "5 files / 42 PASS",
+    "typescript": "PASS",
+    "rust_protocol": [
+      6
+    ],
+    "rust_shared_contract": "1 test traverses16 shared cases",
+    "rust_application_by_test_binary": [
+      15,
+      4,
+      4,
+      6
+    ],
+    "rust_api_by_test_binary": [
+      3,
+      2,
+      5,
+      6,
+      8,
+      6
+    ],
+    "workspace_and_native_format": "PASS",
+    "native_consumer": "29 PASS actual src-tauri test with owned current Core; current frontend TypeScript/Vite built; UI launch NOT_EXECUTED",
+    "node_manifest": "10 PASS",
+    "generation": "current merged Core client exact bytes + capability details and resource catalog --check PASS",
+    "aggregation": "每次执行各归自己的源码patch，不把重叠测试相加成全量资格"
+  },
+  "unverified": "完整Cowork正文/云同步、原生UI/安装/质量与性能仍未获本轮资格；具体边界见冻结RESULTS"
+}

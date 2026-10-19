@@ -28,6 +28,7 @@
 }
 
 .top-nav-logo {
+  object-fit: contain;
   width: 32px;
   height: 32px;
   flex-shrink: 0;

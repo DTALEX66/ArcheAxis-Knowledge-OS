@@ -1,0 +1,7 @@
+{
+  "core_path": ".project-local/build/cargo/debug/archeaxis-api.exe",
+  "core_sha256": "0a9342e525cde06b75fdb316e371fb45bf885b19838ae8887dd039303a6d41ca",
+  "frontend_build_receipt": ".project-local/runs/be268a2d33/be10-snapshot-native-1019/artifacts/frontend-for-native.json",
+  "frontend_source_patch": "2064eb2e1f87ffbb2b535e5ae73acc9f514cd5a7a4c3b7163766c3ae6bb72bef",
+  "scope": "actual src-tauri Rust finite consumer calling freshly built owned Core; not UI launch/installer/cloud CI"
+}

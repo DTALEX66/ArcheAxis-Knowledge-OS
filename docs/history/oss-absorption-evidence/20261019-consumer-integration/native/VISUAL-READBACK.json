@@ -1,0 +1,39 @@
+{
+  "screenshots": [
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c34bd1fa1e6/tmp/journey/cancel-material.png",
+      "sha256": "d894ff6227ecdc1c769fac8608c9a3a1369021e2e06b0dd6290e903078014d57",
+      "bytes": 1228272,
+      "viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c34bd1fa1e6/tmp/journey/cancel-companion.png",
+      "sha256": "e31db2eb310b14d5a2a212199ae3720ee6ea303dbdf6817901caacd0b9e70d3e",
+      "bytes": 1238194,
+      "viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c34bd1fa1e6/tmp/journey/cancel-material-cold-reopen.png",
+      "sha256": "2854fb27091407d7ef5fe0f9760ab2ae1adeb50a3be18c1e1cfc1eade731f3a7",
+      "bytes": 1149633,
+      "viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c34bd1fa1e6/tmp/journey/cancel-companion-cold-reopen.png",
+      "sha256": "164cb7f711ad7b6e6718c104ddfa8feb87ab133b43112a38d25f5350377faac4",
+      "bytes": 1213042,
+      "viewed": true
+    }
+  ],
+  "status": "VIEWED_4_PNG_NOT_FULL_VISUAL_ACCEPTANCE",
+  "method": "view_image each original PNG",
+  "observations": [
+    "材料取消页面显示执行失败或取消并保留原问题、材料、深度模型、1024token和120秒预算。",
+    "陪伴取消与冷重开均显示已取消、查询第1次提问已取消，问题仍在。",
+    "材料冷重开恢复同一问题、用途、深度通道和版本材料；截图滚动位置未显示下方取消结果，状态由实际UI和Core读回断言补充。",
+    "侧栏/主区仍有滚动与工程字段密度，不能据此宣布视觉、可访问性或商业验收通过。",
+    "陪伴冷重开历史已取消，但新请求编辑通道显示快速；历史请求的深度绑定已按冻结回执验证，未来默认输入通道是否应恢复需另核合同。"
+  ],
+  "provider_stop_state": "UNKNOWN",
+  "worker_started": "UNVERIFIED"
+}

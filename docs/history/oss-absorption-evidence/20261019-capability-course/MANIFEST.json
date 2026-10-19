@@ -1,0 +1,132 @@
+{
+  "schema": "aaos.evidence-snapshot/v1",
+  "recorded_at": "2026-10-18T17:22:38.654601+00:00",
+  "scope": "Declared historical scripts and sanitized synthetic audit results; not a runtime authority",
+  "files": [
+    {
+      "path": "audit.spec.cjs",
+      "bytes": 14903,
+      "sha256": "5fc65308663e996c68b09dcd259176a6b222331ea343cf07a0fa025c9874ee53"
+    },
+    {
+      "path": "axe-results.json",
+      "bytes": 309999,
+      "sha256": "8060388c5faae57b366cc58ce6b22084d5c478a0156f89225a5222e2f17b5f3d"
+    },
+    {
+      "path": "browser-shutdown.json",
+      "bytes": 225,
+      "sha256": "7921c3b3d3e41d0ec984bfa3558de521d0e590f9d5ded429c4b5000fb0f8582d"
+    },
+    {
+      "path": "checks.json",
+      "bytes": 2611,
+      "sha256": "5a6346ecc5198bcd1f6c91bb285d4492d033ad58583ed40c5f7999a27ec4d3e5"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 435,
+      "sha256": "51604e0b503680a5b5854a16ba6b212f778802dfd6c636195cc7056be985ca6d"
+    },
+    {
+      "path": "expanded-fixture.js",
+      "bytes": 12395,
+      "sha256": "0fcb74bc0e09075f1fc694f7e95573f3729bf5602afa4b982df20977b7e13bf3"
+    },
+    {
+      "path": "final-browser-launcher.log",
+      "bytes": 6927,
+      "sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e"
+    },
+    {
+      "path": "final-build-launcher.log",
+      "bytes": 4955,
+      "sha256": "5eb31c157df75a15e41ae7372c423a2cec5c3d5b7600bfd4164d3e8ebd3130da"
+    },
+    {
+      "path": "final-full-launcher.log",
+      "bytes": 6927,
+      "sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e"
+    },
+    {
+      "path": "fixture.js",
+      "bytes": 3295,
+      "sha256": "2ce4c3a3f64657e7286872e0e45c6d264db6669702f4bfa486bca5411866fa01"
+    },
+    {
+      "path": "launch.cjs",
+      "bytes": 3252,
+      "sha256": "8870bb9a33df66b61df554374cff554e44e3f8383a678832d19367ee7955adb6"
+    },
+    {
+      "path": "owned-processes.json",
+      "bytes": 792,
+      "sha256": "74b28a681c8128c089121503cd70e98fb6932482922b1ecb06c27cddc6dd6b51"
+    },
+    {
+      "path": "playwright.config.cjs",
+      "bytes": 305,
+      "sha256": "70f19b8bff1161c6b1e0a3d33fa35e2b54f371711beedf2c3bff37463ca3ba41"
+    },
+    {
+      "path": "postflight.json",
+      "bytes": 1008,
+      "sha256": "486d3789cc47f3c4083d12759719405dafb2010976b4429d3a315817c92c5268"
+    },
+    {
+      "path": "preflight.json",
+      "bytes": 5961,
+      "sha256": "50a3c4080295fe229d4484cf32d9e82373fff39f1da729cb1679e7f649f43b1c"
+    },
+    {
+      "path": "prepare.py",
+      "bytes": 2736,
+      "sha256": "c5da26905d9f7d2bc52feeb0c27000963f9afc6c20c78082c00548a6df37c333"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2713,
+      "sha256": "08d567b8ea79ead0cd4651f900b908c6a1838b00d0f8bf9d80264d56411e2535"
+    },
+    {
+      "path": "run.py",
+      "bytes": 280,
+      "sha256": "7a566394f9edfefff87c6db70c3ca9d041ed95472bffc420abd8d98d44c58238"
+    },
+    {
+      "path": "screenshots.json",
+      "bytes": 3074,
+      "sha256": "f24c57e770c6753e04b3ddc67c4c3b653f17fd8bff480c961050cfa4f6992324"
+    },
+    {
+      "path": "shutdown.json",
+      "bytes": 132,
+      "sha256": "ba2ea8291d699208d48e28024f8785a28cab7b823bfd2f56d107513642898901"
+    },
+    {
+      "path": "style-browser-launcher.log",
+      "bytes": 4618,
+      "sha256": "6f5b23735eec4115b18f1e84fe09e8a7cd5a5c230930ea90294608f5c2c74a4e"
+    },
+    {
+      "path": "style-build-launcher.log",
+      "bytes": 4955,
+      "sha256": "5eb31c157df75a15e41ae7372c423a2cec5c3d5b7600bfd4164d3e8ebd3130da"
+    },
+    {
+      "path": "style-final-launcher.log",
+      "bytes": 6927,
+      "sha256": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 882,
+      "sha256": "39de264ebd455d78d10c8f875d10bed9097ef991b9ce3423fa2b098ea589a8f4"
+    },
+    {
+      "path": "visual-review.json",
+      "bytes": 6477,
+      "sha256": "2de1ffda967cfe3e0f2601c4cb3dbf5fb57b209748ae0903f2427fb71507b0df"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "schema": "archeaxis.owner-dialogue-archive-readback/v1",
+  "observed_at": "2026-10-18T20:11:37.610457+00:00",
+  "status": "PASS",
+  "evidence_level": "STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION",
+  "product_status": "PARTIAL",
+  "archive": "docs/history/owner-dialogue-20261019/README.md",
+  "source_records": 39,
+  "current_reference_targets": 28,
+  "frozen_payload_members": 6,
+  "local_attachments": 3,
+  "full_private_transcript": "UNVERIFIED",
+  "cloud_sync": "NOT_EXECUTED",
+  "commit_push": "NOT_EXECUTED",
+  "checks": [
+    {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/owner-dialogue-20261019/verify_archive.py",
+        "--require-local-attachments"
+      ],
+      "started_at": "2026-10-18T20:11:37.223066+00:00",
+      "ended_at": "2026-10-18T20:11:37.357453+00:00",
+      "exit_code": 0,
+      "stdout": "{\n  \"status\": \"PASS\",\n  \"evidence_level\": \"STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION\",\n  \"frozen_members\": 6,\n  \"source_records\": 39,\n  \"current_reference_targets\": 28,\n  \"local_attachments_checked\": 3,\n  \"local_attachment_status\": \"PASS\",\n  \"product_status\": \"PARTIAL\",\n  \"full_private_transcript\": \"UNVERIFIED\"\n}",
+      "status": "PASS"
+    },
+    {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-18T20:11:37.357487+00:00",
+      "ended_at": "2026-10-18T20:11:37.516699+00:00",
+      "exit_code": 0,
+      "stdout": "input hashes: verified 7, outside/private UNVERIFIED 4\ndocument authority: single current record, root references resolve, in-repository hashes checked (external sources remain UNVERIFIED), coverage complete",
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-18T20:11:37.516724+00:00",
+      "ended_at": "2026-10-18T20:11:37.610300+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "status": "PASS"
+    }
+  ],
+  "tests": {
+    "status": "PASS",
+    "count": 17,
+    "execution_receipt": ".project-local/runs/be268a2d33/owner-dialogue-navigation-20261019/artifacts/execution.json",
+    "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+    "source_patch_sha256": "960d5b3b0b446fcb5652a9bdde36194f674ae76083a893719b80352534f77adf",
+    "source_consistent": true,
+    "exit_code": 0,
+    "started_at": "2026-10-18T20:10:11.480818+00:00",
+    "ended_at": "2026-10-18T20:10:14.526993+00:00"
+  },
+  "corrections": [
+    "10/18会话对账FE18旧归属增加后继替代说明",
+    "AGENTS市场延期段增加Owner后继选择路由，不解除其他冻结项",
+    "既有视觉工具迁移回执及中文说明补精确导航"
+  ],
+  "preservation": {
+    "before_manifest": ".project-local/archives/owner-dialogue-20261019/before-manifest.json",
+    "preexisting_dirty_work": "PRESERVED",
+    "product_code_changed_by_this_task": false
+  },
+  "boundary": "仅当前可见对话关键摘录与仓内导航；不是完整客户端逐字记录、产品实现或共享配置变更",
+  "navigation_file_identities": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "225d1c3f715104c4bac654419d2f82858b64b87ec459dd4bf827b83abd3c3a04"
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "sha256": "e79e3dc2a77acb2801fb089f31145415a0bb2e27c416619ed5a62d097ff55bc9"
+    },
+    {
+      "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "sha256": "67c7953680f6806ece986749fa61394e74497ccd5a33624388298a1ef481f69c"
+    },
+    {
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "sha256": "2ba908ed108203ff7355971068adfb10857ba09ffaccaec7792b00d74b99ea7d"
+    },
+    {
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "sha256": "cc7d1b160ed4ffc56f08cc0c126f9448797a458649f13e3549d8a4b12edac287"
+    },
+    {
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "sha256": "26beceaebe944f9b56f841a2efc441617a803d16dce1d12d06f724ab99a447a0"
+    },
+    {
+      "path": "AAOS-资料索引.md",
+      "sha256": "7b7ac6a759e989da60cddbaee73531d88424aaa8e35833af6734fa8bde875bc2"
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "sha256": "e047c20aafb4e3769ba822d85a51c9b4d6331193b305e979c9718f42b22910ae"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "sha256": "210a72cc99553b760af1a7c75ccff53a3c7163ffa04e36dd21c01c2ffd046ff8"
+    }
+  ],
+  "final_review": {
+    "status": "PASS_AFTER_SEMANTIC_CORRECTION",
+    "scope": "只读复核39主题，未发现重大遗漏；问句不当Owner逐字段指定，主题排序不冒充原始逐字顺序",
+    "intermediate_preimage": ".project-local/archives/owner-dialogue-20261019/pre-final-review"
+  },
+  "archive_manifest_sha256": "5d40b24687d11fe3e78c29d11da093b5e6ee6d5d93ba2948fa49dcd9fe8681c3"
+}

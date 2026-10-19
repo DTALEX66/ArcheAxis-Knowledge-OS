@@ -1,0 +1,6 @@
+{
+  "target": "crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+  "source": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+  "sha256": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+  "basis": "preceding immutable exact source snapshot; not freshly captured before edit"
+}

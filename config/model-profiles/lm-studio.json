@@ -1,0 +1,31 @@
+{
+  "schema": "archeaxis.lm-studio-load-profiles/v1",
+  "endpoint": "ws://127.0.0.1:1234",
+  "sdk": {"package": "@lmstudio/sdk", "version": "2.0.0", "integrity": "sha512-h0DY+OQVdv0oJ1hebV97Z6eRPS8I7Hjo5QaCOp3XNnucfyNRga/smu8miigYp294HgMESvFJO69vhdpcnRD5vQ=="},
+  "profiles": {
+    "deep-mtp": {
+      "model_key": "qwen3.8-27b",
+      "identifier": "aaos-deep-27b-mtp",
+      "ttl_seconds": 1800,
+      "basis": "docs/current/receipts/AAOS-27B-MATCHED-MTP-20261013.json",
+      "load": {
+        "gpu": {"ratio": 0.4},
+        "gpuStrictVramCap": true,
+        "offloadKVCacheToGpu": false,
+        "contextLength": 2048,
+        "maxParallelPredictions": 1,
+        "flashAttention": true,
+        "speculativeDraftMtp": true,
+        "speculativeDraftSimple": false,
+        "speculativeDraftMaxTokens": 2,
+        "speculativeDraftMinTokens": 1
+      }
+    }
+  },
+  "limits": [
+    "Explicit project load only; does not edit LM Studio defaults or saved AAOS model-purpose settings",
+    "On the current 8GB GPU, refuse to replace another loaded LLM; embedding instances are preserved",
+    "Historical short synthetic MTP trial is not current application, sustained performance or quality qualification",
+    "2048 is a bounded context profile, not an unlimited document context"
+  ]
+}

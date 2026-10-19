@@ -1,0 +1,17 @@
+{
+  "status": "SOURCE_IDENTITY_REFRESH_ONLY",
+  "inherited_entries_preserved": 68,
+  "promotions": 0,
+  "changes": [
+    {
+      "pointer": "/entries/3/evidence/version/source_refs/1",
+      "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
+      "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+    },
+    {
+      "pointer": "/entries/5/evidence/version/source_refs/1",
+      "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
+      "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+    }
+  ]
+}

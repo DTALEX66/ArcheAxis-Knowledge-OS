@@ -1,0 +1,28 @@
+{
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+  "dirty": true,
+  "source_patch_sha256": "5993008071b4ec0dccedd9e19d8896fc96eb22ade108cb92390aa369b8198fa2",
+  "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "started_at": "2026-10-18T19:37:00.849137+00:00",
+  "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\review-cancel-model-load-1019",
+  "executable": "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+  "argument_count": 3,
+  "command": [
+    "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+    "scripts/runtime/lm_studio_profile.mjs",
+    "load",
+    "deep-mtp"
+  ],
+  "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "boundary": "environment-routing-not-sandbox",
+  "child_exit_code": 0,
+  "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256_after": "5993008071b4ec0dccedd9e19d8896fc96eb22ade108cb92390aa369b8198fa2",
+  "source_consistent": true,
+  "status": "LOCAL_PASS",
+  "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\review-cancel-model-load-1019\\logs\\execution.log",
+  "exit_code": 0,
+  "ended_at": "2026-10-18T19:37:50.689178+00:00",
+  "seconds": 49.840042700001504
+}

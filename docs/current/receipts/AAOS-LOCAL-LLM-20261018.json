@@ -1,0 +1,136 @@
+{
+  "schema": "archeaxis.local-llm-qualification/v1",
+  "observed_on": "2026-10-18",
+  "status": "PASS_LOCAL_LOAD_AND_CURRENT_WORKER; PRODUCT_CLOSURE_PARTIAL",
+  "engine": {
+    "name": "llama.cpp-win-x86_64-nvidia-cuda12-avx2",
+    "version": "2.60.0",
+    "selected": true,
+    "source": "lms runtime ls + lms runtime survey --json"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 5060",
+    "vram_bytes": 8546484224,
+    "ram_bytes": 68487733248,
+    "cpu": "Intel(R) Core(TM) i5-14600KF"
+  },
+  "model": {
+    "registered_key": "qwen3.8-27b",
+    "instance_id": "aaos-deep-27b-mtp",
+    "path": "plain-gguf/qwen3.8-27b/Qwen3.8-27B-UD-IQ4_XS.gguf",
+    "bytes": 14252845984,
+    "binding_source": "lms ps --json",
+    "weight_sha256": "NOT_RECOMPUTED_THIS_RUN"
+  },
+  "sdk_smoke": {
+    "schema": "archeaxis.lm-studio-profile-result/v1",
+    "observed_at": "2026-10-18T09:33:07.448Z",
+    "operation": "smoke",
+    "profile": "deep-mtp",
+    "model_key": "qwen3.8-27b",
+    "identifier": "aaos-deep-27b-mtp",
+    "evidence_level": "REAL_LOCAL_SDK_NOT_APPLICATION_QUALIFICATION",
+    "status": "PASS_SYNTHETIC_SDK_SMOKE",
+    "before": [],
+    "load_requested": true,
+    "created_instance": true,
+    "effective_config": {
+      "gpu": {
+        "splitStrategy": "evenly",
+        "disabledGpus": [],
+        "ratio": 0.4,
+        "numCpuExpertLayersRatio": "off"
+      },
+      "gpuStrictVramCap": true,
+      "offloadKVCacheToGpu": false,
+      "contextLength": 2048,
+      "maxParallelPredictions": 1,
+      "flashAttention": true,
+      "speculativeDraftMtp": true,
+      "speculativeDraftSimple": false,
+      "speculativeDraftMaxTokens": 2,
+      "speculativeDraftMinTokens": 1
+    },
+    "smoke": {
+      "elapsed_s": 24.049444399999977,
+      "literal_present": true,
+      "observed_model_key": "qwen3.8-27b",
+      "observed_identifier": "aaos-deep-27b-mtp",
+      "stats": {
+        "stopReason": "eosFound",
+        "tokensPerSecond": 4.773842615956638,
+        "timeToFirstTokenSec": 3.1988879999999997,
+        "promptTokensCount": 68,
+        "predictedTokensCount": 43,
+        "totalDraftTokensCount": 32,
+        "acceptedDraftTokensCount": 26,
+        "rejectedDraftTokensCount": 6
+      }
+    },
+    "instance_kept_available_with_ttl_seconds": 1800
+  },
+  "current_worker": {
+    "scope": "REAL_CURRENT_SOURCE_WORKER_SYNTHETIC_NOT_CORE_OR_INSTALLED",
+    "status": "PASS",
+    "requested_model": "aaos-deep-27b-mtp",
+    "observed_model": "aaos-deep-27b-mtp",
+    "answer_source": "content",
+    "finish_reason": "stop",
+    "truncated": false,
+    "max_tokens": 1024,
+    "elapsed_s": 30.07,
+    "usage": {
+      "input_tokens": 162,
+      "output_tokens": 73,
+      "total_tokens": 235
+    }
+  },
+  "evidence": [
+    {
+      "path": ".project-local/runs/lm-studio-profile/1792315987448-smoke.json",
+      "sha256": "bdc583277a84f0cf6581864eaa299ba2400affe86cacf79fe96210a7eb586a88",
+      "bytes": 1400
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/continuation-runtime-investigation/current-worker-27b.json",
+      "sha256": "ca3db839343e52d0b834709584f492d760902b798646f3a8d86cc1928d667b39",
+      "bytes": 410
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/current-worker-27b-mtp/artifacts/execution.json",
+      "sha256": "dc4f51846e4bc98f45cb4740e993cda10769708145074ffc2f2954bba5e5fdb3",
+      "bytes": 1319
+    }
+  ],
+  "profile": {
+    "path": "config/model-profiles/lm-studio.json",
+    "sha256": "ee141998757783d5fb86267d74503475325abd5f2517bb226de320a421e63994",
+    "bytes": 1290
+  },
+  "worker_source": {
+    "path": "services/python-workers/machine/worker_machine_answer.py",
+    "sha256": "22a4db08d9dfc1d477d0a414352df56c6b70b87809c4d2fbc8a50141a9bf3dee",
+    "bytes": 26543
+  },
+  "sdk_tool": {
+    "scope": ".project-local/tools/lm-studio-sdk",
+    "package": "@lmstudio/sdk",
+    "version": "2.0.0",
+    "registry": "https://registry.npmjs.org",
+    "scripts_executed": false,
+    "lockfile": {
+      "path": ".project-local/tools/lm-studio-sdk/package-lock.json",
+      "sha256": "bbda3e77d3965992c1f3bdaf04afc2885edc2526a7e25dcda8828424371d2f70",
+      "bytes": 5190
+    }
+  },
+  "limits": [
+    "Real local inference on synthetic material; no accuracy or sustained speed qualification",
+    "SDK and current source worker are not Core/grant/native/installed/Owner acceptance",
+    "No vLLM deployment evidence in bounded project records; not a whole-machine absence claim",
+    "No saved AAOS model-purpose profile or provider/auth/global default overwritten",
+    "Live model expires after 1800 idle seconds; configuration remains reloadable",
+    "SDK smoke has effective load readback and MTP counters; current worker has canonical source-patch receipt",
+    "Later presentation/document changes do not retroactively qualify native candidate binaries"
+  ]
+}

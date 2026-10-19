@@ -1,0 +1,646 @@
+# 星环知识系统前端 UI 分支任务包
+
+计划 ID：AX-UI-20261013
+
+完整前端与可复用视觉资产，支撑多格式真实学习闭环和个人本地测试。
+
+## 共同交付边界
+
+正式产品使用 ArcheAxis／星环知识系统；AAOS 是内部代号。产品为本地优先的知识与 Human–AI 双向学习工作区。首期关注多格式、最快真实闭环、完整前端框架与基础文本小栖，多位测试者各自在本机使用。
+
+主项目继续使用 Tauri 2、React 18、TypeScript、Vite、Rust Core 单写者及隔离 Python workers。ASTRYN 只持有人格、交互与人物表现；模型、长期记忆、上下文、任务和权限由主项目持有。WORKLAB／DESIGNLAB 独立运行、独立数据与凭据，Observer 只读，专业设计编辑回原生宿主。
+
+本包是新分支的执行输入，产品任务为 PLANNED；已下载资产、合同提案和代码配方不表示产品已接通。旧任务在继承表中保留，未选择的 V01、FT01–04 和六核心历史增量不自动解冻。用户当前明确指令优先；实施者核对本包与当前权威、合同和实际代码，登记必要的新范围，不因为历史字段阻止已明确授权的新 UI 工作。
+
+每个 checkout 只有一个 writer；用独立分支或隔离 worktree，保护现有 dirty/untracked 文件。运行资料、密钥、个人对话、模型权重和数据库不进入公开任务包或提交。例行可逆操作按当前任务授权继续；提交、推送、合并、安装发布及正式资料覆盖按当前会话与仓库现行授权处理，不能从此压缩包额外推导权限。
+
+shared 中逻辑合同由 BE01 统一正式登记。前端和 ASTRYN 不能各自新建另一套模型中心、长期记忆库或泛用执行桥。Contract Proposal 明确是提案；执行前必须变成实际请求／响应 Schema、Rust／TypeScript DTO、有限命令映射和负面测试。
+
+## 执行任务
+
+### FE00 主线接手与分支范围登记
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：无；先核对本仓当前权威和状态。
+
+执行内容：
+- 读取 AUTHORITY、AGENTS、current 指针和现行执行记录，核对真实主线与 dirty 文件。
+- 登记 UI 分支与只读基线，保留现有页面 ID、业务会话和冻结任务记录。
+- 把用户本轮 cosmic 默认主题与完整前端要求记为新设计覆盖；旧主题作为同一布局的可选皮肤。
+
+必须产物：
+- baseline-readback.json
+- task-crosswalk.csv
+- branch-scope.md
+
+通过条件：
+- 基线、实际主线和继承来源可复查；不把旧任务包 NOT_EXECUTED 当当前进度。
+- 所有改动都能归属此分支，不覆盖其他 worktree。
+
+继承任务：UF00、H01、G01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE01 逐页面和逐功能区交互定稿
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE00
+
+执行内容：
+- 核对 22 页面、34 独立模块、158 去别名功能区、16 能力族及 186 原文。
+- 为每个功能区补输入、校验、保存、取消、结果、返回、错误、离线及恢复状态。
+- 使用四轴记录 UI 规格、持久化、后端资格、首期或后续阶段；未来能力保留正式参数合同。
+
+必须产物：
+- PAGE-MATRIX.csv
+- VIEW-SPECIFICATIONS.json
+- FEATURE-STATE-MATRIX.csv
+
+通过条件：
+- 独立实现者能识别具体字段与结果，不靠菜单名猜行为。
+- 只读历史、模型、人物设置快捷入口打开同一视图。
+
+继承任务：H01、UF06
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE02 视觉变量和组件状态定稿
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE01
+
+执行内容：
+- 采用深黑宇宙、冷白蓝光、局部玻璃与稳定正文表面；落实 tokens、字体、间距、圆角、层级和动效。
+- 确认首页、阅读、陪学、模型、能力目录、配置和错误七类关键界面。
+- 同时提供轻量、均衡、增强与减少动态规则，避免所有窗口发光或大范围模糊。
+
+必须产物：
+- design/UI-TOKENS.json
+- design/materials.css
+- design/COMPONENT-STATES.csv
+- design/key-view-review.md
+
+通过条件：
+- 关键界面使用同一套变量，长文和状态文字清晰。
+- 色彩与文字双重表达，默认 cosmic 对外品牌正确。
+
+继承任务：UF01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE03 效果图升级与分层资产生产
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE02
+
+执行内容：
+- 按 VISUAL-ASSET-PRODUCTION.md 与七视图 brief 升级效果图，不随意改变主线业务结构。
+- 分别输出无文字场景、星环与行星、玻璃边缘、人物 cutout、图标及实际组件；保留原图、参数、版本和可编辑源。
+- 按轻量模式制作静态背景和可裁切版本；角色产物与 GF03 的角色清单对齐。
+
+必须产物：
+- assets/ASSET-MANIFEST.json
+- assets/production/scene-and-surface-assets/
+- assets/production/key-view-renders/
+
+通过条件：
+- 资源具有来源、权利状态、hash、尺寸、透明背景规则、用途与质量档位。
+- 概念效果图与原生运行截图单独标识；正式文字与数值由真实 UI 渲染。
+
+继承任务：UF01、O01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE04 组件库复用与适配
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE02
+
+执行内容：
+- 优先复用现有 Radix、Tiptap、PDF.js；用已下载 Dockview 开源包验证 React 18 与当前构建。
+- 纳入 Lucide 原始 SVG、完整许可证和材料组件配方；按组件目录补按钮、导航、页签、面板、表单、对话和状态。
+- 依现有 lockfile 处理传递依赖并固定版本；不默认引入另一整套 CSS 框架或商业扩展。
+
+必须产物：
+- components/COMPONENT-CATALOG.json
+- frontend component wrappers
+- dependency-lock-readback.json
+- THIRD-PARTY-NOTICES.md
+
+通过条件：
+- 至少验证停靠、分栏、浮动、关闭、恢复与焦点。
+- 组件库不持有长期业务状态，不把 source tarball 等同于完整离线安装环境。
+
+继承任务：UF01、UF02、O01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE05 五区 Shell 与三级导航
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE01、FE04、BE01
+
+执行内容：
+- 实现顶栏工作区、搜索与当前模型，左侧七领域，中央工作区，右侧对象工具，下方可收起对话。
+- 一级单分支展开，二级打开或聚焦，三级切换区域；对象选择在模块内。
+- 首页仅提供导入、新建、真实继续和小栖；查找、收藏与能力目录引用同一注册表。
+
+必须产物：
+- AppShell
+- typed NavigationRegistry
+- alias resolver
+- navigation evidence
+
+通过条件：
+- 22 页与全部原文均有有效落点；菜单不会打开全部窗口。
+- 正式用户标签不显示 AAOS；无资料不造进度或待办。
+
+继承任务：UF02
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE06 自由布局与共享业务会话
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE05、BE02
+
+执行内容：
+- 用 Dockview 实现应用内停靠、标签组、分栏、浮动、缩放和锁定。
+- 面板实例键绑定工作区、对象与会话，关闭只结束呈现；编辑器和 AI 会话由独立服务持有。
+- 保存预设与布局，处理过期组件、屏幕变化、CAS 冲突及可见恢复。
+
+必须产物：
+- WorkspaceController
+- PanelRegistry
+- layout presets
+- restore evidence
+
+通过条件：
+- 重启恢复布局，重置不删除资料、草稿、聊天或已提交任务。
+- 同文档不出现独立写入会话；模型中心和能力目录不重复实例。
+
+继承任务：UF04、CB01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE07 知识库与导入入口
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE05
+
+执行内容：
+- 承接原件、文档、集合、筛选、真实最近对象与批次结果。
+- 导入、保存、查询、打开和部分失败引用现有 Core 合同。
+- 原件与派生文本有来源联系；重复资料可复用或建立引用。
+
+必须产物：
+- knowledge library view
+- empty and batch states
+
+通过条件：
+- 空库、重复、部分失败和已保存对象均可操作。
+- 普通文档保存不增加通用审批。
+
+继承任务：UF03
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE08 阅读编辑与来源历史
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE07、BE03
+
+执行内容：
+- 保持正文主导，复用 Tiptap 与 PDF.js，来源和版本按需打开。
+- 实现选区提问、上下文标签、批注、双链、文档保存冲突和来源跳转。
+- 版本对照与恢复先显示目标和影响，草稿与正式版本分开。
+
+必须产物：
+- reader/editor views
+- source and version inspector
+- selection-context view
+
+通过条件：
+- 新导入资料能读、能记笔记；模型可用时回答可回到选定材料版本。
+- 关窗重开不丢草稿，缺解析或模型时显示准确状态。
+
+继承任务：UF03
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE09 图谱与研究工作面
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE08、BE09
+
+执行内容：
+- 提供局部关系、范围和筛选；全库大图按需加载。
+- 研究空间组织问题、文献、假设、方法、结果与交接。
+- 高级实验执行保留参数、计划和结果视图，并按实际后端状态禁用执行。
+
+必须产物：
+- graph and research views
+- research drafts and references
+
+通过条件：
+- 选关系可打开真实对象；缺索引有明确原因。
+- 研究草稿可保存重开；未知实验不生成假结果。
+
+继承任务：UF08、CB03
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE10 学习路径与课程
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE08、BE09
+
+执行内容：
+- 目标、路线、课程、单元、关联材料、学习记录与复习安排保持连续导航。
+- 手工学习记录先可用，高级诊断与课程生成按资格启用。
+- 用户可从学习项返回对应材料和版本。
+
+必须产物：
+- path and course views
+- manual learning records
+
+通过条件：
+- 没有模型仍能阅读课程与记录学习。
+- 不把聊天次数作为掌握度，不虚构课程或统计。
+
+继承任务：UF05
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE11 教学表达与交付修订
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE10、BE09
+
+执行内容：
+- 实现需求、表达方案、交付版本与反馈修订四段旅程。
+- 草稿、素材引用、前后对照、导出、采用与交接预览具有明确去向。
+- 动态方案和外部设计生成只有真实后端通过才允许执行。
+
+必须产物：
+- teaching request/expression/delivery/feedback views
+- version comparison
+
+通过条件：
+- 各段可手工录入并保存，版本和来源可回看。
+- 失败保留原稿，交付回执未收到时不显示完成。
+
+继承任务：UF07、CB02
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE12 练习复述与反馈节奏
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE10、BE09
+
+执行内容：
+- 设计主动提取、先尝试、分级提示、解释、Teach-back、出处反馈与复习。
+- 支持手工题目、回答与记录；自动反馈依模型与资料资格。
+- 避免角色展示抢占作答区域，允许直接提问和专注。
+
+必须产物：
+- practice view
+- hint levels
+- feedback and review view
+
+通过条件：
+- 提问、回答、反馈绑定题目与材料版本。
+- 无模型仍可提交手工练习，不显示编造评分。
+
+继承任务：UF05、UF07
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE13 基础画布与视觉表达
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE11、BE09
+
+执行内容：
+- 保留知识画布、关系、流程、分步对照与空间学习入口。
+- 明确图形布局与知识真值分开；基本画布数据按现有或正式新增合同保存。
+- 仿真、空间投影与 3D 只完成交互外壳和状态，重引擎延期。
+
+必须产物：
+- canvas view
+- visual expression controls
+- deferred engine states
+
+通过条件：
+- 选中节点可回到真实知识对象。
+- 布局变更不会改变知识事实，缺引擎可回到文本。
+
+继承任务：UF12
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE14 模型中心与用途绑定
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE05、BE04
+
+执行内容：
+- 主入口 AI 模型与连接，设置和顶栏为同一中心或当前用途快捷选择。
+- 完成 API、正式客户端订阅、本地模型、用途绑定、用量诊断五区。
+- 服务地址、实际目的地、凭据状态、模型发现、连接检查、试运行和重启配置可用。
+- FAST／DEEP 是逻辑绑定而非固定型号；用途预算、排队与向量变更重建计划按正式合同展示。
+
+必须产物：
+- model center
+- role bindings
+- connection diagnostics
+
+通过条件：
+- 区分全局默认、工作区与本次请求覆盖；切换不改变已提交请求。
+- 没有真实用量时显示未知；本地失败不静默转云。
+
+继承任务：UF10
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE15 资源扩展与常用服务
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE14、BE07、BE08
+
+执行内容：
+- 展示模块、引擎、插件技能、部署更新回退与依赖。
+- 搜索文献、OCR、语音、MCP、自定义服务和收藏连接用稳定引用。
+- 模型跳到模型中心，语音供角色复用，配置与凭据不复制。
+
+必须产物：
+- resource/service views
+- dependency and deployment plan UI
+
+通过条件：
+- 已安装、已接入、待验证和后续实施准确区分。
+- 没有后台安装能力时保留计划及原因，不运行假安装进度。
+
+继承任务：UF10、O01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE16 项目互联工作面
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE15、BE10
+
+执行内容：
+- 提供连接、握手、WORKLAB／DESIGNLAB 关联、交接预览、产物、知识候选和回执。
+- 首期真实接入可先只读；设计编辑回 DESIGNLAB 原生宿主。
+- 远端关闭、协议不匹配和状态过期不阻断本地任务。
+
+必须产物：
+- project connection views
+- read-only remote object projections
+
+通过条件：
+- WORKLAB Observer 无执行入口；远端数据不成为本地第二主库。
+- compiled 或 digest 不自动等同已接纳知识或可信签名。
+
+继承任务：UF07、UF10
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE17 受控 AI 旅程与任务回执
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE08、BE07
+
+执行内容：
+- 保留页 13、14、22 共用的项目上下文、纠正、评测、复测与受限回执。
+- 固定请求和评测依据；取消、检查点、未知结果与重开不重复运行。
+- 来源、用途授权、资产候选与正式知识明确区分。
+
+必须产物：
+- ControlledAiJourney views
+- receipts and cancellation UI
+
+通过条件：
+- 切页保留同一旅程，不扩展现有授权。
+- 结果未知先查询已有请求；页面存在不能驱动绿灯。
+
+继承任务：UF09
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE18 小栖正式前端槽位
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE06、GF08
+
+执行内容：
+- 首页、阅读嵌入和侧边面板消费 ASTRYN 导出组件与同一会话。
+- 工作时角色缩小或收起；输入、音频和渲染所有权只有一个。
+- 角色外观、关系风格、记忆与声音入口跳到同一设置。
+
+必须产物：
+- CompanionHostSlot
+- presentation transitions
+- integrated session evidence
+
+通过条件：
+- 同 session_id 的切页与关窗不新建会话或重复模型调用。
+- 角色渲染失败保留文本与正文工作。
+
+继承任务：UF02
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE19 分类能力与未来蓝图
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE05、BE07
+
+执行内容：
+- 实现六类能力目录、16 能力族、186 细则与 F／I 独立索引。
+- 搜索、收藏、来源、配置和后续阶段引用统一目录；能力切换更新同一详情。
+- 父级汇总部分就绪，红绿灯配文字，未来项按需展开。
+
+必须产物：
+- capability catalog and detail
+- roadmap and interoperability targets
+
+通过条件：
+- 覆盖原文、顺序、ID 与来源，去别名统计准确。
+- implemented 标记不当成可运行资格。
+
+继承任务：UF06、H01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE20 设置恢复与诊断
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE06、BE04、BE09
+
+执行内容：
+- 通用、资料位置、外观性能、权限、备份恢复、更新诊断均可找到。
+- 模型、小栖与历史使用别名；布局重置与资料删除分开。
+- 反馈包由用户选范围，默认不含正文、聊天和密钥。
+
+必须产物：
+- settings views
+- backup/restore previews
+- diagnostic export
+
+通过条件：
+- 缺能力可见原因和下一步；重启偏好保持。
+- 恢复预览不无提示覆盖正式内容。
+
+继承任务：UF04
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE21 全状态与可访问性
+
+优先级 P1；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE05、FE14、FE19
+
+执行内容：
+- 落实空、加载、正常、部分成功、失败、离线、未配置、未授权、不兼容、未来和恢复。
+- 实现键盘菜单、Escape、焦点返回、非拖动的布局操作和减少动态。
+- 高级入口保留但不干扰首次学习；正文与表单对比独立核验。
+
+必须产物：
+- state gallery
+- focus and keyboard tests
+- contrast report
+
+通过条件：
+- 所有禁用动作有文本原因；重试保留输入。
+- 状态不只依赖颜色；焦点不落到隐藏或关闭内容。
+
+继承任务：UF02、UF13
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE22 多格式与导入导出闭环
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE07、BE11
+
+执行内容：
+- 对文本、PDF／Office、表格、图片、音视频、网页电子书和平台交换显示逐操作资格。
+- 批次选择、计划、预览、原件与派生产物、逐文件进度、重复和损失报告。
+- 普通内容可先保存；复杂 OCR、转写与往返按真实 engine/profile 开启。
+
+必须产物：
+- import/export workflow
+- format operation matrix
+- loss and batch result UI
+
+通过条件：
+- 真实样例导入、保存、重开与导出；失败项不阻止成功项。
+- 可上传不等于可提取、编辑或无损往返。
+
+继承任务：UF11、CB04
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE23 可见性生命周期与性能
+
+优先级 P1；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE06、FE18、FE22
+
+执行内容：
+- 背景、PDF、画布、图谱、角色、音视频按需加载与暂停。
+- 对轻量、均衡、增强建立设备基线和资源预算；全流程记录实际进程资源。
+- 模型并发、长文输入、大 PDF、拖动和隐藏回落在安装环境验证。
+
+必须产物：
+- performance baselines
+- visibility lifecycle adapters
+- quality profiles
+
+通过条件：
+- 隐藏重视图停止无用绘制但已提交后端任务保留。
+- 未实测数据保持未知，降级不删除能力或内容。
+
+继承任务：UF13
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE24 原生安装与五旅程验收
+
+优先级 P0；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE08、FE12、FE14、FE18、FE20、FE21、FE22、FE23、BE12、GF10
+
+执行内容：
+- 按 ACCEPTANCE.md 验证首次进入、学习、模型绑定、小栖持续会话和布局互联。
+- 测试关闭重开、崩溃、CAS 冲突、取消晚到片段、权限撤销和目标 Windows 安装。
+- 测试者各自独立本机数据；不依赖另外两产品启动。
+
+必须产物：
+- installed-build evidence
+- journey results
+- known-limitations.md
+
+通过条件：
+- 路由、fixture、真实运行、安装和人工观察分别记录。
+- 至少达到真实短闭环与基础文本学习伴侣；重载可以准确标未接入。
+
+继承任务：UF13、M01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+### FE25 真实宣传资产与交接
+
+优先级 P1；阶段 FIRST_RELEASE；状态 PLANNED。
+
+前置任务：FE24
+
+执行内容：
+- 从实际构建采集首页、阅读、陪学、模型和全能力场景；概念人物或未来图明确标识。
+- 交付安装说明、支持范围、资料位置、恢复、反馈和版本。
+- 写分支改动、接口变化、资产 hash、测试证据与回退，按现行授权处理后续 Git 交付。
+
+必须产物：
+- publicity captures
+- user test guide
+- final handoff
+
+通过条件：
+- 正式界面无内部 AAOS 名称，不宣传未接通能力。
+- 所有已完成、未完成与延期项可追溯，工作区与人物主线一致。
+
+继承任务：UF13、M01
+
+证据：source_sha, changed_paths, commands_and_exit_codes, artifact_hashes, limitations, rollback_handle。
+
+## 后续范围
+
+- 精确写实口型和大型实时 3D 的执行引擎
+- Tauri 原生独立浮窗与桌宠实机资格
+- 仿真、空间学习、XR/AR 和高级动态插件执行

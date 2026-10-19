@@ -5,17 +5,14 @@ import StarterKit from "@tiptap/starter-kit";
 import { ApiError } from "../api/client";
 import { DocumentJournalError } from "../presentation/documentSaveStage";
 import "./DocumentConflictComparison.css";
+import {DocumentSnapshot} from "./DocumentSnapshot";
 
 export type DocumentConflictRead = {
   base: { version: number; editor_json: JSONContent };
   current: { version: number; editor_json: JSONContent; content_sha256: string };
 };
-function previewText(node:JSONContent):string {
-  if(typeof node.text==="string")return node.text;
-  return (node.content??[]).map(previewText).join(node.type==="doc"?"\n":"");
-}
 function SnapshotComparison({label,value}:{label:string;value:JSONContent}) {
-  return <section aria-label={label}><h3>{label}</h3><pre>{previewText(value)}</pre><details><summary>完整结构记录</summary><pre>{JSON.stringify(value,null,2)}</pre></details></section>;
+  return <section aria-label={label}><h3>{label}</h3><DocumentSnapshot label={label} value={value}/></section>;
 }
 
 const knownNodes = new Set(["doc", "paragraph", "heading", "blockquote", "codeBlock", "bulletList", "orderedList", "listItem", "horizontalRule", "hardBreak", "text", "evidenceReference"]);

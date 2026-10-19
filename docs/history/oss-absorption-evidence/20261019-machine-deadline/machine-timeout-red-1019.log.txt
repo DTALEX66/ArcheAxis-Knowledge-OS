@@ -1,0 +1,174 @@
+FFF                                                                      [100%]::error::PYTEST-FAILED tests/test_worker_machine_answer.py::test_extract_cli_preserves_explicit_timeout_budget
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019DD706F360>
+tmp_path = WindowsPath('D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/be268a2d33/machine-timeout-red-1019/pytest-tmp/pytest-of-ALEX/pytest-0/test_extract_cli_preserves_exp0')
+capsys = <_pytest.capture.CaptureFixture object at 0x0000019DD707A120>
+
+    def test_extract_cli_preserves_explicit_timeout_budget(monkeypatch, tmp_path, capsys):
+        source = tmp_path / "context.txt"
+        source.write_text("synthetic context", encoding="utf-8")
+        monkeypatch.setattr(machine.sys, "argv", ["worker", str(source), "--question", "synthetic question", "--timeout-s", "7"])
+        monkeypatch.setattr(machine, "_endpoint", lambda: {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"})
+        seen = {}
+        def call(endpoint, model, prompt, timeout_s, max_tokens):
+            seen["timeout"] = timeout_s
+            return "synthetic answer", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+>       assert machine.main() == 0
+               ^^^^^^^^^^^^^^
+
+tests\test_worker_machine_answer.py:493: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+::error::PYTEST-FAILED tests/test_worker_machine_answer.py::test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference[3]
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019DD74E4180>
+discovery_seconds = 3
+
+    @pytest.mark.parametrize("discovery_seconds", [3, 6])
+    def test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference(monkeypatch, discovery_seconds):
+        clock, calls = [100.0], []
+        monkeypatch.setattr(machine.time, "monotonic", lambda: clock[0])
+        def endpoint():
+            clock[0] += discovery_seconds
+            return {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"}
+        monkeypatch.setattr(machine, "_endpoint", endpoint)
+        def call(endpoint, model, prompt, timeout_s, max_tokens):
+            calls.append(timeout_s)
+            return "synthetic answer", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+        if discovery_seconds < 5:
+            result = machine.answer("context", "question", timeout_s=5)
+>           assert calls == [2] and result["elapsed_s"] == 3
+E           assert ([5] == [2]
+E             
+E             At index 0 diff: 5 != 2
+E             Use -v to get more diff)
+
+tests\test_worker_machine_answer.py:512: AssertionError
+::error::PYTEST-FAILED tests/test_worker_machine_answer.py::test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference[6]
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019DD7504EF0>
+discovery_seconds = 6
+
+    @pytest.mark.parametrize("discovery_seconds", [3, 6])
+    def test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference(monkeypatch, discovery_seconds):
+        clock, calls = [100.0], []
+        monkeypatch.setattr(machine.time, "monotonic", lambda: clock[0])
+        def endpoint():
+            clock[0] += discovery_seconds
+            return {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"}
+        monkeypatch.setattr(machine, "_endpoint", endpoint)
+        def call(endpoint, model, prompt, timeout_s, max_tokens):
+            calls.append(timeout_s)
+            return "synthetic answer", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+        if discovery_seconds < 5:
+            result = machine.answer("context", "question", timeout_s=5)
+            assert calls == [2] and result["elapsed_s"] == 3
+        else:
+>           with pytest.raises(machine.ModelCallFailure) as raised:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ModelCallFailure
+
+tests\test_worker_machin
+
+================================== FAILURES ===================================
+_____________ test_extract_cli_preserves_explicit_timeout_budget ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019DD706F360>
+tmp_path = WindowsPath('D:/All projects/ArcheAxis-Knowledge-OS/.project-local/runs/be268a2d33/machine-timeout-red-1019/pytest-tmp/pytest-of-ALEX/pytest-0/test_extract_cli_preserves_exp0')
+capsys = <_pytest.capture.CaptureFixture object at 0x0000019DD707A120>
+
+    def test_extract_cli_preserves_explicit_timeout_budget(monkeypatch, tmp_path, capsys):
+        source = tmp_path / "context.txt"
+        source.write_text("synthetic context", encoding="utf-8")
+        monkeypatch.setattr(machine.sys, "argv", ["worker", str(source), "--question", "synthetic question", "--timeout-s", "7"])
+        monkeypatch.setattr(machine, "_endpoint", lambda: {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"})
+        seen = {}
+        def call(endpoint, model, prompt, timeout_s, max_tokens):
+            seen["timeout"] = timeout_s
+            return "synthetic answer", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+>       assert machine.main() == 0
+               ^^^^^^^^^^^^^^
+
+tests\test_worker_machine_answer.py:493: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+services\python-workers\machine\worker_machine_answer.py:562: in main
+    args = parser.parse_args()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\ALEX\AppData\Roaming\uv\python\cpython-3.13-windows-x86_64-none\Lib\argparse.py:1930: in parse_args
+    self.error(msg)
+C:\Users\ALEX\AppData\Roaming\uv\python\cpython-3.13-windows-x86_64-none\Lib\argparse.py:2686: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='worker', usage=None, description='ArcheAxis machine answer worker', formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2, message = 'worker: error: unrecognized arguments: --timeout-s 7\n'
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+C:\Users\ALEX\AppData\Roaming\uv\python\cpython-3.13-windows-x86_64-none\Lib\argparse.py:2673: SystemExit
+---------------------------- Captured stderr call -----------------------------
+usage: worker [-h] [--question QUESTION] [--model MODEL]
+              [--max-tokens MAX_TOKENS] [--probe]
+              [context]
+worker: error: unrecognized arguments: --timeout-s 7
+_ test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference[3] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019DD74E4180>
+discovery_seconds = 3
+
+    @pytest.mark.parametrize("discovery_seconds", [3, 6])
+    def test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference(monkeypatch, discovery_seconds):
+        clock, calls = [100.0], []
+        monkeypatch.setattr(machine.time, "monotonic", lambda: clock[0])
+        def endpoint():
+            clock[0] += discovery_seconds
+            return {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"}
+        monkeypatch.setattr(machine, "_endpoint", endpoint)
+        def call(endpoint, model, prompt, timeout_s, max_tokens):
+            calls.append(timeout_s)
+            return "synthetic answer", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+        if discovery_seconds < 5:
+            result = machine.answer("context", "question", timeout_s=5)
+>           assert calls == [2] and result["elapsed_s"] == 3
+E           assert ([5] == [2]
+E             
+E             At index 0 diff: 5 != 2
+E             Use -v to get more diff)
+
+tests\test_worker_machine_answer.py:512: AssertionError
+_ test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference[6] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000019DD7504EF0>
+discovery_seconds = 6
+
+    @pytest.mark.parametrize("discovery_seconds", [3, 6])
+    def test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference(monkeypatch, discovery_seconds):
+        clock, calls = [100.0], []
+        monkeypatch.setattr(machine.time, "monotonic", lambda: clock[0])
+        def endpoint():
+            clock[0] += discovery_seconds
+            return {"protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"}
+        monkeypatch.setattr(machine, "_endpoint", endpoint)
+        def call(endpoint, model, prompt, timeout_s, max_tokens):
+            calls.append(timeout_s)
+            return "synthetic answer", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+        if discovery_seconds < 5:
+            result = machine.answer("context", "question", timeout_s=5)
+            assert calls == [2] and result["elapsed_s"] == 3
+        else:
+>           with pytest.raises(machine.ModelCallFailure) as raised:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ModelCallFailure
+
+tests\test_worker_machine_answer.py:514: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_worker_machine_answer.py::test_extract_cli_preserves_explicit_timeout_budget
+FAILED tests/test_worker_machine_answer.py::test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference[3]
+FAILED tests/test_worker_machine_answer.py::test_endpoint_discovery_consumes_call_budget_and_never_starts_expired_inference[6]
+3 failed, 83 deselected in 0.35s

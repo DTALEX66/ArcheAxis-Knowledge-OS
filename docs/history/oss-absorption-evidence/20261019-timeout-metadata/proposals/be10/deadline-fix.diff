@@ -1,0 +1,316 @@
+--- a/crates/archeaxis-api/src/project_observer/client.rs
++++ b/crates/archeaxis-api/src/project_observer/client.rs
+@@ -39,6 +39,26 @@
+         }
+     }
+ }
++// 单次请求共用同一个单调时钟截止；每次 I/O 只可使用尚余预算。
++struct RequestDeadline(Instant);
++impl RequestDeadline {
++    fn new(timeout: Duration) -> Result<Self, ReadError> {
++        Instant::now()
++            .checked_add(timeout)
++            .map(Self)
++            .ok_or(ReadError::Unavailable)
++    }
++    fn remaining(&self) -> Result<Duration, ReadError> {
++        self.0
++            .checked_duration_since(Instant::now())
++            .filter(|remaining| !remaining.is_zero())
++            .ok_or(ReadError::Unavailable)
++    }
++    fn finish<T>(&self, value: T) -> Result<T, ReadError> {
++        self.remaining()?;
++        Ok(value)
++    }
++}
+ pub struct ObserverClient {
+     admission: ClientAdmission,
+ }
+@@ -84,14 +104,19 @@
+         Ok(response)
+     }
+     fn request(&self, path: &str) -> Result<ReadResponse, ReadError> {
+-        let timeout = Duration::from_secs(3);
+-        let started = Instant::now();
++        self.request_with_timeout(path, Duration::from_secs(3))
++    }
++    // 生产唯一入口固定 3 秒；较短预算仅供本模块真实 loopback 回归使用。
++    fn request_with_timeout(
++        &self,
++        path: &str,
++        timeout: Duration,
++    ) -> Result<ReadResponse, ReadError> {
++        let deadline = RequestDeadline::new(timeout)?;
+         let address = SocketAddr::from((Ipv4Addr::LOCALHOST, self.admission.port));
+-        let mut socket =
+-            TcpStream::connect_timeout(&address, timeout).map_err(|_| ReadError::Unavailable)?;
+-        socket
+-            .set_write_timeout(Some(timeout))
++        let mut socket = TcpStream::connect_timeout(&address, deadline.remaining()?)
+             .map_err(|_| ReadError::Unavailable)?;
++        deadline.remaining()?;
+         let request = format!(
+             "GET {path} HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nConnection: close\r\nx-archeaxis-launch-token: {}\r\nx-archeaxis-observer-protocol: {}\r\nx-archeaxis-observer-namespace: {}\r\nx-archeaxis-observer-instance: {}\r\n\r\n",
+             self.admission.port,
+@@ -100,15 +125,23 @@
+             self.admission.consumer.namespace.as_str(),
+             self.admission.consumer.instance_id
+         );
+-        socket
+-            .write_all(request.as_bytes())
+-            .map_err(|_| ReadError::Unavailable)?;
++        let mut sent = 0;
++        while sent < request.len() {
++            socket
++                .set_write_timeout(Some(deadline.remaining()?))
++                .map_err(|_| ReadError::Unavailable)?;
++            let written = socket.write(&request.as_bytes()[sent..]);
++            deadline.remaining()?;
++            match written {
++                Ok(0) => return Err(ReadError::Unavailable),
++                Ok(n) => sent += n,
++                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
++                Err(_) => return Err(ReadError::Unavailable),
++            }
++        }
+         let mut raw = Vec::new();
+         loop {
+-            let remaining = timeout
+-                .checked_sub(started.elapsed())
+-                .filter(|d| !d.is_zero())
+-                .ok_or(ReadError::Unavailable)?;
++            let remaining = deadline.remaining()?;
+             socket
+                 .set_read_timeout(Some(remaining))
+                 .map_err(|_| ReadError::Unavailable)?;
+@@ -116,6 +149,8 @@
+             let n = socket
+                 .read(&mut buffer)
+                 .map_err(|_| ReadError::Unavailable)?;
++            // 包括 EOF 在内，内核调用返回后再次检查，不能将迟到数据判为成功。
++            deadline.remaining()?;
+             if n == 0 {
+                 break;
+             }
+@@ -124,6 +159,7 @@
+             }
+             raw.extend_from_slice(&buffer[..n]);
+         }
++        deadline.remaining()?;
+         let split = raw
+             .windows(4)
+             .position(|w| w == b"\r\n\r\n")
+@@ -173,6 +209,7 @@
+         }
+         let response: ReadResponse =
+             serde_json::from_slice(body).map_err(|_| ReadError::InvalidResponse)?;
++        deadline.remaining()?;
+         if response.producer != self.admission.producer
+             || response.consumer != self.admission.consumer
+         {
+@@ -185,6 +222,129 @@
+         if !response.valid(now) {
+             return Err(ReadError::InvalidResponse);
+         }
+-        Ok(response)
+-    }
+-}
++        // DTO 解析和身份/新鲜度核验同样计入总预算。
++        deadline.finish(response)
++    }
++}
++
++#[cfg(test)]
++mod deadline_tests {
++    use super::*;
++    use serde_json::json;
++    use std::{net::TcpListener, thread};
++
++    fn fixture() -> String {
++        let now = now_ms();
++        let body = json!({"schema":"archeaxis.project-observer-response/v1","protocol":"archeaxis.project-observer/v1","producer":{"namespace":"archeaxis","workspace_id":"a".repeat(32),"restore_epoch":"initial"},"consumer":{"namespace":"work-lab","instance_id":"b".repeat(32)},"checked_at_ms":now,"expires_at_ms":now+30_000,"payload":{"kind":"handshake","operations":["handshake","objects.read","object.status"],"authority":"REFERENCE_ONLY","grants_execution":false,"grants_knowledge_acceptance":false}}).to_string();
++        format!(
++            "HTTP/1.1 200 SYNTHETIC\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
++            body.len()
++        )
++    }
++
++    // 每次测试独占临时端口与连接，无共享服务、真实数据或任意 URL。
++    fn owned_request(
++        budget: Duration,
++        serve: impl FnOnce(&mut TcpStream, &str) + Send + 'static,
++    ) -> (Result<ReadResponse, ReadError>, Duration) {
++        let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
++        let port = listener.local_addr().unwrap().port();
++        listener.set_nonblocking(true).unwrap();
++        let worker = thread::spawn(move || {
++            let accept_deadline = Instant::now() + Duration::from_secs(5);
++            let mut socket = loop {
++                match listener.accept() {
++                    Ok((socket, _)) => break socket,
++                    Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
++                        assert!(
++                            Instant::now() < accept_deadline,
++                            "owned stub received no request"
++                        );
++                        thread::sleep(Duration::from_millis(2));
++                    }
++                    Err(error) => panic!("owned stub: {error}"),
++                }
++            };
++            socket.set_nonblocking(false).unwrap();
++            socket
++                .set_read_timeout(Some(Duration::from_secs(2)))
++                .unwrap();
++            socket
++                .set_write_timeout(Some(Duration::from_secs(2)))
++                .unwrap();
++            let mut request = Vec::new();
++            while !request.windows(4).any(|w| w == b"\r\n\r\n") {
++                let mut buffer = [0; 1024];
++                let count = socket.read(&mut buffer).unwrap();
++                assert!(count > 0 && request.len() + count < 8192);
++                request.extend_from_slice(&buffer[..count]);
++            }
++            assert!(request.starts_with(b"GET /api/v1/project-observer/handshake HTTP/1.1\r\n"));
++            serve(&mut socket, &fixture());
++        });
++        let admission = serde_json::from_value(json!({"port":port,"token":"c".repeat(64),"producer":{"namespace":"archeaxis","workspace_id":"a".repeat(32),"restore_epoch":"initial"},"consumer":{"namespace":"work-lab","instance_id":"b".repeat(32)}})).unwrap();
++        let client = ObserverClient { admission };
++        let started = Instant::now();
++        let result = client.request_with_timeout("/api/v1/project-observer/handshake", budget);
++        let elapsed = started.elapsed();
++        worker.join().unwrap();
++        (result, elapsed)
++    }
++
++    #[test]
++    fn timely_valid_http_response_remains_usable() {
++        let (result, elapsed) = owned_request(Duration::from_secs(1), |socket, response| {
++            socket.write_all(response.as_bytes()).unwrap();
++        });
++        assert!(result.is_ok());
++        assert!(elapsed < Duration::from_secs(1));
++        eprintln!(
++            "deadline timely positive elapsed_ms={}",
++            elapsed.as_millis()
++        );
++    }
++
++    #[test]
++    fn continuously_arriving_bytes_do_not_renew_total_budget() {
++        let (result, elapsed) = owned_request(Duration::from_millis(250), |socket, response| {
++            for byte in response.bytes().take(30) {
++                if socket.write_all(&[byte]).is_err() {
++                    break;
++                }
++                thread::sleep(Duration::from_millis(35));
++            }
++        });
++        assert!(matches!(result, Err(ReadError::Unavailable)));
++        assert!(
++            elapsed < Duration::from_millis(750),
++            "stream renewed deadline: {elapsed:?}"
++        );
++        eprintln!("deadline slow stream elapsed_ms={}", elapsed.as_millis());
++    }
++
++    #[test]
++    fn complete_valid_response_with_late_eof_is_unavailable() {
++        let (result, elapsed) = owned_request(Duration::from_millis(250), |socket, response| {
++            socket.write_all(response.as_bytes()).unwrap();
++            // 早到的完整合法正文不能绕过总截止，EOF 必须在预算内。
++            thread::sleep(Duration::from_millis(900));
++        });
++        assert!(matches!(result, Err(ReadError::Unavailable)));
++        assert!(
++            elapsed < Duration::from_millis(750),
++            "late EOF admitted: {elapsed:?}"
++        );
++        eprintln!("deadline delayed EOF elapsed_ms={}", elapsed.as_millis());
++    }
++
++    #[test]
++    fn expired_final_gate_rejects_even_valid_dto() {
++        let response = fixture();
++        let body = response.split_once("\r\n\r\n").unwrap().1;
++        let dto: ReadResponse = serde_json::from_str(body).unwrap();
++        assert!(dto.valid(now_ms()));
++        let deadline = RequestDeadline(Instant::now() - Duration::from_millis(1));
++        assert!(matches!(deadline.finish(dto), Err(ReadError::Unavailable)));
++        assert_eq!(deadline.remaining(), Err(ReadError::Unavailable));
++    }
++}
+--- a/crates/archeaxis-api/tests/project_observer_client.rs
++++ b/crates/archeaxis-api/tests/project_observer_client.rs
+@@ -113,3 +113,58 @@
+     let oversize = "x".repeat(73_729);
+     assert!(roundtrip(&oversize, 200, "", oversize.len()).is_err());
+ }
++
++#[test]
++fn production_three_second_deadline_rejects_silent_owned_http_peer() {
++    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).unwrap();
++    let port = listener.local_addr().unwrap().port();
++    listener.set_nonblocking(true).unwrap();
++    let worker = std::thread::spawn(move || {
++        let accept_deadline = Instant::now() + Duration::from_secs(5);
++        let mut socket = loop {
++            match listener.accept() {
++                Ok((socket, _)) => break socket,
++                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
++                    assert!(
++                        Instant::now() < accept_deadline,
++                        "owned stub received no request"
++                    );
++                    std::thread::sleep(Duration::from_millis(2));
++                }
++                Err(error) => panic!("owned stub: {error}"),
++            }
++        };
++        socket.set_nonblocking(false).unwrap();
++        socket
++            .set_read_timeout(Some(Duration::from_secs(2)))
++            .unwrap();
++        let mut request = Vec::new();
++        while !request.windows(4).any(|w| w == b"\r\n\r\n") {
++            let mut buffer = [0; 1024];
++            let count = socket.read(&mut buffer).unwrap();
++            assert!(count > 0 && request.len() + count < 8192);
++            request.extend_from_slice(&buffer[..count]);
++        }
++        assert!(request.starts_with(b"GET /api/v1/project-observer/handshake HTTP/1.1\r\n"));
++        // 持有 owned socket 4.2 秒；生产客户端必须在对端关闭前自行截止。
++        std::thread::sleep(Duration::from_millis(4200));
++    });
++    let admission: ClientAdmission = serde_json::from_value(json!({"port":port,"token":"c".repeat(64),"producer":{"namespace":"archeaxis","workspace_id":"a".repeat(32),"restore_epoch":"initial"},"consumer":{"namespace":"work-lab","instance_id":"b".repeat(32)}})).unwrap();
++    let started = Instant::now();
++    let result = ObserverClient::connect(admission);
++    let elapsed = started.elapsed();
++    worker.join().unwrap();
++    assert!(matches!(result, Err(ReadError::Unavailable)));
++    assert!(
++        elapsed >= Duration::from_millis(2500),
++        "production budget unexpectedly shortened: {elapsed:?}"
++    );
++    assert!(
++        elapsed < Duration::from_millis(4000),
++        "waited for peer EOF: {elapsed:?}"
++    );
++    eprintln!(
++        "production deadline silent peer elapsed_ms={}",
++        elapsed.as_millis()
++    );
++}
+--- a/docs/contracts/project-observer-v1.md
++++ b/docs/contracts/project-observer-v1.md
+@@ -38,7 +38,7 @@
+ 
+ `archeaxis-project-observer` Rust 可执行入口只读有界 stdin，不接受 argv。输入根对象严格包含 `admission` 与 `action`；admission 为 port、专用 token、producer/consumer；action 为 `{operation:handshake}`、`{operation:objects}` 或 `{operation:status,reference:{document_id,version,content_sha256}}`。
+ 
+-传输只连接 `127.0.0.1:port`，3秒总截止、有界 HTTP frame、不跟随重定向、严格响应 DTO。首次握手通过后才进行所选只读调用。stdout 只有有限 metadata 或有限错误码。该 CLI 是首期实际 adapter 入口，未自动加入现有安装包或共享产品配置。
++传输只连接 `127.0.0.1:port`，每次 HTTP 请求固定3秒单调时钟总截止（包括 connect、write、read、EOF、DTO 解析及最终核验）；每次 I/O 只使用剩余预算，连续慢流不能续期，迟到合法 metadata 同样返回 OBSERVER_UNAVAILABLE。有界 HTTP frame、不跟随重定向、严格响应 DTO。首次握手通过后才进行所选只读调用。stdout 只有有限 metadata 或有限错误码。该 CLI 是首期实际 adapter 入口，未自动加入现有安装包或共享产品配置。
+ 
+ ## 证据与未覆盖范围
+ 

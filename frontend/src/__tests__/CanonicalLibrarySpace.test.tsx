@@ -1,3 +1,5 @@
+import {useDiagnostics, resetDiagnostics} from "../presentation/diagnostics";
+import {renderHook} from "@testing-library/react";
 import type { Editor } from "@tiptap/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
@@ -23,6 +25,7 @@ function noteAck(payload:Record<string,unknown>) {
 let doc = { document_id: "doc_test", source_id: source.source_id, source_revision: hash, title: source.original_name, version: 1,
   editor_json: { type: "doc", content: [{ type: "paragraph", attrs: { block_id: "p1" }, content: [{ type: "text", text: "已保存笔记" }] }] }, text_projection: "已保存笔记", content_sha256: hash, blocks: [] };
 
+beforeEach(resetDiagnostics);
 describe("canonical content sample", () => {
   it.each(["CURRENT","STALE","UNSUPPORTED","MISSING"])("SIMULATED: %s locator must be independently revalidated before navigation", async(status)=>{
     const position=JSON.stringify({type:"text",start:0,end:12,checksum:hash});
@@ -200,9 +203,11 @@ describe("canonical content sample", () => {
     // here on `来源版本` while the same file was green locally.
     expect(await reader.findByRole("article", {name:"不可变原件"})).toBeInTheDocument();
     expect(await reader.findByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
-    expect(await reader.findByText("来源版本")).toBeInTheDocument();
-    expect(await reader.findByText("原件 SHA-256")).toBeInTheDocument();
-    expect(await reader.findAllByText(hash, {exact:true})).toHaveLength(2);
+    expect(await reader.findByText(/来源：样板.txt · 文档第 1 版/)).toBeInTheDocument();
+    expect(await reader.findByRole("button",{name:"查看原始回执（诊断）：关联原件身份"})).toBeInTheDocument();
+    const diagnostics = renderHook(useDiagnostics);
+    await userEvent.setup().click(reader.getByRole("button",{name:"查看原始回执（诊断）：关联原件身份"}));
+    expect(diagnostics.result.current[0].payload).toEqual({source_id:doc.source_id,source_revision:hash,sha256:hash});
     expect(await reader.findByText((_content, element) => element?.tagName === "P" && element.textContent?.includes(`正文 SHA-256 ${doc.content_sha256}`) === true)).toBeInTheDocument();
     expect(await reader.findByLabelText("并排原件正文")).toHaveTextContent("原文样板");
   });
@@ -226,11 +231,11 @@ describe("canonical content sample", () => {
     expect(await screen.findByText("历史正文独立保存")).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "文档草稿" })).toHaveTextContent("已保存笔记");
     // The revision basis is reachable verbatim through diagnostics instead of being printed inline.
-    const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const debug = vi.spyOn(console, "debug").mockImplementation(() => {}); const diagnostics = renderHook(useDiagnostics);
     await user.click(screen.getByRole("button", { name: /历史修订依据/ }));
-    expect(debug.mock.calls.some(([, label, payload]) => label === "历史修订依据" && JSON.stringify(payload).includes("核对原件后修正年份"))).toBe(true);
+    expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([, label, payload]) => label === "历史修订依据" && JSON.stringify(payload).includes("核对原件后修正年份"))).toBe(true);
     expect(screen.queryByText(/核对原件后修正年份/)).not.toBeInTheDocument();
-    debug.mockRestore();
+    expect(debug).not.toHaveBeenCalled(); debug.mockRestore();
     expect(bridge.call.mock.calls.some(([operation]) => operation === "document_restore" || operation === "document_draft")).toBe(false);
   });
   it("SIMULATED: historical Inspector preserves dirty editor and only uses the actual returned hash", async () => {
@@ -247,7 +252,8 @@ describe("canonical content sample", () => {
     await screen.findByText(/尚未保存 · 当前持久化版本/);
     onInspect.mockClear(); bridge.call.mockClear();
     await user.click(screen.getByRole("button", {name:"只读查看历史版本"}));
-    await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({version:"1", lifecycle:expect.stringContaining("历史版本"), detail:expect.stringContaining(historicalHash)})));
+    await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({version:"1", lifecycle:expect.stringContaining("历史版本"), identityDetails:{document_id:doc.document_id,version:1,content_sha256:historicalHash,source_id:null,source_revision:null,raw_sha256:null}})));
+    expect(onInspect.mock.calls.at(-1)![0].detail).not.toContain(historicalHash);
     expect(onInspect.mock.calls.at(-1)![0].rawSha256).toBeUndefined();
     expect(onInspect.mock.calls.at(-1)![0].review).toBeUndefined();
     expect(screen.getByRole("textbox", {name:"文档草稿"})).toBe(textbox);
@@ -269,7 +275,7 @@ describe("canonical content sample", () => {
     await user.click(await screen.findByRole("button", {name:"样板.txt · 文档"}));
     await user.click(screen.getByRole("button", {name:"只读查看历史版本"}));
     await user.click(screen.getByRole("button", {name:"其他历史目标 · 文档"}));
-    await waitFor(() => expect(onInspect.mock.calls.at(-1)![0].detail).toContain(other.document_id));
+    await waitFor(() => expect(onInspect.mock.calls.at(-1)![0].identityDetails).toMatchObject({document_id:other.document_id,version:other.version,content_sha256:other.content_sha256,source_id:other.source_id,source_revision:other.source_revision}));
     const count = onInspect.mock.calls.length;
     await act(async () => {complete({...doc, text_projection:"不得覆盖的新旧回包"});});
     expect(onInspect).toHaveBeenCalledTimes(count);
@@ -399,10 +405,12 @@ describe("canonical content sample", () => {
     doc = {...doc, source_revision:hash};
     const onInspect = vi.fn(); render(<CanonicalLibrarySpace onInspect={onInspect} />);
     await userEvent.setup().click(await screen.findByRole("button", { name: "样板.txt · 文档" }));
-    await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({ version: "1", rawSha256: undefined })));
+    await waitFor(() => expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({ version: "1", rawSha256: undefined }), { reveal: false }));
     const target = onInspect.mock.calls.at(-1)![0];
-    expect(target.detail).toContain(doc.document_id);
-    expect(target.detail).toContain(`关联原件 ${source.source_id}@${hash}`);
+    expect(target.identityDetails).toEqual({document_id:doc.document_id,version:doc.version,content_sha256:doc.content_sha256,source_id:source.source_id,source_revision:hash});
+    expect(target.detail).not.toContain(doc.document_id);
+    expect(target.detail).not.toContain(hash);
+    expect(target.detail).toContain("原件与正文指纹分别保留");
     expect(target.lifecycle).toContain("核验与依据分析独立记录");
     expect(target.review).toBeUndefined();
   });
@@ -469,7 +477,7 @@ describe("canonical content sample", () => {
   });
   it.each([6,26])("SIMULATED: imports a %i MiB original without invoking conversion",async(size)=>{
     const previous=bridge.call.getMockImplementation()!;
-    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="source_import"?{source_id:"fixture-import",sha256:hash}:previous(op,payload));
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="source_import"?{source_id:"fixture-import",sha256:createHash("sha256").update(Buffer.from((payload.body as {content_base64:string}).content_base64,"base64")).digest("hex"),duplicate:false}:previous(op,payload));
     render(<CanonicalLibrarySpace/>);
     const raw=new Uint8Array(size*1024*1024);
     const file=new File([raw],"fixture.mp3");
@@ -480,6 +488,31 @@ describe("canonical content sample", () => {
     expect(atob(call[1].body.content_base64).length).toBe(raw.byteLength);
     expect(bridge.call.mock.calls.some(([op])=>op==="job_enqueue"||op==="job_execute")).toBe(false);
   },15000);
+  it.each(["wrong hash","missing duplicate","blank source"])("SIMULATED rejects an unverified import receipt: %s",async(reason)=>{
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>op==="source_import"
+      ? {source_id:reason==="blank source"?"   ":"fixture-import",sha256:reason==="wrong hash"?"0".repeat(64):hash,...(reason==="missing duplicate"?{}:{duplicate:false})}
+      : previous(op,payload));
+    render(<CanonicalLibrarySpace/>);
+    const file=new File(["原文样板"],"fixture.txt");Object.defineProperty(file,"arrayBuffer",{value:async()=>new TextEncoder().encode("原文样板").buffer});
+    await userEvent.setup().upload(screen.getByLabelText("导入原件"),file);
+    await waitFor(()=>expect(screen.getByLabelText("导入回执")).toHaveTextContent(/未确认，请保留原件/));
+    expect(screen.getByLabelText("导入回执")).not.toHaveTextContent("原件已保留");
+    expect(bridge.call.mock.calls.filter(([op])=>op==="sources_list")).toHaveLength(1);
+  });
+  it("SIMULATED preserves confirmed custody when the following list refresh fails",async()=>{
+    const previous=bridge.call.getMockImplementation()!;let imported=false;
+    bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>)=>{
+      if(op==="source_import"){imported=true;return {source_id:"fixture-import",sha256:hash,duplicate:true};}
+      if(imported&&op==="sources_list")throw new Error("SIMULATED refresh failed");
+      return previous(op,payload);
+    });
+    render(<CanonicalLibrarySpace/>);
+    const file=new File(["原文样板"],"fixture.txt");Object.defineProperty(file,"arrayBuffer",{value:async()=>new TextEncoder().encode("原文样板").buffer});
+    await userEvent.setup().upload(screen.getByLabelText("导入原件"),file);
+    await waitFor(()=>expect(screen.getByLabelText("导入回执")).toHaveTextContent("原件已保留；转换尚未执行"));
+    expect(await screen.findByText(/列表刷新失败/)).toBeInTheDocument();
+  });
   it("reports oversized import as not imported instead of conversion success",async()=>{
     render(<CanonicalLibrarySpace/>);
     const file=new File([new Uint8Array(64*1024*1024+1)],"large.xlsx");

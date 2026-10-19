@@ -1,3 +1,4 @@
+import {getLearningItemButton} from "../test/learningQueue";
 import { CommandPalette } from "../components/CommandPalette";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -9,17 +10,18 @@ vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 afterEach(()=>{cleanup();bridge.call.mockReset();});
 describe("UI-first real object entry",()=>{
   it("SIMULATED: alternate hero and quick actions preserve real objects and route through existing callbacks", async()=>{
-    bridge.call.mockImplementation(async(operation:string)=>operation==="documents_list"?{documents:[{document_id:"kept_doc",title:"保留文档",version:2,source_id:null,source_revision:null,content_sha256:"hash"}]}:{items:[{item_key:"due_item",next_review:"2020-01-01T00:00:00Z"}]});
+    bridge.call.mockImplementation(async(operation:string)=>operation==="conversation_history"?{schema:"archeaxis.conversation-catalog/v1",sessions:[],limit:16}:operation==="documents_list"?{documents:[{document_id:"kept_doc",title:"保留文档",version:2,source_id:null,source_revision:null,content_sha256:"hash"}]}:{items:[{item_key:"due_item",next_review:"2020-01-01T00:00:00Z"}]});
     const navigate=vi.fn(),open=vi.fn(),review=vi.fn();
     render(<div className="cabin-shell" data-navigation-appearance="top"><CanonicalWorkspaceSpace onNavigate={navigate} onOpenDocument={open} onReviewItem={review}/></div>);
     fireEvent.click(await screen.findByRole("button",{name:"保留文档 · v2"}));expect(open).toHaveBeenCalledWith("kept_doc");
-    fireEvent.click(screen.getByRole("button",{name:"due_item"}));expect(review).toHaveBeenCalledWith("due_item");
+    expect(getLearningItemButton("due_item")).toHaveTextContent("学习项目");
+    fireEvent.click(getLearningItemButton("due_item"));expect(review).toHaveBeenCalledWith("due_item");
     fireEvent.click(screen.getByRole("button",{name:/开始使用/}));expect(navigate).toHaveBeenLastCalledWith("intake");
     fireEvent.click(screen.getByRole("button",{name:"打开学习空间"}));expect(navigate).toHaveBeenLastCalledWith("learning");
     fireEvent.click(screen.getByRole("button",{name:"查找本地文档"}));
     expect(screen.getByRole("searchbox")).toHaveFocus();
     expect(screen.getByText("搜索本地文档",{selector:"summary"}).parentElement).toHaveAttribute("open");
-    expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["documents_list","learning_items"]);
+    expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["conversation_history","documents_list","learning_items"]);
   });
   it.each([false,true])("keeps local search usable after an empty retained snapshot or unrelated learning failure: %s",async(failed)=>{
     bridge.call.mockImplementation(async(operation:string)=>{
@@ -39,7 +41,7 @@ describe("UI-first real object entry",()=>{
   });
   it("shows the first-material entry only after a confirmed empty read and routes both real actions",async()=>{
     let finish:(value:unknown)=>void=()=>{};
-    bridge.call.mockImplementation((operation:string)=>operation==="documents_list"?new Promise(resolve=>{finish=resolve;}):Promise.resolve({items:[]}));
+    bridge.call.mockImplementation((operation:string)=>operation==="conversation_history"?Promise.resolve({schema:"archeaxis.conversation-catalog/v1",sessions:[],limit:16}):operation==="documents_list"?new Promise(resolve=>{finish=resolve;}):Promise.resolve({items:[]}));
     const navigate=vi.fn();render(<CanonicalWorkspaceSpace onNavigate={navigate}/>);
     expect(screen.queryByRole("heading",{name:"从第一份资料开始"})).toBeNull();
     finish({documents:[]});await screen.findByRole("heading",{name:"从第一份资料开始"});
@@ -47,14 +49,14 @@ describe("UI-first real object entry",()=>{
     fireEvent.click(screen.getByRole("button",{name:/新建笔记与阅读/}));
     expect(navigate.mock.calls).toEqual([["intake"],["library"]]);
     expect(screen.queryByText(/到期复习/)).toBeNull();
-    expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["documents_list","learning_items"]);
+    expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["conversation_history","documents_list","learning_items"]);
   });
   it("SIMULATED: opens the returned stable document ID without a save or model call",async()=>{
-    bridge.call.mockImplementation(async(operation:string)=>operation==="documents_list"?{documents:[{document_id:"doc_actual",title:"中文笔记",version:4,source_id:null,source_revision:null,content_sha256:"hash"}]}:{items:[]});
+    bridge.call.mockImplementation(async(operation:string)=>operation==="conversation_history"?{schema:"archeaxis.conversation-catalog/v1",sessions:[],limit:16}:operation==="documents_list"?{documents:[{document_id:"doc_actual",title:"中文笔记",version:4,source_id:null,source_revision:null,content_sha256:"hash"}]}:{items:[]});
     const open=vi.fn();render(<CanonicalWorkspaceSpace onNavigate={vi.fn()} onOpenDocument={open}/>);
     fireEvent.click(await screen.findByRole("button",{name:"中文笔记 · v4"}));
     expect(open).toHaveBeenCalledWith("doc_actual");
-    expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["documents_list","learning_items"]);
+    expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["conversation_history","documents_list","learning_items"]);
   });
   it("SIMULATED: a refused Core read remains unavailable and retries instead of displaying an empty workspace",async()=>{
     bridge.call.mockRejectedValue(new Error("offline"));
@@ -81,4 +83,25 @@ describe("UI-first real object entry",()=>{
     for(const page of UI_PAGES)expect(resolveNavigationHash(`#page=${page.id}`)).toEqual({spaceId:page.space,capabilityId:null,pageId:page.id});
     expect(resolveNavigationHash("#page=99")).toBeNull();
   });
+});
+
+
+it("SIMULATED due items with one shared title keep separate original callback identities",async()=>{
+  const keys=[`course:${"a".repeat(64)}:artifact:${"b".repeat(64)}`,`course:${"c".repeat(64)}:artifact:${"d".repeat(64)}`];
+  bridge.call.mockImplementation(async(operation:string)=>{
+    if(operation==="conversation_history")return {schema:"archeaxis.conversation-catalog/v1",sessions:[],limit:16};
+    if(operation==="documents_list")return {documents:[]};
+    if(operation==="learning_items")return {items:keys.map(item_key=>({item_key,display_title:"同名复习主题",next_review:"2020-01-01T00:00:00Z"})),count:2};
+    throw new Error(operation);
+  });
+  const review=vi.fn();render(<CanonicalWorkspaceSpace onNavigate={vi.fn()} onReviewItem={review}/>);
+  await waitFor(()=>expect(screen.getAllByRole("button",{name:"同名复习主题"})).toHaveLength(2));
+  for(const key of keys){
+    const button=getLearningItemButton(key);
+    expect(button).toHaveTextContent("同名复习主题");
+    expect(screen.queryByRole("button",{name:key})).not.toBeInTheDocument();
+    fireEvent.click(button);
+  }
+  expect(review.mock.calls).toEqual(keys.map(key=>[key]));
+  expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["conversation_history","documents_list","learning_items"]);
 });

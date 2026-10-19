@@ -1,0 +1,97 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo test --offline --locked -p archeaxis-application --test worker_health_contract --test pdf_job_end_to_end --test receipt_spans --test machine_answer_resources -- --test-threads=1
+
+running 15 tests
+test answer_passes_a_bounded_timeout_to_the_owned_worker ... ok
+test explicit_cancellation_reaps_only_the_owned_worker_before_return ... ok
+test explicit_finite_answer_policy_reaches_owned_worker_with_matching_version ... ok
+test hard_deadline_retains_bounded_measurements_and_reaps_owned_worker ... ok
+test invalid_input_and_budget_are_rejected_before_worker_spawn ... ok
+test inventory_overflow_is_unknown_and_owned_worker_is_reaped ... ok
+test inventory_settings_failure_refuses_before_owned_child_spawn ... ok
+test inventory_timeout_is_unknown_and_owned_worker_is_reaped ... ok
+test legacy_detailed_answer_keeps_grounded_policy_and_prompt_version ... ok
+test nonzero_worker_keeps_only_allowlisted_reason_and_never_accepts_answer ... ok
+test one_second_timeout_proves_actual_owned_pid_is_no_longer_running ... ok
+test pre_cancelled_machine_never_spawns_a_worker ... ok
+test private_parent_marker_isolated_without_mutating_global_test_environment ... ok
+test stdout_over_128k_is_rejected_and_direct_owned_child_is_reaped ... ok
+test valid_utf8_context_and_question_round_trip_normally ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.79s
+
+
+running 4 tests
+test a_job_without_a_registered_route_worker_fails_explicitly ... ok
+test a_multi_page_pdf_number_anchors_globally_not_per_page ... ok
+test pdf_job_is_dispatched_to_the_pdf_worker_and_its_text_is_stored ... ok
+test registering_a_route_makes_its_capability_dispatchable ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.23s
+
+
+running 4 tests
+test a_package_name_is_not_an_observed_pdf_engine_version ... ok
+test a_page_qualified_anchor_is_accepted_for_the_same_span ... ok
+test a_wrong_final_path_segment_is_still_refused ... ok
+test an_undeclared_engine_is_still_refused ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+
+running 6 tests
+test health_keeps_non_artifact_workers_staging_only_and_input_free ... ok
+test pdf_dependency_rejection_sends_no_request_and_persists_failed_attempt ... ok
+test pdf_file_receipt_must_match_the_same_process_hello_version ... ok
+test pdf_health_observes_actual_dependency_without_a_document ... ok
+test real_artifact_worker_health_hellos_remain_compatible ... ok
+test real_video_health_hello_needs_no_job_or_media_engine ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.36s
+
+
+   Compiling archeaxis-contracts v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-contracts)
+   Compiling archeaxis-sidecar-protocol v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-sidecar-protocol)
+   Compiling archeaxis-domain v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-domain)
+warning: unused import: `OptionalExtension`
+ --> crates\archeaxis-domain\src\ai_asset.rs:7:28
+  |
+7 | use rusqlite::{Connection, OptionalExtension};
+  |                            ^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `self`
+ --> crates\archeaxis-domain\src\asset_context_grant.rs:4:16
+  |
+4 |     document::{self, Error},
+  |                ^^^^
+
+   Compiling archeaxis-application v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application)
+warning: function `stable_id` is never used
+  --> crates\archeaxis-application\src\lib.rs:45:4
+   |
+45 | fn stable_id(prefix: &str, seed: &str) -> String {
+   |    ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `worker` is never read
+  --> crates\archeaxis-application\src\executor.rs:79:5
+   |
+75 | pub struct Executor {
+   |            -------- field in this struct
+...
+79 |     worker: PathBuf,
+   |     ^^^^^^
+   |
+   = note: `Executor` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `archeaxis-application` (lib) generated 2 warnings
+warning: `archeaxis-domain` (lib) generated 2 warnings (run `cargo fix --lib -p archeaxis-domain` to apply 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.66s
+     Running tests\machine_answer_resources.rs (.project-local\build\cargo\debug\deps\machine_answer_resources-e39fd18c51e057d6.exe)
+     Running tests\pdf_job_end_to_end.rs (.project-local\build\cargo\debug\deps\pdf_job_end_to_end-8bb40e25dd2f35a6.exe)
+     Running tests\receipt_spans.rs (.project-local\build\cargo\debug\deps\receipt_spans-d39b57eec93471fe.exe)
+     Running tests\worker_health_contract.rs (.project-local\build\cargo\debug\deps\worker_health_contract-3b35aad79f873042.exe)

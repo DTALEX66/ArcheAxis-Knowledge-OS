@@ -19,7 +19,7 @@ describe("App shell", () => {
   it.each([
     ["workspace","今日工作台"], ["library","资料库"], ["intake","资料库"],
     ["vault","知识库"], ["evidence","知识库"], ["ai-assets","知识库"],
-    ["learning","学习"], ["exchange","资料库"], ["settings","全能力目录"],
+    ["learning","学习"], ["exchange","资料库"], ["settings","能力中心"],
   ] as [SpaceId,string][])("routes native %s to the existing canonical view",async(spaceId,heading)=>{
     const invoke=vi.fn(async(command:string,_args?:Record<string,unknown>)=>{
       if(command!=="core_command")throw new Error("legacy native command forbidden");
@@ -87,6 +87,37 @@ describe("App shell", () => {
     await user.keyboard("{Escape}");
     act(() => window.dispatchEvent(new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true})));
     expect(screen.getByRole("complementary", {name:"检查器"})).toBeInTheDocument();
+  });
+  it("opens the formal palette from the top search and returns focus on Escape", async () => {
+    const user = userEvent.setup(); render(<App />);
+    const trigger = document.querySelector<HTMLButtonElement>(".top-nav-search-trigger")!;
+    await user.click(trigger);
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+    expect(screen.getByRole("dialog", {name:"全局命令"})).toBeInTheDocument();
+    expect(screen.getByRole("searchbox", {name:"搜索空间或命令"})).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+  it.each(["Control", "Meta"])("keeps one formal %s+K palette after shell rerenders and navigates by keyboard", async modifier => {
+    const initialHash = window.location.hash;
+    const user = userEvent.setup(); const view = render(<App />);
+    view.rerender(<App />);
+    try {
+      await user.keyboard(`{${modifier}>}k{/${modifier}}`);
+      expect(screen.getAllByRole("dialog")).toHaveLength(1);
+      expect(screen.getByRole("dialog", {name:"全局命令"})).toBeInTheDocument();
+      expect(document.querySelector(".global-search-overlay")).toBeNull();
+      const entry = EFFECTIVE_NAVIGATION_ENTRIES.find(item => item.page?.id === "19")!;
+      await user.type(screen.getByRole("searchbox", {name:"搜索空间或命令"}), entry.label);
+      const option = document.querySelector<HTMLButtonElement>(`[data-entry-id="${entry.entry_id}"]`)!;
+      expect(option).not.toBeNull();
+      option.focus(); await user.keyboard("{Enter}");
+      expect(window.location.hash).toBe("#page=19");
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    } finally {
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${initialHash}`);
+    }
   });
   it("SIMULATED Inspector shortcut removes its exact listener on unmount", () => {
     const add=vi.spyOn(window,"addEventListener"); const remove=vi.spyOn(window,"removeEventListener");

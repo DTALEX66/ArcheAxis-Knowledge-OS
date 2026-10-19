@@ -1,0 +1,243 @@
+{
+  "schema": "archeaxis.model-lanes-and-native-update/v1",
+  "observed_on": "2026-10-18",
+  "status": "PARTIAL",
+  "implementation": {
+    "preset": "Missing-only explicit drafts for answer/retest/material/companion FAST/DEEP; inventory required; CAS save; existing bindings and embedding retained",
+    "lanes": "Frozen once at preview; revision0 DEEP refuses without inference",
+    "recovery": "Submitted request identity retained through lost ACK and history/status failures; no new inference during UNKNOWN"
+  },
+  "local_checks": {
+    "frontend_full": {
+      "path": ".project-local/runs/be268a2d33/closure-recovery-full/artifacts/execution.json",
+      "bytes": 1270,
+      "sha256": "2472f7c0680f7b0822c2277f8d08167006d9a3a91728b8f21b2f3380cc346809",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+      "source_consistent": true,
+      "exit_code": 0
+    },
+    "recovery_regressions": {
+      "path": ".project-local/runs/be268a2d33/closure-recovery-green/artifacts/execution.json",
+      "bytes": 1375,
+      "sha256": "9e44d0f0864eb0c4c0462339a85e742efff33e5e84f549983d0454cf9d1a5538",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+      "source_consistent": true,
+      "exit_code": 0
+    },
+    "native_host_build": {
+      "path": ".project-local/runs/be268a2d33/closure-recovery-native-host/artifacts/host-build.json",
+      "bytes": 806,
+      "sha256": "d14437c3e8306f1e217cf3977f4ea39a5315590bd03e9c7521679ca81b2042a4",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+      "source_consistent": true,
+      "exit_code": 0
+    },
+    "core_build": {
+      "path": ".project-local/runs/be268a2d33/closure-recovery-core-build/artifacts/execution.json",
+      "bytes": 1384,
+      "sha256": "9c99204c3333f852d10e4fa284dbc61db020a7b86055f9e9974675e458287f31",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+      "source_consistent": true,
+      "exit_code": 0
+    }
+  },
+  "counts": {
+    "frontend_files": 162,
+    "frontend_tests": 1569,
+    "recovery_regressions": 30,
+    "new_red_cases_before_fix": 5
+  },
+  "compiled_source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+  "product_file_identity": {
+    "frontend/src/runtime/lmStudioPreset.ts": {
+      "bytes": 1970,
+      "sha256": "9e5a9f7057cf2dccf489c35261aaeb571fd07d4ad4b8a8ca162c08e50918d796"
+    },
+    "frontend/src/runtime/modelBinding.ts": {
+      "bytes": 1285,
+      "sha256": "874d47436030f66824896f67f16e7a154ce65ef6964b5ca210b658e555e2f97e"
+    },
+    "frontend/src/runtime/modelConnection.ts": {
+      "bytes": 1979,
+      "sha256": "f19f960c5528a21474a191bc7e7fac6f150efd7f879b20ad00074fd8710f673a"
+    },
+    "frontend/src/components/ModelConfigurationPanel.tsx": {
+      "bytes": 8344,
+      "sha256": "d35b371aaa82daca9e35f752add9d5902152ecfa2ad3733f11593e015add9d77"
+    },
+    "frontend/src/components/MachineAnswerPanel.tsx": {
+      "bytes": 62941,
+      "sha256": "0c919aef1d534eb981b22af300b03b097dc9830e8da9a0e6895933b7e91d16ac"
+    },
+    "frontend/src/components/MaterialQuestionPanel.tsx": {
+      "bytes": 10389,
+      "sha256": "36d302fe4329d897d6b2b2410a6cfef71f4d7631af23004c6d54c6a873306b84"
+    },
+    "frontend/src/components/ConversationPanel.tsx": {
+      "bytes": 10038,
+      "sha256": "2da81013a6e74f13c862422059ac392a4a7e3bc99a0d144ebc782f0e39424180"
+    },
+    "services/python-workers/machine/worker_machine_answer.py": {
+      "bytes": 26543,
+      "sha256": "22a4db08d9dfc1d477d0a414352df56c6b70b87809c4d2fbc8a50141a9bf3dee"
+    }
+  },
+  "candidate_update": {
+    "path": ".project-local/runs/be268a2d33/closure-native-stage/candidate-build-current-20261018T111352Z.json",
+    "bytes": 3914,
+    "sha256": "a00de7a3bc1b7c3b623b1945221ef8ba8ea4edc29cddcf295172e09f4a39f538",
+    "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+    "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+    "source_consistent": true,
+    "host_sha256": "20c93e6ad6050b897e809f0fe3737f3e448354b28849b085215e159513fa95c6",
+    "core_sha256": "ea805d51133e9b63bdacb09b1636f335e831993a7ac9d377eabb2f18940e073e",
+    "candidate_members": 19524,
+    "rt_members": 19522,
+    "backup": {
+      "path": ".project-local\\archives\\current-components-20261018T111352Z.zip",
+      "bytes": 9878678,
+      "sha256": "cf83c1b16a92275bcc0424c0d061fbfa65b7969cea0568ea8ced885710aed20b"
+    },
+    "scope": "Two workers, two manifests and candidate host/qualification only; no runtime copy, no data traversal"
+  },
+  "native_configuration_journey": {
+    "path": ".project-local/runs/be268a2d33/webdriver-99ec1deb79a9/tmp/journey/receipt.json",
+    "bytes": 21508,
+    "sha256": "828111424bca27ed8039f969d578e49dbb6caba4630d748830b981bac617c10f",
+    "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+    "source_consistent": true,
+    "ok": true,
+    "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+    "saved_configuration": "SYNTHETIC, isolated workspace only",
+    "manual_writes": 1,
+    "plan_reads": 2,
+    "cold_reopens": 1,
+    "worker_started": false,
+    "owner_acceptance": false,
+    "installed": false,
+    "actual_model": "NOT_EXECUTED",
+    "command_receipt": {
+      "path": ".project-local/runs/be268a2d33/closure-current-native-plans-diagnosed/artifacts/execution.json",
+      "bytes": 1801,
+      "sha256": "adfdd0f0d7f14c931af867e7647db75041fcc344fd470a0bd911ae22a1b115da",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+      "source_consistent": true,
+      "exit_code": 0
+    }
+  },
+  "preserved_failures": [
+    {
+      "path": ".project-local/runs/be268a2d33/closure-recovery-red/artifacts/execution.json",
+      "bytes": 1365,
+      "sha256": "77dd0ddee25d193f9ceafa1b623c959bc4077aa985c099a266044faf5a6c274d",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "1b964c18b961a662a032d2db284ff94f64bad30084a81a6e847faa6358c89c13",
+      "source_consistent": true,
+      "exit_code": 1
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/closure-final-lanes-full/artifacts/execution.json",
+      "bytes": 1271,
+      "sha256": "a925509b51ad11a90b97271a79257e9180609473d4700181999bf175c62c91b5",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "81fad3fd70b250156d3514791ef13c681316655a795fc984cc4ea54150073064",
+      "source_consistent": true,
+      "exit_code": 1
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/model-lanes-final-build/artifacts/execution.json",
+      "bytes": 1227,
+      "sha256": "8b2c5d527a67556b19b2bd90e9e72c61880ba56da5c829017b0e186eafe0e161",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "9265b67077b811e79e6eebf2fff724d440442a06b900f8449cfc627b9252d4cd",
+      "source_consistent": true,
+      "exit_code": 2
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/closure-current-native-plans/artifacts/execution.json",
+      "bytes": 1508,
+      "sha256": "f726a20b13cd1721138fe78b6b79a8c41450e2f5fa93336156d822e3b68c13a6",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+      "source_consistent": true,
+      "exit_code": 1
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/closure-current-native-plans-venv/artifacts/execution.json",
+      "bytes": 1552,
+      "sha256": "269636c5b8607374ea83e44f4198dc6e9d3f93c0c0bb39e665b240ae704f2825",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+      "source_consistent": true,
+      "exit_code": 1
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-6a84ab9a3df8/tmp/journey/receipt.json",
+      "bytes": 13176,
+      "sha256": "f8cc2e4855b5b65358a477d8e4b62d0daa61047714badfdd649bf1f35cc4f569",
+      "source_patch_sha256": "9ad85c45c76577997ed7eade7d6f3942356ae3a5695a67a09b1f8c7c68415b6d",
+      "source_consistent": true,
+      "ok": false,
+      "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE"
+    }
+  ],
+  "native_first_failure": "Save confirmation timeout; diagnostic rerun PASS; first failure cause UNVERIFIED",
+  "test_observation_fix": "201-file batch waits for actual picker enabled boundary before checking 200/201 imports; no timeout increase",
+  "promotion_preflight_failures": [
+    "Cargo hyphen executable uses underscore deps hardlink alias; checked exact cargo pair before read",
+    "ZIP Windows member slash mismatch detected before mutation; normalized POSIX archive member names"
+  ],
+  "astryn_preservation": {
+    "path": ".project-local/archives/astryn-versioned-20261018T111424Z/MANIFEST.json",
+    "bytes": 51196,
+    "sha256": "c96d716784c4550bc49ec8ade08b648d1848fd0622c052462a8d9209f55ac969",
+    "source_commit": "3115378bb3fe13849ed422c739002428fef82892",
+    "files": 206,
+    "snapshot": {
+      "path": ".project-local/archives/astryn-versioned-20261018T111424Z/source.zip",
+      "bytes": 111493070,
+      "sha256": "9cb97365e15474137e1db2fe5b53cc7cb43150c3201e9d66538f3cb3281d36dd"
+    },
+    "bundle": {
+      "path": ".project-local/archives/astryn-versioned-20261018T111424Z/history.bundle",
+      "bytes": 134091418,
+      "sha256": "7f1edd3afef1497fd8a458f1b3e4879d8a2da3561b6eb6148a31d3067aa92bce"
+    },
+    "refs": [
+      "38d1fb24a5d88ee40c467af8f5135ed6ae5cf973 refs/heads/feat/astryn-learning-companion-v1",
+      "3115378bb3fe13849ed422c739002428fef82892 refs/heads/main",
+      "38d1fb24a5d88ee40c467af8f5135ed6ae5cf973 refs/remotes/origin/feat/astryn-learning-companion-v1",
+      "3115378bb3fe13849ed422c739002428fef82892 refs/remotes/origin/main"
+    ],
+    "cloud_heads": [
+      "38d1fb24a5d88ee40c467af8f5135ed6ae5cf973\trefs/heads/feat/astryn-learning-companion-v1",
+      "3115378bb3fe13849ed422c739002428fef82892\trefs/heads/main"
+    ],
+    "deletion_ready": false,
+    "excluded": [
+      "node_modules/",
+      ".project-local/",
+      "虚拟人物/ (includes native .hilo; not read or copied)"
+    ],
+    "not_covered": [
+      "Ignored original user assets and native tool state",
+      "GitHub issues/PR metadata/settings",
+      "Functional integration and runtime acceptance"
+    ]
+  },
+  "remaining": [
+    "Actual saved model bindings in user workspace UNVERIFIED",
+    "Native preset eight-binding plus real model learning closure not qualified",
+    "Original ignored ASTRYN assets/tool state and cloud metadata not fully migrated",
+    "Full three-slot companion/persona/speech/animation integration incomplete",
+    "Core bounded diagnostic propagation and production hidden/focus handling incomplete",
+    "All-format round trips, FE24 installed journeys, FE25 assets and Owner acceptance incomplete"
+  ],
+  "source_note": "Build/tests/native probe share the compiled patch; subsequent report-only edits preserve their recorded identities",
+  "delivery": "Uncommitted; no upload, merge, installation, Green replacement, source repository deletion or publication"
+}

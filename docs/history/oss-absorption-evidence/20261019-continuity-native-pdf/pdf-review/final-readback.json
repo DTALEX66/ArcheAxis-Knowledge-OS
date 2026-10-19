@@ -1,0 +1,156 @@
+{
+  "reviewed_at": "2026-10-18T23:17:30.949582+00:00",
+  "current_sha256": "fb1886ae592179fae4fede7ec664ebfa76972d2028a86faf3e86c30904b424a4",
+  "manifest_sha256": "3687d6096d9c6770aef594f9a8eaa0cc332470867d8885117ab4fa1e85b327a4",
+  "patch_sha256": "20aeac16e6901af82483f50c124bd085af68f95ac93fb7ac9382f89c5678164b",
+  "current_bindings_ok": true,
+  "manifest_final_verification_hash_ok": true,
+  "files": [
+    {
+      "path": "services/python-workers/document/worker_pdf.py",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "services/python-workers/transport/text_ndjson.py",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/src/worker.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-application/src/attempts.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/health.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-application/tests/worker_health_contract.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-application/tests/receipt_spans.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/format_qualification.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/readiness.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/file_format_qualification.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/operation_readiness_api.rs",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "packages/contracts/v1/core-document.schema.json",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "packages/contracts/v1/worker-protocol.schema.json",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "frontend/src/__tests__/OperationReadiness.test.tsx",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "tests/test_pdf_runtime_dependency.py",
+      "application": "APPLY_EXACT_BYTES",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "application": "REGENERATE_AFTER_SCHEMA_MERGE",
+      "proposal_matches": true,
+      "mirror_matches": true,
+      "preimage_matches": true,
+      "bytes_match": true
+    }
+  ],
+  "all_18_ok": true,
+  "scope": "readonly hashes only; no public status qualification; generated DTO advisory"
+}

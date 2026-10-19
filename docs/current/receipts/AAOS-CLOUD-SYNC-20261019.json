@@ -1,0 +1,98 @@
+{
+  "schema": "archeaxis.cloud-sync/v1",
+  "observed_at": "2026-10-19T00:03:56.364230+00:00",
+  "status": "PREPARED_FOR_PUSH",
+  "owner_request": "全部上传 云端和本地仓库一致",
+  "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+  "visibility": "PUBLIC",
+  "base_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "delivery_branch": "codex/sync-20261019",
+  "identity_readback": "Resolve actual Git HEAD, upstream and GitHub PR/checks. This preparation receipt cannot bind its own commit or imply a completed push/merge.",
+  "public_scope": "All reviewed pending project source, contracts, authorized user assets with provenance, public taskpacks, sanitized owner decisions and evidence archives; 6 planned archival/obsolete-config deletions",
+  "excluded": [
+    "ignored .project-local runtime and private original archives",
+    "credentials/auth state",
+    "native private sessions",
+    "databases/caches",
+    "shared model weights and tools"
+  ],
+  "publication_review": {
+    "status": "PASS_SCOPED_PUBLICATION_SCAN_WITH_UNVERIFIED_ASSET_LICENSE_QUALIFICATION",
+    "counts_at_scan": {
+      "changed_paths": 170,
+      "untracked_paths": 1156,
+      "candidate_paths": 1326,
+      "existing_files": 1320,
+      "deleted_paths": 6,
+      "bytes": 87841906,
+      "text_members_scanned": 1544,
+      "archives_scanned": 11,
+      "binary_not_text_inspected": 15
+    },
+    "credential_or_private_payload_found": false,
+    "asset_license_qualification": "UNVERIFIED; provenance preserved, no new relicensing or commercial clearance claim"
+  },
+  "local_checks": {
+    "frontend_suite": {
+      "status": "PASS",
+      "files": 180,
+      "tests": 1831,
+      "command": "node node_modules/vitest/vitest.mjs run",
+      "cwd": "frontend",
+      "local_log": ".project-local/audits/cloud-sync-20261019/frontend-suite.log"
+    },
+    "typescript": {
+      "status": "PASS",
+      "command": "node frontend/node_modules/typescript/bin/tsc --noEmit -p frontend/tsconfig.json"
+    },
+    "capability_human_process": "PASS; AAOS-CAPABILITY-HUMAN-ADMISSION-20261019.json",
+    "preflight_first": "FAIL; exact logs retained locally; conventions/path baseline debt, route inventory drift and two missed UI-host generated outputs detected",
+    "architecture": "PASS after equivalent regex spelling correction; guard unchanged",
+    "ui_host_generation": "PASS after canonical generator regeneration",
+    "rust_workspace": "FAIL: document_draft_loop::versioned_human_review_refuses_machine_and_stale_versions_without_partial_writes; 9 pass/1 fail in that suite; prior stale health-description assertion fixed",
+    "full_ci": "NOT_EXECUTED_AT_PREPARATION; exact-SHA required a0-gates must succeed before merge",
+    "route_inventory": {
+      "status": "PASS",
+      "tests": 29
+    },
+    "frozen_latest_archive": {
+      "status": "PASS",
+      "members": 108,
+      "navigation_targets": 36
+    },
+    "staged_conventions": {
+      "status": "FAIL",
+      "issues": 646,
+      "note": "Includes exact-byte frozen archive formatting and existing baseline debt; no archive bytes changed to hide findings"
+    }
+  },
+  "not_applied_candidates": [
+    {
+      "name": "BE10 native UI harness candidate",
+      "patch_sha256": "a943213e5c9e2a6700f67f58cfa7a86a9bad08881264dcdf5b74438169c8d3a5",
+      "offline_tests": "43 new + 36 existing PASS",
+      "status": "NOT_APPLIED",
+      "native_ui": "NOT_EXECUTED"
+    },
+    {
+      "name": "MODEL_CALL_TIMEOUT diagnostic whitelist",
+      "patch_sha256": "113123a11abb80c3d8e3c50a9e624af296a2b3a601bf98e3013053154e778f9d",
+      "status": "NOT_APPLIED",
+      "resolves_provider_timeout": false
+    },
+    {
+      "name": "Executor capability guard",
+      "status": "NOT_CREATED/NOT_APPLIED",
+      "process_regression": "NOT_EXECUTED"
+    }
+  ],
+  "live_model_observation": {
+    "time": "2026-10-18T23:51:25.322Z",
+    "operation": "LM Studio readonly inspect",
+    "loaded": [],
+    "note": "Historical 27B inference is not evidence of a currently loaded model; no provider/profile/budget change"
+  },
+  "product_status": "PARTIAL; upload is not installation, release, complete product testing or Owner acceptance",
+  "preservation": "Existing frozen evidence and original 39 owner topics retain original bytes; ASTRYN source NOT_READY_TO_DELETE; Cowork completeness and private backup remain UNVERIFIED",
+  "merge": "BLOCKED_PENDING_REQUIRED_CI_AND_FAILURE_REPAIR; no force or protection bypass"
+}

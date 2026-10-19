@@ -1,0 +1,30 @@
+# PDF runtime/readiness 独立只读交叉审阅
+
+状态：PRELIMINARY / PARTIAL。当前审阅对象为18文件draft及实际mirror，最终manifest尚未封存；不能将本审阅当最终应用资格。未改产品/candidate、未启动canonical/服务/浏览器。
+
+应用判断：核心实现未见P0/P1阻断；发现P2 JSON Schema版本边界差异，已发root和writer要求封存前修正。具体可复验纯schema证据在schema-version-evidence.json：`1\n`及64合法字符+末换行（65字符）被原pattern的`$`接受，Rust字节谓词与Python实际观测拒绝；需保持双方一致的字符集和长度，补共同负例。Core仍fail-closed，此项不构成越权执行或凭据泄漏。
+
+核查结论：
+
+- hello新字段为可缺省optional，旧hello可decode；提供时严格runtime_dependency name=pymupdf、四状态有限词汇、AVAILABLE必带受限版本，失败状态version=null，额外字段、null整体、缺version拒绝。新Core的非PDF执行和旧worker hello兼容。旧PDF hello在新PDF准入按UNOBSERVED拒绝是有意fail-closed；不声称旧Core可消费新PDF扩展hello，反向混版受旧deny_unknown_fields限制，Core/worker须配套。
+- worker实际import已加载module并读取__version__/VersionBind，不再把包名pymupdf伪装成版本；缺包/无法import/无版本独立有限状态。hello不打开文档；只有显式执行才处理资料，失败细节不透传异常正文。
+- static readiness仅看已注册provider和路径，PDF依赖设UNKNOWN/PDF_ENGINE_NOT_OBSERVED，不spawn；现有前端入口仍可达。explicit require_execution_dependencies只允许PDF UNKNOWN转fresh provider_health，权限/实现/路径缺失照旧拒绝；任务执行再次在同进程hello后、请求正文发送前require dependency。
+- executor实际读取receipt并比较engine、engine_version与同进程hello版本、params.runtime_dependency整体相等，且attempts严格输出/hash/span/coverage检查保留；3输出kind唯一由decode_response保证。版本/观测不一致不能持久化成功输出。
+- format_qualification只拒绝历史PDF包名占位版本的资格证据，保留job state、execution_succeeded和output references；preview/extract降UNVERIFIED，原件export保留，未将旧成功或其他格式泛化为新PDF资格。不是模型/视觉/安装/Owner或全部68来源资格。
+- core-document唯一schema增量为dependencies UNKNOWN；generated core-contract标REGENERATE_AFTER_SCHEMA_MERGE，必须root合并BE10 command+PDF schema后统一生成、重绑来源链，不能继承独立镜像SHA。
+
+证据边界：读取现行实际调用点、变更diff、既有/新增测试源码与writer现有日志；这里只独立运行纯JSON Schema谓词检查，没有自行重跑服务/完整canonical。最终18文件hash、最终schema修复和回执绑定待writer封存后核。
+
+## 最终冻结复核（2026-10-19）
+
+结论：PASS（本切片独立只读审阅），无剩余应用阻断。原P2已修：schema增加maxLength=64且使用绝对结尾否定前瞻；纯schema独立11正负例全通过，末换行与64字符+末换行均拒绝。Python和Rust候选测试源码都有这两类共同负例；不把本次纯schema运行表述成重新执行Rust。
+
+冻结身份：CURRENT.json SHA256 `fb1886ae592179fae4fede7ec664ebfa76972d2028a86faf3e86c30904b424a4`；MANIFEST.json `3687d6096d9c6770aef594f9a8eaa0cc332470867d8885117ab4fa1e85b327a4`；主patch `20aeac16e6901af82483f50c124bd085af68f95ac93fb7ac9382f89c5678164b`。
+
+`final-readback.json`核对18/18 proposal与mirror字节SHA、长度、原preimages均一致；CURRENT三个引用hash一致，manifest verification_sha256确指FINAL-VERIFICATION.json并匹配（不是verification.json路径）。17项APPLY_EXACT_BYTES，一项core-contract为REGENERATE_AFTER_SCHEMA_MERGE。原公共树可能已由root应用/格式化，本复核不以其新SHA误判preimage漂移。
+
+writer FINAL-VERIFICATION声明六组protocol/application/api/python/frontend/typescript退出0且source_consistent=true，验证范围明确17个PDF源/测试路径+生成DTO advisory与BE10基线，非全仓canonical。已读其最终日志/命令及回执；本审阅独立运行仅字节hash与11项纯schema检查，不再启动canonical、服务或浏览器。中间失败如application原始log被覆盖只存工具摘录，verification已明确标注，不将其当完整原始日志。
+
+合并注意：core-contract必须由root在BE10 command和PDF readiness schema合并后统一再生、重绑来源SHA；独立镜像的生成物SHA不得继承为最终产品资格。68项来源资格、已安装原生、扫描PDF/OCR全语料、模型、发布/Green及Owner验收均未因此升级。hello兼容范围仍为新Core decode旧hello；旧PDF不能越过新依赖准入，旧Core兼容新扩展hello未验证。
+
+本审阅写入仅本ignored目录；未改产品或候选。范围已冻结，不继续扩展。

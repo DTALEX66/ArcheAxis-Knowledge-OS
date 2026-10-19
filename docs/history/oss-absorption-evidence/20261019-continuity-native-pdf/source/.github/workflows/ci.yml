@@ -1,0 +1,1622 @@
+name: CI
+
+on:
+  # Branch pushes are covered by PR runs; explicit candidates use dispatch.
+  workflow_dispatch:
+    inputs:
+      force_full:
+        description: Run every qualification gate for the selected SHA
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  # Main is latest-SHA-only: a superseded run can never qualify a Release and
+  # must not occupy the queue after its successor is pushed.
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gateplan:
+    runs-on: ubuntu-latest
+    outputs:
+      required_gates: ${{ steps.gateplan.outputs.required_gates }}
+      risk_classes: ${{ steps.gateplan.outputs.risk_classes }}
+      full_qualification: ${{ steps.gateplan.outputs.full_qualification }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - name: Generate deterministic GatePlan
+        id: gateplan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+          # A signed-in operator can use workflow_dispatch. The explicit
+          # commit marker is an auditable fallback when a constrained GitHub
+          # integration can push but cannot dispatch Actions workflows.
+          CI_FORCE_FULL: ${{ github.event_name == 'workflow_dispatch' && inputs.force_full }}
+        run: |
+          python -m pip install --quiet --user pyyaml
+          python - <<'PY'
+          import json, os, subprocess, sys
+          from scripts.ci.classify import resolve_diff_refs
+
+          base, head, refs_trusted = resolve_diff_refs(
+              os.environ.get("EVENT_NAME", ""),
+              push_before=os.environ.get("PUSH_BEFORE"),
+              push_after=os.environ.get("PUSH_AFTER"),
+              pull_base=os.environ.get("BASE_SHA"),
+              pull_head=os.environ.get("HEAD_SHA"),
+          )
+          force_full = (os.environ.get("CI_FORCE_FULL") or "").lower() in ("1", "true", "yes")
+          if not refs_trusted:
+              if not force_full:
+                  raise SystemExit("BLOCKED: event diff refs incomplete; select an explicit full candidate")
+          # Fail-closed: if we cannot compute a trustworthy diff we must run full
+          # qualification, never silently skip heavy gates.
+          try:
+              out = subprocess.run(
+                  ["git", "-c", "core.quotePath=false", "diff", "--name-only", "-z", base, head],
+                  capture_output=True,
+              )
+              if out.returncode != 0:
+                  raise subprocess.CalledProcessError(out.returncode, ["git", "diff"])
+              decoded = out.stdout.decode("utf-8", errors="surrogateescape")
+              paths = [p for p in decoded.split("\0") if p.strip()]
+              if not paths and base != head:
+                  # Two-point diff empty but commits differ -> uncertain; force full.
+                  print("Trusted diff is empty; no path-owned gates required")
+          except subprocess.CalledProcessError as exc:
+              if not force_full:
+                  raise SystemExit(f"BLOCKED: git diff failed ({exc})")
+              paths = []
+          sys.path.insert(0, ".")
+          from scripts.ci.classify import classify_paths
+          plan = classify_paths(paths, force_full=force_full)
+          plan["base_sha"] = base
+          plan["head_sha"] = head
+          plan["mode"] = "standalone"
+          os.makedirs(".project-local/task-runtime", exist_ok=True)
+          with open(".project-local/task-runtime/gateplan.json", "w", encoding="utf-8") as f:
+              json.dump(plan, f, indent=2)
+          # Emit required gates to downstream selective jobs.
+          required = ",".join(plan["required_gates"])
+          is_full = bool(plan.get("full_qualification"))
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"required_gates={required}\n")
+              out.write(f"risk_classes={','.join(plan['matched_classes'])}\n")
+              out.write(f"full_qualification={'true' if is_full else 'false'}\n")
+          print(json.dumps(plan, indent=2))
+          PY
+          test -f .project-local/task-runtime/gateplan.json && echo "GatePlan written"
+
+  test:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-primary') }}
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      # These exports, the scans below and their reports all live under the run root rather than the
+      # checkout: this job also runs the layout contract, which asserts the repository root holds
+      # nothing but tracked entries. Writing them here left `locked-ci*.txt` and the scan reports in
+      # the working tree, so the job failed its own layout check.
+      - name: Install locked minimal test dependencies
+        run: |
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci.txt"
+          uv pip install --system --require-hashes -r "$artifacts/locked-ci.txt"
+
+      - name: Install locked adapter test dependencies
+        run: |
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file "$artifacts/locked-ci-adapters.txt"
+          uv pip install --system --require-hashes -r "$artifacts/locked-ci-adapters.txt"
+
+      # Absorbed from the OSS pool (ADOPT verdict, supplies-chain security group), pinned and
+      # hash-verified, and now enforcing. run 37471031307 reported 5 findings (urllib3 2.7.0,
+      # soupsieve 2.8.4); both were raised to the versions pip-audit names as the fix rather than
+      # waved through with --ignore-vuln, and the same pinned tool against the same CI export now
+      # reports "No known vulnerabilities found" (exit 0) while still reporting the 5 against the
+      # old export - the instrument was falsified before it was trusted. `set -o pipefail` is
+      # required: the runner's default shell is `bash -e` without pipefail, so `pip-audit | tee`
+      # would report tee's status (always 0) and this step could never fail on a real finding.
+      - name: Dependency vulnerability scan (pip-audit 2.10.1, pinned)
+        run: |
+          set -o pipefail
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          uv tool run --from pip-audit==2.10.1 pip-audit --strict --requirement "$artifacts/locked-ci.txt" --format columns | tee "$artifacts/pip-audit-report.txt"
+
+
+      # gitleaks is now enforcing. `detect` reads the whole history (2480 commits at the time of the
+      # flip); a run is clean under .gitleaks.toml, whose allowlist names the fake test-fixture values,
+      # one Avalonia theme token and one docs-only historical commit - never a source tree - so a real
+      # credential fails this step. The asset is pinned and verified before it runs, so a flaky download
+      # network is the only way this step can fail for a reason other than a real finding.
+      - name: Secret scan (gitleaks 8.30.1, pinned and asset-hash verified)
+        id: secret_scan
+        run: |
+          version=8.30.1
+          expected=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          artifacts="$ARCHEAXIS_RUN_ROOT/artifacts"
+          mkdir -p "$artifacts"
+          curl -sSLo "$artifacts/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz"
+          echo "${expected}  $artifacts/gitleaks.tgz" | sha256sum --check --status || { echo "gitleaks asset hash mismatch"; exit 1; }
+          tar -xzf "$artifacts/gitleaks.tgz" -C "$artifacts" gitleaks
+          # Scanned from the checkout (that is the point) but the report is not written into it.
+          "$artifacts/gitleaks" detect --config .gitleaks.toml --redact --no-banner --report-format json --report-path "$artifacts/gitleaks-report.json" --exit-code 1
+
+      - name: Retain only redacted secret finding locations
+        if: ${{ failure() && steps.secret_scan.outcome == 'failure' }}
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ['ARCHEAXIS_RUN_ROOT']) / 'artifacts'
+          report = root / 'gitleaks-report.json'
+          if report.is_file():
+              fields = ('File', 'StartLine', 'EndLine', 'RuleID', 'Fingerprint', 'Commit')
+              locations = [{key: item.get(key) for key in fields} for item in json.loads(report.read_text())]
+              (root / 'gitleaks-locations.json').write_text(json.dumps(locations, indent=2) + '\n')
+          PY
+      - name: Upload secret finding locations without secret or match text
+        if: ${{ failure() && steps.secret_scan.outcome == 'failure' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: gitleaks-locations-${{ github.sha }}
+          path: ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/gitleaks-locations.json
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Install and verify local OCR engine
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg tesseract-ocr tesseract-ocr-eng fonts-dejavu-core fonts-noto-cjk
+          tesseract --list-langs | grep --fixed-strings --line-regexp eng
+          python - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          paths = subprocess.check_output(["dpkg", "-L", "tesseract-ocr-eng"], text=True).splitlines()
+          trained = [Path(path) for path in paths if path.endswith("/eng.traineddata") and Path(path).is_file()]
+          assert len(trained) == 1, "installed English OCR data must resolve uniquely"
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf8") as output:
+              output.write(f"TESSDATA_PREFIX={trained[0].parent}\n")
+          PY
+
+      - name: Run OS-level tests
+        run: python -m pytest tests/ -q --tb=short
+
+      - name: Run KB tests
+        working-directory: knowledge_base
+        run: python -m pytest tests/ -q --tb=short
+
+      - name: Run integration tests
+        run: |
+          set +e
+          python -m pytest integration-tests/ -q --tb=short \
+            --junitxml=.project-local/task-runtime/integration-tests.junit.xml
+          test_status=$?
+          python scripts/ci/emit_pytest_annotations.py \
+            .project-local/task-runtime/integration-tests.junit.xml
+          exit "$test_status"
+
+  format-targeted:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'format-targeted') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with: { persist-credentials: false }
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: { python-version: "3.12" }
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with: { enable-cache: true, cache-dependency-glob: uv.lock }
+      - name: Run format adapter targets
+        run: uv run --frozen --group ci --group ci-adapters pytest tests/test_ingestion.py -q --tb=short
+
+  migration-targeted:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'migration-targeted') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with: { persist-credentials: false }
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: { python-version: "3.12" }
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with: { enable-cache: true, cache-dependency-glob: uv.lock }
+      - name: Run migration targets
+        run: uv run --frozen --group ci pytest tests/test_migration_runner.py -q --tb=short
+
+  security-targeted:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'security-targeted') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with: { persist-credentials: false }
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: { python-version: "3.12" }
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with: { enable-cache: true, cache-dependency-glob: uv.lock }
+      - name: Run security path targets
+        run: uv run --frozen --group ci pytest tests/test_approved_paths.py -q --tb=short
+
+  py-compat:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'py-compat') }}
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked compatibility dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Compile and import compatibility surface
+        run: |
+          python -m compileall -q app shared knowledge_base scripts
+          python -m pytest tests/test_imported_modules.py -q --tb=short
+
+  lint:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: gateplan
+    if: ${{ needs.gateplan.result == 'success' }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+          # Directory authority validates its recorded historical commit.
+          fetch-depth: 0
+
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install locked minimal lint dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+
+      - name: Validate repository naming and encoding conventions
+        run: python scripts/check_repository_conventions.py --source head
+
+      - name: Validate architecture boundaries
+        run: python scripts/check_architecture.py
+
+      - name: Validate the language boundary contract
+        run: python scripts/check_language_boundaries.py
+
+      - name: Validate the format status matrix against the real route tables
+        run: >-
+          python scripts/check_format_matrix.py
+          --matrix docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json
+
+      - name: Validate the tracked tree against the directory authority
+        run: python scripts/check_path_conventions.py
+
+      - name: Run ruff
+        run: python -m ruff check app shared knowledge_base inspiration_research Inspiration-Research shared-contracts/adapters app/workflow integration-tests scripts --select E9,F63,F7,F82
+      - name: Reject document authority drift
+        run: python -B scripts/ci/check_document_authority.py
+      - name: Fail before compilation on route inventory or generated contract drift
+        run: python -B scripts/ci/local_verify.py --profile quick --preflight
+      - name: Upload preflight evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: contract-preflight-${{ github.sha }}
+          path: .project-local/runs/**/artifacts/local-ci.json
+          if-no-files-found: warn
+
+  wheel-smoke:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'wheel-smoke') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+      - name: Build wheel from locked backend
+        run: |
+          uv export --frozen --only-group build --no-emit-project --format requirements-txt --output-file locked-build.txt
+          python -m pip install --require-hashes -r locked-build.txt
+          uv build --python "$(command -v python)" --wheel --no-build-isolation --out-dir .project-local/task-runtime/wheel-smoke/dist
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+
+          wheel = next(Path(".project-local/task-runtime/wheel-smoke/dist").glob("*.whl"))
+          with zipfile.ZipFile(wheel) as archive:
+              names = set(archive.namelist())
+          required = {
+              "app/release-manifest.json",
+              "app/runtime_entrypoint.py",
+              "app/research/github.py",
+              "app/workspace/job_outbox.py",
+              "shared/research_store.py",
+              "shared/research_migration.py",
+              "shared/media_extractor.py",
+              "shared/migration_runner.py",
+              "shared/runtime_guard.py",
+              "shared/workspace_migration.py",
+              "shared/core_schema.py",
+              "inspiration_research/api.py",
+          }
+          def forbidden_member(name: str) -> bool:
+              path = Path(name)
+              return (
+                  "tests" in path.parts
+                  or any(part == "cache" or part.endswith("_cache") for part in path.parts)
+                  or "__pycache__" in path.parts
+                  or path.suffix.lower() in {".pyc", ".pyo", ".sqlite", ".sqlite3", ".db"}
+                  or path.name == ".env"
+                  or path.name.startswith(".env.")
+              )
+
+          synthetic_cache_members = {
+              "app/.pytest_cache/v/cache/nodeids",
+              "shared/.mypy_cache/3.11/cache.json",
+              "app/cache/payload.bin",
+          }
+          assert all(forbidden_member(name) for name in synthetic_cache_members)
+          missing = sorted(required - names)
+          forbidden = sorted(name for name in names if forbidden_member(name))
+          assert not missing, f"wheel missing Phase 4 modules: {missing}"
+          assert not forbidden, f"wheel contains forbidden runtime artifacts: {forbidden}"
+          PY
+      - name: Install wheel with locked runtime dependencies
+        env:
+          # The same GITHUB_ENV leak described on the smoke step below also broke
+          # this step, and this is the root cause of the wheel-smoke failure. The
+          # build step runs setuptools `egg_info` inside the checkout, which writes
+          # `archeaxis_workspace.egg-info/PKG-INFO` into the repository root. With
+          # `PYTHONPATH=<checkout root>` inherited from GITHUB_ENV, that directory
+          # is on sys.path, so pip's environment scan reports archeaxis-workspace
+          # as already installed and prints:
+          #
+          #   ...archeaxis_workspace-0.6.14-py3-none-any.whl
+          #   is already installed with the same version as the provided wheel.
+          #   Use --force-reinstall to force an installation of the wheel.
+          #
+          # and skips the wheel entirely. The wheel was therefore never installed,
+          # the smoke step resolved `app` from the checkout, and the version
+          # assertion compared the checkout's egg-info against the checkout's own
+          # manifest. Clearing the inherited path stops pip from seeing the
+          # checkout's metadata; --force-reinstall makes the install unconditional
+          # so a stale or shadowing distribution can never silently win again.
+          PYTHONPATH: ""
+        run: |
+          uv export --frozen --no-dev --no-emit-project --format requirements-txt --output-file locked-runtime.txt
+          python -m pip install --require-hashes -r locked-runtime.txt
+          python -m pip install --no-deps --force-reinstall .project-local/task-runtime/wheel-smoke/dist/*.whl
+          python -m pip check
+          python -m pip uninstall --yes setuptools wheel jaraco.context
+          python -m pip uninstall --yes pip
+          python -c "import importlib.util; assert all(importlib.util.find_spec(name) is None for name in ('pip', 'setuptools', 'wheel', 'jaraco'))"
+      - name: Smoke-test installed runtime outside repository
+        working-directory: ${{ runner.temp }}
+        env:
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-runtime
+          # `python -B scripts/runtime/dev.py --github-env` publishes
+          # PYTHONPATH=<checkout root> through GITHUB_ENV, and GITHUB_ENV
+          # variables persist into every later step of the same job. That
+          # silently points this step - which exists precisely to exercise the
+          # *installed* wheel from outside the repository - back at the
+          # checkout: `import app` and `load_release_manifest()` resolve to
+          # repository sources, and `importlib.metadata` sees the checkout's
+          # `archeaxis_workspace.egg-info` alongside the wheel's dist-info.
+          # Clear the inherited path so the wheel is what is actually tested.
+          PYTHONPATH: ""
+        run: |
+          python -m app.runtime_entrypoint migrate
+          python - <<'PY'
+          import os
+          import sys
+          from importlib.metadata import distributions
+          from importlib.metadata import version as installed_version
+          from pathlib import Path
+
+          import knowledge_base.cards.generator
+          import knowledge_base.machine_knowledge.a_to_b
+          import knowledge_base.search
+          from app.main import app
+          from app.release import load_release_manifest
+          from fastapi.testclient import TestClient
+          from knowledge_base.api import app as kb_app
+          from shared.sleep_loop_engine import LOG_DIR
+
+          def wheel_distributions():
+              return sorted(
+                  (record.metadata["Name"], record.version, str(record._path))
+                  for record in distributions()
+                  if record.metadata["Name"]
+                  and record.metadata["Name"].lower().replace("_", "-") == "archeaxis-workspace"
+              )
+
+          # This step must exercise the installed wheel, never repository sources.
+          # Comparing sys.path entries against the checkout root is what actually
+          # detects source shadowing; matching a bare basename against the string
+          # "knowledge_base" cannot, because a checkout root is named after the
+          # repository.
+          checkout = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          leaked = [entry for entry in sys.path if entry and Path(entry).resolve() == checkout]
+          assert not leaked, f"imports resolved from the checkout, not the installed wheel: {leaked}"
+          records = wheel_distributions()
+          assert len(records) == 1, f"expected exactly one archeaxis-workspace distribution: {records}"
+          assert not any(Path(path).name.lower() == "knowledge_base" for path in sys.path if path)
+          installed = installed_version("archeaxis-workspace")
+          manifest_version = load_release_manifest()["product"]["version"]
+          # Record the pair unconditionally. The historical failure of this gate
+          # asserted without a message, so its log held a bare AssertionError and
+          # neither value could ever be recovered from it.
+          print(f"installed distribution version : {installed!r}")
+          print(f"bundled manifest product.version: {manifest_version!r}")
+          print(f"resolved archeaxis-workspace distributions: {records}")
+          assert installed == manifest_version, (
+              f"installed distribution version {installed!r} != bundled release manifest "
+              f"product.version {manifest_version!r}; distributions={records}"
+          )
+          with TestClient(kb_app) as kb:
+              assert kb.get("/health").status_code == 200
+              assert kb.get("/reviews/due").status_code == 200
+              assert kb.get("/mistakes").status_code == 200
+              assert kb.get("/a-to-b/candidates").status_code == 200
+              assert kb.get("/machine-knowledge").status_code == 200
+          with TestClient(app) as client:
+              assert client.get("/health").status_code == 200
+              assert client.get("/kb").status_code == 410
+              assert client.get("/workspace").status_code == 410
+              assert client.get("/workspace/api/status").status_code == 200
+          runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"])
+          assert (runtime / "archeaxis.sqlite").exists()
+          assert LOG_DIR == runtime / "logs" / "sleep-loop"
+          PY
+          python - <<'PY'
+          import os
+          import sqlite3
+          from pathlib import Path
+
+          runtime = Path(os.environ["ARCHEAXIS_DATA_DIR"])
+          database = runtime / "archeaxis.sqlite"
+          connection = sqlite3.connect(database)
+          checkpoint = connection.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+          assert checkpoint[0] == 0, checkpoint
+          mode = connection.execute("PRAGMA journal_mode=DELETE").fetchone()[0]
+          assert mode.casefold() == "delete", mode
+          connection.close()
+          sidecars = [database.with_name(database.name + suffix) for suffix in ("-wal", "-shm")]
+          assert not [path for path in sidecars if path.exists()], sidecars
+          PY
+          ARCHEAXIS_DATA_DIR="${RUNNER_TEMP}/inspiration-runtime" python - <<'PY'
+          import app.research.github
+          import shared.research_migration
+          import shared.research_store
+          from app.facades import (
+              get_research_package,
+              ingest_candidate,
+              query_knowledge,
+              research_github_repository,
+          )
+          from fastapi.testclient import TestClient
+          from inspiration_research.api import app as ir_app
+          from inspiration_research.contracts.generator import generate_contract
+          from inspiration_research.intake.generator import generate_intake_card
+
+          assert generate_intake_card("t", "w", ["x"]).intake_id.startswith("intake_")
+          assert generate_contract("g", ["d"]).contract_id.startswith("contract_")
+          routes = {route.path for route in ir_app.routes}
+          assert {"/research/github-repository", "/research/packages/{package_id}"} <= routes
+          with TestClient(ir_app) as client:
+              assert client.get("/health").status_code == 200
+          assert all(
+              callable(item)
+              for item in (
+                  get_research_package,
+                  ingest_candidate,
+                  query_knowledge,
+                  research_github_repository,
+              )
+          )
+          PY
+          python - <<'PY'
+          import os
+          import stat
+          import tempfile
+          from pathlib import Path
+
+          import PIL
+          import pytesseract
+          from PIL import Image
+          from shared.approved_paths import ApprovedRoots
+          from shared.media_extractor import extract_image_text
+
+          site_packages = "site-packages"
+          assert site_packages in str(Path(PIL.__file__).resolve())
+          assert site_packages in str(Path(pytesseract.__file__).resolve())
+          root = Path(tempfile.mkdtemp())
+          fake = root / "tesseract"
+          fake.write_text("#!/bin/sh\nprintf \"tesseract 5.0.0\\n\"\n", encoding="utf-8")
+          fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
+          os.environ["PATH"] = str(root) + os.pathsep + os.environ["PATH"]
+          image = root / "evidence.png"
+          Image.new("RGB", (8, 8), "white").save(image)
+          pytesseract.image_to_string = lambda *_args, **_kwargs: "installed wheel OCR"
+          result = extract_image_text(
+              str(image), approved_roots=ApprovedRoots(source_roots=[root], output_roots=[root])
+          )
+          assert result["text"] == "installed wheel OCR"
+          PY
+          python - <<'PY'
+          import os
+          import sqlite3
+          from pathlib import Path
+
+          import app.workspace.job_outbox as job_outbox
+          import shared.runtime_guard
+          import shared.workspace_migration
+          from app.main import app as application
+          from fastapi.testclient import TestClient
+
+          for module in (
+              job_outbox,
+              shared.runtime_guard,
+              shared.workspace_migration,
+          ):
+              assert "site-packages" in str(Path(module.__file__).resolve())
+          with TestClient(application) as client:
+              created = client.post(
+                  "/workspace/api/intake/upload",
+                  files={"file": ("wheel.txt", b"installed wheel job readback", "text/plain")},
+              )
+              assert created.status_code == 200, created.text
+              payload = created.json()
+              assert not {"package_id", "job_id", "command_id", "event_id"} & payload.keys()
+              database = Path(os.environ["ARCHEAXIS_DATA_DIR"]) / "archeaxis.sqlite"
+              with sqlite3.connect(database) as connection:
+                  rows = connection.execute(
+                      "SELECT job_id, aggregate_id FROM workspace_jobs_v1"
+                  ).fetchall()
+              assert len(rows) == 1, rows
+              job_id, package_id = rows[0]
+              loaded = client.get(f"/workspace/api/jobs/{job_id}")
+              assert loaded.status_code == 200, loaded.text
+              assert loaded.json()["package_id"] == package_id
+              assert loaded.json()["state"] == "succeeded"
+          PY
+          python -c "from app.contracts.v1 import TaskPackV1, TaskStepV1; from app.adapters.taskpack import from_knowledge_taskpack, project_to_runtime, to_knowledge_taskpack; from app.facades import contracts; from knowledge_base.taskpack import TaskPack; legacy=TaskPack(task_id='task_wheel', goal='wheel contract', steps=[{'step_id':'s1','action':'read','tool':'file_read'}], allowed_tools=['file_read','echo'], blocked_tools=['shell_exec']); canonical=from_knowledge_taskpack(legacy); projection=project_to_runtime(canonical); assert canonical.schema_version == '1.0.0'; assert isinstance(canonical.steps[0], TaskStepV1); assert canonical.requested_tools == ['file_read']; assert projection.task.tools == ['file_read']; assert to_knowledge_taskpack(canonical).to_dict() == legacy.to_dict(); assert TaskPackV1.model_json_schema()['\$id'].endswith('/contracts/v1/taskpack.schema.json'); assert contracts.TaskPackV1 is TaskPackV1"
+          archeaxis health
+          archeaxis stats
+
+  browser-smoke:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'browser-smoke') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked browser test dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+          uv export --frozen --only-group browser --no-emit-project --format requirements-txt --output-file locked-browser.txt
+          uv pip install --system --require-hashes -r locked-browser.txt
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Install locked legacy React/Tauri recovery tooling
+        run: npm ci --prefix frontend --ignore-scripts
+      - name: Run legacy React/Tauri recovery-browser regressions
+        env:
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}/cognitive-browser-runtime
+        run: python scripts/a0_browser_smoke.py
+      - name: Upload project browser regression evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: browser-regression-${{ github.sha }}
+          path: ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/browser-smoke/**
+          if-no-files-found: warn
+          retention-days: 7
+
+  windows-runtime-smoke:
+    timeout-minutes: 15
+    runs-on: windows-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'windows-runtime') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked minimal runtime smoke dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Migrate fresh Windows runtime
+        env:
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
+        run: python -m app.runtime_entrypoint migrate
+      - name: Run Windows Core and Workspace HTTP smoke
+        env:
+          ARCHEAXIS_DATA_DIR: ${{ runner.temp }}\cognitive-windows-runtime
+        run: python scripts/runtime_http_smoke.py
+
+  rust-vnext:
+    timeout-minutes: 60
+    runs-on: windows-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'rust-vnext') }}
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - name: Install Rust (stable, from rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked scheduler runtime
+        shell: bash
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
+          # Bind worker tests to the interpreter that received the locked adapters,
+          # after setup-python rather than the runner's initial Python.
+          python -B scripts/runtime/dev.py --github-env
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "."
+      # The only `cargo fmt` in this repository lived in the desktop-fast job, whose
+      # working directory is `src-tauri` - a workspace `Cargo.toml` explicitly excludes.
+      # Nothing checked formatting for the root vNext workspace, so all eight `crates/`
+      # members could drift arbitrarily (they had: 83 files differed). GatePlan already
+      # requires rust-vnext for any `crates/**` change, so running the check here fixes
+      # coverage without touching the classifier, and without weakening any assertion.
+      - name: cargo fmt (root vNext workspace)
+        id: rustfmt
+        shell: bash
+        run: cargo fmt --all -- --check
+      - name: Capture rustfmt repair as a failed-candidate patch
+        if: ${{ failure() && steps.rustfmt.outcome == 'failure' }}
+        shell: bash
+        run: |
+          cargo fmt --all
+          mkdir -p "$ARCHEAXIS_RUN_ROOT/artifacts"
+          git diff --binary -- crates > "$ARCHEAXIS_RUN_ROOT/artifacts/rustfmt.patch"
+      - name: Upload exact-SHA formatting repair
+        if: ${{ failure() && steps.rustfmt.outcome == 'failure' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: rustfmt-repair-${{ github.sha }}
+          path: ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/rustfmt.patch
+          if-no-files-found: error
+          retention-days: 7
+      - name: Prepare pinned project-local OCR for Rust worker tests
+        shell: pwsh
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction Stop).Source
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/rust-worker-ocr --sevenzip $sevenzip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: cargo test (vNext workspace)
+        shell: bash
+        run: cargo test --workspace -- --test-threads=2
+      - name: Verify current-run journey receipt
+        run: python -B scripts/ci/check_vnext_receipt.py
+
+  desktop-vnext:
+    timeout-minutes: 30
+    runs-on: windows-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - name: Install Rust (stable, from rust-toolchain.toml)
+        uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "."
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: dotnet build ArcheAxis.Desktop
+        shell: bash
+        run: dotnet build apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj -v minimal
+      - name: Parse shared vocabulary wire cases with the C# production binding
+        run: dotnet run --project tests/contract/Vocabulary.Tests -- tests/contract/fixtures/vocabulary-cases.json
+      - name: cargo build core server (for supervisor smoke)
+        shell: bash
+        run: cargo build -p archeaxis-api
+      - name: Supervisor isolation and bounded startup regressions
+        env:
+          ARCHAXIS_CORE_BIN: ${{ env.CARGO_TARGET_DIR }}/debug/archeaxis-api.exe
+        run: dotnet run --project tests/runtime-paths/CoreSupervisor.Tests
+      - name: Supervisor smoke (Avalonia spawns Rust core, handshake, cleanup)
+        shell: bash
+        env:
+          ARCHAXIS_CORE_BIN: ${{ env.CARGO_TARGET_DIR }}/debug/archeaxis-api.exe
+        run: |
+          mkdir -p .project-local/task-runtime/desktop-vnext
+          dotnet run --project apps/ArcheAxis.Desktop -- --smoke \
+            "$GITHUB_WORKSPACE/.project-local/task-runtime/desktop-vnext/smoke.sqlite" \
+            && echo "supervisor smoke OK"
+
+  green-candidate-vnext:
+    timeout-minutes: 35
+    runs-on: windows-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish self-contained Avalonia desktop
+        shell: pwsh
+        run: |
+          dotnet restore apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --runtime win-x64 --ignore-failed-sources
+          dotnet publish apps/ArcheAxis.Desktop/ArcheAxis.Desktop.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output .project-local/build/dotnet/green-desktop
+      - name: Build Rust Core
+        shell: bash
+        run: cargo build -p archeaxis-api
+      - name: Stage locked Python runtime
+        shell: pwsh
+        run: |
+          uv sync --frozen
+          python -B -m desktop.scripts.prepare_bundle --repository . --destination .project-local/rt
+      - name: Assemble and verify Green candidate
+        shell: pwsh
+        run: |
+          $python = (Get-Command python).Source
+          $cargoTarget = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { 'target' }
+          $core = Join-Path $cargoTarget 'debug/archeaxis-api.exe'
+          $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
+          if (-not (Test-Path -LiteralPath $core -PathType Leaf)) { throw "Rust Core binary is missing: $core" }
+          & $python -B scripts/release/assemble_green_candidate.py `
+            --desktop .project-local/build/dotnet/green-desktop `
+            --core $core `
+            --out .project-local/build/green-candidates `
+            --runtime .project-local/rt/runtime/python `
+            --workers services/python-workers `
+            --source-commit $env:GITHUB_SHA `
+            --source-tree $tree `
+            --version ci
+          if ($LASTEXITCODE -ne 0) { throw "Green candidate assembly failed" }
+          & $python -B scripts/release/verify_green_candidate.py `
+            .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64 --require-runtime --require-workers `
+            --expected-commit $env:GITHUB_SHA --expected-tree $tree
+          if ($LASTEXITCODE -ne 0) { throw "Green candidate verification failed" }
+      - name: Upload self-contained Green candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: green-candidate-vnext
+          path: .project-local/build/green-candidates/ArcheAxis.Knowledge.Green-vci-x64.zip
+          if-no-files-found: error
+
+  contracts-vnext:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'contracts-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked contract check dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Run vNext contract structural gate
+        run: python scripts/ci/check_vnext_contracts.py
+      - name: Reject generated vocabulary drift
+        run: python -B scripts/contracts/generate_vocabulary.py --check
+      - name: Reject media window policy drift
+        run: python -B scripts/contracts/check_media_window_policy.py --check
+      - name: Run real Python contract and vocabulary regressions
+        run: python -B scripts/runtime/dev.py --pytest tests/contract --noconftest -q
+
+  workers-vnext:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'workers-vnext') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - name: Run vNext worker smoke (envelope + failure contract)
+        run: python scripts/ci/check_vnext_workers.py
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked worker regression dependencies
+        run: |
+          uv export --frozen --only-group ci --no-emit-project --format requirements-txt --output-file locked-ci.txt
+          uv pip install --system --require-hashes -r locked-ci.txt
+      - name: Install locked adapter dependencies for worker regressions
+        run: |
+          uv export --frozen --only-group ci-adapters --no-emit-project --format requirements-txt --output-file locked-ci-adapters.txt
+          uv pip install --system --require-hashes -r locked-ci-adapters.txt
+      - name: Run byte-faithful worker regressions and actual report schema
+        run: python -B -m unittest discover -s tests/workers -p "test_*.py"
+
+  desktop-fast:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-fast') }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/runtime/dev.py --github-env
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Build the run-scoped canonical frontend for shell tests
+        run: |
+          npm ci --prefix frontend --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $node = (Get-Command node -ErrorAction Stop).Source
+          $env:ARCHEAXIS_FRONTEND_BUILD_CONTEXT = $env:ARCHEAXIS_RUN_ROOT
+          python -B scripts/runtime/frontend.py --node $node build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Resolve effective Cargo cache inputs
+        id: cargo_cache
+        run: python -B -m scripts.runtime.cargo_cache --profile fast --github-output
+      - name: Cache actual Cargo dependencies and audit binary
+        id: cargo_dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ env.CARGO_HOME }}/registry
+            ${{ env.CARGO_HOME }}/git
+            ${{ env.CARGO_HOME }}/bin/cargo-audit.exe
+          key: ${{ steps.cargo_cache.outputs.dependency_key }}
+      - name: Restore separate Core and Tauri build outputs
+        id: cargo_outputs
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ env.ARCHEAXIS_CARGO_CORE_TARGET_DIR }}
+            ${{ env.ARCHEAXIS_CARGO_TAURI_TARGET_DIR }}
+          key: ${{ steps.cargo_cache.outputs.build_key }}
+          restore-keys: |
+            ${{ steps.cargo_cache.outputs.build_prefix }}
+      - name: Record Cargo restore paths and timing
+        env:
+          CARGO_DEPENDENCY_CACHE_HIT: ${{ steps.cargo_dependencies.outputs.cache-hit }}
+          CARGO_BUILD_CACHE_HIT: ${{ steps.cargo_outputs.outputs.cache-hit }}
+        run: python -B -m scripts.runtime.cargo_cache --profile fast --record-restore
+      - name: Install locked Python runtime
+        run: uv sync --frozen
+      - name: Prepare the installed Python runtime
+        id: desktop_runtime
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/runtime/dev.py -- cargo build -p archeaxis-api --bin archeaxis-api --release --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # 原生只读预览测试仅启动本job刚构建的Core；后续Tauri target切换不改变此绝对路径。
+          $previewCore = Join-Path $env:CARGO_TARGET_DIR 'release/archeaxis-api.exe'
+          if (-not (Test-Path -LiteralPath $previewCore -PathType Leaf)) { throw 'Owned preview Core build output missing' }
+          $previewCore = (Resolve-Path -LiteralPath $previewCore).Path
+          "BE10_PREVIEW_CORE=$previewCore" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test the canonical Windows desktop shell
+        id: desktop_shell
+        working-directory: src-tauri
+        run: |
+          $env:CARGO_TARGET_DIR = $env:ARCHEAXIS_CARGO_TAURI_TARGET_DIR
+          $env:TAURI_CONFIG = Get-Content -LiteralPath $env:ARCHEAXIS_TAURI_CONFIG -Raw
+          cargo fmt --all -- --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cargo test
+      - name: Capture formal host formatting repair without qualifying modified source
+        if: ${{ failure() && steps.desktop_shell.outcome == 'failure' }}
+        working-directory: src-tauri
+        run: |
+          cargo fmt --all
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -c "import os,subprocess; from pathlib import Path; p=Path(os.environ['ARCHEAXIS_RUN_ROOT'])/'artifacts'/'tauri-rustfmt.patch'; p.parent.mkdir(parents=True,exist_ok=True); p.write_bytes(subprocess.check_output(['git','-C',os.environ['GITHUB_WORKSPACE'],'diff','--binary','--','src-tauri','desktop/src-tauri/src/backend.rs']))"
+      - name: Upload formal host formatting repair
+        if: ${{ failure() && steps.desktop_shell.outcome == 'failure' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: tauri-rustfmt-repair-${{ github.sha }}
+          path: ${{ env.ARCHEAXIS_RUN_ROOT }}/artifacts/tauri-rustfmt.patch
+          if-no-files-found: error
+          retention-days: 7
+      - name: Assert the staged runtime carries the format engines
+        id: desktop_engines
+        working-directory: ${{ github.workspace }}
+        run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
+      - name: Verify real XLSX and PPTX persistence
+        id: office_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_office_runtime_loop.py --candidate .project-local/rt
+      - name: Upload Office loop receipt
+        if: ${{ always() && steps.office_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-office-loop-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/task-runtime/aaos01-office/**/receipt.json
+          if-no-files-found: error
+      - name: Verify native document and independent backup restore
+        id: document_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_document_backup_loop.py --candidate .project-local/rt
+      - name: Verify ordinary saving and independent content checks
+        id: content_policy_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_content_policy_runtime_loop.py --candidate .project-local/rt
+      - name: Verify common-format content, locations and independent reparse
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_common_formats_runtime_loop.py --candidate .project-local/rt
+      - name: Verify actual Core working-state journal, restart and explicit recovery
+        id: working_state_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_working_state_runtime_loop.py --candidate .project-local/rt
+      - name: Upload Core working-state qualification receipt
+        if: ${{ always() && steps.working_state_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-working-state-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/runs/**/artifacts/working-state.json
+          if-no-files-found: error
+      - name: Prepare pinned project-local OCR for common content qualification
+        id: common_ocr_tools
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+          if (-not $sevenzip) { $sevenzip = 'C:/Program Files/7-Zip/7z.exe' }
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/common-light-ocr-tools --sevenzip $sevenzip --require-chinese
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual common light content, OCR, locations and reparse
+        id: common_light_ocr_loop
+        working-directory: ${{ github.workspace }}
+        run: python -B scripts/probes/aaos01_common_light_ocr_runtime_loop.py --candidate .project-local/rt
+      - name: Verify actual Chinese PNG JPEG and scanned PDF content with source locations
+        id: common_chinese_ocr_loop
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/probes/aaos01_common_chinese_ocr_runtime_loop.py --candidate .project-local/rt --tesseract $env:TESSERACT_CMD --tessdata $env:ARCHEAXIS_OCR_TESSDATA
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload common light and OCR qualification evidence
+        if: ${{ always() && steps.common_ocr_tools.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-light-ocr-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/runs/**/artifacts/common-light-ocr.json
+            .project-local/runs/**/artifacts/common-chinese-ocr.json
+            .project-local/task-runtime/common-light-ocr-tools/ocr-receipt.json
+          if-no-files-found: error
+      - name: Prepare exact public assets for the existing ASR model
+        id: common_asr_assets
+        # Independent OCR/Office failures stay fatal but do not hide speech evidence.
+        # Host failure can generate a formatting patch; never qualify that changed tree.
+        if: ${{ !cancelled() && steps.desktop_runtime.outcome == 'success' && steps.desktop_shell.outcome == 'success' && steps.desktop_engines.outcome == 'success' }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          $prerequisiteReceipt = '.project-local/task-runtime/common-asr-prerequisites.json'
+          @{ok=$false; qualification='NOT_EXECUTED'; stage='CI_TOOL_PREPARATION'; scope='CI-only; no runtime fallback or global PATH change'} | ConvertTo-Json | Out-File -FilePath $prerequisiteReceipt -Encoding utf8
+          python -B scripts/ci/prepare_windows_ffmpeg.py --root .project-local/task-runtime/ci-ffmpeg
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $toolReceipt = Get-Content -LiteralPath '.project-local/task-runtime/ci-ffmpeg/receipt.json' -Raw | ConvertFrom-Json
+          if (-not $toolReceipt.ok -or $toolReceipt.qualification -ne 'CI_TOOL_VERSION_ENCODERS_VERIFIED_NOT_MEDIA_ASR_CORE') { throw 'Pinned CI ffmpeg preparation not qualified' }
+          $ffmpeg = $toolReceipt.ffmpeg
+          $env:FFMPEG_CMD = $ffmpeg
+          "FFMPEG_CMD=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $ffmpegVersion = & $ffmpeg -version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $ffmpegIdentity = @{path=$ffmpeg; sha256=(Get-FileHash -LiteralPath $ffmpeg -Algorithm SHA256).Hash.ToLower(); bytes=(Get-Item -LiteralPath $ffmpeg).Length; version=$ffmpegVersion[0]; selection='Explicit pinned project-local CI tool; binaries excluded from distribution'; license=$toolReceipt.license; tool_pin_sha256=$toolReceipt.pin_sha256}
+          $ffmpegIdentity | ConvertTo-Json | Out-File -FilePath .project-local/task-runtime/common-asr-ffmpeg.json -Encoding utf8
+          @{ok=$true; qualification='CI_TOOL_PREPARED_ASR_CORE_NOT_EXECUTED'; stage='PUBLIC_ASR_ASSET_PREPARATION'; tool_receipt='.project-local/task-runtime/ci-ffmpeg/receipt.json'} | ConvertTo-Json | Out-File -FilePath $prerequisiteReceipt -Encoding utf8
+          python -B scripts/ci/prepare_common_asr.py --root .project-local/task-runtime/common-asr-assets
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Path .project-local/task-runtime/common-asr-derived -ErrorAction Stop | Out-Null
+          & $ffmpeg -nostdin -hide_banner -loglevel error -i .project-local/task-runtime/common-asr-assets/fixture/jfk.flac -ar 16000 -ac 1 .project-local/task-runtime/common-asr-derived/selected.wav
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual speech Core content time location reparse and restart
+        id: common_speech_loop
+        if: ${{ !cancelled() && steps.desktop_runtime.outcome == 'success' && steps.desktop_shell.outcome == 'success' && steps.desktop_engines.outcome == 'success' && steps.common_asr_assets.outcome == 'success' }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/ci/run_common_speech_candidate.py --candidate .project-local/rt --model-dir .project-local/task-runtime/common-asr-assets/model --ffmpeg $env:FFMPEG_CMD --speech-wav .project-local/task-runtime/common-asr-derived/selected.wav --speech-transcript .project-local/task-runtime/common-asr-assets/fixture/transcript.txt --language en --expected-phrase "fellow Americans" --expected-phrase "ask not" --expected-phrase "do for your country"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload speech qualification receipts without model or audio assets
+        if: ${{ always() && steps.common_asr_assets.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-speech-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/runs/**/artifacts/common-speech.json
+            .project-local/runs/**/artifacts/common-speech-preflight.json
+            .project-local/task-runtime/common-asr-assets/receipt.json
+            .project-local/task-runtime/common-asr-ffmpeg.json
+            .project-local/task-runtime/common-asr-prerequisites.json
+            .project-local/task-runtime/ci-ffmpeg/receipt.json
+          if-no-files-found: error
+      - name: Upload common-format qualification receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-common-formats-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/runs/**/artifacts/common-formats.json
+          if-no-files-found: warn
+      - name: Upload content policy runtime receipt
+        if: ${{ always() && steps.content_policy_loop.outcome != 'skipped' }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-content-policy-${{ github.sha }}-${{ github.run_attempt }}
+          path: .project-local/task-runtime/aaos01-content-policy/**/receipt.json
+          if-no-files-found: error
+      - name: Verify independent Q12 format and exchange loops
+        id: light_loop
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/probes/aaos01_light_format_loop.py --candidate .project-local/rt --wave B
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/probes/aaos01_exchange_runtime_loop.py --candidate .project-local/rt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/probes/aaos01_fault_runtime_loop.py --candidate .project-local/rt
+      - name: Upload document and format loop evidence
+        if: ${{ always() && (steps.document_loop.outcome != 'skipped' || steps.light_loop.outcome != 'skipped') }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-document-format-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/task-runtime/aaos01-document-backup/**/receipt.json
+            .project-local/task-runtime/aaos01-light/**/receipt.json
+            .project-local/task-runtime/aaos01-exchange/**/receipt.json
+            .project-local/task-runtime/aaos01-fault/**/receipt.json
+          if-no-files-found: error
+      - name: Test the canonical desktop recovery contracts
+        working-directory: src-tauri
+        env:
+          ARCHEAXIS_RATE_LIMIT_READ: "10000"
+          ARCHEAXIS_RATE_LIMIT_WRITE: "1000"
+          ARCHEAXIS_RATE_LIMIT_TOKEN: "100"
+          ARCHEAXIS_RATE_LIMIT_ENABLED: "false"
+        run: |
+          $env:TAURI_CONFIG = Get-Content -LiteralPath $env:ARCHEAXIS_TAURI_CONFIG -Raw
+          cargo test
+
+      - name: Upload build stages and Cargo cache measurements
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-fast-build-timings-${{ github.sha }}
+          path: |
+            .project-local/runs/**/artifacts/bt-*.json
+            .project-local/runs/**/artifacts/cargo-cache.json
+            .project-local/runs/**/artifacts/execution.json
+          if-no-files-found: warn
+
+  desktop-build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    needs: [gateplan, lint]
+    if: ${{ needs.gateplan.outputs.full_qualification == 'true' || contains(needs.gateplan.outputs.required_gates, 'desktop-build') || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle') }}
+    defaults:
+      run:
+        working-directory: D:\a\k
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/runtime/dev.py --github-env
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Create short build path junction (NSIS MAX_PATH)
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        run: |
+          if (Test-Path "D:\a\k") { Remove-Item "D:\a\k" -Force }
+          New-Item -ItemType Junction -Path "D:\a\k" -Target $env:GITHUB_WORKSPACE | Out-Null
+          Write-Host "junction D:\a\k -> $env:GITHUB_WORKSPACE"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Resolve effective Cargo cache inputs
+        id: cargo_cache
+        run: python -B -m scripts.runtime.cargo_cache --profile build --github-output
+      - name: Cache actual Cargo dependencies and audit binary
+        id: cargo_dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ env.CARGO_HOME }}/registry
+            ${{ env.CARGO_HOME }}/git
+            ${{ env.CARGO_HOME }}/bin/cargo-audit.exe
+          key: ${{ steps.cargo_cache.outputs.dependency_key }}
+      - name: Restore separate Core and Tauri build outputs
+        id: cargo_outputs
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            ${{ env.ARCHEAXIS_CARGO_CORE_TARGET_DIR }}
+            ${{ env.ARCHEAXIS_CARGO_TAURI_TARGET_DIR }}
+          key: ${{ steps.cargo_cache.outputs.build_key }}
+          restore-keys: |
+            ${{ steps.cargo_cache.outputs.build_prefix }}
+      - name: Record Cargo restore paths and timing
+        env:
+          CARGO_DEPENDENCY_CACHE_HIT: ${{ steps.cargo_dependencies.outputs.cache-hit }}
+          CARGO_BUILD_CACHE_HIT: ${{ steps.cargo_outputs.outputs.cache-hit }}
+        run: python -B -m scripts.runtime.cargo_cache --profile build --record-restore
+      - name: Install locked Python runtime
+        run: uv sync --frozen
+      - name: Install locked frontend tooling
+        working-directory: frontend
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Enforce OSUI design and Chinese-first frontend contracts
+        working-directory: frontend
+        run: npm test -- --run
+      - name: Verify generated native contracts and capability catalog
+        run: |
+          uv run --frozen python -B scripts/contracts/generate_core_document.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv run --frozen python -B scripts/contracts/generate_capability_catalog.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          uv run --frozen python -B scripts/contracts/generate_ui_working_state.py --check
+          uv run --frozen python -B scripts/contracts/generate_layout.py --check
+          uv run --frozen python -B scripts/contracts/generate_ui_host.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git diff --exit-code -- frontend/src/api/generated/core-contract.ts
+      - name: Prepare the installed Python runtime
+        working-directory: ${{ github.workspace }}
+        run: |
+          python -B scripts/runtime/dev.py -- cargo build -p archeaxis-api --bin archeaxis-api --release --locked
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m desktop.scripts.prepare_bundle --backend-candidate --repository . --destination .project-local/rt --core "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Assert the bundle carries the Core and its workers
+        shell: pwsh
+        run: |
+          foreach ($relative in @('rt\core\archeaxis-api.exe', 'rt\workers\routes.json')) {
+            $path = Join-Path '.project-local' $relative
+            if (-not (Test-Path $path)) { throw "bundle is missing $relative" }
+            Write-Host "present: $relative"
+          }
+      - name: Assert the staged runtime carries the format engines
+        working-directory: ${{ github.workspace }}
+        run: python -B -m desktop.scripts.assert_runtime_engines --candidate .project-local/rt
+      - name: Inject CI candidate identity
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        run: |
+          $version = (Get-Content 'frontend/package.json' -Raw | ConvertFrom-Json).version
+          $tree = (git rev-parse "$env:GITHUB_SHA^{tree}").Trim()
+          python scripts/release_candidate_inject_identity.py `
+            --commit $env:GITHUB_SHA `
+            --tree $tree `
+            --tag "v$version" `
+            --version $version `
+            --verification-ci-run-id $env:GITHUB_RUN_ID `
+            --verification-ci-url "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" `
+            --manifest .project-local/rt/backend-runtime-manifest.json `
+            --output .project-local/rt/runtime/release-identity.json
+      - name: Audit locked Rust dependencies
+        working-directory: src-tauri
+        run: |
+          $cargoBin = Join-Path $env:CARGO_HOME "bin"
+          $cargoAudit = Join-Path $cargoBin "cargo-audit.exe"
+          if (-not (Test-Path -LiteralPath $cargoAudit)) {
+            cargo install cargo-audit --version 0.22.2 --locked --root $env:CARGO_HOME
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $auditVersion = & $cargoAudit --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($auditVersion -notmatch 'cargo-audit 0\.22\.2') { throw "unexpected cargo-audit version" }
+          & $cargoAudit audit --file Cargo.lock
+      - name: Build the Windows release and NSIS installer
+        run: |
+          Remove-Item -LiteralPath ".project-local/build/tauri/release/bundle/nsis" -Recurse -Force -ErrorAction SilentlyContinue
+          $buildLog = ".project-local/task-runtime/tauri-build.log"
+          New-Item -ItemType Directory -Force (Split-Path -Parent $buildLog) | Out-Null
+          # Invoke the .cmd file through cmd.exe so its exit code and both
+          # streams are preserved rather than altered by a PowerShell pipeline.
+          $frontendReceipt = Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/frontend-build.json'
+          $buildCommand = "node ""$env:GITHUB_WORKSPACE\scripts\runtime\frontend.mjs"" tauri --receipt ""$frontendReceipt"" --separate-bundle -- build --config src-tauri\tauri.conf.json --bundles nsis > $buildLog 2>&1"
+          $buildProcess = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/d', '/s', '/c', $buildCommand) -PassThru -NoNewWindow
+          if (-not $buildProcess.WaitForExit(1200000)) {
+            & taskkill.exe /pid $buildProcess.Id /t /f | Out-Null
+            throw "Tauri Windows build exceeded the 20 minute process deadline; see $buildLog"
+          }
+          $buildExit = $buildProcess.ExitCode
+          if ($buildExit -ne 0) {
+            Get-Content -LiteralPath $buildLog -Tail 120 | ForEach-Object {
+              $escaped = $_.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+              Write-Host "::error title=tauri-build::$escaped"
+            }
+            throw "Tauri Windows build failed with exit code $buildExit; see tauri-build annotations"
+          }
+      - name: Require the Windows release artifacts
+        shell: pwsh
+        run: |
+          if (-not (Test-Path ".project-local/build/tauri/release/ArcheAxis.exe")) {
+            throw "release executable is missing"
+          }
+          $package = Get-Content "frontend/package.json" -Raw | ConvertFrom-Json
+          $installers = @(Get-ChildItem ".project-local/build/tauri/release/bundle/nsis" -Filter "*.exe" -File)
+          $expected = "ArcheAxis Knowledge_$($package.version)_x64-setup.exe"
+          Write-Host "NSIS installers found: $($installers.Name -join ', ')"
+          if ($installers.Count -ne 1) {
+            throw "expected exactly one NSIS installer, found $($installers.Count)"
+          }
+          if ($installers[0].Name -ne $expected) {
+            throw "unexpected NSIS installer '$($installers[0].Name)', expected '$expected'"
+          }
+      - name: Stage lock-bound release candidate
+        shell: pwsh
+        run: |
+          $stage = '.project-local/task-runtime/release-candidate'
+          New-Item -ItemType Directory -Force $stage | Out-Null
+          $installer = @(Get-ChildItem '.project-local/build/tauri/release/bundle/nsis' -Filter '*.exe' -File)
+          if ($installer.Count -ne 1) { throw 'expected exactly one candidate installer' }
+          Copy-Item $installer[0].FullName "$stage/$($installer[0].Name)"
+          Copy-Item '.project-local/build/tauri/release/ArcheAxis.exe' "$stage/ArcheAxis.exe"
+          $frontendArchive = "$stage/frontend-dist.zip"
+          $frontendReceipt = Get-Content -LiteralPath (Join-Path $env:ARCHEAXIS_RUN_ROOT 'artifacts/frontend-build.json') -Raw | ConvertFrom-Json
+          if ($frontendReceipt.exit_code -ne 0 -or $frontendReceipt.mode -ne 'tauri') { throw 'frontend build receipt failed' }
+          if (-not (Test-Path -LiteralPath (Join-Path $frontendReceipt.frontend_dist 'index.html') -PathType Leaf)) { throw 'routed frontend is missing index.html' }
+          Compress-Archive -LiteralPath $frontendReceipt.frontend_dist -DestinationPath $frontendArchive -CompressionLevel Optimal
+          [ordered]@{
+            schema='archeaxis/release-candidate/v1'
+            commit=$env:GITHUB_SHA
+            locks=[ordered]@{
+              'uv.lock'=(Get-FileHash 'uv.lock' -Algorithm SHA256).Hash.ToLowerInvariant()
+              'frontend/package-lock.json'=(Get-FileHash 'frontend/package-lock.json' -Algorithm SHA256).Hash.ToLowerInvariant()
+              'src-tauri/Cargo.lock'=(Get-FileHash 'src-tauri/Cargo.lock' -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+            installer=[ordered]@{name=$installer[0].Name;sha256=(Get-FileHash "$stage/$($installer[0].Name)" -Algorithm SHA256).Hash.ToLowerInvariant()}
+            executable=[ordered]@{name='ArcheAxis.exe';sha256=(Get-FileHash "$stage/ArcheAxis.exe" -Algorithm SHA256).Hash.ToLowerInvariant()}
+            frontend=[ordered]@{name='frontend-dist.zip';sha256=(Get-FileHash $frontendArchive -Algorithm SHA256).Hash.ToLowerInvariant()}
+          } | ConvertTo-Json -Depth 5 | Set-Content "$stage/release-candidate.json" -Encoding utf8
+      - name: Upload immutable release candidate
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: release-candidate
+          path: .project-local/task-runtime/release-candidate/*
+          if-no-files-found: error
+
+      - name: Upload build stages and Cargo cache measurements
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: desktop-build-timings-${{ github.sha }}
+          path: |
+            .project-local/runs/**/artifacts/bt-*.json
+            .project-local/runs/**/artifacts/cargo-cache.json
+            .project-local/runs/**/artifacts/execution.json
+          if-no-files-found: warn
+
+  installer-lifecycle:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    needs: [gateplan, desktop-build]
+    # Required PR checks must execute on the PR event: dispatch-only checks do
+    # not satisfy branch rulesets. Always use this run's hash-bound candidate.
+    if: ${{ always() && needs.desktop-build.result == 'success' && ((github.event_name == 'workflow_dispatch' && inputs.force_full) || contains(needs.gateplan.outputs.required_gates, 'installer-lifecycle')) }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - name: Initialize project development paths
+        run: python -B scripts/runtime/dev.py --github-env
+
+      - name: Download the exact release candidate
+        uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e
+        with:
+          name: release-candidate
+          path: .project-local/task-runtime/release-candidate
+      - name: Prepare official matched Tauri WebDriver tools
+        run: python -B scripts/ci/prepare_tauri_webdriver.py --root .project-local/task-runtime/aaos01-native-tools
+      - name: Prepare pinned project-local OCR for the installed format matrix
+        shell: pwsh
+        run: |
+          $sevenzip = (Get-Command 7z.exe -ErrorAction SilentlyContinue).Source
+          if (-not $sevenzip) { $sevenzip = 'C:/Program Files/7-Zip/7z.exe' }
+          python -B scripts/ci/prepare_windows_ocr.py --project-root . --root .project-local/task-runtime/aaos01-ocr-tools --sevenzip $sevenzip
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify the installed NSIS lifecycle
+        shell: pwsh
+        env:
+          ARCHEAXIS_RATE_LIMIT_READ: "10000"
+          ARCHEAXIS_RATE_LIMIT_WRITE: "1000"
+          ARCHEAXIS_RATE_LIMIT_TOKEN: "100"
+          ARCHEAXIS_RATE_LIMIT_ENABLED: "false"
+        run: |
+          $candidateRoot = '.project-local/task-runtime/release-candidate'
+          $candidate = Get-Content "$candidateRoot/release-candidate.json" -Raw | ConvertFrom-Json
+          if ($candidate.schema -ne 'archeaxis/release-candidate/v1' -or $candidate.commit -ne $env:GITHUB_SHA) { throw 'candidate provenance commit mismatch' }
+          $installer = Join-Path $candidateRoot $candidate.installer.name
+          if (-not (Test-Path -LiteralPath $installer) -or (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $candidate.installer.sha256) { throw 'candidate installer SHA-256 mismatch' }
+          ./desktop/scripts/verify_nsis_install.ps1 -Installer $installer -RequireCandidateIdentity -NativeToolsReceipt .project-local/task-runtime/aaos01-native-tools/receipt.json -GroupedOwnerLoop
+      - name: Upload installed native journey evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a
+        with:
+          name: installed-native-journey-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            .project-local/runs/*/webdriver-*/tmp/journey/receipt.json
+            .project-local/runs/*/webdriver-*/tmp/journey/*.png
+            .project-local/runs/*/webdriver-*/tmp/journey/driver.log
+            .project-local/runs/*/webdriver-*/tmp/journey/native-driver.log
+            .project-local/task-runtime/aaos01-webdriver/**/receipt.json
+            .project-local/task-runtime/aaos01-webdriver/**/install-preflight.json
+            .project-local/task-runtime/aaos01-webdriver/**/lifecycle-receipt.json
+            .project-local/task-runtime/aaos01-webdriver/**/*.png
+            .project-local/task-runtime/aaos01-webdriver/**/driver.log
+            .project-local/task-runtime/aaos01-webdriver/**/native-driver.log
+            .project-local/task-runtime/aaos01-native-tools/receipt.json
+            .project-local/task-runtime/aaos01-ocr-tools/ocr-receipt.json
+            .project-local/task-runtime/aaos01-native-tools/cargo-install.log
+          if-no-files-found: error
+
+  a0-gates:
+    timeout-minutes: 5
+    if: ${{ always() }}
+    needs: [gateplan, test, format-targeted, migration-targeted, security-targeted, py-compat, lint, wheel-smoke, browser-smoke, windows-runtime-smoke, desktop-fast, desktop-build, installer-lifecycle, rust-vnext, desktop-vnext, green-candidate-vnext, contracts-vnext, workers-vnext]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required gates against GatePlan (ci-verdict)
+        env:
+          REQUIRED_GATES: ${{ needs.gateplan.outputs.required_gates }}
+          TEST_RESULT: ${{ needs.test.result }}
+          FORMAT_RESULT: ${{ needs.format-targeted.result }}
+          MIGRATION_RESULT: ${{ needs.migration-targeted.result }}
+          SECURITY_RESULT: ${{ needs.security-targeted.result }}
+          COMPAT_RESULT: ${{ needs.py-compat.result }}
+          LINT_RESULT: ${{ needs.lint.result }}
+          WHEEL_RESULT: ${{ needs.wheel-smoke.result }}
+          BROWSER_RESULT: ${{ needs.browser-smoke.result }}
+          WINDOWS_RESULT: ${{ needs.windows-runtime-smoke.result }}
+          DESKTOP_FAST_RESULT: ${{ needs.desktop-fast.result }}
+          DESKTOP_BUILD_RESULT: ${{ needs.desktop-build.result }}
+          INSTALLER_RESULT: ${{ needs.installer-lifecycle.result }}
+          RUST_VNEXT_RESULT: ${{ needs.rust-vnext.result }}
+          DESKTOP_VNEXT_RESULT: ${{ needs.desktop-vnext.result }}
+          GREEN_VNEXT_RESULT: ${{ needs.green-candidate-vnext.result }}
+          CONTRACTS_VNEXT_RESULT: ${{ needs.contracts-vnext.result }}
+          WORKERS_VNEXT_RESULT: ${{ needs.workers-vnext.result }}
+        run: |
+          # GatePlan failed -> full qualification must run; fail closed.
+          if [ "${{ needs.gateplan.result }}" != "success" ]; then
+            echo "GatePlan failed; full qualification required"
+            exit 1
+          fi
+          echo "Required gates: $REQUIRED_GATES"
+          # required -> must be success
+          require() {
+            local name="$1" result="$2"
+            if echo "$REQUIRED_GATES" | grep -qE "(^|,)$name(,|$)"; then
+              if [ "$result" != "success" ]; then
+                echo "REQUIRED gate '$name' is '$result' (must be success)"
+                exit 1
+              fi
+            fi
+          }
+          # AXW-003A: gate on the GatePlan semantic IDs, not GitHub job names.
+          # GatePlan emits `py-primary` for the OS/KB/integration suite (its
+          # result arrives via the `test` job) and `static` for convention and
+          # architecture checks (carried by the `lint` job). Requiring the bare
+          # job name `test` would never match GatePlan and would let a required
+          # py-primary failure pass as green.
+          require py-primary "$TEST_RESULT"
+          require py-targeted "$TEST_RESULT"
+          require format-targeted "$FORMAT_RESULT"
+          require migration-targeted "$MIGRATION_RESULT"
+          require security-targeted "$SECURITY_RESULT"
+          require static "$LINT_RESULT"
+          require lint "$LINT_RESULT"
+          require py-compat "$COMPAT_RESULT"
+          require wheel-smoke "$WHEEL_RESULT"
+          require browser-smoke "$BROWSER_RESULT"
+          require windows-runtime "$WINDOWS_RESULT"
+          require desktop-fast "$DESKTOP_FAST_RESULT"
+          require desktop-build "$DESKTOP_BUILD_RESULT"
+          require installer-lifecycle "$INSTALLER_RESULT"
+          require rust-vnext "$RUST_VNEXT_RESULT"
+          require desktop-vnext "$DESKTOP_VNEXT_RESULT"
+          require desktop-vnext "$GREEN_VNEXT_RESULT"
+          require contracts-vnext "$CONTRACTS_VNEXT_RESULT"
+          require workers-vnext "$WORKERS_VNEXT_RESULT"
+          # A not-required job that RAN and failed is still a failure. Use the
+          # job names (the only labels the `needs.*.result` are keyed by) but
+          # check them against their real job results.
+          for spec in "test:$TEST_RESULT" "format-targeted:$FORMAT_RESULT" "migration-targeted:$MIGRATION_RESULT" "security-targeted:$SECURITY_RESULT" "py-compat:$COMPAT_RESULT" "lint:$LINT_RESULT" "wheel-smoke:$WHEEL_RESULT" "browser-smoke:$BROWSER_RESULT" "windows-runtime-smoke:$WINDOWS_RESULT" "desktop-fast:$DESKTOP_FAST_RESULT" "desktop-build:$DESKTOP_BUILD_RESULT" "installer-lifecycle:$INSTALLER_RESULT" "rust-vnext:$RUST_VNEXT_RESULT" "desktop-vnext:$DESKTOP_VNEXT_RESULT" "contracts-vnext:$CONTRACTS_VNEXT_RESULT" "workers-vnext:$WORKERS_VNEXT_RESULT"; do
+            name="${spec%%:*}"; result="${spec##*:}"
+            if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+              echo "job '$name' failed even though its gate was not required"
+              exit 1
+            fi
+          done
+          if [ "$GREEN_VNEXT_RESULT" = "failure" ] || [ "$GREEN_VNEXT_RESULT" = "cancelled" ]; then
+            echo "green-candidate-vnext did not complete successfully"
+            exit 1
+          fi
+          echo "ci-verdict: all required gates success"

@@ -1,0 +1,111 @@
+{
+  "observed_at": "2026-10-18T22:02:14.420152+00:00",
+  "verdict": "NO_BLOCKING_FINDING_FOR_CLI_CONSUMER_APPLICATION",
+  "patch_sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16",
+  "member_checks": [
+    {
+      "path": "crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "after_matches": true,
+      "preimage_matches": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_process.rs",
+      "after_matches": true,
+      "preimage_matches": true
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "after_matches": true,
+      "preimage_matches": true
+    },
+    {
+      "path": "docs/contracts/project-handoff-v1.md",
+      "after_matches": true,
+      "preimage_matches": true
+    }
+  ],
+  "receipt_hash_checks": [
+    {
+      "run_id": "be10-cli-green-initial-1019",
+      "receipt_sha256": "cde3e0aea433d7eb224019ae30d101f57d29071685e4729e395c9e4b9f8fc318",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "qualification": "HISTORICAL_PRE_AUTH_CASES"
+    },
+    {
+      "run_id": "be10-cli-red-reference-1019",
+      "receipt_sha256": "511b1b220087287831469360436c14136df40383c26a88e01e06b383c8ee0a53",
+      "exit_code": 101,
+      "child_exit_code": 101,
+      "qualification": "EXPECTED_RED_OWNED_MIRROR"
+    },
+    {
+      "run_id": "be10-cli-green-final-1019",
+      "receipt_sha256": "b27328ebe74ca1b6568402f5e531c07057950745d4e7d044e2f83f1776f5d130",
+      "exit_code": 0,
+      "child_exit_code": 0,
+      "qualification": "FINAL_FROZEN_GREEN"
+    }
+  ],
+  "source_hashes": [
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/CURRENT.md",
+      "sha256": "4cfd9c7fe9f595df46ed3250d609ca5bf4dbc4425a97a56ed1821d678a17a331"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/DELIVERY.md",
+      "sha256": "ca10eff580ccb6ea05225deba41a610f418e6c9e88cbd99b57659ef02435984e"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/be10-cli-consumer.patch",
+      "sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/code-manifest.json",
+      "sha256": "3bef40e1fd4d04a53beb357458edb9cbc0d03d1430732885980a8405c2fe18bf"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/validation.json",
+      "sha256": "85784536b3070d24fa54fa01a4f37e93e90bb4d9ce78b4e617b61902e56d3e5a"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/red-mutation.json",
+      "sha256": "58f6c88f413c0abbaa07bdb500bb3823d9da5454b7ca329cea28ee6cc2f04d1b"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer/client.rs",
+      "sha256": "e3a4c225b2a0e6b22c86a1b70da2d4dec66de6cbabc763cf1de0d2db4a5cd285"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff.rs",
+      "sha256": "904bc95afb75282af5c08bc2b96d021cc76613afd504fdbdbf4e591e31e2122a"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff.rs",
+      "sha256": "fb8d0651f0f9afdec292c856080e253d8630c3a8566a8a1b9e70179b58ba157b"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_process.rs",
+      "sha256": "0a86e3a3ac2c0267c47227ffb6a547602ffb8ee2ee555fe1d6068afc6588223e"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/proposal/crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "sha256": "8fed938d518c1a4a7d67777ce3341eb20a37069f617e32f052391d796abc196c"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/proposal/crates/archeaxis-api/tests/project_handoff_process.rs",
+      "sha256": "c6bca475d845480fa7fb0cada8f4c3fb81b107d63c16a150575ad341d95a38bc"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/proposal/docs/contracts/project-observer-v1.md",
+      "sha256": "8c09138b130758b9101ffc1b2c90a36f6fd652e7c969e629372431bb12c49232"
+    },
+    {
+      "path": ".project-local/audits/be10-cli-consumer-next-20261019/proposal/docs/contracts/project-handoff-v1.md",
+      "sha256": "d31ff4f2c371125787794eb0c04ed65a97d22364722a08e0c3383540ef269932"
+    }
+  ],
+  "tests_rerun": false,
+  "services_created": 0,
+  "product_write_set": []
+}

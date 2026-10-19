@@ -1,0 +1,86 @@
+{
+  "schema": "archeaxis.continuity-native-pdf-results/v1",
+  "overall": "PARTIAL",
+  "public_delivery": "UNCOMMITTED_LOCAL_ONLY",
+  "current_decisions": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+  "unique_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "owner_source_topics": 39,
+  "source_binding": "PASS_68_INHERITED_STATES_VALUES_PRESERVED",
+  "run_ids": [
+    "material-summary-identity-red-1019",
+    "material-summary-identity-green-1019",
+    "material-context-wire-offline-1019",
+    "material-summary-lint-1019",
+    "continuation-workspace-rustfmt-baseline-1019",
+    "continuity-main-python-1019",
+    "continuity-main-rust-1019",
+    "continuity-main-frontend-1019",
+    "continuity-main-sources-1019",
+    "continuity-main-native-1019",
+    "continuity-final-python-1019",
+    "continuity-native-routed-1019"
+  ],
+  "applied": {
+    "be10_exact_paths": 14,
+    "pdf_exact_paths": 17,
+    "merged_generation_and_bindings": 5,
+    "rust_format_paths": 23,
+    "rust_format_scope": "13既有门禁失败+11 PDF，executor重叠1",
+    "probe_and_regressions": 3,
+    "python_test_style": "1 PDF新测试，AST语义保持"
+  },
+  "actual_main_checks": {
+    "python": "105 PASS plus 49 subtests; final style 11 PASS overlaps",
+    "frontend": "5 files / 42 PASS",
+    "typescript": "PASS",
+    "rust_protocol": [
+      6
+    ],
+    "rust_shared_contract": "1 test traverses16 shared cases",
+    "rust_application_by_test_binary": [
+      15,
+      4,
+      4,
+      6
+    ],
+    "rust_api_by_test_binary": [
+      3,
+      2,
+      5,
+      6,
+      8,
+      6
+    ],
+    "workspace_and_native_format": "PASS",
+    "native_consumer": "29 PASS actual src-tauri test with owned current Core; current frontend TypeScript/Vite built; UI launch NOT_EXECUTED",
+    "node_manifest": "10 PASS",
+    "generation": "current merged Core client exact bytes + capability details and resource catalog --check PASS",
+    "aggregation": "每次执行各归自己的源码patch，不把重叠测试相加成全量资格"
+  },
+  "compatibility": "新Core保留旧非PDF hello；旧PDF hello被UNOBSERVED准入拒绝，旧Core消费新hello不保证；Core/worker配套构建和回退。",
+  "lint": {
+    "status": "PARTIAL_EXISTING_FAILURES_RETAINED",
+    "existing_unchanged": 22,
+    "probe": 15,
+    "pdf_old_connections": 7,
+    "new_file_lint": "4 files PASS",
+    "new_diagnostics_after_followups": 0
+  },
+  "retained_failures": [
+    "材料探针原行为2 RED，后继103 PASS不擦原例",
+    "旧材料原生低效用，随机材料名歧义修正不等于模型因果/质量资格",
+    "原全仓fmt FAIL及PDF原实现RED6，schema末换行P2独立证据与修正",
+    "首轮formal native test因未配置routed前端构建失败101；后继使用canonical当前前端构建与有效overlay再验",
+    "原完整AI链retest MODEL_CALL_TIMEOUT仍FAIL，provider_stop UNKNOWN",
+    "22项既有Ruff不忽略、不改标准；新测试格式问题另修并复验"
+  ],
+  "not_executed": [
+    "新源码原生UI启动/视觉验收、模型推理/质量与P95/TTFT性能基准",
+    "安装/Green/发布/Owner验收及exact-SHA云CI",
+    "BE10正文snapshot/固定引用UI/真实外部产品投递及OS URI",
+    "HUB004通用安装更新、全部格式资格",
+    "完整Cowork正文和云备份UNVERIFIED；ASTRYN来源NOT_READY_TO_DELETE"
+  ],
+  "shared_paths": "PASS_METADATA_ONLY;5 roots present, declaration/index SHA bound, developer visual skill and Chinese note present; no shared-root content read or writes",
+  "cleanup": "native test owns transient Core; process readback recorded separately; root created no UI or model services"
+}

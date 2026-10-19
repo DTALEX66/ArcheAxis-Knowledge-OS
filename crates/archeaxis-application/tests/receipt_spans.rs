@@ -95,7 +95,7 @@ fn a_page_qualified_anchor_is_accepted_for_the_same_span() {
     let (response, bytes) = pdf_style_output(
         &req,
         json!(["page-1", "line-1"]),
-        ("pymupdf-native-pdf", "pymupdf"),
+        ("pymupdf-native-pdf", "1.28.2"),
     );
     attempts::finish(&mut conn, &req, &response, &bytes).unwrap();
     assert_eq!(
@@ -124,7 +124,7 @@ fn a_wrong_final_path_segment_is_still_refused() {
     let (response, bytes) = pdf_style_output(
         &req,
         json!(["page-1", "line-9"]),
-        ("pymupdf-native-pdf", "pymupdf"),
+        ("pymupdf-native-pdf", "1.28.2"),
     );
     assert!(
         attempts::finish(&mut conn, &req, &response, &bytes).is_err(),
@@ -145,4 +145,16 @@ fn an_undeclared_engine_is_still_refused() {
         attempts::finish(&mut conn, &req, &response, &bytes).is_err(),
         "only declared route engines may complete a job"
     );
+}
+
+#[test]
+fn a_package_name_is_not_an_observed_pdf_engine_version() {
+    let (_dir, mut conn) = setup();
+    let req = attempts::claim(&mut conn, "j", "r", 5000).unwrap();
+    let (response, bytes) = pdf_style_output(
+        &req,
+        json!(["page-1", "line-1"]),
+        ("pymupdf-native-pdf", "pymupdf"),
+    );
+    assert!(attempts::finish(&mut conn, &req, &response, &bytes).is_err());
 }

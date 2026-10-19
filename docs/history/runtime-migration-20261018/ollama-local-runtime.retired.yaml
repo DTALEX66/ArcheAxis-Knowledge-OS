@@ -1,0 +1,30 @@
+    - name: ollama-local-runtime
+      resource_id: ext.models.ollama-local-runtime
+      type: model_endpoint
+      role: caption
+      purpose: "Ollama 本机推理通道（worker_caption 早期唯一写死的通道，/api/tags 列模型、/api/generate 出文）"
+      version_range: "any local build"
+      version_identification: "GET /api/tags 应答的 models[].name 列表"
+      platform: windows-x64
+      license: "MIT (the Ollama runtime licence; per-model weights carry their own cards)"
+      asset_license: "Served weights are licensed per upstream model card; nothing here restates them"
+      source_url: "https://ollama.com/"
+      install_method: system
+      endpoint:
+        protocol: ollama
+        base_url: "http://127.0.0.1:11434"
+        list_path: /api/tags
+      project_entry: "tool_paths.endpoint_resources(role=\"caption\") -> services/python-workers/vision/worker_caption.py"
+      writability: project_writable
+      healthcheck_command: "GET http://127.0.0.1:11434/api/tags"
+      probe:
+        kind: http_get
+        expect_status: 200
+        expect_pattern: "models"
+        timeout_seconds: 5
+        reaches: VERSION_PROBED
+      fallback: "通道不答即记 unavailable 并写出实测错误；不自动拉起 ollama serve，不改宿主服务配置"
+      failure_message: "ollama-local-runtime: no HTTP answer on 127.0.0.1:11434 (this host refused the connection); caption lane falls back to any OpenAI-compatible lane the declaration names"
+      required_by: [workspace-ui, asr-pipeline]
+      local_only: true
+

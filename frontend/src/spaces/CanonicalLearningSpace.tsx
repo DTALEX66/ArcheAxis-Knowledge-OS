@@ -3,6 +3,8 @@ import {useOptionalCoreWorkingState} from "../presentation/useCoreWorkingState";
 import type {LearningDraft, PendingReview} from "../presentation/coreWorkingState";
 import { courseLearningTarget } from "../presentation/courseLearningTarget";
 import { coreCommand } from "../api/core";
+import type {LearningItemsDto} from "../api/generated/core-contract";
+import {learningTitle} from "../presentation/learningTitle";
 import { ApiError } from "../api/client";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { Section } from "../components/RealData";
@@ -45,7 +47,7 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
   const localDrafts=useRef<Record<string,LearningDraft>>({});
   const draftAtReview=useRef<LearningDraft|undefined>(undefined);
   const [focusMode, setFocusMode] = useState(false);
-  const [items, setItems] = useState<Record<string, unknown>[]>([]);
+  const [items, setItems] = useState<LearningItemsDto["items"]>([]);
   const [itemKey, setItemKey] = useState("");
   const [state, setState] = useState<Record<string, unknown>|null>(null);
   const [history, setHistory] = useState<unknown>(null);
@@ -61,21 +63,30 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
   const eventId = useRef<string|null>(null);
   const frozenReview = useRef<Record<string,unknown>|null>(null);
   const [reviewPending,setReviewPending] = useState(false);
+  const initialSelectionContext=useRef<{workspaceId?:string;restoreEpoch?:string;recovery?:boolean}|null>(null);
   const dirtyOwner = useRef(`learning-review:${crypto.randomUUID()}`).current;
   const learningDrafts=working?.state.learning_drafts??localDrafts.current;
   useEffect(()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:reviewPending||busy||Object.keys(learningDrafts).length>0}}));},[reviewPending,busy,learningDrafts,answer,rating,dirtyOwner]);
   useEffect(()=>()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:false}}));},[dirtyOwner]);
   async function refresh() {
     try {
-      const list = record(await coreCommand("learning_items"));
+      const list = await coreCommand<LearningItemsDto>("learning_items");
       if (!Array.isArray(list.items)) throw new Error("invalid items");
-      const rows = list.items.map(record);
-      if (rows.some(row=>typeof row.item_key !== "string")) throw new Error("invalid item key");
-      setItems(rows);
+      if (list.items.some(row=>typeof row.item_key !== "string")) throw new Error("invalid item key");
+      setItems(list.items);
     } catch (error) {setMessage("学习队列读取失败，请重试。");setFailureReason(coreFailureReason(error));}
   }
   useEffect(()=>{void refresh();return()=>{epoch.current+=1;};},[]);
-  useEffect(()=>{if(initialItemKey&&(!working||working.server&&!working.server.recovery_requires_confirmation))void open(initialItemKey);},[initialItemKey,working?.server?.workspace_id,working?.server?.restore_epoch,working?.server?.recovery_requires_confirmation]);
+  useEffect(()=>{
+    const context={workspaceId:working?.server?.workspace_id,restoreEpoch:working?.server?.restore_epoch,recovery:working?.server?.recovery_requires_confirmation};
+    const previous=initialSelectionContext.current;
+    const sameContext=previous!==null&&previous.workspaceId===context.workspaceId&&previous.restoreEpoch===context.restoreEpoch&&previous.recovery===context.recovery;
+    initialSelectionContext.current=context;
+    // A shell callback echoes our successful selection through initialItemKey.
+    // Skip only that already-loaded identity; a new workspace/restore must reread.
+    if(initialItemKey&&(!working||working.server&&!working.server.recovery_requires_confirmation)
+      &&!(sameContext&&itemKey===initialItemKey&&state?.item_key===initialItemKey))void open(initialItemKey);
+  },[initialItemKey,working?.server?.workspace_id,working?.server?.restore_epoch,working?.server?.recovery_requires_confirmation]);
   const pendingReviews=Object.values(working?.state.pending_reviews??{});
   useEffect(()=>{const entries=Object.values(working?.state.pending_reviews??{});const entry=initialItemKey?entries.find(row=>row.item_key===initialItemKey):entries.length===1?entries[0]:undefined;if(entry&&!frozenReview.current)void open(entry.item_key,entry);},[working?.state.pending_reviews,initialItemKey]);
   useEffect(()=>{
@@ -96,11 +107,11 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
       const item = items.find((row) => row.item_key === itemKey);
       levels.push(
         { id: "section:review", label: "复习队列", region: "review" },
-        { id: `item:${itemKey}`, label: itemKey, detail: typeof item?.next_review === "string" ? `下次复习 ${item.next_review}` : "下次复习未安排", region: "review" },
+        { id: `item:${itemKey}`, label: learningTitle(item?.display_title, expectedJourney?.display_title, "学习项目（标题尚未核对）"), detail: typeof item?.next_review === "string" ? `下次复习 ${item.next_review}` : "下次复习未安排", region: "review" },
       );
     }
     onTrail?.(levels);
-  }, [itemKey, state, items, onTrail]);
+  }, [itemKey, state, items, onTrail, expectedJourney?.display_title]);
   function currentDrafts(){return working?.session.getSnapshot().state.learning_drafts??localDrafts.current;}
   async function discardDraft(draft:LearningDraft) {
     if(busy||Object.values(working?.session.getSnapshot().state.pending_reviews??{}).some(entry=>entry.item_key===draft.item_key)||frozenReview.current&&itemKey===draft.item_key)return;
@@ -186,16 +197,19 @@ export function CanonicalLearningSpace({onTrail, initialItemKey, expectedJourney
       : "复习提交未确认，请保留答案并用同一条目重试；不会假定成功。");}
     finally {setBusy(false);}
   }
-  return <Section title="学习"><button type="button" aria-pressed={focusMode} onClick={()=>{setFocusMode(value=>{const next=!value;window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:next}));return next;});}}>{focusMode?"退出聚焦模式":"进入聚焦模式"}</button><p>学习者记录与机器能力分别显示。记录复习结果不会自动证明机器能力或知识正确性。</p>{!focusMode?<button onClick={()=>void refresh()}>刷新学习队列</button>:null}
-    {Object.values(learningDrafts).length>0?<section aria-label="未提交学习草稿"><p>以下答案尚未提交复习；题目修订分别保留。</p>{Object.values(learningDrafts).map(draft=><details key={draft.assessment_id}><summary>学习草稿 {draft.item_key} · {draft.knowledge_version}</summary><label>保留的学习答案 {draft.assessment_id}<textarea readOnly value={draft.answer}/></label><button disabled={busy} onClick={()=>void open(draft.item_key)}>打开草稿题目 {draft.item_key}</button><button disabled={busy||pendingReviews.some(entry=>entry.item_key===draft.item_key)||reviewPending&&itemKey===draft.item_key} onClick={()=>void discardDraft(draft)}>丢弃草稿 {draft.item_key}</button></details>)}</section>:null}
+  const queue = <>{!focusMode?<button onClick={()=>void refresh()}>刷新学习队列</button>:null}
+    <ul tabIndex={-1} data-section="review" aria-label="复习队列">{items.map(item=><li key={String(item.item_key)}><button data-learning-item-key={item.item_key} disabled={busy} onClick={()=>void open(item.item_key)}>{learningTitle(item.display_title, "学习项目（标题尚未核对）")}</button> · 下次复习 {typeof item.next_review === "string" ? item.next_review : "未安排"}</li>)}</ul></>;
+  return <Section title={expectedJourney?"练习与复习":"学习"}><button type="button" aria-pressed={focusMode} onClick={()=>{setFocusMode(value=>{const next=!value;window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:next}));return next;});}}>{focusMode?"退出聚焦模式":"进入聚焦模式"}</button>
+    {Object.values(learningDrafts).length>0?<section aria-label="未提交学习草稿"><p>以下答案尚未提交复习；题目修订分别保留。</p>{Object.values(learningDrafts).map(draft=><details key={draft.assessment_id}><summary>学习草稿 · {learningTitle(items.find(item=>item.item_key===draft.item_key)?.display_title, expectedJourney?.item_key===draft.item_key?expectedJourney.display_title:undefined, "学习项目（标题尚未核对）")}</summary><p>学习项目键 {draft.item_key} · 知识修订 {draft.knowledge_version}</p><label>保留的学习答案 {draft.assessment_id}<textarea readOnly value={draft.answer}/></label><button disabled={busy} onClick={()=>void open(draft.item_key)}>打开草稿题目 {draft.item_key}</button><button disabled={busy||pendingReviews.some(entry=>entry.item_key===draft.item_key)||reviewPending&&itemKey===draft.item_key} onClick={()=>void discardDraft(draft)}>丢弃草稿 {draft.item_key}</button></details>)}</section>:null}
     {pendingReviews.length>1?<section aria-label="未确认复习请求"><p>有多个未确认的复习请求，请明确选择；其他请求仍由 Core 保留。</p>{pendingReviews.map(entry=><button key={entry.client_event_id} disabled={busy} onClick={()=>void open(entry.item_key)}>恢复复习请求 {entry.item_key}</button>)}</section>:null}
-    <ul tabIndex={-1} data-section="review" aria-label="复习队列">{items.map(item=><li key={String(item.item_key)}><button disabled={busy} onClick={()=>void open(String(item.item_key))}>{String(item.item_key)}</button> · 下次复习 {typeof item.next_review === "string" ? item.next_review : "未安排"}</li>)}</ul>
-    <form onSubmit={event=>{event.preventDefault();void open(itemKey);}}><label>学习项目键 <input value={itemKey} disabled={busy||reviewPending} onChange={event=>{epoch.current+=1;setItemKey(event.target.value);setState(null);}} /></label><button disabled={!itemKey.trim()||busy}>读取项目</button></form>
+    {expectedJourney?<details aria-label="学习队列工具"><summary>学习队列</summary>{queue}</details>:queue}
+    <details aria-label="按键定位学习项目"><summary>按学习项目键定位</summary><form onSubmit={event=>{event.preventDefault();void open(itemKey);}}><label>学习项目键 <input value={itemKey} disabled={busy||reviewPending} onChange={event=>{epoch.current+=1;setItemKey(event.target.value);setState(null);}} /></label><button disabled={!itemKey.trim()||busy}>读取项目</button></form></details>
     {state?<article>{(()=>{const learner=record(state.learner);const assessment=learner.assessment?record(learner.assessment):null;return <>
+      {!expectedJourney?<p aria-label="当前学习项目">{learningTitle(items.find(item=>item.item_key===itemKey)?.display_title, "学习项目（标题尚未核对）")}</p>:null}
       <h3>复习题</h3>
       {onReturnCourse && courseLearningTarget(itemKey) && assessment && typeof assessment.knowledge_id === "string" && assessment.knowledge_id.length > 0 && assessment.knowledge_version === assessment.knowledge_id ? <button type="button" disabled={busy||reviewPending} onClick={()=>onReturnCourse(itemKey, assessment.knowledge_id as string, assessment.knowledge_version as string)}>返回原课程与绑定版本</button> : null}
       {assessment&&typeof assessment.question==="string"?<p>{assessment.question}</p>:<p>此学习项目没有可用的真实题目。请从知识页面创建学习题后再来复习。</p>}
-      {assessment&&typeof assessment.knowledge_version==="string"?<small>知识修订：{assessment.knowledge_version}</small>:null}
+      <RawReceiptButton label="学习项目与题目版本" category="data" payload={{item_key:state.item_key,...Object.fromEntries(["assessment_id","question_version","knowledge_id","knowledge_version","source_id","anchor_id"].filter(field=>assessment?.[field]!==undefined).map(field=>[field,assessment![field]]))}} />
       <h4>先独立作答</h4><label>本次答案 <textarea value={answer} disabled={busy||reviewPending||!assessment||!!working&&!working.server} onChange={event=>edit({answer:event.target.value,checked_correct:null,rating:null})} /></label>
       <button type="button" disabled={busy||!assessment||!answer.trim()} onClick={()=>edit({answer_revealed:true})}>{answerRevealed?"已显示核对内容":"查看答案与核对内容"}</button>
       {answerRevealed&&assessment&&typeof assessment.content==="string"?<section aria-label="答案与核对内容"><h4>答案与核对内容</h4><p>{assessment.content}</p><small>来自本题绑定的知识修订快照</small></section>:null}

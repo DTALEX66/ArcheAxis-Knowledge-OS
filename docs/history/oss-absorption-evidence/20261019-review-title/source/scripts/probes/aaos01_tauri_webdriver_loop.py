@@ -1,0 +1,2153 @@
+"""Real candidate Tauri WebDriver engineering probe; no installed/human signoff."""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import ctypes
+import hashlib
+import http.client
+import io
+import json
+import os
+import re
+import socket
+import subprocess
+import time
+import traceback
+import uuid
+from contextlib import suppress
+from pathlib import Path
+from urllib.error import HTTPError
+from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
+
+from aaos01_office_runtime_loop import REPO, identity, load
+from native_tcp_listeners import tcp_listener_rows
+
+
+class _GroupedJourneyCompleteError(Exception):
+    """Internal branch completion; never bypasses the shared finally checks."""
+
+
+class WebDriverProtocolError(RuntimeError):
+    def __init__(self, value):
+        self.value = value
+        super().__init__(value)
+
+
+def request_owned_product_exit(host, launch_identity, live_rows, request_exit, receipt):
+    """Exit ACK may disappear with WebView; only this owned process's exit 0 qualifies."""
+    assert launch_identity and launch_identity["pid"] == host.pid, "Owned launch identity missing"
+    assert any(row["pid"] == host.pid and row["created"] == launch_identity["created"]
+               for row in live_rows), "Owned host creation identity changed"
+    assert host.poll() is None, "Owned host exited before requested product exit"
+    record = {"pid": host.pid, "created": launch_identity["created"], "requested": True}
+    receipt.setdefault("requested_product_exits", []).append(record)
+    try:
+        reply = request_exit()
+    except OSError as error:
+        record.update(ack="TRANSPORT_CLOSED", error_type=type(error).__name__)
+    except WebDriverProtocolError as error:
+        message = error.value.get("message")
+        detached_on_exit = error.value.get("error") == "target frame detached" and isinstance(message, str) and re.fullmatch(
+            r"target frame detached\n  \(failed to check if window was closed: "
+            r"disconnected: Unable to receive message from renderer\)"
+            r"(?:\n  \(Session info: MicrosoftEdge=\d+\.\d+\.\d+\.\d+\))?", message)
+        if error.value.get("error") not in {"no such window", "invalid session id"} and not detached_on_exit:
+            raise
+        record.update(ack="TRANSPORT_CLOSED", error_type=error.value["error"])
+    else:
+        if reply is None:
+            record["ack"] = "MISSING_ON_EXIT"
+        else:
+            assert isinstance(reply, dict) and reply.get("ok") is True and "value" in reply, reply
+            record["ack"] = "CONFIRMED"
+    code = host.wait(timeout=15)
+    exited = code == 0 and host.poll() == 0
+    receipt.setdefault("host_shutdowns", []).append({
+        "pid": host.pid, "created": launch_identity["created"], "ack": record["ack"],
+        "exited": exited, "exit_code": code, "method": "product_exit_application_attached_observer"})
+    assert exited, "Owned host did not exit normally with product exit code 0"
+
+
+def click_current_element(request, find, session, selector):
+    """Only retry explicit stale-before-click refusal; never replay unknown ACK."""
+    for attempt in range(3):
+        element = find("xpath", selector)
+        try:
+            return request("POST", f"/session/{session}/element/{element}/click", {})
+        except WebDriverProtocolError as error:
+            if error.value.get("error") != "stale element reference" or attempt == 2:
+                raise
+
+
+def accept_native_alert(request, session, evidence):
+    try:
+        text = request("GET", f"/session/{session}/alert/text")
+    except WebDriverProtocolError as error:
+        if error.value.get("error") != "no such alert":
+            raise
+        evidence.append({"action": "native_alert_absent", "error": "no such alert"})
+        return
+    assert isinstance(text, str) and text, "Native confirm identity missing"
+    request("POST", f"/session/{session}/alert/accept", {})
+    evidence.append({"action": "trusted_native_alert_accept", "text": text})
+
+
+def validate_conflict_branch(args):
+    if args.installed_draft_conflict_loop:
+        assert args.installer is not None, "Installed conflict requires parent-verified installer"
+        assert not any((args.grouped_common_owner_loop, args.synthetic_course_loop,
+                        args.synthetic_template_pagination, args.grouped_run_ai,
+                        args.grouped_authored_intervention)), "Conflict branch cannot mix other fixtures"
+
+
+def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
+    """Microsoft requires matching major/minor/build; patch updates are compatible.
+
+    https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/
+    """
+    driver = re.fullmatch(r"Microsoft Edge WebDriver (\d+\.\d+\.\d+\.\d+)(?: \([^\r\n]+\))?", driver_version)
+    runtime = re.fullmatch(r"Edg/(\d+\.\d+\.\d+\.\d+)", runtime_version)
+    return bool(driver and runtime and driver[1].split(".")[:3] == runtime[1].split(".")[:3])
+
+
+def confirm_restored_working_state(bridge, ui_click, wait, js):
+    """Explicit rendered-UI decision; never bypass the post-restore journal fence."""
+    before = bridge("ui_state_read")
+    assert before["schema"] == "archeaxis.ui-working-state/v1"
+    if before["recovery_requires_confirmation"] is False:
+        return {"decision": "NOT_REQUIRED", "workspace_id": before["workspace_id"], "restore_epoch": before["restore_epoch"]}
+    assert before["recovery_requires_confirmation"] is True
+    assert isinstance(before["recovery_candidates"], dict)
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
+    # Observe the UI's real invoke responses without changing arguments or results.
+    js("const original=window.__TAURI__,invoke=original.core.invoke;window.__aaosRecoveryReplies=[];window.__aaosRecoveryOriginal=original;const observed=async function(command,args){const value=await invoke(command,args);if(command==='core_command'&&['ui_state_recover','ui_state_write'].includes(args?.request?.operation))window.__aaosRecoveryReplies.push({operation:args.request.operation,value});return value;};window.__TAURI__={...original,core:{...original.core,invoke:observed}};if(window.__TAURI__.core.invoke!==observed)throw new Error('Recovery observer installation refused');")
+    try:
+        ui_click("保留恢复候选")
+        wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
+        after = bridge("ui_state_read")
+        observed = js("return window.__aaosRecoveryReplies")
+    finally:
+        js("window.__TAURI__=window.__aaosRecoveryOriginal;delete window.__aaosRecoveryOriginal;delete window.__aaosRecoveryReplies;")
+    recovery = [row["value"] for row in observed if row["operation"] == "ui_state_recover"]
+    assert len(recovery) == 1 and recovery[0]["status"] == 200, {"observed_operations": [row["operation"] for row in observed], "recovery_statuses": [row["status"] for row in recovery]}
+    acknowledged = recovery[0]["body"]
+    assert acknowledged["workspace_id"] == before["workspace_id"]
+    assert acknowledged["restore_epoch"] == before["restore_epoch"]
+    assert acknowledged["state_revision"] == before["state_revision"] + 1
+    assert acknowledged["state"] == before["recovery_candidates"]
+    assert acknowledged["recovery_requires_confirmation"] is False
+    assert acknowledged["recovery_candidates"] is None
+    expected = acknowledged
+    for row in observed:
+        if row["operation"] != "ui_state_write":
+            continue
+        assert 200 <= row["value"]["status"] < 300
+        saved = row["value"]["body"]
+        assert saved["workspace_id"] == before["workspace_id"]
+        assert saved["restore_epoch"] == before["restore_epoch"]
+        assert saved["recovery_requires_confirmation"] is False
+        assert saved["recovery_candidates"] is None
+        assert saved["state_revision"] == expected["state_revision"] + 1
+        assert {k:v for k,v in saved["state"].items() if k != "page_id"} == {k:v for k,v in expected["state"].items() if k != "page_id"}
+        expected = saved
+    assert after == expected
+    assert after["workspace_id"] == before["workspace_id"]
+    assert after["restore_epoch"] == before["restore_epoch"]
+    assert after["recovery_requires_confirmation"] is False
+    assert after["recovery_candidates"] is None
+    return {"decision": "EXPLICIT_UI_PRESERVE", "before": before, "acknowledged": acknowledged, "subsequent_ui_writes": observed, "after": after}
+
+
+def navigate_compatibility_space(js, wait, space: str) -> None:
+    """Exercise the declared public legacy route; never infer new-page coverage."""
+    # A live bridge is not the UI journal hydration barrier. A restored scene can
+    # otherwise replace a hash written immediately after reopening the window.
+    # The reference home hides the verbose ready-only notice, while recovery and
+    # errors stay visible. Await the real hydrated state, not decorative copy.
+    wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
+    headings = {"library": "资料库", "vault": "知识库", "workspace": "工作台"}
+    heading = headings[space]
+    js("window.location.hash=arguments[0]", ["space=" + space])
+    wait("return location.hash===" + json.dumps("#space=" + space) + " && [...document.querySelectorAll('h1,h2,h3')].some(h=>h.textContent.trim()===" + json.dumps(heading) + ")")
+
+
+def xpath_literal(value: str) -> str:
+    if "'" not in value:
+        return "'" + value + "'"
+    if '"' not in value:
+        return '"' + value + '"'
+    return "concat(" + ',"\'",'.join("'" + part + "'" for part in value.split("'")) + ")"
+
+
+def navigation_button_selector(text: str, scope: str = "") -> str:
+    if scope == "//ul[@aria-label='复习队列']":
+        return f"{scope}//button[@data-learning-item-key={xpath_literal(text)} and not(ancestor-or-self::*[@hidden])]"
+    # Object-navigation buttons contain a label and description. Match the exact
+    # label child and click its actual parent button, rather than widening all labels.
+    if scope == "//ul[@aria-label='资料库对象导航']":
+        return f"{scope}//button[b[normalize-space(.)='{text}']]"
+    return f"{scope}//button[normalize-space(.)='{text}']"
+
+
+def probe_environment():
+    launcher = load("native_probe_paths", REPO / "scripts/runtime/dev.py")
+    paths = launcher.layout(REPO, "webdriver-" + uuid.uuid4().hex[:12])
+    env = dict(os.environ)
+    env.update(launcher.prepare(paths))
+    return paths, env
+
+
+def installation_limitation(installer) -> str:
+    """The limitation this run can honestly state about installation.
+
+    This probe never establishes installation -- a parent verifier does that. Calling the
+    executable a candidate is false once `--installer` records that a parent supplied the
+    installed host, and stating it there produced a receipt whose `limitations[0]` directly
+    contradicted its own `installation_context` and `host.path`.
+    """
+    if installer is not None:
+        return (
+            "This probe does not itself establish installation; the parent installer verifier "
+            "supplied the installed host and this receipt hashes that installer"
+        )
+    return "Candidate executable, not NSIS installed journey"
+
+
+
+def owned_process_rows(rows, root_pid):
+    """Reject recycled parent PIDs using observed creation times."""
+    indexed = {row["pid"]: row for row in rows}
+    if root_pid not in indexed:
+        raise RuntimeError("Owned driver identity unavailable")
+    owned = {root_pid}
+    changed = True
+    while changed:
+        changed = False
+        for row in rows:
+            parent = indexed.get(row["parent_pid"])
+            if parent and parent["pid"] in owned and row["created"] >= parent["created"] and row["pid"] not in owned:
+                owned.add(row["pid"])
+                changed = True
+    return [indexed[pid] for pid in sorted(owned)]
+
+
+def native_process_rows():
+    """Win32 metadata snapshot, without CIM, command lines or profile contents."""
+    from ctypes import wintypes
+
+    class Entry(ctypes.Structure):
+        _fields_ = [("size", wintypes.DWORD), ("usage", wintypes.DWORD),
+                    ("pid", wintypes.DWORD), ("heap", ctypes.c_size_t),
+                    ("module", wintypes.DWORD), ("threads", wintypes.DWORD),
+                    ("parent", wintypes.DWORD), ("priority", wintypes.LONG),
+                    ("flags", wintypes.DWORD), ("name", wintypes.WCHAR * 260)]
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.CreateToolhelp32Snapshot.restype = ctypes.c_void_p
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    snapshot = kernel.CreateToolhelp32Snapshot(2, 0)
+    if snapshot == ctypes.c_void_p(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    rows = []
+    entry = Entry()
+    entry.size = ctypes.sizeof(entry)
+    try:
+        found = kernel.Process32FirstW(ctypes.c_void_p(snapshot), ctypes.byref(entry))
+        while found:
+            handle = kernel.OpenProcess(0x1000, False, entry.pid)
+            if handle:
+                try:
+                    created, exited, system, user = (wintypes.FILETIME() for _ in range(4))
+                    if kernel.GetProcessTimes(ctypes.c_void_p(handle), ctypes.byref(created), ctypes.byref(exited), ctypes.byref(system), ctypes.byref(user)):
+                        rows.append({"pid": entry.pid, "parent_pid": entry.parent, "name": entry.name,
+                                     "created": (created.dwHighDateTime << 32) | created.dwLowDateTime})
+                finally:
+                    kernel.CloseHandle(handle)
+            found = kernel.Process32NextW(ctypes.c_void_p(snapshot), ctypes.byref(entry))
+    finally:
+        kernel.CloseHandle(snapshot)
+    return rows
+
+
+def profile_metadata(paths):
+    return [{"path": str(path), "exists": path.exists(),
+             "ebwebview_exists": (path / "EBWebView").exists(),
+             "devtools_active_port_exists": (path / "DevToolsActivePort").exists(),
+             "ebwebview_devtools_active_port_exists": (path / "EBWebView" / "DevToolsActivePort").exists()}
+            for path in paths]
+
+
+def process_elevation(pid):
+    """Read the elevation boolean of an already-owned process, not token data."""
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    security = ctypes.WinDLL("advapi32", use_last_error=True)
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    security.OpenProcessToken.argtypes = [ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(wintypes.HANDLE)]
+    security.GetTokenInformation.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
+    process_handle = kernel.OpenProcess(0x1000, False, pid)
+    if not process_handle:
+        return {"elevation_verified": False, "error": ctypes.get_last_error()}
+    access_handle = wintypes.HANDLE()
+    try:
+        if not security.OpenProcessToken(process_handle, 0x0008, ctypes.byref(access_handle)):
+            return {"elevation_verified": False, "error": ctypes.get_last_error()}
+        elevated, returned = wintypes.DWORD(), wintypes.DWORD()
+        if not security.GetTokenInformation(access_handle, 20, ctypes.byref(elevated), ctypes.sizeof(elevated), ctypes.byref(returned)):
+            return {"elevation_verified": False, "error": ctypes.get_last_error()}
+        return {"elevation_verified": True, "elevated": bool(elevated.value)}
+    finally:
+        if access_handle:
+            kernel.CloseHandle(access_handle)
+        kernel.CloseHandle(process_handle)
+
+
+
+def wait_owned_descendant_drain(records, *, timeout=15.0, interval=.2,
+                                snapshot=None, monotonic=None, sleep=None):
+    """Observe only PID + creation identities; do not stop or exempt processes."""
+    snapshot = snapshot or native_process_rows
+    monotonic = monotonic or time.monotonic
+    sleep = sleep or time.sleep
+    owned = {(row["pid"], row["created"]) for row in records}
+    started = monotonic()
+    deadline = started + timeout
+    samples = 0
+    while True:
+        current = snapshot()
+        samples += 1
+        remaining = [row for row in current if (row["pid"], row["created"]) in owned]
+        now = monotonic()
+        if not remaining or now >= deadline:
+            return {"remaining": remaining, "samples": samples,
+                    "elapsed_seconds": round(now-started, 3), "timeout_seconds": timeout}
+        sleep(min(interval, deadline-now))
+
+
+def owned_cdp_listener_rows(cdp_port, owned, *, snapshot=None, observe=None):
+    """Verify loopback/ownership and recheck each listener's creation identity."""
+    snapshot = snapshot or native_process_rows
+    observe = observe or tcp_listener_rows
+    listeners = observe(ports=(cdp_port,))
+    indexed = {row["pid"]: row["created"] for row in owned}
+    if not listeners or any(row["LocalAddress"] not in ("127.0.0.1", "::1")
+                            or row["OwningProcess"] not in indexed for row in listeners):
+        raise RuntimeError("Unowned CDP listener")
+    after = {row["pid"]: row["created"] for row in snapshot()}
+    if any(after.get(row["OwningProcess"]) != indexed[row["OwningProcess"]] for row in listeners):
+        raise RuntimeError("CDP listener process creation identity changed during observation")
+    return listeners
+
+
+def owned_attach_diagnostics(root_pid, root_created, cdp_port, folders):
+    """Owned metadata only; never persist complete command lines or environment."""
+    rows = native_process_rows()
+    root = next((row for row in rows if row["pid"] == root_pid), None)
+    if root is None or root["created"] != root_created:
+        raise RuntimeError("Owned attach root missing or PID creation mismatch")
+    owned = owned_process_rows(rows, root_pid)
+    ids = ",".join(str(row["pid"]) for row in owned)
+    script = (
+        "$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); $ids=@(" + ids + "); "
+        "$processes=@(Get-CimInstance Win32_Process -Filter ("
+        "$ids.ForEach({ 'ProcessId=' + $_ }) -join ' OR ') | ForEach-Object { "
+        "$cmd=$_.CommandLine; $allowed=$_.Name -in @('ArcheAxis.exe','archeaxis-api.exe','python.exe','pythonw.exe','msedgewebview2.exe'); "
+        "[pscustomobject]@{pid=$_.ProcessId; executable_path=if($allowed){$_.ExecutablePath}else{$null}; "
+        "command_metadata_available=($null -ne $cmd); "
+        "debug_port_matches=($cmd -match '--remote-debugging-port=" + str(cdp_port) + "(?:[^0-9]|$)'); "
+        "debug_address_loopback=($cmd -match '--remote-debugging-address=127\\.0\\.0\\.1(?:[^0-9.]|$)'); "
+        "has_user_data_dir=($cmd -match '--user-data-dir(?:=|\\s)') } }); "
+        "@{processes=$processes} | ConvertTo-Json -Depth 5 -Compress"
+    )
+    result = subprocess.run(["powershell.exe", "-NoProfile", "-Command", script],
+                            capture_output=True, text=True, encoding="utf-8", errors="replace", check=True, timeout=15)
+    metadata = json.loads(result.stdout)
+    metadata["loopback_listeners"] = [row for row in tcp_listener_rows(
+        ports=(cdp_port,), pids=(row["pid"] for row in owned))
+        if row["LocalAddress"] in ("127.0.0.1", "::1")]
+    after = {row["pid"]: row for row in native_process_rows()}
+    if any(row["pid"] not in after or after[row["pid"]]["created"] != row["created"] for row in owned):
+        raise RuntimeError("Owned attach process identity changed during metadata collection")
+    indexed = {row["pid"]: row for row in owned}
+    if {row["pid"] for row in metadata["processes"]} != set(indexed):
+        raise RuntimeError("Incomplete owned attach process metadata")
+    for row in metadata["processes"]:
+        row.update({"created": indexed[row["pid"]]["created"], "name": indexed[row["pid"]]["name"]})
+    from ctypes import wintypes
+    user = ctypes.WinDLL("user32", use_last_error=True)
+    callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    user.EnumWindows.argtypes = [callback_type, wintypes.LPARAM]
+    user.IsWindowVisible.argtypes = [wintypes.HWND]
+    user.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+    user.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    windows = []
+    @callback_type
+    def inspect_window(hwnd, _):
+        pid = wintypes.DWORD()
+        user.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        if pid.value in indexed and user.IsWindowVisible(hwnd):
+            name = ctypes.create_unicode_buffer(256)
+            user.GetClassNameW(hwnd, name, len(name))
+            windows.append({"hwnd": int(hwnd), "pid": pid.value,
+                            "created": indexed[pid.value]["created"], "class_name": name.value})
+        return True
+    if not user.EnumWindows(inspect_window, 0):
+        raise ctypes.WinError(ctypes.get_last_error())
+    profiles = []
+    def walk_failed(error):
+        raise error
+    for folder in folders:
+        count = 0
+        truncated = False
+        if folder.exists():
+            for _, directories, files in os.walk(folder, followlinks=False, onerror=walk_failed):
+                directories[:] = [name for name in directories
+                                  if not (Path(_) / name).is_symlink() and not (Path(_) / name).is_junction()]
+                count += len(files)
+                if count >= 10000:
+                    truncated = True
+                    break
+        profiles.append({"path": str(folder), "exists": folder.is_dir(),
+                         "file_count": count, "count_truncated": truncated})
+    return {"collection_verified": True, "owned_processes": owned,
+            "process_metadata": metadata["processes"], "visible_windows": windows,
+            "loopback_listeners": metadata["loopback_listeners"], "profiles": profiles}
+
+
+
+def loopback_urlopen(request, *, timeout):
+    """This probe permits HTTP only to its explicit local loopback listeners."""
+    url = request.full_url if isinstance(request, Request) else request
+    parsed = urlsplit(url)
+    if parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or parsed.username or parsed.password:
+        raise ValueError("Non-loopback probe HTTP target rejected")
+    class LoopbackRedirectHandler(HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            target = urlsplit(newurl)
+            if target.scheme != "http" or target.hostname != "127.0.0.1" or target.username or target.password:
+                raise ValueError("Non-loopback probe HTTP redirect rejected")
+            return super().redirect_request(req, fp, code, msg, headers, newurl)
+    return build_opener(ProxyHandler({}), LoopbackRedirectHandler()).open(request, timeout=timeout)
+
+
+
+class OwnedWebDriverTransport:
+    """One numeric-loopback connection; never redirect or replay a command."""
+    def __init__(self, port):
+        if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:
+            raise ValueError("Invalid owned WebDriver port")
+        self.port = port
+        self.connection = http.client.HTTPConnection("127.0.0.1", port)
+
+    def open(self, request, *, timeout):
+        target = urlsplit(request.full_url)
+        if target.scheme != "http" or target.hostname != "127.0.0.1" or target.port != self.port or target.username or target.password or target.fragment:
+            raise ValueError("Foreign WebDriver destination rejected")
+        self.connection.timeout = timeout
+        if self.connection.sock is not None:
+            self.connection.sock.settimeout(timeout)
+        try:
+            path = target.path + ("?" + target.query if target.query else "")
+            self.connection.request(request.get_method(), path, body=request.data, headers=dict(request.header_items()))
+            response = self.connection.getresponse()
+            expected_length = response.length
+            raw = response.read(16 * 1024 * 1024 + 1)
+            if expected_length is not None and len(raw) < expected_length:
+                raise http.client.IncompleteRead(raw, expected_length - len(raw))
+            status, reason, headers = response.status, response.reason, response.headers
+            response.close()
+            if len(raw) > 16 * 1024 * 1024:
+                raise ValueError("WebDriver response exceeds bounded transport")
+            if status >= 300:
+                raise HTTPError(request.full_url, status, reason, headers, io.BytesIO(raw))
+            return io.BytesIO(raw)
+        except BaseException:
+            self.connection.close()
+            raise  # Even a read timeout may hide an applied command; never replay.
+
+    def close(self):
+        self.connection.close()
+
+
+def free_port():
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def archive_member_job_id(parent_job, member_file):
+    legacy = parent_job + "-member-" + member_file
+    if len(legacy.encode("utf-8")) <= 200 and all(character.isascii() and (character.isalnum() or character in "-_.") for character in legacy):
+        return legacy
+    identity = "archeaxis.archive-member/v1\0" + parent_job + "\0" + member_file
+    return "member-" + hashlib.sha256(identity.encode("utf-8")).hexdigest()
+
+
+def ui_original_import_loop(bridge, ui_type, wait, manifest, repo):
+    """Real file input writes; bridge only reads identity and original bytes.
+
+    Explicit synthetic fixture manifest, never arbitrary private material discovery.
+    Conversion, recognition fidelity and formal admission are separate evidence.
+    """
+    entries = json.loads(manifest.read_text(encoding="utf-8"))
+    assert entries["materials"] == "SYNTHETIC_AUTHORED"
+    assert len(entries["files"]) == 18
+    proofs = []
+    names = set()
+    for entry in entries["files"]:
+        path = Path(entry["path"]).resolve()
+        assert path.is_relative_to((repo / ".project-local").resolve())
+        assert path.name not in names
+        names.add(path.name)
+        raw = path.read_bytes()
+        digest = hashlib.sha256(raw).hexdigest()
+        assert digest == entry["sha256"] and len(raw) == entry["bytes"]
+        assert 0 < len(raw) <= 64 * 1024 * 1024
+        ui_type('input[type="file"][aria-label="导入原件"]', str(path))
+        wait("const r=document.querySelector('[aria-label=\"导入回执\"]');return !!r&&r.textContent.includes(" + json.dumps(path.name) + ")&&r.textContent.includes('原件已保留；转换尚未执行')")
+        sources = bridge("sources_list")["sources"]
+        matches = [s for s in sources if s["original_name"] == path.name and s["sha256"] == digest]
+        assert len(matches) == 1
+        source = matches[0]
+        original = bridge("source_original", {"source_id": source["source_id"]})
+        assert base64.b64decode(original["content_base64"], validate=True) == raw
+        assert original["sha256"] == digest
+        proofs.append({"format": entry["format"], "source_id": source["source_id"], "name": path.name,
+                       "sha256": digest, "bytes": len(raw), "scope": "UI_ORIGINAL_IMPORT_ONLY"})
+    return proofs
+
+
+def ui_original_import_readback(bridge, proofs):
+    for proof in proofs:
+        original = bridge("source_original", {"source_id": proof["source_id"]})
+        raw = base64.b64decode(original["content_base64"], validate=True)
+        assert hashlib.sha256(raw).hexdigest() == proof["sha256"] == original["sha256"]
+        assert len(raw) == proof["bytes"]
+        if "ui_conversion" in proof:
+            conversion = proof["ui_conversion"]
+            assert bridge("jobs_get", {"job_id": conversion["job_id"]})["state"] == "succeeded"
+            for kind, digest in conversion["output_hashes"].items():
+                output = bridge("job_output", {"job_id": conversion["job_id"], "kind": kind})
+                assert hashlib.sha256(output["content"].encode("utf-8")).hexdigest() == digest == output["metadata"]["sha256"]
+            conversion["host_restart_output_readback"] = "PASS"
+        if "ui_ocr_pages" in proof:
+            ui_original_import_readback(bridge, proof["ui_ocr_pages"])
+            pages = bridge("source_pages", {"source_id": proof["source_id"]})
+            if proof.get("ui_page_relation_superseded"):
+                keys = ("page", "source_id", "sha256", "origin_ref")
+                assert [{key: row[key] for key in keys} for row in pages["pages"]] == [{key: row[key] for key in keys} for row in proof["ui_ocr_page_relation"]["pages"]]
+            else:
+                assert pages == proof["ui_ocr_page_relation"]
+        if "ui_structure_citation" in proof:
+            citation = proof["ui_structure_citation"]
+            assert bridge("anchor_resolve", {"source_id": proof["source_id"], "anchor_id": citation["anchor"]["anchor_id"]}) == citation["resolution"]
+        if "ui_text_citation" in proof:
+            citation = proof["ui_text_citation"]
+            assert bridge("anchor_resolve", {"source_id": proof["source_id"], "anchor_id": citation["anchor"]["anchor_id"]}) == citation["resolution"]
+        if "ui_partial_text_citation" in proof:
+            citation = proof["ui_partial_text_citation"]
+            assert bridge("anchor_resolve", {"source_id": proof["source_id"], "anchor_id": citation["anchor"]["anchor_id"]}) == citation["resolution"]
+        proof["host_restart_original_readback"] = "PASS"
+
+
+def ui_original_text_citations(bridge, ui_click, ui_type, wait, proofs, js, ui_select_emoji):
+    """Trusted Ctrl+A selection; Core bridge reads only. Full original scope."""
+    for proof in proofs:
+        if proof["format"] not in {"txt", "md"}:
+            continue
+        ui_click(proof["name"], "//nav[@aria-label='保留原件']")
+        wait("return !!document.querySelector('[aria-label=\"原件文本范围引用\"] textarea')")
+        raw = base64.b64decode(bridge("source_original", {"source_id": proof["source_id"]})["content_base64"], validate=True)
+        assert hashlib.sha256(raw).hexdigest() == proof["sha256"]
+        if raw.startswith("\ufeff甲\r\n😀乙\r\n".encode("utf-8")):
+            previous = {row["anchor_id"] for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]}
+            # Read-only text supports pointer ranges; caret-navigation keys may
+            # only scroll. Exercise the user's actual drag-selection operation.
+            ui_select_emoji()
+            try:
+                wait("return document.querySelector('[aria-label=\"原件文本范围引用\"]')?.textContent.includes('所选原文：😀')")
+            except TimeoutError as exc:
+                state = js("const a=document.querySelector('[aria-label=\"原件文本范围引用\"] textarea');return a?{focused:document.activeElement===a,start:a.selectionStart,end:a.selectionEnd,selected:a.value.slice(a.selectionStart,a.selectionEnd).slice(0,16),keys:window.__originalSelectionKeys,pointer:window.__originalSelectionPointer}:null")
+                raise AssertionError({"partial_original_selection": state}) from exc
+            ui_click("引用所选原文", "//section[@aria-label='原件文本范围引用']")
+            wait("return document.querySelector('[aria-label=\"原件文本范围引用\"]')?.textContent.includes('已引用并解析')")
+            added = [row for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"] if row["anchor_id"] not in previous]
+            assert len(added) == 1
+            anchor = added[0]
+            position = json.loads(anchor["position"])
+            assert position["start"] == 8 and position["end"] == 12 and position["checksum"] == hashlib.sha256("😀".encode()).hexdigest()
+            resolution = bridge("anchor_resolve", {"source_id": proof["source_id"], "anchor_id": anchor["anchor_id"]})
+            assert resolution["status"] == "CURRENT" and resolution["scope"] == "locator_provenance_only"
+            proof["ui_partial_text_citation"] = {"anchor": anchor, "resolution": resolution, "selection_scope": "EMOJI_AFTER_BOM_CHINESE_CRLF_TRUSTED_POINTER"}
+        previous = {row["anchor_id"] for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]}
+        ui_type('[aria-label="原件文本范围引用"] textarea', "\ue009a\ue000")
+        wait("return ![...document.querySelectorAll('[aria-label=\"原件文本范围引用\"] button')].find(b=>b.textContent==='引用所选原文')?.disabled")
+        ui_click("引用所选原文", "//section[@aria-label='原件文本范围引用']")
+        wait("return document.querySelector('[aria-label=\"原件文本范围引用\"]')?.textContent.includes('已引用并解析')")
+        added = [row for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"] if row["anchor_id"] not in previous]
+        assert len(added) == 1
+        anchor = added[0]
+        position = json.loads(anchor["position"])
+        assert position["type"] == "text" and position["start"] == 0 and position["end"] == len(raw) and position["checksum"] == hashlib.sha256(raw).hexdigest()
+        resolution = bridge("anchor_resolve", {"source_id": proof["source_id"], "anchor_id": anchor["anchor_id"]})
+        assert resolution["status"] == "CURRENT" and resolution["scope"] == "locator_provenance_only"
+        proof["ui_text_citation"] = {"anchor": anchor, "resolution": resolution, "selection_scope": "WHOLE_ORIGINAL_TRUSTED_KEYS"}
+
+
+def ui_format_conversion_loop(bridge, ui_click, wait, js, proofs, navigate=True, scope="//section[@aria-label='真实转换产物']", citations=False):
+    """Execute through rendered controls; verify persisted outputs independently."""
+    selector = '[aria-label="PDF 页面识别回写"] [aria-label="真实转换产物"]' if not navigate else '[aria-label="真实转换产物"]'
+    for proof in proofs:
+        if navigate:
+            ui_click(proof["name"], "//nav[@aria-label='保留原件']")
+        wait("return !!document.querySelector('[aria-label=\"真实转换产物\"]')")
+        before = {row["job_id"] for row in bridge("source_jobs", {"source_id": proof["source_id"]})["jobs"]}
+        label = js("const s=document.querySelector(" + json.dumps(selector) + ");const b=[...s.querySelectorAll('button')].find(b=>['执行真实内容转换','执行真实语音转写','执行真实视频分析','整体执行'].includes(b.textContent));return b?.textContent")
+        assert label, f"No content conversion control: {proof['format']}"
+        ui_click(label, scope)
+        wait("const s=document.querySelector(" + json.dumps(selector) + ");return [...s.querySelectorAll('[role=status]')].some(p=>p.textContent.includes('真实转换已完成')||p.textContent.includes('PDF 文字层处理已完成'))", seconds=900)
+        listing = bridge("source_jobs", {"source_id": proof["source_id"]})["jobs"]
+        added = [row for row in listing if row["job_id"] not in before]
+        assert len(added) == 1 and added[0]["state"] == "succeeded"
+        job = added[0]["job_id"]
+        outputs = {kind: bridge("job_output", {"job_id": job, "kind": kind}) for kind in ("text", "document_structure", "loss_report")}
+        hashes = {}
+        for kind, output in outputs.items():
+            raw = output["content"].encode("utf-8")
+            digest = hashlib.sha256(raw).hexdigest()
+            assert digest == output["metadata"]["sha256"] and len(raw) == output["metadata"]["byte_length"]
+            hashes[kind] = digest
+        text = outputs["text"]["content"]
+        scan = proof["format"] == "pdf-scanned"
+        assert not text.strip() if scan else text.strip()
+        if not scan:
+            assert js("return document.querySelector(" + json.dumps(selector + ' [aria-label="Core 提取正文"]') + ")?.textContent") == text
+        anchors = json.loads(outputs["document_structure"]["content"])
+        assert (scan or anchors) and all(0 <= row["char_start"] < row["char_end"] <= len(text) for row in anchors)
+        loss = json.loads(outputs["loss_report"]["content"])
+        quality = bridge("job_quality", {"job_id": job})
+        assert loss["loss_note"].strip() and quality["state"] == "succeeded"
+        assert quality["engine"] == loss["engine"] and quality["engine_version"] == loss["engine_version"]
+        proof["ui_conversion"] = {"job_id": job, "output_hashes": hashes, "anchors": len(anchors), "scope": "ACTUAL_UI_CONTENT_JOB_NOT_FULL_FIDELITY"}
+        if citations and proof["format"] in {"csv", "json", "docx", "xlsx", "pptx", "html", "canvas", "srt", "vtt", "png", "jpeg", "pdf-text", "pdf-page-ocr"}:
+            previous = {row["anchor_id"] for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]}
+            ui_click("预览所选引用", scope)
+            wait("return !!document.querySelector(" + json.dumps(selector + ' [aria-label="所选引用预览"]') + ")")
+            assert {row["anchor_id"] for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]} == previous
+            ui_click("引用所选结构位置", scope)
+            wait("return document.querySelector(" + json.dumps(selector + ' [aria-label="转换结构引用"]') + ")?.textContent.includes('引用已保存并解析')")
+            added = [row for row in bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"] if row["anchor_id"] not in previous]
+            assert len(added) == 1
+            anchor = added[0]
+            position = json.loads(anchor["position"])
+            assert anchor["source_revision"] == proof["sha256"] and position["job_id"] == job and position["attempt"] == bridge("jobs_get", {"job_id": job})["attempt"]
+            resolution = bridge("anchor_resolve", {"source_id": proof["source_id"], "anchor_id": anchor["anchor_id"]})
+            assert resolution["status"] == "CURRENT" and resolution["scope"] == "locator_provenance_only"
+            proof["ui_structure_citation"] = {"anchor": anchor, "resolution": resolution}
+        if scan:
+            assert loss["params"]["pages_without_text"] == [1, 2]
+            ui_click("读取页面与识别文本", "//section[@aria-label='PDF 页面识别回写']")
+            pages = bridge("source_pages", {"source_id": proof["source_id"]})
+            assert pages["page_count"] == 2
+            proof["ui_ocr_pages"] = []
+            for page in pages["pages"]:
+                ui_click(f"第 {page['page']} 页 · {page['original_name']}", "//section[@aria-label='PDF 页面识别回写']")
+                ui_click("处理此页识别文本", "//section[@aria-label='PDF 页面识别回写']")
+                wait("return !!document.querySelector('[aria-label=\"PDF 页面识别回写\"] [aria-label=\"真实转换产物\"]')")
+                original = bridge("source_original", {"source_id": page["source_id"]})
+                raw = base64.b64decode(original["content_base64"], validate=True)
+                assert hashlib.sha256(raw).hexdigest() == page["sha256"] == original["sha256"]
+                child = {"format": "pdf-page-ocr", "name": page["original_name"], "source_id": page["source_id"], "sha256": page["sha256"], "bytes": len(raw)}
+                proof["ui_ocr_pages"].append(child)
+                ui_format_conversion_loop(bridge, ui_click, wait, js, [child], navigate=False, scope="//section[@aria-label='PDF 页面识别回写']//section[@aria-label='真实转换产物']", citations=citations)
+            ui_click("读取页面与识别文本", "//section[@aria-label='PDF 页面识别回写']")
+            relation = bridge("source_pages", {"source_id": proof["source_id"]})
+            assert relation["recognised_count"] == relation["page_count"] == 2
+            assert all(page["text"] and page["recognised"] for page in relation["pages"])
+            proof["ui_ocr_page_relation"] = relation
+
+
+def verify_ui_reparse(bridge, first, second):
+    """Independent executions preserve old outputs; never require identical OCR."""
+    assert len(first) == len(second) == 18
+    for old, new in zip(first, second, strict=True):
+        assert all(old[key] == new[key] for key in ("format", "source_id", "sha256", "bytes"))
+        assert old["ui_conversion"]["job_id"] != new["ui_conversion"]["job_id"]
+        for kind, digest in old["ui_conversion"]["output_hashes"].items():
+            output = bridge("job_output", {"job_id": old["ui_conversion"]["job_id"], "kind": kind})
+            assert hashlib.sha256(output["content"].encode("utf-8")).hexdigest() == digest == output["metadata"]["sha256"]
+        if "ui_ocr_pages" in old:
+            assert len(old["ui_ocr_pages"]) == len(new["ui_ocr_pages"]) == 2
+            for before, after in zip(old["ui_ocr_pages"], new["ui_ocr_pages"], strict=True):
+                assert before["source_id"] == after["source_id"] and before["sha256"] == after["sha256"]
+                assert before["ui_conversion"]["job_id"] != after["ui_conversion"]["job_id"]
+                for kind, digest in before["ui_conversion"]["output_hashes"].items():
+                    output = bridge("job_output", {"job_id": before["ui_conversion"]["job_id"], "kind": kind})
+                    assert hashlib.sha256(output["content"].encode("utf-8")).hexdigest() == digest == output["metadata"]["sha256"]
+
+
+def installed_format_import_loop(bridge, repo, proofs):
+    """Public fixtures through the installed host's finite authenticated bridge.
+
+    A candidate caller remains candidate evidence; installation context is supplied
+    by the existing installer verifier, never inferred from this helper.
+    """
+    import io
+    import tarfile
+
+    csv = b"key,value\ninstalled-format-value,37\n"
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w") as archive:
+        member = tarfile.TarInfo("notes/known.csv")
+        member.size = len(csv)
+        archive.addfile(member, io.BytesIO(csv))
+    light = load("installed_epub_public_fixture", repo / "scripts/probes/aaos01_light_format_loop.py")
+    samples = [
+        ("g3-known.epub", "text", light.samples()["epub"], "Chapter body 42"),
+        ("g3-known.xlsx", "office", (repo / "tests/fixtures/golden/golden-xlsx-anchor.xlsx").read_bytes(), "Sheet evidence anchor"),
+        ("g3-known.pptx", "office", (repo / "tests/fixtures/golden/golden-pptx-anchor.pptx").read_bytes(), "Slide evidence anchor"),
+        ("g3-known.csv", "text", csv, "installed-format-value"),
+        ("g3-known.tar", "archive", buffer.getvalue(), "notes/known.csv"),
+    ]
+
+    def execute(job):
+        bridge("job_execute", {"job_id": job, "body": {"deadline_ms": 120000}})
+        deadline = time.monotonic() + 130
+        while time.monotonic() < deadline:
+            state = bridge("jobs_get", {"job_id": job})
+            if state["state"] in ("succeeded", "failed", "rejected", "cancelled"):
+                assert state["state"] == "succeeded", f"Installed format job failed: {job}"
+                return
+            time.sleep(0.15)
+        raise TimeoutError(f"Installed format job deadline: {job}")
+
+    def snapshot(source_id, job):
+        original = bridge("source_original", {"source_id": source_id})
+        data = base64.b64decode(original["content_base64"], validate=True)
+        assert hashlib.sha256(data).hexdigest() == original["sha256"]
+        outputs = {kind: bridge("job_output", {"job_id": job, "kind": kind})
+                   for kind in ("text", "document_structure", "loss_report")}
+        for output in outputs.values():
+            assert hashlib.sha256(output["content"].encode()).hexdigest() == output["metadata"]["sha256"]
+            assert len(output["content"].encode()) == output["metadata"]["byte_length"]
+        anchors = json.loads(outputs["document_structure"]["content"])
+        loss = json.loads(outputs["loss_report"]["content"])
+        assert anchors and all(item["char_end"] > item["char_start"] for item in anchors)
+        assert loss["loss_note"].strip()
+        quality = bridge("job_quality", {"job_id": job})
+        assert quality["state"] == "succeeded" and quality["engine"] == loss["engine"]
+        assert quality["engine_version"] == loss["engine_version"]
+        return {"source_id": source_id, "job_id": job, "original": original,
+                "outputs": outputs, "quality": quality}
+
+    for name, kind, content, expected in samples:
+        imported = bridge("source_import", {"body": {"name": name, "content_base64": base64.b64encode(content).decode()}})
+        assert imported["sha256"] == hashlib.sha256(content).hexdigest()
+        job = "g3-format-" + uuid.uuid4().hex
+        bridge("job_enqueue", {"body": {"job_id": job, "kind": kind, "input_ref": imported["source_id"]}})
+        execute(job)
+        proof = snapshot(imported["source_id"], job)
+        assert expected in proof["outputs"]["text"]["content"]
+        loss = json.loads(proof["outputs"]["loss_report"]["content"])
+        if name.endswith("xlsx") or name.endswith("pptx"):
+            locators = loss["params"]["worker_structure"]
+            assert locators
+            if name.endswith("xlsx"):
+                assert loss["params"]["engine"] == "openpyxl"
+                assert locators[0]["kind"] == "sheet_row"
+                assert locators[0]["path"][0].startswith("sheet-")
+                assert any(row["path"][0] == "sheet-Evidence" and "A1=Sheet evidence anchor" in proof["outputs"]["text"]["content"][row["char_start"]:row["char_end"]] for row in locators)
+            else:
+                assert loss["params"]["engine"] == "python-pptx"
+                assert locators[0]["kind"] == "slide" and locators[0]["path"][0] == "slide-1"
+                assert any(row["path"][0] == "slide-1" and "Slide evidence anchor" in proof["outputs"]["text"]["content"][row["char_start"]:row["char_end"]] for row in locators)
+        if name.endswith("csv"):
+            facts = loss["params"]["format"]
+            assert facts["format"] == "csv" and facts["parsed"] is True
+            assert any(row["row"] == 2 and row["column"] == 2 and row["value"] == "37" for row in facts["locations"])
+        if name.endswith("epub"):
+            facts = loss["params"]["format"]
+            assert facts["format"] == "epub" and facts["parsed"] is True
+            assert facts["toc"][0] == {"href": "chapter.xhtml", "title": "Golden"}
+            rows = [row for row in facts["locations"] if row["value"] == "Chapter body 42"]
+            assert len(rows) == 1
+            row = rows[0]
+            assert row["kind"] == "epub_chapter_paragraph" and row["path"] == "OEBPS/chapter.xhtml"
+            assert row["chapter"] == 1 and row["paragraph"] == 2
+            state = bridge("jobs_get", {"job_id": job})
+            assert state["input_ref"] == imported["source_id"] and state["attempt"] >= 1
+            proof["epub_position"] = {"type": "epub", "job_id": job,
+                "attempt": state["attempt"], "result_sha256": proof["outputs"]["loss_report"]["metadata"]["sha256"],
+                "path": row["path"], "chapter": row["chapter"], "paragraph": row["paragraph"]}
+            proof["epub_value"] = row["value"]
+            proof["scope"] = "CHAPTER_PARAGRAPH_NOT_VISUAL_PAGINATION"
+        proofs.append(proof)
+        if kind == "archive":
+            declared = loss["params"]["structure"]["extractable_members"]
+            assert len(declared) == 1 and declared[0]["name"] == "notes/known.csv", \
+                {"route_media_type": loss["params"].get("media_type"), "declared": declared,
+                 "member_dir_requested": loss["params"].get("attachment_extraction")}
+            assert declared[0]["sha256"] == hashlib.sha256(csv).hexdigest()
+            # Reuse finite source list/jobs: no token access or arbitrary HTTP/file API.
+            matches = [item for item in bridge("sources_list")["sources"] if item["sha256"] == declared[0]["sha256"]]
+            assert len(matches) == 1
+            member_source = matches[0]["source_id"]
+            member_job = archive_member_job_id(job, declared[0]["file"])
+            candidates = bridge("source_jobs", {"source_id": member_source})["jobs"]
+            assert any(item["job_id"] == member_job and item["kind"] == "text" for item in candidates), "Core automatic member job missing"
+            execute(member_job)
+            child = snapshot(member_source, member_job)
+            assert "installed-format-value" in child["outputs"]["text"]["content"]
+            members = bridge("source_members", {"source_id": imported["source_id"]})
+            assert members["container_source_id"] == imported["source_id"]
+            assert members["member_count"] == len(members["members"])
+            assert members["readable_count"] + members["custody_only_count"] == members["member_count"]
+            matches = [item for item in members["members"] if item["member"] == declared[0]["name"]]
+            assert len(matches) == 1
+            member = matches[0]
+            assert member["source_id"] == member_source and member["sha256"] == declared[0]["sha256"]
+            assert member["origin_ref"] == imported["source_id"] + "#" + declared[0]["name"]
+            assert member["readable"] is True
+            # job_id is the earliest source job, not necessarily this archive's child;
+            # exact automatic child identity was already asserted through source_jobs.
+            child["container_source_id"] = imported["source_id"]
+            child["source_members"] = members
+            child["parent_archive_job"] = job
+            proofs.append(child)
+    return proofs
+
+
+def installed_format_readback(bridge, proofs):
+    for proof in proofs:
+        if "source_members" in proof:
+            assert bridge("source_members", {"source_id": proof["container_source_id"]}) == proof["source_members"]
+        assert bridge("source_original", {"source_id": proof["source_id"]}) == proof["original"]
+        assert bridge("jobs_get", {"job_id": proof["job_id"]})["state"] == "succeeded"
+        assert bridge("job_quality", {"job_id": proof["job_id"]}) == proof["quality"]
+        for kind, value in proof["outputs"].items():
+            assert bridge("job_output", {"job_id": proof["job_id"], "kind": kind}) == value
+
+
+def installed_epub_reader(bridge, js, wait, ui_click, proof, *, cite):
+    """Actual product Reader and persisted locator; no DOM injection or mocked bridge."""
+    navigate_compatibility_space(js, wait, "workspace")
+    navigate_compatibility_space(js, wait, "library")
+    wait("return [...document.querySelectorAll('[aria-label=\"保留原件\"] button')].some(b=>b.textContent==='g3-known.epub')")
+    ui_click("g3-known.epub", "//nav[@aria-label='保留原件']")
+    wait("return [...document.querySelectorAll('h2,h3,h4')].some(h=>h.textContent==='EPUB 章节段落') && document.body.textContent.includes('Chapter body 42')")
+    position = proof["epub_position"]
+    assert js("return document.body.textContent.includes(arguments[0])", [position["path"]])
+    scope = "//p[normalize-space(.)='Chapter body 42']/parent::div"
+    if cite:
+        ui_click("引用 EPUB 段落", scope)
+        wait("return document.body.textContent.includes('段落与解析回执关联已校验')")
+        anchors = bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]
+        candidates = [anchor for anchor in anchors if all(json.loads(anchor["position"]).get(key) == value for key, value in position.items())]
+        assert len(candidates) == 1
+        anchor = candidates[0]
+        assert anchor["source_id"] == proof["source_id"] and anchor["source_revision"] == proof["original"]["sha256"]
+        assert anchor["location_status"] == "located"
+        assert json.loads(anchor["position"])["checksum"] == hashlib.sha256(proof["epub_value"].encode()).hexdigest()
+        proof["epub_anchor"] = anchor
+        ui_click("定位 EPUB 段落", scope)
+    else:
+        anchors = bridge("anchors_list", {"source_id": proof["source_id"]})["anchors"]
+        assert proof["epub_anchor"] in anchors
+        ui_click("来源引用", "//aside[@aria-label='来源版本证据']")
+    wait("return document.querySelector('[data-epub-focused=\"true\"]')?.textContent==='Chapter body 42'")
+    assert js("return document.querySelector('[data-epub-focused=\"true\"]')?.textContent") == proof["epub_value"]
+
+
+def installed_remaining_matrix(bridge, bridge_status, repo, records):
+    """Existing canonical fixtures only; missing actual engines fail rather than skip."""
+    import io
+    import zipfile
+
+    light = load("installed_matrix_canonical_samples", repo / "scripts/probes/aaos01_light_format_loop.py")
+    public = light.samples()
+    cases = [(extension, "A", name, kind, (repo / "tests/fixtures/golden" / name).read_bytes(), expected, False)
+             for extension, (name, kind, expected) in light.A_SAMPLES.items()
+             if extension not in {"xlsx", "pptx"}]
+    cases += [(extension, "B", "g3-matrix." + extension, "text", content, "Golden", False)
+              for extension, content in public.items()
+              if extension not in {"csv", "epub"} and not extension.startswith("corrupt_")]
+    cases += [(extension.removeprefix("corrupt_"), "B", "g3-negative." + extension.removeprefix("corrupt_"), "text", content, None, True)
+              for extension, content in public.items() if extension.startswith("corrupt_")]
+    matrix_deadline = time.monotonic() + 900
+
+    raw_bridge, raw_status = bridge, bridge_status
+
+    def bounded_call(call, operation, payload):
+        if time.monotonic() >= matrix_deadline:
+            raise TimeoutError("Installed G3 aggregate deadline before finite read/write")
+        result = call(operation, payload)
+        if time.monotonic() >= matrix_deadline:
+            raise TimeoutError("Installed G3 aggregate deadline after finite read/write")
+        return result
+
+    def bridge(operation, payload):
+        return bounded_call(raw_bridge, operation, payload)
+
+    def bridge_status(operation, payload):
+        return bounded_call(raw_status, operation, payload)
+
+    def execute(job, failed=False):
+        if time.monotonic() >= matrix_deadline:
+            raise TimeoutError("Installed G3 aggregate 900-second deadline")
+        bridge("job_execute", {"job_id": job, "body": {"deadline_ms": 30000}})
+        deadline = min(matrix_deadline, time.monotonic() + 35)
+        while time.monotonic() < deadline:
+            state = bridge("jobs_get", {"job_id": job})
+            if state["state"] in {"succeeded", "failed", "rejected", "cancelled"}:
+                assert state["state"] == ("failed" if failed else "succeeded"), state
+                return state
+            time.sleep(0.15)
+        raise TimeoutError("Installed matrix job deadline: " + job)
+
+    def snapshot(source_id, job, state, failed=False):
+        original = bridge("source_original", {"source_id": source_id})
+        raw = base64.b64decode(original["content_base64"], validate=True)
+        assert original["source_id"] == source_id and hashlib.sha256(raw).hexdigest() == original["sha256"]
+        assert state["job_id"] == job and state["input_ref"] == source_id
+        quality = bridge("job_quality", {"job_id": job})
+        assert quality["state"] == state["state"]
+        proof = {"source_id": source_id, "job_id": job, "original": original, "state": state, "quality": quality, "failed": failed}
+        if failed:
+            assert "AAK-WORKER-003" in str(state.get("error")), state
+            statuses = {kind: bridge_status("job_output", {"job_id": job, "kind": kind})
+                        for kind in ("text", "document_structure", "loss_report")}
+            assert all(reply["status"] == 404 for reply in statuses.values()), statuses
+            proof["missing_outputs"] = statuses
+            proof["scope"] = "EXPECTED_MALFORMED_INPUT_FAILURE_NO_SUCCESS_OUTPUT"
+        else:
+            outputs = {kind: bridge("job_output", {"job_id": job, "kind": kind})
+                       for kind in ("text", "document_structure", "loss_report")}
+            for kind, output in outputs.items():
+                raw = output["content"].encode("utf-8")
+                assert output["metadata"]["kind"] == kind
+                assert output["metadata"]["byte_length"] == len(raw)
+                assert output["metadata"]["sha256"] == hashlib.sha256(raw).hexdigest()
+            loss = json.loads(outputs["loss_report"]["content"])
+            assert quality["engine"] == loss["engine"] and quality["engine_version"] == loss["engine_version"]
+            assert loss["engine"] and loss["engine_version"] and loss["loss_note"]
+            proof["outputs"] = outputs
+        return proof
+
+    for extension, wave, name, kind, content, expected, corrupt in cases:
+        record = {"format": extension, "wave": wave, "name": name, "corrupt": corrupt,
+                  "input": {"sha256": hashlib.sha256(content).hexdigest(), "bytes": len(content)}, "stage": "importing"}
+        records.append(record)  # preserve the exact failing row in the parent receipt
+        payload = {"body": {"name": name, "content_base64": base64.b64encode(content).decode()}}
+        assert len(json.dumps(payload["body"]).encode()) <= 8 * 1024 * 1024
+        imported = bridge("source_import", payload)
+        assert imported["sha256"] == record["input"]["sha256"]
+        job = "g3-matrix-" + uuid.uuid4().hex
+        record.update(source_id=imported["source_id"], job_id=job, stage="executing")
+        bridge("job_enqueue", {"body": {"job_id": job, "kind": kind, "input_ref": imported["source_id"]}})
+        state = execute(job, corrupt)
+        proof = snapshot(imported["source_id"], job, state, corrupt)
+        record["proof"] = proof
+        if not corrupt:
+            outputs = proof["outputs"]
+            canonical = {"format": extension, "wave": wave, "expected_text": expected,
+                         "input": record["input"], "snapshot": {"job": {"body": state},
+                         **{key: {"status": 200, "body": value} for key, value in outputs.items()},
+                         "quality": {"status": 200, "body": proof["quality"]}}}
+            light.check(canonical)  # reuse all canonical format-specific locator/structure assertions
+            record["scope"] = "HEADER_PROBE_ONLY_NO_DECODE_ASR_TIME_RANGE" if kind == "media" else "REAL_FINITE_HOST_JOB_OUTPUT_LOCATOR_LOSS_NOT_VISUAL_READER"
+            record["native_locations"] = canonical.get("native_locations")
+            if extension == "zip":
+                with zipfile.ZipFile(io.BytesIO(content)) as archive:
+                    members_bytes = {member: archive.read(member) for member in archive.namelist() if not member.endswith("/")}
+                members = bridge("source_members", {"source_id": imported["source_id"]})
+                assert members["member_count"] == len(members_bytes)
+                declared = json.loads(outputs["loss_report"]["content"])["params"]["structure"]["extractable_members"]
+                children = []
+                record["children"] = children
+                for member in members["members"]:
+                    raw = members_bytes[member["member"]]
+                    assert member["sha256"] == hashlib.sha256(raw).hexdigest()
+                    assert member["origin_ref"] == imported["source_id"] + "#" + member["member"]
+                    descriptor = next(item for item in declared if item["name"] == member["member"])
+                    child_job = archive_member_job_id(job, descriptor["file"])
+                    queued = bridge("source_jobs", {"source_id": member["source_id"]})["jobs"]
+                    assert any(item["job_id"] == child_job and item["state"] == "queued" for item in queued)
+                    child = snapshot(member["source_id"], child_job, execute(child_job))
+                    assert base64.b64decode(child["original"]["content_base64"], validate=True) == raw
+                    assert child["outputs"]["text"]["content"].strip()
+                    children.append(child)
+                record["source_members"] = bridge("source_members", {"source_id": imported["source_id"]})
+                assert all(member["readable"] for member in record["source_members"]["members"])
+        record["stage"] = "verified_before_full_restart"
+    assert len(records) == 21 and sum(record["corrupt"] for record in records) == 4
+
+
+def installed_remaining_readback(bridge, bridge_status, records):
+    readback_deadline = time.monotonic() + 180
+    raw_bridge, raw_status = bridge, bridge_status
+
+    def bounded_read(call, operation, payload):
+        if time.monotonic() >= readback_deadline:
+            raise TimeoutError("Installed matrix 180-second restart readback deadline")
+        result = call(operation, payload)
+        if time.monotonic() >= readback_deadline:
+            raise TimeoutError("Installed matrix restart readback transport exceeded deadline")
+        return result
+
+    def bridge(operation, payload):
+        return bounded_read(raw_bridge, operation, payload)
+
+    def bridge_status(operation, payload):
+        return bounded_read(raw_status, operation, payload)
+
+    for record in records:
+        proofs = [record["proof"], *record.get("children", [])]
+        for proof in proofs:
+            assert bridge("source_original", {"source_id": proof["source_id"]}) == proof["original"]
+            assert bridge("jobs_get", {"job_id": proof["job_id"]}) == proof["state"]
+            assert bridge("job_quality", {"job_id": proof["job_id"]}) == proof["quality"]
+            for kind, output in proof.get("outputs", {}).items():
+                assert bridge("job_output", {"job_id": proof["job_id"], "kind": kind}) == output
+            for kind, missing in proof.get("missing_outputs", {}).items():
+                assert bridge_status("job_output", {"job_id": proof["job_id"], "kind": kind}) == missing
+        if "source_members" in record:
+            assert bridge("source_members", {"source_id": record["source_id"]}) == record["source_members"]
+        record["stage"] = "verified_after_full_host_restart"
+
+
+def synthetic_course_loop(bridge, bridge_status, js, wait, ui_click, ui_type, screenshot):
+    """Real native transport/rendering using authored data; never human signoff."""
+    text = "SYNTHETIC course lesson evidence 20261009."
+    source = bridge("source_import", {"body": {"name": "synthetic-course.txt", "content_base64": base64.b64encode(text.encode()).decode()}})
+    job_id = "synthetic_course_" + uuid.uuid4().hex
+    bridge("job_enqueue", {"body": {"job_id": job_id, "kind": "text", "input_ref": source["source_id"]}})
+    bridge("job_execute", {"job_id": job_id, "body": {"deadline_ms": 30000}})
+    execution = bridge("jobs_get", {"job_id": job_id})
+    deadline = time.monotonic() + 40
+    while execution["state"] in {"queued", "running"} and time.monotonic() < deadline:
+        time.sleep(0.15)
+        execution = bridge("jobs_get", {"job_id": job_id})
+    assert execution["state"] == "succeeded", execution
+    transform = bridge("source_job_transform", {"source_id": source["source_id"], "job_id": job_id})
+    content = transform["content"]
+    knowledge = bridge("knowledge_from_transform", {"body": {"knowledge_type": "FACTUAL_CLAIM", "body": content,
+        "source_id": source["source_id"], "job_id": job_id, "transform_id": transform["transform_id"],
+        "selection_start_utf16": 0, "selection_end_utf16": len(content.encode("utf-16-le")) // 2, "quote": content}})
+    kid = knowledge["knowledge_id"]
+    unaccepted = bridge_status("course_from_knowledge", {"body": {"knowledge_id": kid}})
+    missing = bridge_status("course_get", {"course_id": "course-not-present"})
+    assert unaccepted["status"] == 409 and missing["status"] == 404
+    detail = bridge("knowledge_get", {"id": kid})
+    bridge("knowledge_review", {"id": kid, "body": {"action": "accepted", "reviewer": "SYNTHETIC_TEST_ACTOR_NOT_HUMAN_SIGNOFF",
+        "note": "Isolated authored fixture; no human acceptance evidence", "expected_version": detail["version"]}})
+    ui_click("知识库")
+    wait("return !!document.querySelector('form label input')")
+    ui_type("form label input", "SYNTHETIC course lesson evidence")
+    ui_click("搜索")
+    result = bridge("search", {"q": "SYNTHETIC course lesson evidence"})
+    head = next(item["head"] for item in result["items"] if item["knowledge_id"] == kid)
+    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent===" + json.dumps(head) + ")")
+    ui_click(head)
+    wait("return !!document.querySelector('[aria-label=\"课程与课时\"]')")
+    ui_click("从当前知识生成课程与课时")
+    wait("return document.querySelector('[aria-label=\"课程候选课时\"]')?.textContent.includes('SYNTHETIC course lesson evidence')")
+    geometry = js("const article=document.querySelector('[aria-label=\"课程候选课时\"]'),pre=article.querySelector('pre');return {article_client:article.clientWidth,article_scroll:article.scrollWidth,pre_client:pre.clientWidth,pre_scroll:pre.scrollWidth,white_space:getComputedStyle(pre).whiteSpace};")
+    assert geometry["article_scroll"] <= geometry["article_client"] + 2 and geometry["pre_scroll"] <= geometry["pre_client"] + 2, geometry
+    js("document.querySelector('[aria-label=\"课程候选课时\"]').scrollIntoView({block:'center'});")
+    screenshot("synthetic-course-lesson.png")
+    # Idempotent Core re-read supplies canonical identities without reading private UI state.
+    created = bridge("course_from_knowledge", {"body": {"knowledge_id": kid}})
+    course_id = created["course"]["manifest"]["manifest_id"]
+    suggested = created["suggested_learning_item"]
+    key = suggested["item_key"]
+    assert len(key) == 159 and created["course"]["status"] == "candidate" and created["human_review_required"] is True
+    ui_click("由课程课时建立学习问题")
+    wait("return [...document.querySelectorAll('ul[aria-label=\"复习队列\"] button[data-learning-item-key]')].some(b=>b.getAttribute('data-learning-item-key')===" + json.dumps(key) + ")")
+    ui_click(key, "//ul[@aria-label='复习队列']")
+    wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('本次答案'))")
+    assessment = bridge("assessment_get", {"item_key": key})
+    state = bridge("learning_state", {"item_key": key})
+    assert assessment["item_key"] == key and assessment["knowledge_id"] == kid and assessment["knowledge_version"] == kid
+    assert state["item_key"] == key and state["learner"]["assessment"]["assessment_id"] == assessment["assessment_id"]
+    history = bridge("learning_history", {"item_key": key})
+    return {"status": "PASS", "fixture_data": "SYNTHETIC_AUTHORED", "review_actor": "SYNTHETIC_TEST_ACTOR_NOT_HUMAN_SIGNOFF",
+        "human_signoff": False, "runtime_evidence": "REAL_NATIVE_HOST_CORE_WORKER", "knowledge_id": kid, "course_id": course_id,
+        "item_key": key, "assessment": assessment, "learning_history": history, "lesson_geometry": geometry,
+        "negative_unaccepted_status": unaccepted["status"], "negative_missing_status": missing["status"]}
+
+
+def synthetic_template_pagination(bridge, js, wait, ui_click, screenshot):
+    """501 authored objects through the real finite bridge and canonical writer."""
+    baseline = bridge("documents_list")["snapshot_count"]
+    metadata = {"schema":"archeaxis.template/v1","template_id":"T1","discipline_id":"math",
+        "fields":{"status":"unevaluated"},"references":[],"learning_item_key":None}
+    created = {}
+    for index in range(501):
+        value = bridge("document_create", {"body":{"title":f"SYNTHETIC 分页对象 {index:03}",
+            "editor_json":{"type":"doc","attrs":{"archeaxis_template":metadata},"content":[{"type":"paragraph","content":[{"type":"text","text":f"Authored pagination fixture {index}"}]}]}}})
+        created[value["document_id"]] = value
+    first = bridge("documents_list")
+    assert first["snapshot_count"] == baseline + 501 and len(first["documents"]) == 500
+    extra = bridge("document_create", {"body":{"title":"SYNTHETIC 并发新增普通文档","editor_json":{"type":"doc","content":[]}}})
+    second = bridge("documents_list", {"cursor":first["next_cursor"]})
+    assert second["snapshot_count"] == first["snapshot_count"] and second["next_cursor"] is None
+    rows = first["documents"] + second["documents"]
+    ids = {row["document_id"] for row in rows}
+    assert len(rows) == len(ids) == baseline + 501 and extra["document_id"] not in ids and set(created).issubset(ids)
+    target = next(created[row["document_id"]] for row in first["documents"] if row["document_id"] in created)
+    linker = next(created[row["document_id"]] for row in second["documents"] if row["document_id"] in created)
+    editor = json.loads(json.dumps(linker["editor_json"]))
+    editor["attrs"]["archeaxis_template"]["references"] = [{"document_id":target["document_id"],"version":1,"block_id":None,"relation":"supports","x":20,"y":20}]
+    saved = bridge("document_draft", {"document_id":linker["document_id"],"body":{"expected_version":1,"editor_json":editor}})
+    assert saved["version"] == 2
+    ui_click("资料库")
+    js("document.querySelector('.template-launcher summary').click();")
+    wait("return document.querySelector('[aria-label=\"已保存模板\"]')?.querySelectorAll('button').length===501", seconds=60)
+    ui_click(target["title"] + " · v1", "//nav[@aria-label='已保存模板']")
+    wait("return document.querySelector('[aria-label=\"反向引用\"]')?.textContent.includes(" + json.dumps(linker["title"]) + ")")
+    wait("return document.querySelector('[aria-label=\"学科模板工作区\"]')?.textContent.includes('当前学科集合 501 个对象，1 条关系')")
+    js("document.querySelector('[aria-label=\"反向引用\"]').scrollIntoView({block:'center'});")
+    screenshot("synthetic-template-cross-page.png")
+    return {"status":"PASS","fixture_data":"SYNTHETIC_AUTHORED","runtime_evidence":"REAL_NATIVE_HOST_CORE",
+        "human_signoff":False,"authored_count":501,"snapshot_count":len(ids),"refresh_count":baseline+502,
+        "excluded_concurrent_document":extra["document_id"],"target":target,"linker":saved,
+        "page_sizes":[len(first["documents"]),len(second["documents"])],"cross_page_backlink":"PASS","relation_total":1}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--host", type=Path, required=True)
+    parser.add_argument("--driver", type=Path)
+    parser.add_argument("--native-driver", type=Path)
+    parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
+    parser.add_argument("--configuration-plan-loop", action="store_true", help="Explicit isolated BE08 native configuration and read-only plan journey; no installer or model execution")
+    parser.add_argument("--character-memory-loop", action="store_true", help="Explicit independent BE06 synthetic memory UI, cold reopen and owned local JSON download; no model or installed claim")
+    parser.add_argument("--ui-import-manifest", type=Path, help="Explicit 18-format synthetic fixture identities for actual file input qualification")
+    parser.add_argument("--ui-format-conversion", action="store_true", help="Execute actual UI content controls for explicit synthetic import manifest")
+    parser.add_argument("--ui-format-reparse", action="store_true", help="Independent second actual UI conversion; preserve first job outputs")
+    parser.add_argument("--ui-format-citations", action="store_true", help="Actual supported structure citation controls with restart resolution")
+    parser.add_argument("--ui-original-text-citations", action="store_true", help="Actual TXT/MD original Ctrl+A selection, byte range and restart resolution")
+    parser.add_argument("--installed-draft-conflict-loop", action="store_true", help="Independent installed synthetic initialization + trusted UI 409 recovery; no Owner qualification")
+    parser.add_argument("--grouped-common-owner-loop", action="store_true", help="Current grouped UI authored TXT/MD journey; bridge reads only, no Owner signoff")
+    parser.add_argument("--grouped-pointer-navigation", action="store_true", help="Observe one native pointer navigation after restart, without keyboard substitution")
+    parser.add_argument("--grouped-review-ack-loss", action="store_true", help="Synthetic ACK loss after real review persistence, with two cold restarts")
+    parser.add_argument("--grouped-multi-review-ack-loss", action="store_true", help="Two native UI review journals, explicit selection and independent exact-body recovery")
+    parser.add_argument("--grouped-machine-ack-loss", action="store_true", help="Discard one actual answer ACK, cold restart and recover exact history without inference")
+    parser.add_argument("--grouped-machine-cancel", action="store_true", help="Explicit actual model route UI cancellation, durable local-worker audit/clear, cold restart and fresh normal answer; provider stop remains unknown")
+    parser.add_argument("--closure-features", action="store_true", help="Explicit current grouped native responsibilities and document package reimport qualification with synthetic material")
+    parser.add_argument("--closure-downloads", action="store_true", help="Opt-in owned WebView download to isolated journey directory and trusted file reimport; requires closure features")
+    parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
+    parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
+    parser.add_argument("--grouped-model", help="Explicit already-authorized local model choice through the formal UI; no endpoint or global configuration change")
+    parser.add_argument("--grouped-save-deep-binding", action="store_true", help="Save answer/retest DEEP bindings through UI on the fresh synthetic workspace; require frozen binding receipts and cold reopen")
+    parser.add_argument("--grouped-material-companion-loop", action="store_true", help="Extend saved-DEEP actual-model journey to material/companion UI calls, readonly receipts and cold/restore reopen on the synthetic workspace")
+    parser.add_argument("--grouped-max-tokens", type=int, choices=[2048,4096], help="Explicit per-task output budget through the formal UI")
+    parser.add_argument("--require-actual-ai-loop", action="store_true", help="Require actual answer, adopted engineering correction, independent retest and restore refusal; no Owner or accuracy qualification")
+    parser.add_argument("--synthetic-course-loop", action="store_true", help="Explicit authored fixture with synthetic review actor; never human signoff")
+    parser.add_argument("--synthetic-template-pagination", action="store_true", help="501 authored template objects; real Core pagination and UI, no human signoff")
+    parser.add_argument(
+        "--session-timeout",
+        type=int,
+        default=120,
+        help="Bounded cold WebView2 handshake timeout; failure remains nonzero",
+    )
+    parser.add_argument(
+        "--installer",
+        type=Path,
+        help="Exact parent-verified NSIS installer identity; does not itself establish installation",
+    )
+    args = parser.parse_args()
+    assert not args.ui_original_text_citations or args.ui_import_manifest is not None, "Original text citations require synthetic import manifest"
+    assert not args.ui_format_citations or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI citations require explicit synthetic import and conversion"
+    assert not args.ui_format_reparse or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI reparse requires explicit synthetic import and conversion"
+    if args.require_actual_ai_loop and not (args.grouped_common_owner_loop and args.grouped_run_ai and args.grouped_authored_intervention):
+        parser.error("required actual AI loop requires --grouped-common-owner-loop, --actual-model and --grouped-authored-intervention")
+    if not 45 <= args.session_timeout <= 180:
+        parser.error("session timeout must be between 45 and 180 seconds")
+    if args.grouped_authored_intervention and not args.grouped_run_ai:
+        parser.error("authored intervention requires explicit --actual-model")
+    if args.grouped_run_ai and not args.grouped_common_owner_loop:
+        parser.error("grouped AI requires the grouped journey branch")
+    if args.grouped_machine_cancel and (not args.grouped_run_ai or not args.grouped_common_owner_loop or args.grouped_machine_ack_loss):
+        parser.error("machine cancellation requires the actual-model grouped journey and cannot mix answer ACK loss")
+    if args.closure_downloads and not args.closure_features:
+        parser.error("--closure-downloads requires --closure-features")
+    if args.closure_features and not args.grouped_common_owner_loop:
+        parser.error("closure features require the grouped native journey")
+    if args.grouped_model and not args.grouped_run_ai:
+        parser.error("explicit local selection requires an actual-model grouped journey")
+    if args.grouped_save_deep_binding and (not args.require_actual_ai_loop or not args.grouped_model or args.grouped_machine_ack_loss or args.grouped_machine_cancel):
+        parser.error("saved DEEP binding requires explicit model and required actual AI loop; separate ACK-loss/cancellation qualification")
+    if args.grouped_max_tokens and not args.grouped_run_ai:
+        parser.error("explicit output budget requires an actual-model grouped journey")
+    if args.grouped_material_companion_loop and not args.grouped_save_deep_binding:
+        parser.error("material/companion requires --grouped-save-deep-binding and its actual-model requirements")
+    if args.grouped_common_owner_loop and (args.synthetic_course_loop or args.synthetic_template_pagination):
+        parser.error("grouped qualification cannot mix compatibility fixtures")
+    validate_conflict_branch(args)
+    if args.character_memory_loop and any((args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.installer, args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss, args.grouped_machine_ack_loss)):
+        parser.error("character-memory candidate qualification cannot mix other journeys or installer qualification")
+    if args.configuration_plan_loop and any((args.character_memory_loop, args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.installer, args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss, args.grouped_machine_ack_loss, args.grouped_run_ai)):
+        parser.error("configuration-plan candidate qualification cannot mix other journeys, models or installer qualification")
+    host = args.host.resolve()
+    tools = REPO / ".project-local/task-runtime/aaos01-tools"
+    driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
+    edge = (args.native_driver or tools / "edge-154.0.4258.48/msedgedriver.exe").resolve()
+    paths, env = probe_environment()
+    compiled_binding = {"status": "UNVERIFIED", "reason": "Candidate build binding not supplied; installation is qualified only by its parent verifier"}
+    if args.build_receipt:
+        launcher = load("native_probe_binding", REPO / "scripts/runtime/dev.py")
+        receipt_path = launcher.safe_path(args.build_receipt)
+        receipt_path.relative_to(paths["dev"])
+        candidate = json.loads(receipt_path.read_text(encoding="utf-8"))
+        assert candidate["status"] == "PASS" and candidate["source_consistent"], "Unqualified candidate build"
+        assert candidate["source_patch_sha256"] == env["ARCHEAXIS_SOURCE_PATCH_SHA256"], "Candidate source mismatch"
+        assert identity(host)["sha256"] == candidate["host_sha256"], "Candidate host mismatch"
+        assert identity(host.parent / "core/archeaxis-api.exe")["sha256"] == candidate["core_sha256"], "Candidate Core mismatch"
+        compiled_binding = {"status": "PASS", "build_receipt": identity(receipt_path), "core_sha256": candidate["core_sha256"]}
+    work = paths["tmp"] / "journey"
+    work.mkdir(parents=True)
+    native_log = work / "native-driver.log"
+    wrapper = work / "native-driver.cmd"
+    # Tauri forwards only its owned --port/--host arguments. The native driver
+    # otherwise discards diagnostics; capture them in this probe's own root.
+    wrapper.write_text(
+        '@echo off\r\n"'
+        + str(edge).replace("%", "%%")
+        + '" --log-level=INFO --log-path="'
+        + str(native_log).replace("%", "%%")
+        + '" %*\r\nexit /b %ERRORLEVEL%\r\n',
+        encoding="utf-8",
+    )
+    port, native = free_port(), free_port()
+    for key in (
+        "ARCHEAXIS_DEV_EXTERNAL_BACKEND",
+        "ARCHEAXIS_WEBDRIVER_CDP_PORT",
+        "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+        "WEBVIEW2_USER_DATA_FOLDER",
+    ):
+        env.pop(key, None)
+    env["ARCHEAXIS_PORTABLE_ROOT"] = str(work / "data")
+    receipt = {
+        "ok": False,
+        "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+        "host": identity(host),
+        "driver": identity(driver),
+        "edge": identity(edge),
+        "data_root": str(work / "data"),
+        "steps": [],
+        "run_root": str(paths["run"]),
+        "source_patch_sha256": env["ARCHEAXIS_SOURCE_PATCH_SHA256"],
+        "compiled_source_binding": compiled_binding,
+        "conditions": {
+            "new_session_timeout_seconds": args.session_timeout,
+            "ordinary_request_timeout_seconds": 45,
+            "proxy_environment_present": any(key.lower() in ("http_proxy", "https_proxy", "all_proxy", "no_proxy") for key in os.environ),
+            "local_http_transport": "explicit_loopback_no_proxy",
+            "cdp_arguments_transport": "validated_port_via_native_webview_api",
+            "webview_user_data_folder": str(work / "webview"),
+            "webview_user_data_folder_owner": "Owned host per-process WEBVIEW2_USER_DATA_FOLDER",
+            "webview_user_data_folder_strategy": "Fresh session-N profile per launch; canonical product data root unchanged",
+        },
+        "limitations": [
+            installation_limitation(args.installer),
+            "Programmatic Chinese text, not physical native IME",
+            "No human signoff; optional authored course fixture uses an explicitly synthetic review actor only",
+            "One engineering run, not whole UI P95 acceptance",
+        ],
+    }
+    if args.installer:
+        receipt["installer"] = identity(args.installer.resolve())
+        receipt["installation_context"] = (
+            "Parent installer verifier supplies installed host; this probe hashes installer only"
+        )
+    session = None
+    process = None
+    owned_host = None
+    owned_host_records = []
+    attach_ports = []
+    owned_tree_collection_verified = False
+    log = (work / "driver.log").open("wb")
+
+    driver_transport = OwnedWebDriverTransport(port)
+
+    def request(method, path, body=None):
+        data = None if body is None else json.dumps(body).encode()
+        req = Request(
+            f"http://127.0.0.1:{port}" + path,
+            data=data,
+            method=method,
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            timeout = args.session_timeout if method == "POST" and path == "/session" else 45
+            with driver_transport.open(req, timeout=timeout) as response:
+                value = json.load(response)["value"]
+        except HTTPError as error:
+            body = error.read().decode("utf-8", "replace")
+            try:
+                protocol = json.loads(body)["value"]
+            except (ValueError, KeyError, TypeError):
+                raise RuntimeError(f"WebDriver {method} {path}: {body}") from error
+            if isinstance(protocol, dict) and protocol.get("error"):
+                raise WebDriverProtocolError(protocol) from error
+            raise RuntimeError(f"WebDriver {method} {path}: {body}") from error
+        if isinstance(value, dict) and value.get("error"):
+            raise WebDriverProtocolError(value)
+        return value
+
+    def js(script, arguments=None):
+        return request(
+            "POST", f"/session/{session}/execute/sync", {"script": script, "args": arguments or []}
+        )
+
+    def ui_element(using, selector):
+        value = request("POST", f"/session/{session}/element", {"using": using, "value": selector})
+        return value["element-6066-11e4-a52e-4f735466cecf"]
+
+    def ui_click(text, scope=""):
+        if not scope and text in {"资料库", "知识库"}:
+            space = {"资料库": "library", "知识库": "vault"}[text]
+            navigate_compatibility_space(js, wait, space)
+            receipt.setdefault("ui_selectors", []).append({"action": "public_compatibility_route", "hash": "#space=" + space, "new_page_qualification": False})
+            return
+        selector = navigation_button_selector(text, scope)
+        click_current_element(request, ui_element, session, selector)
+        receipt.setdefault("ui_selectors", []).append({"action": "click", "selector": selector})
+
+    def ui_type(selector, text):
+        element = ui_element("css selector", selector)
+        # Read-only selection controls can lose focus while citation save disables
+        # them. Restore focus with a native click before sending navigation keys.
+        if js("return !!document.querySelector(" + json.dumps(selector) + ")?.matches('textarea[readonly]')"):
+            request("POST", f"/session/{session}/element/{element}/click", {})
+            js("const a=document.querySelector(" + json.dumps(selector) + ");window.__originalSelectionKeys=[];if(!a.dataset.keyTrace){a.dataset.keyTrace='1';a.addEventListener('keyup',e=>setTimeout(()=>{if(window.__originalSelectionKeys.length<64)window.__originalSelectionKeys.push({key:e.key,trusted:e.isTrusted,ctrl:e.ctrlKey,shift:e.shiftKey,start:a.selectionStart,end:a.selectionEnd});},20));}")
+            actions, held = [], []
+            for key in text:
+                if key == "\ue000":
+                    actions.extend({"type": "keyUp", "value": modifier} for modifier in reversed(held))
+                    held.clear()
+                elif key in {"\ue008", "\ue009", "\ue00a", "\ue03d"}:
+                    actions.append({"type": "keyDown", "value": key})
+                    held.append(key)
+                else:
+                    actions.extend([{"type": "keyDown", "value": key}, {"type": "keyUp", "value": key}])
+                # Allow the WebView select/key-up handlers to finish before the
+                # next caret movement; a zero-duration burst can restore an old
+                # controlled-input selection between queued events.
+                actions.append({"type": "pause", "duration": 80})
+            actions.extend({"type": "keyUp", "value": modifier} for modifier in reversed(held))
+            try:
+                request("POST", f"/session/{session}/actions", {"actions": [{"type": "key", "id": "original-selection-keyboard", "actions": actions}]})
+            finally:
+                request("DELETE", f"/session/{session}/actions")
+        else:
+            request("POST", f"/session/{session}/element/{element}/value", {"text": text})
+        receipt.setdefault("ui_selectors", []).append({"action": "type", "selector": selector})
+
+    def ui_select_emoji():
+        selector = '[aria-label="原件文本范围引用"] textarea'
+        element = ui_element("css selector", selector)
+        request("POST", f"/session/{session}/element/{element}/click", {})
+        metrics = js("const a=document.querySelector(" + json.dumps(selector) + ");a.scrollIntoView({block:'center'});a.scrollTop=0;const r=a.getBoundingClientRect(),s=getComputedStyle(a),c=document.createElement('canvas').getContext('2d');c.font=s.fontSize+' '+s.fontFamily;const line=parseFloat(s.lineHeight)||parseFloat(s.fontSize)*1.2;return {x:Math.round(r.left+parseFloat(s.borderLeftWidth)+parseFloat(s.paddingLeft)),y:Math.round(r.top+parseFloat(s.borderTopWidth)+parseFloat(s.paddingTop)+line*1.5),width:Math.ceil(c.measureText('😀').width)}")
+        js("window.__originalSelectionPointer=" + json.dumps(metrics) + ";const a=document.querySelector(" + json.dumps(selector) + ");for(const name of ['pointerdown','pointerup'])a.addEventListener(name,e=>{window.__originalSelectionPointer[name]={x:e.clientX,y:e.clientY,trusted:e.isTrusted,disabled:a.disabled,prevented:e.defaultPrevented};setTimeout(()=>{window.__originalSelectionPointer[name].prevented=e.defaultPrevented;},0);},{once:true});")
+        js("window.addEventListener('pointerup',e=>{window.__originalSelectionPointer.windowUp={x:e.clientX,y:e.clientY,tag:e.target.tagName,trusted:e.isTrusted};},{once:true});")
+        js("const a=document.querySelector(" + json.dumps(selector) + ");window.__originalSelectionPointer.events=[];for(const name of ['mousedown','mousemove','mouseup','pointercancel','lostpointercapture','dragstart','dragend','drop','select','selectionchange'])window.addEventListener(name,e=>{const trace=window.__originalSelectionPointer.events;if(trace.length<48)trace.push({event:name,tag:e.target?.tagName,trusted:e.isTrusted,prevented:e.defaultPrevented,connected:a.isConnected,disabled:a.disabled,start:a.selectionStart,end:a.selectionEnd,x:e.clientX,y:e.clientY});}, {capture:true});")
+        origin = "viewport"
+        actions = [{"type": "pointerMove", "origin": origin, "x": metrics["x"], "y": metrics["y"], "duration": 100}, {"type": "pointerDown", "button": 0}, {"type": "pause", "duration": 100}, {"type": "pointerMove", "origin": origin, "x": metrics["x"] + metrics["width"], "y": metrics["y"], "duration": 300}, {"type": "pointerUp", "button": 0}]
+        try:
+            request("POST", f"/session/{session}/actions", {"actions": [{"type": "pointer", "id": "original-selection-mouse", "parameters": {"pointerType": "mouse"}, "actions": actions}]})
+        finally:
+            request("DELETE", f"/session/{session}/actions")
+        receipt.setdefault("ui_selectors", []).append({"action": "trusted_pointer_drag", "selector": selector, "target": "second-line-emoji"})
+
+    def bridge(operation, payload=None):
+        value = request(
+            "POST",
+            f"/session/{session}/execute/async",
+            {
+                "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke('core_command',{request:{operation:arguments[0],payload:arguments[1]}}).then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
+                "args": [operation, payload or {}],
+            },
+        )
+        if not value["ok"]:
+            raise RuntimeError({"operation": operation, "job_id": (payload or {}).get("job_id"), "error": value.get("error")})
+        reply = value["value"]
+        assert 200 <= reply["status"] < 300, reply
+        return reply["body"]
+
+    def bridge_status(operation, payload):
+        value = request("POST", f"/session/{session}/execute/async", {
+            "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke('core_command',{request:{operation:arguments[0],payload:arguments[1]}}).then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
+            "args": [operation, payload],
+        })
+        assert value["ok"], value
+        return value["value"]
+
+    def native_command(command, payload=None):
+        value = request(
+            "POST",
+            f"/session/{session}/execute/async",
+            {
+                "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke(arguments[0],arguments[1]).then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
+                "args": [command, payload or {}],
+            },
+        )
+        assert value["ok"], value
+        return value["value"]
+
+    def wait(script, seconds=30):
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline:
+            if js(script):
+                return
+            time.sleep(0.15)
+        raise TimeoutError("Window assertion deadline: " + script)
+
+    def screenshot(name):
+        content = base64.b64decode(request("GET", f"/session/{session}/screenshot"))
+        assert content.startswith(b"\x89PNG") and len(content) > 100
+        (work / name).write_bytes(content)
+        receipt.setdefault("screenshots", []).append(identity(work / name))
+
+    def launch():
+        nonlocal session, owned_host, owned_tree_collection_verified
+        began = time.monotonic()
+        folder = work / "webview" / f"session-{len(receipt.get('launch_attempts', [])) + 1}"
+        folder.mkdir(parents=True, exist_ok=False)
+        cdp_port = free_port()
+        attach_ports.append(cdp_port)
+        host_env = dict(env)
+        host_env["WEBVIEW2_USER_DATA_FOLDER"] = str(folder)
+        host_env["WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"] = f"--remote-debugging-port={cdp_port} --remote-debugging-address=127.0.0.1"
+        host_env["ARCHEAXIS_WEBDRIVER_CDP_PORT"] = str(cdp_port)
+        owned_host = subprocess.Popen([str(host)], cwd=host.parent, env=host_env)
+        receipt.setdefault("owned_host_pids", []).append(owned_host.pid)
+        root_identity = next((row for row in native_process_rows() if row["pid"] == owned_host.pid), None)
+        if root_identity is None:
+            raise RuntimeError("Owned attach host creation identity unavailable")
+        owned_host_records.append(root_identity)
+        receipt.setdefault("launch_attempts", []).append({"user_data_folder": str(folder), "host_pid": owned_host.pid, "host_created": root_identity["created"], "mode":"owned_prelaunch_attach"})
+        deadline = began + 40
+        while True:
+            if owned_host.poll() is not None:
+                raise RuntimeError("Owned host exited before CDP")
+            try:
+                with loopback_urlopen(f"http://127.0.0.1:{cdp_port}/json/version", timeout=1) as response:
+                    version = json.load(response)
+                break
+            except OSError as connection_error:
+                nested_reason = getattr(connection_error, "reason", None)
+                receipt["launch_attempts"][-1]["last_cdp_connection_error"] = {
+                    "type": type(connection_error).__name__, "errno": getattr(connection_error, "errno", None),
+                    "reason_type": type(nested_reason).__name__ if nested_reason is not None else None,
+                    "reason_errno": getattr(nested_reason, "errno", None)}
+                if time.monotonic() >= deadline:
+                    try:
+                        diagnostic = owned_attach_diagnostics(owned_host.pid, root_identity["created"], cdp_port, [folder, work / "data"])
+                        owned_host_records.extend(diagnostic["owned_processes"])
+                        owned_tree_collection_verified = True
+                        receipt["launch_attempts"][-1]["timeout_diagnostics"] = diagnostic
+                    except BaseException as diagnostic_error:
+                        receipt["launch_attempts"][-1]["timeout_diagnostics"] = {
+                            "collection_verified": False, "error_type": type(diagnostic_error).__name__,
+                            "traceback": traceback.format_exc()}
+                    raise TimeoutError("Owned attach CDP unavailable after 40 seconds") from None
+                time.sleep(.2)
+        edge_version = subprocess.check_output([str(edge), "--version"], text=True, timeout=10).strip()
+        assert compatible_edge_versions(edge_version, version["Browser"]), "Runtime/driver version mismatch"
+        receipt.setdefault("driver_compatibility", []).append({
+            "driver": edge_version, "runtime": version["Browser"],
+            "rule": "matching first three components; patch may differ",
+            "source": "https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/",
+        })
+        owned = owned_process_rows(native_process_rows(), owned_host.pid)
+        owned_host_records.extend(owned)
+        owned_tree_collection_verified = True
+        listeners = owned_cdp_listener_rows(cdp_port, owned)
+        receipt["launch_attempts"][-1].update({"owned_processes":owned,"cdp_version":version["Browser"],"listeners":listeners,"listener_process_identities":[row for row in owned if row["pid"] in {item["OwningProcess"] for item in listeners}]})
+        result = request("POST", "/session", {"capabilities":{"alwaysMatch":{"browserName":"webview2","unhandledPromptBehavior":"ignore","ms:edgeChromium":True,"ms:edgeOptions":{"debuggerAddress":f"127.0.0.1:{cdp_port}"}}}})
+        session = result["sessionId"]
+        assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
+        request("POST", f"/session/{session}/timeouts", {"script":30000})
+        wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
+        wait("const images=[...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length);return images.length>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
+        receipt.setdefault("brand_images", []).append(js("return [...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))"))
+        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop:
+            receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
+        else:
+            receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
+            recovery = confirm_restored_working_state(bridge, ui_click, wait, js)
+            receipt.setdefault("launch_working_state_recovery", []).append(recovery)
+            navigate_compatibility_space(js, wait, "library")
+        receipt.setdefault("launches", []).append({"seconds":time.monotonic()-began,"capabilities":result["capabilities"],"user_data_folder":str(folder)})
+        version = bridge("system_version")
+        assert isinstance(version, dict)
+        receipt["system_version"] = version
+        owned_host_records.extend(owned_process_rows(native_process_rows(), owned_host.pid))
+        receipt.setdefault("windows", []).append(js("return {title:document.title,url:location.href,text:document.body.innerText}"))
+
+    def close_session():
+        nonlocal session, owned_host, owned_tree_collection_verified
+        assert owned_host is not None, "Owned host identity missing"
+        pid = owned_host.pid
+        live_rows = native_process_rows()
+        owned_host_records.extend(owned_process_rows(live_rows, pid))
+        owned_tree_collection_verified = True
+        launch_identity = next((row for row in reversed(receipt["launch_attempts"])
+                                if row["host_pid"] == pid), None)
+        identity_record = ({"pid": pid, "created": launch_identity["host_created"]}
+                           if launch_identity else None)
+        request_owned_product_exit(owned_host, identity_record, live_rows,
+            lambda: request("POST", f"/session/{session}/execute/async", {
+                "script": "const cb=arguments[arguments.length-1];window.__TAURI__.core.invoke('exit_application').then(v=>cb({ok:true,value:v}),e=>cb({ok:false,error:String(e)}));",
+                "args": []}), receipt)
+        if session:
+            # Host has already verifiably exited with code 0.
+            with suppress(OSError, RuntimeError):
+                request("DELETE", f"/session/{session}")
+        session = None
+        owned_host = None
+
+    try:
+        process = subprocess.Popen(
+            [
+                str(driver),
+                "--port",
+                str(port),
+                "--native-port",
+                str(native),
+                "--native-driver",
+                str(wrapper),
+            ],
+            env=env,
+            cwd=work,
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+        receipt["owned_driver_pid"] = process.pid
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            if process.poll() is not None:
+                raise RuntimeError("Owned driver exited")
+            try:
+                request("GET", "/status")
+                break
+            except OSError:
+                time.sleep(0.2)
+        else:
+            raise TimeoutError("Owned WebDriver readiness")
+        if args.installed_draft_conflict_loop:
+            conflict = load("installed_draft_conflict", REPO / "scripts/probes/aaos01_installed_draft_conflict_loop.py")
+            installed_launcher = load("installed_conflict_launcher", host.parent / "start-backend.py")
+            source_dev = load("installed_conflict_source", REPO / "scripts/runtime/dev.py")
+            def conflict_source():
+                _, patch = source_dev.worktree_identity(REPO)
+                return {"commit": source_dev.git(REPO, "rev-parse", "HEAD"), "patch_sha256": patch}
+            init_child = None
+            receipt["installed_draft_conflict_loop"] = {"status": "IN_PROGRESS", "initialization": "SYNTHETIC_INITIALIZATION"}
+            initialization = receipt["installed_draft_conflict_loop"]
+            try:
+                init_child, init_base, init_launch, init_tokens = installed_launcher.start(work / "data", installed_launcher.free_port(), workspace_name="archeaxis.sqlite")
+                initialization["launcher"] = {"path": identity(host.parent / "start-backend.py"), "pid": init_child.pid, "core": identity(host.parent / "core/archeaxis-api.exe"), "workspace": init_launch["workspace"]}
+                initialization["http_calls"] = []
+                def init_http(method, path, body, expected):
+                    status, result = installed_launcher.call(init_base, method, path, body, tokens=init_tokens, role="human")
+                    initialization["http_calls"].append({"method": method, "path": path, "status": status, "result": result})
+                    assert status == expected, {"path": path, "status": status, "expected": expected}
+                    return result
+                version = init_http("GET", "/api/v1/system/version", None, 200)
+                assert Path(version["workspace_db"]).samefile(work / "data/archeaxis.sqlite")
+                fixture = conflict.initialize_fixture(init_http, owned_fresh_workspace=True, source_identity=conflict_source())
+                initialization["fixture"] = fixture
+            finally:
+                if init_child is not None:
+                    init_code = installed_launcher.stop(init_child)
+                    initialization["initializer_exit"] = {"method": "EXISTING_OWNED_LAUNCHER_TERMINATE_REAP", "exit_code": init_code, "stopped": init_child.poll() is not None, "graceful_exit": "NOT_CLAIMED"}
+                    assert init_child.poll() is not None, "Initialization Core remained live"
+        launch()
+        if args.installed_draft_conflict_loop:
+            grouped = load("conflict_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            evidence = initialization.setdefault("ui_actions", [])
+            def conflict_command(element_id, action, body):
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            controls = grouped.GroupedUI(js, wait, ui_element, conflict_command, evidence)
+            def accept_conflict_alert():
+                accept_native_alert(request, session, evidence)
+            def conflict_navigate(page):
+                if js("return location.hash") == "#page=" + page:
+                    return
+                controls.click_selector(f'.navigation-sidebar button[data-page-id="{page}"]', "css selector")
+                accept_conflict_alert()
+                wait("return location.hash===" + json.dumps("#page=" + page))
+            def conflict_restart():
+                old_pid, old_session = owned_host.pid, session
+                close_session()
+                shutdown = receipt["host_shutdowns"][-1]
+                launch()
+                return {"normal_exit": shutdown["exited"], "exit_code": shutdown["exit_code"], "old_pid": old_pid, "new_pid": owned_host.pid, "old_session": old_session, "new_session": session, "old_portable_root": str(work / "data"), "new_portable_root": str(work / "data")}
+            initialization["ui_result"] = conflict.run_ui(fixture, ui=controls, bridge=bridge, js=js, wait=wait, navigate=conflict_navigate, accept_navigation_alert=accept_conflict_alert, restart=conflict_restart, screenshot=screenshot, host_identity={"installed": True, "source": conflict_source(), "host": receipt["host"], "installer": receipt["installer"]}, verify_source=conflict_source)
+            initialization["status"] = initialization["ui_result"]["status"]
+            close_session()
+            receipt["ok"] = initialization["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
+        if args.configuration_plan_loop:
+            grouped = load("plan_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            plans = load("plan_native_journey", REPO / "scripts/probes/aaos01_configuration_plan_loop.py")
+            actions = []
+            def plan_command(element_id, action, body):
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def plan_restart():
+                close_session()
+                launch()
+            controls = grouped.GroupedUI(js, wait, ui_element, plan_command, actions)
+            receipt["configuration_plan_loop"] = {"ui_actions":actions}
+            plans.run(ui=controls, bridge=bridge, js=js, wait=wait, restart=plan_restart, screenshot=screenshot, report=receipt["configuration_plan_loop"])
+            receipt["steps"].append("BE08 finite product configuration and read-only plan UI; no installation, model or Owner qualification")
+            close_session()
+            receipt["ok"] = receipt["configuration_plan_loop"]["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
+        if args.character_memory_loop:
+            grouped = load("memory_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            memory = load("memory_native_journey", REPO / "scripts/probes/aaos01_character_memory_loop.py")
+            actions = []
+            def memory_command(element_id, action, body):
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def memory_restart():
+                close_session()
+                launch()
+            def memory_download(directory):
+                directory = Path(directory).resolve()
+                directory.relative_to(work.resolve())
+                directory.mkdir(parents=True, exist_ok=False)
+                request("POST", f"/session/{session}/ms/cdp/execute", {"cmd":"Browser.setDownloadBehavior","params":{"behavior":"allow","downloadPath":str(directory)}})
+            controls = grouped.GroupedUI(js, wait, ui_element, memory_command, actions)
+            receipt["character_memory_loop"] = {"ui_actions":actions}
+            memory.run(ui=controls, bridge=bridge, js=js, wait=wait, restart=memory_restart, download_control=memory_download, work=work, screenshot=screenshot, report=receipt["character_memory_loop"])
+            receipt["steps"].append("BE06 explicit memory UI and current-store readback only; no model, Owner or installer qualification")
+            close_session()
+            receipt["ok"] = receipt["character_memory_loop"]["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
+        if args.grouped_common_owner_loop:
+            grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            def grouped_element_command(element_id, action, body):
+                if action == "pointer_click":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"pointer", "id":"grouped-owned-pointer", "parameters":{"pointerType":"mouse"},
+                        "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
+                                   {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
+                if action == "wheel":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"wheel", "id":"grouped-owned-scroll", "actions":[{
+                            "type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def grouped_restart():
+                close_session()
+                launch()
+            def grouped_download_control(directory):
+                directory = Path(directory).resolve()
+                directory.relative_to(work.resolve())
+                directory.mkdir(parents=True, exist_ok=False)
+                request("POST", f"/session/{session}/ms/cdp/execute", {
+                    "cmd": "Browser.setDownloadBehavior",
+                    "params": {"behavior": "allow", "downloadPath": str(directory)},
+                })
+            def grouped_accept_navigation_alert():
+                try:
+                    text=request("GET",f"/session/{session}/alert/text")
+                except WebDriverProtocolError as error:
+                    if error.value.get('error')!='no such alert':
+                        raise
+                    receipt['steps'].append('Native navigation completed without a confirmation; no acceptance claim')
+                    return
+                assert text=="草稿尚未保存，请先保留文字。仍要离开吗？", 'Unexpected navigation confirmation'
+                request("POST",f"/session/{session}/alert/accept",{})
+                receipt['steps'].append('Trusted native confirmation to leave a Core-retained review journal')
+            receipt["grouped_common_owner_loop"] = {}
+            grouped.run_grouped_loop(
+                bridge=bridge, js=js, wait=wait, element=ui_element,
+                command=grouped_element_command, work=work, screenshot=screenshot,
+                restart=grouped_restart, run_ai=args.grouped_run_ai,
+                authored_intervention=args.grouped_authored_intervention,
+                report=receipt["grouped_common_owner_loop"],
+                require_actual_ai_loop=args.require_actual_ai_loop,
+                pointer_navigation=args.grouped_pointer_navigation,
+                review_ack_loss=args.grouped_review_ack_loss,
+                multi_review_ack_loss=args.grouped_multi_review_ack_loss,
+                machine_ack_loss=args.grouped_machine_ack_loss,
+                machine_cancel=args.grouped_machine_cancel,
+                closure_features=args.closure_features,
+                download_control=grouped_download_control if args.closure_downloads else None,
+                selected_model=args.grouped_model,
+                selected_max_tokens=args.grouped_max_tokens,
+                save_deep_binding=args.grouped_save_deep_binding,
+                material_companion_loop=args.grouped_material_companion_loop,
+                accept_navigation_alert=grouped_accept_navigation_alert,
+            )
+            receipt["steps"].append("Current grouped UI authored same-object engineering journey; see explicit partial/NOT_EXECUTED stages")
+            close_session()
+            receipt["ok"] = receipt["grouped_common_owner_loop"]["engineering_status"] == "PASS"
+            raise _GroupedJourneyCompleteError
+        # Same-space navigation must reach real object regions without writes
+        # or a workspace remount, even before any source/document exists.
+        object_scope = "//ul[@aria-label='资料库对象导航']"
+        wait("return document.querySelectorAll('ul[aria-label=\"资料库对象导航\"] button').length===4")
+        empty_sources = bridge("sources_list")
+        empty_documents = bridge("documents_list")
+        for label, region in [("来源锚点", "来源版本证据"), ("文档版本", "文档版本导航"), ("已保存文档", "已保存文档"), ("来源原件", "保留原件")]:
+            ui_click(label, object_scope)
+            wait(f"return document.activeElement?.getAttribute('aria-label')==={json.dumps(region)}")
+        assert bridge("sources_list") == empty_sources
+        assert bridge("documents_list") == empty_documents
+        receipt["library_object_navigation"] = {"sections": 4, "actual_focus_verified": True, "sources_unchanged": True, "documents_unchanged": True}
+        content = "中文 WebDriver 原文证据 Golden native window 42.\n".encode()
+        imported = bridge(
+            "source_import",
+            {
+                "body": {
+                    "name": "WebDriver证据.txt",
+                    "content_base64": base64.b64encode(content).decode(),
+                }
+            },
+        )
+        assert imported["sha256"] == hashlib.sha256(content).hexdigest()
+        original = bridge("source_original", {"source_id": imported["source_id"]})
+        concurrent = request(
+            "POST",
+            f"/session/{session}/execute/async",
+            {
+                "script": "const cb=arguments[arguments.length-1],id=arguments[0];Promise.all(Array.from({length:8},()=>Promise.all(['source_original','anchors_list'].map(operation=>window.__TAURI__.core.invoke('core_command',{request:{operation,payload:{source_id:id}}}))))).then(value=>cb({ok:true,value}),error=>cb({ok:false,error:String(error)}));",
+                "args": [imported["source_id"]],
+            },
+        )
+        receipt["concurrent_source_reads"] = concurrent
+        assert concurrent["ok"], concurrent
+        assert len(concurrent["value"]) == 8
+        for source_reply, anchor_reply in concurrent["value"]:
+            assert source_reply["status"] == anchor_reply["status"] == 200
+            assert source_reply["body"]["sha256"] == imported["sha256"]
+            assert base64.b64decode(source_reply["body"]["content_base64"]) == content
+            assert anchor_reply["body"]["anchors"] == []
+        receipt["read_diagnostics"] = {
+            "import": imported,
+            "original": original,
+            "sources": bridge("sources_list"),
+            "anchors": bridge("anchors_list", {"source_id": imported["source_id"]}),
+            "crypto_available": js(
+                "return {secure:isSecureContext,subtle:!!globalThis.crypto?.subtle}"
+            ),
+        }
+        assert base64.b64decode(original["content_base64"]) == content
+        navigate_compatibility_space(js, wait, "workspace")
+        time.sleep(0.2)
+        navigate_compatibility_space(js, wait, "library")
+        wait(
+            "return [...document.querySelectorAll('button')].some(b=>b.textContent==='WebDriver证据.txt')"
+        )
+        js(
+            "[...document.querySelectorAll('button')].find(b=>b.textContent==='WebDriver证据.txt').click()"
+        )
+        wait(
+            "return document.querySelector('[aria-label=\"原件正文\"]')?.textContent.includes('中文 WebDriver 原文证据')"
+        )
+        created = bridge(
+            "document_create",
+            {
+                "body": {
+                    "source_id": imported["source_id"],
+                    "source_revision": imported["sha256"],
+                    "title": "WebDriver中文持久化",
+                    "editor_json": {"type": "doc", "content": []},
+                }
+            },
+        )
+        editor = {
+            "type": "doc",
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        {"type": "text", "text": "中文 WebDriver 保存与重启读回 Golden 42"}
+                    ],
+                }
+            ],
+        }
+        saved = bridge(
+            "document_draft",
+            {
+                "document_id": created["document_id"],
+                "body": {"expected_version": created["version"], "editor_json": editor},
+            },
+        )
+        assert saved["text_projection"] == "中文 WebDriver 保存与重启读回 Golden 42", saved
+        # Canonical writer assigns stable block IDs; compare its persisted form.
+        editor = saved["editor_json"]
+        receipt["document"] = saved
+        screenshot("saved.png")
+        close_session()
+        launch()
+        reread = bridge("document_get", {"document_id": saved["document_id"]})
+        assert reread["editor_json"] == editor and reread["version"] == saved["version"]
+        original_again = bridge("source_original", {"source_id": imported["source_id"]})
+        assert original_again == original
+        backup = bridge("workspace_backup", {"body": {}})
+        assert backup["bytes"] > 0 and imported["sha256"] in backup["source_sha_list"]
+        backups = bridge("workspace_backups")
+        assert any(item["backup_id"] == backup["backup_id"] for item in backups["backups"])
+        receipt["backup"] = backup
+        changed = bridge(
+            "document_draft",
+            {
+                "document_id": saved["document_id"],
+                "body": {
+                    "expected_version": saved["version"],
+                    "editor_json": {
+                        "type": "doc",
+                        "content": [
+                            {
+                                "type": "paragraph",
+                                "content": [
+                                    {"type": "text", "text": "after backup temporary revision"}
+                                ],
+                            }
+                        ],
+                    },
+                },
+            },
+        )
+        assert changed["version"] > saved["version"]
+        recovery = native_command("recovery_status")
+        receipt["recovery_before_restore"] = recovery
+        restored = native_command("restore_backup", {"name": backup["filename"]})
+        receipt["restore_command_receipt"] = restored
+        assert restored["status"] == "restored"
+        ready = native_command("retry_backend")
+        receipt["retry_command_receipt"] = ready
+        assert ready == {"ready": True}, ready
+        identity_after_retry = bridge("system_version")
+        receipt["system_version_after_retry"] = identity_after_retry
+        assert identity_after_retry.get("runtime") == "archeaxis-api", identity_after_retry
+        after_restore = bridge("document_get", {"document_id": saved["document_id"]})
+        assert (
+            after_restore["version"] == saved["version"] and after_restore["editor_json"] == editor
+        )
+        assert bridge("source_original", {"source_id": imported["source_id"]}) == original
+        receipt["native_restore"] = {
+            "receipt": restored,
+            "changed_version": changed["version"],
+            "restored_version": after_restore["version"],
+            "cas_equal": True,
+            "scope": "Only this fresh product data root; not independent restore",
+        }
+        screenshot("restart.png")
+        receipt["steps"] = [
+            "Real Tauri WebDriver session/window",
+            "UI same-space source/document/anchor/version navigation focuses actual regions without creating objects",
+            "Finite system_version bridge",
+            "Import/read original bytes and rendered Chinese reader",
+            "Finite bridge document save",
+            "Session close/relaunch persisted document",
+            "Product consistent backup and list readback",
+            "Native backup restore/retry and actual version rollback with original CAS readback",
+        ]
+        # New product-principles journey: every mutation below uses rendered UI.
+        # Finite bridge reads verify canonical persistence; they do not perform writes.
+        # The preceding recovery mutation deliberately used the native command;
+        # reopen its window to obtain a fresh UI readiness handshake as well.
+        close_session()
+        launch()
+        receipt["explicit_working_state_recovery"] = confirm_restored_working_state(bridge, ui_click, wait, js)
+        navigate_compatibility_space(js, wait, "library")
+        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='新建原创笔记')")
+        before_ids = {item["document_id"] for item in bridge("documents_list")["documents"]}
+        ui_click("新建原创笔记")
+        wait("return !!document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap')")
+        ordinary_text = "原创未核验内容 Golden ordinary note 731"
+        ui_type('[aria-label="版本化草稿编辑器"] .tiptap', ordinary_text)
+        ui_click("保存草稿")
+        deadline = time.monotonic() + 30
+        ordinary = None
+        while time.monotonic() < deadline:
+            new_documents = [item for item in bridge("documents_list")["documents"] if item["document_id"] not in before_ids]
+            if len(new_documents) == 1:
+                ordinary = bridge("document_get", {"document_id": new_documents[0]["document_id"]})
+                if ordinary["text_projection"] == ordinary_text:
+                    break
+            time.sleep(0.15)
+        assert ordinary and ordinary["text_projection"] == ordinary_text
+        # Let the editor's existing 900 ms autosave settle before fixing the
+        # version used for restart equality and the later check records.
+        time.sleep(1.2)
+        ordinary = bridge("document_get", {"document_id": ordinary["document_id"]})
+        assert ordinary["text_projection"] == ordinary_text
+        assert ordinary["source_id"] is None and ordinary["source_revision"] is None
+        assert not js("return [...document.querySelectorAll('button')].some(b=>b.textContent==='引用当前页')")
+        receipt["ordinary_document_saved"] = ordinary
+        receipt["steps"].append("UI original note without source/review/model prerequisites saved by canonical writer")
+        close_session()
+        launch()
+        navigate_compatibility_space(js, wait, "library")
+        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='原创笔记 · 文档')")
+        ui_click("原创笔记 · 文档")
+        wait("return document.querySelector('[aria-label=\"版本化草稿编辑器\"]')?.textContent.includes('保存草稿')")
+        assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+        persisted = bridge("document_get", {"document_id": ordinary["document_id"]})
+        assert persisted == ordinary
+        # Actual WebDriver trusted keyboard input; no synthetic dispatchEvent.
+        editor_selector = '[aria-label="版本化草稿编辑器"] .tiptap'
+        editor = ui_element("css selector", editor_selector)
+        request("POST", f"/session/{session}/element/{editor}/click", {})
+        wait("return document.activeElement?.matches('[aria-label=\"版本化草稿编辑器\"] .tiptap')")
+        assert js("return document.querySelector('#activity-dock button[aria-keyshortcuts=\"Control+Alt+J\"]').getAttribute('aria-expanded')") == "false"
+        js("""window.__shortcutProof={calls:[],events:[]};
+          window.__shortcutOriginalInvoke=window.__TAURI_INTERNALS__.invoke;
+          window.__TAURI_INTERNALS__.invoke=function(command,args,...rest){
+            window.__shortcutProof.calls.push({command,operation:args?.request?.operation??null});
+            return window.__shortcutOriginalInvoke.call(this,command,args,...rest);
+          };
+          window.__shortcutKeyObserver=e=>{if(e.key.toLowerCase()==='j')window.__shortcutProof.events.push({trusted:e.isTrusted,ctrl:e.ctrlKey,alt:e.altKey});};
+          window.addEventListener('keydown',window.__shortcutKeyObserver);""")
+        try:
+            for expected in ("true", "false"):
+                request("POST", f"/session/{session}/actions", {"actions": [{"type": "key", "id": "dock-shortcut", "actions": [
+                    {"type": "keyDown", "value": "\ue009"}, {"type": "keyDown", "value": "\ue00a"},
+                    {"type": "keyDown", "value": "j"}, {"type": "keyUp", "value": "j"},
+                    {"type": "keyUp", "value": "\ue00a"}, {"type": "keyUp", "value": "\ue009"}]}]})
+                wait(f"return document.querySelector('#activity-dock button[aria-keyshortcuts=\"Control+Alt+J\"]').getAttribute('aria-expanded')==={json.dumps(expected)}")
+                assert js("return document.activeElement?.matches('[aria-label=\"版本化草稿编辑器\"] .tiptap')") is True
+                assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+            shortcut = js("return window.__shortcutProof")
+            assert len(shortcut["events"]) == 2 and all(event == {"trusted": True, "ctrl": True, "alt": True} for event in shortcut["events"])
+            allowed_reads = {"sources_list", "source_jobs", "documents_list", "document_get", "system_version"}
+            assert all((call["command"] == "core_command" and call["operation"] in allowed_reads) or (call["command"] == "recovery_status" and call["operation"] is None) for call in shortcut["calls"]), "Shortcut issued a mutation or unexpected native command"
+        finally:
+            js("window.__TAURI_INTERNALS__.invoke=window.__shortcutOriginalInvoke;window.removeEventListener('keydown',window.__shortcutKeyObserver);delete window.__shortcutOriginalInvoke;delete window.__shortcutKeyObserver;delete window.__shortcutProof;")
+            request("DELETE", f"/session/{session}/actions")
+        assert bridge("document_get", {"document_id": ordinary["document_id"]}) == persisted
+        receipt["native_activity_shortcut"] = {"trusted_key_events": 2, "expanded_then_collapsed": True, "editor_focus_preserved": True, "text_unchanged": True, "no_api_write": True, "persisted_version_unchanged": True}
+        receipt["steps"].append("Trusted native Ctrl+Alt+J expands/collapses activity dock without losing editor focus or issuing API writes")
+        receipt["steps"].append("UI original note close/relaunch readback equals persisted version")
+        navigate_compatibility_space(js, wait, "vault")
+        wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('搜索内容'))")
+        search_input = ui_element("css selector", "form label input")
+        request("POST", f"/session/{session}/element/{search_input}/value", {"text": "ordinary note 731"})
+        ui_click("搜索")
+        wait("return [...document.querySelectorAll('button')].some(b=>b.textContent.startsWith('原创笔记 · 版本 '))")
+        ui_click(f"原创笔记 · 版本 {ordinary['version']}")
+        wait("return !!document.querySelector('[aria-label=\"内容核验\"]')")
+        assert js("return document.querySelector('[aria-label=\"版本化草稿编辑器\"] .tiptap').textContent") == ordinary_text
+        assert not js("return [...document.querySelectorAll('button')].some(b=>b.textContent==='接受当前候选')")
+        receipt["steps"].append("UI search finds ordinary unverified document and opens existing editor without knowledge acceptance")
+        for label, cloud_button, manual_summary in (
+            ("识别忠实度", "申请识别云端核验", "手动记录识别核验"),
+            ("专业依据", "申请专业云端核验", "手动记录专业核验"),
+        ):
+            scope = f"//section[@aria-label='{label}']"
+            summary = ui_element("xpath", f"{scope}//summary[normalize-space(.)='{manual_summary}']")
+            request("POST", f"/session/{session}/element/{summary}/click", {})
+            ui_click("明确提交手动核验记录", scope)
+            wait(f"return document.querySelector('[aria-label=\"{label}\"]').textContent.includes('不确定 · 手动记录')")
+            if label == "专业依据":
+                query_details = ui_element("xpath", "//section[@aria-label='内容核验']//summary[normalize-space(.)='补充核验位置与依据']")
+                request("POST", f"/session/{session}/element/{query_details}/click", {})
+                wait("return [...document.querySelectorAll('[aria-label=\"内容核验\"] details')].some(d=>d.open&&d.querySelector('input[maxlength=\"1000\"]'))")
+                ui_type('[aria-label="内容核验"] label input[maxlength="1000"]', "synthetic public document governance evidence")
+            ui_click(cloud_button, scope)
+            wait(f"return document.querySelector('[aria-label=\"{label}\"]').textContent.includes('等待核验 · 云端尚未执行')")
+        checks = bridge("document_checks", {"document_id": ordinary["document_id"], "version": ordinary["version"]})
+        for dimension in ("recognition_fidelity", "professional_basis"):
+            entries = [item for item in checks["checks"] if item["dimension"] == dimension]
+            assert any(item["provider_mode"] == "manual" and item["status"] == "uncertain" for item in entries)
+            cloud = [item for item in entries if item["provider_mode"] == "cloud"]
+            assert cloud and all(item["status"] == "pending" and not item["execution_verified"] and item["execution_state"] == "not_executed" for item in cloud)
+        receipt["ordinary_document_checks"] = checks
+        receipt["steps"].append("UI separately records both manual uncertain checks and cloud pending requests; cloud remains not executed")
+        for label in ("识别忠实度", "专业依据"):
+            scope = f"//section[@aria-label='{label}']"
+            ui_click("明确执行核验", scope)
+            wait("return document.querySelector('[aria-label=\"内容核验\"]').textContent.includes('执行回执未确认；不会标记核验成功')")
+            attempted = bridge("document_checks", {"document_id": ordinary["document_id"], "version": ordinary["version"]})
+            assert attempted == checks, "Unconfigured preview created an attempt or changed saved annotations"
+            assert not js("return !!document.querySelector('[aria-label=\"本次外发确认\"]')"), "Unconfigured preview fabricated a destination plan"
+            assert bridge("document_get", {"document_id": ordinary["document_id"]}) == ordinary
+        receipt["ordinary_document_unconfigured_previews"] = {"checks_unchanged": True, "attempts_created": 0}
+        receipt["steps"].append("UI unconfigured previews fail without attempts, fabricated plans, cloud success or human approval; saved annotations remain intact")
+        ui_type('[aria-label="内容核验"] > label textarea', "工程样板修订理由，不构成知识认可")
+        revision_button = ui_element("xpath", "(//button[normalize-space(.)='用于下一次修订'])[1]")
+        request("POST", f"/session/{session}/element/{revision_button}/click", {})
+        ui_click("保存草稿")
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            revised = bridge("document_get", {"document_id": ordinary["document_id"]})
+            if revised["version"] > ordinary["version"] and revised.get("revision_basis"):
+                break
+            time.sleep(0.15)
+        assert revised["text_projection"] == ordinary_text
+        assert revised["revision_basis"]["rationale"] == "工程样板修订理由，不构成知识认可"
+        assert revised["revision_basis"]["reference_version"] == ordinary["version"]
+        receipt["ordinary_document_revision"] = revised
+        receipt["steps"].append("UI explicitly selected revision basis persists with next ordinary document save")
+        screenshot("ordinary-checks.png")
+        format_proofs=receipt["format_proofs"]=[]
+        if args.ui_import_manifest is not None:
+            ui_click("资料库")
+            receipt["ui_original_import_proofs"] = ui_original_import_loop(bridge, ui_type, wait, args.ui_import_manifest, REPO)
+            receipt["steps"].append("18 synthetic originals imported through actual file input; byte identities preserved, no conversion or admission claim")
+            if args.ui_format_conversion:
+                ui_format_conversion_loop(bridge, ui_click, wait, js, receipt["ui_original_import_proofs"], citations=args.ui_format_citations)
+                if args.ui_format_reparse:
+                    second = [{key: proof[key] for key in ("format", "source_id", "name", "sha256", "bytes")} for proof in receipt["ui_original_import_proofs"]]
+                    receipt["ui_reparse_proofs"] = second
+                    ui_format_conversion_loop(bridge, ui_click, wait, js, second, citations=args.ui_format_citations)
+                    verify_ui_reparse(bridge, receipt["ui_original_import_proofs"], second)
+                    for proof in receipt["ui_original_import_proofs"]:
+                        if "ui_ocr_page_relation" in proof:
+                            proof["ui_page_relation_superseded"] = True
+                    receipt["steps"].append("Independent second actual UI conversion preserves all first job output hashes; no deterministic recognition claim")
+        if args.ui_original_text_citations:
+            ui_original_text_citations(bridge, ui_click, ui_type, wait, receipt["ui_original_import_proofs"], js, ui_select_emoji)
+        installed_format_import_loop(bridge,REPO,format_proofs)
+        epub_proof = next(proof for proof in format_proofs if "epub_position" in proof)
+        installed_epub_reader(bridge, js, wait, ui_click, epub_proof, cite=True)
+        receipt["steps"].append("Actual EPUB Reader chapter/paragraph, UI citation, source revision and persisted result-bound locator; no visual pagination claim")
+        receipt["steps"].append("Known XLSX/PPTX/CSV/TAR through finite installed/candidate host bridge with actual worker, locators, loss and automatic TAR member")
+        matrix_proofs = receipt["matrix_proofs"] = []
+        installed_remaining_matrix(bridge, bridge_status, REPO, matrix_proofs)
+        receipt["steps"].append("Remaining canonical A/B format rows and four malformed inputs use real host jobs; media probe only, missing engines fail")
+        if args.synthetic_course_loop:
+            receipt["synthetic_course_loop"] = synthetic_course_loop(bridge, bridge_status, js, wait, ui_click, ui_type, screenshot)
+            receipt["steps"].append("SYNTHETIC authored knowledge review fixture; REAL native course/lesson/long-key learning; no human signoff")
+        if args.synthetic_template_pagination:
+            receipt["synthetic_template_pagination"] = synthetic_template_pagination(bridge, js, wait, ui_click, screenshot)
+            receipt["steps"].append("501 SYNTHETIC authored templates use real Core pagination, concurrent insertion boundary and native cross-page backlinks")
+        close_session()
+        launch()
+        if args.synthetic_course_loop:
+            proof = receipt["synthetic_course_loop"]
+            course = bridge("course_get", {"course_id": proof["course_id"]})
+            state = bridge("learning_state", {"item_key": proof["item_key"]})
+            assert course["stale"] is False and course["status"] == "candidate" and course["human_review_required"] is True
+            assert state["learner"]["assessment"]["assessment_id"] == proof["assessment"]["assessment_id"]
+            proof["native_restart_readback"] = "PASS"
+        if args.synthetic_template_pagination:
+            proof = receipt["synthetic_template_pagination"]
+            assert bridge("document_version", {"document_id":proof["linker"]["document_id"],"version":2}) == proof["linker"]
+            assert bridge("documents_list")["snapshot_count"] == proof["refresh_count"]
+            ui_click("资料库")
+            js("document.querySelector('.template-launcher summary').click();")
+            wait("return document.querySelector('[aria-label=\"已保存模板\"]')?.querySelectorAll('button').length===501", seconds=60)
+            ui_click(proof["target"]["title"] + " · v1", "//nav[@aria-label='已保存模板']")
+            wait("return document.querySelector('[aria-label=\"反向引用\"]')?.textContent.includes(" + json.dumps(proof["linker"]["title"]) + ")")
+            proof["native_restart_readback"] = "PASS"
+        installed_format_readback(bridge,format_proofs)
+        ui_original_import_readback(bridge, receipt.get("ui_original_import_proofs", []))
+        ui_original_import_readback(bridge, receipt.get("ui_reparse_proofs", []))
+        if receipt.get("ui_reparse_proofs"):
+            verify_ui_reparse(bridge, receipt["ui_original_import_proofs"], receipt["ui_reparse_proofs"])
+        installed_remaining_readback(bridge, bridge_status, matrix_proofs)
+        receipt["steps"].append("Full host restart reads every host matrix source/output/quality/origin and negative error state from Core")
+        installed_epub_reader(bridge, js, wait, ui_click, epub_proof, cite=False)
+        receipt["steps"].append("Full host restart restores actual EPUB Reader and persisted reference navigation to known paragraph")
+        receipt["steps"].append("Full host close/relaunch preserves known format originals, worker outputs, locators and loss byte hashes")
+        close_session()
+        receipt["ok"] = True
+    except _GroupedJourneyCompleteError:
+        pass  # Both branches retain the same mandatory cleanup/final source binding.
+    except BaseException as error:
+        receipt["ok"] = False
+        receipt["error"] = f"{type(error).__name__}: {error}"
+        receipt["traceback"] = traceback.format_exc()
+        if process and process.poll() is None:
+            # Metadata only; no command lines, credentials or shared processes.
+            try:
+                receipt["owned_failure_processes"] = owned_process_rows(native_process_rows(), process.pid)
+            except (OSError, RuntimeError) as diagnostic_error:
+                receipt["owned_failure_processes"] = "diagnostic collection failed"
+                receipt["diagnostic_error"] = type(diagnostic_error).__name__
+        if session:
+            try:
+                screenshot("failure.png")
+            except BaseException as capture_error:
+                receipt["screenshot_error"] = str(capture_error)
+    finally:
+        if owned_host is not None:
+            try:
+                close_session()
+            except BaseException as error:
+                receipt["ok"] = False
+                receipt["owned_host_cleanup_error"] = type(error).__name__
+                try:
+                    cleanup = load("attach_cleanup", REPO / "scripts/runtime/dev.py")
+                    cleanup.stop_owned_process(owned_host)
+                    owned_host.wait(timeout=15)
+                except BaseException as cleanup_error:
+                    receipt["owned_host_forced_cleanup_error"] = type(cleanup_error).__name__
+                    receipt["owned_host_forced_cleanup_traceback"] = traceback.format_exc()
+        if session:
+            try:
+                request("DELETE", f"/session/{session}")
+            except BaseException:
+                receipt["ok"] = False
+        if process and process.poll() is None:
+            launcher = load("webdriver_dev", REPO / "scripts/runtime/dev.py")
+            try:
+                launcher.stop_owned_process(process)
+                process.wait(timeout=15)
+                receipt["owned_process_cleanup"] = True
+            except (OSError, RuntimeError, subprocess.TimeoutExpired) as cleanup_error:
+                receipt["owned_process_cleanup"] = False
+                receipt["cleanup_error"] = type(cleanup_error).__name__
+                receipt["ok"] = False
+        try:
+            receipt["owned_identity_collection_verified"] = owned_tree_collection_verified
+            if receipt.get("owned_host_pids") and not owned_tree_collection_verified:
+                raise RuntimeError("Owned attach process tree was never identity-verified")
+            receipt["owned_cleanup_readback_stage"] = "process_identity_drain"
+            drain = wait_owned_descendant_drain(owned_host_records)
+            receipt["owned_descendant_drain"] = drain
+            remaining = [row["pid"] for row in drain["remaining"]]
+            receipt["remaining_same_creation_owned_hosts"] = sorted(set(remaining))
+            if remaining:
+                raise RuntimeError("Owned host descendants remained after cleanup")
+            receipt["owned_cleanup_readback_stage"] = "port_listeners"
+            listeners = tcp_listener_rows(ports=attach_ports + [port, native])
+            receipt["remaining_owned_port_listeners"] = listeners
+            if listeners:
+                raise RuntimeError("Owned attach/driver ports remained listening after cleanup")
+            receipt["owned_ports_released"] = True
+        except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as error:
+            receipt["owned_cleanup_readback_error"] = type(error).__name__
+            receipt["ok"] = False
+        driver_transport.close()
+        log.close()
+        receipt["driver_log"] = identity(work / "driver.log")
+        if native_log.is_file():
+            receipt["native_driver_log"] = identity(native_log)
+        launcher = load("native_probe_final_identity", REPO / "scripts/runtime/dev.py")
+        _, after = launcher.worktree_identity(REPO)
+        receipt["source_consistent"] = after == receipt["source_patch_sha256"]
+        if not receipt["source_consistent"]:
+            receipt["ok"] = False
+        path = work / "receipt.json"
+        path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(
+            json.dumps(
+                {"ok": receipt["ok"], "receipt": str(path), "error": receipt.get("error"),
+                 "cleanup_error": receipt.get("owned_cleanup_readback_error"),
+                 "cleanup_stage": receipt.get("owned_cleanup_readback_stage"),
+                 "remaining_owned": receipt.get("remaining_same_creation_owned_hosts")},
+                ensure_ascii=False,
+            )
+        )
+    return 0 if receipt["ok"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,19 @@
+{
+  "answer_sha256": null,
+  "authority": "candidate",
+  "diagnostics": {
+    "elapsed_s": 118.03,
+    "error_type": "TimeoutError",
+    "max_tokens": 1024,
+    "requested_model": "aaos-deep-27b-mtp",
+    "timeout_s": 118
+  },
+  "grants_knowledge_acceptance": false,
+  "outcome": "failed",
+  "plan_sha256": "ed9a4c33f46d051bb001724eac956b41e1826e7c38544d73709a2af67612b956",
+  "provider_stop_state": "NOT_REQUESTED",
+  "reason_code": "material_model_call_failed",
+  "request_id": "be8f0087-ae64-4c17-99db-eeac7c1d1c0f",
+  "schema": "archeaxis.material-answer/v1",
+  "task_id": "material_answer_f62408382cf6624d5744385d804d8f68bc66d910e158f39d8120ec9ac0c360ab"
+}

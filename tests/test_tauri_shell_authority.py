@@ -153,3 +153,18 @@ def test_native_process_observer_reads_current_owned_identity(monkeypatch):
     elevation = probe.process_elevation(os.getpid())
     assert elevation["elevation_verified"] is True
     assert isinstance(elevation["elevated"], bool)
+
+
+def test_review_queue_identity_survives_same_titles_and_quotes(monkeypatch):
+    from lxml import etree
+    probe = load_probe(monkeypatch)
+    tree = etree.Element("ul", {"aria-label": "复习队列"})
+    key = "course:one'quoted\"name:artifact:exact"
+    first = etree.SubElement(tree, "button", {"data-learning-item-key": key})
+    first.text = "同名学习主题"
+    etree.SubElement(tree, "button", {"data-learning-item-key": "other"}).text = first.text
+    hidden = etree.SubElement(tree, "li", {"hidden": ""})
+    etree.SubElement(hidden, "button", {"data-learning-item-key": key}).text = first.text
+    selector = probe.navigation_button_selector(key, "//ul[@aria-label='复习队列']")
+    assert tree.xpath(selector) == [first]
+    assert "@data-learning-item-key" in selector

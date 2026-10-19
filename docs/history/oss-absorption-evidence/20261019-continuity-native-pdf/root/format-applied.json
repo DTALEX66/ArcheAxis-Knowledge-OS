@@ -1,0 +1,225 @@
+{
+  "mode": "format",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/format_qualification.rs",
+      "before_sha256": "5c6a73d307875218e416f81893c222a3d0e5b9d36977e88bd029d5392c9b8400",
+      "edition": "2024",
+      "after_sha256": "22091e917b37956de3e8fe8b5e1646c51a202b1b8eae49f0f72c91dcb3bb64e3",
+      "bytes": 7555,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/colearning.rs",
+      "before_sha256": "f6e242e8cc02cb490794dfe0cd6b9552fd7fe9ed78fd8ebcc6a2e21b13e88d5a",
+      "edition": "2024",
+      "after_sha256": "438ad67124187445c51a287e78aa52291aefd03aa7429a18793a064f68dca898",
+      "bytes": 53100,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/conversation.rs",
+      "before_sha256": "9e3346c350e6e1d6a74ae0680119099ce809463e85d6a10019e816236bd99227",
+      "edition": "2024",
+      "after_sha256": "b1c9ab2a1c5d7fffc2e2f905784898a931d4a86602a4aae8dad2b3191faa0ffc",
+      "bytes": 22603,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/execution_claim.rs",
+      "before_sha256": "caf282adb15b3105bf9955ec9842f736094156a8a26c2ca9f8d8ab0d31c8e3be",
+      "edition": "2024",
+      "after_sha256": "040f05223258be37164b23d2d3ec1e74a4f094f8df60216c467c08aad4d04904",
+      "bytes": 16294,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/material_questions.rs",
+      "before_sha256": "7859c67f0d212d1e22d56ecca115c397b14050e7744a025e8c8b556bd2fc8feb",
+      "edition": "2024",
+      "after_sha256": "9519bd035ae9332cda0dde8145a4ad9c2c24d269c4704ab531c4eced2dfdfe29",
+      "bytes": 15934,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/readiness.rs",
+      "before_sha256": "074a72479ea9269731e6ac8d42bbaf8806f1c53c2c560bc847b06da049aa7bda",
+      "edition": "2024",
+      "after_sha256": "30e6ce887a3fd81c067b8699d26d4ba96f352c36e50a7deca0bf1d05ca0cda40",
+      "bytes": 3981,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/contract_machine_answer.rs",
+      "before_sha256": "46888b07bf61cbc3dda23f8e598c9582d9015a3f9878d329b19ed12a2814d3bb",
+      "edition": "2024",
+      "after_sha256": "3285f949f88760dfec3efc2393ae2acf717ba33a19a92f8eb21d60b08bd571fa",
+      "bytes": 48115,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/conversation_api.rs",
+      "before_sha256": "3002d5ea263146a462621b57d4a747c9eda55a9e1eb1edf6e6cf56578107de31",
+      "edition": "2024",
+      "after_sha256": "01221077ff44f4fae679276685464330413a786957ee552c63e100c3c26aa9f9",
+      "bytes": 30772,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/document_draft_loop.rs",
+      "before_sha256": "7cd0bf66d525ffed0cd8e0ebc885651b135a317e883661215cddb94b91371600",
+      "edition": "2024",
+      "after_sha256": "b59c6ec2d7bbfa2db64a7d9aaa163f3616e568b2ecd3029218cfda56c0f8e0fe",
+      "bytes": 46334,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/file_format_qualification.rs",
+      "before_sha256": "66e7b0c3b6e1dd219818e65c5d9faf5bedc320ce0c485c68bbb89d8a0c69b566",
+      "edition": "2024",
+      "after_sha256": "b20390c0781dff4ddd22bb41b13158798dd9b72753d4cd3cf42e07cc973f9853",
+      "bytes": 18634,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/learning_state_api.rs",
+      "before_sha256": "0555193f4b9aa3d0c40473029f3c37cc600ee81494f84e95816d5e430ec3143e",
+      "edition": "2024",
+      "after_sha256": "0365229ba3b8ad29f01abdf23d6ad94d643c6225c5f53f8c9d579c6d51ef7629",
+      "bytes": 27995,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/material_question_api.rs",
+      "before_sha256": "bf8a768c9ac69420b20cd210d9391fc8066ff2a4534c6fb73317ee537096ef66",
+      "edition": "2024",
+      "after_sha256": "9c2db24a40dd96a97968bc4a0be6d6bacc097e9bd81e79272c0bdbddeea64662",
+      "bytes": 19822,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/operation_readiness_api.rs",
+      "before_sha256": "8c048c3bde8350fa02ea6d3c3f7b803574b1ba0eaf070ff54f3c4a8f034256ad",
+      "edition": "2024",
+      "after_sha256": "711584b96c8239e7ed078802b2d074643df8a26c2916695ac3b814b6a54b1f65",
+      "bytes": 4549,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-application/src/attempts.rs",
+      "before_sha256": "3a20c56ea43ed0f3aeefe5bf34bef267ba6e53d1cced69217f6fdcc33bb00ce5",
+      "edition": "2024",
+      "after_sha256": "5ef1b6f3cb3502ff79ee359c1ffd98e3db5cb353d757d854bbf7ddba816a9eb2",
+      "bytes": 33899,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "before_sha256": "5126e3cd3ee3e503e4d73f0e32c761fbe56ec418491d5dc2fde6eb2c97245aa8",
+      "edition": "2024",
+      "after_sha256": "22f5951aa368ce37b6bc0debbeb6391ec5aa636131b88241472e28d33853760a",
+      "bytes": 68705,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/health.rs",
+      "before_sha256": "1f72c3998b6b950a06662b755e2e6eb3906036e78f19d6ec9d2b7a714f4586c4",
+      "edition": "2024",
+      "after_sha256": "685c699cbcb3e23b836cd870eeeca8051c03f9eb93edf88e202989e55efcc646",
+      "bytes": 6898,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "before_sha256": "b40e288c16f47b9d36a5d8fea2d251991d6e5364f4f6174d4b056e3cfdea12e6",
+      "edition": "2024",
+      "after_sha256": "43e9ffa01f0ffac7b825e2a03527b6ba75ebeade80a838757a9e704af7830ee6",
+      "bytes": 14366,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-application/tests/machine_answer_resources.rs",
+      "before_sha256": "b9b948365d3a579a4217a5baf810ea6ae69181906105779d42beb2211d1dbfec",
+      "edition": "2024",
+      "after_sha256": "3f6507fe231760e3287f05b4c4f266adb1c032afd634024d0b6b2c54188f6dbb",
+      "bytes": 19368,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-application/tests/receipt_spans.rs",
+      "before_sha256": "3777fdd5f0382a27d3f45b17e825c923a2f7c9c33ad361f272dc223951c1734c",
+      "edition": "2024",
+      "after_sha256": "ef30d15263018af300919a57461d143b0d2c6bc339467e8cd88e3d4578cca047",
+      "bytes": 5400,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-application/tests/worker_health_contract.rs",
+      "before_sha256": "1c874bbe7ddd315199adf9a0c48bcd4ed6f786cad6f8a0b6561ec814264591ca",
+      "edition": "2024",
+      "after_sha256": "601b3ce66045eed8fc9693c62b93b41899909bfd971f99f711b1f10a2ecc0068",
+      "bytes": 10456,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/learning.rs",
+      "before_sha256": "3365ec343fa94b3158794ce706fabadbda796c73ba3afdf4a05d163c64b4124e",
+      "edition": "2024",
+      "after_sha256": "3aa3900f4aad98d3505a1fcb70227cd2fac20cd91d7a0ba31634488ebf0ee2c1",
+      "bytes": 39350,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/src/worker.rs",
+      "before_sha256": "aea8c3ba1c57a45a4d9e492b35d0f7b64e5275f666a7d0f872a9f755e2a9434f",
+      "edition": "2024",
+      "after_sha256": "78503cec1cf2f98c954907adfb235e59864ccce611584f36d8552852de96ac1f",
+      "bytes": 14157,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs",
+      "before_sha256": "29805bdbe896b957108458c7b08ad3b3d035d9a9a5715a12f3b4f222e1992964",
+      "edition": "2024",
+      "after_sha256": "d47583491748ce1c5b0a515b232ff78037f2c9577791bb8f3a22042fd953ea3f",
+      "bytes": 8947,
+      "review": "仅rustfmt，关闭子模块递归；13既有门禁失败路径+11 PDF Rust路径（executor重叠1）"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "D:\\All projects\\OS External Configuration\\toolchains\\rust\\cargo\\bin\\rustfmt.exe",
+        "--edition",
+        "2024",
+        "--config",
+        "skip_children=true",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\src\\format_qualification.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\src\\runtime\\colearning.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\src\\runtime\\conversation.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\src\\runtime\\execution_claim.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\src\\runtime\\material_questions.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\src\\runtime\\readiness.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\tests\\contract_machine_answer.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\tests\\conversation_api.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\tests\\document_draft_loop.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\tests\\file_format_qualification.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\tests\\learning_state_api.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\tests\\material_question_api.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-api\\tests\\operation_readiness_api.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-application\\src\\attempts.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-application\\src\\executor.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-application\\src\\executor\\health.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-application\\src\\executor\\machine_failure.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-application\\tests\\machine_answer_resources.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-application\\tests\\receipt_spans.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-application\\tests\\worker_health_contract.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-domain\\src\\learning.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-sidecar-protocol\\src\\worker.rs",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\crates\\archeaxis-sidecar-protocol\\tests\\worker_protocol.rs"
+      ],
+      "exit_code": 0,
+      "log": ".project-local/audits/implementation-continuation-20261019/rustfmt-apply-2024.log"
+    }
+  ]
+}

@@ -3,12 +3,28 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MachineAnswerPanel } from "../components/MachineAnswerPanel";
+import { ApiError } from "../api/client";
+import { resetDiagnostics,useDiagnostics } from "../presentation/diagnostics";
+import { renderHook } from "@testing-library/react";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:(op:string,...args:unknown[])=>op==="model_configuration_get"?Promise.resolve({schema:"archeaxis.model-configuration/v1",revision:0,workspace_id:"a".repeat(32),restore_epoch:"initial",profiles:{},bindings:[]}):bridge.call(op,...args)}));
 const answer={schema:"archeaxis.machine-answer/v1",answer_id:"answer1",knowledge_id:"k1",question:"实际问题",answer:{answer:"实际机器回答",model:"local-model"},authority:"candidate"};
 const retestReceipt={schema:"archeaxis.machine-retest/v1",retest_task_id:"retest1",answer_id:"retest1",retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",answer:{answer:"纠正后复测回答",model:"local-model"},authority:"candidate",prior:{},request:{retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",max_tokens:2048},execution_request:{schema:"archeaxis.machine-retest-execution/v1",timeout_s:120,request:{retest_of:"evaluation_answer1",knowledge_id:"correction1",question:"实际问题",max_tokens:2048}},note:"human compares"};
 function task(doc:typeof answer|typeof retestReceipt,scope="runtime.answer") {return {task_id:doc.answer_id,conditions:JSON.stringify(doc),scope,knowledge_version:doc.knowledge_id+"@v1",model_version:doc.answer.model,outcome:"unmeasured",retest_of:scope==="runtime.retest"?"evaluation_answer1":null};}
 describe("SIMULATED machine candidate UI with Core bridge fixtures",()=>{
  beforeEach(()=>{bridge.call.mockReset();});
+ it("keeps failed answer measurements in the shared diagnostic center and preserves input without retry",async()=>{
+  resetDiagnostics();const diagnostics={finish_reason:"length",elapsed_s:2.5,usage:{output_tokens:2048}};
+  bridge.call.mockRejectedValue(new ApiError(503,"模型未返回最终答案","unavailable",undefined,undefined,undefined,{reason_code:"NO_FINAL_ANSWER",execution_state:"UNVERIFIED",answer_published:false,diagnostics}));
+  const entries=renderHook(useDiagnostics);const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();
+  await user.type(screen.getByLabelText("实际问题"),"保留原问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
+  const detail=await screen.findByRole("button",{name:"查看原始回执（诊断）：回答失败脱敏诊断"});
+  expect(screen.getByLabelText("实际问题")).toHaveValue("保留原问题");
+  expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();
+  expect(bridge.call.mock.calls.filter(([op])=>op==="machine_answer")).toHaveLength(1);
+  await user.click(detail);expect(entries.result.current.at(-1)?.payload).toEqual({reason_code:"NO_FINAL_ANSWER",execution_state:"UNVERIFIED",answer_published:false,diagnostics});
+  expect(debug).not.toHaveBeenCalled();debug.mockRestore();
+ });
  it("reads a persisted answer and requires explicit human correction fields without accepting",async()=>{
   let liveAnswer:typeof answer & Record<string,unknown>=answer;
   let candidateStatus="candidate",candidateVersion="correction-v1";

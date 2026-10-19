@@ -295,8 +295,18 @@ async fn capability(State(runtime): State<Runtime>, Path(name): Path<String>) ->
 async fn set_capability_enabled(
     State(runtime): State<Runtime>,
     Path(name): Path<String>,
+    headers: HeaderMap,
     Json(body): Json<CapabilityEnabledBody>,
 ) -> Response {
+    // Capability policy belongs to the human host. Launch middleware derives
+    // this actor from the bootstrap credential, overriding self-reported headers.
+    if crate::request_actor(&headers) != Ok("human") {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(json!({"code":"CAPABILITY_SETTINGS_HUMAN_REQUIRED"})),
+        )
+            .into_response();
+    }
     crate::capabilities::set_enabled(&runtime.executor, &name, body.enabled).await
 }
 

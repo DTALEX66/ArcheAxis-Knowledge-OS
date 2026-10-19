@@ -13,12 +13,12 @@ describe("diagnostic console", () => {
     expect(screen.getByLabelText("诊断控制台")).toHaveTextContent("暂无原始回执");
   });
 
-  it("lists a published payload verbatim and mirrors it to the developer console", async () => {
+  it("lists a published payload verbatim without copying it to the developer console", async () => {
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
     const user = userEvent.setup();
     render(<><RawReceiptButton label="损失、引擎与处理记录" payload={{ engine: "openpyxl", engine_version: "3.1.5" }} /><DiagnosticConsole /></>);
     await user.click(screen.getByRole("button", { name: /损失、引擎与处理记录/ }));
-    expect(debug.mock.calls.some(([, label, payload]) => label === "损失、引擎与处理记录" && JSON.stringify(payload).includes("openpyxl"))).toBe(true);
+    expect(debug).not.toHaveBeenCalled();
     const console_ = screen.getByLabelText("诊断控制台");
     expect(console_).toHaveTextContent("损失、引擎与处理记录");
     expect(console_).toHaveTextContent("openpyxl");

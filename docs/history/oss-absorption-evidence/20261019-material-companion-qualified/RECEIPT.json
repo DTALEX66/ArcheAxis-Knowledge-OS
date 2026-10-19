@@ -1,0 +1,54 @@
+{
+  "schema": "aaos.material-companion-qualified/v1",
+  "recorded_at": "2026-10-18T19:00:08.757966+00:00",
+  "status": "PASS_DECLARED_NATIVE_SLICE",
+  "whole_project": "PARTIAL",
+  "source_patch_sha256": "bf27efc04415d6de00714147225e410327042adebd9bfe8311316528507e30c8",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_files_sha256": {
+    "scripts/probes/aaos01_material_companion_loop.py": "a3a186a2e36e631048e67e75f9756f3c29e865d18149989d49918a1a581a351f",
+    "scripts/probes/aaos01_tauri_webdriver_loop.py": "f948a27efa6732cd13703a37cbd4774bad0b55aae2bb347173309765335be130",
+    "scripts/probes/aaos01_grouped_owner_loop.py": "ac6aa884a259322bdc26c0f721206579b71658119b02c2798753b5c4d4b47467"
+  },
+  "candidate_host_sha256": "982a8a1088dbf9b50ed4c06246490caaa6663f7fb39efd49dd16513437eecb99",
+  "candidate_core_sha256": "55a3ff7806f5d231deb99e06c6acc99ff8961d9bcbe90246d2cd7a86f1c107a3",
+  "native_summary": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/native-result.json",
+  "archive": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md",
+  "phases": {
+    "same_process_recovery": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "additional_observed_ui_execution_calls": 0
+    },
+    "cold_reopen": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "observed_after_attach_ui_execution_calls": 0,
+      "startup_execution_calls": "UNVERIFIED"
+    },
+    "backup_restore": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "observed_after_attach_ui_execution_calls": 0,
+      "startup_execution_calls": "UNVERIFIED"
+    }
+  },
+  "images_viewed": 7,
+  "observed_after_attach_reopen_execution_calls": 0,
+  "startup_execution_calls": "UNVERIFIED",
+  "quality": "UNVERIFIED; companion returned no practical study suggestion; completed is execution status only",
+  "native_cancellation": "NOT_EXECUTED",
+  "installed_runtime": "NOT_EXECUTED",
+  "owner_acceptance": "NOT_EXECUTED",
+  "cloud_backup": "NOT_EXECUTED",
+  "prior_failure": "docs/current/receipts/AAOS-MATERIAL-COMPANION-FINAL-20261019.json",
+  "source_fix": "docs/current/receipts/AAOS-MACHINE-DEADLINE-20261019.json",
+  "remaining": [
+    "native cancellation",
+    "readable review titles",
+    "BE10 Observer admission and adapters",
+    "companion no-material study-suggestion quality",
+    "reduce internal IDs and engineering detail on user surfaces",
+    "full-format/installed/quality/Owner acceptance and existing capability queue"
+  ]
+}

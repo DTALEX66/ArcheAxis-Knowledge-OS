@@ -1,0 +1,96 @@
+.FF                                                                      [100%]::error::PYTEST-FAILED tests/test_worker_machine_answer.py::test_response_at_or_after_total_deadline_is_not_accepted[5]
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E17CB37360>
+call_seconds = 5
+
+    @pytest.mark.parametrize("call_seconds", [4.999, 5, 5.001])
+    def test_response_at_or_after_total_deadline_is_not_accepted(monkeypatch, call_seconds):
+        clock = [100.0]
+        monkeypatch.setattr(machine.time, "monotonic", lambda: clock[0])
+        monkeypatch.setattr(machine, "_endpoint", lambda: {
+            "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"})
+        def call(*args):
+            clock[0] += call_seconds
+            return "SYNTHETIC_PRIVATE_LATE_ANSWER", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+        if call_seconds < 5:
+            assert machine.answer("context", "question", timeout_s=5)["answer"] == "SYNTHETIC_PRIVATE_LATE_ANSWER"
+        else:
+>           with pytest.raises(machine.ModelCallFailure) as raised:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ModelCallFailure
+
+tests\test_worker_machine_answer.py:534: Failed
+::error::PYTEST-FAILED tests/test_worker_machine_answer.py::test_response_at_or_after_total_deadline_is_not_accepted[5.001]
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E17CEF7E30>
+call_seconds = 5.001
+
+    @pytest.mark.parametrize("call_seconds", [4.999, 5, 5.001])
+    def test_response_at_or_after_total_deadline_is_not_accepted(monkeypatch, call_seconds):
+        clock = [100.0]
+        monkeypatch.setattr(machine.time, "monotonic", lambda: clock[0])
+        monkeypatch.setattr(machine, "_endpoint", lambda: {
+            "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"})
+        def call(*args):
+            clock[0] += call_seconds
+            return "SYNTHETIC_PRIVATE_LATE_ANSWER", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+        if call_seconds < 5:
+            assert machine.answer("context", "question", timeout_s=5)["answer"] == "SYNTHETIC_PRIVATE_LATE_ANSWER"
+        else:
+>           with pytest.raises(machine.ModelCallFailure) as raised:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ModelCallFailure
+
+tests\test_worker_machine_answer.py:534: Failed
+
+================================== FAILURES ===================================
+_________ test_response_at_or_after_total_deadline_is_not_accepted[5] _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E17CB37360>
+call_seconds = 5
+
+    @pytest.mark.parametrize("call_seconds", [4.999, 5, 5.001])
+    def test_response_at_or_after_total_deadline_is_not_accepted(monkeypatch, call_seconds):
+        clock = [100.0]
+        monkeypatch.setattr(machine.time, "monotonic", lambda: clock[0])
+        monkeypatch.setattr(machine, "_endpoint", lambda: {
+            "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"})
+        def call(*args):
+            clock[0] += call_seconds
+            return "SYNTHETIC_PRIVATE_LATE_ANSWER", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+        if call_seconds < 5:
+            assert machine.answer("context", "question", timeout_s=5)["answer"] == "SYNTHETIC_PRIVATE_LATE_ANSWER"
+        else:
+>           with pytest.raises(machine.ModelCallFailure) as raised:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ModelCallFailure
+
+tests\test_worker_machine_answer.py:534: Failed
+_______ test_response_at_or_after_total_deadline_is_not_accepted[5.001] _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E17CEF7E30>
+call_seconds = 5.001
+
+    @pytest.mark.parametrize("call_seconds", [4.999, 5, 5.001])
+    def test_response_at_or_after_total_deadline_is_not_accepted(monkeypatch, call_seconds):
+        clock = [100.0]
+        monkeypatch.setattr(machine.time, "monotonic", lambda: clock[0])
+        monkeypatch.setattr(machine, "_endpoint", lambda: {
+            "protocol": "openai", "base": "http://127.0.0.1:1/v1", "model": "m"})
+        def call(*args):
+            clock[0] += call_seconds
+            return "SYNTHETIC_PRIVATE_LATE_ANSWER", "stop", "m", "content"
+        monkeypatch.setattr(machine, "_call", call)
+        if call_seconds < 5:
+            assert machine.answer("context", "question", timeout_s=5)["answer"] == "SYNTHETIC_PRIVATE_LATE_ANSWER"
+        else:
+>           with pytest.raises(machine.ModelCallFailure) as raised:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE ModelCallFailure
+
+tests\test_worker_machine_answer.py:534: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_worker_machine_answer.py::test_response_at_or_after_total_deadline_is_not_accepted[5]
+FAILED tests/test_worker_machine_answer.py::test_response_at_or_after_total_deadline_is_not_accepted[5.001]
+2 failed, 1 passed, 86 deselected in 0.29s

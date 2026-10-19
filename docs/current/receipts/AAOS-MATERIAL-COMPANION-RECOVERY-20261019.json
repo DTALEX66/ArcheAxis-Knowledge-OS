@@ -1,0 +1,51 @@
+{
+  "schema": "aaos.material-companion-native-recovery/v1",
+  "recorded_at": "2026-10-18T18:09:04.688123+00:00",
+  "status": "PARTIAL",
+  "whole_project": "PARTIAL",
+  "engineering_native_result": "FAIL",
+  "source_patch_sha256": "9eba6d3558edd54c0adf2f18c8f258faaed6ffa692c8d90ebb43ecb4ce8b7751",
+  "source_files_sha256": {
+    "scripts/probes/aaos01_material_companion_loop.py": "4718cfdc37b64a1f32c523b26cb1f773187ecb1da8d68fcd788f1dc80d3bde61",
+    "tests/test_material_companion_native_probe.py": "e33f51bf728e0b89ffabdeddbe21eb645ccef020285761336520750b512f016e"
+  },
+  "verification": {
+    "probe-tests": {
+      "path": ".project-local/runs/be268a2d33/material-companion-probe-recovery-1019/artifacts/execution.json",
+      "sha256": "1c828e69510689520ff56f0971cbbf911a2c9ae763a376808ca19cfa7553721f",
+      "status": "LOCAL_PASS"
+    },
+    "host-build": {
+      "path": ".project-local/runs/be268a2d33/material-companion-host-recovery-1019/artifacts/execution.json",
+      "sha256": "5cbf5bf5ac587810449c6f72645a56f0786611eedff7b1d88ca348117b2bedab",
+      "status": "LOCAL_PASS"
+    },
+    "core-build": {
+      "path": ".project-local/runs/be268a2d33/material-companion-core-recovery-1019/artifacts/execution.json",
+      "sha256": "5739ec77c5f7d6807d8cd7af516f02038c4a0104365aafeed9b05f10db44cd99",
+      "status": "LOCAL_PASS"
+    },
+    "native-execution": {
+      "path": ".project-local/runs/be268a2d33/material-companion-native-recovery-1019/artifacts/execution.json",
+      "sha256": "d289e5c198a8e20ffd563417d854aa9b0bc3a25b6727d839593f7694e9766b72",
+      "status": "FAIL"
+    }
+  },
+  "probe_tests": {
+    "passed": 59,
+    "subtests_passed": 145,
+    "evidence": "SIMULATED_PROBE_GUARDS"
+  },
+  "native_summary": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/native-result.json",
+  "prior_failure_preserved": "docs/current/receipts/AAOS-MATERIAL-COMPANION-NATIVE-20261019.json",
+  "candidate_host_sha256": "729365af8066eaa4a55d64b82cd9e6d26d815c781875a5d12fe65fef4aa3fa5a",
+  "candidate_core_sha256": "750c44943ecc8a6f7e3c691992490a6ce75d3a83eadbc99a2c3d24931fdee681",
+  "remaining": [
+    "Native cancellation",
+    "BE10 bounded read-only admission",
+    "Readable review titles",
+    "Installed runtime, full formats, model quality and Owner acceptance"
+  ],
+  "cloud_backup": "NOT_EXECUTED",
+  "commit_push": "NOT_EXECUTED"
+}

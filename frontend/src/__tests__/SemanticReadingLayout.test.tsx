@@ -193,3 +193,12 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(bridge.call.mock.calls.some(([op])=>op==="document_draft")).toBe(false);
   });
 });
+
+it("SIMULATED: library Inspector describes the actual loaded document without leaking raw identities into its prose",async()=>{
+ const inspect=vi.fn();render(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id} onInspect={inspect}/>);
+ await screen.findByRole("textbox",{name:"文档草稿"});
+ await waitFor(()=>expect(inspect).toHaveBeenCalled());const actual=inspect.mock.calls.at(-1)![0];
+ expect(actual).toMatchObject({title:doc.title,version:String(doc.version),identityDetails:{document_id:doc.document_id,version:doc.version,content_sha256:doc.content_sha256,source_id:doc.source_id,source_revision:doc.source_revision}});
+ expect(actual.detail).not.toContain(doc.document_id);expect(actual.detail).not.toContain(doc.content_sha256);expect(actual.detail).toContain("保存不表示已证实");
+ expect(bridge.call.mock.calls.some(([op])=>["document_draft","material_question","conversation_request"].includes(op))).toBe(false);
+});

@@ -1,0 +1,48 @@
+/* Scoped visual adaptation; see neural-creator-NOTICE.txt. No root/theme overrides. */
+.constellation-graph { border: 1px solid var(--ax-border); border-radius: 14px; overflow: hidden; color: var(--ax-fg); background: var(--ax-bg-inset); }
+.constellation-graph .cg-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 12px; background: var(--ax-panel); border-bottom: 1px solid var(--ax-border); }
+.constellation-graph .cg-toolbar button { min-height: 32px; padding: 4px 10px; }
+.constellation-graph .cg-toolbar button[aria-pressed="true"] { border-color: var(--ax-accent); background: var(--ax-hover); color: var(--ax-fg); }
+.constellation-graph .cg-toolbar label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.constellation-graph .cg-help, .constellation-graph .cg-legend, .constellation-graph .cg-budget, .constellation-graph .cg-empty { margin: 0; padding: 8px 14px; font-size: 12px; color: var(--ax-fg-secondary); }
+.constellation-graph .cg-budget { color: var(--ax-fg); background: var(--ax-panel); }
+.constellation-graph .cg-viewport { width: 100%; height: auto; aspect-ratio: 1200 / 760; display: block; touch-action: none; cursor: grab; }
+.constellation-graph .cg-viewport:active { cursor: grabbing; }
+.constellation-graph .cg-star { fill: var(--ax-fg); }
+.constellation-graph[data-animated="true"] .cg-star { animation: cg-twinkle 5.5s var(--cg-phase, 0s) ease-in-out infinite alternate; }
+.constellation-graph .cg-core-ring { fill: none; stroke: #d0ae6c; stroke-width: 1.2; opacity: .38; }
+.constellation-graph .cg-core-glow { transform-box: fill-box; transform-origin: center; }
+.constellation-graph[data-animated="true"] .cg-core-glow { animation: cg-breathe 7s ease-in-out infinite alternate; }
+.constellation-graph .cg-region-thread { fill: none; stroke: var(--ax-accent); stroke-width: .8; stroke-dasharray: 3 8; opacity: .24; }
+.constellation-graph .cg-group-name { fill: var(--ax-fg-secondary); font-size: 13px; letter-spacing: 3px; }
+.constellation-graph .cg-dim-region { opacity: .3; }
+.constellation-graph .cg-edge { color: var(--ax-accent); pointer-events: none; }
+.constellation-graph .cg-edge > path { stroke: currentColor; stroke-width: 1.1; stroke-opacity: .5; vector-effect: non-scaling-stroke; }
+.constellation-graph .cg-edge.cg-mutual { color: #b79245; }
+.constellation-graph .cg-mutual > path { stroke-width: 1.7; stroke-opacity: .78; }
+.constellation-graph .cg-edge-label { fill: var(--ax-fg-secondary); font-size: 10px; paint-order: stroke; stroke: var(--ax-bg-inset); stroke-width: 3px; stroke-linejoin: round; }
+.constellation-graph .cg-dim { opacity: .18; }
+.constellation-graph .cg-node { cursor: pointer; }
+.constellation-graph .cg-node > rect { fill: var(--ax-panel); stroke: var(--ax-border-strong, var(--ax-border)); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.constellation-graph .cg-node[aria-disabled="true"] { cursor: default; }
+.constellation-graph .cg-node[aria-disabled="true"] > rect { stroke-dasharray: 5 4; }
+.constellation-graph .cg-center-node > rect { stroke: #b79245; fill: var(--ax-elevated, var(--ax-panel)); }
+.constellation-graph .cg-node-star { fill: #c7a55f; }
+.constellation-graph .cg-node-name { fill: var(--ax-fg); font-size: 12px; }
+.constellation-graph .cg-node-meta { fill: var(--ax-fg-secondary); font-size: 9px; }
+.constellation-graph .cg-node:hover > rect, .constellation-graph .cg-selected > rect, .constellation-graph .cg-node:focus-visible > rect { stroke: var(--ax-accent); stroke-width: 2.2; }
+.constellation-graph .cg-node:focus { outline: none; }
+.constellation-graph .cg-node:focus-visible > rect { stroke-dasharray: 4 2; }
+.constellation-graph:not([data-animated="true"]) .cg-particle { display: none; }
+.constellation-graph .cg-viewport:focus-visible { outline: 2px solid var(--ax-accent); outline-offset: -3px; }
+@keyframes cg-twinkle { from { fill-opacity: .4; } to { fill-opacity: 1; } }
+@keyframes cg-breathe { from { opacity: .65; transform: scale(.94); } to { opacity: 1; transform: scale(1.04); } }
+@media (prefers-reduced-motion: reduce) {
+  .constellation-graph .cg-star, .constellation-graph .cg-core-glow { animation: none !important; }
+}
+@media (forced-colors: active) {
+  .constellation-graph .cg-node > rect { fill: Canvas; stroke: CanvasText; }
+  .constellation-graph .cg-node-name, .constellation-graph .cg-node-meta { fill: CanvasText; }
+  .constellation-graph .cg-edge > path { stroke: CanvasText; }
+  .constellation-graph .cg-node:focus-visible > rect { stroke: Highlight; }
+}

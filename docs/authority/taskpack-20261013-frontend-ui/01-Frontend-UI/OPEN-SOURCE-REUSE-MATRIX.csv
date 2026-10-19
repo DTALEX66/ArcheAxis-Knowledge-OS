@@ -1,0 +1,14 @@
+﻿module,license_boundary,state,decision,primary_source
+主线组件与 Core,现有正式栈,REUSE_EXISTING,优先承接当前类型、写入、恢复、编辑器及阅读链,https://github.com/DTALEX66/ArcheAxis-Knowledge-OS
+Dockview 8.5.1,MIT 开源包,DOWNLOADED_NOT_INSTALLED,React 18 peer 范围已声明；停靠和视图生命周期仍需 FE04/FE06 原生验证,https://github.com/dockview/dockview
+Radix dialog/tabs,MIT,DOWNLOADED_NOT_INSTALLED,保留主线 1.2.0 / 1.1.22，配方复用焦点与模态行为；传递依赖遵循 lockfile,https://github.com/radix-ui/primitives
+Lucide 24 SVG,ISC 与 Feather 派生 MIT,DOWNLOADED_SOURCE,保持版权与许可证；不是笼统全部 MIT,https://github.com/lucide-icons/lucide
+Noto Sans CJK SC,OFL 1.1,PACKAGED_OFFICIAL_BLOB_MATCH,完整原始字体可选；默认系统字体，合法子集或按需加载,https://github.com/notofonts/noto-cjk
+ASTRYN 原创 SVG,项目原创,PACKAGED_SOURCE_AND_9_STATES,当前文本帧表现，不等于真实中文音素口型；GF03 统一升级,https://github.com/DTALEX66/ASTRYN
+AIRI,MIT 代码；其他资源单独核对,CANDIDATE_NOT_DOWNLOADED,可吸收 audio 与 model-driver-lipsync；Vue/Tres/Electron 应用不整体移植到 React/Tauri,https://github.com/moeru-ai/airi
+TalkingHead,MIT JS；模型资产单独许可,CANDIDATE_NOT_DOWNLOADED,增强 3D/音频时钟候选；中文 viseme 与资产权利另验证,https://github.com/met4citizen/TalkingHead
+sherpa-onnx,Apache 2.0 代码；模型单独许可,CANDIDATE_NOT_DOWNLOADED,本地中文 ASR/TTS 选装 worker；本轮不下载模型权重,https://github.com/k2-fsa/sherpa-onnx
+MarkItDown,MIT 代码；插件依赖另记录,CANDIDATE_NOT_DOWNLOADED,轻量文本派生；不替代高保真人类阅读版式,https://github.com/microsoft/markitdown
+Docling,MIT 代码；模型单独许可,CANDIDATE_NOT_DOWNLOADED,复杂解析与 OCR 的增强 worker；不成为首屏依赖,https://github.com/docling-project/docling
+Open-LLM-VTuber,后端 MIT；前端附商业条件,REFERENCE_NOT_DOWNLOAD_DEFAULT,参考语音与打断协议，前端不可按纯 MIT 整包复制,https://github.com/Open-LLM-VTuber/Open-LLM-VTuber
+Codex QQ Skin,源码 MIT；NOTICE 资产与商标另列,REFERENCE_NOT_DOWNLOAD_DEFAULT,复用通用皮肤分层思路，Codex 注入壳不作为主项目架构,https://github.com/zhulin025/Codex-QQ-Skin

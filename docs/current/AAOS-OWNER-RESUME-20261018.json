@@ -1,0 +1,32 @@
+{
+  "schema": "archeaxis.owner-execution-resume/v1",
+  "decided_on": "2026-10-18",
+  "owner_instruction": "你来全部接手",
+  "supplemental_instruction": "检查本项目在CODEX和CLAUDE CODE里的会话 整合下",
+  "resumes_product_execution": true,
+  "role": "OWNER_EXECUTION_OVERLAY_NOT_REPLACEMENT_TASKPACK",
+  "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
+  "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "reconciliation": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+  "scope": "Receive project-scoped histories and plans into repository-owned archives and canonical routes; reconcile the existing backlog; implement and validate the full framework, common formats, shortest complete loop and evidence-bound open-source absorption, without activating frozen or separately owned work.",
+  "constraints": {
+    "FE18": "OWNER_SUPERSEDED: integrate Xiaoqi/ASTRYN directly into AAOS; source and remote preserved; workspace/intake/20261018-xiaoqi-in-project.md",
+    "V01": "PAUSED",
+    "FT01_04": "FROZEN",
+    "conversation_summary_increment": "FROZEN_BY_OWNER",
+    "native_session_access": "Project-scoped read only; no credentials, native-session writes or transcript uploads",
+    "release_install_green_real_data_overwrite": "NO_NEW_GRANT",
+    "remote_writes": "NO_NEW_GRANT; this round retains the handoff's uncommitted review boundary",
+    "automation": "NO_BACKGROUND_MONITOR_CREATED_OR_RESUMED",
+    "provider_auth_global_configuration": "UNCHANGED"
+  },
+  "acceptance": "Implementation, local tests, exact-SHA CI, installed runtime and Owner acceptance remain separate. This instruction is not a completion receipt.",
+  "followup_owner_instructions": [
+    "加入记忆里 各类路径 不要老让我提醒",
+    "全部开始吧",
+    "CODEX的会话你也整理加入进去",
+    "所有记录历史资料权威规划等关键信息确保全部收敛到项目仓库内，开始所有任务，以闭环完整架构多格式开源池的吸收并入，是否降级吸收等，全部开始执行。"
+  ],
+  "codex_session_index": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md",
+  "project_closure": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md"
+}

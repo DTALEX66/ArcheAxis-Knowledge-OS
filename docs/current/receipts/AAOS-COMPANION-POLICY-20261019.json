@@ -1,0 +1,148 @@
+{
+  "schema": "aaos.companion-policy-increment/v1",
+  "recorded_at": "2026-10-18T20:45:26.693816+00:00",
+  "status": "PARTIAL",
+  "execution_state": "RUNNING_BY_OWNER",
+  "base_head": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "dirty": true,
+  "archive": "docs/history/oss-absorption-evidence/20261019-companion-policy",
+  "changes": [
+    "Core derives finite companion_general/grounded policy from purpose; policy/version included in new plan hash",
+    "Executor passes typed policy; worker validates before discovery/HTTP and reports actual policy/version",
+    "Core rejects missing/mismatched worker metadata without answer or acceptance; historical journal replay untouched",
+    "Backward compatible plan schema/TS; old plans without both new fields remain valid",
+    "Owned material cancellation probe confirms retained draft before companion transition",
+    "Dock titles and close-button accessible names follow accepted semantic page while retaining same business host/draft"
+  ],
+  "validation": {
+    "companion-policy-python-final-1019": {
+      "scope": "137 Python tests; worker/probe/contract",
+      "tests": 137,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "341ee814ead1fa0dd2bffef431f42fc1ec422fa4d853fdf3c9d3992a2d27c0a2"
+    },
+    "companion-policy-executor-1019": {
+      "scope": "15 Rust application resource tests",
+      "tests": 15,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "ec125c7510dbb834df0229fb87fe5e0e0e77c23c5e8fc2a315e06409a75ad4f6"
+    },
+    "companion-policy-api-1019": {
+      "scope": "8 conversation + 6 material Rust API tests",
+      "tests": 14,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "341ee814ead1fa0dd2bffef431f42fc1ec422fa4d853fdf3c9d3992a2d27c0a2"
+    },
+    "companion-policy-frontend-1019": {
+      "scope": "3 React/jsdom files, conversation/companion/material",
+      "tests": 55,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "341ee814ead1fa0dd2bffef431f42fc1ec422fa4d853fdf3c9d3992a2d27c0a2"
+    },
+    "companion-policy-probe-style-final-1019": {
+      "scope": "18 final probe/contract checks, overlap earlier group",
+      "tests": 18,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "282d6ddc2cf645f817879a4a82e7cf7e2d941cf88516becebe85041696504527"
+    },
+    "companion-policy-core-build-1019": {
+      "scope": "Core release build",
+      "tests": null,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "282d6ddc2cf645f817879a4a82e7cf7e2d941cf88516becebe85041696504527"
+    },
+    "companion-policy-host-build-1019": {
+      "scope": "TypeScript/Vite/Tauri no-bundle build",
+      "tests": null,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "282d6ddc2cf645f817879a4a82e7cf7e2d941cf88516becebe85041696504527"
+    },
+    "companion-policy-native-1019": {
+      "scope": "Actual candidate UI/Core/model journey; material timeout FAIL",
+      "tests": null,
+      "status": "FAIL",
+      "source_patch_sha256": "282d6ddc2cf645f817879a4a82e7cf7e2d941cf88516becebe85041696504527"
+    },
+    "companion-policy-real-worker-1019": {
+      "scope": "One authored question, actual worker/LM Studio, no Core/UI",
+      "tests": null,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "282d6ddc2cf645f817879a4a82e7cf7e2d941cf88516becebe85041696504527"
+    },
+    "ui-semantic-labels-applied-1019": {
+      "scope": "2 actual Dockview/App jsdom files",
+      "tests": 26,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "277b96a209a9f34acf4a3ea38a8a7a0736413a2e0160efb5ca600b4e1042b48f"
+    },
+    "ui-semantic-labels-build-1019": {
+      "scope": "TypeScript/Vite after semantic label patch",
+      "tests": null,
+      "status": "LOCAL_PASS",
+      "source_patch_sha256": "277b96a209a9f34acf4a3ea38a8a7a0736413a2e0160efb5ca600b4e1042b48f"
+    }
+  },
+  "real_worker": {
+    "status": "PASS_SINGLE_AUTHORED_CASE",
+    "evidence_level": "REAL_MODEL_SYNTHETIC_WORKER_NOT_CORE_INTEGRATION",
+    "question": "请用一句中文建议今天如何复习知识。",
+    "assessment": "Returned a practical review suggestion without claiming access to user history; broader quality and learning outcomes unverified",
+    "elapsed_s": 60.71,
+    "output_tokens_reported": 152,
+    "model": "aaos-deep-27b-mtp",
+    "answer_policy": "companion_general",
+    "prompt_version": "archeaxis.companion/v1 2026-10-19"
+  },
+  "native": {
+    "status": "FAIL",
+    "run": "webdriver-7b78ea17f24b",
+    "reason_code": "material_model_call_failed",
+    "error_type": "TimeoutError",
+    "elapsed_s": 118.03,
+    "timeout_s": 118,
+    "remaining_journey": "NOT_EXECUTED",
+    "model_internal_timeout_cause": "UNVERIFIED",
+    "cleanup": "owned processes and ports released; shared LM Studio untouched",
+    "source_patch_sha256": "282d6ddc2cf645f817879a4a82e7cf7e2d941cf88516becebe85041696504527"
+  },
+  "lint": {
+    "status": "FAIL_PREEXISTING_34_DIAGNOSTICS",
+    "new_diagnostics_against_preimages": 0
+  },
+  "unverified": [
+    "Companion policy through full current Core/native UI journey",
+    "Current companion cancellation and reopen/restore",
+    "Native semantic labels after latest frontend patch",
+    "Manual contrast and engineering metadata density",
+    "BE10 actual independent Observer/adapter",
+    "HUB003/004 lifecycle",
+    "Full formats",
+    "Installed runtime",
+    "Owner acceptance"
+  ],
+  "unchanged_boundaries": [
+    "No provider/model/endpoint/global configuration changes",
+    "No commit/push/release/Green replacement",
+    "No private session/credential copying",
+    "Full Cowork transcript remains UNVERIFIED"
+  ],
+  "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "owner_dialogue": "docs/history/owner-dialogue-20261019/README.md",
+  "archive_manifest_sha256": "52636b1ab80db264541f66b1fe9f5a18e5edaf5a59214b3b61c3ebb32e7b6ff7",
+  "archive_members": 15,
+  "model_observation": "docs/history/oss-absorption-evidence/20261019-companion-policy/MODEL-OBSERVATION.json",
+  "prior_source_material_cancellation": {
+    "run_id": "webdriver-1c027a83036d",
+    "evidence_level": "REAL_CANDIDATE_SYNTHETIC_MATERIAL_PRIOR_SOURCE",
+    "request_id": "d2bea13b-e476-41af-a608-87c1a814edd8",
+    "cancel_requested": true,
+    "outcome": "failed",
+    "reason_code": "material_question_cancelled",
+    "answer": null,
+    "authority": "candidate",
+    "grants_knowledge_acceptance": false,
+    "provider_stop_state": "UNKNOWN",
+    "current_source_qualification": false
+  },
+  "archive_readback": "docs/current/receipts/AAOS-COMPANION-POLICY-ARCHIVE-READBACK-20261019.json"
+}

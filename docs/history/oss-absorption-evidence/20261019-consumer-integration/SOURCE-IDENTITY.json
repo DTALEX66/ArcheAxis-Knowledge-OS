@@ -1,0 +1,127 @@
+{
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "before_sha256": "766214fce769240751b82266cef1f169d3810d87f7075ef7e7895812311a9769",
+      "proposal_patch_sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16",
+      "bytes": 4422,
+      "sha256": "8fed938d518c1a4a7d67777ce3341eb20a37069f617e32f052391d796abc196c"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_process.rs",
+      "before_sha256": null,
+      "proposal_patch_sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16",
+      "bytes": 20798,
+      "sha256": "c6bca475d845480fa7fb0cada8f4c3fb81b107d63c16a150575ad341d95a38bc"
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "before_sha256": "61d42473f488aaca29c971eca5bfdfac4ebf6028dc075cdfc3f6a871ed3fa827",
+      "proposal_patch_sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16",
+      "bytes": 7028,
+      "sha256": "8c09138b130758b9101ffc1b2c90a36f6fd652e7c969e629372431bb12c49232"
+    },
+    {
+      "path": "docs/contracts/project-handoff-v1.md",
+      "before_sha256": "ed9323d232309bf3237796a1268be731ae179eb78bd74be3af74a343b00bc909",
+      "proposal_patch_sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16",
+      "bytes": 7635,
+      "sha256": "d31ff4f2c371125787794eb0c04ed65a97d22364722a08e0c3383540ef269932"
+    },
+    {
+      "path": "scripts/probes/aaos01_tauri_webdriver_loop.py",
+      "before_sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa",
+      "proposal_patch_sha256": "862b1c10094bf6c821cac75c1d7f7f4e313165f6b20756381b33aaf67d5cfc20",
+      "bytes": 150310,
+      "sha256": "b1d60b65b1458384c64e7d8542d5c1baa759c4b9b38415daf12dd0f7ea418916"
+    },
+    {
+      "path": "scripts/probes/aaos01_material_independent_loop.py",
+      "before_sha256": null,
+      "proposal_patch_sha256": "862b1c10094bf6c821cac75c1d7f7f4e313165f6b20756381b33aaf67d5cfc20",
+      "bytes": 7596,
+      "sha256": "c0c4c223721bb0b24cd3aa3c59b342736851e0d00f42c1c5e8ad94a3f845a108"
+    },
+    {
+      "path": "tests/test_material_independent_native_probe.py",
+      "before_sha256": null,
+      "proposal_patch_sha256": "862b1c10094bf6c821cac75c1d7f7f4e313165f6b20756381b33aaf67d5cfc20",
+      "bytes": 15796,
+      "sha256": "fdc678ec8b1c4915049684f5d0bc3b8a0f5fce12277698714bfb7a4562704a39"
+    },
+    {
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "before_sha256": null,
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 2469,
+      "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+    },
+    {
+      "path": "frontend/src/__tests__/CapabilityPackageDetails.test.tsx",
+      "before_sha256": null,
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 3604,
+      "sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "before_sha256": null,
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 5794,
+      "sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+    },
+    {
+      "path": "frontend/src/components/CapabilityPackageDetails.tsx",
+      "before_sha256": null,
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 2256,
+      "sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx",
+      "before_sha256": "27b0ece707a8e89dade9335dad6c4d11ebc030dc6507855ef806d9b3f86f0351",
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 15323,
+      "sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "before_sha256": "8b16ddda1d1dbd52ba793d22429e1fdcb73ad2eb8a8938bbc4a85478f339028b",
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 3455,
+      "sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+    },
+    {
+      "path": "scripts/contracts/generate_capability_package_details.py",
+      "before_sha256": null,
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 5818,
+      "sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+    },
+    {
+      "path": "tests/contract/test_capability_package_details.py",
+      "before_sha256": null,
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 5005,
+      "sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+    },
+    {
+      "path": "scripts/contracts/check_capability_package_details.mjs",
+      "before_sha256": null,
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 9013,
+      "sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+    },
+    {
+      "path": "tests/contract/test_capability_package_details_node.mjs",
+      "before_sha256": null,
+      "proposal_patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+      "bytes": 5922,
+      "sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+    }
+  ],
+  "scope": "本轮17文件，不包含此前已存在的其他dirty源码",
+  "preimages": ".project-local/audits/consumer-integration-20261019/before",
+  "byte_boundary": "5份候选有CRLF，git补丁采用LF；归一化内容相等后恢复精确候选字节并复验。原字节差异保全。"
+}

@@ -62,7 +62,7 @@ def verify_recipe(bundle, recipe):
     return total
 
 
-def consolidate(root):
+def consolidate(root, *, registered_sources=False):
     root = archive.safe(root)
     if root != archive.safe(archive.CANONICAL_ROOT):
         raise ValueError('canonical project only')
@@ -115,7 +115,8 @@ def consolidate(root):
             return key
 
         for row in rows:
-            path = archive.bounded(root, row['archive_relative_path'])
+            path = (archive.bounded(archive.REVIEWED_SOURCE, row['source_relative_path'])
+                    if registered_sources else archive.bounded(root, row['archive_relative_path']))
             print('CONSOLIDATE ' + row['source_relative_path'], flush=True)
             before = path.stat()
             if archive.digest(path) != row['sha256']:
@@ -146,7 +147,7 @@ def consolidate(root):
             recipe = {'schema': 'archeaxis/byte-exact-zip-recipe/v1',
                       'source_relative_path': row['source_relative_path'],
                       'original_bytes': row['bytes'], 'original_sha256': row['sha256'],
-                      'segments': segments, 'original_project_copy': str(path)}
+                      'segments': segments, 'original_project_copy': str(root / archive.ARCHIVE_REL / 'originals' / 'Record' / row['source_relative_path'])}
             recipe_path = bundle / 'recipes' / (row['sha256'] + '.json')
             archive.write_json(recipe_path, recipe)
             recipes.append({'recipe_path': str(recipe_path), 'source_relative_path': row['source_relative_path'],
@@ -173,7 +174,8 @@ def consolidate(root):
                'catalog_sha256': archive.digest(bundle / 'catalog.json'), 'recipes': recipes,
                'key_information': '历史安装、构建、UI验收与缓存恢复包；原README/来源/恢复边界另存索引；不作为当前安装或完成状态。'}
     archive.write_json(bundle / 'CONSOLIDATION.json', summary)
-    archive.write_json(root / archive.MANIFEST_REL.parent / 'CONSOLIDATION.json', summary)
+    if not registered_sources:
+        archive.write_json(root / archive.MANIFEST_REL.parent / 'CONSOLIDATION.json', summary)
     print(json.dumps({k: summary[k] for k in ['status', 'original_zip_count', 'original_bytes', 'stored_bytes', 'saved_bytes', 'unique_segments', 'segment_references']}, ensure_ascii=False), flush=True)
     return 0
 

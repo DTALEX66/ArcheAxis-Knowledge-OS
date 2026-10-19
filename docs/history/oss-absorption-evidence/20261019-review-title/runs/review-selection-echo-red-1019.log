@@ -1,0 +1,45 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ❯ src/__tests__/CanonicalReviewLearning.test.tsx (9 tests | 1 failed | 8 skipped) 79ms
+   × SIMULATED shell selection echo does not reread the just-opened learning item 79ms
+     → expected [ [ 'learning_state', …(1) ], …(1) ] to deeply equal [ [ 'learning_state', …(1) ] ]
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/CanonicalReviewLearning.test.tsx > SIMULATED shell selection echo does not reread the just-opened learning item
+AssertionError: expected [ [ 'learning_state', …(1) ], …(1) ] to deeply equal [ [ 'learning_state', …(1) ] ]
+
+- Expected
++ Received
+
+  Array [
+    Array [
+      "learning_state",
+      Object {
+        "item_key": "echo-key",
+      },
+    ],
++   Array [
++     "learning_state",
++     Object {
++       "item_key": "echo-key",
++     },
++   ],
+  ]
+
+ ❯ src/__tests__/CanonicalReviewLearning.test.tsx:191:71
+    189|  render(<ShellEcho/>);fireEvent.click(await screen.findByRole("button"…
+    190|  await screen.findByRole("heading",{name:"复习题"});await act(async()=…
+    191|  expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).…
+       |                                                                       ^
+    192|  expect(bridge.call.mock.calls.filter(([op])=>op==="learning_history")…
+    193| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 skipped (9)
+   Start at  03:17:26
+   Duration  1.28s (transform 368ms, setup 84ms, collect 548ms, tests 79ms, environment 270ms, prepare 64ms)
+

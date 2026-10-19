@@ -1,0 +1,112 @@
+{
+  "observed_at": "2026-10-18T21:38:45.487850+00:00",
+  "status": "PASS_ISOLATED_PROPOSAL_NOT_APPLIED",
+  "product_status": "PARTIAL",
+  "patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+  "members": [
+    {
+      "path": "CURRENT.md",
+      "sha256": "fbcafa660e81fb08440fc0155e6a75e3bf4bcd65085b81dea0eaeb8331dc837c",
+      "bytes": 3138
+    },
+    {
+      "path": "capability-manifest.patch",
+      "sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+      "bytes": 206324
+    },
+    {
+      "path": "code-manifest.json",
+      "sha256": "b6cfe6063d7e0d790620a694cb94e8b715ae8d031b7e746c5a532c6fd9741493",
+      "bytes": 1996
+    },
+    {
+      "path": "SOURCE-REFERENCES.json",
+      "sha256": "03c5d04d90353fe8fcbbc9b65a42ef52f980573a907717573272227ae91f3ee4",
+      "bytes": 995
+    },
+    {
+      "path": "FAILURES.md",
+      "sha256": "399cc3f5f3f1b254f989c6c8e673ee32c459200acfde9a0d77981038ec7058ad",
+      "bytes": 933
+    },
+    {
+      "path": "ENVIRONMENT.json",
+      "sha256": "81aef2e607eb8184c3477287a1a646cc69863c8e59ad742b0618e54155cd6b1e",
+      "bytes": 560
+    },
+    {
+      "path": "validation-first.json",
+      "sha256": "6294a213a487fa4500617a493d15c92ca5f2145a9e1b47913e86489a217eab10",
+      "bytes": 1353
+    },
+    {
+      "path": "pytest-first.log",
+      "sha256": "f91c2a93a32ab9869e8b4721891abb61d2bc26f91d2935d5833e69760c2757d2",
+      "bytes": 1055575
+    },
+    {
+      "path": "pytest-acceptance.json",
+      "sha256": "a730d0bb900b8fc270f835b33b2b695018e74320043ad4523be54e0ee260c2b2",
+      "bytes": 1441
+    },
+    {
+      "path": "pytest-acceptance.log",
+      "sha256": "c0472631ef7d706e6d0ebac4a390fcf67f4aa1b7edd8e798f44f29522dfbcbb2",
+      "bytes": 183
+    },
+    {
+      "path": "typescript-acceptance.json",
+      "sha256": "ee981c6070fd32921793415d35f53b5027a6f3b13a3b8a4b11698f028d9231c3",
+      "bytes": 826
+    },
+    {
+      "path": "typescript-acceptance.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "ruff-acceptance.json",
+      "sha256": "31a8361e3bb8de55db090ff9a965f91cb7df57d965970020f3a1186df4c75816",
+      "bytes": 1144
+    },
+    {
+      "path": "ruff-acceptance.log",
+      "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0",
+      "bytes": 20
+    }
+  ],
+  "formal_paths_absent": true,
+  "source_mirror_matches": [
+    {
+      "path": "docs/contracts/capability-package-v1.md",
+      "matches": true
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package.ts",
+      "matches": true
+    },
+    {
+      "path": "packages/contracts/v2/capability-package.cases.json",
+      "matches": true
+    },
+    {
+      "path": "packages/contracts/v2/capability-package.schema.json",
+      "matches": true
+    },
+    {
+      "path": "scripts/contracts/generate_capability_package.py",
+      "matches": true
+    },
+    {
+      "path": "scripts/contracts/validate_capability_package.py",
+      "matches": true
+    },
+    {
+      "path": "tests/contract/test_capability_package_contract.py",
+      "matches": true
+    }
+  ],
+  "product_writes": [],
+  "processes_started": "SHORT_LIVED_TEST_COMPILER_ONLY_NO_SERVICES",
+  "network_calls": "NOT_EXECUTED"
+}

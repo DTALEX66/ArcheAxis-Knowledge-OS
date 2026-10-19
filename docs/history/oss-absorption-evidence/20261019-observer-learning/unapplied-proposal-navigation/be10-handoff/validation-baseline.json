@@ -1,0 +1,530 @@
+{
+  "copied_scope": "Only current contracts Rust source + Cargo manifests/lock + observer schema + capability-map; reused existing minimal mirror; no environments/cache/history/hardlinks",
+  "files": [
+    {
+      "path": "Cargo.toml",
+      "sha256": "49f617fd8267c7ee96c947cdaff60a9b7f835beb412571c4af3b56363c85ec13",
+      "mirror_sha256": "49f617fd8267c7ee96c947cdaff60a9b7f835beb412571c4af3b56363c85ec13"
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
+      "mirror_sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
+    },
+    {
+      "path": "crates/archeaxis-contracts/Cargo.toml",
+      "sha256": "c7a1635b0a22e0323019ab04f2de3aa65fced0524b08221fad4f2ebaefb5cfc0",
+      "mirror_sha256": "c7a1635b0a22e0323019ab04f2de3aa65fced0524b08221fad4f2ebaefb5cfc0"
+    },
+    {
+      "path": "packages/contracts/v2/project-observer.schema.json",
+      "sha256": "9743c4f80dd424da62068b5a062f9d97d01aea7c760c1bbb9d394dc3159aff5c",
+      "mirror_sha256": "9743c4f80dd424da62068b5a062f9d97d01aea7c760c1bbb9d394dc3159aff5c"
+    },
+    {
+      "path": "config/capability-map.v1.json",
+      "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e",
+      "mirror_sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/generated/ui_host.rs",
+      "sha256": "0e80e555bd0b88392e768f9d278d6207942b114001191af1d781408188419d22",
+      "mirror_sha256": "0e80e555bd0b88392e768f9d278d6207942b114001191af1d781408188419d22"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/generated/vocabulary.rs",
+      "sha256": "fcc44b3b18e6136c4e1b637a395eae7b9ff3d65fafdd23199a5829a5e0181e94",
+      "mirror_sha256": "fcc44b3b18e6136c4e1b637a395eae7b9ff3d65fafdd23199a5829a5e0181e94"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "sha256": "1cdbaf6078ff8754b6b6335d18ae8ebcdb5983f4116e2f162387a4e387d628d7",
+      "mirror_sha256": "1cdbaf6078ff8754b6b6335d18ae8ebcdb5983f4116e2f162387a4e387d628d7"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/loss_receipt.rs",
+      "sha256": "6648cf4adf70cb668f67b2edadab3b393fecf1056b12b96fa7dde739fdc44cb6",
+      "mirror_sha256": "6648cf4adf70cb668f67b2edadab3b393fecf1056b12b96fa7dde739fdc44cb6"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_observer.rs",
+      "sha256": "c54fb79907330bf8419ccdedcedb72b4834db8d6a96fd32a349c899aae110a9f",
+      "mirror_sha256": "c54fb79907330bf8419ccdedcedb72b4834db8d6a96fd32a349c899aae110a9f"
+    },
+    {
+      "path": "crates/archeaxis-api/Cargo.toml",
+      "sha256": "92aefb0bc36e94865983dfb768bdcc3abb1bbe41c204d503280f693df2da19ad",
+      "mirror_sha256": "92aefb0bc36e94865983dfb768bdcc3abb1bbe41c204d503280f693df2da19ad"
+    },
+    {
+      "path": "crates/archeaxis-api/src/anchor_resolution.rs",
+      "sha256": "e2ab7c158e013a5e2cf8f9d453b1392462776b88da03183b7825699082a7916d",
+      "mirror_sha256": "e2ab7c158e013a5e2cf8f9d453b1392462776b88da03183b7825699082a7916d"
+    },
+    {
+      "path": "crates/archeaxis-api/src/ask.rs",
+      "sha256": "8b8e0db8e73b1b38060ee7f809201e8231da8657727bb2e89c7a598ebd683acb",
+      "mirror_sha256": "8b8e0db8e73b1b38060ee7f809201e8231da8657727bb2e89c7a598ebd683acb"
+    },
+    {
+      "path": "crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "sha256": "766214fce769240751b82266cef1f169d3810d87f7075ef7e7895812311a9769",
+      "mirror_sha256": "766214fce769240751b82266cef1f169d3810d87f7075ef7e7895812311a9769"
+    },
+    {
+      "path": "crates/archeaxis-api/src/capabilities.rs",
+      "sha256": "4ba1909ee82644230e61737a34ebbd1cb2593a6ac70e2cef424b159a9cdf548a",
+      "mirror_sha256": "4ba1909ee82644230e61737a34ebbd1cb2593a6ac70e2cef424b159a9cdf548a"
+    },
+    {
+      "path": "crates/archeaxis-api/src/documents.rs",
+      "sha256": "625969c0bf355e398fbb5d0388c11e77f6a5a4348a2976492fe90196aae5e932",
+      "mirror_sha256": "625969c0bf355e398fbb5d0388c11e77f6a5a4348a2976492fe90196aae5e932"
+    },
+    {
+      "path": "crates/archeaxis-api/src/format_qualification.rs",
+      "sha256": "482129a7b3ba2437d3f442eccf6358e72d8ddf2cf712d15a5346c2934b562512",
+      "mirror_sha256": "482129a7b3ba2437d3f442eccf6358e72d8ddf2cf712d15a5346c2934b562512"
+    },
+    {
+      "path": "crates/archeaxis-api/src/launch.rs",
+      "sha256": "cec839d9a8c50392c36fa711ddf0c080713f13788a05cf13a7d13043d6a5ce4a",
+      "mirror_sha256": "cec839d9a8c50392c36fa711ddf0c080713f13788a05cf13a7d13043d6a5ce4a"
+    },
+    {
+      "path": "crates/archeaxis-api/src/layout.rs",
+      "sha256": "edbb96777babeab79d1ccea71697720dcc3a3790d932b3fbb07ed4a0679bdc4a",
+      "mirror_sha256": "edbb96777babeab79d1ccea71697720dcc3a3790d932b3fbb07ed4a0679bdc4a"
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "sha256": "4e62c9201668cc750036cd1c5a91a04f1f8b0bbed9de6ceda0f23e9e795d2ab4",
+      "mirror_sha256": "4e62c9201668cc750036cd1c5a91a04f1f8b0bbed9de6ceda0f23e9e795d2ab4"
+    },
+    {
+      "path": "crates/archeaxis-api/src/machine_governance.rs",
+      "sha256": "4d42f8588d1ce8c5db1843a8154a92f186c1cf2b9942f71554d1179dd67672dc",
+      "mirror_sha256": "4d42f8588d1ce8c5db1843a8154a92f186c1cf2b9942f71554d1179dd67672dc"
+    },
+    {
+      "path": "crates/archeaxis-api/src/main.rs",
+      "sha256": "6bb5db1eec4d38ce2804f01684fa1b6fe07dd4657250577287782736c98478b1",
+      "mirror_sha256": "6bb5db1eec4d38ce2804f01684fa1b6fe07dd4657250577287782736c98478b1"
+    },
+    {
+      "path": "crates/archeaxis-api/src/ocr_locator.rs",
+      "sha256": "421164d6ba192e6084815d4aa9592bac33a77aba605dfce67935900e4a2c200f",
+      "mirror_sha256": "421164d6ba192e6084815d4aa9592bac33a77aba605dfce67935900e4a2c200f"
+    },
+    {
+      "path": "crates/archeaxis-api/src/pdf_locator.rs",
+      "sha256": "f386321930ea0afde3f7896097ad3ed8a51ebf8c98e1d0a73bfcb1519f5b9d50",
+      "mirror_sha256": "f386321930ea0afde3f7896097ad3ed8a51ebf8c98e1d0a73bfcb1519f5b9d50"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer/client.rs",
+      "sha256": "e3a4c225b2a0e6b22c86a1b70da2d4dec66de6cbabc763cf1de0d2db4a5cd285",
+      "mirror_sha256": "e3a4c225b2a0e6b22c86a1b70da2d4dec66de6cbabc763cf1de0d2db4a5cd285"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer.rs",
+      "sha256": "307a9e7f8798ce95a4c309c0ffdc65519e68b1d33057da83447c68ed04ee1400",
+      "mirror_sha256": "307a9e7f8798ce95a4c309c0ffdc65519e68b1d33057da83447c68ed04ee1400"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/character_memory.rs",
+      "sha256": "d7db05c76ba41e0aae72bfa04ccd49d34e95afd99dfec582abfbc6e40cb09093",
+      "mirror_sha256": "d7db05c76ba41e0aae72bfa04ccd49d34e95afd99dfec582abfbc6e40cb09093"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/colearning.rs",
+      "sha256": "f6e242e8cc02cb490794dfe0cd6b9552fd7fe9ed78fd8ebcc6a2e21b13e88d5a",
+      "mirror_sha256": "f6e242e8cc02cb490794dfe0cd6b9552fd7fe9ed78fd8ebcc6a2e21b13e88d5a"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/configuration_plans.rs",
+      "sha256": "f369eac08fd6fcd70e5fa4e06bf5a1f1d89739e18061571b83a917a7da44642a",
+      "mirror_sha256": "f369eac08fd6fcd70e5fa4e06bf5a1f1d89739e18061571b83a917a7da44642a"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/context_refusal.rs",
+      "sha256": "d2ed092636ae968183c11d566d11a536b9af252ad90b6f8793fac36146ab605c",
+      "mirror_sha256": "d2ed092636ae968183c11d566d11a536b9af252ad90b6f8793fac36146ab605c"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/conversation.rs",
+      "sha256": "9e3346c350e6e1d6a74ae0680119099ce809463e85d6a10019e816236bd99227",
+      "mirror_sha256": "9e3346c350e6e1d6a74ae0680119099ce809463e85d6a10019e816236bd99227"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/courses.rs",
+      "sha256": "f70dc64d2b5034439a93f169aeb728eb0e563a1a09051ebc82ad027e8b10922d",
+      "mirror_sha256": "f70dc64d2b5034439a93f169aeb728eb0e563a1a09051ebc82ad027e8b10922d"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/execution_claim.rs",
+      "sha256": "caf282adb15b3105bf9955ec9842f736094156a8a26c2ca9f8d8ab0d31c8e3be",
+      "mirror_sha256": "caf282adb15b3105bf9955ec9842f736094156a8a26c2ca9f8d8ab0d31c8e3be"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/execution_status_projection.rs",
+      "sha256": "a66734d2d0c141b768a141848462685f7ddcf6129512bff5b6597a69dece5b56",
+      "mirror_sha256": "a66734d2d0c141b768a141848462685f7ddcf6129512bff5b6597a69dece5b56"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/job_journal.rs",
+      "sha256": "d77a4c07926225e7fcac5b7530fa84704a54d3d5bebc10aea2357eafe83d6251",
+      "mirror_sha256": "d77a4c07926225e7fcac5b7530fa84704a54d3d5bebc10aea2357eafe83d6251"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/machine_journal.rs",
+      "sha256": "16d6a6bd6fe3fa463a15541478bd310d311ed038e1d7637b8b95f81483b51918",
+      "mirror_sha256": "16d6a6bd6fe3fa463a15541478bd310d311ed038e1d7637b8b95f81483b51918"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/material_questions.rs",
+      "sha256": "7859c67f0d212d1e22d56ecca115c397b14050e7744a025e8c8b556bd2fc8feb",
+      "mirror_sha256": "7859c67f0d212d1e22d56ecca115c397b14050e7744a025e8c8b556bd2fc8feb"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/mod.rs",
+      "sha256": "a903e392efc6212ec08bcdba3b598a4eff36a33097e7b60f6cf540e5bffc9c17",
+      "mirror_sha256": "a903e392efc6212ec08bcdba3b598a4eff36a33097e7b60f6cf540e5bffc9c17"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/model_configuration.rs",
+      "sha256": "f320f0666ad2036b19be857be30b839aeef28e21ea1a5e193f29c8953c29034e",
+      "mirror_sha256": "f320f0666ad2036b19be857be30b839aeef28e21ea1a5e193f29c8953c29034e"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/readiness.rs",
+      "sha256": "98431b52bf8841bc086dd766c5a65a49318e406e938d8e0408d2a6791f40cac1",
+      "mirror_sha256": "98431b52bf8841bc086dd766c5a65a49318e406e938d8e0408d2a6791f40cac1"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/semantic.rs",
+      "sha256": "0b084a6ad3f0c96b952596e502c58c6b201ae20f9ea331d437af3c51d0222610",
+      "mirror_sha256": "0b084a6ad3f0c96b952596e502c58c6b201ae20f9ea331d437af3c51d0222610"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/withheld.rs",
+      "sha256": "eb15419f6a47bcfd75cb777abb81f9d8ad97145043dc76d22ddbb78f3be43f32",
+      "mirror_sha256": "eb15419f6a47bcfd75cb777abb81f9d8ad97145043dc76d22ddbb78f3be43f32"
+    },
+    {
+      "path": "crates/archeaxis-api/src/teaching.rs",
+      "sha256": "a3b6e44d249f8d3dcd530ae6d0a578ed504714ca3e2051b9d33c02cb4bc42587",
+      "mirror_sha256": "a3b6e44d249f8d3dcd530ae6d0a578ed504714ca3e2051b9d33c02cb4bc42587"
+    },
+    {
+      "path": "crates/archeaxis-api/src/ui_state.rs",
+      "sha256": "a4f05936e0ff35ebce336900cf9bcc28faf3a2f91dcddae4e84498ec1500ac1b",
+      "mirror_sha256": "a4f05936e0ff35ebce336900cf9bcc28faf3a2f91dcddae4e84498ec1500ac1b"
+    },
+    {
+      "path": "crates/archeaxis-api/src/workspace_backup.rs",
+      "sha256": "b9b883db68d6a9018198779f64ee5d6eb9416194aa7c3d9c1ab23f0c32627be1",
+      "mirror_sha256": "b9b883db68d6a9018198779f64ee5d6eb9416194aa7c3d9c1ab23f0c32627be1"
+    },
+    {
+      "path": "crates/archeaxis-application/Cargo.toml",
+      "sha256": "72521b82364a0e78f0efbbb1ed608cb2456909747c7278df1f7c845f77690599",
+      "mirror_sha256": "72521b82364a0e78f0efbbb1ed608cb2456909747c7278df1f7c845f77690599"
+    },
+    {
+      "path": "crates/archeaxis-application/src/attempts.rs",
+      "sha256": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e",
+      "mirror_sha256": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e"
+    },
+    {
+      "path": "crates/archeaxis-application/src/container.rs",
+      "sha256": "bd671b7fbb85c0a23f1578252a0b4bdec0d3e85a2a92af55e236238c5208e726",
+      "mirror_sha256": "bd671b7fbb85c0a23f1578252a0b4bdec0d3e85a2a92af55e236238c5208e726"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/derived.rs",
+      "sha256": "d65b30b45f49f8c394ff2db6f8221ac95df110832c3df0ceac786e1395677c9b",
+      "mirror_sha256": "d65b30b45f49f8c394ff2db6f8221ac95df110832c3df0ceac786e1395677c9b"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/dispatch.rs",
+      "sha256": "63c3ecb9dcbf7909cce1093f2d27d058b6969bd1b33520d1e3b2a08a05503688",
+      "mirror_sha256": "63c3ecb9dcbf7909cce1093f2d27d058b6969bd1b33520d1e3b2a08a05503688"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/health.rs",
+      "sha256": "81787479619bd9b3284258f7035238bdbe7edb703e9f9a14bacaf32ea9ba576b",
+      "mirror_sha256": "81787479619bd9b3284258f7035238bdbe7edb703e9f9a14bacaf32ea9ba576b"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/inventory.rs",
+      "sha256": "4b8bd697b72f814329ebbff09d83f99ee6fc23e97d4c65a827d3e1819736a549",
+      "mirror_sha256": "4b8bd697b72f814329ebbff09d83f99ee6fc23e97d4c65a827d3e1819736a549"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "sha256": "7b7ca92b147830e061631610666628495bce0d93faa1c8e539df082c4bd76ebe",
+      "mirror_sha256": "7b7ca92b147830e061631610666628495bce0d93faa1c8e539df082c4bd76ebe"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "sha256": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360",
+      "mirror_sha256": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360"
+    },
+    {
+      "path": "crates/archeaxis-application/src/jobs.rs",
+      "sha256": "ddb53ee28f994ba066331d10ed30a803a3753611696dd7c1ff976a398576bbb3",
+      "mirror_sha256": "ddb53ee28f994ba066331d10ed30a803a3753611696dd7c1ff976a398576bbb3"
+    },
+    {
+      "path": "crates/archeaxis-application/src/lib.rs",
+      "sha256": "1047030a1ffa147790177c42e18dbed2b37063474c57953220ed5ce5c3f8ce50",
+      "mirror_sha256": "1047030a1ffa147790177c42e18dbed2b37063474c57953220ed5ce5c3f8ce50"
+    },
+    {
+      "path": "crates/archeaxis-application/src/media_artifacts.rs",
+      "sha256": "27035ac0d763b695ddf0799df50e79bf91cf298136e1abcc6cf62f985885cb3c",
+      "mirror_sha256": "27035ac0d763b695ddf0799df50e79bf91cf298136e1abcc6cf62f985885cb3c"
+    },
+    {
+      "path": "crates/archeaxis-application/src/ocr.rs",
+      "sha256": "8a294cae76f2bedceb12efd140a6b85cec6e244197c36ff811d2f087eba8180b",
+      "mirror_sha256": "8a294cae76f2bedceb12efd140a6b85cec6e244197c36ff811d2f087eba8180b"
+    },
+    {
+      "path": "crates/archeaxis-application/src/scheduler.rs",
+      "sha256": "60b19b4b5c039996210f2c8729d75d4ab4ffd1bedae71d90d66e797515fae160",
+      "mirror_sha256": "60b19b4b5c039996210f2c8729d75d4ab4ffd1bedae71d90d66e797515fae160"
+    },
+    {
+      "path": "crates/archeaxis-archive/Cargo.toml",
+      "sha256": "93a8a9c6beb00186f9c7547b9e313fc2915cbd222baae4dfaeb24c79e3a18361",
+      "mirror_sha256": "93a8a9c6beb00186f9c7547b9e313fc2915cbd222baae4dfaeb24c79e3a18361"
+    },
+    {
+      "path": "crates/archeaxis-archive/src/lib.rs",
+      "sha256": "3ee1fef3c21cecaddbd3dc79baa7a1c4bf9e10ca3fe0c78477c4fc5db5ff0549",
+      "mirror_sha256": "3ee1fef3c21cecaddbd3dc79baa7a1c4bf9e10ca3fe0c78477c4fc5db5ff0549"
+    },
+    {
+      "path": "crates/archeaxis-domain/Cargo.toml",
+      "sha256": "8463a60b508d1da3b0c6886200840e93484cdecdd3420e9643bf5e25395e1554",
+      "mirror_sha256": "8463a60b508d1da3b0c6886200840e93484cdecdd3420e9643bf5e25395e1554"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/ai_asset.rs",
+      "sha256": "1692c9d1fc1f86043714d4ef3f09df372e4a36de0294e0948a76671c16025da3",
+      "mirror_sha256": "1692c9d1fc1f86043714d4ef3f09df372e4a36de0294e0948a76671c16025da3"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/anchor.rs",
+      "sha256": "4f13e940dd4b9dac537bbafe58111f3f09a965b324b20f1543af89dfc057bb0a",
+      "mirror_sha256": "4f13e940dd4b9dac537bbafe58111f3f09a965b324b20f1543af89dfc057bb0a"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/asset_context_grant.rs",
+      "sha256": "e2860ec66766094a10aa7c7e8c7433aa627262bfdbd8a84033c2143e4060fd8a",
+      "mirror_sha256": "e2860ec66766094a10aa7c7e8c7433aa627262bfdbd8a84033c2143e4060fd8a"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/backup.rs",
+      "sha256": "7d5f4b460bc096763f2a1afd8a1cdd32783dea6860b7791c2794e92ebc508abe",
+      "mirror_sha256": "7d5f4b460bc096763f2a1afd8a1cdd32783dea6860b7791c2794e92ebc508abe"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/bounded_formula.rs",
+      "sha256": "69d05bf5eb768771aefbd412a14757596f6007a6b8ba567c2df229ee02d6e225",
+      "mirror_sha256": "69d05bf5eb768771aefbd412a14757596f6007a6b8ba567c2df229ee02d6e225"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/character_memory.rs",
+      "sha256": "ed8fedcf7aed788a166ec8a57d6e03abe5ea5493e108928606e8c12b1a0cb1e2",
+      "mirror_sha256": "ed8fedcf7aed788a166ec8a57d6e03abe5ea5493e108928606e8c12b1a0cb1e2"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/collection.rs",
+      "sha256": "e9a8966275259485162854d4515092afa1feb925f2fe0bd66befcb9475c26436",
+      "mirror_sha256": "e9a8966275259485162854d4515092afa1feb925f2fe0bd66befcb9475c26436"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/configuration_plans.rs",
+      "sha256": "526773b6fe6abdf7305b1788cdd5b1d84c42adaaffdb6df347378995973bfea5",
+      "mirror_sha256": "526773b6fe6abdf7305b1788cdd5b1d84c42adaaffdb6df347378995973bfea5"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/context_grant.rs",
+      "sha256": "1805f4fb9b16e9b9bc7fe6c1c04db57d4258dbcd0b56cd54f350f70bb7314f26",
+      "mirror_sha256": "1805f4fb9b16e9b9bc7fe6c1c04db57d4258dbcd0b56cd54f350f70bb7314f26"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/course.rs",
+      "sha256": "002aeeb38699679f07238a4892608d9b8bffce2ec0ac064ca4c01289cb3480e9",
+      "mirror_sha256": "002aeeb38699679f07238a4892608d9b8bffce2ec0ac064ca4c01289cb3480e9"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/document.rs",
+      "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e",
+      "mirror_sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/expression.rs",
+      "sha256": "c75a05e13e345256b8245b4ad475f11a648a2c21931fd39582d5aa48db9f4659",
+      "mirror_sha256": "c75a05e13e345256b8245b4ad475f11a648a2c21931fd39582d5aa48db9f4659"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/knowledge.rs",
+      "sha256": "bd1a0d08b9c6e6f780671da03123e54ff75f6190d387793267c120ce0ad3516f",
+      "mirror_sha256": "bd1a0d08b9c6e6f780671da03123e54ff75f6190d387793267c120ce0ad3516f"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/layout.rs",
+      "sha256": "604e1d51247d530ee2e413aa6504f1887dcae65b85d06012226ffdae820a18dd",
+      "mirror_sha256": "604e1d51247d530ee2e413aa6504f1887dcae65b85d06012226ffdae820a18dd"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/learning.rs",
+      "sha256": "3365ec343fa94b3158794ce706fabadbda796c73ba3afdf4a05d163c64b4124e",
+      "mirror_sha256": "3365ec343fa94b3158794ce706fabadbda796c73ba3afdf4a05d163c64b4124e"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/lib.rs",
+      "sha256": "a14f3afaee22e33bc27d6d4bc2e1d7442f57c9a532fd442886ce0abdc8cb77d9",
+      "mirror_sha256": "a14f3afaee22e33bc27d6d4bc2e1d7442f57c9a532fd442886ce0abdc8cb77d9"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/machine.rs",
+      "sha256": "9abfb6f94bd44f0f2cda015f85f9b87257fc79217ba5c7e3160805584ca214a4",
+      "mirror_sha256": "9abfb6f94bd44f0f2cda015f85f9b87257fc79217ba5c7e3160805584ca214a4"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/machine_evaluation.rs",
+      "sha256": "159825954902c10f640831f0d948abbbe59d2ba706bc2f8d9d51b077a174a1a5",
+      "mirror_sha256": "159825954902c10f640831f0d948abbbe59d2ba706bc2f8d9d51b077a174a1a5"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/material_question.rs",
+      "sha256": "5fc9d72de730b761c65c0b8f56d45ea3f4b277c3a61c9bd5eb8bbd3ee51b4c22",
+      "mirror_sha256": "5fc9d72de730b761c65c0b8f56d45ea3f4b277c3a61c9bd5eb8bbd3ee51b4c22"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/model_configuration.rs",
+      "sha256": "675a0256c490a552e3c661b7a0388d52b0e97c90b03013dc8bb3b8d09dc2c283",
+      "mirror_sha256": "675a0256c490a552e3c661b7a0388d52b0e97c90b03013dc8bb3b8d09dc2c283"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/object_reference.rs",
+      "sha256": "0035592c58e6ab9d5f0af290f65710f78dd323543223e218212cda02c54e8584",
+      "mirror_sha256": "0035592c58e6ab9d5f0af290f65710f78dd323543223e218212cda02c54e8584"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/portable_document.rs",
+      "sha256": "3de40c2b606c34fbdbd3fca7db73cc60f566f9ceab27b9de279e6b71da421417",
+      "mirror_sha256": "3de40c2b606c34fbdbd3fca7db73cc60f566f9ceab27b9de279e6b71da421417"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/readiness.rs",
+      "sha256": "9f00260ede2097f57cc3542435aa82945738d93109956903c14e05b5cef06143",
+      "mirror_sha256": "9f00260ede2097f57cc3542435aa82945738d93109956903c14e05b5cef06143"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/relation_projection.rs",
+      "sha256": "7ef3da2703a676312824a840a906862817b9ba1f4ded0df3d54ab2001fba5c63",
+      "mirror_sha256": "7ef3da2703a676312824a840a906862817b9ba1f4ded0df3d54ab2001fba5c63"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/research.rs",
+      "sha256": "124c1eca15d1da002872b5e1ed506ce4a6a920e0ec5d539002b3513e4d4b5fcc",
+      "mirror_sha256": "124c1eca15d1da002872b5e1ed506ce4a6a920e0ec5d539002b3513e4d4b5fcc"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/search.rs",
+      "sha256": "eec2f66b4f7df162452b0912a3ea617eab951a73a47f82876adf00372066f0fe",
+      "mirror_sha256": "eec2f66b4f7df162452b0912a3ea617eab951a73a47f82876adf00372066f0fe"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/source.rs",
+      "sha256": "90f151c54442735df957d543636d5421107e7150e474296788e2475decc5bfcd",
+      "mirror_sha256": "90f151c54442735df957d543636d5421107e7150e474296788e2475decc5bfcd"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/teaching.rs",
+      "sha256": "85c3d30eff2af5d66b9c6bea074342e7da4c449367b64a66f0be5b7a5f658bf1",
+      "mirror_sha256": "85c3d30eff2af5d66b9c6bea074342e7da4c449367b64a66f0be5b7a5f658bf1"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/template_binding.rs",
+      "sha256": "2676e5dfddf554529f3149b051ce890743702a9857e5910f1e89951963a48bd9",
+      "mirror_sha256": "2676e5dfddf554529f3149b051ce890743702a9857e5910f1e89951963a48bd9"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/ui_state.rs",
+      "sha256": "c5c9fe75d9c4b9eb2d32f1900e910c9c84d976c091142235034b982aefde24ad",
+      "mirror_sha256": "c5c9fe75d9c4b9eb2d32f1900e910c9c84d976c091142235034b982aefde24ad"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/vault.rs",
+      "sha256": "7502ffde85dcc15f3b8fd64b2975cabcc8685e6aca432924b941e1170e5d3782",
+      "mirror_sha256": "7502ffde85dcc15f3b8fd64b2975cabcc8685e6aca432924b941e1170e5d3782"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/vault_members.rs",
+      "sha256": "b654d22665b3507cc563d03e1f1e0dd1b08f91c3143e7e5b7b87c933c9729ac4",
+      "mirror_sha256": "b654d22665b3507cc563d03e1f1e0dd1b08f91c3143e7e5b7b87c933c9729ac4"
+    },
+    {
+      "path": "crates/archeaxis-migration/Cargo.toml",
+      "sha256": "c142e13427a735441bd65de0cb45a5ac1dd4cc436697459b80e9bc3f7f03348a",
+      "mirror_sha256": "c142e13427a735441bd65de0cb45a5ac1dd4cc436697459b80e9bc3f7f03348a"
+    },
+    {
+      "path": "crates/archeaxis-migration/src/lib.rs",
+      "sha256": "674291d225af2a6bc4a02a3adb040424a38f1319060d1bdaa4e3392d67c51eba",
+      "mirror_sha256": "674291d225af2a6bc4a02a3adb040424a38f1319060d1bdaa4e3392d67c51eba"
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/Cargo.toml",
+      "sha256": "9bc84ab18a772f7092e065905e7b01308bdf0714d07ff96268fb103a0a8667d6",
+      "mirror_sha256": "9bc84ab18a772f7092e065905e7b01308bdf0714d07ff96268fb103a0a8667d6"
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/src/lib.rs",
+      "sha256": "f530655f7c33170ebfc6f6aba4ad8bd16e031729aca4e2c10dcf78d308c0716a",
+      "mirror_sha256": "f530655f7c33170ebfc6f6aba4ad8bd16e031729aca4e2c10dcf78d308c0716a"
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/src/worker.rs",
+      "sha256": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e",
+      "mirror_sha256": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e"
+    },
+    {
+      "path": "crates/archeaxis-store-sqlite/Cargo.toml",
+      "sha256": "6d09dac63c3a672cfda3de7d1cbec06d54963e23a0ca81d72eaf324eaf408e7a",
+      "mirror_sha256": "6d09dac63c3a672cfda3de7d1cbec06d54963e23a0ca81d72eaf324eaf408e7a"
+    },
+    {
+      "path": "crates/archeaxis-store-sqlite/src/authorization_fence.rs",
+      "sha256": "52090bd4e0134230984da8854acda9caef98d0bff16cc30f349cb36eb0235001",
+      "mirror_sha256": "52090bd4e0134230984da8854acda9caef98d0bff16cc30f349cb36eb0235001"
+    },
+    {
+      "path": "crates/archeaxis-store-sqlite/src/capability_settings.rs",
+      "sha256": "ebac2aef5df7a463807efd11d58743c87e247c11e09be2ac788d5753ab840a00",
+      "mirror_sha256": "ebac2aef5df7a463807efd11d58743c87e247c11e09be2ac788d5753ab840a00"
+    },
+    {
+      "path": "crates/archeaxis-store-sqlite/src/lib.rs",
+      "sha256": "9eb42901f205c072e862e80acb698006d006a29a426aae5a8c59a5db1aa9115e",
+      "mirror_sha256": "9eb42901f205c072e862e80acb698006d006a29a426aae5a8c59a5db1aa9115e"
+    },
+    {
+      "path": "crates/archeaxis-store-sqlite/src/raw_objects.rs",
+      "sha256": "e0c45936cb2310f1eaaf7fbb06f157f731e5d19796a020b5d159ef14abfb6cb2",
+      "mirror_sha256": "e0c45936cb2310f1eaaf7fbb06f157f731e5d19796a020b5d159ef14abfb6cb2"
+    },
+    {
+      "path": "crates/archeaxis-store-sqlite/src/writer.rs",
+      "sha256": "dc55bc42c8cab510a4ea1f03a74e5b98b9178f92b19cc220c2afecfe9072eb72",
+      "mirror_sha256": "dc55bc42c8cab510a4ea1f03a74e5b98b9178f92b19cc220c2afecfe9072eb72"
+    }
+  ]
+}

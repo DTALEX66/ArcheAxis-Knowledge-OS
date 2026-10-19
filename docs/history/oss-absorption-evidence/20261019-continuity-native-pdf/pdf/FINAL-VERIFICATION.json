@@ -1,0 +1,110 @@
+{
+  "status": "PASS",
+  "started_at": "2026-10-18T23:14:23.101838+00:00",
+  "finished_at": "2026-10-18T23:14:54.374755+00:00",
+  "gates": [
+    {
+      "gate": "protocol",
+      "exit_code": 0
+    },
+    {
+      "gate": "application",
+      "exit_code": 0
+    },
+    {
+      "gate": "api",
+      "exit_code": 0
+    },
+    {
+      "gate": "python",
+      "exit_code": 0
+    },
+    {
+      "gate": "frontend",
+      "exit_code": 0
+    },
+    {
+      "gate": "typescript",
+      "exit_code": 0
+    }
+  ],
+  "source_consistent": true,
+  "public_readback_before": {
+    ".github/workflows/ci.yml": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+    "crates/archeaxis-api/src/format_qualification.rs": "482129a7b3ba2437d3f442eccf6358e72d8ddf2cf712d15a5346c2934b562512",
+    "crates/archeaxis-api/src/lib.rs": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+    "crates/archeaxis-api/src/project_handoff_preview.rs": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+    "crates/archeaxis-api/src/runtime/readiness.rs": "98431b52bf8841bc086dd766c5a65a49318e406e938d8e0408d2a6791f40cac1",
+    "crates/archeaxis-api/tests/file_format_qualification.rs": "a11364b41c4ddbc3a8adc4d5e9ec0321a8749177f4322c35eea612e285303dab",
+    "crates/archeaxis-api/tests/operation_readiness_api.rs": "7191ad414ea5ba210088f7b3b30d76ceee6247ca34a2c0370a80582aa58b66ee",
+    "crates/archeaxis-api/tests/project_handoff_preview_process.rs": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+    "crates/archeaxis-application/src/attempts.rs": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e",
+    "crates/archeaxis-application/src/executor.rs": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360",
+    "crates/archeaxis-application/src/executor/health.rs": "81787479619bd9b3284258f7035238bdbe7edb703e9f9a14bacaf32ea9ba576b",
+    "crates/archeaxis-application/tests/receipt_spans.rs": "58195ec7f55c3a9d222ee906e05fde39fd5d52530ece445adc57e11ad5a19d77",
+    "crates/archeaxis-application/tests/worker_health_contract.rs": "b353fd6cf438a15b2ea13e28e6b8c219c1d64ff5c4381098a4b2d9a4ba394b38",
+    "crates/archeaxis-contracts/src/lib.rs": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+    "crates/archeaxis-contracts/src/project_handoff_preview.rs": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+    "crates/archeaxis-sidecar-protocol/src/worker.rs": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e",
+    "crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs": "5d5ea6ddeeecbbdeb236ae717cb445d413b2c264041ac38546631af72a57b235",
+    "docs/contracts/project-handoff-preview-v1.md": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+    "frontend/src/__tests__/OperationReadiness.test.tsx": "06f87c3c2a25a4c01af8932f3fed34a473d011e38b315dc69f7684085eb7414f",
+    "frontend/src/api/generated/core-contract.ts": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+    "packages/contracts/v1/core-command.schema.json": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+    "packages/contracts/v1/core-document.schema.json": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76",
+    "packages/contracts/v1/worker-protocol.schema.json": "0c6c92239263fce326c370ace2277e858535880dbcccc1f559030c6b4c2a4250",
+    "packages/contracts/v2/project-handoff-preview.cases.json": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+    "packages/contracts/v2/project-handoff-preview.schema.json": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+    "services/python-workers/document/worker_pdf.py": "2fc56a31015eac6d503edca58799d02e1707ebf45fa3ab480cbe7fa0a17a03b2",
+    "services/python-workers/transport/text_ndjson.py": "733db640a4adb45e9556b0956f32554ebd1c2e6147afed2b8664ce03287181c7",
+    "src-tauri/src/core_bridge.rs": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+    "src-tauri/tests/project_handoff_preview.rs": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+    "tests/contract/test_project_handoff_preview_contract.py": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+    "tests/test_native_preview_ci.py": "3b7da3132ec180171f0629aefc095b1ec809483a6ccccb3bbf3a1f419791a496",
+    "tests/test_pdf_runtime_dependency.py": null
+  },
+  "public_readback_after": {
+    ".github/workflows/ci.yml": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+    "crates/archeaxis-api/src/format_qualification.rs": "482129a7b3ba2437d3f442eccf6358e72d8ddf2cf712d15a5346c2934b562512",
+    "crates/archeaxis-api/src/lib.rs": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+    "crates/archeaxis-api/src/project_handoff_preview.rs": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+    "crates/archeaxis-api/src/runtime/readiness.rs": "98431b52bf8841bc086dd766c5a65a49318e406e938d8e0408d2a6791f40cac1",
+    "crates/archeaxis-api/tests/file_format_qualification.rs": "a11364b41c4ddbc3a8adc4d5e9ec0321a8749177f4322c35eea612e285303dab",
+    "crates/archeaxis-api/tests/operation_readiness_api.rs": "7191ad414ea5ba210088f7b3b30d76ceee6247ca34a2c0370a80582aa58b66ee",
+    "crates/archeaxis-api/tests/project_handoff_preview_process.rs": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+    "crates/archeaxis-application/src/attempts.rs": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e",
+    "crates/archeaxis-application/src/executor.rs": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360",
+    "crates/archeaxis-application/src/executor/health.rs": "81787479619bd9b3284258f7035238bdbe7edb703e9f9a14bacaf32ea9ba576b",
+    "crates/archeaxis-application/tests/receipt_spans.rs": "58195ec7f55c3a9d222ee906e05fde39fd5d52530ece445adc57e11ad5a19d77",
+    "crates/archeaxis-application/tests/worker_health_contract.rs": "b353fd6cf438a15b2ea13e28e6b8c219c1d64ff5c4381098a4b2d9a4ba394b38",
+    "crates/archeaxis-contracts/src/lib.rs": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+    "crates/archeaxis-contracts/src/project_handoff_preview.rs": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+    "crates/archeaxis-sidecar-protocol/src/worker.rs": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e",
+    "crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs": "5d5ea6ddeeecbbdeb236ae717cb445d413b2c264041ac38546631af72a57b235",
+    "docs/contracts/project-handoff-preview-v1.md": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+    "frontend/src/__tests__/OperationReadiness.test.tsx": "06f87c3c2a25a4c01af8932f3fed34a473d011e38b315dc69f7684085eb7414f",
+    "frontend/src/api/generated/core-contract.ts": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+    "packages/contracts/v1/core-command.schema.json": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+    "packages/contracts/v1/core-document.schema.json": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76",
+    "packages/contracts/v1/worker-protocol.schema.json": "0c6c92239263fce326c370ace2277e858535880dbcccc1f559030c6b4c2a4250",
+    "packages/contracts/v2/project-handoff-preview.cases.json": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+    "packages/contracts/v2/project-handoff-preview.schema.json": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+    "services/python-workers/document/worker_pdf.py": "2fc56a31015eac6d503edca58799d02e1707ebf45fa3ab480cbe7fa0a17a03b2",
+    "services/python-workers/transport/text_ndjson.py": "733db640a4adb45e9556b0956f32554ebd1c2e6147afed2b8664ce03287181c7",
+    "src-tauri/src/core_bridge.rs": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+    "src-tauri/tests/project_handoff_preview.rs": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+    "tests/contract/test_project_handoff_preview_contract.py": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+    "tests/test_native_preview_ci.py": "3b7da3132ec180171f0629aefc095b1ec809483a6ccccb3bbf3a1f419791a496",
+    "tests/test_pdf_runtime_dependency.py": null
+  },
+  "evidence": "SYNTHETIC_LOCAL_INTEGRATED; controlled PDF engine execution; no installed/native/Owner qualification",
+  "not_executed": [
+    "model inference",
+    "services",
+    "browser",
+    "install/upgrade",
+    "release",
+    "public tree write"
+  ],
+  "runner_scope": "17 PDF source/test paths + generated DTO advisory and current BE10 14-source baseline; not repository-wide canonical wrapper"
+}

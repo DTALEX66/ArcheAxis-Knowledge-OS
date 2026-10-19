@@ -1,0 +1,751 @@
+{
+  "schema": "aaos.capability-course-ui/v1",
+  "recorded_at": "2026-10-18T17:20:31.374846+00:00",
+  "status": "PARTIAL",
+  "scope_result": "PASS for declared frontend projection, scoped-state fixes and isolated quiz browser scenarios",
+  "evidence": "ACTUAL_PRODUCTION_FRONTEND / REAL_CHROMIUM / SYNTHETIC_CORE; no native or installed qualification",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+  "source_files_sha256": {
+    "frontend/src/presentation/capabilityCenter.ts": "4658ed7879210c5b9bbc9528e1e2b0f3e29ee83d40d68603feb91f1c6454365b",
+    "frontend/src/api/scopedReadiness.ts": "f3c61cf93449e360750ebd1b1977deb8e830823e8af741ed497c12f67f7d0c91",
+    "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": "27b0ece707a8e89dade9335dad6c4d11ebc030dc6507855ef806d9b3f86f0351",
+    "frontend/src/components/ModelTaskRoles.tsx": "2e59e482eb2bce71356c772989cbaa4913c5422c9fecb93f7b8f09b7d84493e1",
+    "frontend/src/spaces/capabilities.css": "3466cf10aea742787a4c6609f53b0ea102b15a88d92942ad187b27095747f0fa",
+    "frontend/src/presentation/navigation.ts": "c825e693b81f115ffddcccd347496180f0756790a79c44b71d68f0458ec52d7b",
+    "frontend/src/spaces/SpaceView.tsx": "1ea3537c3638467bf949c06d10cde5df2a37b487df4aebebd850ad53b875d595",
+    "frontend/src/__tests__/CapabilityCenter.test.tsx": "8227461944ef27c9c9e8f4eda717a279a5fc03172820285496041dd4c3392d06",
+    "frontend/src/test/fixtures/readiness.ts": "75dd896a7f56ca2c6fded33d11260ca96489003e8373e7b29801209ad1da0411",
+    "frontend/src/__tests__/CanonicalCapabilitiesSpace.test.tsx": "3dd9a1b659a0dee1f624c8e4adb7cf98d09f84053698cbd60731c408b0a6339e",
+    "frontend/src/__tests__/OperationReadiness.test.tsx": "06f87c3c2a25a4c01af8932f3fed34a473d011e38b315dc69f7684085eb7414f",
+    "frontend/src/__tests__/App.test.tsx": "ac4552127ee626b5feab4f702f58feba6fec37716b07b2c80ef79cd60560256f",
+    "frontend/src/__tests__/TemplateCapabilityRequirements.test.tsx": "6e970c4a107e455f9e90276d0ae7bca6373ea6a27aa91baa13627ceb5fb0c823",
+    "frontend/src/components/ImportedCoursePanel.tsx": "12edcc56efc91ccd916f6a30a06a0ccc5a7b89ef157f9b1bc66ff87b6112ee44",
+    "frontend/src/components/ImportedCoursePanel.css": "220f7deff20a97e4a945b34a218d18ab31f480b191e4eb9221e2c8021d06a301"
+  },
+  "owner_decision": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+  "previous_import_receipt": "docs/current/receipts/AAOS-OPENMAIC-IMPORT-20261019.json",
+  "previous_archive_receipt": "docs/current/receipts/AAOS-CONTINUATION-ARCHIVE-20261019.json",
+  "implemented": [
+    "Existing page17 Atlas projection grouped as all/builtin/extension/future with user purposes; no second catalog authority, shell, database or renderer",
+    "Historical donor usability explicitly historical; model observations scoped to selected capability; malformed, expired, out-of-scope and late responses never grant availability",
+    "Existing guarded page navigation used; partial model configuration is separately labeled; missing callback disables it rather than returning to the catalog",
+    "Optional strict quiz UI preview, keyboard reference check, uncertain save with identical retry and original reparse on synthetic reopen exercised",
+    "Local option layout and capability-card theme specificity corrected after inspecting actual screenshots"
+  ],
+  "tasks": {
+    "OSS-HUB-001": {
+      "status": "PARTIAL",
+      "completed": "Existing catalog filtering, purpose cards, future details and guarded business links",
+      "remaining": "Full contribution/package manifests and executable extension lifecycle not delivered"
+    },
+    "OSS-HUB-002": {
+      "status": "PARTIAL",
+      "completed": "Historical-vs-live labeling, scoped role display, strict snapshot validation, sequence and TTL protection",
+      "remaining": "Independent complete install/configuration/enablement qualification across all adapters"
+    },
+    "OSS-OMA-002/003": {
+      "status": "PARTIAL",
+      "completed": "Strict quiz M1 prior implementation now browser-tested with synthetic Core",
+      "remaining": "Real UI-to-Core end-to-end, upstream authentic full classroom sample, native/installed and full-format qualification"
+    },
+    "OSS-HUB-003/004": {
+      "status": "NOT_EXECUTED",
+      "reason": "Manifest and install/update lifecycle remain subsequent work"
+    },
+    "OSS-MODEL-BASE-001": {
+      "status": "NOT_EXECUTED",
+      "reason": "No provider, endpoint, weight, binding or model configuration changed in this slice"
+    }
+  },
+  "verification": {
+    "full_frontend": {
+      "run": ".project-local/runs/be268a2d33/capability-course-final-full-1019/artifacts",
+      "execution": {
+        "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "dirty": true,
+        "source_patch_sha256": "940250a3b5659782c82afcc3856f9f4a366a94549e1752a1ad9a81b9b853d344",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-18T17:12:49.772485+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-final-full-1019",
+        "executable": "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "argument_count": 4,
+        "command": [
+          "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+          "-B",
+          ".project-local/audits/ui-neural-absorption-20261018/verify.py",
+          "--full",
+          "--two-workers"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_patch_sha256_after": "940250a3b5659782c82afcc3856f9f4a366a94549e1752a1ad9a81b9b853d344",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-final-full-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-18T17:15:07.816653+00:00",
+        "seconds": 138.04416170000331
+      },
+      "command": {
+        "command": [
+          "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+          "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+          "run",
+          "--maxWorkers=2",
+          "--minWorkers=2",
+          "--reporter=default",
+          "--reporter=json",
+          "--outputFile=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-final-full-1019\\artifacts\\vitest.json"
+        ],
+        "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend",
+        "started": "2026-10-18T17:12:50.421763+00:00",
+        "ended": "2026-10-18T17:15:07.338150+00:00",
+        "seconds": 136.91638939999393,
+        "exit_code": 0,
+        "scope": "full frontend Vitest suite"
+      },
+      "files": 175,
+      "tests": 1717,
+      "passed": 1717,
+      "failed": 0,
+      "results_sha256": "89206c34084b9719bde67b0a6882280df746350f19ddc94642fbcaa9ca23da4a"
+    },
+    "full_suite_boundary": "175 files/1717 tests passed on patch 940250a3b5659782c82afcc3856f9f4a366a94549e1752a1ad9a81b9b853d344. Afterwards only frontend/src/spaces/capabilities.css changed. Final CSS patch received targeted tests, TypeScript/Vite and browser validation; full suite was not rerun after that CSS-only change.",
+    "final_targeted": {
+      "run": ".project-local/runs/be268a2d33/capability-course-style-final-1019/artifacts",
+      "execution": {
+        "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "dirty": true,
+        "source_patch_sha256": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-18T17:15:49.245487+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-style-final-1019",
+        "executable": "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "argument_count": 8,
+        "command": [
+          "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+          "-B",
+          ".project-local/audits/oss-integration-decision-20261019/verify_import.py",
+          "CapabilityCenter",
+          "CanonicalCapabilitiesSpace",
+          "CanonicalCapabilityDonorMapping",
+          "OperationReadiness",
+          "ImportedCoursePanel",
+          "StyleRuleCoverage"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_patch_sha256_after": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-style-final-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-18T17:15:56.947998+00:00",
+        "seconds": 7.702507499983767
+      },
+      "command": {
+        "command": [
+          "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+          "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+          "run",
+          "CapabilityCenter",
+          "CanonicalCapabilitiesSpace",
+          "CanonicalCapabilityDonorMapping",
+          "OperationReadiness",
+          "ImportedCoursePanel",
+          "StyleRuleCoverage",
+          "--maxWorkers=1",
+          "--minWorkers=1",
+          "--reporter=default",
+          "--reporter=json",
+          "--outputFile=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-style-final-1019\\artifacts\\vitest.json"
+        ],
+        "started_at": "2026-10-18T17:15:49.856593+00:00",
+        "finished_at": "2026-10-18T17:15:56.540382+00:00",
+        "seconds": 6.683794799988391,
+        "exit_code": 0
+      },
+      "files": 6,
+      "tests": 38,
+      "passed": 38,
+      "failed": 0,
+      "results_sha256": "b96a0d10abc3ecf7e1392f4d8443562bb458598681111f7135b710ca7419bf6e"
+    },
+    "final_build": {
+      "schema": "archeaxis.frontend-build/v1",
+      "mode": "build",
+      "exit_code": 0,
+      "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ffaee3902aab",
+      "frontend_dist": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ffaee3902aab\\artifacts\\frontend-dist",
+      "tauri_config": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ffaee3902aab\\tmp\\tauri-build.json",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+      "source_patch_sha256_after": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+      "source_consistent": true
+    },
+    "build_timing": {
+      "schema": "archeaxis.build-timings/v1",
+      "source": {
+        "ARCHEAXIS_SOURCE_COMMIT": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "ARCHEAXIS_SOURCE_TREE": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "ARCHEAXIS_SOURCE_DIRTY": "1",
+        "ARCHEAXIS_SOURCE_PATCH_SHA256": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134"
+      },
+      "stages": [
+        {
+          "name": "frontend-typecheck",
+          "started_at": "2026-10-18T17:15:59.076971+00:00",
+          "status": "PASS",
+          "exit_code": 0,
+          "seconds": 7.078039899992291,
+          "ended_at": "2026-10-18T17:16:06.155575+00:00"
+        },
+        {
+          "name": "frontend-vite",
+          "started_at": "2026-10-18T17:16:06.156503+00:00",
+          "status": "PASS",
+          "exit_code": 0,
+          "seconds": 4.944377199979499,
+          "ended_at": "2026-10-18T17:16:11.101416+00:00"
+        }
+      ]
+    },
+    "browser": {
+      "execution": {
+        "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "dirty": true,
+        "source_patch_sha256": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-18T17:16:42.177641+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-style-browser-1019",
+        "executable": "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "argument_count": 3,
+        "command": [
+          "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+          "-B",
+          ".project-local/audits/capability-course-20261019/run.py",
+          ".project-local/runs/be268a2d33/ffaee3902aab/artifacts/frontend-build.json"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_patch_sha256_after": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-style-browser-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-18T17:16:54.741452+00:00",
+        "seconds": 12.5638089000131
+      },
+      "summary": {
+        "status": "PASS",
+        "evidence": "REAL_CHROMIUM / ACTUAL_PRODUCTION_BUNDLE / SYNTHETIC_CORE",
+        "checks": [
+          {
+            "name": "capability catalog: filters/search/future details stay read-only",
+            "status": "PASS"
+          },
+          {
+            "name": "capability scoped state: history and partial model settings are explicit",
+            "status": "PASS"
+          },
+          {
+            "name": "course preview and keyboard reference practice do not write or execute HTML",
+            "status": "PASS"
+          },
+          {
+            "name": "unknown save keeps original request; synthetic reopen reparses the original",
+            "status": "PASS"
+          },
+          {
+            "name": "unsupported input and list failure never look successful",
+            "status": "PASS"
+          },
+          {
+            "name": "narrow window and reduced motion: readable controls without horizontal page overflow",
+            "status": "PASS"
+          }
+        ],
+        "serious": []
+      },
+      "environment": {
+        "browser": "155.0.8059.80",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "DPR": 1,
+        "locale": "zh-CN",
+        "timezone": "Asia/Shanghai",
+        "profile": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-style-browser-1019\\artifacts\\ui-pilot\\browser-profile",
+        "workers": 1,
+        "baseline": "none created or updated",
+        "evidence": "ACTUAL_FRONTEND_BUNDLE / SYNTHETIC_CORE"
+      },
+      "checks": [
+        {
+          "name": "capability catalog: filters/search/future details stay read-only",
+          "status": "PASS",
+          "start": "2026-10-18T17:16:44.973Z",
+          "end": "2026-10-18T17:16:46.492Z",
+          "detail": {
+            "axe": [],
+            "calls": 0
+          }
+        },
+        {
+          "name": "capability scoped state: history and partial model settings are explicit",
+          "status": "PASS",
+          "start": "2026-10-18T17:16:46.492Z",
+          "end": "2026-10-18T17:16:46.998Z",
+          "detail": {
+            "modelCalls": []
+          }
+        },
+        {
+          "name": "course preview and keyboard reference practice do not write or execute HTML",
+          "status": "PASS",
+          "start": "2026-10-18T17:16:46.998Z",
+          "end": "2026-10-18T17:16:48.341Z",
+          "detail": {
+            "options": [
+              {
+                "height": 44,
+                "width": 804,
+                "inputWidth": 13,
+                "inputCenterOffset": 0,
+                "display": "grid"
+              },
+              {
+                "height": 44,
+                "width": 804,
+                "inputWidth": 13,
+                "inputCenterOffset": 0,
+                "display": "grid"
+              }
+            ],
+            "axe": [],
+            "geometry": {
+              "width": 1280,
+              "scrollWidth": 1280,
+              "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+              "fonts": "loaded"
+            }
+          }
+        },
+        {
+          "name": "unknown save keeps original request; synthetic reopen reparses the original",
+          "status": "PASS",
+          "start": "2026-10-18T17:16:48.342Z",
+          "end": "2026-10-18T17:16:49.769Z",
+          "detail": {
+            "requests": [
+              "course_import_eb5514221b99724c584fe6beca350d29f246561c47576d7ce99d9f623bd87b1e",
+              "course_import_eb5514221b99724c584fe6beca350d29f246561c47576d7ce99d9f623bd87b1e"
+            ],
+            "saved": 1,
+            "axe": []
+          }
+        },
+        {
+          "name": "unsupported input and list failure never look successful",
+          "status": "PASS",
+          "start": "2026-10-18T17:16:49.770Z",
+          "end": "2026-10-18T17:16:50.853Z",
+          "detail": {
+            "axe": []
+          }
+        },
+        {
+          "name": "narrow window and reduced motion: readable controls without horizontal page overflow",
+          "status": "PASS",
+          "start": "2026-10-18T17:16:50.853Z",
+          "end": "2026-10-18T17:16:52.422Z",
+          "detail": {
+            "course": {
+              "width": 640,
+              "scrollWidth": 640,
+              "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+              "fonts": "loaded"
+            },
+            "hub": {
+              "width": 640,
+              "scrollWidth": 640,
+              "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+              "fonts": "loaded"
+            },
+            "axe": [],
+            "reducedMotion": true
+          }
+        }
+      ],
+      "axe": [
+        {
+          "name": "future-capability",
+          "violations": 0,
+          "incomplete": 2,
+          "incomplete_rules": [
+            "aria-prohibited-attr",
+            "color-contrast"
+          ]
+        },
+        {
+          "name": "course-preview",
+          "violations": 0,
+          "incomplete": 1,
+          "incomplete_rules": [
+            "color-contrast"
+          ]
+        },
+        {
+          "name": "course-reopened",
+          "violations": 0,
+          "incomplete": 1,
+          "incomplete_rules": [
+            "color-contrast"
+          ]
+        },
+        {
+          "name": "course-rejected",
+          "violations": 0,
+          "incomplete": 1,
+          "incomplete_rules": [
+            "color-contrast"
+          ]
+        },
+        {
+          "name": "capability-center-narrow",
+          "violations": 0,
+          "incomplete": 2,
+          "incomplete_rules": [
+            "aria-prohibited-attr",
+            "color-contrast"
+          ]
+        }
+      ],
+      "visual_review": {
+        "reviewed_at": "2026-10-18T17:20:31.364786+00:00",
+        "method": "All 11 final PNG files opened with view_image and visually inspected by the agent; not inferred from accessibility tree",
+        "findings": "Final course options align control and text in one row; final catalog cards stack purpose and status; long Chinese and narrow viewport inspected. Scroll-container crops are not whole-page screenshots.",
+        "screenshots": [
+          {
+            "name": "01-capability-center-desktop",
+            "file": "01-capability-center-desktop.png",
+            "viewport": {
+              "width": 1280,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/01-capability-center-desktop.png",
+            "sha256": "b3daff74d9d2fdf0b4aa5a883f0f4017a945cfb31e5fc97b7e11a57aaaa2f3c3"
+          },
+          {
+            "name": "10-capability-cards-desktop",
+            "file": "10-capability-cards-desktop.png",
+            "viewport": {
+              "width": 1280,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/10-capability-cards-desktop.png",
+            "sha256": "bf646b551ea707742defa7622daffb40b522d50e593317f499d1aab98babb218"
+          },
+          {
+            "name": "02-future-capability-details",
+            "file": "02-future-capability-details.png",
+            "viewport": {
+              "width": 1280,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/02-future-capability-details.png",
+            "sha256": "2f625ac054e3138816a2075d48ee534e54ca3e4ff67f59f51ae8c26ced7bbf9e"
+          },
+          {
+            "name": "03-scoped-capability-details",
+            "file": "03-scoped-capability-details.png",
+            "viewport": {
+              "width": 1280,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/03-scoped-capability-details.png",
+            "sha256": "9f245ef161f8d17b7434e80757e848d070c8fb34f8e190e0b094c8206bbe80b5"
+          },
+          {
+            "name": "04-course-preview-desktop",
+            "file": "04-course-preview-desktop.png",
+            "viewport": {
+              "width": 1280,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/04-course-preview-desktop.png",
+            "sha256": "2e5721efdd93a3950e527f65522b38c5dc81d1398c051b4131cac833211484c5"
+          },
+          {
+            "name": "09-course-options-desktop",
+            "file": "09-course-options-desktop.png",
+            "viewport": {
+              "width": 1280,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/09-course-options-desktop.png",
+            "sha256": "2052c0507cc6cac5807ae35a2924a4f027998ebfcccf65916e2633995cd3cffe"
+          },
+          {
+            "name": "05-course-unknown-save",
+            "file": "05-course-unknown-save.png",
+            "viewport": {
+              "width": 1280,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/05-course-unknown-save.png",
+            "sha256": "8d4c2978ca7ce28f6f9e04b8b23693164b3d9b9db6b6fb8d9695796ddc694ab1"
+          },
+          {
+            "name": "06-course-explicit-failure",
+            "file": "06-course-explicit-failure.png",
+            "viewport": {
+              "width": 1280,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/06-course-explicit-failure.png",
+            "sha256": "f93b5f9aa7ad8a9d6b14f5459fd4f001350f5ece76026d429049a0306d91851a"
+          },
+          {
+            "name": "07-course-narrow",
+            "file": "07-course-narrow.png",
+            "viewport": {
+              "width": 640,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/07-course-narrow.png",
+            "sha256": "0f2acdfe6b2889ea86fc35a55e373e251eee349e5c7173ad2135b58547fa054b"
+          },
+          {
+            "name": "08-capability-center-narrow",
+            "file": "08-capability-center-narrow.png",
+            "viewport": {
+              "width": 640,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/08-capability-center-narrow.png",
+            "sha256": "b3911dfab3549e1b692a7a835f33b6ac562e1f96949ddf0509fd395fe99b2f20"
+          },
+          {
+            "name": "11-capability-cards-narrow",
+            "file": "11-capability-cards-narrow.png",
+            "viewport": {
+              "width": 640,
+              "height": 900
+            },
+            "theme": "cosmic",
+            "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+            "DPR": 1,
+            "path": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/11-capability-cards-narrow.png",
+            "sha256": "055d7ba8f2f5537b56d995b0b62061df1b977a880092d92a56f112012162b4ac"
+          }
+        ],
+        "not_claimed": [
+          "pixel parity with upstream",
+          "all themes or DPI",
+          "screen-reader or full accessibility compliance",
+          "full product visual acceptance"
+        ]
+      },
+      "network_requests_blocked": [],
+      "console_or_page_errors": [],
+      "postflight": {
+        "time": "2026-10-18T17:18:41.7500566Z",
+        "runs": [
+          {
+            "run": "capability-course-browser-1019",
+            "owned_pids": [
+              30852,
+              7380
+            ],
+            "live_owned_pids": [],
+            "live_profile_browsers": [],
+            "port": 41730
+          },
+          {
+            "run": "capability-course-browser2-1019",
+            "owned_pids": [
+              35512,
+              42544
+            ],
+            "live_owned_pids": [],
+            "live_profile_browsers": [],
+            "port": 41730
+          },
+          {
+            "run": "capability-course-final-browser-1019",
+            "owned_pids": [
+              26276,
+              9656
+            ],
+            "live_owned_pids": [],
+            "live_profile_browsers": [],
+            "port": 41730
+          },
+          {
+            "run": "capability-course-style-browser-1019",
+            "owned_pids": [
+              8200,
+              37348
+            ],
+            "live_owned_pids": [],
+            "live_profile_browsers": [],
+            "port": 41730
+          }
+        ],
+        "listeners": [],
+        "operation": "read only; no shared process stopped"
+      }
+    }
+  },
+  "resolved_findings": [
+    {
+      "id": "CAP-UI-01",
+      "severity": "P2",
+      "location": "CanonicalCapabilitiesSpace / CAP-0060,0090,0120",
+      "reproduce": "Open details with guarded page callback",
+      "before": "Enabled destination button contradicted unlinked next-step text",
+      "after": "Next-step text and actual destination use page availability consistently",
+      "regression": "CapabilityCenter.test.tsx parameterized three-page assertions"
+    },
+    {
+      "id": "CAP-UI-02",
+      "severity": "P3",
+      "location": "CAP-0150 without onOpenPage",
+      "reproduce": "Render component in a host without page navigation callback",
+      "before": "Model settings fallback navigated to catalog settings space",
+      "after": "Configuration button disabled with explicit reason",
+      "regression": "CapabilityCenter.test.tsx no-callback test"
+    },
+    {
+      "id": "COURSE-UI-01",
+      "severity": "P2",
+      "location": "External course question options",
+      "reproduce": "Upload strict quiz manifest and view a single/multiple option",
+      "before": "General form input width placed control and label on separate lines",
+      "before_screenshot": ".project-local/runs/be268a2d33/capability-course-browser2-1019/artifacts/ui-pilot/04-course-preview-desktop.png",
+      "after": "Scoped grid, auto control width and minimum 44px label; measured input width13px, center offset0px",
+      "after_screenshot": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/09-course-options-desktop.png"
+    },
+    {
+      "id": "CAP-UI-03",
+      "severity": "P2",
+      "location": "Capability cards",
+      "reproduce": "Open page17 at desktop or 640px viewport and scroll to cards",
+      "before": "Old theme two-column row overrode scoped card layout, compressing purpose copy",
+      "before_screenshot": ".project-local/runs/be268a2d33/capability-course-final-browser-1019/artifacts/ui-pilot/11-capability-cards-narrow.png",
+      "after": "Scoped selector specificity yields stacked button and status, no card overflow",
+      "after_screenshot": ".project-local/runs/be268a2d33/capability-course-style-browser-1019/artifacts/ui-pilot/11-capability-cards-narrow.png"
+    }
+  ],
+  "failed_attempts_preserved": [
+    {
+      "path": ".project-local/runs/be268a2d33/75d8962f8942/artifacts/frontend-build.json",
+      "reason": "New Testing Library query options used unsupported exact property; removed invalid type property"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/capability-course-full-1019/artifacts/vitest.json",
+      "reason": "Two old title assertions expected 全能力目录; updated to actual 能力中心"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/capability-course-full2-1019/artifacts/vitest.json",
+      "reason": "Same two title failures preserved; replacement script failed before changing them"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/capability-course-browser-1019/artifacts/ui-pilot/checks.json",
+      "reason": "Audit selectors matched both sidebar and catalog; rejection wording expectation mismatched actual. Harness corrected to real regions and independent narrow setup; no product bypass"
+    }
+  ],
+  "tool_reuse": {
+    "lab": "C:\\Users\\ALEX\\.codex\\tools\\visual-tool-lab",
+    "skill": "C:\\Users\\ALEX\\.codex\\plugins\\cache\\alex-local-tools\\visual-audit-tools\\1.0.0\\skills\\visual-project-audit\\SKILL.md",
+    "discovery": "Manually read installed skill; do not infer automatic session discovery",
+    "packages": [
+      {
+        "name": "@playwright/cli",
+        "version": "0.1.22",
+        "sha256": "1c545fd0ee14db9faed985aebfd205f9d6c2b2da5fbc8d142a7af8e26ee9c510"
+      },
+      {
+        "name": "@playwright/test",
+        "version": "1.64.1",
+        "sha256": "6b1c8bb530059f2555530e8dcc1b3803565237e17598683b3766c0fa313b3fd6"
+      },
+      {
+        "name": "@axe-core/playwright",
+        "version": "4.14.0",
+        "sha256": "8bede892b9021c7e0f9f14175277276c80de635a4aa7a4dbf75d5bee3dc18e9a"
+      },
+      {
+        "name": "motion",
+        "version": "14.3.0",
+        "sha256": "ed8976b39da19b369eb5d5e3b58aacecc5303c27133a6295736f6f12e11bdac1"
+      }
+    ],
+    "lock_sha256": "51f9b21da11477ed7f02bcda370ec9a4f741cc2d96cda46a5c172a1bcea8e6fe",
+    "mutation": "No tool/global configuration/dependency installation or upgrade"
+  },
+  "not_executed": [
+    "real Core bridge browser flow",
+    "native WebView2 and installed journeys",
+    "screen reader",
+    "all-theme/DPI matrix",
+    "authentic complete upstream classroom import",
+    "performance benchmarks",
+    "model inference or provider setup",
+    "commit/push/release/Green replacement"
+  ],
+  "archive": "docs/history/oss-absorption-evidence/20261019-capability-course",
+  "rollback": "Revert only the declared product/test write set after reviewing preexisting overlapping modifications; restore no whole files blindly. No schema migration or new dependencies.",
+  "archive_validation": {
+    "readback": ".project-local/runs/be268a2d33/capability-course-archive-final-1019/artifacts/archive-readback.json",
+    "qualification": "Read-only final routing/source/archive hashes and document-authority checks, after all archival writes; inspect this output separately from product qualification"
+  },
+  "archive_manifest": {
+    "path": "docs/history/oss-absorption-evidence/20261019-capability-course/MANIFEST.json",
+    "sha256": "4fc05405e63084863b79629e1a715dd3d063d572512955fd4192a5d3e8b7c471",
+    "members": 25
+  }
+}

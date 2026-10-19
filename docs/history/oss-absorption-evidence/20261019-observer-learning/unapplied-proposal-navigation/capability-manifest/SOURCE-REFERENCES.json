@@ -1,0 +1,32 @@
+[
+  {
+    "path": "config/capability-map.v1.json",
+    "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e",
+    "bytes": 2987
+  },
+  {
+    "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+    "sha256": "445a062ba2737a8bc0b1406dbace47aeeaaa87b269bb4fc47dfb5e1d2d389ae5",
+    "bytes": 233552
+  },
+  {
+    "path": "services/python-workers/routes.json",
+    "sha256": "0ac3068fe9a9179eb6575609305d3eaf88e7d9d485a0794b7948333c0a70706f",
+    "bytes": 1378
+  },
+  {
+    "path": "crates/archeaxis-api/Cargo.toml",
+    "sha256": "92aefb0bc36e94865983dfb768bdcc3abb1bbe41c204d503280f693df2da19ad",
+    "bytes": 814
+  },
+  {
+    "path": "packages/contracts/v1/core-document.schema.json",
+    "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76",
+    "bytes": 74929
+  },
+  {
+    "path": "LICENSE",
+    "sha256": "ce09819cc8f505d5323b328125ef5ac18408ede9e55e92093e82833956ae6e61",
+    "bytes": 1092
+  }
+]

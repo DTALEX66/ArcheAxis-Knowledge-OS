@@ -1,0 +1,91 @@
+{
+  "schema": "archeaxis.xiaoqi-source-integration/v1",
+  "source_repository": "DTALEX66/ASTRYN",
+  "source_commit": "3115378bb3fe13849ed422c739002428fef82892",
+  "source_local_path": "D:\\All projects\\ASTRYN",
+  "source_license": "private/UNLICENSED; Owner-authorized first-party integration",
+  "asset_license": "MINIMAX DESIGN 平台条款（生成并交付使用）",
+  "asset_origin": "AI-generated; user-supplied; no independent public relicensing proof",
+  "media": "raster-2d-still; no phoneme animation",
+  "records": [
+    {
+      "state": "idle",
+      "source": "assets/character/upgraded/v1/xiaoqi_state_idle_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/idle.png",
+      "bytes": 2262930,
+      "sha256": "871219e822f60080dbf1675ab86819b59cc51301468df16f05874034a5e295ec"
+    },
+    {
+      "state": "listening",
+      "source": "assets/character/upgraded/v1/xiaoqi_state_listening_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/listening.png",
+      "bytes": 3374223,
+      "sha256": "fe374f3b69210555e0c3e8f7bdadcc73b81ec2876a183746acd0c1564e97b9fe"
+    },
+    {
+      "state": "thinking",
+      "source": "assets/character/upgraded/v1/derived-alpha/xiaoqi_state_thinking_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/thinking.png",
+      "bytes": 5043622,
+      "sha256": "458d47b8e89dd8270f500c0429ea93c1a5cc5964ce9efd6b3a25affe9bd8970f"
+    },
+    {
+      "state": "speaking",
+      "source": "assets/character/upgraded/v1/xiaoqi_state_speaking_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/speaking.png",
+      "bytes": 2822694,
+      "sha256": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282"
+    },
+    {
+      "state": "interrupted",
+      "source": "assets/character/upgraded/v1/xiaoqi_state_interrupted_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/interrupted.png",
+      "bytes": 3414874,
+      "sha256": "b3f203dcaf4dd434496e1793f9e75b127bb668ea7e44b933f178dd7de4906882"
+    },
+    {
+      "state": "awaiting_approval",
+      "source": "assets/character/upgraded/v1/xiaoqi_state_awaiting_approval_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/awaiting_approval.png",
+      "bytes": 2907393,
+      "sha256": "2dcf8044ce691e3b617f97b13adf544c0ee67faa63c23d02624a2e45b712476b"
+    },
+    {
+      "state": "executing",
+      "source": "assets/character/upgraded/v1/xiaoqi_state_executing_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/executing.png",
+      "bytes": 3024374,
+      "sha256": "afa0354dc0301b5b5b84a9f3d0cc52211ae5b870112ce4e1e18dbdc1e5e91980"
+    },
+    {
+      "state": "completed",
+      "source": "assets/character/upgraded/v1/derived-alpha/xiaoqi_state_completed_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/completed.png",
+      "bytes": 4978693,
+      "sha256": "35ab5ba7b2717da2bf79249cfa13abe6e56f75294b78f89d9bce66d071161aa0"
+    },
+    {
+      "state": "failed",
+      "source": "assets/character/upgraded/v1/derived-alpha/xiaoqi_state_failed_sleepwear_v1.png",
+      "path": "frontend/src/companion/assets/failed.png",
+      "bytes": 4922676,
+      "sha256": "e957f557ac8007508af2b36dbedb0e06751d42faaf9803426e904ffd14ff9141"
+    },
+    {
+      "source": "assets/character/STATE-ASSET-INDEX.json",
+      "path": "docs/history/xiaoqi-source-20261018/STATE-ASSET-INDEX.json",
+      "bytes": 37672,
+      "sha256": "67b1f0c2f0328e9017f1271a3d54acdad025506c8034beb250424bb5988f84e1"
+    },
+    {
+      "source": "src/avatar/xiaoqi-raster-renderer.ts",
+      "path": "docs/history/xiaoqi-source-20261018/xiaoqi-raster-renderer.ts",
+      "bytes": 4788,
+      "sha256": "8a3cd5dae2c1e85dfbf8bd4cd9c7a91bcb9b470def68c053cdd907ed07b9034c"
+    }
+  ],
+  "limits": [
+    "Derived thinking/completed/failed alpha edges retain source-index limitations",
+    "Source repository and remote preserved; no second runtime or model/memory store imported"
+  ]
+}

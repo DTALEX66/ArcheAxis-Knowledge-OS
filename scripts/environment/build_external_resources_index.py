@@ -24,6 +24,7 @@ external root is reached through a named `sibling_root`, never through a `..` de
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
@@ -200,6 +201,7 @@ def main() -> int:
         "probed": root is not None,
         "probe_workdir": str(workdir),
         "manifest": str(MANIFEST.relative_to(ROOT)).replace("\\", "/"),
+        "manifest_sha256": hashlib.sha256(MANIFEST.read_bytes()).hexdigest(),
         "manifest_updated": document.get("updated"),
         "roots_declared_by": list(ROOT_ENV),
         "external_root": str(root) if root else None,

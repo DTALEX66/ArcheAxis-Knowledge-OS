@@ -1,0 +1,528 @@
+{
+  "algorithm": "SHA-256",
+  "excludes": [
+    "CHECKSUMS.json"
+  ],
+  "files": [
+    {
+      "path": "00_START_HERE.md",
+      "bytes": 3094,
+      "sha256": "4b904f74354e0b18769380fa1ccd9b8dedaa71208217d7720ac44fb0b74277a9"
+    },
+    {
+      "path": "01-Frontend-UI-Taskpack.docx",
+      "bytes": 46617,
+      "sha256": "4220c5254a6d65ca2a8e85f11d6ec7d8784880cb4a585e25fb98bf6b76301bc1"
+    },
+    {
+      "path": "ACCEPTANCE.md",
+      "bytes": 2367,
+      "sha256": "2a5f610aafee0b961c36af3db4b8801b2a8c63553ef59ef3ca90309e50688727"
+    },
+    {
+      "path": "ASSET-MANIFEST.json",
+      "bytes": 66644,
+      "sha256": "5b9d81e0f3100ea7449b36e1e163089434817647a52a1e66a5a3b8ba7e1ab19d"
+    },
+    {
+      "path": "AUDIT-CLOSURE.csv",
+      "bytes": 379,
+      "sha256": "5284d15f3245245e225f3363dbef9838edd07531c08a70445217fa426ee70b96"
+    },
+    {
+      "path": "EXECUTOR_PROMPT.md",
+      "bytes": 1903,
+      "sha256": "87bffb8dafb552b059785c2858856f96b4668655344a3951523ba4f59e09d953"
+    },
+    {
+      "path": "FEATURE-STATE-MATRIX.csv",
+      "bytes": 25097,
+      "sha256": "fb68ec1e9faae94f93ffc289344e35b0c5ce3b4be1690a686552d2ee9549dc31"
+    },
+    {
+      "path": "NAVIGATION.json",
+      "bytes": 164869,
+      "sha256": "8142c5717af3bbad728924658b4b25b362413b13e263aaafcc0ff3c872e4644e"
+    },
+    {
+      "path": "OPEN-SOURCE-REUSE-MATRIX.csv",
+      "bytes": 2392,
+      "sha256": "3fe2ad5dee01df6c7d059220c32577d063c2ea030a76788ba441a79eddeffa91"
+    },
+    {
+      "path": "PACKAGE-VALIDATION.json",
+      "bytes": 2451,
+      "sha256": "5b11582ee88f80ae37e5ca4292b0d22fe05d07299f888c935b1ca7af2330c02f"
+    },
+    {
+      "path": "PAGE-MATRIX.csv",
+      "bytes": 4173,
+      "sha256": "f57fbaa0452c3b369e5bd0bacca744ae92dbd9552a041235e0a91687c4902d6f"
+    },
+    {
+      "path": "PROGRESS-TEMPLATE.json",
+      "bytes": 7499,
+      "sha256": "74c24d9f019b9a9dfb7c17c7f4baa06085db2f3320e4d2f0b9046d7da7ccd447"
+    },
+    {
+      "path": "REUSE-POLICY.md",
+      "bytes": 298,
+      "sha256": "c5e55685cc9c14ff4c8828c8977945f45ad5c7af0fdf8af173b651699912227e"
+    },
+    {
+      "path": "ROLLBACK.md",
+      "bytes": 541,
+      "sha256": "ef320f42592ffdd992920ae213cc8b00a16b06e7fa289129289dc726b5872255"
+    },
+    {
+      "path": "TASK-CROSSWALK.csv",
+      "bytes": 1985,
+      "sha256": "ebd2b85f24b30937bbeb80faace738b3e0ea77d8831de4a9f77507537e72db48"
+    },
+    {
+      "path": "TASKPACK.md",
+      "bytes": 23338,
+      "sha256": "53789618bef61d4daa71bf86a571f5c0d495372aa672f8b0fcb98dbdeb8736b7"
+    },
+    {
+      "path": "TASKS.json",
+      "bytes": 33958,
+      "sha256": "604e386ed0a84c63cca4c642ad2d10f1e0f10e600dd5eee49b408f86fe129cc5"
+    },
+    {
+      "path": "VERIFY_PACKAGE.py",
+      "bytes": 660,
+      "sha256": "0a0225ea0258e7a330d835833affb44b04688bf7be19ad31a17f8a59a950ca57"
+    },
+    {
+      "path": "VIEW-SPECIFICATIONS.json",
+      "bytes": 351783,
+      "sha256": "f00be74cdc09a6e007066d6fdede1197912d934be54be1ff5f32b2f19dd9e57b"
+    },
+    {
+      "path": "assets/README.md",
+      "bytes": 1316,
+      "sha256": "fc4ec3c39c76bf937146c1c0e9a7bc934ecae61760722acb87526bfbfbeb40ea"
+    },
+    {
+      "path": "assets/character/STATE-ASSET-INDEX.json",
+      "bytes": 2194,
+      "sha256": "eaf61925863d41c9bda79645f7cc8964ba61cf7cc8adbca5489f4718ec58a2a1"
+    },
+    {
+      "path": "assets/character/states/awaiting_approval.svg",
+      "bytes": 5235,
+      "sha256": "043871d7059fd5bc90c3c1e7f422f1acf8702685e4568e8bc165c332ee3e985b"
+    },
+    {
+      "path": "assets/character/states/completed.svg",
+      "bytes": 5220,
+      "sha256": "96dca45f2b15b9685fd8ff2a9f7d2409ffa7d889c2598f379d814d8a8bab2a74"
+    },
+    {
+      "path": "assets/character/states/executing.svg",
+      "bytes": 5199,
+      "sha256": "dc0884a3b5790bd10ff6b5e2e711ce401452901210bbff020818334b3788dba4"
+    },
+    {
+      "path": "assets/character/states/failed.svg",
+      "bytes": 5197,
+      "sha256": "ae9279cc012d718dee13d7ed632370249f63653637e1c0f13bf2132518eef94a"
+    },
+    {
+      "path": "assets/character/states/idle.svg",
+      "bytes": 5067,
+      "sha256": "8102f8b01ecf69b200015e7e568cd09b7d6dc947f529ce757041997cd716d74f"
+    },
+    {
+      "path": "assets/character/states/interrupted.svg",
+      "bytes": 5221,
+      "sha256": "295f2d83dc4cf31126f65725a8c62034756e7aea5cd18c40b282abca9314cd05"
+    },
+    {
+      "path": "assets/character/states/listening.svg",
+      "bytes": 5045,
+      "sha256": "619418d5ee7f6519ddf493f75a6371ae8471a98d0eaeb1e4331db560b1cb33ae"
+    },
+    {
+      "path": "assets/character/states/speaking.svg",
+      "bytes": 5045,
+      "sha256": "ff6b6f08897a5084f34b310f7f8e5ec5a91c5450773fe20338fdecae0a45519f"
+    },
+    {
+      "path": "assets/character/states/thinking.svg",
+      "bytes": 5271,
+      "sha256": "459dc0ac1e5d0f385ec1f9d5b64fc3b5f11851b1a35b29fcad44b3c6b32109ba"
+    },
+    {
+      "path": "assets/components/DockviewIntegrationRecipe.tsx",
+      "bytes": 621,
+      "sha256": "88d4d4c25f85dbea47e4aae85c6d7db6e2d8a5519ad716d2164a2a9894aff88d"
+    },
+    {
+      "path": "assets/components/MaterialComponents.tsx",
+      "bytes": 3275,
+      "sha256": "71230981b6abdec8564aaaed891c6b8ef262080f75341a5726e7a5c108de08e2"
+    },
+    {
+      "path": "assets/components/materials.css",
+      "bytes": 5610,
+      "sha256": "5822509340941c84724b72b3ca66e7c057d6c79ce5504d2a71d843871e021aa4"
+    },
+    {
+      "path": "assets/fonts/NotoSansCJKsc-Regular.otf",
+      "bytes": 16437364,
+      "sha256": "2c76254f6fc379fddfce0a7e84fb5385bb135d3e399294f6eeb6680d0365b74b"
+    },
+    {
+      "path": "assets/fonts/OFL.txt",
+      "bytes": 4301,
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    },
+    {
+      "path": "assets/references/R1-dream-glass.png",
+      "bytes": 3383594,
+      "sha256": "83ed3730c2c5d59b12f9f62105a253832ae9eb8515f3c7b2162d7ba4f53b7016"
+    },
+    {
+      "path": "assets/references/R2-dream-space.png",
+      "bytes": 3589356,
+      "sha256": "892c1f698bea13982701aa8dc3d97e873ccb495ef5661955ba6f4caf7380d66a"
+    },
+    {
+      "path": "assets/references/R3-hard-scifi-glass.png",
+      "bytes": 3169054,
+      "sha256": "2e6fa07943b91a0b7728a89ce36f31e5e944dd9a1fbe7276423d6d0bb33b9d15"
+    },
+    {
+      "path": "assets/references/R5-game-home.png",
+      "bytes": 2388466,
+      "sha256": "cac00e179d3946517acc76fea1e7740fcef78f65cac44dd54273cd19cafc351d"
+    },
+    {
+      "path": "assets/references/R6-calm-person.png",
+      "bytes": 191496,
+      "sha256": "67b0f3fc15b4210c5b17dd089d4e88b2cf54b81c2e4a599a8d2294ff940e0aa5"
+    },
+    {
+      "path": "assets/references/REFERENCE-INDEX.json",
+      "bytes": 1163,
+      "sha256": "dcab45cce0fda662b0d98eba1c423ba7a5e140688750c6ff509033a857e6d76b"
+    },
+    {
+      "path": "assets/scenes/orbital-background.svg",
+      "bytes": 9684,
+      "sha256": "0cfac107f9424ad4c25fab8ef91cd13e795c677434c01e16b6a807a8a4ec59d2"
+    },
+    {
+      "path": "assets/vendor/dockview/LICENCE.md",
+      "bytes": 1063,
+      "sha256": "1d56757fdc06c9b33c0f80821efe4f4b11960dd7fb6544232cff61752101f513"
+    },
+    {
+      "path": "assets/vendor/dockview/README.md",
+      "bytes": 3167,
+      "sha256": "6aac3f3e5401c946b9ffdd42649f4b2d424d35d29aae74de1567d762135f53ec"
+    },
+    {
+      "path": "assets/vendor/dockview/package.json",
+      "bytes": 2495,
+      "sha256": "415b53c790d14b2f05418a2778da38c87072c149158f7f627666a64450427427"
+    },
+    {
+      "path": "assets/vendor/lucide/LICENSE",
+      "bytes": 3208,
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/book-open.svg",
+      "bytes": 387,
+      "sha256": "9b9bed0ff057283d5c5c5a1c71f8d3e927db26a56639603a92fdf7b25961510e"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/bot.svg",
+      "bytes": 380,
+      "sha256": "e46fe72fc5b33d7a17b0112df85da9ded851860312e8353f4fe23d87a4ce77f5"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/boxes.svg",
+      "bytes": 824,
+      "sha256": "7e301f6c38337389f5a96675d14cb9d8ef8a613329e99c3dfcf7c635bdd1faae"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/check.svg",
+      "bytes": 239,
+      "sha256": "7f33acc9a77a61659531044525fc008edebe215bf4dcf1c789c8674ad3277db0"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/circle-alert.svg",
+      "bytes": 332,
+      "sha256": "ce3e98b7a03b78c0071131df42466e4e1ff5187fccad30e739ec9ce951cf685a"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/cpu.svg",
+      "bytes": 590,
+      "sha256": "ec83bb69ec029d367d749afc445b39c8e95891ebf99b0400652677c2b149b99c"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/download.svg",
+      "bytes": 318,
+      "sha256": "3daeee13ded5a3afa2198b1bb4e2262d163922f97d96ac6ff9953e8ed4fe039d"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/file-text.svg",
+      "bytes": 444,
+      "sha256": "52ca55846c202335fb870c8aa23e9345630ec10489303756d62e750f7109605c"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/folder-open.svg",
+      "bytes": 401,
+      "sha256": "ee57452b40e71df310214091dd9da1941a397c83197b8ff8d7ae66dd4242578b"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/graduation-cap.svg",
+      "bytes": 412,
+      "sha256": "326b4a1c18429509a697cbc0c49fdfcf9316da34bcf581569c2fc73cc772b86f"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/house.svg",
+      "bytes": 383,
+      "sha256": "28216c479005731ef5e382e7d8627eda2b129b019eb1f3d9de9f5915576d448e"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/key-round.svg",
+      "bytes": 453,
+      "sha256": "f8cdea843754ed360e36b04bf6aa2c2b3610935dd39ffc685a36c4d0a05be248"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/layers.svg",
+      "bytes": 510,
+      "sha256": "ce16d0a955e3581cda17f6b2fd5c5bc2034b405f9cecc31c8ebb8495b4afc1bb"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/layout-grid.svg",
+      "bytes": 416,
+      "sha256": "b8903f61d09b1d75e55c71158277d26570962f69c2099446a251871e0a2d6678"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/library.svg",
+      "bytes": 304,
+      "sha256": "892ba1bd1ee2e5bba320eea1c30c83ed83055ded5a0a0c0e7e4ee5fb06c307a5"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/message-circle.svg",
+      "bytes": 347,
+      "sha256": "146f39740fe50844394d56ae1f8821937655bcfff3842bf6fe8ffc0bcd324076"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/mic.svg",
+      "bytes": 326,
+      "sha256": "9b940cd735d1ffa270ba670c4e677d9a09400f3fa81d6b3f405b12a3b67a59a8"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/network.svg",
+      "bytes": 445,
+      "sha256": "626be730feea1e5ea7539fbf78b4a3fcb927ce5d7dc43364f2216908672ac792"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/plug.svg",
+      "bytes": 363,
+      "sha256": "11ba780e4b6f15d37906a8a73537144b59720333d7a9fc8048a437d0389422f8"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/search.svg",
+      "bytes": 275,
+      "sha256": "283d371c2e433817bb9c0c8310caa6c77fa4177c0f4f1168d9c83b97af7389dc"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/settings.svg",
+      "bytes": 586,
+      "sha256": "0ae27fd0f81999229e3127ac96c5b32edfea448e291d509e76212b917551d66b"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/upload.svg",
+      "bytes": 318,
+      "sha256": "42816ee1fa0e9d3b82272a97615c1e562b0e9de64780ebf21963bc1db0ceffd1"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/volume-2.svg",
+      "bytes": 476,
+      "sha256": "fb404f9c128a0579de67b399177631e5edb3502fdc247ceb30e8b15754b46071"
+    },
+    {
+      "path": "assets/vendor/lucide/icons/x.svg",
+      "bytes": 260,
+      "sha256": "4a9cdab38fbb96162e7dace28e33f4ca0e49d8963a6162abc3d4691b7d675117"
+    },
+    {
+      "path": "assets/vendor/npm/dockview-8.5.1.tgz",
+      "bytes": 305286,
+      "sha256": "ba5107bb210b9587c774d0a758cd3cbf874733e521f90196885d6a0bc0728dd5"
+    },
+    {
+      "path": "assets/vendor/npm/dockview-8.5.1.tgz.metadata.json",
+      "bytes": 669,
+      "sha256": "441bf476d41e4df1cfe9df4e9830aaf458fd0798ec735ce54310b184e671eff6"
+    },
+    {
+      "path": "assets/vendor/npm/dockview-core-8.5.1.tgz",
+      "bytes": 1192990,
+      "sha256": "8b9537849cbd178521c3d3b5ae96ee4c1478f415cd443d9ddffc377e77106e5f"
+    },
+    {
+      "path": "assets/vendor/npm/dockview-core-8.5.1.tgz.metadata.json",
+      "bytes": 636,
+      "sha256": "445c8434c474d31f9761c3d37f54ff76c102fee2625a5835b154563ce359b72c"
+    },
+    {
+      "path": "assets/vendor/npm/dockview-react-8.5.1.tgz",
+      "bytes": 339840,
+      "sha256": "19b99dfef6cd6d8d76b6c306e79a9e0d1b422de2b3ccee92aafe15b49501e512"
+    },
+    {
+      "path": "assets/vendor/npm/dockview-react-8.5.1.tgz.metadata.json",
+      "bytes": 814,
+      "sha256": "e8981998fa6d0ee077ffec3f086a93c3286c41799f85d00e00057e61775df845"
+    },
+    {
+      "path": "assets/vendor/npm/radix-ui-react-dialog-1.2.0.tgz",
+      "bytes": 15532,
+      "sha256": "535f2e39d1bfd6b8f45942674f6b4827416b5041e49335d3554e494ca73f3e40"
+    },
+    {
+      "path": "assets/vendor/npm/radix-ui-react-dialog-1.2.0.tgz.metadata.json",
+      "bytes": 1511,
+      "sha256": "ba922c5d5d2a47fad938d122ea086c8bfe411e559f0da34320499fb7005cbe46"
+    },
+    {
+      "path": "assets/vendor/npm/radix-ui-react-tabs-1.1.22.tgz",
+      "bytes": 9295,
+      "sha256": "238efb1dc76379b8d4d80deae2f0d398c239fad97c3567a8e418854530cb2d3f"
+    },
+    {
+      "path": "assets/vendor/npm/radix-ui-react-tabs-1.1.22.tgz.metadata.json",
+      "bytes": 1214,
+      "sha256": "a3b9241af87d3b1aab59f8a4599d070fbff9f83e586a74d37149d22b2f57d800"
+    },
+    {
+      "path": "assets/vendor/radix/LICENSE",
+      "bytes": 1063,
+      "sha256": "0e80a2d229d2fd4fc7e8636142ec5d0ff0bc031f14c15b682e2ac01dfd5b5138"
+    },
+    {
+      "path": "design/CHARACTER-STATE-GALLERY.html",
+      "bytes": 1922,
+      "sha256": "14383a8a09d53956dbb0446f8a8433c30b971201a49cc8844a1f624154ca090e"
+    },
+    {
+      "path": "design/COMPONENT-CATALOG.json",
+      "bytes": 9423,
+      "sha256": "8de75903384aba7e49ab0073cb1994a645c100958d869a2b7e691e7c87032180"
+    },
+    {
+      "path": "design/COMPONENT-STATES.csv",
+      "bytes": 13029,
+      "sha256": "78f4d7f91f4193347cd4070b836007776424bfd94329f47964bfb76773babee7"
+    },
+    {
+      "path": "design/EFFECT-LAYER-INDEX.json",
+      "bytes": 20811,
+      "sha256": "a43c7d4562ddcd800c35d3dc77ed27e7f9f5fa4e5a1f80797a86b2719616c991"
+    },
+    {
+      "path": "design/MATERIAL-STYLE-GUIDE.html",
+      "bytes": 19707,
+      "sha256": "5b64c2de68bc656898e9f43d208b3ad54eb2504aa92e0299fa7f6d2bdc8c6718"
+    },
+    {
+      "path": "design/UI-TOKENS.json",
+      "bytes": 2562,
+      "sha256": "2d188e0fb5304cffc0cd3e61a7989aa6a7e2ebe6c902fb9f8599bf301a73c758"
+    },
+    {
+      "path": "design/VISUAL-ASSET-PRODUCTION.md",
+      "bytes": 2464,
+      "sha256": "5f5759edac327a54f07a418985eb5e300b1f6249c9c182cd17684c5f4449c1ab"
+    },
+    {
+      "path": "design/key-views/capabilities.json",
+      "bytes": 2661,
+      "sha256": "ec6c33b1d440c0c8513ff1287821c6305080ab594bcae5fcbd5eb7ebd5de1cba"
+    },
+    {
+      "path": "design/key-views/companion.json",
+      "bytes": 2696,
+      "sha256": "010a8e02ea0eb71cbeb99ceed09b48146735b39b6fa03252761e7c60652295f4"
+    },
+    {
+      "path": "design/key-views/configuration.json",
+      "bytes": 2668,
+      "sha256": "33b748d78ebe58bdc552d9b0c7d6078fdd2ebeaf8027ecccb622daa438cf6d11"
+    },
+    {
+      "path": "design/key-views/error.json",
+      "bytes": 2591,
+      "sha256": "6c37748a6f22851e161ace80b2a821dc28b63737e02ad6d118d15951947cc419"
+    },
+    {
+      "path": "design/key-views/home.json",
+      "bytes": 2698,
+      "sha256": "656be8e5e1936fb495532fbfdf2455fafb6055695bcfa0172534d56a46ca284e"
+    },
+    {
+      "path": "design/key-views/models.json",
+      "bytes": 2684,
+      "sha256": "5765794b23c73d665143c4f97cc7699333cc05a57e86aaa25a26cae2f4bf1d44"
+    },
+    {
+      "path": "design/key-views/reading.json",
+      "bytes": 2653,
+      "sha256": "5b43f881e30d2dffae280328c48412a4cdaaad579af5e41f0ca196c83c876bd2"
+    },
+    {
+      "path": "references/AAOS-UI-v1-Final-Spec.docx",
+      "bytes": 82812,
+      "sha256": "622f5e65d69a1eddaad906609d866207172dddea1a92b01e5daf9c6247a3cf9e"
+    },
+    {
+      "path": "references/ArcheAxis-UI-Multidimensional-Audit.docx",
+      "bytes": 55598,
+      "sha256": "2dec59e654ee0f1e9bb313fb24b560d016c140f702518c1218523ca5cbc2a0ca"
+    },
+    {
+      "path": "references/README.md",
+      "bytes": 271,
+      "sha256": "6bdc921167b04fe53d6d9b00ba7715a2c20c431ba71947db6539b48cdc10124c"
+    },
+    {
+      "path": "references/repository/AAOS-ACTIVE-EXECUTION.json",
+      "bytes": 10153,
+      "sha256": "8f9000a28003c90b404ecb6c0b3544863fb9610731a59c6c76f719b2dde13803"
+    },
+    {
+      "path": "references/repository/EXISTING-UI-TASKS.json",
+      "bytes": 44347,
+      "sha256": "1dbc0b24375df5f2b4897bf88fa6cf3fd4a4b3e0dfc114bc5d96b5a362eea169"
+    },
+    {
+      "path": "shared/GLOBAL-DEPENDENCIES.json",
+      "bytes": 11636,
+      "sha256": "b684a535439d7331fdb6dd504d43c95a4867ee3e10eeee0fa5ceba24c98fea25"
+    },
+    {
+      "path": "shared/OWNERSHIP.md",
+      "bytes": 873,
+      "sha256": "778f48c3cf1c4754e27110736e3d7e0abdbdb549de64c0f5e010636d5e753ce8"
+    },
+    {
+      "path": "shared/SOURCE-BASELINE.json",
+      "bytes": 961,
+      "sha256": "1df38c0b46c1359e8a30e835c4b7eaad569930ab5382bea1f0a22066d120461f"
+    },
+    {
+      "path": "shared/UI-HOST-CONTRACT-PROPOSAL.json",
+      "bytes": 10869,
+      "sha256": "fa871c611422cf27c51037657cdefb099272e0ab9ed8d279f1130cf8b1ba3ca2"
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+[
+  {
+    "name": "review-queue",
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "tags": [
+          "cat.color",
+          "wcag2aa",
+          "wcag143",
+          "TTv5",
+          "TT13.c",
+          "EN-301-549",
+          "EN-9.1.4.3",
+          "ACT",
+          "RGAAv4",
+          "RGAA-3.2.1"
+        ],
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/color-contrast?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "contrastRatio": 0,
+                  "fontSize": "12.0pt (16px)",
+                  "fontWeight": "normal",
+                  "messageKey": "bgOverlap",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element's background color could not be determined because it is overlapped by another element"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<li>",
+            "target": [
+              "ul[data-section=\"review\"] > li:nth-child(1)"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fontSize": "9.8pt (13px)",
+                  "fontWeight": "normal",
+                  "messageKey": "pseudoContent",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<button data-learning-item-key=\"course:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\">中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版</button>",
+                    "target": [
+                      "ul[data-section=\"review\"] > li:nth-child(1) > button"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element's background color could not be determined due to a pseudo element"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<button data-learning-item-key=\"course:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\">中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版</button>",
+            "target": [
+              "ul[data-section=\"review\"] > li:nth-child(1) > button"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "contrastRatio": 0,
+                  "fontSize": "12.0pt (16px)",
+                  "fontWeight": "normal",
+                  "messageKey": "bgOverlap",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [],
+                "impact": "serious",
+                "message": "Element's background color could not be determined because it is overlapped by another element"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<li>",
+            "target": [
+              "ul[data-section=\"review\"] > li:nth-child(2)"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fontSize": "9.8pt (13px)",
+                  "fontWeight": "normal",
+                  "messageKey": "pseudoContent",
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<button data-learning-item-key=\"course:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\">中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版</button>",
+                    "target": [
+                      "ul[data-section=\"review\"] > li:nth-child(2) > button"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element's background color could not be determined due to a pseudo element"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<button data-learning-item-key=\"course:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\">中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版本的长文本中文复习标题与来源固定版</button>",
+            "target": [
+              "ul[data-section=\"review\"] > li:nth-child(2) > button"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element's background color could not be determined due to a pseudo element"
+          }
+        ]
+      }
+    ],
+    "passes": 9
+  }
+]

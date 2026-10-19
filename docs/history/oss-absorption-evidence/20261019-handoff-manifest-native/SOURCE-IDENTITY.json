@@ -1,0 +1,188 @@
+{
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "scope": "本轮22文件；不包含其他既有dirty源码",
+  "files": [
+    {
+      "path": "scripts/probes/aaos01_grouped_owner_loop.py",
+      "before_sha256": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c",
+      "proposal_after_sha256": "a37ef467c28e92ac62ce2b466b747d3e65ee555fe8ed476ff78abf2d53f54630",
+      "proposal_patch_sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+      "bytes": 136655,
+      "sha256": "a37ef467c28e92ac62ce2b466b747d3e65ee555fe8ed476ff78abf2d53f54630"
+    },
+    {
+      "path": "scripts/probes/aaos01_material_companion_loop.py",
+      "before_sha256": "5969aad910616c7e883e62a36782c2e6eb3eebddd3dc3168f132fb496a922add",
+      "proposal_after_sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f",
+      "proposal_patch_sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+      "bytes": 26613,
+      "sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f"
+    },
+    {
+      "path": "tests/test_grouped_native_owner_probe.py",
+      "before_sha256": "c9a99cbddf6fd65a04497e9fd25740c12ad88460f75069c5e3868e7ce41c2525",
+      "proposal_after_sha256": "cc11942a9998c8e77c7ae78dc1b1c5acc29991e90b849e89310913c6ad8e31eb",
+      "proposal_patch_sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+      "bytes": 90810,
+      "sha256": "f09b0eaf8b1679f4bbf8feca9a9e27b3fe9d820b3368da8fa6fc96f94994fdff"
+    },
+    {
+      "path": "tests/dom_harness.py",
+      "before_sha256": null,
+      "proposal_after_sha256": "e58f07063d33af70de07c815648ce383de2f4d5e688a1e80cbfff782700382c1",
+      "proposal_patch_sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+      "bytes": 2604,
+      "sha256": "e58f07063d33af70de07c815648ce383de2f4d5e688a1e80cbfff782700382c1"
+    },
+    {
+      "path": "tests/test_probe_identity_regression.py",
+      "before_sha256": null,
+      "proposal_after_sha256": "ee530af1b3e762165b6402adb2bdabe9a6a1e88b50c62483e3a88936db7ddf19",
+      "proposal_patch_sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+      "bytes": 16488,
+      "sha256": "7975c14de4fa6150150a3c102173d49d181f79bd90e46045ed54cb6a98d1772e"
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "before_sha256": "4e62c9201668cc750036cd1c5a91a04f1f8b0bbed9de6ceda0f23e9e795d2ab4",
+      "proposal_after_sha256": "af0222202600bc73e66d47ac8fa530806bf2c63d4ad558dba9ee54dd9e6c8b54",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 109954,
+      "sha256": "af0222202600bc73e66d47ac8fa530806bf2c63d4ad558dba9ee54dd9e6c8b54"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff.rs",
+      "before_sha256": null,
+      "proposal_after_sha256": "904bc95afb75282af5c08bc2b96d021cc76613afd504fdbdbf4e591e31e2122a",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 6972,
+      "sha256": "904bc95afb75282af5c08bc2b96d021cc76613afd504fdbdbf4e591e31e2122a"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_projection.rs",
+      "before_sha256": null,
+      "proposal_after_sha256": "14713ecbddebbf0b709a904f45862713949791081df1725725deadefb85d49aa",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 12171,
+      "sha256": "14713ecbddebbf0b709a904f45862713949791081df1725725deadefb85d49aa"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "before_sha256": "1cdbaf6078ff8754b6b6335d18ae8ebcdb5983f4116e2f162387a4e387d628d7",
+      "proposal_after_sha256": "f0ff5140b137ee93e7e86fe6c0bab322c8a908df001b04a28037ef5bb460c9ed",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 424,
+      "sha256": "f0ff5140b137ee93e7e86fe6c0bab322c8a908df001b04a28037ef5bb460c9ed"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff.rs",
+      "before_sha256": null,
+      "proposal_after_sha256": "fb8d0651f0f9afdec292c856080e253d8630c3a8566a8a1b9e70179b58ba157b",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 13860,
+      "sha256": "fb8d0651f0f9afdec292c856080e253d8630c3a8566a8a1b9e70179b58ba157b"
+    },
+    {
+      "path": "crates/archeaxis-contracts/tests/project_handoff.rs",
+      "before_sha256": null,
+      "proposal_after_sha256": "7e81b54a8e4108ffb146f41a20a47af9162ea57dfa37874ed82bf6a606a4549e",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 750,
+      "sha256": "7e81b54a8e4108ffb146f41a20a47af9162ea57dfa37874ed82bf6a606a4549e"
+    },
+    {
+      "path": "docs/contracts/project-handoff-v1.md",
+      "before_sha256": null,
+      "proposal_after_sha256": "ed9323d232309bf3237796a1268be731ae179eb78bd74be3af74a343b00bc909",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 5907,
+      "sha256": "ed9323d232309bf3237796a1268be731ae179eb78bd74be3af74a343b00bc909"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff.cases.json",
+      "before_sha256": null,
+      "proposal_after_sha256": "6356f4da305391ebbe58a22af3e56c0f0d6f5644799627b44e829886cea3e375",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 102218,
+      "sha256": "6356f4da305391ebbe58a22af3e56c0f0d6f5644799627b44e829886cea3e375"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff.schema.json",
+      "before_sha256": null,
+      "proposal_after_sha256": "27e758a5cdc52167e8d50885611db2dcc8ab9345f25dc2540c8b24b766402509",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 13390,
+      "sha256": "27e758a5cdc52167e8d50885611db2dcc8ab9345f25dc2540c8b24b766402509"
+    },
+    {
+      "path": "tests/contract/test_project_handoff_contract.py",
+      "before_sha256": null,
+      "proposal_after_sha256": "03304cd4ab388f4cdeb00cae093e5593c85d82f42287f83c648fd80dc433966e",
+      "proposal_patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+      "bytes": 1792,
+      "sha256": "e7793bd67ae80eae658d230c060c963d6378186fc8d0c9c092ca0a3f167f9c86"
+    },
+    {
+      "path": "docs/contracts/capability-package-v1.md",
+      "before_sha256": null,
+      "proposal_after_sha256": "633ec5ba2f2f66eb357dd8fa601b7be367ecb0d7e1fbca9066311a929927f474",
+      "proposal_patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+      "bytes": 4683,
+      "sha256": "633ec5ba2f2f66eb357dd8fa601b7be367ecb0d7e1fbca9066311a929927f474"
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package.ts",
+      "before_sha256": null,
+      "proposal_after_sha256": "966d8e53f9e885b29806b180d57b28fd4529d5ff62cfc841964aaa4805e27c8d",
+      "proposal_patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+      "bytes": 3571,
+      "sha256": "966d8e53f9e885b29806b180d57b28fd4529d5ff62cfc841964aaa4805e27c8d"
+    },
+    {
+      "path": "packages/contracts/v2/capability-package.cases.json",
+      "before_sha256": null,
+      "proposal_after_sha256": "830abe8da0797b775edcef934d19f5df8e0299e4c9072b50d61573558a978d88",
+      "proposal_patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+      "bytes": 163318,
+      "sha256": "830abe8da0797b775edcef934d19f5df8e0299e4c9072b50d61573558a978d88"
+    },
+    {
+      "path": "packages/contracts/v2/capability-package.schema.json",
+      "before_sha256": null,
+      "proposal_after_sha256": "248b38fbaf6ce16b87e7acdd4395f4515ba082977da0d6538fe8c14f9ac02d2f",
+      "proposal_patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+      "bytes": 13258,
+      "sha256": "248b38fbaf6ce16b87e7acdd4395f4515ba082977da0d6538fe8c14f9ac02d2f"
+    },
+    {
+      "path": "scripts/contracts/generate_capability_package.py",
+      "before_sha256": null,
+      "proposal_after_sha256": "f578564e00ae13bab9d53352d6102032f35781fdfecbbe75defcb4da37621c37",
+      "proposal_patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+      "bytes": 2294,
+      "sha256": "f578564e00ae13bab9d53352d6102032f35781fdfecbbe75defcb4da37621c37"
+    },
+    {
+      "path": "scripts/contracts/validate_capability_package.py",
+      "before_sha256": null,
+      "proposal_after_sha256": "7575d12775fbbec60b697da10cd53f003f177845c735b90f4d2afdc6093eaef1",
+      "proposal_patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+      "bytes": 6905,
+      "sha256": "7575d12775fbbec60b697da10cd53f003f177845c735b90f4d2afdc6093eaef1"
+    },
+    {
+      "path": "tests/contract/test_capability_package_contract.py",
+      "before_sha256": null,
+      "proposal_after_sha256": "d1a9eb2177d165aefd80cb5bfeb8e2dc3c2818d6da3392123d02fb351308bed0",
+      "proposal_patch_sha256": "8557b74fc2bd1219bb7dd146fcc79ca56d4d9245608f66c7eda4a3ec9b2c6e55",
+      "bytes": 4176,
+      "sha256": "d1a9eb2177d165aefd80cb5bfeb8e2dc3c2818d6da3392123d02fb351308bed0"
+    }
+  ],
+  "root_import_alignment_files": [
+    "tests/test_grouped_native_owner_probe.py",
+    "tests/test_probe_identity_regression.py",
+    "tests/contract/test_project_handoff_contract.py"
+  ],
+  "preimages": ".project-local/audits/final-integration-20261019/before/"
+}

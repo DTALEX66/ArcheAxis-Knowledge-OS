@@ -1,0 +1,418 @@
+{
+  "schema": "archeaxis.handoff-manifest-native-checkpoint/v1",
+  "observed_at": "2026-10-18T21:59:26.835388+00:00",
+  "status": "PARTIAL",
+  "execution": "RUNNING_BY_OWNER",
+  "archive": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+  "owner_dialogue_source": "docs/history/owner-dialogue-20261019/README.md",
+  "source_records": 39,
+  "applied_files": 22,
+  "runs": [
+    {
+      "run_id": "integrated-probe-identity-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integrated-probe-identity-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1453,
+        "sha256": "24d8fbf021a50f11675a485aba08a365c5f5502834d5a5392de0672f1a46f78e"
+      },
+      "log": ".project-local/runs/be268a2d33/integrated-probe-identity-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1758,
+        "sha256": "7ae1d4378e7afd27de4b2161504e17299a2b007556e858d8b45ade833b9c3e5c"
+      },
+      "status": "FAIL",
+      "exit_code": 2,
+      "source_patch_sha256": "ca871a89525803ee270520e44d347f7c16a26fe0f718dca8a5e30f0cc1bf15fe",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:45:19.973159+00:00",
+      "ended_at": "2026-10-18T21:45:23.305595+00:00"
+    },
+    {
+      "run_id": "integrated-probe-package-imports-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integrated-probe-package-imports-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1474,
+        "sha256": "1586490d5fbe1e3a50edc8402239f293e7e317a94f959613cfb2f4c2a36fcabc"
+      },
+      "log": ".project-local/runs/be268a2d33/integrated-probe-package-imports-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 213,
+        "sha256": "30556498ca2a9506e69ef5a402535e407a3e678fcbb1498dd725d7bb08adbe57"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "6c56bc52f1b90fd06d4e5644c2fa73afb7c8472f302296ef8050ed9026b0cacc",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:45:44.243937+00:00",
+      "ended_at": "2026-10-18T21:46:40.921579+00:00"
+    },
+    {
+      "run_id": "final-integration-python-contracts-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-python-contracts-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1498,
+        "sha256": "7e82d8bc3001939f60904e05bd400bed54321671fd7d0fe4b7c54d09c0b522e5"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-python-contracts-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 183,
+        "sha256": "824a3c0e5462a7226728d78fdb26209a4c665c3810164218fb2e34fa1fb446dd"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.884683+00:00",
+      "ended_at": "2026-10-18T21:48:10.586530+00:00"
+    },
+    {
+      "run_id": "final-integration-rust-api-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-rust-api-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1620,
+        "sha256": "470113d157386ae3b54c8dee26410ae4f53fac15c0c3a8c60ede3c1bf27e014c"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-rust-api-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 9809,
+        "sha256": "e84fad2828f36c5fbb582e7a13504ec64d9eef5706591ed2e34e7c7903c0f1af"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.879631+00:00",
+      "ended_at": "2026-10-18T21:48:38.938411+00:00"
+    },
+    {
+      "run_id": "final-integration-rust-contracts-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-rust-contracts-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1434,
+        "sha256": "cc2bbf3f7cbc53522f131472287548ecd82ef39571574b45e30aaae828fb314b"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-rust-contracts-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1070,
+        "sha256": "c10a564d442d86a3f9ec93fee4c4d3401f2aa82debce221609ccac300c99a085"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:19.487988+00:00",
+      "ended_at": "2026-10-18T21:49:23.380113+00:00"
+    },
+    {
+      "run_id": "final-integration-generated-check-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-generated-check-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1360,
+        "sha256": "55ab2d9ca0b53e8fedcace34f79d5fda85a8d3912e89647309ddbfb53bd4f350"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-generated-check-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.860078+00:00",
+      "ended_at": "2026-10-18T21:48:07.655039+00:00"
+    },
+    {
+      "run_id": "final-integration-new-python-lint-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-new-python-lint-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1532,
+        "sha256": "8ece0faa4ca82e4bd89ab456448e31f9426dd8fddfddecc1a6ee5515353a8e17"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-new-python-lint-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 533,
+        "sha256": "cb925b1783865ab79dbbbe003b7d09efb78f3db3c3d5dca5b65aec393c70818d"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.861407+00:00",
+      "ended_at": "2026-10-18T21:48:07.664073+00:00"
+    },
+    {
+      "run_id": "final-integration-host-build-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-host-build-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1557,
+        "sha256": "d6e37d1ef95eacd450e5348cfbf56f9f40b46b36f79fca3cdc793c76a4afe72e"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-host-build-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 18636,
+        "sha256": "ebeb2482efd2286a04ab912639d1d70e749869f3aff4f900f7873238155150ee"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.879565+00:00",
+      "ended_at": "2026-10-18T21:49:04.703354+00:00"
+    },
+    {
+      "run_id": "final-integrated-python-lint-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-python-lint-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1529,
+        "sha256": "55e31db2f2ce08354a766c17955a38940377a03e24ef5aec807073ed7daf565a"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-python-lint-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 20,
+        "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:42.095802+00:00",
+      "ended_at": "2026-10-18T21:49:43.826801+00:00"
+    },
+    {
+      "run_id": "final-integrated-rustfmt-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-rustfmt-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1671,
+        "sha256": "2b1624fd82156fd2e97cfaedacdd170103a566f044b95af4405d0bd7018c8260"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-rustfmt-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:42.104311+00:00",
+      "ended_at": "2026-10-18T21:49:43.669770+00:00"
+    },
+    {
+      "run_id": "final-integrated-core-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-core-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1381,
+        "sha256": "e2dd6e63bbe19fc834fa7964d99fb0c958b29a39d30c3ce236cf474ae6a1b014"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-core-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1974,
+        "sha256": "ee2c0c1e447a1b5fcb329106497d2eb5400a0ef39ddce60d876834a206dceaad"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:42.097009+00:00",
+      "ended_at": "2026-10-18T21:50:18.230678+00:00"
+    },
+    {
+      "run_id": "final-integrated-host-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-host-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1535,
+        "sha256": "97212b76ee209cb9a012934bd1b89dd629ea32213b32e73db44eed74c3fadb92"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-host-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 18630,
+        "sha256": "def7d343793ef17f999a6aaa2530f722649aa0d2f0a65633fc33b7f96c13eeb8"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:42.087866+00:00",
+      "ended_at": "2026-10-18T21:50:45.021274+00:00"
+    },
+    {
+      "run_id": "native-llm-profile-inspect-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/native-llm-profile-inspect-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1371,
+        "sha256": "20b2de10bd0117b868cc953becec506d88a561fd751820b4446abbd5983dc8f5"
+      },
+      "log": ".project-local/runs/be268a2d33/native-llm-profile-inspect-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 150,
+        "sha256": "bbd21131057c19d0c66f5ff321f1a079eb2e6abd90aa395701c6f35c119a6568"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:29.500941+00:00",
+      "ended_at": "2026-10-18T21:48:35.567420+00:00"
+    },
+    {
+      "run_id": "native-llm-profile-load-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/native-llm-profile-load-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1362,
+        "sha256": "3e30d202c7de5fce10f83bce104189ba5a7011c654e501a21ceee732cb685682"
+      },
+      "log": ".project-local/runs/be268a2d33/native-llm-profile-load-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 152,
+        "sha256": "3f64f24202c0441e5e93d8e576e9bcb37cd6ca854cade63025a6f51a1ac944c5"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:50:41.187384+00:00",
+      "ended_at": "2026-10-18T21:51:31.885837+00:00"
+    },
+    {
+      "run_id": "final-integrated-candidate-promotion-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-candidate-promotion-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1430,
+        "sha256": "1924c6d6d6b7041e6158cbd5a9e7d386d5a2fb96d283bccba4482eb60dedd94a"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-candidate-promotion-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 8087,
+        "sha256": "5bca5671d76668aa9e80f4e5049d6cd4d0a0fef063486a10318e6de4c9451384"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:50:59.786529+00:00",
+      "ended_at": "2026-10-18T21:51:19.178376+00:00"
+    },
+    {
+      "run_id": "integrated-handoff-native-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integrated-handoff-native-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 2097,
+        "sha256": "10fc027b306cf05a009e3bb4e71424ab6cce5002dd72c98330dffa34f9b70e4d"
+      },
+      "log": ".project-local/runs/be268a2d33/integrated-handoff-native-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 8205,
+        "sha256": "9fbf31f27d5abeff2428673ef9cc6a965bdf8cc1b687f4e1511e3250b5264377"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:51:42.828818+00:00",
+      "ended_at": "2026-10-18T21:55:28.373133+00:00"
+    }
+  ],
+  "native_status": "FAIL",
+  "native_receipt": ".project-local/runs/be268a2d33/webdriver-934ae2333af5/tmp/journey/receipt.json",
+  "native_receipt_identity": {
+    "bytes": 127616,
+    "sha256": "a885ff1601ded0649852dc7f653796906dec57976053e3edc278b580ad5e0257"
+  },
+  "applied_slices": [
+    "native probe visible details and full diagnostic identity",
+    "BE10 five handoff preparation contracts and pure projection",
+    "HUB003 capability package manifest schema validator generated type"
+  ],
+  "not_qualified": [
+    "whole BE10",
+    "real external handoff/delivery",
+    "HUB003 runtime admission/install/update",
+    "HUB004",
+    "native retest/material/companion/cancellation/lifecycle on this patch",
+    "learning quality/performance",
+    "installer/Green",
+    "complete Cowork transcripts",
+    "cloud sync"
+  ],
+  "commit_push": "NOT_EXECUTED",
+  "preexisting_dirty_work": "PRESERVED",
+  "next_proposals": [
+    {
+      "name": "manifest-consumer",
+      "root": ".project-local/audits/capability-manifest-consumer-next-20261019",
+      "status": "NOT_APPLIED",
+      "qualification": "隔离提案；必须读CURRENT并重新核preimage，不能继承已应用合同资格",
+      "observed_files": [
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/capability-manifest-consumer.patch",
+          "bytes": 64596,
+          "sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/code-manifest.json",
+          "bytes": 2591,
+          "sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/CURRENT.md",
+          "bytes": 3079,
+          "sha256": "bbe25abc55bb6796502c5f91f75a769435bb9610d3b7bbf4fa5e28d8e55b96ee"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/DELIVERY.md",
+          "bytes": 1585,
+          "sha256": "7a1ff617a59fcfde5e117aba7e603ddcdcd02643a56955bb2ac92fa998bee704"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/FINAL-READBACK.json",
+          "bytes": 420,
+          "sha256": "5e7ab8767bc9a18d6b9c21890c28d881b1ee7e11b51bcde351aa7ab45d1efa9c"
+        },
+        {
+          "path": ".project-local/audits/capability-manifest-consumer-next-20261019/validation.json",
+          "bytes": 6223,
+          "sha256": "a71dc1576de33dbdc1d8c3d5e5e4a72c4be272d21bccd8c7cc054a0bf7fdcec6"
+        }
+      ]
+    },
+    {
+      "name": "handoff-cli",
+      "root": ".project-local/audits/be10-cli-consumer-next-20261019",
+      "status": "NOT_APPLIED",
+      "qualification": "隔离提案；必须读CURRENT并重新核preimage，不能继承已应用合同资格",
+      "observed_files": [
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/be10-cli-consumer.patch",
+          "bytes": 31572,
+          "sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/code-manifest.json",
+          "bytes": 1328,
+          "sha256": "3bef40e1fd4d04a53beb357458edb9cbc0d03d1430732885980a8405c2fe18bf"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/CURRENT.md",
+          "bytes": 2325,
+          "sha256": "4cfd9c7fe9f595df46ed3250d609ca5bf4dbc4425a97a56ed1821d678a17a331"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/DELIVERY.md",
+          "bytes": 2230,
+          "sha256": "ca10eff580ccb6ea05225deba41a610f418e6c9e88cbd99b57659ef02435984e"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/final-readback.json",
+          "bytes": 1242,
+          "sha256": "1ea78a185714c9e5989b9fae41cb7d8ebe550bad92fca8d4fccc467dd595ac07"
+        },
+        {
+          "path": ".project-local/audits/be10-cli-consumer-next-20261019/validation.json",
+          "bytes": 5171,
+          "sha256": "85784536b3070d24fa54fa01a4f37e93e90bb4d9ce78b4e617b61902e56d3e5a"
+        }
+      ]
+    }
+  ]
+}

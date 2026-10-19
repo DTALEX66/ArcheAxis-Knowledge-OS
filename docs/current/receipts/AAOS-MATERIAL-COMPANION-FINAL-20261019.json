@@ -1,0 +1,66 @@
+{
+  "schema": "aaos.material-companion-native-recovery/v1",
+  "recorded_at": "2026-10-18T18:28:37.321641+00:00",
+  "status": "PARTIAL",
+  "whole_project": "PARTIAL",
+  "engineering_native_result": "FAIL",
+  "source_patch_sha256": "95428057cc7cefe520f9e4c0a87d0c1ca9508b090e05003b6bf307281a287be4",
+  "source_files_sha256": {
+    "scripts/probes/aaos01_material_companion_loop.py": "4718cfdc37b64a1f32c523b26cb1f773187ecb1da8d68fcd788f1dc80d3bde61",
+    "scripts/probes/aaos01_grouped_owner_loop.py": "ac6aa884a259322bdc26c0f721206579b71658119b02c2798753b5c4d4b47467",
+    "tests/test_material_companion_native_probe.py": "e33f51bf728e0b89ffabdeddbe21eb645ccef020285761336520750b512f016e",
+    "tests/test_grouped_native_owner_probe.py": "6cb352d6c3361e334cb9392355a603a6ed85bcde3a479aaee66697e42db77a11"
+  },
+  "verification": {
+    "probe-tests": {
+      "path": ".project-local/runs/be268a2d33/material-input-final-tests-1019/artifacts/execution.json",
+      "sha256": "cf0667b7dd67b053ca62953193d50a4e6adc2e8608af305a0eb925b41f3e6aec",
+      "status": "LOCAL_PASS"
+    },
+    "host-build": {
+      "path": ".project-local/runs/be268a2d33/material-input-final-host-1019/artifacts/execution.json",
+      "sha256": "db9ce4707014a9e7e6770fbee551f91576ea779020717d0b30f179aeed144158",
+      "status": "LOCAL_PASS"
+    },
+    "core-build": {
+      "path": ".project-local/runs/be268a2d33/material-input-final-core-1019/artifacts/execution.json",
+      "sha256": "cc30c594f98cc38acafa393bba4edc5a4430f90e37738fbf6c8c600d2f3ac62e",
+      "status": "LOCAL_PASS"
+    },
+    "native-execution": {
+      "path": ".project-local/runs/be268a2d33/material-input-final-native-1019/artifacts/execution.json",
+      "sha256": "1e1f39856731faa34ace888e6b5a480f1837573c707060c6a79c9fb77e84c002",
+      "status": "FAIL"
+    }
+  },
+  "probe_tests": {
+    "passed": 61,
+    "subtests_passed": 145,
+    "evidence": "SIMULATED_PROBE_GUARDS"
+  },
+  "native_summary": "docs/history/oss-absorption-evidence/20261019-material-companion-final/native-result.json",
+  "prior_failure_preserved": "docs/current/receipts/AAOS-MATERIAL-COMPANION-NATIVE-20261019.json",
+  "candidate_host_sha256": "b80b9cdd7804db876d22829049a81d1381a7b350abd717a13f18f5903536df47",
+  "candidate_core_sha256": "750c44943ecc8a6f7e3c691992490a6ce75d3a83eadbc99a2c3d24931fdee681",
+  "remaining": [
+    "Latest material execution failed: material_model_timeout; complete native material/companion and backup readback",
+    "Native cancellation",
+    "BE10 bounded read-only admission",
+    "Readable review titles",
+    "Installed runtime, full formats, model quality and Owner acceptance"
+  ],
+  "cloud_backup": "NOT_EXECUTED",
+  "commit_push": "NOT_EXECUTED",
+  "terminal_failure": {
+    "outcome": "failed",
+    "reason_code": "material_model_timeout",
+    "metadata": "docs/history/oss-absorption-evidence/20261019-material-companion-final/terminal-failure-metadata.json",
+    "internal_cause": "UNVERIFIED"
+  },
+  "historical_phase_pass": {
+    "receipt": "docs/current/receipts/AAOS-MATERIAL-COMPANION-RECOVERY-20261019.json",
+    "same_process_recovery": "PASS_AT_ITS_PATCH",
+    "cold_reopen": "PASS_AT_ITS_PATCH",
+    "latest_candidate": "NOT_REQUALIFIED_BY_HISTORICAL_PASS"
+  }
+}

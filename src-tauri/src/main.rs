@@ -3,6 +3,7 @@
 #[cfg(windows)]
 mod core_bridge;
 mod credentials;
+mod model_inventory;
 #[cfg(windows)]
 mod ui_host_bridge;
 
@@ -566,6 +567,20 @@ async fn ui_host_command(
 }
 #[cfg(windows)]
 #[tauri::command]
+async fn model_inventory_read(
+    window: tauri::Window,
+    request: model_inventory::Request,
+) -> Result<model_inventory::Inventory, model_inventory::Failure> {
+    if window.label() != "main" {
+        return Err(model_inventory::failure("WINDOW_FORBIDDEN"));
+    }
+    tauri::async_runtime::spawn_blocking(move || model_inventory::read(request))
+        .await
+        .map_err(|_| model_inventory::failure("NETWORK_FAILURE"))?
+}
+
+#[cfg(windows)]
+#[tauri::command]
 fn model_credential_create(window: tauri::Window, secret: String) -> Result<String, String> {
     if window.label() != "main" {
         return Err("CREDENTIAL_WINDOW_FORBIDDEN".into());
@@ -1039,6 +1054,7 @@ fn main() {
             ui_host_command,
             model_credential_create,
             model_credential_remove,
+            model_inventory_read,
             backend_info,
             recovery_status,
             recovery_log_tail,

@@ -1,0 +1,84 @@
+[
+  {
+    "name": "capability-generated",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "scripts/contracts/generate_capability_package_details.py",
+      "--check"
+    ],
+    "started_at_unix": 1792363210.4486604,
+    "seconds": 0.5686664581298828,
+    "exit_code": 0,
+    "log": ".project-local\\audits\\recovery-measurement-integration-20261019\\main-capability-generated.log"
+  },
+  {
+    "name": "material-generated",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "scripts/contracts/generate_material_question.py",
+      "--check"
+    ],
+    "started_at_unix": 1792363211.017394,
+    "seconds": 0.169266939163208,
+    "exit_code": 0,
+    "log": ".project-local\\audits\\recovery-measurement-integration-20261019\\main-material-generated.log"
+  },
+  {
+    "name": "conversation-generated",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "scripts/contracts/generate_conversation.py",
+      "--check"
+    ],
+    "started_at_unix": 1792363211.1867206,
+    "seconds": 0.16830897331237793,
+    "exit_code": 0,
+    "log": ".project-local\\audits\\recovery-measurement-integration-20261019\\main-conversation-generated.log"
+  },
+  {
+    "name": "manifest-node",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "--test",
+      "tests/contract/test_capability_package_details_node.mjs"
+    ],
+    "started_at_unix": 1792363211.3550842,
+    "seconds": 0.770087718963623,
+    "exit_code": 0,
+    "log": ".project-local\\audits\\recovery-measurement-integration-20261019\\main-manifest-node.log"
+  },
+  {
+    "name": "manifest-python",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "tests/contract/test_capability_package_details.py",
+      "-q"
+    ],
+    "started_at_unix": 1792363212.1252224,
+    "seconds": 3.443347692489624,
+    "exit_code": 0,
+    "log": ".project-local\\audits\\recovery-measurement-integration-20261019\\main-manifest-python.log"
+  },
+  {
+    "name": "typescript",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "frontend/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--project",
+      "frontend/tsconfig.json"
+    ],
+    "started_at_unix": 1792363215.5686228,
+    "seconds": 7.319849729537964,
+    "exit_code": 0,
+    "log": ".project-local\\audits\\recovery-measurement-integration-20261019\\main-typescript.log"
+  }
+]

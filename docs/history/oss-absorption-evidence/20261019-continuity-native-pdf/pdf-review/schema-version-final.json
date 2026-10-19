@@ -1,0 +1,74 @@
+{
+  "level": "INDEPENDENT_PURE_JSON_SCHEMA_ONLY",
+  "cases": [
+    {
+      "name": "normal",
+      "expected": true,
+      "actual": true,
+      "pass": true
+    },
+    {
+      "name": "max64",
+      "expected": true,
+      "actual": true,
+      "pass": true
+    },
+    {
+      "name": "newline",
+      "expected": false,
+      "actual": false,
+      "pass": true
+    },
+    {
+      "name": "max64_newline",
+      "expected": false,
+      "actual": false,
+      "pass": true
+    },
+    {
+      "name": "missing_null",
+      "expected": true,
+      "actual": true,
+      "pass": true
+    },
+    {
+      "name": "missing_version",
+      "expected": false,
+      "actual": false,
+      "pass": true
+    },
+    {
+      "name": "unknown_null",
+      "expected": true,
+      "actual": true,
+      "pass": true
+    },
+    {
+      "name": "import_null",
+      "expected": true,
+      "actual": true,
+      "pass": true
+    },
+    {
+      "name": "available_null",
+      "expected": false,
+      "actual": false,
+      "pass": true
+    },
+    {
+      "name": "extra",
+      "expected": false,
+      "actual": false,
+      "pass": true
+    },
+    {
+      "name": "null",
+      "expected": false,
+      "actual": false,
+      "pass": true
+    }
+  ],
+  "all_pass": true,
+  "shared_python_and_rust_cases_read": true,
+  "rust_not_reexecuted": true
+}

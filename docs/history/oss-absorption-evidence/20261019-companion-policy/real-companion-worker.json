@@ -1,0 +1,52 @@
+{
+  "schema": "archeaxis.real-companion-policy-check/v1",
+  "evidence_level": "REAL_MODEL_SYNTHETIC_WORKER_NOT_CORE_INTEGRATION",
+  "question": "请用一句中文建议今天如何复习知识。",
+  "model": "aaos-deep-27b-mtp",
+  "status": "PASS_TRANSPORT_NOT_QUALITY_ACCEPTANCE",
+  "owner_acceptance": false,
+  "answer": {
+    "engine": "python-worker-machine-answer",
+    "engine_version": "0.1.0",
+    "answer": "建议今天先用 25 分钟主动回忆核心要点，再用少量题目检验，并把不会的内容标记为明天优先复习。",
+    "model": "aaos-deep-27b-mtp",
+    "requested_model": "aaos-deep-27b-mtp",
+    "observed_model": "aaos-deep-27b-mtp",
+    "answer_source": "content",
+    "endpoint": "http://127.0.0.1:1234/v1",
+    "protocol": "openai",
+    "prompt_version": "archeaxis.companion/v1 2026-10-19",
+    "answer_policy": "companion_general",
+    "finish_reason": "stop",
+    "max_tokens": 1024,
+    "truncated": false,
+    "elapsed_s": 60.71,
+    "usage": {
+      "input_tokens": 219,
+      "output_tokens": 152,
+      "total_tokens": 371
+    },
+    "usage_status": "REPORTED",
+    "cost": null,
+    "cost_status": "UNKNOWN",
+    "loss_receipt": {
+      "engine": "python-worker-machine-answer",
+      "engine_version": "0.1.0",
+      "params": {
+        "model": "aaos-deep-27b-mtp",
+        "requested_model": "aaos-deep-27b-mtp",
+        "observed_model": "aaos-deep-27b-mtp",
+        "answer_source": "content",
+        "endpoint": "http://127.0.0.1:1234/v1",
+        "protocol": "openai",
+        "prompt_version": "archeaxis.companion/v1 2026-10-19",
+        "answer_policy": "companion_general",
+        "max_tokens": 1024,
+        "finish_reason": "stop",
+        "authority": "candidate"
+      },
+      "losses": [],
+      "loss_note": "an answer is model output awaiting human review, not accepted knowledge"
+    }
+  }
+}

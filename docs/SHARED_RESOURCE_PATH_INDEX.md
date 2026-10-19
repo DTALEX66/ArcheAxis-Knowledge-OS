@@ -7,6 +7,18 @@
 
 2026-10-11 Owner补充：缺少资源先检查本项目权威、路径索引与已配置库存；确认不存在后再选择下载到对应声明目录，避免重复下载或另造资源根。本机现有LM Studio模型的只读库存、内存估算和三项实际文本样例见[本轮模型评估](current/receipts/AAOS-LOCAL-MODEL-SELECTION-20261011.json)。该评估没有更改模型路由或全局配置。
 
+## 2026-10-19 接续与开发工具定位
+
+换 Agent / 换会话按[活动指针](current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context` 读取最新决定、来源及执行记录。本文件登记共享根；产品运行时的具体路径仍由下述 manifest 与生成索引解析，历史工具表不能覆盖它们。
+
+开发者 Codex 的视觉审计工具与 AAOS 产品运行时分开定位：现行工具根为 `C:\Users\ALEX\.codex\tools\visual-tool-lab`；插件入口为 `C:\Users\ALEX\.codex\plugins\cache\alex-local-tools\visual-audit-tools\1.0.0\skills\visual-project-audit\SKILL.md`，其 `references/runtime.json` 指定工具根、Node 及锁文件身份。使用前读该 skill 和工具目录的 README、BROWSER-USAGE、PROJECT-GUIDANCE，核对实际文件、package-lock 与已装依赖；安装清单中的旧 `Documents\Codex\2026-10-18` 路径是安装时来源，不能作为当前入口。这里仅记录已读取的工具入口，不修改用户级配置，也不把开发工具登记成产品内置插件或证明当前会话已自动发现。
+
+该定位是本机观察，版本或路径变化后按现行插件元数据与实际文件核对，再更新登记；不扫描整个 Home，不重复安装，不使用旧工作区做输出。项目审计产物仍写 `.project-local/`；浏览器包装器的端口、资料目录和输出限制继续有效。[最新决定第九节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)解释产品内置市场与开发工具库的区别。
+
+### 视觉工具既有迁移与中文说明的回执入口
+
+用户已明确要求可用后正式装载、适配分型、中文注释及迁移后处理旧路径。既有迁移回执为 `.project-local/runs/be268a2d33/codex-visual-install-20261018/artifacts/migration.json`；当前中文安装说明在上述工具根的 `CURRENT-INSTALLATION.md`。本轮已核对这两份文件和cache技能/runtime.json、lockfile的精确身份，最小脱敏记录见[迁移导航快照](history/owner-dialogue-20261019/tool-migration-navigation.json)。这是已登记视觉工具的入口，不代表截图中的全部技能、任意MCP或当前会话原生自动发现均已通过。原迁移回执含历史工具profile路径，本轮不复制或公开其中无关缓存/浏览器清单。
+
 ## 历史执行说明（2026-10-06，非当前路由）
 
 AAOS-01 / SUP-022 是当前执行包，唯一进度见[现行台账](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。下方带日期的工具和候选记录保留原身份，不代表当前默认工具或当前资格。旧表中的“本轮DP”限制属于其记录时点；当前用户已授权指定Green目录的独立候选部署及按精确审核清单清理，仍不得据目录名删除未知资产或覆盖旧默认数据。真实资料库不因该授权成为测试输出目录。

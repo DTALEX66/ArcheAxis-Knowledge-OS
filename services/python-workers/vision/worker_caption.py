@@ -6,12 +6,10 @@ Sends the image to a local vision model over HTTP and returns a structured descr
 from OCR text. This lane NEVER claims OCR accuracy: text is handled by worker_ocr; descriptions are
 model output labeled with model + prompt version for reproducibility.
 
-Which local runtime answers is resolved rather than assumed. Ollama's `/api/generate` is tried
-first, then any OpenAI-compatible server's `/chat/completions` (LM Studio serves this way), and
-`ARCHEAXIS_CAPTION_ENDPOINT` / `_MODEL` / `_PROTOCOL` override the search. The two protocols differ
-in both the request body and the response field, so the resolved protocol is carried through to the
-receipt. The same model is named differently by each runtime (`qwen2.5vl:7b` against
-`qwen2.5-vl-7b-instruct`), so the model is resolved with the endpoint.
+LM Studio over its OpenAI-compatible API is the current local runtime. Automatic discovery never
+probes Ollama, including when LM Studio is unavailable or a staged manifest is missing. Explicit
+`ARCHEAXIS_CAPTION_ENDPOINT` / `_MODEL` / `_PROTOCOL` remain operator overrides; legacy protocol
+support is opt-in only. The resolved model and protocol are carried through to the receipt.
 
 Only models that pass the capability probe are reported as usable.
 
@@ -42,22 +40,13 @@ ENGINE_VERSION = "0.2.0"
 # R15/F04: the identity advertised in the sidecar handshake for this route.
 WORKER_IDENTITY = "python-worker-caption-ndjson"
 
-# Two local runtimes can serve a vision model, and which one exists is a property of the machine
-# rather than something to hardcode. The declaration names them
-# (`config/environment/capability-requirements.yaml`, `models/*` rows with an `endpoint`), and this
-# module reads that declaration first. The constants below are the *undeclared-host* fallback only:
-# a staged runtime with no manifest beside it still behaves as it always did rather than going
-# silent. Ollama is tried before the OpenAI-compatible lane because that is what this worker was
-# written against, and the same weights are named differently by each runtime
-# (`qwen2.5vl:7b` against `qwen2.5-vl-7b-instruct`), which is why the model is resolved with the
-# lane instead of being fixed here.
-OLLAMA_BASE = "http://127.0.0.1:11434"
+# The declaration supplies the current LM Studio lane. An undeclared staged runtime uses the
+# same endpoint; the old model spelling exists only for explicit legacy overrides.
 OLLAMA_MODEL = "qwen2.5vl:7b"
 OPENAI_BASE = "http://127.0.0.1:1234/v1"
 OPENAI_MODEL = "qwen2.5-vl-7b-instruct"
 
 FALLBACK_LANES = [
-    {"protocol": "ollama", "base": OLLAMA_BASE, "model": OLLAMA_MODEL, "name": "undeclared-fallback"},
     {"protocol": "openai", "base": OPENAI_BASE, "model": OPENAI_MODEL, "name": "undeclared-fallback"},
 ]
 
@@ -81,7 +70,8 @@ def _declared_lanes() -> list[dict]:
     module = importlib.util.module_from_spec(spec)
     try:
         spec.loader.exec_module(module)
-        lanes = module.local_runtime_lanes(role="caption")
+        lanes = [lane for lane in module.local_runtime_lanes(role="caption")
+                 if lane.get("protocol") == "openai"]
     except Exception:  # noqa: BLE001 - an unread declaration must not look like an empty host
         return [dict(lane, declared=False) for lane in FALLBACK_LANES]
     if not lanes:
@@ -91,10 +81,7 @@ def _declared_lanes() -> list[dict]:
         for lane in lanes]
 
 
-# The model a caller gets when it names none. It is resolved from the declaration rather than
-# fixed, because the two local runtimes name the same model differently; this constant is only
-# what a host with no readable declaration ends up with on the first fallback lane.
-DEFAULT_MODEL = OLLAMA_MODEL
+DEFAULT_MODEL = OPENAI_MODEL
 
 PROMPT_TEMPLATE = (
     "Describe this image for a knowledge workspace. "

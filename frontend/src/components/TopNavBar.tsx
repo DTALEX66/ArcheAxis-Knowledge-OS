@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { BRAND_ASSETS } from '../assets/index';
-import { GlobalSearch } from './GlobalSearch';
+import { useAaosTheme } from '../design-system/ThemeProvider';
+import { AAOS_THEME_REGISTRY } from '../design-system/theme';
 import './TopNavBar.css';
+import { DiagnosticCenterTrigger } from './DiagnosticConsole';
+import { commandKeyLabel } from '../presentation/keyboardShortcuts';
 
 interface Breadcrumb {
   label: string;
@@ -11,6 +12,7 @@ interface Breadcrumb {
 interface TopNavBarProps {
   breadcrumbs: Breadcrumb[];
   onSearch?: () => void;
+  onSettings?: () => void;
   notificationCount?: number;
   userName?: string;
 }
@@ -18,33 +20,11 @@ interface TopNavBarProps {
 export function TopNavBar({
   breadcrumbs,
   onSearch,
+  onSettings,
   notificationCount = 0,
   userName = 'User'
 }: TopNavBarProps) {
-  const [searchOpen, setSearchOpen] = useState(false);
-
-  const handleSearchTrigger = () => {
-    setSearchOpen(true);
-    onSearch?.();
-  };
-
-  const handleSearchSelect = (result: any) => {
-    console.log('Selected:', result);
-    // TODO: 导航到选中的结果
-  };
-
-  // Cmd+K 快捷键
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        handleSearchTrigger();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  });
+  const { theme } = useAaosTheme();
 
   return (
     <>
@@ -53,7 +33,7 @@ export function TopNavBar({
           {/* Left: Logo + Breadcrumbs */}
           <div className="top-nav-left">
             <img
-              src={BRAND_ASSETS.logo.white}
+              src={AAOS_THEME_REGISTRY[theme].brandMark}
               alt="ArcheAxis"
               className="top-nav-logo"
             />
@@ -85,14 +65,17 @@ export function TopNavBar({
           <div className="top-nav-center">
             <button
               className="top-nav-search-trigger"
-              onClick={handleSearchTrigger}
+              type="button"
+              aria-label="搜索页面、能力与内容"
+              aria-keyshortcuts="Control+K Meta+K"
+              onClick={onSearch}
             >
               <span className="search-trigger-icon">🔍</span>
               <span className="search-trigger-text">
                 搜索文档、知识、学习内容...
               </span>
               <div className="search-trigger-shortcut">
-                <span className="search-trigger-key">⌘</span>
+                <span className="search-trigger-key">{commandKeyLabel()}</span>
                 <span className="search-trigger-key">K</span>
               </div>
             </button>
@@ -100,6 +83,7 @@ export function TopNavBar({
 
           {/* Right: Actions */}
           <div className="top-nav-right">
+            <DiagnosticCenterTrigger />
             <button
               className={`top-nav-action ${notificationCount > 0 ? 'has-badge' : ''}`}
               aria-label="通知"
@@ -112,6 +96,8 @@ export function TopNavBar({
               className="top-nav-action"
               aria-label="设置"
               title="设置"
+              type="button"
+              onClick={onSettings}
             >
               ⚙️
             </button>
@@ -125,12 +111,6 @@ export function TopNavBar({
         </div>
       </nav>
 
-      {/* Global Search Modal */}
-      <GlobalSearch
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onSelect={handleSearchSelect}
-      />
     </>
   );
 }

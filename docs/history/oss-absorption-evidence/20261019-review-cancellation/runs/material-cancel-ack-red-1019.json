@@ -1,0 +1,32 @@
+{
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+  "dirty": true,
+  "source_patch_sha256": "f4b4126498f46a47766c859b966d7169b5707036de4553a5582910e15b61ebc0",
+  "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "started_at": "2026-10-18T19:29:28.055622+00:00",
+  "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\material-cancel-ack-red-1019",
+  "executable": "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+  "argument_count": 7,
+  "command": [
+    "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+    "frontend/node_modules/vitest/vitest.mjs",
+    "run",
+    "--root",
+    "frontend",
+    "src/__tests__/MaterialQuestionPanel.test.tsx",
+    "-t",
+    "checks the exact material cancellation"
+  ],
+  "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "boundary": "environment-routing-not-sandbox",
+  "child_exit_code": 1,
+  "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256_after": "f4b4126498f46a47766c859b966d7169b5707036de4553a5582910e15b61ebc0",
+  "source_consistent": true,
+  "status": "FAIL",
+  "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\material-cancel-ack-red-1019\\logs\\execution.log",
+  "exit_code": 1,
+  "ended_at": "2026-10-18T19:29:33.400085+00:00",
+  "seconds": 5.344461000000592
+}

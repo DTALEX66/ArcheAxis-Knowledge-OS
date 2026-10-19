@@ -1,0 +1,65 @@
+{
+  "state": "ISOLATED_PROPOSAL_PASS_NOT_APPLIED",
+  "observed_at": "2026-10-18T21:41:18.964663+00:00",
+  "patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+  "manifest_sha256": "b48f6d955fc89aeef477d3a28967a767a8af80793bfe77aa68dddada9bd6fabc",
+  "apply_check_exit_code": 0,
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_projection.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/tests/project_handoff.rs",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "docs/contracts/project-handoff-v1.md",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff.cases.json",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff.schema.json",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    },
+    {
+      "path": "tests/contract/test_project_handoff_contract.py",
+      "proposal_matches_manifest": true,
+      "mirror_matches_proposal": true
+    }
+  ],
+  "product_files_written": [],
+  "services_created": 0,
+  "browsers_created": 0,
+  "owned_tests_exited": true,
+  "git_status_sha256": "75f8f8a9b32c81f829350ce8c12283394a3b33690720d7b0019256ff2e4c957c",
+  "external_ui_native": "UNVERIFIED"
+}

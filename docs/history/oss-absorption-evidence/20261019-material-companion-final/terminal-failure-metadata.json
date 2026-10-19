@@ -1,0 +1,18 @@
+{
+  "status": "FAIL",
+  "observed_at": "2026-10-18T18:30:29.310884+00:00",
+  "source_scope": "TASK_OWNED_SYNTHETIC_WORKSPACE_ONLY",
+  "source_database": ".project-local/runs/be268a2d33/webdriver-3edafe42aed3/tmp/journey/data/archeaxis.sqlite",
+  "access": "SQLite mode=ro; PRAGMA query_only=ON; no database mutation",
+  "query": "SELECT conditions FROM machine_tasks; retain only material-answer terminal metadata",
+  "native_receipt_sha256": "a4aa4539f40bfc0cb987c56e1ccea53d92ae3c5ebadfec936aa97aa038c07c21",
+  "records": [
+    {
+      "schema": "archeaxis.material-answer/v1",
+      "outcome": "failed",
+      "reason_code": "material_model_timeout",
+      "conditions_sha256": "ad942ddb5c3021757439ff3c692fd591c31c5ef446e80805ffe7a1cb9a3b2a09"
+    }
+  ],
+  "internal_model_timeout_cause": "UNVERIFIED"
+}

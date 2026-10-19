@@ -1,0 +1,140 @@
+FF                                                                       [100%]::error::PYTEST-FAILED tests/test_material_companion_native_probe.py::test_summary_probe_asks_about_selected_body_and_records_case_identity[Independent synthetic material original-id. ArcheAxis keeps a versioned local note.]
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001ECE83F4C30>
+text = 'Independent synthetic material original-id. ArcheAxis keeps a versioned local note.'
+
+    @pytest.mark.parametrize("text", [
+        "Independent synthetic material original-id. ArcheAxis keeps a versioned local note.",
+        "合成材料 原始编号甲。版本化笔记用于阅读与复习。🌌",
+    ])
+    def test_summary_probe_asks_about_selected_body_and_records_case_identity(monkeypatch, text):
+        """真正run入口的问句与样本绑定；隔离随机ID不伪装为另一份材料。"""
+        class StopBeforeUI(Exception):
+            pass
+    
+        calls = []
+    
+        def observe(js, questions):
+            calls.append(questions)
+            raise StopBeforeUI()
+    
+        monkeypatch.setattr(probe, "install_observer", observe)
+        document = {"document_id": "owned-note", "version": 2,
+                    "content_sha256": "a" * 64, "text_projection": text}
+        saved = {"resolved": {p: {"profile": {"credential_ref": None}}
+                               for p in ("material", "companion")}}
+        stage = {}
+        with pytest.raises(StopBeforeUI):
+            probe.run(None, None, None, None, None, document, saved, stage)
+>       assert calls[0]["material_q
+::error::PYTEST-FAILED tests/test_material_companion_native_probe.py::test_summary_probe_asks_about_selected_body_and_records_case_identity[\u5408\u6210\u6750\u6599 \u539f\u59cb\u7f16\u53f7\u7532\u3002\u7248\u672c\u5316\u7b14\u8bb0\u7528\u4e8e\u9605\u8bfb\u4e0e\u590d\u4e60\u3002\U0001f30c]
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001ECE83F4B00>
+text = '合成材料 原始编号甲。版本化笔记用于阅读与复习。🌌'
+
+    @pytest.mark.parametrize("text", [
+        "Independent synthetic material original-id. ArcheAxis keeps a versioned local note.",
+        "合成材料 原始编号甲。版本化笔记用于阅读与复习。🌌",
+    ])
+    def test_summary_probe_asks_about_selected_body_and_records_case_identity(monkeypatch, text):
+        """真正run入口的问句与样本绑定；隔离随机ID不伪装为另一份材料。"""
+        class StopBeforeUI(Exception):
+            pass
+    
+        calls = []
+    
+        def observe(js, questions):
+            calls.append(questions)
+            raise StopBeforeUI()
+    
+        monkeypatch.setattr(probe, "install_observer", observe)
+        document = {"document_id": "owned-note", "version": 2,
+                    "content_sha256": "a" * 64, "text_projection": text}
+        saved = {"resolved": {p: {"profile": {"credential_ref": None}}
+                               for p in ("material", "companion")}}
+        stage = {}
+        with pytest.raises(StopBeforeUI):
+            probe.run(None, None, None, None, None, document, saved, stage)
+>       assert calls[0]["material_question"] == "请用一句中文概括当前已选文本的主题。"
+E       AssertionError: 
+
+================================== FAILURES ===================================
+_ test_summary_probe_asks_about_selected_body_and_records_case_identity[Independent synthetic material original-id. ArcheAxis keeps a versioned local note.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001ECE83F4C30>
+text = 'Independent synthetic material original-id. ArcheAxis keeps a versioned local note.'
+
+    @pytest.mark.parametrize("text", [
+        "Independent synthetic material original-id. ArcheAxis keeps a versioned local note.",
+        "合成材料 原始编号甲。版本化笔记用于阅读与复习。🌌",
+    ])
+    def test_summary_probe_asks_about_selected_body_and_records_case_identity(monkeypatch, text):
+        """真正run入口的问句与样本绑定；隔离随机ID不伪装为另一份材料。"""
+        class StopBeforeUI(Exception):
+            pass
+    
+        calls = []
+    
+        def observe(js, questions):
+            calls.append(questions)
+            raise StopBeforeUI()
+    
+        monkeypatch.setattr(probe, "install_observer", observe)
+        document = {"document_id": "owned-note", "version": 2,
+                    "content_sha256": "a" * 64, "text_projection": text}
+        saved = {"resolved": {p: {"profile": {"credential_ref": None}}
+                               for p in ("material", "companion")}}
+        stage = {}
+        with pytest.raises(StopBeforeUI):
+            probe.run(None, None, None, None, None, document, saved, stage)
+>       assert calls[0]["material_question"] == "请用一句中文概括当前已选文本的主题。"
+E       AssertionError: assert '合成材料 7724fc5...句中文概括所选材料的主题。' == '请用一句中文概括当前已选文本的主题。'
+E         
+E         - 请用一句中文概括当前已选文本的主题。
+E         + 合成材料 7724fc560b92：请用一句中文概括所选材料的主题。
+
+tests\test_material_companion_native_probe.py:42: AssertionError
+_ test_summary_probe_asks_about_selected_body_and_records_case_identity[\u5408\u6210\u6750\u6599 \u539f\u59cb\u7f16\u53f7\u7532\u3002\u7248\u672c\u5316\u7b14\u8bb0\u7528\u4e8e\u9605\u8bfb\u4e0e\u590d\u4e60\u3002\U0001f30c] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001ECE83F4B00>
+text = '合成材料 原始编号甲。版本化笔记用于阅读与复习。🌌'
+
+    @pytest.mark.parametrize("text", [
+        "Independent synthetic material original-id. ArcheAxis keeps a versioned local note.",
+        "合成材料 原始编号甲。版本化笔记用于阅读与复习。🌌",
+    ])
+    def test_summary_probe_asks_about_selected_body_and_records_case_identity(monkeypatch, text):
+        """真正run入口的问句与样本绑定；隔离随机ID不伪装为另一份材料。"""
+        class StopBeforeUI(Exception):
+            pass
+    
+        calls = []
+    
+        def observe(js, questions):
+            calls.append(questions)
+            raise StopBeforeUI()
+    
+        monkeypatch.setattr(probe, "install_observer", observe)
+        document = {"document_id": "owned-note", "version": 2,
+                    "content_sha256": "a" * 64, "text_projection": text}
+        saved = {"resolved": {p: {"profile": {"credential_ref": None}}
+                               for p in ("material", "companion")}}
+        stage = {}
+        with pytest.raises(StopBeforeUI):
+            probe.run(None, None, None, None, None, document, saved, stage)
+>       assert calls[0]["material_question"] == "请用一句中文概括当前已选文本的主题。"
+E       AssertionError: assert '合成材料 af37eec...句中文概括所选材料的主题。' == '请用一句中文概括当前已选文本的主题。'
+E         
+E         - 请用一句中文概括当前已选文本的主题。
+E         + 合成材料 af37eec53a4e：请用一句中文概括所选材料的主题。
+
+tests\test_material_companion_native_probe.py:42: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\_pytest\config\__init__.py:1464
+  D:\All projects\ArcheAxis-Knowledge-OS\.venv\Lib\site-packages\_pytest\config\__init__.py:1464: PytestConfigWarning: Unknown config option: cache_dir
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_material_companion_native_probe.py::test_summary_probe_asks_about_selected_body_and_records_case_identity[Independent synthetic material original-id. ArcheAxis keeps a versioned local note.]
+FAILED tests/test_material_companion_native_probe.py::test_summary_probe_asks_about_selected_body_and_records_case_identity[\u5408\u6210\u6750\u6599 \u539f\u59cb\u7f16\u53f7\u7532\u3002\u7248\u672c\u5316\u7b14\u8bb0\u7528\u4e8e\u9605\u8bfb\u4e0e\u590d\u4e60\u3002\U0001f30c]
+2 failed, 16 deselected, 1 warning in 0.21s

@@ -1,0 +1,19 @@
+✔ guard succeeds from frontend cwd with no usable Python and empty PATH (97.4482ms)
+✔ manifest raw whitespace drift is rejected and exact restoration succeeds (31.6827ms)
+✔ fixed validator generator host and schema drift cannot keep old projection (96.0327ms)
+✔ tampered sources cannot grant private path reads or duplicate source identity (60.1012ms)
+✔ generated runtime flags identity manifest payload header and suffix tampering fail (77.0635ms)
+✔ duplicate JSON keys and excessive nesting are rejected without evaluation (10.313ms)
+✔ public references cannot escape to protected absolute private or traversal paths (43.0934ms)
+✔ missing and oversized fixed source or target are bounded failures (53.7728ms)
+✔ linked public schema directory is rejected before reading its target (9.4601ms)
+✔ Git clean checkout preserves declaration identity and frozen archive bytes (195.2794ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 769.3549
+

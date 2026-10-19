@@ -67,7 +67,7 @@ cors:
 # Optional LLM-assisted refinements. Empty model = local/deterministic only.
 learning:
   teach_back:
-    llm_model: ""          # e.g. "ollama/llama3.1" or any LiteLLM model
+    llm_model: ""          # Optional explicitly selected LiteLLM model; never auto-discovered
   quiz:
     llm_model: ""
 
@@ -75,10 +75,8 @@ rag:
   embedding:
     provider: "local"      # local | ollama | llm
                            #   local  = built-in n-gram embedder (no model, no network)
-                           #   ollama = registered local Ollama runtime (shared model library)
+                           #   ollama = explicit legacy adapter only; not the current LM Studio runtime
                            #   llm    = LiteLLM remote embeddings for `model`
                            # Any provider failure falls back to `local`, which changes the
                            # vector width, so index and query must use the same setting.
     model: ""              # ollama: e.g. "qwen3-embedding:0.6b"; llm: e.g. "text-embedding-3-small"
-    ollama_base_url: "http://127.0.0.1:11434"
-    ollama_timeout_seconds: 60

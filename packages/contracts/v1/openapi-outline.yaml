@@ -26,6 +26,83 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/project-handoff/preview:
+    post:
+      operationId: previewProjectHandoff
+      description: >
+        Human-only local read through the existing launch-token middleware; machine and
+        Observer credentials cannot use this endpoint. Strict context proposal, at most
+        64 KiB, no query parameters. Read metadata only; exact proposal identity and CURRENT/STALE/NOT_FOUND, never document body. Preview validity is not an execution or future snapshot grant.
+        Source authentication and selection qualification remain UNVERIFIED; no external
+        product authentication, execution, knowledge acceptance, delivery, deduplication
+        persistence or exactly-once guarantee. No canonical document/task/working-state writes.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 65536
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - {$ref: '../v2/project-handoff.schema.json'}
+                - type: object
+                  properties:
+                    payload:
+                      type: object
+                      properties:
+                        kind: {const: context}
+      responses:
+        "200":
+          description: Bounded reference metadata; no body or read authority
+          content:
+            application/json:
+              schema: {$ref: '../v2/project-handoff-preview.schema.json'}
+        "400": {description: Invalid strict context proposal, time or query; input is not echoed}
+        "401": {description: Invalid launch credential}
+        "403": {description: Human required; machine and Observer denied; browser Origin denied}
+        "409": {description: Workspace or restore-epoch mismatch, or proposal expired during queued read}
+        "413": {description: Request exceeds 64 KiB}
+        "503": {description: Read or identity unavailable; never a successful empty result}
+  /api/v1/project-handoff/snapshot:
+    post:
+      operationId: readProjectHandoffSnapshot
+      description: >
+        Human-only local read through the existing launch-token middleware; machine and
+        Observer credentials cannot use this endpoint. Strict context proposal, at most
+        64 KiB, no query parameters. Read only the proposal-bound original document version and raw SHA-256 in the same transaction as workspace/restore-epoch checks; STALE returns that old version, never substitutes current content. Raw editor JSON is bounded to 8 MiB and the encoded response to 24 MiB. No title, projections or blocks outside that raw hash are returned.
+        Source authentication and selection qualification remain UNVERIFIED; no external
+        product authentication, execution, knowledge acceptance, delivery, deduplication
+        persistence or exactly-once guarantee. No canonical document/task/working-state writes.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 65536
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - {$ref: '../v2/project-handoff.schema.json'}
+                - type: object
+                  properties:
+                    payload:
+                      type: object
+                      properties:
+                        kind: {const: context}
+      responses:
+        "200":
+          description: Fixed original-version local-human read-only body, CURRENT or STALE
+          content:
+            application/json:
+              schema: {$ref: '../v2/project-handoff-snapshot.schema.json'}
+        "400": {description: Invalid strict context proposal, time or query; input is not echoed}
+        "401": {description: Invalid launch credential}
+        "403": {description: Human required; machine and Observer denied; browser Origin denied}
+        "404": {description: Pinned document version not found}
+        "409": {description: Workspace or restore-epoch mismatch, or proposal expired during queued read, pinned hash mismatch or corrupt content}
+        "413": {description: Request exceeds 64 KiB or pinned raw body/response exceeds its bound}
+        "503": {description: Read or identity unavailable; never a successful empty result}
   /api/v1/workspace/ui-state/cancel-machine:
     post:
       operationId: cancelFrozenMachineWorker
@@ -614,6 +691,114 @@ components:
       name: x-archeaxis-launch-token
       description: Ephemeral per-process desktop credential sent through the inherited stdin pipe at launch; never in argv or readiness output. Native desktop only; browser Origin requests are denied. Requested scopes cannot grant authority.
   schemas:
+    MachineFailureDiagnostics:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        requested_model:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Za-z0-9_.:/@+-]{1,256}$
+          maxLength: 256
+        observed_model:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Za-z0-9_.:/@+-]{1,256}$
+          maxLength: 256
+        finish_reason:
+          enum:
+          - stop
+          - length
+          - tool_calls
+          - function_call
+          - content_filter
+          - error
+        answer_source:
+          enum:
+          - content
+          - reasoning_content
+          - response
+          - none
+        request_stage:
+          enum: [service_discovery, model_request, response_deadline, worker_deadline]
+        discovery_elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        request_phase:
+          enum: [http_open, body_read, json_parse, response_validation]
+        http_open_elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        body_read_elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        json_parse_elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        prompt_utf8_bytes:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        serialized_request_bytes:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        response_bytes:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        error_type:
+          enum:
+          - HTTPError
+          - URLError
+          - TimeoutError
+          - ConnectionError
+          - OSError
+          - ValueError
+          - TypeError
+          - KeyError
+          - IndexError
+          - JSONDecodeError
+        max_tokens:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        timeout_s:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        http_status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        usage:
+          type: object
+          additionalProperties: false
+          minProperties: 1
+          properties:
+            input_tokens:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            output_tokens:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            total_tokens:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
     MachineCallFailure:
       type: object
       additionalProperties: false
@@ -622,10 +807,11 @@ components:
         schema: {const: archeaxis.machine-call-failure/v1}
         operation: {enum: [answer, retest]}
         reason_code:
-          enum: [MODEL_CALL_FAILED, NO_FINAL_ANSWER, EMPTY_ANSWER, WORKER_TIMEOUT, OUTPUT_LIMIT, INVALID_OUTPUT, PIPE_DRAIN_FAILED, WORKER_FAILED]
+          enum: [MODEL_CALL_FAILED, MODEL_CALL_TIMEOUT, NO_FINAL_ANSWER, EMPTY_ANSWER, WORKER_TIMEOUT, OUTPUT_LIMIT, INVALID_OUTPUT, PIPE_DRAIN_FAILED, WORKER_FAILED]
         execution_state: {const: UNVERIFIED}
         answer_published: {const: false}
-      description: HTTP 503 after worker execution failure; excludes raw exceptions, stderr and model text. A failure response alone does not grant retry permission. Core retains the unfinished claim for unknown outcomes or unconfirmed cleanup; only confirmed local-worker failures permit explicit same-request retries, with at most three total attempts per durable identity across restarts. Confirmed failures persist a redacted attempt-bound runtime.execution.failed audit and the claim terminal_task_id atomically; audit persistence failure rolls back retry release. Provider stop, usage and cost remain unknown. Legacy unknown attempt counts do not receive a fresh budget. The response is not a success receipt or proof of no prior side effect or provider-side stop. Frozen journal status and exact clear-machine provide explicit cold recovery; UNKNOWN never grants UI repeat inference or a fresh identity around an unresolved journey. Modern retest cache binds the effective timeout even without explicit model selection; legacy unknown budgets remain historical and cannot qualify a new execution receipt.
+        diagnostics: {$ref: "#/components/schemas/MachineFailureDiagnostics"}
+      description: HTTP 503 after worker execution failure; excludes raw exceptions, stderr and model text. A failure response alone does not grant retry permission. Core retains the unfinished claim for unknown outcomes or unconfirmed cleanup; only confirmed local-worker failures permit explicit same-request retries, with at most three total attempts per durable identity across restarts. Confirmed failures persist a redacted attempt-bound runtime.execution.failed audit and the claim terminal_task_id atomically; audit persistence failure rolls back retry release. Optional diagnostics retain bounded provider-reported measurements only; missing usage remains unknown, cost and provider stop remain unknown. Raw model text, reasoning and exception bodies are excluded. Legacy unknown attempt counts do not receive a fresh budget. The response is not a success receipt or proof of no prior side effect or provider-side stop. Frozen journal status and exact clear-machine provide explicit cold recovery; UNKNOWN never grants UI repeat inference or a fresh identity around an unresolved journey. Modern retest cache binds the effective timeout even without explicit model selection; legacy unknown budgets remain historical and cannot qualify a new execution receipt.
     Error:
       type: object
       additionalProperties: false

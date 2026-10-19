@@ -1,0 +1,78 @@
+{
+  "source_files": [
+    "services/python-workers/machine/worker_machine_answer.py",
+    "crates/archeaxis-application/src/executor/machine_failure.rs",
+    "packages/contracts/v1/openapi-outline.yaml",
+    "packages/contracts/v2/material-question.schema.json",
+    "packages/contracts/v2/conversation.schema.json",
+    "frontend/src/api/generated/material-question.ts",
+    "frontend/src/api/generated/conversation.ts",
+    "frontend/src/api/machineFailure.ts",
+    "frontend/src/__tests__/MachineFailureDiagnostics.test.ts",
+    "tests/contract/test_machine_failure_diagnostics.py"
+  ],
+  "unchanged_dependencies": [
+    "tests/test_worker_machine_answer.py",
+    "scripts/contracts/generate_material_question.py",
+    "scripts/contracts/generate_conversation.py",
+    "scripts/contracts/generate_core_document.py"
+  ],
+  "hashes": [
+    {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "sha256": "510c4973bc3c749cb2c5c0189d57245dcb2701c1e0c9c7da03622aed253a1e3d"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "sha256": "7b7ca92b147830e061631610666628495bce0d93faa1c8e539df082c4bd76ebe"
+    },
+    {
+      "path": "packages/contracts/v1/openapi-outline.yaml",
+      "sha256": "b1f1f0db53575b2844c27b82da7fabd86724672e978101af46d6e07a57aebd40"
+    },
+    {
+      "path": "packages/contracts/v2/material-question.schema.json",
+      "sha256": "2d281d5930b82e506d158c070b16e94fb605f4b74046f03fde2da2ac2a73abc2"
+    },
+    {
+      "path": "packages/contracts/v2/conversation.schema.json",
+      "sha256": "54a42c2d93175d13bb2cb2e2293bc0ece162717cdfa5c60830625757c4d47707"
+    },
+    {
+      "path": "frontend/src/api/generated/material-question.ts",
+      "sha256": "9220e4a1730d1dec00ae4e6a22ed16407a3294ae0e69fb045911906fcbc69c8f"
+    },
+    {
+      "path": "frontend/src/api/generated/conversation.ts",
+      "sha256": "ae863eac8bc79feeca7c1108c1f09c8264f5ddf3eae695060c3d54ef617de6cc"
+    },
+    {
+      "path": "frontend/src/api/machineFailure.ts",
+      "sha256": "0646d2603b1280765e2e533638fff6345f02037640c2bda76653fc11ff249167"
+    },
+    {
+      "path": "frontend/src/__tests__/MachineFailureDiagnostics.test.ts",
+      "sha256": "2c3766bb001f809e1cda1b67e8c2684a2c09ee43ca52f8600e278f1af6215a08"
+    },
+    {
+      "path": "tests/contract/test_machine_failure_diagnostics.py",
+      "sha256": "40e5befc12e2bece575d9e03d81a1baa5b9fc285edc099474785597e620e9871"
+    },
+    {
+      "path": "tests/test_worker_machine_answer.py",
+      "sha256": "d0d70a7b4cb79d0ab4fd101f49de3089d18c76a646ef2f7a43c6294f868065d5"
+    },
+    {
+      "path": "scripts/contracts/generate_material_question.py",
+      "sha256": "6f77bced5f291792f55238e924617107f2fad296521e811664e57943dd466181"
+    },
+    {
+      "path": "scripts/contracts/generate_conversation.py",
+      "sha256": "3f8607df51ee1486d414dc2a043929433c0293c3a317d275b6008eca3c61b8f5"
+    },
+    {
+      "path": "scripts/contracts/generate_core_document.py",
+      "sha256": "bc5b6ed59b82904f9fc2684326eff2208b8423d1a5dedf826393821f5506a565"
+    }
+  ]
+}

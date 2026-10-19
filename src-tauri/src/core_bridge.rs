@@ -33,6 +33,8 @@ where
 #[serde(rename_all = "snake_case")]
 pub enum Operation {
     SystemVersion,
+    ProjectHandoffPreview,
+    ProjectHandoffSnapshot,
     SourceImport,
     SourcesList,
     SourceJobs,
@@ -246,6 +248,23 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
     };
     Ok(match request.operation {
         SystemVersion => ("GET", "/api/v1/system/version".into(), None),
+        ProjectHandoffPreview | ProjectHandoffSnapshot => {
+            // 仅已有human会话的本地metadata预览；无URL、凭据或任意命令入口。
+            if p.as_object().is_none_or(|fields| fields.len() != 1)
+                || !p.get("body").is_some_and(Value::is_object)
+            {
+                return Err("CORE_COMMAND_PREVIEW_PAYLOAD_INVALID".into());
+            }
+            (
+                "POST",
+                if matches!(request.operation, ProjectHandoffSnapshot) {
+                    "/api/v1/project-handoff/snapshot".into()
+                } else {
+                    "/api/v1/project-handoff/preview".into()
+                },
+                Some(body()?),
+            )
+        }
         WorkspaceRestorePreview => (
             "POST",
             "/api/v2/workspace/restore/preview".into(),
@@ -990,6 +1009,7 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         }
         Operation::MachineRetest => 135,
         Operation::WorkspaceBackup => 120,
+        Operation::ProjectHandoffPreview | Operation::ProjectHandoffSnapshot => 3,
         // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media
         // jobs run past both, so the transport must outlive them.
         Operation::JobExecute => 320,
@@ -999,7 +1019,12 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
 }
 
 fn request_byte_limit(operation: &Operation) -> usize {
-    if matches!(operation, Operation::DocumentPackageImport) {
+    if matches!(
+        operation,
+        Operation::ProjectHandoffPreview | Operation::ProjectHandoffSnapshot
+    ) {
+        65_536
+    } else if matches!(operation, Operation::DocumentPackageImport) {
         16 * 1024 * 1024
     } else if matches!(operation, Operation::SourceImport) {
         90 * 1024 * 1024
@@ -1021,7 +1046,9 @@ fn request_byte_limit(operation: &Operation) -> usize {
     }
 }
 fn response_byte_limit(operation: &Operation) -> usize {
-    if matches!(operation, Operation::SourceOriginal) {
+    if matches!(operation, Operation::ProjectHandoffPreview) {
+        65_536
+    } else if matches!(operation, Operation::SourceOriginal) {
         90 * 1024 * 1024
     } else {
         24 * 1024 * 1024

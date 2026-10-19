@@ -25,6 +25,13 @@ pub struct Launch {
     protocol: Option<String>,
     #[serde(default, deserialize_with = "present_string")]
     machine_token: Option<String>,
+    #[serde(default, deserialize_with = "present_observers")]
+    observer_grants: Option<Vec<crate::project_observer::ObserverGrant>>,
+}
+fn present_observers<'de, D: serde::Deserializer<'de>>(
+    value: D,
+) -> Result<Option<Vec<crate::project_observer::ObserverGrant>>, D::Error> {
+    Vec::deserialize(value).map(Some)
 }
 fn present_string<'de, D: serde::Deserializer<'de>>(value: D) -> Result<Option<String>, D::Error> {
     String::deserialize(value).map(Some)
@@ -170,6 +177,63 @@ impl TextWorker {
 const MAX_LAUNCH_BYTES: usize = 65536;
 
 impl Launch {
+    fn validate_identity(&self) -> Result<(), &'static str> {
+        if !hex(&self.launch_token, 64) || !hex(&self.session_id, 32) {
+            return Err("invalid launch identity");
+        }
+        match self.protocol.as_deref() {
+            None => {
+                if self.machine_token.is_some() || self.observer_grants.is_some() {
+                    return Err("additional credentials require versioned launch");
+                }
+                if !matches!(
+                    self.actor.as_deref(),
+                    None | Some("human") | Some("machine")
+                ) {
+                    return Err("invalid launch actor");
+                }
+            }
+            Some("archeaxis.desktop-launch/v2" | "archeaxis.desktop-launch/v3") => {
+                if self.actor.as_deref() != Some("human") {
+                    return Err("invalid versioned launch actor");
+                }
+                let machine = self
+                    .machine_token
+                    .as_deref()
+                    .ok_or("missing machine identity")?;
+                if !hex(machine, 64) || machine.eq_ignore_ascii_case(&self.launch_token) {
+                    return Err("invalid machine identity");
+                }
+                if self.protocol.as_deref() == Some("archeaxis.desktop-launch/v2") {
+                    if self.observer_grants.is_some() {
+                        return Err("observer credentials require v3");
+                    }
+                } else {
+                    let grants = self
+                        .observer_grants
+                        .as_ref()
+                        .ok_or("missing observer grants")?;
+                    if grants.is_empty() || grants.len() > 2 {
+                        return Err("invalid observer grants");
+                    }
+                    let now = crate::project_observer::now_ms();
+                    let mut credentials = vec![self.launch_token.as_str(), machine];
+                    for grant in grants {
+                        if !grant.valid(now)
+                            || credentials
+                                .iter()
+                                .any(|token| token.eq_ignore_ascii_case(&grant.token))
+                        {
+                            return Err("invalid observer admission");
+                        }
+                        credentials.push(&grant.token);
+                    }
+                }
+            }
+            Some(_) => return Err("unsupported launch protocol"),
+        }
+        Ok(())
+    }
     pub fn from_stdin() -> Result<Self, &'static str> {
         // A std thread (not the async blocking pool) lets main exit on a parent
         // that holds stdin open. Never include input or parse details in errors.
@@ -220,34 +284,7 @@ impl Launch {
                 launch.document_check_config_error = Some("invalid_config".into());
             }
         }
-        // Legacy preserves its single actor; v2 gives one owned session two
-        // distinct credentials. Unknown/null/partial v2 claims never downgrade.
-        match launch.protocol.as_deref() {
-            None => {
-                if launch.machine_token.is_some() {
-                    return Err("machine token requires v2");
-                }
-                if !matches!(
-                    launch.actor.as_deref(),
-                    None | Some("human") | Some("machine")
-                ) {
-                    return Err("invalid launch actor");
-                }
-            }
-            Some("archeaxis.desktop-launch/v2") => {
-                if launch.actor.as_deref() != Some("human") {
-                    return Err("invalid v2 launch actor");
-                }
-                let machine = launch
-                    .machine_token
-                    .as_deref()
-                    .ok_or("missing machine identity")?;
-                if !hex(machine, 64) || machine.eq_ignore_ascii_case(&launch.launch_token) {
-                    return Err("invalid machine identity");
-                }
-            }
-            Some(_) => return Err("unsupported launch protocol"),
-        }
+        launch.validate_identity()?;
         if let Some(profile) = &mut launch.text_worker {
             profile.resolve_root()?;
             profile.validate()?;
@@ -340,6 +377,7 @@ mod tests {
 }
 #[derive(Clone)]
 struct Session {
+    store: Store,
     launch: Launch,
     workspace_db: String,
     sqlite_version: String,
@@ -347,6 +385,9 @@ struct Session {
 
 /// Wrap every route, including fallbacks, before binding the production listener.
 pub async fn protect(router: Router, store: &Store, launch: Launch) -> Result<Router, StoreError> {
+    launch
+        .validate_identity()
+        .map_err(|_| StoreError::InvalidPath)?;
     let workspace_db = store
         .submit(|conn| {
             conn.query_row(
@@ -361,6 +402,7 @@ pub async fn protect(router: Router, store: &Store, launch: Launch) -> Result<Ro
         .await??;
     Ok(router.layer(middleware::from_fn_with_state(
         Session {
+            store: store.clone(),
             launch,
             workspace_db,
             sqlite_version,
@@ -395,12 +437,20 @@ async fn authenticate(State(session): State<Session>, request: Request, next: Ne
         .as_ref()
         .map(|token| matches(token.as_bytes()))
         .unwrap_or(false);
-    if !(primary || machine) || values.next().is_some() {
+    let observer = session
+        .launch
+        .observer_grants
+        .as_ref()
+        .and_then(|grants| grants.iter().find(|grant| matches(grant.token.as_bytes())));
+    if !(primary || machine || observer.is_some()) || values.next().is_some() {
         return error(
             StatusCode::UNAUTHORIZED,
             "AAK-AUTH-001",
             "invalid launch credentials",
         );
+    }
+    if let Some(grant) = observer {
+        return crate::project_observer::serve(session.store.clone(), grant.clone(), request).await;
     }
     let actor = if machine || session.launch.actor.as_deref() == Some("machine") {
         "machine"

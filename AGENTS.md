@@ -33,6 +33,8 @@ Legacy systems (Knowledge-Base, Inspiration-Research, Cognitive-OS, Obsidian)
 exist as compatibility surfaces only; current routing, capability truth and
 migration history are documented under `docs/truth/` and `workspace/intake/`.
 
+> 后继 Owner 决定的接续路由（2026-10-19）：上文及继承 M0 中 Marketplace 延期是原规划时点。Owner 已明确选中内置能力目录、管理及分期接入，现读[决定第九节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)与活动指针；这不整体激活通用 Agent Runtime、公开分发/支付或其他冻结项。关键对话出处见[冻结摘录与映射](docs/history/owner-dialogue-20261019/README.md)，共享路径仍只由原索引/manifest解析。
+
 ## 2. Configuration Categories
 
 | Category | Repository Location | Purpose |

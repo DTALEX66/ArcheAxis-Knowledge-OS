@@ -1,0 +1,173 @@
+{
+  "algorithm": "SHA-256",
+  "excludes": [
+    "CHECKSUMS.json"
+  ],
+  "files": [
+    {
+      "path": "00_START_HERE.md",
+      "bytes": 3119,
+      "sha256": "803fbcd4f9dbf6aa4d97fdbf594b2e8ec2182f9b927e42c45027a2ab30d2817a"
+    },
+    {
+      "path": "02-Backend-Host-Taskpack.docx",
+      "bytes": 44579,
+      "sha256": "ab7a3733ba0942719abbd5ee070eb8428e133ec25b47fded0a36ace3c2bf2776"
+    },
+    {
+      "path": "ACCEPTANCE.md",
+      "bytes": 2367,
+      "sha256": "2a5f610aafee0b961c36af3db4b8801b2a8c63553ef59ef3ca90309e50688727"
+    },
+    {
+      "path": "ENGINEERING-BOUNDARY.md",
+      "bytes": 903,
+      "sha256": "4534cf705d57211eed618866bd3cd67ca0e8ba05a6dd0e0c7a01075c26e24fea"
+    },
+    {
+      "path": "EXECUTOR_PROMPT.md",
+      "bytes": 1928,
+      "sha256": "7ce7d68311741ad4aa94b60c89601b73365a424d2fa3c3676744b1e788ead923"
+    },
+    {
+      "path": "OPEN-SOURCE-REUSE-MATRIX.csv",
+      "bytes": 2392,
+      "sha256": "3fe2ad5dee01df6c7d059220c32577d063c2ea030a76788ba441a79eddeffa91"
+    },
+    {
+      "path": "PACKAGE-VALIDATION.json",
+      "bytes": 2451,
+      "sha256": "5b11582ee88f80ae37e5ca4292b0d22fe05d07299f888c935b1ca7af2330c02f"
+    },
+    {
+      "path": "PROGRESS-TEMPLATE.json",
+      "bytes": 3807,
+      "sha256": "5fb8faa865ad5e19f0fa023a9725a3b5c27e4b6d746e6e69b5b8e76f4ab23a06"
+    },
+    {
+      "path": "REUSE-POLICY.md",
+      "bytes": 298,
+      "sha256": "c5e55685cc9c14ff4c8828c8977945f45ad5c7af0fdf8af173b651699912227e"
+    },
+    {
+      "path": "ROLLBACK.md",
+      "bytes": 541,
+      "sha256": "ef320f42592ffdd992920ae213cc8b00a16b06e7fa289129289dc726b5872255"
+    },
+    {
+      "path": "TASK-CROSSWALK.csv",
+      "bytes": 965,
+      "sha256": "8a914cd5952f10eeb99f920789e222423c2897e74b64c1b426afbfae117d6407"
+    },
+    {
+      "path": "TASKPACK.md",
+      "bytes": 12655,
+      "sha256": "347d61a231e06ce6fb8380d6e9ecf00e3c7261db297f4931f70430cb832c0d36"
+    },
+    {
+      "path": "TASKS.json",
+      "bytes": 18437,
+      "sha256": "e2e67bb7b096b7f6009e13ceed4b360511a3f9a8780524a9546231db524056f2"
+    },
+    {
+      "path": "VERIFY_PACKAGE.py",
+      "bytes": 660,
+      "sha256": "0a0225ea0258e7a330d835833affb44b04688bf7be19ad31a17f8a59a950ca57"
+    },
+    {
+      "path": "references/AAOS-UI-v1-Final-Spec.docx",
+      "bytes": 82812,
+      "sha256": "622f5e65d69a1eddaad906609d866207172dddea1a92b01e5daf9c6247a3cf9e"
+    },
+    {
+      "path": "references/ArcheAxis-UI-Multidimensional-Audit.docx",
+      "bytes": 55598,
+      "sha256": "2dec59e654ee0f1e9bb313fb24b560d016c140f702518c1218523ca5cbc2a0ca"
+    },
+    {
+      "path": "references/README.md",
+      "bytes": 271,
+      "sha256": "6bdc921167b04fe53d6d9b00ba7715a2c20c431ba71947db6539b48cdc10124c"
+    },
+    {
+      "path": "references/astryn-contracts/SOURCE-INDEX.json",
+      "bytes": 1278,
+      "sha256": "e6d6dee880e4aedb5e22b60200641af335119775dbfdbc2df5621c95602f1ec8"
+    },
+    {
+      "path": "references/astryn-contracts/action.ts",
+      "bytes": 2535,
+      "sha256": "bb169816c575c5f0248234a02363ed8ef47f6630e1a28953c59bdb6e5418b1b5"
+    },
+    {
+      "path": "references/astryn-contracts/avatar.ts",
+      "bytes": 2082,
+      "sha256": "38cb9f0a802a8c4670b599b630269d46d137f19d7369790a72a755cf65f5df02"
+    },
+    {
+      "path": "references/astryn-contracts/character.ts",
+      "bytes": 3822,
+      "sha256": "bca72088ca6ab7c241b1fa36fa5e5750426baa5d540f9230e96fe890d551afb8"
+    },
+    {
+      "path": "references/astryn-contracts/context.ts",
+      "bytes": 2048,
+      "sha256": "b27cab2cc105aa1485dfccf550fa63e3db38f7a55bec781522a2e22151309579"
+    },
+    {
+      "path": "references/astryn-contracts/conversation.ts",
+      "bytes": 1564,
+      "sha256": "74e2dc423c37b6ff51f8dd0d97333d929ce4182749c28199f68cf00a444abb5b"
+    },
+    {
+      "path": "references/astryn-contracts/host.ts",
+      "bytes": 2041,
+      "sha256": "3b5fe46df6d2ec598dd2e7798842878d00a4ef09c1e24828b399435f5fa03072"
+    },
+    {
+      "path": "references/astryn-contracts/memory.ts",
+      "bytes": 4581,
+      "sha256": "f77f178cb26bdd28dec17b60499d83ab15a45c240239e0c0625b672a53de679f"
+    },
+    {
+      "path": "references/astryn-contracts/presentation.ts",
+      "bytes": 1833,
+      "sha256": "76fd4c991d2fa90045164ff2a93cc7cb0b22dafef64992928da06159826114bb"
+    },
+    {
+      "path": "references/repository/AAOS-ACTIVE-EXECUTION.json",
+      "bytes": 10153,
+      "sha256": "8f9000a28003c90b404ecb6c0b3544863fb9610731a59c6c76f719b2dde13803"
+    },
+    {
+      "path": "references/repository/EXISTING-UI-TASKS.json",
+      "bytes": 44347,
+      "sha256": "1dbc0b24375df5f2b4897bf88fa6cf3fd4a4b3e0dfc114bc5d96b5a362eea169"
+    },
+    {
+      "path": "shared/GLOBAL-DEPENDENCIES.json",
+      "bytes": 11636,
+      "sha256": "b684a535439d7331fdb6dd504d43c95a4867ee3e10eeee0fa5ceba24c98fea25"
+    },
+    {
+      "path": "shared/NAVIGATION-SOURCE.json",
+      "bytes": 164869,
+      "sha256": "8142c5717af3bbad728924658b4b25b362413b13e263aaafcc0ff3c872e4644e"
+    },
+    {
+      "path": "shared/OWNERSHIP.md",
+      "bytes": 873,
+      "sha256": "778f48c3cf1c4754e27110736e3d7e0abdbdb549de64c0f5e010636d5e753ce8"
+    },
+    {
+      "path": "shared/SOURCE-BASELINE.json",
+      "bytes": 961,
+      "sha256": "1df38c0b46c1359e8a30e835c4b7eaad569930ab5382bea1f0a22066d120461f"
+    },
+    {
+      "path": "shared/UI-HOST-CONTRACT-PROPOSAL.json",
+      "bytes": 10869,
+      "sha256": "fa871c611422cf27c51037657cdefb099272e0ab9ed8d279f1130cf8b1ba3ca2"
+    }
+  ]
+}

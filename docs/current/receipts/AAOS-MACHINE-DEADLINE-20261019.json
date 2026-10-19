@@ -1,0 +1,64 @@
+{
+  "schema": "aaos.machine-deadline-evidence/v1",
+  "observed_at": "2026-10-18T18:47:24.080039+00:00",
+  "status": "PARTIAL",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256": "feb84661b15d3457ff243aa32c57ed7f0ee168fe6e93db5fd6c4276206af85ef",
+  "evidence_level": "INTEGRATED_SYNTHETIC",
+  "archive": "docs/history/oss-absorption-evidence/20261019-machine-deadline/README.md",
+  "source_files_sha256": {
+    "scripts/probes/aaos01_material_companion_loop.py": "a3a186a2e36e631048e67e75f9756f3c29e865d18149989d49918a1a581a351f",
+    "tests/test_material_companion_native_probe.py": "b7243e807ce7258252f14c2742336706aa8b06172f1f4222be4e8b4cbd23bce4",
+    "services/python-workers/machine/worker_machine_answer.py": "5be94f873b7efb412c1ce3994f32ed7862d2095c72fd570e314fb56f350244ba",
+    "tests/test_worker_machine_answer.py": "be5fc7717b60308c43f62110bffd2c8ad0a078dd0d1f6069e20b3a19ac70ac4c",
+    "crates/archeaxis-application/src/executor.rs": "940fcf6948cf6c096e9ff146781e24e88cb7fdd67773e260f824084e3b7dfb57",
+    "crates/archeaxis-application/src/executor/machine_failure.rs": "5aa213f646529a52a78a6b2f148d799bbc2d751bb8ade90292801f77ffb3c76d",
+    "crates/archeaxis-application/tests/machine_answer_resources.rs": "22a6e8080d90fc96277c8d4616966ea46652d7e11ff3da72006208743e62e08b",
+    "crates/archeaxis-api/tests/material_question_api.rs": "f8e69401363eccd634e9b2ce3a669516630d0f5b42dc00a72b207be4a2374d2f"
+  },
+  "verification": {
+    "python": "153 passed; 145 subtests passed",
+    "rust_application": "32 unit + 13 resource + 1 configuration passed",
+    "rust_api": "20 machine + 4 conversation + 6 material passed",
+    "final_runs": [
+      "machine-deadline-sealed-python-1019",
+      "machine-deadline-sealed-rust-1019",
+      "machine-deadline-sealed-api-1019"
+    ],
+    "source_consistent": true,
+    "commands": "COMMANDS.json"
+  },
+  "fixes": [
+    "bounded CLI timeout propagation",
+    "Core timeout allowlisted diagnostics",
+    "probe rejects failed HTTP200 terminal",
+    "expired spawn admission denied",
+    "late Core and worker success rejected"
+  ],
+  "candidate": "NOT_UPDATED_FOR_THIS_PATCH",
+  "native_current_patch": "NOT_EXECUTED",
+  "intermediate_build_patch": "8cfc37ec2051b7bb90349be46fca4e502e4a15e0268eab7f8859f103eb860917",
+  "latest_native_receipt": "docs/current/receipts/AAOS-MATERIAL-COMPANION-FINAL-20261019.json",
+  "latest_native_result": "FAIL material_model_timeout on historical candidate; not rerun on this patch",
+  "unverified": [
+    "model internal timeout cause",
+    "provider stop state",
+    "actual model quality",
+    "installed runtime",
+    "Owner acceptance",
+    "complete Cowork transcript"
+  ],
+  "next": [
+    "build Core/host bound to final patch; validate receipts",
+    "promote only owned idle candidate with eight-component rollback",
+    "native material/companion recovery/cancellation/reopen/backup verification",
+    "BE10 and review item display titles",
+    "remaining capability manifest/model foundation tasks"
+  ],
+  "boundaries": [
+    "LM Studio/profile/shared models unchanged",
+    "no real user data",
+    "no global configuration changes",
+    "no commit/push/cloud backup/release"
+  ]
+}

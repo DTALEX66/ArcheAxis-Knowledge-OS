@@ -1,0 +1,8 @@
+{
+  "observed_at": "2026-10-18T23:48:30.4207446Z",
+  "browser_port": 5173,
+  "listeners": [],
+  "exact_owned_core_or_browser_processes": [],
+  "scope": "chrome profile or exact owned Core executable; first readback included inspecting pwsh and is preserved separately",
+  "native_ephemeral_port_readback": "UNVERIFIED"
+}

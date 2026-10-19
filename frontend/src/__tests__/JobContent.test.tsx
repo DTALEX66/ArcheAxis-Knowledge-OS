@@ -1,3 +1,5 @@
+import {useDiagnostics, resetDiagnostics} from "../presentation/diagnostics";
+import {renderHook} from "@testing-library/react";
 import { webcrypto } from "node:crypto";
 import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,6 +10,7 @@ import { conversionKindFor } from "../api/conversionKinds";
 import { describeSplit, splitProgressOf } from "../presentation/mediaEstimate";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 function installFixture(fn:(op:string,payload:Record<string,unknown>)=>unknown){bridge.call.mockImplementation(jobContentCoreFixture(fn));}
+beforeEach(resetDiagnostics);
 describe("Core job content",()=>{
  beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
  it.each([["sample.png","image","执行真实内容转换"],["sample.zip","archive","清点容器与登记成员"],["sample.tar","archive","清点容器与登记成员"],["sample.canvas","canvas","执行真实内容转换"],["sample.srt","subtitles","执行真实内容转换"],["sample.xml","text","执行真实内容转换"],["sample.py","text","执行真实内容转换"],["sample.wav","media","执行媒体头信息探测"],["sample.mp4","media","执行媒体头信息探测"]])("routes existing %s worker without claiming unexecuted success",async(name,kind,label)=>{
@@ -45,10 +48,10 @@ describe("Core job content",()=>{
    expect(bridge.call).not.toHaveBeenCalledWith("job_output",expect.anything());
    expect(step).toBeGreaterThan(310_000); // the deadline was reached, not skipped by an early terminal state
    // the unfinished state stays reachable verbatim, so the operator can see what was actually left running
-   const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+   const debug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
    await user.click(screen.getByRole("button",{name:/最新处理状态与错误记录/}));
-   expect(debug.mock.calls.some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("leased"))).toBe(true);
-   debug.mockRestore();
+   expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("leased"))).toBe(true);
+   expect(debug).not.toHaveBeenCalled(); debug.mockRestore();
   }finally{
    now.mockRestore();
   }
@@ -73,11 +76,11 @@ describe("Core job content",()=>{
   await screen.findByText(/转换未完成或产物读取失败/);
   expect(screen.getByLabelText("Core 提取正文")).toHaveTextContent("保留正文");
   // The failed attempt stays reachable verbatim through the diagnostic channel, not inline in the reading column.
-  const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  const debug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
   await user.click(screen.getByRole("button",{name:/最新处理状态与错误记录/}));
-  expect(debug.mock.calls.some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("AAK-WORKER-003"))).toBe(true);
+  expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("AAK-WORKER-003"))).toBe(true);
   expect(screen.queryByText(/AAK-WORKER-003/)).not.toBeInTheDocument();
-  debug.mockRestore();
+  expect(debug).not.toHaveBeenCalled(); debug.mockRestore();
  });
  it("requires real completion and reads all persisted outputs with actual engine proof",async()=>{
  installFixture(async(op:string,payload:Record<string,unknown>)=>{
@@ -91,12 +94,12 @@ describe("Core job content",()=>{
   if(op==="job_output")return {metadata:{},content:payload.kind==="text"?"Sheet1 A1 真实单元格":JSON.stringify({kind:payload.kind})};
  });render(<JobContent sourceId="src_office" name="sample.xlsx" sourceRevision={"a".repeat(64)}/>);await userEvent.setup().click(screen.getByRole("button",{name:"执行真实内容转换"}));
  expect(await screen.findByLabelText("Core 提取正文")).toHaveTextContent("真实单元格");
- const engineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+ const engineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
  await userEvent.setup().click(screen.getByRole("button",{name:/损失、引擎与处理记录/}));
- expect(engineDebug.mock.calls.some(([,label,payload])=>label==="损失、引擎与处理记录"&&JSON.stringify(payload).includes("openpyxl"))).toBe(true);
+ expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="损失、引擎与处理记录"&&JSON.stringify(payload).includes("openpyxl"))).toBe(true);
  expect(screen.getByText("引擎版本（回执原值，未独立核验）")).toBeInTheDocument();
  expect(screen.queryByText(/engine_version/)).not.toBeInTheDocument();
- engineDebug.mockRestore();
+ expect(engineDebug).not.toHaveBeenCalled(); engineDebug.mockRestore();
  expect(bridge.call).toHaveBeenCalledWith("job_enqueue",{body:{job_id:expect.any(String),kind:"office",input_ref:"src_office"}});
  const selection=screen.getByLabelText("选择实际引文");fireEvent.select(selection,{target:{selectionStart:0,selectionEnd:6}});
  await userEvent.setup().type(screen.getByLabelText("知识候选正文"),"真实候选正文");await userEvent.setup().click(screen.getByRole("button",{name:"创建知识候选"}));

@@ -1,0 +1,160 @@
+{
+  "base_head": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "scope": "14 task-changed files against preserved dirty preimages, not a clean-HEAD patch",
+  "sources": [
+    {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "before": {
+        "bytes": 27458,
+        "sha256": "5be94f873b7efb412c1ce3994f32ed7862d2095c72fd570e314fb56f350244ba"
+      },
+      "applied": {
+        "bytes": 30916,
+        "sha256": "fd3572904fdb66f4b5d13f89b6f4d33e145468e9d9c74cd4305a0297b394ad0b"
+      }
+    },
+    {
+      "path": "tests/test_worker_machine_answer.py",
+      "before": {
+        "bytes": 28868,
+        "sha256": "be5fc7717b60308c43f62110bffd2c8ad0a078dd0d1f6069e20b3a19ac70ac4c"
+      },
+      "applied": {
+        "bytes": 39446,
+        "sha256": "f56d24e2726c71297b4be058bea196a3d1eb2a6fb9502fe5171dc36596852184"
+      }
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "before": {
+        "bytes": 65618,
+        "sha256": "940fcf6948cf6c096e9ff146781e24e88cb7fdd67773e260f824084e3b7dfb57"
+      },
+      "applied": {
+        "bytes": 67197,
+        "sha256": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360"
+      }
+    },
+    {
+      "path": "crates/archeaxis-application/tests/machine_answer_resources.rs",
+      "before": {
+        "bytes": 17138,
+        "sha256": "22a6e8080d90fc96277c8d4616966ea46652d7e11ff3da72006208743e62e08b"
+      },
+      "applied": {
+        "bytes": 19315,
+        "sha256": "b63b65b8400d6a302d108f6e0e0209fe6d5345f24d324aed05b48a4789540da7"
+      }
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/conversation.rs",
+      "before": {
+        "bytes": 21263,
+        "sha256": "c7e3e8a56693a917a55be3922f7d320c46de8cd33dd078c6443e69454477bef4"
+      },
+      "applied": {
+        "bytes": 22824,
+        "sha256": "15012af96892813404cf7a24fc13a4c7369e8f611971fdf7dc461d470ed05083"
+      }
+    },
+    {
+      "path": "crates/archeaxis-api/tests/conversation_api.rs",
+      "before": {
+        "bytes": 15381,
+        "sha256": "f4f036ecbe4149aaa31cdcb253fc7f4a4eaf6c8a5a1c63f315140632392f1988"
+      },
+      "applied": {
+        "bytes": 28932,
+        "sha256": "ea96fe3ddfe3f5a996d476dba4066ff3356d117392be1b42ec08f215383ba27e"
+      }
+    },
+    {
+      "path": "packages/contracts/v2/conversation.schema.json",
+      "before": {
+        "bytes": 33803,
+        "sha256": "0976387b14cee52d60ee31c37fd9b232c3a3f1f5d3dfdfa3a544a76dd9c3f502"
+      },
+      "applied": {
+        "bytes": 37075,
+        "sha256": "4218add9133bd4318aabfdd4332d217a7ff037551723250b87a0a4eac06ec005"
+      }
+    },
+    {
+      "path": "tests/contract/test_conversation_contract.py",
+      "before": {
+        "bytes": 1319,
+        "sha256": "35c455f5567ba1af5a0a61328a5375cacabece1bbc8e0beda969fc10214791da"
+      },
+      "applied": {
+        "bytes": 3492,
+        "sha256": "73ed01f375372a45302606ed5c4a6f0d6ae08b1070ca6168ad7484b7dac5b387"
+      }
+    },
+    {
+      "path": "frontend/src/api/generated/conversation.ts",
+      "before": {
+        "bytes": 6603,
+        "sha256": "a7e4f5a4371794d7473f4e1fc532f9532e2ef14636037e6062e7a9a79004df05"
+      },
+      "applied": {
+        "bytes": 6741,
+        "sha256": "3f0b2c3fc2f9ba9418805f33c23d29b1215186eda3cc0bacbbb602b7c5c1aed7"
+      }
+    },
+    {
+      "path": "scripts/probes/aaos01_material_companion_loop.py",
+      "before": {
+        "bytes": 26343,
+        "sha256": "23d369143842c24b941988bbf1db1bdcad940829c31de216bbf90d3ce3b250d1"
+      },
+      "applied": {
+        "bytes": 26463,
+        "sha256": "5969aad910616c7e883e62a36782c2e6eb3eebddd3dc3168f132fb496a922add"
+      }
+    },
+    {
+      "path": "tests/test_material_companion_native_probe.py",
+      "before": {
+        "bytes": 12121,
+        "sha256": "e2143fcc17055eb7303498b1a04ab4d1b9b5b0c8fbffd1650cd22eeb5319a019"
+      },
+      "applied": {
+        "bytes": 14440,
+        "sha256": "ef82f4e00205af5a7ccbec96dccae68b5a4e477197cf6072dc4187ca5500ba39"
+      }
+    },
+    {
+      "path": "frontend/src/workspace/DockWorkspace.tsx",
+      "before": {
+        "bytes": 16443,
+        "sha256": "6565611f84a20ef7e87238ae7cac602912f4890df1d4f3d972e454f9db39900d"
+      },
+      "applied": {
+        "bytes": 17296,
+        "sha256": "df82e16942b0e312152b4624f98aa4f11c74d8597cbfbab6c7c6127484634bd1"
+      }
+    },
+    {
+      "path": "frontend/src/__tests__/DockWorkspace.test.tsx",
+      "before": {
+        "bytes": 11577,
+        "sha256": "6ee483b22d8d52d46ee1653508158aee81d57e8fe2e64bed681dc8646b4a9325"
+      },
+      "applied": {
+        "bytes": 16752,
+        "sha256": "6f9109990a1f70dd83e60369e942fa2da72733e5b7a4b0e7cb6bc9f3e9bc5e5f"
+      }
+    },
+    {
+      "path": "frontend/src/__tests__/AppDockNavigation.test.tsx",
+      "before": {
+        "bytes": 13097,
+        "sha256": "82a2853a3798dd748b567ea8041e3e122746cfec9786d0eb7a23cd2ecb0b2e1b"
+      },
+      "applied": {
+        "bytes": 13094,
+        "sha256": "d8b66e51acd5099a9be6090b0464cbe6dfdb6d0542b43d84bc9613de5bc4450e"
+      }
+    }
+  ]
+}

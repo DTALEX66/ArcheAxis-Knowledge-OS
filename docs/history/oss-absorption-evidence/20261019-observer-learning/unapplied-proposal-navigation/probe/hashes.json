@@ -1,0 +1,43 @@
+{
+  "status": "PROPOSAL_ONLY_NOT_APPLIED",
+  "evidence_level": "SIMULATED",
+  "files": [
+    {
+      "path": "scripts/probes/aaos01_grouped_owner_loop.py",
+      "before_sha256": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c",
+      "after_sha256": "a37ef467c28e92ac62ce2b466b747d3e65ee555fe8ed476ff78abf2d53f54630",
+      "added_lines": 130,
+      "deleted_lines": 9
+    },
+    {
+      "path": "scripts/probes/aaos01_material_companion_loop.py",
+      "before_sha256": "5969aad910616c7e883e62a36782c2e6eb3eebddd3dc3168f132fb496a922add",
+      "after_sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f",
+      "added_lines": 2,
+      "deleted_lines": 1
+    },
+    {
+      "path": "tests/test_grouped_native_owner_probe.py",
+      "before_sha256": "c9a99cbddf6fd65a04497e9fd25740c12ad88460f75069c5e3868e7ce41c2525",
+      "after_sha256": "cc11942a9998c8e77c7ae78dc1b1c5acc29991e90b849e89310913c6ad8e31eb",
+      "added_lines": 34,
+      "deleted_lines": 13
+    },
+    {
+      "path": "tests/dom_harness.py",
+      "before_sha256": null,
+      "after_sha256": "e58f07063d33af70de07c815648ce383de2f4d5e688a1e80cbfff782700382c1",
+      "added_lines": 40,
+      "deleted_lines": 0
+    },
+    {
+      "path": "tests/test_probe_identity_regression.py",
+      "before_sha256": null,
+      "after_sha256": "ee530af1b3e762165b6402adb2bdabe9a6a1e88b50c62483e3a88936db7ddf19",
+      "added_lines": 277,
+      "deleted_lines": 0
+    }
+  ],
+  "patch_sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+  "root_probe_sources_unchanged_since_capture": true
+}

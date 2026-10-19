@@ -1,0 +1,74 @@
+{
+  "schema": "aaos.continuation-checkpoint/v1",
+  "status": "PASS",
+  "evidence_level": "STRUCTURE_ONLY",
+  "observed_at": "2026-10-18T19:09:46.003237+00:00",
+  "archives": [
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery",
+      "members": 9,
+      "manifest_sha256": "e0e0a2007b7a07711b70159c907fe28a506b21a411501817be7f212f609076b6"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final",
+      "members": 18,
+      "manifest_sha256": "b5dcda5f042b7fc8715be28085c05839edcbc6396e5ca33b584fc8e895aca9e7"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline",
+      "members": 23,
+      "manifest_sha256": "00eecd4b11a3d12f0c3e8dfa7def5850e3e06442045fd45170108f30d0748a2f"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified",
+      "members": 12,
+      "manifest_sha256": "1cc9845f808d388818a847a31f17d884f7c9f90badababd6e26c37460e130487"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint",
+      "members": 7,
+      "manifest_sha256": "1b4dbf1b10f85b9488e112bf4410426b4ac91c48ee7301b4cdef185ed0ac436a"
+    }
+  ],
+  "members_verified": 69,
+  "navigation_targets_verified": 25,
+  "proposal_base_paths_verified": 23,
+  "proposal_status": "NOT_EXECUTED_UNAPPLIED",
+  "whole_project": "PARTIAL",
+  "complete_private_transcripts": "UNVERIFIED",
+  "cloud_sync": "NOT_EXECUTED",
+  "product_changes_this_checkpoint": false,
+  "git_status_entries": 235,
+  "git_status_sha256": "525fb5c26d9b163bb0f129ca08c044aa70fa6daeeeafdf3fd580339752618b8b",
+  "prior_failed_run": ".project-local/runs/be268a2d33/continuation-archive-checkpoint-1019",
+  "prior_failure": "readback receipt link referenced before creation; preserved, then fixed by creating pending receipt before gate",
+  "commands": [
+    {
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-18T19:09:46.003700+00:00",
+      "ended_at": "2026-10-18T19:09:46.252621+00:00",
+      "exit_code": 0,
+      "stdout": "input hashes: verified 7, outside/private UNVERIFIED 4\ndocument authority: single current record, root references resolve, in-repository hashes checked (external sources remain UNVERIFIED), coverage complete\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-18T19:09:46.252633+00:00",
+      "ended_at": "2026-10-18T19:09:46.341641+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "ended_at": "2026-10-18T19:09:46.341655+00:00"
+}
