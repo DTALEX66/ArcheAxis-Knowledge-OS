@@ -73,7 +73,7 @@
     radial-gradient(1px 1px at 58% 93%, var(--ax-star-color), transparent 90%);
 }
 .app-shell .app-body, .app-shell .app-center { background: transparent; }
-.app-shell > section[aria-label="工作草稿保全"] {
+.app-shell > section[aria-label="工作草稿状态"] {
   padding: 6px 20px;
   border-bottom: 1px solid var(--ax-border-subtle);
   background: var(--ax-glass-strong);
@@ -348,3 +348,4 @@
   .ui-workspace-hero, .ui-local-search, .ui-content-panel, .ui-workspace-grid > section { border: 1px solid CanvasText; box-shadow: none; }
   .ui-relations-page [role="button"]:focus-visible { outline: 2px solid Highlight; }
 }
+.working-recovery-preview { max-block-size: min(32dvh, 20rem); overflow: auto; overflow-wrap: anywhere; white-space: pre-wrap; }

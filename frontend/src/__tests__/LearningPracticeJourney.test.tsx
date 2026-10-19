@@ -44,7 +44,7 @@ it("SIMULATED mounted accepted knowledge→actual course/assessment→page11 pra
  fireEvent.click(screen.getByRole("button",{name:"反馈与修订"}));
  await waitFor(()=>expect(screen.getByRole("textbox",{name:"本次答案"})).toHaveValue("独立作答同一来源"));
  fireEvent.click(screen.getByRole("button",{name:"查看答案与核对内容"}));fireEvent.click(screen.getByLabelText("回答正确"));fireEvent.change(screen.getByLabelText("学习者自评"),{target:{value:"3"}});fireEvent.click(screen.getByRole("button",{name:"记录复习结果"}));
- await screen.findByText(/Core 已确认复习记录/);
+ await screen.findByText(/复习记录已保存/);
  expect(events).toHaveLength(1);expect(events[0]).toMatchObject({item_key:key,assessment_id:"assessment-exact",knowledge_version:knowledgeId,answer:"独立作答同一来源",correct:true,rating:3});
  expect(bridge.call.mock.calls.some(([op])=>["knowledge_review","machine_answer","teaching_create"].includes(op))).toBe(false);
  expect(bridge.call.mock.calls.filter(([op])=>op==="assessment_create")).toHaveLength(1);

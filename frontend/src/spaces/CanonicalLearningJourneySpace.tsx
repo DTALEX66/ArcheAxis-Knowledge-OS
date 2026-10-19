@@ -126,7 +126,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
         {message ? <p role="status">{message}</p> : null}{failure ? <p className="state-reason">{failure}</p> : null}
       </div>
       <aside className="ui-content-panel" aria-label="学习边界与后续能力"><h3>学习计划与能力</h3><p>当前先完成已有课程、课时和复习事件的真实路径。没有模型或证据的项目明确保留为后续缺口。</p>
-        <details><summary>诊断、先修与负荷计划</summary><p>知识诊断、跨课程先修缺口、负荷配额和自动计划尚无接通的 Core 合同，不显示推测的学习画像或进度。</p></details>
+        <details><summary>诊断、先修与负荷计划</summary><p>知识诊断、跨课程先修检查和自动计划尚不可用，因此这里不推测你的学习情况或进度。</p></details>
         <details><summary>训练、Teach-back 与元认知</summary><p>本页可进入绑定版本的真实作答与复习；Teach-back、训练任务和反馈画像由 UF07 继续承接，不等同已完成。</p></details>
         <details><summary>视觉教学与扩展渲染</summary><p>当前接通 native-lesson 文本课时。其他 renderer 名称只是能力意图，不能当成已安装的教学引擎。</p></details>
         <button onClick={() => onOpenPage?.("17")}>查看完整能力与依赖</button>

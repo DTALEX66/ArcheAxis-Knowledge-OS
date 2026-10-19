@@ -126,7 +126,7 @@ def confirm_restored_working_state(bridge, ui_click, wait, js):
     js("const original=window.__TAURI__,invoke=original.core.invoke;window.__aaosRecoveryReplies=[];window.__aaosRecoveryOriginal=original;const observed=async function(command,args){const value=await invoke(command,args);if(command==='core_command'&&['ui_state_recover','ui_state_write'].includes(args?.request?.operation))window.__aaosRecoveryReplies.push({operation:args.request.operation,value});return value;};window.__TAURI__={...original,core:{...original.core,invoke:observed}};if(window.__TAURI__.core.invoke!==observed)throw new Error('Recovery observer installation refused');")
     try:
         ui_click("保留恢复候选")
-        wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
+        wait("return !!document.querySelector('[aria-label=\"工作草稿状态\"][data-working-state=\"ready\"]')")
         after = bridge("ui_state_read")
         observed = js("return window.__aaosRecoveryReplies")
     finally:
@@ -167,7 +167,7 @@ def navigate_compatibility_space(js, wait, space: str) -> None:
     # otherwise replace a hash written immediately after reopening the window.
     # The reference home hides the verbose ready-only notice, while recovery and
     # errors stay visible. Await the real hydrated state, not decorative copy.
-    wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
+    wait("return !!document.querySelector('[aria-label=\"工作草稿状态\"][data-working-state=\"ready\"]')")
     headings = {"library": "资料库", "vault": "知识库", "workspace": "工作台"}
     heading = headings[space]
     js("window.location.hash=arguments[0]", ["space=" + space])
@@ -510,7 +510,7 @@ def ui_original_import_loop(bridge, ui_type, wait, manifest, repo):
         assert digest == entry["sha256"] and len(raw) == entry["bytes"]
         assert 0 < len(raw) <= 64 * 1024 * 1024
         ui_type('input[type="file"][aria-label="导入原件"]', str(path))
-        wait("const r=document.querySelector('[aria-label=\"导入回执\"]');return !!r&&r.textContent.includes(" + json.dumps(path.name) + ")&&r.textContent.includes('原件已保留；转换尚未执行')")
+        wait("const r=document.querySelector('[aria-label=\"导入结果\"]');return !!r&&r.textContent.includes(" + json.dumps(path.name) + ")&&r.textContent.includes('原件已保留；转换尚未执行')")
         sources = bridge("sources_list")["sources"]
         matches = [s for s in sources if s["original_name"] == path.name and s["sha256"] == digest]
         assert len(matches) == 1

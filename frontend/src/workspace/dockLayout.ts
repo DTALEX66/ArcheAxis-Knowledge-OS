@@ -9,7 +9,7 @@ const other=(orientation:Orientation)=>orientation===Orientation.HORIZONTAL?Orie
 export function captureLayout(api:DockviewApi,preset_id:LayoutLayout["preset_id"],identity?:{workspaceId:string;epoch:string;locked:boolean}):LayoutLayout{
  const json=api.toJSON();
  if(Object.entries(json.panels).some(([id,panel])=>(!findUiPage(id)&&!documentObjectId(id))||panel.contentComponent!=="business"))throw new Error("布局含未知面板组件；当前视图保留");
- if(json.popoutGroups?.length||json.edgeGroups)throw new Error("此布局包含当前持久化合同不支持的窗口；视图保留");
+ if(json.popoutGroups?.length||json.edgeGroups)throw new Error("此布局包含暂不支持保存的窗口；当前视图已保留");
  const walk=(node:Node,orientation:Orientation):LayoutDock=>{
   if(node.type==="leaf"){const panels=(node.data.views as string[]).map(presentationPanelId);if(!panels.length)throw new Error("空布局不能保存；请重新打开页面");return {kind:"tabs",panels,active:presentationPanelId(node.data.activeView??panels[0])};}
   const children=node.data as Node[];if(!children.length)return {kind:"empty"};
@@ -22,7 +22,7 @@ export function captureLayout(api:DockviewApi,preset_id:LayoutLayout["preset_id"
  const instance_bindings:Record<string,{page_id:"03";object_id:string;session_key:string}>={};
  for(const id of ids){const object_id=documentObjectId(id);if(object_id){if(!identity||identity.workspaceId==="unverified")throw new Error("对象布局需真实工作区身份");instance_bindings[id]={page_id:"03",object_id,session_key:`${identity.workspaceId}:${identity.epoch}:document:${object_id}`};}}
  const layout={schema_version:2,preset_id,registered_panels:ids,dock_tree,floating_bounds,instance_bindings,floating_groups,locked:identity?.locked??false};
- try{return assertLayoutDto<LayoutLayout>("Layout",layout);}catch{throw new Error("布局尺寸或结构超出持久化范围；请停靠或调整大小后保存");}
+ try{return assertLayoutDto<LayoutLayout>("Layout",layout);}catch{throw new Error("暂时无法保存此布局；请停靠面板或调整大小后再试");}
 }
 export function restoreLayout(api:DockviewApi,layout:LayoutLayout,identity?:{workspaceId:string;epoch:string}):void{
  assertLayoutDto("Layout",layout);

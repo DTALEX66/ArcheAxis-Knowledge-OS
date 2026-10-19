@@ -95,7 +95,8 @@ it("SIMULATED restore pause refuses newly pasted input until finish without reus
 
 it("SIMULATED a future or malformed body projection cannot unmount the reader or underlying Exchange",async()=>{
   vi.spyOn(console,"error").mockImplementation(()=>{});data.snapshot.editor_json={type:"doc",content:"opaque"} as never;
-  render(<SpaceView spaceId="exchange" uiPageId="16" onInspect={()=>{}} onNavigate={()=>{}}/>);await openAndPaste();await preview();fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));expect(await screen.findByRole("alert")).toHaveTextContent("原文档未改变");expect(screen.getByRole("button",{name:/跨项目固定正文身份/})).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"关闭并返回"}));expect(screen.getByRole("textbox",{name:"原交换草稿"})).toHaveValue("原交换草稿");expect(bridge.mounts).toBe(1);
+  const original=JSON.stringify(data.snapshot);
+  render(<SpaceView spaceId="exchange" uiPageId="16" onInspect={()=>{}} onNavigate={()=>{}}/>);await openAndPaste();await preview();fireEvent.click(screen.getByRole("button",{name:"打开固定版本全文"}));expect(await screen.findByLabelText("固定版本全文")).toHaveTextContent("此处有暂不能预览的内容，原内容已保留");expect(JSON.stringify(data.snapshot)).toBe(original);expect(bridge.call.mock.calls.map(([op])=>op)).toEqual(["project_handoff_preview","project_handoff_snapshot"]);expect(screen.getByRole("button",{name:/跨项目固定正文身份/})).toBeInTheDocument();fireEvent.click(screen.getByRole("button",{name:"关闭并返回"}));expect(screen.getByRole("textbox",{name:"原交换草稿"})).toHaveValue("原交换草稿");expect(bridge.mounts).toBe(1);
 });
 
 it("SIMULATED a change after CURRENT preview is clearly disclosed by the STALE snapshot",async()=>{
@@ -117,4 +118,13 @@ it("SIMULATED explicit diagnostics preserve identity only and cannot retain body
   fireEvent.click(screen.getByRole("button",{name:"关闭并返回"}));
   act(()=>window.dispatchEvent(new Event("workspace-invalidated")));
   expect(output.textContent).not.toContain("固定正文 doc_a");resetDiagnostics();
+});
+
+
+it("SIMULATED page16 fixed body retains list start and deleted decision meaning through the shared snapshot projection", async()=>{
+  data.snapshot.editor_json={type:"doc",content:[{type:"orderedList",attrs:{start:4},content:[{type:"listItem",content:[{type:"paragraph",content:[{type:"text",text:"允许覆盖",marks:[{type:"strike"}]},{type:"text",text:"保留原件"}]}]},{type:"listItem",content:[{type:"paragraph",content:[{type:"text",text:"检查回执"}]}]}]}]} as never;
+  render(<SpaceView spaceId="exchange" uiPageId="16" onInspect={()=>{}} onNavigate={()=>{}}/>);await openAndPaste();await preview();await body();
+  expect(screen.getByLabelText("固定版本全文").textContent).toBe("4. 〔删除线：允许覆盖〕保留原件\n5. 检查回执");
+  expect(document.querySelector('[contenteditable="true"], .document-snapshot-text a')).toBeNull();
+  expect(bridge.call.mock.calls.map(([op])=>op)).toEqual(["project_handoff_preview","project_handoff_snapshot"]);
 });

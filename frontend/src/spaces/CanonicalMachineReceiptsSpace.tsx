@@ -61,24 +61,24 @@ export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:st
     <div>
       <h2>受限任务与回执</h2>
       <BoundedJobPanel command={boundedJobCommand} />
-      <p>读取本地 Core 已保存的机器任务。任务结果、真人掌握、专业知识资格和参数训练分别记录。</p>
-      <button disabled={loading} onClick={() => void load()}>刷新任务回执</button>
-      {loading ? <p role="status">正在读取任务回执…</p> : null}
-      {error ? <p role="alert">任务读取失败：{error}。已有回执仍保留，可重试。</p> : null}
-      {loaded && !loading && !error && rows.length === 0 ? <p>尚无已保存的机器任务。执行回答后可在此读取实际回执。</p> : null}
+      <p>查看本机已保存的 AI 任务。任务结果、真人掌握、专业知识资格和参数训练分别记录。</p>
+      <button disabled={loading} onClick={() => void load()}>刷新任务记录</button>
+      {loading ? <p role="status">正在读取任务记录…</p> : null}
+      {error ? <p role="alert">任务读取失败：{error}。已有记录仍保留，可以重试。</p> : null}
+      {loaded && !loading && !error && rows.length === 0 ? <p>尚无已保存的机器任务。执行回答后可在此查看详细记录。</p> : null}
       <ul className="action-list">{rows.map(row => <li key={row.task_id}>
         <button aria-pressed={selected?.task_id === row.task_id} onClick={() => void open(row)}>{row.task_id} · {outcomeLabel[row.outcome]}</button>
         <p>{row.scope} · 模型 {row.model_version} · {row.recorded_at}</p>
       </li>)}</ul>
-      {cursor ? <button disabled={loading} onClick={() => void load(cursor)}>读取下一页任务回执</button> : null}
-      <p>这里提供有限业务任务的历史和读回。通用 Agent Runtime 与任意工具执行尚未接通。</p>
+      {cursor ? <button disabled={loading} onClick={() => void load(cursor)}>查看更多任务记录</button> : null}
+      <p>这里显示已保存的任务历史；自由运行代理和任意工具执行尚不可用。</p>
     </div>
     <aside aria-label="任务回执详情">
       {!selected&&reading?<p role="status">正在核对指定机器任务…</p>:null}{!selected&&detailError?<p role="alert">指定回执未确认：{detailError}</p>:null}
       {selected ? <>
         <h3>{selected.task_id}</h3>
         <p>机器身份 · {outcomeLabel[selected.outcome]} · {selected.scope}</p>
-        {reading ? <p role="status">正在核对持久化回执…</p> : null}
+        {reading ? <p role="status">正在检查已保存的记录…</p> : null}
         {detailError ? <p role="alert">回执未确认：{detailError}</p> : null}
         {receipt ? <>
           <dl><dt>知识版本</dt><dd>{selected.knowledge_version ?? "未绑定"}</dd><dt>模型版本</dt><dd>{selected.model_version}</dd>
@@ -88,9 +88,9 @@ export function CanonicalMachineReceiptsSpace({initialTaskId}:{initialTaskId?:st
           {typeof answer === "string" ? <><h4>原机器回答</h4><pre aria-label="历史机器回答">{answer}</pre></> : null}
           {selected.failure ? <p>失败依据：{selected.failure}</p> : null}
           <p>历史内容只读；撤回知识不会改写既有回答或回执。复测成功回执也不代表真人掌握。</p>
-          <RawReceiptButton label="完整持久化任务回执" payload={{ ...receipt, principal: selected.principal, recorded_at: selected.recorded_at }} />
+          <RawReceiptButton label="完整任务详细信息" payload={{ ...receipt, principal: selected.principal, recorded_at: selected.recorded_at }} />
         </> : null}
-        <button onClick={() => { detailEpoch.current++; setSelected(null); setReceipt(null); setReading(false); setDetailError(null); }}>关闭回执详情</button>
+        <button onClick={() => { detailEpoch.current++; setSelected(null); setReceipt(null); setReading(false); setDetailError(null); }}>关闭任务详情</button>
       </> : <p>选择实际任务，核对来源版本、条件与结果。</p>}
     </aside>
   </section>;

@@ -136,7 +136,7 @@ describe("App shell", () => {
     expect(
       screen.getByRole("main", { name: "当前空间内容" }),
     ).toBeInTheDocument();
-    const webMode = screen.getByText(/浏览器开发模式/);
+    const webMode = screen.getByText(/浏览器预览/);
     expect(webMode).toHaveAttribute("data-status", "development");
   });
 

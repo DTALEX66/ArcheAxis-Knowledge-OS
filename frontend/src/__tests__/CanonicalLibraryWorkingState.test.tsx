@@ -123,7 +123,7 @@ it("SIMULATED: a lost create ACK survives Library unmount and retries the frozen
   const sent=structuredClone((bridge.call.mock.calls.find(([op])=>op==="document_create")![1] as {body:unknown}).body);
   expect(f.get().state.pending_original).toEqual(sent);first.unmount();
   const reopened=f.session();await reopened.load();mount(reopened,{purpose:"library",onOpenDocument:vi.fn()});
-  await user.click(await screen.findByRole("button",{name:"重试同一笔记请求"}));
+  await user.click(await screen.findByRole("button",{name:"重试同一次笔记创建"}));
   await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="document_create")).toHaveLength(2));
   const attempts=bridge.call.mock.calls.filter(([op])=>op==="document_create").map(([,payload])=>(payload as {body:unknown}).body);
   expect(attempts[1]).toEqual(sent);

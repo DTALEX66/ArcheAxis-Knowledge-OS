@@ -36,5 +36,5 @@ def reader_dom(document, *, diagnostic=False, identity=None, hidden="", page="03
     markup += '<section aria-label="阅读与编辑文档视图" ' + hidden + '><article aria-label="文档正文与编辑"><header><p class="ui-document-meta">关联原件文档 · v' + str(version) + ' · 无需依据即可保存</p><h2>' + html.escape(title) + '</h2></header><section aria-label="版本化草稿编辑器"><div class="ProseMirror">' + html.escape(text) + '</div></section></article></section>'
     if diagnostic:
         identity = identity if identity is not None else {k:document[k] for k in ("document_id", "source_id", "source_revision", "content_sha256")}
-        markup += '<div role="dialog"><section aria-label="诊断控制台"><details open><summary>文档身份与来源指纹 · 操作与回执 · synthetic</summary><pre>' + html.escape(json.dumps(identity)) + '</pre></details></section></div>'
+        markup += '<div role="dialog"><section aria-label="诊断控制台"><details open><summary>文档与来源详细信息 · 操作与回执 · synthetic</summary><pre>' + html.escape(json.dumps(identity)) + '</pre></details></section></div>'
     return markup

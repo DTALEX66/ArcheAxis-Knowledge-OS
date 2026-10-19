@@ -34,10 +34,10 @@ describe("explicit per-file qualification", () => {
     render(<BoundedJobPanel command={command}/>);
     await screen.findByRole("option", { name: /controlled.docx/ });
     fireEvent.change(screen.getByLabelText("已保存来源"), { target: { value: identity.sourceId } });
-    await screen.findByRole("option", { name: /office · job-1/ });
+    expect(await screen.findByRole("option", { name: /office · succeeded/ })).toHaveValue(identity.jobId);
     fireEvent.change(screen.getByLabelText("来源任务"), { target: { value: identity.jobId } });
-    fireEvent.click(await screen.findByRole("button", { name: "读取此文件操作回执" }));
-    await screen.findAllByText("QUALIFIED");
+    fireEvent.click(await screen.findByRole("button", { name: "查看此文件操作结果" }));
+    await screen.findAllByText(/^已核实；/);
     expect(command.mock.calls.filter(([op]) => op === "source_job_format_qualification")).toHaveLength(1);
     expect(command.mock.calls.some(([op]) => op === "job_execute")).toBe(false);
   });
@@ -45,13 +45,13 @@ describe("explicit per-file qualification", () => {
     const command = vi.fn().mockResolvedValue(receipt());
     render(<FormatQualificationPanel command={command} identity={identity} error={null}/>);
     expect(command).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "读取此文件操作回执" }));
-    await screen.findAllByText("QUALIFIED");
+    fireEvent.click(screen.getByRole("button", { name: "查看此文件操作结果" }));
+    await screen.findAllByText(/^已核实；/);
     expect(command).toHaveBeenCalledTimes(1);
     expect(command).toHaveBeenCalledWith("source_job_format_qualification", { source_id: "source-1", job_id: "job-1" });
-    expect(screen.getByText("原生编辑").nextElementSibling).toHaveTextContent("UNVERIFIED");
-    expect(screen.getByText("原格式往返").nextElementSibling).toHaveTextContent("UNVERIFIED");
-    expect(screen.getByText(/损失登记：未知/)).toBeInTheDocument();
+    expect(screen.getByText("原生编辑").nextElementSibling).toHaveTextContent("尚未核实");
+    expect(screen.getByText("原格式往返").nextElementSibling).toHaveTextContent("尚未核实");
+    expect(screen.getByText(/损失登记：尚未核实；数量 未知/)).toBeInTheDocument();
   });
   it.each(["source_id", "source_revision", "job_id", "attempt", "job_state"])("rejects mismatched %s", field => {
     expect(() => readFormatQualification(receipt({ [field]: field === "attempt" ? 2 : "other" }), identity)).toThrow();
@@ -67,8 +67,8 @@ describe("explicit per-file qualification", () => {
     fireEvent.click(screen.getByRole("button"));
     view.rerender(<FormatQualificationPanel command={command} identity={{...identity, jobId: "job-2"}} error={null}/>);
     await act(async () => resolve(receipt()));
-    expect(screen.queryByText("QUALIFIED")).not.toBeInTheDocument();
-    expect(screen.getAllByText("UNVERIFIED")).toHaveLength(6);
+    expect(screen.queryByText(/^已核实；/)).not.toBeInTheDocument();
+    expect(screen.getAllByText("尚未核实；尚无本次证据")).toHaveLength(6);
     expect(command).toHaveBeenCalledTimes(1);
   });
   it("failed reads leave all six unknown and preserve task error", async () => {
@@ -76,7 +76,7 @@ describe("explicit per-file qualification", () => {
     render(<FormatQualificationPanel command={command} identity={{...identity, jobState: "failed"}} error="malformed document"/>);
     fireEvent.click(screen.getByRole("button"));
     await screen.findByRole("alert");
-    expect(screen.getAllByText("UNVERIFIED")).toHaveLength(6);
+    expect(screen.getAllByText("尚未核实；尚无本次证据")).toHaveLength(6);
     expect(screen.getByText(/malformed document/)).toBeInTheDocument();
     await waitFor(() => expect(command).toHaveBeenCalledTimes(1));
   });

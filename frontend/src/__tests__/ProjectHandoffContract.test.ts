@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createHash, webcrypto } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { assertHandoffDto } from "../api/generated/project-handoff";
 import { assertPreview, assertSnapshot, parseContextProposal, verifyProposalFingerprint } from "../api/projectHandoff";
 import { coreCommand } from "../api/core";
 
-const previews = JSON.parse(readFileSync(resolve(process.cwd(), "../packages/contracts/v2/project-handoff-preview.cases.json"), "utf8"));
-const snapshots: Array<{name:string;value:Record<string,any>;schema_valid:boolean}> = JSON.parse(readFileSync(resolve(process.cwd(), "../packages/contracts/v2/project-handoff-snapshot.cases.json"), "utf8"));
+const contracts = resolve(process.cwd(), basename(process.cwd()) === "frontend" ? "../packages/contracts/v2" : "packages/contracts/v2");
+const previews = JSON.parse(readFileSync(resolve(contracts, "project-handoff-preview.cases.json"), "utf8"));
+const snapshots: Array<{name:string;value:Record<string,any>;schema_valid:boolean}> = JSON.parse(readFileSync(resolve(contracts, "project-handoff-snapshot.cases.json"), "utf8"));
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); delete window.__TAURI__; });
 function setup() {
   vi.useFakeTimers(); vi.setSystemTime(previews[0].now_ms); vi.stubGlobal("crypto", webcrypto);

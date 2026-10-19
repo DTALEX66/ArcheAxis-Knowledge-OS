@@ -14,7 +14,7 @@ describe("CAS layout controller and independent business ownership",()=>{
   const transport={read:vi.fn().mockResolvedValue(snapshot()),write:vi.fn().mockResolvedValue({...snapshot(1),layout:layoutPresets.learning}),recover:vi.fn()};
   const controller=new WorkspaceController(transport);await controller.read();controller.stage(layoutPresets.learning);await controller.save();expect(controller.pending).toBeNull();expect(controller.snapshot?.revision).toBe(1);
   transport.read.mockResolvedValue(controller.snapshot!);const restarted=new WorkspaceController(transport);expect((await restarted.read()).layout).toEqual(layoutPresets.learning);
-  transport.write.mockResolvedValue({...snapshot(2),restore_epoch:"b".repeat(32)});controller.stage(layoutPresets.default);await expect(controller.save()).rejects.toThrow("身份");expect(controller.pending).toEqual(layoutPresets.default);
+  transport.write.mockResolvedValue({...snapshot(2),restore_epoch:"b".repeat(32)});controller.stage(layoutPresets.default);await expect(controller.save()).rejects.toThrow("布局保存结果尚未确认；当前布局已保留，请重新读取后核对");expect(controller.pending).toEqual(layoutPresets.default);
  });
  it("holds one canonical reader/model/catalog host and uses stable workspace/object/session identities",()=>{
   expect(businessPanelId("02")).toBe("03");expect(businessPanelId("20")).toBe("03");expect(businessPanelId("14")).toBe("13");expect(businessPanelId("18")).toBe("17");
@@ -22,9 +22,9 @@ describe("CAS layout controller and independent business ownership",()=>{
  });
  it("does not accept a late layout save after workspace invalidation",async()=>{
   let resolve!:(value:LayoutSnapshot)=>void;const transport={read:vi.fn().mockResolvedValue(snapshot()),write:vi.fn(()=>new Promise<LayoutSnapshot>(done=>{resolve=done;})),recover:vi.fn()};
-  const controller=new WorkspaceController(transport);await controller.read();controller.stage(layoutPresets.default);const save=controller.save();controller.invalidate();resolve(snapshot(1));await expect(save).rejects.toThrow("身份");expect(controller.snapshot).toBeNull();expect(controller.pending).toEqual(layoutPresets.default);
+  const controller=new WorkspaceController(transport);await controller.read();controller.stage(layoutPresets.default);const save=controller.save();controller.invalidate();resolve(snapshot(1));await expect(save).rejects.toThrow("布局保存结果尚未确认；当前布局已保留，请重新读取后核对");expect(controller.snapshot).toBeNull();expect(controller.pending).toEqual(layoutPresets.default);
  });
  it("rejects a read from another workspace before accepting a writable CAS basis",async()=>{
-  const transport={read:vi.fn().mockResolvedValue(snapshot()),write:vi.fn(),recover:vi.fn()};const controller=new WorkspaceController(transport,()=>{},{workspace_id:"b".repeat(32),restore_epoch:"initial"});await expect(controller.read()).rejects.toThrow("身份");expect(controller.snapshot).toBeNull();controller.stage(layoutPresets.default);await expect(controller.save()).rejects.toThrow("读回");expect(transport.write).not.toHaveBeenCalled();
+  const transport={read:vi.fn().mockResolvedValue(snapshot()),write:vi.fn(),recover:vi.fn()};const controller=new WorkspaceController(transport,()=>{},{workspace_id:"b".repeat(32),restore_epoch:"initial"});await expect(controller.read()).rejects.toThrow("这份布局属于其他工作区，当前视图已保留");expect(controller.snapshot).toBeNull();controller.stage(layoutPresets.default);await expect(controller.save()).rejects.toThrow("请先读取已保存布局");expect(transport.write).not.toHaveBeenCalled();
  });
 });

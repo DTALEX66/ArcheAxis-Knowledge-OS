@@ -61,20 +61,20 @@ it("late layout hydration cannot reopen a final view the user has already closed
  await start(false);const draft=screen.getByLabelText("draft-01");fireEvent.change(draft,{target:{value:"closed during read"}});
  fireEvent.click(screen.getByRole("button",{name:"关闭视图 今日工作台"}));
  await act(async()=>resolveLayout(layoutReply()));
- expect(screen.queryByRole("tab",{name:"今日工作台"})).not.toBeInTheDocument();expect(screen.getByText(/操作后的当前视图保留/)).toBeInTheDocument();
+ expect(screen.queryByRole("tab",{name:"今日工作台"})).not.toBeInTheDocument();expect(screen.getByText(/已读取已保存的布局；保留当前视图/)).toBeInTheDocument();
  await page("01");await waitFor(()=>expect(draft).toBeVisible());expect(draft).toHaveValue("closed during read");
 });
 it("late layout hydration keeps the accepted object presentation instead of replacing it with singleton 03",async()=>{
  await start(false);fireEvent.click(screen.getByRole("button",{name:"模拟打开A"}));await screen.findByLabelText("draft-03");
  fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));
  await waitFor(()=>expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true"));
- await act(async()=>resolveLayout(layoutReply()));expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true");expect(screen.getByText(/操作后的当前视图保留/)).toBeInTheDocument();
+ await act(async()=>resolveLayout(layoutReply()));expect(tab("文档 doc_a")).toHaveAttribute("aria-selected","true");expect(screen.getByText(/已读取已保存的布局；保留当前视图/)).toBeInTheDocument();
 });
 it("native return to an AI family restores the last requested receipt page and retained session",async()=>{
  await start();await page("14");const draft=screen.getByLabelText("draft-14");fireEvent.change(draft,{target:{value:"frozen request"}});dirty(true);
  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);fireEvent.click(screen.getByRole("button",{name:"模拟查看回执"}));
  await waitFor(()=>expect(window.location.hash).toBe("#page=22"));expect(confirm).not.toHaveBeenCalled();expect(screen.getByLabelText("draft-22")).toBe(draft);
- dirty(false);await page("17");select("受限任务与回执");
+ dirty(false);await page("17");select("任务与记录");
  await waitFor(()=>expect(window.location.hash).toBe("#page=22"));expect(screen.getByLabelText("draft-22")).toBe(draft);expect(draft).toHaveValue("frozen request");
 });
 it("native object activation preserves full document identity and does not overwrite the singleton reader",async()=>{
@@ -90,7 +90,7 @@ it("native object activation preserves full document identity and does not overw
 
 it("late automatic layout read cannot undo a user lock",async()=>{
  await start(false);fireEvent.click(screen.getByText("布局与面板"));const lock=screen.getByRole("button",{name:"锁定布局"});fireEvent.click(lock);expect(lock).toHaveAttribute("aria-pressed","true");
- await act(async()=>resolveLayout(layoutReply()));expect(lock).toHaveAttribute("aria-pressed","true");expect(screen.getByRole("button",{name:"左右分栏"})).toBeDisabled();expect(screen.getByText(/操作后的当前视图保留/)).toBeInTheDocument();
+ await act(async()=>resolveLayout(layoutReply()));expect(lock).toHaveAttribute("aria-pressed","true");expect(screen.getByRole("button",{name:"左右分栏"})).toBeDisabled();expect(screen.getByText(/已读取已保存的布局；保留当前视图/)).toBeInTheDocument();
 });
 it("explicit working recovery adopts its scene without overwriting a retained document object host",async()=>{
  await start();const original=bridge.call.getMockImplementation()!;let rejectWrite:((error:Error)=>void)|undefined;let failedBase:WorkingRead|undefined;let recovery:WorkingRead|undefined;

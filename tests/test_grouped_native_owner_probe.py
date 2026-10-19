@@ -1497,6 +1497,11 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             "source_id": "source-exact", "version": 1,
             "content_sha256": hashlib.sha256(text.encode()).hexdigest(),
             "text_projection": text,
+            "editor_json": {"type": "doc", "content": [
+                {"type": "paragraph", "attrs": {"block_id": "block-exact"}, "content": [
+                    {"type": "text", "text": text.removesuffix("\n")}, {"type": "hardBreak"},
+                ]},
+            ]},
         }
         transform = {
             "source_id": "source-exact",
@@ -1517,10 +1522,14 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
             def click_selector(self, selector):
                 actions.append(("selector", selector))
-                if "查看原始回执（诊断）：文档身份与来源指纹" in selector:
+                if "查看原始回执（诊断）：文档与来源详细信息" in selector:
                     state["diagnostic"] = True
                 elif "禁用 text.extract" in selector:
                     state["enabled"] = False
+                elif selector == "//*[@data-recovery-request=" + self_test.probe.xpath_literal(frozen["request_id"]) + "]//button[@data-recovery-action='restore']":
+                    self_test.assertIsNotNone(state["journal"])
+                    self_test.assertEqual(state["journal"]["request_id"], frozen["request_id"])
+                    state["hydrated"] = True
                 elif "打开文档" in selector:
                     assert state["page"] == "#page=02", "document selection requires library page"
                     state["page"] = "#page=03"
@@ -1559,10 +1568,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                     if wrong_retry:
                         state["status"]["request_id"] = "another-request"
                     state["finished"] = True
-                elif label == "恢复冻结现场 " + frozen["request_id"]:
-                    self_test.assertIsNotNone(state["journal"])
-                    state["hydrated"] = True
-                elif label == "关闭诊断中心":
+                elif label == "关闭运行诊断":
                     state["diagnostic"] = False
                 elif label not in {"重新读取当前宿主能力", "整理此来源为知识候选"}:
                     raise AssertionError("unexpected click " + label)

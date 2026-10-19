@@ -49,14 +49,14 @@ it("distinguishes fixed materials through matching business labels and preserves
   expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent("《同名材料》，已保存文档第 7 版，仅所选片段");
   await user.click(screen.getByRole("button",{name:/冻结材料身份与选区/}));
   expect(screen.getByRole("dialog").querySelector("pre")?.textContent).toBe(JSON.stringify({material:first,selection:request.selection},null,2));
-  await user.click(screen.getByRole("button",{name:"关闭诊断中心"}));
+  await user.click(screen.getByRole("button",{name:"关闭运行诊断"}));
   const other={kind:"document" as const,document_id:"document-other",version:7,content_sha256:"e".repeat(64),block_id:"block-other"};
   view.rerender(<><FrozenRequestSummary request={{...request,material:other}} materialPresentation={{identity:other,title:"同名材料"}}/><DiagnosticCenter/></>);
   expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent("已保存文档第 7 版，指定内容块");
   expect(screen.getByRole("region",{name:"待确认请求"})).not.toHaveTextContent(/document-other|block-other/);
   await user.click(screen.getByRole("button",{name:/冻结材料身份与选区/}));
   expect(screen.getByRole("dialog").querySelector("pre")?.textContent).toBe(JSON.stringify({material:other,selection:request.selection},null,2));
-  await user.click(screen.getByRole("button",{name:"关闭诊断中心"}));
+  await user.click(screen.getByRole("button",{name:"关闭运行诊断"}));
   const nextVersion={...other,version:8};
   view.rerender(<><FrozenRequestSummary request={{...request,material:nextVersion}} materialPresentation={{identity:nextVersion,title:"同名材料"}}/><DiagnosticCenter/></>);
   expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent("已保存文档第 8 版，指定内容块");
@@ -77,4 +77,34 @@ it("keeps exact frozen consent fields visible for a cloud endpoint without claim
   render(<FrozenRequestSummary request={cloud} materialPresentation={{identity:request.material!,title:"已读材料"}}/>);
   const summary=screen.getByRole("region",{name:"待确认请求"});
   expect(summary).toHaveTextContent("仍是冻结问题");expect(summary).toHaveTextContent("cloud-frozen（快速）");expect(summary).toHaveTextContent("https://models.example.test/v1");expect(summary).toHaveTextContent("最多 1024 token，等待上限 120 秒");expect(summary).not.toHaveTextContent("本地服务");
+});
+
+
+it("preserves list numbering, nested item order, explicit task states and deleted text in the inert snapshot", () => {
+  const value = {type:"doc",content:[
+    {type:"orderedList",attrs:{start:7},content:[
+      {type:"listItem",content:[{type:"paragraph",content:[{type:"text",text:"第七步"}]},{type:"bulletList",content:[{type:"listItem",content:[{type:"paragraph",content:[{type:"text",text:"先检查"}]}]},{type:"listItem",content:[{type:"paragraph",content:[{type:"text",text:"后执行"}]}]}]}]},
+      {type:"listItem",content:[{type:"paragraph",content:[{type:"text",text:"旧结论",marks:[{type:"strike"}]},{type:"text",text:"新结论"}]}]}]},
+    {type:"taskList",content:[{type:"taskItem",attrs:{checked:true},content:[{type:"paragraph",content:[{type:"text",text:"已核对"}]}]},{type:"taskItem",attrs:{checked:false},content:[{type:"paragraph",content:[{type:"text",text:"待完成"}]}]},{type:"taskItem",content:[{type:"paragraph",content:[{type:"text",text:"状态未声明"}]}]}]}
+  ]};
+  const before = JSON.stringify(value);
+  const {container} = render(<DocumentSnapshot value={value} label="语义快照" showRaw={false}/>);
+  expect(screen.getByLabelText("语义快照").textContent).toBe("7. 第七步\n   - 先检查\n   - 后执行\n8. 〔删除线：旧结论〕新结论\n[x] 已核对\n[ ] 待完成\n[?] 状态未声明");
+  expect(JSON.stringify(value)).toBe(before);
+  expect(container.querySelector("input, a, button, [contenteditable]")).toBeNull();
+});
+
+it("keeps untrusted snapshot text inert while showing strike semantics", () => {
+  const {container} = render(<DocumentSnapshot value={{type:"doc",content:[{type:"paragraph",content:[{type:"text",text:'<img src="https://example.invalid/pixel" onerror="alert(1)">',marks:[{type:"strike"},{type:"link",attrs:{href:"https://example.invalid"}}]}]}]}} label="安全快照" showRaw={false}/>);
+  expect(screen.getByLabelText("安全快照")).toHaveTextContent('〔删除线：<img src="https://example.invalid/pixel" onerror="alert(1)">〕');
+  expect(container.querySelector("img, a, script")).toBeNull();
+});
+
+it("keeps a recovery preview available when a saved node shape cannot be rendered", () => {
+  const value=JSON.parse('{"type":"doc","content":[null,{"type":"taskList","content":[null]},{"type":"paragraph","content":"invalid"},{"type":"paragraph","content":[{"type":"text","text":"仍可预览的草稿","marks":{}}]}]}');
+  const before=JSON.stringify(value);
+  render(<DocumentSnapshot value={value} label="待恢复草稿" showRaw={false}/>);
+  expect(screen.getByLabelText("待恢复草稿")).toHaveTextContent("仍可预览的草稿");
+  expect(screen.getByLabelText("待恢复草稿")).toHaveTextContent("暂不能预览的内容，原内容已保留");
+  expect(JSON.stringify(value)).toBe(before);
 });

@@ -3,12 +3,13 @@ import {existsSync,readFileSync} from "node:fs";
 import {resolve} from "node:path";
 import {useState} from "react";
 import {beforeEach,expect,it,vi} from "vitest";
-import {act,fireEvent,render,screen,waitFor,within} from "@testing-library/react";
+import {act,fireEvent,render,renderHook,screen,waitFor,within} from "@testing-library/react";
 import type {Editor} from "@tiptap/core";
 import {SpaceView} from "../spaces/SpaceView";
 import {DocumentEditor} from "../components/DocumentEditor";
 import {DockWorkspace} from "../workspace/DockWorkspace";
 import {outputReceipt} from "./fixtures/jobContentCoreFixture";
+import {resetDiagnostics,useDiagnosticState} from "../presentation/diagnostics";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 // Read the same canonical vocabulary that generates Rust KNOWLEDGE_TYPES.
 // This remains a SIMULATED transport, but may not accept a type Core rejects.
@@ -42,10 +43,17 @@ function mockCore(mismatch=false,candidateStatus="CURRENT"){let accepted=false,k
  default:throw new Error(`unconfigured ${op}`);
  }
 });}
+function expectSourceDiagnostic(region:HTMLElement, expectedId:string){
+ expect(region).not.toHaveTextContent(expectedId);
+ const diagnostics=renderHook(useDiagnosticState);
+ fireEvent.click(within(region).getByRole("button",{name:"查看原始回执（诊断）：原件编号与版本详细信息"}));
+ expect(diagnostics.result.current.entries[0].payload).toEqual({source_id:expectedId,source_revision:hash});
+ diagnostics.unmount();
+}
 function Journey(){const[page,setPage]=useState("16");return <SpaceView spaceId={page==="16"?"exchange":"library"} uiPageId={page} onInspect={()=>{}} onNavigate={()=>{throw new Error("legacy navigation forbidden");}} onOpenPage={setPage}/>;}
 function DockJourney({initialPage="16",refuse=false,documentId}:{initialPage?:string;refuse?:boolean;documentId?:string}){const[page,setPage]=useState(initialPage);return <><nav><button onClick={()=>setPage("16")}>手动进入导入页</button><button onClick={()=>setPage("03")}>手动进入阅读页</button></nav><DockWorkspace spaceId={page==="16"?"exchange":"library"} uiPageId={page} initialDocumentId={documentId} onInspect={()=>{}} onNavigate={()=>{throw new Error("legacy navigation forbidden");}} onOpenPage={id=>{if(!refuse)setPage(id);}}/></>;}
 class ResizeObserverStub{observe(){}unobserve(){}disconnect(){}}
-beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);vi.stubGlobal("ResizeObserver",ResizeObserverStub);});
+beforeEach(()=>{resetDiagnostics();bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);vi.stubGlobal("ResizeObserver",ResizeObserverStub);});
 it.each(["16","03"])("SIMULATED real Dockview transfers the exact source/job into a distinct reader host (initial page %s)",async initialPage=>{
  mockCore();render(<DockJourney initialPage={initialPage}/>);
  fireEvent.click(screen.getByRole("button",{name:"手动进入导入页"}));
@@ -55,7 +63,7 @@ it.each(["16","03"])("SIMULATED real Dockview transfers the exact source/job int
  fireEvent.click(await within(exchange).findByRole("button",{name:"阅读此原件与整理知识候选"}));
  const reader=await screen.findByRole("region",{name:"阅读与编辑文档视图"});
  const preparation=await within(reader).findByRole("region",{name:"同源知识整理"});
- expect(preparation).toHaveTextContent(source.source_id);expect(preparation).toHaveTextContent(hash);
+ expectSourceDiagnostic(preparation,source.source_id);expect(preparation).not.toHaveTextContent(hash);
  expect(bridge.call).toHaveBeenCalledWith("source_original",{source_id:source.source_id});
  fireEvent.click(within(preparation).getByRole("button",{name:"整理此来源为知识候选"}));
  expect(await within(reader).findByRole("textbox",{name:"选择实际引文"})).toHaveValue(text);
@@ -72,7 +80,7 @@ it("SIMULATED refused Dock navigation leaves the retained reader unchanged and d
  fireEvent.click(await screen.findByRole("button",{name:"选择已完成批量原件"}));
  fireEvent.click(await screen.findByRole("button",{name:"阅读此原件与整理知识候选"}));
  const reader=await screen.findByRole("region",{name:"阅读与编辑文档视图"});
- expect(await within(reader).findByRole("region",{name:"同源知识整理"})).toHaveTextContent(source.source_id);
+ expectSourceDiagnostic(await within(reader).findByRole("region",{name:"同源知识整理"}),source.source_id);
  fireEvent.click(screen.getByRole("button",{name:"手动进入导入页"}));view.rerender(<DockJourney refuse/>);
  fireEvent.click(screen.getByRole("button",{name:"选择另一个批量原件"}));
  const read=await screen.findByRole("button",{name:"阅读此原件与整理知识候选"});
@@ -80,11 +88,12 @@ it("SIMULATED refused Dock navigation leaves the retained reader unchanged and d
  fireEvent.click(read);
  expect(screen.getByRole("region",{name:"导入、导出与互通"})).toBeVisible();
  fireEvent.click(screen.getByRole("button",{name:"手动进入阅读页"}));
- expect(within(screen.getByRole("region",{name:"阅读与编辑文档视图"})).getByRole("region",{name:"同源知识整理"})).toHaveTextContent(source.source_id);
+ expectSourceDiagnostic(within(screen.getByRole("region",{name:"阅读与编辑文档视图"})).getByRole("region",{name:"同源知识整理"}),source.source_id);
  expect(bridge.call.mock.calls.filter(([op,p])=>op==="source_original"&&p.source_id===other.source_id)).toHaveLength(before);
  fireEvent.click(screen.getByRole("button",{name:"手动进入导入页"}));view.rerender(<DockJourney/>);
  fireEvent.click(screen.getByRole("button",{name:"阅读此原件与整理知识候选"}));
- await waitFor(()=>expect(within(screen.getByRole("region",{name:"阅读与编辑文档视图"})).getByRole("region",{name:"同源知识整理"})).toHaveTextContent(other.source_id));
+ await waitFor(()=>expect(within(screen.getByRole("region",{name:"阅读与编辑文档视图"})).getByRole("region",{name:"同源知识整理"})).toHaveTextContent(other.original_name));
+ expectSourceDiagnostic(within(screen.getByRole("region",{name:"阅读与编辑文档视图"})).getByRole("region",{name:"同源知识整理"}),other.source_id);
  expect(bridge.call.mock.calls.filter(([op,p])=>op==="source_original"&&p.source_id===other.source_id)).toHaveLength(before+1);
  view.rerender(<DockJourney documentId="doc-exact"/>);
  await waitFor(()=>expect(within(reader).getByRole("region",{name:"同源知识整理"}).closest("details")).toHaveClass("reader-source-tools"));

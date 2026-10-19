@@ -449,7 +449,7 @@ def _xlsx_text(path: Path) -> dict:
                                   "coordinate": cell.coordinate,
                                   "row": cell.row, "column": cell.column})
             if cells:
-                text_parts.append({"kind": "sheet_row", "sheet": sheet.title, "text": " | ".join(cells)})
+                text_parts.append({"kind": "sheet_row", "sheet": sheet.title, "row": row[0].row, "text": " | ".join(cells)})
     if not text_parts:
         raise ValueError("xlsx contains no extractable cell values")
     projection = "\n".join(part["text"] for part in text_parts)
@@ -460,7 +460,7 @@ def _xlsx_text(path: Path) -> dict:
         if start < 0:
             start = offset
         structure.append(
-            {"kind": part["kind"], "path": [f"sheet-{part['sheet']}", f"row-{index}"], "char_start": start, "char_end": start + len(part["text"])}
+            {"kind": part["kind"], "path": [f"sheet-{part['sheet']}", f"row-{part['row']}"], "char_start": start, "char_end": start + len(part["text"])}
         )
         offset = start + len(part["text"])
     return {

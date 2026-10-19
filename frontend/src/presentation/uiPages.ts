@@ -25,7 +25,7 @@ export const UI_PAGES: readonly UiPage[] = [
   page("19", "设置、权限与恢复", "系统与可靠性", "settings", true, "UF04"),
   page("20", "版本、来源与历史", "系统与可靠性", "library", true, "UF04"),
   page("21", "画布与视觉表达", "人类学习", "learning", true, "UF12"),
-  page("22", "受限任务与回执", "AI 知识与学习", "ai-assets", true, "UF09"),
+  page("22", "任务与记录", "AI 知识与学习", "ai-assets", true, "UF09"),
 ];
 export const findUiPage = (id: string): UiPage | undefined => UI_PAGES.find(page => page.id === id);
 export const defaultUiPage = (space: SpaceId): string => ({workspace:"01",library:"03",intake:"16",vault:"02",evidence:"20",learning:"06","ai-assets":"13",exchange:"16",settings:"19"})[space];

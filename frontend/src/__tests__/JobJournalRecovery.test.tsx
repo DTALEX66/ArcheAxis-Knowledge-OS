@@ -5,6 +5,8 @@ import { CoreWorkingStateSession,type PendingJob,type WorkingRead,type WorkingTr
 import { CoreWorkingStateProvider } from "../presentation/useCoreWorkingState";
 import { JobContent } from "../components/JobContent";
 import { FolderIngest } from "../components/FolderIngest";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import { BoundedJobPanel } from "../components/BoundedJobPanel";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const hash="a".repeat(64);
@@ -15,7 +17,7 @@ function fixture(surface:PendingJob["surface"]){
  return {entry,transport,get:()=>structuredClone(server)};
 }
 describe("SIMULATED real components rehydrate exact Core journal without automatic work",()=>{
- beforeEach(()=>{bridge.call.mockReset();bridge.call.mockImplementation(async(op:string)=>{
+ beforeEach(()=>{resetDiagnostics();bridge.call.mockReset();bridge.call.mockImplementation(async(op:string)=>{
   if(op==="capabilities_list")return {};
   if(op==="sources_list")return {sources:[{source_id:"source",source_revision:hash,sha256:hash,original_name:"owned.txt",imported_at:"SIMULATED"}]};
   if(op==="source_jobs")return {source_id:"source",jobs:[{job_id:"original_job",input_ref:"source",kind:"text",state:"queued"}],jobs_capped:false};
@@ -28,10 +30,11 @@ describe("SIMULATED real components rehydrate exact Core journal without automat
   const f=fixture(surface);const user=userEvent.setup();
   const component=()=>surface==="manual"?<JobContent sourceId="source" sourceRevision={hash} name="owned.txt"/>:surface==="folder"?<FolderIngest/>:<BoundedJobPanel command={bridge.call} pollMs={60000}/>;
   async function mount(){const session=new CoreWorkingStateSession(f.transport);await session.load();return render(<CoreWorkingStateProvider session={session}>{component()}</CoreWorkingStateProvider>);}
-  let view=await mount();await user.click(screen.getByRole("button",{name:"恢复冻结现场 original_request"}));
-  await waitFor(()=>expect(screen.getAllByText(/original_request/).length).toBeGreaterThan(1));
+  let view=await mount();await user.click(screen.getByRole("button",{name:"恢复处理任务 1"}));
+  await screen.findByRole("button",{name:surface==="manual"?"同请求重试转换":"同请求重试"});
+  expect(f.get().state.pending_jobs).toEqual({original_request:f.entry});
   expect(bridge.call.mock.calls.some(([op])=>["job_execute","job_enqueue","capability_set_enabled"].includes(op))).toBe(false);
-  view.unmount();view=await mount();await user.click(screen.getByRole("button",{name:"恢复冻结现场 original_request"}));
+  view.unmount();view=await mount();await user.click(screen.getByRole("button",{name:"恢复处理任务 1"}));
   const retry=surface==="manual"?"同请求重试转换":surface==="folder"?"同请求重试":"同请求重试";
   await user.click(await screen.findByRole("button",{name:retry}));
   await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1));
@@ -44,17 +47,18 @@ describe("SIMULATED real components rehydrate exact Core journal without automat
  it.each(["manual","folder","bounded"] as const)("bounded fresh selection protects the %s-owned job and explicitly restores its original request",async(surface)=>{
   const f=fixture(surface),session=new CoreWorkingStateSession(f.transport),user=userEvent.setup();
   const write=vi.spyOn(f.transport,"write");await session.load();
-  const view=render(<CoreWorkingStateProvider session={session}><BoundedJobPanel command={bridge.call} pollMs={60000}/></CoreWorkingStateProvider>);
+  const view=render(<><CoreWorkingStateProvider session={session}><BoundedJobPanel command={bridge.call} pollMs={60000}/></CoreWorkingStateProvider><DiagnosticConsole/></>);
   await user.selectOptions(await screen.findByLabelText("已保存来源"),"source");
-  await waitFor(()=>expect(screen.getByLabelText("来源任务")).toHaveTextContent("original_job"));
+  await waitFor(()=>expect(Array.from((screen.getByLabelText("来源任务") as HTMLSelectElement).options).map(option=>option.value)).toContain("original_job"));
   await user.selectOptions(screen.getByLabelText("来源任务"),"original_job");
   const fresh=await screen.findByRole("button",{name:"执行已保存任务"});
-  await waitFor(()=>expect(screen.getByText("queued",{selector:"dd"})).toBeInTheDocument());
-  await user.clear(screen.getByLabelText("单次预算（毫秒）"));await user.type(screen.getByLabelText("单次预算（毫秒）"),"1000");
+  await user.click(await screen.findByRole("button",{name:"查看原始回执（诊断）：任务状态与保存进度详细信息"}));
+  expect(JSON.parse(screen.getByLabelText("诊断控制台").querySelector("details[open] pre")!.textContent!)).toMatchObject({state:"queued",job_id:"original_job",input_ref:"source"});
+  await user.clear(screen.getByLabelText("最长等待时间（毫秒）"));await user.type(screen.getByLabelText("最长等待时间（毫秒）"),"1000");
   expect(fresh).toBeDisabled();await user.click(fresh);
   expect(write).not.toHaveBeenCalled();expect(session.getSnapshot().state.pending_jobs).toEqual({original_request:f.entry});
   expect(bridge.call.mock.calls.some(([op])=>op==="job_execute")).toBe(false);
-  await user.click(screen.getByRole("button",{name:"恢复冻结现场 original_request"}));
+  await user.click(screen.getByRole("button",{name:"恢复处理任务 1"}));
   expect(bridge.call.mock.calls.some(([op])=>op==="job_execute")).toBe(false);
   await user.click(await screen.findByRole("button",{name:"同请求重试"}));
   await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1));

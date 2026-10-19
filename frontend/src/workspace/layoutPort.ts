@@ -2,9 +2,9 @@ import { assertLayoutDto, type LayoutLayout, type LayoutSnapshot } from "../api/
 export type LayoutTransport = {read:()=>Promise<LayoutSnapshot>; write:(base:LayoutSnapshot,layout:LayoutLayout)=>Promise<LayoutSnapshot>; recover:(base:LayoutSnapshot,width:number,height:number)=>Promise<LayoutSnapshot>};
 // Fixed, product-owned finite Core routes. No browser persistence or generic transport.
 async function command(operation:"layout_read"|"layout_write"|"layout_recover",payload:Record<string,unknown>):Promise<LayoutSnapshot>{
- const invoke=window.__TAURI__?.core?.invoke;if(!invoke)throw new Error("布局仅在本地桌面持久化；当前视图仍保留。");
+ const invoke=window.__TAURI__?.core?.invoke;if(!invoke)throw new Error("请在桌面应用中保存布局；当前视图仍保留。");
  const raw=await invoke("core_command",{request:{operation,payload}}) as {status:number;body:unknown};
- if(!raw||raw.status<200||raw.status>=300)throw new Error(raw?.status===409?"布局版本冲突；当前视图保留，请读回再决定。":"布局保存未确认；当前视图保留。");
+ if(!raw||raw.status<200||raw.status>=300)throw new Error(raw?.status===409?"布局版本冲突；当前视图保留，请重新读取后再决定。":"布局保存未确认；当前视图保留。");
  return assertLayoutDto<LayoutSnapshot>("Snapshot",raw.body);
 }
 let temporaryDevice:string|undefined;

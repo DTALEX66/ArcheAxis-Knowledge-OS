@@ -4,6 +4,7 @@ import type { PendingJob } from "../presentation/coreWorkingState";
 import { useEffect, useId, useRef, useState } from "react";
 import type { SourcesListDto, SourceJobsDto } from "../api/generated/core-contract";
 import { FormatQualificationPanel } from "./FormatQualificationPanel";
+import { RawReceiptButton } from "./DiagnosticConsole";
 
 /** Integration port: add these finite operations to generated Core/native contracts first. */
 export type BoundedJobOperation = "sources_list" | "source_jobs" | "jobs_get" | "job_execute" | "job_execution_status" | "job_execution_cancel" | "source_job_format_qualification";
@@ -22,6 +23,14 @@ function statusOf(value: unknown, job: string, source: string): JobStatus {
     || !(row.request_id === null || typeof row.request_id === "string")
     || !(row.error === null || typeof row.error === "string")) throw new Error("任务状态身份不匹配");
   return row as JobStatus;
+}
+
+function checkpointSummary(receipt: Record<string, unknown>): string {
+  const checkpoint = receipt.checkpoint && typeof receipt.checkpoint === "object" ? receipt.checkpoint as Record<string, unknown> : {};
+  const continuation = receipt.continuation && typeof receipt.continuation === "object" ? receipt.continuation as Record<string, unknown> : {};
+  const saved = checkpoint.status === "CORE_COMMITTED" ? "有已保存的输出记录" : checkpoint.status === "NOT_OBSERVED" ? "尚未观察到已保存的输出" : "输出保存状态尚未确认";
+  const resume = continuation.resume_status === "NOT_SUPPORTED" ? "不支持从保存位置继续" : "能否从保存位置继续尚未核实";
+  return `${saved}；${resume}。`;
 }
 
 export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJobCommand; pollMs?: number }) {
@@ -155,15 +164,15 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     finally { action.current = false; if (alive.current && generation === epoch.current) setBusy(false); }
   }
   const locked = busy || pending || status?.state === "running";
-  return <section aria-label="受限任务执行"><JobJournalRecovery entries={journal.allEntries} disabled={busy||journal.blocked} onRestore={entry=>{if(currentAttempt.current&&currentAttempt.current.request_id!==entry.request_id)return;restoreEntry.current=entry;if(sourceId!==entry.source_id)setSourceId(entry.source_id);else if(jobId!==entry.job_id)setJobId(entry.job_id);else{const frozen={job_id:entry.job_id,request_id:entry.request_id,body:entry.body};currentAttempt.current=frozen;setAttempt(frozen);setUncertain(true);setDeadline(String(entry.body.deadline_ms));setSplit(entry.body.split);setWords(entry.body.words);restoreEntry.current=null;}setMessage("冻结身份已从 Core 恢复；只读取状态，不自动执行或启用能力。");}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");if(alive.current&&currentAttempt.current?.request_id===entry.request_id){currentAttempt.current=null;setAttempt(null);setUncertain(false);}}}/>
+  return <section aria-label="受限任务执行"><JobJournalRecovery entries={journal.allEntries} disabled={busy||journal.blocked} onRestore={entry=>{if(currentAttempt.current&&currentAttempt.current.request_id!==entry.request_id)return;restoreEntry.current=entry;if(sourceId!==entry.source_id)setSourceId(entry.source_id);else if(jobId!==entry.job_id)setJobId(entry.job_id);else{const frozen={job_id:entry.job_id,request_id:entry.request_id,body:entry.body};currentAttempt.current=frozen;setAttempt(frozen);setUncertain(true);setDeadline(String(entry.body.deadline_ms));setSplit(entry.body.split);setWords(entry.body.words);restoreEntry.current=null;}setMessage("待确认任务已找回；仅检查实际状态，不会自动执行。");}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");if(alive.current&&currentAttempt.current?.request_id===entry.request_id){currentAttempt.current=null;setAttempt(null);setUncertain(false);}}}/>
     <h2>受限任务与检查点</h2>
     {message ? <p role="status">{message}</p> : null}
-    <p>仅执行已保存的 Core job。机器回执历史单独保留；不授予通用 Agent 权限。</p>
-    <label>已保存来源 <select value={sourceId} disabled={locked} onChange={event => { setSourceId(event.target.value); setMessage(""); }}><option value="">选择来源</option>{sources.map(row => <option key={row.source_id} value={row.source_id}>{row.original_name} · {row.source_id}</option>)}</select></label>
-    <label>来源任务 <select value={jobId} disabled={locked} onChange={event => { setJobId(event.target.value); setMessage(""); }}><option value="">选择任务</option>{jobs.map(row => <option key={row.job_id} value={row.job_id}>{row.kind} · {row.job_id} · {row.state}</option>)}</select></label>
+    <p>这里只运行已保存的任务；AI 回答历史可另行查看。</p>
+    <label>已保存来源 <select value={sourceId} disabled={locked} onChange={event => { setSourceId(event.target.value); setMessage(""); }}><option value="">选择来源</option>{sources.map(row => <option key={row.source_id} value={row.source_id}>{row.original_name}</option>)}</select></label>
+    <label>来源任务 <select value={jobId} disabled={locked} onChange={event => { setJobId(event.target.value); setMessage(""); }}><option value="">选择任务</option>{jobs.map(row => <option key={row.job_id} value={row.job_id}>{row.kind} · {row.state}</option>)}</select></label>
     {capped ? <p>只列最近 50 个来源任务；未列出不表示不存在。</p> : null}
-    <label>单次预算（毫秒）<input type="number" min={1} max={300000} step={1} value={deadline} disabled={locked} onChange={event => setDeadline(event.target.value)} /></label>
-    <label><input type="checkbox" checked={split} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setSplit(event.target.checked)} />媒体分段（窗口计划由 Core 决定）</label>
+    <label>最长等待时间（毫秒）<input type="number" min={1} max={300000} step={1} value={deadline} disabled={locked} onChange={event => setDeadline(event.target.value)} /></label>
+    <label><input type="checkbox" checked={split} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setSplit(event.target.checked)} />分段处理媒体</label>
     <label><input type="checkbox" checked={words} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setWords(event.target.checked)} />词级时间</label>
     <button disabled={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)} onClick={() => void execute(false)}>执行已保存任务</button>
     <button disabled={!attempt || !uncertain || busy} onClick={() => void execute(true)}>同请求重试</button>
@@ -174,8 +183,8 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     {status && status.job_id === jobId && status.input_ref === sourceId ? <FormatQualificationPanel
       key={JSON.stringify([sourceId, sources.find(row => row.source_id === sourceId)?.source_revision, jobId, status.attempt, status.state])}
       command={command} identity={{sourceId, sourceRevision: sources.find(row => row.source_id === sourceId)?.source_revision ?? "", jobId, attempt: status.attempt, jobState: status.state}} error={status.error}/> : null}
-    {attempt ? <p>冻结请求 {attempt.request_id} · {attempt.body.deadline_ms} ms</p> : null}
-    {currentReceipt ? <><h3>实际尝试步骤与提交记录</h3><pre aria-label="实际预算与步骤">{JSON.stringify({budget:currentReceipt.budget,steps:currentReceipt.steps},null,2)}</pre><pre aria-label="已提交检查点">{JSON.stringify(currentReceipt.checkpoint,null,2)}</pre><pre aria-label="继续条件">{JSON.stringify(currentReceipt.continuation,null,2)}</pre><p>CORE_COMMITTED 只表示这些 Core 提交记录。NOT_OBSERVED 不等于无数据；NOT_SUPPORTED 不支持检查点恢复。新请求仍须当前来源、能力与路由通过 Core 校验。</p></> : <p>当前接口未提供预算、步骤或检查点明细，不能推导进度或保证可恢复。</p>}
-    {status ? <><dl><dt>任务</dt><dd>{status.job_id}</dd><dt>实际 attempt</dt><dd>{status.attempt ?? "未提供"}</dd><dt>实际 request_id</dt><dd>{status.request_id ?? "未提供"}</dd><dt>状态</dt><dd>{status.state}</dd><dt>错误</dt><dd>{status.error ?? "未提供"}</dd></dl><details><summary>完整状态与检查点回执</summary><pre>{JSON.stringify(status, null, 2)}</pre></details>{["failed", "cancelled", "rejected"].includes(status.state) ? <p>此尝试已终止，原提交记录与错误保留。只有 Core 提供当前新尝试条件时才开放新请求重试；它不是同请求重放，也不自动证明媒体检查点已恢复。</p> : null}</> : null}
+    {attempt ? <><p>有待确认的任务请求，最长等待 {attempt.body.deadline_ms} 毫秒。</p><RawReceiptButton label="待确认任务详细信息" payload={attempt}/></> : null}
+    {currentReceipt ? <><h3>实际尝试步骤与提交记录</h3><p>{checkpointSummary(currentReceipt)}</p><RawReceiptButton label="任务步骤与继续条件详细信息" payload={currentReceipt}/><p>已保存进度只代表应用记录过的步骤；未观察到不等于没有数据。不支持继续的任务需重新开始，并再次检查来源和使用权限。</p></> : <p>当前接口未提供预算、步骤或检查点明细，不能推导进度或保证可恢复。</p>}
+    {status ? <><p>当前状态：{status.state === "succeeded" ? "已完成" : status.state === "failed" ? "失败" : status.state === "cancelled" ? "已取消" : status.state === "running" ? "正在处理" : "待确认"}。{status.error ? "失败详情可在运行诊断中查看。" : ""}</p><RawReceiptButton label="任务状态与保存进度详细信息" payload={status}/>{["failed", "cancelled", "rejected"].includes(status.state) ? <p>此尝试已终止，原提交记录与错误保留。只有当前任务允许时才开放新请求重试；它不是同请求重放，也不自动证明媒体检查点已恢复。</p> : null}</> : null}
   </section>;
 }

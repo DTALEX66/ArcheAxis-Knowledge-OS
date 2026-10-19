@@ -56,7 +56,7 @@ export function AiAssetsSpace({ onInspect }: { onInspect: (target: InspectionTar
                 <td>{item.title}</td><td>{stateLabel(item.lifecycle)}</td>
                 <td><button type="button" onClick={() => onInspect({
                   title: item.title,
-                  source: "机器知识",
+                  source: "AI 生成的知识",
                   lifecycle: stateLabel(item.lifecycle),
                   detail: item.content.slice(0, 280),
                 })}>查看</button>{" "}<button type="button" aria-label={`弃用 ${item.title}`} onClick={async () => {

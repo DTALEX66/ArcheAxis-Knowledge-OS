@@ -13,7 +13,7 @@ afterEach(()=>{vi.unstubAllGlobals();delete window.__TAURI__;});
 const props={spaceId:"library" as const,uiPageId:"03",onInspect:vi.fn(),onNavigate:vi.fn(),onOpenPage:vi.fn()};
 describe("actual Dockview retained business consumer",()=>{
  it.each([
-  {spaceId:"ai-assets" as const,pages:[["13","项目记忆与上下文"],["14","纠正、评测与复测"],["22","受限任务与回执"]]},
+  {spaceId:"ai-assets" as const,pages:[["13","项目记忆与上下文"],["14","纠正、评测与复测"],["22","任务与记录"]]},
   {spaceId:"library" as const,pages:[["02","知识库"],["03","阅读与编辑"],["20","版本、来源与历史"]]},
  ])("labels accepted semantic pages in a single retained $spaceId business host",async({spaceId,pages})=>{
   const activate=vi.fn(()=>true);

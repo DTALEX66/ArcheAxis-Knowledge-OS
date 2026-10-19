@@ -53,7 +53,7 @@ it("SYNTHETIC presentation changes keep the submitted item and frozen versions e
  fireEvent.click(screen.getByRole("button",{name:"查看答案与核对内容"}));fireEvent.click(screen.getByLabelText("回答正确"));fireEvent.change(screen.getByLabelText("学习者自评"),{target:{value:"3"}});fireEvent.click(screen.getByRole("button",{name:"记录复习结果"}));
  await waitFor(()=>expect(call.mock.calls.filter(([op])=>op==="learning_review")).toHaveLength(1));
  expect(call.mock.calls.find(([op])=>op==="learning_review")?.[1]).toMatchObject({body:{item_key:key,assessment_id:assessment.assessment_id,knowledge_version:revision,question_version:assessment.question_version,correct:true,rating:3,answer:"独立回答"}});
- await screen.findByText(/Core 已确认复习记录/);
+ await screen.findByText(/复习记录已保存/);
 });
 it("SYNTHETIC entering an answer does not put the opaque item and revision back into the collapsed draft summary",async()=>{
  render(<CanonicalLearningSpace initialItemKey={key}/>);fireEvent.change(await screen.findByLabelText("本次答案"),{target:{value:"保留的独立答案"}});

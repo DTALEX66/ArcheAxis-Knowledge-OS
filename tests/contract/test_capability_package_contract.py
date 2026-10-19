@@ -103,3 +103,11 @@ def test_semantic_gate_is_required_not_schema_only():
         assert Draft202012Validator(SCHEMA).is_valid(case["value"])
         with pytest.raises(VALIDATE.ManifestValidationError):
             VALIDATE.validate_manifest(case["value"], ROOT, SCHEMA)
+
+
+def test_modified_contract_bytes_are_rejected_even_when_schema_is_valid():
+    value = copy.deepcopy(CASES[0]["value"])
+    value["compatibility"]["contract_refs"][0]["sha256"] = "0" * 64
+    assert Draft202012Validator(SCHEMA).is_valid(value)
+    with pytest.raises(VALIDATE.ManifestValidationError, match="^MANIFEST_SOURCE_DRIFT$"):
+        VALIDATE.validate_manifest(value, ROOT, SCHEMA)

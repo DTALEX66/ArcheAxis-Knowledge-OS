@@ -16,6 +16,17 @@ MANIFEST = "docs/archive/MANIFEST.json"
 MEMBER = "docs/archive/evidence.txt"
 
 
+def test_xiaoqi_original_crlf_is_accepted_only_at_exact_path_and_hash():
+    path = "docs/history/xiaoqi-source-20261018/STATE-ASSET-INDEX.json"
+    content = (Path(__file__).resolve().parents[1] / path).read_bytes()
+    assert b"\r\n" in content
+    assert hashlib.sha256(content).hexdigest() == scanner._PRESERVED_PACKAGE_MEMBER_HASHES[path]
+    assert scanner.scan_text_bytes(path, content) == []
+    for altered in (content.replace(b"\r\n", b"\n"), content + b"x"):
+        assert [issue.code for issue in scanner.scan_text_bytes(path, altered)] == ["preserved-fixture-mismatch"]
+    assert "crlf" in {issue.code for issue in scanner.scan_text_bytes("docs/copy/STATE-ASSET-INDEX.json", content)}
+
+
 def fixture_snapshot(*, members=None, schema="aaos.evidence-snapshot/v1"):
     content = b"\xef\xbb\xbfarchived raw bytes \r\nlast line"
     if members is None:

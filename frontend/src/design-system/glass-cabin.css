@@ -313,3 +313,76 @@ body:has(.cabin-shell) {
   .cabin-shell[data-navigation-appearance="top"] .workspace-entry-card button { font-size: 18px; }
 }
 @media (prefers-reduced-transparency: reduce) { .cabin-shell[data-navigation-appearance="top"] :is(.workspace-entry-card,.workspace-search-options,.workspace-quick-actions button) { background: var(--ax-panel); backdrop-filter: none; } }
+
+/* Compact chrome by available CSS space, without scaling content or pointer targets. */
+@media (max-width: 1100px), (max-height: 760px) {
+  .app-shell.cabin-shell { margin: 4px; height: calc(100dvh - 8px); min-height: 0; border-radius: 16px; padding-inline: 4px; }
+  .cabin-shell .top-nav-bar { flex: 0 0 auto; order: -2; }
+  .cabin-shell .top-nav-container { height: 40px; padding: 2px 8px; gap: 8px; }
+  .cabin-shell .top-nav-left { min-width: 0; gap: 8px; }
+  .cabin-shell .top-nav-logo { width: 28px; height: 28px; }
+  .cabin-shell .top-nav-breadcrumb > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cabin-shell .top-nav-right { gap: 4px; flex-shrink: 0; }
+  .cabin-shell .top-nav-center { display: none; }
+  .app-shell.cabin-shell .status-bar { order: -1; display: flex; flex-wrap: nowrap; height: 44px; min-height: 44px; padding: 4px 8px 4px 92px; gap: 8px; }
+  .cabin-shell .status-bar-brand, .cabin-shell .status-bar-space, .cabin-shell .space-top-navigation { display: none; }
+  .cabin-shell .command-trigger { flex: 0 0 36px; width: 36px; min-width: 36px; height: 36px; padding: 0; }
+  .cabin-shell .command-trigger :is(span,kbd) { display: none; }
+  .cabin-shell .status-bar-center { flex: 1; min-width: 0; margin: 0; overflow: hidden; }
+  .cabin-shell .status-pill { display: block; font-size: 12px; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cabin-shell .theme-picker { flex: 0 0 auto; }
+  .cabin-shell .inspector-trigger { flex: 0 0 36px; width: 36px; height: 36px; padding: 0; }
+  .cabin-shell .cabin-settings { flex: 0 0 36px; padding: 0; border: 0; }
+  .cabin-shell .cabin-settings > summary { min-height: 36px; width: 36px; padding: 0; display: grid; place-items: center; }
+  .app-shell.cabin-shell > .ui-navigation-trigger { display: block; position: absolute; z-index: 50; top: 46px; left: 12px; margin: 0; height: 36px; min-height: 36px; padding: 4px 10px; }
+  .cabin-shell .app-body > .navigation-sidebar { display: none !important; }
+  .cabin-shell .app-body { flex-direction: column; gap: 4px; }
+  .cabin-shell .app-center { flex: 1 1 0; width: 100%; min-height: 0; padding: 8px; }
+  .cabin-shell[data-cabin-page="03"] .app-center { padding: 8px; margin-top: 0; }
+  .cabin-shell[data-cabin-page="03"]:has(> [data-working-state="ready"]) .app-center { margin-top: 0; }
+  .cabin-shell[data-cabin-page="03"] > section[data-working-state="ready"][role="status"] { position: static; order: 0; min-height: 22px; padding: 1px 8px; margin: 0; font-size: 12px; line-height: 20px; }
+  .cabin-shell :is(.app-body,.activity-dock) { order: 2; }
+  .cabin-shell .nav-trail { margin: 0 0 2px; padding-right: 0; flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; font-size: 13px; line-height: 20px; }
+  .cabin-shell .ui-page-heading { margin-bottom: 4px; padding-bottom: 4px; gap: 4px; }
+  .cabin-shell .ui-page-heading :is(p,small) { display: none; }
+  .cabin-shell .ui-page-heading h1, .cabin-shell[data-cabin-page="03"] .ui-page-heading h1 { margin: 0; font-size: 20px; line-height: 26px; }
+  .cabin-shell[data-cabin-page="03"] .dock-layout-options { top: 4px; right: 8px; }
+  .cabin-shell .activity-dock { min-height: 32px; padding: 4px 8px; }
+  .cabin-shell .activity-dock-summary { gap: 8px; }
+  .cabin-shell .activity-dock-item { font-size: 12px; min-width: 0; overflow-wrap: anywhere; }
+  .cabin-shell .activity-dock button { min-height: 24px; flex-shrink: 0; }
+  .cabin-shell .app-body > .inspector { flex: 0 0 96px; width: 100%; max-height: 96px; min-height: 0; padding: 0 10px 8px; border-left: 0; border-top: 1px solid var(--ax-border); overflow: auto; }
+  .cabin-shell .inspector-heading { position: sticky; top: 0; z-index: 1; background: var(--ax-panel); min-height: 32px; margin: 0 0 4px; }
+  .cabin-shell .inspector-heading h2 { font-size: 16px; margin: 0; }
+  .cabin-shell .inspector-heading button { min-width: 32px; min-height: 32px; padding: 0; }
+  .cabin-shell .inspector-details { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 2px 12px; margin: 0; font-size: 14px; line-height: 22px; }
+  .cabin-shell .inspector-details :is(dt,dd) { margin: 0; padding: 0; overflow-wrap: anywhere; }
+  .cabin-shell[data-cabin-page="03"] .ui-reader-toolbar { gap: 6px; margin-bottom: 4px; }
+  .cabin-shell[data-cabin-page="03"] .ui-reader-document { min-height: 360px; height: auto; padding: 8px 12px; }
+  .cabin-shell[data-cabin-page="03"] .ui-reader-document h2 { font-size: 22px; line-height: 28px; margin: 4px 0 6px; }
+  .cabin-shell[data-cabin-page="03"] .ui-document-meta { font-size: 13px; line-height: 20px; }
+  .cabin-shell[data-cabin-page="03"] .document-editor > nav { gap: 4px; padding-bottom: 4px; }
+  .cabin-shell[data-cabin-page="03"] .document-editor > nav button { min-height: 32px; height: 32px; padding: 4px 8px; }
+  .cabin-shell[data-cabin-page="03"] .ui-reader-document .tiptap { min-height: 180px; padding-top: 6px; font-size: 17px; line-height: 1.65; }
+  .ui-navigation-drawer { padding: 12px; }
+  .ui-navigation-drawer .space-rail-item { min-height: 36px; padding: 6px 10px; font-size: 14px; }
+  .cabin-shell[data-cabin-page="03"] .nav-trail { margin: 0 0 2px; padding-right: 0; max-width: calc(100% - 110px); }
+  .cabin-shell[data-cabin-page="03"] .ui-page-heading { margin: 0 0 4px; padding: 0 0 4px; margin-bottom: 2px; padding-bottom: 0; }
+  .cabin-shell[data-cabin-page="03"] .ui-content-tabs button { min-width: 64px; min-height: 32px; padding: 4px 12px; font-size: 14px; }
+  .cabin-shell .command-trigger > span:first-child { display: inline-flex; }
+  .cabin-shell .nav-trail-list { flex-wrap: nowrap; width: max-content; min-width: 100%; }
+  .ui-navigation-drawer > button { position: sticky; top: 0; z-index: 2; background: var(--ax-panel); }
+}
+/* Explicit inspection uses spare width in short desktop windows, preserving reading height. */
+@media (min-width: 600px) and (max-height: 600px) {
+  .cabin-shell .app-body { flex-direction: row; }
+  .cabin-shell .app-body > .inspector { flex: 0 0 220px; width: 220px; max-height: none; height: 100%; border-left: 1px solid var(--ax-border); border-top: 0; }
+  .cabin-shell .app-body > .app-center { width: auto; }
+}
+
+/* Keep the document's heading compact when desktop height is scarce. */
+@media (max-height: 600px) {
+  .cabin-shell[data-cabin-page="03"] .ui-reader-document { padding-block: 4px; }
+  .cabin-shell[data-cabin-page="03"] .ui-reader-document h2 { margin: 0 0 2px; line-height: 26px; }
+  .cabin-shell[data-cabin-page="03"] .ui-document-meta { line-height: 18px; }
+}

@@ -64,8 +64,8 @@ DESKTOP_MATRIX: tuple[tuple[str, int, int, float], ...] = (
     ("1440x1000@100", 1440, 1000, 1.0),
     ("1280x800@100", 1280, 800, 1.0),
     ("1024x768@100", 1024, 768, 1.0),
-    # 900 and 840 sit either side of the shell's own 900px breakpoint; without them a change
-    # scoped to the 601-900 band was never exercised by the gate.
+    # Retain the inherited 900/840 content-layout boundaries; chrome now also compacts
+    # at <=1100 CSS width or <=760 CSS height, covered by 1024/1280@150/960@200.
     ("900x800@100", 900, 800, 1.0),
     ("840x800@100", 840, 800, 1.0),
     # 760 and 640 are inside the shell's supported range; 640x480 is the exact floor the
@@ -89,6 +89,7 @@ BRAND_THEME_ASSETS = {"blueprint":"cosmic", "blueprint-light":"white", "black":"
 # `window.__TAURI__` exists - so the browser-fallback sweep must not be required to find it, and the
 # host sweep must not be allowed to stop looking for it either.
 CHROME_BANDS: dict[str, str] = {
+    "top_navigation": ".top-nav-bar",
     "status": ".status-bar",
     "rail": ".space-rail",
     "context": ".context-subnav",
@@ -99,6 +100,49 @@ LIBRARY_BANDS: dict[str, str] = {**CHROME_BANDS, "templates": "details.template-
 # The 学科模板 workspace is the widest component on this product entry, so it is measured at every
 # narrow size the window will actually render down to its declared 640x480 floor.
 LIBRARY_GEOMETRY_VIEWPORTS = ("900x800@100", "840x800@100", "760x800@100", "640x800@100", "640x480@100")
+
+
+def compact_chrome(viewport: tuple[str, int, int, float]) -> bool:
+    """CSS-space policy; DPR alone does not select a different layout."""
+    return viewport[1] <= 1100 or viewport[2] <= 760
+
+
+def check_brand_identity(page, theme: str, viewport) -> dict[str, object]:
+    """The top mark is required at every density; duplicate status branding has an explicit state."""
+    compact = compact_chrome(viewport)
+    asset_theme = BRAND_THEME_ASSETS[theme]
+    expected = png_size(BRAND_ASSET_DIR / f"aaos-brand-mark-{asset_theme}.png")
+    result = {}
+    for key, selector in (("top_mark", ".top-nav-logo"), ("status_mark", ".status-bar-brand img")):
+        node = page.locator(selector)
+        assert node.count() == 1, (selector, node.count())
+        mark = node.evaluate("""img => {
+          const r=img.getBoundingClientRect(), style=getComputedStyle(img);
+          return {src:img.getAttribute('src'),decoded:[img.naturalWidth,img.naturalHeight],
+            attributes:[img.width,img.height],complete:img.complete,visible:img.checkVisibility(),
+            box:[+r.width.toFixed(1),+r.height.toFixed(1)],objectFit:style.objectFit,glow:style.filter,
+            token:getComputedStyle(document.documentElement).getPropertyValue('--ax-brand-glow').trim()};
+        }""")
+        assert mark['complete'] and tuple(mark['decoded']) == expected, (selector, theme, mark, expected)
+        assert asset_theme in (mark['src'] or ''), (selector, theme, mark)
+        if key == 'top_mark':
+            size = 28 if compact else 32
+            assert mark['visible'] and mark['box'] == [size, size], (viewport, mark)
+            assert mark['objectFit'] == 'contain', mark
+            target = visible_control_box(node)
+            assert target['reachable'] and target['width'] == size and target['height'] == size, target
+            mark['target'] = target
+        else:
+            assert mark['visible'] == (not compact), (viewport, mark)
+            if compact:
+                assert mark['box'] == [0, 0], mark
+            else:
+                assert mark['box'][0] == 38.0, mark
+                assert abs(mark['box'][0] / mark['box'][1] - expected[0] / expected[1]) < 0.02, mark
+                assert 20 <= mark['box'][1] <= 40, mark
+                assert mark['glow'].startswith('drop-shadow') and mark['token'], mark
+        result[key] = mark
+    return result
 
 
 def navigate_ui_page(page, page_id: str) -> None:
@@ -130,8 +174,10 @@ def select_ui_theme(page, theme: str) -> None:
 
 def chrome_bands(page, *, library: bool = False) -> dict[str, str]:
     # Expected structure is declared by viewport and surface, never inferred from missing nodes.
-    bands = {"status":".status-bar", "center":".app-center", "dock":".activity-dock"}
-    narrow = page.viewport_size["width"] <= 900
+    bands = {"top_navigation":".top-nav-bar", "status":".status-bar", "center":".app-center", "dock":".activity-dock"}
+    narrow = (compact_chrome(("current", page.viewport_size["width"], page.viewport_size["height"], 1))
+              or (page.locator(".cabin-shell").get_attribute("data-navigation-appearance") == "top"
+                  and page.viewport_size["width"] <= 1200))
     if narrow:
         assert not page.locator(".navigation-sidebar").is_visible(), "narrow sidebar consumes reading space"
         assert page.get_by_role("button", name="打开产品导航").is_visible(), "narrow navigation cannot be opened"
@@ -567,8 +613,7 @@ LIVE_REGION_SELECTOR = (
     '[role="status"],[role="alert"],[role="log"],[role="timer"],[role="marquee"],'
     '[aria-live]:not([aria-live="off"])'
 )
-# The narrowest two viewports the matrix already covers: 900 is the shell's own breakpoint and
-# 840 is the widest scaled desktop column, so the disclosure has to survive both.
+# Retain both inherited narrow content-layout samples for template disclosure reachability.
 TEMPLATE_NARROW_VIEWPORTS = ("900x800@100", "840x800@100")
 
 
@@ -627,11 +672,28 @@ def read_navigation_levels(page) -> dict[str, object]:
     focused = page.evaluate("() => document.activeElement?.dataset?.section ?? null")
     assert focused == "anchors", focused
 
-    page.locator("nav[aria-label='保留原件'] button").first.click()
+    source_button = page.locator("nav[aria-label='保留原件']").get_by_role(
+        "button", name=A0_SOURCE["original_name"], exact=True)
+    source_button.click()
+    # The ordinary trail carries the source's display name and saved-version state.
+    # Read the immutable identity through the actual diagnostics action instead.
+    receipt_button = page.get_by_role("button", name="查看原始回执（诊断）：原件与来源详细信息", exact=True)
+    receipt_button.wait_for()
     page.locator("nav[aria-label='对象导航路径']").wait_for()
     trail = page.inner_text("nav[aria-label='对象导航路径']")
-    assert A0_SOURCE["source_id"] in trail, trail
-    assert A0_SOURCE["source_revision"] in trail, trail
+    assert A0_SOURCE["original_name"] in trail and "来源原件" in trail and "已保存原件" in trail, trail
+    assert A0_SOURCE["source_id"] not in trail and A0_SOURCE["source_revision"] not in trail, trail
+    assert source_button.get_attribute("aria-current") == "true", "source selection was not retained"
+    receipt_button.click()
+    diagnostic = page.get_by_role("dialog", name="运行诊断", exact=True)
+    diagnostic.wait_for()
+    payload = diagnostic.locator(".diagnostic-console-list details[open] pre")
+    assert payload.count() == 1, "the selected source diagnostic payload is not unique"
+    source_identity = json.loads(payload.inner_text())
+    assert source_identity == {key: A0_SOURCE[key] for key in ("source_id", "source_revision", "sha256")}, source_identity
+    diagnostic.get_by_role("button", name="关闭运行诊断", exact=True).click()
+    diagnostic.wait_for(state="detached")
+    assert page.inner_text("nav[aria-label='对象导航路径']") == trail, "diagnostics changed the selected source"
 
     page.evaluate("location.hash = 'space=learning'")
     page.get_by_role("heading", name="学习").first.wait_for()
@@ -642,7 +704,9 @@ def read_navigation_levels(page) -> dict[str, object]:
         "primary_label_count": len(labels),
         "secondary_section_count": section_count,
         "secondary_focused_region": focused,
-        "tertiary_trail_identity": A0_SOURCE["source_id"],
+        "tertiary_trail_display": trail,
+        "tertiary_trail_identity": source_identity["source_id"],
+        "tertiary_source_diagnostic": source_identity,
         "learning_review_group_present": True,
     }
 
@@ -861,9 +925,8 @@ def check_geometry(
     assert not geometry["unscrollableBands"], geometry
     assert not geometry["escapedChildren"], geometry
     assert geometry["motionFast"] == "0ms", geometry
-    if width <= 1200:
-        # 601..1200 is where the chrome narrows so the reading column can survive; the
-        # floor is what the stylesheet promises, and it once silently collapsed to 304px.
+    if width <= 1200 or height <= 760:
+        # Compact chrome also serves short scaled desktop viewports. Keep the reading floor.
         assert geometry["main"]["width"] >= 280, geometry
     return geometry
 
@@ -1368,6 +1431,96 @@ def read_library_geometry(
 
 
 
+def visible_control_box(locator) -> dict[str, object]:
+    """Intersect every clipping ancestor before asking which element receives a pointer."""
+    return locator.evaluate("""node => {
+      const r=node.getBoundingClientRect(), style=getComputedStyle(node);
+      let left=Math.max(0,r.left),top=Math.max(0,r.top),right=Math.min(innerWidth,r.right),bottom=Math.min(innerHeight,r.bottom);
+      for(let a=node.parentElement;a;a=a.parentElement){const s=getComputedStyle(a),b=a.getBoundingClientRect();
+        if(/auto|scroll|hidden|clip/.test(s.overflowX)){left=Math.max(left,b.left);right=Math.min(right,b.right)}
+        if(/auto|scroll|hidden|clip/.test(s.overflowY)){top=Math.max(top,b.top);bottom=Math.min(bottom,b.bottom)}}
+      const hit=document.elementFromPoint((left+right)/2,(top+bottom)/2);
+      return {width:Math.max(0,right-left),height:Math.max(0,bottom-top),rawWidth:r.width,rawHeight:r.height,
+        lineHeight:parseFloat(style.lineHeight),fontSize:parseFloat(style.fontSize),
+        reachable:!!hit&&(hit===node||node.contains(hit)),label:node.getAttribute('aria-label')||node.textContent};
+    }""")
+
+
+def check_top_navigation_actions(page, *, diagnostics_suspended: bool) -> None:
+    """Require each action; quarantine adds recheck instead of removing diagnostics."""
+    actions = page.locator('.top-nav-right')
+    for name in ('通知', '设置', '运行诊断'):
+        node = actions.get_by_role('button', name=name, exact=True)
+        assert node.count() == 1 and node.is_visible(), ('missing top navigation action', name)
+        assert node.is_disabled() == (name == '运行诊断' and diagnostics_suspended), ('action state', name)
+    avatar = actions.locator('button.top-nav-user')
+    assert avatar.count() == 1 and avatar.is_visible() and avatar.is_enabled(), 'missing user action'
+    recheck = actions.get_by_role('button', name='重新检查诊断连接', exact=True)
+    assert recheck.count() == int(diagnostics_suspended), 'diagnostic recheck disagrees with quarantine'
+    if diagnostics_suspended:
+        assert recheck.is_visible() and recheck.is_enabled(), 'diagnostic recheck unavailable'
+    assert actions.locator('button').count() == 4 + int(diagnostics_suspended), 'unexpected top navigation actions'
+
+
+def check_shell_pointer_targets(page, *, diagnostics_suspended: bool = False) -> list[dict[str, object]]:
+    compact = compact_chrome(('current', page.viewport_size['width'], page.viewport_size['height'], 1))
+    check_top_navigation_actions(page, diagnostics_suspended=diagnostics_suspended)
+    assert page.get_by_role('button', name='打开全局命令', exact=True).is_visible()
+    assert page.get_by_label('界面设置', exact=True).is_visible()
+    assert page.get_by_role('button', name='搜索页面、能力与内容', exact=True).is_visible() == (not compact)
+    if compact:
+        assert page.get_by_role('button', name='打开产品导航', exact=True).is_visible()
+    targets=[]
+    for node in page.locator('.top-nav-bar button,.status-bar button,.status-bar select,.status-bar summary,.ui-navigation-trigger').all():
+        if not node.is_visible():
+            continue
+        box=visible_control_box(node)
+        assert box['width'] >= 24 and box['height'] >= 24 and box['reachable'], box
+        assert abs(box['height']-box['rawHeight']) <= 1 and abs(box['width']-box['rawWidth']) <= 1, box
+        targets.append(box)
+    assert len(targets) >= 7, targets
+    return targets
+
+
+def check_product_navigation_targets(page) -> dict[str, object]:
+    trigger=page.get_by_role('button', name='打开产品导航', exact=True)
+    if not trigger.is_visible():
+        return {'presentation':'sidebar', 'tested':False}
+    entries=[]
+    for target in ('01','02','06','13','15','17','19'):
+        trigger.click()
+        drawer=page.get_by_role('dialog', name='产品导航', exact=True)
+        drawer.wait_for()
+        node=drawer.locator(f'[data-page-id="{target}"]')
+        node.scroll_into_view_if_needed()
+        box=visible_control_box(node)
+        close=visible_control_box(drawer.get_by_role('button', name='关闭导航', exact=True))
+        assert box['reachable'] and box['height'] >= 24 and box['width'] >= 24, box
+        assert close['reachable'] and close['height'] >= 24, close
+        node.click()
+        drawer.wait_for(state='detached')
+        page.locator(f'[data-current-page-id="{target}"]').wait_for()
+        entries.append({'page_id':target,'target':box,'close':close})
+    trigger.click()
+    drawer=page.get_by_role('dialog', name='产品导航', exact=True)
+    drawer.get_by_role('button', name='关闭导航', exact=True).click()
+    drawer.wait_for(state='detached')
+    page.wait_for_timeout(150)
+    assert trigger.evaluate('node => document.activeElement === node')
+    return {'presentation':'drawer','tested':True,'entries':entries,'close_restores_focus':True}
+
+
+def wait_reader_fit(page) -> None:
+    # Dockview's ResizeObserver must finish reflowing after the explicit rail toggle.
+    # A timeout is a failure: a permanently clipped document never becomes acceptable.
+    page.wait_for_function("""() => {
+      const card=document.querySelector('.ui-reader-document')?.getBoundingClientRect();
+      const center=document.querySelector('.app-center')?.getBoundingClientRect();
+      return card && center && card.left >= center.left && card.right <= center.right;
+    }""")
+
+
+
 def read_semantic_reading(browser, viewport, problems, theme):
     """New 02/03 layout evidence, separate from the legacy import/template regression."""
     context, page = open_library_page(browser, problems,
@@ -1380,6 +1533,9 @@ def read_semantic_reading(browser, viewport, problems, theme):
         library.wait_for()
         row = library.get_by_role("button", name="打开文档 引用目标 1 · 独立历史正文", exact=True)
         row.wait_for()
+        library_targets = check_shell_pointer_targets(page)
+        library_row = visible_control_box(row)
+        assert library_row["reachable"] and library_row["height"] >= 24, library_row
         library_shot = ARTIFACTS / f"semantic-library-{theme}-{label}.png"
         page.screenshot(path=str(library_shot), full_page=True)
         row.click()
@@ -1395,12 +1551,23 @@ def read_semantic_reading(browser, viewport, problems, theme):
         assert any(call["operation"] == "document_get" and
             call["payload"].get("document_id") == "a0_target_1" for call in calls), calls
         assert not any(call["operation"] == "document_draft" for call in calls), calls
+        inspector = page.get_by_role("complementary", name="检查器", exact=True)
+        if viewport[1] <= 900:
+            # Automatic document synchronization intentionally leaves narrow reading
+            # space unobstructed. Exercise the real explicit Inspector control.
+            assert inspector.count() == 0, "automatic inspection opened the narrow rail"
+            page.get_by_role("button", name="展开检查器", exact=True).click()
+        if inspector.count() == 0:
+            page.get_by_role("button", name="展开检查器", exact=True).click()
+        inspector.wait_for(state="visible")
+        wait_reader_fit(page)
+        assert "引用目标 1" in inspector.inner_text()
         geometry = page.evaluate("""() => {
           const rect = selector => { const r=document.querySelector(selector).getBoundingClientRect();
-            return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
+            return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height}; };
           const center = document.querySelector('.app-center'), style = getComputedStyle(center);
           const containerWidth = center.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-          return {width:innerWidth,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details'),
+          return {width:innerWidth,height:innerHeight,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details'),
             center:rect('.app-center'),body:rect('.app-body'),inspector:rect('.inspector'),
             scroll_width:document.documentElement.scrollWidth};
         }""")
@@ -1413,23 +1580,44 @@ def read_semantic_reading(browser, viewport, problems, theme):
             assert doc["right"] <= details["x"], geometry
         else:
             assert doc["bottom"] <= details["y"], geometry
-        if geometry["width"] <= 900:
-            # Opening a real library row retains its inspector: the reader must
-            # keep its full width, and the lower detail pane must remain operable.
+        compact = geometry["width"] <= 1100 or geometry["height"] <= 760
+        short_side = geometry["width"] >= 600 and geometry["height"] <= 600
+        if short_side:
+            assert geometry["center"]["right"] <= geometry["inspector"]["x"] + 1, geometry
+            assert geometry["center"]["width"] >= 280 and geometry["inspector"]["width"] == 220, geometry
+            assert abs(geometry["center"]["height"] - geometry["body"]["height"]) <= 1, geometry
+        elif compact:
             assert abs(geometry["center"]["width"] - geometry["body"]["width"]) <= 1, geometry
             assert geometry["center"]["bottom"] <= geometry["inspector"]["y"] + 1, geometry
-            assert geometry["inspector"]["bottom"] <= geometry["body"]["bottom"] + 1, geometry
-            assert geometry["scroll_width"] <= geometry["width"], geometry
-            inspector = page.get_by_role("complementary", name="检查器", exact=True)
-            assert "引用目标 1" in inspector.inner_text()
-            inspector.get_by_role("button", name="关闭检查器", exact=True).click()
-            assert inspector.count() == 0
-            assert "绑定历史正文 1 v1" in editor.inner_text()
-            page.get_by_role("button", name="展开检查器", exact=True).click()
-            assert "引用目标 1" in inspector.inner_text()
-            geometry["status_accessibility"] = check_status_accessibility(page)
+            assert geometry["inspector"]["height"] == 96, geometry
+        assert geometry["inspector"]["bottom"] <= geometry["body"]["bottom"] + 1, geometry
+        assert geometry["scroll_width"] <= geometry["width"], geometry
+        geometry["layout_target"] = visible_control_box(page.locator('.dock-layout-options > summary'))
+        assert geometry["layout_target"]["reachable"], geometry
+        page.locator('.dock-layout-options > summary').click()
+        assert page.locator('.dock-layout-options').get_attribute('open') is not None
+        page.locator('.dock-layout-options > summary').click()
+        geometry["shell_targets"] = check_shell_pointer_targets(page)
+        geometry["library_targets"] = library_targets
+        geometry["close_target"] = visible_control_box(inspector.get_by_role("button", name="关闭检查器", exact=True))
+        assert geometry["close_target"]["reachable"], geometry
+        inspector.get_by_role("button", name="关闭检查器", exact=True).click()
+        assert inspector.count() == 0
+        assert "绑定历史正文 1 v1" in editor.inner_text()
+        page.get_by_role("button", name="展开检查器", exact=True).click()
+        assert "引用目标 1" in inspector.inner_text()
+        wait_reader_fit(page)
+        geometry["paragraph"] = visible_control_box(editor.locator("p").first)
+        geometry["reading_area"] = visible_control_box(editor)
+        paragraph, area = geometry["paragraph"], geometry["reading_area"]
+        assert paragraph["reachable"] and paragraph["height"] >= paragraph["lineHeight"] - 1, geometry
+        assert abs(area["width"] - area["rawWidth"]) <= 1 and area["width"] >= 280, geometry
+        assert abs(paragraph["width"] - paragraph["rawWidth"]) <= 1, geometry
+        assert area["fontSize"] >= 17 and area["height"] >= min(4 * area["lineHeight"], area["rawHeight"]), geometry
         reader_shot = ARTIFACTS / f"semantic-reader-{theme}-{label}.png"
         page.screenshot(path=str(reader_shot), full_page=True)
+        geometry["status_accessibility"] = check_status_accessibility(page)
+        geometry["navigation"] = check_product_navigation_targets(page)
         return {"evidence":"SIMULATED_HOST_CORE_FIXTURE", "theme":theme,"viewport":label,
             "document_id":"a0_target_1","new_library":True,"new_reader":True,
             "geometry":geometry,"library_screenshot":_recorded(library_shot),
@@ -1455,7 +1643,7 @@ def read_top_navigation(browser, viewport, problems, theme):
         assert page.evaluate("localStorage.getItem('aaos.navigation-appearance.v1')") == "top"
         assert not page.locator('.navigation-sidebar').is_visible()
         nav = page.get_by_role("navigation", name="顶部空间导航", exact=True)
-        if width > 1200:
+        if width > 1200 and not compact_chrome(viewport):
             assert nav.is_visible()
             nav.get_by_role("button", name="知识", exact=True).click()
             menu = nav.get_by_role("menu", name="知识页面", exact=True)
@@ -1481,10 +1669,14 @@ def read_top_navigation(browser, viewport, problems, theme):
             menu.get_by_role("menuitem", name="知识库", exact=True).click()
         else:
             assert not nav.is_visible()
+            check_shell_pointer_targets(page)
+            navigation = check_product_navigation_targets(page)
+            assert navigation["tested"] and len(navigation["entries"]) == 7, navigation
             navigate_ui_page(page, "02")
             shot = ARTIFACTS / f"top-drawer-{theme}-{label}.png"
             page.screenshot(path=str(shot), full_page=True)
-            geometry = {"drawer_used": True, "overflow": page.evaluate("document.documentElement.scrollWidth>innerWidth")}
+            geometry = {"drawer_used": True, "navigation": navigation,
+                        "overflow": page.evaluate("document.documentElement.scrollWidth>innerWidth")}
             assert not geometry['overflow'], geometry
         page.get_by_role("button", name="打开文档 引用目标 1 · 独立历史正文", exact=True).click()
         editor = page.get_by_role("region", name="阅读与编辑文档视图", exact=True).get_by_role("textbox", name="文档草稿")
@@ -1617,10 +1809,21 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     # The desktop surface names its own liveness, which the browser fallback never shows; that is
     # the discriminator between "mounted the host UI" and "silently rendered the fallback shell".
     page.locator(".ui-page-navigation").first.wait_for()
-    liveness = page.locator('.status-bar .status-pill[data-status="available"][title="后端状态：本地可用"]')
+    liveness = page.locator('.status-bar .status-pill[data-status="available"][title="本地连接可用"]')
     liveness.wait_for(state="visible")
     assert "本地可用" in liveness.inner_text(), "no desktop liveness on the surface"
     assert page.get_by_text("本地桌面恢复").count() == 0, "the canonical surface fell back to the recovery shell"
+
+    # A confirmed host fixture must retain usable diagnostics, not silently become preview.
+    check_shell_pointer_targets(page)
+    diagnostic = page.locator(".top-nav-right").get_by_role("button", name="运行诊断", exact=True)
+    diagnostic.click()
+    diagnostic_dialog = page.get_by_role("dialog", name="运行诊断", exact=True)
+    diagnostic_dialog.wait_for()
+    diagnostic_dialog.get_by_role("button", name="关闭运行诊断", exact=True).click()
+    diagnostic_dialog.wait_for(state="detached")
+    diagnostic.wait_for()
+    page.wait_for_function("() => document.activeElement === document.querySelector('.top-nav-right [data-diagnostic-trigger=\"true\"]')")
 
     # Import/template regression belongs to the explicit canonical compatibility route.
     page.evaluate("location.hash = 'space=library'")
@@ -1654,6 +1857,7 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         "viewport": label,
         "host_bridge_stubbed": True,
         "recovery_shell": False,
+        "diagnostic_center": {"ready_trigger_required": True, "opened_and_closed": True, "focus_restored": True},
         "canonical_library_mounted": True,
         "single_file_import_inputs": single_file_inputs,
         "folder_affordance": affordance,
@@ -1680,7 +1884,8 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         if viewport[0] in LIBRARY_GEOMETRY_VIEWPORTS
     ]
     result["semantic_reading"] = [read_semantic_reading(browser, viewport, problems, theme)
-        for viewport in DESKTOP_MATRIX if viewport[0] in ("1440x1000@100", "640x480@100")
+        for viewport in DESKTOP_MATRIX if viewport[0] in ("1440x1000@100", "640x800@100", "640x480@100",
+            "1920x1080@125", "1920x1080@150", "1920x1080@200")
         for theme in ("blueprint", "blueprint-light")]
     result["semantic_reading"].append(read_semantic_reading(
         browser, ("390x844@100", 390, 844, 1), problems, "cosmic"))
@@ -1688,7 +1893,10 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
         for theme in AAOS_THEME_IDS]
     result["narrow_dock_reading"].append(read_narrow_dock_library(browser, problems, "cosmic", ("1600x1000@125",1280,800,1.25)))
     result["top_navigation"] = [read_top_navigation(browser, viewport, problems, "cosmic")
-        for viewport in (("1672x941@100",1672,941,1), ("390x844@100",390,844,1))]
+        for viewport in (("1672x941@100",1672,941,1), ("390x844@100",390,844,1),
+            ("640x480@100",640,480,1), ("640x800@100",640,800,1),
+            ("1920x1080@125",1536,864,1.25), ("1920x1080@150",1280,720,1.5),
+            ("1920x1080@200",960,540,2))]
     return result
 
 
@@ -1751,12 +1959,18 @@ def main() -> None:
                 )
 
                 accessibility = {}
+                brand_identity = {}
+                shell_targets = {}
                 for theme in AAOS_THEME_IDS:
                     select_ui_theme(page, theme)
                     page.wait_for_timeout(200)
                     check_geometry(measure_geometry(page, chrome_bands(page)),
                                    width=width, height=height, scale=scale, bands=chrome_bands(page))
                     accessibility[theme] = check_status_accessibility(page)
+                    brand_identity[theme] = check_brand_identity(page, theme, (label, width, height, scale))
+                    # Browser preview has no confirmed Core working-state identity: diagnostics
+                    # stay quarantined and expose their explicit connection recheck action.
+                    shell_targets[theme] = check_shell_pointer_targets(page, diagnostics_suspended=True)
                 select_ui_theme(page, "black")
 
                 faults = status_fault_selftest(page, width, height, scale) if (width, height) == (640, 480) else []
@@ -1801,23 +2015,7 @@ def main() -> None:
                         select_ui_theme(page, theme)
                         page.wait_for_timeout(150)
                         applied = page.evaluate("document.documentElement.dataset.aaosTheme")
-                        brand = page.evaluate(
-                            """() => {
-                              const img = document.querySelector('.status-bar-brand img');
-                              if (!img) return null;
-                              const rect = img.getBoundingClientRect();
-                              return {
-                                src: img.getAttribute('src'),
-                                decoded: [img.naturalWidth, img.naturalHeight],
-                                attributes: [img.width, img.height],
-                                complete: img.complete,
-                                box: [+rect.width.toFixed(1), +rect.height.toFixed(1)],
-                                glow: getComputedStyle(img).filter,
-                                token: getComputedStyle(document.documentElement)
-                                  .getPropertyValue('--ax-brand-glow').trim(),
-                              };
-                            }"""
-                        )
+                        brand = check_brand_identity(page, theme, (label, width, height, scale))["status_mark"]
                         surface = page.evaluate("getComputedStyle(document.body).backgroundColor")
                         assert applied == theme, (applied, theme)
                         assert brand and brand["complete"], (theme, brand)
@@ -1858,6 +2056,8 @@ def main() -> None:
                     "geometry": geometry,
                     "navigation_drawer": drawer_result,
                     "status_accessibility": accessibility,
+                    "brand_identity": brand_identity,
+                    "shell_targets": shell_targets,
                     "status_fault_selftest": faults,
                     "screenshot": _recorded(screenshot),
                 }

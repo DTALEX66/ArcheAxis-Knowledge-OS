@@ -41,7 +41,7 @@ it("releases every retained same-item controller after another view confirms the
     fireEvent.click(f.review.getByRole("button",{name:"记录复习结果"}));
     await waitFor(()=>expect(f.parked.getByLabelText("本次答案")).toBeDisabled());
     await act(async()=>resolve({next_review_days:1}));
-    await f.review.findByText(/Core 已确认复习记录/);
+    await f.review.findByText(/复习记录已保存/);
     expect(f.server().state.pending_reviews).toBeUndefined();expect(f.server().state.learning_drafts).toBeUndefined();
     await waitFor(()=>expect(f.parked.getByLabelText("本次答案")).toBeEnabled());
     expect(f.parked.getByLabelText("本次答案")).toHaveValue("");
@@ -64,7 +64,7 @@ it("keeps unknown ACKs frozen and restores a newer shared raw draft without chan
     // Publish the newer snapshot only after Core confirms clearance, before the observer reopens.
     const finish=f.session.finishReview.bind(f.session);
     vi.spyOn(f.session,"finishReview").mockImplementation(async(entry,sent)=>{await finish(entry,sent);f.session.rememberLearningDraft(newer);});
-    fireEvent.click(f.review.getByRole("button",{name:"记录复习结果"}));await f.review.findByText(/Core 已确认复习记录/);
+    fireEvent.click(f.review.getByRole("button",{name:"记录复习结果"}));await f.review.findByText(/复习记录已保存/);
     await waitFor(()=>expect(f.parked.getByLabelText("本次答案")).toBeEnabled());
     await waitFor(()=>expect(f.parked.getByLabelText("本次答案")).toHaveValue(newer.answer));
     expect(other.getByLabelText("本次答案")).toHaveValue(draft("b").answer);
@@ -80,7 +80,7 @@ it("does not release another item's frozen request when the same-item retained v
     const pending={item_key:"b",client_event_id:"frozen_b",origin_restore_epoch:"initial",body:{item_key:"b",client_event_id:"frozen_b",assessment_id:"assessment_b",knowledge_version:"v1",answer:draft("b").answer.trim(),rating:3,correct:true}};
     await act(async()=>f.session.freezeReview(pending));
     await waitFor(()=>expect(other.getByLabelText("本次答案")).toBeDisabled());
-    fireEvent.click(f.review.getByRole("button",{name:"记录复习结果"}));await f.review.findByText(/Core 已确认复习记录/);
+    fireEvent.click(f.review.getByRole("button",{name:"记录复习结果"}));await f.review.findByText(/复习记录已保存/);
     await waitFor(()=>expect(f.parked.getByLabelText("本次答案")).toBeEnabled());
     expect(other.getByLabelText("本次答案")).toBeDisabled();
     expect(f.session.getSnapshot().state.pending_reviews).toEqual({frozen_b:pending});
@@ -98,7 +98,7 @@ it("reconciles two retained views of an explicitly preserved old-origin journal 
   });try{
     expect(f.parked.getByLabelText("本次答案")).toBeDisabled();
     expect(f.server().restore_epoch).not.toBe(frozenA.origin_restore_epoch);
-    fireEvent.click(f.review.getByRole("button",{name:"记录复习结果"}));await f.review.findByText(/Core 已确认复习记录/);
+    fireEvent.click(f.review.getByRole("button",{name:"记录复习结果"}));await f.review.findByText(/复习记录已保存/);
     expect(call.mock.calls.filter(([op])=>op==="learning_review").map(([,payload])=>payload)).toEqual([{body:frozenA.body}]);
     expect(f.server().state.pending_reviews).toBeUndefined();
     await waitFor(()=>expect(f.parked.getByLabelText("本次答案")).toBeEnabled());
@@ -111,7 +111,7 @@ it.each(["workspace_id","restore_epoch"] as const)("does not release old control
     const replacement=fixture();replacement.server()[field]="d".repeat(32);delete replacement.server().state.learning_drafts;
     await replacement.session.load();
     f.view.rerender(surface(replacement.session));
-    await f.parked.findByText(/复习提交未确认，请先重试同一冻结请求/);
+    await f.parked.findByText(/复习结果尚未确认；请重试同一次提交/);
     expect(f.parked.getByLabelText("本次答案")).toBeDisabled();expect(f.review.getByLabelText("本次答案")).toBeDisabled();
     expect(f.session.getSnapshot().state.pending_reviews).toEqual({preserved_a:frozenA});
     expect([...f.owners.values()]).toEqual([true,true]);

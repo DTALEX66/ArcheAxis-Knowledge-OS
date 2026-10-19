@@ -1,3 +1,5 @@
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { CanonicalMachineReceiptsSpace } from "../spaces/CanonicalMachineReceiptsSpace";
@@ -5,7 +7,7 @@ import { CanonicalMachineReceiptsSpace } from "../spaces/CanonicalMachineReceipt
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
 
-beforeEach(() => { bridge.call.mockReset(); });
+beforeEach(() => { resetDiagnostics(); bridge.call.mockReset(); });
 it("parent and receipt-list refresh preserve pending cancellation, frozen budget and committed checkpoint", async () => {
   let state = "queued", request: string | null = null;
   const source = { source_id: "s1", source_revision: "rev1", sha256: "a".repeat(64), original_name: "synthetic.txt", imported_at: "2026-10-10" };
@@ -21,26 +23,29 @@ it("parent and receipt-list refresh preserve pending cancellation, frozen budget
     if (op === "job_execution_cancel") return { job_id: "j1", request_id: request, cancel_requested: true };
     throw new Error(op);
   });
-  const view = render(<CanonicalMachineReceiptsSpace />);
-  await screen.findByRole("option", { name: "synthetic.txt · s1" });
+  const view = render(<><CanonicalMachineReceiptsSpace /><DiagnosticConsole /></>);
+  expect(await screen.findByRole("option", { name: "synthetic.txt" })).toHaveValue("s1");
   fireEvent.change(screen.getByRole("combobox", { name: /^已保存来源/ }), { target: { value: "s1" } });
-  await screen.findByRole("option", { name: /j1/ });
+  await waitFor(() => expect(screen.getByRole("option", { name: "text · queued" })).toHaveValue("j1"));
   fireEvent.change(screen.getByRole("combobox", { name: /^来源任务/ }), { target: { value: "j1" } });
-  await screen.findByText("queued", { exact: true });
-  const budget = screen.getByLabelText("单次预算（毫秒）");
+  await screen.findByText("当前状态：待确认。");
+  const budget = screen.getByLabelText("最长等待时间（毫秒）");
   fireEvent.change(budget, { target: { value: "45000" } });
   fireEvent.click(screen.getByRole("button", { name: "执行已保存任务" }));
-  await screen.findByText("running", { exact: true });
+  await screen.findByText("当前状态：正在处理。");
   fireEvent.click(screen.getByRole("button", { name: "请求取消" }));
   await screen.findByText("取消待确认：继续轮询实际状态。");
   const frozenRequest = request;
-  view.rerender(<CanonicalMachineReceiptsSpace />);
-  fireEvent.click(screen.getByRole("button", { name: "刷新任务回执" }));
+  view.rerender(<><CanonicalMachineReceiptsSpace /><DiagnosticConsole /></>);
+  fireEvent.click(screen.getByRole("button", { name: "刷新任务记录" }));
   await waitFor(() => expect(bridge.call.mock.calls.filter(([op]) => op === "machine_tasks_list")).toHaveLength(2));
   expect(screen.getByRole("combobox", { name: /^来源任务/ })).toHaveValue("j1");
-  expect(screen.getByLabelText("单次预算（毫秒）")).toBeDisabled();
-  expect(screen.getByLabelText("单次预算（毫秒）")).toHaveValue(45000);
-  expect(screen.getByLabelText("已提交检查点")).toHaveTextContent("committed-output");
+  expect(screen.getByLabelText("最长等待时间（毫秒）")).toBeDisabled();
+  expect(screen.getByLabelText("最长等待时间（毫秒）")).toHaveValue(45000);
+  fireEvent.click(screen.getByRole("button", { name: "查看原始回执（诊断）：任务步骤与继续条件详细信息" }));
+  const payloads = screen.getByLabelText("诊断控制台").querySelectorAll("details[open] pre");
+  expect(payloads).toHaveLength(1);
+  expect(payloads[0]).toHaveTextContent("committed-output");
   expect(screen.getByText("取消待确认：继续轮询实际状态。")).toBeInTheDocument();
   expect(request).toBe(frozenRequest);
   expect(bridge.call.mock.calls.filter(([op]) => op === "job_execute")).toHaveLength(1);

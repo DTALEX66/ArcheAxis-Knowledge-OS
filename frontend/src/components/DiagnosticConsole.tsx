@@ -8,9 +8,10 @@ import { useDiagnosticState, clearDiagnostics, publishDiagnostic, diagnosticCate
 
 /** Replaces an inline JSON dump: the operator still reaches the untouched payload, the reading surface does not carry it. */
 export function RawReceiptButton({ label, payload, visibleLabel, category = "operation" }: { label: string; payload: unknown; visibleLabel?: string; category?: DiagnosticCategory }) {
+  const {suspended}=useDiagnosticState();
   return (
-    <button type="button" className="raw-receipt" aria-label={`查看原始回执（诊断）：${label}`} onClick={event => publishDiagnostic(label, payload, category, event.currentTarget)}>
-        {visibleLabel ?? "查看诊断详情"}
+    <button type="button" className="raw-receipt" aria-label={`查看原始回执（诊断）：${label}`} disabled={suspended} title={suspended?"正在恢复或工作状态尚未确认，请先核对工作状态。":undefined} onClick={event => publishDiagnostic(label, payload, category, event.currentTarget)}>
+        {suspended?"请先核对工作状态":visibleLabel ?? "查看诊断详情"}
     </button>
   );
 }
@@ -51,7 +52,7 @@ export function DiagnosticConsole() {
 
 export function DiagnosticCenterTrigger() {
   const {suspended} = useDiagnosticState();
-  return <><button type="button" className="diagnostic-center-trigger" aria-label="诊断中心" data-diagnostic-trigger="true" disabled={suspended} onClick={event => openDiagnostics(event.currentTarget)}>诊断中心</button>{suspended?<button type="button" onClick={() => window.dispatchEvent(new Event("diagnostic-workspace-check"))}>核对诊断工作区</button>:null}</>;
+  return <><button type="button" className="diagnostic-center-trigger" aria-label="运行诊断" data-diagnostic-trigger="true" disabled={suspended} onClick={event => openDiagnostics(event.currentTarget)}>运行诊断</button>{suspended?<button type="button" onClick={() => window.dispatchEvent(new Event("diagnostic-workspace-check"))}>重新检查诊断连接</button>:null}</>;
 }
 
 /** One App-owned surface, independent of page, activity expansion or recovery UI. */
@@ -102,8 +103,8 @@ export function DiagnosticCenter() {
     window.addEventListener("diagnostic-workspace-check", check);
     return () => {barrier.current.epoch++; window.removeEventListener("workspace-invalidated", invalidate); window.removeEventListener("workspace-restore-start", start); window.removeEventListener("workspace-restore-finish", finish); window.removeEventListener("diagnostic-workspace-check", check); resetDiagnostics();};
   }, [verify]);
-  return <AaosDialog title="诊断中心" description="集中查看运行连接、操作回执及对象来源。记录仅保留在本次工作区会话中。" open={open} onOpenChange={value => {if (!value) closeDiagnostics();}} onCloseAutoFocus={event => {event.preventDefault(); restoreDiagnosticFocus();}} contentClassName="diagnostic-center">
-    <button type="button" aria-label="关闭诊断中心" onClick={closeDiagnostics}>关闭诊断中心</button>
+  return <AaosDialog title="运行诊断" description="集中查看连接状态、错误原因、技术详情和执行记录。记录仅保留在当前工作区会话中。" open={open} onOpenChange={value => {if (!value) closeDiagnostics();}} onCloseAutoFocus={event => {event.preventDefault(); restoreDiagnosticFocus();}} contentClassName="diagnostic-center">
+    <button type="button" aria-label="关闭运行诊断" onClick={closeDiagnostics}>关闭运行诊断</button>
     <DiagnosticConsole />
   </AaosDialog>;
 }

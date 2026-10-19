@@ -93,3 +93,6 @@ docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/** -text
 
 # 中文：有限迁移清单保全历史原字节，逐文件核 SHA，不按源码重排。
 docs/history/repository-consolidation-20261019/** -text
+
+# 小栖来源清单由 PROVENANCE 绑定原始 CRLF 字节，不能随 checkout 改写。
+docs/history/xiaoqi-source-20261018/STATE-ASSET-INDEX.json -text whitespace=cr-at-eol,-blank-at-eol

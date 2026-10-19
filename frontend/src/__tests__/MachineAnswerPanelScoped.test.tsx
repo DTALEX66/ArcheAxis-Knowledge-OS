@@ -1,3 +1,4 @@
+import { within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash, webcrypto } from "node:crypto";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -49,7 +50,7 @@ describe("SIMULATED real scoped Panel lostACK contracts",()=>{
   render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant}/>);
   expect(bridge.call).not.toHaveBeenCalled();
   await userEvent.click(screen.getByRole("button",{name:"读取模型配置状态"}));
-  expect(await screen.findByText(/模型身份、加载和推理接通尚未验证/)).toBeInTheDocument();
+  expect(await screen.findByText(/模型是否已加载和能否回答仍需实际验证/)).toBeInTheDocument();
   expect(bridge.call).toHaveBeenCalledTimes(1);
   expect(bridge.call).toHaveBeenCalledWith("machine_configuration");
   expect(screen.getByText(/用量和费用.*未知/)).toBeInTheDocument();
@@ -124,8 +125,8 @@ describe("SIMULATED real scoped Panel lostACK contracts",()=>{
  it("history restoration cannot replace an unfinished question",async()=>{
   const saved={schema:"archeaxis.machine-answer/v1",answer_id:"old",knowledge_id:"k1",question:"旧问题",answer:{answer:"旧回答",model:"fixture-model"},authority:"candidate"};const row=task(saved);
   bridge.call.mockImplementation(async(op:string)=>op==="machine_tasks_list"?{items:[row],next_cursor:null}:op==="machine_task_get"?row:Promise.reject(new Error("unexpected write")));
-  render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant}/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));await screen.findByRole("button",{name:"读取此任务旅程 old"});
-  await user.type(screen.getByLabelText("实际问题"),"未提交新问题");await user.click(screen.getByRole("button",{name:"读取此任务旅程 old"}));
+  render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant}/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));await screen.findAllByRole("button",{name:"查看这次任务"});expect(document.querySelector('li[data-task-id="old"] button')).not.toBeNull();
+  await user.type(screen.getByLabelText("实际问题"),"未提交新问题");await user.click(document.querySelector<HTMLButtonElement>('li[data-task-id="old"] button')!);
   expect(screen.getByLabelText("实际问题")).toHaveValue("未提交新问题");expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
  });
  it.each(["lostACK","restored","forbidden"])("%s retest freezes the original purpose even when props change",async(mode)=>{
@@ -145,13 +146,22 @@ describe("SIMULATED real scoped Panel lostACK contracts",()=>{
    if(op==="machine_task_get")return p.task_id==="old"?task(original):p.task_id==="evaluation_old"?failed:task(retest!,"runtime.retest");
    throw new Error("unexpected "+op);
   });
-  const onTask=vi.fn();const ui=render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={grant} onTask={onTask}/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));await user.click(await screen.findByRole("button",{name:"读取此任务旅程 evaluation_old"}));
+  const onTask=vi.fn();const ui=render(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={grant} onTask={onTask}/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));await screen.findAllByRole("button",{name:"查看这次任务"});await user.click(document.querySelector<HTMLButtonElement>('li[data-task-id="evaluation_old"] button')!);
   await user.click(await screen.findByRole("button",{name:"以已接受纠正知识运行独立复测"}));await screen.findByText(mode==="lostACK"?/复测未完成或持久化读回未确认/:/Core 明确拒绝复测请求/);
   expect(JSON.parse(screen.getByLabelText("知识到机器回答").dataset.retestFailure!)).toEqual({phase:"invoke",status:mode==="lostACK"?502:403,code:mode==="lostACK"?"unavailable":"unauthorized"});
   ui.rerender(<MachineAnswerPanel knowledgeId="k1" scoped contextGrant={grant} retestContextGrant={changed} onTask={onTask}/>);await user.click(screen.getByRole("button",{name:"重试同一冻结复测请求"}));
   expect(screen.getByRole("button",{name:"重试同一冻结复测请求"})).toBeDisabled();expect(requests).toHaveLength(1);
   await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));
-  await user.click(await screen.findByRole("button",{name:"读取此任务旅程 retest1"}));
+  await user.click(await savedTaskButton("retest1"));
   await waitFor(()=>expect(onTask).toHaveBeenLastCalledWith("retest1"));
  });
 });
+
+async function savedTaskButton(taskId: string) {
+  return waitFor(() => {
+    const rows = [...document.querySelectorAll('[aria-label="既有机器学习任务"] li[data-task-id]')]
+      .filter(row => row.getAttribute("data-task-id") === taskId);
+    expect(rows).toHaveLength(1);
+    return within(rows[0] as HTMLElement).getByRole("button", { name: "查看这次任务" });
+  });
+}

@@ -18,7 +18,7 @@ it("opens the one center from a contextual receipt, shows the exact payload and 
   const button = screen.getByRole("button", {name:/会话运行记录/});
   expect(container.textContent).not.toContain("private-request");
   await user.click(button);
-  const dialog = screen.getByRole("dialog", {name:"诊断中心"});
+  const dialog = screen.getByRole("dialog", {name:"运行诊断"});
   expect(screen.getAllByRole("dialog")).toHaveLength(1);
   expect(dialog.querySelector("pre")?.textContent).toBe(JSON.stringify({request_id:"private-request", sequence:7},null,2));
   expect(debug).not.toHaveBeenCalled();
@@ -30,7 +30,7 @@ it("filters explicit categories and keeps records after closing and reopening", 
   const user = userEvent.setup();
   render(<><DiagnosticCenterTrigger/><RawReceiptButton label="连接" category="runtime" payload={{latency_ms:7}}/><RawReceiptButton label="原件" category="data" payload={{sha256:"source-proof"}}/><DiagnosticCenter/></>);
   await user.click(screen.getByRole("button", {name:/（诊断）：连接/}));
-  await user.click(screen.getByRole("button", {name:"关闭诊断中心"}));
+  await user.click(screen.getByRole("button", {name:"关闭运行诊断"}));
   await user.click(screen.getByRole("button", {name:/（诊断）：原件/}));
   let dialog = screen.getByRole("dialog");
   expect(within(dialog).getByLabelText("诊断分类")).toHaveValue("data");
@@ -38,8 +38,8 @@ it("filters explicit categories and keeps records after closing and reopening", 
   await user.selectOptions(within(dialog).getByLabelText("诊断分类"), "runtime");
   expect(dialog).toHaveTextContent("latency_ms");
   expect(dialog).not.toHaveTextContent("source-proof");
-  await user.click(within(dialog).getByRole("button", {name:"关闭诊断中心"}));
-  await user.click(screen.getByRole("button", {name:"诊断中心"}));
+  await user.click(within(dialog).getByRole("button", {name:"关闭运行诊断"}));
+  await user.click(screen.getByRole("button", {name:"运行诊断"}));
   dialog = screen.getByRole("dialog");
   await user.selectOptions(within(dialog).getByLabelText("诊断分类"), "all");
   expect(dialog).toHaveTextContent("source-proof");
@@ -49,7 +49,7 @@ it("filters explicit categories and keeps records after closing and reopening", 
 it("Escape closes only the diagnostic dialog and preserves the underlying inspector", async () => {
   const user = userEvent.setup(), closeInspector = vi.fn();
   render(<><Inspector target={null} onClose={closeInspector}/><DiagnosticCenterTrigger/><DiagnosticCenter/></>);
-  await user.click(screen.getByRole("button", {name:"诊断中心"}));
+  await user.click(screen.getByRole("button", {name:"运行诊断"}));
   await user.keyboard("{Escape}");
   expect(closeInspector).not.toHaveBeenCalled();
   expect(screen.getByLabelText("检查器")).toBeInTheDocument();
@@ -60,7 +60,7 @@ it("falls back to the global entry if a contextual opener disappears", async () 
   await user.click(screen.getByRole("button", {name:/临时入口/}));
   view.rerender(<><DiagnosticCenterTrigger/>{null}<DiagnosticCenter/></>);
   await user.keyboard("{Escape}");
-  await waitFor(() => expect(screen.getByRole("button", {name:"诊断中心"})).toHaveFocus());
+  await waitFor(() => expect(screen.getByRole("button", {name:"运行诊断"})).toHaveFocus());
 });
 it("quarantines old recovery observations until a fresh identity read succeeds", async () => {
   const read: WorkingRead = {schema:"archeaxis.ui-working-state/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",state_revision:0,state:{drafts:{},opened_documents:[],active_document:null,page_id:null,pending_original:null},draft_digests:{},pending_document_id:null,recovery_candidates:null,recovery_requires_confirmation:false};
@@ -71,22 +71,24 @@ it("quarantines old recovery observations until a fresh identity read succeeds",
   await user.click(screen.getByRole("button", {name:/恢复前记录/}));
   act(() => {window.dispatchEvent(new Event("workspace-restore-start"));});
   expect(screen.queryByRole("dialog")).toBeNull();
-  expect(screen.getByRole("button", {name:"诊断中心"})).toBeDisabled();
+  expect(screen.getByRole("button", {name:"运行诊断"})).toBeDisabled();
+  expect(screen.getByRole("button", {name:/恢复前记录/})).toBeDisabled();
+  expect(screen.getByRole("button", {name:/恢复前记录/})).toHaveAttribute("title","正在恢复或工作状态尚未确认，请先核对工作状态。");
   await user.click(screen.getByRole("button", {name:/恢复前记录/}));
   expect(screen.queryByRole("dialog")).toBeNull();
   bridge.call.mockRejectedValue(new Error("lost restore ACK"));
   await act(async () => {window.dispatchEvent(new CustomEvent("workspace-invalidated", {detail:{confirmed:false}}));window.dispatchEvent(new Event("workspace-restore-finish"));});
-  expect(screen.getByRole("button", {name:"诊断中心"})).toBeDisabled();
+  expect(screen.getByRole("button", {name:"运行诊断"})).toBeDisabled();
   expect(screen.queryByRole("dialog")).toBeNull();
   await act(async () => {await session.load();});
-  expect(screen.getByRole("button", {name:"诊断中心"})).toBeDisabled();
+  expect(screen.getByRole("button", {name:"运行诊断"})).toBeDisabled();
   bridge.call.mockResolvedValue(structuredClone(read));
-  await user.click(screen.getByRole("button", {name:"核对诊断工作区"}));
-  await user.click(screen.getByRole("button", {name:"诊断中心"}));
+  await user.click(screen.getByRole("button", {name:"重新检查诊断连接"}));
+  await user.click(screen.getByRole("button", {name:"运行诊断"}));
   expect(screen.getByRole("dialog")).toHaveTextContent('"old"');
   await act(async () => {window.dispatchEvent(new CustomEvent("workspace-invalidated", {detail:{confirmed:true}}));window.dispatchEvent(new Event("workspace-restore-finish"));});
   expect(screen.queryByRole("dialog")).toBeNull();
-  await user.click(screen.getByRole("button", {name:"诊断中心"}));
+  await user.click(screen.getByRole("button", {name:"运行诊断"}));
   expect(screen.getByRole("dialog")).toHaveTextContent("暂无原始回执");
 });
 it("does not clear on ordinary state revision and isolates a confirmed new provider identity", async () => {
@@ -102,7 +104,7 @@ it("does not clear on ordinary state revision and isolates a confirmed new provi
   const second = make(); await second.load();
   view.rerender(tree(second));
   expect(screen.queryByRole("dialog")).toBeNull();
-  await user.click(screen.getByRole("button", {name:"诊断中心"}));
+  await user.click(screen.getByRole("button", {name:"运行诊断"}));
   expect(screen.getByRole("dialog")).toHaveTextContent("暂无原始回执");
 });
 
@@ -118,10 +120,10 @@ it("verifies a replacement provider independently of the old pending read", asyn
   const view = render(tree(first)), user = userEvent.setup();
   await user.click(screen.getByRole("button",{name:/旧工作区/}));
   act(() => {window.dispatchEvent(new Event("workspace-restore-start"));window.dispatchEvent(new Event("workspace-restore-finish"));});
-  expect(screen.getByRole("button",{name:"诊断中心"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:"运行诊断"})).toBeDisabled();
   view.rerender(tree(second));
-  await waitFor(() => expect(screen.getByRole("button",{name:"诊断中心"})).toBeEnabled());
-  await user.click(screen.getByRole("button",{name:"诊断中心"}));
+  await waitFor(() => expect(screen.getByRole("button",{name:"运行诊断"})).toBeEnabled());
+  await user.click(screen.getByRole("button",{name:"运行诊断"}));
   expect(screen.getByRole("dialog")).toHaveTextContent("暂无原始回执");
   await act(async () => {release(structuredClone(read));});
   expect(screen.getByRole("dialog")).not.toHaveTextContent('"old"');
@@ -139,8 +141,8 @@ it("does not reuse a pre-restore session read or unlock from its ordinary ACK", 
   await act(async () => {window.dispatchEvent(new Event("workspace-restore-start"));window.dispatchEvent(new Event("workspace-restore-finish"));});
   expect(bridge.call).toHaveBeenCalledWith("ui_state_read");
   await act(async () => {release(structuredClone(read)); await old;});
-  expect(screen.getByRole("button",{name:"诊断中心"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:"运行诊断"})).toBeDisabled();
   bridge.call.mockResolvedValue(structuredClone(read));
-  await userEvent.setup().click(screen.getByRole("button",{name:"核对诊断工作区"}));
-  expect(screen.getByRole("button",{name:"诊断中心"})).toBeEnabled();
+  await userEvent.setup().click(screen.getByRole("button",{name:"重新检查诊断连接"}));
+  expect(screen.getByRole("button",{name:"运行诊断"})).toBeEnabled();
 });

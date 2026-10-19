@@ -261,7 +261,7 @@ describe("six-space real command loops", () => {
 
     expect(runtime.getEvidenceBundleInspection).toHaveBeenCalledWith("bundle-ui");
     expect(onInspect).toHaveBeenCalledWith(expect.objectContaining({
-      title: "受治理证据束",
+      title: "证据组合",
       source: "关联主张",
       conflict: true,
       rights: ["CC-BY-4.0"],
@@ -351,7 +351,7 @@ describe("six-space real command loops", () => {
     const rawSha256 = "b".repeat(64);
     render(<Inspector target={{ title: "原件", source: "原件档案", lifecycle: "已保留", rawSha256 }} />);
 
-    expect(screen.getByText("原件指纹")).toBeInTheDocument();
+    expect(screen.getByText("原件保存信息")).toBeInTheDocument();
     expect(screen.getByText("已记录")).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent(rawSha256);
   });
@@ -541,7 +541,7 @@ describe("six-space real command loops", () => {
     const user = userEvent.setup();
 
     render(<ActivityDock />);
-    await screen.findByText("暂无持久化活动");
+    await screen.findByText("暂无活动记录");
     await user.click(screen.getByRole("button", { name: "展开活动坞" }));
     await user.click(screen.getByRole("button", { name: "投递下一条" }));
 
@@ -558,7 +558,7 @@ describe("six-space real command loops", () => {
     const user = userEvent.setup();
 
     render(<ActivityDock />);
-    await screen.findByText("暂无持久化活动");
+    await screen.findByText("暂无活动记录");
     await user.click(screen.getByRole("button", { name: "展开活动坞" }));
     await user.click(screen.getByRole("button", { name: "投递下一条" }));
 

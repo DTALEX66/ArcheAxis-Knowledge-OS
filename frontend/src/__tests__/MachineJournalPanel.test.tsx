@@ -1,3 +1,5 @@
+import { waitFor } from "@testing-library/react";
+import { within } from "@testing-library/react";
 import {expect,it,vi} from "vitest";
 import {render,screen} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -52,7 +54,7 @@ it.each(["success","committed_ack_loss","uncommitted_ack_loss"])("SIMULATED exac
     const session=new CoreWorkingStateSession({read:async()=>structuredClone(server),write:vi.fn(),clearSaved:vi.fn(),recover:vi.fn(),clearMachine:clear});await session.load();
     render(<CoreWorkingStateProvider session={session}><MachineAnswerPanel knowledgeId="k1"/></CoreWorkingStateProvider>);
     const user=userEvent.setup();await screen.findByText(/已恢复未确认/);await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));
-    await user.click(await screen.findByRole("button",{name:"读取此任务旅程 withheld_audit"}));
+    await user.click(await savedTaskButton("withheld_audit"));
     const finish=await screen.findByRole("button",{name:"结束已执行但未发布的请求，保留草稿"});expect(finish).toBeEnabled();await user.click(finish);
     if(mode!=="success"){await screen.findByText(/结束回执未确认/);expect(screen.getByRole("button",{name:/同一回答请求/})).toBeDisabled();await act(async()=>{await session.load();});}
     if(mode==="uncommitted_ack_loss"){expect(session.getSnapshot().state.pending_machine?.withheld_fixed).toEqual(entry);expect(screen.getByRole("button",{name:/同一回答请求/})).toBeDisabled();}
@@ -105,13 +107,22 @@ it.each([false,true])("SIMULATED duplicate frozen requests retire individually w
     await user.selectOptions(screen.getByLabelText("待核对机器请求"),"journal_a");
     if(externalClear){server={...server,state_revision:2,state:{...server.state,pending_machine:{journal_b:pending_machine.journal_b}}};await act(async()=>{await session.load();});}
     await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));
-    await user.click(await screen.findByRole("button",{name:"读取此任务旅程 duplicate_audit"}));
+    await user.click(await savedTaskButton("duplicate_audit"));
     await user.click(await screen.findByRole("button",{name:"结束已执行但未发布的请求，保留草稿"}));
     if(!externalClear){expect(Object.keys(session.getSnapshot().state.pending_machine??{})).toEqual(["journal_b"]);
-      await user.click(screen.getByRole("button",{name:"读取此任务旅程 duplicate_audit"}));
+      await user.click(await savedTaskButton("duplicate_audit"));
       await user.click(await screen.findByRole("button",{name:"结束已执行但未发布的请求，保留草稿"}));}
     expect(session.getSnapshot().state.pending_machine).toBeUndefined();expect(clear).toHaveBeenCalledTimes(externalClear?1:2);
     expect(screen.getByRole("button",{name:"执行本地机器回答"})).toBeEnabled();
     expect(bridge.call.mock.calls.every(([op])=>op!=="machine_answer"&&op!=="machine_retest")).toBe(true);
   }finally{vi.unstubAllGlobals();}
 });
+
+async function savedTaskButton(taskId: string) {
+  return waitFor(() => {
+    const rows = [...document.querySelectorAll('[aria-label="既有机器学习任务"] li[data-task-id]')]
+      .filter(row => row.getAttribute("data-task-id") === taskId);
+    expect(rows).toHaveLength(1);
+    return within(rows[0] as HTMLElement).getByRole("button", { name: "查看这次任务" });
+  });
+}

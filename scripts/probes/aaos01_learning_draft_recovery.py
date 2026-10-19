@@ -174,7 +174,7 @@ def run(*, ui, bridge, read, js, wait, restart, poll, screenshot, report):
     assert read("learning_history", {"item_key": other_pin["item_key"]}) == other_history
     screenshot("learning-draft-restored.png")
     ui.click("记录复习结果")
-    wait("return document.body.innerText.includes('Core 已确认复习记录')")
+    wait("return document.body.innerText.includes('复习记录已保存')")
     after = poll(read, "ui_state_read", {}, lambda value: pin["assessment_id"] not in value["state"].get("learning_drafts", {}))
     assert_cleared(before_submit, after, pin["assessment_id"])
     history = read("learning_history", {"item_key": pin["item_key"]})

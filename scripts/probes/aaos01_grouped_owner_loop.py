@@ -699,7 +699,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
         install('observe')
         try:
             ui.click('记录复习结果')
-            wait("return document.body.innerText.includes('Core 已确认复习记录')")
+            wait("return document.body.innerText.includes('复习记录已保存')")
         finally:
             cleared=remove()
         rows=[row for row in cleared['rows'] if row['operation']=='learning_review']
@@ -753,7 +753,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
     install('observe')
     try:
         ui.click('记录复习结果')
-        wait("return document.body.innerText.includes('Core 已确认复习记录')")
+        wait("return document.body.innerText.includes('复习记录已保存')")
     finally:
         proof=remove(); report['explicit_retry']=proof
     rows=[r for r in proof['rows'] if r['operation']=='learning_review']
@@ -863,7 +863,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
         install(entry['item_key'])
         try:
             ui.click('记录复习结果')
-            wait("return document.body.innerText.includes('Core 已确认复习记录')")
+            wait("return document.body.innerText.includes('复习记录已保存')")
         finally:
             proof=remove()
         rows=[r for r in proof['rows'] if r['operation']=='learning_review']
@@ -1188,7 +1188,7 @@ def run_grouped_loop(
         learning, history = review_ack_recovery(ui,read,js,wait,restart,key,history_before,result.setdefault('review_recovery',{}))
     else:
         ui.click("记录复习结果")
-        wait("return document.body.innerText.includes('Core 已确认复习记录')")
+        wait("return document.body.innerText.includes('复习记录已保存')")
         learning = read("learning_state", {"item_key": key})
     assert_assessment(learning["learner"]["assessment"], pin)
     history = read("learning_history", {"item_key": key})
@@ -1701,7 +1701,7 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         stage["reason"] = (
             "Actual answer retained. No explicitly authorized authored intervention; no invented model error."
         )
-    ui.click("读取此机器旅程的持久化回执")
+    ui.click("查看本次运行详细记录")
     wait(
         "return location.hash==='#page=22' && !!document.querySelector('[aria-label=\"历史机器回答\"]')"
     )
@@ -1754,7 +1754,7 @@ def recover_machine_ack(ui, read, js, wait, restart, document, task, stage):
         ui.page('14',confirm_navigation=True);ui.click('刷新上下文列表');ui.click('选择原知识授权 '+document['title'])
         wait("return document.body.innerText.includes('已恢复未确认的机器请求')")
         ui.click('读取机器学习历史')
-        ui.click('读取此任务旅程 '+task['task_id'])
+        ui.click_selector("//ul[@aria-label='既有机器学习任务']/li[@data-task-id="+xpath_literal(task['task_id'])+"]//button[normalize-space(.)='查看这次任务']")
         wait("return document.body.innerText.includes('已从 Core 恢复固定回答与既有回执')")
     finally:
         recovery=remove_machine_observer(js)
@@ -1778,7 +1778,7 @@ def recover_machine_ack(ui, read, js, wait, restart, document, task, stage):
     try:
         ui.page('14',confirm_navigation=True);ui.click('刷新上下文列表');ui.click('选择原知识授权 '+document['title'])
         wait("return document.body.innerText.includes('已恢复未确认的机器请求')")
-        ui.click('读取机器学习历史');ui.click('读取此任务旅程 '+task['task_id'])
+        ui.click('读取机器学习历史');ui.click_selector("//ul[@aria-label='既有机器学习任务']/li[@data-task-id="+xpath_literal(task['task_id'])+"]//button[normalize-space(.)='查看这次任务']")
         wait("return document.body.innerText.includes('已从 Core 恢复固定回答与既有回执')")
     finally:
         restored=remove_machine_observer(js)
@@ -2152,7 +2152,7 @@ def restored_learning_view(ui, read, js, wait, key, assessment):
         assert identity == expected, "Rendered learning identity mismatch (including same-question items)"
         assert read("assessment_get", {"item_key":key}) == assessment, "Restored Core assessment changed"
     finally:
-        ui.click_revealed("关闭诊断中心", "//*[@role='dialog']")
+        ui.click_revealed("关闭运行诊断", "//*[@role='dialog']")
     assert js(LEARNING_RESTORE_OBSERVATION) == view, "Learning view changed during identity verification"
     return {"status":"PASS", "view":view, "identity":identity, "core_assessment_equal":True}
 
@@ -2194,6 +2194,42 @@ return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null
  version:visible(meta)?Number(meta.textContent.match(/· v(\\d+) ·/)?.[1]??NaN):null};"""
 
 
+def restored_reader_expected_text(document):
+    """Check the fixture's exact visible reference labels as well as Core prose.
+
+    Core's search projection excludes evidenceReference atoms. The editor and
+    snapshot show their labels. Reject unsupported reference-bearing structures
+    rather than silently dropping content from this bounded journey oracle.
+    """
+    def has_reference(node):
+        return node.get("type") == "evidenceReference" or any(has_reference(child) for child in node.get("content", []))
+
+    editor = document["editor_json"]
+    if not has_reference(editor):
+        return document["text_projection"]
+
+    def render(node, references):
+        kind = node.get("type")
+        if kind == "text":
+            assert isinstance(node.get("text"), str)
+            assert not any(mark.get("type") == "strike" for mark in node.get("marks", [])), "Reference fixture strike rendering requires an explicit oracle"
+            return node["text"]
+        if kind == "hardBreak":
+            return "\n"
+        if kind == "evidenceReference":
+            excerpt = node.get("attrs", {}).get("excerpt")
+            assert isinstance(excerpt, str) and excerpt, "Reference fixture needs its exact visible excerpt"
+            return "引用：" + excerpt if references else ""
+        assert kind in ("paragraph", "heading", "codeBlock"), "Unsupported reference fixture block"
+        return "".join(render(child, references) for child in node.get("content", []))
+
+    assert editor.get("type") == "doc"
+    blocks = editor.get("content", [])
+    canonical = "\n".join(text for block in blocks if (text := render(block, False)))
+    assert canonical == document["text_projection"], "Reference fixture canonical projection mismatch"
+    return "\n".join(render(block, True) for block in blocks)
+
+
 def restored_reader(ui, read, js, wait, document):
     """Bind the rendered business view to its user-opened diagnostic and Core identity."""
     wait("const v=(function(){" + READER_RESTORE_OBSERVATION + "})();return v.page==='03'&&v.reader_count===1&&v.title!==null&&v.text!==null")
@@ -2201,18 +2237,18 @@ def restored_reader(ui, read, js, wait, document):
     assert view["page"] == "03" and view["reader_count"] == 1
     assert view["title"] == document["title"], "Restored reader title mismatch"
     normalize = lambda value: value.replace("\r\n", "\n").replace("\r", "\n").rstrip("\n")
-    assert isinstance(view["text"], str) and normalize(view["text"]) == normalize(document["text_projection"]), "Restored reader content mismatch"
+    assert isinstance(view["text"], str) and normalize(view["text"]) == normalize(restored_reader_expected_text(document)), "Restored reader content mismatch"
     assert view["version"] == document["version"], "Restored reader version mismatch"
     scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
-    ui.click_revealed_selector(scope + "//button[@aria-label='查看原始回执（诊断）：文档身份与来源指纹']")
+    ui.click_revealed_selector(scope + "//button[@aria-label='查看原始回执（诊断）：文档与来源详细信息']")
     try:
-        wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('文档身份与来源指纹 ·'))")
-        identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('文档身份与来源指纹 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
+        wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('文档与来源详细信息 ·'))")
+        identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('文档与来源详细信息 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
         expected = {key: document[key] for key in ("document_id", "source_id", "source_revision", "content_sha256")}
         assert identity == expected, "Rendered reader identity mismatch (including same-title documents)"
         assert read("document_get", {"document_id": document["document_id"]}) == document, "Restored Core document changed"
     finally:
-        ui.click_revealed("关闭诊断中心", "//*[@role='dialog']")
+        ui.click_revealed("关闭运行诊断", "//*[@role='dialog']")
     # Closing the owned diagnostic must return to the same rendered document.
     assert js(READER_RESTORE_OBSERVATION) == view, "Reader changed during identity verification"
     return {"status": "PASS", "view": view, "identity": identity, "core_document_equal": True}
@@ -2292,7 +2328,7 @@ def capability_refusal_recovery(
     ui.page("03")
     wait("return location.hash==='#page=03'")
     ui.open_reader_source_tools()
-    ui.click_revealed("恢复冻结现场 " + frozen["request_id"])
+    ui.click_revealed_selector("//*[@data-recovery-request=" + xpath_literal(frozen["request_id"]) + "]//button[@data-recovery-action='restore']")
     recovered_view = frozen_conversion_view(js)
     assert recovered_view["frozen"] == view["frozen"] and recovered_view["latest"] == view["latest"]
     assert read("job_execution_status", {"job_id": job_id}) == refused, "Restart silently executed frozen intent"

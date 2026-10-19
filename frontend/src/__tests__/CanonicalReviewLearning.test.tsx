@@ -82,7 +82,7 @@ describe("finite knowledge and learning commands",()=>{
   render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await findLearningItemButton("a1"));
   const machineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
   await user.click(await screen.findByRole("button",{name:/机器能力/}));
-  expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="机器能力记录回执"&&JSON.stringify(payload).includes("not_recorded"))).toBe(true);
+  expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="机器能力详细记录"&&JSON.stringify(payload).includes("not_recorded"))).toBe(true);
   expect(screen.queryByText(/not_recorded/)).not.toBeInTheDocument();
   expect(machineDebug).not.toHaveBeenCalled(); machineDebug.mockRestore();await user.type(screen.getByLabelText("本次答案"),"本次实际答案");
   expect(screen.getByText("实际问题")).toBeInTheDocument();expect(screen.queryByText("绑定修订中的核对内容")).not.toBeInTheDocument();

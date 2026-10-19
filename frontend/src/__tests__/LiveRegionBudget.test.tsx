@@ -406,8 +406,8 @@ describe("raw payloads stay off the reading surface", () => {
 
     const entries = renderHook(useDiagnostics);
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
-    await userEvent.setup().click(screen.getByRole("button", { name: /复习历史与 Core 提交回执/ }));
-    expect(entries.result.current[0]).toMatchObject({label:"复习历史与 Core 提交回执",payload:history});
+    await userEvent.setup().click(screen.getByRole("button", { name: /复习历史与提交详情/ }));
+    expect(entries.result.current[0]).toMatchObject({label:"复习历史与提交详情",payload:history});
     expect(debug).not.toHaveBeenCalled();
     debug.mockRestore();
     // Nothing resembling the payload's JSON reached the rendered page.
@@ -434,8 +434,8 @@ describe("raw payloads stay off the reading surface", () => {
 
     const entries = renderHook(useDiagnostics);
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
-    await userEvent.setup().click(screen.getByRole("button", { name: /Core 范围化状态原始读回 · machine\.answer/ }));
-    expect(entries.result.current[0]).toMatchObject({label:"Core 范围化状态原始读回 · machine.answer",payload:{...observation,enabled:false,health:"UNKNOWN"}});
+    await userEvent.setup().click(screen.getByRole("button", { name: /能力运行详细信息 · machine\.answer/ }));
+    expect(entries.result.current[0]).toMatchObject({label:"能力运行详细信息 · machine.answer",payload:{...observation,enabled:false,health:"UNKNOWN"}});
     expect(debug).not.toHaveBeenCalled();
     debug.mockRestore();
     expect(container.textContent).not.toMatch(/"health"\s*:/);

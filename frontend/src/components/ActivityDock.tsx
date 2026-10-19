@@ -32,7 +32,7 @@ function useDockExpansion(commandPaletteOpen: boolean) {
 
 function CanonicalActivityDock({ onInspect, commandPaletteOpen = false }: DockProps) {
   const [jobs, setJobs] = useState<Array<SourceJobDto & { name: string }>>([]);
-  const [message, setMessage] = useState("正在读取正典任务…");
+  const [message, setMessage] = useState("正在读取处理任务…");
   const { expanded, toggle } = useDockExpansion(commandPaletteOpen);
   const [refresh, setRefresh] = useState(0);
   useEffect(() => {
@@ -52,8 +52,8 @@ function CanonicalActivityDock({ onInspect, commandPaletteOpen = false }: DockPr
       if (!alive) return;
       const rows = results.flat().sort((a, b) => (b.completed_at ?? b.created_at).localeCompare(a.completed_at ?? a.created_at));
       setJobs(rows.slice(0, 5));
-      setMessage(sources.length === 0 ? "就绪" : `前 ${Math.min(sources.length, 20)} 个原件的正典任务：${rows.length}${capped ? "（部分原件最多显示 50 条）" : ""}`);
-    }).catch(() => { if (alive) { setJobs([]); setMessage("正典任务读取未完成，请刷新重试。"); } });
+      setMessage(sources.length === 0 ? "就绪" : `前 ${Math.min(sources.length, 20)} 个原件的处理任务：${rows.length}${capped ? "（部分原件最多显示 50 条）" : ""}`);
+    }).catch(() => { if (alive) { setJobs([]); setMessage("处理任务读取失败，请刷新重试。"); } });
     return () => { alive = false; window.removeEventListener("archeaxis-job-changed", changed); };
   }, [refresh]);
   return <footer id="activity-dock" className="activity-dock" aria-label="活动坞">
@@ -77,7 +77,7 @@ function LegacyActivityDock({ onInspect, commandPaletteOpen = false }: DockProps
   async function refresh() {
     const [activity, currentDelivery] = await Promise.all([getActivity(5), getDelivery()]);
     setItems(activity.items);
-    setSummary(activity.items.length === 0 ? "暂无持久化活动" : `最近活动：${activity.items.length}`);
+    setSummary(activity.items.length === 0 ? "暂无活动记录" : `最近活动：${activity.items.length}`);
     const failed = currentDelivery.summary.outbox.failed ?? 0;
     setDelivery(currentDelivery.summary.jobs === 0
       ? "投递状态：暂无记录"

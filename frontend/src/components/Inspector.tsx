@@ -50,7 +50,7 @@ export function Inspector({ target, onClose }: { target: InspectionTarget | null
           <dt>条目</dt><dd>{target.title}</dd>
           <dt>来源</dt><dd>{target.source}</dd>
           <dt>状态</dt><dd>{target.lifecycle}</dd>
-          {target.rawSha256 ? <><dt>原件指纹</dt><dd>已记录</dd></> : null}
+          {target.rawSha256 ? <><dt>原件保存信息</dt><dd>已记录</dd></> : null}
           {target.version ? <><dt>版本</dt><dd>{target.version}</dd></> : null}
           {target.evidenceSource ? <><dt>证据来源</dt><dd>{target.evidenceSource}</dd></> : null}
           {target.updatedAt ? <><dt>更新时间</dt><dd>{target.updatedAt}</dd></> : null}
@@ -63,7 +63,7 @@ export function Inspector({ target, onClose }: { target: InspectionTarget | null
           ))}</dd></> : null}
           {target.detail ? <><dt>说明</dt><dd>{target.detail}</dd></> : null}
         </dl>
-        {target.identityDetails?<RawReceiptButton label="条目身份与来源指纹" visibleLabel="核对身份与来源指纹" category="data" payload={target.identityDetails}/>:null}
+        {target.identityDetails?<RawReceiptButton label="条目来源详细信息" visibleLabel="查看来源详情" category="data" payload={target.identityDetails}/>:null}
       </aside>
     );
   }

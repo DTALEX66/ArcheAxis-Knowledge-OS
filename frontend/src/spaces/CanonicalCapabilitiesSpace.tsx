@@ -140,10 +140,10 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
       return <li key={capability}>{capability}<p>连接/权限：{typeof observation?.enabled === "boolean" ? (observation.enabled ? "允许" : "已禁用") : "未知"} · 即时健康：{typeof observation?.health === "string" ? observation.health : "未知"}</p><p>运行资格：{String(observation?.qualification??"UNKNOWN")} · 原因：{Array.isArray(observation?.reasons)?observation.reasons.join(" / "):"未观察或已过期"}</p>
         {/* The line above is the human-readable reading surface; the untouched handshake readback goes
             to the diagnostic console, the same channel this file already uses for the catalog sources. */}
-        {observation ? <RawReceiptButton label={`Core 范围化状态原始读回 · ${capability}`} payload={observation} /> : null}</li>;
-    })}</ul> : <p>{selected.implementation.state === "not_implemented" ? "没有当前运行实现，执行动作不可用。" : "此项声明为 Core 原生；worker 握手不提供该项的运行证据。"}</p>}
-    <p>实际引擎身份、版本与产物质量需在具体 job 的质量回执核验。</p>
-    {selected.atlas.capability_id === "CAP-0150" ? <p>完整模型治理仍待实现；已有模型连接与用途配置可单独查看，不代表整个能力已接入。<AaosButton disabled={!onOpenPage} disabledReason={!onOpenPage ? "当前宿主未提供模型配置页面导航" : undefined} onClick={()=>onOpenPage?.("19")}>查看现有模型配置</AaosButton></p> : null}
+        {observation ? <RawReceiptButton label={`能力运行详细信息 · ${capability}`} payload={observation} /> : null}</li>;
+    })}</ul> : <p>{selected.implementation.state === "not_implemented" ? "没有当前运行实现，执行动作不可用。" : "此功能由应用内部提供；当前页面尚不能确认它是否可用。"}</p>}
+    <p>使用后可在该任务的运行诊断中查看处理方式、版本和结果质量。</p>
+    {selected.atlas.capability_id === "CAP-0150" ? <p>完整模型管理尚不可用；你可以单独查看现有的模型连接与用途设置。<AaosButton disabled={!onOpenPage} disabledReason={!onOpenPage ? "当前无法打开模型设置页面" : undefined} onClick={()=>onOpenPage?.("19")}>查看现有模型配置</AaosButton></p> : null}
     <AaosButton variant="primary" disabled={!hasDestination || !canNavigateToCapability(selected)}
       disabledReason={!hasDestination ? "当前没有可打开的产品入口" : undefined} onClick={() => { if (pageDestination && onOpenPage) onOpenPage(pageDestination); else if (destination) onNavigate(destination); }}>
       {hasDestination ? "打开当前产品入口" : "当前执行入口尚未提供"}

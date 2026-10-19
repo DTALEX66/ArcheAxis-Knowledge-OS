@@ -19,7 +19,7 @@ export function PortableDocumentExchange({ saved, onImported }: { saved: Documen
       const value=assertCoreDto<DocumentPackageDto>("DocumentPackageDto",JSON.parse(await file.text()));
       const bytes=value.objects.reduce((total,object)=>total+object.bytes.length,0);
       if(bytes>2*1024*1024)throw new Error("媒体和原件总字节超过 2 MiB 上限。");
-      if(alive.current){setSelected(value);setMessage("已读取所选包；尚未保存。Core 将核验全部字节及结构，失败不注册部分文档。");}
+      if(alive.current){setSelected(value);setMessage("已读取所选包；尚未保存。保存前会检查内容完整性；检查失败不会创建部分文档。");}
     }catch(error){if(alive.current)fail(error);}finally{flight.current=false;if(alive.current)setBusy(false);}
   }
   async function exportPackage() {
@@ -28,7 +28,7 @@ export function PortableDocumentExchange({ saved, onImported }: { saved: Documen
       if(!sameValue(value.document,saved))throw new Error("文档版本变化，请重新读取后导出。");
       if(!alive.current||!sameValue(currentSaved.current,saved))return;
       downloadBytes(JSON.stringify(value),`${saved.document_id}-v${saved.version}.aak-document.json`,"application/json");
-      setMessage("已请求下载文档包；磁盘落地未读回。包含绑定原件及表达媒体字节，历史锚点保留为元数据。");
+      setMessage("已请求下载文档包；请在下载位置确认文件。包含绑定原件及表达媒体字节，历史引用位置会保留在详细信息中。");
     }catch(error){if(alive.current)fail(error);}finally{flight.current=false;if(alive.current)setBusy(false);}
   }
   async function importPackage() {
@@ -39,17 +39,17 @@ export function PortableDocumentExchange({ saved, onImported }: { saved: Documen
       const request=pending??{request_id:`package_${digest}`,package:selected!};if(!alive.current)return;setPending(request);
       const receipt=await coreCommand<DocumentPackageImportDto>("document_package_import",request);
       const read=await coreCommand<DocumentDto>("document_version",{document_id:receipt.document.document_id,version:receipt.document.version});
-      if(!sameValue(read,receipt.document))throw new Error("保存读回未一致确认；保留同请求重试，不创建新文档。");
+      if(!sameValue(read,receipt.document))throw new Error("保存结果尚未确认；请重试同一次导入，不会另建文档。");
       if(!alive.current)return;
-      setPending(null);setSelected(null);setMessage(`已保存新普通文档 ${read.document_id}；知识入库未执行，历史锚点未重新注册。`);onImported?.(read.document_id);
+      setPending(null);setSelected(null);setMessage("已保存为新文档；尚未加入知识库，旧引用位置需要重新核对。");onImported?.(read.document_id);
     }catch(error){if(alive.current)fail(error);}finally{flight.current=false;if(alive.current)setBusy(false);}
   }
   return <section aria-label="有界文档便携包"><h3>有界文档便携包</h3>
-    <p>保全已保存结构和未知节点、绑定原件及表达媒体 CAS 字节。总原字节上限 2 MiB；不是全工作区恢复或授权迁移。</p>
+    <p>文档包包含已保存的内容、绑定的原件和媒体文件。原文件总量上限为 2 MiB；它只能恢复这份文档，不能恢复整个工作区。</p>
     <button disabled={!saved||busy||!!pending} onClick={()=>void exportPackage()}>下载文档与媒体便携包</button>
     <label>选择本地文档包<input type="file" accept=".json,application/json" disabled={busy||!!pending} onChange={event=>void choose(event.target.files?.[0])}/></label>
     {selected?<p>待保存：{selected.document.title}；{selected.objects.length} 个绑定原件／媒体。模型核验不是保存前置。</p>:null}
-    <button disabled={busy||(!selected&&!pending)} onClick={()=>void importPackage()}>{pending?"同请求核对并重试回导":"确认保存为新普通文档"}</button>
+    <button disabled={busy||(!selected&&!pending)} onClick={()=>void importPackage()}>{pending?"检查结果并重试同一次导入":"确认保存为新普通文档"}</button>
     {message?<p role="status">{message}</p>:null}
   </section>;
 }

@@ -82,7 +82,7 @@ it("keeps both drafts on an uncertain review and clears only the exactly submitt
   fireEvent.change(screen.getByLabelText("本次答案"),{target:{value:"must not replace frozen answer"}});
   expect(f.session.getSnapshot().state.pending_reviews).toEqual(frozen);expect(screen.getByLabelText("本次答案")).toHaveValue("  answer A  ");
   expect(Object.keys(f.session.getSnapshot().state.learning_drafts??{})).toHaveLength(2);
-  await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/Core 已确认复习记录/);
+  await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/复习记录已保存/);
   const reviews=call.mock.calls.filter(([op])=>op==="learning_review");expect(reviews[0][1]).toEqual(reviews[1][1]);
   expect(f.session.getSnapshot().state.pending_reviews).toBeUndefined();expect(Object.keys(f.session.getSnapshot().state.learning_drafts??{})).toEqual(["assessment_b_v1"]);
   expect(f.session.getSnapshot().state.learning_drafts?.assessment_b_v1.answer).toBe("answer B");
@@ -102,7 +102,7 @@ it("discards only an explicitly confirmed draft and resets the current answer af
   const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"discard only on request");
   await user.click(screen.getByLabelText("保留的学习答案 assessment_a_v1").closest("details")!.querySelector("summary")!);const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
   await user.click(screen.getByRole("button",{name:"丢弃草稿 a"}));expect(f.session.getSnapshot().state.learning_drafts?.assessment_a_v1.answer).toBe("discard only on request");
-  confirm.mockReturnValue(true);await user.click(screen.getByRole("button",{name:"丢弃草稿 a"}));await screen.findByText("Core 已确认丢弃这份学习草稿。");
+  confirm.mockReturnValue(true);await user.click(screen.getByRole("button",{name:"丢弃草稿 a"}));await screen.findByText("已丢弃这份学习草稿。");
   expect(f.session.getSnapshot().state.learning_drafts).toBeUndefined();expect(screen.getByLabelText("本次答案")).toHaveValue("");
   expect(call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
 });
@@ -113,6 +113,6 @@ it("refuses an oversized review journal before freezing input and permits freein
   await screen.findByLabelText("本次答案");const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/复习请求保全将超过 1 MiB/);
   expect(screen.getByLabelText("本次答案")).toBeEnabled();expect(f.session.getSnapshot().status).toBe("ready");expect(f.session.getSnapshot().state.pending_reviews).toBeUndefined();expect(f.transport.write).not.toHaveBeenCalled();
   expect(call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
-  vi.spyOn(window,"confirm").mockReturnValue(true);await user.click(screen.getByLabelText("保留的学习答案 assessment_1").closest("details")!.querySelector("summary")!);await user.click(screen.getByRole("button",{name:"丢弃草稿 item1"}));await screen.findByText("Core 已确认丢弃这份学习草稿。");
+  vi.spyOn(window,"confirm").mockReturnValue(true);await user.click(screen.getByLabelText("保留的学习答案 assessment_1").closest("details")!.querySelector("summary")!);await user.click(screen.getByRole("button",{name:"丢弃草稿 item1"}));await screen.findByText("已丢弃这份学习草稿。");
   expect(Object.keys(f.session.getSnapshot().state.learning_drafts??{})).toHaveLength(14);expect(f.session.getSnapshot().status).toBe("ready");
 });

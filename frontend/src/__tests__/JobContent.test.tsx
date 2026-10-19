@@ -97,7 +97,7 @@ describe("Core job content",()=>{
  const engineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
  await userEvent.setup().click(screen.getByRole("button",{name:/损失、引擎与处理记录/}));
  expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="损失、引擎与处理记录"&&JSON.stringify(payload).includes("openpyxl"))).toBe(true);
- expect(screen.getByText("引擎版本（回执原值，未独立核验）")).toBeInTheDocument();
+ expect(screen.getByRole("button",{name:/转换方式、版本与损失详细信息/})).toBeInTheDocument();
  expect(screen.queryByText(/engine_version/)).not.toBeInTheDocument();
  expect(engineDebug).not.toHaveBeenCalled(); engineDebug.mockRestore();
  expect(bridge.call).toHaveBeenCalledWith("job_enqueue",{body:{job_id:expect.any(String),kind:"office",input_ref:"src_office"}});

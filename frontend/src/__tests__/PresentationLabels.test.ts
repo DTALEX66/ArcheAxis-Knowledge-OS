@@ -15,9 +15,12 @@ describe("Chinese-first presentation labels", () => {
   });
 
   it("withholds endpoint and internal protocol details from visible errors", () => {
-    expect(userErrorMessage("/api/v1/home -> 500")).toBe("本地数据暂时不可用，请稍后重试或打开系统诊断。");
-    expect(userErrorMessage("NetworkError: fetch failed")).toBe("本地数据暂时不可用，请稍后重试或打开系统诊断。");
+    expect(userErrorMessage("/api/v1/home -> 500")).toBe("本地数据暂时不可用，请稍后重试或打开运行诊断。");
+    expect(userErrorMessage("NetworkError: fetch failed")).toBe("本地数据暂时不可用，请稍后重试或打开运行诊断。");
     expect(userErrorMessage("资料库没有读取权限")).toBe("资料库没有读取权限");
+    for (const technical of ["Core 回执未读回", "worker 处理失败", "Rust DTO 返回不符", "正典请求保全失败"]) {
+      expect(userErrorMessage(technical)).toBe("本地数据暂时不可用，请稍后重试或打开运行诊断。");
+    }
   });
 
   it("hides opaque local source identities behind product labels", () => {

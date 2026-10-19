@@ -29,10 +29,10 @@ interface StatusBarProps {
 }
 
 const BACKEND_LABELS: Record<BackendDisplayState, string> = {
-  checking: "正在验证本地后端…",
-  available: "后端状态：本地可用",
-  unavailable: "后端状态：不可用",
-  web: "浏览器开发模式",
+  checking: "正在检查本地连接…",
+  available: "本地连接可用",
+  unavailable: "本地连接不可用",
+  web: "浏览器预览",
 };
 
 // Presentation only: App owns every readiness transition and recovery action.

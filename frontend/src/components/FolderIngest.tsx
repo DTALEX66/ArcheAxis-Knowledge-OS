@@ -7,6 +7,7 @@ import { recoverableJobRefusal } from "../api/jobAdmission";
 import { conversionKindFor } from "../api/conversionKinds";
 import { confirmedImport, type ImportReceipt } from "../presentation/importReceipt";
 import { sha256 as contentSha256 } from "../presentation/exchangeProof";
+import { RawReceiptButton } from "./DiagnosticConsole";
 import type { BoundedJobCommand, JobStatus } from "./BoundedJobPanel";
 import { freezeFolderAttempt, folderCancelAck, folderExecutionAck, freshAttemptEligible, jobState, pollFolderAttempt, readFolderStatus, terminalJobState, type FolderAttempt, type JobState } from "../presentation/folderIngestExecution";
 
@@ -265,7 +266,7 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined);
   }
   const capabilityBusy = rows.some(row=>row.capabilityBusy);
-  return <section aria-label="文件夹导入"><h4>文件夹导入</h4><JobJournalRecovery entries={journal.entries} disabled={busy||cancelBusy||capabilityFlight.current||journal.blocked} onRestore={entry=>{const key=`recovered:${entry.request_id}`;replace({key,batch_id:"recovered",relative:entry.relative??entry.source_id,bytes:0,source_id:entry.source_id,sha256:entry.source_revision,job_id:entry.job_id,kind:entry.kind,attempt:{job_id:entry.job_id,request_id:entry.request_id,body:entry.body},state:"UNKNOWN",detail:"Core 保全现场已恢复；本地文件待上传队列未恢复。先核对原冻结状态，未自动执行。"});}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");update(old=>old.filter(row=>row.attempt?.request_id!==entry.request_id));}}/>
+  return <section aria-label="文件夹导入"><h4>文件夹导入</h4><JobJournalRecovery entries={journal.entries} disabled={busy||cancelBusy||capabilityFlight.current||journal.blocked} onRestore={entry=>{const key=`recovered:${entry.request_id}`;replace({key,batch_id:"recovered",relative:entry.relative??entry.source_id,bytes:0,source_id:entry.source_id,sha256:entry.source_revision,job_id:entry.job_id,kind:entry.kind,attempt:{job_id:entry.job_id,request_id:entry.request_id,body:entry.body},state:"UNKNOWN",detail:"待确认任务已找回；本地待处理文件列表未恢复。请先检查状态，不会自动再次执行。"});}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");update(old=>old.filter(row=>row.attempt?.request_id!==entry.request_id));}}/>
     <label className="content-import">选择一个文件夹<input type="file" aria-label="选择文件夹" disabled={busy || rows.some(row => !!row.attempt)} {...({ webkitdirectory: "", directory: "" } as Record<string, string>)} multiple onChange={event => {
       if (capabilityFlight.current || running.current || rowsRef.current.some(row => !!row.attempt)) return;
       const files = Array.from(event.target.files ?? []); event.target.value = "";
@@ -279,20 +280,20 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
       epoch.current++; handled.current.clear(); queue.current.clear(); folderRef.current = root; batchRef.current = crypto.randomUUID(); setFolder(root); setBatchId(batchRef.current); setRemaining(0);
       for (const file of files) queue.current.set(relativeOf(file), file); void runBatch();
     }}/></label>
-    {folder ? <p>当前批次「{folder}」· 批次标识 {batchId?.slice(0, 8)}…；来源关系为该批次下的相对路径。每次选择建立新的更新批次，保留已处理记录并替换尚未处理的文件队列；续跑当前选择请用“下一批”。浏览器不把磁盘绝对路径交给产品，所以此处不声称绝对路径，父目录链无法核验；当前队列是本页面会话状态，不声称重启恢复。</p> : null}
-    <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。当前转换须单独请求 Core 取消，预算 90s；拒绝或资格未知不会自动重执行。</p>
+    {folder ? <p>当前批次「{folder}」；来源关系为该批次下的相对路径。每次选择建立新的更新批次，保留已处理记录并替换尚未处理的文件队列；续跑当前选择请用“下一批”。浏览器不把磁盘绝对路径交给产品，所以此处不声称绝对路径，父目录链无法核验；当前队列是本页面会话状态，不声称重启恢复。</p> : null}
+    <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。正在转换的文件需单独请求取消，最长等待 90 秒；失败或状态未知时不会自动重试。</p>
     <div>{remaining > 0 ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void runBatch()}>下一批（剩余 {remaining}）</button> : null}
       {rows.some(row => row.batch_id===batchId && ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
       <button disabled={!busy} onClick={() => { stopAfter.current = true; setMessage("已请求停止后续处理；当前受理项仍须读回真实状态。"); }}>停止</button>
     </div>{message ? <p role="status">{message}</p> : null}
     {rows.length ? <><p aria-label="批次真实统计">{tally(rows)}</p><p>表格可横向滚动查看操作列。</p><div className="folder-ingest-table-scroll" role="region" aria-label="批次明细与操作，可横向滚动" tabIndex={0}><table className="data-table"><thead><tr>{["文件夹内路径","字节","原件","转换结果","说明","操作"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>
-      <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保管 · {row.source_id}<br/>SHA-256 {row.sha256}</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
-      <td>{row.detail}{row.job_id ? <><br/>job {row.job_id}</> : null}{row.attempt ? <><br/>冻结请求 {row.attempt.request_id} · {row.attempt.body.deadline_ms}ms</> : row.status?.request_id ? <><br/>实际请求 {row.status.request_id}</> : null}</td>
+      <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保存</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
+      <td>{row.detail}{row.source_id || row.job_id || row.attempt || row.status ? <RawReceiptButton label="此文件导入与转换详细信息" category="data" payload={{source_id:row.source_id,sha256:row.sha256,job_id:row.job_id,attempt:row.attempt,status:row.status}}/> : null}</td>
       <td><div>{row.job_id ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "核对冻结请求状态" : "读取转换状态"}</button> : null}
         {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"same")}>同请求重试</button> : null}
         {row.attempt&&row.admissionProof&&row.source_id?<FrozenCapabilityRecovery key={row.attempt.request_id} proof={row.admissionProof} attempt={row.attempt} source={row.source_id} kind={row.kind} disabled={busy||cancelBusy||capabilityBusy} current={()=>mounted.current&&!running.current&&!cancelFlight.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)} onBusyChange={value=>{if(mounted.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)){capabilityFlight.current=value;patch(row.key,{capabilityBusy:value});}}}/>:null}{!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"fresh")}>重试失败项（新请求）</button> : null}
         {row.attempt ? <button disabled={cancelBusy||capabilityBusy} onClick={() => void cancel(row.key)}>请求取消当前转换</button> : null}
         {row.source_id && onOpenSource ? <button disabled={busy || rows.some(item => !!item.attempt)} onClick={() => open(row)}>{row.state === "succeeded" ? "打开成功产物与来源" : "打开保留原件"}</button> : null}</div></td>
-    </tr>)}</tbody></table></div><p>执行终态不等同识别核验或专业依据已确认；成功产物须按真实 source_id/job_id 从持久化记录读取。</p></> : null}
+    </tr>)}</tbody></table></div><p>任务完成后仍需核对识别内容和专业依据。成功结果可从对应文件的已保存记录中打开。</p></> : null}
   </section>;
 }

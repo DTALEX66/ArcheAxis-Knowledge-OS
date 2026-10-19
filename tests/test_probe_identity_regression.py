@@ -121,7 +121,7 @@ def test_learning_restore_binds_rendered_question_diagnostic_and_full_core(chang
             assert "学习项目与题目版本" in selector
             clicks.append("diagnostic"); state["diagnostic"] = True
         def click_revealed(self,label,scope):
-            assert label == "关闭诊断中心"
+            assert label == "关闭运行诊断"
             clicks.append("close"); state["diagnostic"] = False
 
     def wait(script): assert js(script), "Wrong or hidden business learning view"
@@ -164,12 +164,12 @@ def test_reader_binds_visible_business_content_and_current_ui_identity(change):
 
     class UI:
         def click_revealed_selector(self, selector):
-            assert "文档身份与来源指纹" in selector
+            assert "文档与来源详细信息" in selector
             clicks.append("diagnostic")
             state["diagnostic"] = True
 
         def click_revealed(self, label, scope):
-            assert label == "关闭诊断中心"
+            assert label == "关闭运行诊断"
             clicks.append("close")
             state.update(diagnostic=False, closed=True)
 

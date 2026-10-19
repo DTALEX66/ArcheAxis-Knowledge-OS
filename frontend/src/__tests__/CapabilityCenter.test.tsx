@@ -55,7 +55,7 @@ describe("capability center uses existing identities without inventing runtime a
     expect(button).toBeDisabled();
     await userEvent.setup().click(button);
     expect(navigate).not.toHaveBeenCalled();
-    expect(button).toHaveAttribute("title", "当前宿主未提供模型配置页面导航");
+    expect(button).toHaveAttribute("title", "当前无法打开模型设置页面");
   });
   it.each(["resolve", "reject"])("ignores a late old-scope %s and clears old failure while reading a new scope", async mode => {
     let finish!: (v: unknown) => void, fail!: (v: unknown) => void;

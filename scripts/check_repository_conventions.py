@@ -132,6 +132,9 @@ _PRESERVED_FIXTURE_HASHES = {
 # Each exact member hash was checked against the preserved ZIP; this is not
 # a directory exemption or permission to treat history as current authority.
 _PRESERVED_PACKAGE_MEMBER_HASHES = {
+    # Archived donor index: retain its verified original CRLF bytes, not a normalized copy.
+    "docs/history/xiaoqi-source-20261018/STATE-ASSET-INDEX.json":
+        "67b1f0c2f0328e9017f1271a3d54acdad025506c8034beb250424bb5988f84e1",
     # Owner original: verified against ARCHIVE-RECEIPT and the source archive;
     # Git's former text conversion changed CRLF and must not redefine identity.
     "assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt":
