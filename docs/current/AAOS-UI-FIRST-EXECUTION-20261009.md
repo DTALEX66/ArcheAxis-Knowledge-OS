@@ -109,3 +109,7 @@ Owner要求新会话／其他Agent可接续的完整交接，并明确全量前�
 交接涵盖桌面观感／主背景和内缩主控台、原生及内部窗口调整、Dock拆分、缩放／DPI／密度／文案诊断收敛／玻璃五主题、全部页面与状态、图谱／小栖／学习／模型／能力中心、无障碍／动画性能／截图与安装资格；后端接续包含闭环七维度及J1—J6、开源与兼容矩阵、双模型、真实外部研究、批次和Green。记录共享库／工具／模型／权威／历史会话导航及未核实尾项，保留原安装FAIL和所有历史测试边界。仅文档整理，产品实现／Green不变，总体PARTIAL。
 
 交接结构核验：19项权威／替代／运行导航检查通过，32个本地交接链接及前端24／后端15分片、先后顺序、唯一进度路由和闭环正文原SHA核对通过；命名编码门禁通过。首次文档门禁把根入口直接链接的EXECUTION命名规划文件视作竞争进度，已改从活动指针execution_priority_overlay选择，未修改门禁，原FAIL及复验PASS保留。命令、时间、退出码与源码patch身份见verification-index.frontend_first_handoff_registration；4项外部／私人来源仍UNVERIFIED。本轮无产品／模型／浏览器／安装新测试，不据此覆盖产品PARTIAL。
+
+后继交接补齐：Owner新增分支合并、体积减重、本地／云端仓库及目录规范，已纳入RC-P01—08及活动指针repository_convergence。实查远端7个heads及3个开放Draft PR（192／193／194），tracking漏remaining-loop-stage1；大量供体不在祖先链，是否已有patch吸收待核，未合并／删除任何分支或文件。
+
+同时读回5836b906的CI39271537141 test (3.12)两项实际FAIL：PROJECT_CONTRACT新增closed_loop_definition遗漏严格Schema登记。已本地复现2失败／3通过，随后在既有Schema精确登记并要求该规范引用，保留额外字段拒绝、Rust单写者和普通保存边界，新增拒绝旧来源／假实施成功／丢引用的回归。相关合同与权威25项通过（含原失败），仅合同一致性修复，无新后端业务实现；新exact-SHA CI待验，旧安装grouped UI FAIL仍独立未闭环。

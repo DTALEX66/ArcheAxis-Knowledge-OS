@@ -502,5 +502,18 @@
     "role": "Current execution order and acceptance slices; original task IDs retained; no second progress ledger",
     "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
     "boundary": "Read backend contracts during UI phase; record missing API blockers and continue independent UI; no broad backend implementation, fake success or frozen-scope activation"
+  },
+  "repository_convergence": {
+    "owner_decided_at": "2026-10-19",
+    "owner_instructions": [
+      "还有分支的合并",
+      "还有体积清理，本地和云端仓库的规范化，目录的规范化"
+    ],
+    "source": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
+    "source_section": "5. 补充交付任务：分支合并、体积和双端目录规范",
+    "slices": "RC-P01..RC-P08; inherited G01/UF13/delivery, not a separate product queue",
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "execution_order": "Read-only baseline and UI donor disposition during frontend; reviewed/qualified merges and exact-object cleanup by relevant stage. Do not override frontend-first or merge failing PRs.",
+    "boundary": "Preserve unknown dirty work, unique evidence, rollback and shared resources; no history rewrite, force push, real-data overwrite or release"
   }
 }

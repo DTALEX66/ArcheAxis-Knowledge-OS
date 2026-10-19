@@ -52,6 +52,8 @@
 - DOCX/XLSX/PPTX/文本PDF有真实Core解析／保存／定位／重启证据，不等于全部格式、整批恢复、UI和往返。BE10本地human固定snapshot已有有限真实原生资格，外部对端／OS URI欠缺。
 - LM Studio 27B曾真实回答，MTP曾启用；没有基线不称加速收益或质量达标。真实云端全旅程、三类免费研究、HUB004生命周期及全面知识库特色仍须补齐。
 
+后继读回：5836b906的CI39271537141已实际出现test (3.12)两项FAIL，来自tests/test_project_contract_references.py：闭环登记新增closed_loop_definition但严格Schema未同步，additionalProperties拒绝该字段。云端5573 passed／2 failed／88 skipped仅为该作业，不是整轮通过。此处同步Schema及原失败回归，不放宽其他字段或保存／写入边界；本地修复不等于新exact-SHA CI已合格。原867d7c8a安装FAIL仍是独立未闭环证据。
+
 审计实际边界沿[审计覆盖说明](AAOS-AUDIT-TEST-COVERAGE-20261018.md)、[会话收尾](../history/product-loop-20261019/conversation-closeout.md)、[验证索引](../history/product-loop-20261019/verification-index.json)和唯一执行记录追踪。历史结论不能直接当当前PASS。
 
 ## 四、先执行24个前端分片
@@ -155,3 +157,18 @@ E:/F:默认禁访，读到旧脚本不构成进入许可。不扫Home／磁盘�
 状态PASS/PARTIAL/BLOCKED/NOT_EXECUTED/UNVERIFIED；证据NO_EVIDENCE/SIMULATED/SYNTHETIC/INTEGRATED/REAL。源码结构、本地单测、浏览器合成桥、真实Core、原生、安装、exact-SHA CI、Owner验收分别报告，失败／取消／required skip不算PASS。记录源SHA／patch、命令、时间、退出码、截图回执、未测与回退。
 
 **首次接手行动**：简短报告现场与本轮UI切片，执行UI-P01，核现有CI失败证据、页面和组件；优先共用壳／窗口与拆分／响应适配／文案诊断／玻璃，逐步覆盖24分片，不拿新一轮长审计或重复全测代替修复。前端交付全部页面覆盖／截图／原生安装结果／接口阻断，再执行15后端分片与J1—J6。结束核diff／status、自建PID与端口，更新唯一执行记录，给下一步和阻断；不能用交接、归档、测试数量或模型加载宣布产品完成。
+
+## 十、补充必须交付：分支合并、体积清理与双端规范
+
+Owner后继明确要求把“分支合并”“体积清理、本地和云端仓库规范化、目录规范化”一并纳入。详细分片第五节RC-P01—08规定逐项验收，继承G01／UF13／交付范围；先只读盘点，UI相关供体按前端顺序吸收，不能让整理变成新的后端优先或无止境审计。
+
+1. RC-P01 动态列本地与**实际远端**分支、PR、worktree、独有提交／修改与归属，保留所有未知脏内容。
+2. RC-P02 比较未合入内容、patch等价／squash／cherry-pick、供体效果与冲突；非祖先不等于没吸收，不能盲合旧整包把旧权威带回来。
+3. RC-P03 核PR192／193／194重叠，逐项定保留／后继已包含／拆分，合格审阅＋required exact-SHA CI后合入main并复验。不能只push不完成合并，也不能绕过失败强合。
+4. RC-P04 合入并证实无独有内容、无占用后，按授权清理确切已合并本地／远端分支和已妥善处理的PR，读回；不删未吸收／未知分支、不改写历史。
+5. RC-P05 分开量化源码工作区／tracked大文件／Git历史对象／构建缓存证据／云端CI产物和release，写时间、字节、归属、再生性，不把共享模型资料算可删缓存。
+6. RC-P06 清理先列原路径／hash／大小／归档或替代／重建方法；保全独有原件、失败证据和有效回退，只处理核实项目所有且可再生／重复对象。压缩验成员和hash，普通删文件不等于Git历史减小，历史改写未授权。
+7. RC-P07 按DIRECTORY_AUTHORITY.yaml和职责索引规范源码／合同／current导航／历史／供体许可／忽略运行产物，更新活动引用、查孤儿旧入口、原位不留第二可变副本，不乱搬不可变TaskPack。
+8. RC-P08 分别读回本地／远端／main／PR／release身份和清理前后字节，公开源码文档才同步。云端artifact按证据价值、期限和精确授权处理，保留失败／待审候选；不改可见性、保护规则、付费存储或擅自发布。
+
+2026-10-19后继盘点：实际远端7个heads（含main及sync、character-memory-ui、layout-preferences、closure-integration、remaining-loop-stage1、ui-polish），开放PR192／193／194均Draft；当前checkout唯一登记worktree。大量本地供体不是当前头的祖先，**是否有独有有效改动仍UNVERIFIED**，需查patch，不能立即删除。远端remaining-loop-stage1没有出现在旧tracking列表，证明只看本地引用会漏项。具体头与观察见verification-index的branch_and_repository_normalization；下次接手仍动态核对。

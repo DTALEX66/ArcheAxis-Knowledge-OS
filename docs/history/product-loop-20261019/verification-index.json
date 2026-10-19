@@ -4595,6 +4595,186 @@
         "child_exit_code": 0,
         "status": "LOCAL_PASS"
       }
-    ]
+    ],
+    "followup_runs": [
+      {
+        "id": "frontend-handoff-final-authority-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-final-authority-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "8434a62cd2e1d2419c64fdb10313afe1a363cc5509e2be4fb81a828bc70d44d4",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_documentation_authority_index.py",
+          "tests/test_truth_authority_supersession.py",
+          "tests/test_runtime_delivery_authority.py",
+          "-q"
+        ],
+        "started_at": "2026-10-19T15:00:22.476680+00:00",
+        "ended_at": "2026-10-19T15:00:25.537915+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "frontend-handoff-final-docgate-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-final-docgate-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "8434a62cd2e1d2419c64fdb10313afe1a363cc5509e2be4fb81a828bc70d44d4",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/ci/check_document_authority.py"
+        ],
+        "started_at": "2026-10-19T15:00:19.636416+00:00",
+        "ended_at": "2026-10-19T15:00:21.233305+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "frontend-handoff-final-conventions-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-final-conventions-20261019/artifacts/execution.json",
+        "source_commit": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+        "source_patch_sha256": "8434a62cd2e1d2419c64fdb10313afe1a363cc5509e2be4fb81a828bc70d44d4",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/check_repository_conventions.py"
+        ],
+        "started_at": "2026-10-19T15:00:22.564482+00:00",
+        "ended_at": "2026-10-19T15:00:25.351363+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      },
+      {
+        "id": "frontend-handoff-contract-red-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-contract-red-20261019/artifacts/execution.json",
+        "source_commit": "7200f16cc80baaefb5fc7f4d2a9ba5e27559194d",
+        "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_project_contract_references.py",
+          "-q"
+        ],
+        "started_at": "2026-10-19T15:02:49.451432+00:00",
+        "ended_at": "2026-10-19T15:02:52.633535+00:00",
+        "exit_code": 1,
+        "child_exit_code": 1,
+        "status": "FAIL"
+      },
+      {
+        "id": "frontend-handoff-contract-green-20261019",
+        "receipt": ".project-local/runs/be268a2d33/frontend-handoff-contract-green-20261019/artifacts/execution.json",
+        "source_commit": "7200f16cc80baaefb5fc7f4d2a9ba5e27559194d",
+        "source_patch_sha256": "f69551b287a5b8dae1e46c779288fca5da5fd560909aa27b26f6141631ce8cb6",
+        "source_consistent": true,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_project_contract_references.py",
+          "tests/test_documentation_authority_index.py",
+          "tests/test_truth_authority_supersession.py",
+          "tests/test_runtime_delivery_authority.py",
+          "-q"
+        ],
+        "started_at": "2026-10-19T15:04:22.688589+00:00",
+        "ended_at": "2026-10-19T15:04:26.030090+00:00",
+        "exit_code": 0,
+        "child_exit_code": 0,
+        "status": "LOCAL_PASS"
+      }
+    ],
+    "final_run_receipts": [
+      ".project-local/runs/be268a2d33/frontend-handoff-final-contracts2-20261019/artifacts/execution.json",
+      ".project-local/runs/be268a2d33/frontend-handoff-final-docgate2-20261019/artifacts/execution.json",
+      ".project-local/runs/be268a2d33/frontend-handoff-final-conventions2-20261019/artifacts/execution.json",
+      ".project-local/runs/be268a2d33/frontend-handoff-final-routing3-20261019/artifacts/execution.json"
+    ],
+    "final_local_result": "25 related contract/authority tests PASS; document gate PASS; conventions PASS; 32 links and UI24/BE15/RC8 routing PASS. Product/installed/new exact-SHA CI qualification not claimed."
+  },
+  "branch_and_repository_normalization": {
+    "observed_at": "2026-10-19T15:05:10.593297+00:00",
+    "scope": "Read-only branch/PR inventory and fine-grained handoff; no merge/deletion/cleanup performed",
+    "remote_source": "git ls-remote --heads origin; actual remote heads, not only tracking refs",
+    "remote_heads": {
+      "codex/character-memory-ui-20261015": "02368f0e69fea6fe7861ebb0b003b7a2e200e8e2",
+      "codex/closure-integration-20261014": "015a5cff20a666653dacb304108229426c06cb89",
+      "codex/layout-preferences-20261014": "9daf1221952133374181a6c7c81b6529d0e6419f",
+      "codex/remaining-loop-stage1-20261013": "b2e283b669dc096c9d1898882990825b0762488c",
+      "codex/sync-20261019": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+      "codex/ui-polish-20261013": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e",
+      "main": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46"
+    },
+    "local_heads_at_observation": [
+      "astryn/integration-20261015|773f74b0c9558a1ad0fe6f997c0af1c752f1bcb9|",
+      "codex/build-optimization-20261014|00d0fb71f824f29332ad2df83783bf6968e8f46e|",
+      "codex/closure-egress-20261013|97fc1de1bf8dfbaefc4a1fdae5afa43785bf2429|",
+      "codex/closure-integration-20261014|5a3246aa43866de19942adfb0b98dee176530cac|origin/codex/closure-integration-20261014",
+      "codex/closure-machine-20261013|d967a6349db9758c0e9f070273c45449654eae39|",
+      "codex/closure-portable-20261013|fe1fa27ecb635d83c22a7a511ece4fe7c1c5c4d8|",
+      "codex/cloud-dispatch-ci-20261016|3c3b6e8547e3f7c85d9d3de76a12d214904fb980|",
+      "codex/course-return-20261016|1baaf5ee42f71186c6582d3bd874dd26c6d78071|",
+      "codex/course-teaching-return-20261016|dbb99f87f39f2918c5d7000d4bbccba4bad017de|",
+      "codex/format-qualification-20261016|2a10bb6c1f367fc80b747bf29fc013bcb054957f|",
+      "codex/glass-cabin-20261015|127a3a4494d727abe0e9836a20d54da1ef1adca6|",
+      "codex/graph-research-20261016|3685135f68068c2000879dfe24c4caa187466c7f|",
+      "codex/learning-drafts-20261015|66ced6abec2c2fa21b2c95cb261dd6b7dc92af0c|",
+      "codex/learning-native-20261015|cc93fe45d5a89a3d6415263c7aadd8567b60b849|",
+      "codex/library-announcements-20261015|811b3aeab37db3422a4344be5ce43a71fbe0d74b|",
+      "codex/library-refresh-20261015|92b1cf6444647412e200d25386b6507305df32ff|",
+      "codex/minimax-aaos-cosmic-ui-20261001|627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a|origin/codex/minimax-aaos-cosmic-ui-20261001",
+      "codex/native-port-observer-20261016|a5e34efdde98e9ac5ac4e0a371630d95e3c100f8|",
+      "codex/native-teaching-probe-20261016|d64616a82875df8c8421bf89d7bed0cd21750c4c|",
+      "codex/reader-inspector-responsive-20261016|570336614c260ecc1bee1efad856dca1159cb3b1|",
+      "codex/reader-reference-20261015|344df8bea3b3d796131ff424c970504114c38fbd|",
+      "codex/sync-20261019|7200f16cc80baaefb5fc7f4d2a9ba5e27559194d|origin/codex/sync-20261019",
+      "codex/teaching-draft-20261015|b7bbf1c00f675e0989e9f1d6156df72791927c97|",
+      "codex/teaching-save-integrity-20261015|f10891c62649b942049a0009d6305e4dda4aa9d6|",
+      "codex/ui-polish-20261013|a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e|origin/codex/ui-polish-20261013",
+      "codex/video-health-contract-20261016|65262d5cb87b71b8bc390cad2bb56d1d1252de4f|",
+      "main|fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46|origin/main"
+    ],
+    "open_prs_at_observation": [
+      {
+        "number": 192,
+        "draft": true,
+        "head": "codex/layout-preferences-20261014"
+      },
+      {
+        "number": 193,
+        "draft": true,
+        "head": "codex/character-memory-ui-20261015"
+      },
+      {
+        "number": 194,
+        "draft": true,
+        "head": "codex/sync-20261019"
+      }
+    ],
+    "ancestry_caveat": "Many local donor heads are not ancestors; patch equivalence and unique live changes remain UNVERIFIED, so no merge/delete inferred",
+    "ci_failure": {
+      "run_id": 39271537141,
+      "head": "5836b90687aaae3b9d6e8750f0793f0426c639ae",
+      "job_id": 118125796083,
+      "failures": 2,
+      "passed": 5573,
+      "skipped": 88,
+      "cause": "Strict project contract schema omitted closed_loop_definition",
+      "local_reproduction": "2 failed, 3 passed",
+      "local_fix": "25 related tests passed; exact-SHA CI remains unqualified"
+    },
+    "repository_slices": 8,
+    "size_baseline": "NOT_EXECUTED; planned separate worktree/tracked/history/runtime/cloud-artifact measurements, no fabricated reclaimed bytes",
+    "cleanup": "NOT_EXECUTED; no files, branches, artifacts or archives deleted"
   }
 }
