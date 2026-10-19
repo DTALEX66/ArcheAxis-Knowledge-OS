@@ -1386,6 +1386,256 @@
         "--source",
         "worktree"
       ]
+    },
+    {
+      "run": "product-loop-core-ce3b-20261019",
+      "source_commit": "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:04:05.812460+00:00",
+      "ended_at": "2026-10-19T11:04:09.645109+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 3.832649800024228,
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "scripts\\ci\\cargo_test.bat",
+        "build",
+        "-p",
+        "archeaxis-api",
+        "--bin",
+        "archeaxis-api",
+        "--release",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-host-ce3b-20261019",
+      "source_commit": "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:04:06.484695+00:00",
+      "ended_at": "2026-10-19T11:06:10.751028+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 124.26633360001142,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "scripts/runtime/frontend.mjs",
+        "tauri",
+        "--receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-ce3b-20261019/artifacts/host-build.json",
+        "--",
+        "build",
+        "--no-bundle",
+        "--",
+        "--offline",
+        "--locked"
+      ]
+    },
+    {
+      "run": "product-loop-stage-ce3b-20261019",
+      "source_commit": "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:04:40.067770+00:00",
+      "ended_at": "2026-10-19T11:05:55.261011+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 75.19324389999383,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/release/stage_backend_runtime.py",
+        "--core",
+        ".project-local/build/cargo/release/archeaxis-api.exe",
+        "--runtime",
+        ".project-local/rt/runtime",
+        "--workers",
+        "services/python-workers",
+        "--external-root",
+        "D:/All projects/OS External Configuration",
+        "--out",
+        ".project-local/candidates/product-loop-ce3b-20261019/backend",
+        "--version",
+        "0.6.14-product-loop-ce3b",
+        "--source-commit",
+        "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+        "--source-tree",
+        "d6dc7c47161c2fa901186e269f7cc26d9e8c4ec1"
+      ]
+    },
+    {
+      "run": "product-loop-bind-ce3b-20261019",
+      "source_commit": "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:06:36.231672+00:00",
+      "ended_at": "2026-10-19T11:06:55.351933+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 19.12026190001052,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/artifacts/product-loop-20261019/model-loop/bind_native_candidate.py",
+        "--host-receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-ce3b-20261019/artifacts/host-build.json",
+        "--core-receipt",
+        ".project-local/runs/be268a2d33/product-loop-core-ce3b-20261019/artifacts/execution.json",
+        "--host-output",
+        ".project-local/build/tauri/release/ArcheAxis.exe",
+        "--core-output",
+        ".project-local/build/cargo/release/archeaxis-api.exe",
+        "--candidate-host",
+        ".project-local/candidates/product-loop-ce3b-20261019/backend/ArcheAxis.exe",
+        "--out",
+        ".project-local/runs/be268a2d33/product-loop-host-ce3b-20261019/artifacts/native-candidate-build.json"
+      ]
+    },
+    {
+      "run": "product-loop-model-ensure-ce3b-20261019",
+      "source_commit": "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:06:37.359089+00:00",
+      "ended_at": "2026-10-19T11:06:38.579262+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 1.2201720000011846,
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        ".project-local/artifacts/product-loop-20261019/load-project-model.mjs"
+      ]
+    },
+    {
+      "run": "product-loop-native-ce3b-20261019",
+      "source_commit": "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_patch_sha256_after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "started_at": "2026-10-19T11:07:11.269665+00:00",
+      "ended_at": "2026-10-19T11:10:50.755728+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "seconds": 219.48606610001298,
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/probes/aaos01_tauri_webdriver_loop.py",
+        "--host",
+        ".project-local/candidates/product-loop-ce3b-20261019/backend/ArcheAxis.exe",
+        "--build-receipt",
+        ".project-local/runs/be268a2d33/product-loop-host-ce3b-20261019/artifacts/native-candidate-build.json",
+        "--driver",
+        "D:/All projects/OS External Configuration/toolchains/rust/cargo/bin/tauri-driver.exe",
+        "--native-driver",
+        ".project-local/tools/edge-155.0.4283.60/msedgedriver.exe",
+        "--session-timeout",
+        "180",
+        "--grouped-common-owner-loop",
+        "--actual-model",
+        "--grouped-authored-intervention",
+        "--grouped-model",
+        "aaos-deep-27b-mtp",
+        "--grouped-save-deep-binding",
+        "--require-actual-ai-loop"
+      ]
     }
-  ]
+  ],
+  "native_ce3b": {
+    "source_commit": "ce3b04e8388453ed9176660dfdea553f3a6828c8",
+    "run": "product-loop-native-ce3b-20261019",
+    "receipt_relative_path": ".project-local/runs/be268a2d33/webdriver-ec87824732a9/tmp/journey/receipt.json",
+    "receipt_sha256": "654f0c750935ed17ff80889fee90928bfe385826e20b3bffc794b4cffe74df8d",
+    "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+    "engineering_status": "PASS",
+    "status": "PARTIAL",
+    "closed_loop_verified": false,
+    "human_signoff": false,
+    "owner_acceptance": "NOT_EXECUTED",
+    "actual_ai_requirement": "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN",
+    "compiled_source_binding": "PASS",
+    "source_consistent": true,
+    "stages": [
+      {
+        "id": "import",
+        "status": "PASS"
+      },
+      {
+        "id": "read",
+        "status": "PASS"
+      },
+      {
+        "id": "anchor",
+        "status": "PASS"
+      },
+      {
+        "id": "claim",
+        "status": "PASS"
+      },
+      {
+        "id": "learn",
+        "status": "PASS"
+      },
+      {
+        "id": "practice",
+        "status": "PASS"
+      },
+      {
+        "id": "review",
+        "status": "PASS"
+      },
+      {
+        "id": "distill",
+        "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+      },
+      {
+        "id": "recover",
+        "status": "PASS"
+      }
+    ],
+    "answer": {
+      "elapsed_s": 59.25,
+      "requested_model": "aaos-deep-27b-mtp",
+      "observed_model": "aaos-deep-27b-mtp",
+      "protocol": "openai",
+      "finish_reason": "stop",
+      "answer_source": "content",
+      "max_tokens": 1024
+    },
+    "retest": {
+      "elapsed_s": 68.86,
+      "requested_model": "aaos-deep-27b-mtp",
+      "observed_model": "aaos-deep-27b-mtp",
+      "protocol": "openai",
+      "finish_reason": "stop",
+      "answer_source": "content",
+      "max_tokens": 1024
+    },
+    "owned_process_cleanup": true,
+    "owned_ports_released": true,
+    "screenshot_sha256": "0fcceabc447d71a95c1de6bc7b47fbefa466ad366025e9bd69622ab9e466c233",
+    "limitations": [
+      "Authored intervention, not independently adjudicated real model error",
+      "Candidate answers executed but not quality evaluated",
+      "Not installed-runtime, full-format, full-accessibility, physical-DPI, performance-comparison or Owner acceptance"
+    ]
+  }
 }
