@@ -1,6 +1,8 @@
 # Runtime and Delivery Authority Index
 
-> **2026-10-12 当前路由与状态**：产品实施 RUNNING_BY_OWNER / PARTIAL；源码已通过 PR #184 并入 main。当前任务与授权读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录；仓库收敛与接续读[接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。2026-10-10 暂停仅为历史快照；六项核心能力增量仍 FROZEN_BY_OWNER，V01 暂停、FT01–04 冻结。发布、Green 替换与真实用户数据覆盖未授权。 文件身份及旧路径按[路径身份路由](current/AAOS-AUTHORITY-ROUTES.json)分类。
+> **2026-10-19 Green程序更新授权覆盖**：Owner明确确认 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 可以覆盖。它是日常绿色版部署根，CI的隔离NSIS安装不在这里。该路径的新程序更新遵循[活动指针](current/AAOS-ACTIVE-EXECUTION.json)的 `green_update_authorization`：先核完整候选、相关安装旅程、停止状态和程序回退，再按成员清单替换并校验哈希；保留用户数据及根数据库，不自动迁移旧业务数据。下方v0.6.14链用于辨识旧安装，不要求新宿主继续采用旧架构。当前仅记录授权，尚未覆盖；失败安装旅程与正式发布资格分别记账。
+
+> **2026-10-12 当前路由与状态**：产品实施 RUNNING_BY_OWNER / PARTIAL；源码已通过 PR #184 并入 main。当前任务与授权读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录；仓库收敛与接续读[接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。2026-10-10 暂停仅为历史快照；六项核心能力增量仍 FROZEN_BY_OWNER，V01 暂停、FT01–04 冻结。公开发布与真实用户数据覆盖未授权；2026-10-19后继Owner已允许覆盖登记Green目录的程序文件，见下方授权覆盖。 文件身份及旧路径按[路径身份路由](current/AAOS-AUTHORITY-ROUTES.json)分类。
 
 > **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
 > 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。

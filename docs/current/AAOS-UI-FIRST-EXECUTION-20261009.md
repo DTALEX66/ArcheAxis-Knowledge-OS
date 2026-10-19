@@ -91,3 +91,7 @@ Rust workspace正式入口离线测试PASS：915通过、0失败、0忽略，194
 本对话停止新增功能工作，完成公开记录归档与授权上传；总体仍PARTIAL。最新源码为`867d7c8a07d6e0e36895b84e3ad1490e0a58badb`，云端浏览器/Rust/Python/桌面构建已通过，CI在收尾快照时为in_progress/PENDING，不把安装或聚合未完成称为PASS。全部本对话决定、实际修复、测试边界、定时删除not_found与遗留项见[收尾归档](../history/product-loop-20261019/conversation-closeout.md)及[机器记录](../history/product-loop-20261019/conversation-closeout.json)。最终上传后独立核对本地/远端分支SHA；不自动merge、发布或替换Green，不创建后台继续任务。此收尾不恢复冻结能力，也不从历史暂停撤销Owner当日不监控额度的决定。
 
 最终收尾读回：源码867d7c8a的CI39264199340整体CANCELLED，installer-lifecycle实际FAIL（grouped UI engineering journey，exit1）；失败证据包与未定位根因已归入本对话收尾补充。后继归档提交CI未取得完整资格；PR194保持Draft/Open，未merge/发布/替换Green，不以本地通过或云端其他作业通过覆盖安装失败。
+
+## 2026-10-19 Green精确目录覆盖授权
+
+Owner询问并明确允许覆盖 `D:\All projects\ArcheAxis.Knowledge.Green-x64`。现场已核该目录是共享路径索引登记的日常Green位置，存在ArcheAxis.exe、启动器、runtime、data、根archeaxis.sqlite及备份目录；release-identity.json记载v0.6.14，不能从该标签推导整个当前文件集资格。已将程序更新授权及现有exe哈希记入活动指针green_update_authorization，并同步AGENTS、共享索引、运行交付索引和接手入口。更新范围是程序文件，先保全回退，保留业务数据/数据库/备份/未知目录；公开发布不在授权内。本次未覆盖文件、未启动Green、未读取业务数据、未终止进程。当前候选安装旅程仍未取得完整资格，先修复验证再执行覆盖，不再重复索要本路径的许可。

@@ -1,6 +1,6 @@
 # ArcheAxis 本机共享资源与数据路径索引
 
-> **2026-10-11 当前路由与状态**：Owner 已恢复完整框架、常用格式与最短闭环实施，整体 PARTIAL；当前执行入口读 [活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读该指针指定的 UI 执行记录。2026-10-10 暂停和下方带日期执行说明保留为历史快照。读取旧路径前先按 [路径身份路由](current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER；V01暂停、FT01–04冻结；发布、Green替换和真实用户数据覆盖未授权。
+> **2026-10-11 当前路由与状态**：Owner 已恢复完整框架、常用格式与最短闭环实施，整体 PARTIAL；当前执行入口读 [活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读该指针指定的 UI 执行记录。2026-10-10 暂停和下方带日期执行说明保留为历史快照。读取旧路径前先按 [路径身份路由](current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER；V01暂停、FT01–04冻结；公开发布和真实用户数据覆盖未授权；2026-10-19后继Owner允许覆盖下表Green目录的程序文件，具体范围见活动指针green_update_authorization。
 
 > 本项目本机资源路径的唯一登记入口。来源：用户 2026-09-07 明确指定；路径不是猜测、扫描推断或旧任务包默认值。
 > 本文件登记执行时如何找到资源，**不修改产品运行配置，也不证明软件已经读取这些路径**。配置文件、环境和启动参数仍遵循配置权威索引。
@@ -31,7 +31,7 @@ AAOS-01 / SUP-022 是当前执行包，唯一进度见[现行台账](history/rep
 | --- | --- | --- | --- |
 | `shared_models` | `D:\All projects\Model library` | 多项目共用本地模型库；转换优先用现有本地模型，GPT 辅助审计 | 使用前核实项目指定模型/profile；不因本项目任务重组、清理或重复下载共享权重 |
 | `shared_tools` | `D:\All projects\OS External Configuration` | 多项目共用外置工具链/工具资源库，不是本项目，也不是 WORK-LAB | 先在明确工具目录定位需要的程序；禁止复制整库到项目或修改其他项目配置 |
-| `green_application` | `D:\All projects\ArcheAxis.Knowledge.Green-x64` | 本地现有绿色版本软件位置 | 保留现有软件和数据；本轮 DP 不替换、不清理、不启动它做测试、不发布新版本 |
+| `green_application` | `D:\All projects\ArcheAxis.Knowledge.Green-x64` | 本地日常绿色版部署位置；不同于 CI 隔离安装目录 | Owner 2026-10-19已允许覆盖程序文件；按活动指针 green_update_authorization 核候选资格、先备份回退再更新；保留用户数据、数据库、备份与未知目录，不公开发布 |
 | `green_material_library` | `D:\All projects\资料库` | 用户说明的绿色版本已设置资料库，属于真实产品资料 | 不是测试临时目录、不是缓存、不是 ceshi；本轮仅登记/核实路径元数据，不读取内容、不写入、不清理、不迁移 |
 | `project_test_corpus` | `D:\All projects\ceshi` | ArcheAxis 专属测试学习资料库/学习资料副本 | 测试按已授权的精确样例范围只读消费；保留原件，输出进项目 `.project-local`；不上传资料正文或复制进 Git |
 

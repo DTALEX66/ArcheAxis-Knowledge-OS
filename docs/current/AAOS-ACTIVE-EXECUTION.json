@@ -154,7 +154,7 @@
     "commit": "GRANTED_CURRENT_DELIVERY_SCOPE",
     "push": "GRANTED_CURRENT_DELIVERY_SCOPE",
     "merge": "GRANTED_CURRENT_DELIVERY_SCOPE",
-    "release_install": "NOT_GRANTED_FOR_OWNER_MACHINE_OR_GREEN",
+    "release_install": "GREEN_PROGRAM_UPDATE_GRANTED_ONLY_AT_EXACT_PATH; public release and real user data overwrite NOT_GRANTED; see green_update_authorization",
     "future_grants": "Recorded task scope only; new sessions must resolve their current request, not inherit unrestricted permissions",
     "product_execution_ref": "#/execution_control"
   },
@@ -434,6 +434,25 @@
       "handoff_snapshot_reader_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-HANDOFF-SNAPSHOT-READER-20261019.json",
       "handoff_snapshot_reader_checkpoint": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/README.md"
     }
+  },
+  "green_update_authorization": {
+    "date": "2026-10-19",
+    "owner_instruction": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64 安装版定义的路径是这里吗？可以覆盖的",
+    "target": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64",
+    "target_role": "Owner daily Green/portable deployment directory; distinct from CI isolated NSIS test installation",
+    "operation": "Replace project-owned application program files with the qualified current candidate; preserve user data and a rollback copy",
+    "status": "GRANTED_NOT_EXECUTED",
+    "observed_identity_label": "release-identity.json reports v0.6.14; metadata is not proof of current complete executable/member consistency",
+    "observed_executable_sha256": "132f1c8ccc5344cd8b709826b79c59ba01cf59b919073fd36a67ec249c5a0538",
+    "conditions": [
+      "Identify exact source/candidate and member manifest; complete relevant isolated installed journey before daily replacement",
+      "Verify target application is stopped; do not terminate unknown or shared processes",
+      "Preserve hash-identified program rollback and deployment manifest before replacing declared application files",
+      "Read back candidate/target hashes and deployment identity; use isolated data for validation",
+      "Preserve data, databases including root archeaxis.sqlite, backups, user assets, preferences and unknown directories; no bulk deletion or incompatible real-data migration"
+    ],
+    "qualification": "UNVERIFIED; prior installed journey failure remains open; this grant does not turn failed CI into PASS",
+    "not_granted": ["Public release", "Real user data overwrite", "Unknown shared process termination", "Other deployment paths"]
   },
   "conversation_closeout": {
     "date": "2026-10-19",
