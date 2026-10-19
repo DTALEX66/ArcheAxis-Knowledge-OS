@@ -555,17 +555,50 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
             "22": "13",
             "20": "19",
         }
-        selector = f'.navigation-sidebar button[data-page-id="{page_id}"]'
-        if not self.js("return !!document.querySelector(" + json.dumps(selector) + ")"):
-            parent = parents[page_id]
+        def visible_surface():
+            # 容器的窄/矮断点（≤1100px 或 ≤760px）下产品按设计隐藏侧栏，只保留“打开产品导航”抽屉；
+            # 探针必须走实际可见的导航面，不能对隐藏侧栏做 element not interactable 的点击。
+            mode = self.js(
+                "const visible=n=>!!n&&n.getClientRects().length>0&&"
+                "!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&getComputedStyle(n).visibility==='visible';"
+                "return visible(document.querySelector('.navigation-sidebar'))?'sidebar':"
+                "visible(document.querySelector('button[aria-label=\"打开产品导航\"]'))?'drawer':'none';"
+            )
+            if mode == "drawer":
+                self.click_selector('button[aria-label="打开产品导航"]', "css selector")
+                self.wait("const d=document.querySelector('.ui-navigation-drawer');return !!d&&d.getClientRects().length>0;")
+                return ".ui-navigation-drawer"
+            assert mode == "sidebar", "No visible product navigation"
+            return ".navigation-sidebar"
+
+        def page_button_visible(scope, target):
+            probe = f'{scope} button[data-page-id="{target}"]'
+            return self.js(
+                "const n=document.querySelector(" + json.dumps(probe) + ");"
+                "if(!n||!n.getClientRects().length||n.closest('[hidden],[aria-hidden=\"true\"],[inert]'))return false;"
+                "for(let a=n;a;a=a.parentElement){const s=getComputedStyle(a);"
+                "if(s.display==='none'||s.visibility!=='visible')return false;}return true;"
+            )
+
+        def enter_navigation(scope, target):
+            element = self.find(f'{scope} button[data-page-id="{target}"]', "css selector")
             try:
-                self.click_selector(f'.navigation-sidebar button[data-page-id="{parent}"]', "css selector")
+                self.command(element, "value", {"text": "\ue007"})
             except Exception as error:
-                if not confirm_navigation or getattr(error,'value',{}).get('error')!='unexpected alert open':
+                if not confirm_navigation or getattr(error, 'value', {}).get('error') != 'unexpected alert open':
                     raise
             if confirm_navigation:
                 assert self.accept_navigation_alert is not None, 'Trusted parent navigation confirmation unavailable'
                 self.accept_navigation_alert()
+
+        scope = visible_surface()
+        if not page_button_visible(scope, page_id):
+            parent = parents[page_id]
+            enter_navigation(scope, parent)
+            # 抽屉在激活页面后会关闭：重新展开可见导航，再进入其子页面。
+            scope = visible_surface()
+            assert page_button_visible(scope, page_id), f"page {page_id} unreachable after parent {parent}"
+        selector = f'{scope} button[data-page-id="{page_id}"]'
         # Activate the exact focused navigation button using native WebDriver
         # keyboard input. Pointer activation remains separately qualified; do not
         # silently repeat a click that may have hit a moving layout neighbour.

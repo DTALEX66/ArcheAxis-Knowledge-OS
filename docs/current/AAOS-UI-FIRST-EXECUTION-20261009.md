@@ -282,3 +282,16 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 - **CI（新 SHA）**：`5a2d5e6e` 的 run `39280943472` 为 **queued／gateplan pending**（此前 `39271537141` 等为 cancelled）。**required exact-SHA CI 未完成** → PR194 不合并、不发布（RC-P03 继续受阻）。
 - **A0 门禁竞态修复**：[a0_browser_smoke.py](../../scripts/a0_browser_smoke.py#L1845-L1850) 的 `read_narrow_dock_library` 增加“等实际正文出现再断言”的 `wait_for_function`（检查编辑器 `innerText`），**断言不放宽**。复跑 A0：`status=PASS`、`errors=[]`、`base_commit=5a2d5e6e`。
 - **过程保留**：第一次尝试用 `get_by_text(...).wait_for()` 等待不可见、超时失败——方案无效已替换为 `innerText` 等待后通过；原始 run1 FAIL 与本次中间 FAIL 均保留，不改写成 PASS。
+- **前端生产构建**：`node scripts/runtime/frontend.mjs build` → **PASS**（exit 0，"✓ built in 2.90s"；产物 `.project-local/runs/be268a2d33/c4fd968edc9b/artifacts/frontend-dist`，子运行 `bt-fd39d9af` PASS）。大 chunk（index ≈1.9MB）与既有 Rust 警告保留，未改阈值。
+
+## 2026-10-19/20 installer-lifecycle 根因定位与修复（BE-P13 / UI-P24）
+
+**CI 失败定位（run 39275027426，head 031fcfea）**：唯一真实失败门禁是 **installer-lifecycle**（`a0-gates` 只是聚合器，因 required `installer-lifecycle`=failure 而 exit1；其余 12 门禁 success，5 个 skipped）。下载 `installed-native-journey` 产物 readback：
+
+- 失败 receipt `ok=false`，`error="WebDriverProtocolError: element not interactable"`。
+- traceback：`aaos01_grouped_owner_loop.py` `run_grouped_loop` → `ui.page("16")` → 点 `.navigation-sidebar button[data-page-id="15"]`（父入口）→ 隐藏侧栏不可交互。
+- **根因**：安装态窗口高度 ≤760px（容器断点）时产品**按设计隐藏** `.navigation-sidebar`、改用“打开产品导航”抽屉；grouped 探针仍直接点隐藏侧栏。这正是 UI-P24「先定位既有 grouped UI 安装失败」的对象。
+
+**修复**：[aaos01_grouped_owner_loop.py](../../scripts/probes/aaos01_grouped_owner_loop.py#L558-L601) 的 `page()` 改为**可见导航面**——侧栏可见用侧栏，否则走 `.ui-navigation-drawer`；父/子两步都在可见面完成，抽屉激活后重新展开。**不使用 JS click 或 hash 绕过，断言不放宽**。
+
+**验证**：`py_compile` exit 0；探针合同测试 **71 passed**（test_native_preview_ci / test_owned_webdriver_transport / test_probe_identity_regression / test_native_owned_descendant_drain）。**安装态真实旅程资格仍待新 exact-SHA CI**（本地无法运行 NSIS 安装）→ 状态 **CANDIDATE_FIX / UNVERIFIED_RUNTIME**。
