@@ -9,9 +9,8 @@
   --cabin-inset-x: 4.665cqw;
   --cabin-inset-y: 5.95cqh;
 }
-/* Glass chrome sits over a dark scene in both light themes. Keep keyboard
-   focus distinct from the translucent chrome and the light control surface. */
-:root:is([data-aaos-theme="blueprint-light"], [data-aaos-theme="white"]) .cabin-shell { --ax-focus-ring: #3379c4; }
+/* 浅色半透明栏在深浅背景上都保留清晰的键盘焦点；不依赖背景图片的亮度。 */
+:root:is([data-aaos-theme="blueprint-light"], [data-aaos-theme="white"]) .cabin-shell { --ax-focus-ring: #12345c; }
 .cabin-shell .status-bar :is(button, select, summary):focus-visible {
   box-shadow: 0 0 0 2px var(--ax-focus-ring), 0 0 0 4px var(--ax-focus-ring);
 }
@@ -59,10 +58,13 @@ body:has(.cabin-shell) {
 .cabin-shell .status-pill--unavailable::before { background: var(--ax-danger); }
 .cabin-shell[data-cabin-page="01"] .status-bar-space,
 .cabin-shell[data-cabin-page="01"] .inspector-trigger { display: none; }
-.cabin-settings { position: relative; flex: 0 0 auto; border-left: 1px solid var(--cabin-edge); padding-left: 24px; }
+.cabin-settings { position: static; flex: 0 0 auto; border-left: 1px solid var(--cabin-edge); padding-left: 24px; }
 .cabin-settings > summary { list-style: none; display: flex; align-items: center; justify-content: center; min-width: 24px; min-height: 24px; border-radius: 5px; cursor: pointer; }
 .cabin-settings > summary:focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 3px; box-shadow: 0 0 0 2px var(--ax-focus-ring); }
-.cabin-settings > div { position: absolute; right: 0; top: 45px; z-index: 30; padding: 18px; display: grid; gap: 12px; width:min(320px,calc(100cqw - 32px)); min-width:0; max-height:calc(100cqh - 140px); overflow:auto; font-size:var(--ax-text-ui); line-height:1.5; overflow-wrap:anywhere; border-radius: 14px; border: 1px solid var(--cabin-edge); background: var(--ax-panel); box-shadow: var(--cabin-shadow); }
+/* 以完整状态栏定位浮层，避免窄窗中靠左的设置按钮把菜单推出主控台。 */
+.cabin-settings > div { position: absolute; right: 8px; top: calc(100% - 4px); z-index: 30; padding: 18px; display: grid; gap: 12px; width:min(320px,calc(100cqw - 32px)); min-width:0; max-height:calc(100cqh - 140px); overflow:auto; font-size:var(--ax-text-ui); line-height:1.5; overflow-wrap:anywhere; border-radius: 14px; border: 1px solid var(--cabin-edge); background: var(--ax-panel); box-shadow: var(--cabin-shadow); }
+.cabin-settings .theme-picker { display: grid; }
+.cabin-settings .theme-picker select { width: 100%; max-width: 100%; }
 .cabin-shell .app-body { gap: 4px; }
 .cabin-shell .navigation-sidebar {
   flex: 0 0 193px; min-width: 193px; width: 193px; padding: 21px 0 12px;

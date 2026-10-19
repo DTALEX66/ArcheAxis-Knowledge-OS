@@ -127,6 +127,29 @@ def assert_restart(receipt):
     assert receipt["old_portable_root"] == receipt["new_portable_root"]
 
 
+def assert_comparison_snapshot(ui, js, wait, label, content):
+    """Read the owned fixture's preview and exact payload through the real UI."""
+    scope = '[aria-label="文档版本冲突恢复"] section[aria-label="' + label + '"]'
+    preview = scope + ' pre.document-snapshot-text'
+    wait("return !!document.querySelector(" + json.dumps(preview) + ")")
+    text = js("return document.querySelector(" + json.dumps(preview) + ").textContent")
+    # This fixture deliberately has one paragraph; a correct raw receipt cannot
+    # substitute for a wrong or missing human-readable comparison.
+    assert text == content["content"][0]["content"][0]["text"], "Comparison preview mismatch: " + label
+    button = scope + ' button[aria-label="查看原始回执（诊断）：' + label + '结构记录"]'
+    ui.click_selector(button, "css selector")
+    # 原始结构已集中到运行诊断；保持三份 JSON 严格等值核对，
+    # 不恢复旧的正文内工程数据，也不通过 JS 触发按钮。
+    records = "[...document.querySelectorAll('.diagnostic-center .diagnostic-console details[open]')]"
+    selected = records + ".filter(n=>n.querySelector('summary')?.textContent.startsWith(" + json.dumps(label + "结构记录 · ") + "))"
+    wait("return " + selected + ".length===1 && !!" + selected + "[0].querySelector('pre')")
+    actual = js("return " + selected + ".map(n=>n.querySelector('pre').textContent)")
+    assert len(actual) == 1, "Comparison diagnostic identity missing or ambiguous: " + label
+    assert json.loads(actual[0]) == content, "Comparison identity/content mismatch: " + label
+    ui.click("关闭运行诊断")
+    wait("return !document.querySelector('.diagnostic-center')")
+
+
 def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, restart,
            screenshot, host_identity, verify_source):
     """Trusted ui.click/click_selector only; js/wait are DOM observations.
@@ -178,10 +201,7 @@ def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, 
     expected = {"原基准": a["editor_json"], "当前已保存": fixture["current_a"]["editor_json"],
                 "我的草稿": fixture["drafts"][a["document_id"]]["editor_json"]}
     for label, content in expected.items():
-        selector = '[aria-label="文档版本冲突恢复"] section[aria-label="' + label + '"] details pre'
-        wait("return !!document.querySelector(" + json.dumps(selector) + ")")
-        actual = js("return document.querySelector(" + json.dumps(selector) + ").textContent")
-        assert json.loads(actual) == content, "Comparison identity/content mismatch: " + label
+        assert_comparison_snapshot(ui, js, wait, label, content)
     screenshot("installed-document-three-way-conflict.png")
     ui.click("明确保留本稿并按已比较版本保存")
     remaining = {b["document_id"]: fixture["drafts"][b["document_id"]]}
