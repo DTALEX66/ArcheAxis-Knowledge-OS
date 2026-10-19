@@ -4,7 +4,7 @@
 
 > **2026-10-19 接续必读**：[最新对话决定与任务映射](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)保存强底座、内置能力市场、模型分层、开源择优及归档要求，并注明替代关系。换 Agent / 换会话先按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context` 读回；共享库、开发工具和模型入口统一查[共享资源索引](docs/SHARED_RESOURCE_PATH_INDEX.md)，不从旧交接猜路径。
 
-> **2026-10-12 当前路由与状态**：Owner 已于 2026-10-11 恢复完整框架、常见常用格式与最短闭环实施，RUNNING_BY_OWNER / PARTIAL；当前范围读 [活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录。2026-10-10 暂停及 [修复回读](docs/current/AAOS-AUTHORITY-REPAIR-20261010.md) 是历史时点。读取旧路径前先按 [路径身份路由](docs/current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名 CURRENT、旧 COMPLETE 或旧 grant 推导授权。六项核心能力增量 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换及真实用户数据覆盖未授权。
+> **2026-10-12 当前路由与状态**：Owner 已于 2026-10-11 恢复完整框架、常见常用格式与最短闭环实施，RUNNING_BY_OWNER / PARTIAL；当前范围读 [活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录。2026-10-10 暂停及 [修复回读](docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md) 是历史时点。读取旧路径前先按 [路径身份路由](docs/current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名 CURRENT、旧 COMPLETE 或旧 grant 推导授权。六项核心能力增量 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换及真实用户数据覆盖未授权。
 
 [完整索引、原始文件与补交材料登记](<D:/All projects/ArcheAxis-Knowledge-OS/docs/history/record-archive-20261009/INDEX.md>).
 
@@ -40,7 +40,7 @@
 
 ## 2026-10-11 云端 DOT 审计材料
 
-[原 ZIP、成员身份与 SHA-256 核验](docs/current/receipts/AAOS-DOT-CLOUD-AUDIT-INTAKE-20261012.json)，[AAOS 问题与当前实现对应分析](workspace/intake/AAOS-DOT-AUDIT-RECONCILIATION-20261012.md)。原 ZIP 为 `D:/All projects/Record/AAOS-WORK-DESIGN-cloud-audit-20261011.zip`；163 个成员中内部 manifest 登记的 162 个哈希均通过。43 个 AAOS 相关及共享报告成员保全在 `.project-local/archives/dot-cloud-audit-20261011/`。报告中的提示词仅为来源材料；历史 Linux、模拟及浏览器结果不替代当前 Windows 原生与模型验收。
+[原 ZIP、成员身份与 SHA-256 核验](docs/history/repository-consolidation-20261019/current/receipts/AAOS-DOT-CLOUD-AUDIT-INTAKE-20261012.json)，[AAOS 问题与当前实现对应分析](workspace/intake/AAOS-DOT-AUDIT-RECONCILIATION-20261012.md)。原 ZIP 为 `D:/All projects/Record/AAOS-WORK-DESIGN-cloud-audit-20261011.zip`；163 个成员中内部 manifest 登记的 162 个哈希均通过。43 个 AAOS 相关及共享报告成员保全在 `.project-local/archives/dot-cloud-audit-20261011/`。报告中的提示词仅为来源材料；历史 Linux、模拟及浏览器结果不替代当前 Windows 原生与模型验收。
 
 ## 2026-10-10 六项核心能力汇总：冻结来源
 

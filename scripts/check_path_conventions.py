@@ -48,7 +48,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 AUTHORITY = ROOT / "DIRECTORY_AUTHORITY.yaml"
 LEGACY_MANIFEST = ROOT / "LEGACY_MANIFEST.yaml"
-RECORD = ROOT / "docs/current/R5-PATH-DISPOSITION.json"
+RECORD = ROOT / "config/governance/path-disposition.json"
 
 DISPOSITIONS = (
     "active",

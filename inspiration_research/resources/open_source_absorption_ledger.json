@@ -1157,7 +1157,7 @@
       "category": "Knowledge / audited candidate",
       "recommended_target": "ArcheAxis Knowledge",
       "absorption_mode": "Adapter/参考候选",
-      "note": "WA02 readonly diagnostic; no canonical writes; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "note": "WA02 readonly diagnostic; no canonical writes; docs/history/repository-consolidation-20261019/current/AAOS-WATCHA-AUDIT-20261013.md",
       "risk_policy": "must_review_before_use",
       "source_status": "candidate",
       "execution_state": "reference_only"
@@ -1168,7 +1168,7 @@
       "category": "Knowledge / audited candidate",
       "recommended_target": "ArcheAxis Knowledge",
       "absorption_mode": "Adapter/参考候选",
-      "note": "WA01 deterministic citation integrity only; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "note": "WA01 deterministic citation integrity only; docs/history/repository-consolidation-20261019/current/AAOS-WATCHA-AUDIT-20261013.md",
       "risk_policy": "must_review_before_use",
       "source_status": "candidate",
       "execution_state": "deferred_review"
@@ -1179,7 +1179,7 @@
       "category": "Knowledge / audited candidate",
       "recommended_target": "ArcheAxis Knowledge",
       "absorption_mode": "Adapter/参考候选",
-      "note": "future incremental comparison; no second outbox; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "note": "future incremental comparison; no second outbox; docs/history/repository-consolidation-20261019/current/AAOS-WATCHA-AUDIT-20261013.md",
       "risk_policy": "must_review_before_use",
       "source_status": "candidate",
       "execution_state": "deferred_review"
@@ -1190,7 +1190,7 @@
       "category": "Knowledge / audited candidate",
       "recommended_target": "ArcheAxis Knowledge",
       "absorption_mode": "Adapter/参考候选",
-      "note": "future derived Wiki; no truth replacement; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "note": "future derived Wiki; no truth replacement; docs/history/repository-consolidation-20261019/current/AAOS-WATCHA-AUDIT-20261013.md",
       "risk_policy": "must_review_before_use",
       "source_status": "candidate",
       "execution_state": "deferred_review"
@@ -1201,7 +1201,7 @@
       "category": "Knowledge / audited candidate",
       "recommended_target": "ArcheAxis Knowledge",
       "absorption_mode": "Adapter/参考候选",
-      "note": "future scoped retrieval; AGPL boundary; docs/current/AAOS-WATCHA-AUDIT-20261013.md",
+      "note": "future scoped retrieval; AGPL boundary; docs/history/repository-consolidation-20261019/current/AAOS-WATCHA-AUDIT-20261013.md",
       "risk_policy": "must_review_before_use",
       "source_status": "candidate",
       "execution_state": "deferred_review"

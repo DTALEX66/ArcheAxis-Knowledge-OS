@@ -1,7 +1,7 @@
 //! The route families a UI must not try, because they do not exist, and the shape of what comes
 //! back when something is missing.
 //!
-//! `docs/current/DSH-BACKEND-CONTRACT-20260927.md` §6 states that `/api/v1/research*`,
+//! `docs/history/repository-consolidation-20261019/current/DSH-BACKEND-CONTRACT-20260927.md` §6 states that `/api/v1/research*`,
 //! `/api/v1/plugins*` and `/api/v1/models*` have no route, and that a frontend must show "not
 //! connected" rather than any success state. That is the strongest kind of claim a contract can
 //! make about an API, and it is the kind a UI otherwise discovers at runtime - so it is checked

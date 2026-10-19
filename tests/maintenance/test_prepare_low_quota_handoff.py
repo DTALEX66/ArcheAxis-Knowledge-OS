@@ -26,3 +26,5 @@ def test_invalid_quota_rejected(value):
 
 def test_handoff_paths_exclude_private_state():
     assert all(not path.startswith((".codex", ".zcode", ".hermes")) for path in module.HANDOFF_PATHS)
+    assert "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md" in module.HANDOFF_PATHS
+    assert all(not path.startswith("docs/history/") for path in module.HANDOFF_PATHS)

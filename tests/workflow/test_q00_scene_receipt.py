@@ -20,7 +20,7 @@ import yaml
 
 REPO = Path(__file__).resolve().parents[2]
 CONFIG = REPO / "config" / "defaults.yaml"
-RECEIPT = REPO / "docs" / "current" / "AAOS01-Q00-SCENE-RECEIPT.md"
+RECEIPT = REPO / 'docs/history/repository-consolidation-20261019/current/AAOS01-Q00-SCENE-RECEIPT.md'
 
 
 def declared_storage() -> dict[str, str]:

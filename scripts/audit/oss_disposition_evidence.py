@@ -33,7 +33,7 @@ import tokenize
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-DISPOSITION = REPO / "docs" / "current" / "AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json"
+DISPOSITION = REPO / 'docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json'
 
 # Where a dependency can be declared or a donor vendored. Lockfiles are evidence of resolution,
 # manifests of declaration, and the vendored roots of a real copy.

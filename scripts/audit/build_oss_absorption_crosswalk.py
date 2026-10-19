@@ -3,8 +3,8 @@
 Two vocabularies describe the same absorptions and were never joined:
 
 * `scripts/audit/build_oss_reuse_inventory.py` joins the hand-reviewed
-  `docs/current/OSS-REUSE-DECISIONS-20261008.json` (A-E verification tiers) with
-  `docs/current/OSS-REUSE-VERIFICATION-20261008.json`.
+  `docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json` (A-E verification tiers) with
+  `docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json`.
 * `docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml` carries `allowed_absorption_modes`
   (DIRECT_DEPENDENCY / ALGORITHM_DONOR / UX_DONOR / ...) and a status enum pinned by
   `config/schemas/capability-absorption-registry.schema.json`.
@@ -14,7 +14,7 @@ enable-able plugins. `surface_class` is exactly one of seven values and every de
 computed from files, never typed.
 
 Why a sibling script instead of more lines in `build_oss_reuse_inventory.py`: that generator is
-byte-pinned by `docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json`, and
+byte-pinned by `docs/history/repository-consolidation-20261019/current/OSS-REUSE-CROSSWALK-20261008.manifest.json`, and
 `tests/workflow/test_oss_reuse_artifact_manifest.py` fails on `generator-drift` for any edit to it,
 so extending it in place would rewrite a governance record that a different line owns. This artifact
 also is not that artifact: the lossless 691-row payload stays out of Git by that manifest's
@@ -70,8 +70,8 @@ import yaml
 
 ROOT_DEFAULT = Path(__file__).resolve().parents[2]
 
-DECISIONS = "docs/current/OSS-REUSE-DECISIONS-20261008.json"
-VERIFICATION = "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+DECISIONS = "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json"
+VERIFICATION = "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
 REGISTRY = "docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml"
 REGISTRY_SCHEMA = "config/schemas/capability-absorption-registry.schema.json"
 LEDGER = "docs/truth/SUPPLY_CHAIN_LEDGER.json"
@@ -79,7 +79,7 @@ ATLAS = "docs/truth/CAPABILITY_ATLAS_V2.yaml"
 CAPABILITY_MAP = "config/capability-map.v1.json"
 ROUTES = "services/python-workers/routes.json"
 EXTERNAL_RESOURCES = "config/environment/external-resources-index.json"
-DISPOSITION = "docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json"
+DISPOSITION = "docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json"
 INVENTORY_SCRIPT = "scripts/audit/build_oss_reuse_inventory.py"
 EVIDENCE_SCRIPT = "scripts/audit/oss_disposition_evidence.py"
 
@@ -1140,9 +1140,9 @@ def build(root: Path) -> dict:
             "grouped_entries": len(entries),
             "excluded": "The 369-row historical research pool and the 691-row lossless crosswalk it "
                         "produces. Those rows are candidate names, not absorption entries "
-                        "(docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json: '369 pool "
+                        "(docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json: '369 pool "
                         "entries are not 369 installations'); they stay in the regenerated payload "
-                        "described by docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json, "
+                        "described by docs/history/repository-consolidation-20261019/current/OSS-REUSE-CROSSWALK-20261008.manifest.json, "
                         "which this artifact does not replace.",
         },
         "id_namespaces": {

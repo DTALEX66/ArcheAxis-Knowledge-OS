@@ -73,8 +73,7 @@ def test_no_run_directory_sits_at_the_wrong_depth():
     import json
 
     module = load_report()
-    baseline = json.loads((REPO / "docs" / "current"
-                           / "AAOS-RUNS-LAYOUT-BASELINE-20261008.json").read_text(encoding="utf-8"))
+    baseline = json.loads((REPO / 'docs/history/repository-consolidation-20261019/current/AAOS-RUNS-LAYOUT-BASELINE-20261008.json').read_text(encoding="utf-8"))
     measured: set[str] = set()
     for root in module.checkout_roots(REPO):
         for finding in module.runs_layout(root / ".project-local", root)[0]:

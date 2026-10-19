@@ -31,5 +31,5 @@
 | 7 | 孩子不爱上学 | mp3 转写（第10堂音频课） | 心理动机/内在动机视角一致（psy.china.com.cn 等） | ✅ |
 | 8 | 成长型思维 | mp3 转写（第7堂音频课） | Dweck 成长/固定型思维理论一致 | ✅ |
 
-证据：verified-knowledge/ceshi-2026-08-18/deepseek-crosscheck.md（3 项）+ MODEL_COMPARISON_REPORT.md（+3 项）+ 本报告（+2 项）。
+证据：docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/deepseek-crosscheck.md（3 项）+ MODEL_COMPARISON_REPORT.md（+3 项）+ 本报告（+2 项）。
 结论：本地转化的知识经 DeepSeek 全网交叉核验 **8/8 一致**——**交叉验证已做好**。

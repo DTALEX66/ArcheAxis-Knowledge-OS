@@ -279,7 +279,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00021
-  path: OSUI/HANDOFF-2026-08-12.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/HANDOFF-2026-08-12.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 080510bc95862252f9fa0fc94aa65521c67ee814
@@ -288,7 +288,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00022
-  path: OSUI/README.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/README.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 2ffe4078fa1a6646ccc7b1e84558cb32e157df63
@@ -297,7 +297,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00023
-  path: OSUI/archeaxis-knowledge-ui-v2/DESIGN-v2.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/DESIGN-v2.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: cd9e110ece1acd91f81ca5625e0a5d531cabac53
@@ -306,7 +306,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00024
-  path: OSUI/archeaxis-knowledge-ui-v2/DESIGN.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/DESIGN.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 892fdb1a90e9975e36cdcac654226d7c5d54aace
@@ -315,7 +315,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00025
-  path: OSUI/archeaxis-knowledge-ui-v2/VISUAL-QUALITY-REPORT-v2.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/VISUAL-QUALITY-REPORT-v2.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: c13b522de90bdd6508957447cc1d8f3aae4639c4
@@ -324,7 +324,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00026
-  path: OSUI/archeaxis-knowledge-ui-v2/ai-asset-detail.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/ai-asset-detail.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8ccbc066fadf148ebfb58ff4c9c8a88c9e13d05c
@@ -333,7 +333,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00027
-  path: OSUI/archeaxis-knowledge-ui-v2/ai-asset-detail.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/ai-asset-detail.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 460e8d5c4759c7711d7260af19ed57cebed1a415
@@ -342,7 +342,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00028
-  path: OSUI/archeaxis-knowledge-ui-v2/ai-asset-registry.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/ai-asset-registry.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 2393931531bacec0409982d57524110a683aafd9
@@ -351,7 +351,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00029
-  path: OSUI/archeaxis-knowledge-ui-v2/ai-asset-registry.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/ai-asset-registry.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: c32a7bd36e96db38fe77b815ac937ec6686bfe17
@@ -360,7 +360,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00030
-  path: OSUI/archeaxis-knowledge-ui-v2/app-v3.js
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/app-v3.js
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 1e78c5040b637bf2b52e10ec5f85ffac72da1f75
@@ -369,7 +369,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00031
-  path: OSUI/archeaxis-knowledge-ui-v2/app.css
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/app.css
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: a9a356085e0aa84c114332533a846a8223bc363d
@@ -378,7 +378,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00032
-  path: OSUI/archeaxis-knowledge-ui-v2/app.js
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/app.js
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: b2010d329c2897dd8f89af425764fe2ce19a2746
@@ -387,7 +387,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00033
-  path: OSUI/archeaxis-knowledge-ui-v2/component-manifest.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/component-manifest.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 58bf7b6fad4531d302ee3e535d40b1f846facb19
@@ -396,7 +396,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00034
-  path: OSUI/archeaxis-knowledge-ui-v2/creative-direction-visual-lesson.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/creative-direction-visual-lesson.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 0ddee206be563f9cba0b8604724430eceb9c9cf1
@@ -405,7 +405,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00035
-  path: OSUI/archeaxis-knowledge-ui-v2/evidence-review-queue.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/evidence-review-queue.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 62cd3f7dc22ff9e7669785d356b5debcebcc4aa7
@@ -414,7 +414,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00036
-  path: OSUI/archeaxis-knowledge-ui-v2/evidence-review-queue.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/evidence-review-queue.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: c4900e421ca854eaa04ddea658c4695978519fe2
@@ -423,7 +423,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00037
-  path: OSUI/archeaxis-knowledge-ui-v2/evidence-workbench.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/evidence-workbench.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 08b7fafb4984e1a2ae575979d60b6975cc21ad63
@@ -432,7 +432,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00038
-  path: OSUI/archeaxis-knowledge-ui-v2/evidence-workbench.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/evidence-workbench.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9ae68a3288b5c7dc538856ed8780abd5dd797351
@@ -441,7 +441,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00039
-  path: OSUI/archeaxis-knowledge-ui-v2/focus-review-session.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/focus-review-session.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: cff16a45f7af91f9a427bd01f2fa11378a6ee564
@@ -450,7 +450,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00040
-  path: OSUI/archeaxis-knowledge-ui-v2/focus-review-session.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/focus-review-session.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 4dcdca8e48ddb94b65c76592531c32d8f407e138
@@ -459,7 +459,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00041
-  path: OSUI/archeaxis-knowledge-ui-v2/index.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/index.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: b5bc0503d50f2dde22cad57518ece9e24b48354a
@@ -468,7 +468,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00042
-  path: OSUI/archeaxis-knowledge-ui-v2/index.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/index.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 62b117168950ec0d61e7691fde791a22269ef8d1
@@ -477,7 +477,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00043
-  path: OSUI/archeaxis-knowledge-ui-v2/jobs-receipts.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/jobs-receipts.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 059718cc3bcf357a1bf9400c09d84374eab8c2b4
@@ -486,7 +486,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00044
-  path: OSUI/archeaxis-knowledge-ui-v2/jobs-receipts.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/jobs-receipts.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 6730f661d5ca0e17261e3e733a9aebea1844521b
@@ -495,7 +495,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00045
-  path: OSUI/archeaxis-knowledge-ui-v2/knowledge-canvas.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/knowledge-canvas.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: aa7310a3db546aab9762f3c43e667372d52538cc
@@ -504,7 +504,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00046
-  path: OSUI/archeaxis-knowledge-ui-v2/knowledge-canvas.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/knowledge-canvas.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 5caf5dfa3a83bd9da00ab93edad9b89ad6e3f941
@@ -513,7 +513,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00047
-  path: OSUI/archeaxis-knowledge-ui-v2/learning-home.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/learning-home.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: aaaf5c084caf34c6d79840c0b5cb171209987d6c
@@ -522,7 +522,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00048
-  path: OSUI/archeaxis-knowledge-ui-v2/learning-home.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/learning-home.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 541bc22334133eb6abffb2bd8fc503599d21f65b
@@ -531,7 +531,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00049
-  path: OSUI/archeaxis-knowledge-ui-v2/library-browser.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/library-browser.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 2122e76add73a0fe5a49fd43a9862961f055158d
@@ -540,7 +540,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00050
-  path: OSUI/archeaxis-knowledge-ui-v2/library-browser.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/library-browser.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: cbfecba0b8475212988e4b4b90ac58a3ec2a9c5d
@@ -549,7 +549,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00051
-  path: OSUI/archeaxis-knowledge-ui-v2/liquid-glass.css
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/liquid-glass.css
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: ad4926e6e9ff311131e53be0d21b8a202c9250cf
@@ -558,7 +558,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00052
-  path: OSUI/archeaxis-knowledge-ui-v2/mock-adapter.js
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/mock-adapter.js
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9b5d353f4ddaec5007b64d1229d689b2ca6ca244
@@ -567,7 +567,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00053
-  path: OSUI/archeaxis-knowledge-ui-v2/motion-accessibility.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/motion-accessibility.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8f0e22fb256af4ec389498f72746d7b1bc9672ef
@@ -576,7 +576,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00054
-  path: OSUI/archeaxis-knowledge-ui-v2/multi-format-reader.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/multi-format-reader.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 28af9513434db02cbc157ead04d452853523ffbb
@@ -585,7 +585,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00055
-  path: OSUI/archeaxis-knowledge-ui-v2/multi-format-reader.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/multi-format-reader.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 38014c87970873ab93c361359ab9ef895f27ab41
@@ -594,7 +594,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00056
-  path: OSUI/archeaxis-knowledge-ui-v2/production-handoff-manifest.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/production-handoff-manifest.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9d01f03358e2e74d0f4cc38b0b6d4467a5f1b486
@@ -603,7 +603,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00057
-  path: OSUI/archeaxis-knowledge-ui-v2/reference-audit.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/reference-audit.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9b0c650e72df78b0d9ac66c990e89e5636968014
@@ -612,7 +612,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00058
-  path: OSUI/archeaxis-knowledge-ui-v2/route-data-dependency-matrix.md
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/route-data-dependency-matrix.md
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: f013a141e7e8e5771683329f4e51b2d1139d5bb9
@@ -621,7 +621,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00059
-  path: OSUI/archeaxis-knowledge-ui-v2/settings-capabilities.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/settings-capabilities.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 57a7adef15000dde0523a6ffb4593de01e246c9f
@@ -630,7 +630,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00060
-  path: OSUI/archeaxis-knowledge-ui-v2/settings-capabilities.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/settings-capabilities.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8f4b9b96ca3fc618e15ed24d83cb9404db68830c
@@ -639,7 +639,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00061
-  path: OSUI/archeaxis-knowledge-ui-v2/spatial-memory.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/spatial-memory.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9f38838fc11c0ef2cb3f0a8e09449313e90431fb
@@ -648,7 +648,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00062
-  path: OSUI/archeaxis-knowledge-ui-v2/spatial-memory.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/spatial-memory.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: dbad68700de59ef57aaf569e8d5f57530629b408
@@ -657,7 +657,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00063
-  path: OSUI/archeaxis-knowledge-ui-v2/teachback-transfer.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/teachback-transfer.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 493ffe627d7075d7efad536b26498ed392888632
@@ -666,7 +666,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00064
-  path: OSUI/archeaxis-knowledge-ui-v2/teachback-transfer.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/teachback-transfer.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: a51ee1efbff9d00602fea99aa2acfce6e552dbb2
@@ -675,7 +675,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00065
-  path: OSUI/archeaxis-knowledge-ui-v2/universal-intake.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/universal-intake.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9d70bfefcb702ae1aece27345cba8b27a99cd422
@@ -684,7 +684,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00066
-  path: OSUI/archeaxis-knowledge-ui-v2/universal-intake.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/universal-intake.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8612381243f16e4c3986f845d59b037014a2dce2
@@ -693,7 +693,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00067
-  path: OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio-preview.png
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio-preview.png
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: e00bd68f35c21d950a71ebcd4c5a313233b84602
@@ -702,7 +702,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00068
-  path: OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio-v2-preview.png
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio-v2-preview.png
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 287fe1c9ebcc1eb37c0b8ce91ab9267f8cc887d5
@@ -711,7 +711,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00069
-  path: OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio-v3-preview.png
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio-v3-preview.png
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 2996a9fe9241ef0e9ba1ce9258c43286b06b23d1
@@ -720,7 +720,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00070
-  path: OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 85f84d4e803b39083a6cf61d159cbdfe2aca9c8d
@@ -729,7 +729,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00071
-  path: OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/visual-lesson-studio.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: dd0d49a4a8f3281c7eb5c7954e206d112e68f5c5
@@ -738,7 +738,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00072
-  path: OSUI/archeaxis-knowledge-ui-v2/workspace-overview-preview.png
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/workspace-overview-preview.png
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 25e3870c6b4fa3764d5adb47a534f3b39768e0cd
@@ -747,7 +747,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00073
-  path: OSUI/archeaxis-knowledge-ui-v2/workspace-overview-v2-preview.png
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/workspace-overview-v2-preview.png
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 47292c1d294cbd1bc79e979332c364fb5e259936
@@ -756,7 +756,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00074
-  path: OSUI/archeaxis-knowledge-ui-v2/workspace-overview.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/workspace-overview.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 0a41f82b89b26c71424e5d56c3651c8c765e40ee
@@ -765,7 +765,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00075
-  path: OSUI/archeaxis-knowledge-ui-v2/workspace-overview.html.artifact.json
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/archeaxis-knowledge-ui-v2/workspace-overview.html.artifact.json
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 5e47edd36d914594dfdccc20c2c269c61aca9759
@@ -774,7 +774,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00076
-  path: OSUI/index.html
+  path: docs/history/repository-consolidation-20261019/directories/OSUI/index.html
   category: legacy-ui-shell
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 1b4bc1a915821e9c7a8a3ca6a22e55b9bcee9570
@@ -801,7 +801,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00079
-  path: SYSTEM_BOUNDARY.md
+  path: docs/history/repository-consolidation-20261019/root/SYSTEM_BOUNDARY.md
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 515c4b6cf5e597ecf20294435957bd7c65da0b15
@@ -2475,7 +2475,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00265
-  path: codex-taskpacks/B线_CODEX任务包.md
+  path: docs/history/repository-consolidation-20261019/directories/codex-taskpacks/B线_CODEX任务包.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: abb96397a05bbb1091ff37519be9c00ce8f4e36d
@@ -2484,7 +2484,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00266
-  path: codex-taskpacks/C线_CODEX任务包.md
+  path: docs/history/repository-consolidation-20261019/directories/codex-taskpacks/C线_CODEX任务包.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 681f714877ba04c4cc188f57577f761a39253af7
@@ -2493,7 +2493,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00267
-  path: codex-taskpacks/定时推送与项目雷达_CODEX任务包.md
+  path: docs/history/repository-consolidation-20261019/directories/codex-taskpacks/定时推送与项目雷达_CODEX任务包.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: b5bee31efb6feebb1e58a5e82be1a48aa95f70e6
@@ -3006,7 +3006,7 @@ full_entries:
   proposed_target: apps/ArcheAxis.Desktop/
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00324
-  path: docs/ABSORPTION_EXECUTION_MATRIX.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/ABSORPTION_EXECUTION_MATRIX.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 7d56f9831444a85feb86afb8e0fba7573392a046
@@ -3015,7 +3015,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00325
-  path: docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/ABSORPTION_OBSIDIAN_ASSISTANCE_2026-07-13.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: d30e3a534355f86ff67e667bd2ed17c1fef5a064
@@ -3060,7 +3060,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00330
-  path: docs/FUTURE_EXECUTION_BLUEPRINT.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/FUTURE_EXECUTION_BLUEPRINT.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8b106103f2bf40aa5ac3b86ef60397e0558984a1
@@ -3069,7 +3069,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00331
-  path: docs/HANDOFF_2026-07-21.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-07-21.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: f8e89793ae860efb4d050c484487871dc96d212a
@@ -3078,7 +3078,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00332
-  path: docs/HANDOFF_2026-07-23.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-07-23.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 205d1c2841e8651606bbe74fc7a5f8f1e34fcd8d
@@ -3087,7 +3087,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00333
-  path: docs/HANDOFF_2026-08-07_audit-cleanup.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-07_audit-cleanup.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: a65fec01f1ea52211217d4715195208ee442d278
@@ -3096,7 +3096,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00334
-  path: docs/HANDOFF_2026-08-07_session-summary.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-07_session-summary.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 73fff0c3d888f31fd7e269c5caf38bc7c5b711b9
@@ -3105,7 +3105,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00335
-  path: docs/HANDOFF_2026-08-07_stage-summary.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-07_stage-summary.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 2ef268d11e2d1b256f18427645747750474157c2
@@ -3114,7 +3114,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00336
-  path: docs/HANDOFF_2026-08-12_naming-migration.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-12_naming-migration.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: a6a20783975bbf811645ed164f32c8f8aca99006
@@ -3123,7 +3123,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00337
-  path: docs/HANDOFF_2026-08-18_dual-learning-absorption.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-18_dual-learning-absorption.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8301c05af31c823189d09dbb108755422935d19f
@@ -3132,7 +3132,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00338
-  path: docs/HANDOFF_2026-08-19_full-advance.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-19_full-advance.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 62bb38b4fcad508b44493096a7b70c403feedecd
@@ -3141,7 +3141,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00339
-  path: docs/HANDOFF_2026-08-19_pipeline-cleanup.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-19_pipeline-cleanup.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: fcc038d75e0b097a046c33630af1090e7b1031fa
@@ -3150,7 +3150,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00340
-  path: docs/HANDOFF_2026-08-20_session.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-20_session.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 0b158420c77c7ecbea06d21717b26283361d8543
@@ -3159,7 +3159,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00341
-  path: docs/HANDOFF_2026-08-23_v0.6.7-release.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-23_v0.6.7-release.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 3c59e00a97ddf7c9566b8fe46962e7a811bb571b
@@ -3168,7 +3168,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00342
-  path: docs/HANDOFF_2026-08-23_v0.6.8-release.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-23_v0.6.8-release.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: e6c3327422f82f7a82572211f8dc4e8206cc00b0
@@ -3177,7 +3177,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00343
-  path: docs/HANDOFF_2026-08-23_v0.6.9-release.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-23_v0.6.9-release.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 626883624f823122925dee0b636a36d6a98ae85e
@@ -3186,7 +3186,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00344
-  path: docs/HANDOFF_2026-08-24_v0.6.10-release.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-24_v0.6.10-release.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 83ea887e4e28fb0da3dfa3985bdef72639e512dd
@@ -3195,7 +3195,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00345
-  path: docs/HANDOFF_DEEPSEEK_REAL_CASE_E2E_2026-07-23.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_DEEPSEEK_REAL_CASE_E2E_2026-07-23.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 55d47075c30c1aa1f80aabe79cdb60715273b17f
@@ -3204,7 +3204,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00346
-  path: docs/HERMES_SLEEP_LOOP_ENGINE.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/HERMES_SLEEP_LOOP_ENGINE.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 72caef2237b23fcb83e52a0346fa5431e2f9b940
@@ -3240,7 +3240,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00350
-  path: docs/NAMING_ALIGNMENT_MATRIX.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/NAMING_ALIGNMENT_MATRIX.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9236068d410aee5e7ca0fac3bf826b76e47bb54d
@@ -3249,7 +3249,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00351
-  path: docs/NAMING_CONTRACT_V2.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/NAMING_CONTRACT_V2.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: f637a8cd4d3f392db853f96d4f644805eb567975
@@ -3267,7 +3267,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00353
-  path: docs/PRODUCT_POSITIONING.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/PRODUCT_POSITIONING.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 37422217db1053d88b7926a14c86268eb1b83eb8
@@ -3276,7 +3276,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00354
-  path: docs/PRODUCT_STAGE_COMPATIBILITY.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/PRODUCT_STAGE_COMPATIBILITY.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 7e07db210246e7b004fb0f6ddc1238275f322285
@@ -3285,7 +3285,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00355
-  path: docs/PROJECT_AUDIT_2026-07-07.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_AUDIT_2026-07-07.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: ff9b4df4451f3239bcca4ad49cf9fcb35346c685
@@ -3294,7 +3294,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00356
-  path: docs/PROJECT_STATUS.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: e65bd2587d10bce3f790a71b53bbd5d42534f898
@@ -3330,7 +3330,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00360
-  path: docs/SUMMARY_2026-08-23_v0.6.8.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/SUMMARY_2026-08-23_v0.6.8.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 572e1d7bb435c5cb7460b620890df5bbb33d5979
@@ -3339,7 +3339,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00361
-  path: docs/SUMMARY_2026-08-23_v0.6.9.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/SUMMARY_2026-08-23_v0.6.9.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 90398dc2bb9760f5832f4b374aafcbfb7a396a13
@@ -3348,7 +3348,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00362
-  path: docs/SUMMARY_2026-08-24_v0.6.10.md
+  path: docs/history/repository-consolidation-20261019/legacy-docs/SUMMARY_2026-08-24_v0.6.10.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 28422359a1cbe736f587e17cc8f8662103185188
@@ -4248,7 +4248,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00462
-  path: docs/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md
+  path: docs/history/repository-consolidation-20261019/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 2e9ad327cac29ae351f3394f734f0049331f3ffb
@@ -4257,7 +4257,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00463
-  path: docs/current/AXM_G0_GOLDEN_CORPUS_PLAN_2026-09-02.md
+  path: docs/history/repository-consolidation-20261019/current/AXM_G0_GOLDEN_CORPUS_PLAN_2026-09-02.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 68dcd97f13040787310aca72577a914af28ddd3c
@@ -4266,7 +4266,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00464
-  path: docs/current/AXM_G0_MIGRATION_FREEZE_RULES_2026-09-02.md
+  path: docs/history/repository-consolidation-20261019/current/AXM_G0_MIGRATION_FREEZE_RULES_2026-09-02.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: b8686de652ed11daf2917052af191a3d9f29c6ba
@@ -4275,7 +4275,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00465
-  path: docs/current/AXM_G0_OWNER_MAP_2026-09-02.md
+  path: docs/history/repository-consolidation-20261019/current/AXM_G0_OWNER_MAP_2026-09-02.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 525b3e9d1be8d9cb170390f58992b810f76dec81
@@ -4284,7 +4284,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00466
-  path: docs/current/AXM_LANGUAGE_AUDIT_TASK_ADOPTION_2026-09-02.md
+  path: docs/history/repository-consolidation-20261019/current/AXM_LANGUAGE_AUDIT_TASK_ADOPTION_2026-09-02.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 2ebe761753e6725b5708728cfeced1c76167607e
@@ -4293,7 +4293,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00467
-  path: docs/current/AXR_060_103_FIRST_RUN_SETUP_HANDOFF_2026-08-24.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_103_FIRST_RUN_SETUP_HANDOFF_2026-08-24.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 26bf8f406faa2888d344bbf070f5a4619f9c1c2e
@@ -4302,7 +4302,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00468
-  path: docs/current/AXR_060_202_TIER_A_FIXTURE_MATRIX_HANDOFF_2026-08-24.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_202_TIER_A_FIXTURE_MATRIX_HANDOFF_2026-08-24.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 343c5ad1e89df1390500d202543d3ced66063afd
@@ -4311,7 +4311,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00469
-  path: docs/current/AXR_060_203_WEB_RAW_FIRST_HANDOFF_2026-08-24.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_203_WEB_RAW_FIRST_HANDOFF_2026-08-24.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: e7f1c8461a5b6d3baebb3521b765abb58bae2b52
@@ -4320,7 +4320,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00470
-  path: docs/current/AXR_060_302_APPEND_ONLY_ALLOWLIST_MIGRATION_MATRIX.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_302_APPEND_ONLY_ALLOWLIST_MIGRATION_MATRIX.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: e34af6f658294f82b905d359048ac419fa4b1a3d
@@ -4329,7 +4329,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00471
-  path: docs/current/AXR_060_302_APPEND_ONLY_AUDIT_HANDOFF_2026-08-24.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_302_APPEND_ONLY_AUDIT_HANDOFF_2026-08-24.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 6e202c6291d04238064a1dec4cb6605b489ffa8c
@@ -4338,7 +4338,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00472
-  path: docs/current/AXR_060_303_EVIDENCE_BUNDLE_KNOWLEDGE_VERSION_HANDOFF_2026-08-24.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_303_EVIDENCE_BUNDLE_KNOWLEDGE_VERSION_HANDOFF_2026-08-24.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8de864c6a0203477462bd5f1bcdc6bd77e4d9de3
@@ -4347,7 +4347,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00473
-  path: docs/current/AXR_060_401_UNIFIED_CLIENT_HANDOFF_2026-08-24.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_401_UNIFIED_CLIENT_HANDOFF_2026-08-24.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 92ed7ff3674cdc8434d55157bc4cb36b3438694a
@@ -4356,7 +4356,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00474
-  path: docs/current/AXR_060_404_EVIDENCE_ANCHOR_PAGINATION_HANDOFF_2026-08-24.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_404_EVIDENCE_ANCHOR_PAGINATION_HANDOFF_2026-08-24.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: bd956e389bfe9f6444053dd8e462f7d8066ff43e
@@ -4365,7 +4365,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00475
-  path: docs/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: f5e7fd9a5830098ae60d68e16352767a4f6034b6
@@ -4374,7 +4374,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00476
-  path: docs/current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 011f2e7b2f2dda5fe97f720c8bdaff12c3d469dc
@@ -4383,7 +4383,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00477
-  path: docs/current/AXR_CURRENT_REALITY_2026-08-27.md
+  path: docs/history/repository-consolidation-20261019/current/AXR_CURRENT_REALITY_2026-08-27.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 6bbad02e4041ea2c97914cfb063837e12b2b28e3
@@ -4392,7 +4392,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00478
-  path: docs/current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md
+  path: docs/history/repository-consolidation-20261019/current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: e55fb942f947b602e3ce71148c22a40c355e252a
@@ -4401,7 +4401,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00479
-  path: docs/current/AX_DIR_010_INVENTORY_SCHEMA.md
+  path: docs/history/repository-consolidation-20261019/current/AX_DIR_010_INVENTORY_SCHEMA.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 0e26d5581cedd458b30c77ed4c04135f59ace52f
@@ -4410,7 +4410,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00480
-  path: docs/current/CONTINUATION_HANDOFF_2026-09-03.md
+  path: docs/history/repository-consolidation-20261019/current/CONTINUATION_HANDOFF_2026-09-03.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 43a0a9b8055a4e73ff509544009aad2386cf356f
@@ -4419,7 +4419,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00481
-  path: docs/current/CURRENT_PRODUCT_PLAN_V2.md
+  path: docs/history/repository-consolidation-20261019/current/CURRENT_PRODUCT_PLAN_V2.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: bc23aefbd3601ca6d4622d1b2749609dc8f199ed
@@ -4428,7 +4428,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00482
-  path: docs/current/CURRENT_REALITY_2026-09-01.md
+  path: docs/history/repository-consolidation-20261019/current/CURRENT_REALITY_2026-09-01.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 3133ae894a7873cded53364e9063e735a3590330
@@ -4437,7 +4437,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00483
-  path: docs/current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md
+  path: docs/history/repository-consolidation-20261019/current/FRONTEND_CONSOLIDATION_V1_2026-08-28.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 1b56d11fd3bf638e83fe3d9b6c364d419ff38f08
@@ -4446,7 +4446,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00484
-  path: docs/current/OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md
+  path: docs/history/repository-consolidation-20261019/current/OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 0679bd9439991922f1547f43217b58f36c12ca13
@@ -4455,7 +4455,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00485
-  path: docs/current/REPOSITORY_NORMALIZATION_AUDIT_2026-09-02.md
+  path: docs/history/repository-consolidation-20261019/current/REPOSITORY_NORMALIZATION_AUDIT_2026-09-02.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: db2c6f9f3cebebbfa4301b25d588a1af80c8c74c
@@ -4464,7 +4464,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00486
-  path: docs/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md
+  path: docs/history/repository-consolidation-20261019/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 7b438943d38b96662fceca648dff3d664ef93a64
@@ -4473,7 +4473,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00487
-  path: docs/current/SCOPE_LEDGER_V2.yaml
+  path: docs/history/repository-consolidation-20261019/current/SCOPE_LEDGER_V2.yaml
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 3a9204e5d73c9c04cc8d772eb26b436ffbce9e58
@@ -4482,7 +4482,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00488
-  path: docs/current/TASK_GRAPH_V2.yaml
+  path: docs/history/repository-consolidation-20261019/current/TASK_GRAPH_V2.yaml
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 912c2f565c687188cee0a2f3c5ec8ce0f82305a3
@@ -4491,7 +4491,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00489
-  path: docs/current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md
+  path: docs/history/repository-consolidation-20261019/current/UI_PRODUCTION_ADOPTION_V3_2026-08-27.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 446baeaedb64664e784b5a19eda24fc79cb9ea7e
@@ -4707,7 +4707,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00513
-  path: docs/superpowers/plans/2026-08-22-ci-release-performance.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-08-22-ci-release-performance.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: d2779178189ac3068bbc095719be2daabffbf0e5
@@ -4716,7 +4716,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00514
-  path: docs/superpowers/plans/2026-08-23-m0-evidence-truth-reset.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-08-23-m0-evidence-truth-reset.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 01a5d78ee9ca879afe93337501de92736c46b2bf
@@ -4725,7 +4725,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00515
-  path: docs/superpowers/plans/2026-08-23-recovery-shell-closed-loop.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-08-23-recovery-shell-closed-loop.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 49c865b912e91f802360d006fea4b2d6c933ada9
@@ -4734,7 +4734,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00516
-  path: docs/superpowers/plans/2026-08-23-six-space-closed-loop.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-08-23-six-space-closed-loop.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9fd6d96de59fde19af1bd879485d0536d47bd4e7
@@ -4743,7 +4743,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00517
-  path: docs/superpowers/plans/2026-08-24-evidence-bundle-knowledge-version.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-08-24-evidence-bundle-knowledge-version.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 592dcab4f5a9afdf515bc3bc8e8a6cbbc799fe66
@@ -4752,7 +4752,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00518
-  path: docs/superpowers/plans/2026-08-24-unified-client-write-boundary.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-08-24-unified-client-write-boundary.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: f9ae0ae46f5222cc58da7d7987c7d65e5f6a409c
@@ -4761,7 +4761,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00519
-  path: docs/superpowers/plans/2026-09-03-runtime-authority-and-language-g0.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-09-03-runtime-authority-and-language-g0.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 793c44bb7d92cb86500ee768608b925e1accfec2
@@ -4770,7 +4770,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00520
-  path: docs/superpowers/specs/2026-08-22-ci-release-performance-design.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/specs/2026-08-22-ci-release-performance-design.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: c3626e0d93decf67c0d1c13c3d1943ebb8b9d5d1
@@ -4779,7 +4779,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00521
-  path: docs/superpowers/specs/2026-08-23-six-space-closed-loop-design.md
+  path: docs/history/repository-consolidation-20261019/directories/docs/superpowers/specs/2026-08-23-six-space-closed-loop-design.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 11c94e1f0a30c367f3e1e725f59498844eb802d4
@@ -4788,7 +4788,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00522
-  path: docs/taskpacks/AXR-FINAL-20260826-R2-OSS-FAST-TRACK.md
+  path: docs/history/repository-consolidation-20261019/legacy-taskpacks/AXR-FINAL-20260826-R2-OSS-FAST-TRACK.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: ec0067654b48e2d301b8f1c450630c4ef5d43774
@@ -4797,7 +4797,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00523
-  path: docs/taskpacks/ArcheAxis-Knowledge-OS_Project_Config_CI_DeDup_TaskPack_2026-08-13.md
+  path: docs/history/repository-consolidation-20261019/legacy-taskpacks/ArcheAxis-Knowledge-OS_Project_Config_CI_DeDup_TaskPack_2026-08-13.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 3d656c00ad20e60048cf09757685632f2e362321
@@ -4806,7 +4806,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00524
-  path: docs/taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md
+  path: docs/history/repository-consolidation-20261019/legacy-taskpacks/DEEPSEEK_FULL_EXECUTION_TASKPACK_v1_2026-08-09.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 54df90692cb7cc4bf84f73c82a3dea56702901ce
@@ -4815,7 +4815,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00525
-  path: docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md
+  path: docs/history/repository-consolidation-20261019/legacy-taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: c6601cb5bcc38aa0a89c63bfa4df2cf54ad808c0
@@ -4824,7 +4824,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00526
-  path: docs/taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.sha256
+  path: docs/history/repository-consolidation-20261019/legacy-taskpacks/MANDATORY_CAPABILITY_FIRST_KNOWLEDGE_LIFECYCLE_ADDENDUM_v1_2026-08-09.sha256
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 2e9233b6a584c282937d863238c8d055ee1db8ed
@@ -4833,7 +4833,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00527
-  path: docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md
+  path: docs/history/repository-consolidation-20261019/legacy-taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 86100f5db99af7579da5052ce6b9551307921d6c
@@ -4842,7 +4842,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00528
-  path: docs/taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.sha256
+  path: docs/history/repository-consolidation-20261019/legacy-taskpacks/MANDATORY_WEB_KNOWLEDGE_INGESTION_ADDENDUM_v1_2026-08-09.sha256
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8239f8c731863ed4912584e8ec07d2767b3b8341
@@ -4950,7 +4950,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00540
-  path: docs/truth/ARCHITECTURE_FINAL.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/ARCHITECTURE_FINAL.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 63f69e8e51cbeeb4cec77755ab559fd5418dd6f7
@@ -4959,7 +4959,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00541
-  path: docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/AUTHORITY_AND_STATUS_RULES_V1.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: bcff74fe3d223e201a85c56915f3f7829b518a93
@@ -4968,7 +4968,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00542
-  path: docs/truth/AUTHORITY_CONTRACT.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/AUTHORITY_CONTRACT.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9c9fed20b01800ace1d370d982bbe17b3ee5af14
@@ -4977,7 +4977,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00543
-  path: docs/truth/AXC150_FINAL_VERDICT.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/AXC150_FINAL_VERDICT.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: acdd747924f3dbc63d4009536b97bb52f04dad51
@@ -4986,7 +4986,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00544
-  path: docs/truth/AXW1200_SNAPSHOT_RECEIPT.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/AXW1200_SNAPSHOT_RECEIPT.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 529f7da5f333e5a930a23258fcc79243d3a71ba2
@@ -5004,7 +5004,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00546
-  path: docs/truth/CURRENT_STATE_TRUTH.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/CURRENT_STATE_TRUTH.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 1002924eaa80009385f8907ef666c3e43515cb57
@@ -5013,7 +5013,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00547
-  path: docs/truth/EXECUTION_STATUS_LOG.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/EXECUTION_STATUS_LOG.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: e091c2417dd929e34bac8aad17459ef2af4ecc0a
@@ -5022,7 +5022,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00548
-  path: docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 5c1a7afb20cfa1563a19adbaf08479b12435a243
@@ -5031,7 +5031,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00549
-  path: docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.sha256
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.sha256
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9681d9f091b702b6dea72adbf1e6f6b854d6131b
@@ -5040,7 +5040,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00550
-  path: docs/truth/H0_H1_STATUS_HANDOFF.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/H0_H1_STATUS_HANDOFF.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 4c1d3ba8d263649428f7a62853457bb0eaf6e5c0
@@ -5058,7 +5058,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00552
-  path: docs/truth/NAMING_CONTRACT_V1.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/NAMING_CONTRACT_V1.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 8b360dcd9305343fb1f3094166064bed43ea8551
@@ -5076,7 +5076,7 @@ full_entries:
   proposed_target: docs/authority/legacy/;原Git位置
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-00554
-  path: docs/truth/PERFORMANCE_BENCHMARK_096A.md
+  path: docs/history/repository-consolidation-20261019/truth-snapshots/PERFORMANCE_BENCHMARK_096A.md
   category: history-docs
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 4f836993eda5d76af9e9772f43f8a467009802d4
@@ -10872,7 +10872,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01198
-  path: verified-knowledge/ceshi-2026-08-18/README.md
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/README.md
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 35c4839227b92e988546ad9f074abc881c359bf5
@@ -10881,7 +10881,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01199
-  path: verified-knowledge/ceshi-2026-08-18/deepseek-crosscheck.md
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/deepseek-crosscheck.md
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: d64ce203b8222e317d436512e17b1373d70ded37
@@ -10890,7 +10890,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01200
-  path: verified-knowledge/ceshi-2026-08-18/full-conversion-report.md
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/full-conversion-report.md
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: fa073cfd80f5249432aab77cb2083528e55c4188
@@ -10899,7 +10899,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01201
-  path: verified-knowledge/ceshi-2026-08-18/receipts/ceshi_sweep_receipt.json
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/receipts/ceshi_sweep_receipt.json
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: b1788bab8ce78199c704548e7824f91f077e3de8
@@ -10908,7 +10908,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01202
-  path: verified-knowledge/ceshi-2026-08-18/receipts/cleaner_demo_receipt.json
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/receipts/cleaner_demo_receipt.json
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 09227a4d47fe12f073946a9e2c486c472ca4abb1
@@ -10917,7 +10917,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01203
-  path: verified-knowledge/ceshi-2026-08-18/receipts/image_ocr_mini_receipt.json
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/receipts/image_ocr_mini_receipt.json
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: c2893b182f773080fab722062c5c6760feeb2c39
@@ -10926,7 +10926,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01204
-  path: verified-knowledge/ceshi-2026-08-18/receipts/qa_discriminant_receipt.json
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/receipts/qa_discriminant_receipt.json
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 60e96840cacc6f9acf2053efb09f5718ac0e5ddb
@@ -10935,7 +10935,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01205
-  path: verified-knowledge/ceshi-2026-08-18/receipts/qa_hit_rate_receipt.json
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/receipts/qa_hit_rate_receipt.json
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 3615804c80755a7ee135727aa2dae54079b5e5f7
@@ -10944,7 +10944,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01206
-  path: verified-knowledge/ceshi-2026-08-18/receipts/qa_local_verify_receipt.json
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/receipts/qa_local_verify_receipt.json
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: faca4222d66d5a0fbe437c07b5b68a837fdcfd31
@@ -10953,7 +10953,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01207
-  path: verified-knowledge/ceshi-2026-08-18/receipts/real_pipeline_receipt.json
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/receipts/real_pipeline_receipt.json
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 212fa25be93594b035ceefceb9b66a95d9670808
@@ -10962,7 +10962,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01208
-  path: verified-knowledge/ceshi-2026-08-18/receipts/rescan_all_receipt.json
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/receipts/rescan_all_receipt.json
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 1357007f9acfd2c6839e5c5427e727a3a2576178
@@ -10971,7 +10971,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01209
-  path: verified-knowledge/ceshi-2026-08-18/scripts/ceshi_sweep.py
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/scripts/ceshi_sweep.py
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: bf8330d9ee20d1c1602e5931e52614145b40cce8
@@ -10980,7 +10980,7 @@ full_entries:
   proposed_target: 待核验；不自动删除
   review_status: INVENTORIED_NOT_SEMANTICALLY_REVIEWED
 - asset_id: LEG-01210
-  path: verified-knowledge/ceshi-2026-08-18/scripts/qa_local_verify.py
+  path: docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/scripts/qa_local_verify.py
   category: other-repo-assets
   source_commit: ce3c2de551bcaac52c8a26d012e6482c1a73a540
   source_blob: 9ff7a37597ca05597d447b7ff1551b676ed2d556

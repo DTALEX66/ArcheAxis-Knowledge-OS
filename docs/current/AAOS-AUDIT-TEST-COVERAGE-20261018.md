@@ -16,24 +16,24 @@
 
 | 轮次 / 证据入口 | 实际覆盖与验证要点 | 结论与边界 |
 | --- | --- | --- |
-| 9/23 商业 UI 审计，[原报告](AAOS-UI-COMMERCIAL-AUDIT-20260923.md) | 当时 Avalonia 宿主及 UI 参考包；状态、焦点、响应、动效、空状态和真实 Core 入口；构建、142 项定向合同与 headless 学习 smoke | 局部实现及工程验证；原生 GUI/辅助技术 NOT_EXECUTED，完整学习及冷启未验。该旧宿主现为供体，不能作为当前 Tauri 的商业验收 |
-| 10/03 独立审计，[进展](AAOS-INDEPENDENT-AUDIT-20261003.md)、[缺口](AAOS-CLOSURE-GAP-AUDIT-20261003.md) | 候选成员、Rust workspace 400/后继集成419、隔离迁移/回滚、课程与检索及其持久化；各自源码和运行条件独立 | NOT_READY。来源仍含 fixture；同一真实资料完整旅程缺失；Python full 收集4 errors/3 skipped，不能算通过；不把早期400/419覆盖后续新增代码 |
-| 10/05 审计纠错，[更正总表](AAOS01-AUDIT-CORRECTIONS-20261005.md) | 复核 CI run/attempt、引擎断言实际执行、格式处理能力与完成声明是否相符 | 撤回 Q04 完成、音视频内容完整闭环等过度结论；CI 有取消/skipped及 desktop failure，Q14 NOT_RUN。该轮产出主要是纠正证据口径，不能计为新增功能 PASS |
-| 10/10 AI 阶段，[回执](receipts/AAOS-AI-STAGE-20261010.json) | 资产/版本/恢复 fence、模拟 UI，240 视觉场景聚合；两次真实4B路由推理 | 最后布局修改前的836项前端不是最后源码全套；后继仅定向/构建/视觉。实际模型身份 UNKNOWN、语义质量未测、安装交互未验 |
-| 10/11 特定安装候选，[回执](receipts/AAOS-FC-CI-INSTALLED-QUALIFICATION-20261011.json) | SHA `fc940dc89c431d275eec1e9b748dbfab02b0288f`，CI `38077876660` 的20 jobs与隔离安装生命周期；保存/重启/备份及部分格式 | 该 SHA 的安装工程资格 PASS；排除后继完整 grouped 旅程、物理 IME、真实用户数据及 Owner；不能挪作10/18候选资格 |
-| 10/12 前端回归，[回执](receipts/AAOS-FRONTEND-REGRESSION-20261012.json) | 127文件1225项及后继1226项、TypeScript；各自源码摘要 | SIMULATED_FRONTEND；不含实际云调用、模型质量、安装 Green、Owner |
-| 10/13 原生模型闭环，[回执](receipts/AAOS-CONVERSATION-CLOSURE-20261013.json) | commit `5cfeb17622b77598c9ba7e08c5b49369ebf52759`；实际4B/27B合成材料首答/复测、冷启 | 对应候选工程 PASS；答案 `EXECUTED_CANDIDATE_NOT_EVALUATED`，provider stop UNKNOWN；复测取消未获 native 资格。历史成功不能关闭当前新失败 |
-| 10/14 集成，[回执](receipts/AAOS-INTEGRATION-CLOSURE-20261014.json) | 26本地门禁、143文件1285项前端、实际SQLite及native compile | SIMULATED frontend / SYNTHETIC workers；本增量无actual AI；浏览器另一个patch，完整安装/互通仍缺 |
-| 10/15 并行整合，[回执](receipts/AAOS-PARALLEL-INTEGRATION-FINAL-20261015.json) | 本地quick27、148文件1396项，HEAD `4fc9006a2bd59cf9e0733ffc46357f0488d6a27b` | LOCAL_PASS，但 CI `38757310107` 的browser/Python/Rust/installer/aggregate FAIL；本地成功不覆盖云端失败 |
-| 10/16 顶部导航，[回执](receipts/AAOS-TOP-NAVIGATION-20261016.json) | 10 个真实 Chromium 场景；导航呈现、主题/窄窗、焦点、命中；quick 受影响检查及当时前端套件 | 局部门禁 PASS；Host/Core 是 fixture，没有重建原生宿主，不是安装态验收 |
-| 10/16 双栏与保全状态，[回执](receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json) | 10 浏览器场景、73 项工作状态定向、8 项 CSV/Markdown Core/worker；发现等值 flush 已获 ACK 却一直显示待保存 | 修复并定向 PASS；当时前端 152/1466。安装 CI 38804704425 仍 FAIL：另一分组冷启动文档入口裁剪。不能用局部通过抵消 |
+| 9/23 商业 UI 审计，[原报告](../history/repository-consolidation-20261019/current/AAOS-UI-COMMERCIAL-AUDIT-20260923.md) | 当时 Avalonia 宿主及 UI 参考包；状态、焦点、响应、动效、空状态和真实 Core 入口；构建、142 项定向合同与 headless 学习 smoke | 局部实现及工程验证；原生 GUI/辅助技术 NOT_EXECUTED，完整学习及冷启未验。该旧宿主现为供体，不能作为当前 Tauri 的商业验收 |
+| 10/03 独立审计，[进展](../history/repository-consolidation-20261019/current/AAOS-INDEPENDENT-AUDIT-20261003.md)、[缺口](../history/repository-consolidation-20261019/current/AAOS-CLOSURE-GAP-AUDIT-20261003.md) | 候选成员、Rust workspace 400/后继集成419、隔离迁移/回滚、课程与检索及其持久化；各自源码和运行条件独立 | NOT_READY。来源仍含 fixture；同一真实资料完整旅程缺失；Python full 收集4 errors/3 skipped，不能算通过；不把早期400/419覆盖后续新增代码 |
+| 10/05 审计纠错，[更正总表](../history/repository-consolidation-20261019/current/AAOS01-AUDIT-CORRECTIONS-20261005.md) | 复核 CI run/attempt、引擎断言实际执行、格式处理能力与完成声明是否相符 | 撤回 Q04 完成、音视频内容完整闭环等过度结论；CI 有取消/skipped及 desktop failure，Q14 NOT_RUN。该轮产出主要是纠正证据口径，不能计为新增功能 PASS |
+| 10/10 AI 阶段，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-AI-STAGE-20261010.json) | 资产/版本/恢复 fence、模拟 UI，240 视觉场景聚合；两次真实4B路由推理 | 最后布局修改前的836项前端不是最后源码全套；后继仅定向/构建/视觉。实际模型身份 UNKNOWN、语义质量未测、安装交互未验 |
+| 10/11 特定安装候选，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-FC-CI-INSTALLED-QUALIFICATION-20261011.json) | SHA `fc940dc89c431d275eec1e9b748dbfab02b0288f`，CI `38077876660` 的20 jobs与隔离安装生命周期；保存/重启/备份及部分格式 | 该 SHA 的安装工程资格 PASS；排除后继完整 grouped 旅程、物理 IME、真实用户数据及 Owner；不能挪作10/18候选资格 |
+| 10/12 前端回归，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-FRONTEND-REGRESSION-20261012.json) | 127文件1225项及后继1226项、TypeScript；各自源码摘要 | SIMULATED_FRONTEND；不含实际云调用、模型质量、安装 Green、Owner |
+| 10/13 原生模型闭环，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json) | commit `5cfeb17622b77598c9ba7e08c5b49369ebf52759`；实际4B/27B合成材料首答/复测、冷启 | 对应候选工程 PASS；答案 `EXECUTED_CANDIDATE_NOT_EVALUATED`，provider stop UNKNOWN；复测取消未获 native 资格。历史成功不能关闭当前新失败 |
+| 10/14 集成，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-INTEGRATION-CLOSURE-20261014.json) | 26本地门禁、143文件1285项前端、实际SQLite及native compile | SIMULATED frontend / SYNTHETIC workers；本增量无actual AI；浏览器另一个patch，完整安装/互通仍缺 |
+| 10/15 并行整合，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-PARALLEL-INTEGRATION-FINAL-20261015.json) | 本地quick27、148文件1396项，HEAD `4fc9006a2bd59cf9e0733ffc46357f0488d6a27b` | LOCAL_PASS，但 CI `38757310107` 的browser/Python/Rust/installer/aggregate FAIL；本地成功不覆盖云端失败 |
+| 10/16 顶部导航，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-TOP-NAVIGATION-20261016.json) | 10 个真实 Chromium 场景；导航呈现、主题/窄窗、焦点、命中；quick 受影响检查及当时前端套件 | 局部门禁 PASS；Host/Core 是 fixture，没有重建原生宿主，不是安装态验收 |
+| 10/16 双栏与保全状态，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json) | 10 浏览器场景、73 项工作状态定向、8 项 CSV/Markdown Core/worker；发现等值 flush 已获 ACK 却一直显示待保存 | 修复并定向 PASS；当时前端 152/1466。安装 CI 38804704425 仍 FAIL：另一分组冷启动文档入口裁剪。不能用局部通过抵消 |
 | 10/18 交接首修，[执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md) | F02 六处恒真断言换为真实组件交互；F04 协议目录、响应形状、模型存在性、迟到响应；RED 15 / GREEN 18；前端 156/1501、TypeScript/Vite | SYNTHETIC/Core 与 fetch mock；真实用户旅程尚未由此完成 |
-| 10/18 接管复验，[回执](receipts/AAOS-TAKEOVER-VALIDATION-20261018.json) | 前端 158/1516；文档/浏览器工具 24；13 视口、5 主题的既定浏览器矩阵；目录重选、选区恢复、取消迟到响应、性能接线、键盘与检查器 | 同一 dirty patch 局部 PASS。真实 Chromium + 模拟 Host/Core；不是每页面×每主题×每宽度的全组合，也不是完整 WCAG |
-| 10/18 来源、导入与运行时，[回执](receipts/AAOS-PROJECT-CLOSURE-VALIDATION-20261018.json) | 资料路径/哈希与包身份、生产 OSS 证据；单文件/目录上传字节摘要绑定；前端 159/1527；若干 Python/Rust 定向；真实 Core/worker 4 常用格式 + 两波 25 案例；宿主/Core 构建 | 各门禁保留各自 patch；不是同一次全栈全仓运行。PDF 仅文本提取；音视频部分只 probe；不证明 OCR/ASR/原生编辑/往返。真实 4B/27B 原生学习旅程仍有 FAIL |
-| 10/18 模型诊断与小栖首接，[回执](receipts/AAOS-CONTINUATION-20261018.json) | 前端 160/1533、worker/运行策略 95、加载保护 4、文档 16；人物九态静帧、worker 失败诊断 | 源码定向 PASS；九态图不等于动画/语音；当阶段新代码尚未部署至旧候选 |
-| 10/18 本地 27B MTP，[回执](receipts/AAOS-LOCAL-LLM-20261018.json) | 实际 LM Studio SDK 加载参数/草稿接受统计、当前 Python worker 合成材料推理；30.07 秒、73 输出 token、完整最终答案 | REAL 本地 SDK/worker PASS；不是 Core→原生 UI→学习复测闭环，更不是质量准确率 |
-| 10/18 用途通道与请求恢复，[回执](receipts/AAOS-MODEL-LANES-20261018.json) | 前端 162/1569；LM Studio 八项缺失绑定草稿、DEEP 空配置拒绝、原请求恢复五项 RED→GREEN；原生配置保存及冷重开 | 源码、构建和指定候选配置旅程 PASS。原生配置旅程没有启动模型；用户实际工作区绑定仍 UNVERIFIED；首跑保存超时根因没有被“重跑成功”抹去 |
-| 10/18 共享会话最新，[回执](receipts/AAOS-SHARED-COMPANION-20261018.json) | 新增 14 项共享生命周期回归，前端全套 163/1583；TypeScript/Vite/Tauri/Core 构建；真实原生 home/sidebar/reader 共享草稿及折叠重开 | 组件全套 PASS；原生旅程 **FAIL**：展开侧栏陪伴后导航被压至零高，page14 未到达；未调用模型/worker。不能宣称三槽完整原生验收通过 |
+| 10/18 接管复验，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-TAKEOVER-VALIDATION-20261018.json) | 前端 158/1516；文档/浏览器工具 24；13 视口、5 主题的既定浏览器矩阵；目录重选、选区恢复、取消迟到响应、性能接线、键盘与检查器 | 同一 dirty patch 局部 PASS。真实 Chromium + 模拟 Host/Core；不是每页面×每主题×每宽度的全组合，也不是完整 WCAG |
+| 10/18 来源、导入与运行时，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-PROJECT-CLOSURE-VALIDATION-20261018.json) | 资料路径/哈希与包身份、生产 OSS 证据；单文件/目录上传字节摘要绑定；前端 159/1527；若干 Python/Rust 定向；真实 Core/worker 4 常用格式 + 两波 25 案例；宿主/Core 构建 | 各门禁保留各自 patch；不是同一次全栈全仓运行。PDF 仅文本提取；音视频部分只 probe；不证明 OCR/ASR/原生编辑/往返。真实 4B/27B 原生学习旅程仍有 FAIL |
+| 10/18 模型诊断与小栖首接，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-CONTINUATION-20261018.json) | 前端 160/1533、worker/运行策略 95、加载保护 4、文档 16；人物九态静帧、worker 失败诊断 | 源码定向 PASS；九态图不等于动画/语音；当阶段新代码尚未部署至旧候选 |
+| 10/18 本地 27B MTP，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-LOCAL-LLM-20261018.json) | 实际 LM Studio SDK 加载参数/草稿接受统计、当前 Python worker 合成材料推理；30.07 秒、73 输出 token、完整最终答案 | REAL 本地 SDK/worker PASS；不是 Core→原生 UI→学习复测闭环，更不是质量准确率 |
+| 10/18 用途通道与请求恢复，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-MODEL-LANES-20261018.json) | 前端 162/1569；LM Studio 八项缺失绑定草稿、DEEP 空配置拒绝、原请求恢复五项 RED→GREEN；原生配置保存及冷重开 | 源码、构建和指定候选配置旅程 PASS。原生配置旅程没有启动模型；用户实际工作区绑定仍 UNVERIFIED；首跑保存超时根因没有被“重跑成功”抹去 |
+| 10/18 共享会话最新，[回执](../history/repository-consolidation-20261019/current/receipts/AAOS-SHARED-COMPANION-20261018.json) | 新增 14 项共享生命周期回归，前端全套 163/1583；TypeScript/Vite/Tauri/Core 构建；真实原生 home/sidebar/reader 共享草稿及折叠重开 | 组件全套 PASS；原生旅程 **FAIL**：展开侧栏陪伴后导航被压至零高，page14 未到达；未调用模型/worker。不能宣称三槽完整原生验收通过 |
 
 ## 3. “全量”的边界与真正验证目标
 
@@ -115,7 +115,7 @@
 
 ## 8. 本轮实际修复与同源重验
 
-[诊断中心收据](receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json)绑定 patch `d4b950b990528a9c145f4849bfded534aabd5c68f2dead08c4940ee49445beba`。最终前端165文件1596项全部通过、无skip；每项真实执行名称、源文件和结果已写入[逐用例清单](receipts/AAOS-FRONTEND-TEST-CASES-20261018.json)，原始Vitest JSON及日志按SHA引用。这是用例执行清单，仍不是代码/需求覆盖率。
+[诊断中心收据](../history/repository-consolidation-20261019/current/receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json)绑定 patch `d4b950b990528a9c145f4849bfded534aabd5c68f2dead08c4940ee49445beba`。最终前端165文件1596项全部通过、无skip；每项真实执行名称、源文件和结果已写入[逐用例清单](../history/repository-consolidation-20261019/current/receipts/AAOS-FRONTEND-TEST-CASES-20261018.json)，原始Vitest JSON及日志按SHA引用。这是用例执行清单，仍不是代码/需求覆盖率。
 
 - 唯一App级诊断中心接入native与恢复壳入口，按运行连接/操作回执/对象来源分类；页面按钮打开同一面板，原始payload不改写、不再镜像console。记录只在内存保留，最多50条，非审计持久化库。工作区恢复中的旧记录先隔离，只由恢复后独立`ui_state_read`校验当前epoch/provider/workspace/restore身份后解锁；失败可显式核对，普通CAS或恢复前悬挂读取不能解除隔离。
 - 会话页收敛ID、sequence和BUFFERED；冻结确认仍保留问题、材料稳定身份/版本、范围、模型、目的地与预算。候选地址不冒充实际选定地址。共享只读文档展示实际未保存快照，无法预览的未知块显示保留提示，结构原样可查；这不宣称完整富文本渲染。
@@ -151,7 +151,7 @@
 
 ## 10. 模型失败测量信息贯通及候选更新
 
-[失败诊断回执](receipts/AAOS-MACHINE-FAILURE-DIAGNOSTICS-20261018.json)记录原答、复测、资料提问、小栖会话四条调用路径：worker白名单测量经typed Executor保留，API失败和持久化失败记录一致，前端统一诊断中心可查。重新筛选字段，剔除正文/推理文本/异常body/stderr；旧String接口兼容。取消或cleanup未确认仍保留UNKNOWN屏障，三次重试上限与只读历史不触发推理保持。资料/会话失败收据在Core重开后原样重放且worker计数不增加。
+[失败诊断回执](../history/repository-consolidation-20261019/current/receipts/AAOS-MACHINE-FAILURE-DIAGNOSTICS-20261018.json)记录原答、复测、资料提问、小栖会话四条调用路径：worker白名单测量经typed Executor保留，API失败和持久化失败记录一致，前端统一诊断中心可查。重新筛选字段，剔除正文/推理文本/异常body/stderr；旧String接口兼容。取消或cleanup未确认仍保留UNKNOWN屏障，三次重试上限与只读历史不触发推理保持。资料/会话失败收据在Core重开后原样重放且worker计数不增加。
 
 定向验证：Rust API29项、application42项、durable claim6项、Python合同/worker88项、前端7文件89项全部PASS。各组source patch保留；b组后仅修正前端测试类型收窄，c组构建/前端/native绑定`f6e53ec26fcd5db6292ce5608bb9d50d3a0f3ce1e226dc73391cba96933891d4`。不是全仓测试、代码覆盖率或商用验收。首轮缺字段RED、前端缺字段RED、新测试误用旧按钮文案及TypeScript收窄失败均保留。
 
@@ -161,7 +161,7 @@ LM Studio在`2026-10-18T12:56:04.816Z`实际SDK检查在线、loaded LLM为空�
 
 ## 11. 原生目录 CORS 缺陷与保存 DEEP 绑定的连续验证
 
-[本轮回执](receipts/AAOS-SAVED-DEEP-NATIVE-20261018.json)补齐第9节指出的工程覆盖缺口：canonical 原生旅程现在显式在全新隔离合成工作区保存 answer/retest 的 DEEP 用途绑定，经真实界面选通道后执行；不再用兼容模型选择代替保存绑定。已有配置不允许被该探针覆盖。冻结请求、Core解析快照、模型身份、1024输出预算/120秒超时均有断言；配置保存和目录读取不派发推理。
+[本轮回执](../history/repository-consolidation-20261019/current/receipts/AAOS-SAVED-DEEP-NATIVE-20261018.json)补齐第9节指出的工程覆盖缺口：canonical 原生旅程现在显式在全新隔离合成工作区保存 answer/retest 的 DEEP 用途绑定，经真实界面选通道后执行；不再用兼容模型选择代替保存绑定。已有配置不允许被该探针覆盖。冻结请求、Core解析快照、模型身份、1024输出预算/120秒超时均有断言；配置保存和目录读取不派发推理。
 
 新增路径首跑 `webdriver-d799a69c1103` 发现真实产品缺陷：设置页“测试连接”显示 `Failed to fetch`，在保存/推理前停止。LM Studio目录HTTP200、有所选模型，但两个Tauri Origin观察均无 `Access-Control-Allow-Origin`；此前fetch mock没有覆盖原生CORS。修复为有限原生只读目录命令，仅数值loopback、无凭据GET、禁止跳转、5秒/1MiB/256项上限；不改LM Studio全局设置，不新增推理或自动回退。原失败、截图和只读HTTP观察保留。
 
@@ -174,7 +174,7 @@ LM Studio在`2026-10-18T12:56:04.816Z`实际SDK检查在线、loaded LLM为空�
 
 ## 12. UI 工具审计整改与同源复测
 
-[整改回执](receipts/AAOS-UI-AUDIT-REMEDIATION-20261018.json)绑定 HEAD `fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46` + dirty patch `cf2e605e09574acdd4c10560a0ee3a07750be20c46e14c2eb2e51513cb7bb204`。本轮五项：顶部设置接受保护导航、Dockview兄弟关闭控件消除交互嵌套、命令搜索改为任务目的、窄窗按需检查器及冷恢复单组标签、平台快捷键提示统一。原五项在限定生产bundle/模拟Core浏览器范围为PASS；整体仍PARTIAL。
+[整改回执](../history/repository-consolidation-20261019/current/receipts/AAOS-UI-AUDIT-REMEDIATION-20261018.json)绑定 HEAD `fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46` + dirty patch `cf2e605e09574acdd4c10560a0ee3a07750be20c46e14c2eb2e51513cb7bb204`。本轮五项：顶部设置接受保护导航、Dockview兄弟关闭控件消除交互嵌套、命令搜索改为任务目的、窄窗按需检查器及冷恢复单组标签、平台快捷键提示统一。原五项在限定生产bundle/模拟Core浏览器范围为PASS；整体仍PARTIAL。
 
 最终前端**168文件1632项**全通过，无skip；最终定向11文件143项、TypeScript/Vite构建和浏览器13项通过。四组输入patch一致。axe10扫描0违规但有15条incomplete；15张截图实际查看。全套仅指Vitest前端测试集，不代表全仓、需求覆盖率、原生安装或真实Core/模型资格。精确命令、时间、退出码、失败历史、文件hash及清理在 `.project-local/runs/be268a2d33/ui-remediation-browser-1018c/artifacts/ui-pilot/REPORT.md` 与机器回执。历史168/1631属于前一patch，未替代此最终结果。
 
@@ -186,7 +186,7 @@ LM Studio在`2026-10-18T12:56:04.816Z`实际SDK检查在线、loaded LLM为空�
 ## 13. 2026-10-19 图谱吸收及 UI-FOLLOWUP-006 收敛
 
 
-[图谱/界面报告](AAOS-OSS-UI-DONORS-20261019.md)与[收据](receipts/AAOS-NEURAL-GRAPH-ABSORPTION-20261019.json)记录 Neural Creator 固定SHA的MIT几何/视觉适配：星团展开、稳定布局、邻域、曲线/粒子、缩放平移及动画降级接入现有SVG，固定引用与Core写边界保留。中文标题、密集曲线有界及展开卡片遮挡已修复。UI-FOLLOWUP-006 已在本次限定浏览器范围关闭，保留草稿/恢复/文档对象/导航保护，锁定迟到读取和显式恢复身份有回归。
+[图谱/界面报告](AAOS-OSS-UI-DONORS-20261019.md)与[收据](../history/repository-consolidation-20261019/current/receipts/AAOS-NEURAL-GRAPH-ABSORPTION-20261019.json)记录 Neural Creator 固定SHA的MIT几何/视觉适配：星团展开、稳定布局、邻域、曲线/粒子、缩放平移及动画降级接入现有SVG，固定引用与Core写边界保留。中文标题、密集曲线有界及展开卡片遮挡已修复。UI-FOLLOWUP-006 已在本次限定浏览器范围关闭，保留草稿/恢复/文档对象/导航保护，锁定迟到读取和显式恢复身份有回归。
 
 最终HEAD `fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46` + dirty patch `0c32b22ef72b3a11f94164019166154e5a0484f85d0c30ad3165901670edc87d`：前端171文件1661项、TypeScript/Vite、14浏览器检查PASS；14组axe0违规/23条incomplete，20张截图实际查看。浏览器是真实Chrome+生产bundle、SYNTHETIC Core；新图谱原生/安装、真实Core、上游逐像素、FPS/GPU/内存与完整辅助技术未验。拥有进程与41730端口退出读回为空。历史失败不重写，整体仍PARTIAL。
 

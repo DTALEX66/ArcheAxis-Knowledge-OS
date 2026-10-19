@@ -379,7 +379,7 @@ uv run python -m app.runtime_entrypoint
 ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning Workspace for individuals and AI.
 ```
 
-**注意**：GitHub 仓库描述（About section）是固定字段，更新受限。产品名 "ArcheAxis Knowledge" 已在此文档和仓库的 `AGENTS.md`、`app/main.py`、`docs/PROJECT_STATUS.md` 等文件中使用，但 GH 描述字段中的旧名 "ArcheAxis Knowledge" 暂不在维护范围内手工修改。后期更新绕开此字段，以仓库内 `app/main.py` 的 `title` 为准。
+**注意**：GitHub 仓库描述（About section）是固定字段，更新受限。产品名 "ArcheAxis Knowledge" 已在此文档和仓库的 `AGENTS.md`、`app/main.py`、`docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md` 等文件中使用，但 GH 描述字段中的旧名 "ArcheAxis Knowledge" 暂不在维护范围内手工修改。后期更新绕开此字段，以仓库内 `app/main.py` 的 `title` 为准。
 
 ---
 

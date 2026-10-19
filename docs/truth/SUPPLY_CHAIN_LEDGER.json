@@ -60,7 +60,7 @@
           }
         }
       ],
-      "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+      "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
     },
     {
       "id": "C002",
@@ -102,7 +102,7 @@
           }
         }
       ],
-      "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+      "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
     },
     {
       "id": "C003",
@@ -144,7 +144,7 @@
           }
         }
       ],
-      "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+      "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
     },
     {
       "id": "C004",
@@ -537,7 +537,7 @@
       ],
       "version": "6.3.2 (uv.lock and task environment metadata)",
       "evidence": "Rust scheduler -> services/python-workers/learning/worker_schedule.py -> shared/learning_scheduler.py independent of routes.json. Core learning_state_api and learning_events_api pass save/reopen and retry deduplication tests on 2026-10-08.",
-      "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+      "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
     },
     {
       "id": "A016",
@@ -889,5 +889,5 @@
     "REVIEW-BLOCK": 9,
     "REJECT-CORE": 1
   },
-  "current_crosswalk": "docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json"
+  "current_crosswalk": "config/provenance/oss-reuse-crosswalk.json"
 }

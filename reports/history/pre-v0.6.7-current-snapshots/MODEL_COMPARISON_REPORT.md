@@ -43,7 +43,7 @@
 | 进步本 | 记录进步/纠错反馈 | 深度学习/刻意练习原理一致 | ✅ |
 | 复合增长 | 年化 50%→20 年 3325 倍 | 巴菲特复利案例一致 | ✅ |
 | 刻意练习 | 目的性训练+反馈 | Ericsson 刻意练习理论一致 | ✅ |
-证据：verified-knowledge/ceshi-2026-08-18/deepseek-crosscheck.md + 本轮 web_search 来源。
+证据：docs/history/repository-consolidation-20261019/directories/verified-knowledge/ceshi-2026-08-18/deepseek-crosscheck.md + 本轮 web_search 来源。
 
 ## 5. 视频画面转化（F8 全量）
 64/64 mp4 全部成功（5-7 帧/视频，RapidOCR，gate pass）——课程画面知识（PPT/板书/案例数字）已提取。

@@ -1,8 +1,8 @@
 # OpenMAIC 吸收调研（2026-10-19）
 
-> 最新状态：Owner 已授权适配吸收，见[统一决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md)。严格 quiz M1 已有产品 adapter、可选学习入口、原件/Document 保存读回；63 项定向前端测试、1 项真实 Rust Core 重启/重放测试及 TypeScript/Vite 构建通过，见[限定回执](receipts/AAOS-OPENMAIC-IMPORT-20261019.json)。下述首次调研和纠偏保留其观察时间，不能用其中旧 NOT_EXECUTED 覆盖后继实现；完整课堂、浏览器视觉、原生及安装资格未由这些测试证明。
+> 最新状态：Owner 已授权适配吸收，见[统一决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md)。严格 quiz M1 已有产品 adapter、可选学习入口、原件/Document 保存读回；63 项定向前端测试、1 项真实 Rust Core 重启/重放测试及 TypeScript/Vite 构建通过，见[限定回执](../history/repository-consolidation-20261019/current/receipts/AAOS-OPENMAIC-IMPORT-20261019.json)。下述首次调研和纠偏保留其观察时间，不能用其中旧 NOT_EXECUTED 覆盖后继实现；完整课堂、浏览器视觉、原生及安装资格未由这些测试证明。
 
-> 后继[课程 UI 验证](receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json)已完成生产前端 bundle 的隔离浏览器预览、键盘核对、保存 UNKNOWN/同请求重试/重开、失败与窄窗口检查；课程选项排版有实际截图修复。该浏览器使用 SYNTHETIC Core，与前述真实 Rust API 测试是两组独立证据，不能拼接成真实 UI→Core 端到端、完整上游课堂或原生/安装验收。
+> 后继[课程 UI 验证](../history/repository-consolidation-20261019/current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json)已完成生产前端 bundle 的隔离浏览器预览、键盘核对、保存 UNKNOWN/同请求重试/重开、失败与窄窗口检查；课程选项排版有实际截图修复。该浏览器使用 SYNTHETIC Core，与前述真实 Rust API 测试是两组独立证据，不能拼接成真实 UI→Core 端到端、完整上游课堂或原生/安装验收。
 
 结论：有较高教学能力吸收价值，优先 **ADAPT 课程结构与测验子集**，教学流程作 **REFERENCE**；完整课堂服务和任意生成 HTML 执行 **HOLD**。本轮是公开源码静态研究与证据保全，调研 PASS；运行、部署、模型效果与 AAOS 接入均 UNVERIFIED / NOT_EXECUTED。未安装、启动或执行上游代码，也未修改现有 LM Studio/provider 配置。
 
@@ -59,4 +59,4 @@ AAOS 已有实际接点：`frontend/src/components/KnowledgeCoursePanel.tsx` 的
 
 ## 后继 M1 实现与证据（2026-10-19）
 
-上文 NOT_EXECUTED 是首次研究/纠偏时点。当前严格 quiz adapter、通用外部候选和可选学习入口已有实现，实际覆盖及失败历史见[限定回执](receipts/AAOS-OPENMAIC-IMPORT-20261019.json)，进度见唯一[当前执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。原件保全和文档创建是两步，部分失败按阶段保留，不能承诺拒绝后完全不留原件。完整课堂、slide、多模态、模板/技能和原生安装仍未据此通过；后续基于同一任务继续，不重开已通过的静态调研。
+上文 NOT_EXECUTED 是首次研究/纠偏时点。当前严格 quiz adapter、通用外部候选和可选学习入口已有实现，实际覆盖及失败历史见[限定回执](../history/repository-consolidation-20261019/current/receipts/AAOS-OPENMAIC-IMPORT-20261019.json)，进度见唯一[当前执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。原件保全和文档创建是两步，部分失败按阶段保留，不能承诺拒绝后完全不留原件。完整课堂、slide、多模态、模板/技能和原生安装仍未据此通过；后续基于同一任务继续，不重开已通过的静态调研。

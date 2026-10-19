@@ -11,15 +11,15 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
   "sources": [
     {
       "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
-      "sha256": "445a062ba2737a8bc0b1406dbace47aeeaaa87b269bb4fc47dfb5e1d2d389ae5"
+      "sha256": "cdf7819c9c64e4551c8b88e450707b7e5d4340f0f5349fd187d0bc44f007cf97"
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "e16b5cb4bc2737f20cff8abcf81ac63d2fa0c7e235c961fa6c1ca15e8b22b02a"
+      "sha256": "50bacd843b1336b23853dd9a574416c2986ee775e71577e1d4e68f01bd908829"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
-      "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
+      "sha256": "cf1652fd75e1d588aa9a545cd2437193c59dbe05886d2d9040f8fc16faca893d"
     },
     {
       "path": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.json",
@@ -49,7 +49,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "capability_absorption_registry": 11,
       "supply_chain_ledger": 51,
       "grouped_entries": 68,
-      "excluded": "The 369-row historical research pool and the 691-row lossless crosswalk it produces. Those rows are candidate names, not absorption entries (docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json: '369 pool entries are not 369 installations'); they stay in the regenerated payload described by docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json, which this artifact does not replace."
+      "excluded": "The 369-row historical research pool and the 691-row lossless crosswalk it produces. Those rows are candidate names, not absorption entries (docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json: '369 pool entries are not 369 installations'); they stay in the regenerated payload described by docs/history/repository-consolidation-20261019/current/OSS-REUSE-CROSSWALK-20261008.manifest.json, which this artifact does not replace."
     },
     "id_namespaces": {
       "capability_atlas": {
@@ -107,7 +107,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       "not_adopted": "Not adopted for the stated role: tier E, REJECT-CORE/REVIEW-BLOCK with nothing carried, or a claimed adoption whose donor artifact is absent."
     },
     "derivation": {
-      "verification_tier": "the category scripts/audit/build_oss_reuse_inventory.py carries for this entry's records; B is promoted to A only by bound verification in docs/current/OSS-REUSE-VERIFICATION-20261008.json, never by a decision",
+      "verification_tier": "the category scripts/audit/build_oss_reuse_inventory.py carries for this entry's records; B is promoted to A only by bound verification in docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json, never by a decision",
       "absorption_mode": "declared values are kept per namespace and never overwritten; derived_mode is computed from the artifact shape in the registry's own vocabulary",
       "atlas_capability_id": "the entry's dotted capability id appearing in config/capability-map.v1.json runtime_capabilities, or the donor name appearing in docs/truth/CAPABILITY_ATLAS_V2.yaml dependencies; two different matches make the row a conflict and refuse the plugin class",
       "adoption": "donor-specific terms only. Tokens that are the capability's own name or acronym are stripped first, then probed as declared package names (pyproject.toml, uv.lock, requirements.txt, frontend/package.json, frontend/package-lock.json, Cargo.lock), vendor roots, first-party source identifiers excluding self-declared unavailable stubs, the bound external resource index, and the declared route worker files",
@@ -134,11 +134,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     "conflict_count": 115,
     "entries_with_conflicts": 59,
     "inputs": {
-      "docs/current/OSS-REUSE-DECISIONS-20261008.json": {
+      "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json": {
         "sha256": "ba938bc36d74551a08b7ab94b4b1513122b4d853353e6d41c15feedab86cbe38",
         "bytes": 23384
       },
-      "docs/current/OSS-REUSE-VERIFICATION-20261008.json": {
+      "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json": {
         "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0",
         "bytes": 14105
       },
@@ -170,7 +170,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "sha256": "8d5f9d30c7f7585d9dc7db1f6476d5ee2c418a2b6ea656c88bfe1c1b922d7cd2",
         "bytes": 77157
       },
-      "docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json": {
+      "docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json": {
         "sha256": "29810dc3978cd90f4bcf8a8859e489655d3a52ff564eabb80ae17c52a82d2917",
         "bytes": 11591
       },
@@ -211,11 +211,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
       },
       {
-        "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+        "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
         "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
       },
       {
-        "path": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+        "path": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json",
         "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0"
       },
       {
@@ -381,11 +381,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     "source_contract_rebind_20261015": {
       "scope": "Source definitions only; runtime and installed qualifications unchanged",
-      "receipt": "docs/current/receipts/AAOS-DOCUMENT-CONTRACT-SOURCE-REFRESH-20261015.json"
+      "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-DOCUMENT-CONTRACT-SOURCE-REFRESH-20261015.json"
     },
     "plan_contract_rebind_20261015": {
       "scope": "Source definitions only; runtime and installed qualifications unchanged",
-      "receipt": "docs/current/receipts/AAOS-PLAN-CONTRACT-SOURCE-REFRESH-20261015.json"
+      "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-PLAN-CONTRACT-SOURCE-REFRESH-20261015.json"
     },
     "format_qualification_source_rebind_20261016": {
       "scope": "Reviewed additional finite read-only operation and generated per-file qualification DTO from the existing schema; existing document fields, dependency activation and runtime qualifications unchanged.",
@@ -706,7 +706,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "office.doc",
               "declared_runtime_capabilities_in_the_same_domain": [
                 "office.structure"
@@ -759,7 +759,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -776,7 +776,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -828,7 +828,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -839,7 +839,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -962,7 +962,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "office.ppt",
               "declared_runtime_capabilities_in_the_same_domain": [
                 "office.structure"
@@ -1016,7 +1016,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1033,7 +1033,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1086,7 +1086,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1097,7 +1097,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -1200,7 +1200,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "legacy.runtime.scheduler",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -1263,7 +1263,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1280,7 +1280,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1332,7 +1332,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1343,7 +1343,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -1432,7 +1432,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "document.save",
               "declared_runtime_capabilities_in_the_same_domain": [
                 "document.detect"
@@ -1545,7 +1545,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1556,7 +1556,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -1653,7 +1653,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "runtime.jvm",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -1704,7 +1704,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1721,7 +1721,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1773,7 +1773,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1784,7 +1784,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -1972,7 +1972,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -1983,7 +1983,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -2097,7 +2097,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "web.snapshot.dynamic",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -2148,7 +2148,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2165,7 +2165,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2217,7 +2217,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2228,7 +2228,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -2331,7 +2331,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2348,7 +2348,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2398,7 +2398,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2409,7 +2409,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -2502,7 +2502,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "legacy.web.fetch",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -2565,7 +2565,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2582,7 +2582,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2634,7 +2634,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2645,7 +2645,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -2784,7 +2784,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2801,7 +2801,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2853,7 +2853,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -2864,7 +2864,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -2970,7 +2970,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "evidence.crossref",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -3018,7 +3018,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3035,7 +3035,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3087,7 +3087,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3098,7 +3098,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -3203,7 +3203,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "evidence.datacite",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -3251,7 +3251,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3268,7 +3268,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3320,7 +3320,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3331,7 +3331,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -3513,7 +3513,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3530,7 +3530,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3585,7 +3585,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3596,7 +3596,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -3740,7 +3740,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3757,7 +3757,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3809,7 +3809,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3820,7 +3820,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -3947,7 +3947,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -3964,7 +3964,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4016,7 +4016,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4027,7 +4027,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -4211,7 +4211,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4228,7 +4228,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4280,7 +4280,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4291,7 +4291,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -4426,7 +4426,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4443,7 +4443,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4493,7 +4493,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4504,7 +4504,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -4623,7 +4623,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4640,7 +4640,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4690,7 +4690,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -4701,7 +4701,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -4824,7 +4824,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "learning.fsrs",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -4882,7 +4882,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         ],
         "version": "6.3.2 (uv.lock and task environment metadata)",
         "evidence": "Rust scheduler -> services/python-workers/learning/worker_schedule.py -> shared/learning_scheduler.py independent of routes.json. Core learning_state_api and learning_events_api pass save/reopen and retry deduplication tests on 2026-10-08.",
-        "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
       },
       "qualification": {
         "stable_key": "fsrs",
@@ -4932,7 +4932,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+                "path": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json",
                 "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0"
               },
               {
@@ -4991,7 +4991,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5002,7 +5002,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -5129,7 +5129,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5146,7 +5146,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5196,7 +5196,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5207,7 +5207,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -5353,7 +5353,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5370,7 +5370,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5422,7 +5422,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5433,7 +5433,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -5536,7 +5536,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5553,7 +5553,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5603,7 +5603,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5614,7 +5614,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -5733,7 +5733,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5750,7 +5750,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5800,7 +5800,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5811,7 +5811,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -5924,7 +5924,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "quality.text",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -5972,7 +5972,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -5989,7 +5989,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6041,7 +6041,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6052,7 +6052,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -6300,7 +6300,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6311,7 +6311,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -6383,7 +6383,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "contract.json-schema",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -6498,7 +6498,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6509,7 +6509,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -6600,7 +6600,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "graph.core-replacement",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -6646,7 +6646,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6663,7 +6663,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6713,7 +6713,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6724,7 +6724,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -6817,7 +6817,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "legacy.observability",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -6880,7 +6880,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6897,7 +6897,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6949,7 +6949,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -6960,7 +6960,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -7056,7 +7056,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7073,7 +7073,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7123,7 +7123,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7134,7 +7134,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -7231,7 +7231,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7248,7 +7248,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7298,7 +7298,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7309,7 +7309,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -7437,7 +7437,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "legacy.llm.gateway",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -7500,7 +7500,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7517,7 +7517,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7569,7 +7569,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7580,7 +7580,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -7701,7 +7701,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "runtime.logging",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -7753,7 +7753,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7770,7 +7770,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7823,7 +7823,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -7834,7 +7834,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -7956,7 +7956,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "verification_tier": "B",
               "supply_chain_disposition": "EVALUATE",
               "adoption_artifact": "package_declared",
-              "source": "docs/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
+              "source": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
             }
           },
           {
@@ -8020,7 +8020,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "file.detect",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -8068,7 +8068,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8085,7 +8085,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8137,7 +8137,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8148,7 +8148,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -8328,7 +8328,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8345,7 +8345,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8395,7 +8395,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8406,7 +8406,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -8558,7 +8558,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "legacy.document.convert",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -8609,7 +8609,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             }
           }
         ],
-        "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
       },
       "qualification": {
         "stable_key": "markitdown",
@@ -8634,7 +8634,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8651,7 +8651,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8703,7 +8703,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8714,7 +8714,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -8833,7 +8833,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8850,7 +8850,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8900,7 +8900,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -8911,7 +8911,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -9030,7 +9030,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9047,7 +9047,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9097,7 +9097,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9108,7 +9108,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -9277,7 +9277,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9294,7 +9294,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9346,7 +9346,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9357,7 +9357,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -9488,7 +9488,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "legacy.graph.compute",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -9539,7 +9539,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9556,7 +9556,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9608,7 +9608,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9619,7 +9619,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -9732,7 +9732,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "evidence.openalex",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -9780,7 +9780,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9797,7 +9797,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9849,7 +9849,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9860,7 +9860,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -9932,7 +9932,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "contract.openapi",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -9967,7 +9967,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -9984,7 +9984,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10034,7 +10034,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10045,7 +10045,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -10158,7 +10158,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10175,7 +10175,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10225,7 +10225,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10236,7 +10236,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -10341,7 +10341,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10358,7 +10358,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10408,7 +10408,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10419,7 +10419,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -10551,7 +10551,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10568,7 +10568,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10620,7 +10620,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10631,7 +10631,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -10753,7 +10753,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "pdf.read",
               "declared_runtime_capabilities_in_the_same_domain": [
                 "pdf.extract"
@@ -10803,7 +10803,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             }
           }
         ],
-        "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
       },
       "qualification": {
         "stable_key": "pdfjs",
@@ -10828,7 +10828,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10845,7 +10845,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10897,7 +10897,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -10908,7 +10908,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -11027,7 +11027,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11044,7 +11044,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11094,7 +11094,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11105,7 +11105,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -11245,7 +11245,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11262,7 +11262,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11314,7 +11314,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11325,7 +11325,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -11414,7 +11414,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "document.edit",
               "declared_runtime_capabilities_in_the_same_domain": [
                 "document.detect"
@@ -11616,7 +11616,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11627,7 +11627,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -11788,7 +11788,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+                "path": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json",
                 "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0"
               },
               {
@@ -11845,7 +11845,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11856,7 +11856,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -11975,7 +11975,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -11992,7 +11992,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12042,7 +12042,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12053,7 +12053,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -12295,7 +12295,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12312,7 +12312,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12365,7 +12365,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12376,7 +12376,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -12491,7 +12491,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12508,7 +12508,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12558,7 +12558,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12569,7 +12569,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -12670,7 +12670,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "quality.text.similarity",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -12730,7 +12730,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12747,7 +12747,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12799,7 +12799,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -12810,7 +12810,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -12916,7 +12916,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "verification_tier": "B",
               "supply_chain_disposition": "EVALUATE",
               "adoption_artifact": "tool_invoked",
-              "source": "docs/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
+              "source": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
             }
           },
           {
@@ -12951,7 +12951,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "legacy.image.ocr",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -13011,7 +13011,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13028,7 +13028,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13080,7 +13080,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13091,7 +13091,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -13210,7 +13210,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13227,7 +13227,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13277,7 +13277,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13288,7 +13288,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -13409,7 +13409,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "verification_tier": "B",
               "supply_chain_disposition": "EVALUATE",
               "adoption_artifact": "package_declared",
-              "source": "docs/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
+              "source": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
             }
           },
           {
@@ -13471,7 +13471,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "media.transcribe.sensevoice",
               "declared_runtime_capabilities_in_the_same_domain": [
                 "media.diarize",
@@ -13524,7 +13524,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13541,7 +13541,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13593,7 +13593,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13604,7 +13604,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -13762,7 +13762,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "legacy.audio.vad",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -13822,7 +13822,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13839,7 +13839,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13891,7 +13891,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -13902,7 +13902,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -14087,7 +14087,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14104,7 +14104,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14156,7 +14156,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14167,7 +14167,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -14254,7 +14254,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "runtime.structured-logging",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -14318,7 +14318,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14335,7 +14335,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14388,7 +14388,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14399,7 +14399,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -14514,7 +14514,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "sbom.tool",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -14562,7 +14562,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14579,7 +14579,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14631,7 +14631,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -14642,7 +14642,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -14739,7 +14739,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "document.edit",
               "declared_runtime_capabilities_in_the_same_domain": [
                 "document.detect"
@@ -15046,7 +15046,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15057,7 +15057,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -15176,7 +15176,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15193,7 +15193,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15243,7 +15243,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15254,7 +15254,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -15429,7 +15429,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             }
           }
         ],
-        "current_task_verification": "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+        "current_task_verification": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
       },
       "qualification": {
         "stable_key": "trafilatura",
@@ -15479,7 +15479,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "docs/current/OSS-REUSE-VERIFICATION-20261008.json",
+                "path": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json",
                 "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0"
               },
               {
@@ -15538,7 +15538,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15549,7 +15549,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -15651,7 +15651,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15668,7 +15668,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15718,7 +15718,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15729,7 +15729,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -15891,7 +15891,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15908,7 +15908,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15960,7 +15960,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -15971,7 +15971,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -16086,7 +16086,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "evidence.wikidata",
               "declared_runtime_capabilities_in_the_same_domain": [],
               "sources": [
@@ -16134,7 +16134,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16151,7 +16151,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16203,7 +16203,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16214,7 +16214,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -16320,7 +16320,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           {
             "reason": "capability-id-is-not-a-declared-route",
             "values": {
-              "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+              "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
               "capability_id": "office.xls",
               "declared_runtime_capabilities_in_the_same_domain": [
                 "office.structure"
@@ -16374,7 +16374,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16391,7 +16391,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16444,7 +16444,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16455,7 +16455,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]
@@ -16576,7 +16576,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16593,7 +16593,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16645,7 +16645,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
               },
               {
-                "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+                "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
                 "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
               }
             ]
@@ -16656,7 +16656,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               "sha256": "013ed5b614ee69e78ec89835570efe11035047cdb83a75d53bde43937c3b53e1"
             },
             {
-              "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+              "path": "docs/history/repository-consolidation-20261019/source-identities/docs/truth/SUPPLY_CHAIN_LEDGER.json",
               "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
             }
           ]

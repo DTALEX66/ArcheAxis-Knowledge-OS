@@ -64,8 +64,8 @@ _PRESERVED_FIXTURE_HASHES = {
     "tests/fixtures/p1-quality/one-long-line.txt": "d9785ad494215a183ceaf55c11aeed1433227e88469f61159f2daf27e6929100",
 }
 _PRESERVED_HISTORICAL_REPORT_HASHES = {
-    "docs/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
-    "docs/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
+    "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
+    "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
 }
 
 
@@ -403,7 +403,7 @@ def test_product_naming_contract_v2_has_one_default_display_identity() -> None:
 
 def test_forbidden_terms_reject_legacy_name_in_active_doc() -> None:
     issues = scan_naming_forbidden_terms(
-        "docs/current/CURRENT_PRODUCT_PLAN_V2.md",
+        "docs/current/current-product-plan-negative.md",
         "当前计划：元枢工作台 是主产品。".encode(),
     )
     assert any(i.code == "legacy-product-name" for i in issues)
@@ -411,7 +411,7 @@ def test_forbidden_terms_reject_legacy_name_in_active_doc() -> None:
 
 def test_forbidden_terms_allow_legacy_context_docs() -> None:
     issues = scan_naming_forbidden_terms(
-        "docs/current/CURRENT_PRODUCT_PLAN_V2.md",
+        "docs/current/current-product-plan-negative.md",
         "迁移说明：旧名元枢工作台 仅在 Legacy 语境出现。".encode(),
     )
     assert not [i for i in issues if i.code == "legacy-product-name"]
@@ -433,7 +433,7 @@ def test_forbidden_terms_allow_generated_audit_receipts() -> None:
     assert not [
         i
         for i in scan_naming_forbidden_terms(
-            "docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json", receipt
+            "docs/current/branch-receipt-negative.json", receipt
         )
         if i.code == "legacy-product-name"
     ]
@@ -445,7 +445,7 @@ def test_forbidden_terms_still_reject_that_text_without_the_receipt_schema() -> 
         {"records": [{"subject": "feat: ArcheAxis OS rename"}]}
     ).encode()
     issues = scan_naming_forbidden_terms(
-        "docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs/current/branch-receipt-negative.json",
         same_text_without_schema,
     )
     assert any(i.code == "legacy-product-name" for i in issues)

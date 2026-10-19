@@ -29,7 +29,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 SCRIPT = REPO / "scripts" / "audit" / "oss_disposition_evidence.py"
-DISPOSITION = REPO / "docs" / "current" / "AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json"
+DISPOSITION = REPO / 'docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json'
 
 
 def test_test_only_donor_identifier_cannot_qualify_runtime_absorption(tmp_path, monkeypatch):

@@ -1,7 +1,7 @@
 > ARCHIVED 2026-08-12 — 历史验证快照（2026-08-09），来源分支
 > `docs/verification-summary-2026-08-09`（git 对象无损保留）。
 > 含当时 NO-GO 结论与旧名（ArcheAxis Knowledge/ArcheAxis-Knowledge-OS），为历史记录；
-> 当前状态以 docs/truth/EXECUTION_STATUS_LOG.md 为准。
+> 当前状态以 docs/history/repository-consolidation-20261019/truth-snapshots/EXECUTION_STATUS_LOG.md 为准。
 >
 # ArcheAxis-Knowledge-OS 验证摘要与问题总表
 
@@ -212,9 +212,9 @@ readabilipy
 权威任务包：
 
 ```text
-codex-taskpacks/B线_CODEX任务包.md
-codex-taskpacks/C线_CODEX任务包.md
-codex-taskpacks/定时推送与项目雷达_CODEX任务包.md
+docs/history/repository-consolidation-20261019/directories/codex-taskpacks/B线_CODEX任务包.md
+docs/history/repository-consolidation-20261019/directories/codex-taskpacks/C线_CODEX任务包.md
+docs/history/repository-consolidation-20261019/directories/codex-taskpacks/定时推送与项目雷达_CODEX任务包.md
 ```
 
 严格顺序：

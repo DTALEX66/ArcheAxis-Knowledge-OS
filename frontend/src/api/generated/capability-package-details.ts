@@ -24,7 +24,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
     },
     {
       "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
-      "sha256": "445a062ba2737a8bc0b1406dbace47aeeaaa87b269bb4fc47dfb5e1d2d389ae5"
+      "sha256": "cdf7819c9c64e4551c8b88e450707b7e5d4340f0f5349fd187d0bc44f007cf97"
     },
     {
       "path": "packages/contracts/v1/core-document.schema.json",

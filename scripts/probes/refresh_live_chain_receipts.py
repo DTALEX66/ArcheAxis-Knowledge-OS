@@ -3,8 +3,9 @@
 The probes print their receipts into a per-run directory under .project-local, which is ignored and
 is not kept. That makes every citation of them ephemeral: the evidence exists until the run
 directory is cleaned and then the receipt cites a path that is gone. This runs both probes and
-records what they proved, with the commit and tree state they ran against, in a tracked file that
-survives - and with absolute paths stripped, because where a checkout lives decides nothing.
+records what they proved, with the commit and tree state they ran against, in the canonical run
+artifact directory. Historical tracked receipts remain immutable; publishing a new sanitized
+receipt is a separately reviewed delivery step.
 
 Run: python scripts/probes/refresh_live_chain_receipts.py
 """
@@ -12,12 +13,12 @@ Run: python scripts/probes/refresh_live_chain_receipts.py
 from __future__ import annotations
 
 import json
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-TARGET = REPO / "docs" / "current" / "receipts" / "LIVE-CHAIN-RECEIPTS.json"
 PROBES = {
     "conversion": REPO / "scripts" / "probes" / "r10_core_journey_smoke.py",
     "learning": REPO / "scripts" / "probes" / "r10_learning_chain_smoke.py",
@@ -42,7 +43,15 @@ def _run(probe: Path) -> dict:
     return receipt
 
 
+def receipt_target() -> Path:
+    spec = importlib.util.spec_from_file_location("live_receipt_runtime", REPO / "scripts/runtime/dev.py")
+    runtime = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(runtime)
+    return runtime.artifact_directory(REPO, "live-chain-receipts") / "LIVE-CHAIN-RECEIPTS.json"
+
+
 def main() -> int:
+    target = receipt_target()
     bundle = {
         "schema": "archeaxis.live-chain-receipts/v1",
         "commit": _git("rev-parse", "HEAD"),
@@ -55,10 +64,9 @@ def main() -> int:
         ),
         "chains": {name: _run(probe) for name, probe in PROBES.items()},
     }
-    TARGET.parent.mkdir(parents=True, exist_ok=True)
-    TARGET.write_text(json.dumps(bundle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    target.write_text(json.dumps(bundle, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     ok = all(chain.get("ok") is True for chain in bundle["chains"].values())
-    print(json.dumps({"target": str(TARGET.relative_to(REPO)), "all_chains_ok": ok,
+    print(json.dumps({"target": str(target.relative_to(REPO)), "all_chains_ok": ok,
                       "commit": bundle["commit"]}, ensure_ascii=False))
     return 0 if ok else 1
 

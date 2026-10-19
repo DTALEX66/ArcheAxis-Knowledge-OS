@@ -12,7 +12,7 @@ spec.loader.exec_module(inventory)
 
 
 def decisions():
-    return json.loads((ROOT / "docs/current/OSS-REUSE-DECISIONS-20261008.json").read_text(encoding="utf-8"))
+    return json.loads((ROOT / "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json").read_text(encoding="utf-8"))
 
 
 def test_every_original_row_in_every_source_is_retained_and_duplicates_are_not_collapsed():

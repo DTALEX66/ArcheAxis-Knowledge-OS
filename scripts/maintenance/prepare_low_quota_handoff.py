@@ -19,11 +19,11 @@ from pathlib import Path
 
 DEFAULT_THRESHOLD = 2.0
 HANDOFF_PATHS = (
-    "docs/current/R6-EXECUTION.md",
-    "docs/current/R6-STATE.json",
-    "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
-    "docs/current/REPOSITORY-CLEANUP-HANDOFF-20260921.md",
-    "docs/current/LOW-QUOTA-HANDOFF-POLICY.md",
+    "docs/current/AAOS-ACTIVE-EXECUTION.json",
+    "docs/current/AAOS-AUTHORITY-ROUTES.json",
+    "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+    "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "docs/current/AAOS-EXECUTION-BACKLOG-20261018.json",
     "docs/CONFIGURATION_AUTHORITY_INDEX.md",
     "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
     "docs/SHARED_RESOURCE_PATH_INDEX.md",

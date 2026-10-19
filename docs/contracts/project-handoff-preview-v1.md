@@ -1,6 +1,6 @@
 # Project Handoff Preview v1：本地human有限消费
 
-> 2026-10-19 后继：下文预览合同继续有效，“确切剩余接线”是前轮形成时的缺口。其第1—3项已由下方snapshot／page16切片实施，实际资格读[限定回执](../current/receipts/AAOS-HANDOFF-SNAPSHOT-READER-20261019.json)；第4项仍待独立授权与验证。
+> 2026-10-19 后继：下文预览合同继续有效，“确切剩余接线”是前轮形成时的缺口。其第1—3项已由下方snapshot／page16切片实施，实际资格读[限定回执](../history/repository-consolidation-20261019/current/receipts/AAOS-HANDOFF-SNAPSHOT-READER-20261019.json)；第4项仍待独立授权与验证。
 
 BE10原逻辑操作`project.handoff.preview`的真实Core与native有限命令；不是外部产品身份认证、投递、上下文正文传输、执行、知识接纳或OS深链接。
 

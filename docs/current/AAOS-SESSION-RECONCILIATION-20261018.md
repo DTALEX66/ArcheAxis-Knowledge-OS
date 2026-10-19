@@ -1,6 +1,6 @@
 # Codex / Claude Desktop 项目会话整合 · 2026-10-18
 
-> **后继替代说明（2026-10-19）**：下文FE18归QODER/未纳入AAOS等表述是10/18初次对账时点。Owner后续明确[小栖直接整合AAOS](../../workspace/intake/20261018-xiaoqi-in-project.md)，该归属现已替代；读[当前迁移状态](AAOS-XIAOQI-MIGRATION-20261018.md)与[接手入口](AAOS-AGENT-HANDOFF-CURRENT.md)。旧测试计数、未测及完成声明也只属于原时点，不据此关闭当前任务。新增对话来源见[39项摘录](../history/owner-dialogue-20261019/README.md)。
+> **后继替代说明（2026-10-19）**：下文FE18归QODER/未纳入AAOS等表述是10/18初次对账时点。Owner后续明确[小栖直接整合AAOS](../../workspace/intake/20261018-xiaoqi-in-project.md)，该归属现已替代；读[当前迁移状态](../history/repository-consolidation-20261019/current/AAOS-XIAOQI-MIGRATION-20261018.md)与[接手入口](AAOS-AGENT-HANDOFF-CURRENT.md)。旧测试计数、未测及完成声明也只属于原时点，不据此关闭当前任务。新增对话来源见[39项摘录](../history/owner-dialogue-20261019/README.md)。
 
 **整体 PARTIAL；Owner 已明确“你来全部接手”，本轮恢复项目内实施。** 当前工作区 `D:\All projects\ArcheAxis-Knowledge-OS`，分支 `main`，基线 `fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46`，含未提交修改。源码与工作树需现场核对，本文不代表 exact-SHA CI 或安装验收。恢复记录见 [Owner 决定](AAOS-OWNER-RESUME-20261018.json)，执行状态仍由[活动指针](AAOS-ACTIVE-EXECUTION.json)路由。
 
@@ -95,7 +95,7 @@ Code 两份文件的 UUID 集分别为 640、533，交集 533、并集 640：较
 
 复跑 `takeover-browser-green-20261018` 继续发现真正产品回退：640px阅读页的检查器横向挤占正文，中心284px、检查器320px。`11b6ac8e`样式修改保留窄屏注释却删除其规则；本轮仅补回该媒体查询，未回滚其他成果。`takeover-reader-layout-green-20261018` 在390/640/1440px及blueprint/blueprint-light/cosmic共9场景验证几何、检查器关闭/重开和正文保留通过 / 真实Chromium渲染、Core模拟。复跑期间文档也有更新，其完整树收据标INVALIDATED；不把这次失败运行改成PASS。完整浏览器最终复验以独立run收据为准。
 
-**最终复验见[统一本地收据](receipts/AAOS-TAKEOVER-VALIDATION-20261018.json)**：`takeover-frontend-confirmed-20261018` 158文件1516项、`takeover-final-gates-20261018` 文档/浏览器工具24项、`a610fc3d8f04` 正式TypeScript/Vite构建、`takeover-browser-final-20261018` 全部PASS；四个门禁的before/after源码摘要一致，绑定同一份dirty快照。浏览器覆盖13视口、5主题以及模板/资料/阅读/窄Dock/顶部导航，使用真实Chromium及模拟Host/Core；不是完整WCAG、真实模型或Windows原生安装资格。最终收据与本文补记在门禁后生成，未再改产品源码；保留bundle尺寸和旧探针SyntaxWarning。原11份dirty备份逐文件hash再核对通过，`git diff --check`通过；未提交或上传。
+**最终复验见[统一本地收据](../history/repository-consolidation-20261019/current/receipts/AAOS-TAKEOVER-VALIDATION-20261018.json)**：`takeover-frontend-confirmed-20261018` 158文件1516项、`takeover-final-gates-20261018` 文档/浏览器工具24项、`a610fc3d8f04` 正式TypeScript/Vite构建、`takeover-browser-final-20261018` 全部PASS；四个门禁的before/after源码摘要一致，绑定同一份dirty快照。浏览器覆盖13视口、5主题以及模板/资料/阅读/窄Dock/顶部导航，使用真实Chromium及模拟Host/Core；不是完整WCAG、真实模型或Windows原生安装资格。最终收据与本文补记在门禁后生成，未再改产品源码；保留bundle尺寸和旧探针SyntaxWarning。原11份dirty备份逐文件hash再核对通过，`git diff --check`通过；未提交或上传。
 
 文档权威定向检查首次15通过、1失败，原因是10/17 README覆盖后丢失历史/当前路由并宣称MVP/82%。本轮已校正命名、正式架构、真实状态与历史标签，`takeover-doc-green-20261018` 复验 **16通过**。此失败不改写为首次通过。
 

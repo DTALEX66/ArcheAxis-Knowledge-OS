@@ -201,8 +201,8 @@ _PRESERVED_PACKAGE_MEMBER_HASHES.update({
 # evidence. Pin the exact report bytes so it remains evidence, not a wildcard
 # naming exemption.
 _PRESERVED_HISTORICAL_REPORT_HASHES = {
-    "docs/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
-    "docs/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
+    "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
+    "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
 }
 
 # Generated branch/lineage audit receipts quote historical commit subjects and
@@ -834,6 +834,14 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
     docs/migration, docs/truth (newer files), config/, .worklab/.
     """
     pure = PurePosixPath(path)
+    historical_hash = _PRESERVED_HISTORICAL_REPORT_HASHES.get(path)
+    if historical_hash:
+        if hashlib.sha256(content).hexdigest() != historical_hash:
+            return [ConventionIssue(
+                "historical-report-mismatch", path,
+                "historical branch-audit evidence changed from its pinned bytes",
+            )]
+        return []
     # Active product surfaces scanned for legacy product names: markdown
     # docs, YAML config, and JSON config. Python/Rust sources are excluded
     # because test fixtures deliberately embed forbidden names to assert
@@ -850,13 +858,13 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
     )
     exempt_files = {
         "THIRD_PARTY_NOTICES.md",
-        "docs/truth/EXECUTION_STATUS_LOG.md",
-        "docs/truth/AUTHORITY_CONTRACT.md",
-        "docs/truth/CURRENT_STATE_TRUTH.md",
+        "docs/history/repository-consolidation-20261019/truth-snapshots/EXECUTION_STATUS_LOG.md",
+        "docs/history/repository-consolidation-20261019/truth-snapshots/AUTHORITY_CONTRACT.md",
+        "docs/history/repository-consolidation-20261019/truth-snapshots/CURRENT_STATE_TRUTH.md",
         "docs/truth/README.md",
         "docs/README.md",
-        "docs/NAMING_ALIGNMENT_MATRIX.md",
-        "docs/HANDOFF_2026-08-07_stage-summary.md",
+        "docs/history/repository-consolidation-20261019/legacy-docs/NAMING_ALIGNMENT_MATRIX.md",
+        "docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-08-07_stage-summary.md",
         "workspace/ui/archeaxis/README.md",
         "docs/architecture/imported-designs/reference-deliveries/archeaxis-2026/README.md",
     }
@@ -876,15 +884,6 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
     if not path.startswith(active_prefixes):
         return []
     if path.startswith(exempt_prefixes) or path in exempt_files:
-        return []
-    historical_hash = _PRESERVED_HISTORICAL_REPORT_HASHES.get(path)
-    if historical_hash:
-        if hashlib.sha256(content).hexdigest() != historical_hash:
-            return [ConventionIssue(
-                "historical-report-mismatch",
-                path,
-                "historical branch-audit evidence changed from its pinned bytes",
-            )]
         return []
     try:
         text = content.decode("utf-8-sig")
@@ -930,7 +929,7 @@ def scan_naming_forbidden_terms(path: str, content: bytes) -> list[ConventionIss
                     code,
                     path,
                     f"legacy product name {term!r} outside Legacy/Migration context "
-                    "(see docs/truth/NAMING_CONTRACT_V1.md)",
+                    "(see docs/history/repository-consolidation-20261019/truth-snapshots/NAMING_CONTRACT_V1.md)",
                 )
             )
     return sorted(issues)

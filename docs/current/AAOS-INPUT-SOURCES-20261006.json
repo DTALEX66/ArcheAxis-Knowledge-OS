@@ -102,7 +102,7 @@
       "date": "2026-10-05",
       "title": "AAOS01 审计更正",
       "kind": "audit_record",
-      "path_or_locator": "docs/current/AAOS01-AUDIT-CORRECTIONS-20261005.md",
+      "path_or_locator": "docs/history/repository-consolidation-20261019/current/AAOS01-AUDIT-CORRECTIONS-20261005.md",
       "byte_sha256": "da9998ee673086ed12dab824d951e76c2611efb92e72edccf276b91ed8d92d4d",
       "status": "VERIFIED_MATCH",
       "limit": null,

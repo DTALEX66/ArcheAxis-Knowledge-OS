@@ -2,7 +2,7 @@
 
 本文件及配套 JSON 是**派生来源追溯，不是 Authority，也不是第二进度数据库**。候选本地实源结构核验 PASS；H01 独立语义审查仍 **UNVERIFIED / PARTIAL**，产品实现资格 **UNKNOWN**。原包、历史原文与原状态不改写。
 
-当前权威路由固定为 [活动指针](AAOS-ACTIVE-EXECUTION.json) → [新 UI 优先任务包](../taskpacks/aaos-ui-first-20261009/TASKPACK.md)。实际实施结果仍读取 [现有 UI 执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)；[G01 对齐记录](AAOS-GOVERNANCE-ALIGNMENT-20261009.md) 负责当前路由和消费者。旧 Q00–Q15 记录只承接对应继承流程，不成为整个新 UI 队列。这里不写完成百分比、运行状态或新的执行顺序。
+当前权威路由固定为 [活动指针](AAOS-ACTIVE-EXECUTION.json) → [新 UI 优先任务包](../taskpacks/aaos-ui-first-20261009/TASKPACK.md)。实际实施结果仍读取 [现有 UI 执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)；[G01 对齐记录](../history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md) 负责当前路由和消费者。旧 Q00–Q15 记录只承接对应继承流程，不成为整个新 UI 队列。这里不写完成百分比、运行状态或新的执行顺序。
 
 [机器投影](AAOS-H01-SOURCE-TRACE-20261009.json) 包含426个唯一来源定位键：330条既有旧任务处置记录，及96条新原始矩阵要求。来源 namespace 保留，避免 Q00、T1 等重名。每条均保留已有承接任务、处置去向与理由；同时记录原来源文件 SHA-256 与原来源行规范 JSON SHA-256。旧270条原历史行逐字段与原台账对比；其原文件 SHA 单独保留。426不是新增产品任务数。
 

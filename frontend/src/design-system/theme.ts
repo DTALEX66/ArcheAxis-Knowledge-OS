@@ -1,5 +1,5 @@
 // Cut from the owner's black/white logo master (2026-10-08); see
-// docs/current/AAOS-UI-MASTER-ASSET-AUDIT-20261001.md for the source hash and the per-slot sizes.
+// docs/history/repository-consolidation-20261019/current/AAOS-UI-MASTER-ASSET-AUDIT-20261001.md for the source hash and the per-slot sizes.
 import blackBrandMark from "../assets/aaos-brand-mark-black.png";
 import whiteBrandMark from "../assets/aaos-brand-mark-white.png";
 import cosmicBrandMark from "../assets/aaos-brand-mark-cosmic.png";

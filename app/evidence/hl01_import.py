@@ -63,7 +63,9 @@ def _resolve_source_path(
     registry_path: Path, source_path: str, *, repository_root: Path | None = None
 ) -> Path:
     registry_path = registry_path.resolve()
-    repo_root = (repository_root or registry_path.parents[2]).resolve()
+    # Registry archives may live at any depth; their location is not the project root.
+    # External project imports still require the explicit repository_root override.
+    repo_root = (repository_root or Path(__file__).resolve().parents[2]).resolve()
     candidate = Path(source_path)
     # pathlib on POSIX does not treat a Windows drive path as absolute. Reject
     # it explicitly so a foreign absolute path cannot degrade into a relative

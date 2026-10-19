@@ -51,8 +51,8 @@ node scripts/runtime/frontend.mjs build
 
 ## 📖 文档
 
-- [API文档](docs/API-DOCUMENTATION.md)
-- [部署指南](docs/DEPLOYMENT-GUIDE.md)
+- [正式宿主与命令边界](src-tauri/README.md)
+- [当前构建、运行与交付入口](docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md)
 - [当前任务与证据](docs/current/AAOS-SESSION-RECONCILIATION-20261018.md)
 - [原始资料与归档入口](AAOS-资料索引.md)
 - [文档权威索引](docs/DOCUMENTATION_AUTHORITY_INDEX.md)
@@ -77,7 +77,7 @@ Rust Core（SQLite/CAS唯一写者）
 .venv/Scripts/python.exe -B scripts/runtime/dev.py --run-id <unique-run-id> -- node frontend/node_modules/vitest/vitest.mjs run --root frontend
 ```
 
-2026-10-18本轮第二批本地前端回归：158文件、1516用例通过，TypeScript与Vite构建通过，绑定 `fe18fdc3` 加当时未提交前端修改。模型/Core测试使用模拟，不代表真实推理。后端全量、当前exact-SHA CI、原生安装及Owner验收未在本轮完成；具体收据见[统一本地验证记录](docs/current/receipts/AAOS-TAKEOVER-VALIDATION-20261018.json)；浏览器13视口5主题及文档/浏览器工具24项检查通过，Host/Core仍为模拟。Codex主会话及执行/审计子会话已另列[专项索引](docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md)。
+测试范围与证据边界读[审计覆盖说明](docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md)，实施与待验收项读[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。旧阶段数量、运行观察和失败收据保存在[历史入口](docs/history/README.md)，不代表当前源码、真实模型、CI或安装资格。
 
 ## 📊 项目状态
 
@@ -91,8 +91,8 @@ Rust Core（SQLite/CAS唯一写者）
 
 ### 历史材料
 
-- **Historical snapshot: pre-R6 Research implementation**：旧研究与Python-era实现只作为行为供体，参见[历史状态](docs/PROJECT_STATUS.md)；当前职责按正式宿主与活动指针解释。
-- **Historical snapshot: pre-R6 program roadmap**：旧阶段与未来规划见[历史蓝图](docs/FUTURE_EXECUTION_BLUEPRINT.md)，不作为今天的完成证据或第二条执行队列。
+- **Historical snapshot: pre-R6 Research implementation**：旧研究与Python-era实现只作为行为供体，参见[历史状态](docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md)；当前职责按正式宿主与活动指针解释。
+- **Historical snapshot: pre-R6 program roadmap**：旧阶段与未来规划见[历史蓝图](docs/history/repository-consolidation-20261019/legacy-docs/FUTURE_EXECUTION_BLUEPRINT.md)，不作为今天的完成证据或第二条执行队列。
 
 ## 🤝 贡献
 

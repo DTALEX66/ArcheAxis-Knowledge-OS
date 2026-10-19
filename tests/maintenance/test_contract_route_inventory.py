@@ -1,6 +1,6 @@
 """The published route inventory and the router must not drift apart.
 
-A UI calls the pairs docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md lists. If the
+A UI calls the pairs docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md lists. If the
 router stops serving one, the UI gets a 404 it cannot tell from a missing object; if the router
 gains one, that surface has been reviewed by nobody. Both directions are checked here, from the
 source rather than from either list.
@@ -19,7 +19,7 @@ import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-CONTRACT = REPO / "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
+CONTRACT = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
 API_SRC = REPO / "crates/archeaxis-api/src"
 OPENAPI = REPO / "packages/contracts/v1/openapi-outline.yaml"
 

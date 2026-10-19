@@ -75,7 +75,7 @@ def test_contract_bearing_docs_require_the_primary_suite() -> None:
     explicit classification a contract edit could land without the tests that
     own it ever running.
     """
-    plan = _classify(["docs/PROJECT_STATUS.md"])
+    plan = _classify(["docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md"])
     assert {"py-primary", "lint", "static"} <= set(plan["required_gates"])
     assert plan["unknown_paths"] == []
     assert any(
@@ -92,15 +92,15 @@ def test_scanned_surface_docs_require_the_primary_suite() -> None:
     running it. That is exactly what happened at 4270f25f.
     """
     for path in (
-        "docs/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md",
-        "docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md",
+        "docs/history/repository-consolidation-20261019/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md",
+        "docs/history/repository-consolidation-20261019/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md",
         "docs/history/branch-donors/README.md",
     ):
         plan = _classify([path])
         assert {"py-primary", "lint", "static"} <= set(plan["required_gates"]), path
         assert plan["unknown_paths"] == [], path
     # Exact paths only: a broad docs glob must not force the primary suite.
-    prose = _classify(["docs/current/R6-EXECUTION.md"])
+    prose = _classify(["docs/history/repository-consolidation-20261019/current/R6-EXECUTION.md"])
     assert "py-primary" not in prose["required_gates"]
 
 
@@ -256,7 +256,7 @@ def test_missing_base_diff_forces_full() -> None:
 
 
 def test_force_full_overrides_light_classification() -> None:
-    plan = _classify(["docs/PROJECT_STATUS.md"], force_full=True)
+    plan = _classify(["docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md"], force_full=True)
     from scripts.ci.classify import FULL_GATES
     assert set(plan["required_gates"]) == FULL_GATES | {"ci-verdict"}
     assert plan["force_full"] is True
@@ -412,3 +412,23 @@ def test_green_candidate_assembly_changes_run_vnext_candidate_gate():
 
     gates = set(classify_paths(["scripts/release/assemble_green_candidate.py"])["required_gates"])
     assert "desktop-vnext" in gates
+
+
+def test_retained_astryn_assets_have_an_exact_owned_risk_class() -> None:
+    from scripts.ci.classify import classify_paths
+
+    for path in ("assets/astryn-full/PROJECT_CONTRACT.yaml",
+                 "assets/astryn-full/assets/character/STATE-ASSET-INDEX.json"):
+        plan = classify_paths([path])
+        assert plan["unknown_paths"] == []
+        assert "astryn-preserved-donor-assets" in plan["matched_classes"]
+        assert {"static", "lint"} <= set(plan["required_gates"])
+        assert "browser-smoke" not in plan["required_gates"]
+        assert not plan["full_qualification"]
+    product = classify_paths(["assets/astryn/character.png"])
+    assert product["unknown_paths"] == []
+    assert "astryn-product-character-assets" in product["matched_classes"]
+    assert {"static", "lint", "browser-smoke"} <= set(product["required_gates"])
+    unknown = classify_paths(["assets/unreviewed/plugin.bin"])
+    assert unknown["unknown_paths"] == ["assets/unreviewed/plugin.bin"]
+    assert {"static", "lint", "py-primary"} <= set(unknown["required_gates"])

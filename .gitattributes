@@ -90,3 +90,6 @@ docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/** -text
 "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/PAGE-MATRIX.csv" -text whitespace=cr-at-eol,-blank-at-eol
 "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/TASK-CROSSWALK.csv" -text whitespace=cr-at-eol,-blank-at-eol
 "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/design/COMPONENT-STATES.csv" -text whitespace=cr-at-eol,-blank-at-eol
+
+# 中文：有限迁移清单保全历史原字节，逐文件核 SHA，不按源码重排。
+docs/history/repository-consolidation-20261019/** -text

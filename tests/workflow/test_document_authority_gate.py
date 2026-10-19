@@ -26,7 +26,7 @@ def load_gate():
     return module
 
 
-LEDGER = "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+LEDGER = "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
 PACK = "docs/taskpacks/aaos-ui-first-20261009"
 PROGRESS = "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
 
@@ -45,7 +45,13 @@ def build_repo(root: Path, *, ledger=PROGRESS, pack=PACK, authority_extra="") ->
     (root / "docs" / "current" / Path(ledger).name).write_text("ledger\n", encoding="utf-8")
     (root / PACK).mkdir(parents=True, exist_ok=True)
     (root / PROGRESS).write_text("UI progress\n", encoding="utf-8")
+    (root / LEDGER).parent.mkdir(parents=True, exist_ok=True)
     (root / LEDGER).write_text("inherited Q progress\n", encoding="utf-8")
+    consolidation = root / "docs/history/repository-consolidation-20261019/MANIFEST.json"
+    consolidation.parent.mkdir(parents=True, exist_ok=True)
+    consolidation.write_text(json.dumps({"schema": "archeaxis.repository-consolidation/v1",
+                                        "source_commit": "a" * 40, "files": [],
+                                        "whole_directories": []}), encoding="utf-8")
     (root / "docs/current/AAOS-ACTIVE-EXECUTION.json").write_text(json.dumps({
         "schema": "archeaxis.active-execution/v1", "active_taskpack": PACK,
         "active_progress": PROGRESS, "inherited_progress": [LEDGER],
@@ -278,7 +284,7 @@ def test_cargo_citation_skips_crate_readme_and_still_reports_missing_target(monk
 
 def test_legacy_state_json_cannot_claim_current(monkeypatch, tmp_path):
     gate = wire(monkeypatch, tmp_path)
-    (tmp_path / "AGENTS.md").write_text("current state docs/current/R6-STATE.json\n", encoding="utf-8")
+    (tmp_path / "AGENTS.md").write_text("current state docs/history/repository-consolidation-20261019/current/R6-STATE.json\n", encoding="utf-8")
     assert any("R6-STATE.json" in p for p in gate.check_single_current())
 
 

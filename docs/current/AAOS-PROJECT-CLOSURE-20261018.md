@@ -35,7 +35,7 @@
 
 本轮同时修复非 Python 源码扫描把字符串标签、注释和模板文本当标识符的误判；Tiptap 则按明确的 `@tiptap/*` 包名映射认定依赖，避免删去错误字符串证据后反而漏报真正安装的依赖。当前68来源仍保留115项原冲突，分类为基础依赖20、算法吸收15、未来候选10、可启用插件7、未采用11、格式规范3、交互供体2。Tiptap 表面类别按原声明 UX_DONOR 呈现，实际锁定依赖证据另行保留，类别不代替运行资格。
 
-资源资格层原先引用的交叉表、LICENSE 和前端 lockfile 已发生历史漂移。本轮按其登记 SHA 从 Git 找回全部原始字节到 `docs/history/oss-absorption-evidence/20261018/`，只迁移证据路径；受旧许可证/锁文件影响的证据标为 `HISTORICAL_SOURCE_NOT_CURRENT`，没有将旧声明改绑新内容。重建现有资源目录，17项目录/包身份回归通过。归档及来源收敛的公开回执见[来源收据](receipts/AAOS-SOURCE-CLOSURE-20261018.json)。
+资源资格层原先引用的交叉表、LICENSE 和前端 lockfile 已发生历史漂移。本轮按其登记 SHA 从 Git 找回全部原始字节到 `docs/history/oss-absorption-evidence/20261018/`，只迁移证据路径；受旧许可证/锁文件影响的证据标为 `HISTORICAL_SOURCE_NOT_CURRENT`，没有将旧声明改绑新内容。重建现有资源目录，17项目录/包身份回归通过。归档及来源收敛的公开回执见[来源收据](../history/repository-consolidation-20261019/current/receipts/AAOS-SOURCE-CLOSURE-20261018.json)。
 
 ## 实施与验证
 
@@ -48,7 +48,7 @@
 
 ## 2026-10-18 本轮验证、运行时迁移与归档收尾
 
-[最终验证收据](receipts/AAOS-PROJECT-CLOSURE-VALIDATION-20261018.json)汇总各阶段独立 source patch、日志和证据层级。
+[最终验证收据](../history/repository-consolidation-20261019/current/receipts/AAOS-PROJECT-CLOSURE-VALIDATION-20261018.json)汇总各阶段独立 source patch、日志和证据层级。
 最新产品源码门禁及两次编译、runtime stage 绑定 dirty patch
 `e13f8b2bfa99dffac13aeb87c426624171fc0685cac5ee94066ec4bfa864af6f`；其后仅补目录权属路径与结果文档，另行检查。
 先前来源收据保留生成时内容哈希，后续路由迁移不追改旧快照。
@@ -90,7 +90,7 @@ data、保留 Python 依赖、共享模型、Green 与独立 QODER 检出均未�
 
 ## 2026-10-18 后继模型与小栖接入
 
-[本地LLM入口](AAOS-LOCAL-LLM-20261018.md)和[当前推理收据](receipts/AAOS-LOCAL-LLM-20261018.json)收敛了历史临时方案与现行配置。27B MTP有效参数与非零草稿接受统计已读回，当前正式Python worker同实例合成材料30.07秒、stop/content/未截断；这更新了“只有库存，没有推理证据”的现况。它不覆盖旧失败、完整Core/原生/已安装学习闭环或Owner接受。旧27B原生失败按详细日志定位在首答超时、尚未开始复测；旧探针汇总中的“retest unverified”不是阶段定位证据。
+[本地LLM入口](AAOS-LOCAL-LLM-20261018.md)和[当前推理收据](../history/repository-consolidation-20261019/current/receipts/AAOS-LOCAL-LLM-20261018.json)收敛了历史临时方案与现行配置。27B MTP有效参数与非零草稿接受统计已读回，当前正式Python worker同实例合成材料30.07秒、stop/content/未截断；这更新了“只有库存，没有推理证据”的现况。它不覆盖旧失败、完整Core/原生/已安装学习闭环或Owner接受。旧27B原生失败按详细日志定位在首答超时、尚未开始复测；旧探针汇总中的“retest unverified”不是阶段定位证据。
 
 小栖源与云端3115378b已核一致，Owner改变独立开发决定。当前正式前端已吸收九态静帧和来源/许可索引，并在现有ConversationPanel按真实请求/终态呈现；没有第二模型代理或记忆库。取消申请保持等待终态；合法UNKNOWN和丢失响应另行保留原请求、查询原身份，不再显示尚未提交的“等待确认”。源仓库及远端保全，三槽位共享状态、人物完整设置与语音/动画仍未完成。
 

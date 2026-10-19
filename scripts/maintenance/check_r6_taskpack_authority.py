@@ -21,7 +21,7 @@ def check() -> list[str]:
     errors: list[str] = []
     manifest = json.loads((PACK / "MANIFEST.json").read_text(encoding="utf-8"))
     tasks = json.loads((PACK / "TASKS.json").read_text(encoding="utf-8"))
-    state = json.loads((ROOT / "docs" / "current" / "R6-STATE.json").read_text(encoding="utf-8"))
+    state = json.loads((ROOT / 'docs/history/repository-consolidation-20261019/current/R6-STATE.json').read_text(encoding="utf-8"))
     records = (manifest, tasks, state)
     for record in records:
         if record.get("taskpack_sha256") != SOURCE_SHA:

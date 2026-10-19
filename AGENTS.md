@@ -86,7 +86,7 @@ blueprint-light and black/white/cosmic are switchable themes. All themes share
 the new layout; each theme uses consistent semantic colors throughout the UI.
 The inherited AAOS-01 package is `docs/authority/taskpack-1004-aaos01/`;
 its Q00-Q15 progress alone remains in
-the inherited `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`. It does not define a
+the inherited `docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`. It does not define a
 second current UI queue or authorize old handoff permissions.
 SUP-022 makes `frontend/` and `src-tauri/` the formal Tauri/React host.
 Rust Core remains the only canonical SQLite/CAS writer, with isolated Python
@@ -101,7 +101,7 @@ The preceding R6 Local Green absorb-first pack is installed at
 `docs/authority/taskpack-0919-r6/` (plan_id `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`,
 package_revision `R6`). Read its `EXECUTOR-START.md`, `TASKS.json` and
 `TASKPACK.md`. Its historical progress is maintained outside the immutable package
-in historical `docs/current/R6-EXECUTION.md` and `docs/current/R6-STATE.json`. R5 remains
+in historical `docs/history/repository-consolidation-20261019/current/R6-EXECUTION.md` and `docs/history/repository-consolidation-20261019/current/R6-STATE.json`. R5 remains
 historical source material and its receipts retain their own SHAs. R6 preserves
 the Rust canonical writer, fixed shared-resource paths, and the no-release boundary;
 Local Green qualification is separate from publication. Preserve unknown private
@@ -109,7 +109,7 @@ state and user assets; destructive cleanup needs an exact reviewed path list.
 At low remaining account-wide Codex allowance, prepare the handoff and publish only
 verified, task-owned changes under the owner's current authorization.
 
-The inherited priority overlay is `docs/current/M0-DIRECTION-OVERRIDE-20260920.md`
+The inherited priority overlay is `docs/history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md`
 (`M0-SHORTEST-COMPLETE-LOOP`, ledger `SUP-020`). It does not replace the immutable
 R6 TaskPack; it serializes execution around one real core loop (P0–P6) and defers
 second providers, extra domains/renderers, marketplaces, and advanced capabilities

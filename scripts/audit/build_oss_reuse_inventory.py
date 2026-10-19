@@ -19,7 +19,7 @@ REGISTRY = "inspiration_research/resources/open_source_project_registry.json"
 ABSORPTION = "inspiration_research/resources/open_source_absorption_ledger.json"
 SUPPLY = "docs/truth/SUPPLY_CHAIN_LEDGER.json"
 CAPABILITIES = "docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml"
-DISPOSITION = "docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json"
+DISPOSITION = "docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json"
 
 
 def normalize(name: str) -> str:

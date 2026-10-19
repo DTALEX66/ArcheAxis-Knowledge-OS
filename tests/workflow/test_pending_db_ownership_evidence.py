@@ -19,7 +19,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 PRODUCER = REPO / "tests" / "test_migration_runner.py"
-EVIDENCE = REPO / "docs" / "current" / "AAOS01-PENDING-DB-OWNERSHIP-EVIDENCE-20261006.md"
+EVIDENCE = REPO / 'docs/history/repository-consolidation-20261019/current/AAOS01-PENDING-DB-OWNERSHIP-EVIDENCE-20261006.md'
 
 # Vocabulary read out of the databases themselves: fixture content, fixture object ids and the
 # migration owner those runs recorded.

@@ -157,12 +157,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--overlay",
         type=Path,
-        default=Path("docs/current/M0-DIRECTION-OVERRIDE-20260920.md"),
+        default=Path("docs/history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md"),
     )
     parser.add_argument(
         "--state",
         type=Path,
-        default=Path("docs/current/R6-STATE.json"),
+        default=Path("docs/history/repository-consolidation-20261019/current/R6-STATE.json"),
     )
     parser.add_argument("--json", action="store_true", dest="as_json")
     args = parser.parse_args(argv)

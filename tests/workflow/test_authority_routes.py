@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.maintenance.authority_routes import check_routes, public_path, resolve
+from scripts.maintenance.authority_routes import CONSOLIDATION, check_routes, public_path, resolve
 
 
 def fixture(root: Path) -> dict:
@@ -28,6 +28,8 @@ def fixture(root: Path) -> dict:
                                   "index": "docs/history/frozen/INDEX.md", "manifest": "docs/history/frozen/MANIFEST.json"}],
     }
     files = {
+        CONSOLIDATION: json.dumps({"schema": "archeaxis.repository-consolidation/v1",
+                                   "source_commit": "a" * 40, "files": [], "whole_directories": []}),
         "README.md": "[routes](docs/current/AAOS-AUTHORITY-ROUTES.json)\n",
         "AUTHORITY.md": "AAOS-AUTHORITY-ROUTES.json\n",
         "AGENTS.md": "AAOS-AUTHORITY-ROUTES.json\n",

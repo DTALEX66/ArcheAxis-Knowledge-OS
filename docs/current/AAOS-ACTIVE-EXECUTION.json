@@ -6,7 +6,7 @@
   "plan_id": "AAOS-UI-FIRST-PLAN-20261009",
   "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
   "inherited_progress": [
-    "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
   ],
   "inherited_contract_package": "docs/authority/taskpack-1004-aaos01",
   "selection_role": "OWNER_SELECTED_EXECUTION_OVERLAY; immutable planning package is a dated source, not a live implementation receipt",
@@ -60,7 +60,7 @@
     "preference": "New or invalid preference defaults to cosmic per current UI package; valid saved theme remains unchanged."
   },
   "handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
-  "drift_readback": "docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
+  "drift_readback": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
   "permissions": {
     "remote_description_update": "OWNER_REQUESTED",
     "commit": "NOT_GRANTED_BY_THIS_POINTER",
@@ -96,7 +96,7 @@
       "stopped_after": "UF13 started local slice",
       "instruction": "完成当天跑的任务就停止任务",
       "whole_scope": "PARTIAL",
-      "receipt": "docs/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
+      "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
       "resume_requires": "new Owner instruction",
       "automatic_continuation": false
     },
@@ -124,7 +124,7 @@
     "last_pause": {
       "state": "PAUSED_BY_OWNER",
       "reason": "Owner-confirmed account remaining <=15 percent reached",
-      "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
+      "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
       "resumed_on": "2026-10-18"
     }
   },
@@ -161,7 +161,7 @@
     },
     "installed": "No new Owner machine/Green qualification inferred from CI",
     "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
-    "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
+    "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
   },
   "authority_routes": "docs/current/AAOS-AUTHORITY-ROUTES.json",
   "frozen_source_inputs": [
@@ -175,13 +175,13 @@
   ],
   "governance_maintenance": {
     "owner_request": "先更新修复所有权威，防止本地/云端按旧文档旧路径旧权威访问审计",
-    "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+    "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md",
     "product_execution": "RESUMED_BY_OWNER_20261011",
     "scope": "public project authority/navigation/aliases and anti-drift checks only"
   },
   "governance_delivery": {
     "state": "MERGED_MAIN_BASELINE; subsequent authority metadata tracked by actual HEAD",
-    "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
+    "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
     "product_execution": "RUNNING_BY_OWNER / PARTIAL",
     "historical_readback": "delivery_history.governance_delivery"
   },
@@ -223,7 +223,7 @@
       "native_github_ref_tree_and_six_files_match": true,
       "local_active_checkouts_equal": true,
       "about_readback": "PASS",
-      "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+      "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md",
       "ci": "UNVERIFIED; required a0-gates expected at push",
       "latest_metadata_sha": "resolve actual HEAD/remote refs; payload commit is evidence identity",
       "product_execution": "REMAINS_PAUSED"
@@ -255,11 +255,11 @@
       },
       "installed": "CI_WINDOWS_INSTALLED_JOURNEYS_PASS; Owner machine/Green acceptance NOT_GRANTED_OR_NOT_COMPLETED",
       "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
-      "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
+      "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
     }
   },
   "conversation_closure_observation_20261013": {
-    "receipt": "docs/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json",
+    "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json",
     "pr186": "MERGED",
     "pr187": "MERGED",
     "main_sha": "eaaa2c2ce0677febe9d88550d510da1c20d65bb3",
@@ -291,7 +291,7 @@
     ],
     "owner_selected": "2026-10-13 current explicit request",
     "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "remaining_receipt": "docs/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
+    "remaining_receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
     "state": "RUNNING_BY_OWNER / PARTIAL",
     "scope": "Supplement existing queue; not replacement or historical freeze activation"
   },
@@ -328,7 +328,7 @@
     "ui_commit": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e",
     "owner_decision": "独立 UI 分支纳入合并；全部推进到主线",
     "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "receipt": "docs/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
+    "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
     "handoff_summary": "workspace/intake/ui-handoff-20261013/SUMMARY.md",
     "state": "RUNNING_BY_OWNER / PARTIAL",
     "owner_direction": "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json",
@@ -375,38 +375,38 @@
     },
     "verification": "索引仅导航；现场核对文件/manifest 哈希、版本、进程和源码资格，UNKNOWN 不升级为可用；新决定注明替代关系，实际进度只回写 active_progress",
     "evidence_navigation": {
-      "latest_timeout_source_fix": "docs/current/receipts/AAOS-MACHINE-DEADLINE-20261019.json",
+      "latest_timeout_source_fix": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-MACHINE-DEADLINE-20261019.json",
       "timeout_source_and_regression_archive": "docs/history/oss-absorption-evidence/20261019-machine-deadline/README.md",
-      "companion_terminal_recovery": "docs/current/receipts/AAOS-COMPANION-RECOVERY-20261019.json",
-      "capability_center_and_external_quiz": "docs/current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json",
+      "companion_terminal_recovery": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-COMPANION-RECOVERY-20261019.json",
+      "capability_center_and_external_quiz": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json",
       "browser_scripts_and_evidence_snapshot": "docs/history/oss-absorption-evidence/20261019-capability-course/README.md",
-      "material_companion_native": "docs/current/receipts/AAOS-MATERIAL-COMPANION-QUALIFIED-20261019.json",
+      "material_companion_native": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-MATERIAL-COMPANION-QUALIFIED-20261019.json",
       "qualified_native_material_companion": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md",
       "historical_native_recovery": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/README.md",
-      "review_title_applied_partial": "docs/current/receipts/AAOS-REVIEW-TITLE-20261019.json",
+      "review_title_applied_partial": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REVIEW-TITLE-20261019.json",
       "review_title_source_and_dialogue_navigation": "docs/history/oss-absorption-evidence/20261019-review-title/README.md",
-      "review_title_and_cancellation_current": "docs/current/receipts/AAOS-REVIEW-CANCELLATION-20261019.json",
+      "review_title_and_cancellation_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REVIEW-CANCELLATION-20261019.json",
       "review_title_and_cancellation_archive": "docs/history/oss-absorption-evidence/20261019-review-cancellation/README.md",
-      "owner_dialogue_archive_readback": "docs/current/receipts/AAOS-OWNER-DIALOGUE-ARCHIVE-20261019.json",
-      "companion_policy_and_semantic_titles": "docs/current/receipts/AAOS-COMPANION-POLICY-20261019.json",
+      "owner_dialogue_archive_readback": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-OWNER-DIALOGUE-ARCHIVE-20261019.json",
+      "companion_policy_and_semantic_titles": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-COMPANION-POLICY-20261019.json",
       "companion_policy_source_and_failure_archive": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
-      "timeout_metadata_current": "docs/current/receipts/AAOS-TIMEOUT-METADATA-20261019.json",
+      "timeout_metadata_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-TIMEOUT-METADATA-20261019.json",
       "timeout_metadata_checkpoint": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/README.md",
-      "observer_learning_current": "docs/current/receipts/AAOS-OBSERVER-LEARNING-20261019.json",
+      "observer_learning_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-OBSERVER-LEARNING-20261019.json",
       "observer_learning_checkpoint": "docs/history/oss-absorption-evidence/20261019-observer-learning/README.md",
-      "handoff_manifest_native_current": "docs/current/receipts/AAOS-HANDOFF-MANIFEST-NATIVE-20261019.json",
+      "handoff_manifest_native_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-HANDOFF-MANIFEST-NATIVE-20261019.json",
       "handoff_manifest_native_checkpoint": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
       "historical_native_timeout_failure_and_replay": "docs/history/oss-absorption-evidence/20261019-material-companion-final/README.md",
       "latest_archival_checkpoint": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/README.md",
-      "consumer_integration_current": "docs/current/receipts/AAOS-CONSUMER-INTEGRATION-20261019.json",
+      "consumer_integration_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONSUMER-INTEGRATION-20261019.json",
       "consumer_integration_checkpoint": "docs/history/oss-absorption-evidence/20261019-consumer-integration/README.md",
-      "checkout_measurement_current": "docs/current/receipts/AAOS-CHECKOUT-MEASUREMENT-20261019.json",
+      "checkout_measurement_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CHECKOUT-MEASUREMENT-20261019.json",
       "checkout_measurement_checkpoint": "docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/README.md",
       "historical_full_ai_retest_failure_and_replay": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
       "historical_continuation_proposals_checkpoint": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/README.md",
-      "continuity_native_pdf_current": "docs/current/receipts/AAOS-CONTINUITY-NATIVE-PDF-20261019.json",
+      "continuity_native_pdf_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONTINUITY-NATIVE-PDF-20261019.json",
       "continuity_native_pdf_checkpoint": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/README.md",
-      "handoff_snapshot_reader_current": "docs/current/receipts/AAOS-HANDOFF-SNAPSHOT-READER-20261019.json",
+      "handoff_snapshot_reader_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-HANDOFF-SNAPSHOT-READER-20261019.json",
       "handoff_snapshot_reader_checkpoint": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/README.md"
     }
   }

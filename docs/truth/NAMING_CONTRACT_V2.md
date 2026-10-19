@@ -18,7 +18,7 @@
 | 打开的 PR | 0 |
 | 读回方式 | GitHub REST/`gh` API 读回。本机 `git fetch` 只配置了 SSH 远端，而该 SSH 在当前执行环境被拒（`couldn't create signal pipe`），因此本轮快照**未经本地 fetch 复核**，只声明 API 可见事实 |
 
-历史快照里的 `DTALEX66/archeaxis-workspace` 是 2026-08-12 的仓库名记录。仓库其后恢复为 `ArcheAxis-Knowledge-OS`，`docs/truth/CURRENT_STATE_TRUTH.md` §3 已固定该正式云端仓库名不再改名。`archeaxis-workspace` **仍然有效**，但只作为 Machine/distribution ID 与 Python distribution 名，不再是 GitHub 仓库名。
+历史快照里的 `DTALEX66/archeaxis-workspace` 是 2026-08-12 的仓库名记录。仓库其后恢复为 `ArcheAxis-Knowledge-OS`，`docs/history/repository-consolidation-20261019/truth-snapshots/CURRENT_STATE_TRUTH.md` §3 已固定该正式云端仓库名不再改名。`archeaxis-workspace` **仍然有效**，但只作为 Machine/distribution ID 与 Python distribution 名，不再是 GitHub 仓库名。
 
 ## 0. 变更摘要（V1 → V2）
 

@@ -18,7 +18,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 CARGO_TEST = REPO / "scripts/ci/cargo_test.bat"
 DEV = REPO / "scripts/runtime/dev.py"
-RUNBOOK = REPO / "docs/current/AAOS-BACKEND-ACCEPTANCE-RUNBOOK-20261001.md"
+RUNBOOK = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-BACKEND-ACCEPTANCE-RUNBOOK-20261001.md"
 CARGO_CONFIG = REPO / ".cargo/config.toml"
 
 

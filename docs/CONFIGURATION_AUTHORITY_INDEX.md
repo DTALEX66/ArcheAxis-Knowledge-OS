@@ -1,6 +1,6 @@
 # Configuration Authority Index (AXC-010)
 
-> 本地/云端仓库身份、分支保留及换会话接续：[接续记录](current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。路径和 SHA 是可核对的观察，不是永久环境或新权限。
+> 本地/云端仓库身份、分支保留及换会话接续：[接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。路径和 SHA 是可核对的观察，不是永久环境或新权限。
 
 > **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](current/AAOS-AUTHORITY-ROUTES.json)核对。
 
@@ -22,8 +22,8 @@
 | 本机共享库、绿色软件与资料根路径 | [共享资源路径索引](SHARED_RESOURCE_PATH_INDEX.md) | 用户 2026-09-07 指定的五个资源根；每次定位工具/模型/测试资料先查此表，不猜目录；真实资料库与测试库严格分离，不等于修改产品设置 |
 | 开发运行根 | `scripts/runtime/dev.py` | `.project-local` 下 worktree/run 隔离；Bash/PowerShell 共用；不是产品 workspace |
 | 正式桌面worker路径载荷 | `scripts/release/stage_backend_runtime.py`、`src-tauri/src/main.rs`、`desktop/src-tauri/src/backend.rs`、`desktop/src-tauri/src/runtime.rs`、`crates/archeaxis-api/src/launch.rs` | 权威暂存器统一生成 runtime/Core/workers、manifest 与 worker-profile；正式 Tauri 沿复用的 backend/runtime 构建 v2 Core 启动文档，Core 校验路径、权限及 text_worker 声明。实际启动解释器须与候选/profile/import 证据一致，text_worker 不添加 schema 字段。Avalonia `apps/ArcheAxis.Desktop/WorkerProfile.cs` 是历史供体，不能覆盖正式 Tauri 契约；保留隔离开发根和旧数据边界。 |
-| 桌面启动身份 | `packages/contracts/bootstrap/v2/launch.schema.json`、`docs/current/R5-DESKTOP-IDENTITY-V2.md` | 显式v2 stdin双令牌、单Core写者；Core作跨字段及路径语义校验，不能把Schema验证当作权限验收 |
-| Core持久复习状态 | `packages/contracts/learning/v1/review.schema.json`、`docs/current/R5-LEARNING-STATE.md` | `/api/v1/learning/reviews`从Core事件恢复完整FSRS状态，独立于旧/events收据契约；只有human可写，状态由Core与worker产生，正式学习UI接线与验收读当前UI执行记录及分域回执，旧接线状态不代表当前事实 |
+| 桌面启动身份 | `packages/contracts/bootstrap/v2/launch.schema.json`、`docs/history/repository-consolidation-20261019/current/R5-DESKTOP-IDENTITY-V2.md` | 显式v2 stdin双令牌、单Core写者；Core作跨字段及路径语义校验，不能把Schema验证当作权限验收 |
+| Core持久复习状态 | `packages/contracts/learning/v1/review.schema.json`、`docs/history/repository-consolidation-20261019/current/R5-LEARNING-STATE.md` | `/api/v1/learning/reviews`从Core事件恢复完整FSRS状态，独立于旧/events收据契约；只有human可写，状态由Core与worker产生，正式学习UI接线与验收读当前UI执行记录及分域回执，旧接线状态不代表当前事实 |
 | 跨语言词汇与损失回执 | `packages/contracts/v1/`、`scripts/contracts/generate_vocabulary.py` | Schema 为单源；Rust/C#/Python 词汇生成后须 `--check`；loss receipt 另有跨字段运行时校验，完整 DTO/权限协议仍在推进 |
 | 验证节奏 | `docs/VERIFICATION_POLICY.md` | 风险类型与验证节奏、审计/审查触发 |
 | path risk | `.worklab/project-validation.v1.yaml` | 变更路径 → 风险类 → Gate 映射 |
@@ -35,7 +35,7 @@
 | runtime profiles | `config/profiles/*.yaml` | 按环境差异（不复制整树） |
 | runtime legacy shim | `config/settings.yaml` | 兼容入口（保持空映射） |
 | naming | `docs/truth/NAMING_CONTRACT_V2.md` | 命名体系 V2（binding） |
-| historical capability/state model | `docs/truth/CURRENT_STATE_TRUTH.md` | 2026-08-09 historical snapshot; R6/M0 receipts retain their own tested SHAs. Inherited AAOS-01 Q00–Q15 progress is only `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`; new UI progress is resolved through `docs/current/AAOS-ACTIVE-EXECUTION.json`; historical COMPLETE claims do not establish current behavior. |
+| historical capability/state model | `docs/history/repository-consolidation-20261019/truth-snapshots/CURRENT_STATE_TRUTH.md` | 2026-08-09 historical snapshot; R6/M0 receipts retain their own tested SHAs. Inherited AAOS-01 Q00–Q15 progress is only `docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`; new UI progress is resolved through `docs/current/AAOS-ACTIVE-EXECUTION.json`; historical COMPLETE claims do not establish current behavior. |
 | future blueprint | `docs/truth/CAPABILITY_ATLAS_V2.yaml` | 未来蓝图（DEFERRED/PARKED 保留） |
 | language ownership and migration | `docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md` | 语言边界、兼容命名与迁移门禁 |
 | directory topology and cleanup | `docs/DIRECTORY_AUTHORITY_INDEX.md` | 路径分类、归档/移动/删除前置条件 |
@@ -77,4 +77,4 @@ CLI explicit override
 | 能力吸收登记 | docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml + config/schemas/capability-absorption-registry.schema.json | R6 A03 唯一能力吸收登记；状态、许可、来源、边界和回退必须逐项记录；不得把候选或供体写成已集成 |
 
 
-集合／研究合同：正式writer中的 `packages/contracts/v2/collection.schema.json`、`research.schema.json` 为这两个metadata namespace的单源；生成React DTO不建立第二配置库。Rust Core拥有Document保存与引用验证、公式和只读图／视图投影。详细writer及源码SHA读 [CB03/UF08回执](current/receipts/AAOS-RESEARCH-STAGE-20261010.json)；上次源码/合同已合并发布，见仓库同步回执；本轮修复的最新发布状态单独读AAOS-AUTHORITY-REPAIR-20261010.md，不从历史writer路径推定当前文件缺失。
+集合／研究合同：正式writer中的 `packages/contracts/v2/collection.schema.json`、`research.schema.json` 为这两个metadata namespace的单源；生成React DTO不建立第二配置库。Rust Core拥有Document保存与引用验证、公式和只读图／视图投影。详细writer及源码SHA读 [CB03/UF08回执](history/repository-consolidation-20261019/current/receipts/AAOS-RESEARCH-STAGE-20261010.json)；上次源码/合同已合并发布，见仓库同步回执；本轮修复的最新发布状态单独读AAOS-AUTHORITY-REPAIR-20261010.md，不从历史writer路径推定当前文件缺失。

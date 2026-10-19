@@ -39,7 +39,7 @@
 
 ## B. 第一包 Q00—Q15（16 项）
 
-唯一实时进度记录 `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md` §"当前状态与剩余缺口"（第 69 行起）：
+唯一实时进度记录 `docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md` §"当前状态与剩余缺口"（第 69 行起）：
 
 | ID | 工作内容（蓝图 §17.1） | 账本记录（行） | 审计更正约束 | 下一步 / 阻塞 |
 | --- | --- | --- | --- | --- |

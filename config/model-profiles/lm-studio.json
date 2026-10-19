@@ -7,7 +7,7 @@
       "model_key": "qwen3.8-27b",
       "identifier": "aaos-deep-27b-mtp",
       "ttl_seconds": 1800,
-      "basis": "docs/current/receipts/AAOS-27B-MATCHED-MTP-20261013.json",
+      "basis": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-27B-MATCHED-MTP-20261013.json",
       "load": {
         "gpu": {"ratio": 0.4},
         "gpuStrictVramCap": true,

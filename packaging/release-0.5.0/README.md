@@ -1,6 +1,6 @@
 # v0.5.0 历史安装包
 
-这两个 2026-08 历史安装包已于 2026-10-15 从当前源码树归档；它们不是当前 Tauri/Core 候选，也不构成当前安装资格。全部 4,638,139 字节及 SHA-256 已完整读回，详见[归档回执](../../docs/current/receipts/AAOS-LEGACY-INSTALLER-ARCHIVE-20261015.json)。
+这两个 2026-08 历史安装包已于 2026-10-15 从当前源码树归档；它们不是当前 Tauri/Core 候选，也不构成当前安装资格。全部 4,638,139 字节及 SHA-256 已完整读回，详见[归档回执](../../docs/history/repository-consolidation-20261019/current/receipts/AAOS-LEGACY-INSTALLER-ARCHIVE-20261015.json)。
 
 本机保全位置为主项目根下 `.project-local/archives/installers-0.5.0-20261015/`。其他检出和历史正文未改，Git 历史仍保留原始二进制；没有安装、覆盖 Green 或重写历史。
 

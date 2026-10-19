@@ -49,9 +49,11 @@ LIVE_ENTRY_DOCS = (
     "docs/taskpacks/README.md",
 )
 CURRENTNESS = re.compile(r"(当前|现行|current|live)", re.IGNORECASE)
-LEDGER_PATH = re.compile(r"(docs/current/[A-Za-z0-9._-]+\.(?:md|json))")
+LEDGER_PATH = re.compile(
+    r"(docs/(?:current|history/repository-consolidation-20261019/current)/[A-Za-z0-9._-]+\.(?:md|json))"
+)
 PACK_NAME = re.compile(r"(?:docs/(?:authority|taskpacks)/)?(?:taskpack-[0-9a-z.\-]+|aaos-ui-first-[0-9]+)")
-LIVE_LEDGER = "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+LIVE_LEDGER = "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
 
 # Test citations, in the forms the ledger uses: a repo path, a crate-relative path, or
 # a bare root test module. Deliberately narrow -- the ledger also names record files and

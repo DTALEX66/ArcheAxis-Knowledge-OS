@@ -9,7 +9,7 @@
 27B 权重确实存在，LM Studio 当前实例读回绑定其模型库路径。
 原 MTP 方案曾经完成临时实测，但没有形成受版本管理的加载入口，测试后实例被卸载；
 因此后续只查询下载库存，不能知道历史参数有没有在新加载中生效。
-10/13 历史结果保留于 [MTP 配对收据](receipts/AAOS-27B-MATCHED-MTP-20261013.json)。
+10/13 历史结果保留于 [MTP 配对收据](../history/repository-consolidation-20261019/current/receipts/AAOS-27B-MATCHED-MTP-20261013.json)。
 
 本轮已将参数写入 [`config/model-profiles/lm-studio.json`](../../config/model-profiles/lm-studio.json)，
 由 [`scripts/runtime/lm_studio_profile.mjs`](../../scripts/runtime/lm_studio_profile.mjs) 显式加载和读回。
@@ -32,7 +32,7 @@ node scripts/runtime/lm_studio_profile.mjs smoke deep-mtp
 不会静默卸载别的软件所用模型。成功实例空闲 1800 秒自动释放；不是开机服务或后台常驻承诺。
 重新运行加载入口可恢复。回退为等待实例 TTL 释放并撤下项目配置；不删除权重、既有模型配置或用户数据。
 
-本轮实际结果见 [当前运行回执](receipts/AAOS-LOCAL-LLM-20261018.json)：
+本轮实际结果见 [当前运行回执](../history/repository-consolidation-20261019/current/receipts/AAOS-LOCAL-LLM-20261018.json)：
 SDK 合成短测完成、MTP 26 accepted / 6 rejected，约 4.77 token/s；
 当前正式 Python worker 使用同一实例完成回答，30.07 秒、73 output tokens、stop、未截断、最终来源 content。
 这些是 **REAL 本地合成材料**，不是完整 Core/宿主/安装版学习旅程、稳定速度或独立准确性结论。
@@ -53,7 +53,7 @@ revision 0 仅保留 FAST 兼容执行；未配置的 DEEP 阻止执行，不静
 27B 服务实例 ID 必须在 OpenAI 兼容目录中存在，原始权重库存名称不能替代 MTP 实例 ID。
 保存配置不加载模型；正式用户 workspace 的实际已保存绑定仍 UNVERIFIED。
 本轮候选原生配置保存与冷重开已通过合成配置验证，并非正式 workspace 绑定或真实模型闭环验收。
-具体源码绑定、测试与失败保留见[用途通道与候选更新回执](receipts/AAOS-MODEL-LANES-20261018.json)。
+具体源码绑定、测试与失败保留见[用途通道与候选更新回执](../history/repository-consolidation-20261019/current/receipts/AAOS-MODEL-LANES-20261018.json)。
 表单中的 document_check/embedding 枚举不代表相应执行链已全部接通；不能把库存或加载状态写成六用途验收。
 
 官方加载与推测解码说明：[lms load](https://lmstudio.ai/docs/cli/local-models/load)、

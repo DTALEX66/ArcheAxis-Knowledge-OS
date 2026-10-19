@@ -58,12 +58,12 @@ condition = "AND"
 targetRules = ["generic-api-key"]
 regexTarget = "secret"
 paths = [
-  '''^docs/current/receipts/AAOS\-CHARACTER\-MEMORY\-UI\-20261015\.json$''',
-  '''^docs/current/receipts/AAOS\-CONFIGURATION\-PLANS\-20261015\.json$''',
-  '''^docs/current/receipts/AAOS\-AI\-STAGE\-20261010\.json$''',
-  '''^docs/current/receipts/AAOS\-CANVAS\-STAGE\-20261010\.json$''',
-  '''^docs/current/receipts/AAOS\-RESEARCH\-STAGE\-20261010\.json$''',
-  '''^docs/current/receipts/AAOS\-TEACHING\-STAGE\-20261010\.json$''',
+  '''^docs/history/repository-consolidation-20261019/current/receipts/AAOS\-CHARACTER\-MEMORY\-UI\-20261015\.json$''',
+  '''^docs/history/repository-consolidation-20261019/current/receipts/AAOS\-CONFIGURATION\-PLANS\-20261015\.json$''',
+  '''^docs/history/repository-consolidation-20261019/current/receipts/AAOS\-AI\-STAGE\-20261010\.json$''',
+  '''^docs/history/repository-consolidation-20261019/current/receipts/AAOS\-CANVAS\-STAGE\-20261010\.json$''',
+  '''^docs/history/repository-consolidation-20261019/current/receipts/AAOS\-RESEARCH\-STAGE\-20261010\.json$''',
+  '''^docs/history/repository-consolidation-20261019/current/receipts/AAOS\-TEACHING\-STAGE\-20261010\.json$''',
 ]
 regexes = [
   '''^32779d275e481f45155191cd0bb4a3b4fe204927fb69394c6c8b65daa0983a45$''',
@@ -86,7 +86,7 @@ condition = "AND"
 targetRules = ["generic-api-key"]
 regexTarget = "secret"
 paths = [
-  '''^docs/current/receipts/AAOS-DOCUMENT-GRANT-RECOVERY-INTEGRATION-20261011\.json$''',
+  '''^docs/history/repository-consolidation-20261019/current/receipts/AAOS-DOCUMENT-GRANT-RECOVERY-INTEGRATION-20261011\.json$''',
 ]
 regexes = [
   '''^9eeaa0bba3b60043179b9873b72a20bc63c6a28029fdf1397e49b28f03588d22$''',
@@ -97,7 +97,7 @@ description = "synthetic assessment UUID item key in the multi-review native rec
 condition = "AND"
 targetRules = ["generic-api-key"]
 regexTarget = "secret"
-paths = ['''^docs/current/receipts/AAOS-MULTI-REVIEW-NATIVE-20261012\.json$''']
+paths = ['''^docs/history/repository-consolidation-20261019/current/receipts/AAOS-MULTI-REVIEW-NATIVE-20261012\.json$''']
 regexes = ['''^assessment_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$''']
 
 [[allowlists]]
@@ -105,5 +105,5 @@ description = "exact public LM Studio model catalog key in the closure receipt; 
 condition = "AND"
 targetRules = ["generic-api-key"]
 regexTarget = "secret"
-paths = ['''^docs/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013\.json$''']
+paths = ['''^docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013\.json$''']
 regexes = ['''^qwen2\.5-vl-7b-instruct$''']

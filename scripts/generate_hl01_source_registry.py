@@ -15,7 +15,7 @@ def _record_id(item: object, fallback: int) -> str:
 
 
 def generate(root: Path) -> Path:
-    path = root / "docs/current/R5-HL01-SOURCE-REGISTRY.json"
+    path = root / "docs/history/repository-consolidation-20261019/current/R5-HL01-SOURCE-REGISTRY.json"
     registry = json.loads(path.read_text(encoding="utf-8"))
     records: list[dict[str, object]] = []
     for category in registry["categories"]:

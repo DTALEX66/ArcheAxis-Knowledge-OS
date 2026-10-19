@@ -1,6 +1,6 @@
 """A WAL database left behind by a killed writer is recovered at the next app start.
 
-`docs/current/AAOS01-CROSS-STACK-WAL-BLOCKER.md` records a hard cross-stack constraint: the Rust
+`docs/history/repository-consolidation-20261019/current/AAOS01-CROSS-STACK-WAL-BLOCKER.md` records a hard cross-stack constraint: the Rust
 Core runs WAL, its `-wal`/`-shm` sidecars appear, and the Python side then refuses to read the same
 database — from which it concluded that the two stacks cannot share one file at all.
 

@@ -26,7 +26,7 @@ import yaml
 
 REPO = Path(__file__).resolve().parents[1]
 MODULE = REPO / "scripts/check_path_conventions.py"
-RECORD = REPO / "docs/current/R5-PATH-DISPOSITION.json"
+RECORD = REPO / "config/governance/path-disposition.json"
 
 
 def _load():
@@ -40,11 +40,64 @@ def _load():
 paths = _load()
 
 
+def _consolidated_historical_owner_verified(name, rules, tracked, root):
+    """Verify this reviewed migration without reviving its original root path."""
+    if name != "SYSTEM_BOUNDARY.md":
+        return False
+    archive = "docs/history/repository-consolidation-20261019/root/SYSTEM_BOUNDARY.md"
+    manifest_path = "docs/history/repository-consolidation-20261019/MANIFEST.json"
+    expected_sha = "2926a53512e1aba22a508feeb1888a6c55be1614f12b0c14ffbedc8ec0cecc50"
+    baseline = "5d813f4ebcc4f88a42414bfd77f7898ae18ac220"
+    original = root / name
+    if name in tracked or original.exists() or original.is_symlink():
+        return False
+    if not {archive, manifest_path}.issubset(tracked):
+        return False
+    if any(paths.select_owner(item, rules)[0] != "owned" for item in (archive, manifest_path)):
+        return False
+    if (root / archive).is_symlink() or (root / manifest_path).is_symlink():
+        return False
+    try:
+        manifest = json.loads((root / manifest_path).read_text(encoding="utf-8"))
+        if not isinstance(manifest, dict):
+            return False
+        if manifest.get("schema") != "archeaxis.repository-consolidation/v1":
+            return False
+        if manifest.get("source_commit") != baseline:
+            return False
+        records = manifest.get("files")
+        if not isinstance(records, list):
+            return False
+        matches = [item for item in records if isinstance(item, dict)
+                   and item.get("original_path") == name]
+        if len(matches) != 1:
+            return False
+        if sum(isinstance(item, dict) and item.get("archive_path") == archive for item in records) != 1:
+            return False
+        record = matches[0]
+        wire = (root / archive).read_bytes()
+        return (
+            record.get("archive_path") == archive
+            and record.get("sha256") == expected_sha
+            and record.get("bytes") == len(wire) == 3462
+            and hashlib.sha256(wire).hexdigest() == expected_sha
+            and record.get("baseline_commit") == baseline
+            and record.get("role") == "HISTORICAL_SOURCE_NOT_CURRENT_AUTHORITY"
+            and record.get("replacement") == "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+            and (root / record["replacement"]).is_file()
+        )
+    except (OSError, ValueError, TypeError, KeyError):
+        return False
+
+
 def _historical_owner_verified(name, rules, tracked, root=REPO):
-    """Accept only an owned path or this exact, hash-preserved handoff move."""
+    """Accept ownership or an exact verified historical migration, never an alias alone."""
+    if name == "SYSTEM_BOUNDARY.md":
+        return _consolidated_historical_owner_verified(name, rules, tracked, root)
     if paths.select_owner(name, rules)[0] == "owned":
         return True
-    if name != "HERMES_HANDOFF.md" or name in tracked:
+    if (name != "HERMES_HANDOFF.md" or name in tracked
+            or (root / name).exists() or (root / name).is_symlink()):
         return False
     archive = "docs/history/handoff-archive-20261018/HERMES_HANDOFF.md"
     expected_sha = "908af021cbbe84a31566e5ba557a3f0378069e436120bc5c26588aa3c05a520d"
@@ -133,6 +186,50 @@ def test_handoff_owner_migration_rejects_missing_duplicate_or_modified_identity(
     assert not _historical_owner_verified("HERMES_HANDOFF.md", rules, tracked, tmp_path)
     (tmp_path / manifest_path).unlink()
     assert not _historical_owner_verified("HERMES_HANDOFF.md", rules, tracked, tmp_path)
+
+
+def test_consolidation_owner_migration_requires_staged_owned_identity_and_absent_original(tmp_path):
+    rules = paths.load_rules(REPO)
+    name = "SYSTEM_BOUNDARY.md"
+    archive = "docs/history/repository-consolidation-20261019/root/SYSTEM_BOUNDARY.md"
+    manifest_path = "docs/history/repository-consolidation-20261019/MANIFEST.json"
+    replacement = "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    for relative in (archive, manifest_path, replacement):
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(REPO / relative, target)
+    tracked = {archive, manifest_path}
+    assert _historical_owner_verified(name, rules, tracked, tmp_path)
+    assert not _historical_owner_verified(name, rules, {archive}, tmp_path)
+    assert not _historical_owner_verified(name, rules, {manifest_path}, tmp_path)
+    assert not _historical_owner_verified(name, rules, tracked | {name}, tmp_path)
+    assert not _historical_owner_verified(name, [], tracked, tmp_path)
+    assert not _historical_owner_verified(name, [*rules, _rule(archive, deny=True)], tracked, tmp_path)
+    (tmp_path / name).write_bytes(b"untracked old copy")
+    assert not _historical_owner_verified(name, rules, tracked, tmp_path)
+    (tmp_path / name).unlink()
+    original = json.loads((tmp_path / manifest_path).read_text(encoding="utf-8"))
+    for field, value in (("archive_path", "docs/history/other.md"), ("sha256", "0" * 64),
+                         ("bytes", 1), ("role", "COMPLETE"), ("baseline_commit", "0" * 40),
+                         ("replacement", "README.md")):
+        modified = json.loads(json.dumps(original))
+        next(item for item in modified["files"] if item["original_path"] == name)[field] = value
+        (tmp_path / manifest_path).write_text(json.dumps(modified), encoding="utf-8")
+        assert not _historical_owner_verified(name, rules, tracked, tmp_path), field
+    for field, value in (("schema", "other/v1"), ("source_commit", "0" * 40), ("files", None)):
+        modified = json.loads(json.dumps(original))
+        modified[field] = value
+        (tmp_path / manifest_path).write_text(json.dumps(modified), encoding="utf-8")
+        assert not _historical_owner_verified(name, rules, tracked, tmp_path), field
+    duplicate = json.loads(json.dumps(original))
+    duplicate["files"].append(next(item for item in duplicate["files"] if item["original_path"] == name))
+    (tmp_path / manifest_path).write_text(json.dumps(duplicate), encoding="utf-8")
+    assert not _historical_owner_verified(name, rules, tracked, tmp_path)
+    (tmp_path / manifest_path).write_text(json.dumps(original), encoding="utf-8")
+    (tmp_path / archive).write_bytes((tmp_path / archive).read_bytes() + b"changed")
+    assert not _historical_owner_verified(name, rules, tracked, tmp_path)
+    (tmp_path / manifest_path).unlink()
+    assert not _historical_owner_verified(name, rules, tracked, tmp_path)
 
 
 def test_new_donor_ownership_is_bounded_and_private_denials_remain_strict():

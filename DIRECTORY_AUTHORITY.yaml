@@ -64,49 +64,49 @@ authorities:
     execution_lane: migration
     write_mode: maintenance-only-task-envelope
     note: Preserved scheduling implementation donor; metadata ownership is not algorithm qualification.
-  - path: 启动指南_完整版.md
+  - path: docs/history/repository-consolidation-20261019/root/启动指南_完整版.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: 启动指南.md
+  - path: docs/history/repository-consolidation-20261019/root/启动指南.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: ALL-OBJECTIVES-ACHIEVED.md
+  - path: docs/history/repository-consolidation-20261019/root/ALL-OBJECTIVES-ACHIEVED.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: ALL-TASKS-COMPLETED.md
+  - path: docs/history/repository-consolidation-20261019/root/ALL-TASKS-COMPLETED.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: AUTONOMOUS-EXECUTION-PLAN.md
+  - path: docs/history/repository-consolidation-20261019/root/AUTONOMOUS-EXECUTION-PLAN.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: CLEANUP-AUDIT-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/CLEANUP-AUDIT-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: CLEANUP-COMPLETED.md
+  - path: docs/history/repository-consolidation-20261019/root/CLEANUP-COMPLETED.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: CLEANUP-EXECUTION-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/CLEANUP-EXECUTION-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
@@ -118,193 +118,193 @@ authorities:
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Public contribution guidance; current task authority still follows AUTHORITY and the active pointer.
-  - path: CRITICAL-UI-ISSUES.md
+  - path: docs/history/repository-consolidation-20261019/root/CRITICAL-UI-ISSUES.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: DELETION-SAFETY-AUDIT.md
+  - path: docs/history/repository-consolidation-20261019/root/DELETION-SAFETY-AUDIT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: ENGINEERING-INFO-CONVERGENCE-PLAN.md
+  - path: docs/history/repository-consolidation-20261019/root/ENGINEERING-INFO-CONVERGENCE-PLAN.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: EPUB-FSRS-CHECK.md
+  - path: docs/history/repository-consolidation-20261019/root/EPUB-FSRS-CHECK.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: EXECUTION-COMPLETE.txt
+  - path: docs/history/repository-consolidation-20261019/root/EXECUTION-COMPLETE.txt
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: EXECUTION-FINAL-STATUS.md
+  - path: docs/history/repository-consolidation-20261019/root/EXECUTION-FINAL-STATUS.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: FINAL-COMPLETION-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/FINAL-COMPLETION-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: FINAL-CONFIRMATION.md
+  - path: docs/history/repository-consolidation-20261019/root/FINAL-CONFIRMATION.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: FINAL-EXECUTION-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/FINAL-EXECUTION-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: FINAL-HONEST-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/FINAL-HONEST-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: FIX-PRIORITY-PLAN.md
+  - path: docs/history/repository-consolidation-20261019/root/FIX-PRIORITY-PLAN.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: FORMAT-SUPPORT-CHECK.md
+  - path: docs/history/repository-consolidation-20261019/root/FORMAT-SUPPORT-CHECK.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: FULL-CHAIN-TEST-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/FULL-CHAIN-TEST-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: HONEST-COMPLETION-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/HONEST-COMPLETION-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: IMPLEMENTATION-PROGRESS.md
+  - path: docs/history/repository-consolidation-20261019/root/IMPLEMENTATION-PROGRESS.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: LAYOUT-FIX-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/LAYOUT-FIX-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: LEARNING-SYSTEM-CHECK.md
+  - path: docs/history/repository-consolidation-20261019/root/LEARNING-SYSTEM-CHECK.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: MEDIA-READER-CHECK.md
+  - path: docs/history/repository-consolidation-20261019/root/MEDIA-READER-CHECK.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: PROJECT-LOCAL-CLEANUP-PLAN.md
+  - path: docs/history/repository-consolidation-20261019/root/PROJECT-LOCAL-CLEANUP-PLAN.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: PROJECT-STATUS.md
+  - path: docs/history/repository-consolidation-20261019/root/PROJECT-STATUS.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: README-STATUS.md
+  - path: docs/history/repository-consolidation-20261019/root/README-STATUS.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: REAL-EXECUTION-PLAN.md
+  - path: docs/history/repository-consolidation-20261019/root/REAL-EXECUTION-PLAN.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: REAL-STATUS-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/REAL-STATUS-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: REAL-VERIFICATION-CHECKLIST.md
+  - path: docs/history/repository-consolidation-20261019/root/REAL-VERIFICATION-CHECKLIST.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: SUCCESS-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/SUCCESS-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: TEST-ANALYSIS.md
+  - path: docs/history/repository-consolidation-20261019/root/TEST-ANALYSIS.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: TONIGHT-ACHIEVEMENTS.md
+  - path: docs/history/repository-consolidation-20261019/root/TONIGHT-ACHIEVEMENTS.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: UI-POLISH-REPORT.md
+  - path: docs/history/repository-consolidation-20261019/root/UI-POLISH-REPORT.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: URGENT-UI-FIX-PLAN.md
+  - path: docs/history/repository-consolidation-20261019/root/URGENT-UI-FIX-PLAN.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: XIAOQI-CRITICAL-ISSUE.md
+  - path: docs/history/repository-consolidation-20261019/root/XIAOQI-CRITICAL-ISSUE.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: XIAOQI-STATUS-UPDATE.md
+  - path: docs/history/repository-consolidation-20261019/root/XIAOQI-STATUS-UPDATE.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
     protected_resource: repository-metadata
     note: Preserved root historical report/source input; completion, cleanup and startup claims do not grant current execution or deletion.
-  - path: XIAOQI-VERIFICATION.md
+  - path: docs/history/repository-consolidation-20261019/root/XIAOQI-VERIFICATION.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant
@@ -414,7 +414,7 @@ authorities:
     write_mode: serial-grant
     note: R5 exact-path ownership; changes still require the applicable owner scope.
     protected_resource: repository-metadata
-  - path: SYSTEM_BOUNDARY.md
+  - path: docs/history/repository-consolidation-20261019/root/SYSTEM_BOUNDARY.md
     owner: repository-governance
     execution_lane: owner
     write_mode: serial-grant

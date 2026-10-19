@@ -25,10 +25,10 @@
 | 接手、会话与历史规划 | 关键决定和来源留在仓库；原始资料按原归属保全。已完成工作按最新回执识别，不把旧 TODO、COMPLETE 或测试数量当当前事实 | [总收敛](AAOS-PROJECT-CLOSURE-20261018.md)、[跨客户端对账](AAOS-SESSION-RECONCILIATION-20261018.md)、[Codex 索引](AAOS-CODEX-SESSION-INDEX-20261018.md) |
 | 模型与旧运行时 | 复用现行 LM Studio 通道及模型配置，不恢复 Ollama 默认回退；库存、加载、推理、安装与学习质量分开验收 | [本地模型入口](AAOS-LOCAL-LLM-20261018.md)、[运行时迁移](../history/runtime-migration-20261018/README.md) |
 | 旧文件、交接、目录清理 | 先证实归属和替代路径，唯一原件保全后再逐对象清理；不为“整洁”删除未知修改、共享资源或未完成迁移的源仓库 | [旧交接归档](../history/handoff-archive-20261018/README.md)、[目录权威](../DIRECTORY_AUTHORITY_INDEX.md) |
-| 小栖／ASTRYN | 直接适配 AAOS，复用唯一 Core 会话、模型和记忆真值；人物呈现按既有槽位承载。源仓库未获迁移完成资格，不能据此删除 | [整合决定](../../workspace/intake/20261018-xiaoqi-in-project.md)、[迁移现状](AAOS-XIAOQI-MIGRATION-20261018.md) |
-| 工程诊断与前端体验 | 正常业务页展示必要状态与可执行下一步；详细诊断集中到现有诊断入口，不把原始协议、日志、供体台账铺满业务界面 | [覆盖与验收差距](AAOS-AUDIT-TEST-COVERAGE-20261018.md)、[诊断回执](receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json) |
+| 小栖／ASTRYN | 直接适配 AAOS，复用唯一 Core 会话、模型和记忆真值；人物呈现按既有槽位承载。源仓库未获迁移完成资格，不能据此删除 | [整合决定](../../workspace/intake/20261018-xiaoqi-in-project.md)、[迁移现状](../history/repository-consolidation-20261019/current/AAOS-XIAOQI-MIGRATION-20261018.md) |
+| 工程诊断与前端体验 | 正常业务页展示必要状态与可执行下一步；详细诊断集中到现有诊断入口，不把原始协议、日志、供体台账铺满业务界面 | [覆盖与验收差距](AAOS-AUDIT-TEST-COVERAGE-20261018.md)、[诊断回执](../history/repository-consolidation-20261019/current/receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json) |
 | 新技能、插件与独立工具环境 | 区分开发者 Codex 工具和 AAOS 产品能力；文件存在、已安装、可发现、实际调用、通过验收分别记录。不把 Codex Skills/MCP 当作产品已支持 | [UI 工具试点与供体研究](AAOS-OSS-UI-DONORS-20261019.md)、[资料总入口](../../AAOS-资料索引.md) |
-| Neural Creator 与 GlassBoard | 主要吸收图谱交互、视觉算法及适合的交互行为；保留现有大地图、内缩结构、人物窗口与渲染器；不迁入完整壳、存储和无关系统功能 | [研究与实现证据](AAOS-OSS-UI-DONORS-20261019.md)、[图谱回执](receipts/AAOS-NEURAL-GRAPH-ABSORPTION-20261019.json) |
+| Neural Creator 与 GlassBoard | 主要吸收图谱交互、视觉算法及适合的交互行为；保留现有大地图、内缩结构、人物窗口与渲染器；不迁入完整壳、存储和无关系统功能 | [研究与实现证据](AAOS-OSS-UI-DONORS-20261019.md)、[图谱回执](../history/repository-consolidation-20261019/current/receipts/AAOS-NEURAL-GRAPH-ABSORPTION-20261019.json) |
 | OpenMAIC | 课程／测验结构作为格式适配输入，教学流程作模板或技能候选；复用现有课程、学习、文档与 Core，不把完整课堂服务搬进主产品 | [固定版本研究](AAOS-OPENMAIC-ABSORPTION-20261019.md) |
 | 重复、冲突、付费、复杂能力 | 按本决定第三至七节处理；不能通过换名称或加一个菜单就宣称“已吸收” | 本文，及现有[供体交叉表](OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json) |
 
@@ -85,7 +85,7 @@ OpenMAIC 实施纠偏：真实导出是 `formatVersion:1` 的课堂 manifest，�
 | P1／既有 WA02、OSS-GRAPH-003/004、OSS-GB-002 | 只读重复／陈旧／冲突提示，图谱效果与真实运行，窗口行为缺口 | 按原任务各自验收；不能把提示当内容真伪裁定，不能用随机点击或合成截图代替原生、性能与学习质量结论 |
 | 条件触发／OSS-FORM-003 | 当确有能力需要时增加有限插件／MCP／API adapter；不预建空壳平台 | 固定版本、输入输出及权限，超时／取消、缺失依赖、断连和卸载／停用后保全；无需求不新增服务 |
 
-上述任务表定义范围和验收，不是完成列表。后续 OpenMAIC 严格 quiz M1 已有 adapter、原件/Document 持久化与可选学习入口，定向验证见[限定回执](receipts/AAOS-OPENMAIC-IMPORT-20261019.json)；完整格式、模板及新增接口仍按原任务逐项验收。图谱既有完成范围仅由原回执证明。各项执行写入当前进度，不改不可变 TaskPack，不用规划覆盖失败记录。
+上述任务表定义范围和验收，不是完成列表。后续 OpenMAIC 严格 quiz M1 已有 adapter、原件/Document 持久化与可选学习入口，定向验证见[限定回执](../history/repository-consolidation-20261019/current/receipts/AAOS-OPENMAIC-IMPORT-20261019.json)；完整格式、模板及新增接口仍按原任务逐项验收。图谱既有完成范围仅由原回执证明。各项执行写入当前进度，不改不可变 TaskPack，不用规划覆盖失败记录。
 
 ## 七、未来蓝图增量与恢复条件
 
@@ -132,7 +132,7 @@ Owner 在本文件初稿之后明确：
 
 ### 内置市场的分期任务
 
-复用 `frontend/src/spaces/CanonicalCapabilitiesSpace.tsx` 的 page17 和现有 page15 来源详情，不另建市场产品壳。它是内置、可离线浏览的能力目录起点；发布形态可以预置目录和必要内置能力，重依赖按需接入。后继已交付用途分类、未来条目详情、现有入口及历史/当前状态区分的首个切片，见[限定验证回执](receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json)；下表仍是完整任务范围，不能把目录切片当作整个市场、状态体系或安装运行时已完成。
+复用 `frontend/src/spaces/CanonicalCapabilitiesSpace.tsx` 的 page17 和现有 page15 来源详情，不另建市场产品壳。它是内置、可离线浏览的能力目录起点；发布形态可以预置目录和必要内置能力，重依赖按需接入。后继已交付用途分类、未来条目详情、现有入口及历史/当前状态区分的首个切片，见[限定验证回执](../history/repository-consolidation-20261019/current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json)；下表仍是完整任务范围，不能把目录切片当作整个市场、状态体系或安装运行时已完成。
 
 | 任务 | 范围 | 验收与边界 |
 | --- | --- | --- |

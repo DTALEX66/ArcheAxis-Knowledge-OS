@@ -49,18 +49,20 @@ def test_documentation_authority_index_classifies_g0_as_historical_and_routes_di
         encoding="utf-8"
     )
 
-    assert "AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md" in content
-    assert "AX_DIR_010_INVENTORY_SCHEMA.md" in content
-    assert "dated historical evidence" in content
-    assert "superseded" in content
+    assert "DIRECTORY_AUTHORITY_INDEX.md" in content
+    assert "history/README.md" in content
+    manifest = json.loads((ROOT / "docs/history/repository-consolidation-20261019/MANIFEST.json").read_text(encoding="utf-8"))
+    originals = {item["original_path"] for item in manifest["files"]}
+    assert "docs/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md" in originals
+    assert "docs/current/AX_DIR_010_INVENTORY_SCHEMA.md" in originals
 
-    gap_register = ROOT / "docs" / "current" / "AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md"
+    gap_register = ROOT / 'docs/history/repository-consolidation-20261019/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md'
     gap_register_text = gap_register.read_text(encoding="utf-8")
     assert "Historical Snapshot" in gap_register_text.splitlines()[0]
     assert "not an" in gap_register_text
     assert "active blocker register" in gap_register_text
 
-    inventory = ROOT / "docs" / "current" / "AX_DIR_010_INVENTORY_SCHEMA.md"
+    inventory = ROOT / 'docs/history/repository-consolidation-20261019/current/AX_DIR_010_INVENTORY_SCHEMA.md'
     inventory_text = inventory.read_text(encoding="utf-8")
     assert "Historical classifications reconciled" in inventory_text
     assert "`frontend/` and `src-tauri/` are the formal React/Tauri host" in inventory_text
@@ -78,9 +80,13 @@ def test_documentation_authority_index_classifies_operational_issue_archive_as_d
         encoding="utf-8"
     )
 
-    assert "OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md" in content
-    assert "Dated diagnostic archive" in content
-    assert "R6-EXECUTION" in content
+    assert "history/README.md" in content
+    assert "AAOS-ACTIVE-EXECUTION.json" in content
+    historical = ROOT / "docs/history/repository-consolidation-20261019/navigation-before/docs/DOCUMENTATION_AUTHORITY_INDEX.md"
+    before = historical.read_text(encoding="utf-8")
+    assert "OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md" in before
+    assert "Dated diagnostic archive" in before
+    assert "旧整包执行顺序不作为当前队列" in content
 
 
 def test_documentation_authority_index_links_language_and_directory_authorities() -> None:
@@ -113,7 +119,7 @@ def test_language_and_directory_authority_indexes_have_resolvable_local_links() 
 
 
 def test_current_reality_routes_language_and_directory_changes_to_their_indexes() -> None:
-    current_reality = (ROOT / "docs" / "current" / "CURRENT_REALITY_2026-09-01.md").read_text(
+    current_reality = (ROOT / 'docs/history/repository-consolidation-20261019/current/CURRENT_REALITY_2026-09-01.md').read_text(
         encoding="utf-8"
     )
 
@@ -123,7 +129,7 @@ def test_current_reality_routes_language_and_directory_changes_to_their_indexes(
 
 def test_authority_indexes_route_normalization_to_a_frozen_historical_record() -> None:
     """Old cleanup and migration snapshots must not appear to be current authority."""
-    state = ROOT / "docs" / "current" / "REPOSITORY_NORMALIZATION_STATE_2026-09-03.md"
+    state = ROOT / 'docs/history/repository-consolidation-20261019/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md'
     assert state.is_file()
     content = state.read_text(encoding="utf-8")
 
@@ -146,15 +152,16 @@ def test_authority_indexes_route_normalization_to_a_frozen_historical_record() -
     language = (ROOT / "docs" / "LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md").read_text(
         encoding="utf-8"
     )
-    assert "REPOSITORY_NORMALIZATION_STATE_2026-09-03.md" in documentation
+    assert "history/repository-consolidation-20261019/MANIFEST.json" in documentation
     assert "REPOSITORY_NORMALIZATION_STATE_2026-09-03.md" in directory
     assert "REPOSITORY_NORMALIZATION_STATE_2026-09-03.md" in language
-    assert "Historical cleanup/index/language snapshot" in documentation
+    historical_index = ROOT / "docs/history/repository-consolidation-20261019/navigation-before/docs/DOCUMENTATION_AUTHORITY_INDEX.md"
+    assert "Historical cleanup/index/language snapshot" in historical_index.read_text(encoding="utf-8")
     assert "frozen 2026-09-03 snapshot" in directory
 
 
 def test_superseded_g0_implementation_plan_is_explicitly_frozen() -> None:
-    plan = ROOT / "docs" / "superpowers" / "plans" / "2026-09-03-runtime-authority-and-language-g0.md"
+    plan = ROOT / 'docs/history/repository-consolidation-20261019/directories/docs/superpowers/plans/2026-09-03-runtime-authority-and-language-g0.md'
     text = plan.read_text(encoding="utf-8")
     assert "HISTORICAL / SUPERSEDED" in text.splitlines()[0]
     assert "R6/M0" in text.splitlines()[2]
@@ -186,7 +193,7 @@ def test_active_execution_pointer_routes_ui_and_keeps_q_evidence_scoped() -> Non
     assert pointer["schema"] == "archeaxis.active-execution/v1"
     assert pointer["active_taskpack"] == "docs/taskpacks/aaos-ui-first-20261009"
     assert pointer["active_progress"] == "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
-    assert pointer["inherited_progress"] == ["docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"]
+    assert pointer["inherited_progress"] == ["docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"]
     assert (ROOT / pointer["active_taskpack"] / "TASKPACK.md").is_file()
     assert (ROOT / pointer["active_progress"]).is_file()
 
@@ -197,7 +204,7 @@ def test_readme_marks_pre_r6_capability_and_phase_roadmaps_as_historical() -> No
     assert "Historical snapshot: pre-R6 program roadmap" in readme
     assert "AAOS-ACTIVE-EXECUTION.json" in readme
     assert "AAOS-UI-FIRST-EXECUTION-20261009.md" in readme
-    assert "当前事实、限制和验证证据见 [`docs/PROJECT_STATUS.md`]" not in readme
+    assert "当前事实、限制和验证证据见 [`docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md`]" not in readme
 
 
 def test_live_delivery_and_navigation_do_not_reactivate_historical_pause() -> None:
@@ -208,11 +215,21 @@ def test_live_delivery_and_navigation_do_not_reactivate_historical_pause() -> No
     assert pointer["delivery_history"]["delivery_readback"]["state"] == "BRANCH_PUBLISHED"
     for relative in ("docs/README.md", "docs/DIRECTORY_AUTHORITY_INDEX.md",
                      "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md", "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md"):
-        heading = (ROOT / relative).read_text(encoding="utf-8").splitlines()[2]
-        assert pointer["execution_control"]["state"] in heading
-        assert "PAUSED_BY_OWNER" not in heading
-        assert "AAOS-ACTIVE-EXECUTION.json" in heading
-        assert "AAOS-AUTHORITY-ROUTES.json" in heading
+        navigation = (ROOT / relative).read_text(encoding="utf-8")
+        links = re.findall(r"\[[^\]]+\]\(([^)#]+)(?:#[^)]+)?\)", navigation)
+        targets = {(ROOT / relative).parent.joinpath(link).resolve() for link in links}
+        assert (ROOT / "docs/current/AAOS-ACTIVE-EXECUTION.json").resolve() in targets
+        assert (ROOT / "docs/current/AAOS-AUTHORITY-ROUTES.json").resolve() in targets
+        assert all(target.is_relative_to(ROOT.resolve()) and target.exists() for target in targets)
+    # Historical status banners remain evidence in the original navigation,
+    # rather than requiring every live index to duplicate a changing state.
+    manifest = json.loads((ROOT / "docs/history/repository-consolidation-20261019/MANIFEST.json").read_text(encoding="utf-8"))
+    snapshot = next(row for row in manifest["navigation_snapshots"] if row["original_path"] == "docs/README.md")
+    raw = (ROOT / snapshot["archive_path"]).read_bytes()
+    assert len(raw) == snapshot["bytes"]
+    assert hashlib.sha256(raw).hexdigest() == snapshot["sha256"]
+    heading = raw.decode("utf-8").splitlines()[2]
+    assert "RUNNING_BY_OWNER" in heading and "PAUSED_BY_OWNER" not in heading
 
 
 def test_r6_formal_shell_supersedes_web_first_priority_without_banning_reuse() -> None:

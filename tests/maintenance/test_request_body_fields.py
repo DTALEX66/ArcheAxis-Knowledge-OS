@@ -19,7 +19,7 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[2]
 LIB = REPO / "crates/archeaxis-api/src/lib.rs"
-CONTRACT = REPO / "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
+CONTRACT = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
 
 # struct -> the fields the contract must list, with `?` marking an Option field.
 EXPECTED: dict[str, tuple[str, ...]] = {
