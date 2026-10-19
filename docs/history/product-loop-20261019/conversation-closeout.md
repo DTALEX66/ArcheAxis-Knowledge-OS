@@ -76,3 +76,9 @@ SKIPPED是GatePlan裁剪，不算执行通过；未完成的安装旅程与聚�
 本轮收尾后不承诺后台继续或通知。V01暂停、FT01–04及六项增量冻结；不发布、不替换Green、不覆盖真实业务数据。项目本地ignored截图/日志/数据库/原始载荷不进入Git，保留已公开脱敏索引与哈希；这不是把全部私人运行资料上传云端的许可。
 
 收尾定向验证：仓库规范检查PASS，权威路由16项PASS，两个运行均exit0且source_consistent=true；命令与补丁身份见机器记录closeout_validation。首次子命令误用系统Python，缺yaml而未完成检查，该失败保留；随后改用项目已有.venv，无安装或依赖变更。本次仅检查文档/路由，不重复产品全量。
+
+## 上传后的最终CI读回补充
+
+首轮归档已上传为`66b7d9d96fee28baae808cb70804ee34bab9a26f`，本地/远端/PR头相同，ahead=0、behind=0、工作树干净。随后旧源码867d7c8a的run39264199340读回为CANCELLED；其installer-lifecycle本身为FAIL，失败步骤Verify the installed NSIS lifecycle，报错“actual installed grouped UI engineering journey failed”，exit1。**这不是安装通过，也不能以整轮取消抹去实际失败。** [失败作业](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39264199340/job/118109895029)与[20文件安装证据包](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39264199340/artifacts/12192499506)可查；具体grouped UI失败根因尚需解读包内receipt/截图，UNVERIFIED，本轮按Owner收尾指令不再扩展产品修改。
+
+本补充随下一次归档提交上传并再核本地/远端SHA。后继提交的新CI尚未取得完整资格；恢复时先查现场PR头与对应CI，再处理上述失败。PR保持Draft/Open，不merge、不发布、不替换Green。前文PENDING表是较早快照，以本补充记录的该run终态为准。

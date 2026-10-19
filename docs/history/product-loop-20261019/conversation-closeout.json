@@ -201,5 +201,28 @@
       "exit_code": 0,
       "status": "LOCAL_PASS"
     }
-  ]
+  ],
+  "ci_postpush_readback": {
+    "observed_at": "2026-10-19T14:22:36.097Z",
+    "run": 39264199340,
+    "source_head": "867d7c8a07d6e0e36895b84e3ad1490e0a58badb",
+    "overall": "CANCELLED",
+    "installer_lifecycle": "FAIL",
+    "failed_step": "Verify the installed NSIS lifecycle",
+    "error": "actual installed grouped UI engineering journey failed",
+    "exit_code": 1,
+    "job_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39264199340/job/118109895029",
+    "artifact_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39264199340/artifacts/12192499506",
+    "root_cause": "UNVERIFIED: receipt and screenshots inside installed-native-journey artifact need inspection; failure is not dismissed as workflow cancellation",
+    "new_head_ci": "NOT_QUALIFIED; subsequent documentation pushes create new runs, inspect live PR head before continuation"
+  },
+  "first_push_readback": {
+    "local": "66b7d9d96fee28baae808cb70804ee34bab9a26f",
+    "remote": "66b7d9d96fee28baae808cb70804ee34bab9a26f",
+    "pr_head": "66b7d9d96fee28baae808cb70804ee34bab9a26f",
+    "ahead": 0,
+    "behind": 0,
+    "worktree": "CLEAN",
+    "qualification": "First archive push verified; final CI readback supplement will be committed afterward and independently checked"
+  }
 }
