@@ -2,7 +2,7 @@
 
 状态 **RUNNING_BY_OWNER / PARTIAL**（Owner 明确要求今天停止额度监控并继续；今天不查询额度、不因额度阈值停工）。本文件是 [活动指针](AAOS-ACTIVE-EXECUTION.json) 指定的唯一进度源；按指针及 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md) 接续当前任务，不从旧暂停或旧 COMPLETE 推导现场事实。
 
-最新增量：玻璃/密度及窄窗口设置的完整正式浏览器门禁、最终 Rust workspace、TypeScript/Vite 和 Rust 格式门禁已本地通过。c95c46c1 的云端 CI 为 FAIL；其安装探针遗留的正文内 JSON 定位已改为通过现有运行诊断读取，49项相关合同及19项冲突/诊断组件检查通过。新提交 exact-SHA CI 与安装旅程仍待复核。各轮历史失败保留，详见文末“云端门禁复现与后继修复”；下表较早回执只代表各自源码。
+最新增量：玻璃/密度及窄窗口设置的完整正式浏览器门禁、最终 Rust workspace、TypeScript/Vite 和 Rust 格式门禁已本地通过。c95c46c1 的云端 CI 为 FAIL；其安装探针遗留的正文内 JSON 定位已改为通过现有运行诊断读取，49项相关合同及19项冲突/诊断组件检查通过。源码867d7c8a的云端浏览器、Rust、Python与桌面构建已通过；安装与聚合状态以文末收尾快照及现场CI为准。各轮历史失败保留，详见文末“云端门禁复现与后继修复”；下表较早回执只代表各自源码。
 
 ## 已实施与证据边界
 
@@ -84,3 +84,8 @@ Rust workspace正式入口离线测试PASS：915通过、0失败、0忽略，194
 源码、时间、命令与退出码见verification-index的runs及ci_repair_followup。全部自有浏览器/开发服务已结束，正式浏览器实例端口关闭已核实；停止方式沿现有helper，不称优雅退出。新提交CI及实际安装旅程资格必须绑定各自SHA，仍不从本地结果推导merge/发布/Green替换。今天不查询额度、不据额度暂停；总体PARTIAL。
 
 后继云端安装读回：c95c46c1 的普通安装旅程通过，独立文档冲突旅程FAIL。已实际查看失败截图与native-driver日志：比较按钮可信点击成功、实际位于03页，随后探针等待旧的正文内`details pre`超时。产品已按Owner决定将原始JSON集中到运行诊断，普通比较区保留可读正文；这是尚未迁移的探针消费者。现逐区核对可读预览，再可信点击精确诊断按钮、按已选记录标签读原始JSON严格等值比较、可信关闭诊断，继续三份快照、明确保存、B独立草稿、所有正文版本及正常重启断言。49项Python合同（含错误预览/载荷、缺失/重复载荷及非法JSON拒绝）和19项现有冲突/诊断组件检查PASS；不是新安装资格。新exact-SHA CI仍须完成真实安装验证。
+
+
+## 2026-10-19 Owner要求中断后收尾
+
+本对话停止新增功能工作，完成公开记录归档与授权上传；总体仍PARTIAL。最新源码为`867d7c8a07d6e0e36895b84e3ad1490e0a58badb`，云端浏览器/Rust/Python/桌面构建已通过，CI在收尾快照时为in_progress/PENDING，不把安装或聚合未完成称为PASS。全部本对话决定、实际修复、测试边界、定时删除not_found与遗留项见[收尾归档](../history/product-loop-20261019/conversation-closeout.md)及[机器记录](../history/product-loop-20261019/conversation-closeout.json)。最终上传后独立核对本地/远端分支SHA；不自动merge、发布或替换Green，不创建后台继续任务。此收尾不恢复冻结能力，也不从历史暂停撤销Owner当日不监控额度的决定。

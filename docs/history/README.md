@@ -9,6 +9,7 @@
 | Owner 对话摘录与决定映射 | [决定出处](owner-dialogue-20261019/README.md) |
 | 开源吸收、失败证据与限定运行快照 | `oss-absorption-evidence/`；由当前活动指针按任务导航 |
 | 已迁移的旧交接与摘要 | [交接归档](handoff-archive-20261018/README.md) |
+| 中断后本对话完整主题收尾、最新CI快照与遗留项 | [收尾汇总](product-loop-20261019/conversation-closeout.md)；[机器记录](product-loop-20261019/conversation-closeout.json) |
 | 本对话逐项查漏、实际工具使用与本轮产品验证边界 | [查漏审查](product-loop-20261019/conversation-review.md)；实际进度仍在唯一 UI 执行记录 |
 
 归档保存当时的措辞、原路径和证据身份，不授予当前执行权限或产品资格。历史原文中的相对链接以清单登记的原文档位置为基准；失效旧路径通过当前路由登记与迁移清单解析，不能据此在原处重建副本。历史脚本与安装说明仅供查证，不作为当前启动入口。
