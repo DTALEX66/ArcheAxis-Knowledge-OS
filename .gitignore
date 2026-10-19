@@ -1,4 +1,8 @@
 # Python
+# 供体应用的本地运行状态及旧测试日志不属于可提交源码。
+**/.hilo/
+/test-results.log
+
 __pycache__/
 *.py[cod]
 *.pyo

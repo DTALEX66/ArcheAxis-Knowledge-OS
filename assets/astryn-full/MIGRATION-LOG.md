@@ -1,7 +1,7 @@
 # ASTRYN 项目迁移记录
 
-迁移时间：2026-10-16 21:40  
-来源：D:\All projects\ASTRYN  
+迁移时间：2026-10-16 21:40\
+来源：D:\All projects\ASTRYN\
 目标：D:\All projects\ArcheAxis-Knowledge-OS\assets\astryn-full
 
 ---
@@ -38,8 +38,8 @@
 
 ## 迁移统计
 
-**原始大小**：约1.2GB  
-**迁移状态**：完成  
+**原始大小**：约1.2GB\
+**迁移状态**：完成\
 **文件数量**：144+ PNG图片 + 文档
 
 ---

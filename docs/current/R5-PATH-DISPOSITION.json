@@ -478,6 +478,72 @@
       "disposition": "active",
       "owner_doc": "DIRECTORY_AUTHORITY.yaml",
       "note": "developer entry scripts and the pytest conftest"
+    },
+    {
+      "paths": [
+        "assets"
+      ],
+      "class": "bounded-astryn-donor-custody",
+      "disposition": "custody",
+      "owner_doc": "docs/current/AAOS-XIAOQI-MIGRATION-20261018.md",
+      "note": "Only assets/astryn and assets/astryn-full are classified as preserved donor source/assets; other assets require their own reviewed ownership. No donor execution, source deletion or complete migration qualification."
+    },
+    {
+      "paths": [
+        "CONTRIBUTING.md"
+      ],
+      "class": "public-contribution-guidance",
+      "disposition": "active",
+      "owner_doc": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "note": "Public contribution guidance; does not replace current task and permission authority."
+    },
+    {
+      "paths": [
+        "启动指南_完整版.md",
+        "启动指南.md",
+        "ALL-OBJECTIVES-ACHIEVED.md",
+        "ALL-TASKS-COMPLETED.md",
+        "AUTONOMOUS-EXECUTION-PLAN.md",
+        "CLEANUP-AUDIT-REPORT.md",
+        "CLEANUP-COMPLETED.md",
+        "CLEANUP-EXECUTION-REPORT.md",
+        "CRITICAL-UI-ISSUES.md",
+        "DELETION-SAFETY-AUDIT.md",
+        "ENGINEERING-INFO-CONVERGENCE-PLAN.md",
+        "EPUB-FSRS-CHECK.md",
+        "EXECUTION-COMPLETE.txt",
+        "EXECUTION-FINAL-STATUS.md",
+        "FINAL-COMPLETION-REPORT.md",
+        "FINAL-CONFIRMATION.md",
+        "FINAL-EXECUTION-REPORT.md",
+        "FINAL-HONEST-REPORT.md",
+        "FIX-PRIORITY-PLAN.md",
+        "FORMAT-SUPPORT-CHECK.md",
+        "FULL-CHAIN-TEST-REPORT.md",
+        "HONEST-COMPLETION-REPORT.md",
+        "IMPLEMENTATION-PROGRESS.md",
+        "LAYOUT-FIX-REPORT.md",
+        "LEARNING-SYSTEM-CHECK.md",
+        "MEDIA-READER-CHECK.md",
+        "PROJECT-LOCAL-CLEANUP-PLAN.md",
+        "PROJECT-STATUS.md",
+        "README-STATUS.md",
+        "REAL-EXECUTION-PLAN.md",
+        "REAL-STATUS-REPORT.md",
+        "REAL-VERIFICATION-CHECKLIST.md",
+        "SUCCESS-REPORT.md",
+        "TEST-ANALYSIS.md",
+        "TONIGHT-ACHIEVEMENTS.md",
+        "UI-POLISH-REPORT.md",
+        "URGENT-UI-FIX-PLAN.md",
+        "XIAOQI-CRITICAL-ISSUE.md",
+        "XIAOQI-STATUS-UPDATE.md",
+        "XIAOQI-VERIFICATION.md"
+      ],
+      "class": "root-historical-source",
+      "disposition": "frozen",
+      "owner_doc": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "note": "Preserved root source reports, old plans and startup notes; old completion and cleanup assertions are not current acceptance or deletion grants. Current maintenance keeps these paths and routes to the active handoff."
     }
   ],
   "legacy_roots": [
@@ -527,17 +593,13 @@
   "legacy_manifest_total_entries": 1246,
   "legacy_manifest_note": "LEGACY_MANIFEST.yaml holds 1246 inventoried assets and every one of them is still INVENTORIED_NOT_SEMANTICALLY_REVIEWED, so nothing in it may be read as absorbed capability. Bulk cleanup or moving directories is not semantic absorption.",
   "current_ownership": {
-    "unowned_paths": [
-      ".gitleaks.toml"
-    ],
-    "unowned_count": 1,
-    "unowned_by_root": {
-      "(root)": 1
-    },
-    "source_baseline": "c06b234ca335b9cbb2c1fde270851e2390c36b89",
-    "authority": "DIRECTORY_AUTHORITY.yaml plus current uncommitted R5 diff",
-    "note": "69 historical gaps assigned; classification is not migration or product qualification. .gitleaks.toml added 2026-10-06: a root-level config with no DIRECTORY_AUTHORITY owner, recorded here and dispositioned by the build-configuration rule."
+    "unowned_paths": [],
+    "unowned_count": 0,
+    "unowned_by_root": {},
+    "source_baseline": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+    "authority": "DIRECTORY_AUTHORITY.yaml current classification; historical measurement remains bound to its original commit",
+    "note": "Historical 69 assignments and their measured identity are preserved. Current bounded donor, exact legacy/root-source and root security-config ownership is metadata only, not absorption, execution or deletion authority. Private .hilo directory trees and root test-results.log are denied and excluded from the index. Current unowned set is empty."
   },
-  "current_finding": "Current ownership gaps closed by exact metadata rules and maintenance-only legacy classification; historical measured/unowned fields above remain unchanged.",
+  "current_finding": "Current tracked ownership and top-level dispositions are reconciled without broad future-asset ownership. The current unowned set is empty; original measured values and historical finding remain unchanged. This is metadata classification, not runtime, semantic migration or product completion.",
   "historical_source": "docs/authority/taskpack-0910-r3/R15-PATH-DISPOSITION.json"
 }

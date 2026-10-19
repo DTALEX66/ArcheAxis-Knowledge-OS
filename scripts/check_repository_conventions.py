@@ -20,6 +20,7 @@ if str(_REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPOSITORY_ROOT))
 
 from shared.naming import NamingRegistry, NamingRegistryError  # noqa: E402
+from scripts.runtime.dev import private_source_path, safe_path  # noqa: E402
 
 _BINARY_SUFFIXES = {
     ".7z",
@@ -131,6 +132,10 @@ _PRESERVED_FIXTURE_HASHES = {
 # Each exact member hash was checked against the preserved ZIP; this is not
 # a directory exemption or permission to treat history as current authority.
 _PRESERVED_PACKAGE_MEMBER_HASHES = {
+    # Owner original: verified against ARCHIVE-RECEIPT and the source archive;
+    # Git's former text conversion changed CRLF and must not redefine identity.
+    "assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt":
+        "866c151db45e0d0adfcafa9f059a836df859d830420b65ab95673fdd4b08450f",
     "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.docx":
         "d8ed1c2afdb92dcb87e6a5f7b6b46512af4e408ba0efe1cbe446f0d23bd9ca4f",
     "docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md":
@@ -945,13 +950,23 @@ def scan_git_repository(root: Path, *, source: str = "worktree") -> list[Convent
     else:
         entries = _git_blob_entries(root, source)
         paths = [path for path, _ in entries]
+
+    # Classify paths before requesting any blob or worktree content. A forced
+    # re-add of runtime/private state is a refusal, not a new text exception.
+    protected = [path for path in paths
+                 if private_source_path(Path(*PurePosixPath(path).parts))]
+    if protected:
+        return sorted(ConventionIssue("protected-source-path", path,
+                                      "runtime/private state cannot be scanned or committed")
+                      for path in protected)
+    if source != "worktree":
         contents = _read_git_blobs(root, [object_id for _, object_id in entries])
         blob_contents = dict(zip(paths, contents, strict=True))
 
     issues = scan_path_set(paths)
     if source == "worktree":
         for path in paths:
-            candidate = root / Path(*PurePosixPath(path).parts)
+            candidate = safe_path(root / Path(*PurePosixPath(path).parts))
             if not candidate.is_file():
                 issues.append(ConventionIssue("missing-worktree-file", path,
                                               "tracked path is absent from the worktree"))

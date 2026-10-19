@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize("path", [
+    "assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt",
     "docs/taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv",
     "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
     "docs/history/conversation-summary-20261010/sources/AAOS_Conversation_Summary_20261010.md",
@@ -365,6 +366,7 @@ def test_repository_convention_gates_are_wired() -> None:
     assert "check_repository_conventions.py --source index" in pre_commit
     assert '"pre-commit>=' in pyproject
     assert "check_repository_conventions.py --source head" in ci
+    assert "local_verify.py --profile quick --preflight --conventions-source head" in ci
 
 
 def test_workspace_upload_runtime_dependency_is_declared() -> None:

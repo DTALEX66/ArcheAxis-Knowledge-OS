@@ -377,7 +377,7 @@ jobs:
       - name: Reject document authority drift
         run: python -B scripts/ci/check_document_authority.py
       - name: Fail before compilation on route inventory or generated contract drift
-        run: python -B scripts/ci/local_verify.py --profile quick --preflight
+        run: python -B scripts/ci/local_verify.py --profile quick --preflight --conventions-source head
       - name: Upload preflight evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a

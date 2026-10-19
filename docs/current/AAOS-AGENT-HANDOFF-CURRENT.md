@@ -1,3 +1,5 @@
+> 2026-10-19 反复问题定向收口：[唯一限定回执](receipts/AAOS-RELIABILITY-CLOSURE-20261019.json)。本轮修复目录归属遗漏、合法归档后的旧路径测试、被跟踪的供体运行状态/日志、原附件与工作副本换行、源码读取边界、自有检查锁泄漏及过期指令。已执行对应回归和失败门禁复验；此前审计覆盖继续按 [既有覆盖说明](AAOS-AUDIT-TEST-COVERAGE-20261018.md) 核对，本轮不重开全量审计或产品测试。上轮 49 项云端规范错误与 3 项路径测试失败属于原源码；新源码本地限定验证见回执，最新 exact-SHA CI 仍按 PR194 现场核对。原真实模型复测超时、原生/安装及整体产品继续 PARTIAL。
+
 > 2026-10-19 实施接续：[执行准入与验证回执](receipts/AAOS-EXECUTION-ADMISSION-20261019.json)。共同执行入口已补默认/显式模型启停守卫、读失败拒绝、库存后重验、同一deadline和队列等待取消；超时探针保留MODEL_CALL_TIMEOUT，人工审核断言保留真实标题。最终Rust 55 PASS；Python 290 PASS / 3 FAIL（路径归属检查），145子测试PASS。21份冻结清单、954路径在实际index逐一核SHA/大小通过；8个CSV原字节及12份日志已补全，旧清单未改。规范检查仍49项失败，实际provider复测超时未修/未重跑，完整CI、原生和安装未获资格；整体PARTIAL。此前未应用提案仅是旧时点，准入与诊断切片现已应用；云端最新SHA按PR194现场回读。
 
 > 2026-10-19 公开分支已正常推送：codex/sync-20261019，上传回读c402fce7与本地一致；草稿[PR194](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/194)。当前后继metadata与远端SHA需现场回读，见[交付回执](receipts/AAOS-CLOUD-SYNC-20261019.json)。此前审批阻塞已解除，历史失败仍保留。CI尚未通过、main未合并；完整门禁与产品仍PARTIAL，不将已上传等同产品完成。

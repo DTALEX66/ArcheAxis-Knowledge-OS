@@ -16,6 +16,7 @@ stale the moment an ordinary commit added a file.
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import shutil
 import subprocess
@@ -39,6 +40,41 @@ def _load():
 paths = _load()
 
 
+def _historical_owner_verified(name, rules, tracked, root=REPO):
+    """Accept only an owned path or this exact, hash-preserved handoff move."""
+    if paths.select_owner(name, rules)[0] == "owned":
+        return True
+    if name != "HERMES_HANDOFF.md" or name in tracked:
+        return False
+    archive = "docs/history/handoff-archive-20261018/HERMES_HANDOFF.md"
+    expected_sha = "908af021cbbe84a31566e5ba557a3f0378069e436120bc5c26588aa3c05a520d"
+    try:
+        manifest = json.loads((root / "docs/history/handoff-archive-20261018/MANIFEST.json").read_text(encoding="utf-8"))
+        if manifest.get("schema") != "archeaxis.handoff-archive/v1":
+            return False
+        records = manifest.get("records")
+        if not isinstance(records, list):
+            return False
+        matches = [record for record in records if isinstance(record, dict) and record.get("original") == name]
+        if len(matches) != 1:
+            return False
+        record = matches[0]
+        wire = (root / archive).read_bytes()
+        return (
+            archive in tracked
+            and paths.select_owner(archive, rules)[0] == "owned"
+            and record.get("archive") == archive
+            and record.get("sha256") == expected_sha
+            and record.get("bytes") == len(wire) == 23537
+            and hashlib.sha256(wire).hexdigest() == expected_sha
+            and record.get("state") == "FROZEN_HISTORICAL_NOT_CURRENT_EXECUTION"
+            and record.get("replaced_by") == "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+            and (root / record["replaced_by"]).is_file()
+        )
+    except (OSError, ValueError, TypeError, KeyError):
+        return False
+
+
 def test_historical_rules_are_loaded_from_the_recorded_commit(tmp_path):
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     authority = tmp_path / "DIRECTORY_AUTHORITY.yaml"
@@ -55,7 +91,8 @@ def test_historical_rules_are_loaded_from_the_recorded_commit(tmp_path):
 def test_r5_closes_historical_gaps_without_promoting_legacy_or_private_state():
     historical = json.loads((REPO / "docs/authority/taskpack-0910-r3/R15-PATH-DISPOSITION.json").read_text(encoding="utf-8"))
     rules = paths.load_rules(REPO)
-    assert all(paths.select_owner(name, rules)[0] == "owned" for name in historical["unowned_paths"])
+    tracked = set(paths.tracked_paths(REPO))
+    assert all(_historical_owner_verified(name, rules, tracked) for name in historical["unowned_paths"])
     assert paths.select_owner(".zcode/private-state", rules)[0] == "denied"
     import yaml
 
@@ -63,6 +100,63 @@ def test_r5_closes_historical_gaps_without_promoting_legacy_or_private_state():
     legacy = next(r for r in authority["authorities"] if r["path"] == "shared-contracts/**")
     assert legacy["execution_lane"] == "migration"
     assert legacy["write_mode"] == "maintenance-only-task-envelope"
+
+
+def test_handoff_owner_migration_rejects_missing_duplicate_or_modified_identity(tmp_path):
+    rules = paths.load_rules(REPO)
+    archive = "docs/history/handoff-archive-20261018/HERMES_HANDOFF.md"
+    manifest_path = "docs/history/handoff-archive-20261018/MANIFEST.json"
+    replacement = "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    for name in (archive, manifest_path, replacement):
+        target = tmp_path / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(REPO / name, target)
+    tracked = {archive}
+    assert _historical_owner_verified("HERMES_HANDOFF.md", rules, tracked, tmp_path)
+    assert not _historical_owner_verified("HERMES_HANDOFF.md", rules, tracked | {"HERMES_HANDOFF.md"}, tmp_path)
+    assert not _historical_owner_verified("HERMES_HANDOFF.md", rules, set(), tmp_path)
+    assert not _historical_owner_verified("other-missing-handoff.md", rules, tracked, tmp_path)
+    original = json.loads((tmp_path / manifest_path).read_text(encoding="utf-8"))
+    record = next(item for item in original["records"] if item["original"] == "HERMES_HANDOFF.md")
+    for field, value in (("archive", "docs/history/other.md"), ("sha256", "0" * 64),
+                         ("bytes", 1), ("state", "COMPLETE"), ("replaced_by", "README.md")):
+        modified = json.loads(json.dumps(original))
+        next(item for item in modified["records"] if item["original"] == "HERMES_HANDOFF.md")[field] = value
+        (tmp_path / manifest_path).write_text(json.dumps(modified), encoding="utf-8")
+        assert not _historical_owner_verified("HERMES_HANDOFF.md", rules, tracked, tmp_path), field
+    duplicate = json.loads(json.dumps(original))
+    duplicate["records"].append(record)
+    (tmp_path / manifest_path).write_text(json.dumps(duplicate), encoding="utf-8")
+    assert not _historical_owner_verified("HERMES_HANDOFF.md", rules, tracked, tmp_path)
+    (tmp_path / manifest_path).write_text(json.dumps(original), encoding="utf-8")
+    (tmp_path / archive).write_bytes((tmp_path / archive).read_bytes() + b"changed")
+    assert not _historical_owner_verified("HERMES_HANDOFF.md", rules, tracked, tmp_path)
+    (tmp_path / manifest_path).unlink()
+    assert not _historical_owner_verified("HERMES_HANDOFF.md", rules, tracked, tmp_path)
+
+
+def test_new_donor_ownership_is_bounded_and_private_denials_remain_strict():
+    rules = paths.load_rules(REPO)
+    for name in ("assets/astryn/character.png", "assets/astryn-full/docs/source.md",
+                 "archeaxis/learning/__init__.py", "archeaxis/learning/api.py",
+                 "archeaxis/learning/fsrs_scheduler.py"):
+        verdict, rule, _ = paths.select_owner(name, rules)
+        assert verdict == "owned", name
+        assert rule["lanes"] == ["migration"]
+    for name in ("assets/future-unknown/source.py", "archeaxis/learning/future.py"):
+        assert paths.select_owner(name, rules)[0] == "unowned", name
+    for name in (".project-local/private-state", ".codex/private-state", ".dsh/private-state",
+                 ".zcode/private-state", ".hilo/storage.json", "nested/.hilo/storage.json",
+                 "assets/astryn/deep/.hilo/storage.json", "assets/astryn-full/.hilo/storage.json",
+                 "assets/astryn/虚拟人物/小栖/.hilo/storage.json",
+                 "assets/astryn-full/虚拟人物/小栖/.hilo/storage.json",
+                 "test-results.log"):
+        assert paths.select_owner(name, rules)[0] == "denied", name
+        assert paths.select_owner(name, [*rules, _rule(name, "synthetic-exact-owner")])[0] == "denied", name
+    verdict, rule, _ = paths.select_owner(".gitleaks.toml", rules)
+    assert verdict == "owned"
+    assert rule["pattern"] == ".gitleaks.toml"
+    assert rule["lanes"] == ["owner"]
 
 
 def _rule(pattern: str, owner: str = "x", deny: bool = False) -> dict:

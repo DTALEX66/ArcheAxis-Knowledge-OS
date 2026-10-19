@@ -1,5 +1,8 @@
 * text=auto eol=lf
 
+# Owner 原始开发附件按 ARCHIVE-RECEIPT 的 SHA 保留 CRLF、末行和原字节。
+assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt -text whitespace=cr-at-eol,-blank-at-eol
+
 *.bat text eol=crlf
 *.cmd text eol=crlf
 *.ps1 text eol=crlf

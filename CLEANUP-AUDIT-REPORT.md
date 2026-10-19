@@ -75,7 +75,7 @@
 
 ### 方案1：保守清理（推荐）
 删除：
-- `.project-local/` 
+- `.project-local/`
 - `.hermes/`
 - `frontend/node_modules/`
 - Python缓存
@@ -83,7 +83,7 @@
 **预计释放**：~10-20GB
 
 ### 方案2：激进清理
-删除方案1 + 
+删除方案1 +
 - 移动 `assets/astryn-full/` 到外部
 - 压缩 `docs/history/`
 
@@ -98,10 +98,10 @@
 
 需要检查：
 ```bash
-git rev-list --objects --all | 
+git rev-list --objects --all |
   git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' |
-  awk '/^blob/ {print $3, $4}' | 
-  sort -n | 
+  awk '/^blob/ {print $3, $4}' |
+  sort -n |
   tail -20
 ```
 

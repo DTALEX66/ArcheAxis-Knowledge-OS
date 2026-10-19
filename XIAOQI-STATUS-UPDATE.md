@@ -6,7 +6,7 @@
 ```
 frontend/src/assets/xiaoqi/
 - idle.png (4.9MB)
-- speaking.png (4.9MB)  
+- speaking.png (4.9MB)
 - thinking.png (4.8MB)
 ```
 
