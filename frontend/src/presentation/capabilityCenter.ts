@@ -22,6 +22,9 @@ const purposes: Readonly<Record<string, string>> = {
 };
 export type CapabilityGroup = "builtin" | "extension" | "future";
 const operationNames: Readonly<Record<string,string>> = {
+ "document.save":"文档保存", "document.reference":"固定版本引用", "document.backlinks":"反向链接",
+ "document.local-graph":"文档关系图", "canvas.references":"画布引用", "document.collection":"文档集合",
+ "search.local":"本地内容检索", "learning.review":"学习复习", "learning.state":"学习进度", "learning.fsrs":"复习安排",
  "archive.inventory":"压缩包清点", "canvas.structure":"画布结构读取", "document.detect":"文件格式识别",
  "html.structure":"网页结构读取", "image.caption":"图片内容说明", "image.ocr":"图片文字识别",
  "media.diarize":"说话人区分", "media.probe":"媒体信息读取", "media.transcribe":"音频转写",

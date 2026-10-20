@@ -146,6 +146,51 @@ def dock_interactions(page, output: Path, theme: str) -> dict:
     return result
 
 
+def template_requirements(page, output: Path, case_id: str) -> dict:
+    """Exercise the actual template disclosure, diagnostic channel and capability route."""
+    page.get_by_role("tab", name="学科模板", exact=True).click()
+    launcher = page.get_by_role("region", name="学科模板工作区", exact=True)
+    launcher.get_by_role("combobox", name="模板", exact=True).select_option("T2")
+    panel = page.get_by_role("region", name="模板能力需求", exact=True)
+    panel.get_by_text("本轮已读取 0 条能力运行状态。", exact=False).wait_for()
+    text = panel.inner_text()
+    assert not re.search(r"Core|worker|CAP-|稳定 ID|html\.structure|NOT_RUN", text), text
+    table = panel.get_by_role("table")
+    assert table.get_by_role("row", name=re.compile("网页结构读取")).inner_text().count("当前应用未接入此处理服务") == 1
+    assert "只有需求说明，尚未接入实际处理" in table.get_by_role("row", name=re.compile("本地内容检索")).inner_text()
+    details_button = table.get_by_role("button", name="查看网页结构读取的能力详情", exact=True)
+    details_button.scroll_into_view_if_needed()
+    control = a0.visible_control_box(details_button)
+    assert control["reachable"] and abs(control["height"] - control["rawHeight"]) <= 1, control
+    screenshot = output / f"template-requirements-{case_id}.png"
+    page.screenshot(path=str(screenshot))
+    trigger = panel.get_by_role("button", name="查看诊断详情：模板能力登记与运行状态", exact=True)
+    trigger.scroll_into_view_if_needed()
+    trigger.click()
+    dialog = page.get_by_role("dialog", name="运行诊断", exact=True)
+    raw = json.loads(dialog.locator("pre").inner_text())
+    assert raw["template"]["id"] == "T2" and len(raw["requirements"]) == 7
+    html = next(row for row in raw["requirements"] if row["declared"] == "html.structure")
+    assert html["capability_id"] == "CAP-0020" and html["availability"] == "runtime_absent"
+    assert raw["read"] == {"state": "read", "rows": []}
+    page.keyboard.press("Escape")
+    dialog.wait_for(state="hidden")
+    assert trigger.evaluate("node => document.activeElement === node"), "diagnostic close lost focus"
+    details_button.click()
+    page.wait_for_function("() => location.hash === '#capability/CAP-0020'")
+    detail = page.get_by_role("article", name="能力详情", exact=True)
+    assert "Office文档结构读取" in detail.inner_text()
+    detail.get_by_role("button", name="到资料库打开学科模板", exact=True).click()
+    page.locator(".space-view:visible").get_by_role("heading", name="资料库", exact=True).wait_for()
+    navigate(page, "15")
+    page.get_by_role("tab", name="学科模板", exact=True).click()
+    launcher = page.get_by_role("region", name="学科模板工作区", exact=True)
+    launcher.get_by_role("combobox", name="模板", exact=True).select_option("T2")
+    return {"status": "PASS", "text": text, "raw": raw,
+            "capability_route": "CAP-0020", "diagnostic_focus_restored": True,
+            "details_button": control, "screenshot": str(screenshot)}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--axe-source", type=Path, required=True)
@@ -156,7 +201,10 @@ def main() -> int:
     parser.add_argument("--console-gestures", action="store_true")
     parser.add_argument("--dock-interactions", action="store_true")
     parser.add_argument("--capability-details", action="store_true")
+    parser.add_argument("--template-requirements", action="store_true")
     args = parser.parse_args()
+    if args.template_requirements and args.pages and "15" not in args.pages:
+        parser.error("--template-requirements requires production page 15")
     root = Path(os.environ["ARCHEAXIS_RUN_ROOT"])
     output = root / "artifacts" / "ui-coverage"
     output.mkdir(parents=True, exist_ok=False)
@@ -241,6 +289,8 @@ def main() -> int:
                                 started = time.perf_counter()
                                 navigate(page, page_id, capability_id)
                                 case["navigation_ms"] = round((time.perf_counter() - started) * 1000, 2)
+                                if args.template_requirements and page_id == "15":
+                                    case["template_requirements"] = template_requirements(page, output, f"{theme}-{width}x{height}")
                                 if page_id == "18":
                                     heading = page.get_by_role("article", name="能力详情", exact=True).locator(":scope > h3")
                                     case["detail_heading"] = a0.visible_control_box(heading)
@@ -270,6 +320,7 @@ def main() -> int:
                                 case["status"] = "FAIL" if case["axe"]["violations"] else "PASS_AUTOMATED_ONLY"
                             except Exception as error:
                                 case.update(status="FAIL", error=str(error))
+                                case["surface_snapshot"] = page.locator(".space-view:visible").aria_snapshot()
                             shot = output / f"page-{page_id}{'-' + capability_id if capability_id else ''}-{theme}-{width}x{height}.png"
                             page.screenshot(path=str(shot))
                             case["screenshot"] = str(shot.relative_to(root))

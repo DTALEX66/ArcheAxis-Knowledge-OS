@@ -21,6 +21,8 @@ import {
 } from "../templates/capabilityRequirements";
 import { TemplateWorkspace } from "../templates/TemplateWorkspace";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 
 const api = vi.hoisted(() => ({ call: vi.fn() }));
 // Partial, not total: a factory that returns only `coreCommand` also erases `verifyCanonicalCore`
@@ -184,29 +186,65 @@ describe("template detail renders the requirement table", () => {
     });
   });
 
+  it("keeps protocol details out of template reading while retaining the complete diagnostic record", async () => {
+    resetDiagnostics();
+    const view = render(<><TemplateWorkspace onOpen={vi.fn()} onOpenCapability={vi.fn()} /><DiagnosticConsole /></>);
+    fireEvent.click(await screen.findByRole("button", { name: "tpl · v1" }));
+    const panel = await screen.findByRole("region", { name: "模板能力需求" });
+    expect(within(panel).getByRole("heading", { level: 3, name: "研究与项目 · 所需能力" })).toBeInTheDocument();
+    expect(panel.textContent).not.toMatch(/Core|worker|CAP-|稳定 ID|html\.structure|pdf\.extract|NOT_RUN|handshake_ready/);
+    expect(within(panel).getByRole("row", { name: /网页结构读取/ })).toHaveTextContent("已禁用");
+    expect(within(panel).getByRole("row", { name: /PDF内容提取/ })).toHaveTextContent("当前应用未接入此处理服务");
+    expect(within(panel).getByRole("row", { name: /本地内容检索/ })).toHaveTextContent("只有需求说明，尚未接入实际处理");
+    fireEvent.click(within(panel).getByRole("button", { name: "查看诊断详情：模板能力登记与运行状态" }));
+    const observed = { capability: "html.structure", enabled: false, health: "handshake_ready" };
+    expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({
+      template: TEMPLATES.find(template => template.id === "T2"),
+      requirements: resolveTemplateRequirements("T2", { state: "read", rows: new Map([["html.structure", observed]]) }),
+      read: { state: "read", rows: [observed] },
+    });
+    resetDiagnostics();
+  });
+
   it("shows provider, availability and missing reason per requirement, and links only what resolves", async () => {
     render(<TemplateWorkspace onOpen={vi.fn()} onOpenCapability={vi.fn()} />);
     // The saved list arrives from a read, so it has to be awaited; the sibling test below already
     // does. A synchronous getByRole here races the fetch and loses.
     fireEvent.click(await screen.findByRole("button", { name: "tpl · v1" }));
-    const table = await screen.findByRole("table", { name: /模板 T2 的能力需求/ });
+    const table = await screen.findByRole("table", { name: /研究与项目的能力需求/ });
     // The live read is what the table reports: html.structure is disabled in this host, and its
     // sibling pdf.extract is absent from the handshake list — two different sentences.
-    expect(within(table).getByRole("row", { name: /html\.structure/ }).textContent).toContain("已禁用");
-    expect(within(table).getByRole("row", { name: /pdf\.extract/ }).textContent).toContain("本轮握手列表无此运行能力");
-    expect(within(table).getByRole("row", { name: /search\.local/ }).textContent).toContain("无稳定 ID");
-    expect(within(table).getByRole("row", { name: /office\.structure/ }).textContent).toContain("多格式转换");
+    expect(within(table).getByRole("row", { name: /网页结构读取/ }).textContent).toContain("已禁用");
+    expect(within(table).getByRole("row", { name: /PDF内容提取/ }).textContent).toContain("当前应用未接入此处理服务");
+    expect(within(table).getByRole("row", { name: /本地内容检索/ }).textContent).toContain("尚未关联到能力目录");
+    expect(within(table).getByRole("row", { name: /Office文档结构读取/ }).textContent).toContain("多格式转换");
     // Navigable rows are exactly the resolvable ones.
-    expect(within(table).getAllByRole("button", { name: /^打开能力详情 CAP-/ })).toHaveLength(3);
-    expect(within(table).getAllByText("无 ID，不可跳转")).toHaveLength(4);
-    expect(within(table).queryByRole("button", { name: /search\.local/ })).toBeNull();
+    expect(within(table).getAllByRole("button", { name: /^查看.+的能力详情$/ })).toHaveLength(3);
+    expect(within(table).getAllByText("尚未关联到能力目录", { selector: "span" })).toHaveLength(4);
+    expect(within(table).queryByRole("button", { name: /本地内容检索/ })).toBeNull();
+  });
+  it.each([
+    [{ enabled: true, health: "handshake_ready" }, "连接检查允许使用", "实际处理结果与质量仍需单独核对"],
+    [{ enabled: true, health: "starting" }, "处理服务尚未就绪", "当前不能使用此处理步骤"],
+    [{ health: "handshake_ready" }, "使用权限未知", "尚不能判断是否允许执行"],
+  ])("does not promote a connection observation into a successful template task: %j", async (observation, label, reason) => {
+    const previous = api.call.getMockImplementation()!;
+    api.call.mockImplementation(async (operation: string, ...args: unknown[]) => operation === "capabilities_list"
+      ? { capabilities: [{ capability: "html.structure", ...observation }] } : previous(operation, ...args));
+    render(<TemplateWorkspace onOpen={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "tpl · v1" }));
+    const row = within(await screen.findByRole("table", { name: /研究与项目的能力需求/ })).getByRole("row", { name: /网页结构读取/ });
+    expect(row).toHaveTextContent("已有实现声明");
+    expect(row).toHaveTextContent(label);
+    expect(row).toHaveTextContent(reason);
+    expect(row.textContent).not.toMatch(/已执行成功|任务已完成|handshake_ready|starting/);
   });
   it("routes a resolvable requirement into the capability detail and adds no live region", async () => {
     const onOpenCapability = vi.fn();
     const view = render(<TemplateWorkspace onOpen={vi.fn()} onOpenCapability={onOpenCapability} />);
     fireEvent.click(await screen.findByRole("button", { name: "tpl · v1" }));
-    const table = await screen.findByRole("table", { name: /模板 T2 的能力需求/ });
-    fireEvent.click(within(table).getByRole("button", { name: "打开能力详情 CAP-0020 · html.structure" }));
+    const table = await screen.findByRole("table", { name: /研究与项目的能力需求/ });
+    fireEvent.click(within(table).getByRole("button", { name: "查看网页结构读取的能力详情" }));
     expect(onOpenCapability).toHaveBeenCalledWith("CAP-0020");
     // The table describes persisted declarations; the workspace owns exactly one outcome region.
     expect(view.container.querySelectorAll('[role="status"],[role="alert"],[aria-live]:not([aria-live="off"])')).toHaveLength(1);
@@ -215,7 +253,7 @@ describe("template detail renders the requirement table", () => {
     view.unmount();
     const orphan = render(<TemplateWorkspace onOpen={vi.fn()} />);
     fireEvent.click(await screen.findByRole("button", { name: "tpl · v1" }));
-    const second = await screen.findByRole("table", { name: /模板 T2 的能力需求/ });
+    const second = await screen.findByRole("table", { name: /研究与项目的能力需求/ });
     expect(within(second).getAllByText("当前视图未提供能力入口")).toHaveLength(3);
     orphan.unmount();
   });
@@ -247,11 +285,11 @@ describe("template detail renders the requirement table", () => {
     fireEvent.change(screen.getByLabelText("模板"), { target: { value: "T2" } });
     fireEvent.change(screen.getByLabelText("学科"), { target: { value: "statistics" } });
     fireEvent.click(screen.getByRole("button", { name: "创建学科对象" }));
-    const table = await screen.findByRole("table", { name: /模板 T2 的能力需求/ });
+    const table = await screen.findByRole("table", { name: /研究与项目的能力需求/ });
     // This fixture makes the handshake read throw, so the honest cell is "read failed", not
     // "not read" - the two are different sentences and the resolver keeps them apart.
-    expect(within(table).getByRole("row", { name: /pdf\.extract/ }).textContent).toContain("读取失败，显示未知");
-    expect(within(table).getByRole("row", { name: /search\.local/ }).textContent).toContain("无合格实现");
+    expect(within(table).getByRole("row", { name: /PDF内容提取/ }).textContent).toContain("读取失败，运行状态未知");
+    expect(within(table).getByRole("row", { name: /本地内容检索/ }).textContent).toContain("只有需求说明，尚未接入实际处理");
     fireEvent.change(await screen.findByLabelText("样本"), { target: { value: "n=12" } });
     fireEvent.click(screen.getByRole("button", { name: "保存模板属性与关系" }));
     await screen.findByText(/模板对象与属性已保存并完整读回/);
@@ -277,7 +315,8 @@ describe("capability detail is the plugin side of the same join", () => {
     const detail = screen.getByRole("article", { name: "能力详情" });
     expect(within(detail).getByRole("heading", { name: "使用此能力的模板" })).toBeInTheDocument();
     expect(detail.textContent).toContain("研究与项目");
-    expect(detail.textContent).toContain("office.structure");
+    expect(detail.textContent).toContain("Office文档结构读取");
+    expect(detail.textContent).not.toContain("office.structure");
     expect(detail.textContent).not.toContain("知识网络");
     await userEvent.setup().click(screen.getByRole("button", { name: "到资料库打开学科模板" }));
     expect(onNavigate).toHaveBeenCalledWith("library");
@@ -328,10 +367,10 @@ describe("template surface reaches the capability route through the shell", () =
     });
     render(<CanonicalLibrarySpace onOpenCapability={onOpenCapability} />);
     await openLauncher();
-    const table = await screen.findByRole("table", { name: /模板 T1 的能力需求/ });
+    const table = await screen.findByRole("table", { name: /知识网络的能力需求/ });
     fireEvent.change(screen.getByLabelText("模板"), { target: { value: "T3" } });
-    expect(within(table).getByRole("row", { name: /course\.general/ }).textContent).toContain("本轮握手：允许");
-    fireEvent.click(within(table).getByRole("button", { name: "打开能力详情 CAP-0060 · course.general" }));
+    expect(within(table).getByRole("row", { name: /通用课程/ }).textContent).toContain("连接检查允许使用");
+    fireEvent.click(within(table).getByRole("button", { name: "查看通用课程的能力详情" }));
     expect(onOpenCapability).toHaveBeenCalledWith("CAP-0060");
   });
 });
@@ -364,10 +403,10 @@ describe("app shell wiring of the template→capability route", () => {
       window.location.hash = "#space=library";
       render(<App />);
       await openLauncher();
-      const table = await screen.findByRole("table", { name: /模板 T1 的能力需求/ });
-      expect(within(table).getAllByText("无 ID，不可跳转")).toHaveLength(5);
+      const table = await screen.findByRole("table", { name: /知识网络的能力需求/ });
+      expect(within(table).getAllByText("尚未关联到能力目录", { selector: "span" })).toHaveLength(5);
       fireEvent.change(screen.getByLabelText("模板"), { target: { value: "T2" } });
-      fireEvent.click(await screen.findByRole("button", { name: "打开能力详情 CAP-0020 · html.structure" }));
+      fireEvent.click(await screen.findByRole("button", { name: "查看网页结构读取的能力详情" }));
       expect(await screen.findByRole("heading", { name: "能力中心" })).toBeInTheDocument();
       expect(screen.getByRole("article", { name: "能力详情" })).toHaveTextContent("多格式转换");
       expect(screen.getByRole("article", { name: "能力详情" })).not.toHaveTextContent("稳定入口 ID CAP-0020");

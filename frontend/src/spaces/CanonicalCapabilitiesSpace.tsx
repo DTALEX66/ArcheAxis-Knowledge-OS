@@ -15,6 +15,7 @@ import { ModelTaskRoles } from "../components/ModelTaskRoles";
 import { readScopedReadiness } from "../api/scopedReadiness";
 import { capabilityPresentation, capabilityOperationName, capabilityDetailText, type CapabilityGroup } from "../presentation/capabilityCenter";
 import { CapabilityPackageDetails } from "../components/CapabilityPackageDetails";
+import { templateRequirementStatus } from "../presentation/templateCapabilities";
 import { focusVisibleTarget } from "../presentation/focus";
 import "./capabilities.css";
 
@@ -135,10 +136,11 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     <RawReceiptButton label="复用来源登记" payload={absorption} />
     <h4>使用此能力的模板</h4>
     {requiring.length ? <ul className="capability-directory">{requiring.map((reference) => <li key={`${reference.template_id}:${reference.declared}`}>
-      <b>{reference.template_id} {reference.template_name}</b>
-      <small>{reference.declared} · {reference.join_label} · {reference.status_label}</small>
+      <b>{reference.template_name}</b>
+      <small>{capabilityOperationName(reference.declared)} · {templateRequirementStatus[reference.status]}</small>
     </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
-    <p>{requiring.length ? "此处只列声明了该 ID 的模板；模板不复制插件代码、依赖安装或连接配置。对象在资料库的「学科模板」展开区，本视图不建立第二份模板清单。" : "无声明联接时不提供跳转，避免打开一个没有对象的入口。"}</p>
+    <p>{requiring.length ? "以下模板已与此能力建立需求对应关系，实际运行状态仍需核对。请到资料库的「学科模板」展开区使用。" : "尚无模板与此能力建立对应关系。"}</p>
+    <RawReceiptButton label="模板需求对应记录" payload={requiring} category="runtime" />
     {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
     <CapabilityPackageDetails capabilityId={selected.atlas.capability_id} />
     <h4>当前运行联接、权限与健康</h4>

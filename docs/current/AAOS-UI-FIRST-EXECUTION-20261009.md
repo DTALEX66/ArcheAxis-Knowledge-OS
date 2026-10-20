@@ -2,7 +2,7 @@
 
 状态 **RUNNING_BY_OWNER / PARTIAL**（Owner 明确要求今天停止额度监控并继续；今天不查询额度、不因额度阈值停工）。本文件是 [活动指针](AAOS-ACTIVE-EXECUTION.json) 指定的唯一进度源；按指针及 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md) 接续当前任务，不从旧暂停或旧 COMPLETE 推导现场事实。
 
-最新接续见文末 **2026-10-20 RC-P03/P04：主线合并与分支收敛**：PR194的2574b40d经定向审阅及required exact-SHA CI39423295711全部通过后，已正常合入main的52147d6b；TRAE的206d56da完整保留。PR192/193按补丁已包含关闭，已清理19个本地、4个远端分支，6个有不等价patch的分支保留。main后继CI39427148307须独立读回，不将PR候选安装通过当成Green/Owner验收。P05本地A0/1851项及P02定向/64项浏览器证据仍分别绑定原候选；前端总体PARTIAL、后端阶段尚未启动、Green未更新。早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
+最新接续见文末 **2026-10-20 UI-P02：模板需求与诊断分离**：PR194/195已合入main，现场基线726842c8的CI39431380394成功，TRAE的206d56da完整保留。新增模板需求中文呈现、原始记录诊断、能力反向列表及标题层级修复，本地64项、有限浏览器4项通过；本片新提交的exact-SHA CI和合并仍需独立读回。19个本地/4个远端已合并分支的清理及6个独有patch分支的保留不变。前端总体PARTIAL，UI-P02全域及UI-P14/21/22/23/24等仍未完成，后端阶段尚未启动、Green未更新。早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
 
 ## 已实施与证据边界
 
@@ -421,3 +421,26 @@ Owner后继明确要求“该合并的合并啊”。本轮完成已获授权的
 `rc-source-reachability-green-20261020`的当前声明缺失对象为0；`rc-resource-projection-green-20261020`16项原投影合同PASS，`rc-resource-ui-green-20261020`资源页/供体2文件20项PASS。生成步骤`rc-resource-regenerate-20261020`的child exit0，但因预期改写生成文件，被dev.py正确记SOURCE_INVALIDATED/exit3，**不称验证PASS**；后继只读投影/消费者门禁才是通过证据。Python退出时已有pyreadline3句柄析构警告仍保留，进程exit0。此补查修复纳入后继PR195重新资格，不凭82f420f3那次仅文档CI通过直接合入新源码。
 
 后继文档Authority与生成投影`--check`通过。`rc-source-conventions-final-20261020`另发现本轮Python生成的分支回执工作副本为CRLF；Git已提交blob为LF，数据没有差异。已逐字节核对后将本轮工作副本对齐原已提交LF blob，未修改历史记录数据、生成规则或云端blob；该FAIL保留，后继规范复验另记。
+
+## 2026-10-20 UI-P02：模板需求与诊断分离
+
+现场先核main仍为726842c8、无开放PR；PR195由5302e764合入726842c8，候选CI39429508062及main后继[CI39431380394](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39431380394)均SUCCESS。原main52147d6b的CI39427148307在后继推进后取消，不能记PASS。当前writer分支codex/sync-20261019由5302e764安全快进到main基线，无未知脏修改；未重合旧包、未清理保留分支。
+
+本片映射UI-P02，并补UI-P10/18/20/21相关有限回归：模板需求表不再直接显示处理协议、内部能力编号、原始权限/健康字段；显示中文用途、已登记实现、连接允许、禁用、未就绪、权限未知、未接入、未读取和读取失败。模板声明由内置操作承担但尚未关联目录的情况单独说明；纯需求不冒充已实现，连接允许不冒充实际处理成功。完整模板声明、解析行、运行状态及能力反向对应记录由现有RawReceiptButton送入同一运行诊断。未改resolver、TEMPLATES、目录或保存准入，没有新注册器/诊断抽屉。能力跳转仍传原稳定身份；缺增强能力时创建、字段编辑和实际保存调用保持可用。
+
+修改范围：`frontend/src/templates/TemplateWorkspace.tsx`、`frontend/src/presentation/templateCapabilities.ts`、既有`capabilityCenter.ts`显示名、`CanonicalCapabilitiesSpace.tsx`模板反向列表、原`TemplateCapabilityRequirements.test.tsx`消费者与回归，以及现有`aaos_ui_coverage.py`的可选模板路径。浏览器扫描发现原h4需求标题越级，改为h3并增加原问题断言；没有放宽axe规则。
+
+| 验证 | 实际结果与边界 |
+| --- | --- |
+| 原问题RED | `ui-template-copy-red-20261020`1项FAIL：阅读区暴露Core/worker/CAP/协议名，保留日志。新增回归同时要求诊断JSON与原始模板、解析行和运行读取逐值一致。 |
+| 最终定向 | `ui-template-heading-tests-20261020`4文件64项PASS，包括原resolver严格身份、不借相似名、模板创建/引用/保存、无新增播报区、资源页及App→能力路由；SIMULATED接口，不是实际安装或真实Core持久化验收。 |
+| 类型/构建 | `ui-template-types-20261020`TypeScript PASS；`ui-template-build-20261020`正式frontend.mjs构建PASS（内层0f3bae57512c，含最终TypeScript），原大chunk警告保留，不据build宣称runtime。 |
+| 最终浏览器 | `ui-template-browser-evidence-20261020`4项PASS_AUTOMATED_ONLY：正式资源页15→学科模板→需求详情/诊断→Escape焦点返回→能力详情→资料库→资源模板；cosmic/blueprint-light×1600×1000/640×480，实际点击，按钮完整高度/可达，页面无横向溢出。Chromium149.0.7827.55、DPR1、reduced-motion=reduce，SYNTHETIC host/Core。axe4.14.0无violation；每场color-contrast及label-content-name-mismatch的incomplete完整保留，不称全面合规。已实际查看heading运行的4张入口图及evidence运行的4张需求行图，窄窗通过滚动查看长中文，不缩小字号。 |
+| 来源与关闭 | 浏览器base726842c8、dirty diff SHA256 `4a4e108c023c60ee5b1320a0e06216c69c4780e6633dd269aeeb962c89be4bc4`；当时新增显示模块尚未进入index，另核文件SHA256 `b2c69d38be8b20fd6379b5edc72d72f7856f0032669550a1de1c46ea8bf7c470`。自有PID40532、127.0.0.1:49294结束，port_closed=true；terminate退出1仅为服务回收，不称优雅退出。无pageerror/外网请求。 |
+| 失败保留 | 首轮误将模板置于阅读页，第二轮精确label查询失配，第三轮返回资料库命中三个同名标题；修正为正式资源标签、combobox可访问名及业务面板限定，未改产品规避。随后四场操作PASS但axe标题越级FAIL，修复后再资格。原运行ui-template-browser、browser-route、browser-labels、browser-final均保留；browser-heading为修复后首次4场通过，browser-evidence补需求行截图与按钮完整可达断言。 |
+
+所有run在本项目忽略目录`.project-local/runs/be268a2d33/<run-id>/`。前端代码本轮定向审阅确认仅显示投影/诊断入口改变，原能力判定、禁用/未知边界及真实保存调用未改。新提交/PR/required exact-SHA CI/main合并以本片交付后的远端读回为准；以上测量在交付前完成，不将本地通过当云端通过。
+
+**未完成与下一步**：UI-P02其他业务面仍有工程术语，UI-P14三类免费检索真实接口缺口保留，继续独立前端，不造空检索成功；UI-P21人工辅助技术、UI-P22规模性能、UI-P23全域视觉基准、UI-P24同候选安装和Owner验收仍PARTIAL/UNVERIFIED。前端未阶段交付，不进入BE-P01—15；Green、真实数据、模型/provider/endpoint未变。RC-P05—08剩余对象/体积/目录治理另按精确清单分批推进，不能取代产品修复。回退为对本片显示模块、两页面、原测试/探针消费者作反向修订；不回退已合入TRAE及主线基线，不删除失败证据。
+
+交付前附加门禁：`ui-template-conventions-20261020`工作树目录/编码规范PASS，`ui-template-authority-20261020`单一记录/引用/仓内7个hash PASS（外部私人4项仍UNVERIFIED），`ui-template-final-lint-20261020`CI同选项Ruff PASS，diff --check PASS。原始运行材料和截图保持本地，不提交。
