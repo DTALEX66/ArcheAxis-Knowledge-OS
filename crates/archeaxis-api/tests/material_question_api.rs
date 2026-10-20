@@ -418,3 +418,515 @@ fn transform_binding_and_unicode_selection_refuse_wrong_identity_without_knowled
         0
     );
 }
+
+async fn async_fixture(dir: &std::path::Path) -> (Executor, Router, Value) {
+    let script = dir.join("async-worker.py");
+    let count = dir.join("async-count");
+    let started = dir.join("async-started");
+    let release = dir.join("async-release");
+    std::fs::write(&script, format!("import json,time,os\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\nPath({}).write_text(str(os.getpid()))\nwhile not Path({}).exists(): time.sleep(0.01)\nprint(json.dumps({{'answer':'SYNTHETIC owned async answer','model':'fixture','endpoint':'http://127.0.0.1:1234/v1','protocol':'synthetic','truncated':False}}))\n", serde_json::to_string(&count).unwrap(), serde_json::to_string(&started).unwrap(), serde_json::to_string(&release).unwrap())).unwrap();
+    let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+    let executor = Executor::open_routes(
+        &dir.join("async.sqlite"),
+        &dir.join("async-staging"),
+        &python,
+        &script,
+        &[("machine.answer", script.clone())],
+    )
+    .await
+    .unwrap();
+    let doc = executor.store().submit_wait(|c| document::create_optional(c,None,None,"synthetic async material",json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Bounded synthetic material"}]}]}))).await.unwrap().unwrap();
+    let router = archeaxis_api::runtime::router(executor.clone());
+    let body = json!({"request_id":"async_material","material":{"kind":"document","document_id":doc["document_id"],"version":1,"content_sha256":doc["content_sha256"],"block_id":null},"selection":null,"question":"question","purpose":"learning","model":null,"max_tokens":128,"timeout_s":5,"preview":true,"confirmed_plan_sha256":null});
+    (executor, router, body)
+}
+async fn wait_started(dir: &std::path::Path) {
+    tokio::time::timeout(std::time::Duration::from_secs(3), async {
+        while !dir.join("async-started").exists() {
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
+}
+async fn material_terminal(router: &Router, request: &str) -> Value {
+    tokio::time::timeout(std::time::Duration::from_secs(7), async {
+        loop {
+            let (status, body) = call(
+                router,
+                "/api/v1/material/questions/status",
+                json!({"request_id":request}),
+            )
+            .await;
+            assert_eq!(status, 200);
+            if body["schema"] == "archeaxis.material-answer/v1" {
+                return body;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap()
+}
+#[tokio::test]
+async fn synchronous_disconnected_material_keeps_unknown_without_repeating_inference() {
+    let dir = tempfile::tempdir().unwrap();
+    let (_executor, router, mut body) = async_fixture(dir.path()).await;
+    let preview = call(&router, "/api/v1/material/questions", body.clone())
+        .await
+        .1;
+    body["preview"] = json!(false);
+    body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
+    let client = router.clone();
+    let waiting =
+        tokio::spawn(async move { call(&client, "/api/v1/material/questions", body).await });
+    wait_started(dir.path()).await;
+    waiting.abort();
+    assert!(waiting.await.unwrap_err().is_cancelled());
+    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    let state = call(
+        &router,
+        "/api/v1/material/questions/status",
+        json!({"request_id":"async_material"}),
+    )
+    .await
+    .1;
+    assert_eq!(state["execution_state"], "UNKNOWN");
+    assert_eq!(state["provider_stop_state"], "UNKNOWN");
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+        "1"
+    );
+}
+#[tokio::test]
+async fn asynchronous_admission_survives_disconnected_submitter_and_replays_one_durable_answer() {
+    let dir = tempfile::tempdir().unwrap();
+    let (executor, router, mut body) = async_fixture(dir.path()).await;
+    body["execution_mode"] = json!("async");
+    let (code, preview) = call(&router, "/api/v1/material/questions", body.clone()).await;
+    assert_eq!(code, 200, "{preview}");
+    assert_eq!(preview["plan"]["request"]["execution_mode"], "async");
+    body["preview"] = json!(false);
+    body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
+    let (code, ack) = call(
+        &router,
+        "/api/v1/material/questions/submissions",
+        body.clone(),
+    )
+    .await;
+    assert_eq!(code, 202, "{ack}");
+    assert_eq!(ack["schema"], "archeaxis.material-question-admission/v1");
+    assert_eq!(ack["request_id"], "async_material");
+    assert_eq!(ack["workspace_id"], preview["plan"]["workspace_id"]);
+    assert_eq!(ack["plan_sha256"], preview["plan_sha256"]);
+    assert_eq!(ack["answer_published"], false);
+    assert_eq!(ack["provider_stop_state"], "UNKNOWN");
+    wait_started(dir.path()).await;
+    let duplicate = call(
+        &router,
+        "/api/v1/material/questions/submissions",
+        body.clone(),
+    )
+    .await;
+    assert_eq!(duplicate.0, 202);
+    assert_eq!(duplicate.1["request_id"], ack["request_id"]);
+    std::fs::write(dir.path().join("async-release"), b"release").unwrap();
+    let terminal = material_terminal(&router, "async_material").await;
+    assert_eq!(terminal["outcome"], "succeeded");
+    assert_eq!(terminal["answer"]["answer"], "SYNTHETIC owned async answer");
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+        "1"
+    );
+    assert_eq!(
+        call(&router, "/api/v1/material/questions/submissions", body)
+            .await
+            .1,
+        terminal
+    );
+    drop(router);
+    drop(executor);
+    let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+    let script = dir.path().join("async-worker.py");
+    let reopened = Executor::open_routes(
+        &dir.path().join("async.sqlite"),
+        &dir.path().join("async-staging"),
+        &python,
+        &script,
+        &[("machine.answer", script.clone())],
+    )
+    .await
+    .unwrap();
+    let reopened = archeaxis_api::runtime::router(reopened);
+    assert_eq!(
+        call(
+            &reopened,
+            "/api/v1/material/questions/status",
+            json!({"request_id":"async_material"})
+        )
+        .await
+        .1,
+        terminal
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+        "1"
+    );
+}
+
+async fn confirmed_async(router: &Router, mut body: Value) -> Value {
+    body["execution_mode"] = json!("async");
+    body["preview"] = json!(true);
+    body["confirmed_plan_sha256"] = Value::Null;
+    let (code, preview) = call(router, "/api/v1/material/questions", body.clone()).await;
+    assert_eq!(code, 200, "{preview}");
+    body["preview"] = json!(false);
+    body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
+    body
+}
+#[tokio::test]
+async fn asynchronous_capacity_is_not_a_queue_and_explicit_cancel_keeps_provider_unknown() {
+    let dir = tempfile::tempdir().unwrap();
+    let (_executor, router, body) = async_fixture(dir.path()).await;
+    let mut invalid_mode = body.clone();
+    invalid_mode["execution_mode"] = Value::Null;
+    assert_eq!(
+        call(&router, "/api/v1/material/questions", invalid_mode)
+            .await
+            .0,
+        400
+    );
+    let body = confirmed_async(&router, body).await;
+    assert_eq!(
+        call(&router, "/api/v1/material/questions", body.clone())
+            .await
+            .0,
+        422
+    );
+    let mut no_confirmation = body.clone();
+    no_confirmation["confirmed_plan_sha256"] = Value::Null;
+    assert_eq!(
+        call(
+            &router,
+            "/api/v1/material/questions/submissions",
+            no_confirmation
+        )
+        .await
+        .0,
+        403
+    );
+    assert!(!dir.path().join("async-count").exists());
+    assert_eq!(
+        call(
+            &router,
+            "/api/v1/material/questions/submissions",
+            body.clone()
+        )
+        .await
+        .0,
+        202
+    );
+    wait_started(dir.path()).await;
+    let mut other = body.clone();
+    other["request_id"] = json!("async_other");
+    let other = confirmed_async(&router, other).await;
+    assert_eq!(
+        call(&router, "/api/v1/material/questions/submissions", other)
+            .await
+            .0,
+        429
+    );
+    assert_eq!(
+        call(
+            &router,
+            "/api/v1/material/questions/status",
+            json!({"request_id":"async_other"})
+        )
+        .await
+        .1["execution_state"],
+        "NOT_EXECUTED"
+    );
+    let mut changed = body.clone();
+    changed["question"] = json!("changed question");
+    let changed = confirmed_async(&router, changed).await;
+    assert_eq!(
+        call(&router, "/api/v1/material/questions/submissions", changed)
+            .await
+            .0,
+        409
+    );
+    let cancel = call(
+        &router,
+        "/api/v1/material/questions/cancel",
+        json!({"request_id":"async_material"}),
+    )
+    .await;
+    assert_eq!(cancel.0, 200);
+    assert_eq!(cancel.1["cancel_requested"], true);
+    assert_eq!(cancel.1["provider_stop_state"], "UNKNOWN");
+    let terminal = material_terminal(&router, "async_material").await;
+    assert_eq!(terminal["outcome"], "failed");
+    assert_eq!(terminal["reason_code"], "material_question_cancelled");
+    assert!(terminal["answer"].is_null());
+    assert_eq!(terminal["provider_stop_state"], "UNKNOWN");
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+        "1"
+    );
+    assert_eq!(
+        call(&router, "/api/v1/material/questions/submissions", body)
+            .await
+            .1,
+        terminal
+    );
+}
+#[tokio::test]
+async fn asynchronous_orphaned_durable_claim_is_unknown_and_never_retried() {
+    let dir = tempfile::tempdir().unwrap();
+    let (executor, router, body) = async_fixture(dir.path()).await;
+    let mut preview_body = body.clone();
+    preview_body["execution_mode"] = json!("async");
+    let preview = call(&router, "/api/v1/material/questions", preview_body)
+        .await
+        .1;
+    let body = confirmed_async(&router, body).await;
+    let plan = preview["plan"].clone();
+    let task_id = "material_answer_".to_owned() + &hash(b"async_material");
+    let claim_key = "machine_execution_claim_".to_owned() + &hash(task_id.as_bytes());
+    executor.store().submit_wait(move|c| {
+        c.execute("INSERT INTO workspace_meta(key,value) VALUES(?1,?2)",rusqlite::params![format!("material_request_{task_id}"),plan.to_string()]).unwrap();
+        let claim=json!({"schema":"archeaxis.machine-execution-claim/v1","state":"IN_FLIGHT","request_sha256":hash(plan.to_string().as_bytes()),"attempt":1,"max_attempts":3});
+        c.execute("INSERT INTO workspace_meta(key,value) VALUES(?1,?2)",rusqlite::params![claim_key,claim.to_string()]).unwrap();
+    }).await.unwrap();
+    let state = call(
+        &router,
+        "/api/v1/material/questions/status",
+        json!({"request_id":"async_material"}),
+    )
+    .await
+    .1;
+    assert_eq!(state["execution_state"], "UNKNOWN");
+    assert_eq!(
+        call(&router, "/api/v1/material/questions/submissions", body)
+            .await
+            .0,
+        409
+    );
+    assert!(!dir.path().join("async-count").exists());
+}
+#[tokio::test]
+async fn asynchronous_restore_fence_withholds_late_answer_and_preserves_plan() {
+    let dir = tempfile::tempdir().unwrap();
+    let (executor, router, body) = async_fixture(dir.path()).await;
+    let body = confirmed_async(&router, body).await;
+    assert_eq!(
+        call(
+            &router,
+            "/api/v1/material/questions/submissions",
+            body.clone()
+        )
+        .await
+        .0,
+        202
+    );
+    wait_started(dir.path()).await;
+    executor
+        .store()
+        .submit_wait(|c| {
+            let tx = c.transaction().unwrap();
+            archeaxis_store_sqlite::authorization_fence::install_after_restore(&tx).unwrap();
+            tx.commit().unwrap();
+        })
+        .await
+        .unwrap();
+    std::fs::write(dir.path().join("async-release"), b"release").unwrap();
+    // A live owned lease is RUNNING. Its close/drop follows worker cleanup;
+    // the fenced result must remain UNKNOWN without a published machine task.
+    tokio::time::timeout(std::time::Duration::from_secs(3), async {
+        loop {
+            let state = call(
+                &router,
+                "/api/v1/material/questions/status",
+                json!({"request_id":"async_material"}),
+            )
+            .await
+            .1;
+            if state["execution_state"] == "UNKNOWN" {
+                break;
+            }
+            assert_eq!(state["execution_state"], "RUNNING");
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .unwrap();
+    assert_eq!(
+        executor
+            .store()
+            .submit_wait(|c| c.query_row::<i64, _, _>(
+                "SELECT count(*) FROM machine_tasks WHERE task_id LIKE 'material_answer_%'",
+                [],
+                |r| r.get(0)
+            ))
+            .await
+            .unwrap()
+            .unwrap(),
+        0
+    );
+    assert_eq!(
+        call(&router, "/api/v1/material/questions/submissions", body)
+            .await
+            .0,
+        409
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+        "1"
+    );
+}
+
+#[tokio::test]
+async fn asynchronous_budget_and_dropped_submitter_preserve_owned_identity() {
+    let dir = tempfile::tempdir().unwrap();
+    let (_executor, router, body) = async_fixture(dir.path()).await;
+    let mut oversized = body.clone();
+    oversized["execution_mode"] = json!("async");
+    oversized["timeout_s"] = json!(121);
+    assert_eq!(
+        call(&router, "/api/v1/material/questions", oversized)
+            .await
+            .0,
+        422
+    );
+    let body = confirmed_async(&router, body).await;
+    let client = router.clone();
+    let submitted =
+        tokio::spawn(
+            async move { call(&client, "/api/v1/material/questions/submissions", body).await },
+        );
+    wait_started(dir.path()).await;
+    submitted.abort();
+    let _ = submitted.await;
+    // Submission may have returned its ACK already; neither disconnect path owns the lease.
+    assert_eq!(
+        call(
+            &router,
+            "/api/v1/material/questions/status",
+            json!({"request_id":"async_material"})
+        )
+        .await
+        .1["execution_state"],
+        "RUNNING"
+    );
+    std::fs::write(dir.path().join("async-release"), b"release").unwrap();
+    assert_eq!(
+        material_terminal(&router, "async_material").await["outcome"],
+        "succeeded"
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+        "1"
+    );
+}
+
+#[tokio::test]
+async fn asynchronous_terminal_replay_after_configuration_or_restore_is_historical_only() {
+    for change in ["configuration", "restore"] {
+        let dir = tempfile::tempdir().unwrap();
+        let (executor, router, body) = async_fixture(dir.path()).await;
+        let body = confirmed_async(&router, body).await;
+        let mut unadmitted = body.clone();
+        unadmitted["request_id"] = json!("not_yet_admitted");
+        let unadmitted = confirmed_async(&router, unadmitted).await;
+        assert_eq!(
+            call(
+                &router,
+                "/api/v1/material/questions/submissions",
+                body.clone()
+            )
+            .await
+            .0,
+            202
+        );
+        wait_started(dir.path()).await;
+        std::fs::write(dir.path().join("async-release"), b"release").unwrap();
+        let receipt = material_terminal(&router, "async_material").await;
+        assert_eq!(receipt["outcome"], "succeeded");
+        if change == "configuration" {
+            // An actual configuration transaction in this synthetic workspace;
+            // no service/model/provider/global profile is changed.
+            executor
+                .store()
+                .submit_wait(|c| {
+                    let prior = archeaxis_domain::model_configuration::read(c).unwrap();
+                    let saved =
+                        archeaxis_domain::model_configuration::put(c, prior.revision, prior)
+                            .unwrap();
+                    assert_eq!(saved.revision, 1);
+                })
+                .await
+                .unwrap();
+        } else {
+            executor
+                .store()
+                .submit_wait(|c| {
+                    let tx = c.transaction().unwrap();
+                    archeaxis_store_sqlite::authorization_fence::install_after_restore(&tx)
+                        .unwrap();
+                    tx.commit().unwrap();
+                })
+                .await
+                .unwrap();
+        }
+        let (code, replayed) = call(
+            &router,
+            "/api/v1/material/questions/submissions",
+            body.clone(),
+        )
+        .await;
+        assert_eq!(code, 200, "{change}: {replayed}");
+        assert_eq!(replayed, receipt);
+        assert_eq!(
+            call(
+                &router,
+                "/api/v1/material/questions/status",
+                json!({"request_id":"async_material"})
+            )
+            .await
+            .1,
+            receipt
+        );
+        // Historical read never admits a new request under the old plan/config/epoch.
+        let (code, _) = call(
+            &router,
+            "/api/v1/material/questions/submissions",
+            unadmitted,
+        )
+        .await;
+        assert_eq!(code, if change == "configuration" { 422 } else { 403 });
+        let mut wrong = body.clone();
+        wrong["question"] = json!("different frozen question");
+        assert_eq!(
+            call(&router, "/api/v1/material/questions/submissions", wrong)
+                .await
+                .0,
+            409
+        );
+        let mut unconfirmed = body;
+        unconfirmed["confirmed_plan_sha256"] = Value::Null;
+        assert_eq!(
+            call(
+                &router,
+                "/api/v1/material/questions/submissions",
+                unconfirmed
+            )
+            .await
+            .0,
+            403
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.path().join("async-count")).unwrap(),
+            "1"
+        );
+    }
+}

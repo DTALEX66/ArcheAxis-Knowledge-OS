@@ -228,6 +228,10 @@ pub fn router(executor: Executor) -> Router {
             post(material_questions::question),
         )
         .route(
+            "/api/v1/material/questions/submissions",
+            post(material_questions::submit),
+        )
+        .route(
             "/api/v1/material/context",
             post(material_questions::context),
         )

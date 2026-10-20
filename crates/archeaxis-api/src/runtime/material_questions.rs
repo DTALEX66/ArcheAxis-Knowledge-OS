@@ -12,11 +12,46 @@ pub(super) struct Body {
     model: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     model_configuration: Option<archeaxis_domain::model_configuration::Resolved>,
+    #[serde(
+        default,
+        deserialize_with = "read_execution_mode",
+        skip_serializing_if = "Option::is_none"
+    )]
+    execution_mode: Option<ExecutionMode>,
     max_tokens: u64,
     timeout_s: u64,
     #[serde(default)]
     preview: bool,
     confirmed_plan_sha256: Option<String>,
+}
+#[derive(Clone, Copy, PartialEq, Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub(super) enum ExecutionMode {
+    Async,
+}
+fn read_execution_mode<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<ExecutionMode>, D::Error> {
+    ExecutionMode::deserialize(deserializer).map(Some)
+}
+fn admission_ack(plan: &Value, plan_sha: &str) -> Response {
+    (StatusCode::ACCEPTED, Json(json!({"schema":"archeaxis.material-question-admission/v1",
+        "request_id":plan["request"]["request_id"],"task_id":key(plan["request"]["request_id"].as_str().unwrap()),
+        "plan_sha256":plan_sha,"workspace_id":plan["workspace_id"],"restore_epoch":plan["restore_epoch"],"admission_state":"ACCEPTED",
+        "execution_state":"RUNNING","answer_published":false,"provider_stop_state":"UNKNOWN"}))).into_response()
+}
+pub(super) async fn submit(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+    Json(body): Json<Body>,
+) -> Response {
+    if body.preview || body.execution_mode != Some(ExecutionMode::Async) {
+        return failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "confirmed_async_material_request_required",
+        );
+    }
+    question_inner(runtime, headers, body, true).await
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -67,7 +102,21 @@ fn model_failure(error: &str) -> &'static str {
 pub(super) async fn question(
     State(runtime): State<Runtime>,
     headers: HeaderMap,
-    Json(mut body): Json<Body>,
+    Json(body): Json<Body>,
+) -> Response {
+    if !body.preview && body.execution_mode.is_some() {
+        return failure(
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "use_material_async_submission",
+        );
+    }
+    question_inner(runtime, headers, body, false).await
+}
+async fn question_inner(
+    runtime: Runtime,
+    headers: HeaderMap,
+    mut body: Body,
+    asynchronous: bool,
 ) -> Response {
     if crate::request_actor(&headers) != Ok("human") {
         return failure(StatusCode::FORBIDDEN, "human_authorization_required");
@@ -91,6 +140,126 @@ pub(super) async fn question(
     let preview = body.preview;
     let confirmed = body.confirmed_plan_sha256.take();
     body.preview = false;
+    let id = key(&body.request_id);
+    if asynchronous {
+        // A terminal replay is a historical read. Never rebuild its context or
+        // resolve today's profile/restore scope as if this were new permission.
+        let query = id.clone();
+        let request = serde_json::to_value(&body).unwrap();
+        let confirmation = confirmed.clone();
+        let previous = runtime
+            .executor
+            .store()
+            .submit_wait(
+                move |conn| -> Result<Option<(Value, Option<Value>, bool)>, String> {
+                    let terminal = archeaxis_domain::machine::machine_task(conn, &query)
+                        .map_err(|_| "material_receipt_unavailable")?
+                        .map(|task| {
+                            serde_json::from_str::<Value>(&task.conditions)
+                                .map_err(|_| "material_receipt_invalid")
+                        })
+                        .transpose()?;
+                    let journal: Option<String> = conn
+                        .query_row(
+                            "SELECT value FROM workspace_meta WHERE key=?1",
+                            [format!("material_request_{query}")],
+                            |r| r.get(0),
+                        )
+                        .optional()
+                        .map_err(|_| "material_journal_unavailable")?;
+                    let journal = journal
+                        .map(|raw| {
+                            serde_json::from_str::<Value>(&raw)
+                                .map_err(|_| "material_journal_invalid")
+                        })
+                        .transpose()?;
+                    let plan = match (&terminal, &journal) {
+                        (Some(receipt), journal) => {
+                            if receipt["schema"] != "archeaxis.material-answer/v1"
+                                || receipt["task_id"] != query
+                                || receipt["request_id"] != request["request_id"]
+                                || !matches!(
+                                    receipt["outcome"].as_str(),
+                                    Some("succeeded" | "failed")
+                                )
+                                || journal
+                                    .as_ref()
+                                    .is_some_and(|stored| stored != &receipt["plan"])
+                            {
+                                return Err("material_receipt_invalid".into());
+                            }
+                            receipt["plan"].clone()
+                        }
+                        (None, Some(plan)) => plan.clone(),
+                        (None, None) => return Ok(None),
+                    };
+                    if plan["schema"] != "archeaxis.material-question-plan/v1"
+                        || plan["request"] != request
+                    {
+                        return Err("material_request_id_conflict".into());
+                    }
+                    let digest = material::hash(plan.to_string().as_bytes());
+                    if terminal
+                        .as_ref()
+                        .is_some_and(|receipt| receipt["plan_sha256"] != digest)
+                    {
+                        return Err("material_receipt_invalid".into());
+                    }
+                    if confirmation.as_deref() != Some(digest.as_str()) {
+                        return Err("material_plan_confirmation_required".into());
+                    }
+                    let current = if terminal.is_some() {
+                        true
+                    } else {
+                        let workspace = archeaxis_domain::ui_state::existing_workspace_id(conn)
+                            .map_err(|_| "material_workspace_unavailable")?;
+                        let epoch = archeaxis_domain::ui_state::machine_execution_epoch(conn)
+                            .map_err(|_| "material_epoch_unavailable")?;
+                        workspace.as_deref() == plan["workspace_id"].as_str()
+                            && plan["restore_epoch"] == epoch
+                    };
+                    Ok(Some((plan, terminal, current)))
+                },
+            )
+            .await;
+        match previous {
+            Ok(Ok(Some((_, Some(receipt), _)))) => return Json(receipt).into_response(),
+            Ok(Ok(Some((plan, None, current)))) => {
+                let owned = current
+                    && runtime.machine_active.lock().ok().is_some_and(|entries| {
+                        entries
+                            .get(&id)
+                            .is_some_and(|entry| plan["restore_epoch"] == entry.restore_epoch)
+                    });
+                return if owned {
+                    let digest = material::hash(plan.to_string().as_bytes());
+                    admission_ack(&plan, &digest)
+                } else {
+                    failure(
+                        StatusCode::CONFLICT,
+                        "material_execution_unknown_retain_request",
+                    )
+                };
+            }
+            Ok(Ok(None)) => (),
+            Ok(Err(reason)) => {
+                return failure(
+                    if reason == "material_plan_confirmation_required" {
+                        StatusCode::FORBIDDEN
+                    } else {
+                        StatusCode::CONFLICT
+                    },
+                    &reason,
+                );
+            }
+            _ => {
+                return failure(
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    "material_status_unavailable",
+                );
+            }
+        }
+    }
     let b = body.clone();
     let prepared=runtime.executor.store().submit_wait(move |conn|{
         let configured=archeaxis_domain::model_configuration::read(conn).map_err(|_|"MODEL_CONFIGURATION_UNAVAILABLE")?;
@@ -103,6 +272,9 @@ pub(super) async fn question(
         let epoch=archeaxis_domain::ui_state::machine_execution_epoch(conn).map_err(|_|"material_epoch_unavailable")?;
         let plan=json!({"schema":"archeaxis.material-question-plan/v1","request":b,"context":proof,"destination":"LOCAL_LOOPBACK_ONLY","destination_candidates":["http://127.0.0.1:1234/v1"],"selection_policy":"existing_owned_local_worker_probe","network_scope":"fixed_owned_local_worker","restore_epoch":epoch,"usage":null,"cost":null});
         let mut plan=plan;
+        if b.execution_mode==Some(ExecutionMode::Async) {
+            plan["workspace_id"]=json!(archeaxis_domain::ui_state::workspace_id(conn).map_err(|_|"material_workspace_unavailable")?);
+        }
         if let Some(config)=&b.model_configuration {
             plan["destination_candidates"]=json!([config.profile.endpoint]);
             plan["selection_policy"]=json!("frozen_material_purpose_profile");
@@ -127,8 +299,20 @@ pub(super) async fn question(
     if confirmed.as_deref() != Some(&plan_sha) {
         return failure(StatusCode::FORBIDDEN, "material_plan_confirmation_required");
     }
-    let _guard = runtime.colearning_admission.lock().await;
-    let id = key(&body.request_id);
+    // Exactly one owned model operation; async never waits in an unbounded task queue.
+    let guard = if asynchronous {
+        match runtime.colearning_admission.clone().try_lock_owned() {
+            Ok(guard) => guard,
+            Err(_) => {
+                return failure(
+                    StatusCode::TOO_MANY_REQUESTS,
+                    "material_async_capacity_exhausted_not_admitted",
+                );
+            }
+        }
+    } else {
+        runtime.colearning_admission.clone().lock_owned().await
+    };
     let stored_id = id.clone();
     let stored_plan = plan.clone();
     let read_body = body.clone();
@@ -162,6 +346,28 @@ pub(super) async fn question(
         Ok(l) => l,
         Err(r) => return r,
     };
+    if asynchronous {
+        let ack = admission_ack(&plan, &plan_sha);
+        // From this point the Core task owns admission, cancellation and postchecks.
+        // Dropping the submitting HTTP/UI waiter cannot drop the lease.
+        tokio::spawn(async move {
+            let _ = execute_owned(runtime, body, text, plan, plan_sha, id, lease, guard).await;
+        });
+        return ack;
+    }
+    execute_owned(runtime, body, text, plan, plan_sha, id, lease, guard).await
+}
+#[allow(clippy::too_many_arguments)]
+async fn execute_owned(
+    runtime: Runtime,
+    body: Body,
+    text: String,
+    plan: Value,
+    plan_sha: String,
+    id: String,
+    lease: super::MachineLease,
+    _guard: tokio::sync::OwnedMutexGuard<()>,
+) -> Response {
     let execution = runtime
         .executor
         .machine_answer_configured_detailed(
@@ -223,6 +429,21 @@ pub(super) async fn question(
         .executor
         .store()
         .submit_wait(move |conn| {
+            if let Some(config) = &body.model_configuration {
+                archeaxis_domain::model_configuration::assert_current(conn, config)?;
+            }
+            if body.execution_mode == Some(ExecutionMode::Async)
+                && receipt["plan"]["workspace_id"]
+                    != archeaxis_domain::ui_state::workspace_id(conn).map_err(|_| {
+                        rusqlite::Error::InvalidParameterName(
+                            "material_workspace_unavailable".into(),
+                        )
+                    })?
+            {
+                return Err(rusqlite::Error::InvalidParameterName(
+                    "material_workspace_changed".into(),
+                ));
+            }
             let (_, now) = material::prepare(conn, &body.material, body.selection.as_ref())
                 .map_err(|_| {
                     rusqlite::Error::InvalidParameterName("material_postcheck_failed".into())
@@ -270,6 +491,7 @@ pub(super) async fn question(
         ),
     }
 }
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Cancel {
@@ -330,10 +552,120 @@ pub(super) async fn status(
         Ok(json!({"request_id":request_id,"plan":plan.and_then(|p|serde_json::from_str::<Value>(&p).ok()),"execution_state":if pending.is_some(){"UNKNOWN"}else{"NOT_EXECUTED"},"answer_published":false,"provider_stop_state":"UNKNOWN"}))
     }).await;
     match result {
-        Ok(Ok(receipt)) => Json(receipt).into_response(),
+        Ok(Ok(mut receipt)) => {
+            if receipt["execution_state"] == "UNKNOWN"
+                && receipt["plan"]["request"]["execution_mode"] == "async"
+            {
+                let owned = runtime.machine_active.lock().ok().is_some_and(|entries| {
+                    entries
+                        .get(&key(receipt["request_id"].as_str().unwrap_or_default()))
+                        .is_some_and(|e| receipt["plan"]["restore_epoch"] == e.restore_epoch)
+                });
+                if owned {
+                    receipt["execution_state"] = json!("RUNNING");
+                }
+            }
+            Json(receipt).into_response()
+        }
         _ => failure(
             StatusCode::SERVICE_UNAVAILABLE,
             "material_status_unavailable",
         ),
+    }
+}
+
+#[cfg(test)]
+mod async_publication_tests {
+    use super::*;
+    async fn read(runtime: Runtime) -> Value {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-archeaxis-actor", "human".parse().unwrap());
+        let response = status(
+            State(runtime),
+            headers,
+            Json(Status {
+                request_id: Some("publication_gap".into()),
+            }),
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::OK);
+        serde_json::from_slice(
+            &axum::body::to_bytes(response.into_body(), 1000000)
+                .await
+                .unwrap(),
+        )
+        .unwrap()
+    }
+    #[tokio::test]
+    async fn closed_live_material_lease_stays_running_until_publication_owner_drops() {
+        let dir = tempfile::tempdir().unwrap();
+        let executor = Executor::open(
+            &dir.path().join("w.sqlite"),
+            &dir.path().join("staging"),
+            std::path::Path::new("unused-python"),
+            std::path::Path::new("unused-worker"),
+        )
+        .await
+        .unwrap();
+        let id = key("publication_gap");
+        let stored = id.clone();
+        executor.store().submit_wait(move|conn| {
+            let plan=json!({"request":{"request_id":"publication_gap","execution_mode":"async"},"restore_epoch":"initial"});
+            conn.execute("INSERT INTO workspace_meta(key,value) VALUES(?1,?2)",rusqlite::params![format!("material_request_{stored}"),plan.to_string()]).unwrap();
+            conn.execute("INSERT INTO workspace_meta(key,value) VALUES(?1,'{}')",[format!("machine_execution_claim_{}",material::hash(stored.as_bytes()))]).unwrap();
+        }).await.unwrap();
+        let registry = Arc::new(std::sync::Mutex::new(HashMap::new()));
+        let cancel = Cancellation::new();
+        registry.lock().unwrap().insert(
+            id.clone(),
+            super::super::MachineActive {
+                attempt: 1,
+                restore_epoch: "initial".into(),
+                cancel: cancel.clone(),
+                accepting: true,
+            },
+        );
+        let runtime = Runtime {
+            executor,
+            active: Arc::new(Mutex::new(HashMap::new())),
+            admission: Arc::new(Mutex::new(())),
+            colearning_admission: Arc::new(Mutex::new(())),
+            machine_active: registry.clone(),
+        };
+        let lease = super::super::MachineLease {
+            registry,
+            key: id,
+            attempt: 1,
+            cancel,
+        };
+        assert!(!lease.close().unwrap());
+        // Hold the real lease across a controlled postcheck/persistence pause.
+        let (release, wait) = tokio::sync::oneshot::channel::<()>();
+        let publisher = tokio::spawn(async move {
+            let _ = wait.await;
+            drop(lease);
+        });
+        assert_eq!(read(runtime.clone()).await["execution_state"], "RUNNING");
+        let mut headers = HeaderMap::new();
+        headers.insert("x-archeaxis-actor", "human".parse().unwrap());
+        let response = super::cancel(
+            State(runtime.clone()),
+            headers,
+            Json(Cancel {
+                request_id: "publication_gap".into(),
+            }),
+        )
+        .await;
+        let value: Value = serde_json::from_slice(
+            &axum::body::to_bytes(response.into_body(), 1000000)
+                .await
+                .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(value["cancel_requested"], false);
+        assert_eq!(value["provider_stop_state"], "UNKNOWN");
+        release.send(()).unwrap();
+        publisher.await.unwrap();
+        assert_eq!(read(runtime).await["execution_state"], "UNKNOWN");
     }
 }

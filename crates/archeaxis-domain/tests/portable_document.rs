@@ -1,6 +1,97 @@
 use archeaxis_domain::{ImportOutcome, document, portable_document, source};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
+
+#[test]
+fn source_relation_packages_original_bytes_and_remaps_foreign_identity() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut a = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("relation-a.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let raw = b"Public authored attachment";
+    let (id, sha) = match source::import_source(&mut a, raw, "same-name.txt", None).unwrap() {
+        ImportOutcome::Imported { source_id, sha256 }
+        | ImportOutcome::Duplicate { source_id, sha256 } => (source_id, sha256),
+    };
+    let doc = document::create_optional(&mut a,None,None,"Relations",json!({"type":"doc","content":[],"attrs":{
+        "opaque_future":{"source_id":"not-a-dependency","sha256":"not-a-hash"},
+        "archeaxis_relations":{"schema":"archeaxis.relations/v1","relations":[{"id":"attachment","kind":"related","label":"Original attachment","target":{"kind":"source","source_id":id,"sha256":sha}}]}}})).unwrap();
+    let mut package = portable_document::export(&a, doc["document_id"].as_str().unwrap()).unwrap();
+    assert_eq!(
+        package.objects.len(),
+        1,
+        "canonical Source relations must carry their original CAS bytes"
+    );
+    assert_eq!(package.objects[0].bytes, raw);
+    package.objects[0].source_id = "foreign_attachment".into();
+    package.document["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0]["target"]["source_id"] =
+        json!("foreign_attachment");
+    package.document["content_sha256"] = json!(hex::encode(Sha256::digest(
+        package.document["editor_json"].to_string().as_bytes()
+    )));
+    let mut b = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("relation-b.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    source::import_source(&mut b, b"different bytes", "same-name.txt", None).unwrap();
+    let imported = portable_document::import(&mut b, package, "relation-import").unwrap();
+    let target = &imported["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"]
+        [0]["target"];
+    assert_ne!(target["source_id"], "foreign_attachment");
+    assert_eq!(target["sha256"], sha);
+    assert_eq!(
+        archeaxis_store_sqlite::raw_objects::read(&b, &sha).unwrap(),
+        raw
+    );
+    assert_eq!(
+        archeaxis_domain::object_reference::resolve(
+            &b,
+            &serde_json::from_value(target.clone()).unwrap()
+        )
+        .unwrap()["reference"],
+        *target
+    );
+}
+
+#[test]
+fn unbundled_document_relation_is_refused_even_when_destination_has_that_id() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut a = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("foreign-a.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let target = document::create_optional_with_request(
+        &mut a,
+        None,
+        None,
+        "A",
+        json!({"type":"doc","content":[]}),
+        Some("same-id"),
+    )
+    .unwrap();
+    let doc=document::create_optional(&mut a,None,None,"Linked",json!({"type":"doc","content":[],"attrs":{"archeaxis_relations":{"schema":"archeaxis.relations/v1","relations":[{"id":"peer","kind":"related","label":"Foreign peer","target":{"kind":"document","document_id":target["document_id"],"version":1,"block_id":null}}]}}})).unwrap();
+    let package = portable_document::export(&a, doc["document_id"].as_str().unwrap()).unwrap();
+    let mut b = archeaxis_store_sqlite::init_workspace(
+        dir.path().join("foreign-b.sqlite").to_str().unwrap(),
+    )
+    .unwrap();
+    let unrelated = document::create_optional_with_request(
+        &mut b,
+        None,
+        None,
+        "B unrelated",
+        json!({"type":"doc","content":[]}),
+        Some("same-id"),
+    )
+    .unwrap();
+    assert_eq!(unrelated["document_id"], target["document_id"]);
+    assert!(
+        portable_document::import(&mut b, package, "foreign-peer").is_err(),
+        "foreign relation must never attach to a local coincident ID"
+    );
+    assert_eq!(document::list(&b).unwrap().len(), 1);
+}
 fn fixture(conn: &mut rusqlite::Connection) -> Value {
     let bytes = include_bytes!("../../../tests/fixtures/golden/golden-screenshot-ocr.png");
     let (id, sha) = match source::import_source(conn, bytes, "synthetic.png", None).unwrap() {

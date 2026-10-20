@@ -1,4 +1,5 @@
 // Native finite business commands only. No URL, method or credential reaches UI.
+import { assertMaterialQuestionDto } from "./generated/material-question";
 import { ApiError } from "./client";
 import { readMachineFailureDiagnostics } from "./machineFailure";
 import { jobAdmissionRefusal } from "./jobAdmission";
@@ -19,6 +20,7 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
   ingest_batch_register:"IngestBatchDto",ingest_batch_get:"IngestBatchDto",ingest_batches_list:"IngestBatchesDto",
   ingest_member_import:"IngestMemberImportDto",ingest_member_enqueue:"IngestMemberJobDto",
+  ingest_member_relations_apply:"IngestRelationsDto",
   public_research_search:"PublicResearchReceiptDto", public_research_read:"PublicResearchReceiptDto",
   public_research_list:"PublicResearchJournalDto", public_research_cancel:"PublicResearchCancelDto",
   public_research_materialize:"PublicResearchSelectionDto",
@@ -126,6 +128,10 @@ export async function coreCommand<T>(operation: CoreOperation, payload: Record<s
   if (operation === "project_handoff_preview" || operation === "project_handoff_snapshot") {
     try { return assertHandoffDto<T>(operation === "project_handoff_preview" ? "Preview" : "Snapshot", response.body); }
     catch { throw new ApiError(502, "上下文引用回读格式不兼容，未打开正文。", "incompatible"); }
+  }
+  if (operation === "material_question_submit" && response.status === 202) {
+    try { return assertMaterialQuestionDto<T>("MaterialQuestionAdmissionDto", response.body); }
+    catch { throw new ApiError(502, "材料异步受理回执结构不兼容；保留原请求并查询。", "incompatible"); }
   }
   const schema = responseSchemas[operation];
   if (["ui_state_read", "ui_state_write", "ui_state_clear_saved", "ui_state_clear_job", "ui_state_clear_machine", "ui_state_recover"].includes(operation)) {

@@ -11,6 +11,7 @@ pub mod capabilities;
 mod documents;
 mod format_qualification;
 mod ingest_batches;
+mod ingest_relations;
 pub mod launch;
 mod layout;
 mod machine_governance;
@@ -124,6 +125,10 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route(
             "/api/v1/ingest-batches/:batch_id/jobs",
             post(ingest_batches::enqueue),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id/members/:ordinal/relations",
+            post(ingest_relations::apply).layer(axum::extract::DefaultBodyLimit::max(256 * 1024)),
         )
         .route(
             "/api/v1/project-handoff/preview",

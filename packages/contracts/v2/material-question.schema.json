@@ -179,6 +179,9 @@
               "type": "null"
             }
           ]
+        },
+        "execution_mode": {
+          "const": "async"
         }
       },
       "required": [
@@ -306,6 +309,10 @@
         },
         "cost": {
           "type": "null"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
         }
       },
       "required": [
@@ -584,7 +591,8 @@
         "execution_state": {
           "enum": [
             "UNKNOWN",
-            "NOT_EXECUTED"
+            "NOT_EXECUTED",
+            "RUNNING"
           ]
         },
         "answer_published": {
@@ -930,6 +938,61 @@
           "maximum": 9007199254740991
         }
       }
+    },
+    "MaterialQuestionAdmissionDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.material-question-admission/v1"
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "task_id": {
+          "type": "string",
+          "pattern": "^material_answer_[a-f0-9]{64}$"
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "admission_state": {
+          "const": "ACCEPTED"
+        },
+        "execution_state": {
+          "const": "RUNNING"
+        },
+        "answer_published": {
+          "const": false
+        },
+        "provider_stop_state": {
+          "const": "UNKNOWN"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        }
+      },
+      "required": [
+        "schema",
+        "request_id",
+        "task_id",
+        "plan_sha256",
+        "restore_epoch",
+        "admission_state",
+        "execution_state",
+        "answer_published",
+        "provider_stop_state",
+        "workspace_id"
+      ]
     }
   }
 }

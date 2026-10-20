@@ -34,7 +34,7 @@ fn hash(bytes: &[u8]) -> String {
 }
 /// Only declared business-reference fields are visited; unknown editor data is
 /// opaque and must not become an implicit source-read permission.
-fn research_refs(editor: &Value) -> Vec<&Value> {
+fn portable_refs(editor: &Value) -> Vec<&Value> {
     let research = &editor["attrs"]["archeaxis_research"];
     let mut values = Vec::new();
     if let Some(materials) = research["materials"].as_array() {
@@ -63,6 +63,9 @@ fn research_refs(editor: &Value) -> Vec<&Value> {
                 }
             }
         }
+    }
+    if let Some(relations) = editor["attrs"]["archeaxis_relations"]["relations"].as_array() {
+        values.extend(relations.iter().map(|relation| &relation["target"]));
     }
     values
 }
@@ -95,7 +98,7 @@ fn refs(snapshot: &Value) -> Result<BTreeMap<String, String>, Error> {
             }
         }
     }
-    for reference in research_refs(&snapshot["editor_json"]) {
+    for reference in portable_refs(&snapshot["editor_json"]) {
         if reference["kind"] == "source" {
             let id = reference["source_id"]
                 .as_str()
@@ -291,12 +294,12 @@ pub fn import(
     // Document/Knowledge identities are workspace-local. This package only
     // transfers hash-bound Source objects, so never resolve a foreign ID against
     // an unrelated object that happens to exist in the destination workspace.
-    if research_refs(&original_editor)
+    if portable_refs(&original_editor)
         .iter()
         .any(|reference| reference["kind"] != "source")
     {
         return Err(bad(
-            "portable research requires hash-bound source references; document and knowledge dependencies are not bundled",
+            "portable research and relations require hash-bound source references; document and knowledge dependencies are not bundled",
         ));
     }
     for namespace in [
@@ -368,6 +371,24 @@ pub fn import(
         mapping.insert(object.source_id.clone(), id);
     }
     let mut editor = original_editor;
+    if let Some(relations) = editor
+        .get_mut("attrs")
+        .and_then(|attrs| attrs.get_mut("archeaxis_relations"))
+        .and_then(|r| r.get_mut("relations"))
+        .and_then(Value::as_array_mut)
+    {
+        for relation in relations {
+            let reference = &mut relation["target"];
+            let old = reference["source_id"]
+                .as_str()
+                .ok_or(bad("missing relation source identity"))?;
+            reference["source_id"] = json!(
+                mapping
+                    .get(old)
+                    .ok_or(bad("missing relation source mapping"))?
+            );
+        }
+    }
     if let Some(research) = editor
         .get_mut("attrs")
         .and_then(|v| v.get_mut("archeaxis_research"))

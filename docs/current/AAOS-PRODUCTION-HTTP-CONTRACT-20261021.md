@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (130 pairs in a `text_worker` launch)
+## 3. Route inventory (132 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -608,10 +608,10 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 80 projection method/path pairs (68 unconditional mounts, twelve dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue is present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 130 addresses (79 base projection method/path pairs + 51 runtime method/path pairs on 48 runtime mounts) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **no** `text_worker` | 81 projection method/path pairs (69 unconditional mounts, twelve dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue is present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 132 addresses (80 base projection method/path pairs + 52 runtime method/path pairs on 49 runtime mounts) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
-The runtime builder carries **48** route mounts, mounted there rather than with the projections because
+The runtime builder carries **49** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
@@ -814,7 +814,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 79 base projection pairs plus 51 runtime pairs total 130. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 80 base projection pairs plus 52 runtime pairs total 132. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
@@ -918,7 +918,7 @@ The following 21 method/path pairs record the 2026-10-14 source reconciliation; 
 
 ## 16. 2026-10-19 local-human handoff reads
 
-Current-source inventory (2026-10-21 successor update): **130** unique production method/path pairs. Projection-only: **68** unconditional mounts / **80** pairs (twelve dual-method mounts); text-worker: **79** base projection pairs + **51** runtime pairs on **48** runtime mounts. The one conditional manual receipt remains excluded. Dated counts in §§10–15 and historical OBSERVED receipts retain their original measurement scope; §3 and §6 are current-source counts, not new runtime qualification.
+Current-source inventory (2026-10-21 successor update): **132** unique production method/path pairs. Projection-only: **69** unconditional mounts / **81** pairs (twelve dual-method mounts); text-worker: **80** base projection pairs + **52** runtime pairs on **49** runtime mounts. The one conditional manual receipt remains excluded. Dated counts in §§10–15 and historical OBSERVED receipts retain their original measurement scope; §3 and §6 are current-source counts, not new runtime qualification.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
@@ -926,3 +926,26 @@ Current-source inventory (2026-10-21 successor update): **130** unique productio
 | 223 | `POST /api/v1/project-handoff/snapshot` | Local human only; machine/Observer denied | Explicit fixed-version read: same transaction rechecks workspace/restore epoch, exact version and original-byte hash. STALE may return the requested old version, never substitutes current. Missing pinned version 404; identity/hash/corruption/queued expiry 409; request/raw body/response bounds 413; unavailable read 503. Editor JSON limit 8 MiB, encoded response 24 MiB. No writes or upgraded source/selection/execution/knowledge acceptance. Schema: `packages/contracts/v2/project-handoff-snapshot.schema.json`. |
 
 Both requests use `packages/contracts/v2/project-handoff.schema.json`, restricted to `payload.kind=context`; dynamic TTL is checked by the handler. OpenAPI: `packages/contracts/v1/openapi-outline.yaml`; implementation: `crates/archeaxis-api/src/project_handoff_preview.rs`; finite native bridge and local-human scope: `docs/contracts/project-handoff-preview-v1.md`. Repeated reads are read-only and confer no persistent deduplication or exactly-once delivery guarantee. These rows do not extend Observer body access, share a human credential with another product, register an OS URI handler, or claim external-product/native/installed/Owner acceptance.
+
+## 17. Original-CAS directory link consumer (API slice)
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| 224 | `POST /api/v1/ingest-batches/{batch_id}/members/{ordinal}/relations` | Human only; machine denied | Strict `IngestRelationsApplyInput`; 256 KiB request. Single Immediate writer transaction checks workspace/restore epoch, complete manifest, imported source/hash/bytes, source-bound Document expected version/content hash and all supplied same-batch target bindings. Parses immutable original UTF-8 Markdown (256 KiB), not current edited body or worker output. Appends only validated fixed Document/Source references to existing canonical relations. Original editor content, unrelated attributes and manual relations remain unchanged. Up to 200 target bindings, 256 combined relations, 2 MiB per source and 8 MiB aggregate input. An existing note job must be succeeded and source-bound; no-job raw Markdown is allowed and is not a conversion-success claim. Returns `IngestRelationsDto`, including original provenance and individual unresolved/loss statuses. Old expected version is always 409, including replay; refreshed identical bindings no-op without another version. Missing identity 404, malformed binding 400/422, actor 403, body budget 413. No filesystem read, worker/model call, external URL follow, knowledge admission or Vault registry. |
+
+This source inventory adds one pair (130 → 131), not J3 acceptance. Wikilinks and inline Markdown links/images form a bounded adapter. Code spans, fenced/indented code and escaped links do not create edges. Missing, ambiguous/case-colliding, unsafe/external, unbound and heading/block-fragment references retain their original CAS bytes and report unresolved; embeds produce navigable references only, never embedded rendering. Relations identify their original CAS hash explicitly even if the Document body was edited.
+
+Portable Document packages now include and remap declared canonical Source relation references. Unbundled Document/Knowledge relation references are refused before destination writes, even if their IDs coincide with local objects. Existing historical research-citation closure remains unchanged. Ordinary Markdown/Obsidian projection export is not a native-Vault roundtrip; API qualification is not installed-host, UI-consumer or Owner acceptance.
+
+
+### Material async admission (2026-10-21, phase 1)
+
+| Id | Method/path | Authority | Contract |
+| --- | --- | --- | --- |
+| 225 | `POST /api/v1/material/questions/submissions` | Local human only | Confirmed async material plan, durable claim and one Core-owned admission slot; 202 is admission only. Existing status/cancel and all 120-second/model-purpose budgets remain. |
+
+`POST /api/v1/material/questions/submissions` (`material_question_submit`) accepts only a confirmed frozen material plan with `execution_mode: "async"`. Preview remains `POST /api/v1/material/questions`. Absent mode preserves synchronous behavior. Both modes retain the existing 1–120 second budget, model-purpose caps, provider/model/endpoint and default thinking settings.
+
+A 202 `archeaxis.material-question-admission/v1` acknowledges a durable claim and a registered Core-owned task, not an answer or a provider stop. One existing model admission slot is held until execution and postchecks finish; excess async requests receive 429 without a claim. Matching active retries acknowledge the same request, terminal retries read the stored receipt, and an unfinished claim without a live owner remains UNKNOWN and is never automatically repeated. The submitting HTTP/UI waiter does not own the accepted task.
+
+Existing human-only material status/cancel routes retain the frozen request ID. Status distinguishes a registered async Core task (RUNNING), stored terminal answer/failure, and an unfinished unowned claim (UNKNOWN). Explicit cancel stops only the owned worker; provider stop remains UNKNOWN. Core restart/restore does not replay inference. Source/version/configuration/restore checks precede admission and follow execution. The UI can explicitly select async and poll that same request, stop waiting on navigation or UNKNOWN, and explicitly recover status without submitting another inference. The canonical DTOs are in `packages/contracts/v2/material-question.schema.json`; no new general runtime or conversion job kind is introduced.

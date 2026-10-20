@@ -4407,6 +4407,319 @@
           ]
         }
       }
+    },
+    "IngestRelationDocumentBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "IngestRelationTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "source_id",
+        "source_revision"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "document": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IngestRelationDocumentBinding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "IngestRelationsApplyInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "source_id",
+        "source_revision",
+        "document_id",
+        "expected_version",
+        "content_sha256",
+        "targets"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "targets": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/IngestRelationTarget"
+          }
+        }
+      }
+    },
+    "IngestRelationsLinkDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "target",
+        "label",
+        "syntax",
+        "embed",
+        "fragment",
+        "fragment_is_block",
+        "status",
+        "reason",
+        "relation_id",
+        "target_ordinal"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "target": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "syntax": {
+          "enum": [
+            "wiki",
+            "markdown"
+          ]
+        },
+        "embed": {
+          "type": "boolean"
+        },
+        "fragment": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fragment_is_block": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "unresolved",
+            "resolved_reference"
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "external_reference_not_followed",
+                "unsafe_or_unsupported_target",
+                "ambiguous_target",
+                "missing_target",
+                "fragment_resolution_not_supported",
+                "target_binding_required",
+                "note_document_binding_required",
+                "embed_rendering_not_supported"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "relation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_ordinal": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9999
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "IngestRelationsDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "batch_id",
+        "ordinal",
+        "input_kind",
+        "source_id",
+        "source_revision",
+        "relative_path",
+        "document",
+        "added_relations",
+        "links",
+        "loss"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ingest-relations/v1"
+        },
+        "workspace_id": {
+          "type": "string"
+        },
+        "restore_epoch": {
+          "type": "string"
+        },
+        "batch_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "input_kind": {
+          "const": "immutable_original_markdown"
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "relative_path": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "document": {
+          "$ref": "#/$defs/DocumentDto"
+        },
+        "added_relations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
+        },
+        "links": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/IngestRelationsLinkDto"
+          }
+        },
+        "loss": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "original_source_links_not_current_document_body",
+              "markdown_subset_not_full_vault_compatibility",
+              "no_worker_conversion_or_knowledge_admission"
+            ]
+          }
+        }
+      }
     }
   }
 }

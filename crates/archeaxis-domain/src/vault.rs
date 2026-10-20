@@ -89,10 +89,27 @@ fn parse_wiki_body(body: &str) -> (String, Option<String>, Option<String>, bool)
 ///
 /// Order is kept because a citation that names "the third link" has to mean something.
 pub fn links_in(markdown: &str) -> Vec<Link> {
+    links_with_external(markdown)
+        .into_iter()
+        .filter(|link| !external_target(&link.target))
+        .collect()
+}
+
+fn external_target(target: &str) -> bool {
+    target.contains(":") || target.starts_with("//")
+}
+
+/// Bounded consumers also need to report external links without following them.
+pub fn links_with_external(markdown: &str) -> Vec<Link> {
+    let markdown = mask_code(markdown);
     let bytes: Vec<char> = markdown.chars().collect();
     let mut links = Vec::new();
     let mut index = 0usize;
     while index < bytes.len() {
+        if bytes[index] == '\\' {
+            index += 2;
+            continue;
+        }
         // `![[` or `[[`
         let embed = bytes[index] == '!'
             && index + 2 < bytes.len()
@@ -102,7 +119,8 @@ pub fn links_in(markdown: &str) -> Vec<Link> {
         if !embed && !plain {
             // A Markdown link `[text](target)`; skipped when it is the head of a wiki-link.
             if bytes[index] == '[' && index + 1 < bytes.len() && bytes[index + 1] != '[' {
-                if let Some((link, next)) = markdown_link(&bytes, index) {
+                if let Some((mut link, next)) = markdown_link(&bytes, index) {
+                    link.embed = index > 0 && bytes[index - 1] == '!';
                     links.push(link);
                     index = next;
                     continue;
@@ -149,11 +167,81 @@ pub fn links_in(markdown: &str) -> Vec<Link> {
     links
 }
 
+// Mask code without interpreting it as links. Unclosed fences remain code.
+// This is deliberately a small syntax adapter, not a Markdown renderer.
+fn mask_code(markdown: &str) -> String {
+    let mut result = String::new();
+    let mut fence: Option<(char, usize)> = None;
+    for line in markdown.split_inclusive('\n') {
+        let trimmed = line.trim_start_matches(' ');
+        let indent = line.len() - trimmed.len();
+        let first = trimmed.chars().next().unwrap_or(' ');
+        let count = trimmed.chars().take_while(|c| *c == first).count();
+        let marker = indent <= 3 && matches!(first, '`' | '~') && count >= 3;
+        if let Some((ch, n)) = fence {
+            result.extend(line.chars().map(|c| if c == '\n' { c } else { ' ' }));
+            if marker && ch == first && count >= n && trimmed[count..].trim().is_empty() {
+                fence = None;
+            }
+        } else if marker {
+            fence = Some((first, count));
+            result.extend(line.chars().map(|c| if c == '\n' { c } else { ' ' }));
+        } else if indent >= 4 || line.starts_with('\t') {
+            result.extend(line.chars().map(|c| if c == '\n' { c } else { ' ' }));
+        } else {
+            result.push_str(line);
+        }
+    }
+    let mut chars: Vec<char> = result.chars().collect();
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] == '\\' {
+            i += 2;
+            continue;
+        }
+        if chars[i] != '`' {
+            i += 1;
+            continue;
+        }
+        let n = chars[i..].iter().take_while(|c| **c == '`').count();
+        let mut end = i + n;
+        let mut close = None;
+        while end < chars.len() {
+            if chars[end] == '`' {
+                let count = chars[end..].iter().take_while(|c| **c == '`').count();
+                if count == n {
+                    close = Some(end + n);
+                    break;
+                }
+                end += count;
+            } else {
+                end += 1;
+            }
+        }
+        if let Some(end) = close {
+            for c in &mut chars[i..end] {
+                if *c != '\n' {
+                    *c = ' ';
+                }
+            }
+            i = end;
+        } else {
+            i += n;
+        }
+    }
+    chars.into_iter().collect()
+}
+
 /// A Markdown inline link starting at `index`, which points at `[`.
 fn markdown_link(bytes: &[char], index: usize) -> Option<(Link, usize)> {
     let mut cursor = index + 1;
     let mut depth = 1usize;
     while cursor < bytes.len() && depth > 0 {
+        // Escaped delimiters belong to the label, never start a destination.
+        if bytes[cursor] == '\\' && cursor + 1 < bytes.len() && bytes[cursor + 1] != '\n' {
+            cursor += 2;
+            continue;
+        }
         match bytes[cursor] {
             '[' => depth += 1,
             ']' => depth -= 1,
@@ -169,13 +257,25 @@ fn markdown_link(bytes: &[char], index: usize) -> Option<(Link, usize)> {
     let open = cursor;
     cursor += 1;
     let mut close = None;
+    let mut depth = 1usize;
     while cursor < bytes.len() {
-        if bytes[cursor] == ')' {
-            close = Some(cursor);
-            break;
+        // Keep escaped bytes verbatim; the bounded consumer reports unsupported
+        // destinations instead of interpreting a prefix as another member.
+        if bytes[cursor] == '\\' && cursor + 1 < bytes.len() && bytes[cursor + 1] != '\n' {
+            cursor += 2;
+            continue;
         }
-        if bytes[cursor] == '\n' {
-            return None;
+        match bytes[cursor] {
+            '(' => depth += 1,
+            ')' => {
+                depth -= 1;
+                if depth == 0 {
+                    close = Some(cursor);
+                    break;
+                }
+            }
+            '\n' => return None,
+            _ => {}
         }
         cursor += 1;
     }
@@ -183,16 +283,24 @@ fn markdown_link(bytes: &[char], index: usize) -> Option<(Link, usize)> {
     let target: String = bytes[open + 1..close].iter().collect();
     let target = target.trim().to_string();
     // An external URL is not a vault relationship, so it is not a vault link.
-    if target.is_empty() || target.contains("://") || target.starts_with("mailto:") {
+    if target.is_empty() {
         return None;
     }
+    let (target, fragment, fragment_is_block) = match target.split_once('#') {
+        Some((target, fragment)) => (
+            target.to_owned(),
+            Some(fragment.trim_start_matches('^').to_owned()),
+            fragment.starts_with('^'),
+        ),
+        None => (target, None, false),
+    };
     Some((
         Link {
             embed: false,
             target,
             label: Some(label.trim().to_string()).filter(|value| !value.is_empty()),
-            fragment: None,
-            fragment_is_block: false,
+            fragment,
+            fragment_is_block,
             syntax: "markdown",
         },
         close + 1,

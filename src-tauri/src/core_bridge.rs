@@ -41,6 +41,7 @@ pub enum Operation {
     IngestBatchGet,
     IngestMemberImport,
     IngestMemberEnqueue,
+    IngestMemberRelationsApply,
     SourcesList,
     SourceJobs,
     SourceJobFormatQualification,
@@ -98,6 +99,7 @@ pub enum Operation {
     LearningReference,
     MachineAnswer,
     MaterialQuestion,
+    MaterialQuestionSubmit,
     MaterialContextPrepare,
     MaterialQuestionCancel,
     MaterialQuestionStatus,
@@ -281,6 +283,29 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(body()?),
         ),
         SourceImport => ("POST", "/api/v1/imports".into(), Some(body()?)),
+        IngestMemberRelationsApply => {
+            if p.as_object().is_none_or(|fields| {
+                fields
+                    .keys()
+                    .any(|key| !["batch_id", "ordinal", "body"].contains(&key.as_str()))
+            }) || !p.get("body").is_some_and(Value::is_object)
+            {
+                return Err("CORE_COMMAND_RELATION_PAYLOAD_INVALID".into());
+            }
+            let ordinal = p
+                .get("ordinal")
+                .and_then(Value::as_u64)
+                .filter(|v| *v < 10000)
+                .ok_or("CORE_COMMAND_MEMBER_ORDINAL_INVALID")?;
+            (
+                "POST",
+                format!(
+                    "/api/v1/ingest-batches/{}/members/{ordinal}/relations",
+                    id(p, "batch_id")?
+                ),
+                Some(body()?),
+            )
+        }
         IngestBatchRegister | IngestMemberImport | IngestMemberEnqueue => {
             let register = matches!(request.operation, IngestBatchRegister);
             let keys = if register {
@@ -682,6 +707,11 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         ConversationStatus => ("POST", "/api/v1/conversation/status".into(), Some(body()?)),
         MachineAnswer => ("POST", "/api/v1/machine/answers".into(), Some(body()?)),
         MaterialQuestion => ("POST", "/api/v1/material/questions".into(), Some(body()?)),
+        MaterialQuestionSubmit => (
+            "POST",
+            "/api/v1/material/questions/submissions".into(),
+            Some(body()?),
+        ),
         PublicResearchSearch => (
             "POST",
             "/api/v1/research/public/search".into(),
@@ -1021,6 +1051,24 @@ mod ingest_batch_routes {
     use serde_json::json;
     fn request(operation: &str, payload: Value) -> Request {
         serde_json::from_value(json!({"operation":operation,"payload":payload})).unwrap()
+    }
+    #[test]
+    fn original_relation_route_is_fixed_and_member_bounded() {
+        let good = json!({"batch_id":"selected-batch","ordinal":1,"body":{"expected_version":2}});
+        let routed = route(&request("ingest_member_relations_apply", good)).unwrap();
+        assert_eq!(routed.0, "POST");
+        assert_eq!(
+            routed.1,
+            "/api/v1/ingest-batches/selected-batch/members/1/relations"
+        );
+        for bad in [
+            json!({"batch_id":"../other","ordinal":1,"body":{}}),
+            json!({"batch_id":"ok","ordinal":10000,"body":{}}),
+            json!({"batch_id":"ok","ordinal":-1,"body":{}}),
+            json!({"batch_id":"ok","ordinal":1,"body":{},"url":"http://invalid"}),
+        ] {
+            assert!(route(&request("ingest_member_relations_apply", bad)).is_err());
+        }
     }
     #[test]
     fn batch_routes_bind_members_and_reject_extra_or_unbounded_transport_inputs() {
@@ -2079,5 +2127,30 @@ mod folder_native_contract_regression {
             .unwrap();
             assert!(route(&invalid).is_err());
         }
+    }
+}
+
+#[cfg(test)]
+mod material_async_bridge_tests {
+    use super::*;
+    #[test]
+    fn material_async_submission_uses_a_fixed_route_without_extending_sync_budget() {
+        let body = serde_json::json!({"execution_mode":"async","timeout_s":120});
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"material_question_submit","payload":{"body":body}}),
+        )
+        .unwrap();
+        let (method, path, actual) = route(&request).unwrap();
+        assert_eq!(method, "POST");
+        assert_eq!(path, "/api/v1/material/questions/submissions");
+        assert_eq!(actual, Some(body));
+        assert_eq!(
+            transport_timeout(&Operation::MaterialQuestion),
+            std::time::Duration::from_secs(135)
+        );
+        assert_eq!(
+            transport_timeout(&Operation::MaterialQuestionSubmit),
+            std::time::Duration::from_secs(30)
+        );
     }
 }
