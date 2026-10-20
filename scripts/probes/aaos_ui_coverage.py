@@ -360,6 +360,25 @@ def research_citations(page, output: Path, case_id: str, fixture: dict, axe_sour
             "picker_axe": picker_axe, "error_axe": error_axe}
 
 
+def public_research(page, output: Path, case_id: str) -> dict:
+    panel = page.get_by_role("region", name="公开资料检索", exact=True)
+    query = panel.get_by_role("textbox", name="公开检索关键词", exact=True)
+    expect(query).to_have_value("")
+    expect(panel.get_by_role("button", name="检索公开资料", exact=True)).to_be_disabled()
+    assert "百科、社区、科研检索尚未接线" in panel.inner_text()
+    query.fill("公开的间隔复习研究 2026")
+    panel.get_by_role("checkbox", name="社区", exact=True).uncheck()
+    keep = panel.get_by_role("button", name="把检索计划加入未决草稿", exact=True)
+    keep.click()
+    expect(keep).to_be_disabled()
+    note = page.get_by_role("textbox", name="未决 1", exact=True)
+    expect(note).to_have_value(re.compile(r"公开检索计划（未执行外部检索）\n关键词：公开的间隔复习研究 2026\n来源范围：百科、科研"))
+    query.scroll_into_view_if_needed()
+    page.screenshot(path=str(output / f"public-research-{case_id}.png"))
+    return {"status": "PASS", "production_adapter": "NOT_CONNECTED", "query_initially_empty": True,
+            "explicit_plan_in_unresolved_draft": True, "external_retrieval": "NOT_EXECUTED"}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--axe-source", type=Path, required=True)
@@ -372,11 +391,14 @@ def main() -> int:
     parser.add_argument("--capability-details", action="store_true")
     parser.add_argument("--template-requirements", action="store_true")
     parser.add_argument("--research-citations", action="store_true")
+    parser.add_argument("--public-research", action="store_true")
     args = parser.parse_args()
     if args.template_requirements and args.pages and "15" not in args.pages:
         parser.error("--template-requirements requires production page 15")
     if args.research_citations and (args.state != "baseline" or (args.pages and "05" not in args.pages)):
         parser.error("--research-citations requires baseline state and production page 05")
+    if args.public_research and (args.state != "baseline" or (args.pages and "05" not in args.pages)):
+        parser.error("--public-research requires baseline state and production page 05")
     root = Path(os.environ["ARCHEAXIS_RUN_ROOT"])
     output = root / "artifacts" / "ui-coverage"
     output.mkdir(parents=True, exist_ok=False)
@@ -467,6 +489,8 @@ def main() -> int:
                                     case["template_requirements"] = template_requirements(page, output, f"{theme}-{width}x{height}")
                                 if args.research_citations and page_id == "05":
                                     case["research_citations"] = research_citations(page, output, f"{theme}-{width}x{height}", research_fixture(), axe_source)
+                                if args.public_research and page_id == "05":
+                                    case["public_research"] = public_research(page, output, f"{theme}-{width}x{height}")
                                 if page_id == "18":
                                     heading = page.get_by_role("article", name="能力详情", exact=True).locator(":scope > h3")
                                     case["detail_heading"] = a0.visible_control_box(heading)
