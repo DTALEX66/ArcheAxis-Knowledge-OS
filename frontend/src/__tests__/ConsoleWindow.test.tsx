@@ -17,6 +17,37 @@ function geometry() { return (document.querySelector(".console-window") as HTMLE
 afterEach(() => { viewport(original.width, original.height); vi.restoreAllMocks(); });
 
 describe("single console geometry (SIMULATED, no layout qualification)", () => {
+  it("resizes from each additional edge or corner while preserving the opposite edge and cancelling safely", () => {
+    class Pointer extends MouseEvent { pointerId: number; constructor(type: string, init: PointerEventInit) { super(type, init); this.pointerId = init.pointerId ?? 1; } }
+    vi.stubGlobal("PointerEvent", Pointer);
+    viewport(1600, 1000); scene(); const input = screen.getByLabelText("保留的草稿");
+    try {
+      const cases = [
+        ["w", 100, 0, [180, 50, 1340, 900]], ["n", 0, 100, [80, 150, 1440, 800]],
+        ["e", 20, 0, [80, 50, 1460, 900]], ["s", 0, 20, [80, 50, 1440, 920]],
+        ["nw", 100, 100, [180, 150, 1340, 800]], ["ne", 20, 100, [80, 150, 1460, 800]],
+        ["sw", 100, 20, [180, 50, 1340, 920]],
+      ] as const;
+      for (const [edge, dx, dy, expected] of cases) {
+        const handle = document.querySelector(`[data-console-edge="${edge}"]`)!;
+        expect(handle).not.toBeNull();
+        fireEvent.pointerDown(handle, { button: 0, pointerId: 8, clientX: 300, clientY: 300 });
+        fireEvent.pointerMove(handle, { pointerId: 8, clientX: 300 + dx, clientY: 300 + dy });
+        expect([geometry().left, geometry().top, geometry().width, geometry().height]).toEqual(expected.map(value => `${value}px`));
+        fireEvent.pointerCancel(handle, { pointerId: 8 });
+        expect([geometry().left, geometry().top, geometry().width, geometry().height]).toEqual(["80px", "50px", "1440px", "900px"]);
+        expect(screen.getByLabelText("保留的草稿")).toBe(input);
+        expect(input).toHaveValue("未保存文字");
+      }
+      const corner = document.querySelector('[data-console-edge="nw"]')!;
+      fireEvent.pointerDown(corner, { button: 0, pointerId: 9, clientX: 300, clientY: 300 });
+      fireEvent.pointerMove(corner, { pointerId: 9, clientX: 3000, clientY: 3000 });
+      expect([geometry().left, geometry().top, geometry().width, geometry().height]).toEqual(["880px", "470px", "640px", "480px"]);
+      fireEvent.keyDown(input, { key: "Escape" });
+      expect(geometry().left).toBe("80px");
+    } finally { vi.unstubAllGlobals(); }
+  });
+
   it("clamps all edges and size floors, including a viewport below the supported native floor", () => {
     expect(constrainConsole({ x: -50, y: 800, width: 10, height: 900 }, { width: 1000, height: 700 })).toEqual({ x: 0, y: 0, width: 640, height: 700 });
     expect(constrainConsole({ x: 9999, y: -10, width: 9999, height: 1 }, { width: 1000, height: 700 })).toEqual({ x: 0, y: 0, width: 1000, height: 480 });

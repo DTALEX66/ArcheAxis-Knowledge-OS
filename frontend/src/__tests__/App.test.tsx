@@ -33,7 +33,7 @@ describe("App shell", () => {
     });
     const fetch=vi.fn();vi.stubGlobal("fetch",fetch);window.__TAURI__={core:{invoke}};
     await act(async()=>{render(<SpaceView spaceId={spaceId} onInspect={vi.fn()} onNavigate={vi.fn()}/>);});
-    if(spaceId === "workspace") expect(screen.getByRole("region",{name:"今日工作台"})).toBeInTheDocument();
+    if(spaceId === "workspace") expect(screen.getByRole("region",{name:"今日工作台内容"})).toBeInTheDocument();
     else expect(screen.getByRole("heading",{name:heading})).toBeInTheDocument();
     if(spaceId === "settings") {
       const entry=CAPABILITY_NAVIGATION_ENTRIES.find(item=>item.capability.implementation.runtime_capabilities.length>0);

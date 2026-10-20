@@ -738,7 +738,7 @@ def read_navigation_levels(page) -> dict[str, object]:
     source_button.click()
     # The ordinary trail carries the source's display name and saved-version state.
     # Read the immutable identity through the actual diagnostics action instead.
-    receipt_button = page.get_by_role("button", name="查看原始回执（诊断）：原件与来源详细信息", exact=True)
+    receipt_button = page.get_by_role("button", name="查看诊断详情：原件与来源详细信息", exact=True)
     receipt_button.wait_for()
     page.locator("nav[aria-label='对象导航路径']").wait_for()
     trail = page.inner_text("nav[aria-label='对象导航路径']")

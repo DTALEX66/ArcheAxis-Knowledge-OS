@@ -54,7 +54,7 @@ it("平台快捷键文案一致且未知平台回退到 Ctrl", () => {
   expect(commandKeyLabel("Win32")).toBe("Ctrl"); expect(commandKeyLabel("MacIntel")).toBe("⌘"); expect(commandKeyLabel("")).toBe("Ctrl");
   render(<App />);
   expect(document.querySelector(".search-trigger-shortcut")).toHaveTextContent(`${commandKeyLabel()}K`);
-  expect(screen.getByRole("button", { name: "打开全局命令" }).querySelector("kbd")).toHaveTextContent(`${commandKeyLabel()} K`);
+  expect(screen.getByRole("button", { name: "打开全局命令" })).toHaveAttribute("title", `打开全局命令（${commandKeyLabel()} K）`);
 });
 
 it("页面命令显示使用目的，同时保留任务编号检索", () => {

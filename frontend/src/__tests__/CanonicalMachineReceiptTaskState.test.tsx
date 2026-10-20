@@ -42,7 +42,7 @@ it("parent and receipt-list refresh preserve pending cancellation, frozen budget
   expect(screen.getByRole("combobox", { name: /^来源任务/ })).toHaveValue("j1");
   expect(screen.getByLabelText("最长等待时间（毫秒）")).toBeDisabled();
   expect(screen.getByLabelText("最长等待时间（毫秒）")).toHaveValue(45000);
-  fireEvent.click(screen.getByRole("button", { name: "查看原始回执（诊断）：任务步骤与继续条件详细信息" }));
+  fireEvent.click(screen.getByRole("button", { name: "查看诊断详情：任务步骤与继续条件详细信息" }));
   const payloads = screen.getByLabelText("诊断控制台").querySelectorAll("details[open] pre");
   expect(payloads).toHaveLength(1);
   expect(payloads[0]).toHaveTextContent("committed-output");

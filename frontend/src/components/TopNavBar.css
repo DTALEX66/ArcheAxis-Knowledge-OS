@@ -117,9 +117,17 @@
 }
 
 .search-trigger-shortcut {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
   display: flex;
   gap: 2px;
 }
+
+.top-nav-center { position: relative; }
+.top-nav-search-trigger { padding-right: 84px; }
 
 .search-trigger-key {
   padding: 2px 6px;

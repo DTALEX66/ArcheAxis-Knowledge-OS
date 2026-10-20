@@ -29,9 +29,9 @@ it("opens the one center from a contextual receipt, shows the exact payload and 
 it("filters explicit categories and keeps records after closing and reopening", async () => {
   const user = userEvent.setup();
   render(<><DiagnosticCenterTrigger/><RawReceiptButton label="连接" category="runtime" payload={{latency_ms:7}}/><RawReceiptButton label="原件" category="data" payload={{sha256:"source-proof"}}/><DiagnosticCenter/></>);
-  await user.click(screen.getByRole("button", {name:/（诊断）：连接/}));
+  await user.click(screen.getByRole("button", {name:/查看诊断详情：连接/}));
   await user.click(screen.getByRole("button", {name:"关闭运行诊断"}));
-  await user.click(screen.getByRole("button", {name:/（诊断）：原件/}));
+  await user.click(screen.getByRole("button", {name:/查看诊断详情：原件/}));
   let dialog = screen.getByRole("dialog");
   expect(within(dialog).getByLabelText("诊断分类")).toHaveValue("data");
   expect(dialog).not.toHaveTextContent("latency_ms");

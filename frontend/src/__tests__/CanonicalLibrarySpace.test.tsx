@@ -218,12 +218,12 @@ describe("canonical content sample", () => {
     expect(await reader.findByRole("article", {name:"不可变原件"})).toBeInTheDocument();
     expect(await reader.findByRole("textbox", {name:"文档草稿"})).toHaveTextContent("已保存笔记");
     expect(await reader.findByText(/来源：样板.txt · 文档第 1 版/)).toBeInTheDocument();
-    expect(await reader.findByRole("button",{name:"查看原始回执（诊断）：关联原件身份"})).toBeInTheDocument();
+    expect(await reader.findByRole("button",{name:"查看诊断详情：关联原件身份"})).toBeInTheDocument();
     const diagnostics = renderHook(useDiagnostics);
-    await userEvent.setup().click(reader.getByRole("button",{name:"查看原始回执（诊断）：关联原件身份"}));
+    await userEvent.setup().click(reader.getByRole("button",{name:"查看诊断详情：关联原件身份"}));
     expect(diagnostics.result.current[0].payload).toEqual({source_id:doc.source_id,source_revision:hash,sha256:hash});
     expect(await within(reader.getByRole("article",{name:"派生文档与版本核验"})).findByText(`文档第 ${doc.version} 版`)).toBeInTheDocument();
-    await userEvent.setup().click(reader.getByRole("button",{name:"查看原始回执（诊断）：文档内容详细信息"}));
+    await userEvent.setup().click(reader.getByRole("button",{name:"查看诊断详情：文档内容详细信息"}));
     expect(diagnostics.result.current[0].payload).toEqual({document_id:doc.document_id,version:doc.version,content_sha256:doc.content_sha256});
     expect(reader.queryByText(doc.content_sha256)).not.toBeInTheDocument();
     expect(await reader.findByLabelText("并排原件正文")).toHaveTextContent("原文样板");
@@ -492,7 +492,7 @@ describe("canonical content sample", () => {
     expect(evidence).toHaveTextContent("原件内容与保存记录一致");
     expect(evidence).not.toHaveTextContent(hash);
     const diagnostics=renderHook(useDiagnostics);
-    await userEvent.setup().click(within(evidence).getByRole("button",{name:"查看原始回执（诊断）：原件与来源详细信息"}));
+    await userEvent.setup().click(within(evidence).getByRole("button",{name:"查看诊断详情：原件与来源详细信息"}));
     expect(diagnostics.result.current[0].payload).toEqual({source_id:source.source_id,source_revision:source.source_revision,sha256:hash});
     expect(screen.getByRole("button",{name:"来源引用 · 定位未核实"})).toBeEnabled();
   });

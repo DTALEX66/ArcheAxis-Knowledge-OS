@@ -179,7 +179,7 @@ describe("BoundedJobPanel isolated finite-port behavior", () => {
 });
 
 function jobStatusDetails() {
-  fireEvent.click(screen.getByRole("button", { name: "查看原始回执（诊断）：任务状态与保存进度详细信息" }));
+  fireEvent.click(screen.getByRole("button", { name: "查看诊断详情：任务状态与保存进度详细信息" }));
   const payloads = screen.getByLabelText("诊断控制台").querySelectorAll("details[open] pre");
   expect(payloads).toHaveLength(1);
   return payloads[0];

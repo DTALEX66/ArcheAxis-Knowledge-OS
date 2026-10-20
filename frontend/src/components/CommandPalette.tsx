@@ -107,8 +107,8 @@ export function CommandPalette({ onNavigate, onOpenCapability, onOpenChange, onP
   return <AaosDialog
     title="全局命令"
     description="搜索页面与能力；未来能力可查看前提、依赖和降级方式。"
-    trigger={<button ref={triggerRef} type="button" className="command-trigger" aria-label="打开全局命令" aria-keyshortcuts="Control+K">
-      <span aria-hidden="true">⌕</span><span>搜索页面与能力</span><kbd>{commandKeyLabel()} K</kbd>
+    trigger={<button ref={triggerRef} type="button" className="command-trigger" aria-label="打开全局命令" aria-keyshortcuts="Control+K" title={`打开全局命令（${commandKeyLabel()} K）`}>
+      <span aria-hidden="true">⌕</span><span>打开全局命令</span>
     </button>}
     open={open}
     onOpenChange={onDialogOpenChange}

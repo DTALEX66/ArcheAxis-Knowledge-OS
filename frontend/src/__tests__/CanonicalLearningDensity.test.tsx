@@ -43,7 +43,7 @@ it("SYNTHETIC missing display title is explicitly unverified and never replaced 
 });
 it("SYNTHETIC the existing diagnostic channel preserves all exact assessment identity fields without opening the answer",async()=>{
  render(<><CanonicalLearningSpace initialItemKey={key}/><DiagnosticConsole/></>);await screen.findByLabelText("本次答案");
- fireEvent.click(screen.getByRole("button",{name:"查看原始回执（诊断）：学习项目与题目版本"}));
+ fireEvent.click(screen.getByRole("button",{name:"查看诊断详情：学习项目与题目版本"}));
  const payload=JSON.parse(screen.getByLabelText("诊断控制台").querySelector("pre")!.textContent!);
  expect(payload).toEqual({item_key:key,assessment_id:assessment.assessment_id,knowledge_id:revision,knowledge_version:revision,question_version:assessment.question_version,source_id:assessment.source_id,anchor_id:assessment.anchor_id});
  expect(screen.queryByText("尚未揭示的答案")).not.toBeInTheDocument();

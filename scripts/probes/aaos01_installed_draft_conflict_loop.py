@@ -136,7 +136,7 @@ def assert_comparison_snapshot(ui, js, wait, label, content):
     # This fixture deliberately has one paragraph; a correct raw receipt cannot
     # substitute for a wrong or missing human-readable comparison.
     assert text == content["content"][0]["content"][0]["text"], "Comparison preview mismatch: " + label
-    button = scope + ' button[aria-label="查看原始回执（诊断）：' + label + '结构记录"]'
+    button = scope + ' button[aria-label="查看诊断详情：' + label + '结构记录"]'
     ui.click_selector(button, "css selector")
     # 原始结构已集中到运行诊断；保持三份 JSON 严格等值核对，
     # 不恢复旧的正文内工程数据，也不通过 JS 触发按钮。

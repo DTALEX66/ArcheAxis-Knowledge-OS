@@ -8,6 +8,15 @@
 .console-resize-handle { position: absolute; right: 4px; bottom: 4px; z-index: 60; width: 24px; height: 24px; min-height: 24px; padding: 0; cursor: nwse-resize; touch-action: none; color: var(--ax-fg); background: var(--ax-panel); border: 1px solid var(--ax-border); border-radius: 4px; }
 .console-window[data-console-mode="floating"] .activity-dock { padding-right: 32px; }
 .console-window:not([data-console-mode="floating"]) .console-resize-handle { display: none; }
+.console-edge-handle { position: absolute; z-index: 61; touch-action: none; }
+.console-edge-handle[hidden] { display: none; }
+.console-edge-handle[data-console-edge="n"] { inset: 0 12px auto; height: 6px; cursor: ns-resize; }
+.console-edge-handle[data-console-edge="s"] { inset: auto 28px 0 12px; height: 6px; cursor: ns-resize; }
+.console-edge-handle[data-console-edge="e"] { inset: 12px 0 28px auto; width: 6px; cursor: ew-resize; }
+.console-edge-handle[data-console-edge="w"] { inset: 12px auto 12px 0; width: 6px; cursor: ew-resize; }
+.console-edge-handle[data-console-edge="nw"] { inset: 0 auto auto 0; width: 12px; height: 12px; cursor: nwse-resize; }
+.console-edge-handle[data-console-edge="ne"] { inset: 0 0 auto auto; width: 12px; height: 12px; cursor: nesw-resize; }
+.console-edge-handle[data-console-edge="sw"] { inset: auto auto 0 0; width: 12px; height: 12px; cursor: nesw-resize; }
 .console-window:not([data-console-mode="floating"]) .top-nav-left { cursor: default; }
 .console-window :is(.console-move-handle,.console-window-action,.console-resize-handle):focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
 /* The existing navigation portal lives outside the size container. */

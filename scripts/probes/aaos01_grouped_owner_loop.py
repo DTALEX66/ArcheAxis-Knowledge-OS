@@ -2172,7 +2172,7 @@ def restored_learning_view(ui, read, js, wait, key, assessment):
     wait("const v=(function(){" + LEARNING_RESTORE_OBSERVATION + "})();return v.page==='06'&&v.count===1&&v.paragraphs.includes(" + json.dumps(assessment["question"]) + ")")
     view = js(LEARNING_RESTORE_OBSERVATION)
     assert view["page"] == "06" and view["count"] == 1 and assessment["question"] in view["paragraphs"], "Restored learning question mismatch"
-    ui.click_revealed_selector("//article[h3[.='复习题'] and not(ancestor-or-self::*[@hidden])]//button[@aria-label='查看原始回执（诊断）：学习项目与题目版本']")
+    ui.click_revealed_selector("//article[h3[.='复习题'] and not(ancestor-or-self::*[@hidden])]//button[@aria-label='查看诊断详情：学习项目与题目版本']")
     try:
         wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'))")
         identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('学习项目与题目版本 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")
@@ -2268,7 +2268,7 @@ def restored_reader(ui, read, js, wait, document):
     assert isinstance(view["text"], str) and normalize(view["text"]) == normalize(restored_reader_expected_text(document)), "Restored reader content mismatch"
     assert view["version"] == document["version"], "Restored reader version mismatch"
     scope = "//section[@aria-label='阅读与编辑文档视图' and not(ancestor-or-self::*[@hidden])]"
-    ui.click_revealed_selector(scope + "//button[@aria-label='查看原始回执（诊断）：文档与来源详细信息']")
+    ui.click_revealed_selector(scope + "//button[@aria-label='文档与来源详细信息：文档与来源详细信息']")
     try:
         wait("return [...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].some(n=>n.getClientRects().length>0&&n.querySelector('summary')?.textContent.startsWith('文档与来源详细信息 ·'))")
         identity = js("const rows=[...document.querySelectorAll('[aria-label=\"诊断控制台\"] details[open]')].filter(n=>n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&n.querySelector('summary')?.textContent.startsWith('文档与来源详细信息 ·'));return rows.length===1?JSON.parse(rows[0].querySelector('pre').textContent):null")

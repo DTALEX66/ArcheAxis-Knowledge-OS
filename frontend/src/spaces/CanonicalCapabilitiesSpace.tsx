@@ -95,7 +95,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
   </div>;
 
   const details = <div className="space-section-region" data-section="details" tabIndex={-1} aria-label="能力详情">{selected ? <article aria-label="能力详情">
-    <h4>{selected.atlas.canonical_name}</h4>
+    <h3>{selected.atlas.canonical_name}</h3>
     <p>{capabilityPresentation(selected).purpose}</p>
     <p>稳定入口 ID {selected.atlas.capability_id}</p>
     <p>目录声明：{selected.atlas.authority_status} · 技术 {selected.atlas.technical_state} · 路线 {selected.atlas.roadmap_state} · 时段 {selected.atlas.activation_horizon}</p>

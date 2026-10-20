@@ -101,7 +101,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
     setCourseId(target.courseId); setReturnItemKey(key); setCourseRead(value => value + 1);
     setMessage(""); setFailure(null); onOpenPage?.("07");
   }
-  return <section className="ui-learning-journey" aria-label={pageId === "07" ? "课程与视觉教学" : "学习路径"}>
+  return <section className="ui-learning-journey" aria-label={pageId === "07" ? "课程与视觉教学内容" : "学习路径内容"}>
     <div className="ui-content-tabs"><button aria-pressed={pageId === "06"} onClick={() => onOpenPage?.("06")}>学习路径</button><button aria-pressed={pageId === "07"} onClick={() => onOpenPage?.("07")}>课程与课时</button></div>
     <div className="ui-content-main-side">
       <div className="ui-content-panel">

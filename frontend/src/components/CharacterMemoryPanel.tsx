@@ -79,7 +79,7 @@ export function CharacterMemoryPanel() {
   });}
   const disabled=busy||!!pending||!profile;
   return <section className="ui-content-panel" aria-label="角色档案与获准记忆">
-    <h3>角色档案与获准记忆</h3><p>由你明确保存偏好、学习目标和有来源的记忆。启用后才用于陪伴风格；记忆不授予权限，也不成为已核验知识。</p>
+    <h2>角色档案与获准记忆</h2><p>由你明确保存偏好、学习目标和有来源的记忆。启用后才用于陪伴风格；记忆不授予权限，也不成为已核验知识。</p>
     <button disabled={busy||!!pending} onClick={()=>void refresh()}>读取当前档案与记忆</button>
     {message?<p role={failed?"alert":"status"}>{message}</p>:null}
     {profile?<><p>当前存储 v{profile.revision} · {profile.enabled?"记忆已启用":"记忆已停用"} · {profile.memories.length} 条获准记忆</p>

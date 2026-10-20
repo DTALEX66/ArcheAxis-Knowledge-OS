@@ -3,6 +3,17 @@ import "./ConsoleWindow.css";
 
 export type ConsoleRect = { x: number; y: number; width: number; height: number };
 export type ConsoleViewport = { width: number; height: number };
+type ResizeEdge = "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw";
+const additionalEdges: readonly ResizeEdge[] = ["n", "ne", "e", "s", "sw", "w", "nw"];
+function resizeConsole(rect: ConsoleRect, viewport: ConsoleViewport, edge: ResizeEdge, dx: number, dy: number): ConsoleRect {
+  const right = rect.x + rect.width, bottom = rect.y + rect.height;
+  const floorWidth = Math.min(640, viewport.width), floorHeight = Math.min(480, viewport.height);
+  const x = edge.includes("w") ? Math.max(0, Math.min(rect.x + dx, right - floorWidth)) : rect.x;
+  const y = edge.includes("n") ? Math.max(0, Math.min(rect.y + dy, bottom - floorHeight)) : rect.y;
+  const endX = edge.includes("e") ? Math.min(viewport.width, Math.max(right + dx, x + floorWidth)) : right;
+  const endY = edge.includes("s") ? Math.min(viewport.height, Math.max(bottom + dy, y + floorHeight)) : bottom;
+  return { x, y, width: endX - x, height: endY - y };
+}
 export function constrainConsole(rect: ConsoleRect, viewport: ConsoleViewport): ConsoleRect {
   const width = Math.min(viewport.width, Math.max(640, rect.width));
   const height = Math.min(viewport.height, Math.max(480, rect.height));
@@ -17,7 +28,7 @@ type ConsoleControls = {
   mode: "floating" | "full" | "compact";
   toggle: () => void;
   reset: () => void;
-  begin: (event: PointerEvent<HTMLElement>, kind: "move" | "resize") => void;
+  begin: (event: PointerEvent<HTMLElement>, kind: "move" | "resize", edge?: ResizeEdge) => void;
   move: (event: PointerEvent<HTMLElement>) => void;
   end: (event: PointerEvent<HTMLElement>) => void;
   cancel: () => void;
@@ -31,7 +42,7 @@ export function ConsoleWindow({ children }: { children: ReactNode }) {
   const [viewport, setViewport] = useState(readViewport);
   const [rect, setRect] = useState(() => defaultConsoleRect(readViewport()));
   const [full, setFull] = useState(false);
-  const gesture = useRef<{ id: number; x: number; y: number; rect: ConsoleRect; kind: "move" | "resize" } | null>(null);
+  const gesture = useRef<{ id: number; x: number; y: number; rect: ConsoleRect; kind: "move" | "resize"; edge: ResizeEdge } | null>(null);
   const compact = viewport.width <= 900 || viewport.height <= 600;
   const mode = compact ? "compact" : full ? "full" : "floating";
   const shown = mode === "floating" ? constrainConsole(rect, viewport) : { x: 0, y: 0, width: viewport.width, height: viewport.height };
@@ -51,18 +62,18 @@ export function ConsoleWindow({ children }: { children: ReactNode }) {
     mode,
     toggle: () => { gesture.current = null; if (!compact) setFull(value => !value); },
     reset: () => { gesture.current = null; setRect(defaultConsoleRect(viewport)); setFull(false); },
-    begin: (event, kind) => {
+    begin: (event, kind, edge = "se") => {
       if (mode !== "floating" || event.button !== 0) return;
       if (kind === "move" && (event.target as Element).closest("button:not(.console-move-handle),a,input,select,textarea,[contenteditable='true']")) return;
       event.preventDefault();
-      gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, rect: shown, kind };
+      gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, rect: shown, kind, edge };
       event.currentTarget.setPointerCapture?.(event.pointerId);
     },
     move: event => {
       const start = gesture.current;
       if (!start || start.id !== event.pointerId || mode !== "floating") return;
       const dx = event.clientX - start.x, dy = event.clientY - start.y;
-      setRect(constrainConsole(start.kind === "move" ? { ...start.rect, x: start.rect.x + dx, y: start.rect.y + dy } : { ...start.rect, width: Math.min(viewport.width - start.rect.x, start.rect.width + dx), height: Math.min(viewport.height - start.rect.y, start.rect.height + dy) }, viewport));
+      setRect(constrainConsole(start.kind === "move" ? { ...start.rect, x: start.rect.x + dx, y: start.rect.y + dy } : resizeConsole(start.rect, viewport, start.edge, dx, dy), viewport));
     },
     end: event => {
       if (gesture.current?.id !== event.pointerId) return;
@@ -82,7 +93,8 @@ export function ConsoleWindow({ children }: { children: ReactNode }) {
   return <ConsoleContext.Provider value={controls}>
     <div className="console-window" data-console-mode={mode} style={{ left: shown.x, top: shown.y, width: shown.width, height: shown.height }}>
       {children}
-      <span id="console-window-help" className="console-window-help">拖动标志或标题空白处移动；方向键移动，Shift加方向键调整大小；Esc取消正在进行的拖动。窄窗口自动铺满。</span>
+      {additionalEdges.map(edge => <span key={edge} className="console-edge-handle" data-console-edge={edge} aria-hidden="true" hidden={mode !== "floating"}
+        onPointerDown={event => controls.begin(event, "resize", edge)} onPointerMove={controls.move} onPointerUp={controls.end} onPointerCancel={controls.cancel} onLostPointerCapture={() => { gesture.current = null; }} />)}
       <button type="button" className="console-resize-handle" aria-label="调整主控台大小" aria-describedby="console-window-help" disabled={mode !== "floating"} title={mode === "floating" ? "拖动调整大小；也可在移动主控台按钮上使用Shift加方向键" : "铺满时无需调整大小"}
         onPointerDown={event => controls.begin(event, "resize")} onPointerMove={controls.move} onPointerUp={controls.end} onPointerCancel={controls.cancel} onLostPointerCapture={() => { gesture.current = null; }} onKeyDown={controls.keys}>◢</button>
     </div>

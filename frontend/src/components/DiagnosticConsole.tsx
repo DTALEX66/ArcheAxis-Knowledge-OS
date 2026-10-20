@@ -9,9 +9,10 @@ import { useDiagnosticState, clearDiagnostics, publishDiagnostic, diagnosticCate
 /** Replaces an inline JSON dump: the operator still reaches the untouched payload, the reading surface does not carry it. */
 export function RawReceiptButton({ label, payload, visibleLabel, category = "operation" }: { label: string; payload: unknown; visibleLabel?: string; category?: DiagnosticCategory }) {
   const {suspended}=useDiagnosticState();
+  const text = suspended ? "请先核对工作状态" : visibleLabel ?? "查看诊断详情";
   return (
-    <button type="button" className="raw-receipt" aria-label={`查看原始回执（诊断）：${label}`} disabled={suspended} title={suspended?"正在恢复或工作状态尚未确认，请先核对工作状态。":undefined} onClick={event => publishDiagnostic(label, payload, category, event.currentTarget)}>
-        {suspended?"请先核对工作状态":visibleLabel ?? "查看诊断详情"}
+    <button type="button" className="raw-receipt" data-diagnostic-label={label} aria-label={`${text}：${label}`} disabled={suspended} title={suspended?"正在恢复或工作状态尚未确认，请先核对工作状态。":undefined} onClick={event => publishDiagnostic(label, payload, category, event.currentTarget)}>
+        {text}
     </button>
   );
 }

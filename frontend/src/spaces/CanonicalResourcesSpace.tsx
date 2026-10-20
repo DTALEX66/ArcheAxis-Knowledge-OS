@@ -152,7 +152,7 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
     </section>
     <RawReceiptButton label="资源来源与启用规则详情" payload={{ sources: RESOURCE_CATALOG.sources, original: RESOURCE_CATALOG.crosswalk_metadata, overlay: RESOURCE_CATALOG.qualification_metadata, freeze: RESOURCE_CATALOG.freeze_register }}/>
   </section>;
-  return <section aria-label="资源与扩展" className="ui-resources"><h2>资源与扩展</h2>
+  return <section aria-label="资源与扩展内容" className="ui-resources"><h2>资源与扩展</h2>
     <AaosTabs label="资源与模板工作区" value={tab} onValueChange={changeTab} tabs={[
       { id: "resources", label: "吸收来源与供体", content: directory },
       { id: "templates", label: "学科模板", content: <div className="template-launcher"><TemplateWorkspace onOpen={id => {

@@ -49,7 +49,7 @@ export function DataTable<T>({
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-card">
-      <h3>{title}</h3>
+      <h2>{title}</h2>
       {children}
     </section>
   );

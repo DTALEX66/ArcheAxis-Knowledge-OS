@@ -34,6 +34,7 @@ export function TopNavBar({
         <div className="top-nav-container">
           {/* Left: Logo + Breadcrumbs */}
           <div className="top-nav-left" onPointerDown={event=>consoleWindow?.begin(event,"move")} onPointerMove={consoleWindow?.move} onPointerUp={consoleWindow?.end} onPointerCancel={consoleWindow?.cancel} onLostPointerCapture={consoleWindow?.end}>
+            {consoleWindow && <span id="console-window-help" className="console-window-help">拖动标志或标题空白处移动；方向键移动，Shift加方向键调整大小；Esc取消正在进行的拖动。窄窗口自动铺满。</span>}
             {consoleWindow ? <button type="button" className="console-move-handle" aria-label="移动主控台" aria-describedby="console-window-help" onKeyDown={consoleWindow.keys} disabled={consoleWindow.mode!=="floating"} title={consoleWindow.mode==="floating"?"拖动移动；方向键移动，Shift加方向键调整大小":"铺满时无需移动"}><img
               src={AAOS_THEME_REGISTRY[theme].brandMark}
               alt="ArcheAxis"
@@ -76,15 +77,15 @@ export function TopNavBar({
               aria-keyshortcuts="Control+K Meta+K"
               onClick={onSearch}
             >
-              <span className="search-trigger-icon">🔍</span>
+              <span className="search-trigger-icon" aria-hidden="true">🔍</span>
               <span className="search-trigger-text">
-                搜索文档、知识、学习内容...
+                搜索页面、能力与内容
               </span>
-              <div className="search-trigger-shortcut">
+            </button>
+              <div className="search-trigger-shortcut" aria-hidden="true">
                 <span className="search-trigger-key">{commandKeyLabel()}</span>
                 <span className="search-trigger-key">K</span>
               </div>
-            </button>
           </div>
 
           {/* Right: Actions */}

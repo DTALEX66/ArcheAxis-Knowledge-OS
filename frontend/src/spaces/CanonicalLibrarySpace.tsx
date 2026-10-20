@@ -636,6 +636,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   </>;
   const originalTextCitation=source&&bytes&&/\.(txt|md)$/i.test(source.original_name)?<OriginalTextCitation sourceId={source.source_id} revision={source.source_revision} bytes={bytes} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(item=>item.anchor_id!==anchor.anchor_id),anchor])}/>:null;
   if(purpose === "library") return <section className="ui-library-page" aria-label="知识库文档视图">
+    <h2>知识库</h2>
     {listControls}
     <div className="ui-content-tabs" role="group" aria-label="内容筛选">
       <button type="button" aria-pressed={contentFilter==="all"} onClick={()=>setContentFilter("all")}>全部内容</button>
@@ -663,7 +664,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
         <details className="reader-material-tools"><summary>围绕此文档提问</summary><MaterialQuestionPanel key={`material:${document.document_id}:${document.version}`} material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}} text={document.text_projection} materialTitle={document.title}/><ConversationPanel materialTitle={document.title} slot="reader" material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}}/></details>
         {readerSourceTools&&!initialSourceTarget?<details className="reader-source-tools"><summary>整理关联来源</summary>{readerSourceTools}</details>:null}
       </aside></div>
-    </> : <section className="ui-content-panel"><h3>选择已保存文档</h3><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
+    </> : <section className="ui-content-panel"><h2>选择已保存文档</h2><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
     {feedback}
   </section>;
 

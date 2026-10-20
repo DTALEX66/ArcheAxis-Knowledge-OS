@@ -35,7 +35,7 @@ export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}
   },[retry]);
   const reviews=workspaceReviews(learning,clock);
   const empty=!failed&&!state&&documents.length===0&&learning.length===0;
-  return <section className={`ui-workspace cabin-workspace${empty?" cabin-workspace-empty":""}`} aria-label="今日工作台">
+  return <section className={`ui-workspace cabin-workspace${empty?" cabin-workspace-empty":""}`} aria-label="今日工作台内容">
     <BrandHeader
       title="今日工作台"
       subtitle="导入资料，或先记下一个想法"

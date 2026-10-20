@@ -116,7 +116,7 @@ export function CanonicalExpressionBoard({ value, onChange, onAddMedia, renderMe
     {error ? <p role="alert">{error}</p> : null}
     <label className="expression-picker">当前节点<select aria-label="当前节点" value={selected?.id ?? ""} onChange={e => setSelectedId(e.target.value || null)}><option value="">选择节点</option>{value.nodes.map((n, i) => <option key={n.id} value={n.id}>节点 {i + 1} · {n.type === "text" ? "文字" : "媒体"}</option>)}</select></label>
     {selected ? <fieldset className="expression-properties" disabled={locked}><legend>节点位置与尺寸</legend>{(["x", "y", "width", "height"] as const).map((key, i) => <label key={key}>{["X 坐标", "Y 坐标", "宽度", "高度"][i]}<GeometryInput key={`${documentKey}-${selected.id}-${key}`} label={["X 坐标", "Y 坐标", "宽度", "高度"][i]} value={geometryDrafts[`${selected.id}:${key}`] ?? String(selected[key])} pending={geometryDrafts[`${selected.id}:${key}`] !== undefined} onDraft={raw => draftGeometry(`${selected.id}:${key}`, raw, selected[key])} onCommit={() => { const raw = geometryDrafts[`${selected.id}:${key}`]; if (raw !== undefined && changeNumber(selected, key, raw)) clearGeometry(`${selected.id}:${key}`); }} onCancel={() => { clearGeometry(`${selected.id}:${key}`); setError(null); }} /></label>)}</fieldset> : null}
-    <div className="expression-viewport" aria-label="画布滚动区域" tabIndex={0}>
+    <div className="expression-viewport" role="region" aria-label="画布滚动区域" tabIndex={0}>
       <div className="expression-plane" style={{ width, height }}>
         <svg className="expression-edges" width={width} height={height} aria-hidden="true">{value.edges.map(edge => {
           const a = nodeMap.get(edge.fromNode); const b = nodeMap.get(edge.toNode); if (!a || !b) return null;

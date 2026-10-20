@@ -1522,7 +1522,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
 
             def click_selector(self, selector):
                 actions.append(("selector", selector))
-                if "查看原始回执（诊断）：文档与来源详细信息" in selector:
+                if "文档与来源详细信息：文档与来源详细信息" in selector:
                     state["diagnostic"] = True
                 elif "禁用 text.extract" in selector:
                     state["enabled"] = False

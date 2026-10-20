@@ -35,7 +35,7 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(window.location.hash).toBe("#page=02");
     view.unmount();window.history.replaceState(null,"","#space=library");
     render(<App/>);
-    expect(screen.getByRole("heading",{name:"资料库",level:2})).toBeInTheDocument();
+    expect(within(document.querySelector(".space-view")!).getByRole("heading",{name:"资料库",level:2})).toBeInTheDocument();
     expect(screen.getByLabelText("导入原件")).toBeInTheDocument();
     expect(screen.queryByRole("region",{name:"知识库文档视图"})).toBeNull();
   });
@@ -91,7 +91,7 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(within(tools).getByLabelText("材料问题")).toBe(input);
     expect(input).toHaveValue("保留尚未提交的问题");
     expect(screen.getByRole("textbox",{name:"文档草稿"})).toBe(editor);
-    expect(screen.getByRole("button",{name:"查看原始回执（诊断）：文档与来源详细信息"})).toHaveTextContent("文档与来源详细信息");
+    expect(screen.getByRole("button",{name:"文档与来源详细信息：文档与来源详细信息"})).toHaveTextContent("文档与来源详细信息");
     bridge.call.mockImplementation((op:string,payload:Record<string,unknown>={})=>op==="documents_list"?Promise.reject(new Error("refresh offline")):previous(op,payload));
     await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
     expect(await screen.findByRole("alert")).toHaveTextContent("资料列表刷新失败");

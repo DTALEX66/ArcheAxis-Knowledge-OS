@@ -2,7 +2,7 @@
 
 状态 **RUNNING_BY_OWNER / PARTIAL**（Owner 明确要求今天停止额度监控并继续；今天不查询额度、不因额度阈值停工）。本文件是 [活动指针](AAOS-ACTIVE-EXECUTION.json) 指定的唯一进度源；按指针及 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md) 接续当前任务，不从旧暂停或旧 COMPLETE 推导现场事实。
 
-最新增量：玻璃/密度及窄窗口设置的完整正式浏览器门禁、最终 Rust workspace、TypeScript/Vite 和 Rust 格式门禁已本地通过。c95c46c1 的云端 CI 为 FAIL；其安装探针遗留的正文内 JSON 定位已改为通过现有运行诊断读取，49项相关合同及19项冲突/诊断组件检查通过。源码867d7c8a的云端浏览器、Rust、Python与桌面构建已通过；安装与聚合状态以文末收尾快照及现场CI为准。各轮历史失败保留，详见文末“云端门禁复现与后继修复”；下表较早回执只代表各自源码。
+最新接续见文末 **2026-10-20 TRAE承接与前端覆盖修复**：完整承接206d56da，现场已核其PR合并候选CI及安装旅程成功；本轮补齐内部主控台边角调整、页面无障碍语义与Dock主题密度，最终本地A0、前端套件及构建通过。本轮新增代码尚无新安装态CI；总体PARTIAL。下表与早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
 
 ## 已实施与证据边界
 
@@ -316,3 +316,35 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 **BE-P03 批次耐久——部分实现，真实缺口＝批次成员列表不持久化**：FolderIngest 逐文件 `source_import`＋`job_enqueue`（内容寻址 `job_id`），冻结请求经 `JobJournal` 跨重启找回（[FolderIngest.tsx](../../frontend/src/components/FolderIngest.tsx#L269)）；但 [FolderIngest.tsx:283](../../frontend/src/components/FolderIngest.tsx#L283) **明确声明“当前队列是本页面会话状态，不声称重启恢复”**——即**“哪些文件属于本批次”不跨重启重建**。补齐需 Core 批次 schema＋命令（较大改动，本轮**未实施**，避免未验证半成品破坏 Rust 构建/合同）。
 
 **UI-P16—P24——组件层已存在**：`presentation/uiPages.ts` 全 22 页 `implemented=true`，`SpaceView.tsx` 均有生产组件（无 `ui-pending-page` 兜底命中）；UI-P16 `CanonicalLearningJourneySpace`/`CanonicalTeachingSpace`/`KnowledgeCoursePanel`/`ImportedCoursePanel`；UI-P17 `ModelConfigurationPanel`/`MachineAnswerPanel`/`CanonicalAiJourneySpace`；UI-P18 `CanonicalCapabilitiesSpace`/`CanonicalResourcesSpace`；UI-P19 `XiaoqiPanel`/`XiaoqiAvatar`/`ConversationPanel`；UI-P20 `DiagnosticConsole`/`BackupPanel`/`VersionSourcePanel`。**缺口**：UI-P21 无障碍扫描仅覆盖少数页面（非全 22 页）；UI-P23 无全页面自动视觉回归（仅 A0 脚本）；UI-P22 性能基线未测。
+
+## 2026-10-20 TRAE承接与前端覆盖修复
+
+本轮映射 **UI-P01/UF00/G01/H01、UI-P04/UF01/02、UI-P07/08/S01、UI-P21/23/UF13**。没有重新搭壳、替换Dock/图谱renderer或扩写后端。接手时工作树干净，原分支`codex/sync-20261019`、HEAD`206d56dafd00d0d3ccfd949ce6a4e424a324112a`；Owner补充的TRAE最后总结明确以该SHA为交付终点。本轮直接基于此SHA，保留UI-P02术语、A0正文等待和grouped可见导航修复及原记录，不重复实施。
+
+**现场CI与安装失败的后继结果**：GitHub REST及连接器日志实查[run39344981292](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39344981292)成功，installer-lifecycle/a0-gates成功；5个not-required作业skipped，不称全部作业执行。run关联PR头206d56da，实际checkout是`733c50059fe7215e83564f65edb86110d31fb33e`，父提交为main`fe18fdc3`和206d56da；合并候选与本地HEAD的tree均为`a3f89a589364d388d2912cf9f001886d5dffeffa`。安装日志三段原生旅程`ok=true`，产物ID`12231488177`。因此TRAE总结时仍在跑的安装失败已有后继工程回归通过；旧FAIL保留，不继续当成当前未修源码。此CI**不覆盖本轮新增代码**，也不证明日常Green已更新或完整业务闭环。
+
+**本轮原问题、修改与回归**：
+
+- 新增`scripts/probes/aaos_ui_coverage.py`，复用A0的正式前端、隔离host/文档fixture、回环Vite和进程回收；从生产UI_PAGES发现22语义角色。通过实际可见侧栏/抽屉导航；角色18由能力目录卡片进入详情，不能凭空寻找侧栏18。未知fixture操作明确501；拦截外部请求，无真实模型、私有材料或业务库写入。保留每页文本状态、几何、axe原始violations/incomplete、截图、浏览器/DPR/字体和源码身份。
+- 实际发现并修复：Dock组与正文同名地标、页面标题跳级、搜索/诊断按钮可见文字与朗读名称不符、画布滚动区缺少合法role。窗口帮助移到现有导航地标内，不把整应用嵌入新的region；保留main/banner/contentinfo层级。诊断按钮名称随可见文案变化，组件测试与A0/原生安装探针消费者同步；严格JSON、身份、版本、保存和重启断言不降低。
+- 截图发现Dock浅色主题仍沿用深灰标签、13px字。新增字体门槛先RED：white/640×480实测13px、未选底色rgb(45,45,45)。在现有Dock样式中将所有标签状态映射到AAOS语义颜色及14px菜单字号；五主题×知识库/研究10项定向GREEN，实际查看浅色修复截图。未换Dockview主题体系或渲染器。
+- 内部主控台原只有右下角调整柄。补其余四边/三角，拖左/上时固定对边，保持640×480下限、可视范围、Esc/pointercancel回滚、原键盘等价与草稿宿主。新增回归先RED（缺边柄），修复后5项组件通过；cosmic/white真实Chromium对八边角共16次可信指针调整、命中与Esc还原通过。原生Windows边缘调整仍属独立资格，不能外推。
+
+**源码与验证边界**：最终产品补丁在dev.py回执中的`source_patch_sha256=cad6de5f884fd7508129d5d1ff9254e7fa527b629da159e0af8bc46886d1bf0d`，base=206d56da；以下最终运行source_consistent=true。本节后继文档不改变产品源码，实际交付SHA须从Git现场读回。
+
+| 检查 | 本轮结果与范围 |
+| --- | --- |
+| 全页面入口态覆盖 | 22角色×cosmic/white×1600×1000及640×480＝88项；其余三主题×22角色×640×480＝66项，报告均PASS_AUTOMATED_ONLY、无pageerror/外网请求。属于各自源码时点；后继Dock/边角变更分别由定向与最终A0复验，不伪称完整状态笛卡尔积或同候选J1—J6。 |
+| 读取失败状态 | 最终补丁对sources_list/documents_list注入503，cosmic/640×480下22角色遍历通过；实际查看知识库错误与重试截图，不把失败显示成空目录成功。其他操作未配置fixture不是产品后端缺失的证据。 |
+| axe | 使用本机已登记axe4.14.0；保留color-contrast等incomplete，88项有184条incomplete规则结果、66项有138条、读取失败22项有49条。无已报告violation不代表完整合规，屏幕阅读器/物理IME/DPI未测。 |
+| 截图 | 保存上述页面截图并实际查看四张全页联系图及重点页面原图；首轮截图是覆盖快照，尚无批准的像素差异基准，UI-P23仍PARTIAL。 |
+| 最终A0 | `ui-a0-final-20261020` PASS，13档视口/五主题及原导航、正文、焦点等断言；真实Chromium、SYNTHETIC host/Core，319.86秒，exit0。 |
+| 最终前端套件 | `ui-frontend-final-suite-20261020`：182文件/1845项通过，无skip，exit0。首次全套有3项名称/标题消费者失败，定向修复后才执行本次最终套件；历史失败未删除。 |
+| 探针合同 | `ui-probe-consumers-20261020`：114项及150子项通过；退出时pyreadline3析构句柄警告保留，进程exit0。仅合同层，非新原生安装通过。 |
+| 类型/构建/lint | 最终TypeScript、正式frontend.mjs build及选定Ruff错误规则通过；构建子运行346cba7ba83a，既有大chunk警告保留，未改阈值。 |
+
+证据统一在`.project-local/runs/be268a2d33/<run-id>/`的`artifacts/execution.json`及日志；页面run为`ui-coverage-baseline-20261020`、`ui-coverage-final-20261020`、`ui-coverage-other-themes-20261020`、`ui-read-failure-20261020`，Dock为`ui-dock-density-red/green-20261020`，窗口为`ui-console-edges-red/green-20261020`及`ui-console-edges-browser3-20261020`。首次探针等待隐藏侧栏、18入口误判、axe临时frame初始化fixture及过早读React几何的失败均保留并修正探针；未关闭axe规则或放松业务断言。浏览器和自有Vite由既有helper关闭，各覆盖报告port_closed=true；Vite被terminate后的exit1不称正常退出。原始截图/日志仅本地保留，不提交运行资料。
+
+**RC-P01/02推进**：实际远端仍7heads，PR194 Draft/Open，main=fe18fdc3；本地27heads（含当前与main）、唯一worktree。逐一对25个其他本地分支查git cherry：19个无`+`，6个仍有不等价patch，共10提交；`+`不直接证明缺功能。涉及ASTRYN、machine取消、glass、旧Avalonia cosmic、窄窗Inspector、ui-polish。main已为当前HEAD祖先；ui-polish导入/导航图标、glass本地搜索/布局恢复、窄窗Inspector等关键消费者可在当前源码找到，但尚不能据此批量删分支。精确提交/逐分支结果保留于`ui-a0-final-20261020/artifacts/branch-readback.json`。本轮未合并/关闭PR、未删分支/资料、未新增减重；RC-P03—08继续按候选资格及精确清单分批处理。
+
+**当前仍PARTIAL**：UI-P02全域术语、UI-P05窄窗拆分与布局真实重启、UI-P14三类外部检索界面/真实接线、UI-P21辅助技术人工检查、UI-P22性能、UI-P23批准视觉基准及UI-P24本轮候选安装/Owner验收尚未全量收口。保持前端先行；前端阶段未交付，不启动BE-P01—15或缩减CL-01—07/J1—J6。真实云端模型、耐久批次、外部研究和扩展生命周期欠账保留。未覆盖Green、发布或真实用户数据。回退仅针对本轮列明文件，保留TRAE基线与全部历史证据；不执行整工作区reset/restore。

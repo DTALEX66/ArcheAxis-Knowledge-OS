@@ -41,6 +41,6 @@ it("keeps object identity out of the business explanation while publishing compl
  const value={...target,title:"中文长标题".repeat(12),detail:"已关联来源原件；保存不表示已证实。",identityDetails:identity};
  render(<><Inspector target={value}/><DiagnosticCenter/></>);
  const inspector=screen.getByRole("complementary",{name:"检查器"});expect(inspector).toHaveTextContent(value.title);expect(inspector).toHaveTextContent(value.detail);expect(inspector).not.toHaveTextContent(identity.document_id);expect(inspector).not.toHaveTextContent(identity.content_sha256);
- await userEvent.setup().click(screen.getByRole("button",{name:"查看原始回执（诊断）：条目来源详细信息"}));
+ await userEvent.setup().click(screen.getByRole("button",{name:"查看来源详情：条目来源详细信息"}));
  expect(screen.getByRole("dialog").querySelector("pre")?.textContent).toBe(JSON.stringify(identity,null,2));expect(value.identityDetails).toBe(identity);
 });

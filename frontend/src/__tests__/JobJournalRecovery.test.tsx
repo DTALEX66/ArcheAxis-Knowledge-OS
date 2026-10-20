@@ -52,7 +52,7 @@ describe("SIMULATED real components rehydrate exact Core journal without automat
   await waitFor(()=>expect(Array.from((screen.getByLabelText("来源任务") as HTMLSelectElement).options).map(option=>option.value)).toContain("original_job"));
   await user.selectOptions(screen.getByLabelText("来源任务"),"original_job");
   const fresh=await screen.findByRole("button",{name:"执行已保存任务"});
-  await user.click(await screen.findByRole("button",{name:"查看原始回执（诊断）：任务状态与保存进度详细信息"}));
+  await user.click(await screen.findByRole("button",{name:"查看诊断详情：任务状态与保存进度详细信息"}));
   expect(JSON.parse(screen.getByLabelText("诊断控制台").querySelector("details[open] pre")!.textContent!)).toMatchObject({state:"queued",job_id:"original_job",input_ref:"source"});
   await user.clear(screen.getByLabelText("最长等待时间（毫秒）"));await user.type(screen.getByLabelText("最长等待时间（毫秒）"),"1000");
   expect(fresh).toBeDisabled();await user.click(fresh);

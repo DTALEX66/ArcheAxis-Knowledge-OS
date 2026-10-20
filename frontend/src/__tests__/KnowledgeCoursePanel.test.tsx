@@ -79,7 +79,7 @@ describe("knowledge → course → lesson → existing learning queue", () => {
       expect(article).toHaveTextContent("解释证据并指出来源");
       expect(article).not.toHaveTextContent("RAW_PROJECTION_METADATA");
       expect(article).not.toHaveTextContent(courseId);
-      await user.click(screen.getByRole("button", { name: "查看原始回执（诊断）：课程课时渲染回执" }));
+      await user.click(screen.getByRole("button", { name: "查看诊断详情：课程课时渲染回执" }));
       expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(args => args.some(arg => arg && typeof arg === "object" && JSON.stringify(arg).includes("RAW_PROJECTION_METADATA")))).toBe(true);
     } finally { expect(debug).not.toHaveBeenCalled(); debug.mockRestore(); }
   });

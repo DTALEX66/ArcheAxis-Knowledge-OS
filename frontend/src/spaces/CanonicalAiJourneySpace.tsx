@@ -79,7 +79,7 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialRetestConsu
   const retestPermission=eligible(corrected,"retest",candidateId)?corrected!.snapshot:undefined;
   function receiveCandidate(id:string){setCandidateId(id);onCandidate?.(id);}
   function receiveTask(id:string){setLatestTask(id);onTask?.(id);}
-  return <section aria-label="纠正、评测与复测" data-section="ai-journey">
+  return <section aria-label="纠正、评测与复测内容" data-section="ai-journey">
     <h2>纠正、评测与复测</h2><p>原问题、机器回答和纠正候选分别保留；采用或调用成功都不等于独立评测通过。缺模型时保留草稿与历史，不自动下载。</p>
     {onOpenContext?<button onClick={()=>onOpenContext("original",knowledgeId??undefined)}>返回项目记忆与授权</button>:null}
     {candidateId&&onOpenContext?<button onClick={()=>onOpenContext("corrected",candidateId)}>为此纠正知识建立独立复测授权</button>:null}
