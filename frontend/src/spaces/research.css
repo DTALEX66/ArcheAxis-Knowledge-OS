@@ -1,0 +1,32 @@
+.research-editor .research-reference-list {
+  display: grid;
+  gap: var(--ax-space-2);
+  list-style: none;
+  padding: 0;
+  margin-block: var(--ax-space-3);
+}
+.research-editor .research-reference-list > li,
+.research-editor .research-reference-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ax-space-2);
+  min-width: 0;
+}
+.research-editor .research-reference-name {
+  flex: 1 1 16rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.research-editor .research-citation {
+  display: grid;
+  gap: var(--ax-space-2);
+  margin-block: var(--ax-space-3);
+  padding-inline-start: var(--ax-space-3);
+  border-inline-start: 2px solid var(--ax-border-strong);
+  min-width: 0;
+}
+.research-editor .research-citation > blockquote,
+.research-editor .research-citation > p { margin: 0; overflow-wrap: anywhere; }
+.research-editor > fieldset > section { margin-block: var(--ax-space-4); }
+.research-editor > fieldset > section > h3 { margin-block-end: var(--ax-space-2); }

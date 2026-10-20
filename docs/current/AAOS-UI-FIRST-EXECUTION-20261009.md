@@ -2,7 +2,7 @@
 
 状态 **RUNNING_BY_OWNER / PARTIAL**（Owner 明确要求今天停止额度监控并继续；今天不查询额度、不因额度阈值停工）。本文件是 [活动指针](AAOS-ACTIVE-EXECUTION.json) 指定的唯一进度源；按指针及 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md) 接续当前任务，不从旧暂停或旧 COMPLETE 推导现场事实。
 
-最新接续见文末 **2026-10-20 UI-P02：模板需求与诊断分离**：PR194/195已合入main，现场基线726842c8的CI39431380394成功，TRAE的206d56da完整保留。新增模板需求中文呈现、原始记录诊断、能力反向列表及标题层级修复，本地64项、有限浏览器4项通过；本片新提交的exact-SHA CI和合并仍需独立读回。19个本地/4个远端已合并分支的清理及6个独有patch分支的保留不变。前端总体PARTIAL，UI-P02全域及UI-P14/21/22/23/24等仍未完成，后端阶段尚未启动、Green未更新。早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
+最新接续见文末 **2026-10-20 UI-P02：研究引用与排版**：模板切片已经PR196合入main的5f6a845e，候选与main CI均成功；TRAE的206d56da完整保留。继续完成研究引用/引文/原件指纹的诊断分离、版本准确名称、只读诊断入口与8px排版间距；本地39项、研究页五主题宽窄10场有限浏览器通过，本片新提交的exact-SHA CI/合并待独立读回。19个本地/4个远端已合并分支的清理及6个独有patch分支的保留不变。前端总体PARTIAL，UI-P02全域及UI-P14/21/22/23/24等仍未完成，后端阶段尚未启动、Green未更新。早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
 
 ## 已实施与证据边界
 
@@ -444,3 +444,26 @@ Owner后继明确要求“该合并的合并啊”。本轮完成已获授权的
 **未完成与下一步**：UI-P02其他业务面仍有工程术语，UI-P14三类免费检索真实接口缺口保留，继续独立前端，不造空检索成功；UI-P21人工辅助技术、UI-P22规模性能、UI-P23全域视觉基准、UI-P24同候选安装和Owner验收仍PARTIAL/UNVERIFIED。前端未阶段交付，不进入BE-P01—15；Green、真实数据、模型/provider/endpoint未变。RC-P05—08剩余对象/体积/目录治理另按精确清单分批推进，不能取代产品修复。回退为对本片显示模块、两页面、原测试/探针消费者作反向修订；不回退已合入TRAE及主线基线，不删除失败证据。
 
 交付前附加门禁：`ui-template-conventions-20261020`工作树目录/编码规范PASS，`ui-template-authority-20261020`单一记录/引用/仓内7个hash PASS（外部私人4项仍UNVERIFIED），`ui-template-final-lint-20261020`CI同选项Ruff PASS，diff --check PASS。原始运行材料和截图保持本地，不提交。
+
+## 2026-10-20 UI-P02：研究引用与排版
+
+**上一片交付读回**：[PR196](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/196)的4cd755ae经[CI39437490872](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39437490872)SUCCESS，required a0-gates及browser-smoke/lint通过；按本轮路径分类未要求的安装等作业skipped，不称完整矩阵。源码审阅无阻断，PR无review/未解决inline意见，实时ruleset20849492只要求a0-gates。已正常merge为main的5f6a845e，tree14504d23与候选及CI合成合并树完全一致；[main CI39438919433](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39438919433)亦SUCCESS。本地main和当前writer经switch/--ff-only安全快进，writer远端同步5f6a845e；没有强制移动或清理占用分支，TRAE祖先保留。以下研究片基于该已合并基线，不借上一片资格称新改动CI通过。
+
+研究阅读区改用对象名称与固定版本说明，完整引用身份、原件指纹、引文定位及CRLF原文快照由同一运行诊断查看。名称仅匹配相同文档和版本、相同原件及内容指纹；未读取名称就明确说明，不拿新版标题解释旧引用。引用跳转和保存仍使用原身份/版本/块/指纹。改写保存冲突、未知属性、原件核对失败等业务说明，实际保存请求/核验边界不变。另一视图持有写入租约时，在禁用表单外保留只读引用诊断入口，不夺写入租约或放开保存。
+
+截图另发现引用说明与按钮0px相贴；新增局部`research.css`，复用现有间距/主题token，引用行和引文操作区flex换行、8px间距，区分正文和操作；不改壳、Dock、图谱渲染器或字号基线。修改为`CanonicalResearchSpace.tsx`、该局部CSS、原研究测试和既有覆盖探针；本片没有新增Core操作、后端接口或真实外部检索。
+
+| 验证 | 实际结果与限制 |
+| --- | --- |
+| RED与原保护 | `ui-research-copy-red-20261020`2项FAIL复现原始身份外露及缺少旧版本名称说明；`ui-research-readonly-red-20261020`1项FAIL复现只读无可达诊断入口。`ui-research-copy-green-20261020`首次全片30/33通过，旧GraphRAG/metadata/定位编号显示消费者3项FAIL；同步消费者，历史定位改从诊断逐值核对，不删除原始身份断言。 |
+| 最终定向 | `ui-research-spacing-tests-20261020`3文件39项PASS：研究34、真实租约消费者2、诊断3；含CRLF/表情原文不变、完整诊断逐值一致、旧引用不借新版名、只读保存禁用/租约不转移/零写入，以及既有幂等重试/冲突/迟到响应/历史只读。SIMULATED command，不是实际Core持久化或安装验证。 |
+| 间距RED/GREEN | `ui-research-spacing-red-20261020`真实640×480取样gap=0 FAIL；局部样式后`ui-research-spacing-green-20261020`四场均gap=8 PASS。没有降低字号或完整按钮可达门槛。 |
+| 最终浏览器 | `ui-research-five-themes-20261020`研究页05，cosmic/blueprint/blueprint-light/black/white×1600×1000/640×480共10场PASS_AUTOMATED_ONLY。实际点开合成研究对象、引文诊断、Escape焦点返回、读取实际合成原字节并核SHA、原件诊断、再次焦点返回；原引文textContent逐字含CRLF/表情一致，诊断完整身份一致，间距均8px、按钮完整可达。真实Chromium149.0.7827.55、DPR1/reduced-motion=reduce；SYNTHETIC host/Core，0 axe违规，20条incomplete原样保留，无pageerror/外网请求。实际查看五主题窄窗及cosmic/blueprint-light宽窗共7张引文截图，不称全页面五主题、原生DPI或完整无障碍通过。 |
+| fixture与失败保留 | 初始`ui-research-browser-20261020`暴露探针单页05缺父导航、列表fixture错误返回完整文档；修正为真实知识组父入口及严格summary字段，不改产品校验。其后补齐具名合成来源的空任务列表，避免把fixture未登记当实际任务故障。`ui-research-qualified-browser-20261020`窄窗一次诊断关闭后即时焦点断言失败；保留原FAIL，改用8秒内同一精确按钮最终焦点断言，不改产品、不跳过检查；单场readback及上述最终10场全部通过。不从先前部分PASS拼成一次全绿。 |
+| 构建 | `ui-research-qualified-build-20261020`正式frontend.mjs build PASS，内层fcbb4fc6aba9，含TypeScript；既有大chunk警告保留。后续仅探针焦点取样/本记录改变，前端源码和CSS未再修改。 |
+
+最终浏览器base5f6a845e、dirty diff SHA256 `e9d024322217bca8d45a117f4c4955ccc860ed2def883f506bbe3360f22dff1c`；当时新增CSS尚未入index，单独SHA256 `a0fc6ec47681335622b956bd8d803669553b8ede32aa548ef17549397298a310`。dev.py source_consistent=true、child/exit0；自有PID32580、127.0.0.1:50119已关闭，port_closed=true，terminate退出1不当优雅退出。原始运行和所有旧FAIL/截图留在`.project-local/runs/be268a2d33/<run-id>/`，不提交原始数据、浏览器profile或构建缓存。
+
+**仍未完成**：UI-P02其余页面和本地知识结果编号/引文定位枚举等尚需收敛；UI-P14三类免费外部检索与比较没有真实接线，不能把本地search或合成引文当检索成功。UI-P21人工辅助技术、UI-P22规模性能、UI-P23全域视觉基准和UI-P24同候选安装/Owner验收继续PARTIAL/UNVERIFIED；前端未阶段交付，后端队列不启动。原六项冻结、V01/FT状态、Green、真实数据及模型配置不变。回退仅反向修订本片研究显示、局部CSS及消费者/探针，保留已合入模板片、TRAE和失败证据。本片新提交的exact-SHA CI及合并待独立现场读回。
+
+交付前`ui-research-conventions-20261020`工作树规范、`ui-research-authority-20261020`单一记录/引用/仓内7个hash、`ui-research-delivery-lint-20261020`CI同选项Ruff及diff --check均PASS；外部私人4项仍UNVERIFIED。定向审阅确认只读诊断仅展示已读取对象，不新增读取权限或改变写入租约/保存保护。
