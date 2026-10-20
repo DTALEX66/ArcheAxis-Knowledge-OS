@@ -12,11 +12,11 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
   "sources": [
     {
       "path": "config/capability-map.v1.json",
-      "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
+      "sha256": "74b7c3d4fdc6cb5b238fdd2dbf385e2f5142807211f9275fcf3a657effda5bed"
     },
     {
       "path": "config/capability-packages/pdf-extract.manifest.json",
-      "sha256": "8f53e26d96f72fb67eb594c08d5f10e001a09e0280b848ec171be728e9fb7df9"
+      "sha256": "f76e25b6a8e7aa87d4aab53aa41a6a6684bcf3bdb864d6397aa507a0116901d8"
     },
     {
       "path": "crates/archeaxis-api/Cargo.toml",
@@ -28,7 +28,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
     },
     {
       "path": "packages/contracts/v1/core-document.schema.json",
-      "sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6"
+      "sha256": "ddd9d1cce98265480cfb461563a83a144f53a8988984053041920b38dd55f0b2"
     },
     {
       "path": "packages/contracts/v2/capability-package.schema.json",
@@ -48,7 +48,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
     },
     {
       "path": "services/python-workers/routes.json",
-      "sha256": "0ac3068fe9a9179eb6575609305d3eaf88e7d9d485a0794b7948333c0a70706f"
+      "sha256": "f0c9f796f7e4b449f5dcc595e8f9b5af31b51f321b43e6ddd9a5ee3761c1533d"
     }
   ],
   "entries": [
@@ -57,7 +57,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
         "schema": "archeaxis.capability-package/v1",
         "package_id": "archeaxis.pdf-extract",
         "version": "0.1.0",
-        "sha256": "8f53e26d96f72fb67eb594c08d5f10e001a09e0280b848ec171be728e9fb7df9"
+        "sha256": "f76e25b6a8e7aa87d4aab53aa41a6a6684bcf3bdb864d6397aa507a0116901d8"
       },
       "manifest": {
         "schema": "archeaxis.capability-package/v1",
@@ -81,7 +81,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
           "contract_refs": [
             {
               "path": "packages/contracts/v1/core-document.schema.json",
-              "sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6"
+              "sha256": "ddd9d1cce98265480cfb461563a83a144f53a8988984053041920b38dd55f0b2"
             }
           ]
         },
@@ -120,7 +120,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
             "kind": "raw_asset_reference",
             "contract": {
               "path": "packages/contracts/v1/core-document.schema.json",
-              "sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6"
+              "sha256": "ddd9d1cce98265480cfb461563a83a144f53a8988984053041920b38dd55f0b2"
             },
             "max_bytes": 1048576
           }
@@ -130,7 +130,7 @@ export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
             "kind": "document_reference",
             "contract": {
               "path": "packages/contracts/v1/core-document.schema.json",
-              "sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6"
+              "sha256": "ddd9d1cce98265480cfb461563a83a144f53a8988984053041920b38dd55f0b2"
             },
             "max_bytes": 1048576
           }

@@ -6,6 +6,7 @@ mod dispatch;
 mod health;
 mod inventory;
 mod machine_failure;
+mod public_research;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
 };

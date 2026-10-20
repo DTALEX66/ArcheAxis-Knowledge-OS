@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "5817663ef8f8f54591083f094eff115a31b2b8a3b1b2c9c3148e7ab20fb8d35a"
+      "sha256": "a35bec0fa26e57927dbc9d72cb792c933101539a212c06645d8800478d96d52d"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -228,7 +228,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "Cargo.lock",
-        "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
+        "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
       },
       {
         "path": "src-tauri/Cargo.lock",
@@ -487,6 +487,37 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "pointer": "/entries/5/evidence/version/source_refs/1",
           "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
           "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+        }
+      ]
+    },
+    "source_contract_refresh_20261021": {
+      "scope": "SOURCE_DECLARATION_ONLY_NOT_RUNTIME_REQUALIFICATION",
+      "reason": "Existing canonical DTO definitions unchanged; additive ingest/public-research DTOs and operations. Cargo lock keeps every package/version/source unchanged and adds only the already locked base64 dependency to archeaxis-domain. Prior runtime/license/qualification states unchanged.",
+      "sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a",
+          "current_sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3"
+        },
+        {
+          "path": "Cargo.lock",
+          "previous_sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
+          "current_sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+        },
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a",
+          "current_sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3"
+        },
+        {
+          "path": "Cargo.lock",
+          "previous_sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
+          "current_sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+        },
+        {
+          "path": "Cargo.lock",
+          "previous_sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
+          "current_sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
         }
       ]
     }
@@ -1481,7 +1512,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+                "sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3"
               }
             ]
           },
@@ -1498,7 +1529,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "Cargo.lock",
-                "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
+                "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
               }
             ],
             "previous_state_before_source_relocation": "FIRST_PARTY_PROJECT_LICENSE"
@@ -1908,7 +1939,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+                "sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3"
               }
             ]
           },
@@ -1925,7 +1956,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "Cargo.lock",
-                "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
+                "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
               }
             ],
             "previous_state_before_source_relocation": "FIRST_PARTY_PROJECT_LICENSE"

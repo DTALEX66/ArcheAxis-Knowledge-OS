@@ -10,6 +10,7 @@ pub mod ask;
 pub mod capabilities;
 mod documents;
 mod format_qualification;
+mod ingest_batches;
 pub mod launch;
 mod layout;
 mod machine_governance;
@@ -105,6 +106,25 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v2/teaching/imports", post(teaching::import))
         .layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024));
     let routes = Router::new()
+        .route(
+            "/api/v1/ingest-batches",
+            get(ingest_batches::list)
+                .post(ingest_batches::register)
+                .layer(axum::extract::DefaultBodyLimit::max(1_100_000)),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id",
+            get(ingest_batches::read),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id/imports",
+            post(ingest_batches::import)
+                .layer(axum::extract::DefaultBodyLimit::max(MAX_IMPORT_JSON_BYTES)),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id/jobs",
+            post(ingest_batches::enqueue),
+        )
         .route(
             "/api/v1/project-handoff/preview",
             post(project_handoff_preview::preview)

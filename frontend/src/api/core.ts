@@ -17,6 +17,11 @@ const teachingResponses: Partial<Record<CoreOperation,string>> = {
   teaching_import_preview:"ImportPreview",teaching_import:"ImportReceipt",
 };
 const responseSchemas: Partial<Record<CoreOperation, string>> = {
+  ingest_batch_register:"IngestBatchDto",ingest_batch_get:"IngestBatchDto",ingest_batches_list:"IngestBatchesDto",
+  ingest_member_import:"IngestMemberImportDto",ingest_member_enqueue:"IngestMemberJobDto",
+  public_research_search:"PublicResearchReceiptDto", public_research_read:"PublicResearchReceiptDto",
+  public_research_list:"PublicResearchJournalDto", public_research_cancel:"PublicResearchCancelDto",
+  public_research_materialize:"PublicResearchSelectionDto",
   source_job_format_qualification: "FileFormatQualificationDto",
   configuration_plans_read: "ConfigurationPlanCatalog",
   character_memory_get:"CharacterProfile", character_memory_context:"CharacterContext",

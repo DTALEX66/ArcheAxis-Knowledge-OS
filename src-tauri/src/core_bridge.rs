@@ -36,6 +36,11 @@ pub enum Operation {
     ProjectHandoffPreview,
     ProjectHandoffSnapshot,
     SourceImport,
+    IngestBatchRegister,
+    IngestBatchesList,
+    IngestBatchGet,
+    IngestMemberImport,
+    IngestMemberEnqueue,
     SourcesList,
     SourceJobs,
     SourceJobFormatQualification,
@@ -96,6 +101,11 @@ pub enum Operation {
     MaterialContextPrepare,
     MaterialQuestionCancel,
     MaterialQuestionStatus,
+    PublicResearchSearch,
+    PublicResearchRead,
+    PublicResearchList,
+    PublicResearchCancel,
+    PublicResearchMaterialize,
     OperationReadiness,
     CharacterMemoryGet,
     CharacterMemoryApply,
@@ -271,6 +281,75 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(body()?),
         ),
         SourceImport => ("POST", "/api/v1/imports".into(), Some(body()?)),
+        IngestBatchRegister | IngestMemberImport | IngestMemberEnqueue => {
+            let register = matches!(request.operation, IngestBatchRegister);
+            let keys = if register {
+                vec!["body"]
+            } else {
+                vec!["batch_id", "body"]
+            };
+            if p.as_object()
+                .is_none_or(|fields| fields.keys().any(|key| !keys.contains(&key.as_str())))
+                || !p.get("body").is_some_and(Value::is_object)
+            {
+                return Err("CORE_COMMAND_BATCH_PAYLOAD_INVALID".into());
+            }
+            let path = if register {
+                "/api/v1/ingest-batches".into()
+            } else {
+                format!(
+                    "/api/v1/ingest-batches/{}/{}",
+                    id(p, "batch_id")?,
+                    if matches!(request.operation, IngestMemberImport) {
+                        "imports"
+                    } else {
+                        "jobs"
+                    }
+                )
+            };
+            ("POST", path, Some(body()?))
+        }
+        IngestBatchesList | IngestBatchGet => {
+            let listing = matches!(request.operation, IngestBatchesList);
+            let keys = if listing {
+                vec!["cursor", "limit"]
+            } else {
+                vec!["batch_id", "after_ordinal", "limit"]
+            };
+            if p.as_object()
+                .is_none_or(|fields| fields.keys().any(|key| !keys.contains(&key.as_str())))
+            {
+                return Err("CORE_COMMAND_BATCH_PAYLOAD_INVALID".into());
+            }
+            let limit = p
+                .get("limit")
+                .map(|v| {
+                    v.as_u64()
+                        .filter(|n| (1..=200).contains(n))
+                        .ok_or_else(|| "CORE_COMMAND_BATCH_LIMIT_INVALID".to_owned())
+                })
+                .transpose()?
+                .unwrap_or(200);
+            let mut path = if listing {
+                "/api/v1/ingest-batches".into()
+            } else {
+                format!("/api/v1/ingest-batches/{}", id(p, "batch_id")?)
+            };
+            path.push_str(&format!("?limit={limit}"));
+            if listing && p.get("cursor").is_some() {
+                path.push_str(&format!("&cursor={}", id(p, "cursor")?));
+            }
+            if !listing {
+                if let Some(value) = p.get("after_ordinal") {
+                    let after = value
+                        .as_u64()
+                        .filter(|n| *n < 10000)
+                        .ok_or("CORE_COMMAND_BATCH_CURSOR_INVALID")?;
+                    path.push_str(&format!("&after_ordinal={after}"));
+                }
+            }
+            ("GET", path, None)
+        }
         SourcesList => ("GET", "/api/v1/sources".into(), None),
         SourceJobs => (
             "GET",
@@ -603,6 +682,23 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         ConversationStatus => ("POST", "/api/v1/conversation/status".into(), Some(body()?)),
         MachineAnswer => ("POST", "/api/v1/machine/answers".into(), Some(body()?)),
         MaterialQuestion => ("POST", "/api/v1/material/questions".into(), Some(body()?)),
+        PublicResearchSearch => (
+            "POST",
+            "/api/v1/research/public/search".into(),
+            Some(body()?),
+        ),
+        PublicResearchRead => ("POST", "/api/v1/research/public/read".into(), Some(body()?)),
+        PublicResearchList => ("POST", "/api/v1/research/public/list".into(), Some(body()?)),
+        PublicResearchCancel => (
+            "POST",
+            "/api/v1/research/public/cancel".into(),
+            Some(body()?),
+        ),
+        PublicResearchMaterialize => (
+            "POST",
+            "/api/v1/research/public/materialize".into(),
+            Some(body()?),
+        ),
         MaterialContextPrepare => ("POST", "/api/v1/material/context".into(), Some(body()?)),
         MaterialQuestionCancel => (
             "POST",
@@ -919,6 +1015,56 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
     })
 }
 
+#[cfg(test)]
+mod ingest_batch_routes {
+    use super::*;
+    use serde_json::json;
+    fn request(operation: &str, payload: Value) -> Request {
+        serde_json::from_value(json!({"operation":operation,"payload":payload})).unwrap()
+    }
+    #[test]
+    fn batch_routes_bind_members_and_reject_extra_or_unbounded_transport_inputs() {
+        assert_eq!(
+            route(&request(
+                "ingest_batch_get",
+                json!({"batch_id":"batch","after_ordinal":199,"limit":200})
+            ))
+            .unwrap(),
+            (
+                "GET",
+                "/api/v1/ingest-batches/batch?limit=200&after_ordinal=199".into(),
+                None
+            )
+        );
+        for operation in ["ingest_member_import", "ingest_member_enqueue"] {
+            let (_, path, body) = route(&request(
+                operation,
+                json!({"batch_id":"batch","body":{"ordinal":1}}),
+            ))
+            .unwrap();
+            assert!(path.starts_with("/api/v1/ingest-batches/batch/"));
+            assert_eq!(body.unwrap()["ordinal"], 1);
+            for payload in [
+                json!({"batch_id":"../other","body":{}}),
+                json!({"batch_id":"batch","body":{},"url":"https://invalid"}),
+            ] {
+                assert!(route(&request(operation, payload)).is_err());
+            }
+        }
+        for payload in [
+            json!({"limit":201}),
+            json!({"cursor":"a&limit=2"}),
+            json!({"url":"http://invalid"}),
+        ] {
+            assert!(route(&request("ingest_batches_list", payload)).is_err());
+        }
+        assert_eq!(
+            request_byte_limit(&Operation::IngestMemberImport),
+            90 * 1024 * 1024
+        );
+    }
+}
+
 pub fn save_export(root: &std::path::Path, reply: &Reply) -> Result<Value, String> {
     if reply.status != 200 {
         return Err("CORE_EXPORT_UNAVAILABLE".into());
@@ -1004,9 +1150,10 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         // The owned worker permits 120 seconds plus 20 seconds for bounded
         // transport cleanup; keep a finite margin for durable readback.
         Operation::DocumentCheckExecute => 160,
-        Operation::MachineAnswer | Operation::MaterialQuestion | Operation::ConversationRequest => {
-            135
-        }
+        Operation::MachineAnswer
+        | Operation::MaterialQuestion
+        | Operation::ConversationRequest
+        | Operation::PublicResearchSearch => 135,
         Operation::MachineRetest => 135,
         Operation::WorkspaceBackup => 120,
         Operation::ProjectHandoffPreview | Operation::ProjectHandoffSnapshot => 3,
@@ -1026,7 +1173,10 @@ fn request_byte_limit(operation: &Operation) -> usize {
         65_536
     } else if matches!(operation, Operation::DocumentPackageImport) {
         16 * 1024 * 1024
-    } else if matches!(operation, Operation::SourceImport) {
+    } else if matches!(
+        operation,
+        Operation::SourceImport | Operation::IngestMemberImport
+    ) {
         90 * 1024 * 1024
     } else if matches!(
         operation,
@@ -1231,10 +1381,12 @@ mod tests {
             "retry-safe"
         );
         for invalid in ["", "../private", "a/b", "a%2fb"] {
-            assert!(execution_request_id(
-                &serde_json::json!({"job_id":"job-safe","request_id":invalid})
-            )
-            .is_err());
+            assert!(
+                execution_request_id(
+                    &serde_json::json!({"job_id":"job-safe","request_id":invalid})
+                )
+                .is_err()
+            );
             let request: Request=serde_json::from_value(serde_json::json!({"operation":"job_execution_cancel","payload":{"job_id":"job-safe","request_id":invalid}})).unwrap();
             assert!(route(&request).is_err());
         }
@@ -1315,14 +1467,16 @@ mod tests {
     }
     #[test]
     fn bridge_rejects_arbitrary_transport_and_traversal() {
-        assert!(serde_json::from_str::<Request>(
-            r#"{"operation":"fetch","payload":{"url":"https://example.com"}}"#
-        )
-        .is_err());
-        assert!(serde_json::from_str::<Request>(
-            r#"{"operation":"sources_list","token":"secret"}"#
-        )
-        .is_err());
+        assert!(
+            serde_json::from_str::<Request>(
+                r#"{"operation":"fetch","payload":{"url":"https://example.com"}}"#
+            )
+            .is_err()
+        );
+        assert!(
+            serde_json::from_str::<Request>(r#"{"operation":"sources_list","token":"secret"}"#)
+                .is_err()
+        );
         let request = serde_json::from_str::<Request>(
             r#"{"operation":"source_original","payload":{"source_id":"../private"}}"#,
         )
@@ -1454,10 +1608,12 @@ mod tests {
             serde_json::json!(42),
             serde_json::json!("body"),
         ] {
-            assert!(serde_json::from_value::<Request>(
-                serde_json::json!({"operation":"system_version","payload":payload})
-            )
-            .is_err());
+            assert!(
+                serde_json::from_value::<Request>(
+                    serde_json::json!({"operation":"system_version","payload":payload})
+                )
+                .is_err()
+            );
         }
         let default =
             serde_json::from_value::<Request>(serde_json::json!({"operation":"system_version"}))
@@ -1621,11 +1777,13 @@ mod teaching_bridge_tests {
             assert!(routed.2.is_none());
         }
         for id in ["../other", "E:\\private", "x?actor=human", "x/y", ".."] {
-            assert!(route(&Request {
-                operation: Operation::TeachingGet,
-                payload: json!({"record_id":id})
-            })
-            .is_err());
+            assert!(
+                route(&Request {
+                    operation: Operation::TeachingGet,
+                    payload: json!({"record_id":id})
+                })
+                .is_err()
+            );
         }
         let preview = route(&Request {
             operation: Operation::TeachingImportPreview,
@@ -1661,11 +1819,13 @@ mod teaching_bridge_tests {
             serde_json::json!({"document_id":"doc","version":18446744073709551615_u64}),
             serde_json::json!({"document_id":"doc","cursor":"x?actor=human"}),
         ] {
-            assert!(route(&Request {
-                operation: Operation::DocumentGraph,
-                payload
-            })
-            .is_err());
+            assert!(
+                route(&Request {
+                    operation: Operation::DocumentGraph,
+                    payload
+                })
+                .is_err()
+            );
         }
         for payload in [
             serde_json::json!({"document_id":"doc","view_id":"view","limit":0}),
@@ -1673,11 +1833,13 @@ mod teaching_bridge_tests {
             serde_json::json!({"document_id":"doc","view_id":"view","offset":501}),
             serde_json::json!({"document_id":"doc","view_id":"view/escape"}),
         ] {
-            assert!(route(&Request {
-                operation: Operation::CollectionQuery,
-                payload
-            })
-            .is_err());
+            assert!(
+                route(&Request {
+                    operation: Operation::CollectionQuery,
+                    payload
+                })
+                .is_err()
+            );
         }
     }
 }
@@ -1737,11 +1899,16 @@ mod folder_native_contract_regression {
                         if bytes.len() < header_end + 4 + length {
                             continue;
                         }
-                        assert!(headers
-                            .starts_with("POST /api/v1/jobs/folder-text-safe/executions HTTP/1.1"));
-                        assert!(lower
-                            .lines()
-                            .any(|line| line == "idempotency-key: folder-explicit-request"));
+                        assert!(
+                            headers.starts_with(
+                                "POST /api/v1/jobs/folder-text-safe/executions HTTP/1.1"
+                            )
+                        );
+                        assert!(
+                            lower
+                                .lines()
+                                .any(|line| line == "idempotency-key: folder-explicit-request")
+                        );
                         assert!(lower.lines().any(|line| line
                             == "x-archeaxis-launch-token: synthetic-owned-native-contract"));
                         let body: Value =
@@ -1757,7 +1924,11 @@ mod folder_native_contract_regression {
                     }
                 }
                 let body=serde_json::json!({"job_id":"folder-text-safe","request_id":"folder-explicit-request","state":"running","replayed":replayed}).to_string();
-                let response=format!("HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",body.len(),body);
+                let response = format!(
+                    "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                    body.len(),
+                    body
+                );
                 socket.write_all(response.as_bytes()).unwrap();
             }
         });
@@ -1798,11 +1969,13 @@ mod folder_native_contract_regression {
             for invalid in ["../other", "x/y", "x?role=human", ""] {
                 let mut payload = serde_json::json!({"source_id":"src-1","anchor_id":"anchor-1"});
                 payload[key] = serde_json::json!(invalid);
-                assert!(route(&Request {
-                    operation: Operation::AnchorResolve,
-                    payload
-                })
-                .is_err());
+                assert!(
+                    route(&Request {
+                        operation: Operation::AnchorResolve,
+                        payload
+                    })
+                    .is_err()
+                );
             }
         }
     }
@@ -1864,11 +2037,13 @@ mod folder_native_contract_regression {
                 assert!(route(&invalid).is_err());
             }
         }
-        assert!(route(&Request {
-            operation: Operation::UiStateRead,
-            payload: serde_json::json!({"body":{}})
-        })
-        .is_err());
+        assert!(
+            route(&Request {
+                operation: Operation::UiStateRead,
+                payload: serde_json::json!({"body":{}})
+            })
+            .is_err()
+        );
     }
     #[test]
     fn layout_routes_are_finite_and_device_query_cannot_inject_transport() {

@@ -32,6 +32,40 @@ fn bad(message: &'static str) -> Error {
 fn hash(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
 }
+/// Only declared business-reference fields are visited; unknown editor data is
+/// opaque and must not become an implicit source-read permission.
+fn research_refs(editor: &Value) -> Vec<&Value> {
+    let research = &editor["attrs"]["archeaxis_research"];
+    let mut values = Vec::new();
+    if let Some(materials) = research["materials"].as_array() {
+        values.extend(materials.iter().map(|material| &material["reference"]));
+    }
+    for section in [
+        "hypotheses",
+        "methods",
+        "experiments",
+        "counterevidence",
+        "unresolved",
+    ] {
+        if let Some(entries) = research[section].as_array() {
+            for entry in entries {
+                if let Some(references) = entry["references"].as_array() {
+                    values.extend(references);
+                }
+            }
+        }
+    }
+    if let Some(conclusions) = research["conclusions"].as_array() {
+        for entry in conclusions {
+            for field in ["sources", "basis"] {
+                if let Some(references) = entry[field].as_array() {
+                    values.extend(references);
+                }
+            }
+        }
+    }
+    values
+}
 fn refs(snapshot: &Value) -> Result<BTreeMap<String, String>, Error> {
     let mut refs = BTreeMap::new();
     if let Some(id) = snapshot["source_id"].as_str() {
@@ -61,7 +95,29 @@ fn refs(snapshot: &Value) -> Result<BTreeMap<String, String>, Error> {
             }
         }
     }
+    for reference in research_refs(&snapshot["editor_json"]) {
+        if reference["kind"] == "source" {
+            let id = reference["source_id"]
+                .as_str()
+                .ok_or(bad("missing research source"))?;
+            let sha = reference["sha256"]
+                .as_str()
+                .ok_or(bad("missing research source hash"))?;
+            if refs
+                .insert(id.to_owned(), sha.to_owned())
+                .is_some_and(|old| old != sha)
+            {
+                return Err(bad("conflicting research source identity"));
+            }
+        }
+    }
     Ok(refs)
+}
+fn research_quote(material: &Value) -> Option<Value> {
+    material.get("citation").map(|citation| {
+        json!({"kind":"research_citation","material_id":material["id"],
+        "source_id":material["reference"]["source_id"],"citation":citation})
+    })
 }
 pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     let snapshot = document::read(conn, id, None)?;
@@ -90,7 +146,7 @@ pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
             bytes,
         });
     }
-    let historical_anchors = if let Some(source) = snapshot["source_id"].as_str() {
+    let mut historical_anchors = if let Some(source) = snapshot["source_id"].as_str() {
         let mut stmt=conn.prepare("SELECT anchor_id,source_revision,position FROM anchors WHERE source_id=?1 ORDER BY anchor_id LIMIT 5001")?;
         let rows=stmt.query_map([source],|r| Ok(json!({"anchor_id":r.get::<_,String>(0)?,"source_revision":r.get::<_,String>(1)?,"position":r.get::<_,String>(2)?})))?.collect::<Result<Vec<_>,_>>()?;
         if rows.len() > 5000 {
@@ -100,6 +156,23 @@ pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     } else {
         Vec::new()
     };
+    if let Some(materials) =
+        snapshot["editor_json"]["attrs"]["archeaxis_research"]["materials"].as_array()
+    {
+        historical_anchors.extend(materials.iter().filter_map(research_quote));
+    }
+    // Imported locations remain historical. Carry them through subsequent
+    // exchanges without promoting them to this workspace's active anchors.
+    if let Some(inherited) =
+        snapshot["revision_basis"]["portable_import"]["historical_anchors"].as_array()
+    {
+        historical_anchors.extend(inherited.iter().cloned());
+    }
+    let mut unique = BTreeSet::new();
+    historical_anchors.retain(|value| unique.insert(value.to_string()));
+    if historical_anchors.len() > 5000 {
+        return Err(bad("anchor budget exceeded"));
+    }
     let package = Package {
         schema: "archeaxis.document-package/v1".into(),
         document: snapshot,
@@ -115,7 +188,11 @@ pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     }
     Ok(package)
 }
-pub fn import(conn: &mut Connection, package: Package, request_id: &str) -> Result<Value, Error> {
+pub fn import(
+    conn: &mut Connection,
+    mut package: Package,
+    request_id: &str,
+) -> Result<Value, Error> {
     if serde_json::to_vec(&package)
         .map_err(|_| bad("package serialization failed"))?
         .len()
@@ -149,6 +226,17 @@ pub fn import(conn: &mut Connection, package: Package, request_id: &str) -> Resu
         return Err(bad("package objects incomplete"));
     }
     let original_editor = package.document["editor_json"].clone();
+    // Document/Knowledge identities are workspace-local. This package only
+    // transfers hash-bound Source objects, so never resolve a foreign ID against
+    // an unrelated object that happens to exist in the destination workspace.
+    if research_refs(&original_editor)
+        .iter()
+        .any(|reference| reference["kind"] != "source")
+    {
+        return Err(bad(
+            "portable research requires hash-bound source references; document and knowledge dependencies are not bundled",
+        ));
+    }
     for namespace in [
         "archeaxis_context_grant",
         "archeaxis_asset_context_grant",
@@ -218,6 +306,77 @@ pub fn import(conn: &mut Connection, package: Package, request_id: &str) -> Resu
         mapping.insert(object.source_id.clone(), id);
     }
     let mut editor = original_editor;
+    if let Some(research) = editor
+        .get_mut("attrs")
+        .and_then(|v| v.get_mut("archeaxis_research"))
+    {
+        fn remap(reference: &mut Value, mapping: &BTreeMap<String, String>) -> Result<(), Error> {
+            if reference["kind"] == "source" {
+                let old = reference["source_id"]
+                    .as_str()
+                    .ok_or(bad("missing research source identity"))?;
+                reference["source_id"] = json!(
+                    mapping
+                        .get(old)
+                        .ok_or(bad("missing research source mapping"))?
+                );
+            }
+            Ok(())
+        }
+        if let Some(materials) = research.get_mut("materials").and_then(Value::as_array_mut) {
+            for material in materials {
+                // Captured source locations are historical in a new workspace.
+                // Preserve the complete quote in the import receipt, without
+                // minting a current Core anchor or losing its original identity.
+                if let Some(quote) = research_quote(material) {
+                    if !package.historical_anchors.contains(&quote) {
+                        package.historical_anchors.push(quote);
+                    }
+                    material
+                        .as_object_mut()
+                        .ok_or(bad("invalid research material"))?
+                        .remove("citation");
+                }
+                remap(&mut material["reference"], &mapping)?;
+            }
+        }
+        for section in [
+            "hypotheses",
+            "methods",
+            "experiments",
+            "counterevidence",
+            "unresolved",
+        ] {
+            if let Some(entries) = research.get_mut(section).and_then(Value::as_array_mut) {
+                for entry in entries {
+                    if let Some(references) =
+                        entry.get_mut("references").and_then(Value::as_array_mut)
+                    {
+                        for reference in references {
+                            remap(reference, &mapping)?;
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(conclusions) = research
+            .get_mut("conclusions")
+            .and_then(Value::as_array_mut)
+        {
+            for entry in conclusions {
+                for field in ["sources", "basis"] {
+                    if let Some(references) = entry.get_mut(field).and_then(Value::as_array_mut) {
+                        for reference in references {
+                            remap(reference, &mapping)?;
+                        }
+                    }
+                }
+            }
+        }
+        if package.historical_anchors.len() > 5000 {
+            return Err(bad("anchor budget exceeded"));
+        }
+    }
     if let Some(nodes) = editor
         .get_mut("attrs")
         .and_then(|v| v.get_mut("archeaxis_expression"))

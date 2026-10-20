@@ -7,7 +7,7 @@ export const CAPABILITY_CATALOG = {
     },
     {
       "path": "config/capability-map.v1.json",
-      "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
+      "sha256": "74b7c3d4fdc6cb5b238fdd2dbf385e2f5142807211f9275fcf3a657effda5bed"
     }
   ],
   "note": "Read-only projection. Atlas declarations and implementation links are not runtime execution evidence.",
@@ -174,8 +174,10 @@ export const CAPABILITY_CATALOG = {
       },
       "implementation": {
         "capability_id": "CAP-0030",
-        "state": "core_native",
-        "runtime_capabilities": []
+        "state": "worker_backed",
+        "runtime_capabilities": [
+          "research.public"
+        ]
       }
     },
     {

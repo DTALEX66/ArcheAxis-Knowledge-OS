@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import { OriginalTextCitation } from "../components/OriginalTextCitation";
 import { PublicResearchPanel } from "../components/PublicResearchPanel";
+import { usePublicResearch } from "../presentation/publicResearch";
+import type { PublicResearchSelectionDto } from "../api/generated/core-contract";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import type { DocumentDto, DocumentsListDto, DocumentSummaryDto, SourcesListDto, SourceDto, OriginalDto, SearchDto, DocumentExportDto, AnchorDto, AnchorResolutionDto } from "../api/generated/core-contract";
 import { Section } from "../components/RealData";
@@ -191,6 +193,18 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   }
   function showRefs(refs:ResearchReference[],remove?:(index:number)=>void){return <ul className="research-reference-list">{refs.map((ref,i)=><li key={`${JSON.stringify(ref)}-${i}`}><span className="research-reference-name">{refName(ref)}</span><RawReceiptButton label={`研究引用 ${i+1} 的原始身份`} payload={ref} category="data"/>{ref.kind!=="knowledge"||onOpenReference?<button type="button" onClick={()=>navigateRef(ref)}>{ref.kind==="source"?"读取校验原件":ref.kind==="knowledge"?"打开不变知识版本":"打开固定版本"}</button>:<span>作者引用；不表示知识已接受或AI资格</span>}{remove?<button type="button" onClick={()=>remove(i)} aria-label={`删除引用 ${i+1}`}>删除引用</button>:null}</li>)}</ul>;}
   const readonly=!!history||!!unsupported||!documentLease.canWrite;const shown=history??unsupported;const shownValue=shown?decode(shown):null;
+  function keepPublicMaterial(selection:PublicResearchSelectionDto):boolean {
+    if(readonly||busy||b.attempt||pending.current||saving.current)return false;
+    const content=selection.representation==="metadata"?"仅元数据；未取得摘要或全文":`${selection.representation}${selection.truncated?"；已截断":""}`;
+    const relation=`请求 ${selection.request_id} / ${selection.family} / ${selection.hit_id}`;
+    const next={...b.value,materials:[...b.value.materials,
+      {id:crypto.randomUUID(),reference:structuredClone(selection.reference),note:`公开资料派生快照（未核验，未知识采用）\n${selection.title}\n${content}\n${selection.note}\n${relation}\n对应原始 API：${selection.raw_reference.source_id} / ${selection.raw_reference.sha256}`},
+      {id:crypto.randomUUID(),reference:structuredClone(selection.raw_reference),note:`原始 API 响应字节已保全（未核验；不是文章全文）\n${relation}\n对应派生快照：${selection.reference.source_id} / ${selection.reference.sha256}`},
+    ]};
+    if(!parseResearch(next))return false;
+    edit(next);return true;
+  }
+  const publicResearch=usePublicResearch(`${active.current}:${!!shown}`,keepPublicMaterial);
   function keepPublicResearchNote(text:string):boolean {
     if(readonly||busy||b.attempt||pending.current){note("先完成引用选择或保存核对；公开检索准备仍留在本页。",true);return false;}
     const next={...b.value,unresolved:[...b.value.unresolved,{id:crypto.randomUUID(),text,references:[]}]};
@@ -199,12 +213,12 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   }
   const knowledgeCurrent=knowledgeRead.state==="read"&&knowledgeRead.query===query;
   return <Section title="研究空间">{!documentLease.canWrite?<p role="status">此文档已有写入视图；研究记录只读，草稿保留。</p>:null}<div className="research-editor" ref={researchRegion} tabIndex={-1} role="region" aria-label="研究编辑区" style={{minWidth:0,maxWidth:"100%"}} data-section="research">
-    <p>作者研究记录：问题、假设、方法、实验、反证与结论可非线性编辑。保存不代表核验、专业采用或 AI 资格；学术检索与多步自动研究当前未接通。</p>
+    <p>作者研究记录：问题、假设、方法、实验、反证与结论可非线性编辑。保存不代表核验、专业采用或 AI 资格；公开检索需明确输入关键词，多步自动研究当前未接通。</p>
     <div><button type="button" disabled={busy} onClick={()=>requestOpen("__new")}>新建研究草稿</button><button type="button" disabled={loading} onClick={()=>void list(false)}>刷新文档列表</button></div>
     <ul aria-label="研究文档列表">{rows.map(row=><li key={row.document_id}><button type="button" onClick={()=>requestOpen(row.document_id)}>{row.title} · 版本 {row.version}</button></li>)}</ul>{cursor?<button type="button" disabled={loading} onClick={()=>void list(true)}>更多文档</button>:null}
     <p role={error?"alert":"status"} aria-label="研究操作状态">{message}</p>
     {shown?<aside aria-label="只读文档"><h3>{shown.title} · 版本 {shown.version} · 只读</h3>{shownValue?<><p style={{whiteSpace:"pre-wrap"}}>问题：{shownValue.question}</p><h4>材料</h4>{shownValue.materials.map(m=><article key={m.id}><p style={{whiteSpace:"pre-wrap"}}>{m.note}</p>{showRefs([m.reference])}{showCitation(m.citation,m.reference)}</article>)}{sections.map(([key,label])=><section key={key} aria-label={`历史${label}`}><h4>{label}</h4>{shownValue[key].map(e=><article key={e.id}><p style={{whiteSpace:"pre-wrap"}}>{e.text}</p>{showRefs(e.references)}</article>)}</section>)}<h4>结论（作者记录）</h4>{shownValue.conclusions.map(c=><div key={c.id}><p style={{whiteSpace:"pre-wrap"}}>{c.text}</p><h4>来源</h4>{showRefs(c.sources)}<h4>依据</h4>{showRefs(c.basis)}</div>)}</>:<p>不支持的研究属性保持完整原文，只读不转换。</p>}<RawReceiptButton label="完整原文与未知载荷" payload={shown.editor_json}/><button type="button" onClick={()=>{historyGeneration.current++;setHistory(null);setUnsupported(null);}}>返回当前研究草稿</button></aside>:null}
-    {!shown?<PublicResearchPanel key={active.current} onKeepNote={keepPublicResearchNote} readOnly={readonly||busy||!!b.attempt}/>:null}
+    {!shown?<PublicResearchPanel key={active.current} snapshot={publicResearch.snapshot} receipt={publicResearch.receipt} requestId={publicResearch.target?.request_id} journal={publicResearch.journal} message={publicResearch.message} acting={publicResearch.acting} onSearch={(q,f)=>void publicResearch.search(q,f)} onCancel={()=>void publicResearch.cancel()} onRead={r=>void publicResearch.read(r)} onList={()=>void publicResearch.list()} onMaterialize={hit=>{const record=publicResearch.receipt?.channels?.flatMap(c=>c.hits).find(h=>h.id===hit.id&&h.family===hit.family);if(record)void publicResearch.materialize(record);}} onOpenRaw={navigateRef} onKeepNote={keepPublicResearchNote} readOnly={readonly||busy||!!b.attempt||pending.current}/>:null}
     <fieldset disabled={readonly} style={{minWidth:0}}><legend>{b.base?`${b.base.title} · 当前基准版本 ${b.base.version}`:"尚未持久化研究草稿"}</legend>{!b.base?<label>研究标题<input aria-label="研究标题" value={b.title} disabled={busy||!!b.attempt} onChange={event=>{b.title=event.target.value;b.serial++;b.dirty=true;publish();}}/></label>:null}
     <label>研究问题<textarea aria-label="研究问题" value={b.value.question} style={{width:"100%",boxSizing:"border-box"}} onChange={event=>changeText(()=>({...b.value,question:event.target.value}),event.target.value)}/></label>
     <h3>材料与原文</h3><button type="button" onClick={()=>void beginPick({kind:"material"})}>添加材料或待整理说明</button><ul>{b.value.materials.map((m,i)=><li key={m.id}><label>材料说明 {i+1}<textarea aria-label={`材料说明 ${i+1}`} value={m.note} onChange={e=>changeText(()=>({...b.value,materials:b.value.materials.map(v=>v.id===m.id?{...v,note:e.target.value}:v)}),e.target.value)}/></label>{showRefs([m.reference])}{showCitation(m.citation,m.reference)}{m.reference.kind==="source"?<button type="button" disabled={busy||!!b.attempt} onClick={()=>{if(m.reference.kind==="source")void readSource(m.reference,m.id);}}>摘录材料 {i+1}原文</button>:null}<button type="button" onClick={()=>edit({...b.value,materials:b.value.materials.filter(v=>v.id!==m.id)})}>删除材料 {i+1}</button></li>)}</ul>

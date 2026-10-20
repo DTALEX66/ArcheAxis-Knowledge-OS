@@ -32,17 +32,20 @@
     "media.probe": [
       "document/worker_media.py"
     ],
-    "media.video": [
-      "media/worker_video.py"
-    ],
     "media.transcribe": [
       "media/worker_transcribe.py"
+    ],
+    "media.video": [
+      "media/worker_video.py"
     ],
     "office.structure": [
       "document/worker_office.py"
     ],
     "pdf.extract": [
       "document/worker_pdf.py"
+    ],
+    "research.public": [
+      "machine/worker_machine_answer.py"
     ],
     "search.semantic": [
       "search/semantic_ranking.py"

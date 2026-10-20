@@ -116,7 +116,17 @@
         "character_memory_context",
         "character_memory_export",
         "operation_readiness",
-        "configuration_plans_read"
+        "configuration_plans_read",
+        "public_research_search",
+        "public_research_read",
+        "public_research_list",
+        "public_research_cancel",
+        "public_research_materialize",
+        "ingest_batch_register",
+        "ingest_batches_list",
+        "ingest_batch_get",
+        "ingest_member_import",
+        "ingest_member_enqueue"
       ]
     },
     "payload": {

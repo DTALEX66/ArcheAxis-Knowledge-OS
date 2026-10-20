@@ -14,6 +14,7 @@ pub(super) fn probe(
         .map(|d| d.as_millis() as u64)
         .unwrap_or_default();
     let derived_protocol = derived::supported(capability);
+    let public_research_protocol = capability == "research.public";
     let observation = if !file_usable(worker) {
         (
             "worker_missing",
@@ -25,7 +26,9 @@ pub(super) fn probe(
             Err("interpreter file does not exist".to_string()),
         )
     } else {
-        let checked = if derived_protocol {
+        let checked = if public_research_protocol {
+            public_research::health(staging, python, worker, allow_site)
+        } else if derived_protocol {
             derived::run(
                 staging,
                 python,
@@ -68,8 +71,8 @@ pub(super) fn probe(
         "runtime_dependency":observation.1.as_ref().ok().map(|v| &v["runtime_dependency"]),
         "reason":observation.1.as_ref().err(),
         "task_executed":false, "timeout_ms":2000,
-        "protocol":if derived_protocol { "archeaxis.derived-worker-hello/v1" } else { "NDJSON" },
-        "basis":if derived_protocol { "live --hello: protocol and declared capability; a job has to run to verify dependencies, engines and output" } else { "live NDJSON hello: protocol, worker identity and advertised capability; PDF additionally imports its required engine and observes its version; no document executed or output qualified" },
+        "protocol":if public_research_protocol {public_research::HELLO_SCHEMA} else if derived_protocol { "archeaxis.derived-worker-hello/v1" } else { "NDJSON" },
+        "basis":if public_research_protocol {"live --public-research-hello: fixed module/dependency imports, protocol, identity and capability only; no query, network or model call; provider reachability NOT_CHECKED"} else if derived_protocol { "live --hello: protocol and declared capability; a job has to run to verify dependencies, engines and output" } else { "live NDJSON hello: protocol, worker identity and advertised capability; PDF additionally imports its required engine and observes its version; no document executed or output qualified" },
     })
 }
 

@@ -236,9 +236,64 @@ def verify(root: Path) -> dict:
     return manifest
 
 
+def qualified_host(receipt_path: Path, build: dict, paths: dict, environment: dict) -> Path:
+    """Accept canonical completed builder evidence, not a hand-authored PASS row."""
+    receipt_path = dev.safe_path(receipt_path)
+    run = dev.safe_path(Path(build.get("run_root", "")))
+    if (run != dev.layout(paths["root"], run.name)["run"]
+            or receipt_path.parent.name != "artifacts"
+            or receipt_path.parent.parent.parent != paths["run"].parent):
+        raise ValueError("Host receipt has foreign run ownership")
+    if (build.get("schema") != "archeaxis.frontend-build/v1" or build.get("mode") != "tauri"
+            or build.get("status") != "PASS" or build.get("exit_code") != 0
+            or build.get("portable_build_arguments") != ["build", "--no-bundle", "--", "--offline", "--locked"]
+            or build.get("source_consistent") is not True
+            or build.get("worktree_root") != str(paths["root"])
+            or build.get("source_commit") != environment["ARCHEAXIS_SOURCE_COMMIT"]
+            or build.get("source_tree") != environment["ARCHEAXIS_SOURCE_TREE"]
+            or build.get("source_patch_sha256") != environment["ARCHEAXIS_SOURCE_PATCH_SHA256"]
+            or build.get("source_patch_sha256_after") != environment["ARCHEAXIS_SOURCE_PATCH_SHA256"]):
+        raise ValueError("Host is not bound to a completed canonical build of this source")
+    host = paths["tauri_build"] / "release/ArcheAxis.exe"
+    core = host.parent / "core/archeaxis-api.exe"
+    if build.get("host") != str(host) or build.get("core") != str(core):
+        raise ValueError("Host/Core path differs from canonical Tauri target")
+    for key, path in (("host_sha256", regular(host, cargo_host=True)),
+                      ("core_sha256", regular(core)),
+                      ("backend_manifest_sha256", regular(host.parent / "backend-runtime-manifest.json"))):
+        if build.get(key) != digest(path):
+            raise ValueError("Host/runtime bytes changed after build")
+    evidence = build.get("core_build_receipt", {})
+    core_receipt = dev.safe_path(Path(evidence.get("path", "")))
+    measured = dev.read_core_build(core_receipt, paths, environment)
+    regular(core_receipt)
+    if dev.build_file_identity(core_receipt) != evidence:
+        raise ValueError("Core build receipt identity changed")
+    if measured["sha256"] != build["core_sha256"]:
+        raise ValueError("Bundled Core is not the qualified Core output")
+    timing_identity = build.get("build_timings", {})
+    timing_path = dev.safe_path(Path(timing_identity.get("path", "")))
+    if timing_path.parent != run / "artifacts" or not re.fullmatch(r"bt-[a-f0-9]{8}\.json", timing_path.name):
+        raise ValueError("Build timing has foreign run ownership")
+    if dev.build_file_identity(regular(timing_path)) != timing_identity:
+        raise ValueError("Build timing identity changed")
+    timing = json.loads(timing_path.read_text(encoding="utf-8"))
+    stages = timing.get("stages", [])
+    if (timing.get("schema") != "archeaxis.build-timings/v1"
+            or any(timing.get("source", {}).get(key) != environment[key] for key in (
+                "ARCHEAXIS_SOURCE_COMMIT", "ARCHEAXIS_SOURCE_TREE", "ARCHEAXIS_SOURCE_PATCH_SHA256"))
+            or [stage.get("name") for stage in stages] not in (
+                ["tauri-with-bundle"], ["tauri-compile-with-frontend-hook", "nsis-bundle"])
+            or any(stage.get("status") != "PASS" or stage.get("exit_code") != 0
+                   or not stage.get("ended_at") for stage in stages)):
+        raise ValueError("Tauri build stages are incomplete or unqualified")
+    return host
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--build-receipt", type=Path, required=True)
+    parser.add_argument("--build-receipt", type=Path, required=True,
+                        help="canonical frontend tauri receipt qualified with --core-build-receipt")
     parser.add_argument("--run-id")
     action = parser.add_mutually_exclusive_group()
     action.add_argument("--assemble", action="store_true", help="Otherwise write only the verified member plan")
@@ -247,12 +302,12 @@ def main() -> int:
     paths = dev.layout(REPO, args.run_id)
     environment = dev.prepare(paths)
     receipt_path = dev.safe_path(args.build_receipt)
-    receipt_path.relative_to(paths["dev"] / "runs")
+    if (receipt_path.suffix != ".json" or receipt_path.name.startswith(".")
+            or receipt_path.parent.name != "artifacts"
+            or receipt_path.parent.parent.parent != paths["run"].parent):
+        raise ValueError("Host receipt is outside this worktree's artifacts")
     build = json.loads(regular(receipt_path).read_text(encoding="utf-8"))
-    if build["source_patch_sha256"] != environment["ARCHEAXIS_SOURCE_PATCH_SHA256"]:
-        raise ValueError("Build does not qualify the current frozen source")
-    host = dev.safe_path(Path(build["host"]))
-    host.relative_to(paths["cargo_build"] / "release")
+    host = qualified_host(receipt_path, build, paths, environment)
     config = json.loads((REPO / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
     manifest = plan(host, build, set(config["bundle"]["resources"].values()))
     manifest["build_receipt"] = {"path": str(receipt_path), "sha256": digest(receipt_path)}

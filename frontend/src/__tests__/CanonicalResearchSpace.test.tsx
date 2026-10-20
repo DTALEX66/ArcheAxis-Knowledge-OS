@@ -29,7 +29,7 @@ it("keeps public search preparation local and saves only an explicit unresolved 
  render(<CanonicalResearchSpace/>);await openA();
  const panel=screen.getByRole("region",{name:"公开资料检索"});
  expect(within(panel).getByRole("textbox",{name:"公开检索关键词"})).toHaveValue("");
- expect(panel).toHaveTextContent("百科、社区、科研检索尚未接线");
+ expect(panel).toHaveTextContent("尚未检索公开资料");
  expect(within(panel).getByRole("button",{name:"检索公开资料"})).toBeDisabled();
  fireEvent.change(within(panel).getByRole("textbox",{name:"公开检索关键词"}),{target:{value:"间隔复习 证据"}});
  fireEvent.click(within(panel).getByRole("button",{name:"把检索计划加入未决草稿"}));
@@ -215,7 +215,7 @@ async function openA(){fireEvent.click(await screen.findByRole("button",{name:"d
 function editQuestion(text:string){fireEvent.change(screen.getByLabelText("研究问题"),{target:{value:text}});}
 async function save(){fireEvent.click(screen.getByRole("button",{name:"保存研究草稿"}));await screen.findByText("研究草稿已保存并读回；未变为核验或采用状态。");}
 it("stores incomplete counterevidence and unresolved research without question, materials, course or adoption prerequisite",async()=>{
- render(<CanonicalResearchSpace/>);fireEvent.click(screen.getByRole("button",{name:"添加反证"}));fireEvent.change(screen.getByLabelText("反证 1"),{target:{value:"反例\n尚未查证"}});fireEvent.click(screen.getByRole("button",{name:"添加未决"}));fireEvent.change(screen.getByLabelText("未决 1"),{target:{value:"实验未做"}});await save();const stored=requests[0].body.editor_json.attrs.archeaxis_research;expect(stored.question).toBe("");expect(stored.materials).toEqual([]);expect(stored.counterevidence[0]).toMatchObject({text:"反例\n尚未查证",references:[]});expect(stored.unresolved[0].text).toBe("实验未做");expect(bridge.call.mock.calls.map(c=>c[0])).not.toContain("knowledge_review");expect(screen.getByText(/学术检索与多步自动研究当前未接通/)).toBeInTheDocument();
+ render(<CanonicalResearchSpace/>);fireEvent.click(screen.getByRole("button",{name:"添加反证"}));fireEvent.change(screen.getByLabelText("反证 1"),{target:{value:"反例\n尚未查证"}});fireEvent.click(screen.getByRole("button",{name:"添加未决"}));fireEvent.change(screen.getByLabelText("未决 1"),{target:{value:"实验未做"}});await save();const stored=requests[0].body.editor_json.attrs.archeaxis_research;expect(stored.question).toBe("");expect(stored.materials).toEqual([]);expect(stored.counterevidence[0]).toMatchObject({text:"反例\n尚未查证",references:[]});expect(stored.unresolved[0].text).toBe("实验未做");expect(bridge.call.mock.calls.map(c=>c[0])).not.toContain("knowledge_review");expect(screen.getByText(/公开检索需明确输入关键词，多步自动研究当前未接通/)).toBeInTheDocument();
 });
 it("retains Chinese composition and all envelope/body unknown data through research edits and save",async()=>{
  const view=render(<CanonicalResearchSpace/>);await openA();const area=screen.getByLabelText("研究问题");fireEvent.compositionStart(area);editQuestion("中文输入\n第二行 ");fireEvent.keyDown(area,{key:"Enter",isComposing:true});fireEvent.compositionEnd(area);document.documentElement.dataset.aaosTheme="white";view.rerender(<CanonicalResearchSpace/>);expect(area).toHaveValue("中文输入\n第二行 ");await save();expect(requests[0].body.expected_version).toBe(1);expect(requests[0].body.editor_json.attrs.ownerUnknown).toEqual({raw:"未修改的外层载荷"});expect(requests[0].body.editor_json.content).toEqual((dto("doc_a","A").editor_json as J).content);

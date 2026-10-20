@@ -14,6 +14,8 @@ import socket
 import ssl
 import threading
 import time
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from urllib.parse import urljoin, urlsplit
@@ -21,6 +23,33 @@ from urllib.parse import urljoin, urlsplit
 
 class SafeHTTPError(ValueError):
     """Raised when a URL or response violates the Safe HTTP policy."""
+
+
+class SafeHTTPStatusError(SafeHTTPError):
+    """Non-success status with bounded retry metadata, never response headers/body.
+
+    The message preserves the original SafeHTTPError contract for existing callers.
+    """
+
+    def __init__(self, status_code: int, headers: Mapping[str, str] | None = None):
+        super().__init__(f"HTTP status {status_code}")
+        self.status_code = status_code
+        self.retry_after_seconds: int | None = None
+        value = (headers or {}).get("retry-after", "")
+        if not isinstance(value, str) or len(value) > 128:
+            return
+        try:
+            if value.isascii() and value.isdecimal():
+                seconds = int(value)
+            else:
+                when = parsedate_to_datetime(value)
+                if when.tzinfo is None:
+                    return
+                seconds = max(0, int((when - datetime.now(timezone.utc)).total_seconds()))
+            if 0 <= seconds <= 86400:
+                self.retry_after_seconds = seconds
+        except (ValueError, TypeError, OverflowError):
+            pass
 
 
 @dataclass(frozen=True)
@@ -322,7 +351,7 @@ def fetch(
             continue
 
         if not 200 <= response.status < 300:
-            raise SafeHTTPError(f"HTTP status {response.status}")
+            raise SafeHTTPStatusError(response.status, response.headers)
         media_type = _content_type(response.headers)
         if media_type not in {item.lower() for item in active_policy.allowed_content_types}:
             raise SafeHTTPError(f"Content-Type not allowed: {media_type or 'missing'}")

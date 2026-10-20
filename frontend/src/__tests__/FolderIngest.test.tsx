@@ -26,19 +26,44 @@ function upload(files: File[]) {
 
 type Status = ReturnType<typeof status>;
 const statuses = new Map<string, Status>(), requests = new Map<string, string>();
+const manifests=new Map<string,any>();
+const sources = new Set<string>(), origins = new Map<string, { reference: string; name: string }>();
 let enqueueState = "queued", executionState = "succeeded";
 let view: ReturnType<typeof render>;
-function sourceFor(name: string) { return `src_${name.replace(/[^a-zA-Z0-9_-]/g,"_")}`; }
+// Match Core's CAS identity and source_origins primary key. Names do not make
+// identical content a second source or rescue a colliding origin reference.
+function sourceFor(text: string) {
+  const digest = createHash("sha256").update(text).digest("hex");
+  return `src_${createHash("sha256").update(digest).digest("hex").slice(0, 24)}`;
+}
 function hashOfBase64(content: unknown) { return createHash("sha256").update(Buffer.from(String(content), "base64")).digest("hex"); }
 function status(job_id: string, input_ref: string, state: string, request_id: string | null = null, attempt: number | null = request_id ? 1 : null) {
   return { job_id, input_ref, state, request_id, attempt, error: state === "failed" ? "SIMULATED worker failure" : null,
     attempts: request_id ? [{ attempt, request_id, state, budget:{deadline_ms:90000,split:false,words:false}, continuation:{new_attempt_eligible_state:["failed","cancelled"].includes(state),resume_status:"NOT_SUPPORTED"} }] : [] };
 }
 function deferred<T>() { let resolve!: (value:T)=>void; const promise = new Promise<T>(yes=>{resolve=yes;}); return {promise,resolve}; }
+function memberName(payload:Record<string,any>):string{return manifests.get(payload.batch_id).members.find((m:any)=>m.ordinal===payload.body.ordinal).relative_path;}
+function memberRef(payload:Record<string,any>):string{return `${payload.batch_id}:${encodeURIComponent(memberName(payload))}`;}
+function jobId(payload:Record<string,any>):string{return `folder-${payload.body.kind}-${payload.body.source_revision}`;}
 async function fixture(operation: string, payload: Record<string,unknown>): Promise<unknown> {
   const body = payload.body as Record<string,unknown>;
-  if (operation === "source_import") { const name=String(body.name); return {source_id:sourceFor(name),sha256:hashOfBase64(body.content_base64),duplicate:false}; }
-  if (operation === "job_enqueue") { const job=String(body.job_id); statuses.set(job,status(job,String(body.input_ref),enqueueState,enqueueState==="queued"?null:"historical_request")); return {job_id:job,state:enqueueState}; }
+  if(operation === "ingest_batches_list")return {workspace_id:"workspace",restore_epoch:"epoch",batches:[],next_cursor:null};
+  if(operation === "ingest_batch_register"){
+    const id=String(body.batch_id),old=manifests.get(id)??{...body,members:[]};
+    const members=new Map((old.members as any[]).map(m=>[m.ordinal,m]));
+    for(const m of body.members as any[])members.set(m.ordinal,m);
+    const saved={...old,members:[...members.values()],complete:members.size===body.expected_members};manifests.set(id,saved);return saved;
+  }
+  if (operation === "ingest_member_import") {
+    const sha256=hashOfBase64(body.content_base64);
+    const source_id=`src_${createHash("sha256").update(sha256).digest("hex").slice(0,24)}`;
+    const duplicate=sources.has(source_id); sources.add(source_id);
+    const name=memberName(payload),reference=memberRef(payload);
+    const key=JSON.stringify([source_id,"path",reference]);
+    if(!origins.has(key))origins.set(key,{reference,name});
+    return {batch_id:payload.batch_id,ordinal:body.ordinal,source_id,sha256,duplicate};
+  }
+  if (operation === "ingest_member_enqueue") { const job=jobId(payload); statuses.set(job,status(job,String(body.source_id),enqueueState,enqueueState==="queued"?null:"historical_request")); return {job_id:job,state:enqueueState}; }
   if (operation === "job_execution_status") { const stored=statuses.get(String(payload.job_id)); if(!stored)throw new Error("SIMULATED missing job"); return structuredClone(stored); }
   if (operation === "job_execute") {
     expect(body).toEqual({deadline_ms:90000,split:false,words:false}); expect(String(payload.request_id)).toMatch(/^folder_run_[a-zA-Z0-9_-]+$/);
@@ -54,45 +79,160 @@ async function fixture(operation: string, payload: Record<string,unknown>): Prom
 describe("folder ingest", () => {
   beforeEach(() => {
     vi.stubGlobal("crypto", webcrypto);
-    bridge.call.mockReset(); bridge.open.mockReset(); statuses.clear(); requests.clear(); enqueueState="queued"; executionState="succeeded";
+    bridge.call.mockReset(); bridge.open.mockReset(); statuses.clear(); requests.clear(); manifests.clear(); sources.clear(); origins.clear(); enqueueState="queued"; executionState="succeeded";
     bridge.call.mockImplementation(fixture);
     view = render(<FolderIngest onOpenSource={bridge.open} />);
   });
 
+  it.each(["node_modules", ".venv", ".project-local", "build", "target", "NODE_MODULES", ".VENV", ".PROJECT-LOCAL", "BUILD", "TARGET", ".hidden-folder"])("SIMULATED refuses selected excluded root %s before any Core request", async root => {
+    upload([picked(`${root}/package/index.md`)]);
+    expect(await screen.findByRole("status")).toHaveTextContent("选中的根目录属于排除目录");
+    expect(bridge.call).not.toHaveBeenCalled();
+    expect(view.container.querySelectorAll("tbody tr")).toHaveLength(0);
+    expect(screen.queryByLabelText("批次真实统计")).not.toBeInTheDocument();
+  });
+
+  it("SIMULATED rejected excluded root preserves the earlier batch without adding handled rows", async () => {
+    upload([picked("册/keep.bin")]);
+    await screen.findByText("原件已保管，无转换通路", {exact:true});
+    await waitFor(()=>expect(screen.getByLabelText("选择文件夹")).toBeEnabled());
+    const beforeCalls=bridge.call.mock.calls.length;
+    const beforeRows=view.container.querySelector("tbody")!.textContent;
+    const beforeStats=screen.getByLabelText("批次真实统计").textContent;
+    upload([picked(".project-local/runtime/snapshot.txt")]);
+    expect(await screen.findByRole("status")).toHaveTextContent("选中的根目录属于排除目录");
+    expect(bridge.call).toHaveBeenCalledTimes(beforeCalls);
+    expect(view.container.querySelector("tbody")!.textContent).toBe(beforeRows);
+    expect(screen.getByLabelText("批次真实统计").textContent).toBe(beforeStats);
+  });
+
+  it.each([".project-local", ".hidden-folder"])("SIMULATED preserves legacy excluded-root %s history but refuses its file reselection", async root => {
+    bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
+      if(op==="ingest_batches_list")return {workspace_id:"workspace",restore_epoch:"epoch",batches:[{batch_id:"past",folder_label:root,expected_members:1,registered_members:1,complete:true,created_at:"2026"}],next_cursor:null};
+      if(op==="ingest_batch_get")return {workspace_id:"workspace",restore_epoch:"epoch",batch_id:"past",folder_label:root,expected_members:1,registered_members:1,complete:true,created_at:"2026",members:[{ordinal:0,relative_path:"runtime/snapshot.txt",byte_length:1,disposition:"pending",source_id:null,source_revision:null,job_id:null,kind:null,job_state:null}],next_ordinal:null};
+      return fixture(op,p);
+    });
+    fireEvent.click(screen.getByRole("button",{name:"读取历史批次"}));
+    fireEvent.click(await screen.findByRole("button",{name:`查看批次 ${root}`}));
+    await screen.findByText("runtime/snapshot.txt",{exact:true});
+    const beforeCalls=bridge.call.mock.calls.length;
+    fireEvent.change(screen.getByLabelText("重新选择此批次文件夹"),{target:{files:[picked(`${root}/runtime/snapshot.txt`)]}});
+    expect(await screen.findByRole("status")).toHaveTextContent("选中的根目录属于排除目录");
+    expect(bridge.call).toHaveBeenCalledTimes(beforeCalls);
+    expect(screen.getByText("runtime/snapshot.txt",{exact:true})).toBeInTheDocument();
+  });
+
+  it("SIMULATED accepts an ordinary non-hidden root containing excluded-directory text", async () => {
+    upload([picked("My node_modules notes/keep.bin")]);
+    await screen.findByText("原件已保管，无转换通路",{exact:true});
+    expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(1);
+    expect([...manifests.values()][0].folder_label).toBe("My node_modules notes");
+  });
+
   it("SIMULATED rejects a well-shaped receipt for different bytes and never queues conversion", async () => {
-    bridge.call.mockImplementation(async (op:string,p:Record<string,unknown>) => op === "source_import"
-      ? {source_id:"wrong-content",sha256:"0".repeat(64),duplicate:false} : fixture(op,p));
+    bridge.call.mockImplementation(async (op:string,p:Record<string,unknown>) => op === "ingest_member_import"
+      ? {batch_id:p.batch_id,ordinal:(p.body as {ordinal:number}).ordinal,source_id:"wrong-content",sha256:"0".repeat(64),duplicate:false} : fixture(op,p));
     upload([picked("册/a.md")]);
     await screen.findByText("原件导入未确认",{exact:true});
     expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("原件已保管 0");
     expect(screen.queryByRole("button",{name:"打开保留原件"})).toBeNull();
-    expect(bridge.call.mock.calls.some(([op]) => op === "job_enqueue" || op === "job_execute")).toBe(false);
+    expect(bridge.call.mock.calls.some(([op]) => op === "ingest_member_enqueue" || op === "job_execute")).toBe(false);
   });
 
-  it("queues by the full hash with the kind in the identity, and uses a stable batch id as provenance", async () => {
+  it("SIMULATED reads durable history after remount without uploading or executing and requests file reselection", async () => {
+    bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
+      if(op==="ingest_batches_list")return {workspace_id:"workspace",restore_epoch:"epoch",batches:[{batch_id:"past",folder_label:"册",expected_members:1,registered_members:1,complete:true,created_at:"2026"}],next_cursor:null};
+      if(op==="ingest_batch_get")return {workspace_id:"workspace",restore_epoch:"epoch",batch_id:"past",folder_label:"册",expected_members:1,registered_members:1,complete:true,created_at:"2026",members:[{ordinal:0,relative_path:"a.md",byte_length:1,disposition:"pending",source_id:null,source_revision:null,job_id:null,kind:null,job_state:null}],next_ordinal:null};
+      return fixture(op,p);
+    });
+    fireEvent.click(screen.getByRole("button",{name:"读取历史批次"}));
+    fireEvent.click(await screen.findByRole("button",{name:"查看批次 册"}));
+    expect(await screen.findByText("a.md",{exact:true})).toBeInTheDocument();
+    expect(screen.getByLabelText("重新选择此批次文件夹")).toBeInTheDocument();
+    expect(bridge.call.mock.calls.every(([op])=>["ingest_batches_list","ingest_batch_get"].includes(op))).toBe(true);
+    fireEvent.change(screen.getByLabelText("重新选择此批次文件夹"),{target:{files:[picked("册/other.md")]}});
+    expect(await screen.findByRole("status")).toHaveTextContent("路径、数量或大小不符");
+    expect(bridge.call.mock.calls.every(([op])=>["ingest_batches_list","ingest_batch_get"].includes(op))).toBe(true);
+  });
+
+  it("SIMULATED freezes a lost registration ACK and explicitly replays the exact manifest before any upload",async()=>{
+    let lost=true;
+    bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
+      const result=await fixture(op,p);
+      if(op==="ingest_batch_register"&&lost){lost=false;throw new Error("SIMULATED lost registration ACK");}
+      return result;
+    });
+    upload([picked("册/a.md")]);
+    await screen.findByRole("button",{name:"同批次重试登记"});
+    expect(bridge.call.mock.calls.some(([op])=>op==="ingest_member_import")).toBe(false);
+    fireEvent.click(screen.getByRole("button",{name:"同批次重试登记"}));
+    await screen.findByText("已入队",{exact:true});
+    const registrations=bridge.call.mock.calls.filter(([op])=>op==="ingest_batch_register");
+    expect(registrations).toHaveLength(2);expect(registrations[0][1]).toEqual(registrations[1][1]);
+    expect(manifests.size).toBe(1);expect(origins.size).toBe(1);
+  });
+  it("SIMULATED stop during durable registration does not start uploading after its ACK",async()=>{
+    const pending=deferred<unknown>();
+    bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>op==="ingest_batch_register"?pending.promise:fixture(op,p));
+    upload([picked("册/a.md")]);
+    await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_batch_register")).toHaveLength(1));
+    fireEvent.click(screen.getByRole("button",{name:"停止"}));
+    const sent=bridge.call.mock.calls.find(([op])=>op==="ingest_batch_register")![1];
+    await act(async()=>pending.resolve(await fixture("ingest_batch_register",sent)));
+    await waitFor(()=>expect(screen.getByLabelText("选择文件夹")).toBeEnabled());
+    expect(bridge.call.mock.calls.some(([op])=>op==="ingest_member_import")).toBe(false);
+    expect(screen.getByRole("button",{name:"下一批（剩余 1）"})).toBeInTheDocument();
+  });
+
+  it("queues by the full hash with the kind in the identity, and retains each relative member origin", async () => {
     upload([picked("资料/笔记/a.md"), picked("资料/说明.bin", "bytes")]);
 
-    await waitFor(() => expect(bridge.call).toHaveBeenCalledWith("source_import", expect.objectContaining({
-      body: expect.objectContaining({ name: "笔记/a.md", origin_kind: "path", origin_name: "a.md" }),
+    await waitFor(() => expect(bridge.call).toHaveBeenCalledWith("ingest_member_import", expect.objectContaining({
+      body: expect.objectContaining({ ordinal: 0, expected_sha256: HASH }),
     })));
     // Wait for the second file's actual result before asserting the whole batch.
-    // The first source_import call does not mean both asynchronous hashes finished.
+    // The first ingest_member_import call does not mean both asynchronous hashes finished.
     expect(await screen.findByText("原件已保管，无转换通路")).toBeInTheDocument();
     // A03: the job id carries the kind and the full digest, not a 12-char truncation.
-    expect(bridge.call).toHaveBeenCalledWith("job_enqueue", {
-      body: { job_id: `folder-text-${HASH}`, kind: "text", input_ref: sourceFor("笔记/a.md") },
-    });
-    // A10: provenance references a stable batch id, not the folder basename, and it is shared by the batch.
-    const imports = bridge.call.mock.calls.filter(([operation]) => operation === "source_import");
-    const refs = imports.map(([, p]) => (p as { body: { origin_ref: string } }).body.origin_ref);
+    expect(bridge.call).toHaveBeenCalledWith("ingest_member_enqueue", expect.objectContaining({
+      body: expect.objectContaining({kind:"text",source_id:sourceFor("x"),source_revision:HASH}),
+    }));
+    // A10: each member keeps its own origin within the same opaque batch.
+    const imports = bridge.call.mock.calls.filter(([operation]) => operation === "ingest_member_import");
+    const refs = imports.map(([, p]) => memberRef(p));
     expect(refs.every((ref) => typeof ref === "string" && ref.length > 0)).toBe(true);
-    expect(new Set(refs).size).toBe(1);
+    expect(new Set(refs).size).toBe(2);
+    expect(new Set(refs.map(ref=>ref.split(":")[0])).size).toBe(1);
     expect(refs[0]).not.toBe("资料");
     // A .bin has no mapped Core route: the original is kept, and no job is invented for it.
     expect(imports).toHaveLength(2);
-    expect(bridge.call.mock.calls.filter(([operation]) => operation === "job_enqueue")).toHaveLength(1);
+    expect(bridge.call.mock.calls.filter(([operation]) => operation === "ingest_member_enqueue")).toHaveLength(1);
     expect(screen.getByRole("status")).toHaveTextContent("已入队 1");
     expect(screen.getByRole("status")).toHaveTextContent("仅保管 1");
+  });
+
+  it("SIMULATED preserves same-byte members, nested names and exact import replay without duplicating CAS", async () => {
+    const relative = ["左/a.md", "右/a.md", "other.md", "a%2Fb.md", "a/b.md"];
+    upload(relative.map(path=>picked(`册/${path}`, "shared")));
+    await waitFor(()=>expect(screen.getByRole("status")).toHaveTextContent("全部处理完毕"));
+    const imports=bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import");
+    expect(imports).toHaveLength(relative.length);
+    expect(sources.size).toBe(1);
+    expect(origins.size).toBe(relative.length);
+    expect([...origins.values()].map(origin=>origin.name).sort()).toEqual([...relative].sort());
+    const refs=imports.map(([,payload])=>memberRef(payload));
+    expect(new Set(refs).size).toBe(relative.length);
+    for (const [,payload] of imports) {
+      expect(memberRef(payload).split(":").slice(1).join(":")).toBe(encodeURIComponent(memberName(payload)));
+      const replay=await fixture("ingest_member_import",payload);
+      expect(replay).toMatchObject({source_id:sourceFor("shared"),sha256:createHash("sha256").update("shared").digest("hex"),duplicate:true});
+    }
+    expect(sources.size).toBe(1);
+    expect(origins.size).toBe(relative.length);
+    const queued=bridge.call.mock.calls.filter(([op])=>op==="ingest_member_enqueue");
+    expect(new Set(queued.map(([,payload])=>payload.body.source_id))).toEqual(new Set([sourceFor("shared")]));
+    expect(new Set(queued.map(([,payload])=>jobId(payload))).size).toBe(1);
+    expect(bridge.call.mock.calls.some(([op])=>op==="job_execute")).toBe(false);
   });
 
   it("refuses the whole submission on private state, including the root name and any case (A02)", async () => {
@@ -113,9 +253,9 @@ describe("folder ingest", () => {
 
   it("shows the real receipt state instead of writing every success as already-queued (A03)", async () => {
     bridge.call.mockImplementation(async (operation: string, payload: Record<string, unknown>) => {
-      if (operation === "source_import") return { source_id: "src-a", sha256: HASH, duplicate: false };
-      if (operation === "job_enqueue") return { job_id: (payload.body as { job_id: string }).job_id, state: "succeeded" };
-      return {};
+      if (operation === "ingest_member_import") return { batch_id:payload.batch_id,ordinal:(payload.body as {ordinal:number}).ordinal,source_id: "src-a", sha256: HASH, duplicate: false };
+      if (operation === "ingest_member_enqueue") return { job_id: jobId(payload), state: "succeeded" };
+      return fixture(operation,payload);
     });
     upload([picked("册/a.md")]);
     expect(await screen.findByText("已成功")).toBeInTheDocument();
@@ -126,10 +266,10 @@ describe("folder ingest", () => {
   });
 
   it("treats a real 409 as a conflict, not as already-queued (A03)", async () => {
-    bridge.call.mockImplementation(async (operation: string) => {
-      if (operation === "source_import") return { source_id: "src-a", sha256: HASH, duplicate: true };
-      if (operation === "job_enqueue") throw new ApiError(409, "identity conflict", "unavailable");
-      return {};
+    bridge.call.mockImplementation(async (operation: string,payload:Record<string,unknown>) => {
+      if (operation === "ingest_member_import") return { batch_id:payload.batch_id,ordinal:(payload.body as {ordinal:number}).ordinal,source_id: "src-a", sha256: HASH, duplicate: true };
+      if (operation === "ingest_member_enqueue") throw new ApiError(409, "identity conflict", "unavailable");
+      return fixture(operation,payload);
     });
     upload([picked("册/a.md")]);
     expect(await screen.findByText("作业身份冲突")).toBeInTheDocument();
@@ -141,9 +281,9 @@ describe("folder ingest", () => {
     upload([picked("册/.env"), picked("册/node_modules/pkg/index.md"), picked("册/keep.md")]);
     expect(await screen.findByText("跳过：隐藏路径")).toBeInTheDocument();
     expect(screen.getByText("跳过：排除目录")).toBeInTheDocument();
-    const imported = bridge.call.mock.calls.filter(([operation]) => operation === "source_import");
+    const imported = bridge.call.mock.calls.filter(([operation]) => operation === "ingest_member_import");
     expect(imported).toHaveLength(1);
-    expect((imported[0][1] as { body: { name: string } }).body.name).toBe("keep.md");
+    expect(memberName(imported[0][1])).toBe("keep.md");
   });
 
   it("refuses an original above the Core's import limit before reading it", async () => {
@@ -151,7 +291,7 @@ describe("folder ingest", () => {
     Object.defineProperty(heavy, "size", { value: 64 * 1024 * 1024 + 1 });
     upload([heavy]);
     expect(await screen.findByText("未导入：超过大小上限")).toBeInTheDocument();
-    expect(bridge.call).not.toHaveBeenCalled();
+    expect(bridge.call.mock.calls.some(([op])=>op==="ingest_member_import")).toBe(false);
   });
 
   it("advances a 201-file folder across batches so none is left behind (A01)", async () => {
@@ -166,50 +306,52 @@ describe("folder ingest", () => {
       mutationObserverOptions: { attributes: true, attributeFilter: ["disabled"] },
     });
     await completed();
-    expect(bridge.call.mock.calls.filter(([operation]) => operation === "source_import")).toHaveLength(200);
+    expect(bridge.call.mock.calls.filter(([operation]) => operation === "ingest_member_import")).toHaveLength(200);
     expect(screen.getByRole("status")).toHaveTextContent("剩余 1 项待下一批");
     expect(screen.queryByText("跳过：超过本次上限")).not.toBeInTheDocument();
 
     await userEvent.setup().click(screen.getByRole("button", { name: /下一批（剩余 1）/ }));
     await completed();
-    expect(bridge.call.mock.calls.filter(([operation]) => operation === "source_import")).toHaveLength(201);
+    expect(bridge.call.mock.calls.filter(([operation]) => operation === "ingest_member_import")).toHaveLength(201);
+    expect(sources.size).toBe(1);
+    expect(origins.size).toBe(201);
     expect(screen.getByRole("status")).toHaveTextContent("全部处理完毕");
     expect(screen.queryByRole("button", { name: /下一批/ })).not.toBeInTheDocument();
   }, 15000);
 
   it("SIMULATED reselecting the same root/path imports updated bytes as a new batch and keeps earlier rows",async()=>{
-    upload([picked("册/a.bin","before")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1));await waitFor(()=>expect(screen.getByLabelText("选择文件夹")).not.toBeDisabled());
-    upload([picked("册/a.bin","after")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(2));
-    const calls=bridge.call.mock.calls.filter(([op])=>op==="source_import").map(([,p])=>p.body);
-    expect(calls[0].origin_ref).not.toBe(calls[1].origin_ref);expect(calls[0].content_base64).not.toBe(calls[1].content_base64);
+    upload([picked("册/a.bin","before")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(1));await waitFor(()=>expect(screen.getByLabelText("选择文件夹")).not.toBeDisabled());
+    upload([picked("册/a.bin","after")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(2));
+    const calls=bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import").map(([,p])=>p);
+    expect(memberRef(calls[0])).not.toBe(memberRef(calls[1]));expect(calls[0].body.content_base64).not.toBe(calls[1].body.content_base64);
     await waitFor(()=>expect(view.container.querySelectorAll("tbody tr")).toHaveLength(2));
   });
 
   it("SIMULATED separate same-name roots use distinct provenance but preserve content-addressed conversion identity",async()=>{
     upload([picked("册/a.md","same")]);await screen.findByText("已入队",{exact:true});
-    upload([picked("册/a.md","same")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(2));
-    const queued=bridge.call.mock.calls.filter(([op])=>op==="job_enqueue");expect(queued).toHaveLength(2);expect(queued[0][1].body.job_id).toBe(queued[1][1].body.job_id);
+    upload([picked("册/a.md","same")]);await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(2));
+    const queued=bridge.call.mock.calls.filter(([op])=>op==="ingest_member_enqueue");expect(queued).toHaveLength(2);expect(jobId(queued[0][1])).toBe(jobId(queued[1][1]));
     expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(0);
   });
 
   it("retains uncertain enqueue identity and reconciles without another import or execute",async()=>{
     bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
-      if(op==="job_enqueue"){await fixture(op,p);throw new Error("SIMULATED lost enqueue ACK");}
+      if(op==="ingest_member_enqueue"){await fixture(op,p);throw new Error("SIMULATED lost enqueue ACK");}
       return fixture(op,p);
     });
     upload([picked("册/a.md")]);await screen.findByText("结果 UNKNOWN，待核对");
     fireEvent.click(screen.getByRole("button",{name:"读取转换状态"}));
     await screen.findByText("已入队",{exact:true});
-    expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1);
-    expect(bridge.call.mock.calls.filter(([op])=>op==="job_enqueue")).toHaveLength(1);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(1);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_enqueue")).toHaveLength(1);
     expect(bridge.call.mock.calls.some(([op])=>op==="job_execute")).toBe(false);
   });
   it("does not claim an uncertain import was refused",async()=>{
-    bridge.call.mockImplementation(async()=>{throw new Error("SIMULATED lost import ACK");});
+    bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{if(op==="ingest_member_import")throw new Error("SIMULATED lost import ACK");return fixture(op,p);});
     upload([picked("册/a.md")]);await screen.findByText("原件导入未确认",{exact:true});
     expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("原件导入未确认 1 · 跳过 0");
     expect(screen.queryByText("未导入",{exact:true})).toBeNull();
-    expect(bridge.call.mock.calls.some(([op])=>["job_enqueue","job_execute"].includes(op))).toBe(false);
+    expect(bridge.call.mock.calls.some(([op])=>["ingest_member_enqueue","job_execute"].includes(op))).toBe(false);
   });
   it("executes this batch's queued jobs to a real terminal state (A06)", async () => {
     upload([picked("册/a.md")]);
@@ -222,22 +364,23 @@ describe("folder ingest", () => {
 
   it("stops on request and continues on the next batch (A01 stop)", async () => {
     const gate: { release?: (value: unknown) => void } = {};
-    bridge.call.mockImplementation((operation: string, payload: Record<string,unknown>) => operation === "source_import"
+    bridge.call.mockImplementation((operation: string, payload: Record<string,unknown>) => operation === "ingest_member_import"
       ? new Promise((resolve) => { gate.release = resolve; })
       : fixture(operation,payload));
     upload([picked("册/a.md"), picked("册/b.md")]);
-    await waitFor(() => expect(bridge.call).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(1));
     fireEvent.click(screen.getByRole("button", { name: "停止" }));
-    gate.release?.({ source_id: "src-a", sha256: HASH, duplicate: false });
+    const sent=bridge.call.mock.calls.find(([op])=>op==="ingest_member_import")![1];
+    gate.release?.({batch_id:sent.batch_id,ordinal:sent.body.ordinal, source_id: "src-a", sha256: HASH, duplicate: false });
     // a.md completes; b.md was not started and remains for the next batch.
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("剩余 1 项待下一批"));
-    expect(bridge.call.mock.calls.filter(([operation]) => operation === "source_import")).toHaveLength(1);
+    expect(bridge.call.mock.calls.filter(([operation]) => operation === "ingest_member_import")).toHaveLength(1);
   });
 
   it("does not claim an absolute path the browser never handed over", async () => {
     upload([picked("册/a.md")]);
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("批次处理"));
-    const note = screen.getByText(/浏览器不把磁盘绝对路径交给产品/);
+    const note = screen.getByText(/浏览器不提供磁盘绝对路径/);
     expect(note).toBeInTheDocument();
     expect(note).not.toHaveTextContent("D:");
   });
@@ -245,17 +388,17 @@ describe("folder ingest", () => {
   it("updates a failed row by stable key after async retry and never reimports or reenqueues", async () => {
     enqueueState="failed"; upload([picked("册/a.md")]);
     await screen.findByRole("button",{name:"重试失败项（新请求）"});
-    const before=bridge.call.mock.calls.filter(([op])=>["source_import","job_enqueue"].includes(op)).length;
+    const before=bridge.call.mock.calls.filter(([op])=>["ingest_member_import","ingest_member_enqueue"].includes(op)).length;
     await userEvent.setup().click(screen.getByRole("button",{name:"重试失败项（新请求）"}));
     await screen.findByText("已成功",{exact:true});
-    expect(bridge.call.mock.calls.filter(([op])=>["source_import","job_enqueue"].includes(op))).toHaveLength(before);
+    expect(bridge.call.mock.calls.filter(([op])=>["ingest_member_import","ingest_member_enqueue"].includes(op))).toHaveLength(before);
     const call=bridge.call.mock.calls.find(([op])=>op==="job_execute")!;
     expect(call[1].request_id).not.toBe("historical_request");
     expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("已成功 1");
   });
   it("retries only the failed sibling and retains a successful source without any new import", async () => {
     bridge.call.mockImplementation(async (op:string,p:Record<string,unknown>)=>{
-      if(op==="job_enqueue") { const body=p.body as {job_id:string;input_ref:string}; const state=body.input_ref===sourceFor("b.md")?"failed":"succeeded"; statuses.set(body.job_id,status(body.job_id,body.input_ref,state,"historical_request"));return {job_id:body.job_id,state}; }
+      if(op==="ingest_member_enqueue") { const body=p.body as {source_id:string}; const job=jobId(p),state=body.source_id===sourceFor("second")?"failed":"succeeded"; statuses.set(job,status(job,body.source_id,state,"historical_request"));return {job_id:job,state}; }
       return fixture(op,p);
     });
     upload([picked("册/a.md","first"),picked("册/b.md","second")]);
@@ -265,8 +408,8 @@ describe("folder ingest", () => {
     fireEvent.click(screen.getByRole("button",{name:"重试失败项（新请求）"}));
     await waitFor(()=>expect(screen.getAllByText("已成功",{exact:true})).toHaveLength(2));
     const executed=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(executed).toHaveLength(1);expect(executed[0][1].job_id).toBe(`folder-text-${createHash("sha256").update("second").digest("hex")}`);
-    expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(2);
-    expect(bridge.call.mock.calls.filter(([op])=>op==="job_enqueue")).toHaveLength(2);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(2);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_enqueue")).toHaveLength(2);
   });
   it("claims single flight synchronously for two retry clicks",async()=>{
     enqueueState="failed";upload([picked("册/a.md")]);const button=await screen.findByRole("button",{name:"重试失败项（新请求）"});
@@ -281,7 +424,7 @@ describe("folder ingest", () => {
     await screen.findByRole("button",{name:"同请求重试"});const first=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];
     expect(screen.getByLabelText("选择文件夹")).toBeDisabled();fireEvent.click(screen.getByRole("button",{name:"同请求重试"}));await screen.findByText("已成功",{exact:true});
     const calls=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(calls).toHaveLength(2);expect(calls[1][1]).toEqual(first);expect(statuses.get(String(first.job_id))?.attempt).toBe(1);
-    expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(1);
   });
   it("UNKNOWN can reconcile the same durable terminal without sending inference or execution again",async()=>{
     bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{const result=await fixture(op,p);if(op==="job_execute")throw new Error("lost ACK");return result;});
@@ -327,7 +470,7 @@ describe("folder ingest", () => {
     await act(async()=>{ack.resolve({job_id:execute.job_id,request_id:execute.request_id,cancel_requested:true});});
     expect(screen.getAllByText(/取消待确认/).length).toBeGreaterThan(0);expect(screen.queryByText("已取消",{exact:true})).not.toBeInTheDocument();
     const old=statuses.get(String(execute.job_id))!;statuses.set(old.job_id,status(old.job_id,old.input_ref,"cancelled",old.request_id,old.attempt));await screen.findByText("已取消",{exact:true});expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("已取消 1");
-    executionState="succeeded";await waitFor(()=>expect(screen.getByRole("button",{name:"重试失败项（新请求）"})).toBeEnabled());fireEvent.click(screen.getByRole("button",{name:"重试失败项（新请求）"}));await screen.findByText("已成功",{exact:true});const calls=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(calls).toHaveLength(2);expect(calls[1][1].request_id).not.toBe(execute.request_id);expect(bridge.call.mock.calls.filter(([op])=>op==="source_import")).toHaveLength(1);
+    executionState="succeeded";await waitFor(()=>expect(screen.getByRole("button",{name:"重试失败项（新请求）"})).toBeEnabled());fireEvent.click(screen.getByRole("button",{name:"重试失败项（新请求）"}));await screen.findByText("已成功",{exact:true});const calls=bridge.call.mock.calls.filter(([op])=>op==="job_execute");expect(calls).toHaveLength(2);expect(calls[1][1].request_id).not.toBe(execute.request_id);expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(1);
   });
   it("cancel versus success race respects persisted success, not the cancellation ACK",async()=>{
     executionState="running";bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{if(op==="job_execution_cancel"){const old=statuses.get(String(p.job_id))!;statuses.set(old.job_id,status(old.job_id,old.input_ref,"succeeded",old.request_id,old.attempt));return {job_id:p.job_id,request_id:p.request_id,cancel_requested:true};}return fixture(op,p);});
@@ -339,7 +482,7 @@ describe("folder ingest", () => {
     const p=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];await act(async()=>{ack.resolve(await fixture("job_execute",p));});await screen.findByText("已成功",{exact:true});expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("已入队 1");
   });
   it("successful locate passes real source and saved job, original-only locate carries no invented job",async()=>{
-    enqueueState="succeeded";upload([picked("册/a.md"),picked("册/original.bin")]);await waitFor(()=>expect(screen.getByRole("status")).toHaveTextContent("全部处理完毕"));fireEvent.click(await screen.findByRole("button",{name:"打开成功产物与来源"}));expect(bridge.open).toHaveBeenCalledWith(sourceFor("a.md"),`folder-text-${HASH}`);fireEvent.click(screen.getByRole("button",{name:"打开保留原件"}));expect(bridge.open).toHaveBeenCalledWith(sourceFor("original.bin"),undefined);expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(0);
+    enqueueState="succeeded";upload([picked("册/a.md"),picked("册/original.bin")]);await waitFor(()=>expect(screen.getByRole("status")).toHaveTextContent("全部处理完毕"));fireEvent.click(await screen.findByRole("button",{name:"打开成功产物与来源"}));expect(bridge.open).toHaveBeenCalledWith(sourceFor("x"),`folder-text-${HASH}`);fireEvent.click(screen.getByRole("button",{name:"打开保留原件"}));expect(bridge.open).toHaveBeenCalledWith(sourceFor("x"),undefined);expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(0);
   });
   it("unmounted late ACK cannot change a newly mounted batch or start further conversion",async()=>{
     const ack=deferred<unknown>();bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>op==="job_execute"?ack.promise:fixture(op,p));upload([picked("册/a.md")]);fireEvent.click(await screen.findByRole("button",{name:"执行本批次转换"}));await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1));const p=bridge.call.mock.calls.find(([op])=>op==="job_execute")![1];view.unmount();view=render(<FolderIngest onOpenSource={bridge.open}/>);await act(async()=>{ack.resolve(await fixture("job_execute",p));});expect(screen.queryByText("已成功",{exact:true})).not.toBeInTheDocument();expect(screen.queryByLabelText("批次真实统计")).not.toBeInTheDocument();

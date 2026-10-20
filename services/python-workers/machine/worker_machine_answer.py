@@ -628,6 +628,29 @@ def extract(path: str, question: str | None = None,
 
 
 def main() -> int:
+    if sys.argv[1:] in (["--public-research"], ["--public-research-hello"]):
+        # Core uses Python -I: the script directory is deliberately absent from
+        # sys.path. Load only this fixed sibling, without restoring PYTHONPATH.
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "archeaxis_public_research", Path(__file__).with_name("public_research.py")
+        )
+        if spec is None or spec.loader is None:
+            raise RuntimeError("public_research_module_unavailable")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        if sys.argv[1:] == ["--public-research-hello"]:
+            # Import the real adapter/dependencies first: a constant-only hello
+            # would hide packaging and isolated-Python import failures. No query,
+            # network/provider probe, model inventory or inference is performed.
+            print(json.dumps({
+                "schema": "archeaxis.public-research-worker-hello/v1", "version": 1,
+                "worker": WORKER_IDENTITY, "capability": "research.public",
+                "protocol": module.SCHEMA, "task_executed": False,
+                "network_performed": False, "model_executed": False,
+            }))
+            return 0
+        return module.main()
     if sys.argv[1:] == ["--document-check"]:
         from document_check import main as document_check_main
         return document_check_main()

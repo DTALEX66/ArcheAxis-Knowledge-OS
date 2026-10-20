@@ -530,6 +530,51 @@ def configure_console_streams() -> None:
             reconfigure(encoding="utf-8")
 
 
+def core_build_command(root: Path) -> list[str]:
+    """The only command eligible for a measured Core release qualification."""
+    return [str(safe_path(root / "scripts/ci/cargo_test.bat")),
+            "build", "--release", "--locked", "--offline", "-p", "archeaxis-api"]
+
+
+def build_file_identity(path: Path) -> dict:
+    path = safe_path(path)
+    if not path.is_file():
+        raise ValueError(f"build output is missing: {path}")
+    with path.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    return {"path": str(path), "bytes": path.stat().st_size, "sha256": digest}
+
+
+def read_core_build(receipt: Path, paths: dict[str, Path], env: dict[str, str]) -> dict:
+    """Consume an output hash captured by the runner, never infer an old build."""
+    receipt = safe_path(receipt)
+    if (receipt.name != "execution.json" or receipt.parent.name != "artifacts"
+            or receipt.parent.parent.parent != paths["run"].parent):
+        raise ValueError("Core build receipt is outside this worktree's runs")
+    value = json.loads(receipt.read_text(encoding="utf-8"))
+    run = safe_path(Path(value.get("run_root", "")))
+    expected = layout(paths["root"], run.name)
+    if run != expected["run"] or receipt != run / "artifacts/execution.json":
+        raise ValueError("Core build receipt has foreign run ownership")
+    if (value.get("status") != "LOCAL_PASS" or value.get("exit_code") != 0
+            or value.get("child_exit_code") != 0 or value.get("source_consistent") is not True
+            or value.get("command") != core_build_command(paths["root"])
+            or value.get("worktree_root") != str(paths["root"])
+            or value.get("source_commit") != env["ARCHEAXIS_SOURCE_COMMIT"]
+            or value.get("source_commit_after") != env["ARCHEAXIS_SOURCE_COMMIT"]
+            or value.get("source_tree") != env["ARCHEAXIS_SOURCE_TREE"]
+            or value.get("source_patch_sha256") != env["ARCHEAXIS_SOURCE_PATCH_SHA256"]
+            or value.get("source_patch_sha256_after") != env["ARCHEAXIS_SOURCE_PATCH_SHA256"]):
+        raise ValueError("Core receipt does not qualify this source and release command")
+    qualification = value.get("core_build", {})
+    if qualification.get("schema") != "archeaxis.core-build/v1":
+        raise ValueError("Core receipt lacks a contemporaneous output hash")
+    actual = build_file_identity(paths["cargo_build"] / "release/archeaxis-api.exe")
+    if qualification.get("artifact") != actual:
+        raise ValueError("Core output differs from its completed build")
+    return actual
+
+
 def main() -> int:
     configure_console_streams()
     parser = argparse.ArgumentParser(description=__doc__)
@@ -537,6 +582,8 @@ def main() -> int:
     parser.add_argument("--run-id")
     parser.add_argument("--pytest", action="store_true")
     parser.add_argument("--full", action="store_true")
+    parser.add_argument("--qualify-core-build", action="store_true",
+                        help="record the output hash of the fixed offline locked Core release build")
     parser.add_argument("--github-env", action="store_true",
                         help="register paths through the GitHub runner environment file")
     parser.add_argument("--env-file", type=Path,
@@ -593,6 +640,12 @@ def main() -> int:
                        "-o", f"cache_dir={paths['run'] / 'pytest-cache'}", *command]
         if not command:
             raise ValueError("a child command or --pytest is required")
+        if args.qualify_core_build:
+            if command != core_build_command(paths["root"]):
+                raise ValueError("Core qualification requires the exact canonical release command")
+            # The tracked batch runner honors this override before CARGO_TARGET_DIR.
+            env["ARCHEAXIS_CARGO_TARGET_DIR"] = str(paths["cargo_build"])
+            env["CARGO_TARGET_DIR"] = str(paths["cargo_build"])
         started = datetime.now(timezone.utc).isoformat()
         started_tick = time.perf_counter()
         dirty, patch_sha256 = worktree_identity(paths["root"])
@@ -645,6 +698,15 @@ def main() -> int:
             if child is not None and child.stdout is not None:
                 child.stdout.close()
             record["child_exit_code"] = code
+            if args.qualify_core_build and code == 0:
+                try:
+                    record["core_build"] = {
+                        "schema": "archeaxis.core-build/v1",
+                        "artifact": build_file_identity(paths["cargo_build"] / "release/archeaxis-api.exe"),
+                    }
+                except (OSError, ValueError) as error:
+                    code = 2
+                    record["qualification_error"] = str(error)
             after_head = git(paths["root"], "rev-parse", "HEAD")
             _, after_patch = worktree_identity(paths["root"])
             consistent = (after_head == record["source_commit"]
@@ -655,6 +717,7 @@ def main() -> int:
                           log=str(paths["logs"] / "execution.log"))
             if not consistent:
                 code = 3
+                record.pop("core_build", None)
             record.update(exit_code=code, ended_at=datetime.now(timezone.utc).isoformat(), seconds=time.perf_counter() - started_tick)
             (paths["artifacts"] / "execution.json").write_text(
                 json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

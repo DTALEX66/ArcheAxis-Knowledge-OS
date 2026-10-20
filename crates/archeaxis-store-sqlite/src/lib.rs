@@ -10,7 +10,30 @@ pub mod writer;
 // 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
 // G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
 // anything.
-pub const SCHEMA_VERSION: i64 = 12;
+pub const SCHEMA_VERSION: i64 = 13;
+
+const INGEST_BATCH_SCHEMA_SQL: &str = r#"
+CREATE TABLE IF NOT EXISTS ingest_batches (
+    batch_id TEXT PRIMARY KEY,
+    folder_label TEXT NOT NULL,
+    expected_members INTEGER NOT NULL CHECK(expected_members BETWEEN 1 AND 10000),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS ingest_batch_members (
+    batch_id TEXT NOT NULL REFERENCES ingest_batches(batch_id),
+    ordinal INTEGER NOT NULL CHECK(ordinal >= 0),
+    relative_path TEXT NOT NULL,
+    byte_length INTEGER NOT NULL CHECK(byte_length >= 0),
+    disposition TEXT NOT NULL CHECK(disposition IN ('pending','excluded_hidden','excluded_directory','too_large')),
+    source_id TEXT REFERENCES sources(source_id),
+    source_revision TEXT,
+    job_id TEXT REFERENCES jobs(job_id),
+    PRIMARY KEY(batch_id,ordinal),
+    UNIQUE(batch_id,relative_path),
+    CHECK((source_id IS NULL) = (source_revision IS NULL)),
+    CHECK(job_id IS NULL OR source_id IS NOT NULL)
+);
+"#;
 
 const DOCUMENT_SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS documents (
@@ -104,6 +127,15 @@ CREATE TABLE IF NOT EXISTS source_origins (
     received_at TEXT,
     imported_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY(source_id, origin_kind, origin_ref)
+);
+CREATE TABLE IF NOT EXISTS public_research_runs (
+    request_id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    restore_epoch TEXT NOT NULL,
+    request_json TEXT NOT NULL,
+    state TEXT NOT NULL CHECK(state IN ('pending','complete','partial','failed','cancelled')),
+    receipt_json TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS transforms (
     transform_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -362,6 +394,7 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
         return Err(rusqlite::Error::InvalidQuery);
     }
     tx.execute_batch(SCHEMA_SQL)?;
+    tx.execute_batch(INGEST_BATCH_SCHEMA_SQL)?;
     if version < 2 {
         tx.execute_batch(
             "ALTER TABLE jobs ADD COLUMN completion_digest TEXT;

@@ -512,3 +512,74 @@ Owner后继明确要求“该合并的合并啊”。本轮完成已获授权的
 交付前`ui-public-research-conventions-20261021`工作树及随后index规范PASS，`ui-public-research-authority-20261021`单一记录/引用/仓内7个hash PASS，外部私人4项仍UNVERIFIED；changed probe的CI同选项Ruff及diff --check PASS。前片main7ca69cc8的[CI39453613855](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39453613855)已启动，写此条时仍in_progress，不写作PASS。
 
 **UI-P14仍PARTIAL**：准备入口及结果/对照独立呈现已实现本地；真实三类检索、来源/限流/许可/可得内容合同、请求取消/迟到响应控制、原文打开、落库固定引用、去重身份及重启导出仍BLOCKED于BE-P04/05所需正式接线，不能以纯UI回调冒充集成。后端阶段前需完成结果/对照真实浏览器视觉与键盘检查；不能只以禁用入口结束该项。前端全阶段未交付，继续其他UI分片及原生/DPI/人工无障碍/性能欠账；BE-P01—15暂不启动。六项冻结、Green、真实数据及模型/provider保持原状，完整CL-01—07/J1—J6目标不变。回退仅本片独立呈现组件、研究页嵌入/局部CSS、测试和探针消费者，不回退TRAE/前片已合并修复，不删除证据。
+
+## 2026-10-21 Owner改序：后端全链路及完整闭环优先
+
+Owner最新明确：“加快速度，实时并行智能体，按照任务难度理解和模型等级推理强度进行适配”；随后“前端界面可以缓缓，优先确保后端全链路的打通跑通，优先闭环”。后者覆盖2026-10-19前端先行的执行顺序，不删原UI/BE/RC任务、不缩CL-01—07/J1—J6。活动指针与根AGENTS/完整交接/分片顶部同步当前选择，唯一进度仍本文件。已完成前端保留，PR199/b4a4b9b9已上传、CI39454302421写此条时尚运行，不把push当merge；main7ca69cc8的CI39453613855也待终结读回。
+
+并行按实际难度分配：高难核心链路/耐久批次使用gpt-6-astra high；三类检索worker/官方接口使用gpt-6.1-sol high；有界CI与本地模型现场探针使用gpt-6-luna medium。只对本次子任务选择模型/推理，不修改Agent provider、认证、endpoint或全局配置。源码writer隔离在项目忽略目录`.project-local/wt/be-batch`和`be-research`；root负责正式检索Core/合同和最终整合，每checkout一个writer。原有共享模型/工具只引用，不复制/升级。
+
+**已定位并修复本地的BE-P03来源丢失**：source_origins主键不含原名，FolderIngest原来同批所有成员共用origin_ref，CAS相同字节只留一个来源；原fixture按文件名造source_id掩盖此问题。隔离片改为batch+编码完整relative_path成员身份、origin_name保留完整relative，保留CAS去重；fixture改按真实内容身份去重及真实来源主键折叠。`.project-local/runs/99371d31e4/be-origin-red-20261021`3 FAIL/28 PASS，green31/31、adjacent4文件36/36、typecheck PASS，均source_consistent=true、patch SHA256 `164068ff0e9092b2235cdf2bf5825f3d520c9f092aa71aa301876e4f41f43f54`。worktree Git index写入因沙箱文件权限拒绝，未提权/改ACL/强制绕过；root核对应两文件无dirty后按精确路径接收相同字节。此小修不等于耐久批次：正式batch/member表、有限API、重启恢复和原文件需重选的合同正在独立实现，job终态复用现有真值，不复制第二作业系统。
+
+**BE-P04真实免费来源预检**：仅用无凭据公开关键词的小请求，Wikipedia搜索及固定revid、StackExchange Academia withbody、OpenAlex works均HTTP200；原始API/版权/限流已查官方资料，未发私有正文，未用付费全文接口。此为REAL匿名接口可达/返回内容，不是产品集成完成。正式worker正在隔离实现，固定host安全HTTP、有界输入/响应/超时、逐来源失败/限流状态与原响应bytes；Core将把原API响应与明确标注的派生文本分别保全，不能把重建摘要/去HTML后偏移伪称原始JSON字节锚点。
+
+**BE-P08本机真实合成推理**：LM Studio声明端点/v1/models现场HTTP200，但不据库存称已加载。`inspect`回执`.project-local/runs/lm-studio-profile/1792512710668-inspect.json` SHA256 `036e5135744459fe4e21aee3516a8c6f4ee8212d0cdc506049df5241cc78398a`，目标和其他实例loaded=0。随后按本次授权沿既有deep-mtp profile加载qwen3.8-27b/aaos-deep-27b-mtp，仅运行脚本固定合成输入，profile SHA256前后均`7aa8d2f6e30099461f274369fb096f2cd165e4bff95d2956f9dfaaada3713394`；未修改profile/provider/端点/凭据或调用云端。dev run ab29512f536f，source b4a4b9b9、当时4项authority dirty、source_consistent=true、exit0。smoke回执`.project-local/runs/lm-studio-profile/1792512866521-smoke.json` SHA256 `f3eeaa994200cbd5ffc029bf0b4a607fa7df3a9efd55fa1bf8d807a4b2353f82`，PASS_SYNTHETIC_SDK_SMOKE / REAL_LOCAL_SDK_NOT_APPLICATION_QUALIFICATION：固定literal匹配，effective GPU0.4/strict VRAM、KV CPU、context2048、parallel1、FlashAttention/MTP生效，12.564秒、TTFT3.403秒、4.594 tok/s、MTP drafts32/accepted26/rejected6。仅单次观测不称加速收益、准确性或稳定性能。实例按原TTL1800驻留，未停止/卸载共享服务。正式Core/同候选业务推理仍NOT_EXECUTED，后续以聚合候选重验；云端真实provider及逐材料/目的地授权与预算仍需具体接线/资格，未读取秘密或产生付费调用。
+
+
+### 2026-10-21 BE-P03/04/05：耐久批次、正式免费检索与研究来源导出
+
+**主线读回**：PR199 head `b4a4b9b9c39c836ed0225be360c66c784c928235` 的 CI39454302421、required a0-gates、lint/browser-smoke均SUCCESS；独立审阅未发现阻断，reviews/inline threads为空，ruleset20849492当前仅要求a0-gates。自动审批首次以旧CI状态及后端未完成为由拒绝；补充exact-SHA运行元数据及当前授权证据后，正常expected-head合并为main `32291ad4285bef12a58f8bec56824a835a68ce29`，未绕过审批。main后继CI39459828056亦SUCCESS。root保护全部dirty、核提交树无差异后仅--ff-only到此基线；TRAE继承仍在，不把本轮未提交后端算进已合并UI资格。
+
+**实现**：BE-P03追加schema13的batch/member表、5项有限操作及原FolderIngest消费者。成员路径/字节长度/排除原因分块登记，最多10000成员、每次200；未完整登记不能上传/入队。原件、成员绑定和job绑定由单Rust事务完成，CAS及jobs复用原真值；重复确认幂等、异内容冲突。重开可显式读取历史及逐页成员，文件句柄不承诺跨重启恢复，未传内容需重选并核原路径/数量/大小。登记ACK等待中停止仍会自动上传的问题保留RED后修复，不在只读恢复中自动执行。
+
+BE-P04/05新增 `research.public` 固定worker路由，联入原CAP-0030和原能力中心生成目录；Core公开search/read/list/cancel/materialize及canonical schema/生成DTO/有限host bridge。请求只接受显式公开query/families/limit及workspace/restore/request身份，不收文档正文、附件、任意地址、密钥或模型fallback。首请求冻结后不静默重执行；pending中断为UNKNOWN，终态精确回读。取消/总90秒（含两类排队）/1MiB输出/能力撤回/restore迟到隔离，owned process及精确临时文件清理有界；cleanup_failed/task_failed保留UNKNOWN，不假称远端已停止。
+
+三类provider固定为Wikipedia、StackExchange Academia、OpenAlex，分别保留固定修订导言wikitext、问题正文、科研摘要/元数据，绝不冒充百科全文/论坛所有讨论/论文付费全文。Core验证实际query/limit/固定参数、ID/URL/revision、UTC时间/类型/nullable必填、枚举及字节上限。原HTTP实体bytes独立CAS（可能gzip），派生UTF8另存并明示未核验，只有用户显式选择才物化；不把派生偏移伪称原JSON位置，不自动采用知识。
+
+**真实网络路由差异**：先前safe_http直连Wiki失败；仅查询.NET公共目标代理元数据，确认已有数值loopback路径127.0.0.1:7890，未读取认证/系统设置正文、未改VPN/系统代理/TLS。新增仅检索worker可显式接收的launch变量ARCHEAXIS_PUBLIC_RESEARCH_PROXY，默认direct；只允许无认证http数值loopback CONNECT及三个固定官方HTTPS目标，默认CA/hostname/SNI、无redirect，无非法后fallback。独立源码审阅后只对公开query做受控probe，原失败证据保留。安装态并未据此自动配置代理。
+
+**实际集成发现并修复**：真实Core初次检索返回worker_exit_failed；定向-I入口回归确认Python隔离模式不包含脚本目录，原普通sibling import失败。改用固定Path sibling的importlib加载，未放宽-I或恢复PYTHONPATH；RED与修复后66项PASS保留。首次source-process探针误用未登记的text子目录导致启动拒绝，随后按源码实际document/worker_text.py纠正，原启动失败保留，不算产品修复或成功。
+
+**研究封包缺口修复**：原portable_document只包顶层source/expression media，研究材料虽保存引用却丢原件。`be-research-package-red-20261021`实际导出0对象、期望2失败；现沿既有package收集research明示source refs（材料/各段/结论），校验对象完整与bytes，导入重映射。派生与原API分别作为材料随包；原quote/anchor身份在historical_anchors及原封包保留，新库不伪注册有效锚点或知识采用。独立文档/知识依赖不因此获跨库重建资格。
+
+| 验证 | 当前实际结果与证据级别 |
+| --- | --- |
+| root批次消费者 | be-batch-aggregate-ui-corrected-20261021：FolderIngest34+JobJournalRecovery6=40 PASS，SIMULATED桥接；此前误在repo根启动Vitest扫描.hermes被拒，未提权/改权限，改用原frontend/vite.config.ts正确根。 |
+| root domain | be-domain-aggregate-20261021：batch2+public10=12 PASS，含schema12→13、重开、原始/派生CAS、真实响应离线回放和协议负例；离线回放不是本轮联网证据。 |
+| root研究包 | be-research-package-green-20261021：portable3+research metadata4=7 PASS，丢成员拒绝且无部分注册、重开幂等、历史引文与原库不变。 |
+| root正式API | be-public-api-green-20261021：4 PASS，实际Store/API及合成worker；公开query闭包、原件选择、重开精确回读、取消、drop请求UNKNOWN不重跑、restore后不发布旧结果。 |
+| root Python worker | be-public-isolated-entry-green-20261021：66 PASS；pyreadline3析构WinError警告保留，进程exit0，不把该警告消去。 |
+| 隔离executor | .project-local/runs/57489feb27/research-executor-final5-20261021：16 PASS，source_consistent=true；Windows redirector终止传播及精确file/emptydir readback<=500ms，持stdin后代返回cleanup_failed，未杀共享进程。 |
+| 受控三源worker | .project-local/runs/8dcecc427b/public-research-proxy-real-1：三路complete且非空，REAL公网worker，无产品写；原响应SHA256 8620d38f642d47482a7aab9b2e4a80d9816d912c5a03c44e030e5693ef9b369b。 |
+| 当前Core真实链 | be-public-core-live-entry-fixed-20261021：REAL三源→Core单写者原始/派生6来源→研究Document→封包6原件SHA/bytes→正常关闭重开→receipt/document/package/6原件逐值相等，22次HTTP操作均符合期望；仅debug源码Core集成，不是安装候选/Owner验收。source_commit32291ad4+dirty patch 5c7b123a2eca4652e8d05cb43012ccf76fec8993897c356d39ddf06cee3c557b，source_consistent=true；Core EXE SHA256 b8f29099a4e74839a8a0b7a79d1b372a6505986459330dc499232eef16898a8f。完整回执artifacts/public-core-live.json SHA256 2fe681c1b15bbfa61fe2cdfd2b76403f043c022b443bc866bdc7510e81f5fd07，自有Core已停止。 |
+| 候选J2探针 | scripts/probes/aaos_public_research_runtime_loop.py已实现；隔离离线10例通过，尚未对正式同候选执行。不把探针文本或直接Core PASS替代J1—J6。 |
+
+以上root run均在忽略目录`.project-local/runs/be268a2d33/<run-id>`，原失败和raw返回不提交。各run自身source_consistent均读回true；后继代码改变后只作为对应切片证据，最终frozen tree仍需独立资格。Git worktree索引权限拒绝的子agent未提权/改ACL/提交；root按精确SHA接收并增量合并共享schema/bridge，未整包覆盖其它writer。base64使用锁内既有0.22.1，无依赖升级。
+
+**仍BLOCKED/PARTIAL**：聚合 `be-api-aggregate-first-20261021`中batch API3 PASS、完整backup/restore1 FAIL（code5 PermissionDenied），Cargo先停该target，其后的public API另独立执行4 PASS。独立`.project-local/runs/99371d31e4/be-batch-hardlink-diagnostic-20261021`确认同D卷owned临时目录os.link被拒；原backup汇总错误未标具体IO语句，该具体位置仍UNKNOWN，不将推断写实测，不改实现/断言/ACL求绿。隔离native route编译分别缺有效frontend overlay、随后缺真实rt/workers，未跑到route测试，不造假资源。正式同候选/原生安装、实际窗口、备份恢复、J2人工比较/知识/学习、J3全部特色矩阵与J5轻量扩展消费者仍待验；云端真实provider/材料目的地授权/预算仍缺，不调用付费服务、不扫描凭据。当前本地LM Studio SDK PASS不等于J4完成。前端只补业务接线，不恢复视觉优先；CL-01—07/J1—J6整体仍PARTIAL。
+
+
+**后继聚合验证（2026-10-21）**：`be-public-executor-aggregate-20261021`在root正式源码16项PASS，source_consistent=true。正式研究页只补后端消费者：固定五项Core操作、显式空查询、历史记录读取、新旧workspace/restore隔离、物化后再次校验当前scope，原始与派生来源分别加入现有研究草稿；不做视觉换壳。`be-public-consumer-first-20261021`真实Vitest发现18 FAIL/58 PASS，主要为新增fixture使用非法workspace/restore身份及不支持的断言匹配器；未放宽生产validator。修正合法fixture并补六项非法scope负例后，`be-public-consumer-corrected-20261021`四文件82项PASS，SIMULATED Core，source_consistent=true。`be-functional-consumer-build-20261021`正式frontend.mjs构建（内层bc202b4c7310）含TypeScript PASS，既有大chunk警告保留；不能替代原生业务验收。
+
+**同一公开研究工作区的真实本地模型**：按既有deep-mtp声明重载实例，回执`.project-local/runs/lm-studio-profile/1792516213130-load.json`为PASS_LOAD_READBACK，未卸载其它实例或修改profile。`be-public-material-local-model-20261021`沿前述真实三源工作区，通过Core创建绑定OpenAlex派生来源的Document、预览并确认冻结材料计划、真实调用LM Studio aaos-deep-27b-mtp、再从正式status读取同一耐久回答，四次HTTP符合期望。回答返回实际材料前三词，工程绑定检查通过；这是REAL_LOCAL_MODEL_THROUGH_CORE_ON_SAME_PUBLIC_RESEARCH_WORKSPACE，不代表独立质量、云端或安装候选资格。source32291ad4、patch ca67c002571ea6fb48d98f904ee182efde006883465c9e8026bcc2f6b30045b0，source_consistent=true，Core仍为b8f29099a4e74839a8a0b7a79d1b372a6505986459330dc499232eef16898a8f，自有进程已停止。材料180字节，usage由provider报告187输入/73输出，费用UNKNOWN；无知识接纳和云端发送。原始回执为该run的artifacts/public-material-model-live.json，SHA256 60d36285b450078f678b3f5cfe696d81d613d8cd28996e60344638e300bf7cf0，不提交原返回正文。
+
+**候选准备现场差距**：RC-P06已删除旧rt/candidates，当前无可复用完整runtime；不得套用历史PASS。现有Python基底3.13.14可解析，116项现有依赖闭包不缺包，但soupsieve2.8.4/urllib3 2.7.0偏离uv.lock的2.10/2.8.0，不能直接复制称锁一致。正式prepare_bundle使用既有stage路径与frozen/hash校验，尚未执行新候选。另已定位portable assembler误读cargo_build而canonical host实际使用tauri_build，以及构建收据缺当场Core哈希的资格缺口；正按原入口修复，未手写PASS。能力中心research.public健康探针亦需实际输入无关hello，不能把普通NDJSON握手失败当provider故障。以上仍为本地未提交后端改动，未冒充已合并/已安装。
+
+
+**独立审阅后的产品修复**：研究包A→B→C二次导出原来漏掉B的revision_basis.portable_import.historical_anchors，`be-research-reexport-red-20261021`真实失败。现export合并继承历史位置并去重，沿原5000条/16MiB边界，不注册有效anchor或知识。同时`be-research-alias-red-20261021`证明相同create_request_id可在不同库形成同Document ID但不同内容，研究包原样导入会误绑目标已有对象；本slice不打包Document/Knowledge依赖，因此明确拒绝此类研究引用的便携导入，原包可留存，不冒充跨库引用支持。`be-research-roundtrip-green-20261021`portable4+research4=8 PASS，保留原件bytes、历史quote、无部分来源/文档注册、无anchor/知识采用及原库不变。此拒绝属于具名边界：损失为含此类依赖的研究包暂不能跨库导入；恢复条件为实现workspace来源与内容hash绑定、依赖对象闭包传输和引用重映射后再验往返；落点仍原研究/知识库兼容能力，不另建队列。
+
+能力中心`research.public`原走generic NDJSON握手产生假故障；继承现有有界owned进程runner，增加实际导入检索/HTTP/代理模块后的input-free hello，2秒/4KiB、null stdin、固定协议身份及未执行标志、无网络/查询/模型。root首次命令误用了不存在的public_research_executor test target，编译器在运行测试前拒绝；按实际lib/target纠正后，`be-public-health-corrected-20261021`专用4+既有health6=10 PASS，`be-public-query-after-health-20261021`query16 PASS；`be-public-python-final-20261021`72 PASS。均source_consistent=true，协议就绪不等于provider可达。
+
+**候选构建接线**：已修原dev.py/frontend.py/portable assembler，同一source/commit/tree/patch下，`--qualify-core-build`只接受固定release/locked/offline archeaxis-api命令，并在完成时记录实际Core path/bytes/hash；原旧回执无此字段不能追认。正式host通过`--core-build-receipt`核stage与Tauri实际复制字节，assembler消费真正tauri_build/release及完整阶段、hash绑定，不接受旧手写status=PASS。root `be-build-handoff-aggregate-20261021`新资格及相邻正常构建16 PASS/16未选中，SIMULATED工具进程，尚未当实际候选构建。donor完整既有相关回归71 PASS/5 FAIL/3 SKIP；5项分别为junction/hardlink/owned进程清理权限失败，不减断言、不算PASS。后者测试未记PID，后继CIM读取亦拒，最终退出状态UNKNOWN；不把120秒自然sleep期限当实测，不杀共享进程。
+
+**锁定Python准备**：`be-locked-python-runtime-20261021`离线在aiohappyeyeballs==2.7.1缓存缺失处FAIL，未冒用旧venv。随后`be-locked-python-online-20261021`从官方PyPI、frozen导出和require-hashes安装至独立`.project-local/rt-python-locked-20261021`，116项依赖及本项目wheel安装/隔离import检查PASS，source_consistent=true；soupsieve2.10/urllib3 2.8.0已按锁安装，开发.venv/共享工具/Green未改。uv的hardlink降级copy警告保留；这与产品backup硬链接失败分开，不据运行时安装PASS取消backup阻断。旧失败rt-python-input仅是部分Python基底及requirements，不能当合格候选或删除未知资料。
+
+**合同与预检**：归档合同受manifest固定hash保护，先前直接追加导致document-authority FAIL，已恢复原20261001文件SHA256 96a969cb8f9cde04cc4edc3ccf48c3b6b82ef22f9d02d57f1f51300f89f0acb6；现行130 pair维护派生合同在AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md，三维护测试指向现行库存，并保留历史OBSERVED资格边界，不更新历史manifest冒充原件。donor CRLF曾使conventions FAIL，精确LF修正后root `be-backend-contract-final-lf-20261021`完整preflight PASS（含29逐接口/计数/核验映射），结构门禁不等于业务闭环。`be-backend-ci-ruff-20261021`与CI同select规则PASS；此前额外全规则lint15条告警保留，不称全规则通过。全部本轮变更已纳已有GatePlan分类，unknown_paths空；仍需提交后exact-SHA CI和同候选J1—J6，未公开发布/未更新Green。
+
+
+**根目录排除修复**：独立审阅证实relativeOf剥掉选中根名，直接选择node_modules/.venv/.project-local/build/target会绕过既有排除。新选择及历史重选、Core register/executable_member现统一拒绝排除根及任意以点开头的根，历史read/list继续可用，拒绝时保留原批次，不标作已处理。普通“My node_modules notes”不误伤。两轮donor RED分别在node_modules及.hidden-folder真实断言失败；root首轮 `be-batch-excluded-root-ui-20261021`52 PASS（Folder46+Recovery6）、`be-batch-excluded-root-domain-20261021`4 PASS。后继generic hidden root增量的root终验待新run，不把donor静态检查称UI通过。
+
+**许可范围标注修复**：OpenAlex数据集元数据CC0不外推为摘要原文字句许可；官方属性说明[abstract_inverted_index](https://help.openalex.org/data/works/attributes/)明确其摘要表达边界。worker重建摘要现在license=null（未知），无摘要metadata-only仍CC0，原始HTTP响应bytes不变。donor RED2 FAIL后，root `be-public-license-final-20261021`29 PASS，source_consistent=true；不修改历史捕获/旧收据，也不把该标注当法律核验或付费全文准入。
+
+
+**提交前聚合终验**：`be-backend-consumers-final-20261021`六文件137 PASS（研究82+Folder49+Recovery6），含generic隐藏根/历史重选拒绝与普通相似名字通过；`be-backend-domain-final-20261021`batch4+portable4+public10+research4=22 PASS。均source_consistent=true，仍为对应本地测试级别。当前本轮提交目标是BE-P03/04/05与真实调用消费者/候选构建接线的可审阅检查点，backup权限失败、同候选安装与J1—J6、云端和独立质量验收继续保留，不标完整闭环。回退可按该检查点反向撤销代码；schema13为加表升级，不对真实数据自动降schema或覆盖旧库，现有Green未更换。

@@ -125,6 +125,107 @@ def test_tauri_build_uses_its_own_target_when_parent_routes_core(project, monkey
     assert paths["cargo_build"] != paths["tauri_build"]
 
 
+def qualified_core(project, monkeypatch, compiler_exit=0, write_output=True):
+    """Actual runner receipt generation around a synthetic compiler process."""
+    import io
+    class Compiler:
+        stdout = io.StringIO("synthetic Core compiler\n")
+        def wait(self):
+            return compiler_exit
+    real_popen = router.dev.subprocess.Popen
+    def launch(*args, **kwargs):
+        if not any("cargo_test.bat" in str(part) for part in args[0]):
+            return real_popen(*args, **kwargs)
+        path = Path(kwargs["env"]["CARGO_TARGET_DIR"]) / "release/archeaxis-api.exe"
+        if write_output:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"synthetic-core")
+        return Compiler()
+    with monkeypatch.context() as child:
+        child.setattr(router.dev.subprocess, "Popen", launch)
+        child.setattr(sys, "argv", ["dev.py", "--root", str(project), "--run-id", "core",
+                                  "--qualify-core-build", "--", *router.dev.core_build_command(project)])
+        assert router.dev.main() == (compiler_exit or (0 if write_output else 2))
+    return router.dev.layout(project, "core")["artifacts"] / "execution.json"
+
+
+def test_canonical_builder_receipt_connects_actual_tauri_target_to_portable(project, monkeypatch):
+    from scripts.release import tauri_portable_candidate as portable
+    core_receipt = qualified_core(project, monkeypatch)
+    core = json.loads(core_receipt.read_text(encoding="utf-8"))
+    assert core["core_build"]["artifact"]["sha256"] == __import__("hashlib").sha256(b"synthetic-core").hexdigest()
+    staged = project / ".project-local/rt"
+    (staged / "core").mkdir(parents=True)
+    (staged / "core/archeaxis-api.exe").write_bytes(b"synthetic-core")
+    (staged / "backend-runtime-manifest.json").write_text("{}")
+    def compiler(*args, **kwargs):
+        successful_compiler(*args, **kwargs)
+        target = Path(kwargs["env"]["CARGO_TARGET_DIR"]) / "release"
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "ArcheAxis.exe").write_bytes(b"synthetic-host")
+        shutil.copytree(staged, target, dirs_exist_ok=True)
+        return 0
+    monkeypatch.setattr(router.subprocess, "call", compiler)
+    assert router.build(project, "node", "tauri", ["build", "--no-bundle", "--", "--offline", "--locked"],
+                        core_build_receipt=core_receipt) == 0
+    receipt_path = next((project / ".project-local/runs").glob("*/*/artifacts/frontend-build.json"))
+    build = json.loads(receipt_path.read_text(encoding="utf-8"))
+    paths = router.dev.layout(project, "check")
+    env = router.dev.environment(paths)
+    host = portable.qualified_host(receipt_path, build, paths, env)
+    assert host == paths["tauri_build"] / "release/ArcheAxis.exe"
+    assert host != paths["cargo_build"] / "release/ArcheAxis.exe"
+    for key, value in [("host", str(paths["cargo_build"] / "release/ArcheAxis.exe")),
+                       ("host_sha256", "0" * 64), ("source_patch_sha256", "0" * 64),
+                       ("exit_code", 1), ("mode", "build"), ("status", "RUNNING"),
+                       ("portable_build_arguments", ["build", "--help"])]:
+        altered = {**build, key: value}
+        with pytest.raises(ValueError):
+            portable.qualified_host(receipt_path, altered, paths, env)
+    with pytest.raises(ValueError):
+        portable.qualified_host(receipt_path, {"status": "PASS", "host": str(host),
+                                "host_sha256": build["host_sha256"]}, paths, env)
+    timing_path = Path(build["build_timings"]["path"])
+    timing = json.loads(timing_path.read_text(encoding="utf-8"))
+    timing["stages"][0]["status"] = "RUNNING"
+    timing_path.write_text(json.dumps(timing), encoding="utf-8")
+    unfinished = {**build, "build_timings": router.dev.build_file_identity(timing_path)}
+    with pytest.raises(ValueError, match="stages are incomplete"):
+        portable.qualified_host(receipt_path, unfinished, paths, env)
+    (host.parent / "core/archeaxis-api.exe").write_bytes(b"changed-after-build")
+    with pytest.raises(ValueError):
+        portable.qualified_host(receipt_path, build, paths, env)
+
+
+@pytest.mark.parametrize("change", ["missing_hash", "other_crate", "debug", "changed_source", "failed"])
+def test_core_qualification_rejects_incomplete_or_unrelated_receipts(project, monkeypatch, change):
+    path = qualified_core(project, monkeypatch)
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if change == "missing_hash":
+        value.pop("core_build")
+    elif change == "other_crate":
+        value["command"][-1] = "archeaxis-domain"
+    elif change == "debug":
+        value["command"].remove("--release")
+    elif change == "changed_source":
+        value["source_patch_sha256_after"] = "0" * 64
+    else:
+        value["child_exit_code"] = 1
+    path.write_text(json.dumps(value), encoding="utf-8")
+    paths = router.dev.layout(project, "verify")
+    with pytest.raises(ValueError):
+        router.dev.read_core_build(path, paths, router.dev.environment(paths))
+
+
+@pytest.mark.parametrize("exit_code,output", [(23, True), (0, False)])
+def test_failed_or_outputless_core_build_never_acquires_qualification(project, monkeypatch, exit_code, output):
+    path = qualified_core(project, monkeypatch, exit_code, output)
+    value = json.loads(path.read_text(encoding="utf-8"))
+    assert value["status"] == "FAIL"
+    assert value["exit_code"] != 0
+    assert "core_build" not in value
+
+
 def test_separate_nsis_bundle_retains_config_features_and_failure(project, monkeypatch):
     commands = []
     def execute(command, **kwargs):

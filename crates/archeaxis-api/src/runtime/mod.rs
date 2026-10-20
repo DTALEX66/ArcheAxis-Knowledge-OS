@@ -25,6 +25,7 @@ mod job_journal;
 mod machine_journal;
 mod material_questions;
 mod model_configuration;
+mod public_research;
 pub mod readiness;
 mod semantic;
 mod withheld;
@@ -159,6 +160,20 @@ struct Runtime {
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
     Router::new()
+        .route(
+            "/api/v1/research/public/search",
+            post(public_research::search),
+        )
+        .route("/api/v1/research/public/read", post(public_research::read))
+        .route("/api/v1/research/public/list", post(public_research::list))
+        .route(
+            "/api/v1/research/public/cancel",
+            post(public_research::cancel),
+        )
+        .route(
+            "/api/v1/research/public/materialize",
+            post(public_research::materialize),
+        )
         .route("/api/v1/conversation/sessions", post(conversation::create))
         .route("/api/v1/conversation/history", post(conversation::history))
         .route("/api/v1/conversation/requests", post(conversation::request))
