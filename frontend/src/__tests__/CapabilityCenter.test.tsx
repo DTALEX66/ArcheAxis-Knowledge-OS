@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
 import { scopedReadiness } from "../test/fixtures/readiness";
@@ -15,12 +15,13 @@ describe("capability center uses existing identities without inventing runtime a
     expect(document.querySelectorAll("button[data-entry-id]")).toHaveLength(9);
     await user.click(screen.getByRole("button", {name:"扩展能力"}));
     expect(document.querySelectorAll("button[data-entry-id]")).toHaveLength(1);
-    expect(screen.getByRole("button", {name:/CAP-0060/})).toHaveTextContent("可选适配器");
+    expect(screen.getByRole("button", {name:/LER 视觉教学与课件/})).toHaveTextContent("可选适配器");
     await user.click(screen.getByRole("button", {name:"未来规划"}));
     expect(document.querySelectorAll("button[data-entry-id]")).toHaveLength(6);
     await user.type(screen.getByLabelText("查找能力"), "CAP-0080");
     expect(document.querySelectorAll("button[data-entry-id]")).toHaveLength(1);
-    await user.click(screen.getByRole("button", {name:/CAP-0080/}));
+    await user.click(screen.getByRole("button", {name:/空间记忆与沉浸学习/}));
+    await waitFor(()=>expect(screen.getByRole("heading",{name:"空间记忆与沉浸学习"})).toHaveFocus());
     expect(screen.getByRole("button", {name:"当前执行入口尚未提供"})).toBeDisabled();
     expect(bridge.call).not.toHaveBeenCalled();
   });

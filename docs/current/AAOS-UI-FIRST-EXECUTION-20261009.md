@@ -2,7 +2,7 @@
 
 状态 **RUNNING_BY_OWNER / PARTIAL**（Owner 明确要求今天停止额度监控并继续；今天不查询额度、不因额度阈值停工）。本文件是 [活动指针](AAOS-ACTIVE-EXECUTION.json) 指定的唯一进度源；按指针及 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md) 接续当前任务，不从旧暂停或旧 COMPLETE 推导现场事实。
 
-最新接续见文末 **2026-10-20 TRAE承接与前端覆盖修复**：完整承接206d56da，现场已核其PR合并候选CI及安装旅程成功；本轮补齐内部主控台边角调整、页面无障碍语义与Dock主题密度，最终本地A0、前端套件及构建通过。本轮新增代码尚无新安装态CI；总体PARTIAL。下表与早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
+最新接续见文末 **2026-10-20 UI-P05** 与 **UI-P02能力中心**：完整承接TRAE的206d56da，已保存分栏/窄窗/失效布局保护的28533c26，并继续能力中心中文化、诊断保真与详情焦点修复。P05完整本地A0及1851项通过；后继P02以定向回归/64项浏览器详情检查分层记证。旧head0e5755b4的CI39415324811最终FAIL（原生installer成功不抵消required失败）；新聚合候选需另核CI。前端阶段仍PARTIAL，未进入后端、未合main或更新Green。早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
 
 ## 已实施与证据边界
 
@@ -371,3 +371,27 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 | 类型/构建 | TypeScript PASS；最终正式frontend.mjs build的run为d156ac815141，PASS，原大chunk警告保留。 |
 
 证据仍在`.project-local/runs/be268a2d33/<run-id>/`；浏览器报告自有Vite PID33708、端口63301已关闭，terminate后exit1不称优雅退出。探针曾把多个保留/隐藏space-view当单页、以及summary范围过宽而失败，已改为实际可见正文与布局自身summary；所有FAIL保留，没有用隐藏点击绕过产品入口。没有宣称原生DPI、物理IME、屏幕阅读器、真实Core重启布局或Owner验收完成，UI-P05及前端总体仍PARTIAL。下一独立前端片为UI-P02能力中心工程文案与运行诊断分离；不启动后端阶段。未合main、未清理分支/数据、未覆盖Green。
+
+## 2026-10-20 UI-P02能力中心：中文语义、诊断保真与详情焦点
+
+本片映射UI-P02/UF04/UF06、UI-P09/10/18/21，基于本地checkpoint28533c26；没有替换能力目录、更新生成合同或新增注册器。目录身份、路由、16项父能力与186条原始设计输入/原SHA均保留，按原始编号和原始短语的搜索继续可用。
+
+**产品修改**：普通目录去掉内部入口编号与Atlas/implementation措辞；详情用中文表示已有声明/尚未接入、运行未知、独立证据未核验。资料访问、指纹校验、样例、错误率、降级、恢复点等前提改用清楚中文。原atlas/implementation完整进入“能力登记与运行声明”，复用来源完整进入既有运行诊断，186条原文及来源指纹可逐父能力完整读出。原始运行错误码/UNKNOWN/UNVERIFIED及完整权限观察保留到诊断，普通页仍明确禁用、未知和未验证，不把连接或目录登记升格为业务成功。内置扩展说明保留版本/依赖/许可，分别标发布者、许可审查、业务与运行未知；完整manifest和校验信息进入同一诊断通道。
+
+**实际截图发现的额外缺陷**：从目录下方选择能力后，详情沿用目录滚动位置，标题可完全离屏；自动axe没有替代该视觉结论。新增焦点RED（原body持焦）、浏览器标题裁切断言，并修为选中详情后等待Radix Presence完成一次渲染帧，再聚焦/定位所选标题。手动标签切换不设置该请求，不抢走正常Tab焦点。首次直接effect过早聚焦的FAIL及测试误用exact选项造成的类型失败均保留；最终定向与正式构建通过。未删除/放松命中、裁切、未知状态或未来禁用断言。
+
+| 检查 | 本地证据与界限 |
+| --- | --- |
+| 文案RED与消费者 | `ui-capability-copy-red-20261020`复现内部ID/枚举直接出现在普通详情。`ui-capability-copy-final-20261020`9文件/124项通过；后继原始186项改由真实诊断通道逐父能力核对，不修改原始fixture或仅放宽匹配。 |
+| 全套与失败修复 | `ui-capability-final-suite-20261020`182文件/1852项，1846通过、6个旧名称/措辞消费者失败，保留FAIL。随后只重跑失败/受影响门禁：`ui-capability-consumers-final2-20261020`3文件/40项通过；不把两个运行相加虚称一次完整1852项绿。 |
+| 焦点最终定向 | `ui-capability-focus-green2-20261020`6文件/98项通过，包括App、未来能力、原始设计、状态过期/错scope、模板路由与新标题焦点；属于SIMULATED command的本地测试。 |
+| 最终浏览器 | `ui-capability-heading-final-20261020`：现有16能力×cosmic/white×1600×1000及640×480＝64项PASS_AUTOMATED_ONLY；每项详情标题完整可见且实际命中，axe无violation、192条incomplete保留，无pageerror/外网请求。Chromium149.0.7827.55、DPR1、reduced-motion；SYNTHETIC host/Core、source_consistent=true，patch=d30d71e9ebd21ff616038ca8b64cdd16bd073d6948886910431eecdbb4e7bc76，base28533c26。实际查看修复前后联系图及窄窗/宽窗原图，不称已批准像素基准或全面无障碍合规。 |
+| 探针修正与保留 | 全能力探针按实际目录枚举，不另建16项注册表；先以8秒冷启动超时失败，现对齐原A0的30秒导航预算，交互仍8秒。`ui-capability-all-details2-20261020`64项axe通过但截图暴露标题缺陷；后继`ui-capability-heading-all-20261020`明确FAIL，最终修复后才得到上述新断言通过。所有旧FAIL/截图保留。 |
+| 构建与门禁 | 最终正式frontend.mjs build为959a32e99802，TypeScript/构建PASS，既有大chunk警告保留。A0/架构合同`ui-capability-probe-contracts-final-20261020`31项通过；架构guard、CI同命令Ruff、文档Authority通过（外部/私人4项仍UNVERIFIED）。本片未再跑P05完整A0，新聚合SHA由CI重新资格。 |
+
+证据仍在`.project-local/runs/be268a2d33/<run-id>/`，截图与运行资料不提交。最终浏览器自有PID16756、端口50356已回收，port_closed=true；terminate后的exit1不称优雅退出。旧0e5755b4的CI39415324811最终FAIL，installer-lifecycle成功、a0-gates失败，不能合入main。两个新前端checkpoint拟合批正常推送，实际SHA/CI由现场读回，不把本地commit称双端一致。
+
+**仍待接续**：UI-P02全域工程术语（模板需求、部分图谱/表达/系统说明等）、UI-P05真实Core重启与原生几何、UI-P14三类免费检索界面/接线、UI-P21人工辅助技术、UI-P22性能规模数据、UI-P23正式视觉基准、UI-P24新候选原生安装/Owner验收继续PARTIAL/UNVERIFIED。前端尚未阶段交付；不据目录/截图恢复被冻结能力，不进入BE-P01—15，不缩减CL-01—07/J1—J6。RC-P01—08原账保留；本片不删分支、文件或远端产物、不改main、Green、模型/provider或共享资源。回退按本片文件/提交反向修订，保留TRAE基线及所有失败证据。
+
+
+本片结束检查补充：第一次worktree目录规范仅因Add-Content引入CRLF失败，已将本唯一执行记录规范为UTF-8无BOM/LF，保持原内容与失败记录。对应复验见ui-capability-record-conventions2-20261020；未修改规范规则。

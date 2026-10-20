@@ -272,7 +272,7 @@ describe("capability detail is the plugin side of the same join", () => {
     const onNavigate = vi.fn();
     render(<CanonicalCapabilitiesSpace onNavigate={onNavigate} />);
     expect(api.call).not.toHaveBeenCalled();
-    await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0020/ }));
+    await userEvent.setup().click(screen.getByRole("button", { name: /多格式转换/ }));
     await screen.findByText(/已读取当前视图的范围化状态/);
     const detail = screen.getByRole("article", { name: "能力详情" });
     expect(within(detail).getByRole("heading", { name: "使用此能力的模板" })).toBeInTheDocument();
@@ -285,7 +285,7 @@ describe("capability detail is the plugin side of the same join", () => {
   it("says plainly when no template requires the capability, and offers no dead route", async () => {
     render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
     expect(api.call).not.toHaveBeenCalled();
-    await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0110/ }));
+    await userEvent.setup().click(screen.getByRole("button", { name: /搜索、图谱与索引/ }));
     const detail = screen.getByRole("article", { name: "能力详情" });
     expect(detail.textContent).toContain("模板套件当前没有声明此能力");
     expect(screen.queryByRole("button", { name: "到资料库打开学科模板" })).toBeNull();
@@ -293,7 +293,7 @@ describe("capability detail is the plugin side of the same join", () => {
   it("shows each joined absorption source with its own class, and does not call them all plugins", async () => {
     render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
     expect(api.call).not.toHaveBeenCalled();
-    await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0020/ }));
+    await userEvent.setup().click(screen.getByRole("button", { name: /多格式转换/ }));
     await screen.findByText(/已读取当前视图的范围化状态/);
     const detail = screen.getByRole("article", { name: "能力详情" });
     // The class now comes from the generated crosswalk projection, so a joined capability names its
@@ -309,7 +309,7 @@ describe("capability detail is the plugin side of the same join", () => {
   it("still says 分类未确认 for a capability the crosswalk does not join", async () => {
     render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
     expect(api.call).not.toHaveBeenCalled();
-    await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0060/ }));
+    await userEvent.setup().click(screen.getByRole("button", { name: /LER 视觉教学与课件/ }));
     const detail = screen.getByRole("article", { name: "能力详情" });
     expect(detail.textContent).toContain("吸收来源分类：分类未确认");
     expect(detail.textContent).toContain("候选类别为");
@@ -369,7 +369,8 @@ describe("app shell wiring of the template→capability route", () => {
       fireEvent.change(screen.getByLabelText("模板"), { target: { value: "T2" } });
       fireEvent.click(await screen.findByRole("button", { name: "打开能力详情 CAP-0020 · html.structure" }));
       expect(await screen.findByRole("heading", { name: "能力中心" })).toBeInTheDocument();
-      expect(screen.getByRole("article", { name: "能力详情" })).toHaveTextContent("CAP-0020");
+      expect(screen.getByRole("article", { name: "能力详情" })).toHaveTextContent("多格式转换");
+      expect(screen.getByRole("article", { name: "能力详情" })).not.toHaveTextContent("稳定入口 ID CAP-0020");
       expect(window.location.hash).toBe("#capability/CAP-0020");
     } finally {
       delete window.__TAURI__;

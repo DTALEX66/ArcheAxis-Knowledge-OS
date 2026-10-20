@@ -170,7 +170,8 @@ describe("App shell", () => {
     await user.keyboard("{ArrowDown}{Enter}");
 
     const details = await screen.findByRole("article", { name: "能力详情" });
-    expect(details).toHaveTextContent("CAP-0080");
+    expect(details).toHaveTextContent("空间记忆与沉浸学习");
+    expect(details).not.toHaveTextContent("CAP-0080");
     expect(details).toHaveTextContent("下一步：");
     expect(details).toHaveTextContent("执行前提：");
     expect(details).toHaveTextContent("依赖声明：");

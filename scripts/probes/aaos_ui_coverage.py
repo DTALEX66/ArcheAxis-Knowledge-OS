@@ -65,10 +65,14 @@ def console_gestures(page, output: Path, theme: str) -> list[dict]:
     return observations
 
 
-def navigate(page, page_id: str) -> None:
+def navigate(page, page_id: str, capability_id: str | None = None) -> None:
     if page_id == "18":
         navigate(page, "17")
-        page.locator('.capability-center-list button[data-entry-id]').first.click()
+        page.get_by_role("tab", name="目录与搜索", exact=True).click()
+        entries = page.locator('.capability-center-list button[data-entry-id]')
+        target = entries.first if capability_id is None else page.locator(f'.capability-center-list button[data-entry-id="{capability_id}"]')
+        target.scroll_into_view_if_needed()
+        target.click()
         page.get_by_role("tabpanel", name="能力详情", exact=True).wait_for()
         return
 
@@ -151,6 +155,7 @@ def main() -> int:
     parser.add_argument("--state", choices=["baseline", "read-failure"], default="baseline")
     parser.add_argument("--console-gestures", action="store_true")
     parser.add_argument("--dock-interactions", action="store_true")
+    parser.add_argument("--capability-details", action="store_true")
     args = parser.parse_args()
     root = Path(os.environ["ARCHEAXIS_RUN_ROOT"])
     output = root / "artifacts" / "ui-coverage"
@@ -193,6 +198,9 @@ def main() -> int:
                     context.add_init_script(f"if(window.top===window && location.origin==={json.dumps(a0.URL)}){{{bridge}}}")
                     page = context.new_page()
                     page.set_default_timeout(8000)
+                    # Match the existing A0 cold-navigation budget; interactions
+                    # still use 8s and all geometry/hit assertions remain strict.
+                    page.set_default_navigation_timeout(30000)
                     page.on("pageerror", lambda error: report["errors"].append(error.stack))
 
                     def route(request):
@@ -216,14 +224,27 @@ def main() -> int:
                         if args.console_gestures:
                             report.setdefault("console_gestures", []).append({"theme": theme, "viewport": [width, height],
                                 "observations": console_gestures(page, output, theme)})
-                        for page_id, label in roles:
+                        cases = [(page_id, label, None) for page_id, label in roles]
+                        if args.capability_details:
+                            navigate(page, "17")
+                            entries = page.locator('.capability-center-list button[data-entry-id]').evaluate_all("nodes=>nodes.map(n=>({id:n.dataset.entryId,label:n.querySelector('b').innerText}))")
+                            assert entries and len({entry["id"] for entry in entries}) == len(entries)
+                            cases = [(page_id, label, None) for page_id, label in roles if page_id != "18"]
+                            cases += [("18", entry["label"], entry["id"]) for entry in entries]
+                        for page_id, label, capability_id in cases:
                             case = {"page_id": page_id, "label": label, "theme": theme,
                                     "viewport": [width, height], "dpr": 1}
                             report["cases"].append(case)
+                            if capability_id:
+                                case["capability_id"] = capability_id
                             try:
                                 started = time.perf_counter()
-                                navigate(page, page_id)
+                                navigate(page, page_id, capability_id)
                                 case["navigation_ms"] = round((time.perf_counter() - started) * 1000, 2)
+                                if page_id == "18":
+                                    heading = page.get_by_role("article", name="能力详情", exact=True).locator(":scope > h3")
+                                    case["detail_heading"] = a0.visible_control_box(heading)
+                                    assert case["detail_heading"]["reachable"] and abs(case["detail_heading"]["height"] - case["detail_heading"]["rawHeight"]) <= 1, case["detail_heading"]
                                 case["controls"] = a0.check_business_controls(page)
                                 case["dock_tabs"] = page.locator('.dock-surface [role="tab"]').evaluate_all("""tabs => tabs
                                   .filter(n=>n.getClientRects().length && getComputedStyle(n).visibility==='visible')
@@ -249,7 +270,7 @@ def main() -> int:
                                 case["status"] = "FAIL" if case["axe"]["violations"] else "PASS_AUTOMATED_ONLY"
                             except Exception as error:
                                 case.update(status="FAIL", error=str(error))
-                            shot = output / f"page-{page_id}-{theme}-{width}x{height}.png"
+                            shot = output / f"page-{page_id}{'-' + capability_id if capability_id else ''}-{theme}-{width}x{height}.png"
                             page.screenshot(path=str(shot))
                             case["screenshot"] = str(shot.relative_to(root))
                             (output / "coverage.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

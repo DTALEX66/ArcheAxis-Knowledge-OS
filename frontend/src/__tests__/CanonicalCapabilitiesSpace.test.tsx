@@ -13,6 +13,16 @@ const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCo
 const repository=basename(process.cwd()) === "frontend" ? resolve(process.cwd(),"..") : process.cwd();
 describe("single-source capability exploration",()=>{
  beforeEach(()=>{bridge.call.mockReset();resetDiagnostics();});
+ it("keeps internal directory identity and state in diagnostics while future capability limits remain visible",async()=>{
+  const entry=CAPABILITY_CATALOG.entries.find(item=>item.atlas.capability_id==="CAP-0080")!;
+  render(<><CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId={entry.atlas.capability_id}/><DiagnosticConsole/></>);
+  const details=screen.getByRole("article",{name:"能力详情"});
+  expect(details).not.toHaveTextContent(/CAP-0080|binding_long_term|not_implemented|UNKNOWN|Atlas\/implementation|config\/capability-map/);
+  expect(details).toHaveTextContent("完整能力尚未接入");expect(screen.getByRole("button",{name:"当前执行入口尚未提供"})).toBeDisabled();
+  await userEvent.setup().click(screen.getByRole("button",{name:/能力登记与运行声明/}));
+  expect(JSON.parse(screen.getByLabelText("诊断控制台").querySelector("pre")!.textContent!)).toEqual({atlas:entry.atlas,implementation:entry.implementation});
+  expect(bridge.call).not.toHaveBeenCalled();
+ });
  it("covers exactly the existing Atlas/map and records the current source hashes",()=>{
   for(const source of CAPABILITY_CATALOG.sources){const bytes=readFileSync(resolve(repository,source.path));expect(createHash("sha256").update(bytes).digest("hex")).toBe(source.sha256);}
   const atlas=readFileSync(resolve(repository,"docs/truth/CAPABILITY_ATLAS_V2.yaml"),"utf8");const atlasIds=[...atlas.matchAll(/^  - capability_id: "([^"]+)"/gm)].map(match=>match[1]);
@@ -22,14 +32,14 @@ describe("single-source capability exploration",()=>{
  });
  it("keeps future formal details available while refusing an unimplemented execution",async()=>{
   bridge.call.mockResolvedValue({capabilities:[]});const navigate=vi.fn();render(<CanonicalCapabilitiesSpace onNavigate={navigate}/>);
-  await userEvent.setup().click(screen.getByRole("button",{name:/CAP-0080/}));
-  expect(screen.getByRole("article",{name:"能力详情"})).toHaveTextContent("binding_long_term");expect(screen.getByRole("button",{name:"当前执行入口尚未提供"})).toBeDisabled();expect(screen.getByText(/供体映射未建立/)).toBeInTheDocument();expect(navigate).not.toHaveBeenCalled();
+  await userEvent.setup().click(screen.getByRole("button",{name:/空间记忆与沉浸学习/}));
+  expect(screen.getByRole("article",{name:"能力详情"})).toHaveTextContent("完整能力尚未接入");expect(screen.getByRole("button",{name:"当前执行入口尚未提供"})).toBeDisabled();expect(screen.getByText(/供体映射未建立/)).toBeInTheDocument();expect(navigate).not.toHaveBeenCalled();
   expect(bridge.call).not.toHaveBeenCalled();
  });
  it("separates observed handshake/permissions from implementation declaration and routes only a real UI",async()=>{
   bridge.call.mockImplementation(async(_op:string,p:{body:{scope:string,operations:string[]}})=>{const snapshot=scopedReadiness(p.body);snapshot.operations.forEach(row=>{row.permission="DISABLED";row.reasons=["CAPABILITY_DISABLED"];});return snapshot;});const navigate=vi.fn();render(<><CanonicalCapabilitiesSpace onNavigate={navigate}/><DiagnosticConsole/></>);
-  await userEvent.setup().click(screen.getByRole("button",{name:/CAP-0050/}));await screen.findByText(/已读取当前视图/);
-  expect(screen.getByText(/连接\/权限/)).toHaveTextContent("已禁用");expect(screen.getByText(/连接\/权限/)).toHaveTextContent("UNKNOWN");
+  await userEvent.setup().click(screen.getByRole("button",{name:/AI 学习资产与受控调用/}));await screen.findByText(/已读取当前视图/);
+  expect(screen.getByText(/连接\/权限/)).toHaveTextContent("已禁用");expect(screen.getByText(/连接\/权限/)).toHaveTextContent("状态未知");
   await userEvent.setup().click(screen.getByRole("button",{name:/能力运行详细信息/}));
   const observed=JSON.parse(screen.getByLabelText("诊断控制台").querySelector("pre")!.textContent!);
   expect(observed).toMatchObject({enabled:false,health:"UNKNOWN",qualification:"UNVERIFIED",reasons:["CAPABILITY_DISABLED"]});

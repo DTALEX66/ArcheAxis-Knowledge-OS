@@ -8,8 +8,8 @@ export function ModelTaskRoles({capabilities,scopeLabel}:{capabilities:ReadonlyM
   return <section aria-label="模型与工具职责">
     <h3>模型与工具职责</h3>
     <article><h4>本地资料转换</h4>
-      <p>解析、OCR、转写、切分与来源定位由对应工具和专用 worker 承担；对话模型不替代这些步骤。</p>
-      <p>{scopeLabel ? `仅观察「${scopeLabel}」；其他转换路由不在本次读取范围。` : capabilities===null?"当前工具状态未知":`当前 Core 登记 ${registered.length} 项转换路由；登记不代表产物已验证`}</p>
+      <p>解析、OCR、转写、切分与来源定位由对应的专用工具承担；对话模型不替代这些步骤。</p>
+      <p>{scopeLabel ? `仅观察「${scopeLabel}」；其他转换路由不在本次读取范围。` : capabilities===null?"当前工具状态未知":`本机已登记 ${registered.length} 项转换工具；登记不代表产物已验证`}</p>
       <p>处理结果保留原件和损失说明；基础保存不等待模型或联网核验。</p>
     </article>
     <article><h4>日常对话与学习</h4>

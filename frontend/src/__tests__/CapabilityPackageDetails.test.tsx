@@ -26,9 +26,9 @@ describe("page17 consumes verified manifest declaration without runtime authorit
   it("keeps unknown license, authenticity, qualification and runtime distinct", async () => {
     await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
     const pack = screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" });
-    expect(pack).toHaveTextContent("许可声明：UNKNOWN · 审查 UNVERIFIED");
-    expect(pack).toHaveTextContent("发布者真实性 UNVERIFIED");
-    expect(pack).toHaveTextContent("独立资格 UNKNOWN · 当前运行状态 UNKNOWN");
+    expect(pack).toHaveTextContent("许可声明：未知 · 审查尚未完成");
+    expect(pack).toHaveTextContent("发布者真实性尚未验证");
+    expect(pack).toHaveTextContent("业务验证尚未完成 · 当前运行状态未知");
     expect(pack).toHaveTextContent("均未授权执行");
     expect(within(pack).queryByRole("button", { name: /安装|执行|启用|重试/ })).not.toBeInTheDocument();
   });
@@ -38,7 +38,7 @@ describe("page17 consumes verified manifest declaration without runtime authorit
     expect(screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" })).toBeInTheDocument();
     await act(async () => { view.rerender(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0090" />); });
     expect(screen.queryByRole("article", { name: "包说明 archeaxis.pdf-extract" })).not.toBeInTheDocument();
-    expect(screen.getByText(/此能力尚无已验证的包说明/)).toHaveTextContent("manifest 身份 UNKNOWN");
+    expect(screen.getByText(/此能力尚无已验证的包说明/)).toHaveTextContent("许可、业务验证与运行状态均待核对");
   });
   it("has no manifest display or additional package request before a CAP is selected", async () => {
     await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />); });

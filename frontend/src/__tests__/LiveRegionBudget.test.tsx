@@ -421,12 +421,12 @@ describe("raw payloads stay off the reading surface", () => {
     bridge.call.mockImplementation(async(operation:string,payload:{body:{scope:string;operations:readonly string[]}})=>{expect(operation).toBe("operation_readiness");expect(payload.body).toEqual({scope:"view:CAP-0050",operations:["machine.answer"]});return {schema:"archeaxis.operation-readiness/v1",scope:payload.body.scope,observed_at_ms:Date.now(),expires_at_ms:expires,aggregate:"NOT_READY",network_performed:false,models_loaded:false,execution_authorized:false,operations:[observation]};});
     const { container } = render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
     expect(bridge.call).not.toHaveBeenCalled();
-    await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0050/ }));
+    await userEvent.setup().click(screen.getByRole("button", { name: /AI 学习资产与受控调用/ }));
     await screen.findByText(/已读取当前视图的范围化状态/);
 
     // The human-readable summary is still on the reading surface...
     expect(screen.getByText(/连接\/权限/)).toHaveTextContent("已禁用");
-    expect(screen.getByText(/连接\/权限/)).toHaveTextContent("UNKNOWN");
+    expect(screen.getByText(/连接\/权限/)).toHaveTextContent("状态未知");
     // ...and the raw dump that used to sit under it is gone.
     const details = screen.getByRole("article", { name: "能力详情" });
     expect(details.querySelectorAll("pre")).toHaveLength(0);
@@ -434,8 +434,8 @@ describe("raw payloads stay off the reading surface", () => {
 
     const entries = renderHook(useDiagnostics);
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
-    await userEvent.setup().click(screen.getByRole("button", { name: /能力运行详细信息 · machine\.answer/ }));
-    expect(entries.result.current[0]).toMatchObject({label:"能力运行详细信息 · machine.answer",payload:{...observation,enabled:false,health:"UNKNOWN"}});
+    await userEvent.setup().click(screen.getByRole("button", { name: /能力运行详细信息 · AI回答/ }));
+    expect(entries.result.current[0]).toMatchObject({label:"能力运行详细信息 · AI回答",payload:{...observation,enabled:false,health:"UNKNOWN"}});
     expect(debug).not.toHaveBeenCalled();
     debug.mockRestore();
     expect(container.textContent).not.toMatch(/"health"\s*:/);
