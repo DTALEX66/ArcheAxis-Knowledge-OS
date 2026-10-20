@@ -18,8 +18,8 @@ it("SIMULATED requires file selection and explicit save; unknown failure reuses 
   fireEvent.click(screen.getByRole("button",{name:"确认保存为新普通文档"}));
   await screen.findByText("unknown transport");
   const first=vi.mocked(coreCommand).mock.calls[0][1];fail=false;
-  fireEvent.click(screen.getByRole("button",{name:"同请求核对并重试回导"}));
-  await screen.findByText(/已保存新普通文档/);
+  fireEvent.click(screen.getByRole("button",{name:"检查结果并重试同一次导入"}));
+  await screen.findByText(/已保存为新文档；尚未加入知识库，旧引用位置需要重新核对/);
   expect(vi.mocked(coreCommand).mock.calls[1][1]).toEqual(first);
   expect(vi.mocked(coreCommand).mock.calls.some(([op])=>op==="knowledge_review")).toBe(false);
 });

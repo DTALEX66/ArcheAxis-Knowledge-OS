@@ -18,9 +18,9 @@ acceptance_reason: >-
 common_format_scope: docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json
 evidence_index:
   - docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md
-  - docs/current/AAOS-AUTHORITY-CLOSEOUT-20261010.md
-  - docs/current/AAOS-FORMAT-QUALIFICATION-20261010.json
-  - docs/current/receipts/AAOS-AI-STAGE-20261010.json
+  - docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-CLOSEOUT-20261010.md
+  - docs/history/repository-consolidation-20261019/current/AAOS-FORMAT-QUALIFICATION-20261010.json
+  - docs/history/repository-consolidation-20261019/current/receipts/AAOS-AI-STAGE-20261010.json
 qualification_rules:
   - Bind all stages to one source snapshot and explicit workspace/object/version identities.
   - Record original bytes, derived content, structure, losses and locator qualification separately.
@@ -35,7 +35,7 @@ steps:
     status: PARTIAL
     implemented: Raw CAS, finite worker jobs and separate original/derived outputs.
     not_verified: Current common-format content fidelity and native source navigation remain scoped gaps.
-    evidence: [docs/current/AAOS-FORMAT-QUALIFICATION-20261010.json]
+    evidence: [docs/history/repository-consolidation-20261019/current/AAOS-FORMAT-QUALIFICATION-20261010.json]
   - id: read
     surface: page-02-page-03
     status: PARTIAL
@@ -77,7 +77,7 @@ steps:
     status: PARTIAL
     implemented: Controlled AI assets, correction/retest and bounded-task receipts.
     not_verified: Current same-knowledge actual inference, correction and retest must be qualified together.
-    evidence: [docs/current/receipts/AAOS-AI-STAGE-20261010.json]
+    evidence: [docs/history/repository-consolidation-20261019/current/receipts/AAOS-AI-STAGE-20261010.json]
   - id: recover
     surface: page-19-page-20
     status: PARTIAL

@@ -1,0 +1,364 @@
+{
+  "status": "APPLIED_AT_OBSERVATION",
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "before_sha256": "748746fdd62685d3de878654f16bd100f9ba6b588806bcc4a393eb8d6c24f385",
+      "after_sha256": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+      "bytes": 87346,
+      "frozen_source": "source/.github/workflows/ci.yml"
+    },
+    {
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "before_sha256": "d16cbc49ec6feae44452bed2b54b999ef6b17899f93430f332c5007b5e668241",
+      "after_sha256": "8f53e26d96f72fb67eb594c08d5f10e001a09e0280b848ec171be728e9fb7df9",
+      "bytes": 2375,
+      "frozen_source": "source/config/capability-packages/pdf-extract.manifest.json"
+    },
+    {
+      "path": "crates/archeaxis-api/src/format_qualification.rs",
+      "before_sha256": "482129a7b3ba2437d3f442eccf6358e72d8ddf2cf712d15a5346c2934b562512",
+      "after_sha256": "22091e917b37956de3e8fe8b5e1646c51a202b1b8eae49f0f72c91dcb3bb64e3",
+      "bytes": 7555,
+      "frozen_source": "source/crates/archeaxis-api/src/format_qualification.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "before_sha256": "af0222202600bc73e66d47ac8fa530806bf2c63d4ad558dba9ee54dd9e6c8b54",
+      "after_sha256": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+      "bytes": 110177,
+      "frozen_source": "source/crates/archeaxis-api/src/lib.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+      "bytes": 4574,
+      "frozen_source": "source/crates/archeaxis-api/src/project_handoff_preview.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/colearning.rs",
+      "before_sha256": "f6e242e8cc02cb490794dfe0cd6b9552fd7fe9ed78fd8ebcc6a2e21b13e88d5a",
+      "after_sha256": "438ad67124187445c51a287e78aa52291aefd03aa7429a18793a064f68dca898",
+      "bytes": 53100,
+      "frozen_source": "source/crates/archeaxis-api/src/runtime/colearning.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/conversation.rs",
+      "before_sha256": "9e3346c350e6e1d6a74ae0680119099ce809463e85d6a10019e816236bd99227",
+      "after_sha256": "b1c9ab2a1c5d7fffc2e2f905784898a931d4a86602a4aae8dad2b3191faa0ffc",
+      "bytes": 22603,
+      "frozen_source": "source/crates/archeaxis-api/src/runtime/conversation.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/execution_claim.rs",
+      "before_sha256": "caf282adb15b3105bf9955ec9842f736094156a8a26c2ca9f8d8ab0d31c8e3be",
+      "after_sha256": "040f05223258be37164b23d2d3ec1e74a4f094f8df60216c467c08aad4d04904",
+      "bytes": 16294,
+      "frozen_source": "source/crates/archeaxis-api/src/runtime/execution_claim.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/material_questions.rs",
+      "before_sha256": "7859c67f0d212d1e22d56ecca115c397b14050e7744a025e8c8b556bd2fc8feb",
+      "after_sha256": "9519bd035ae9332cda0dde8145a4ad9c2c24d269c4704ab531c4eced2dfdfe29",
+      "bytes": 15934,
+      "frozen_source": "source/crates/archeaxis-api/src/runtime/material_questions.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/readiness.rs",
+      "before_sha256": "98431b52bf8841bc086dd766c5a65a49318e406e938d8e0408d2a6791f40cac1",
+      "after_sha256": "30e6ce887a3fd81c067b8699d26d4ba96f352c36e50a7deca0bf1d05ca0cda40",
+      "bytes": 3981,
+      "frozen_source": "source/crates/archeaxis-api/src/runtime/readiness.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/contract_machine_answer.rs",
+      "before_sha256": "46888b07bf61cbc3dda23f8e598c9582d9015a3f9878d329b19ed12a2814d3bb",
+      "after_sha256": "3285f949f88760dfec3efc2393ae2acf717ba33a19a92f8eb21d60b08bd571fa",
+      "bytes": 48115,
+      "frozen_source": "source/crates/archeaxis-api/tests/contract_machine_answer.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/conversation_api.rs",
+      "before_sha256": "3002d5ea263146a462621b57d4a747c9eda55a9e1eb1edf6e6cf56578107de31",
+      "after_sha256": "01221077ff44f4fae679276685464330413a786957ee552c63e100c3c26aa9f9",
+      "bytes": 30772,
+      "frozen_source": "source/crates/archeaxis-api/tests/conversation_api.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/document_draft_loop.rs",
+      "before_sha256": "7cd0bf66d525ffed0cd8e0ebc885651b135a317e883661215cddb94b91371600",
+      "after_sha256": "b59c6ec2d7bbfa2db64a7d9aaa163f3616e568b2ecd3029218cfda56c0f8e0fe",
+      "bytes": 46334,
+      "frozen_source": "source/crates/archeaxis-api/tests/document_draft_loop.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/file_format_qualification.rs",
+      "before_sha256": "a11364b41c4ddbc3a8adc4d5e9ec0321a8749177f4322c35eea612e285303dab",
+      "after_sha256": "b20390c0781dff4ddd22bb41b13158798dd9b72753d4cd3cf42e07cc973f9853",
+      "bytes": 18634,
+      "frozen_source": "source/crates/archeaxis-api/tests/file_format_qualification.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/learning_state_api.rs",
+      "before_sha256": "0555193f4b9aa3d0c40473029f3c37cc600ee81494f84e95816d5e430ec3143e",
+      "after_sha256": "0365229ba3b8ad29f01abdf23d6ad94d643c6225c5f53f8c9d579c6d51ef7629",
+      "bytes": 27995,
+      "frozen_source": "source/crates/archeaxis-api/tests/learning_state_api.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/material_question_api.rs",
+      "before_sha256": "bf8a768c9ac69420b20cd210d9391fc8066ff2a4534c6fb73317ee537096ef66",
+      "after_sha256": "9c2db24a40dd96a97968bc4a0be6d6bacc097e9bd81e79272c0bdbddeea64662",
+      "bytes": 19822,
+      "frozen_source": "source/crates/archeaxis-api/tests/material_question_api.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/operation_readiness_api.rs",
+      "before_sha256": "7191ad414ea5ba210088f7b3b30d76ceee6247ca34a2c0370a80582aa58b66ee",
+      "after_sha256": "711584b96c8239e7ed078802b2d074643df8a26c2916695ac3b814b6a54b1f65",
+      "bytes": 4549,
+      "frozen_source": "source/crates/archeaxis-api/tests/operation_readiness_api.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+      "before_sha256": null,
+      "after_sha256": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+      "bytes": 15073,
+      "frozen_source": "source/crates/archeaxis-api/tests/project_handoff_preview_process.rs"
+    },
+    {
+      "path": "crates/archeaxis-application/src/attempts.rs",
+      "before_sha256": "5940b4e2686f00539a7a5c76adbd6460ed3a0621ea7ced3c07203401346e840e",
+      "after_sha256": "5ef1b6f3cb3502ff79ee359c1ffd98e3db5cb353d757d854bbf7ddba816a9eb2",
+      "bytes": 33899,
+      "frozen_source": "source/crates/archeaxis-application/src/attempts.rs"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "before_sha256": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360",
+      "after_sha256": "22f5951aa368ce37b6bc0debbeb6391ec5aa636131b88241472e28d33853760a",
+      "bytes": 68705,
+      "frozen_source": "source/crates/archeaxis-application/src/executor.rs"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/health.rs",
+      "before_sha256": "81787479619bd9b3284258f7035238bdbe7edb703e9f9a14bacaf32ea9ba576b",
+      "after_sha256": "685c699cbcb3e23b836cd870eeeca8051c03f9eb93edf88e202989e55efcc646",
+      "bytes": 6898,
+      "frozen_source": "source/crates/archeaxis-application/src/executor/health.rs"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "before_sha256": "b40e288c16f47b9d36a5d8fea2d251991d6e5364f4f6174d4b056e3cfdea12e6",
+      "after_sha256": "43e9ffa01f0ffac7b825e2a03527b6ba75ebeade80a838757a9e704af7830ee6",
+      "bytes": 14366,
+      "frozen_source": "source/crates/archeaxis-application/src/executor/machine_failure.rs"
+    },
+    {
+      "path": "crates/archeaxis-application/tests/machine_answer_resources.rs",
+      "before_sha256": "b9b948365d3a579a4217a5baf810ea6ae69181906105779d42beb2211d1dbfec",
+      "after_sha256": "3f6507fe231760e3287f05b4c4f266adb1c032afd634024d0b6b2c54188f6dbb",
+      "bytes": 19368,
+      "frozen_source": "source/crates/archeaxis-application/tests/machine_answer_resources.rs"
+    },
+    {
+      "path": "crates/archeaxis-application/tests/receipt_spans.rs",
+      "before_sha256": "58195ec7f55c3a9d222ee906e05fde39fd5d52530ece445adc57e11ad5a19d77",
+      "after_sha256": "ef30d15263018af300919a57461d143b0d2c6bc339467e8cd88e3d4578cca047",
+      "bytes": 5400,
+      "frozen_source": "source/crates/archeaxis-application/tests/receipt_spans.rs"
+    },
+    {
+      "path": "crates/archeaxis-application/tests/worker_health_contract.rs",
+      "before_sha256": "b353fd6cf438a15b2ea13e28e6b8c219c1d64ff5c4381098a4b2d9a4ba394b38",
+      "after_sha256": "601b3ce66045eed8fc9693c62b93b41899909bfd971f99f711b1f10a2ecc0068",
+      "bytes": 10456,
+      "frozen_source": "source/crates/archeaxis-application/tests/worker_health_contract.rs"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "before_sha256": "f0ff5140b137ee93e7e86fe6c0bab322c8a908df001b04a28037ef5bb460c9ed",
+      "after_sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "bytes": 457,
+      "frozen_source": "source/crates/archeaxis-contracts/src/lib.rs"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+      "bytes": 2391,
+      "frozen_source": "source/crates/archeaxis-contracts/src/project_handoff_preview.rs"
+    },
+    {
+      "path": "crates/archeaxis-domain/src/learning.rs",
+      "before_sha256": "3365ec343fa94b3158794ce706fabadbda796c73ba3afdf4a05d163c64b4124e",
+      "after_sha256": "3aa3900f4aad98d3505a1fcb70227cd2fac20cd91d7a0ba31634488ebf0ee2c1",
+      "bytes": 39350,
+      "frozen_source": "source/crates/archeaxis-domain/src/learning.rs"
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/src/worker.rs",
+      "before_sha256": "15f9ea54ea51fc5ac86591d9c47ae4d581d2269ddb685228165b736226f16c0e",
+      "after_sha256": "78503cec1cf2f98c954907adfb235e59864ccce611584f36d8552852de96ac1f",
+      "bytes": 14157,
+      "frozen_source": "source/crates/archeaxis-sidecar-protocol/src/worker.rs"
+    },
+    {
+      "path": "crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs",
+      "before_sha256": "5d5ea6ddeeecbbdeb236ae717cb445d413b2c264041ac38546631af72a57b235",
+      "after_sha256": "d47583491748ce1c5b0a515b232ff78037f2c9577791bb8f3a22042fd953ea3f",
+      "bytes": 8947,
+      "frozen_source": "source/crates/archeaxis-sidecar-protocol/tests/worker_protocol.rs"
+    },
+    {
+      "path": "docs/contracts/project-handoff-preview-v1.md",
+      "before_sha256": null,
+      "after_sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "bytes": 3974,
+      "frozen_source": "source/docs/contracts/project-handoff-preview-v1.md"
+    },
+    {
+      "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "before_sha256": "e027edde570aaffb9f99fa27c2c626c49acecd2f85497bfff9a989f029cf05c0",
+      "after_sha256": "f7ec182d3988748a9d6e21c1683c389726e3b0fa069906d9ba5b7163723607f8",
+      "bytes": 314489,
+      "frozen_source": "source/docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json"
+    },
+    {
+      "path": "frontend/src/__tests__/OperationReadiness.test.tsx",
+      "before_sha256": "06f87c3c2a25a4c01af8932f3fed34a473d011e38b315dc69f7684085eb7414f",
+      "after_sha256": "7ceb7972d236c1912a6d185493ad9385a66dc3d701a6925ea7e0b334b9f38917",
+      "bytes": 2842,
+      "frozen_source": "source/frontend/src/__tests__/OperationReadiness.test.tsx"
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "before_sha256": "712144d4a73272d57fe9b0549179888edc797f12fbf368b3464336d02e982e44",
+      "after_sha256": "0c0a04e72e6e98931c45bda6f694a114cccaa2f80fe444cdb4a6a53e89349060",
+      "bytes": 5794,
+      "frozen_source": "source/frontend/src/api/generated/capability-package-details.ts"
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "after_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
+      "bytes": 66441,
+      "frozen_source": "source/frontend/src/api/generated/core-contract.ts"
+    },
+    {
+      "path": "frontend/src/api/generated/resource-catalog.ts",
+      "before_sha256": "c8bda5e35b5aebb877b0ff55d093b9ed3035211dae1599e0422b4893c317df88",
+      "after_sha256": "d101c7d3d9feb1d9a9b75cf4761b4ca3af6e15fbd6f00dcf22f04d9baa682ab5",
+      "bytes": 668080,
+      "frozen_source": "source/frontend/src/api/generated/resource-catalog.ts"
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "before_sha256": "fbbd6074b2c37a15f6c1d02d8704b484775f51fa86f565dfc2f3dd191ef7aae2",
+      "after_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "bytes": 3450,
+      "frozen_source": "source/packages/contracts/v1/core-command.schema.json"
+    },
+    {
+      "path": "packages/contracts/v1/core-document.schema.json",
+      "before_sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76",
+      "after_sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6",
+      "bytes": 74952,
+      "frozen_source": "source/packages/contracts/v1/core-document.schema.json"
+    },
+    {
+      "path": "packages/contracts/v1/worker-protocol.schema.json",
+      "before_sha256": "0c6c92239263fce326c370ace2277e858535880dbcccc1f559030c6b4c2a4250",
+      "after_sha256": "a327049e171a226736aca327655c46b72943803ceda7e8feb0babf1c6b7a0431",
+      "bytes": 7185,
+      "frozen_source": "source/packages/contracts/v1/worker-protocol.schema.json"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.cases.json",
+      "before_sha256": null,
+      "after_sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "bytes": 28578,
+      "frozen_source": "source/packages/contracts/v2/project-handoff-preview.cases.json"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.schema.json",
+      "before_sha256": null,
+      "after_sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "bytes": 1675,
+      "frozen_source": "source/packages/contracts/v2/project-handoff-preview.schema.json"
+    },
+    {
+      "path": "scripts/probes/aaos01_material_companion_loop.py",
+      "before_sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f",
+      "after_sha256": "d34a468198463176ab808f41c2afd8af12d71ad199a58d7a6cb2650b0ea55157",
+      "bytes": 27255,
+      "frozen_source": "source/scripts/probes/aaos01_material_companion_loop.py"
+    },
+    {
+      "path": "services/python-workers/document/worker_pdf.py",
+      "before_sha256": "2fc56a31015eac6d503edca58799d02e1707ebf45fa3ab480cbe7fa0a17a03b2",
+      "after_sha256": "a804baab5c7f5947281f29e70e1c5cc7664b1e816060c7c085c68b07f6c2f333",
+      "bytes": 27506,
+      "frozen_source": "source/services/python-workers/document/worker_pdf.py"
+    },
+    {
+      "path": "services/python-workers/transport/text_ndjson.py",
+      "before_sha256": "733db640a4adb45e9556b0956f32554ebd1c2e6147afed2b8664ce03287181c7",
+      "after_sha256": "10fdd391ba932b9c1c610795bb4ed1004769cca60581f5d59cde720b18d07dce",
+      "bytes": 41988,
+      "frozen_source": "source/services/python-workers/transport/text_ndjson.py"
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "before_sha256": "020627b10b49e748c74ce71575fe8a2b85b7f7ba7162e2c63111be06db86f1de",
+      "after_sha256": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+      "bytes": 73794,
+      "frozen_source": "source/src-tauri/src/core_bridge.rs"
+    },
+    {
+      "path": "src-tauri/tests/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+      "bytes": 5475,
+      "frozen_source": "source/src-tauri/tests/project_handoff_preview.rs"
+    },
+    {
+      "path": "tests/contract/test_project_handoff_preview_contract.py",
+      "before_sha256": null,
+      "after_sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "bytes": 1153,
+      "frozen_source": "source/tests/contract/test_project_handoff_preview_contract.py"
+    },
+    {
+      "path": "tests/test_material_companion_native_probe.py",
+      "before_sha256": "ef82f4e00205af5a7ccbec96dccae68b5a4e477197cf6072dc4187ca5500ba39",
+      "after_sha256": "72e2b847020e86f11afc25e1502fb17e0abad08022263404513169eae41f6014",
+      "bytes": 16071,
+      "frozen_source": "source/tests/test_material_companion_native_probe.py"
+    },
+    {
+      "path": "tests/test_material_context_request.py",
+      "before_sha256": null,
+      "after_sha256": "859b86f9a04292a1cb36d0df3a4d66fe30ef7ab367cef8c0fe19c7cc8fe35856",
+      "bytes": 2659,
+      "frozen_source": "source/tests/test_material_context_request.py"
+    },
+    {
+      "path": "tests/test_native_preview_ci.py",
+      "before_sha256": null,
+      "after_sha256": "3b7da3132ec180171f0629aefc095b1ec809483a6ccccb3bbf3a1f419791a496",
+      "bytes": 3203,
+      "frozen_source": "source/tests/test_native_preview_ci.py"
+    },
+    {
+      "path": "tests/test_pdf_runtime_dependency.py",
+      "before_sha256": null,
+      "after_sha256": "df8bbc460076f71485a6611a56ce54d90b1bc54ff0f9582367556367c74e1f7a",
+      "bytes": 5003,
+      "frozen_source": "source/tests/test_pdf_runtime_dependency.py"
+    }
+  ],
+  "generated_chain": "ONE_MERGED_CANONICAL_GENERATION_NOT_MIRROR_COPY",
+  "note": "旧镜像提案中的NOT_APPLIED仅指形成时状态；本账本记录后继正式应用。"
+}

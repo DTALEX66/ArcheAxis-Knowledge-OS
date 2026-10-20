@@ -1,0 +1,30 @@
+{
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+  "dirty": true,
+  "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+  "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "started_at": "2026-10-18T21:48:05.860078+00:00",
+  "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\final-integration-generated-check-1019",
+  "executable": ".venv/Scripts/python.exe",
+  "argument_count": 5,
+  "command": [
+    ".venv/Scripts/python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "scripts/contracts/generate_capability_package.py",
+    "--check"
+  ],
+  "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "boundary": "environment-routing-not-sandbox",
+  "child_exit_code": 0,
+  "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256_after": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+  "source_consistent": true,
+  "status": "LOCAL_PASS",
+  "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\final-integration-generated-check-1019\\logs\\execution.log",
+  "exit_code": 0,
+  "ended_at": "2026-10-18T21:48:07.655039+00:00",
+  "seconds": 1.794959299993934
+}

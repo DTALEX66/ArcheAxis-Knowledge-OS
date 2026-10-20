@@ -1,0 +1,46 @@
+{
+  "schema": "archeaxis.ui-tool-usage-observation/v1",
+  "date": "2026-10-19",
+  "scope": "This chat direct read/query/preflight observations; not product compliance",
+  "skills_read": [
+    "playwright",
+    "visual-project-audit",
+    "ui-ux-pro-max",
+    "web-design-guidelines"
+  ],
+  "local_queries": [
+    {
+      "query": "clear error messages",
+      "domain": "ux",
+      "results": 3
+    },
+    {
+      "query": "responsive layout",
+      "stack": "html-tailwind",
+      "results": 3
+    },
+    {
+      "query": "contrast transparency",
+      "domain": "ux",
+      "results": 3,
+      "scope": "glass-frame follow-up; local rule advice only, no measured contrast qualification"
+    }
+  ],
+  "preflight": {
+    "status": "PASS",
+    "cli": "0.1.22",
+    "playwright_test": "1.64.1",
+    "axe_playwright": "4.14.0",
+    "motion": "14.3.0"
+  },
+  "official_guideline": "https://github.com/vercel-labs/web-interface-guidelines/blob/main/command.md",
+  "actual_rules_used": [
+    "focus must remain visible",
+    "actionable errors and next steps",
+    "keyboard and accessible names",
+    "reflow and no disabled zoom"
+  ],
+  "project_qualification": "PARTIAL; see exact project receipts; browser fixtures are SYNTHETIC",
+  "installed_runtime_and_windows_dpi": "UNVERIFIED_THIS_ROUND",
+  "global_configuration_modified": false
+}

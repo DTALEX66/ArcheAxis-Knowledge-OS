@@ -1,0 +1,514 @@
+{
+  "schema": "archeaxis.taskpack-dependency.plan/v1",
+  "state": "PLANNED_PRODUCT_WORK_NOT_EXECUTED",
+  "tasks": [
+    {
+      "id": "FE00",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "主线接手与分支范围登记",
+      "depends_on": [],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE01",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "逐页面和逐功能区交互定稿",
+      "depends_on": [
+        "FE00"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE02",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "视觉变量和组件状态定稿",
+      "depends_on": [
+        "FE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE03",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "效果图升级与分层资产生产",
+      "depends_on": [
+        "FE02"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE04",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "组件库复用与适配",
+      "depends_on": [
+        "FE02"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE05",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "五区 Shell 与三级导航",
+      "depends_on": [
+        "FE01",
+        "FE04",
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE06",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "自由布局与共享业务会话",
+      "depends_on": [
+        "FE05",
+        "BE02"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE07",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "知识库与导入入口",
+      "depends_on": [
+        "FE05"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE08",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "阅读编辑与来源历史",
+      "depends_on": [
+        "FE07",
+        "BE03"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE09",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "图谱与研究工作面",
+      "depends_on": [
+        "FE08",
+        "BE09"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE10",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "学习路径与课程",
+      "depends_on": [
+        "FE08",
+        "BE09"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE11",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "教学表达与交付修订",
+      "depends_on": [
+        "FE10",
+        "BE09"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE12",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "练习复述与反馈节奏",
+      "depends_on": [
+        "FE10",
+        "BE09"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE13",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "基础画布与视觉表达",
+      "depends_on": [
+        "FE11",
+        "BE09"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE14",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "模型中心与用途绑定",
+      "depends_on": [
+        "FE05",
+        "BE04"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE15",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "资源扩展与常用服务",
+      "depends_on": [
+        "FE14",
+        "BE07",
+        "BE08"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE16",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "项目互联工作面",
+      "depends_on": [
+        "FE15",
+        "BE10"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE17",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "受控 AI 旅程与任务回执",
+      "depends_on": [
+        "FE08",
+        "BE07"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE18",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "小栖正式前端槽位",
+      "depends_on": [
+        "FE06",
+        "GF08"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE19",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "分类能力与未来蓝图",
+      "depends_on": [
+        "FE05",
+        "BE07"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE20",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "设置恢复与诊断",
+      "depends_on": [
+        "FE06",
+        "BE04",
+        "BE09"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE21",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "全状态与可访问性",
+      "depends_on": [
+        "FE05",
+        "FE14",
+        "FE19"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE22",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "多格式与导入导出闭环",
+      "depends_on": [
+        "FE07",
+        "BE11"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE23",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "可见性生命周期与性能",
+      "depends_on": [
+        "FE06",
+        "FE18",
+        "FE22"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE24",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "原生安装与五旅程验收",
+      "depends_on": [
+        "FE08",
+        "FE12",
+        "FE14",
+        "FE18",
+        "FE20",
+        "FE21",
+        "FE22",
+        "FE23",
+        "BE12",
+        "GF10"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "FE25",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "真实宣传资产与交接",
+      "depends_on": [
+        "FE24"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE00",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "基础后端接手与缺口核对",
+      "depends_on": [],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE01",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "有限宿主合同与所有权登记",
+      "depends_on": [
+        "BE00"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE02",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "独立布局偏好与 CAS 恢复",
+      "depends_on": [
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE03",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "材料上下文与受限问答",
+      "depends_on": [
+        "BE01",
+        "BE04"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE04",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "模型配置凭据与用途绑定",
+      "depends_on": [
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE05",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "正式陪伴会话流与取消",
+      "depends_on": [
+        "BE01",
+        "BE04"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE06",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "角色档案与受控长期记忆",
+      "depends_on": [
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE07",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "能力状态与范围化就绪探测",
+      "depends_on": [
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE08",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "配置依赖与部署计划边界",
+      "depends_on": [
+        "BE01",
+        "BE07"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE09",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "页面草稿和学习对象最小保存",
+      "depends_on": [
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE10",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "跨项目只读接入与版本协商",
+      "depends_on": [
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE11",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "格式资格与转换回执",
+      "depends_on": [
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "BE12",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "title": "原生桥接与联合验收",
+      "depends_on": [
+        "BE02",
+        "BE03",
+        "BE05",
+        "BE06",
+        "BE07",
+        "BE08",
+        "BE09",
+        "BE10",
+        "BE11"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF00",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "ASTRYN 独立分支接手",
+      "depends_on": [],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF01",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "人物与关系档案",
+      "depends_on": [
+        "GF00",
+        "BE01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF02",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "抽离共享会话管理器",
+      "depends_on": [
+        "GF01",
+        "BE05"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF03",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "轻量人物资产与状态表现",
+      "depends_on": [
+        "GF01"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF04",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "八类宿主端口适配",
+      "depends_on": [
+        "GF02",
+        "BE03",
+        "BE05",
+        "BE06",
+        "BE07"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF05",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "资料学习与女友陪伴的融合",
+      "depends_on": [
+        "GF04"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF06",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "记忆查看纠正与遗忘",
+      "depends_on": [
+        "GF04",
+        "BE06"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF07",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "真实文本流与取消恢复",
+      "depends_on": [
+        "GF04"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF08",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "首页嵌入与侧边统一呈现",
+      "depends_on": [
+        "GF03",
+        "GF05",
+        "GF06",
+        "GF07"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF09",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "声音字幕与口型接口外壳",
+      "depends_on": [
+        "GF08"
+      ],
+      "phase": "FRONTEND_NOW_RUNTIME_OPTIONAL"
+    },
+    {
+      "id": "GF10",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "角色与真实宿主联合验收",
+      "depends_on": [
+        "GF08",
+        "GF09",
+        "BE12"
+      ],
+      "phase": "FIRST_RELEASE"
+    },
+    {
+      "id": "GF11",
+      "repository": "DTALEX66/ASTRYN",
+      "title": "小栖交接与宣传资产",
+      "depends_on": [
+        "GF10"
+      ],
+      "phase": "FIRST_RELEASE"
+    }
+  ]
+}

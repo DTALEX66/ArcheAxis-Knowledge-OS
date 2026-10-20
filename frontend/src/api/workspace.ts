@@ -324,7 +324,7 @@ async function runtimeClient(): Promise<ApiClient> {
   if (!clientPromise) {
     clientPromise = (async () => {
       const invoke = window.__TAURI__?.core?.invoke;
-      if (invoke) throw new ApiError(503, "此旧入口尚未接入正典 Core，请使用资料库。", "unavailable");
+      if (invoke) throw new ApiError(503, "此旧入口暂不可用，请从资料库使用对应功能。", "unavailable");
       const client = createApiClient("", "");
       // Do not allow a backend that failed the product/API handshake to serve
       // any UI projection. The launch token stays in the closure only.

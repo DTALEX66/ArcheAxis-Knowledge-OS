@@ -1,6 +1,7 @@
 /* Enhanced Workspace UI Styles - Based on A01 mockup */
 
 .ui-workspace {
+  width: 100%;
   padding: var(--ax-space-8);
   max-width: 1400px;
   margin: 0 auto;

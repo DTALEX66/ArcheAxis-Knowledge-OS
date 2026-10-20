@@ -1,0 +1,29 @@
+{
+  "scope": "用户提供的三个客户端截图；不含浏览器资料或认证数据",
+  "files": [
+    {
+      "name": "codex-clipboard-1030d005-bf70-40c0-ab9c-ccb62c93c118.png",
+      "source": "C:\\Users\\ALEX\\AppData\\Local\\Temp\\codex-clipboard-1030d005-bf70-40c0-ab9c-ccb62c93c118.png",
+      "status": "PASS_BYTE_COPY",
+      "archive": ".project-local/archives/owner-dialogue-20261019/attachments/codex-clipboard-1030d005-bf70-40c0-ab9c-ccb62c93c118.png",
+      "bytes": 32724,
+      "sha256": "dee495e36dc6e8c3d42e9c4d7fb56cc3ceeb49bc1eca7c81952fd2ae9acb9a21"
+    },
+    {
+      "name": "codex-clipboard-ba5a52e2-1adb-4652-b512-55193309b445.png",
+      "source": "C:\\Users\\ALEX\\AppData\\Local\\Temp\\codex-clipboard-ba5a52e2-1adb-4652-b512-55193309b445.png",
+      "status": "PASS_BYTE_COPY",
+      "archive": ".project-local/archives/owner-dialogue-20261019/attachments/codex-clipboard-ba5a52e2-1adb-4652-b512-55193309b445.png",
+      "bytes": 21913,
+      "sha256": "e3fad6643edb7bcfb1c39058c5f469acd01727f3e83c1f717651c379ce28d676"
+    },
+    {
+      "name": "codex-clipboard-7f34a402-1f30-4364-832a-685cfb32cc4b.png",
+      "source": "C:\\Users\\ALEX\\AppData\\Local\\Temp\\codex-clipboard-7f34a402-1f30-4364-832a-685cfb32cc4b.png",
+      "status": "PASS_BYTE_COPY",
+      "archive": ".project-local/archives/owner-dialogue-20261019/attachments/codex-clipboard-7f34a402-1f30-4364-832a-685cfb32cc4b.png",
+      "bytes": 155880,
+      "sha256": "a5a68c10de99146aee68727b03a5308dee0a556fab3701aa4a4a97073daabfc2"
+    }
+  ]
+}

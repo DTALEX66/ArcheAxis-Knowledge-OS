@@ -10,7 +10,7 @@ decisions:
     status: effective
     supersedes: SUP-018 active-plan pointer only
     old_claim: taskpack-0910-r3 is the single active execution plan
-    replacement: R5 at docs/authority/taskpack-0912-r5 is the single active immutable package (plan_id AAK-FOLLOWUP-20260908-R3, package_revision R5); live progress is docs/current/R5-EXECUTION.md and docs/current/R5-STATE.json. Preserve 0910 and earlier task text and original evidence SHAs; never inherit old REOPENED or DONE as current proof. Prioritize X01/X02 normalization and early X14 cleanup before product expansion; F01-F06 remain frozen and Q00/Q01 independent.
+    replacement: R5 at docs/authority/taskpack-0912-r5 is the single active immutable package (plan_id AAK-FOLLOWUP-20260908-R3, package_revision R5); live progress is docs/history/repository-consolidation-20261019/current/R5-EXECUTION.md and docs/current/R5-STATE.json. Preserve 0910 and earlier task text and original evidence SHAs; never inherit old REOPENED or DONE as current proof. Prioritize X01/X02 normalization and early X14 cleanup before product expansion; F01-F06 remain frozen and Q00/Q01 independent.
     reason: Owner 2026-09-13 requested this executor to continue R5, prioritize normalization and cleanup, and prepare handoff/upload at 60 percent remaining account allowance. Exact source-active bytes match the supplied ZIP; shipped verifier exits 0 for 173 files, 23 tasks, 38 scenarios and 42 specialty slices. This changes the active plan, not product acceptance or private-data boundaries.
   - id: SUP-011
     status: effective
@@ -112,7 +112,7 @@ decisions:
     status: effective
     supersedes: SUP-019 active-plan pointer only
     old_claim: R5 at docs/authority/taskpack-0912-r5 is the single active execution plan
-    replacement: R6 at docs/authority/taskpack-0919-r6 remains the single immutable activity base (plan_id AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6); the owner-provided M0-SHORTEST-COMPLETE-LOOP overlay at docs/current/M0-DIRECTION-OVERRIDE-20260920.md changes execution priority to one shortest real closed loop, without creating a parallel TaskPack or erasing R6/R5 evidence.
+    replacement: R6 at docs/authority/taskpack-0919-r6 remains the single immutable activity base (plan_id AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6); the owner-provided M0-SHORTEST-COMPLETE-LOOP overlay at docs/history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md changes execution priority to one shortest real closed loop, without creating a parallel TaskPack or erasing R6/R5 evidence.
     reason: Owner-provided M0 priority redirection on 2026-09-20. It pauses breadth-first capability expansion until P0-P6 core responsibilities have one real implementation and a Local Green Owner Gate result. R6 contracts, boundaries, release freeze and historical receipts remain in force.
   - id: SUP-021
     status: effective
@@ -138,3 +138,9 @@ decisions:
     old_claim: 'Syft is ADOPT: the SBOM generation capability is to be taken from the donor project.'
     replacement: 'The SBOM capability is reimplemented first-party and needs no donor. scripts/release_sbom.py emits CycloneDX JSON ("bomFormat": "CycloneDX") from uv.lock, package-lock.json and Cargo.lock, and .github/workflows/release.yml invokes it at release time. Under the disposition ledger own vocabulary the row is ABSORB ("the capability is reimplemented first-party") rather than ADOPT. That no donor artifact is present is therefore the expected state for this row, not a gap.'
     reason: 'Measured in this worktree on 2026-10-06: the generator exists (7,117 bytes), its docstring names AXW-SUP-703 and it writes bomFormat CycloneDX; release.yml:202 runs it. Recorded here as a delta rather than by editing the frozen component row.'
+  - id: SUP-025
+    status: effective
+    supersedes: 'Narrower historical shortest-loop scope in SUP-020 M0 and the 2026-10-19 section-eleven interpretation only; immutable source packages and dated evidence remain preserved'
+    old_claim: 'Historical SUP-020 M0 serializes execution around one real P0-P6 core loop and defers extra providers and marketplaces; the 2026-10-19 section-eleven interpretation scopes selected software features and says optional cloud should not block the local loop'
+    replacement: 'Owner-defined AAOS-SHORTEST-COMPLETE-LOOP-V2 at docs/truth/CLOSED_LOOP_DEFINITION.md is the single normative loop scope: complete core, common formats, free encyclopedia/community/research retrieval and evidence comparison, comprehensive mature non-enterprise knowledge-software feature compatibility, existing OSS pool absorption through appropriate extension forms, real local and cloud model paths, and same-candidate end-to-end reliability. Complex named capabilities may be deferred with explicit impact and recovery conditions; deferred coverage is not full compatibility. Fastest governs reuse and sequencing rather than silently shrinking acceptance.'
+    reason: 'Owner explicitly restated this full objective on 2026-10-19 and requested an authoritative repository definition readable by every agent and future session; exact statement and interpretation provenance are in docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md section fifteen. This changes goal interpretation, not implementation evidence, the single-writer architecture, ordinary-save policy, frozen-task activation, data-egress permission, paid-use permission or public-release authorization.'

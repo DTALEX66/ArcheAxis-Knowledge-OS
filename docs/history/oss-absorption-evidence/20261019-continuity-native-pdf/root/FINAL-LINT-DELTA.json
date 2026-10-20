@@ -1,0 +1,1394 @@
+{
+  "status": "NO_NEW_LINT_DIAGNOSTICS_OLD_FAILURES_RETAINED",
+  "existing_count": 22,
+  "checks": [
+    {
+      "path": "scripts/probes/aaos01_material_companion_loop.py",
+      "variants": [
+        {
+          "variant": "before",
+          "command": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--output-format=json",
+            "--stdin-filename",
+            "scripts/probes/aaos01_material_companion_loop.py",
+            "-"
+          ],
+          "exit_code": 1,
+          "source_sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f",
+          "diagnostics": [
+            {
+              "cell": null,
+              "code": "B905",
+              "end_location": {
+                "column": 50,
+                "row": 84
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": {
+                "applicability": "unsafe",
+                "edits": [
+                  {
+                    "content": ", strict=False",
+                    "end_location": {
+                      "column": 49,
+                      "row": 84
+                    },
+                    "location": {
+                      "column": 49,
+                      "row": 84
+                    }
+                  }
+                ],
+                "message": "Add explicit value for parameter `strict=`"
+              },
+              "location": {
+                "column": 31,
+                "row": 84
+              },
+              "message": "`zip()` without an explicit `strict=` parameter",
+              "name": "zip-without-explicit-strict",
+              "noqa_row": 84,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/zip-without-explicit-strict"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 54,
+                "row": 186
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 53,
+                "row": 186
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 186,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 61,
+                "row": 187
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 60,
+                "row": 187
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 187,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 42,
+                "row": 190
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 41,
+                "row": 190
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 190,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 55,
+                "row": 197
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 54,
+                "row": 197
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 197,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 57,
+                "row": 207
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 56,
+                "row": 207
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 207,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 61,
+                "row": 208
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 60,
+                "row": 208
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 208,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 58,
+                "row": 214
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 57,
+                "row": 214
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 214,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 41,
+                "row": 302
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 40,
+                "row": 302
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 302,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "B023",
+              "end_location": {
+                "column": 208,
+                "row": 313
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 200,
+                "row": 313
+              },
+              "message": "Function definition does not bind loop variable `identity`",
+              "name": "function-uses-loop-variable",
+              "noqa_row": 313,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/function-uses-loop-variable"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 64,
+                "row": 324
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 63,
+                "row": 324
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 324,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 38,
+                "row": 363
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 37,
+                "row": 363
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 363,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            }
+          ],
+          "normalized": [
+            [
+              "B023",
+              "Function definition does not bind loop variable `identity`",
+              "item[\"admitted_history\"] = poll(read, \"conversation_history\", {\"body\": {\"session_id\": identity[\"session_id\"], \"after_sequence\": 0, \"limit\": 64}}, lambda h: any(r.get(\"request_id\") == identity[\"request_id\"] for r in h[\"requests\"]), seconds=10)"
+            ],
+            [
+              "B905",
+              "`zip()` without an explicit `strict=` parameter",
+              "for row, (op, preview) in zip(rows, expected):"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((\"conversation_request\", False)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((\"conversation_request\", True)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((\"material_question\", False)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((\"material_question\", True)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((op, True)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.extend([(op, False), (cancel_op, False)]); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "preview = proof(js)[\"rows\"][-1][\"preview_response\"]; stage[\"companion_preview\"] = preview"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "preview = proof(js)[\"rows\"][-1][\"preview_response\"]; stage[\"material_preview\"] = preview"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "selection = request[\"selection\"]; assert selection and selection[\"start_utf16\"] == 0"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "ui.reveal_selector(selector); ui.click_selector(selector + \"/option[@value=\" + literal(sid) + \"]\")"
+            ]
+          ]
+        },
+        {
+          "variant": "after",
+          "command": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--output-format=json",
+            "--stdin-filename",
+            "scripts/probes/aaos01_material_companion_loop.py",
+            "-"
+          ],
+          "exit_code": 1,
+          "source_sha256": "d34a468198463176ab808f41c2afd8af12d71ad199a58d7a6cb2650b0ea55157",
+          "diagnostics": [
+            {
+              "cell": null,
+              "code": "B905",
+              "end_location": {
+                "column": 50,
+                "row": 84
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": {
+                "applicability": "unsafe",
+                "edits": [
+                  {
+                    "content": ", strict=False",
+                    "end_location": {
+                      "column": 49,
+                      "row": 84
+                    },
+                    "location": {
+                      "column": 49,
+                      "row": 84
+                    }
+                  }
+                ],
+                "message": "Add explicit value for parameter `strict=`"
+              },
+              "location": {
+                "column": 31,
+                "row": 84
+              },
+              "message": "`zip()` without an explicit `strict=` parameter",
+              "name": "zip-without-explicit-strict",
+              "noqa_row": 84,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/zip-without-explicit-strict"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 54,
+                "row": 195
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 53,
+                "row": 195
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 195,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 61,
+                "row": 196
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 60,
+                "row": 196
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 196,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 42,
+                "row": 199
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 41,
+                "row": 199
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 199,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 55,
+                "row": 206
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 54,
+                "row": 206
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 206,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 57,
+                "row": 216
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 56,
+                "row": 216
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 216,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 61,
+                "row": 217
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 60,
+                "row": 217
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 217,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 58,
+                "row": 223
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 57,
+                "row": 223
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 223,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 41,
+                "row": 311
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 40,
+                "row": 311
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 311,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "B023",
+              "end_location": {
+                "column": 208,
+                "row": 322
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 200,
+                "row": 322
+              },
+              "message": "Function definition does not bind loop variable `identity`",
+              "name": "function-uses-loop-variable",
+              "noqa_row": 322,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/function-uses-loop-variable"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 64,
+                "row": 333
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 63,
+                "row": 333
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 333,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 38,
+                "row": 372
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+              "fix": null,
+              "location": {
+                "column": 37,
+                "row": 372
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 372,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            }
+          ],
+          "normalized": [
+            [
+              "B023",
+              "Function definition does not bind loop variable `identity`",
+              "item[\"admitted_history\"] = poll(read, \"conversation_history\", {\"body\": {\"session_id\": identity[\"session_id\"], \"after_sequence\": 0, \"limit\": 64}}, lambda h: any(r.get(\"request_id\") == identity[\"request_id\"] for r in h[\"requests\"]), seconds=10)"
+            ],
+            [
+              "B905",
+              "`zip()` without an explicit `strict=` parameter",
+              "for row, (op, preview) in zip(rows, expected):"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((\"conversation_request\", False)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((\"conversation_request\", True)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((\"material_question\", False)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((\"material_question\", True)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.append((op, True)); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "expected.extend([(op, False), (cancel_op, False)]); assert_calls(proof(js), expected)"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "preview = proof(js)[\"rows\"][-1][\"preview_response\"]; stage[\"companion_preview\"] = preview"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "preview = proof(js)[\"rows\"][-1][\"preview_response\"]; stage[\"material_preview\"] = preview"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "selection = request[\"selection\"]; assert selection and selection[\"start_utf16\"] == 0"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "ui.reveal_selector(selector); ui.click_selector(selector + \"/option[@value=\" + literal(sid) + \"]\")"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "path": "tests/test_material_companion_native_probe.py",
+      "variants": [
+        {
+          "variant": "before",
+          "command": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--output-format=json",
+            "--stdin-filename",
+            "tests/test_material_companion_native_probe.py",
+            "-"
+          ],
+          "exit_code": 1,
+          "source_sha256": "ef82f4e00205af5a7ccbec96dccae68b5a4e477197cf6072dc4187ca5500ba39",
+          "diagnostics": [
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 38,
+                "row": 34
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\tests\\test_material_companion_native_probe.py",
+              "fix": null,
+              "location": {
+                "column": 37,
+                "row": 34
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 34,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "B023",
+              "end_location": {
+                "column": 68,
+                "row": 151
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\tests\\test_material_companion_native_probe.py",
+              "fix": null,
+              "location": {
+                "column": 64,
+                "row": 151
+              },
+              "message": "Function definition does not bind loop variable `rows`",
+              "name": "function-uses-loop-variable",
+              "noqa_row": 151,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/function-uses-loop-variable"
+            },
+            {
+              "cell": null,
+              "code": "N818",
+              "end_location": {
+                "column": 16,
+                "row": 158
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\tests\\test_material_companion_native_probe.py",
+              "fix": null,
+              "location": {
+                "column": 11,
+                "row": 158
+              },
+              "message": "Exception name `Alert` should be named with an Error suffix",
+              "name": "error-suffix-on-exception-name",
+              "noqa_row": 158,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/error-suffix-on-exception-name"
+            }
+          ],
+          "normalized": [
+            [
+              "B023",
+              "Function definition does not bind loop variable `rows`",
+              "monkeypatch.setattr(probe, \"proof\", lambda _: {\"rows\": rows, \"overflow\": False})"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "bad = copy.deepcopy(receipt); mutate(bad)"
+            ],
+            [
+              "N818",
+              "Exception name `Alert` should be named with an Error suffix",
+              "class Alert(Exception):"
+            ]
+          ]
+        },
+        {
+          "variant": "after",
+          "command": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--output-format=json",
+            "--stdin-filename",
+            "tests/test_material_companion_native_probe.py",
+            "-"
+          ],
+          "exit_code": 1,
+          "source_sha256": "72e2b847020e86f11afc25e1502fb17e0abad08022263404513169eae41f6014",
+          "diagnostics": [
+            {
+              "cell": null,
+              "code": "E702",
+              "end_location": {
+                "column": 38,
+                "row": 67
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\tests\\test_material_companion_native_probe.py",
+              "fix": null,
+              "location": {
+                "column": 37,
+                "row": 67
+              },
+              "message": "Multiple statements on one line (semicolon)",
+              "name": "multiple-statements-on-one-line-semicolon",
+              "noqa_row": 67,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/multiple-statements-on-one-line-semicolon"
+            },
+            {
+              "cell": null,
+              "code": "B023",
+              "end_location": {
+                "column": 68,
+                "row": 184
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\tests\\test_material_companion_native_probe.py",
+              "fix": null,
+              "location": {
+                "column": 64,
+                "row": 184
+              },
+              "message": "Function definition does not bind loop variable `rows`",
+              "name": "function-uses-loop-variable",
+              "noqa_row": 184,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/function-uses-loop-variable"
+            },
+            {
+              "cell": null,
+              "code": "N818",
+              "end_location": {
+                "column": 16,
+                "row": 191
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\tests\\test_material_companion_native_probe.py",
+              "fix": null,
+              "location": {
+                "column": 11,
+                "row": 191
+              },
+              "message": "Exception name `Alert` should be named with an Error suffix",
+              "name": "error-suffix-on-exception-name",
+              "noqa_row": 191,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/error-suffix-on-exception-name"
+            }
+          ],
+          "normalized": [
+            [
+              "B023",
+              "Function definition does not bind loop variable `rows`",
+              "monkeypatch.setattr(probe, \"proof\", lambda _: {\"rows\": rows, \"overflow\": False})"
+            ],
+            [
+              "E702",
+              "Multiple statements on one line (semicolon)",
+              "bad = copy.deepcopy(receipt); mutate(bad)"
+            ],
+            [
+              "N818",
+              "Exception name `Alert` should be named with an Error suffix",
+              "class Alert(Exception):"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/python-workers/document/worker_pdf.py",
+      "variants": [
+        {
+          "variant": "before",
+          "command": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--output-format=json",
+            "--stdin-filename",
+            "services/python-workers/document/worker_pdf.py",
+            "-"
+          ],
+          "exit_code": 1,
+          "source_sha256": "2fc56a31015eac6d503edca58799d02e1707ebf45fa3ab480cbe7fa0a17a03b2",
+          "diagnostics": [
+            {
+              "cell": null,
+              "code": "B905",
+              "end_location": {
+                "column": 55,
+                "row": 215
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\document\\worker_pdf.py",
+              "fix": {
+                "applicability": "unsafe",
+                "edits": [
+                  {
+                    "content": ", strict=False",
+                    "end_location": {
+                      "column": 54,
+                      "row": 215
+                    },
+                    "location": {
+                      "column": 54,
+                      "row": 215
+                    }
+                  }
+                ],
+                "message": "Add explicit value for parameter `strict=`"
+              },
+              "location": {
+                "column": 34,
+                "row": 215
+              },
+              "message": "`zip()` without an explicit `strict=` parameter",
+              "name": "zip-without-explicit-strict",
+              "noqa_row": 215,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/zip-without-explicit-strict"
+            },
+            {
+              "cell": null,
+              "code": "B023",
+              "end_location": {
+                "column": 57,
+                "row": 345
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\document\\worker_pdf.py",
+              "fix": null,
+              "location": {
+                "column": 51,
+                "row": 345
+              },
+              "message": "Function definition does not bind loop variable `getter`",
+              "name": "function-uses-loop-variable",
+              "noqa_row": 345,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/function-uses-loop-variable"
+            }
+          ],
+          "normalized": [
+            [
+              "B023",
+              "Function definition does not bind loop variable `getter`",
+              "for block in _capture(lambda: getter(\"blocks\"), engine_messages)"
+            ],
+            [
+              "B905",
+              "`zip()` without an explicit `strict=` parameter",
+              "for left_edge, right_edge in zip(edges, edges[1:]):"
+            ]
+          ]
+        },
+        {
+          "variant": "after",
+          "command": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--output-format=json",
+            "--stdin-filename",
+            "services/python-workers/document/worker_pdf.py",
+            "-"
+          ],
+          "exit_code": 1,
+          "source_sha256": "a804baab5c7f5947281f29e70e1c5cc7664b1e816060c7c085c68b07f6c2f333",
+          "diagnostics": [
+            {
+              "cell": null,
+              "code": "B905",
+              "end_location": {
+                "column": 55,
+                "row": 238
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\document\\worker_pdf.py",
+              "fix": {
+                "applicability": "unsafe",
+                "edits": [
+                  {
+                    "content": ", strict=False",
+                    "end_location": {
+                      "column": 54,
+                      "row": 238
+                    },
+                    "location": {
+                      "column": 54,
+                      "row": 238
+                    }
+                  }
+                ],
+                "message": "Add explicit value for parameter `strict=`"
+              },
+              "location": {
+                "column": 34,
+                "row": 238
+              },
+              "message": "`zip()` without an explicit `strict=` parameter",
+              "name": "zip-without-explicit-strict",
+              "noqa_row": 238,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/zip-without-explicit-strict"
+            },
+            {
+              "cell": null,
+              "code": "B023",
+              "end_location": {
+                "column": 57,
+                "row": 369
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\document\\worker_pdf.py",
+              "fix": null,
+              "location": {
+                "column": 51,
+                "row": 369
+              },
+              "message": "Function definition does not bind loop variable `getter`",
+              "name": "function-uses-loop-variable",
+              "noqa_row": 369,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/function-uses-loop-variable"
+            }
+          ],
+          "normalized": [
+            [
+              "B023",
+              "Function definition does not bind loop variable `getter`",
+              "for block in _capture(lambda: getter(\"blocks\"), engine_messages)"
+            ],
+            [
+              "B905",
+              "`zip()` without an explicit `strict=` parameter",
+              "for left_edge, right_edge in zip(edges, edges[1:]):"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "path": "services/python-workers/transport/text_ndjson.py",
+      "variants": [
+        {
+          "variant": "before",
+          "command": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--output-format=json",
+            "--stdin-filename",
+            "services/python-workers/transport/text_ndjson.py",
+            "-"
+          ],
+          "exit_code": 1,
+          "source_sha256": "733db640a4adb45e9556b0956f32554ebd1c2e6147afed2b8664ce03287181c7",
+          "diagnostics": [
+            {
+              "cell": null,
+              "code": "I001",
+              "end_location": {
+                "column": 12,
+                "row": 24
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": {
+                "applicability": "safe",
+                "edits": [
+                  {
+                    "content": "from __future__ import annotations\n\nimport argparse\nimport contextlib\nimport hashlib\nimport importlib.util\nimport json\nimport math\nimport os\nimport re\nimport stat\nimport sys\nimport time\nfrom pathlib import Path\n\n\n",
+                    "end_location": {
+                      "column": 1,
+                      "row": 27
+                    },
+                    "location": {
+                      "column": 1,
+                      "row": 11
+                    }
+                  }
+                ],
+                "message": "Organize imports"
+              },
+              "location": {
+                "column": 1,
+                "row": 11
+              },
+              "message": "Import block is un-sorted or un-formatted",
+              "name": "unsorted-imports",
+              "noqa_row": 11,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+            },
+            {
+              "cell": null,
+              "code": "N818",
+              "end_location": {
+                "column": 15,
+                "row": 69
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": null,
+              "location": {
+                "column": 7,
+                "row": 69
+              },
+              "message": "Exception name `Rejected` should be named with an Error suffix",
+              "name": "error-suffix-on-exception-name",
+              "noqa_row": 69,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/error-suffix-on-exception-name"
+            },
+            {
+              "cell": null,
+              "code": "B904",
+              "end_location": {
+                "column": 54,
+                "row": 143
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": null,
+              "location": {
+                "column": 13,
+                "row": 143
+              },
+              "message": "Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling",
+              "name": "raise-without-from-inside-except",
+              "noqa_row": 143,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/raise-without-from-inside-except"
+            },
+            {
+              "cell": null,
+              "code": "E731",
+              "end_location": {
+                "column": 102,
+                "row": 166
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": {
+                "applicability": "unsafe",
+                "edits": [
+                  {
+                    "content": "def identity(info):\n        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink)",
+                    "end_location": {
+                      "column": 102,
+                      "row": 166
+                    },
+                    "location": {
+                      "column": 5,
+                      "row": 166
+                    }
+                  }
+                ],
+                "message": "Rewrite `identity` as a `def`"
+              },
+              "location": {
+                "column": 5,
+                "row": 166
+              },
+              "message": "Do not assign a `lambda` expression, use a `def`",
+              "name": "lambda-assignment",
+              "noqa_row": 166,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/lambda-assignment"
+            },
+            {
+              "cell": null,
+              "code": "E731",
+              "end_location": {
+                "column": 137,
+                "row": 733
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": {
+                "applicability": "unsafe",
+                "edits": [
+                  {
+                    "content": "def encode(value):\n        return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(\",\", \":\"), allow_nan=False).encode(\"utf-8\")",
+                    "end_location": {
+                      "column": 137,
+                      "row": 733
+                    },
+                    "location": {
+                      "column": 5,
+                      "row": 733
+                    }
+                  }
+                ],
+                "message": "Rewrite `encode` as a `def`"
+              },
+              "location": {
+                "column": 5,
+                "row": 733
+              },
+              "message": "Do not assign a `lambda` expression, use a `def`",
+              "name": "lambda-assignment",
+              "noqa_row": 733,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/lambda-assignment"
+            }
+          ],
+          "normalized": [
+            [
+              "B904",
+              "Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling",
+              "raise Rejected(\"staging path is missing\")"
+            ],
+            [
+              "E731",
+              "Do not assign a `lambda` expression, use a `def`",
+              "encode = lambda value: json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(\",\", \":\"), allow_nan=False).encode(\"utf-8\")"
+            ],
+            [
+              "E731",
+              "Do not assign a `lambda` expression, use a `def`",
+              "identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink)"
+            ],
+            [
+              "I001",
+              "Import block is un-sorted or un-formatted",
+              "from __future__ import annotations"
+            ],
+            [
+              "N818",
+              "Exception name `Rejected` should be named with an Error suffix",
+              "class Rejected(ValueError):"
+            ]
+          ]
+        },
+        {
+          "variant": "after",
+          "command": [
+            "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--output-format=json",
+            "--stdin-filename",
+            "services/python-workers/transport/text_ndjson.py",
+            "-"
+          ],
+          "exit_code": 1,
+          "source_sha256": "10fdd391ba932b9c1c610795bb4ed1004769cca60581f5d59cde720b18d07dce",
+          "diagnostics": [
+            {
+              "cell": null,
+              "code": "I001",
+              "end_location": {
+                "column": 12,
+                "row": 24
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": {
+                "applicability": "safe",
+                "edits": [
+                  {
+                    "content": "from __future__ import annotations\n\nimport argparse\nimport contextlib\nimport hashlib\nimport importlib.util\nimport json\nimport math\nimport os\nimport re\nimport stat\nimport sys\nimport time\nfrom pathlib import Path\n\n\n",
+                    "end_location": {
+                      "column": 1,
+                      "row": 27
+                    },
+                    "location": {
+                      "column": 1,
+                      "row": 11
+                    }
+                  }
+                ],
+                "message": "Organize imports"
+              },
+              "location": {
+                "column": 1,
+                "row": 11
+              },
+              "message": "Import block is un-sorted or un-formatted",
+              "name": "unsorted-imports",
+              "noqa_row": 11,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/unsorted-imports"
+            },
+            {
+              "cell": null,
+              "code": "N818",
+              "end_location": {
+                "column": 15,
+                "row": 69
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": null,
+              "location": {
+                "column": 7,
+                "row": 69
+              },
+              "message": "Exception name `Rejected` should be named with an Error suffix",
+              "name": "error-suffix-on-exception-name",
+              "noqa_row": 69,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/error-suffix-on-exception-name"
+            },
+            {
+              "cell": null,
+              "code": "B904",
+              "end_location": {
+                "column": 54,
+                "row": 143
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": null,
+              "location": {
+                "column": 13,
+                "row": 143
+              },
+              "message": "Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling",
+              "name": "raise-without-from-inside-except",
+              "noqa_row": 143,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/raise-without-from-inside-except"
+            },
+            {
+              "cell": null,
+              "code": "E731",
+              "end_location": {
+                "column": 102,
+                "row": 166
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": {
+                "applicability": "unsafe",
+                "edits": [
+                  {
+                    "content": "def identity(info):\n        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink)",
+                    "end_location": {
+                      "column": 102,
+                      "row": 166
+                    },
+                    "location": {
+                      "column": 5,
+                      "row": 166
+                    }
+                  }
+                ],
+                "message": "Rewrite `identity` as a `def`"
+              },
+              "location": {
+                "column": 5,
+                "row": 166
+              },
+              "message": "Do not assign a `lambda` expression, use a `def`",
+              "name": "lambda-assignment",
+              "noqa_row": 166,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/lambda-assignment"
+            },
+            {
+              "cell": null,
+              "code": "E731",
+              "end_location": {
+                "column": 137,
+                "row": 733
+              },
+              "filename": "D:\\All projects\\ArcheAxis-Knowledge-OS\\services\\python-workers\\transport\\text_ndjson.py",
+              "fix": {
+                "applicability": "unsafe",
+                "edits": [
+                  {
+                    "content": "def encode(value):\n        return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(\",\", \":\"), allow_nan=False).encode(\"utf-8\")",
+                    "end_location": {
+                      "column": 137,
+                      "row": 733
+                    },
+                    "location": {
+                      "column": 5,
+                      "row": 733
+                    }
+                  }
+                ],
+                "message": "Rewrite `encode` as a `def`"
+              },
+              "location": {
+                "column": 5,
+                "row": 733
+              },
+              "message": "Do not assign a `lambda` expression, use a `def`",
+              "name": "lambda-assignment",
+              "noqa_row": 733,
+              "severity": "error",
+              "url": "https://docs.astral.sh/ruff/rules/lambda-assignment"
+            }
+          ],
+          "normalized": [
+            [
+              "B904",
+              "Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling",
+              "raise Rejected(\"staging path is missing\")"
+            ],
+            [
+              "E731",
+              "Do not assign a `lambda` expression, use a `def`",
+              "encode = lambda value: json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(\",\", \":\"), allow_nan=False).encode(\"utf-8\")"
+            ],
+            [
+              "E731",
+              "Do not assign a `lambda` expression, use a `def`",
+              "identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns, info.st_nlink)"
+            ],
+            [
+              "I001",
+              "Import block is un-sorted or un-formatted",
+              "from __future__ import annotations"
+            ],
+            [
+              "N818",
+              "Exception name `Rejected` should be named with an Error suffix",
+              "class Rejected(ValueError):"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

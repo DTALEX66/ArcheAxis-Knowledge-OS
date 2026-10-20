@@ -165,7 +165,7 @@ def build_report(*, repo: Path, evidence_root: Path, register_path: Path,
         if not bad:
             lines.append(_discipline.computed(
                 "**{key}** 全部引用按精确路径解析：{detail}",
-                source="docs/current/AAOS-OPEN-WORK-REGISTER-20261001.md row",
+                source="docs/history/repository-consolidation-20261019/current/AAOS-OPEN-WORK-REGISTER-20261001.md row",
                 key=lambda r=row: r["key"], detail=lambda d=detail: d))
         else:
             lines.append(_discipline.insufficient(
@@ -218,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
                         default=Path(os.environ.get("ARCHEAXIS_PROJECT_LOCAL", str(ROOT / ".project-local")))
                         / "artifacts" / "evidence")
     parser.add_argument("--register", type=Path,
-                        default=ROOT / "docs" / "current" / "AAOS-OPEN-WORK-REGISTER-20261001.md")
+                        default=ROOT / 'docs/history/repository-consolidation-20261019/current/AAOS-OPEN-WORK-REGISTER-20261001.md')
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--today", default=date.today().isoformat())
     args = parser.parse_args(argv)

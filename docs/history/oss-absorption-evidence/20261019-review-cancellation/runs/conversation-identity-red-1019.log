@@ -1,0 +1,74 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ❯ src/__tests__/ConversationPanel.test.tsx (15 tests | 2 failed | 13 skipped) 7ms
+   × sends only the finite identity for status even when the caller holds a full request 6ms
+     → expected [ [ 'conversation_status', …(1) ] ] to deeply equal [ [ 'conversation_status', …(1) ] ]
+   × sends only the finite identity for cancel even when the caller holds a full request 1ms
+     → expected [ [ 'conversation_cancel', …(1) ] ] to deeply equal [ [ 'conversation_cancel', …(1) ] ]
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/ConversationPanel.test.tsx > sends only the finite identity for status even when the caller holds a full request
+AssertionError: expected [ [ 'conversation_status', …(1) ] ] to deeply equal [ [ 'conversation_status', …(1) ] ]
+
+- Expected
++ Received
+
+  Array [
+    Array [
+      "conversation_status",
+      Object {
+        "body": Object {
++         "material": Object {
++           "document_id": "doc_a",
++         },
++         "model": "local-model",
++         "preview": false,
++         "question": "private authored question",
+          "request_id": "request_a",
+          "session_id": "session_a",
+        },
+      },
+    ],
+  ]
+
+ ❯ src/__tests__/ConversationPanel.test.tsx:32:33
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  src/__tests__/ConversationPanel.test.tsx > sends only the finite identity for cancel even when the caller holds a full request
+AssertionError: expected [ [ 'conversation_cancel', …(1) ] ] to deeply equal [ [ 'conversation_cancel', …(1) ] ]
+
+- Expected
++ Received
+
+  Array [
+    Array [
+      "conversation_cancel",
+      Object {
+        "body": Object {
++         "material": Object {
++           "document_id": "doc_a",
++         },
++         "model": "local-model",
++         "preview": false,
++         "question": "private authored question",
+          "request_id": "request_a",
+          "session_id": "session_a",
+        },
+      },
+    ],
+  ]
+
+ ❯ src/__tests__/ConversationPanel.test.tsx:32:33
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 13 skipped (15)
+   Start at  03:28:17
+   Duration  816ms (transform 104ms, setup 89ms, collect 157ms, tests 7ms, environment 267ms, prepare 59ms)
+

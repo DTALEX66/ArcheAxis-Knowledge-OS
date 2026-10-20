@@ -1,0 +1,141 @@
+FFFF                                                                     [100%]::error::PYTEST-FAILED tests/test_material_companion_native_probe.py::test_observer_retains_own_terminal_metadata_without_recording_other_content
+::error::PYTEST-FAIL-REASON def test_observer_retains_own_terminal_metadata_without_recording_other_content():
+        scripts = []
+        probe.install_observer(scripts.append, {"material_question": "owned synthetic"})
+        harness = """
+    const window={__TAURI__:{core:{invoke:async()=>({status:200,body:{
+     schema:'archeaxis.material-answer/v1',request_id:'original',outcome:'failed',
+     reason_code:'material_model_timeout',plan_sha256:'aaa',answer:{answer:'do not copy'},
+     secret:'not retained'}})}}};
+    eval(SOURCE);
+    const call=question=>window.__TAURI__.core.invoke('core_command',{request:{operation:'material_question',payload:{body:{question,request_id:'original',preview:false}}}});
+    (async()=>{await call('owned synthetic');await call('other context');console.log(JSON.stringify(window.__aaosMC.proof));})().catch(e=>{console.error(e);process.exitCode=1;});
+    """.replace("SOURCE", json.dumps(scripts[0]))
+        result = subprocess.run([shutil.which("node") or "node", "-e", harness], capture_output=True, text=True, encoding="utf-8", check=True)
+        rows = json.loads(result.stdout)["rows"]
+>       assert rows[0]["terminal_response"]["reason_code"] == "material_model_timeout"
+     
+::error::PYTEST-FAILED tests/test_material_companion_native_probe.py::test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait[material-failed]
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001602C2FC3E0>
+purpose = 'material', terminal = 'failed'
+
+    @pytest.mark.parametrize("purpose,terminal", [("material", "failed"), ("companion", "cancelled")])
+    def test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait(monkeypatch, purpose, terminal):
+        receipt, preview, _ = fixture(purpose)
+        receipt.update(outcome=terminal, state=terminal, reason_code="material_model_timeout")
+        operation = "material_question" if purpose == "material" else "conversation_request"
+        row = {"operation": operation, "preview": False, "own": True, "request_id": "original", "session_id": "original-session", "completed": True, "status": 200, "terminal_response": receipt}
+        monkeypatch.setattr(probe, "proof", lambda _: {"rows": [row], "overflow": False})
+        waits, stage = [], {}
+        with pytest.raises(AssertionError, match="material_model_timeout"):
+>           probe.wait_execution(lambda _: None, lambda script, **kw: waits.append((script, kw)), stage, purpose, preview)
+            ^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'material_companion_probe_contract' has no attri
+::error::PYTEST-FAILED tests/test_material_companion_native_probe.py::test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait[companion-cancelled]
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001602C2FCE90>
+purpose = 'companion', terminal = 'cancelled'
+
+    @pytest.mark.parametrize("purpose,terminal", [("material", "failed"), ("companion", "cancelled")])
+    def test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait(monkeypatch, purpose, terminal):
+        receipt, preview, _ = fixture(purpose)
+        receipt.update(outcome=terminal, state=terminal, reason_code="material_model_timeout")
+        operation = "material_question" if purpose == "material" else "conversation_request"
+        row = {"operation": operation, "preview": False, "own": True, "request_id": "original", "session_id": "original-session", "completed": True, "status": 200, "terminal_response": receipt}
+        monkeypatch.setattr(probe, "proof", lambda _: {"rows": [row], "overflow": False})
+        waits, stage = [], {}
+        with pytest.raises(AssertionError, match="material_model_timeout"):
+>           probe.wait_execution(lambda _: None, lambda script, **kw: waits.append((script, kw)), stage, purpose, preview)
+            ^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'material_companion_probe_contract' has no a
+::error::PYTEST-FAILED tests/test_material_companion_native_probe.py::test_execution_observation_rejects_wrong_plan_or_duplicate_identity
+::error::PYTEST-FAIL-REASON monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001602D3517F0>
+
+    def test_execution_observation_rejects_wrong_plan_or_duplicate_identity(monkeypatch):
+        receipt, preview, _ = fixture("material")
+        row = {"operation": "material_question", "preview": False, "own": True, "request_id": "original", "completed": True, "status": 200, "terminal_response": receipt}
+        monkeypatch.setattr(probe, "proof", lambda _: {"rows": [row], "overflow": False})
+>       assert probe.wait_execution(lambda _: None, lambda *args, **kwargs: None, {}, "material", preview) == receipt
+               ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'material_companion_probe_contract' has no attribute 'wait_execution'
+
+tests\test_material_companion_native_probe.py:116: AttributeError
+
+================================== FAILURES ===================================
+_ test_observer_retains_own_terminal_metadata_without_recording_other_content _
+
+    def test_observer_retains_own_terminal_metadata_without_recording_other_content():
+        scripts = []
+        probe.install_observer(scripts.append, {"material_question": "owned synthetic"})
+        harness = """
+    const window={__TAURI__:{core:{invoke:async()=>({status:200,body:{
+     schema:'archeaxis.material-answer/v1',request_id:'original',outcome:'failed',
+     reason_code:'material_model_timeout',plan_sha256:'aaa',answer:{answer:'do not copy'},
+     secret:'not retained'}})}}};
+    eval(SOURCE);
+    const call=question=>window.__TAURI__.core.invoke('core_command',{request:{operation:'material_question',payload:{body:{question,request_id:'original',preview:false}}}});
+    (async()=>{await call('owned synthetic');await call('other context');console.log(JSON.stringify(window.__aaosMC.proof));})().catch(e=>{console.error(e);process.exitCode=1;});
+    """.replace("SOURCE", json.dumps(scripts[0]))
+        result = subprocess.run([shutil.which("node") or "node", "-e", harness], capture_output=True, text=True, encoding="utf-8", check=True)
+        rows = json.loads(result.stdout)["rows"]
+>       assert rows[0]["terminal_response"]["reason_code"] == "material_model_timeout"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'terminal_response'
+
+tests\test_material_companion_native_probe.py:93: KeyError
+_ test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait[material-failed] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001602C2FC3E0>
+purpose = 'material', terminal = 'failed'
+
+    @pytest.mark.parametrize("purpose,terminal", [("material", "failed"), ("companion", "cancelled")])
+    def test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait(monkeypatch, purpose, terminal):
+        receipt, preview, _ = fixture(purpose)
+        receipt.update(outcome=terminal, state=terminal, reason_code="material_model_timeout")
+        operation = "material_question" if purpose == "material" else "conversation_request"
+        row = {"operation": operation, "preview": False, "own": True, "request_id": "original", "session_id": "original-session", "completed": True, "status": 200, "terminal_response": receipt}
+        monkeypatch.setattr(probe, "proof", lambda _: {"rows": [row], "overflow": False})
+        waits, stage = [], {}
+        with pytest.raises(AssertionError, match="material_model_timeout"):
+>           probe.wait_execution(lambda _: None, lambda script, **kw: waits.append((script, kw)), stage, purpose, preview)
+            ^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'material_companion_probe_contract' has no attribute 'wait_execution'
+
+tests\test_material_companion_native_probe.py:107: AttributeError
+_ test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait[companion-cancelled] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001602C2FCE90>
+purpose = 'companion', terminal = 'cancelled'
+
+    @pytest.mark.parametrize("purpose,terminal", [("material", "failed"), ("companion", "cancelled")])
+    def test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait(monkeypatch, purpose, terminal):
+        receipt, preview, _ = fixture(purpose)
+        receipt.update(outcome=terminal, state=terminal, reason_code="material_model_timeout")
+        operation = "material_question" if purpose == "material" else "conversation_request"
+        row = {"operation": operation, "preview": False, "own": True, "request_id": "original", "session_id": "original-session", "completed": True, "status": 200, "terminal_response": receipt}
+        monkeypatch.setattr(probe, "proof", lambda _: {"rows": [row], "overflow": False})
+        waits, stage = [], {}
+        with pytest.raises(AssertionError, match="material_model_timeout"):
+>           probe.wait_execution(lambda _: None, lambda script, **kw: waits.append((script, kw)), stage, purpose, preview)
+            ^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'material_companion_probe_contract' has no attribute 'wait_execution'
+
+tests\test_material_companion_native_probe.py:107: AttributeError
+_____ test_execution_observation_rejects_wrong_plan_or_duplicate_identity _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001602D3517F0>
+
+    def test_execution_observation_rejects_wrong_plan_or_duplicate_identity(monkeypatch):
+        receipt, preview, _ = fixture("material")
+        row = {"operation": "material_question", "preview": False, "own": True, "request_id": "original", "completed": True, "status": 200, "terminal_response": receipt}
+        monkeypatch.setattr(probe, "proof", lambda _: {"rows": [row], "overflow": False})
+>       assert probe.wait_execution(lambda _: None, lambda *args, **kwargs: None, {}, "material", preview) == receipt
+               ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'material_companion_probe_contract' has no attribute 'wait_execution'
+
+tests\test_material_companion_native_probe.py:116: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_material_companion_native_probe.py::test_observer_retains_own_terminal_metadata_without_recording_other_content
+FAILED tests/test_material_companion_native_probe.py::test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait[material-failed]
+FAILED tests/test_material_companion_native_probe.py::test_http_200_failed_terminal_is_saved_and_fails_before_success_ui_wait[companion-cancelled]
+FAILED tests/test_material_companion_native_probe.py::test_execution_observation_rejects_wrong_plan_or_duplicate_identity
+4 failed, 5 deselected in 0.28s

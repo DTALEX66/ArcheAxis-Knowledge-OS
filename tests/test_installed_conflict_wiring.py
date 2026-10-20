@@ -8,8 +8,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 HARNESS = ROOT / 'scripts/probes/aaos01_tauri_webdriver_loop.py'
 TREE = ast.parse(HARNESS.read_text(encoding='utf-8-sig'))
-NAMES = {'WebDriverProtocolError','accept_native_alert','validate_conflict_branch'}
-NAMESPACE = {}
+NAMES = {'WebDriverProtocolError','accept_native_alert','validate_conflict_branch','navigate_rendered_product_page'}
+NAMESPACE = {'json': __import__('json'), 're': __import__('re')}
 exec(compile(ast.Module(body=[node for node in TREE.body if getattr(node,'name',None) in NAMES],type_ignores=[]),str(HARNESS),'exec'),NAMESPACE)
 
 
@@ -18,6 +18,45 @@ def flags(**updates):
         grouped_common_owner_loop=False,synthetic_course_loop=False,
         synthetic_template_pagination=False,grouped_run_ai=False,grouped_authored_intervention=False)
     return SimpleNamespace(**{**values,**updates})
+
+
+@pytest.mark.parametrize('mode', ['drawer', 'sidebar'])
+def test_conflict_navigation_uses_rendered_page_and_visible_controls(mode):
+    clicks=[]; waits=[]; alerts=[]
+    ui=SimpleNamespace(click_selector=lambda selector,using:clicks.append((selector,using)))
+    NAMESPACE['navigate_rendered_product_page'](
+        ui, lambda script: {'page':'19','mode':mode}, waits.append, '02', lambda:alerts.append(True))
+    expected=('.ui-navigation-drawer' if mode=='drawer' else '.navigation-sidebar')+' button[data-page-id="02"]'
+    assert clicks[-1]==(expected,'css selector')
+    assert len(clicks)==(2 if mode=='drawer' else 1)
+    assert alerts==[True]
+    assert len(waits)==2 and 'data-current-page-id' in waits[-1] and '"02"' in waits[-1]
+    assert 'getClientRects' in waits[0] and '[inert]' in waits[0] and 'visibility' in waits[0]
+    assert all('location.hash' not in script for script in waits)
+
+
+def test_restored_current_page_never_clicks_hidden_sidebar_even_without_hash():
+    def forbidden(*args): raise AssertionError('Current rendered page must not navigate')
+    NAMESPACE['navigate_rendered_product_page'](
+        SimpleNamespace(click_selector=forbidden),lambda script:{'page':'19','mode':None},forbidden,'19',forbidden)
+
+
+def test_unavailable_navigation_fails_without_hidden_click_or_hash_mutation():
+    def forbidden(*args): raise AssertionError('Hidden controls must not be clicked')
+    with pytest.raises(AssertionError,match='visible product navigation'):
+        NAMESPACE['navigate_rendered_product_page'](
+            SimpleNamespace(click_selector=forbidden),lambda script:{'page':'19','mode':None},forbidden,'02',forbidden)
+
+
+def test_navigation_error_is_not_silently_replayed():
+    calls=[]
+    def click(*args):
+        calls.append(args)
+        raise OSError('unknown click result')
+    with pytest.raises(OSError,match='unknown click result'):
+        NAMESPACE['navigate_rendered_product_page'](
+            SimpleNamespace(click_selector=click),lambda script:{'page':'19','mode':'sidebar'},lambda _:None,'02',lambda:None)
+    assert len(calls)==1
 
 
 def test_independent_installed_branch_accepts_only_its_own_fixture():

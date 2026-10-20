@@ -1,0 +1,93 @@
+{
+  "state": "ISOLATED_NODE_CONSUMER_PASS_NOT_APPLIED",
+  "patch_sha256": "c0d004392d1b5ff4cf7690fe356bc71afcf0ab967bd30c7382d2d85c11ea73c3",
+  "files": [
+    {
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "before_sha256": null,
+      "after_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+      "bytes": 2469,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/src/__tests__/CapabilityPackageDetails.test.tsx",
+      "before_sha256": null,
+      "after_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+      "bytes": 3604,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "before_sha256": null,
+      "after_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+      "bytes": 5794,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/src/components/CapabilityPackageDetails.tsx",
+      "before_sha256": null,
+      "after_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+      "bytes": 2256,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx",
+      "before_sha256": "27b0ece707a8e89dade9335dad6c4d11ebc030dc6507855ef806d9b3f86f0351",
+      "after_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+      "bytes": 15323,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "before_sha256": "8b16ddda1d1dbd52ba793d22429e1fdcb73ad2eb8a8938bbc4a85478f339028b",
+      "after_sha256": "be224eab3c4a8f4078d0c539477fa92165b69f76ca8a48bb223fdfba97f1a812",
+      "bytes": 4097,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "scripts/contracts/generate_capability_package_details.py",
+      "before_sha256": null,
+      "after_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+      "bytes": 5818,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "tests/contract/test_capability_package_details.py",
+      "before_sha256": null,
+      "after_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+      "bytes": 5005,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "scripts/contracts/check_capability_package_details.mjs",
+      "before_sha256": null,
+      "after_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+      "bytes": 9013,
+      "preimage_matches": true,
+      "mirror_matches": true
+    },
+    {
+      "path": "tests/contract/test_capability_package_details_node.mjs",
+      "before_sha256": null,
+      "after_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+      "bytes": 5922,
+      "preimage_matches": true,
+      "mirror_matches": true
+    }
+  ],
+  "apply_check_exit_code": 0,
+  "product_writes": [],
+  "dependencies_changed": false,
+  "lockfiles_changed": false,
+  "ci_reordered": false,
+  "registry_added": false,
+  "original_proposal_patch_unchanged": true
+}

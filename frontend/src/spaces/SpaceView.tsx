@@ -12,6 +12,7 @@ import { CanonicalExchangeSpace } from "./CanonicalExchangeSpace";
 import { CanonicalExpressionSpace } from "./CanonicalExpressionSpace";
 import { CanonicalResearchSpace } from "./CanonicalResearchSpace";
 import { CanonicalRelationSpace } from "./CanonicalRelationSpace";
+import { ProjectHandoffReader } from "../components/ProjectHandoffReader";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 import { CollectionPanel } from "../components/CollectionPanel";
 import type { ObjectReference } from "../api/generated/research-contract";
@@ -21,9 +22,10 @@ import { BackupPanel } from "../components/BackupPanel";
 import { ModelConfigurationPanel } from "../components/ModelConfigurationPanel";
 import { ConfigurationPlanPanel } from "../components/ConfigurationPlanPanel";
 import { VersionSourcePanel } from "../components/VersionSourcePanel";
-import type { InspectionTarget } from "../components/Inspector";
+import type { InspectionHandler } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 import type { CanonicalSurface } from "../presentation/spaceSections";
+import { usePerformanceMonitor } from "../runtime/performance";
 
 // The desktop shell routes spaces onto canonical surfaces; the secondary level and
 // the object trail must describe the surface that is really rendered, not the space name.
@@ -69,7 +71,7 @@ export function SpaceView({
   activationRevision, sourceJourney,
 }: {
   spaceId: SpaceId;
-  onInspect: (target: InspectionTarget) => void;
+  onInspect: InspectionHandler;
   onNavigate: (id: SpaceId) => void;
   onOpenCapability?: (id: string) => void; onOpenPage?: (id:string)=>void;
   navigation?: SpaceNavigation;
@@ -81,6 +83,7 @@ export function SpaceView({
   activationRevision?: number;
   sourceJourney?: {target?:SourceJourneyTarget;onChange:(target?:SourceJourneyTarget)=>void};
 }) {
+   usePerformanceMonitor("SpaceView");
   const [localSourceTarget,setLocalSourceTarget]=useState<SourceJourneyTarget>();
   const sourceTarget=sourceJourney?sourceJourney.target:localSourceTarget;
   const setSourceTarget=sourceJourney?.onChange??setLocalSourceTarget;
@@ -126,7 +129,7 @@ export function SpaceView({
   }, [spaceId]);
   const content = (() => {
   if (selectedCapabilityId) {
-    return <CanonicalCapabilitiesSpace onNavigate={onNavigate} selectedCapabilityId={selectedCapabilityId} navigation={navigation} onTrail={onTrail} />;
+    return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} selectedCapabilityId={selectedCapabilityId} navigation={navigation} onTrail={onTrail} />;
   }
   if (uiPageId === "02" || uiPageId === "03") return <CanonicalLibrarySpace activationRevision={activationRevision} purpose={uiPageId === "02" ? "library" : "reader"} initialSourceTarget={uiPageId==="03"?sourceTarget:undefined} initialDocumentId={initialDocumentId} onOpenDocument={openJourneyDocument} onOpenImport={()=>onNavigate("intake")} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={{section:"documents",sequence:1}} onTrail={onTrail}/>;
   if (uiPageId === "21") return <CanonicalExpressionSpace onTrail={onTrail} onOpenCapability={onOpenCapability}/>;
@@ -139,7 +142,7 @@ export function SpaceView({
   if (uiPageId === "15") return <CanonicalResourcesSpace onOpenDocument={onOpenDocument} onOpenCapability={onOpenCapability}/>;
   if (uiPageId === "06" || uiPageId === "07") return <CanonicalLearningJourneySpace pageId={uiPageId} initialItemKey={initialLearningItemKey} onLearningItem={onReviewItem} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   if (uiPageId && ["08","09","10","11","12"].includes(uiPageId)) return <CanonicalTeachingSpace pageId={uiPageId} initialItemKey={initialLearningItemKey ?? pendingReviewItemKey} onOpenPage={onOpenPage} onTrail={onTrail}/>;
-  if (uiPageId === "16") return <CanonicalExchangeSpace onReadSource={target=>{setSourceTarget(target);setCandidateTarget(undefined);onOpenPage?.("03");}} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/>;
+  if (uiPageId === "16") return <><ProjectHandoffReader /><CanonicalExchangeSpace onReadSource={target=>{setSourceTarget(target);setCandidateTarget(undefined);onOpenPage?.("03");}} initialDocumentId={initialDocumentId} onOpenDocument={onOpenDocument} onOpenPage={onOpenPage} onTrail={onTrail}/></>;
   const semanticPage = uiPageId ? findUiPage(uiPageId) : undefined;
   if (semanticPage && !semanticPage.implemented) return <section className="ui-pending-page" aria-label={semanticPage.label}><h2>此页面尚未接通</h2><p>能力意图和页面入口已保留；当前没有此页面的完整真实用户路径。</p><p>承接任务 {semanticPage.task} · UI / {semanticPage.id}</p><button onClick={()=>onNavigate("settings")}>查看能力、依赖与系统状态</button></section>;
   if (spaceId === "workspace") return <CanonicalWorkspaceSpace onNavigate={id=>{if(uiPageId === "01" && onOpenPage && (id === "library" || id === "settings")) onOpenPage(id === "library" ? "02" : "17"); else onNavigate(id);}} onOpenDocument={onOpenDocument} onReviewItem={onReviewItem}/>;
@@ -150,14 +153,14 @@ export function SpaceView({
     <ConfigurationPlanPanel />
   </section>;
   if (uiPageId === "20") return <><VersionSourcePanel /><CanonicalLibrarySpace activationRevision={activationRevision} purpose="history" initialDocumentId={initialDocumentId} onInspect={onInspect} navigation={{section:"versions",sequence:1}} onTrail={onTrail} /></>;
-  if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onTrail={onTrail}/>;
+  if (uiPageId === "18") return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} onTrail={onTrail}/>;
   switch (spaceId) {
     case "library": case "intake": case "exchange":
       return <CanonicalLibrarySpace activationRevision={activationRevision} initialDocumentId={initialDocumentId} onKnowledge={candidateReview} onInspect={onInspect} onOpenCapability={onOpenCapability} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
     case "vault": case "evidence": case "ai-assets":
       return <CanonicalKnowledgeSpace onLearning={()=>onNavigate("learning")} onTrail={onTrail}/>;
     case "learning": return <CanonicalLearningJourneySpace onOpenPage={onOpenPage} onTrail={onTrail}/>;
-    case "settings": return <CanonicalCapabilitiesSpace onNavigate={onNavigate} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
+    case "settings": return <CanonicalCapabilitiesSpace onNavigate={onNavigate} onOpenPage={onOpenPage} navigation={navigationFor(spaceId,navigation)} onTrail={onTrail}/>;
   }
   })();
 

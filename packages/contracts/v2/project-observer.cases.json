@@ -1,0 +1,870 @@
+[
+  {
+    "name": "valid_handshake",
+    "now_ms": 1700000000001,
+    "schema_valid": true,
+    "runtime_valid": true,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "valid_objects",
+    "now_ms": 1700000000001,
+    "schema_valid": true,
+    "runtime_valid": true,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "objects",
+        "objects": [
+          {
+            "document_id": "doc_1",
+            "version": 1,
+            "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "navigation": "UNAVAILABLE"
+      }
+    }
+  },
+  {
+    "name": "valid_stale",
+    "now_ms": 1700000000001,
+    "schema_valid": true,
+    "runtime_valid": true,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "object_status",
+        "reference": {
+          "document_id": "doc_1",
+          "version": 1,
+          "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "state": "STALE",
+        "navigation": "UNAVAILABLE"
+      }
+    }
+  },
+  {
+    "name": "invalid_schema",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "unknown",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_protocol",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "v999",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_token",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "token": "SYNTHETIC_FORBIDDEN"
+    }
+  },
+  {
+    "name": "invalid_endpoint",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "endpoint": "http://127.0.0.1:1"
+    }
+  },
+  {
+    "name": "invalid_editor_json",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      },
+      "editor_json": {}
+    }
+  },
+  {
+    "name": "invalid_checked_at_ms",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": "unknown",
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_payload_grants_execution",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": true,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_payload_grants_knowledge_acceptance",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": true
+      }
+    }
+  },
+  {
+    "name": "invalid_payload_operations",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "execute"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_payload_authority",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "accepted",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_payload_body",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false,
+        "body": "private"
+      }
+    }
+  },
+  {
+    "name": "invalid_payload_kind",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "execute",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_consumer_namespace",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "human",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_consumer_instance_id",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "../other"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_producer_namespace",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "work-lab",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_producer_workspace_id",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "private.sqlite",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_producer_restore_epoch",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "UNKNOWN"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "invalid_reference_document_id",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "object_status",
+        "reference": {
+          "document_id": "../escape",
+          "version": 1,
+          "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "state": "STALE",
+        "navigation": "UNAVAILABLE"
+      }
+    }
+  },
+  {
+    "name": "invalid_reference_version",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "object_status",
+        "reference": {
+          "document_id": "doc_1",
+          "version": 0,
+          "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+        },
+        "state": "STALE",
+        "navigation": "UNAVAILABLE"
+      }
+    }
+  },
+  {
+    "name": "invalid_reference_content_sha256",
+    "now_ms": 1700000000001,
+    "schema_valid": false,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "object_status",
+        "reference": {
+          "document_id": "doc_1",
+          "version": 1,
+          "content_sha256": "UNKNOWN"
+        },
+        "state": "STALE",
+        "navigation": "UNAVAILABLE"
+      }
+    }
+  },
+  {
+    "name": "runtime_time_checked_at_ms1700000000002",
+    "now_ms": 1700000000001,
+    "schema_valid": true,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000002,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "runtime_time_expires_at_ms1700000000000",
+    "now_ms": 1700000000001,
+    "schema_valid": true,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000000000,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "runtime_time_expires_at_ms1700000030001",
+    "now_ms": 1700000000001,
+    "schema_valid": true,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030001,
+      "payload": {
+        "kind": "handshake",
+        "operations": [
+          "handshake",
+          "objects.read",
+          "object.status"
+        ],
+        "authority": "REFERENCE_ONLY",
+        "grants_execution": false,
+        "grants_knowledge_acceptance": false
+      }
+    }
+  },
+  {
+    "name": "runtime_duplicate_document_id",
+    "now_ms": 1700000000001,
+    "schema_valid": true,
+    "runtime_valid": false,
+    "value": {
+      "schema": "archeaxis.project-observer-response/v1",
+      "protocol": "archeaxis.project-observer/v1",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "consumer": {
+        "namespace": "work-lab",
+        "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "checked_at_ms": 1700000000000,
+      "expires_at_ms": 1700000030000,
+      "payload": {
+        "kind": "objects",
+        "objects": [
+          {
+            "document_id": "doc_1",
+            "version": 1,
+            "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          {
+            "document_id": "doc_1",
+            "version": 2,
+            "content_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "navigation": "UNAVAILABLE"
+      }
+    }
+  }
+]

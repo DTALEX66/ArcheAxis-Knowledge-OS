@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, renderHook, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 import { basename, resolve } from "node:path";
 import { CanonicalResourcesSpace, readCapabilityDecision, readResourceHandshake } from "../spaces/CanonicalResourcesSpace";
 import { RESOURCE_CATALOG } from "../api/generated/resource-catalog";
+import { useDiagnosticState } from "../presentation/diagnostics";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
@@ -27,38 +28,35 @@ describe("resource source catalog", () => {
   it("shows allseven classes and donor modes without installation or qualification claims", async () => {
     render(<CanonicalResourcesSpace/>);
     await screen.findByText(/宿主返回空能力列表/);
-    const directory = screen.getByRole("region", { name: "资源供体目录" });
+    const directory = screen.getByRole("region", { name: "资源目录" });
     expect(within(directory).getAllByRole("button", { name: / · / })).toHaveLength(68);
     expect(screen.getByLabelText("来源类别").querySelectorAll("option")).toHaveLength(8);
-    expect(screen.queryByRole("button", { name: /安装|升级|启用/ })).not.toBeInTheDocument();
+    expect(within(directory).queryByRole("button", { name: /^(安装|升级|启用)(?:\s|$)/ })).not.toBeInTheDocument();
     expect(bridge.call).toHaveBeenCalledTimes(1);
     expect(bridge.call).toHaveBeenCalledWith("capabilities_list");
   });
 
-  it("exposes source fingerprints for reading without opening a diagnostic receipt", async () => {
+  it("keeps source fingerprints in diagnostics while preserving the exact evidence", async () => {
     const entry = RESOURCE_CATALOG.entries.find(item => item.qualification.evidence.version.source_refs.length > 0)!;
     render(<CanonicalResourcesSpace/>);
     await screen.findByText(/宿主返回空能力列表/);
-    const directory = screen.getByRole("region", { name: "资源供体目录" });
+    const directory = screen.getByRole("region", { name: "资源目录" });
     const button = within(directory).getAllByRole("button").find(item => item.querySelector("strong")?.textContent === entry.display_names[0])!;
     await userEvent.setup().click(button);
     const evidence = screen.getByRole("region", { name: "版本证据" });
-    const summary = within(evidence).getByText("核对来源指纹");
-    await userEvent.setup().click(summary);
-    expect(summary.closest("details")).toHaveAttribute("open");
-    for (const source of entry.qualification.evidence.version.source_refs) {
-      expect(summary.closest("details")).toHaveTextContent(source.path);
-      expect(summary.closest("details")).toHaveTextContent(`SHA-256 ${source.sha256}`);
-    }
+    const diagnostics = renderHook(() => useDiagnosticState());
+    expect(evidence).not.toHaveTextContent(entry.qualification.evidence.version.source_refs[0].sha256);
+    await userEvent.setup().click(within(evidence).getByRole("button", { name: /版本证据来源与原始登记/ }));
+    expect(diagnostics.result.current.entries[0].payload).toEqual(entry.qualification.evidence.version);
   });
 
   it("searches the lastentry and原冲突, retains declared reasons and frozen activation", async () => {
     const user = userEvent.setup(); render(<CanonicalResourcesSpace/>);
     await user.type(screen.getByRole("textbox", { name: "查找资源与原冲突" }), "xyflow");
     await user.click(screen.getByRole("button", { name: /xyflow|XYFlow|xyFlow|React Flow/i }));
-    const details = screen.getByRole("complementary", { name: "资源登记详情" });
+    const details = screen.getByRole("complementary", { name: "资源来源详情" });
     expect(details).toHaveTextContent("未来候选");
-    expect(within(details).getByRole("region", { name: "激活与冻结条件" })).toBeInTheDocument();
+    expect(within(details).getByRole("region", { name: "启用条件" })).toBeInTheDocument();
     await user.clear(screen.getByRole("textbox", { name: "查找资源与原冲突" }));
     await user.type(screen.getByRole("textbox", { name: "查找资源与原冲突" }), "capability-id-is-not-a-declared-route");
     expect(screen.getByText(/筛选结果/)).not.toHaveTextContent("筛选结果 0 项");
@@ -67,22 +65,24 @@ describe("resource source catalog", () => {
   it("shows live route permission separately and does not promote donor qualification", async () => {
     bridge.call.mockResolvedValue({ capabilities: [{ capability: "media.transcribe", enabled: false, health: "handshake_ready" }] });
     render(<CanonicalResourcesSpace/>);
-    await screen.findByText(/已读回 1 条宿主能力/);
+    await screen.findByText(/已读取 1 项能力状态/);
     await userEvent.setup().click(screen.getByRole("button", { name: /faster-whisper.* · /i }));
-    const relation = screen.getByRole("region", { name: "供体运行联接" });
+    const relation = screen.getByRole("region", { name: "资源连接状态" });
     expect(relation).toHaveTextContent("已禁用");
-    expect(relation).toHaveTextContent("handshake_ready");
-    expect(relation).toHaveTextContent("握手不证明");
-    expect(screen.queryByRole("button", { name: /启用|安装/ })).not.toBeInTheDocument();
+    expect(relation).toHaveTextContent("尚未确认");
+    expect(relation).toHaveTextContent("功能已连接不代表");
+    expect(within(screen.getByRole("complementary", { name: "资源来源详情" })).queryByRole("button", { name: /^(启用|安装)(?:\s|$)/ })).not.toBeInTheDocument();
   });
 
   it("keeps the complete catalog when handshake is unavailable or malformed", async () => {
     bridge.call.mockRejectedValue(new Error("offline")); render(<CanonicalResourcesSpace/>);
-    await screen.findByRole("alert"); expect(screen.getByRole("alert")).toHaveTextContent("UNKNOWN");
-    expect(within(screen.getByRole("region", { name: "资源供体目录" })).getAllByRole("button", { name: / · / })).toHaveLength(68);
+    await screen.findByRole("alert"); expect(screen.getByRole("alert")).toHaveTextContent("无法确认当前可用功能");
+    const diagnostics=renderHook(useDiagnosticState);await userEvent.setup().click(screen.getByRole("button",{name:"查看诊断详情：能力运行详细信息"}));
+    expect(diagnostics.result.current.entries[0].payload).toMatchObject({state:"failed"});
+    expect(within(screen.getByRole("region", { name: "资源目录" })).getAllByRole("button", { name: / · / })).toHaveLength(68);
     bridge.call.mockResolvedValue({ capabilities: [{ capability: "media.video" }, { capability: "media.video" }] });
     await userEvent.setup().click(screen.getByRole("button", { name: "重新读取当前宿主能力" }));
-    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("UNKNOWN"));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("无法确认当前可用功能"));
     expect(screen.queryByText(/已读回 2 条/)).not.toBeInTheDocument();
   });
 
@@ -93,7 +93,7 @@ describe("resource source catalog", () => {
     await userEvent.setup().click(screen.getByRole("button", { name: "重新读取当前宿主能力" }));
     await screen.findByRole("alert");
     await act(async () => resolveOld({ capabilities: [{ capability: "old", enabled: true }] }));
-    expect(screen.getByRole("alert")).toHaveTextContent("UNKNOWN");
+    expect(screen.getByRole("alert")).toHaveTextContent("无法确认当前可用功能");
     expect(screen.queryByText(/old · 权限/)).not.toBeInTheDocument();
   });
 
@@ -171,11 +171,11 @@ describe("resource source catalog", () => {
     await user.click(screen.getByRole("button", { name: "产生模板草稿" }));
     await user.click(screen.getByRole("tab", { name: "吸收来源与供体" }));
     expect(screen.getByRole("region", { name: "真实模板回调测试" })).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("未保存修改或冻结请求");
+    expect(screen.getByRole("status")).toHaveTextContent("未保存修改或待确认操作");
     expect(seen.at(-1)?.dirty).toBe(true); expect(dirty).toHaveBeenLastCalledWith(true);
     await user.click(screen.getByRole("button", { name: "完成模板处理" }));
     await user.click(screen.getByRole("tab", { name: "吸收来源与供体" }));
-    expect(screen.getByRole("region", { name: "资源供体目录" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "资源目录" })).toBeInTheDocument();
     view.unmount(); expect(seen.at(-1)?.dirty).toBe(false);
     expect(new Set(seen.map(event => event.owner)).size).toBe(1);
     window.removeEventListener("archeaxis-draft-dirty", listener);

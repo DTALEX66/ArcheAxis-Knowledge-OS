@@ -1,0 +1,26 @@
+typescript: exit0
+affected-components: exit1
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ✓ src/__tests__/ProjectHandoffReader.test.tsx (25 tests) 2143ms
+ ✓ src/__tests__/CanonicalExchangeSpace.test.tsx (16 tests) 900ms
+ ✓ src/__tests__/CoreBridge.test.ts (26 tests) 11ms
+ ❯ src/__tests__/ProjectHandoffContract.test.ts (0 test)
+ ✓ src/__tests__/ExchangePinnedIntegration.test.tsx (4 tests) 226ms
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  71 passed (71)
+   Start at  07:39:15
+   Duration  7.56s (transform 944ms, setup 427ms, collect 1.42s, tests 3.28s, environment 1.49s, prepare 229ms)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/ProjectHandoffContract.test.ts [ src/__tests__/ProjectHandoffContract.test.ts ]
+TypeError: The URL must be of scheme file
+ ❯ src/__tests__/ProjectHandoffContract.test.ts:8:29
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+

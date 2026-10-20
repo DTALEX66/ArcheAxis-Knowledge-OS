@@ -1,0 +1,118 @@
+{
+  "status": "PASS",
+  "evidence": "REAL_CHROME / PRODUCTION_BUNDLE / SYNTHETIC_CORE",
+  "checks": [
+    {
+      "name": "same readable title selects each original identity using keyboard",
+      "status": "PASS",
+      "started": "2026-10-18T19:25:44.499Z",
+      "detail": {
+        "keysSelected": [
+          "course:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "course:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        ],
+        "titleScalars": 80,
+        "desktopBounds": {
+          "queueWidth": 798,
+          "queueScrollWidth": 798,
+          "buttons": [
+            {
+              "width": 798,
+              "scrollWidth": 796,
+              "clientWidth": 796,
+              "whiteSpace": "normal"
+            },
+            {
+              "width": 798,
+              "scrollWidth": 796,
+              "clientWidth": 796,
+              "whiteSpace": "normal"
+            }
+          ]
+        },
+        "selectionEcho": "no duplicate read; no write or inference"
+      },
+      "ended": "2026-10-18T19:25:44.844Z"
+    },
+    {
+      "name": "640px reduced motion title wraps inside the queue without page overflow",
+      "status": "PASS",
+      "started": "2026-10-18T19:25:44.845Z",
+      "detail": {
+        "queueWidth": 506,
+        "queueScrollWidth": 506,
+        "pageWidth": 640,
+        "pageScrollWidth": 640,
+        "buttonWidths": [
+          {
+            "width": 504,
+            "scrollWidth": 504,
+            "height": 69
+          },
+          {
+            "width": 504,
+            "scrollWidth": 504,
+            "height": 69
+          }
+        ],
+        "reducedMotion": true
+      },
+      "ended": "2026-10-18T19:25:45.341Z"
+    },
+    {
+      "name": "older Core without title remains usable; read failure is explicit",
+      "status": "PASS",
+      "started": "2026-10-18T19:25:45.341Z",
+      "detail": {
+        "fallback": "学习项目",
+        "failure": "explicit, prior entries retained"
+      },
+      "ended": "2026-10-18T19:25:45.625Z"
+    }
+  ],
+  "shots": [
+    {
+      "name": "01-readable-title-desktop",
+      "file": "01-readable-title-desktop.png",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "theme": "cosmic",
+      "DPR": 1
+    },
+    {
+      "name": "02-readable-title-narrow",
+      "file": "02-readable-title-narrow.png",
+      "viewport": {
+        "width": 640,
+        "height": 900
+      },
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "theme": "cosmic",
+      "DPR": 1
+    },
+    {
+      "name": "03-legacy-title-fallback",
+      "file": "03-legacy-title-fallback.png",
+      "viewport": {
+        "width": 640,
+        "height": 900
+      },
+      "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+      "theme": "cosmic",
+      "DPR": 1
+    }
+  ],
+  "errors": [],
+  "network": [],
+  "forbiddenCalls": [],
+  "notExecuted": [
+    "real Core browser bridge",
+    "native host",
+    "installed runtime",
+    "screen reader",
+    "performance benchmark"
+  ]
+}

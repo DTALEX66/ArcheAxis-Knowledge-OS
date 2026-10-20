@@ -17,8 +17,8 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 PROBE = REPO / "scripts/probes/m0_full_loop_smoke.py"
-CONTRACT = REPO / "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
-GAP_MAP = REPO / "docs/current/DSH-BACKEND-GAP-MAP-20260927.md"
+CONTRACT = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
+GAP_MAP = REPO / "docs/history/repository-consolidation-20261019/current/DSH-BACKEND-GAP-MAP-20260927.md"
 
 
 def stage_names() -> list[str]:

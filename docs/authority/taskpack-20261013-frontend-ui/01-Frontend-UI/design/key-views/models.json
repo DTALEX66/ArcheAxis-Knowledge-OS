@@ -1,0 +1,73 @@
+{
+  "id": "models",
+  "label": "模型与连接",
+  "page_ids": [
+    "19"
+  ],
+  "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+  "target_size": [
+    1920,
+    1080
+  ],
+  "verify_sizes": [
+    [
+      1366,
+      768
+    ],
+    [
+      1920,
+      1080
+    ],
+    [
+      2560,
+      1440
+    ]
+  ],
+  "layers": [
+    {
+      "order": 0,
+      "layer": "model_center_title",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 1,
+      "layer": "api_client_local_tabs",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 2,
+      "layer": "connection_list",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 3,
+      "layer": "destination_credential_fields",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 4,
+      "layer": "purpose_bindings",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 5,
+      "layer": "explicit_test_diagnostics",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    }
+  ],
+  "rule": "五功能区完整，状态和费用未知不得填假数据。",
+  "required_views": [
+    "empty",
+    "normal",
+    "unavailable",
+    "error",
+    "lite_quality"
+  ],
+  "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 19 and the five-zone shell; this screen is 模型与连接. 五功能区完整，状态和费用未知不得填假数据。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: model_center_title, api_client_local_tabs, connection_list, destination_credential_fields, purpose_bindings, explicit_test_diagnostics. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+}

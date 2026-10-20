@@ -8,15 +8,29 @@ rebased away, or a tree that is not that commit's tree, is a status whose eviden
 from __future__ import annotations
 
 import json
+import hashlib
+import importlib.util
 import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RECEIPT = ROOT / "docs/current/receipts/LIVE-CHAIN-RECEIPTS.json"
+RECEIPT = ROOT / "docs/history/repository-consolidation-20261019/current/receipts/LIVE-CHAIN-RECEIPTS.json"
 EXPECTED_SCOPES = {
     "conversion": "real_conversion_probe",
     "learning": "real_learning_chain_probe",
 }
+
+
+def test_refresh_routes_new_receipts_to_an_isolated_run_without_overwriting_history():
+    spec = importlib.util.spec_from_file_location("refresh_receipts", ROOT / "scripts/probes/refresh_live_chain_receipts.py")
+    refresh = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(refresh)
+    before = hashlib.sha256(RECEIPT.read_bytes()).hexdigest()
+    first, second = refresh.receipt_target(), refresh.receipt_target()
+    assert first != second
+    assert first.is_relative_to(ROOT / ".project-local" / "runs")
+    assert first.parent.is_dir() and not first.exists()
+    assert hashlib.sha256(RECEIPT.read_bytes()).hexdigest() == before
 
 
 def _receipt() -> dict:

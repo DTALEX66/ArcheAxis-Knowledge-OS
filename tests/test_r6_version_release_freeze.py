@@ -30,7 +30,7 @@ def test_development_manifest_is_not_a_public_release() -> None:
 
 
 def test_r6_freeze_document_names_owner_gate_and_no_release() -> None:
-    document = (ROOT / "docs/current/R6-VERSION-RELEASE-FREEZE.md").read_text(encoding="utf-8")
+    document = (ROOT / "docs/history/repository-consolidation-20261019/current/R6-VERSION-RELEASE-FREEZE.md").read_text(encoding="utf-8")
     assert "Local Green Development Line" in document
     assert "Release re-opening requires a later explicit Owner decision" in document
     assert "No R6 task may create a tag" in document

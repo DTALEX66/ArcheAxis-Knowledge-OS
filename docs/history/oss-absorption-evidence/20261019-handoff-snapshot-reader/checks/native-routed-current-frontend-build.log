@@ -1,0 +1,69 @@
+[build-timing] frontend-typecheck: PASS 6.639s; D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\a0511487c08f\artifacts\bt-22fe5205.json
+vite v5.4.21 building for production...
+transforming...
+✓ 353 modules transformed.
+rendering chunks...
+computing gzip size...
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/index.html                                              0.52 kB │ gzip:   0.34 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/aaos-brand-mark-cosmic-bLvxzA9b.png             12.92 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/aaos-brand-mark-black-983Gq3QE.png              12.93 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/aaos-brand-mark-white-oRGwNmhR.png              13.33 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/pdf.worker.min-CjEcRF4W.mjs                  1,264.34 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/idle-BidrzR8f.png                            2,262.93 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/deep-space-background-20261015-Bv2uooL6.png  2,710.01 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/speaking-CJ_zdu-E.png                        2,822.69 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/awaiting_approval-CBHlPKKn.png               2,907.39 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/executing-BjajoVot.png                       3,024.37 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/listening-4fTDHf-4.png                       3,374.22 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/interrupted-BL96UV4u.png                     3,414.87 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/failed-C7RGHyo7.png                          4,922.68 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/completed-jF_IpipA.png                       4,978.69 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/thinking-Cy0c68P_.png                        5,043.62 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/DocumentEditor-BFRcWqb7.css                      0.28 kB │ gzip:   0.20 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/ImportedCoursePanel-C4zEV8kL.css                 0.43 kB │ gzip:   0.24 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/index-iQMyw_Ng.css                             299.99 kB │ gzip:  38.33 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/ImportedCoursePanel-B_p9XeY-.js                 14.05 kB │ gzip:   6.76 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/DocumentEditor-DOEpkOTO.js                     409.54 kB │ gzip: 131.06 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/PdfReader-MI0amaIF.js                          484.56 kB │ gzip: 145.47 kB
+../.project-local/runs/be268a2d33/a0511487c08f/artifacts/frontend-dist/assets/index-BmPCGZjR.js                            1,885.77 kB │ gzip: 493.82 kB
+✓ built in 2.68s
+[build-timing] frontend-vite: PASS 3.426s; D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\a0511487c08f\artifacts\bt-22fe5205.json
+[frontend] receipt=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\be10-snapshot-native-1019\artifacts\frontend-for-native.json; dist=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\runs\be268a2d33\a0511487c08f\artifacts\frontend-dist
+
+warning: in the working copy of 'AAOS-资料索引.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'AGENTS.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/SHARED_RESOURCE_PATH_INDEX.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/CanonicalLibrarySpace.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/ConversationPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/DockWorkspace.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/LiveRegionBudget.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/MaterialQuestionPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/App.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ConversationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ModelConfigurationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/CanonicalCapabilitiesSpace.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/ui-first.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/DockWorkspace.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/dock-workspace.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'tests/contract/test_conversation_contract.py', CRLF will be replaced by LF the next time Git touches it
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+warning: in the working copy of 'AAOS-资料索引.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'AGENTS.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'docs/SHARED_RESOURCE_PATH_INDEX.md', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/CanonicalLibrarySpace.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/ConversationPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/DockWorkspace.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/LiveRegionBudget.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/__tests__/MaterialQuestionPanel.test.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/app/App.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ConversationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/components/ModelConfigurationPanel.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/CanonicalCapabilitiesSpace.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/spaces/ui-first.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/DockWorkspace.tsx', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'frontend/src/workspace/dock-workspace.css', CRLF will be replaced by LF the next time Git touches it
+warning: in the working copy of 'tests/contract/test_conversation_contract.py', CRLF will be replaced by LF the next time Git touches it

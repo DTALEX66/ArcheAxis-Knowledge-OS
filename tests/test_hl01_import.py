@@ -18,7 +18,7 @@ def test_hl01_registry_import_is_idempotent_and_candidate_only(tmp_path: Path, m
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
     operator.apply("workspace.sqlite")
     operator.apply("knowledge-governance.sqlite")
-    registry = Path(__file__).parents[1] / "docs/current/R5-HL01-SOURCE-REGISTRY.json"
+    registry = Path(__file__).parents[1] / "docs/history/repository-consolidation-20261019/current/R5-HL01-SOURCE-REGISTRY.json"
     store = SourceStoreV2(database)
     monkeypatch.chdir(tmp_path)
 
@@ -55,7 +55,7 @@ def test_hl01_registry_import_is_idempotent_and_candidate_only(tmp_path: Path, m
 
 
 def test_hl01_source_path_cannot_escape_repository_root() -> None:
-    registry = Path(__file__).parents[1] / "docs/current/R5-HL01-SOURCE-REGISTRY.json"
+    registry = Path(__file__).parents[1] / "docs/history/repository-consolidation-20261019/current/R5-HL01-SOURCE-REGISTRY.json"
     try:
         _resolve_source_path(registry, "C:/outside/secret.json")
     except ValueError as exc:
@@ -70,7 +70,7 @@ def test_hl01_replay_with_changed_rights_status_is_rejected(tmp_path: Path) -> N
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
     operator.apply("workspace.sqlite")
     operator.apply("knowledge-governance.sqlite")
-    registry = Path(__file__).parents[1] / "docs/current/R5-HL01-SOURCE-REGISTRY.json"
+    registry = Path(__file__).parents[1] / "docs/history/repository-consolidation-20261019/current/R5-HL01-SOURCE-REGISTRY.json"
     store = SourceStoreV2(database)
     import_registry_candidates(
         store,
@@ -95,7 +95,7 @@ def test_hl01_truncated_registry_fails_before_writing(tmp_path: Path) -> None:
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
     operator.apply("workspace.sqlite")
     operator.apply("knowledge-governance.sqlite")
-    original = Path(__file__).parents[1] / "docs/current/R5-HL01-SOURCE-REGISTRY.json"
+    original = Path(__file__).parents[1] / "docs/history/repository-consolidation-20261019/current/R5-HL01-SOURCE-REGISTRY.json"
     payload = json.loads(original.read_text(encoding="utf-8"))
     payload["records"] = payload["records"][:-1]
     tampered = tmp_path / "registry.json"
@@ -118,7 +118,7 @@ def test_hl01_source_hash_failure_fails_before_any_write(tmp_path: Path) -> None
     operator = MigrationOperator(db_path=database, backup_dir=tmp_path / "backups")
     operator.apply("workspace.sqlite")
     operator.apply("knowledge-governance.sqlite")
-    original = Path(__file__).parents[1] / "docs/current/R5-HL01-SOURCE-REGISTRY.json"
+    original = Path(__file__).parents[1] / "docs/history/repository-consolidation-20261019/current/R5-HL01-SOURCE-REGISTRY.json"
     payload = json.loads(original.read_text(encoding="utf-8"))
     for category in payload["categories"]:
         category["source_path"] = str((Path(__file__).parents[1] / category["source_path"]).resolve())
@@ -138,3 +138,26 @@ def test_hl01_source_hash_failure_fails_before_any_write(tmp_path: Path) -> None
             repository_root=Path(__file__).parents[1],
         )
     assert store.list_sources() == []
+
+
+@pytest.mark.parametrize("registry_relative", [
+    "docs/current/R5-HL01-SOURCE-REGISTRY.json",
+    "docs/history/repository-consolidation-20261019/current/R5-HL01-SOURCE-REGISTRY.json",
+])
+def test_hl01_default_project_root_ignores_registry_depth_and_cwd(tmp_path, monkeypatch, registry_relative):
+    root = Path(__file__).resolve().parents[1]
+    monkeypatch.chdir(tmp_path)
+    assert _resolve_source_path(root / registry_relative, "app/evidence/hl01_import.py") == (root / "app/evidence/hl01_import.py").resolve()
+
+
+def test_hl01_explicit_project_root_remains_authoritative(tmp_path):
+    chosen_root = tmp_path / "chosen-project"
+    chosen_root.mkdir()
+    source = chosen_root / "source.json"
+    source.write_text("{}", encoding="utf-8")
+    registry = tmp_path / "archive" / "deep" / "registry.json"
+    assert _resolve_source_path(registry, "source.json", repository_root=chosen_root) == source.resolve()
+    outside = tmp_path / "outside.json"
+    outside.write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="escapes repository root"):
+        _resolve_source_path(registry, str(outside.resolve()), repository_root=chosen_root)

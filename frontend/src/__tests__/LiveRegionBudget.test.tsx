@@ -1,3 +1,5 @@
+import {findLearningItemButton} from "../test/learningQueue";
+import {useDiagnostics} from "../presentation/diagnostics";
 import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 // @vitest-environment jsdom
 // UI-11y-02 (finding 2): one effective announce path per broadcast event.
@@ -12,7 +14,7 @@ import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 //   * the pre-existing rule that a classified `state-reason` is never a live region
 //     (CoreFailureStates) is preserved, not re-litigated.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, renderHook, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { webcrypto } from "node:crypto";
 import { ApiError } from "../api/client";
@@ -396,15 +398,17 @@ describe("raw payloads stay off the reading surface", () => {
       throw new Error(String(operation));
     });
     const { container } = render(<CanonicalLearningSpace />);
-    await userEvent.setup().click(await screen.findByRole("button", { name: "a1" }));
+    await userEvent.setup().click(await findLearningItemButton("a1"));
 
     const recordRegion = await screen.findByText("历史与回执");
     expect(recordRegion.parentElement?.querySelector("pre")).toBeNull();
     expect(recordRegion.parentElement?.parentElement).toHaveTextContent("已读回 1 条复习事件记录。");
 
+    const entries = renderHook(useDiagnostics);
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
-    await userEvent.setup().click(screen.getByRole("button", { name: /复习历史与 Core 提交回执/ }));
-    expect(debug.mock.calls.some(([, label, payload]) => label === "复习历史与 Core 提交回执" && JSON.stringify(payload) === JSON.stringify(history))).toBe(true);
+    await userEvent.setup().click(screen.getByRole("button", { name: /复习历史与提交详情/ }));
+    expect(entries.result.current[0]).toMatchObject({label:"复习历史与提交详情",payload:history});
+    expect(debug).not.toHaveBeenCalled();
     debug.mockRestore();
     // Nothing resembling the payload's JSON reached the rendered page.
     expect(container.textContent).not.toMatch(/"event_id"/);
@@ -417,20 +421,22 @@ describe("raw payloads stay off the reading surface", () => {
     bridge.call.mockImplementation(async(operation:string,payload:{body:{scope:string;operations:readonly string[]}})=>{expect(operation).toBe("operation_readiness");expect(payload.body).toEqual({scope:"view:CAP-0050",operations:["machine.answer"]});return {schema:"archeaxis.operation-readiness/v1",scope:payload.body.scope,observed_at_ms:Date.now(),expires_at_ms:expires,aggregate:"NOT_READY",network_performed:false,models_loaded:false,execution_authorized:false,operations:[observation]};});
     const { container } = render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />);
     expect(bridge.call).not.toHaveBeenCalled();
-    await userEvent.setup().click(screen.getByRole("button", { name: /CAP-0050/ }));
+    await userEvent.setup().click(screen.getByRole("button", { name: /AI 学习资产与受控调用/ }));
     await screen.findByText(/已读取当前视图的范围化状态/);
 
     // The human-readable summary is still on the reading surface...
     expect(screen.getByText(/连接\/权限/)).toHaveTextContent("已禁用");
-    expect(screen.getByText(/连接\/权限/)).toHaveTextContent("UNKNOWN");
+    expect(screen.getByText(/连接\/权限/)).toHaveTextContent("状态未知");
     // ...and the raw dump that used to sit under it is gone.
     const details = screen.getByRole("article", { name: "能力详情" });
     expect(details.querySelectorAll("pre")).toHaveLength(0);
     expect(details.querySelectorAll("details")).toHaveLength(0);
 
+    const entries = renderHook(useDiagnostics);
     const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
-    await userEvent.setup().click(screen.getByRole("button", { name: /Core 范围化状态原始读回 · machine\.answer/ }));
-    expect(debug.mock.calls.some(([, label, payload]) => label === "Core 范围化状态原始读回 · machine.answer" && JSON.stringify(payload) === JSON.stringify({...observation,enabled:false,health:"UNKNOWN"}))).toBe(true);
+    await userEvent.setup().click(screen.getByRole("button", { name: /能力运行详细信息 · AI回答/ }));
+    expect(entries.result.current[0]).toMatchObject({label:"能力运行详细信息 · AI回答",payload:{...observation,enabled:false,health:"UNKNOWN"}});
+    expect(debug).not.toHaveBeenCalled();
     debug.mockRestore();
     expect(container.textContent).not.toMatch(/"health"\s*:/);
   });

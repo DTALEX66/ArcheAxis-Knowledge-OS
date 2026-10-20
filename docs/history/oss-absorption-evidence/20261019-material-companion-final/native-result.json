@@ -1,0 +1,89 @@
+{
+  "status": "FAIL",
+  "whole_project": "PARTIAL",
+  "evidence_level": "REAL_NATIVE_CANDIDATE_AND_LOCAL_MODEL_WITH_SYNTHETIC_MATERIAL",
+  "source_patch_sha256": "95428057cc7cefe520f9e4c0a87d0c1ca9508b090e05003b6bf307281a287be4",
+  "source_consistent": true,
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\closure-native-stage\\candidate-build-current-20261018T181806Z.json",
+      "sha256": "a931ef6239d08557e26c0cbb6a9bbfac5baa6bd54ac325197c1b6fa90d39a5d6",
+      "bytes": 3920
+    },
+    "core_sha256": "750c44943ecc8a6f7e3c691992490a6ce75d3a83eadbc99a2c3d24931fdee681"
+  },
+  "host": {
+    "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\candidates\\closure-20261018\\backend\\ArcheAxis.exe",
+    "sha256": "b80b9cdd7804db876d22829049a81d1381a7b350abd717a13f18f5903536df47",
+    "bytes": 47266304
+  },
+  "engineering_status": "IN_PROGRESS",
+  "closed_loop_verified": false,
+  "human_signoff": false,
+  "owner_acceptance": "NOT_EXECUTED",
+  "material_companion_status": "IN_PROGRESS",
+  "phases": {
+    "same_process_recovery": {
+      "status": "NOT_EXECUTED"
+    },
+    "cold_reopen": {
+      "status": "NOT_EXECUTED"
+    },
+    "backup_restore": {
+      "status": "NOT_EXECUTED"
+    }
+  },
+  "actual_model_results": [],
+  "observed_calls": [
+    {
+      "operation": "material_question",
+      "preview": true,
+      "own": true,
+      "completed": true,
+      "status": 200
+    },
+    {
+      "operation": "material_question",
+      "preview": false,
+      "own": true,
+      "completed": true,
+      "status": 200
+    }
+  ],
+  "reopen_observations": {
+    "cold_reopen": null,
+    "backup_restore": null
+  },
+  "launch_count": 1,
+  "trusted_actions": 117,
+  "raw_local_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-3edafe42aed3/tmp/journey/receipt.json",
+    "sha256": "a4aa4539f40bfc0cb987c56e1ccea53d92ae3c5ebadfec936aa97aa038c07c21"
+  },
+  "screenshots": [
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-3edafe42aed3/tmp/journey/failure.png",
+      "sha256": "514b99f3d9ff3ad7f1dbc6611c0e48ed5b44060d2947fa4c495e22ff7453288f",
+      "bytes": 1255560
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-3edafe42aed3/tmp/journey/grouped-learning-review.png",
+      "sha256": "1b8f48e449b752c7f900794342e5161ed660c8ba90dcf2e4075b36bbc7a434b4",
+      "bytes": 965029
+    }
+  ],
+  "error": "TimeoutError: Window assertion deadline: return document.evaluate(\"//section[@aria-label='\\u56fa\\u5b9a\\u7248\\u672c\\u6750\\u6599\\u95ee\\u7b54' and not(ancestor-or-self::*[@hidden])]\",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue.textContent.includes('回答已记录，仍是待判断的模型候选。')",
+  "traceback": "Traceback (most recent call last):\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_tauri_webdriver_loop.py\", line 1664, in main\n    grouped.run_grouped_loop(\n    ~~~~~~~~~~~~~~~~~~~~~~~~^\n        bridge=bridge, js=js, wait=wait, element=ui_element,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<16 lines>...\n        accept_navigation_alert=grouped_accept_navigation_alert,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_grouped_owner_loop.py\", line 1175, in run_grouped_loop\n    mc.run(ui, read, js, wait, screenshot, document, ai_stage[\"saved_deep_binding\"], result[\"material_companion\"])\n    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py\", line 159, in run\n    wait(\"return \" + node(scope) + \".textContent.includes('回答已记录，仍是待判断的模型候选。')\", seconds=150)\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_tauri_webdriver_loop.py\", line 1401, in wait\n    raise TimeoutError(\"Window assertion deadline: \" + script)\nTimeoutError: Window assertion deadline: return document.evaluate(\"//section[@aria-label='\\u56fa\\u5b9a\\u7248\\u672c\\u6750\\u6599\\u95ee\\u7b54' and not(ancestor-or-self::*[@hidden])]\",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue.textContent.includes('回答已记录，仍是待判断的模型候选。')\n",
+  "cleanup": {
+    "owned_ports_released": true,
+    "remaining_owned_port_listeners": [],
+    "remaining_same_creation_owned_hosts": []
+  },
+  "limitations": [
+    "Synthetic authored material, not model quality qualification",
+    "Candidate, not installed runtime",
+    "Startup invocation count unverified; observations begin after attach",
+    "No Owner acceptance or whole-product completion"
+  ]
+}

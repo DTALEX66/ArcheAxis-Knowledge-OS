@@ -1,0 +1,1046 @@
+{
+  "schema": "archeaxis.execution-resume/v1",
+  "created_at": "2026-10-19T06:59:03.782281+00:00",
+  "status": "PARTIAL",
+  "source_base": "7c091cf0c65b27f95d884456cd82a26a74809081",
+  "scope": [
+    "共同machine.answer执行准入：默认模型和显式模型均核能力开关，读取失败拒绝，库存等待后再核，同一deadline，Store繁忙时可取消",
+    "超时诊断保留MODEL_CALL_TIMEOUT，不自动重试未知结果，不复制私密文本",
+    "人工审核队列断言补真实display_title，权限、旧版本、原子性断言保留",
+    "21份精确manifest按同一Git source验证自身pin及成员路径/大小/SHA；任一失败不认可任何成员，未登记继续原规范",
+    "恢复8个原始CSV及12份遗漏自有日志的Git交付字节，不改旧CHECKSUMS/MANIFEST"
+  ],
+  "source_files": {
+    "crates/archeaxis-api/tests/document_draft_loop.rs": {
+      "bytes": 46372,
+      "sha256": "5dea380df4956cbaa6658c74aadfd53446c4643ce26c50a0386041155b719dde"
+    },
+    "crates/archeaxis-application/src/executor.rs": {
+      "bytes": 70427,
+      "sha256": "cbd8221a33839b716c5aae5b7824fdff5069916da53979b7bddbf6a59aa4a18a"
+    },
+    "crates/archeaxis-application/tests/machine_answer_resources.rs": {
+      "bytes": 30047,
+      "sha256": "c9349dc4158b92cf04dfcdb5ac216548e54e4286208acf00540822292e638a51"
+    },
+    "scripts/check_repository_conventions.py": {
+      "bytes": 71427,
+      "sha256": "7709fbbc4893389c79f98e6fbb3ce4fd070354b2535105bb45a1e8958c7fc66d"
+    },
+    "scripts/probes/aaos01_grouped_owner_loop.py": {
+      "bytes": 136677,
+      "sha256": "ce435a109fa760a909e93c3a24a4f1ba555ee30adb0266a66bbe6c2832c64378"
+    },
+    "tests/test_grouped_native_owner_probe.py": {
+      "bytes": 92009,
+      "sha256": "4963778246cb565d1014389ad05752daf5a2156015fa98c628bbaf765e173b20"
+    },
+    "tests/test_naming_conventions.py": {
+      "bytes": 18510,
+      "sha256": "a18b65baf585d5d3717f23783253660a7c029b72b733a67d6907ca99dc72c022"
+    },
+    "tests/test_frozen_manifest_conventions.py": {
+      "bytes": 6925,
+      "sha256": "c3a5bef9fc8df95702a42a37945b7496f74196048822547a74e5a3278d3f01c8"
+    },
+    ".gitattributes": {
+      "bytes": 5562,
+      "sha256": "06cfed4213b2dd62415949200713e728899db09581338221db7e44ab64291dd3"
+    }
+  },
+  "verification": {
+    "rust": {
+      "status": "PASS",
+      "tests": 55,
+      "evidence": "INTEGRATED Core/SQLite plus SYNTHETIC owned workers; no real model inference"
+    },
+    "python": {
+      "status": "PARTIAL",
+      "passed": 290,
+      "failed": 3,
+      "subtests_passed": 145,
+      "failures": [
+        "tests/test_path_conventions.py::test_r5_closes_historical_gaps_without_promoting_legacy_or_private_state",
+        "tests/test_path_conventions.py::test_the_record_is_a_measurement_at_the_commit_it_names",
+        "tests/test_path_conventions.py::test_growth_since_the_measurement_is_reported_as_drift_not_refused"
+      ],
+      "observed_failure": "path ownership rules: 436 unowned unrecorded paths and historical record mismatch; unrelated rule/record files unchanged in this slice"
+    },
+    "ruff_ci_syntax": "PASS",
+    "rustfmt_changed_files": "PASS",
+    "index_manifest_integrity": {
+      "status": "PASS",
+      "registered_manifests": 21,
+      "validated_paths": 954,
+      "missing_or_mismatched": 0
+    },
+    "repository_conventions": {
+      "status": "PARTIAL",
+      "source": "index",
+      "exit_code": 1,
+      "remaining_issues": [
+        {
+          "code": "invalid-utf8",
+          "path": "test-results.log",
+          "detail": "'utf-8' codec can't decode byte 0xa1 in position 585793: invalid start byte"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn-full/虚拟人物/小栖/.hilo/active-generations.json",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn-full/虚拟人物/小栖/.hilo/connector-selections.json",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn-full/虚拟人物/小栖/.hilo/gateway-shutdown.marker",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn-full/虚拟人物/小栖/.hilo/storage.json",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn/虚拟人物/小栖/.hilo/active-generations.json",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn/虚拟人物/小栖/.hilo/connector-selections.json",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn/虚拟人物/小栖/.hilo/gateway-shutdown.marker",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "missing-final-newline",
+          "path": "assets/astryn/虚拟人物/小栖/.hilo/storage.json",
+          "detail": "text must end with LF"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "ALL-TASKS-COMPLETED.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "CLEANUP-AUDIT-REPORT.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "FINAL-EXECUTION-REPORT.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "FINAL-HONEST-REPORT.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "SUCCESS-REPORT.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "XIAOQI-STATUS-UPDATE.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "assets/astryn-full/MIGRATION-LOG.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/current/COMPLETE-EXECUTION-REPORT-20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/current/REPOSITORY-CLEANUP-20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/AAOS_UI_审计报告_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/AAOS_UI修复执行报告_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/AAOS_UI缺陷修复方案_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/CODEX交接包分析对比_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/全部任务完成_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/全面执行计划_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/分支合并计划_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI今日交付总结_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI全面分析与设计方案_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI完整执行总结_最终版_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI执行总结_最终版_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI执行最终总结_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI执行计划_最终确认版_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI执行进度_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI最终交付报告_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI真实完成报告_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI绝对最终报告_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端UI长任务完整报告_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/前端循环执行日志_第2轮_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/完整交付清单_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/完整交接提示词_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/完整任务汇总_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/执行完成_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/执行完成_最终确认_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/最终完成确认_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/最终执行完成报告_20261016_2305.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/最终执行状态报告_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/真实执行进度_第3轮_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/项目执行完成总结_20261016.md",
+          "detail": "line ends with space or tab"
+        },
+        {
+          "code": "trailing-whitespace",
+          "path": "docs/history/daily-execution-logs-20261016/项目理解与执行总结_20261016.md",
+          "detail": "line ends with space or tab"
+        }
+      ]
+    },
+    "source_consistency": "Final Rust/Python/format and both index-scanner receipts each source_consistent=true; see separate exact patch hashes, not a single aggregate SHA"
+  },
+  "red_evidence": {
+    "machine-admission-red-1019": "Disabled capability returned synthetic answer before the fix; expected behavior RED",
+    "ai-timeout-classification-red-1019": "Timeout reason absent before diagnostic fix; expected behavior RED",
+    "review-shape-red-1019": "Real queue included display_title; old exact object assertion failed",
+    "machine-admission-cancel-red-1019": "Initial new-test compile failure: MachineFailure comparison type; corrected without changing product",
+    "machine-admission-cancel-red-v2-1019": "Cancelled admission remained pending while Store held; expected behavior RED",
+    "execution-resume-index-conventions-1019": "Initial staging reused cached CSV LF blobs; fail-closed manifest check rejected both taskpacks; exact git add --renormalize restored original bytes"
+  },
+  "delivery_byte_restoration": [
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-browser-1019.log",
+      "expected_sha256": "251ce63ea5bf110d724f422489930e2cce55cfe0c4eb02f8ebff3484360520ee",
+      "expected_bytes": 913,
+      "worktree_exists": true,
+      "worktree_sha256": "251ce63ea5bf110d724f422489930e2cce55cfe0c4eb02f8ebff3484360520ee",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-browser-v2-1019.log",
+      "expected_sha256": "2a81f0a681b3b17081287e031eaeb1f048a3fda962e620e8ac41f54e0b9414c0",
+      "expected_bytes": 1233,
+      "worktree_exists": true,
+      "worktree_sha256": "2a81f0a681b3b17081287e031eaeb1f048a3fda962e620e8ac41f54e0b9414c0",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-browser-v3-1019.log",
+      "expected_sha256": "e474508b808f5144fd4da1520e386055a6c254a65fa89d055c6f45c8254bfae9",
+      "expected_bytes": 1328,
+      "worktree_exists": true,
+      "worktree_sha256": "e474508b808f5144fd4da1520e386055a6c254a65fa89d055c6f45c8254bfae9",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-browser-v4-1019.log",
+      "expected_sha256": "3fee19e7727060588ff6bdc94d230a9a6a752d9ffad21a348ed8f117d0da7198",
+      "expected_bytes": 1024,
+      "worktree_exists": true,
+      "worktree_sha256": "3fee19e7727060588ff6bdc94d230a9a6a752d9ffad21a348ed8f117d0da7198",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-format-1019.log",
+      "expected_sha256": "db64c473c7976074477cda997a46ded4e2c06c73c5404384b75da52211b8ed3b",
+      "expected_bytes": 172,
+      "worktree_exists": true,
+      "worktree_sha256": "db64c473c7976074477cda997a46ded4e2c06c73c5404384b75da52211b8ed3b",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-frontend-1019.log",
+      "expected_sha256": "843ed89388277ca94067b764fa56e2cda410ef8d0debad8425450e2c72ee8465",
+      "expected_bytes": 994,
+      "worktree_exists": true,
+      "worktree_sha256": "843ed89388277ca94067b764fa56e2cda410ef8d0debad8425450e2c72ee8465",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-frontend-final-1019.log",
+      "expected_sha256": "c8e57beb53f39a6cd4d0d1ab3ab98c395d4de56e894ec7913091647a937b6fc6",
+      "expected_bytes": 47,
+      "worktree_exists": true,
+      "worktree_sha256": "c8e57beb53f39a6cd4d0d1ab3ab98c395d4de56e894ec7913091647a937b6fc6",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-native-1019.log",
+      "expected_sha256": "1e98291e85ec9dee46a9182e066eb063aea4992acf29e9d8ed51b7f7af2f8b7b",
+      "expected_bytes": 63,
+      "worktree_exists": true,
+      "worktree_sha256": "1e98291e85ec9dee46a9182e066eb063aea4992acf29e9d8ed51b7f7af2f8b7b",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-native-format-1019.log",
+      "expected_sha256": "a6f7443ea60921258258a1a9e514fcf694a6841da64e606f3cb1301cb863d6c1",
+      "expected_bytes": 209,
+      "worktree_exists": true,
+      "worktree_sha256": "a6f7443ea60921258258a1a9e514fcf694a6841da64e606f3cb1301cb863d6c1",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-original-red-1019.log",
+      "expected_sha256": "4bd71e54d847a6ef2340586dcd6a595ed99d53d89af1be2e6bcb6f5651f6a44d",
+      "expected_bytes": 446,
+      "worktree_exists": true,
+      "worktree_sha256": "4bd71e54d847a6ef2340586dcd6a595ed99d53d89af1be2e6bcb6f5651f6a44d",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-rust-1019.log",
+      "expected_sha256": "09f3e76929de68f0b70fb42e860ea69fa8fec2e04d33ced28e6b1652a0ae5fdc",
+      "expected_bytes": 96,
+      "worktree_exists": true,
+      "worktree_sha256": "09f3e76929de68f0b70fb42e860ea69fa8fec2e04d33ced28e6b1652a0ae5fdc",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/logs/be10-snapshot-sources-1019.log",
+      "expected_sha256": "f679db4ce84b59c973bc4329e89be2a08d7ff88d1fbfd0eac16e5fc312d11f3c",
+      "expected_bytes": 150,
+      "worktree_exists": true,
+      "worktree_sha256": "f679db4ce84b59c973bc4329e89be2a08d7ff88d1fbfd0eac16e5fc312d11f3c",
+      "worktree_matches": true
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-backend-host/OPEN-SOURCE-REUSE-MATRIX.csv",
+      "expected_sha256": "3fe2ad5dee01df6c7d059220c32577d063c2ea030a76788ba441a79eddeffa91",
+      "expected_bytes": 2392,
+      "worktree_exists": true,
+      "worktree_sha256": "3fe2ad5dee01df6c7d059220c32577d063c2ea030a76788ba441a79eddeffa91",
+      "worktree_matches": true,
+      "lf_to_crlf_reconstructs_expected": true
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-backend-host/TASK-CROSSWALK.csv",
+      "expected_sha256": "8a914cd5952f10eeb99f920789e222423c2897e74b64c1b426afbfae117d6407",
+      "expected_bytes": 965,
+      "worktree_exists": true,
+      "worktree_sha256": "8a914cd5952f10eeb99f920789e222423c2897e74b64c1b426afbfae117d6407",
+      "worktree_matches": true,
+      "lf_to_crlf_reconstructs_expected": true
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/AUDIT-CLOSURE.csv",
+      "expected_sha256": "5284d15f3245245e225f3363dbef9838edd07531c08a70445217fa426ee70b96",
+      "expected_bytes": 379,
+      "worktree_exists": true,
+      "worktree_sha256": "5284d15f3245245e225f3363dbef9838edd07531c08a70445217fa426ee70b96",
+      "worktree_matches": true,
+      "lf_to_crlf_reconstructs_expected": true
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/FEATURE-STATE-MATRIX.csv",
+      "expected_sha256": "fb68ec1e9faae94f93ffc289344e35b0c5ce3b4be1690a686552d2ee9549dc31",
+      "expected_bytes": 25097,
+      "worktree_exists": true,
+      "worktree_sha256": "fb68ec1e9faae94f93ffc289344e35b0c5ce3b4be1690a686552d2ee9549dc31",
+      "worktree_matches": true,
+      "lf_to_crlf_reconstructs_expected": true
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/OPEN-SOURCE-REUSE-MATRIX.csv",
+      "expected_sha256": "3fe2ad5dee01df6c7d059220c32577d063c2ea030a76788ba441a79eddeffa91",
+      "expected_bytes": 2392,
+      "worktree_exists": true,
+      "worktree_sha256": "3fe2ad5dee01df6c7d059220c32577d063c2ea030a76788ba441a79eddeffa91",
+      "worktree_matches": true,
+      "lf_to_crlf_reconstructs_expected": true
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/PAGE-MATRIX.csv",
+      "expected_sha256": "f57fbaa0452c3b369e5bd0bacca744ae92dbd9552a041235e0a91687c4902d6f",
+      "expected_bytes": 4173,
+      "worktree_exists": true,
+      "worktree_sha256": "f57fbaa0452c3b369e5bd0bacca744ae92dbd9552a041235e0a91687c4902d6f",
+      "worktree_matches": true,
+      "lf_to_crlf_reconstructs_expected": true
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/TASK-CROSSWALK.csv",
+      "expected_sha256": "ebd2b85f24b30937bbeb80faace738b3e0ea77d8831de4a9f77507537e72db48",
+      "expected_bytes": 1985,
+      "worktree_exists": true,
+      "worktree_sha256": "ebd2b85f24b30937bbeb80faace738b3e0ea77d8831de4a9f77507537e72db48",
+      "worktree_matches": true,
+      "lf_to_crlf_reconstructs_expected": true
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/design/COMPONENT-STATES.csv",
+      "expected_sha256": "78f4d7f91f4193347cd4070b836007776424bfd94329f47964bfb76773babee7",
+      "expected_bytes": 13029,
+      "worktree_exists": true,
+      "worktree_sha256": "78f4d7f91f4193347cd4070b836007776424bfd94329f47964bfb76773babee7",
+      "worktree_matches": true,
+      "lf_to_crlf_reconstructs_expected": true
+    }
+  ],
+  "runs": [
+    {
+      "run_id": "machine-admission-red-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "03107e7056af00ecbb999ab3e9c6ea4c2795bdbfce9fefd3680fd0d99f995739",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:34:59.899718+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\machine-admission-red-1019",
+        "executable": "cmd",
+        "argument_count": 14,
+        "command": [
+          "cmd",
+          "/d",
+          "/c",
+          "scripts\\ci\\cargo_test.bat",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "archeaxis-application",
+          "--test",
+          "machine_answer_resources",
+          "disabled_machine_refuses_all_model_choices_and_policies_before_spawn",
+          "--",
+          "--exact",
+          "--test-threads=1"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 101,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "03107e7056af00ecbb999ab3e9c6ea4c2795bdbfce9fefd3680fd0d99f995739",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\machine-admission-red-1019\\logs\\execution.log",
+        "exit_code": 101,
+        "ended_at": "2026-10-19T06:35:09.232782+00:00",
+        "seconds": 9.333057100011501
+      },
+      "receipt_identity": {
+        "bytes": 1509,
+        "sha256": "167d28ef7874bcb22154a801f55b9b83ee788297206ad68c948a11fe7b9f1fa2"
+      },
+      "log_identity": {
+        "bytes": 2966,
+        "sha256": "2f22d88491e7118dc98727aa96f84074d62ea4d600b75ebfeb14200666b418cc"
+      }
+    },
+    {
+      "run_id": "ai-timeout-classification-red-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "400cf07e7a8e7556df9ff539940e336321a245d1a9b9da9dc9efff1e439209b8",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:37:05.679708+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ai-timeout-classification-red-1019",
+        "executable": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "argument_count": 9,
+        "command": [
+          "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pytest",
+          "--basetemp=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ai-timeout-classification-red-1019\\tmp\\pytest",
+          "-o",
+          "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ai-timeout-classification-red-1019\\pytest-cache",
+          "tests/test_grouped_native_owner_probe.py",
+          "-q",
+          "-k",
+          "timeout_diagnostic"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 1,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "400cf07e7a8e7556df9ff539940e336321a245d1a9b9da9dc9efff1e439209b8",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ai-timeout-classification-red-1019\\logs\\execution.log",
+        "exit_code": 1,
+        "ended_at": "2026-10-19T06:37:08.060220+00:00",
+        "seconds": 2.3805093000119086
+      },
+      "receipt_identity": {
+        "bytes": 1748,
+        "sha256": "6a4ca94148cc0e109a99ef4fd92c6788e79e303ffbcd566fa2df9bc83ab9dc83"
+      },
+      "log_identity": {
+        "bytes": 3551,
+        "sha256": "7d53968f86f13af81c0a71a4da603b7a86f6920eac251a51fc678e86de7fdf7b"
+      }
+    },
+    {
+      "run_id": "review-shape-red-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "400cf07e7a8e7556df9ff539940e336321a245d1a9b9da9dc9efff1e439209b8",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:37:06.627604+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\review-shape-red-1019",
+        "executable": "cmd",
+        "argument_count": 14,
+        "command": [
+          "cmd",
+          "/d",
+          "/c",
+          "scripts\\ci\\cargo_test.bat",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "archeaxis-api",
+          "--test",
+          "document_draft_loop",
+          "versioned_human_review_refuses_machine_and_stale_versions_without_partial_writes",
+          "--",
+          "--exact",
+          "--test-threads=1"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 101,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "400cf07e7a8e7556df9ff539940e336321a245d1a9b9da9dc9efff1e439209b8",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\review-shape-red-1019\\logs\\execution.log",
+        "exit_code": 101,
+        "ended_at": "2026-10-19T06:37:21.016588+00:00",
+        "seconds": 14.38898000001791
+      },
+      "receipt_identity": {
+        "bytes": 1498,
+        "sha256": "84226f94d0fa4810adb755490e52c70c31570a9407e6034fd45f854e97bd8d70"
+      },
+      "log_identity": {
+        "bytes": 3060,
+        "sha256": "6b7199e0fab7fd16e6cf70ee671f9cbdb831c41b0babbbcc8efe24061538a8d8"
+      }
+    },
+    {
+      "run_id": "machine-admission-cancel-red-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "ab2ea54d0fd5bd0771bc1570ad7ba83260951abbb2dbb5539654179d8b556de4",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:53:06.627296+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\machine-admission-cancel-red-1019",
+        "executable": "cmd",
+        "argument_count": 13,
+        "command": [
+          "cmd",
+          "/d",
+          "/c",
+          "scripts\\ci\\cargo_test.bat",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "archeaxis-application",
+          "--test",
+          "machine_answer_resources",
+          "cancellation_interrupts_machine_admission_without_releasing_busy_store",
+          "--",
+          "--exact"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 101,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "ab2ea54d0fd5bd0771bc1570ad7ba83260951abbb2dbb5539654179d8b556de4",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\machine-admission-cancel-red-1019\\logs\\execution.log",
+        "exit_code": 101,
+        "ended_at": "2026-10-19T06:53:08.539875+00:00",
+        "seconds": 1.9125747999933083
+      },
+      "receipt_identity": {
+        "bytes": 1501,
+        "sha256": "a733eed1926846391c0785c5c60eaa38d033cf812bd04e12e2103e96f8bd8e8f"
+      },
+      "log_identity": {
+        "bytes": 2667,
+        "sha256": "27fe34ee35fde30046dcafc3883e002c1fb4caa2e17624d9923dddcb2d450ee4"
+      }
+    },
+    {
+      "run_id": "machine-admission-cancel-red-v2-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "a9c9e1ddf0c8f4074c2609b51a35502b31748a7e104a3f58ed5087bef6096a79",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:53:19.681136+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\machine-admission-cancel-red-v2-1019",
+        "executable": "cmd",
+        "argument_count": 13,
+        "command": [
+          "cmd",
+          "/d",
+          "/c",
+          "scripts\\ci\\cargo_test.bat",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "archeaxis-application",
+          "--test",
+          "machine_answer_resources",
+          "cancellation_interrupts_machine_admission_without_releasing_busy_store",
+          "--",
+          "--exact"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 101,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "a9c9e1ddf0c8f4074c2609b51a35502b31748a7e104a3f58ed5087bef6096a79",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\machine-admission-cancel-red-v2-1019\\logs\\execution.log",
+        "exit_code": 101,
+        "ended_at": "2026-10-19T06:53:24.485217+00:00",
+        "seconds": 4.804077200009488
+      },
+      "receipt_identity": {
+        "bytes": 1506,
+        "sha256": "af3fde9ae1bfdbbaff78511202efc6d3a4355d1ec981730ca5d173aad49db466"
+      },
+      "log_identity": {
+        "bytes": 2704,
+        "sha256": "e0000594c8a3d7b2c9b1a54468d12de2b038f0e4017ac1bc32c96f1e0026ddeb"
+      }
+    },
+    {
+      "run_id": "execution-resume-final-rust-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "06309d02791d5288b4f02f0f7d192da35bfbae90b7fc95458c13833f5c95ff93",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:54:07.804435+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-final-rust-1019",
+        "executable": "cmd",
+        "argument_count": 22,
+        "command": [
+          "cmd",
+          "/d",
+          "/c",
+          "scripts\\ci\\cargo_test.bat",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "archeaxis-application",
+          "--test",
+          "machine_answer_resources",
+          "--test",
+          "model_configuration_execution",
+          "-p",
+          "archeaxis-api",
+          "--test",
+          "document_draft_loop",
+          "--test",
+          "capability_settings_process",
+          "--test",
+          "contract_machine_answer",
+          "--",
+          "--test-threads=1"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "06309d02791d5288b4f02f0f7d192da35bfbae90b7fc95458c13833f5c95ff93",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-final-rust-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-19T06:55:06.279997+00:00",
+        "seconds": 58.47555750000174
+      },
+      "receipt_identity": {
+        "bytes": 1657,
+        "sha256": "8766f603497fb6db89a374b05028b279a878fdfb3503aea8d993aa87959c0312"
+      },
+      "log_identity": {
+        "bytes": 7556,
+        "sha256": "0bf33011bddb6616e5669f9e12e472f55d1e043dc382428417cdaf4f84c788eb"
+      }
+    },
+    {
+      "run_id": "execution-resume-final-python-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "06309d02791d5288b4f02f0f7d192da35bfbae90b7fc95458c13833f5c95ff93",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:54:21.197002+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-final-python-1019",
+        "executable": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "argument_count": 13,
+        "command": [
+          "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pytest",
+          "--basetemp=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-final-python-1019\\tmp\\pytest",
+          "-o",
+          "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-final-python-1019\\pytest-cache",
+          "tests/test_frozen_manifest_conventions.py",
+          "tests/test_naming_conventions.py",
+          "tests/test_path_conventions.py",
+          "tests/test_grouped_native_owner_probe.py",
+          "tests/test_machine_request_measurements.py",
+          "tests/test_worker_machine_answer.py",
+          "tests/contract/test_machine_failure_diagnostics.py",
+          "-q"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 1,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "06309d02791d5288b4f02f0f7d192da35bfbae90b7fc95458c13833f5c95ff93",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-final-python-1019\\logs\\execution.log",
+        "exit_code": 1,
+        "ended_at": "2026-10-19T06:54:46.705972+00:00",
+        "seconds": 25.508966199995484
+      },
+      "receipt_identity": {
+        "bytes": 1995,
+        "sha256": "4cd4678a68d4ab89faeda2b938e20491959a8ef21063dd0077d16d9d16010064"
+      },
+      "log_identity": {
+        "bytes": 5471,
+        "sha256": "80c11777fe3e135dd8841917516b7ee3a81c83265a0a730387e8c5a42354ade4"
+      }
+    },
+    {
+      "run_id": "execution-resume-ruff-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "678d58fc92fa58bc213219e3ae7c14862fd26778f53f5a666c49353f57ff084d",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:56:53.190438+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-ruff-1019",
+        "executable": ".venv/Scripts/python.exe",
+        "argument_count": 11,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "-m",
+          "ruff",
+          "check",
+          "scripts/check_repository_conventions.py",
+          "scripts/probes/aaos01_grouped_owner_loop.py",
+          "tests/test_frozen_manifest_conventions.py",
+          "tests/test_naming_conventions.py",
+          "tests/test_grouped_native_owner_probe.py",
+          "--select",
+          "E9,F63,F7,F82"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "678d58fc92fa58bc213219e3ae7c14862fd26778f53f5a666c49353f57ff084d",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-ruff-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-19T06:56:53.745696+00:00",
+        "seconds": 0.5552579999784939
+      },
+      "receipt_identity": {
+        "bytes": 1558,
+        "sha256": "de164d06a787ae0043f4659a93695289040ffab42fd7246500bdb9410d9448f1"
+      },
+      "log_identity": {
+        "bytes": 20,
+        "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+      }
+    },
+    {
+      "run_id": "execution-resume-rustfmt-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "678d58fc92fa58bc213219e3ae7c14862fd26778f53f5a666c49353f57ff084d",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:56:59.595671+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-rustfmt-1019",
+        "executable": "D:/All projects/OS External Configuration/toolchains/rust/cargo/bin/rustfmt.exe",
+        "argument_count": 6,
+        "command": [
+          "D:/All projects/OS External Configuration/toolchains/rust/cargo/bin/rustfmt.exe",
+          "--edition",
+          "2024",
+          "--check",
+          "crates/archeaxis-application/src/executor.rs",
+          "crates/archeaxis-application/tests/machine_answer_resources.rs",
+          "crates/archeaxis-api/tests/document_draft_loop.rs"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "678d58fc92fa58bc213219e3ae7c14862fd26778f53f5a666c49353f57ff084d",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-rustfmt-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-19T06:57:00.042598+00:00",
+        "seconds": 0.44692400001804344
+      },
+      "receipt_identity": {
+        "bytes": 1575,
+        "sha256": "359c20c8b27b4b85f74a0e7f784fbd8163c97e524422c73af3617b7613b61a5e"
+      },
+      "log_identity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "run_id": "execution-resume-index-conventions-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "678d58fc92fa58bc213219e3ae7c14862fd26778f53f5a666c49353f57ff084d",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:56:20.435145+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-index-conventions-1019",
+        "executable": ".venv/Scripts/python.exe",
+        "argument_count": 6,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/check_repository_conventions.py",
+          "--source",
+          "index",
+          "--format",
+          "json"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 1,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "678d58fc92fa58bc213219e3ae7c14862fd26778f53f5a666c49353f57ff084d",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-index-conventions-1019\\logs\\execution.log",
+        "exit_code": 1,
+        "ended_at": "2026-10-19T06:56:32.368860+00:00",
+        "seconds": 11.933712600002764
+      },
+      "receipt_identity": {
+        "bytes": 1369,
+        "sha256": "2f68957728a122710e86da143d34c049c705b51304d91f0749e48f3cb7ce7ff4"
+      },
+      "log_identity": {
+        "bytes": 152864,
+        "sha256": "7d16e8b999613b2ce7f1eab7bcf1e20b250995f4987071cd6f9fb61f6789b149"
+      }
+    },
+    {
+      "run_id": "execution-resume-index-conventions-v2-1019",
+      "execution_receipt": {
+        "source_commit": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_tree": "8b3e240803b8e8fe5e5c345d78bbfa46a9a01399",
+        "dirty": true,
+        "source_patch_sha256": "f6fb217518f2999a3a864a0ed90a2df14541bf95b4e86f2a00db45267b726b60",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-19T06:57:32.507563+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-index-conventions-v2-1019",
+        "executable": ".venv/Scripts/python.exe",
+        "argument_count": 6,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-B",
+          "scripts/check_repository_conventions.py",
+          "--source",
+          "index",
+          "--format",
+          "json"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 1,
+        "source_commit_after": "7c091cf0c65b27f95d884456cd82a26a74809081",
+        "source_patch_sha256_after": "f6fb217518f2999a3a864a0ed90a2df14541bf95b4e86f2a00db45267b726b60",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\execution-resume-index-conventions-v2-1019\\logs\\execution.log",
+        "exit_code": 1,
+        "ended_at": "2026-10-19T06:57:44.477996+00:00",
+        "seconds": 11.970431299996562
+      },
+      "receipt_identity": {
+        "bytes": 1375,
+        "sha256": "e9145cc0d3b5531fb414b541b903864ff4d1b86dbaee77e77d3261e8940dff2e"
+      },
+      "log_identity": {
+        "bytes": 9148,
+        "sha256": "659e586ae9917bc31ee72dc382235424865f8b4ea55dd8309dd4ba07c58360d4"
+      }
+    }
+  ],
+  "not_verified": [
+    "Actual LM Studio provider MODEL_CALL_TIMEOUT at 118.03s is not fixed or rerun by this diagnostic change",
+    "Provider stop and atomic cancellation of already admitted work",
+    "Full HUB004 install/update/runtime admission lifecycle",
+    "Native UI/installer/Owner acceptance and all-format real end-to-end qualification",
+    "Exact delivered SHA CI remains unqualified; preceding HEAD7c091cf0 run39208426304 completed failure; current PR194 Draft/Open, no merge/release"
+  ],
+  "next": [
+    "Resolve remaining historical convention/path ownership debt without changing frozen bytes or reading private .hilo state",
+    "Diagnose actual AI retest timeout using existing registered model/profile and bounded evidence",
+    "Continue capability lifecycle, compatibility matrix and same-candidate native/installation acceptance under current authority"
+  ]
+}

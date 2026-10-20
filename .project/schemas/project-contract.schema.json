@@ -11,6 +11,7 @@
     "effective_at",
     "project",
     "stage",
+    "closed_loop_definition",
     "scope",
     "content_policy",
     "language_authority",
@@ -28,6 +29,16 @@
     "effective_at": { "type": "string", "format": "date-time" },
     "project": { "type": "string", "minLength": 1 },
     "stage": { "type": "string", "minLength": 1 },
+    "closed_loop_definition": {
+      "description": "Owner-selected normative scope reference only; never an implementation receipt or an execution grant.",
+      "const": {
+        "id": "AAOS-SHORTEST-COMPLETE-LOOP-V2",
+        "source": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+        "owner_decided_at": "2026-10-19",
+        "role": "normative-scope-and-acceptance-not-implementation-receipt",
+        "precedence": "supersedes-narrower-historical-loop-scope-only-preserve-core-and-safety-contracts"
+      }
+    },
     "scope": { "$ref": "#/$defs/scope" },
     "content_policy": { "$ref": "#/$defs/contentPolicy" },
     "language_authority": { "$ref": "#/$defs/languageAuthority" },

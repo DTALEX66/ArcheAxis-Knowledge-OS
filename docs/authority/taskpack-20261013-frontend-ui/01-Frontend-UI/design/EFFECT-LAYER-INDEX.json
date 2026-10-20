@@ -1,0 +1,519 @@
+{
+  "state": "UPGRADE_AND_SPLIT_TASKS_PREPARED_NOT_IMAGE_GENERATION_EXECUTED",
+  "views": [
+    {
+      "id": "home",
+      "label": "首页",
+      "page_ids": [
+        "01"
+      ],
+      "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+      "target_size": [
+        1920,
+        1080
+      ],
+      "verify_sizes": [
+        [
+          1366,
+          768
+        ],
+        [
+          1920,
+          1080
+        ],
+        [
+          2560,
+          1440
+        ]
+      ],
+      "layers": [
+        {
+          "order": 0,
+          "layer": "top_brand_workspace_search_model",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 1,
+          "layer": "left_primary_rail",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 2,
+          "layer": "center_xiaoqi",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 3,
+          "layer": "small_start_actions",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 4,
+          "layer": "collapsed_right_inspector",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 5,
+          "layer": "bottom_context_composer",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        }
+      ],
+      "rule": "无资料仅导入、新建、小栖；有资料才显示真实继续项。",
+      "required_views": [
+        "empty",
+        "normal",
+        "unavailable",
+        "error",
+        "lite_quality"
+      ],
+      "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 01 and the five-zone shell; this screen is 首页. 无资料仅导入、新建、小栖；有资料才显示真实继续项。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: top_brand_workspace_search_model, left_primary_rail, center_xiaoqi, small_start_actions, collapsed_right_inspector, bottom_context_composer. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+    },
+    {
+      "id": "reading",
+      "label": "阅读与编辑",
+      "page_ids": [
+        "03"
+      ],
+      "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+      "target_size": [
+        1920,
+        1080
+      ],
+      "verify_sizes": [
+        [
+          1366,
+          768
+        ],
+        [
+          1920,
+          1080
+        ],
+        [
+          2560,
+          1440
+        ]
+      ],
+      "layers": [
+        {
+          "order": 0,
+          "layer": "top_context_model",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 1,
+          "layer": "left_rail",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 2,
+          "layer": "main_reading_960_max",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 3,
+          "layer": "source_selection_toolbar",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 4,
+          "layer": "optional_inspector",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 5,
+          "layer": "compact_companion_composer",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        }
+      ],
+      "rule": "正文主导，背景暗化，来源和小栖可收起。",
+      "required_views": [
+        "empty",
+        "normal",
+        "unavailable",
+        "error",
+        "lite_quality"
+      ],
+      "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 03 and the five-zone shell; this screen is 阅读与编辑. 正文主导，背景暗化，来源和小栖可收起。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: top_context_model, left_rail, main_reading_960_max, source_selection_toolbar, optional_inspector, compact_companion_composer. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+    },
+    {
+      "id": "companion",
+      "label": "小栖陪学",
+      "page_ids": [
+        "19",
+        "13"
+      ],
+      "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+      "target_size": [
+        1920,
+        1080
+      ],
+      "verify_sizes": [
+        [
+          1366,
+          768
+        ],
+        [
+          1920,
+          1080
+        ],
+        [
+          2560,
+          1440
+        ]
+      ],
+      "layers": [
+        {
+          "order": 0,
+          "layer": "shared_session_title",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 1,
+          "layer": "bounded_material_context",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 2,
+          "layer": "avatar_compact_or_half_body",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 3,
+          "layer": "attempt_hint_feedback",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 4,
+          "layer": "memory_controls",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 5,
+          "layer": "optional_voice_status",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        }
+      ],
+      "rule": "同一会话，材料问答与日常陪伴有明确标签。",
+      "required_views": [
+        "empty",
+        "normal",
+        "unavailable",
+        "error",
+        "lite_quality"
+      ],
+      "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 19/13 and the five-zone shell; this screen is 小栖陪学. 同一会话，材料问答与日常陪伴有明确标签。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: shared_session_title, bounded_material_context, avatar_compact_or_half_body, attempt_hint_feedback, memory_controls, optional_voice_status. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+    },
+    {
+      "id": "models",
+      "label": "模型与连接",
+      "page_ids": [
+        "19"
+      ],
+      "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+      "target_size": [
+        1920,
+        1080
+      ],
+      "verify_sizes": [
+        [
+          1366,
+          768
+        ],
+        [
+          1920,
+          1080
+        ],
+        [
+          2560,
+          1440
+        ]
+      ],
+      "layers": [
+        {
+          "order": 0,
+          "layer": "model_center_title",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 1,
+          "layer": "api_client_local_tabs",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 2,
+          "layer": "connection_list",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 3,
+          "layer": "destination_credential_fields",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 4,
+          "layer": "purpose_bindings",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 5,
+          "layer": "explicit_test_diagnostics",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        }
+      ],
+      "rule": "五功能区完整，状态和费用未知不得填假数据。",
+      "required_views": [
+        "empty",
+        "normal",
+        "unavailable",
+        "error",
+        "lite_quality"
+      ],
+      "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 19 and the five-zone shell; this screen is 模型与连接. 五功能区完整，状态和费用未知不得填假数据。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: model_center_title, api_client_local_tabs, connection_list, destination_credential_fields, purpose_bindings, explicit_test_diagnostics. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+    },
+    {
+      "id": "capabilities",
+      "label": "全部能力",
+      "page_ids": [
+        "17",
+        "18"
+      ],
+      "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+      "target_size": [
+        1920,
+        1080
+      ],
+      "verify_sizes": [
+        [
+          1366,
+          768
+        ],
+        [
+          1920,
+          1080
+        ],
+        [
+          2560,
+          1440
+        ]
+      ],
+      "layers": [
+        {
+          "order": 0,
+          "layer": "category_navigation",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 1,
+          "layer": "search_filters",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 2,
+          "layer": "current_category_list",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 3,
+          "layer": "single_selected_detail",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 4,
+          "layer": "readiness_text_light",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 5,
+          "layer": "future_source_links",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        }
+      ],
+      "rule": "分类列表加单详情，不叠加全能力窗口。",
+      "required_views": [
+        "empty",
+        "normal",
+        "unavailable",
+        "error",
+        "lite_quality"
+      ],
+      "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 17/18 and the five-zone shell; this screen is 全部能力. 分类列表加单详情，不叠加全能力窗口。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: category_navigation, search_filters, current_category_list, single_selected_detail, readiness_text_light, future_source_links. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+    },
+    {
+      "id": "configuration",
+      "label": "配置与部署",
+      "page_ids": [
+        "15",
+        "19"
+      ],
+      "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+      "target_size": [
+        1920,
+        1080
+      ],
+      "verify_sizes": [
+        [
+          1366,
+          768
+        ],
+        [
+          1920,
+          1080
+        ],
+        [
+          2560,
+          1440
+        ]
+      ],
+      "layers": [
+        {
+          "order": 0,
+          "layer": "dependency_status",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 1,
+          "layer": "configuration_fields",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 2,
+          "layer": "change_plan",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 3,
+          "layer": "local_remote_destination",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 4,
+          "layer": "job_receipt",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 5,
+          "layer": "rollback_or_unavailable",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        }
+      ],
+      "rule": "缺后台时仍展示字段、计划和原因，执行禁用。",
+      "required_views": [
+        "empty",
+        "normal",
+        "unavailable",
+        "error",
+        "lite_quality"
+      ],
+      "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 15/19 and the five-zone shell; this screen is 配置与部署. 缺后台时仍展示字段、计划和原因，执行禁用。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: dependency_status, configuration_fields, change_plan, local_remote_destination, job_receipt, rollback_or_unavailable. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+    },
+    {
+      "id": "error",
+      "label": "错误与恢复",
+      "page_ids": [
+        "19"
+      ],
+      "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+      "target_size": [
+        1920,
+        1080
+      ],
+      "verify_sizes": [
+        [
+          1366,
+          768
+        ],
+        [
+          1920,
+          1080
+        ],
+        [
+          2560,
+          1440
+        ]
+      ],
+      "layers": [
+        {
+          "order": 0,
+          "layer": "human_reason",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 1,
+          "layer": "affected_object",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 2,
+          "layer": "input_preserved",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 3,
+          "layer": "safe_next_action",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 4,
+          "layer": "receipt_query",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        },
+        {
+          "order": 5,
+          "layer": "return_to_work",
+          "render_owner": "code UI, except scene/character assets",
+          "export": "editable UI source or separate source asset"
+        }
+      ],
+      "rule": "失败清晰，保留输入；UNKNOWN 先查原请求。",
+      "required_views": [
+        "empty",
+        "normal",
+        "unavailable",
+        "error",
+        "lite_quality"
+      ],
+      "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 19 and the five-zone shell; this screen is 错误与恢复. 失败清晰，保留输入；UNKNOWN 先查原请求。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: human_reason, affected_object, input_preserved, safe_next_action, receipt_query, return_to_work. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+    }
+  ]
+}

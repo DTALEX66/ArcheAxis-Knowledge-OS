@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import hashlib
 import json
 import re
 import stat
@@ -15,8 +16,10 @@ from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = "docs/current/AAOS-AUTHORITY-ROUTES.json"
+CONSOLIDATION = "docs/history/repository-consolidation-20261019/MANIFEST.json"
 PRIVATE = {".git", ".codex", ".claude", ".hermes", ".ssh", "memory", "memories",
-           "session", "sessions", "credentials", "cookies", "browser-data"}
+           "session", "sessions", "credentials", "cookies", "browser-data",
+           ".project-local", ".hilo", ".dsh", ".zcode"}
 LINK = re.compile(r"\]\(([^)]+)\)")
 
 
@@ -39,6 +42,16 @@ def public_path(root: Path, name: str) -> Path:
 
 def resolve(name: str, data: dict, root: Path = ROOT) -> dict:
     public_path(root, name)
+    manifest = public_path(root, CONSOLIDATION)
+    if manifest.is_file():
+        consolidation = json.loads(manifest.read_text(encoding="utf-8"))
+        for item in consolidation["files"]:
+            if name == item["original_path"]:
+                public_path(root, item["archive_path"])
+                public_path(root, item["replacement"])
+                return {"path": name, "role": "RETIRED_LOCATOR",
+                        "canonical_path": item["archive_path"],
+                        "replacement": item["replacement"]}
     for alias in data["aliases"]:
         if name == alias["old_path"]:
             return {"path": name, "role": "RETIRED_LOCATOR", "canonical_path": alias["canonical_path"]}
@@ -49,6 +62,110 @@ def resolve(name: str, data: dict, root: Path = ROOT) -> dict:
         if fnmatch.fnmatchcase(name, rule["pattern"]):
             return {"path": name, "role": rule["role"]}
     return {"path": name, "role": "UNCLASSIFIED_REFERENCE"}
+
+
+def check_consolidation(root: Path = ROOT) -> list[str]:
+    """Check one byte-preserving archive and live links; never inspect private trees."""
+    problems: list[str] = []
+    try:
+        manifest = json.loads(public_path(root, CONSOLIDATION).read_text(encoding="utf-8"))
+        if manifest["schema"] != "archeaxis.repository-consolidation/v1":
+            raise ValueError("invalid schema")
+        if not re.fullmatch(r"[0-9a-f]{40}", manifest["source_commit"]):
+            raise ValueError("invalid source_commit")
+        originals: set[str] = set()
+        archives: set[str] = set()
+        for item in manifest["files"]:
+            old, archived = item["original_path"], item["archive_path"]
+            old_path = public_path(root, old)
+            archive_path = public_path(root, archived)
+            replacement = public_path(root, item["replacement"])
+            if old in originals or archived in archives:
+                problems.append("duplicate consolidation identity: " + old)
+            originals.add(old)
+            archives.add(archived)
+            if not archived.startswith(str(PurePosixPath(CONSOLIDATION).parent) + "/"):
+                problems.append("archive outside consolidation root: " + archived)
+            if not re.fullmatch(r"[0-9a-f]{40}", item["baseline_commit"]):
+                problems.append("invalid baseline_commit: " + old)
+            if not isinstance(item["role"], str) or not item["role"]:
+                problems.append("missing archive role: " + old)
+            if old_path.exists():
+                problems.append("retired original still exists: " + old)
+            if not replacement.is_file():
+                problems.append("missing consolidation replacement: " + item["replacement"])
+            size, digest = item["bytes"], item["sha256"]
+            if (type(size) is not int or size < 0 or not isinstance(digest, str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", digest)):
+                problems.append("invalid archive identity metadata: " + old)
+                continue
+            if not archive_path.is_file():
+                problems.append("missing consolidated archive: " + archived)
+                continue
+            raw = archive_path.read_bytes()
+            if len(raw) != size or hashlib.sha256(raw).hexdigest() != digest:
+                problems.append("consolidated archive identity mismatch: " + archived)
+        for item in manifest.get("navigation_snapshots", []):
+            archived = public_path(root, item["archive_path"])
+            current = public_path(root, item["original_path"])
+            if not current.is_file() or not archived.is_file():
+                problems.append("missing navigation snapshot or current entry: " + item["original_path"])
+                continue
+            raw = archived.read_bytes()
+            if len(raw) != item["bytes"] or hashlib.sha256(raw).hexdigest() != item["sha256"]:
+                problems.append("navigation snapshot identity mismatch: " + item["archive_path"])
+        # Inspect public residual paths only. Never follow symlinks/junctions or
+        # enter private state left behind by a public-source archival operation.
+        for directory in manifest["whole_directories"]:
+            pending = [public_path(root, directory)]
+            while pending:
+                current = pending.pop()
+                if not current.exists():
+                    continue
+                if not current.is_dir():
+                    problems.append("retired directory has public residual: "
+                                    + current.relative_to(root).as_posix())
+                    continue
+                for child in current.iterdir():
+                    name = child.relative_to(root).as_posix()
+                    try:
+                        safe = public_path(root, name)
+                    except ValueError:
+                        # No read or traversal of a private/reparse child.
+                        if child.name.casefold() not in PRIVATE and not child.name.casefold().startswith(".env"):
+                            problems.append("uninspectable retired directory child: " + name)
+                        continue
+                    if safe.is_dir():
+                        pending.append(safe)
+                    else:
+                        problems.append("retired directory has public residual: " + name)
+        routes = json.loads(public_path(root, REGISTRY).read_text(encoding="utf-8"))
+        for entry in routes["entries"]:
+            if entry["role"] != "LIVE_NAVIGATION" or not entry["path"].endswith(".md"):
+                continue
+            name = entry["path"]
+            page = public_path(root, name)
+            if not page.is_file():
+                continue  # check_routes owns missing live entries.
+            for token in LINK.findall(page.read_text(encoding="utf-8-sig")):
+                target = unquote(token.strip("<> ").split("#", 1)[0])
+                if not target or ":" in target or target.startswith("/") or "<" in target:
+                    continue
+                parts: list[str] = []
+                for part in (PurePosixPath(name).parent / target).parts:
+                    if part == "..":
+                        if not parts:
+                            raise ValueError("live link escapes repository")
+                        parts.pop()
+                    elif part != ".":
+                        parts.append(part)
+                normalized = "/".join(parts)
+                public_path(root, normalized)
+                if normalized in originals:
+                    problems.append(f"{name}: live link targets retired original: {target}")
+    except (ValueError, OSError, KeyError, TypeError, json.JSONDecodeError) as error:
+        problems.append(f"{CONSOLIDATION}: {error}")
+    return problems
 
 
 def check_routes(root: Path = ROOT) -> list[str]:
@@ -137,6 +254,7 @@ def check_routes(root: Path = ROOT) -> list[str]:
                     problems.append(f"{name}: unresolved live link: {target}")
     except (ValueError, OSError, KeyError, TypeError, json.JSONDecodeError) as error:
         problems.append(f"{REGISTRY}: {error}")
+    problems.extend(check_consolidation(root))
     return problems
 
 

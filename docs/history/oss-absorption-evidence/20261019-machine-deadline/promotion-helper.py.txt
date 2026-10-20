@@ -1,0 +1,142 @@
+"""Task-local exact component update; no runtime/data copy or installed target."""
+import json
+import os
+import subprocess
+import sys
+import zipfile
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path.cwd()
+sys.path.insert(0, str(ROOT))
+from scripts.runtime import dev
+from scripts.release import tauri_portable_candidate as portable
+
+
+def blob(path):
+    return portable.regular(path).read_bytes()
+
+
+def identity(path):
+    return {"bytes": path.stat().st_size, "sha256": portable.digest(path)}
+
+
+def atomic(path, data):
+    portable.checked(path)
+    tmp = path.with_name(path.name + ".component-update-" + __import__("uuid").uuid4().hex)
+    created = False
+    try:
+        with tmp.open("xb") as stream:
+            created = True
+            stream.write(data)
+        os.replace(tmp, path)
+    finally:
+        if created and tmp.exists():
+            tmp.unlink()
+
+
+def encoded(value):
+    return (json.dumps(value, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+
+
+def main():
+    runs = ROOT / ".project-local/runs/be268a2d33"
+    # CLI inputs are run names only, never arbitrary paths.
+    names = sys.argv[1:]
+    assert len(names) == 2 and all(__import__("re").fullmatch(r"[a-z0-9-]+", n) for n in names)
+    host_receipt = runs / names[0] / "artifacts/host-build.json"
+    core_receipt = runs / names[1] / "artifacts/execution.json"
+    h, c = (json.loads(blob(p)) for p in (host_receipt, core_receipt))
+    _, patch = dev.worktree_identity(ROOT)
+    head = dev.git(ROOT, "rev-parse", "HEAD")
+    for row in (h, c):
+        assert row["exit_code"] == 0 and row["source_consistent"]
+        assert row["source_commit"] == head
+        assert row["source_patch_sha256"] == row["source_patch_sha256_after"] == patch
+    assert c["source_commit_after"] == head
+    candidate = portable.checked(ROOT / ".project-local/candidates/closure-20261018/backend")
+    rt = portable.checked(ROOT / ".project-local/rt")
+    for root in (candidate, rt):
+        root.relative_to(ROOT / ".project-local")
+        assert not (root / "candidate-manifest.json").exists()
+    assert not (candidate.parent / "candidate-manifest.json").exists()
+    # Match executable paths only; never inspect command lines or unrelated data.
+    roots = [str(p).replace("'", "''") + "\\" for p in (candidate, rt)]
+    ps = "$roots=@(" + ",".join("'" + s + "'" for s in roots) + "); "
+    ps += "@(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object { $exe=$_.ExecutablePath; $exe -and @($roots | Where-Object { $exe.StartsWith($_,[StringComparison]::OrdinalIgnoreCase) }).Count -gt 0 } | Select-Object ProcessId,ExecutablePath) | ConvertTo-Json -Compress"
+    observed = subprocess.check_output(["powershell", "-NoProfile", "-NonInteractive", "-Command", ps], text=True, encoding="utf-8").strip()
+    assert not observed or json.loads(observed) == [], "Target process active; no files changed"
+    worker = portable.regular(ROOT / "services/python-workers/machine/worker_machine_answer.py")
+    host = portable.regular(ROOT / ".project-local/build/tauri/release/ArcheAxis.exe", cargo_host=True)
+    core = portable.checked(ROOT / ".project-local/build/cargo/release/archeaxis-api.exe")
+    info = core.stat()
+    assert core.is_file() and (info.st_nlink == 1 or info.st_nlink == 2 and os.path.samestat(
+        info, portable.checked(core.parent / "deps/archeaxis_api.exe").stat()))
+    assert portable.digest(rt / "core/archeaxis-api.exe") == portable.digest(candidate / "core/archeaxis-api.exe")
+    rel_worker = "workers/machine/worker_machine_answer.py"
+    paths = [rt / rel_worker, rt / "backend-runtime-manifest.json", candidate / rel_worker,
+             candidate / "backend-runtime-manifest.json", candidate / "ArcheAxis.exe",
+             candidate / "candidate-qualification.json", rt / "core/archeaxis-api.exe", candidate / "core/archeaxis-api.exe"]
+    old = {p.relative_to(ROOT).as_posix(): blob(p) for p in paths}
+    before = {name: {"bytes": len(data), "sha256": __import__("hashlib").sha256(data).hexdigest()} for name, data in old.items()}
+    for root in (rt, candidate):
+        manifest = json.loads(blob(root / "backend-runtime-manifest.json"))
+        assert manifest["schema"] == "archeaxis.backend-runtime/v1"
+        assert manifest["files"][rel_worker] == identity(root / rel_worker)
+        assert manifest["files"]["core/archeaxis-api.exe"] == identity(root / "core/archeaxis-api.exe")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    archive = portable.checked(ROOT / ".project-local/archives" / ("current-components-" + stamp + ".zip"))
+    assert not archive.exists()
+    with zipfile.ZipFile(archive, "x", compression=zipfile.ZIP_DEFLATED) as z:
+        for name, data in old.items():
+            z.writestr(name, data)
+    with zipfile.ZipFile(archive) as z:
+        assert set(z.namelist()) == set(old) and z.testzip() is None
+        assert all(z.read(name) == data for name, data in old.items())
+    output = runs / "closure-native-stage" / ("candidate-build-current-" + stamp + ".json")
+    assert not output.exists()
+    receipt = {"schema": "archeaxis.native-candidate-build/v1", "status": "PASS",
+               "source_consistent": True, "source_commit": h["source_commit"], "source_patch_sha256": patch,
+               "host_sha256": portable.digest(host), "core_sha256": portable.digest(core),
+               "host_compiler_receipt": {"path": str(host_receipt.relative_to(ROOT)), **identity(host_receipt)},
+               "core_compiler_receipt": {"path": str(core_receipt.relative_to(ROOT)), **identity(core_receipt)},
+               "backup": {"path": str(archive.relative_to(ROOT)), **identity(archive)},
+               "before": before, "installed": False, "published": False,
+               "target_process_check": "No executable paths under the two exact targets at promotion",
+               "scope": "Two worker copies, two Core copies, two manifests and candidate host/qualification only; exact prior bytes in rollback ZIP; no data traversal"}
+    try:
+        for root in (rt, candidate):
+            atomic(root / rel_worker, worker.read_bytes())
+            atomic(root / "core/archeaxis-api.exe", core.read_bytes())
+            manifest = json.loads(old[(root / "backend-runtime-manifest.json").relative_to(ROOT).as_posix()])
+            manifest["files"][rel_worker] = identity(worker)
+            manifest["files"]["core/archeaxis-api.exe"] = identity(core)
+            atomic(root / "backend-runtime-manifest.json", encoded(manifest))
+        atomic(candidate / "ArcheAxis.exe", host.read_bytes())
+        plan = portable.plan(candidate / "ArcheAxis.exe", receipt, portable.RESOURCES)
+        rt_manifest = json.loads(blob(rt / "backend-runtime-manifest.json"))
+        portable.verify_members(rt, rt_manifest["files"])
+        assert dev.worktree_identity(ROOT)[1] == patch and dev.git(ROOT, "rev-parse", "HEAD") == head
+        atomic(candidate / "candidate-qualification.json", encoded(plan))
+        receipt["verified_candidate_members"] = len(plan["files"])
+        receipt["verified_rt_members"] = len(rt_manifest["files"])
+        receipt["after"] = {str(p.relative_to(ROOT)): identity(p) for p in paths}
+        receipt["qualification"] = "Static full member verification; native runtime journey not executed by this script"
+        output.write_bytes(encoded(receipt))
+    except BaseException as error:
+        rollback_errors = []
+        for name, data in old.items():
+            try:
+                atomic(ROOT / name, data)
+                assert blob(ROOT / name) == data
+            except BaseException as rollback_error:
+                rollback_errors.append({"path": name, "error_type": type(rollback_error).__name__})
+        if rollback_errors:
+            output.with_suffix(".rollback-failed.json").write_bytes(encoded({"status": "ROLLBACK_INCOMPLETE", "backup": str(archive.relative_to(ROOT)), "errors": rollback_errors}))
+            raise RuntimeError("Component update failed; restore exact listed files from retained archive") from error
+        raise
+    print(json.dumps({"status": "PASS", "receipt": str(output.relative_to(ROOT)), "candidate_members": len(plan["files"]), "backup_sha256": portable.digest(archive)}))
+
+
+if __name__ == "__main__":
+    main()

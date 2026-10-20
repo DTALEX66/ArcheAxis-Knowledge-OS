@@ -2,11 +2,30 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import tomllib
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
+
+
+def test_os_tests_prepare_their_locked_dom_and_browser_dependencies() -> None:
+    import yaml
+
+    steps = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]["test"]["steps"]
+    node = next(step for step in steps if step.get("name") == "Set up Node for OS-level DOM contract tests")
+    assert node["with"]["node-version"] == "24"
+    assert node["with"]["cache-dependency-path"] == "frontend/package-lock.json"
+    dom = next(step for step in steps if step.get("name") == "Install locked OS-level DOM dependencies")
+    assert "npm ci --prefix frontend --ignore-scripts" in dom["run"]
+    assert "test -f frontend/node_modules/jsdom/package.json" in dom["run"]
+    browser = next(step for step in steps if step.get("name") == "Install Chromium for OS-level layout regressions")
+    assert browser["run"] == "python -m playwright install --with-deps chromium"
+    tests = next(step for step in steps if step.get("name") == "Run OS-level tests")
+    assert steps.index(node) < steps.index(dom) < steps.index(browser) < steps.index(tests)
 
 
 def _job_section(workflow: str, name: str, next_name: str) -> str:
@@ -193,16 +212,46 @@ def test_desktop_jobs_prepare_the_same_authoritative_candidate() -> None:
     import yaml
 
     jobs = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))["jobs"]
+    def candidate_commands(script: str) -> list[list[str]]:
+        lines = [line.strip() for line in script.splitlines()
+                 if line.strip() and not line.lstrip().startswith("#")]
+        commands = [line for line in lines
+                    if "cargo build" in line or "desktop.scripts.prepare_bundle" in line]
+        expected = [
+            ["python", "-B", "scripts/runtime/dev.py", "--", "cargo", "build",
+             "-p", "archeaxis-api", "--bin", "archeaxis-api", "--release", "--locked"],
+            ["python", "-m", "desktop.scripts.prepare_bundle", "--backend-candidate",
+             "--repository", ".", "--destination", ".project-local/rt", "--core",
+             "$env:CARGO_TARGET_DIR/release/archeaxis-api.exe"],
+        ]
+        parsed = [shlex.split(line) for line in commands]
+        assert parsed == expected, parsed
+        for command in commands:
+            assert lines[lines.index(command) + 1] == "if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }"
+        assert "--core-only" not in script
+        return parsed
+
     preparations = []
+    scripts = []
     for job in ("desktop-fast", "desktop-build"):
         step = next(item for item in jobs[job]["steps"]
                     if item.get("name") == "Prepare the installed Python runtime")
-        preparations.append(step["run"])
+        scripts.append(step["run"])
+        preparations.append(candidate_commands(step["run"]))
         assert step["working-directory"] == "${{ github.workspace }}"
+    # BE10 may additionally publish its just-built preview path; both jobs must
+    # still build and package the same routed, locked Core in the same order.
     assert preparations[0] == preparations[1]
-    assert "cargo build -p archeaxis-api --bin archeaxis-api --release --locked" in preparations[0]
-    assert "--backend-candidate" in preparations[0]
-    assert "--core-only" not in preparations[0]
+    for before, after in (
+        ("--locked", ""),
+        ("--backend-candidate", "--core-only"),
+        ("scripts/runtime/dev.py -- ", ""),
+        ("$env:CARGO_TARGET_DIR/release/archeaxis-api.exe", "stale/archeaxis-api.exe"),
+        ("if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }", "Write-Host ignored"),
+    ):
+        assert before in scripts[1]
+        with pytest.raises(AssertionError):
+            candidate_commands(scripts[1].replace(before, after))
 
 
 def test_desktop_build_has_a_process_level_deadline() -> None:

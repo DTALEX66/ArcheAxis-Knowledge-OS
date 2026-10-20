@@ -100,6 +100,26 @@ def test_content_policy_is_required_and_rejects_save_gates_or_fabricated_verific
     assert not validator.is_valid(changed)
 
 
+def test_closed_loop_reference_cannot_drift_or_claim_implementation_success() -> None:
+    contract = _load_contract()
+    schema = json.loads(
+        (ROOT / ".project/schemas/project-contract.schema.json").read_text(encoding="utf-8")
+    )
+    validator = jsonschema.Draft202012Validator(schema)
+    validator.validate(contract)
+    for field, value in [
+        ("source", "docs/history/obsolete-loop.md"),
+        ("role", "COMPLETE_IMPLEMENTED"),
+        ("status", "PASS"),
+    ]:
+        changed = deepcopy(contract)
+        changed["closed_loop_definition"][field] = value
+        assert not validator.is_valid(changed), field
+    changed = deepcopy(contract)
+    del changed["closed_loop_definition"]
+    assert not validator.is_valid(changed)
+
+
 def test_every_declared_contract_path_exists_or_is_recorded_as_dangling() -> None:
     declared = dict(_declared_paths(_load_contract()))
     missing = {

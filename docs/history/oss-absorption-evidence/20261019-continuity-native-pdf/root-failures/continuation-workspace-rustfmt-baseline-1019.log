@@ -1,0 +1,1555 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo fmt --all -- --check
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\colearning.rs:4:
+ use archeaxis_domain::context_grant::{self, Consumption, Operation};
+ use archeaxis_domain::{knowledge, machine};
+ 
+-fn machine_failure(operation: &str, error: &archeaxis_application::executor::MachineFailure) -> Response {
+-    let mut value=json!({"schema":"archeaxis.machine-call-failure/v1", "operation":operation,
++fn machine_failure(
++    operation: &str,
++    error: &archeaxis_application::executor::MachineFailure,
++) -> Response {
++    let mut value = json!({"schema":"archeaxis.machine-call-failure/v1", "operation":operation,
+         "reason_code":error.reason_code(), "execution_state":"UNVERIFIED", "answer_published":false});
+-    if let Some(diagnostics)=error.diagnostics() { value["diagnostics"]=diagnostics.clone(); }
+-    (StatusCode::SERVICE_UNAVAILABLE,Json(value)).into_response()
++    if let Some(diagnostics) = error.diagnostics() {
++        value["diagnostics"] = diagnostics.clone();
++    }
++    (StatusCode::SERVICE_UNAVAILABLE, Json(value)).into_response()
+ }
+ 
+ fn now_seconds() -> u64 {
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\conversation.rs:386:
+             "conversation_cleanup_unknown",
+         );
+     }
+-    let diagnostics = if cancelled { None } else { result.as_ref().err().and_then(|e| e.diagnostics()).cloned() };
++    let diagnostics = if cancelled {
++        None
++    } else {
++        result.as_ref().err().and_then(|e| e.diagnostics()).cloned()
++    };
+     let (state, answer, reason) = if cancelled {
+         ("cancelled", Value::Null, Some("conversation_cancelled"))
+     } else {
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\conversation.rs:393:
+         match result {
+             Ok(answer) if !answer_policy_matches(&answer, &plan) => (
+-                "failed", Value::Null, Some("conversation_answer_policy_unverified"),
++                "failed",
++                Value::Null,
++                Some("conversation_answer_policy_unverified"),
+             ),
+             Ok(answer)
+                 if answer["endpoint"].as_str().is_some_and(|e| {
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\conversation.rs:412:
+                 Value::Null,
+                 Some("conversation_destination_unverified"),
+             ),
+-            Err(error) if matches!(error.reason_code(), "MODEL_CALL_TIMEOUT" | "WORKER_TIMEOUT") =>
+-                ("failed", Value::Null, Some("conversation_model_timeout")),
++            Err(error)
++                if matches!(error.reason_code(), "MODEL_CALL_TIMEOUT" | "WORKER_TIMEOUT") =>
++            {
++                ("failed", Value::Null, Some("conversation_model_timeout"))
++            }
+             Err(_) => ("failed", Value::Null, Some("conversation_model_failed")),
+         }
+     };
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\conversation.rs:420:
+     let mut receipt = json!({"schema":"archeaxis.conversation-receipt/v1","session_id":body.session_id,"request_id":body.request_id,"state":state,"answer":answer,"reason_code":reason,"plan":plan,"plan_sha256":plan_sha,"delivery":"BUFFERED","provider_stop_state":"UNKNOWN","authority":"candidate","grants_knowledge_acceptance":false});
+-    if let Some(diagnostics)=diagnostics { receipt["diagnostics"]=diagnostics; }
++    if let Some(diagnostics) = diagnostics {
++        receipt["diagnostics"] = diagnostics;
++    }
+     let result = runtime
+         .executor
+         .store()
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\execution_claim.rs:131:
+         "provider_stop_state":"UNKNOWN", "usage":null,"cost":null,
+         "authority":"historical_execution_audit"
+     });
+-    if let Some(diagnostics)=error.diagnostics() { doc["diagnostics"]=diagnostics.clone(); }
++    if let Some(diagnostics) = error.diagnostics() {
++        doc["diagnostics"] = diagnostics.clone();
++    }
+     let serialized = doc.to_string();
+     archeaxis_domain::machine::record_machine_task_in_transaction(
+         &tx,
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\execution_claim.rs:180:
+     #[test]
+     fn typed_timeout_releases_only_the_matching_finite_retry_barrier() {
+         let conn = Connection::open_in_memory().unwrap();
+-        conn.execute_batch("CREATE TABLE workspace_meta(key TEXT PRIMARY KEY,value TEXT NOT NULL)").unwrap();
++        conn.execute_batch("CREATE TABLE workspace_meta(key TEXT PRIMARY KEY,value TEXT NOT NULL)")
++            .unwrap();
+         let request = json!({"question":"synthetic"});
+-        admit(&conn,"timeout",&request).unwrap();
+-        record_failure(&conn,"timeout","machine failure: MODEL_CALL_TIMEOUT").unwrap();
+-        assert!(admit(&conn,"timeout",&json!({"question":"changed"})).is_err());
+-        admit(&conn,"timeout",&request).unwrap();
+-        assert_eq!(attempt(&conn,"timeout").unwrap(),2);
++        admit(&conn, "timeout", &request).unwrap();
++        record_failure(&conn, "timeout", "machine failure: MODEL_CALL_TIMEOUT").unwrap();
++        assert!(admit(&conn, "timeout", &json!({"question":"changed"})).is_err());
++        admit(&conn, "timeout", &request).unwrap();
++        assert_eq!(attempt(&conn, "timeout").unwrap(), 2);
+     }
+     #[test]
+     fn terminal_failure_is_redacted_durable_and_attempt_bound() {
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\material_questions.rs:55:
+     match error {
+         "no worker is registered for machine.answer" => "material_model_not_configured",
+         "machine selection is not verified in local inventory" => "material_model_not_in_inventory",
+-        "machine worker timed out" | "machine failure: MODEL_CALL_TIMEOUT" => "material_model_timeout",
++        "machine worker timed out" | "machine failure: MODEL_CALL_TIMEOUT" => {
++            "material_model_timeout"
++        }
+         "machine failure: MODEL_CALL_FAILED" => "material_model_call_failed",
+         "machine failure: NO_FINAL_ANSWER" => "material_no_final_answer",
+         "machine worker returned invalid JSON" => "material_model_invalid_response",
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\material_questions.rs:172:
+             body.model_configuration.clone(),
+         )
+         .await;
+-    if execution
+-        .as_ref()
+-        .err()
+-        .is_some_and(|e| e.message().contains("cleanup incomplete") || e.message().contains("cleanup_incomplete"))
+-    {
++    if execution.as_ref().err().is_some_and(|e| {
++        e.message().contains("cleanup incomplete") || e.message().contains("cleanup_incomplete")
++    }) {
+         return failure(
+             StatusCode::SERVICE_UNAVAILABLE,
+             "material_execution_unknown_retain_request",
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\material_questions.rs:183:
+         );
+     }
+     let cancelled = lease.close().unwrap_or(true);
+-    let diagnostics = if cancelled { None } else { execution.as_ref().err().and_then(|e| e.diagnostics()).cloned() };
++    let diagnostics = if cancelled {
++        None
++    } else {
++        execution
++            .as_ref()
++            .err()
++            .and_then(|e| e.diagnostics())
++            .cloned()
++    };
+     let (answer, outcome, reason) = match execution {
+         Ok(a)
+             if !cancelled
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\src\runtime\material_questions.rs:208:
+         ),
+     };
+     let mut receipt = json!({"schema":"archeaxis.material-answer/v1","task_id":id,"request_id":body.request_id,"plan":plan,"plan_sha256":plan_sha,"outcome":outcome,"reason_code":reason,"answer":answer,"answer_sha256":answer["answer"].as_str().map(|s|material::hash(s.as_bytes())),"authority":"candidate","grants_knowledge_acceptance":false,"provider_stop_state":if cancelled{"UNKNOWN"}else{"NOT_REQUESTED"}});
+-    if let Some(diagnostics)=diagnostics { receipt["diagnostics"]=diagnostics; }
++    if let Some(diagnostics) = diagnostics {
++        receipt["diagnostics"] = diagnostics;
++    }
+     let saved = runtime
+         .executor
+         .store()
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\contract_machine_answer.rs:87:
+ #[tokio::test]
+ async fn actual_failure_status_and_clear_do_not_repeat_worker() {
+     for code in ["MODEL_CALL_FAILED", "MODEL_CALL_TIMEOUT"] {
+-    let (dir, router, id) = fixture().await;
+-    std::fs::write(dir.path().join("answer.py"),"import json,sys\nfrom pathlib import Path\np=Path(__file__).with_suffix('.count')\np.write_text('1')\nprint(json.dumps({'schema':'archeaxis.machine-worker-failure/v1','reason_code':'REPLACE_REASON'}))\nsys.exit(1)\n".replace("REPLACE_REASON",code)).unwrap();
+-    let response = router
+-        .clone()
+-        .oneshot(
+-            Request::builder()
+-                .uri("/api/v1/workspace/ui-state")
+-                .body(Body::empty())
+-                .unwrap(),
+-        )
+-        .await
+-        .unwrap();
+-    assert_eq!(response.status(), 200);
+-    let basis: serde_json::Value =
+-        serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
+-    let body = serde_json::json!({"knowledge_id":id,"question":"Synthetic failure recovery","max_tokens":2048,"timeout_s":120,"client_request_id":"failure_recovery"});
+-    let entry = serde_json::json!({"journal_id":"failure_recovery","owner_knowledge_id":id,"operation":"answer","origin_restore_epoch":"initial","body":body});
+-    let payload = serde_json::json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"failure_recovery":entry}}});
+-    let response = router
+-        .clone()
+-        .oneshot(
+-            Request::builder()
+-                .method("PUT")
+-                .uri("/api/v1/workspace/ui-state")
+-                .header("content-type", "application/json")
+-                .body(Body::from(payload.to_string()))
+-                .unwrap(),
+-        )
+-        .await
+-        .unwrap();
+-    assert_eq!(response.status(), 200);
+-    let written: serde_json::Value =
+-        serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
+-    let query = serde_json::json!({"workspace_id":written["workspace_id"],"restore_epoch":written["restore_epoch"],"state_revision":written["state_revision"],"journal_id":"failure_recovery"});
+-    let mut bypass = body.clone();
+-    bypass["client_request_id"] = serde_json::json!("new_identity");
+-    let (status, raw) = post(&router, "/api/v1/machine/answers", &bypass.to_string()).await;
+-    assert_eq!(status, 409, "{raw}");
+-    assert!(!dir.path().join("answer.count").exists());
+-    let (status, raw) = post(
+-        &router,
+-        "/api/v1/workspace/ui-state/machine-status",
+-        &query.to_string(),
+-    )
+-    .await;
+-    assert_eq!(status, 200, "{raw}");
+-    assert_eq!(
+-        serde_json::from_str::<serde_json::Value>(&raw).unwrap()["status"],
+-        "UNKNOWN"
+-    );
+-    let (status, raw) = post(&router, "/api/v1/machine/answers", &body.to_string()).await;
+-    assert_eq!(status, 503, "{raw}");
+-    assert_eq!(serde_json::from_str::<serde_json::Value>(&raw).unwrap()["reason_code"],code);
+-    for _ in 0..2 {
++        let (dir, router, id) = fixture().await;
++        std::fs::write(dir.path().join("answer.py"),"import json,sys\nfrom pathlib import Path\np=Path(__file__).with_suffix('.count')\np.write_text('1')\nprint(json.dumps({'schema':'archeaxis.machine-worker-failure/v1','reason_code':'REPLACE_REASON'}))\nsys.exit(1)\n".replace("REPLACE_REASON",code)).unwrap();
++        let response = router
++            .clone()
++            .oneshot(
++                Request::builder()
++                    .uri("/api/v1/workspace/ui-state")
++                    .body(Body::empty())
++                    .unwrap(),
++            )
++            .await
++            .unwrap();
++        assert_eq!(response.status(), 200);
++        let basis: serde_json::Value =
++            serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes())
++                .unwrap();
++        let body = serde_json::json!({"knowledge_id":id,"question":"Synthetic failure recovery","max_tokens":2048,"timeout_s":120,"client_request_id":"failure_recovery"});
++        let entry = serde_json::json!({"journal_id":"failure_recovery","owner_knowledge_id":id,"operation":"answer","origin_restore_epoch":"initial","body":body});
++        let payload = serde_json::json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"failure_recovery":entry}}});
++        let response = router
++            .clone()
++            .oneshot(
++                Request::builder()
++                    .method("PUT")
++                    .uri("/api/v1/workspace/ui-state")
++                    .header("content-type", "application/json")
++                    .body(Body::from(payload.to_string()))
++                    .unwrap(),
++            )
++            .await
++            .unwrap();
++        assert_eq!(response.status(), 200);
++        let written: serde_json::Value =
++            serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes())
++                .unwrap();
++        let query = serde_json::json!({"workspace_id":written["workspace_id"],"restore_epoch":written["restore_epoch"],"state_revision":written["state_revision"],"journal_id":"failure_recovery"});
++        let mut bypass = body.clone();
++        bypass["client_request_id"] = serde_json::json!("new_identity");
++        let (status, raw) = post(&router, "/api/v1/machine/answers", &bypass.to_string()).await;
++        assert_eq!(status, 409, "{raw}");
++        assert!(!dir.path().join("answer.count").exists());
+         let (status, raw) = post(
+             &router,
+             "/api/v1/workspace/ui-state/machine-status",
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\contract_machine_answer.rs:148:
+         )
+         .await;
+         assert_eq!(status, 200, "{raw}");
++        assert_eq!(
++            serde_json::from_str::<serde_json::Value>(&raw).unwrap()["status"],
++            "UNKNOWN"
++        );
++        let (status, raw) = post(&router, "/api/v1/machine/answers", &body.to_string()).await;
++        assert_eq!(status, 503, "{raw}");
++        assert_eq!(
++            serde_json::from_str::<serde_json::Value>(&raw).unwrap()["reason_code"],
++            code
++        );
++        for _ in 0..2 {
++            let (status, raw) = post(
++                &router,
++                "/api/v1/workspace/ui-state/machine-status",
++                &query.to_string(),
++            )
++            .await;
++            assert_eq!(status, 200, "{raw}");
++            let read: serde_json::Value = serde_json::from_str(&raw).unwrap();
++            assert_eq!(read["status"], "FAILED");
++            assert_eq!(read["can_clear"], true);
++        }
++        let (status, raw) = post(
++            &router,
++            "/api/v1/workspace/ui-state/machine-status",
++            &query.to_string(),
++        )
++        .await;
++        assert_eq!(status, 200);
+         let read: serde_json::Value = serde_json::from_str(&raw).unwrap();
+-        assert_eq!(read["status"], "FAILED");
+-        assert_eq!(read["can_clear"], true);
+-    }
+-    let (status, raw) = post(
+-        &router,
+-        "/api/v1/workspace/ui-state/machine-status",
+-        &query.to_string(),
+-    )
+-    .await;
+-    assert_eq!(status, 200);
+-    let read: serde_json::Value = serde_json::from_str(&raw).unwrap();
+-    let mut clear = query.clone();
+-    clear["task_id"] = read["task_id"].clone();
+-    let (status, raw) = post(
+-        &router,
+-        "/api/v1/workspace/ui-state/clear-machine",
+-        &clear.to_string(),
+-    )
+-    .await;
+-    assert_eq!(status, 200, "{raw}");
+-    assert!(
+-        serde_json::from_str::<serde_json::Value>(&raw).unwrap()["state"]
+-            .get("pending_machine")
+-            .is_none()
+-    );
+-    assert_eq!(
+-        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+-        "1"
+-    );
+-    let response = router
+-        .clone()
+-        .oneshot(
+-            Request::builder()
+-                .method("POST")
+-                .uri("/api/v1/workspace/ui-state/machine-status")
+-                .header("content-type", "application/json")
+-                .header("x-archeaxis-actor", "machine")
+-                .body(Body::from(query.to_string()))
+-                .unwrap(),
++        let mut clear = query.clone();
++        clear["task_id"] = read["task_id"].clone();
++        let (status, raw) = post(
++            &router,
++            "/api/v1/workspace/ui-state/clear-machine",
++            &clear.to_string(),
+         )
+-        .await
+-        .unwrap();
+-    assert_eq!(response.status(), 403);
++        .await;
++        assert_eq!(status, 200, "{raw}");
++        assert!(
++            serde_json::from_str::<serde_json::Value>(&raw).unwrap()["state"]
++                .get("pending_machine")
++                .is_none()
++        );
++        assert_eq!(
++            std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
++            "1"
++        );
++        let response = router
++            .clone()
++            .oneshot(
++                Request::builder()
++                    .method("POST")
++                    .uri("/api/v1/workspace/ui-state/machine-status")
++                    .header("content-type", "application/json")
++                    .header("x-archeaxis-actor", "machine")
++                    .body(Body::from(query.to_string()))
++                    .unwrap(),
++            )
++            .await
++            .unwrap();
++        assert_eq!(response.status(), 403);
+     }
+ }
+ 
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\contract_machine_answer.rs:962:
+ 
+ async fn assert_failed_worker_measurements(retest: bool) {
+     let (dir, router, id) = fixture().await;
+-    let mut request=serde_json::json!({"knowledge_id":id,"question":"SYNTHETIC_PRIVATE question","client_request_id":"diagnostic_failure"});
+-    let path=if retest {
+-        let (status,raw)=post(&router,"/api/v1/machine/answers",&request.to_string()).await;
+-        assert_eq!(status,200,"{raw}");
+-        let answer:serde_json::Value=serde_json::from_str(&raw).unwrap();
+-        let correction=serde_json::json!({"answer_id":answer["answer_id"],"knowledge_id":id,"question":request["question"],"machine_answer":answer["answer"]["answer"],"corrected_answer":"Synthetic correction","error_note":"synthetic omission"});
+-        let (status,raw)=post(&router,"/api/v1/machine/corrections",&correction.to_string()).await;
+-        assert_eq!(status,200,"{raw}");
+-        let correction:serde_json::Value=serde_json::from_str(&raw).unwrap();
+-        let candidate=correction["correction_candidate_id"].as_str().unwrap();
+-        assert_eq!(post(&router,&format!("/api/v1/knowledge-items/{candidate}/review-decisions"),r#"{"action":"accepted","reviewer":"synthetic-human"}"#).await.0,200);
+-        request=serde_json::json!({"knowledge_id":candidate,"question":"SYNTHETIC_PRIVATE question","retest_of":correction["failed_task_id"]});
++    let mut request = serde_json::json!({"knowledge_id":id,"question":"SYNTHETIC_PRIVATE question","client_request_id":"diagnostic_failure"});
++    let path = if retest {
++        let (status, raw) = post(&router, "/api/v1/machine/answers", &request.to_string()).await;
++        assert_eq!(status, 200, "{raw}");
++        let answer: serde_json::Value = serde_json::from_str(&raw).unwrap();
++        let correction = serde_json::json!({"answer_id":answer["answer_id"],"knowledge_id":id,"question":request["question"],"machine_answer":answer["answer"]["answer"],"corrected_answer":"Synthetic correction","error_note":"synthetic omission"});
++        let (status, raw) = post(
++            &router,
++            "/api/v1/machine/corrections",
++            &correction.to_string(),
++        )
++        .await;
++        assert_eq!(status, 200, "{raw}");
++        let correction: serde_json::Value = serde_json::from_str(&raw).unwrap();
++        let candidate = correction["correction_candidate_id"].as_str().unwrap();
++        assert_eq!(
++            post(
++                &router,
++                &format!("/api/v1/knowledge-items/{candidate}/review-decisions"),
++                r#"{"action":"accepted","reviewer":"synthetic-human"}"#
++            )
++            .await
++            .0,
++            200
++        );
++        request = serde_json::json!({"knowledge_id":candidate,"question":"SYNTHETIC_PRIVATE question","retest_of":correction["failed_task_id"]});
+         "/api/v1/machine/retests"
+-    } else { "/api/v1/machine/answers" };
++    } else {
++        "/api/v1/machine/answers"
++    };
+     let diagnostics = serde_json::json!({
+         "requested_model":"synthetic-model", "observed_model":null,
+         "finish_reason":"length", "answer_source":"reasoning_content",
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\contract_machine_answer.rs:990:
+         "reason_code":"NO_FINAL_ANSWER", "diagnostics":untrusted,
+         "error":"SYNTHETIC_PRIVATE", "answer":"SYNTHETIC_PRIVATE"});
+     // Emit JSON (not Python's dictionary repr), then exit unsuccessfully.
+-    std::fs::write(dir.path().join("answer.py"), format!(
+-        "import sys\nprint({:?})\nsys.exit(1)\n", failure.to_string()
+-    )).unwrap();
++    std::fs::write(
++        dir.path().join("answer.py"),
++        format!(
++            "import sys\nprint({:?})\nsys.exit(1)\n",
++            failure.to_string()
++        ),
++    )
++    .unwrap();
+     let (status, body) = post(&router, path, &request.to_string()).await;
+-    assert_eq!(status,503,"{body}");
+-    let value:serde_json::Value = serde_json::from_str(&body).unwrap();
+-    assert_eq!(value["diagnostics"],diagnostics);
++    assert_eq!(status, 503, "{body}");
++    let value: serde_json::Value = serde_json::from_str(&body).unwrap();
++    assert_eq!(value["diagnostics"], diagnostics);
+     assert!(!body.contains("SYNTHETIC_PRIVATE"));
+     drop(router);
+     let conn = rusqlite::Connection::open(dir.path().join("db.sqlite")).unwrap();
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\contract_machine_answer.rs:1003:
+-    let conditions:String = conn.query_row(
+-        "SELECT conditions FROM machine_tasks WHERE scope='runtime.execution.failed'",[],|r|r.get(0)
+-    ).unwrap();
+-    let audit:serde_json::Value = serde_json::from_str(&conditions).unwrap();
+-    assert_eq!(audit["diagnostics"],diagnostics);
+-    assert_eq!(audit["provider_stop_state"],"UNKNOWN");
+-    assert_eq!(audit["answer_published"],false);
++    let conditions: String = conn
++        .query_row(
++            "SELECT conditions FROM machine_tasks WHERE scope='runtime.execution.failed'",
++            [],
++            |r| r.get(0),
++        )
++        .unwrap();
++    let audit: serde_json::Value = serde_json::from_str(&conditions).unwrap();
++    assert_eq!(audit["diagnostics"], diagnostics);
++    assert_eq!(audit["provider_stop_state"], "UNKNOWN");
++    assert_eq!(audit["answer_published"], false);
+     assert!(!conditions.contains("SYNTHETIC_PRIVATE"));
+-    let published:i64 = conn.query_row("SELECT count(*) FROM machine_tasks WHERE scope IN ('runtime.answer','runtime.retest')",[],|r|r.get(0)).unwrap();
+-    assert_eq!(published,if retest {1}else{0});
++    let published: i64 = conn
++        .query_row(
++            "SELECT count(*) FROM machine_tasks WHERE scope IN ('runtime.answer','runtime.retest')",
++            [],
++            |r| r.get(0),
++        )
++        .unwrap();
++    assert_eq!(published, if retest { 1 } else { 0 });
+     drop(conn);
+-    let python=PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+-    let transport=PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../services/python-workers/transport/text_ndjson.py");
+-    let executor=Executor::open_routes(&dir.path().join("db.sqlite"),&dir.path().join("staging"),&python,&transport,&[("machine.answer",dir.path().join("answer.py"))]).await.unwrap();
+-    let restarted=archeaxis_api::runtime::router(executor);
+-    let response=restarted.oneshot(Request::builder().uri("/api/v1/machine/tasks").body(Body::empty()).unwrap()).await.unwrap();
+-    assert_eq!(response.status(),200);
+-    let raw=response.into_body().collect().await.unwrap().to_bytes();
+-    let history:serde_json::Value=serde_json::from_slice(&raw).unwrap();
+-    let task=history["items"].as_array().unwrap().iter().find(|row|row["scope"]=="runtime.execution.failed").unwrap();
+-    let readback:serde_json::Value=serde_json::from_str(task["conditions"].as_str().unwrap()).unwrap();
+-    assert_eq!(readback,audit);
+-
++    let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
++    let transport = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
++        .join("../../services/python-workers/transport/text_ndjson.py");
++    let executor = Executor::open_routes(
++        &dir.path().join("db.sqlite"),
++        &dir.path().join("staging"),
++        &python,
++        &transport,
++        &[("machine.answer", dir.path().join("answer.py"))],
++    )
++    .await
++    .unwrap();
++    let restarted = archeaxis_api::runtime::router(executor);
++    let response = restarted
++        .oneshot(
++            Request::builder()
++                .uri("/api/v1/machine/tasks")
++                .body(Body::empty())
++                .unwrap(),
++        )
++        .await
++        .unwrap();
++    assert_eq!(response.status(), 200);
++    let raw = response.into_body().collect().await.unwrap().to_bytes();
++    let history: serde_json::Value = serde_json::from_slice(&raw).unwrap();
++    let task = history["items"]
++        .as_array()
++        .unwrap()
++        .iter()
++        .find(|row| row["scope"] == "runtime.execution.failed")
++        .unwrap();
++    let readback: serde_json::Value =
++        serde_json::from_str(task["conditions"].as_str().unwrap()).unwrap();
++    assert_eq!(readback, audit);
+ }
+ 
+ #[tokio::test]
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:66:
+     };
+     assert_eq!(preview["plan"]["answer_policy"], policy);
+     assert_eq!(preview["plan"]["prompt_version"], version);
+-    assert_eq!(preview["plan_sha256"], hash(preview["plan"].to_string().as_bytes()));
++    assert_eq!(
++        preview["plan_sha256"],
++        hash(preview["plan"].to_string().as_bytes())
++    );
+     for field in ["answer_policy", "prompt_version"] {
+         let mut altered = preview["plan"].clone();
+         altered.as_object_mut().unwrap().remove(field);
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:78:
+ }
+ #[tokio::test]
+ async fn failed_conversation_measurements_survive_restart_without_repeating_worker() {
+-    for (code,expected_reason,expected_diagnostics) in [("NO_FINAL_ANSWER","conversation_model_failed",json!({"finish_reason":"length","elapsed_s":1.5,"usage":{"output_tokens":128}})),("MODEL_CALL_TIMEOUT","conversation_model_timeout",json!({"request_stage":"model_request","discovery_elapsed_s":0.25,"elapsed_s":5.0,"error_type":"TimeoutError"}))] {
+-    let dir=tempfile::tempdir().unwrap();
+-    let script=dir.path().join("worker.py");
+-    let count=dir.path().join("count");
+-    let mut diagnostics=expected_diagnostics.clone();diagnostics["stderr"]=json!("PRIVATE_SENTINEL");
+-    let failure=json!({"schema":"archeaxis.machine-worker-failure/v1","reason_code":code,"diagnostics":diagnostics});
+-    std::fs::write(&script,format!("import sys\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\nprint({})\nsys.exit(1)\n",serde_json::to_string(&count).unwrap(),serde_json::to_string(&failure.to_string()).unwrap())).unwrap();
+-    let router=archeaxis_api::runtime::router(open(dir.path(),&script).await);
+-    create(&router,"failed_session").await;
+-    let request=confirmed(&router,body("failed_session","failed_request")).await;
+-    let (status,receipt)=call(&router,"/api/v1/conversation/requests",request.clone()).await;
+-    assert_eq!(status,200,"{receipt}");assert_eq!(receipt["state"],"failed");assert_eq!(receipt["reason_code"],expected_reason);
+-    assert_eq!(receipt["diagnostics"],expected_diagnostics);
+-    assert!(receipt["answer"].is_null());assert!(!receipt.to_string().contains("PRIVATE_SENTINEL"));
+-    drop(router);
+-    let router=archeaxis_api::runtime::router(open(dir.path(),&script).await);
+-    assert_eq!(call(&router,"/api/v1/conversation/requests",request).await.1,receipt);
+-    let (_,history)=call(&router,"/api/v1/conversation/history",json!({"session_id":"failed_session","after_sequence":0,"limit":64})).await;
+-    assert_eq!(history["requests"][0]["receipt"],receipt);
+-    assert_eq!(std::fs::read_to_string(count).unwrap(),"1");
++    for (code, expected_reason, expected_diagnostics) in [
++        (
++            "NO_FINAL_ANSWER",
++            "conversation_model_failed",
++            json!({"finish_reason":"length","elapsed_s":1.5,"usage":{"output_tokens":128}}),
++        ),
++        (
++            "MODEL_CALL_TIMEOUT",
++            "conversation_model_timeout",
++            json!({"request_stage":"model_request","discovery_elapsed_s":0.25,"elapsed_s":5.0,"error_type":"TimeoutError"}),
++        ),
++    ] {
++        let dir = tempfile::tempdir().unwrap();
++        let script = dir.path().join("worker.py");
++        let count = dir.path().join("count");
++        let mut diagnostics = expected_diagnostics.clone();
++        diagnostics["stderr"] = json!("PRIVATE_SENTINEL");
++        let failure = json!({"schema":"archeaxis.machine-worker-failure/v1","reason_code":code,"diagnostics":diagnostics});
++        std::fs::write(&script,format!("import sys\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\nprint({})\nsys.exit(1)\n",serde_json::to_string(&count).unwrap(),serde_json::to_string(&failure.to_string()).unwrap())).unwrap();
++        let router = archeaxis_api::runtime::router(open(dir.path(), &script).await);
++        create(&router, "failed_session").await;
++        let request = confirmed(&router, body("failed_session", "failed_request")).await;
++        let (status, receipt) =
++            call(&router, "/api/v1/conversation/requests", request.clone()).await;
++        assert_eq!(status, 200, "{receipt}");
++        assert_eq!(receipt["state"], "failed");
++        assert_eq!(receipt["reason_code"], expected_reason);
++        assert_eq!(receipt["diagnostics"], expected_diagnostics);
++        assert!(receipt["answer"].is_null());
++        assert!(!receipt.to_string().contains("PRIVATE_SENTINEL"));
++        drop(router);
++        let router = archeaxis_api::runtime::router(open(dir.path(), &script).await);
++        assert_eq!(
++            call(&router, "/api/v1/conversation/requests", request)
++                .await
++                .1,
++            receipt
++        );
++        let (_, history) = call(
++            &router,
++            "/api/v1/conversation/history",
++            json!({"session_id":"failed_session","after_sequence":0,"limit":64}),
++        )
++        .await;
++        assert_eq!(history["requests"][0]["receipt"], receipt);
++        assert_eq!(std::fs::read_to_string(count).unwrap(), "1");
+     }
+ }
+ 
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:242:
+     assert!(started.exists());
+     // A full execution DTO must never become cancellation authority. The UI
+     // adapter must project the finite identity before entering this route.
+-    assert_eq!(call(&router, "/api/v1/conversation/cancel",
+-        body("cancel_session", "cancel_request")).await.0, 422);
+-    assert!(!task.is_finished(), "rejected fields must not cancel the worker");
+     assert_eq!(
+         call(
+             &router,
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:251:
+             "/api/v1/conversation/cancel",
++            body("cancel_session", "cancel_request")
++        )
++        .await
++        .0,
++        422
++    );
++    assert!(
++        !task.is_finished(),
++        "rejected fields must not cancel the worker"
++    );
++    assert_eq!(
++        call(
++            &router,
++            "/api/v1/conversation/cancel",
+             json!({"session_id":"other","request_id":"cancel_request"})
+         )
+         .await
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:383:
+     );
+ }
+ 
+-
+ async fn journal_raw(executor: &Executor, session: &str) -> String {
+     let key = format!("conversation_session_{}", hash(session.as_bytes()));
+     executor
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:390:
+         .store()
+         .submit_wait(move |conn| {
+-            conn.query_row("SELECT value FROM workspace_meta WHERE key=?1", [key], |row| row.get(0))
++            conn.query_row(
++                "SELECT value FROM workspace_meta WHERE key=?1",
++                [key],
++                |row| row.get(0),
++            )
+         })
+         .await
+         .unwrap()
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:415:
+         for (field, value) in additions.as_object().unwrap() {
+             request[field] = value.clone();
+         }
+-        assert_eq!(call(&router, "/api/v1/conversation/requests", request).await.0, 422);
++        assert_eq!(
++            call(&router, "/api/v1/conversation/requests", request)
++                .await
++                .0,
++            422
++        );
+     }
+     let current = confirmed(&router, body("policy_owner", "unadmitted")).await;
+-    let (_, preview) = call(&router, "/api/v1/conversation/requests", body("policy_owner", "unadmitted")).await;
++    let (_, preview) = call(
++        &router,
++        "/api/v1/conversation/requests",
++        body("policy_owner", "unadmitted"),
++    )
++    .await;
+     let mut legacy = preview["plan"].clone();
+     let object = legacy.as_object_mut().unwrap();
+     assert!(object.remove("answer_policy").is_some());
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:431:
+     assert_eq!(status, 403, "{refused}");
+     assert_eq!(refused["reason_code"], "conversation_confirmation_required");
+     assert_eq!(journal_raw(&executor, "policy_owner").await, before);
+-    assert!(!count.exists(), "preview and rejected confirmation must not spawn worker");
++    assert!(
++        !count.exists(),
++        "preview and rejected confirmation must not spawn worker"
++    );
+ }
+ 
+ #[tokio::test]
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:461:
+         let router = archeaxis_api::runtime::router(executor.clone());
+         create(&router, "policy_fail").await;
+         let request = confirmed(&router, body("policy_fail", "wrong")).await;
+-        let (status, receipt) = call(&router, "/api/v1/conversation/requests", request.clone()).await;
++        let (status, receipt) =
++            call(&router, "/api/v1/conversation/requests", request.clone()).await;
+         assert_eq!(status, 200, "mutation={mutation}: {receipt}");
+         assert_eq!(receipt["state"], "failed", "mutation={mutation}: {receipt}");
+-        assert_eq!(receipt["reason_code"], "conversation_answer_policy_unverified", "mutation={mutation}: {receipt}");
++        assert_eq!(
++            receipt["reason_code"], "conversation_answer_policy_unverified",
++            "mutation={mutation}: {receipt}"
++        );
+         assert!(receipt["answer"].is_null());
+         assert_eq!(receipt["authority"], "candidate");
+         assert_eq!(receipt["grants_knowledge_acceptance"], false);
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:471:
+         assert_eq!(std::fs::read_to_string(&count).unwrap(), "1");
+-        assert_eq!(call(&router, "/api/v1/conversation/requests", request).await.1, receipt);
+-        let (_, history) = call(&router, "/api/v1/conversation/history", json!({"session_id":"policy_fail","after_sequence":0,"limit":64})).await;
++        assert_eq!(
++            call(&router, "/api/v1/conversation/requests", request)
++                .await
++                .1,
++            receipt
++        );
++        let (_, history) = call(
++            &router,
++            "/api/v1/conversation/history",
++            json!({"session_id":"policy_fail","after_sequence":0,"limit":64}),
++        )
++        .await;
+         assert_eq!(history["events"][1]["kind"], "failed");
+         assert_eq!(history["requests"][0]["receipt"], receipt);
+         assert_eq!(std::fs::read_to_string(&count).unwrap(), "1");
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:477:
+-        assert_eq!(executor.store().submit_wait(|conn| conn.query_row("SELECT COUNT(*) FROM knowledge", [], |row| row.get::<_, i64>(0))).await.unwrap().unwrap(), 0);
++        assert_eq!(
++            executor
++                .store()
++                .submit_wait(
++                    |conn| conn.query_row("SELECT COUNT(*) FROM knowledge", [], |row| row
++                        .get::<_, i64>(0))
++                )
++                .await
++                .unwrap()
++                .unwrap(),
++            0
++        );
+     }
+ }
+ 
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:489:
+     let mut saved_cases = Vec::new();
+     for (session_id, terminal) in [("legacy_terminal", true), ("legacy_pending", false)] {
+         create(&router, session_id).await;
+-        let (_, preview) = call(&router, "/api/v1/conversation/requests", body(session_id, "legacy_request")).await;
++        let (_, preview) = call(
++            &router,
++            "/api/v1/conversation/requests",
++            body(session_id, "legacy_request"),
++        )
++        .await;
+         let mut plan = preview["plan"].clone();
+-        assert!(plan.as_object_mut().unwrap().remove("answer_policy").is_some());
+-        assert!(plan.as_object_mut().unwrap().remove("prompt_version").is_some());
++        assert!(
++            plan.as_object_mut()
++                .unwrap()
++                .remove("answer_policy")
++                .is_some()
++        );
++        assert!(
++            plan.as_object_mut()
++                .unwrap()
++                .remove("prompt_version")
++                .is_some()
++        );
+         let sha = hash(plan.to_string().as_bytes());
+         let receipt = if terminal {
+             json!({"schema":"archeaxis.conversation-receipt/v1","session_id":session_id,"request_id":"legacy_request","state":"completed","answer":{"answer":"SYNTHETIC legacy candidate"},"reason_code":null,"plan":plan,"plan_sha256":sha,"delivery":"BUFFERED","provider_stop_state":"UNKNOWN","authority":"candidate","grants_knowledge_acceptance":false})
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:499:
+         } else {
+             Value::Null
+         };
+-        let mut journal: Value = serde_json::from_str(&journal_raw(&executor, session_id).await).unwrap();
++        let mut journal: Value =
++            serde_json::from_str(&journal_raw(&executor, session_id).await).unwrap();
+         journal["requests"] = json!([{"request_id":"legacy_request","plan":plan,"plan_sha256":sha,"state":if terminal {"completed"} else {"EXECUTING"},"receipt":receipt}]);
+-        journal["last_sequence"] = json!(if terminal {2} else {1});
++        journal["last_sequence"] = json!(if terminal { 2 } else { 1 });
+         journal["events"] = json!([{"session_id":session_id,"request_id":"legacy_request","sequence":1,"kind":"accepted","data":{"question":"conversation question","purpose":"companion","plan_sha256":sha},"delivery":"BUFFERED"}]);
+         if terminal {
+             journal["events"].as_array_mut().unwrap().push(json!({"session_id":session_id,"request_id":"legacy_request","sequence":2,"kind":"completed","data":receipt,"delivery":"BUFFERED"}));
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:509:
+         let raw = journal.to_string();
+         let stored = raw.clone();
+         let key = format!("conversation_session_{}", hash(session_id.as_bytes()));
+-        executor.store().submit_wait(move |conn| conn.execute("UPDATE workspace_meta SET value=?1 WHERE key=?2", rusqlite::params![stored,key])).await.unwrap().unwrap();
++        executor
++            .store()
++            .submit_wait(move |conn| {
++                conn.execute(
++                    "UPDATE workspace_meta SET value=?1 WHERE key=?2",
++                    rusqlite::params![stored, key],
++                )
++            })
++            .await
++            .unwrap()
++            .unwrap();
+         let mut retry = plan["request"].clone();
+         retry["preview"] = json!(false);
+         retry["confirmed_plan_sha256"] = json!(sha);
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:520:
+     let executor = open(dir.path(), &script).await;
+     let router = archeaxis_api::runtime::router(executor.clone());
+     for (session_id, terminal, plan, sha, receipt, raw, retry) in saved_cases {
+-        let (status, observed) = call(&router, "/api/v1/conversation/status", json!({"session_id":session_id,"request_id":"legacy_request"})).await;
++        let (status, observed) = call(
++            &router,
++            "/api/v1/conversation/status",
++            json!({"session_id":session_id,"request_id":"legacy_request"}),
++        )
++        .await;
+         assert_eq!(status, 200, "{observed}");
+         if terminal {
+             assert_eq!(observed, receipt, "old terminal receipt must remain exact");
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:532:
+         assert_eq!(observed["plan_sha256"], sha);
+         assert!(observed["plan"].get("answer_policy").is_none());
+         assert!(observed["plan"].get("prompt_version").is_none());
+-        assert_eq!(call(&router, "/api/v1/conversation/requests", retry).await.1, observed);
+-        let (_, history) = call(&router, "/api/v1/conversation/history", json!({"session_id":session_id,"after_sequence":0,"limit":64})).await;
++        assert_eq!(
++            call(&router, "/api/v1/conversation/requests", retry)
++                .await
++                .1,
++            observed
++        );
++        let (_, history) = call(
++            &router,
++            "/api/v1/conversation/history",
++            json!({"session_id":session_id,"after_sequence":0,"limit":64}),
++        )
++        .await;
+         assert_eq!(history["requests"][0]["plan"], plan);
+         assert_eq!(history["requests"][0]["plan_sha256"], sha);
+         assert_eq!(history["requests"][0]["receipt"], receipt);
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:540:
+-        assert_eq!(journal_raw(&executor, session_id).await, raw, "read/replay must not migrate historical bytes");
++        assert_eq!(
++            journal_raw(&executor, session_id).await,
++            raw,
++            "read/replay must not migrate historical bytes"
++        );
+     }
+-    assert!(!count.exists(), "no legacy status/history/replay may rerun inference");
+-    assert_eq!(executor.store().submit_wait(|conn| conn.query_row("SELECT COUNT(*) FROM knowledge", [], |row| row.get::<_, i64>(0))).await.unwrap().unwrap(), 0);
++    assert!(
++        !count.exists(),
++        "no legacy status/history/replay may rerun inference"
++    );
++    assert_eq!(
++        executor
++            .store()
++            .submit_wait(
++                |conn| conn.query_row("SELECT COUNT(*) FROM knowledge", [], |row| row
++                    .get::<_, i64>(0))
++            )
++            .await
++            .unwrap()
++            .unwrap(),
++        0
++    );
+ }
+ 
+-
+ #[tokio::test]
+ async fn material_learning_rejects_general_companion_worker_policy() {
+     let dir = tempfile::tempdir().unwrap();
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\conversation_api.rs:560:
+     let (status, receipt) = call(&router, "/api/v1/conversation/requests", request).await;
+     assert_eq!(status, 200, "{receipt}");
+     assert_eq!(receipt["state"], "failed", "{receipt}");
+-    assert_eq!(receipt["reason_code"], "conversation_answer_policy_unverified");
++    assert_eq!(
++        receipt["reason_code"],
++        "conversation_answer_policy_unverified"
++    );
+     assert!(receipt["answer"].is_null());
+     assert_eq!(receipt["grants_knowledge_acceptance"], false);
+-    assert_eq!(executor.store().submit_wait(|conn| conn.query_row("SELECT COUNT(*) FROM knowledge", [], |row| row.get::<_, i64>(0))).await.unwrap().unwrap(), 0);
++    assert_eq!(
++        executor
++            .store()
++            .submit_wait(
++                |conn| conn.query_row("SELECT COUNT(*) FROM knowledge", [], |row| row
++                    .get::<_, i64>(0))
++            )
++            .await
++            .unwrap()
++            .unwrap(),
++        0
++    );
+ }
+ 
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\document_draft_loop.rs:12:
+     let router = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+     // Synthetic external export. This tests real Core custody, not upstream classroom execution.
+     let manifest = json!({"formatVersion":1,"exportedAt":"2026-10-19T00:00:00Z","appVersion":"1.2.1",
+-        "stage":{"name":"来源测验","createdAt":1,"updatedAt":2},"agents":[],"mediaIndex":{},
+-        "scenes":[{"type":"quiz","title":"来源","order":2,"content":{"type":"quiz","questions":[
+-            {"id":"q1","type":"single","question":"原件 <script>never()</script>","options":[
+-                {"label":"原件","value":"source"},{"label":"猜测","value":"guess"}],"answer":["source"]},
+-            {"id":"q2","type":"short_answer","question":"解释","hasAnswer":false,"commentPrompt":"inert"}
+-        ]}}]});
++    "stage":{"name":"来源测验","createdAt":1,"updatedAt":2},"agents":[],"mediaIndex":{},
++    "scenes":[{"type":"quiz","title":"来源","order":2,"content":{"type":"quiz","questions":[
++        {"id":"q1","type":"single","question":"原件 <script>never()</script>","options":[
++            {"label":"原件","value":"source"},{"label":"猜测","value":"guess"}],"answer":["source"]},
++        {"id":"q2","type":"short_answer","question":"解释","hasAnswer":false,"commentPrompt":"inert"}
++    ]}}]});
+     let bytes = serde_json::to_vec_pretty(&manifest).unwrap();
+     let encoded = STANDARD.encode(&bytes);
+-    let (status, imported) = call(&router,"POST","/api/v1/imports",
+-        json!({"name":"manifest.json","content_base64":encoded}),"human").await;
+-    assert_eq!(status,202,"{imported}");
++    let (status, imported) = call(
++        &router,
++        "POST",
++        "/api/v1/imports",
++        json!({"name":"manifest.json","content_base64":encoded}),
++        "human",
++    )
++    .await;
++    assert_eq!(status, 202, "{imported}");
+     let typed = json!({"schema":"archeaxis.imported-course/v1","status":"candidate",
+         "grounding":"external_unverified","human_review_required":true,"title":"来源测验",
+         "scenes":[{"title":"来源","order":2,"questions":manifest["scenes"][0]["content"]["questions"]}],
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\document_draft_loop.rs:34:
+         {"type":"paragraph","attrs":{"block_id":"course_0"},"content":[{"type":"text","text":"来源测验"}]}]});
+     let body = json!({"create_request_id":"imported_course_fixed_request","source_id":imported["source_id"],
+         "source_revision":imported["sha256"],"title":"外部课程候选 · 来源测验","editor_json":editor});
+-    let (status, created) = call(&router,"POST","/api/v1/documents",body.clone(),"human").await;
+-    assert_eq!(status,201,"{created}");
+-    assert_eq!(created["editor_json"],editor);
+-    assert_eq!(created["version"],1);
+-    let route = format!("/api/v1/documents/{}",created["document_id"].as_str().unwrap());
+-    assert_eq!(call(&router,"GET",&route,json!(null),"human").await.1,created);
+-    let (status,replayed)=call(&router,"POST","/api/v1/documents",body.clone(),"human").await;
+-    assert_eq!(status,201); assert_eq!(replayed,created);
+-    let mut changed=body.clone(); changed["editor_json"]["attrs"]["archeaxis_imported_course"]["scenes"][0]["questions"][0]["answer"]=json!(["guess"]);
+-    assert_eq!(call(&router,"POST","/api/v1/documents",changed,"human").await.0,409);
+-    assert_eq!(call(&router,"POST","/api/v1/documents",body.clone(),"machine").await.0,403);
++    let (status, created) = call(&router, "POST", "/api/v1/documents", body.clone(), "human").await;
++    assert_eq!(status, 201, "{created}");
++    assert_eq!(created["editor_json"], editor);
++    assert_eq!(created["version"], 1);
++    let route = format!(
++        "/api/v1/documents/{}",
++        created["document_id"].as_str().unwrap()
++    );
++    assert_eq!(
++        call(&router, "GET", &route, json!(null), "human").await.1,
++        created
++    );
++    let (status, replayed) =
++        call(&router, "POST", "/api/v1/documents", body.clone(), "human").await;
++    assert_eq!(status, 201);
++    assert_eq!(replayed, created);
++    let mut changed = body.clone();
++    changed["editor_json"]["attrs"]["archeaxis_imported_course"]["scenes"][0]["questions"][0]["answer"] =
++        json!(["guess"]);
++    assert_eq!(
++        call(&router, "POST", "/api/v1/documents", changed, "human")
++            .await
++            .0,
++        409
++    );
++    assert_eq!(
++        call(
++            &router,
++            "POST",
++            "/api/v1/documents",
++            body.clone(),
++            "machine"
++        )
++        .await
++        .0,
++        403
++    );
+     drop(router);
+-    let restarted=archeaxis_api::app(db.to_str().unwrap()).unwrap();
+-    assert_eq!(call(&restarted,"GET",&route,json!(null),"human").await.1,created);
+-    let (_, original)=call(&restarted,"GET",&format!("/api/v1/sources/{}/original",imported["source_id"].as_str().unwrap()),json!(null),"human").await;
+-    assert_eq!(original["sha256"],imported["sha256"]);
+-    assert_eq!(STANDARD.decode(original["content_base64"].as_str().unwrap()).unwrap(),bytes);
+-    assert_eq!(call(&restarted,"POST","/api/v1/documents",body,"human").await.1,created);
++    let restarted = archeaxis_api::app(db.to_str().unwrap()).unwrap();
++    assert_eq!(
++        call(&restarted, "GET", &route, json!(null), "human")
++            .await
++            .1,
++        created
++    );
++    let (_, original) = call(
++        &restarted,
++        "GET",
++        &format!(
++            "/api/v1/sources/{}/original",
++            imported["source_id"].as_str().unwrap()
++        ),
++        json!(null),
++        "human",
++    )
++    .await;
++    assert_eq!(original["sha256"], imported["sha256"]);
++    assert_eq!(
++        STANDARD
++            .decode(original["content_base64"].as_str().unwrap())
++            .unwrap(),
++        bytes
++    );
++    assert_eq!(
++        call(&restarted, "POST", "/api/v1/documents", body, "human")
++            .await
++            .1,
++        created
++    );
+     // CAS is custody only: external content was not accepted as knowledge or a learning review.
+-    let connection=rusqlite::Connection::open(&db).unwrap();
+-    let reviews:i64=connection.query_row("SELECT COUNT(*) FROM learning_events",[],|r|r.get(0)).unwrap();
+-    assert_eq!(reviews,0);
++    let connection = rusqlite::Connection::open(&db).unwrap();
++    let reviews: i64 = connection
++        .query_row("SELECT COUNT(*) FROM learning_events", [], |r| r.get(0))
++        .unwrap();
++    assert_eq!(reviews, 0);
+ }
+ 
+ #[tokio::test]
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:494:
+     let db = dir.path().join("title-membership.sqlite");
+     let router = app(db.to_str().unwrap()).unwrap();
+     let conn = rusqlite::Connection::open(&db).unwrap();
+-    conn.execute("INSERT INTO sources(source_id,sha256,original_name)
+-                  VALUES('title-source','fixed-title-revision','synthetic-title.md')", []).unwrap();
+-    conn.execute("INSERT INTO anchors(anchor_id,source_id,source_revision,position)
+-                  VALUES('title-anchor','title-source','fixed-title-revision','{}')", []).unwrap();
++    conn.execute(
++        "INSERT INTO sources(source_id,sha256,original_name)
++                  VALUES('title-source','fixed-title-revision','synthetic-title.md')",
++        [],
++    )
++    .unwrap();
++    conn.execute(
++        "INSERT INTO anchors(anchor_id,source_id,source_revision,position)
++                  VALUES('title-anchor','title-source','fixed-title-revision','{}')",
++        [],
++    )
++    .unwrap();
+     for (id, title) in [("course-a", "课程 A · 原标题"), ("course-b", "课程 B")] {
+         conn.execute(
+             "INSERT INTO general_courses(
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:512:
+             "INSERT INTO general_course_artifacts(
+                 artifact_id,manifest_id,artifact_json,status,derived_only,human_review_required
+              ) VALUES(?1,?2,?3,'candidate',1,1)",
+-            rusqlite::params![artifact, course,
+-                json!({"knowledge_ids":[format!("component-{artifact}")]}).to_string()],
++            rusqlite::params![
++                artifact,
++                course,
++                json!({"knowledge_ids":[format!("component-{artifact}")]}).to_string()
++            ],
+         )
+         .unwrap();
+     }
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:522:
+         ("course:course-a:artifact:artifact-b", "固定题面摘要"),
+         ("course:course-a:artifact:missing", "固定题面摘要"),
+         ("course:course-a:artifact:artifact-a:extra", "固定题面摘要"),
+-        ("course:course-a' OR 1=1--:artifact:artifact-a", "固定题面摘要"),
++        (
++            "course:course-a' OR 1=1--:artifact:artifact-a",
++            "固定题面摘要",
++        ),
+     ];
+     for (key, _) in cases {
+         title_assessment_fixture(&conn, key, "\n 固定题面摘要\n第二行不是标题");
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:529:
+     }
+-    conn.execute("UPDATE knowledge SET anchor_id='title-anchor'
+-                  WHERE knowledge_id='title-fixture-knowledge'", []).unwrap();
+-    conn.execute("UPDATE learning_assessments SET source_id='title-source',anchor_id='title-anchor'", []).unwrap();
+-    for (course, component) in [("course-a", "component-artifact-a"), ("course-b", "component-artifact-b")] {
+-        conn.execute("INSERT INTO general_course_bindings(manifest_id,component_id,knowledge_id,
++    conn.execute(
++        "UPDATE knowledge SET anchor_id='title-anchor'
++                  WHERE knowledge_id='title-fixture-knowledge'",
++        [],
++    )
++    .unwrap();
++    conn.execute(
++        "UPDATE learning_assessments SET source_id='title-source',anchor_id='title-anchor'",
++        [],
++    )
++    .unwrap();
++    for (course, component) in [
++        ("course-a", "component-artifact-a"),
++        ("course-b", "component-artifact-b"),
++    ] {
++        conn.execute(
++            "INSERT INTO general_course_bindings(manifest_id,component_id,knowledge_id,
+                       knowledge_version,source_id,source_revision)
+                       VALUES(?1,?2,'title-fixture-knowledge','title-fixture-knowledge',
+-                      'title-source','fixed-title-revision')", rusqlite::params![course, component]).unwrap();
++                      'title-source','fixed-title-revision')",
++            rusqlite::params![course, component],
++        )
++        .unwrap();
+     }
+     // A later source state must not replace a label bound to the fixed anchor.
+-    conn.execute("UPDATE sources SET sha256='later-title-revision' WHERE source_id='title-source'", []).unwrap();
++    conn.execute(
++        "UPDATE sources SET sha256='later-title-revision' WHERE source_id='title-source'",
++        [],
++    )
++    .unwrap();
+     let (status, queue) = get_items(&router).await;
+     assert_eq!(status, StatusCode::OK, "{queue}");
+     assert_eq!(queue["count"], cases.len());
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:544:
+-    let keys: Vec<_> = queue["items"].as_array().unwrap().iter()
+-        .map(|row| row["item_key"].as_str().unwrap()).collect();
++    let keys: Vec<_> = queue["items"]
++        .as_array()
++        .unwrap()
++        .iter()
++        .map(|row| row["item_key"].as_str().unwrap())
++        .collect();
+     let mut sorted_keys = keys.clone();
+     sorted_keys.sort_unstable();
+     assert_eq!(keys, sorted_keys);
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:549:
+     for (key, expected) in cases {
+-        let row = queue["items"].as_array().unwrap().iter()
+-            .find(|row| row["item_key"] == key).unwrap();
++        let row = queue["items"]
++            .as_array()
++            .unwrap()
++            .iter()
++            .find(|row| row["item_key"] == key)
++            .unwrap();
+         assert_eq!(row["display_title"], expected, "{key}");
+         assert!(row["next_review"].is_null());
+     }
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:555:
+-    let readonly = rusqlite::Connection::open_with_flags(&db, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+-    assert_eq!(archeaxis_domain::learning::item_display_title(&readonly,
+-        "course:course-a:artifact:artifact-a").unwrap(), "课程 A · 原标题");
++    let readonly =
++        rusqlite::Connection::open_with_flags(&db, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
++            .unwrap();
++    assert_eq!(
++        archeaxis_domain::learning::item_display_title(
++            &readonly,
++            "course:course-a:artifact:artifact-a"
++        )
++        .unwrap(),
++        "课程 A · 原标题"
++    );
+     drop(readonly);
+     for mutation in [
+         "UPDATE general_course_bindings SET component_id='another-component' WHERE manifest_id='course-a'",
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:565:
+     ] {
+         conn.execute(mutation, []).unwrap();
+         let (_, changed) = get_items(&router).await;
+-        let row = changed["items"].as_array().unwrap().iter()
+-            .find(|row| row["item_key"] == "course:course-a:artifact:artifact-a").unwrap();
++        let row = changed["items"]
++            .as_array()
++            .unwrap()
++            .iter()
++            .find(|row| row["item_key"] == "course:course-a:artifact:artifact-a")
++            .unwrap();
+         assert_eq!(row["display_title"], "固定题面摘要", "{mutation}");
+-        conn.execute("UPDATE general_course_bindings SET component_id='component-artifact-a',
+-                      source_revision='fixed-title-revision' WHERE manifest_id='course-a'", []).unwrap();
+-        conn.execute("UPDATE learning_assessments SET knowledge_version='title-fixture-knowledge',
++        conn.execute(
++            "UPDATE general_course_bindings SET component_id='component-artifact-a',
++                      source_revision='fixed-title-revision' WHERE manifest_id='course-a'",
++            [],
++        )
++        .unwrap();
++        conn.execute(
++            "UPDATE learning_assessments SET knowledge_version='title-fixture-knowledge',
+                       source_id='title-source',anchor_id='title-anchor'
+-                      WHERE item_key='course:course-a:artifact:artifact-a'", []).unwrap();
++                      WHERE item_key='course:course-a:artifact:artifact-a'",
++            [],
++        )
++        .unwrap();
+     }
+     // Legal IDs alone do not prove that this assessment belongs to that course.
+     conn.execute(
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:584:
+          knowledge_version='other-title-knowledge' WHERE item_key='course:course-a:artifact:artifact-a'", [],
+     ).unwrap();
+     let (_, changed) = get_items(&router).await;
+-    let changed_row = changed["items"].as_array().unwrap().iter()
+-        .find(|row| row["item_key"] == "course:course-a:artifact:artifact-a").unwrap();
++    let changed_row = changed["items"]
++        .as_array()
++        .unwrap()
++        .iter()
++        .find(|row| row["item_key"] == "course:course-a:artifact:artifact-a")
++        .unwrap();
+     assert_eq!(changed_row["display_title"], "固定题面摘要");
+ }
+ 
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:595:
+     let db = dir.path().join("title-snapshot.sqlite");
+     let router = app(db.to_str().unwrap()).unwrap();
+     let conn = rusqlite::Connection::open(&db).unwrap();
+-    title_assessment_fixture(&conn, "fixed-card", "\n \t\n 固定\t 摘要\u{0000} 内容\n不要取第二行");
+-    title_assessment_fixture(&conn, "unicode-card", &format!("\n{}\nunused", "星🛰".repeat(50)));
++    title_assessment_fixture(
++        &conn,
++        "fixed-card",
++        "\n \t\n 固定\t 摘要\u{0000} 内容\n不要取第二行",
++    );
++    title_assessment_fixture(
++        &conn,
++        "unicode-card",
++        &format!("\n{}\nunused", "星🛰".repeat(50)),
++    );
+     title_assessment_fixture(&conn, "blank-card", "\n \t\n\u{0000}");
+     conn.execute(
+         "INSERT INTO learning_events(item_key,kind,outcome,next_review)
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:603:
+-         VALUES('legacy-event','review','{}','2026-09-04T00:10:00+00:00')", [],
+-    ).unwrap();
++         VALUES('legacy-event','review','{}','2026-09-04T00:10:00+00:00')",
++        [],
++    )
++    .unwrap();
+     conn.execute(
+         "INSERT INTO card_references(item_key,knowledge_id)
+-         VALUES('legacy-reference','title-fixture-knowledge')", [],
+-    ).unwrap();
++         VALUES('legacy-reference','title-fixture-knowledge')",
++        [],
++    )
++    .unwrap();
+     // Deliberately vary live knowledge in this synthetic fixture: labels must
+     // remain bound to the already stored assessment, not read this mutable body.
+-    conn.execute("UPDATE knowledge SET body='Later knowledge must not replace the snapshot.'
+-                  WHERE knowledge_id='title-fixture-knowledge'", []).unwrap();
+-    let data_version: i64 = conn.query_row("PRAGMA data_version", [], |row| row.get(0)).unwrap();
++    conn.execute(
++        "UPDATE knowledge SET body='Later knowledge must not replace the snapshot.'
++                  WHERE knowledge_id='title-fixture-knowledge'",
++        [],
++    )
++    .unwrap();
++    let data_version: i64 = conn
++        .query_row("PRAGMA data_version", [], |row| row.get(0))
++        .unwrap();
+     let (status, queue) = get_items(&router).await;
+     assert_eq!(status, StatusCode::OK, "{queue}");
+     assert_eq!(queue["count"], 5);
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\learning_state_api.rs:622:
+         ("legacy-reference", "学习项目".to_owned()),
+     ];
+     for (key, title) in expected {
+-        let row = queue["items"].as_array().unwrap().iter()
+-            .find(|row| row["item_key"] == key).unwrap();
++        let row = queue["items"]
++            .as_array()
++            .unwrap()
++            .iter()
++            .find(|row| row["item_key"] == key)
++            .unwrap();
+         assert_eq!(row["display_title"], title);
+         assert!(title.chars().count() <= 80);
+-        assert_eq!(row["next_review"], if key == "legacy-event" {
+-            json!("2026-09-04T00:10:00+00:00")
+-        } else { Value::Null });
++        assert_eq!(
++            row["next_review"],
++            if key == "legacy-event" {
++                json!("2026-09-04T00:10:00+00:00")
++            } else {
++                Value::Null
++            }
++        );
+     }
+     assert_eq!(get_items(&router).await.1, queue);
+-    let after_read: i64 = conn.query_row("PRAGMA data_version", [], |row| row.get(0)).unwrap();
+-    assert_eq!(after_read, data_version, "GET must not commit any persisted changes");
++    let after_read: i64 = conn
++        .query_row("PRAGMA data_version", [], |row| row.get(0))
++        .unwrap();
++    assert_eq!(
++        after_read, data_version,
++        "GET must not commit any persisted changes"
++    );
+     // Independently prove that the new helper works on a read-only connection.
+-    let read_only = rusqlite::Connection::open_with_flags(
+-        &db, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY,
+-    ).unwrap();
+-    assert_eq!(archeaxis_domain::learning::item_display_title(&read_only, "fixed-card").unwrap(),
+-               "固定 摘要 内容");
++    let read_only =
++        rusqlite::Connection::open_with_flags(&db, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
++            .unwrap();
++    assert_eq!(
++        archeaxis_domain::learning::item_display_title(&read_only, "fixed-card").unwrap(),
++        "固定 摘要 内容"
++    );
+     drop(read_only);
+     drop(conn);
+     drop(router);
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api\tests\material_question_api.rs:27:
+ }
+ #[tokio::test]
+ async fn failed_material_measurements_survive_restart_without_repeating_worker() {
+-    for (code,expected_reason,expected_diagnostics) in [("MODEL_CALL_FAILED","material_model_call_failed",json!({"http_status":503,"elapsed_s":1.5,"error_type":"HTTPError"})),("MODEL_CALL_TIMEOUT","material_model_timeout",json!({"request_stage":"model_request","discovery_elapsed_s":0.25,"elapsed_s":5.0,"error_type":"TimeoutError"}))] {
+-    let dir=tempfile::tempdir().unwrap();
+-    let script=dir.path().join("worker.py");let count=dir.path().join("count");
+-    let mut diagnostics=expected_diagnostics.clone();diagnostics["stderr"]=json!("PRIVATE_SENTINEL");
+-    let failure=json!({"schema":"archeaxis.machine-worker-failure/v1","reason_code":code,"diagnostics":diagnostics});
+-    std::fs::write(&script,format!("import sys\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\nprint({})\nsys.exit(1)\n",serde_json::to_string(&count).unwrap(),serde_json::to_string(&failure.to_string()).unwrap())).unwrap();
+-    let python=std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+-    let db=dir.path().join("w.sqlite");let staging=dir.path().join("staging");let routes=[("machine.answer",script.clone())];
+-    let open=||Executor::open_routes(&db,&staging,&python,&script,&routes);
+-    let executor=open().await.unwrap();
+-    let doc=executor.store().submit_wait(|c|document::create_optional(c,None,None,"material",json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Synthetic material"}]}]}))).await.unwrap().unwrap();
+-    let router=archeaxis_api::runtime::router(executor);
+-    let mut body=json!({"request_id":"failed_material","material":{"kind":"document","document_id":doc["document_id"],"version":1,"content_sha256":doc["content_sha256"],"block_id":null},"selection":null,"question":"Question","purpose":"learning","model":null,"max_tokens":128,"timeout_s":5,"preview":true,"confirmed_plan_sha256":null});
+-    let (status,preview)=call(&router,"/api/v1/material/questions",body.clone()).await;assert_eq!(status,200,"{preview}");
+-    body["preview"]=json!(false);body["confirmed_plan_sha256"]=preview["plan_sha256"].clone();
+-    let (status,receipt)=call(&router,"/api/v1/material/questions",body.clone()).await;
+-    assert_eq!(status,200,"{receipt}");assert_eq!(receipt["outcome"],"failed");
+-    assert_eq!(receipt["reason_code"],expected_reason);
+-    assert_eq!(receipt["diagnostics"],expected_diagnostics);
+-    assert!(receipt["answer"].is_null());assert!(!receipt.to_string().contains("PRIVATE_SENTINEL"));
+-    drop(router);
+-    let router=archeaxis_api::runtime::router(open().await.unwrap());
+-    assert_eq!(call(&router,"/api/v1/material/questions",body).await.1,receipt);
+-    assert_eq!(call(&router,"/api/v1/material/questions/status",json!({"request_id":"failed_material"})).await.1,receipt);
+-    assert_eq!(std::fs::read_to_string(count).unwrap(),"1");
++    for (code, expected_reason, expected_diagnostics) in [
++        (
++            "MODEL_CALL_FAILED",
++            "material_model_call_failed",
++            json!({"http_status":503,"elapsed_s":1.5,"error_type":"HTTPError"}),
++        ),
++        (
++            "MODEL_CALL_TIMEOUT",
++            "material_model_timeout",
++            json!({"request_stage":"model_request","discovery_elapsed_s":0.25,"elapsed_s":5.0,"error_type":"TimeoutError"}),
++        ),
++    ] {
++        let dir = tempfile::tempdir().unwrap();
++        let script = dir.path().join("worker.py");
++        let count = dir.path().join("count");
++        let mut diagnostics = expected_diagnostics.clone();
++        diagnostics["stderr"] = json!("PRIVATE_SENTINEL");
++        let failure = json!({"schema":"archeaxis.machine-worker-failure/v1","reason_code":code,"diagnostics":diagnostics});
++        std::fs::write(&script,format!("import sys\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\nprint({})\nsys.exit(1)\n",serde_json::to_string(&count).unwrap(),serde_json::to_string(&failure.to_string()).unwrap())).unwrap();
++        let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
++        let db = dir.path().join("w.sqlite");
++        let staging = dir.path().join("staging");
++        let routes = [("machine.answer", script.clone())];
++        let open = || Executor::open_routes(&db, &staging, &python, &script, &routes);
++        let executor = open().await.unwrap();
++        let doc=executor.store().submit_wait(|c|document::create_optional(c,None,None,"material",json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Synthetic material"}]}]}))).await.unwrap().unwrap();
++        let router = archeaxis_api::runtime::router(executor);
++        let mut body = json!({"request_id":"failed_material","material":{"kind":"document","document_id":doc["document_id"],"version":1,"content_sha256":doc["content_sha256"],"block_id":null},"selection":null,"question":"Question","purpose":"learning","model":null,"max_tokens":128,"timeout_s":5,"preview":true,"confirmed_plan_sha256":null});
++        let (status, preview) = call(&router, "/api/v1/material/questions", body.clone()).await;
++        assert_eq!(status, 200, "{preview}");
++        body["preview"] = json!(false);
++        body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
++        let (status, receipt) = call(&router, "/api/v1/material/questions", body.clone()).await;
++        assert_eq!(status, 200, "{receipt}");
++        assert_eq!(receipt["outcome"], "failed");
++        assert_eq!(receipt["reason_code"], expected_reason);
++        assert_eq!(receipt["diagnostics"], expected_diagnostics);
++        assert!(receipt["answer"].is_null());
++        assert!(!receipt.to_string().contains("PRIVATE_SENTINEL"));
++        drop(router);
++        let router = archeaxis_api::runtime::router(open().await.unwrap());
++        assert_eq!(
++            call(&router, "/api/v1/material/questions", body).await.1,
++            receipt
++        );
++        assert_eq!(
++            call(
++                &router,
++                "/api/v1/material/questions/status",
++                json!({"request_id":"failed_material"})
++            )
++            .await
++            .1,
++            receipt
++        );
++        assert_eq!(std::fs::read_to_string(count).unwrap(), "1");
+     }
+ }
+ 
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\src\executor\machine_failure.rs:68:
+         let deadline = started + timeout;
+         let value =
+             serde_json::json!({"answer": "synthetic answer", "requested_model": "m", "model": "m"});
+-        assert!(accept_success(
+-            value.clone(),
+-            Some("m"),
+-            128,
+-            started,
+-            timeout,
+-            deadline - Duration::from_nanos(1)
+-        )
+-        .is_ok());
++        assert!(
++            accept_success(
++                value.clone(),
++                Some("m"),
++                128,
++                started,
++                timeout,
++                deadline - Duration::from_nanos(1)
++            )
++            .is_ok()
++        );
+         for now in [deadline, deadline + Duration::from_nanos(1)] {
+             let error =
+                 accept_success(value.clone(), Some("m"), 128, started, timeout, now).unwrap_err();
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\src\executor.rs:6:
+ mod health;
+ mod inventory;
+ mod machine_failure;
+-pub use machine_failure::MachineFailure;
+-use machine_failure::{accept_success, remaining_worker_timeout};
+ use archeaxis_sidecar_protocol::worker::{
+     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
+ };
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\src\executor.rs:14:
+ use archeaxis_store_sqlite::capability_settings;
+ use archeaxis_store_sqlite::{raw_objects, writer::Store};
++pub use machine_failure::MachineFailure;
++use machine_failure::{accept_success, remaining_worker_timeout};
+ use std::{
+     io::{Read, Write},
+     path::{Path, PathBuf},
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\src\executor.rs:240:
+         cancel: Cancellation,
+         configuration: Option<archeaxis_domain::model_configuration::Resolved>,
+     ) -> Result<serde_json::Value, String> {
+-        self.machine_answer_configured_detailed(context, question, max_tokens, timeout, model, cancel, configuration)
+-            .await.map_err(|error| error.to_string())
++        self.machine_answer_configured_detailed(
++            context,
++            question,
++            max_tokens,
++            timeout,
++            model,
++            cancel,
++            configuration,
++        )
++        .await
++        .map_err(|error| error.to_string())
+     }
+ 
+     pub async fn machine_answer_configured_detailed(
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\src\executor.rs:358:
+             }
+             if Instant::now() >= deadline {
+                 return Err(MachineFailure::timed_out(
+-                    model.as_deref(), max_tokens, timeout, started.elapsed(),
++                    model.as_deref(),
++                    max_tokens,
++                    timeout,
++                    started.elapsed(),
+                 ));
+             }
+             let dir = tempfile::tempdir_in(&staging).map_err(|_| "machine staging unavailable")?;
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\src\executor.rs:439:
+             if cancel.is_cancelled() {
+                 return Err("machine worker cancelled".into());
+             }
+-            let worker_timeout = remaining_worker_timeout(Instant::now(), deadline)
+-                .ok_or_else(|| MachineFailure::timed_out(
+-                    model.as_deref(), max_tokens, timeout, started.elapsed(),
+-                ))?;
++            let worker_timeout =
++                remaining_worker_timeout(Instant::now(), deadline).ok_or_else(|| {
++                    MachineFailure::timed_out(
++                        model.as_deref(),
++                        max_tokens,
++                        timeout,
++                        started.elapsed(),
++                    )
++                })?;
+             command.arg("--timeout-s").arg(worker_timeout.to_string());
+             let mut child = OwnedChild(command.spawn().map_err(|_| "machine worker spawn failed")?);
+             let stdout = child.0.stdout.take().ok_or("machine stdout unavailable")?;
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\src\executor.rs:485:
+                     }
+                     if Instant::now() >= deadline {
+                         return Err(MachineFailure::timed_out(
+-                            model.as_deref(), max_tokens, timeout, started.elapsed(),
++                            model.as_deref(),
++                            max_tokens,
++                            timeout,
++                            started.elapsed(),
+                         ));
+                     }
+                     while let Ok((is_stdout, result)) = receive.try_recv() {
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\src\executor.rs:530:
+                 let value: serde_json::Value = serde_json::from_slice(&out.unwrap())
+                     .map_err(|_| "machine worker returned invalid JSON")?;
+                 accept_success(
+-                    value, model.as_deref(), max_tokens, started, timeout, Instant::now(),
++                    value,
++                    model.as_deref(),
++                    max_tokens,
++                    started,
++                    timeout,
++                    Instant::now(),
+                 )
+             })();
+             // No orphaned direct child on timeout/overflow/pipe error.
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application\tests\machine_answer_resources.rs:464:
+     }
+ }
+ 
+-
+ // 实际启动隔离的自有合成worker读取argv；不调用真实模型服务。
+ #[tokio::test]
+ async fn legacy_detailed_answer_keeps_grounded_policy_and_prompt_version() {
+Diff in \\?\D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-domain\src\learning.rs:769:
+                  WHERE c.manifest_id=?1 AND a.artifact_id=?2
+                    AND b.knowledge_id=?3 AND b.knowledge_version=?4 AND b.source_id=?5
+                  LIMIT 1",
+-                rusqlite::params![course_id, artifact_id, assessment.knowledge_id,
+-                    assessment.knowledge_version, assessment.source_id, assessment.anchor_id],
++                rusqlite::params![
++                    course_id,
++                    artifact_id,
++                    assessment.knowledge_id,
++                    assessment.knowledge_version,
++                    assessment.source_id,
++                    assessment.anchor_id
++                ],
+                 |row| row.get(0),
+             )
+             .optional()?;

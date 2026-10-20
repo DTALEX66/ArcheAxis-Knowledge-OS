@@ -1,0 +1,204 @@
+{
+  "status": "APPLIED",
+  "files": [
+    {
+      "group": "eol",
+      "path": ".gitattributes",
+      "before_sha256": "98a94ad33303945bf1613e290ca9ae7e5f2286b4f81227adfe48c600c10e6564",
+      "candidate_after_sha256": "28d699fb79d13f5c9d2294791a5c6e1208be54cebb91fa76ed84b3e6a6cddca1",
+      "current_after_sha256": "bcdada0a6d6a2b1de50e2242ec921073a7cf3e7406af7e231b851a2861c4a0cb",
+      "current_bytes": 4355,
+      "source_payload": "source/.gitattributes",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/eol-before/.gitattributes",
+      "root_followup": "增加本快照精确-text规则"
+    },
+    {
+      "group": "eol",
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "before_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+      "candidate_after_sha256": "d16cbc49ec6feae44452bed2b54b999ef6b17899f93430f332c5007b5e668241",
+      "current_after_sha256": "d16cbc49ec6feae44452bed2b54b999ef6b17899f93430f332c5007b5e668241",
+      "current_bytes": 2375,
+      "source_payload": "source/config/capability-packages/pdf-extract.manifest.json",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/eol-before/config/capability-packages/pdf-extract.manifest.json",
+      "root_followup": null
+    },
+    {
+      "group": "eol",
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "before_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+      "candidate_after_sha256": "712144d4a73272d57fe9b0549179888edc797f12fbf368b3464336d02e982e44",
+      "current_after_sha256": "712144d4a73272d57fe9b0549179888edc797f12fbf368b3464336d02e982e44",
+      "current_bytes": 5794,
+      "source_payload": "source/frontend/src/api/generated/capability-package-details.ts",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/eol-before/frontend/src/api/generated/capability-package-details.ts",
+      "root_followup": null
+    },
+    {
+      "group": "eol",
+      "path": "tests/contract/test_capability_package_details_node.mjs",
+      "before_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+      "candidate_after_sha256": "5e988c3ef9885f24ef83ea3dbec6785bda6a5898962c23560fe01287a19c8e7d",
+      "current_after_sha256": "5e988c3ef9885f24ef83ea3dbec6785bda6a5898962c23560fe01287a19c8e7d",
+      "current_bytes": 7757,
+      "source_payload": "source/tests/contract/test_capability_package_details_node.mjs",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/eol-before/tests/contract/test_capability_package_details_node.mjs",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "tests/test_machine_request_measurements.py",
+      "before_sha256": null,
+      "candidate_after_sha256": "4fc2b6bc27ca9142d5b35662b8aa1ea58514bb80565ad59951d8c7dfe8d84820",
+      "current_after_sha256": "4fc2b6bc27ca9142d5b35662b8aa1ea58514bb80565ad59951d8c7dfe8d84820",
+      "current_bytes": 6442,
+      "source_payload": "source/tests/test_machine_request_measurements.py",
+      "preimage_local": null,
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "tests/contract/test_machine_failure_diagnostics.py",
+      "before_sha256": "40e5befc12e2bece575d9e03d81a1baa5b9fc285edc099474785597e620e9871",
+      "candidate_after_sha256": "0af17de522a42637cdc656d9f313b90bc43b7352d73a09339e2be0a4ad98c4a8",
+      "current_after_sha256": "0af17de522a42637cdc656d9f313b90bc43b7352d73a09339e2be0a4ad98c4a8",
+      "current_bytes": 3971,
+      "source_payload": "source/tests/contract/test_machine_failure_diagnostics.py",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/tests/contract/test_machine_failure_diagnostics.py",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "before_sha256": "510c4973bc3c749cb2c5c0189d57245dcb2701c1e0c9c7da03622aed253a1e3d",
+      "candidate_after_sha256": "4e8d1eeb32a0cc8f055b78f9fb5631e4a85555debea2c2f2e25c29a5a7641e09",
+      "current_after_sha256": "4e8d1eeb32a0cc8f055b78f9fb5631e4a85555debea2c2f2e25c29a5a7641e09",
+      "current_bytes": 34213,
+      "source_payload": "source/services/python-workers/machine/worker_machine_answer.py",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/services/python-workers/machine/worker_machine_answer.py",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "packages/contracts/v1/openapi-outline.yaml",
+      "before_sha256": "b1f1f0db53575b2844c27b82da7fabd86724672e978101af46d6e07a57aebd40",
+      "candidate_after_sha256": "a02f211226733e8ead395a080395c9165cddefc051d8bcd6d5d7673e0e905e09",
+      "current_after_sha256": "a02f211226733e8ead395a080395c9165cddefc051d8bcd6d5d7673e0e905e09",
+      "current_bytes": 32888,
+      "source_payload": "source/packages/contracts/v1/openapi-outline.yaml",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/packages/contracts/v1/openapi-outline.yaml",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "packages/contracts/v2/conversation.schema.json",
+      "before_sha256": "54a42c2d93175d13bb2cb2e2293bc0ece162717cdfa5c60830625757c4d47707",
+      "candidate_after_sha256": "8c9647ece0f3893fc3e1eced2d270ed97a29b2d555ed60764136c116b54696e1",
+      "current_after_sha256": "8c9647ece0f3893fc3e1eced2d270ed97a29b2d555ed60764136c116b54696e1",
+      "current_bytes": 36855,
+      "source_payload": "source/packages/contracts/v2/conversation.schema.json",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/packages/contracts/v2/conversation.schema.json",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "packages/contracts/v2/material-question.schema.json",
+      "before_sha256": "2d281d5930b82e506d158c070b16e94fb605f4b74046f03fde2da2ac2a73abc2",
+      "candidate_after_sha256": "3b91aba301f56061f3562b693790650caf8a0b6469557feff7c03e24a3f205a1",
+      "current_after_sha256": "3b91aba301f56061f3562b693790650caf8a0b6469557feff7c03e24a3f205a1",
+      "current_bytes": 21537,
+      "source_payload": "source/packages/contracts/v2/material-question.schema.json",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/packages/contracts/v2/material-question.schema.json",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "frontend/src/api/machineFailure.ts",
+      "before_sha256": "0646d2603b1280765e2e533638fff6345f02037640c2bda76653fc11ff249167",
+      "candidate_after_sha256": "a31b9f53afd926fa9c896a6ff223e6c93fed2be2d28ddb7008ba6dd81d28f6a8",
+      "current_after_sha256": "a31b9f53afd926fa9c896a6ff223e6c93fed2be2d28ddb7008ba6dd81d28f6a8",
+      "current_bytes": 2819,
+      "source_payload": "source/frontend/src/api/machineFailure.ts",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/frontend/src/api/machineFailure.ts",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "frontend/src/__tests__/MachineFailureDiagnostics.test.ts",
+      "before_sha256": "2c3766bb001f809e1cda1b67e8c2684a2c09ee43ca52f8600e278f1af6215a08",
+      "candidate_after_sha256": "9e129a67081409dc3af7cc1245604e66f59e8ff986b81aeced53e198afb7fc98",
+      "current_after_sha256": "9e129a67081409dc3af7cc1245604e66f59e8ff986b81aeced53e198afb7fc98",
+      "current_bytes": 2735,
+      "source_payload": "source/frontend/src/__tests__/MachineFailureDiagnostics.test.ts",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/frontend/src/__tests__/MachineFailureDiagnostics.test.ts",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "frontend/src/api/generated/conversation.ts",
+      "before_sha256": "ae863eac8bc79feeca7c1108c1f09c8264f5ddf3eae695060c3d54ef617de6cc",
+      "candidate_after_sha256": "8bc51b8675709601281a132626079dcd1bf43bac587b751f3d0234fd4e8ce14a",
+      "current_after_sha256": "8bc51b8675709601281a132626079dcd1bf43bac587b751f3d0234fd4e8ce14a",
+      "current_bytes": 7100,
+      "source_payload": "source/frontend/src/api/generated/conversation.ts",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/frontend/src/api/generated/conversation.ts",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "frontend/src/api/generated/material-question.ts",
+      "before_sha256": "9220e4a1730d1dec00ae4e6a22ed16407a3294ae0e69fb045911906fcbc69c8f",
+      "candidate_after_sha256": "37db792a97cddca9e730dfb45dd1546c80f8ad03a92ff9ebadfcd3f1a1c3e63b",
+      "current_after_sha256": "37db792a97cddca9e730dfb45dd1546c80f8ad03a92ff9ebadfcd3f1a1c3e63b",
+      "current_bytes": 4910,
+      "source_payload": "source/frontend/src/api/generated/material-question.ts",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/frontend/src/api/generated/material-question.ts",
+      "root_followup": null
+    },
+    {
+      "group": "measurement",
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "before_sha256": "7b7ca92b147830e061631610666628495bce0d93faa1c8e539df082c4bd76ebe",
+      "candidate_after_sha256": "b40e288c16f47b9d36a5d8fea2d251991d6e5364f4f6174d4b056e3cfdea12e6",
+      "current_after_sha256": "b40e288c16f47b9d36a5d8fea2d251991d6e5364f4f6174d4b056e3cfdea12e6",
+      "current_bytes": 14312,
+      "source_payload": "source/crates/archeaxis-application/src/executor/machine_failure.rs",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/measurement-before/crates/archeaxis-application/src/executor/machine_failure.rs",
+      "root_followup": null
+    },
+    {
+      "group": "catalog",
+      "path": "THIRD_PARTY_NOTICES.md",
+      "before_sha256": "0d38b51c193dbf9905d95365d42fc84772386dcd39e0c7fcac9798e70de32634",
+      "candidate_after_sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09",
+      "current_after_sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09",
+      "current_bytes": 10713,
+      "source_payload": "source/THIRD_PARTY_NOTICES.md",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/catalog-before/THIRD_PARTY_NOTICES.md",
+      "root_followup": null
+    },
+    {
+      "group": "catalog",
+      "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "before_sha256": "c44a0d42553b1db09f4f8baa2ba0869450e93d89c18f476cac23e5029084dfac",
+      "candidate_after_sha256": "e027edde570aaffb9f99fa27c2c626c49acecd2f85497bfff9a989f029cf05c0",
+      "current_after_sha256": "e027edde570aaffb9f99fa27c2c626c49acecd2f85497bfff9a989f029cf05c0",
+      "current_bytes": 313236,
+      "source_payload": "source/docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/catalog-before/docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "root_followup": null
+    },
+    {
+      "group": "catalog",
+      "path": "frontend/src/api/generated/resource-catalog.ts",
+      "before_sha256": "ea3f6f33ccbe8768ecffac81ed019f70e2b8ffa714720df2758ba5cc29614645",
+      "candidate_after_sha256": "c8bda5e35b5aebb877b0ff55d093b9ed3035211dae1599e0422b4893c317df88",
+      "current_after_sha256": "c8bda5e35b5aebb877b0ff55d093b9ed3035211dae1599e0422b4893c317df88",
+      "current_bytes": 666785,
+      "source_payload": "source/frontend/src/api/generated/resource-catalog.ts",
+      "preimage_local": ".project-local/audits/recovery-measurement-integration-20261019/catalog-before/frontend/src/api/generated/resource-catalog.ts",
+      "root_followup": null
+    }
+  ],
+  "patch_note": "文本差异用于审阅；原字节身份以SHA与source/为准。"
+}

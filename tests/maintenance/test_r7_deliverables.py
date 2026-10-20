@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[2]
-DOCS = REPO / "docs/current"
+DOCS = REPO / "docs/history/repository-consolidation-20261019/current"
 
 # Deliverable number -> (file, a key that must be present so an empty file cannot pass)
 DELIVERABLES = {

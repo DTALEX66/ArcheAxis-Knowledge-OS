@@ -1,0 +1,170 @@
+{
+  "time_utc": "2026-10-18T23:07:56.694166+00:00",
+  "result": "NO_BLOCKING_FINDING_FOR_SERIAL_APPLICATION_WITH_DECLARED_GENERATION_CHAIN",
+  "candidate_status_at_freeze": "NOT_APPLIED",
+  "current_root_integration_readback": {
+    "BEFORE": 1,
+    "AFTER": 14,
+    "OTHER_ROOT_WRITER_STATE": 0
+  },
+  "patch_sha256": "aa0c154d2725a3b746a6812286c65d55dd281574de3f041d2a1b7ce669260551",
+  "code_manifest_sha256": "52a27d0926421821bfb9134973123747fbd0eaaf1e32e1001b323f35995b8eca",
+  "final_readback_sha256": "10adae2483c6a415ab3ab81e28a72490861f2b3053fe2efdab45af3b5f7f2986",
+  "candidate15": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "before_sha256": "748746fdd62685d3de878654f16bd100f9ba6b588806bcc4a393eb8d6c24f385",
+      "after_sha256": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+      "current_product_sha256": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "before_sha256": "af0222202600bc73e66d47ac8fa530806bf2c63d4ad558dba9ee54dd9e6c8b54",
+      "after_sha256": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+      "current_product_sha256": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+      "current_product_sha256": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+      "before_sha256": null,
+      "after_sha256": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+      "current_product_sha256": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "before_sha256": "f0ff5140b137ee93e7e86fe6c0bab322c8a908df001b04a28037ef5bb460c9ed",
+      "after_sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "current_product_sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+      "current_product_sha256": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "docs/contracts/project-handoff-preview-v1.md",
+      "before_sha256": null,
+      "after_sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "current_product_sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "after_sha256": "db6f654230225da02fe37f0f282861ae4efa142d98cbe1705970f1af414b7975",
+      "current_product_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "current_product_state": "BEFORE"
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "before_sha256": "fbbd6074b2c37a15f6c1d02d8704b484775f51fa86f565dfc2f3dd191ef7aae2",
+      "after_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "current_product_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.cases.json",
+      "before_sha256": null,
+      "after_sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "current_product_sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.schema.json",
+      "before_sha256": null,
+      "after_sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "current_product_sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "before_sha256": "020627b10b49e748c74ce71575fe8a2b85b7f7ba7162e2c63111be06db86f1de",
+      "after_sha256": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+      "current_product_sha256": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "src-tauri/tests/project_handoff_preview.rs",
+      "before_sha256": null,
+      "after_sha256": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+      "current_product_sha256": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "tests/contract/test_project_handoff_preview_contract.py",
+      "before_sha256": null,
+      "after_sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "current_product_sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "current_product_state": "AFTER"
+    },
+    {
+      "path": "tests/test_native_preview_ci.py",
+      "before_sha256": null,
+      "after_sha256": "3b7da3132ec180171f0629aefc095b1ec809483a6ccccb3bbf3a1f419791a496",
+      "current_product_sha256": "3b7da3132ec180171f0629aefc095b1ec809483a6ccccb3bbf3a1f419791a496",
+      "current_product_state": "AFTER"
+    }
+  ],
+  "canonical_receipts": [
+    {
+      "run_id": "be10-native-preview-revision-format-1019",
+      "sha256": "e08b52fac9ff1c0156d435e164c5ac10fb4fdaa02da83c66eb8868d06d885d8f",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-native-preview-revision-green1-1019",
+      "sha256": "c6e9b9c14529941d2cde51bb9580bf0b31553c5abf7127812c26d8fa04e98d01",
+      "status": "INVALIDATED",
+      "exit_code": 3,
+      "source_consistent": false
+    },
+    {
+      "run_id": "be10-native-preview-revision-format-actual-1019",
+      "sha256": "3ec68cd5f8871b24e5f967a020b2dbcf0651795a03ae7cb39b0b09a67cf6ea00",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-native-preview-revision-red-identity-1019",
+      "sha256": "3b67bd94d1b31aac71dcfdd69e746117d0ba0b41a369000f821da06b09b8e9bb",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-native-preview-revision-red-ci-1019",
+      "sha256": "8e8d6287dbd7bd192ced7f6590522566a01d25759bbab5e456a0ae39e71746ce",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    },
+    {
+      "run_id": "be10-native-preview-revision-final-1019",
+      "sha256": "c319ad7d2711232d9e468d0ce227bffd94ce4729d96f771d0dc1dd5fab69aec3",
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_consistent": true
+    }
+  ],
+  "edition_readback_sha256": "24a5765510f3c3b70351b7c31c11ba37b134acef6fdb885c59a8d6ab4933476d",
+  "prior_review_preserved_sha256": "c7b79b311cf1f885488ed841e4e2a09862d575e76b107db7db8425a591f1fc08",
+  "prior_failure_log_preserved_sha256": "34998bde0bd87d9818ca8b69ad8b6fbde9a78d1e4fc915965fbe7d6588a659cb",
+  "product_writes_by_reviewer": [],
+  "Core_model_service_runs_by_reviewer": false,
+  "followup": "Root serial qualification source rebind and resource-catalog regeneration per generation-chain.json, without inherited qualification promotion; whole repository/native UI/CI/installed/Owner qualification not claimed"
+}

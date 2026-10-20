@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { join, resolve } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { checkCapabilityPackageDetails } from "../scripts/contracts/check_capability_package_details.mjs";
 import { verifyBuildEnvironment } from "../scripts/runtime/frontend_paths.mjs";
 
 // AXW-UI-801: App Shell built with Vite; dev server binds loopback only.
@@ -19,6 +20,9 @@ const viteCacheRoot = projectRunRoot
   : fileURLToPath(new URL("../.project-local/build/vite-cache", import.meta.url));
 
 export default defineConfig(({ command }) => {
+  // 只检查不生成：来源、版本或原字节漂移时禁止继续使用旧能力包详情。
+  const root = resolve(frontendRoot, "..");
+  checkCapabilityPackageDetails(root);
   const frontendDist = process.env.ARCHEAXIS_FRONTEND_DIST;
   if (command === "build" && !frontendDist) throw new Error("Use npm run build: frontend output requires the project run router");
   if (command === "build") verifyBuildEnvironment(resolve(frontendRoot, ".."));

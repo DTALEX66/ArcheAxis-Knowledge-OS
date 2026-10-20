@@ -1,0 +1,51 @@
+[
+  {
+    "name": "same readable title selects each original identity using keyboard",
+    "status": "PASS",
+    "started": "2026-10-18T19:20:44.367Z",
+    "detail": {
+      "keysSelected": [
+        "course:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:artifact:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "course:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc:artifact:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ],
+      "titleScalars": 80,
+      "selectionEcho": "no duplicate read; no write or inference"
+    },
+    "ended": "2026-10-18T19:20:44.919Z"
+  },
+  {
+    "name": "640px reduced motion title wraps inside the queue without page overflow",
+    "status": "PASS",
+    "started": "2026-10-18T19:20:44.920Z",
+    "detail": {
+      "queueWidth": 506,
+      "queueScrollWidth": 506,
+      "pageWidth": 640,
+      "pageScrollWidth": 640,
+      "buttonWidths": [
+        {
+          "width": 504,
+          "scrollWidth": 504,
+          "height": 69
+        },
+        {
+          "width": 504,
+          "scrollWidth": 504,
+          "height": 69
+        }
+      ],
+      "reducedMotion": true
+    },
+    "ended": "2026-10-18T19:20:45.824Z"
+  },
+  {
+    "name": "older Core without title remains usable; read failure is explicit",
+    "status": "PASS",
+    "started": "2026-10-18T19:20:45.825Z",
+    "detail": {
+      "fallback": "学习项目",
+      "failure": "explicit, prior entries retained"
+    },
+    "ended": "2026-10-18T19:20:46.287Z"
+  }
+]

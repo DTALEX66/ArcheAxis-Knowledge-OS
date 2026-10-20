@@ -1,0 +1,14 @@
+{
+  "observed_at": "2026-10-18T23:48:18.4420985Z",
+  "browser_port": 5173,
+  "listeners": [],
+  "exact_owned_core_or_browser_processes": [
+    {
+      "ProcessId": 41240,
+      "Name": "pwsh.exe",
+      "ExecutablePath": "C:\\Users\\ALEX\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe"
+    }
+  ],
+  "scope": "exact owned binary/profile plus observed browser port; native fixture API ephemeral port not exported so independent native port readback UNVERIFIED",
+  "native_ephemeral_port_readback": "UNVERIFIED"
+}

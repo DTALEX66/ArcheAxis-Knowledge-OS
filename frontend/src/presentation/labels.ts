@@ -7,7 +7,7 @@ const STATE_LABELS: Record<string, string> = {
   pending: "待处理",
   failed: "失败",
   blocked: "已阻断",
-  delivered: "已投递",
+  delivered: "已发送",
   recorded: "已记录",
   missing: "缺失",
   candidate: "候选",
@@ -28,7 +28,7 @@ const STATE_LABELS: Record<string, string> = {
   retained: "已保留",
   immutable: "不可变",
   idle: "无待处理项",
-  requeued: "已重新入队",
+  requeued: "已重新排队",
 };
 
 export function stateLabel(value: unknown): string {
@@ -49,7 +49,7 @@ export function sourceLabel(value: unknown, index = 0): string {
   return `本地资料 ${index + 1}`;
 }
 
-const SAFE_ERROR = "本地数据暂时不可用，请稍后重试或打开系统诊断。";
+const SAFE_ERROR = "本地数据暂时不可用，请稍后重试或打开运行诊断。";
 
 // UI-03: 离线、冲突、权限、缺失对象是四种不同的用户处境，合并成一句话会让人去查错误的地方。
 // 只分类本地核心的已知失败形状，其它错误不编造原因。通用的“核心不可用”故意不在此列：
@@ -57,14 +57,14 @@ const SAFE_ERROR = "本地数据暂时不可用，请稍后重试或打开系统
 export function coreFailureReason(error: unknown): string | null {
   const value = error as { status?: unknown; code?: unknown } | null;
   if (!value || typeof value !== "object") return null;
-  if (value.code === "offline") return "离线：此功能需要本地桌面宿主；数据仍留在本机，未被替换。";
-  if (value.code === "migrating") return "迁移中：本地核心正在升级数据结构，暂时不能读写；数据未被改动。";
-  if (value.code === "backend_starting") return "正在启动：本地核心尚未就绪，稍后重试；本次结果未知。";
+  if (value.code === "offline") return "离线：请在桌面应用中使用此功能；当前内容已保留。";
+  if (value.code === "migrating") return "迁移中：正在升级本地数据，完成后再继续操作。";
+  if (value.code === "backend_starting") return "正在启动：请稍后重试；本次操作结果尚未确认。";
   if (value.status === 409) return "冲突：对象版本已变化。已保留你当前的输入，请重新读取后再决定。";
-  if (value.code === "unauthorized") return "权限：本地核心拒绝了这次操作的身份，内容未改动。";
-  if (value.status === 404) return "缺失：本地核心找不到这个对象；列表可能已变化，页面内容未被替换。";
-  if (value.status === 429) return "繁忙：本地核心正在处理其它任务，稍后重试；本次结果未知。";
-  if (value.code === "incompatible") return "不兼容：本地核心的返回不符合当前合同，已停止而未按成功显示。";
+  if (value.code === "unauthorized") return "权限：你暂时不能执行此操作；内容未改动。";
+  if (value.status === 404) return "缺失：此条目暂时找不到，请刷新列表；当前内容已保留。";
+  if (value.status === 429) return "繁忙：正在处理其他任务，请稍后重试；本次结果尚未确认。";
+  if (value.code === "incompatible") return "不兼容：应用版本暂不兼容，已停止读取；请查看运行诊断，本次结果尚未确认。";
   return null;
 }
 
@@ -92,6 +92,6 @@ export function userErrorMessage(value: unknown): string {
   if (typeof value !== "string") return SAFE_ERROR;
   const message = value.trim().slice(0, 180);
   if (!message || !/[\u3400-\u9fff]/.test(message)) return SAFE_ERROR;
-  if (/\/(?:api|workspace)\b|https?:|\bHTTP\b|\b[A-Z_]{4,}\b|->|[{}\[\]]/.test(message)) return SAFE_ERROR;
+  if (/\/(?:api|workspace)\b|https?:|\b(?:HTTP|Core|Rust|worker|DTO|CAS|SQLite)\b|\b[A-Z_]{4,}\b|回执|读回|保全|正典|->|[{}\[\]]/i.test(message)) return SAFE_ERROR;
   return message;
 }

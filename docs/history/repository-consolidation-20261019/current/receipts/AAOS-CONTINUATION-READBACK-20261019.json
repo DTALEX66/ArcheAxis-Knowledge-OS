@@ -1,0 +1,61 @@
+{
+  "schema": "aaos.continuation-readback/v1",
+  "status": "PASS",
+  "evidence_level": "STRUCTURE_ONLY",
+  "started_at": "2026-10-18T18:49:11.668032+00:00",
+  "ended_at": "2026-10-18T18:49:12.205379+00:00",
+  "archives": [
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery",
+      "members": 9,
+      "manifest_sha256": "e0e0a2007b7a07711b70159c907fe28a506b21a411501817be7f212f609076b6"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final",
+      "members": 18,
+      "manifest_sha256": "b5dcda5f042b7fc8715be28085c05839edcbc6396e5ca33b584fc8e895aca9e7"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline",
+      "members": 23,
+      "manifest_sha256": "00eecd4b11a3d12f0c3e8dfa7def5850e3e06442045fd45170108f30d0748a2f"
+    }
+  ],
+  "hashed_members": 50,
+  "navigation_targets": 22,
+  "markdown_links_checked": 257,
+  "latest_product_source_files_verified": 8,
+  "current_receipt": "docs/current/receipts/AAOS-MACHINE-DEADLINE-20261019.json",
+  "commands": [
+    {
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-18T18:49:11.713877+00:00",
+      "ended_at": "2026-10-18T18:49:11.955857+00:00",
+      "exit_code": 0,
+      "stdout": "input hashes: verified 7, outside/private UNVERIFIED 4\ndocument authority: single current record, root references resolve, in-repository hashes checked (external sources remain UNVERIFIED), coverage complete"
+    },
+    {
+      "command": [
+        "git",
+        "-c",
+        "core.safecrlf=false",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-18T18:49:11.955883+00:00",
+      "ended_at": "2026-10-18T18:49:12.074629+00:00",
+      "exit_code": 0,
+      "stdout": ""
+    }
+  ],
+  "git_status_entries_before_readback": 232,
+  "git_status_sha256_before_readback": "c4d6beedcbb2ef98b3e60c77e4c3f899d582e3c6740caac16b76f6433b5ce711",
+  "whole_project": "PARTIAL",
+  "cloud_sync": "NOT_EXECUTED",
+  "complete_cowork_transcript": "UNVERIFIED",
+  "note": "Archive manifests validate their frozen members, not present product source. Latest receipt alone binds present eight product source files."
+}

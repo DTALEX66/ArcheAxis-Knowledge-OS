@@ -43,5 +43,5 @@ export function StructureCitations({sourceId, revision, jobId, kind, onAnchor}:{
   }catch{if(current===epoch.current)setMessage("结构位置引用未确认；保留原件和任务结果后重试。");}
   finally{if(current===epoch.current)setBusy(false);}
  }
- return <section aria-label="转换结构引用"><p>选择本次任务中非空结构位置的顺序，原件、任务与尝试由 Core 核对。</p><label>引用位置序号 <input type="number" min="1" step="1" value={ordinal} disabled={busy} onChange={event=>{setOrdinal(event.target.value);setPreview(null);setMessage("");}}/></label><button disabled={busy} onClick={()=>void cite(true)}>预览所选引用</button>{preview?<div aria-label="所选引用预览"><p>{preview.path}</p><pre>{preview.content}</pre><p>尚未保存；引用时再次核对内容。</p></div>:null}<button disabled={busy} onClick={()=>void cite()}>引用所选结构位置</button>{message?<p role="status">{message}</p>:null}</section>;
+ return <section aria-label="转换结构引用"><p>选择本次任务中非空结构位置的顺序，系统会再次检查原件和处理记录。</p><label>引用位置序号 <input type="number" min="1" step="1" value={ordinal} disabled={busy} onChange={event=>{setOrdinal(event.target.value);setPreview(null);setMessage("");}}/></label><button disabled={busy} onClick={()=>void cite(true)}>预览所选引用</button>{preview?<div aria-label="所选引用预览"><p>{preview.path}</p><pre>{preview.content}</pre><p>尚未保存；引用时再次核对内容。</p></div>:null}<button disabled={busy} onClick={()=>void cite()}>引用所选结构位置</button>{message?<p role="status">{message}</p>:null}</section>;
 }

@@ -1,0 +1,899 @@
+diff --git a/config/capability-packages/pdf-extract.manifest.json b/config/capability-packages/pdf-extract.manifest.json
+new file mode 100644
+--- /dev/null
++++ b/config/capability-packages/pdf-extract.manifest.json
+@@ -0,0 +1,94 @@
++{
++  "schema": "archeaxis.capability-package/v1",
++  "declaration": "DECLARATION_ONLY",
++  "package_id": "archeaxis.pdf-extract",
++  "version": "0.1.0",
++  "capability_ids": [
++    "CAP-0020"
++  ],
++  "resource_keys": [
++    "pymupdf"
++  ],
++  "contribution_points": [
++    "format_conversion"
++  ],
++  "compatibility": {
++    "host_versions": {
++      "minimum": "0.1.0",
++      "maximum_exclusive": "1.0.0"
++    },
++    "contract_refs": [
++      {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      }
++    ]
++  },
++  "runtime_capabilities": [
++    "pdf.extract"
++  ],
++  "permissions": {
++    "requested": [
++      "selected_source.read",
++      "derived_artifact.propose"
++    ],
++    "data_scope": "explicit_selected_objects_only",
++    "network": "none",
++    "cost": "none",
++    "explicit_grant_required": true,
++    "canonical_writer": "rust_core_only",
++    "credential_handling": "host_reference_only",
++    "local_to_cloud_fallback": "explicit_grant_only",
++    "grants_execution": false,
++    "grants_knowledge_acceptance": false
++  },
++  "dependencies": [
++    {
++      "resource_key": "pymupdf",
++      "requirement": "required",
++      "version_range": null
++    }
++  ],
++  "license": {
++    "expression": null,
++    "review": "UNVERIFIED",
++    "notice_refs": []
++  },
++  "inputs": [
++    {
++      "kind": "raw_asset_reference",
++      "contract": {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      },
++      "max_bytes": 1048576
++    }
++  ],
++  "outputs": [
++    {
++      "kind": "document_reference",
++      "contract": {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      },
++      "max_bytes": 1048576
++    }
++  ],
++  "lifecycle": {
++    "cancellation": "host_propagated",
++    "exit": "bounded_cleanup",
++    "timeout_ms": 120000,
++    "unknown_result": "preserve_unknown_no_auto_retry",
++    "cleanup_evidence": "required_before_confirmed_exit"
++  },
++  "fallback": {
++    "mode": "unavailable",
++    "losses": [],
++    "automatic": false
++  },
++  "update": {
++    "strategy": "reviewed_replacement_only",
++    "rollback": "preserve_previous_identity_and_originals",
++    "canonical_data_migration": false
++  }
++}
+diff --git a/frontend/src/__tests__/CapabilityPackageDetails.test.tsx b/frontend/src/__tests__/CapabilityPackageDetails.test.tsx
+new file mode 100644
+--- /dev/null
++++ b/frontend/src/__tests__/CapabilityPackageDetails.test.tsx
+@@ -0,0 +1,48 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++import { act, render, screen, within } from "@testing-library/react";
++import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
++import { CAPABILITY_PACKAGE_DETAILS } from "../api/generated/capability-package-details";
++import { scopedReadiness } from "../test/fixtures/readiness";
++const bridge = vi.hoisted(() => ({ call: vi.fn() }));
++vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
++vi.mock("../components/DiagnosticConsole", () => ({ RawReceiptButton: ({ label }: { label: string }) => <button>{label}</button> }));
++
++describe("page17 consumes verified manifest declaration without runtime authority", () => {
++  beforeEach(() => {
++    bridge.call.mockReset();
++    bridge.call.mockImplementation(async (_op: string, payload: { body: { scope: string; operations: string[] } }) => scopedReadiness(payload.body));
++  });
++  it("shows actual byte identity declaration only for its exact selected CAP", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    const pack = screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" });
++    expect(pack).toHaveTextContent("声明校验通过");
++    expect(pack).toHaveTextContent("pymupdf");
++    expect(pack).toHaveTextContent("不证明关联引擎内置、已安装或可用");
++    expect(within(pack).getByRole("button", { name: /包说明身份与来源/ })).toBeInTheDocument();
++    expect(CAPABILITY_PACKAGE_DETAILS.entries[0].identity.sha256).toMatch(/^[a-f0-9]{64}$/);
++    expect(bridge.call).toHaveBeenCalledTimes(1);
++    expect(bridge.call.mock.calls[0][0]).toBe("operation_readiness");
++  });
++  it("keeps unknown license, authenticity, qualification and runtime distinct", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    const pack = screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" });
++    expect(pack).toHaveTextContent("许可声明：UNKNOWN · 审查 UNVERIFIED");
++    expect(pack).toHaveTextContent("发布者真实性 UNVERIFIED");
++    expect(pack).toHaveTextContent("独立资格 UNKNOWN · 当前运行状态 UNKNOWN");
++    expect(pack).toHaveTextContent("均未授权执行");
++    expect(within(pack).queryByRole("button", { name: /安装|执行|启用|重试/ })).not.toBeInTheDocument();
++  });
++  it("does not borrow another CAP manifest and clears it on selection change", async () => {
++    let view!: ReturnType<typeof render>;
++    await act(async () => { view = render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    expect(screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" })).toBeInTheDocument();
++    await act(async () => { view.rerender(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0090" />); });
++    expect(screen.queryByRole("article", { name: "包说明 archeaxis.pdf-extract" })).not.toBeInTheDocument();
++    expect(screen.getByText(/此能力尚无已验证的包说明/)).toHaveTextContent("manifest 身份 UNKNOWN");
++  });
++  it("has no manifest display or additional package request before a CAP is selected", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />); });
++    expect(screen.queryByRole("region", { name: "能力包声明" })).not.toBeInTheDocument();
++    expect(bridge.call).not.toHaveBeenCalled();
++  });
++});
+diff --git a/frontend/src/api/generated/capability-package-details.ts b/frontend/src/api/generated/capability-package-details.ts
+new file mode 100644
+--- /dev/null
++++ b/frontend/src/api/generated/capability-package-details.ts
+@@ -0,0 +1,164 @@
++// Generated from exact builtin manifest and public validator inputs. Declaration only.
++import type { CapabilityManifestIdentity, CapabilityPackageManifest } from './capability-package';
++export type CapabilityPackageDetail = {
++  identity: CapabilityManifestIdentity; manifest: CapabilityPackageManifest; source_path: string;
++  validation: 'VALIDATED_DECLARATION'; host_version: string;
++  source_authenticity: 'UNVERIFIED'; qualification: 'UNKNOWN'; runtime: 'UNKNOWN';
++};
++export type CapabilityPackageDetailProjection = {
++  sources: { path: string; sha256: string }[]; entries: CapabilityPackageDetail[];
++};
++export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
++  "sources": [
++    {
++      "path": "config/capability-map.v1.json",
++      "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
++    },
++    {
++      "path": "config/capability-packages/pdf-extract.manifest.json",
++      "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
++    },
++    {
++      "path": "crates/archeaxis-api/Cargo.toml",
++      "sha256": "92aefb0bc36e94865983dfb768bdcc3abb1bbe41c204d503280f693df2da19ad"
++    },
++    {
++      "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++      "sha256": "445a062ba2737a8bc0b1406dbace47aeeaaa87b269bb4fc47dfb5e1d2d389ae5"
++    },
++    {
++      "path": "packages/contracts/v1/core-document.schema.json",
++      "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++    },
++    {
++      "path": "packages/contracts/v2/capability-package.schema.json",
++      "sha256": "248b38fbaf6ce16b87e7acdd4395f4515ba082977da0d6538fe8c14f9ac02d2f"
++    },
++    {
++      "path": "scripts/contracts/check_capability_package_details.mjs",
++      "sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
++    },
++    {
++      "path": "scripts/contracts/generate_capability_package_details.py",
++      "sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
++    },
++    {
++      "path": "scripts/contracts/validate_capability_package.py",
++      "sha256": "7575d12775fbbec60b697da10cd53f003f177845c735b90f4d2afdc6093eaef1"
++    },
++    {
++      "path": "services/python-workers/routes.json",
++      "sha256": "0ac3068fe9a9179eb6575609305d3eaf88e7d9d485a0794b7948333c0a70706f"
++    }
++  ],
++  "entries": [
++    {
++      "identity": {
++        "schema": "archeaxis.capability-package/v1",
++        "package_id": "archeaxis.pdf-extract",
++        "version": "0.1.0",
++        "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
++      },
++      "manifest": {
++        "schema": "archeaxis.capability-package/v1",
++        "declaration": "DECLARATION_ONLY",
++        "package_id": "archeaxis.pdf-extract",
++        "version": "0.1.0",
++        "capability_ids": [
++          "CAP-0020"
++        ],
++        "resource_keys": [
++          "pymupdf"
++        ],
++        "contribution_points": [
++          "format_conversion"
++        ],
++        "compatibility": {
++          "host_versions": {
++            "minimum": "0.1.0",
++            "maximum_exclusive": "1.0.0"
++          },
++          "contract_refs": [
++            {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            }
++          ]
++        },
++        "runtime_capabilities": [
++          "pdf.extract"
++        ],
++        "permissions": {
++          "requested": [
++            "selected_source.read",
++            "derived_artifact.propose"
++          ],
++          "data_scope": "explicit_selected_objects_only",
++          "network": "none",
++          "cost": "none",
++          "explicit_grant_required": true,
++          "canonical_writer": "rust_core_only",
++          "credential_handling": "host_reference_only",
++          "local_to_cloud_fallback": "explicit_grant_only",
++          "grants_execution": false,
++          "grants_knowledge_acceptance": false
++        },
++        "dependencies": [
++          {
++            "resource_key": "pymupdf",
++            "requirement": "required",
++            "version_range": null
++          }
++        ],
++        "license": {
++          "expression": null,
++          "review": "UNVERIFIED",
++          "notice_refs": []
++        },
++        "inputs": [
++          {
++            "kind": "raw_asset_reference",
++            "contract": {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            },
++            "max_bytes": 1048576
++          }
++        ],
++        "outputs": [
++          {
++            "kind": "document_reference",
++            "contract": {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            },
++            "max_bytes": 1048576
++          }
++        ],
++        "lifecycle": {
++          "cancellation": "host_propagated",
++          "exit": "bounded_cleanup",
++          "timeout_ms": 120000,
++          "unknown_result": "preserve_unknown_no_auto_retry",
++          "cleanup_evidence": "required_before_confirmed_exit"
++        },
++        "fallback": {
++          "mode": "unavailable",
++          "losses": [],
++          "automatic": false
++        },
++        "update": {
++          "strategy": "reviewed_replacement_only",
++          "rollback": "preserve_previous_identity_and_originals",
++          "canonical_data_migration": false
++        }
++      },
++      "source_path": "config/capability-packages/pdf-extract.manifest.json",
++      "validation": "VALIDATED_DECLARATION",
++      "host_version": "0.1.0",
++      "source_authenticity": "UNVERIFIED",
++      "qualification": "UNKNOWN",
++      "runtime": "UNKNOWN"
++    }
++  ]
++};
+diff --git a/frontend/src/components/CapabilityPackageDetails.tsx b/frontend/src/components/CapabilityPackageDetails.tsx
+new file mode 100644
+--- /dev/null
++++ b/frontend/src/components/CapabilityPackageDetails.tsx
+@@ -0,0 +1,22 @@
++import { CAPABILITY_PACKAGE_DETAILS } from "../api/generated/capability-package-details";
++import { RawReceiptButton } from "./DiagnosticConsole";
++
++/** 仅所选稳定CAP的构建时验证声明；不参与运行握手，也不授予安装、执行或许可资格。 */
++export function CapabilityPackageDetails({ capabilityId }: { capabilityId: string }) {
++  const rows = CAPABILITY_PACKAGE_DETAILS.entries.filter(row =>
++    (row.manifest.capability_ids as readonly string[]).includes(capabilityId));
++  return <section aria-label="能力包声明">
++    <h4>能力包声明</h4>
++    {!rows.length ? <p>此能力尚无已验证的包说明，manifest 身份 UNKNOWN；许可、资格与运行状态分别未知。</p> : rows.map(row => <article key={row.identity.sha256} aria-label={`包说明 ${row.identity.package_id}`}>
++      <p>包说明 {row.identity.package_id} · 声明版本 {row.identity.version}</p>
++      <p>声明校验通过：原字节身份、公共来源引用与构建宿主 {row.host_version} 兼容；发布者真实性 {row.source_authenticity}。</p>
++      <p>这里内置的是 manifest 说明，不证明关联引擎内置、已安装或可用。</p>
++      <p>贡献形式：{row.manifest.contribution_points.join("、")} · 来源稳定键：{row.manifest.resource_keys.join("、") || "无外部来源声明"}</p>
++      <p>许可声明：{row.manifest.license.expression ?? "UNKNOWN"} · 审查 {row.manifest.license.review}；声明校验不提供商业许可结论。</p>
++      <p>独立资格 {row.qualification} · 当前运行状态 {row.runtime}；当前健康与权限仍以下方范围化读回为准。</p>
++      <p>申请权限：{row.manifest.permissions.requested.join("、") || "无"} · 网络 {row.manifest.permissions.network} · 费用 {row.manifest.permissions.cost}；均未授权执行。</p>
++      <p>降级声明：{row.manifest.fallback.mode} · 损失 {row.manifest.fallback.losses.join("、") || "未声明损失"}；不自动降级或重试。</p>
++      <RawReceiptButton label={`包说明身份与来源 · ${row.identity.package_id}`} payload={{ identity: row.identity, source_path: row.source_path, sources: CAPABILITY_PACKAGE_DETAILS.sources }} />
++    </article>)}
++  </section>;
++}
+diff --git a/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx b/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx
+--- a/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx
++++ b/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx
+@@ -14,6 +14,7 @@
+ import { ModelTaskRoles } from "../components/ModelTaskRoles";
+ import { readScopedReadiness } from "../api/scopedReadiness";
+ import { capabilityPresentation, type CapabilityGroup } from "../presentation/capabilityCenter";
++import { CapabilityPackageDetails } from "../components/CapabilityPackageDetails";
+ import "./capabilities.css";
+ 
+ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCapabilityId, navigation, onTrail }: { onNavigate: (id: SpaceId) => void; onOpenPage?: (id: string) => void; selectedCapabilityId?: string | null; navigation?: { section: string; sequence: number }; onTrail?: (levels: readonly ObjectTrailLevel[]) => void }) {
+@@ -130,6 +131,7 @@
+     </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
+     <p>{requiring.length ? "此处只列声明了该 ID 的模板；模板不复制插件代码、依赖安装或连接配置。对象在资料库的「学科模板」展开区，本视图不建立第二份模板清单。" : "无声明联接时不提供跳转，避免打开一个没有对象的入口。"}</p>
+     {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
++    <CapabilityPackageDetails capabilityId={selected.atlas.capability_id} />
+     <h4>当前运行联接、权限与健康</h4>
+     <ModelTaskRoles capabilities={live} scopeLabel={selected.atlas.canonical_name}/>
+     <p>实现声明来源：config/capability-map.v1.json · {selected.implementation.state}。声明本身不证明本轮执行。</p>
+diff --git a/frontend/vite.config.ts b/frontend/vite.config.ts
+--- a/frontend/vite.config.ts
++++ b/frontend/vite.config.ts
+@@ -3,6 +3,7 @@
+ import { join, resolve } from "node:path";
+ import { defineConfig } from "vite";
+ import react from "@vitejs/plugin-react";
++import { checkCapabilityPackageDetails } from "../scripts/contracts/check_capability_package_details.mjs";
+ import { verifyBuildEnvironment } from "../scripts/runtime/frontend_paths.mjs";
+ 
+ // AXW-UI-801: App Shell built with Vite; dev server binds loopback only.
+@@ -19,6 +20,9 @@
+   : fileURLToPath(new URL("../.project-local/build/vite-cache", import.meta.url));
+ 
+ export default defineConfig(({ command }) => {
++  // 只检查不生成：来源、版本或原字节漂移时禁止继续使用旧能力包详情。
++  const root = resolve(frontendRoot, "..");
++  checkCapabilityPackageDetails(root);
+   const frontendDist = process.env.ARCHEAXIS_FRONTEND_DIST;
+   if (command === "build" && !frontendDist) throw new Error("Use npm run build: frontend output requires the project run router");
+   if (command === "build") verifyBuildEnvironment(resolve(frontendRoot, ".."));
+diff --git a/scripts/contracts/generate_capability_package_details.py b/scripts/contracts/generate_capability_package_details.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/contracts/generate_capability_package_details.py
+@@ -0,0 +1,124 @@
++"""从明确内置说明原字节生成只读能力详情；不注册、安装或执行任何引擎。"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import stat
++import tomllib
++from pathlib import Path
++
++from validate_capability_package import ManifestValidationError, parse_manifest_bytes
++
++# 这是随产品审阅的说明字节入口，不是运行引擎/安装状态注册表，也不自动枚举目录。
++BUILTIN_MANIFEST = "config/capability-packages/pdf-extract.manifest.json"
++TARGET = "frontend/src/api/generated/capability-package-details.ts"
++SOURCES = (
++    "packages/contracts/v2/capability-package.schema.json",
++    "scripts/contracts/validate_capability_package.py",
++    "scripts/contracts/generate_capability_package_details.py",
++    "scripts/contracts/check_capability_package_details.mjs",
++    "config/capability-map.v1.json",
++    "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++    "services/python-workers/routes.json",
++    "crates/archeaxis-api/Cargo.toml",
++)
++MAX_PUBLIC_BYTES = 4194304
++
++
++def read_public(root: Path, name: str, limit=MAX_PUBLIC_BYTES):
++    # 调用方仅传固定公开输入或已经由现有validator验证的公共引用；读取前再次拒绝链接。
++    if not name or any(x in ("", ".", "..") for x in name.split("/")) or ":" in name or "\\" in name:
++        raise ManifestValidationError("MANIFEST_PROJECTION_PATH_REJECTED")
++    current = root
++    try:
++        for part in name.split("/"):
++            current /= part
++            info = current.lstat()
++            if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
++                raise ManifestValidationError("MANIFEST_PROJECTION_LINK_REJECTED")
++        if not stat.S_ISREG(info.st_mode) or info.st_size > limit:
++            raise ManifestValidationError("MANIFEST_PROJECTION_SIZE_REJECTED")
++        with current.open("rb") as handle:
++            raw = handle.read(limit + 1)
++        if len(raw) > limit:
++            raise ManifestValidationError("MANIFEST_PROJECTION_SIZE_REJECTED")
++        return raw
++    except OSError:
++        raise ManifestValidationError("MANIFEST_PROJECTION_SOURCE_UNAVAILABLE") from None
++
++
++def build(root: Path):
++    raw = read_public(root, BUILTIN_MANIFEST, 262144)
++    identity = parse_manifest_bytes(raw, root)
++    manifest = json.loads(raw)
++    catalog = json.loads(read_public(root, "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json"))["entries"]
++    by_key = {item["stable_key"]: item for item in catalog}
++    # 本切片只接受目录已明确联接的来源，不能用相似名/候选CAP建立新的吸收事实。
++    for key in manifest["resource_keys"]:
++        row = by_key[key]
++        if row.get("atlas_capability_id") not in manifest["capability_ids"]:
++            raise ManifestValidationError("MANIFEST_PROJECTION_CATALOG_JOIN_UNCONFIRMED")
++        route = row["route_binding"].get("named_route")
++        if route and route not in manifest["runtime_capabilities"]:
++            raise ManifestValidationError("MANIFEST_PROJECTION_ROUTE_JOIN_UNCONFIRMED")
++    paths = set(SOURCES) | {BUILTIN_MANIFEST}
++    refs = manifest["compatibility"]["contract_refs"] + manifest["license"]["notice_refs"]
++    refs += [item["contract"] for item in manifest["inputs"] + manifest["outputs"]]
++    paths.update(ref["path"] for ref in refs)
++    sources = [{"path": name, "sha256": hashlib.sha256(read_public(root, name)).hexdigest()}
++               for name in sorted(paths)]
++    host = tomllib.loads(read_public(root, "crates/archeaxis-api/Cargo.toml").decode("utf-8"))["package"]["version"]
++    return {"sources": sources, "entries": [{
++        "identity": identity,
++        "manifest": manifest,
++        "source_path": BUILTIN_MANIFEST,
++        "validation": "VALIDATED_DECLARATION",
++        "host_version": host,
++        "source_authenticity": "UNVERIFIED",
++        "qualification": "UNKNOWN",
++        "runtime": "UNKNOWN",
++    }]}
++
++
++TYPES = """import type { CapabilityManifestIdentity, CapabilityPackageManifest } from './capability-package';
++export type CapabilityPackageDetail = {
++  identity: CapabilityManifestIdentity; manifest: CapabilityPackageManifest; source_path: string;
++  validation: 'VALIDATED_DECLARATION'; host_version: string;
++  source_authenticity: 'UNVERIFIED'; qualification: 'UNKNOWN'; runtime: 'UNKNOWN';
++};
++export type CapabilityPackageDetailProjection = {
++  sources: { path: string; sha256: string }[]; entries: CapabilityPackageDetail[];
++};
++"""
++
++
++def generate(root: Path):
++    payload = build(root)
++    return ("// Generated from exact builtin manifest and public validator inputs. Declaration only.\n"
++            + TYPES + "export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = "
++            + json.dumps(payload, ensure_ascii=False, indent=2) + ";\n")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
++    parser.add_argument("--output", type=Path)
++    parser.add_argument("--check", action="store_true")
++    args = parser.parse_args()
++    try:
++        rendered = generate(args.root)
++        target = args.output or args.root / TARGET
++        if args.check:
++            if not target.is_file() or target.read_text(encoding="utf-8") != rendered:
++                raise ManifestValidationError("MANIFEST_PROJECTION_STALE")
++        else:
++            target.parent.mkdir(parents=True, exist_ok=True)
++            target.write_text(rendered, encoding="utf-8", newline="\n")
++    except (ManifestValidationError, OSError, ValueError, KeyError):
++        # 不回显manifest、路径、来源正文、license任意文本或解析器错误。
++        raise SystemExit("MANIFEST_PROJECTION_CHECK_FAILED") from None
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tests/contract/test_capability_package_details.py b/tests/contract/test_capability_package_details.py
+new file mode 100644
+--- /dev/null
++++ b/tests/contract/test_capability_package_details.py
+@@ -0,0 +1,104 @@
++"""已应用manifest合同的真实业务消费；临时镜像测试不提供引擎/许可/运行资格。"""
++import hashlib
++import importlib.util
++import json
++import shutil
++import subprocess
++import sys
++from pathlib import Path
++
++import pytest
++
++ROOT = Path(__file__).resolve().parents[2]
++SCRIPTS = ROOT / "scripts/contracts"
++sys.path.insert(0, str(SCRIPTS))
++spec = importlib.util.spec_from_file_location("details", SCRIPTS / "generate_capability_package_details.py")
++DETAILS = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(DETAILS)
++
++
++@pytest.fixture
++def local(tmp_path):
++    for source in DETAILS.build(ROOT)["sources"]:
++        name = source["path"]
++        dest = tmp_path / name
++        dest.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copyfile(ROOT / name, dest)
++    return tmp_path
++
++
++def mutate(root, change):
++    path = root / DETAILS.BUILTIN_MANIFEST
++    manifest = json.loads(path.read_text(encoding="utf-8"))
++    change(manifest)
++    path.write_text(json.dumps(manifest), encoding="utf-8")
++
++
++def test_actual_builtin_bytes_are_consumed_as_identity_only():
++    data = DETAILS.build(ROOT)
++    row = data["entries"][0]
++    assert row["identity"]["sha256"] == hashlib.sha256((ROOT / DETAILS.BUILTIN_MANIFEST).read_bytes()).hexdigest()
++    assert row["manifest"]["package_id"] == "archeaxis.pdf-extract"
++    assert row["manifest"]["capability_ids"] == ["CAP-0020"]
++    assert row["manifest"]["resource_keys"] == ["pymupdf"]
++    assert row["manifest"]["license"] == {"expression": None, "review": "UNVERIFIED", "notice_refs": []}
++    assert row["source_authenticity"] == "UNVERIFIED"
++    assert row["qualification"] == row["runtime"] == "UNKNOWN"
++    assert row["manifest"]["permissions"]["grants_execution"] is False
++    assert "installed" not in row
++    for source in data["sources"]:
++        assert source["sha256"] == hashlib.sha256((ROOT / source["path"]).read_bytes()).hexdigest()
++
++
++@pytest.mark.parametrize("change,code", [
++    (lambda m: m["capability_ids"].append("CAP-9999"), "MANIFEST_SCHEMA_REJECTED"),
++    (lambda m: m["resource_keys"].append("unknown-donor"), "MANIFEST_CATALOG_REFERENCE_UNKNOWN"),
++    (lambda m: m["compatibility"]["host_versions"].update(minimum="9.0.0", maximum_exclusive="10.0.0"), "MANIFEST_HOST_INCOMPATIBLE"),
++    (lambda m: m["inputs"][0]["contract"].update(sha256="0" * 64), "MANIFEST_SOURCE_DRIFT"),
++    (lambda m: m.update(capability_ids=["CAP-0090"], runtime_capabilities=[]), "MANIFEST_PROJECTION_CATALOG_JOIN_UNCONFIRMED"),
++    (lambda m: m.update(runtime_capabilities=[]), "MANIFEST_PROJECTION_ROUTE_JOIN_UNCONFIRMED"),
++], ids=["unknown-cap", "unknown-key", "host-incompatible", "source-hash-drift", "wrong-cap-join", "wrong-route-join"])
++def test_unverified_or_mismatched_declarations_do_not_generate_fallback(local, change, code):
++    mutate(local, change)
++    with pytest.raises(DETAILS.ManifestValidationError, match="^" + code + "$"):
++        DETAILS.generate(local)
++
++
++def test_changed_raw_bytes_change_identity_even_for_same_declaration(local):
++    before = DETAILS.build(local)["entries"][0]["identity"]
++    path = local / DETAILS.BUILTIN_MANIFEST
++    path.write_bytes(path.read_bytes() + b" ")
++    after = DETAILS.build(local)["entries"][0]["identity"]
++    assert before["sha256"] != after["sha256"]
++    assert before["version"] == after["version"]
++
++
++def test_missing_manifest_does_not_invent_identity(local):
++    (local / DETAILS.BUILTIN_MANIFEST).unlink()
++    with pytest.raises(DETAILS.ManifestValidationError, match="^MANIFEST_PROJECTION_SOURCE_UNAVAILABLE$"):
++        DETAILS.build(local)
++
++
++def test_cli_check_blocks_old_generated_projection_on_manifest_drift(local):
++    target = local / DETAILS.TARGET
++    target.parent.mkdir(parents=True, exist_ok=True)
++    target.write_text(DETAILS.generate(local), encoding="utf-8")
++    command = [sys.executable, "-B", str(SCRIPTS / "generate_capability_package_details.py"), "--root", str(local), "--check"]
++    assert subprocess.run(command, capture_output=True).returncode == 0
++    before = target.read_bytes()
++    (local / DETAILS.BUILTIN_MANIFEST).write_bytes((local / DETAILS.BUILTIN_MANIFEST).read_bytes() + b" ")
++    result = subprocess.run(command, capture_output=True)
++    assert result.returncode != 0
++    assert result.stderr.strip() == b"MANIFEST_PROJECTION_CHECK_FAILED"
++    assert result.stdout == b""
++    assert target.read_bytes() == before  # 保全旧字节，但门禁拒绝继续启动/构建。
++
++
++def test_node_guard_source_identity_is_bound_in_projection(local):
++    name = "scripts/contracts/check_capability_package_details.mjs"
++    original = DETAILS.generate(local)
++    source = local / name
++    before = source.read_bytes()
++    assert {"path": name, "sha256": hashlib.sha256(before).hexdigest()} in DETAILS.build(local)["sources"]
++    source.write_bytes(before + b"\n// synthetic changed guard\n")
++    assert DETAILS.generate(local) != original
+diff --git a/scripts/contracts/check_capability_package_details.mjs b/scripts/contracts/check_capability_package_details.mjs
+new file mode 100644
+--- /dev/null
++++ b/scripts/contracts/check_capability_package_details.mjs
+@@ -0,0 +1,175 @@
++// Node标准库只读漂移检查；不替代Python Schema/semantic验收，不生成、安装或执行能力。
++import { createHash } from "node:crypto";
++import { closeSync, constants, fstatSync, lstatSync, openSync, readSync } from "node:fs";
++import { dirname, isAbsolute, join, resolve } from "node:path";
++import { fileURLToPath } from "node:url";
++
++const FAIL = "MANIFEST_PROJECTION_CHECK_FAILED";
++const MANIFEST = "config/capability-packages/pdf-extract.manifest.json";
++const TARGET = "frontend/src/api/generated/capability-package-details.ts";
++const FIXED = [
++  "packages/contracts/v2/capability-package.schema.json",
++  "scripts/contracts/validate_capability_package.py",
++  "scripts/contracts/generate_capability_package_details.py",
++  "scripts/contracts/check_capability_package_details.mjs",
++  "config/capability-map.v1.json",
++  "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++  "services/python-workers/routes.json",
++  "crates/archeaxis-api/Cargo.toml",
++];
++const HEADER = `// Generated from exact builtin manifest and public validator inputs. Declaration only.
++import type { CapabilityManifestIdentity, CapabilityPackageManifest } from './capability-package';
++export type CapabilityPackageDetail = {
++  identity: CapabilityManifestIdentity; manifest: CapabilityPackageManifest; source_path: string;
++  validation: 'VALIDATED_DECLARATION'; host_version: string;
++  source_authenticity: 'UNVERIFIED'; qualification: 'UNKNOWN'; runtime: 'UNKNOWN';
++};
++export type CapabilityPackageDetailProjection = {
++  sources: { path: string; sha256: string }[]; entries: CapabilityPackageDetail[];
++};
++export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = `;
++const sha = bytes => createHash("sha256").update(bytes).digest("hex");
++const requireThat = value => { if (!value) throw new Error(FAIL); };
++
++function safeRoot(root) {
++  requireThat(typeof root === "string" && isAbsolute(root) && !/^[EF]:[\\/]|^[/\\]{2}/i.test(root));
++  root = resolve(root);
++  const ancestors = [];
++  for (let part = root; ; part = dirname(part)) {
++    ancestors.unshift(part);
++    if (dirname(part) === part) break;
++  }
++  for (const part of ancestors) requireThat(!lstatSync(part).isSymbolicLink());
++  return root;
++}
++
++function readPublic(root, name, limit = 4194304) {
++  requireThat(typeof name === "string" && name.length <= 240 && !/[\\:]/.test(name));
++  const parts = name.split("/");
++  const denied = /^(private|secrets|credentials|sessions?|memor(?:y|ies)|tokens|cookies|auth|data|node_modules|target|dist)$/i;
++  requireThat(parts.every(part => /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(part) && part !== ".." && !denied.test(part)));
++  let path = root;
++  for (const part of parts) {
++    path = join(path, part);
++    requireThat(!lstatSync(path).isSymbolicLink()); // 包括Windows junction；读取前拒绝，不跟随到私有/其他盘。
++  }
++  const fd = openSync(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
++  try {
++    const info = fstatSync(fd);
++    requireThat(info.isFile() && info.size <= limit);
++    const bytes = Buffer.alloc(limit + 1);
++    let length = 0;
++    while (length < bytes.length) {
++      const count = readSync(fd, bytes, length, bytes.length - length, null);
++      if (count === 0) break;
++      length += count;
++    }
++    requireThat(length <= limit);
++    return bytes.subarray(0, length);
++  } finally { closeSync(fd); }
++}
++
++// 有界JSON解析，额外拒绝重复key/depth；不执行TS/代码，不回显解析器输入。
++function parseJSON(bytes) {
++  const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
++  let at = 0;
++  const space = () => { while (/\s/.test(text[at] ?? "") && at < text.length) at++; };
++  function string() {
++    const start = at++;
++    while (at < text.length) {
++      const char = text[at++];
++      if (char === "\\") { at++; continue; }
++      if (char === '"') return JSON.parse(text.slice(start, at));
++    }
++    throw new Error(FAIL);
++  }
++  function value(depth) {
++    requireThat(depth <= 64); space();
++    if (text[at] === '"') return string();
++    if (text[at] === "{" || text[at] === "[") {
++      const object = text[at++] === "{";
++      const close = object ? "}" : "]";
++      const keys = new Set();
++      space(); if (text[at] === close) { at++; return; }
++      while (at < text.length) {
++        if (object) {
++          space(); requireThat(text[at] === '"');
++          const key = string(); requireThat(!keys.has(key)); keys.add(key);
++          space(); requireThat(text[at++] === ":");
++        }
++        value(depth + 1); space();
++        const char = text[at++];
++        if (char === close) return;
++        requireThat(char === ",");
++      }
++      throw new Error(FAIL);
++    }
++    const start = at;
++    while (at < text.length && !/[,}\]\s]/.test(text[at])) at++;
++    requireThat(at > start); JSON.parse(text.slice(start, at));
++  }
++  value(0); space(); requireThat(at === text.length);
++  return JSON.parse(text);
++}
++
++function publicReference(ref, contractsOnly) {
++  requireThat(ref && typeof ref === "object" && Object.keys(ref).sort().join() === "path,sha256");
++  requireThat(typeof ref.sha256 === "string" && /^[a-f0-9]{64}$/.test(ref.sha256));
++  requireThat(typeof ref.path === "string" && (contractsOnly
++    ? /^packages\/contracts\/[A-Za-z0-9/_.-]+\.schema\.json$/.test(ref.path)
++    : /^(LICENSE|THIRD_PARTY_NOTICES\.md|docs\/[A-Za-z0-9/_.-]+\.(md|json|yaml)|packages\/contracts\/[A-Za-z0-9/_.-]+\.schema\.json)$/.test(ref.path)));
++  return ref.path;
++}
++
++/** 只核对已生成的声明字节与固定公共输入；不能由此授予真实性、许可或执行资格。 */
++export function checkCapabilityPackageDetails(root) {
++  try {
++    root = safeRoot(root);
++    const raw = readPublic(root, MANIFEST, 262144);
++    const manifest = parseJSON(raw);
++    requireThat(manifest.schema === "archeaxis.capability-package/v1" && manifest.declaration === "DECLARATION_ONLY");
++    requireThat(typeof manifest.package_id === "string" && manifest.package_id.length <= 96);
++    requireThat(typeof manifest.version === "string" && /^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})$/.test(manifest.version));
++    const paths = new Set([...FIXED, MANIFEST]);
++    requireThat(Array.isArray(manifest.compatibility?.contract_refs) && manifest.compatibility.contract_refs.length <= 16);
++    requireThat(Array.isArray(manifest.license?.notice_refs) && manifest.license.notice_refs.length <= 8);
++    requireThat(Array.isArray(manifest.inputs) && manifest.inputs.length <= 8 && Array.isArray(manifest.outputs) && manifest.outputs.length <= 8);
++    for (const items of [manifest.compatibility.contract_refs, manifest.license.notice_refs, manifest.inputs, manifest.outputs]) {
++      requireThat(new Set(items.map(item => JSON.stringify(item))).size === items.length);
++    }
++    const refs = [...manifest.compatibility.contract_refs, ...manifest.inputs.map(x => x.contract), ...manifest.outputs.map(x => x.contract)];
++    for (const ref of refs) {
++      paths.add(publicReference(ref, true));
++      requireThat(sha(readPublic(root, ref.path)) === ref.sha256);
++    }
++    for (const ref of manifest.license.notice_refs) {
++      paths.add(publicReference(ref, false));
++      requireThat(sha(readPublic(root, ref.path)) === ref.sha256);
++    }
++    const sources = [...paths].sort().map(path => ({ path, sha256: sha(readPublic(root, path)) }));
++    const cargo = new TextDecoder("utf-8", { fatal: true }).decode(readPublic(root, "crates/archeaxis-api/Cargo.toml"));
++    const packageSection = cargo.split(/^\[package\]\s*$/m)[1]?.split(/^\[/m)[0];
++    const versions = [...(packageSection ?? "").matchAll(/^version\s*=\s*"([0-9]+\.[0-9]+\.[0-9]+)"\s*$/gm)];
++    requireThat(versions.length === 1);
++    const expected = { sources, entries: [{
++      identity: { schema: manifest.schema, package_id: manifest.package_id, version: manifest.version, sha256: sha(raw) },
++      manifest, source_path: MANIFEST, validation: "VALIDATED_DECLARATION", host_version: versions[0][1],
++      source_authenticity: "UNVERIFIED", qualification: "UNKNOWN", runtime: "UNKNOWN",
++    }] };
++    const target = readPublic(root, TARGET, 524288);
++    const output = new TextDecoder("utf-8", { fatal: true }).decode(target);
++    requireThat(output.startsWith(HEADER) && output.endsWith(";\n"));
++    const projection = parseJSON(Buffer.from(output.slice(HEADER.length, -2)));
++    // sources路径永不来自projection；完整目标必须匹配从固定实际来源重建的只读投影。
++    requireThat(JSON.stringify(projection) === JSON.stringify(expected));
++    requireThat(output === HEADER + JSON.stringify(expected, null, 2) + ";\n");
++    return true;
++  } catch { throw new Error(FAIL); }
++}
++
++if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
++  try {
++    requireThat(process.argv.length === 2 || (process.argv.length === 3 && process.argv[2] === "--check"));
++    checkCapabilityPackageDetails(resolve(dirname(fileURLToPath(import.meta.url)), "../.."));
++  } catch { console.error(FAIL); process.exitCode = 1; }
++}
+diff --git a/tests/contract/test_capability_package_details_node.mjs b/tests/contract/test_capability_package_details_node.mjs
+new file mode 100644
+--- /dev/null
++++ b/tests/contract/test_capability_package_details_node.mjs
+@@ -0,0 +1,88 @@
++// 内置Node runner；仅自有ignored fixture，不安装依赖、不启动服务。
++import { test } from "node:test";
++import assert from "node:assert/strict";
++import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, renameSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
++import { dirname, join, resolve } from "node:path";
++import { fileURLToPath } from "node:url";
++import { spawnSync } from "node:child_process";
++import { checkCapabilityPackageDetails } from "../../scripts/contracts/check_capability_package_details.mjs";
++const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
++const OUTPUT = join(ROOT, ".project-local", "node-manifest-guard-cases");
++const MANIFEST = "config/capability-packages/pdf-extract.manifest.json";
++const TARGET = "frontend/src/api/generated/capability-package-details.ts";
++const FIXED = [MANIFEST, TARGET,
++  "packages/contracts/v2/capability-package.schema.json",
++  "packages/contracts/v1/core-document.schema.json",
++  "scripts/contracts/validate_capability_package.py",
++  "scripts/contracts/generate_capability_package_details.py",
++  "scripts/contracts/check_capability_package_details.mjs",
++  "config/capability-map.v1.json",
++  "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++  "services/python-workers/routes.json", "crates/archeaxis-api/Cargo.toml",
++];
++function fixture() {
++  mkdirSync(OUTPUT, { recursive: true });
++  const root = mkdtempSync(join(OUTPUT, "owned-"));
++  for (const name of FIXED) {
++    mkdirSync(dirname(join(root, name)), { recursive: true });
++    copyFileSync(join(ROOT, name), join(root, name));
++  }
++  return root;
++}
++function rejected(root) {
++  assert.throws(() => checkCapabilityPackageDetails(root), error => error.message === "MANIFEST_PROJECTION_CHECK_FAILED");
++}
++test("guard succeeds from frontend cwd with no usable Python and empty PATH", () => {
++  const root = fixture();
++  const child = spawnSync(process.execPath, [join(root, "scripts/contracts/check_capability_package_details.mjs"), "--check"], {
++    cwd: join(root, "frontend"), encoding: "utf8",
++    env: { ...process.env, PATH: "", ARCHEAXIS_PYTHON: join(root, "NO_PYTHON_EXISTS.exe") },
++  });
++  assert.equal(child.status, 0); assert.equal(child.stdout, ""); assert.equal(child.stderr, "");
++});
++test("manifest raw whitespace drift is rejected and exact restoration succeeds", () => {
++  const root = fixture(), path = join(root, MANIFEST), original = readFileSync(path);
++  writeFileSync(path, Buffer.concat([original, Buffer.from(" ")])); rejected(root);
++  writeFileSync(path, original); assert.equal(checkCapabilityPackageDetails(root), true);
++});
++test("fixed validator generator host and schema drift cannot keep old projection", () => {
++  for (const name of ["scripts/contracts/validate_capability_package.py", "scripts/contracts/generate_capability_package_details.py", "scripts/contracts/check_capability_package_details.mjs", "crates/archeaxis-api/Cargo.toml", "packages/contracts/v2/capability-package.schema.json"]) {
++    const root = fixture(), path = join(root, name);
++    writeFileSync(path, Buffer.concat([readFileSync(path), Buffer.from("\n")])); rejected(root);
++  }
++});
++test("tampered sources cannot grant private path reads or duplicate source identity", () => {
++  for (const change of [text => text.replace('"config/capability-map.v1.json"', '"docs/private/SYNTHETIC_SECRET.json"'), text => text.replace('"sources": [', '"sources": [{"path":"docs/private/SYNTHETIC_SECRET.json","sha256":"' + "0".repeat(64) + '"},'), text => text.replace(/("sources": \[\n)(    \{[\s\S]*?\n    \},\n)/, "$1$2$2")]) {
++    const root = fixture(), path = join(root, TARGET);
++    writeFileSync(path, change(readFileSync(path, "utf8"))); rejected(root);
++  }
++});
++test("generated runtime flags identity manifest payload header and suffix tampering fail", () => {
++  for (const change of [text => text.replace('"runtime": "UNKNOWN"', '"runtime": "AVAILABLE"'), text => text.replace('"package_id": "archeaxis.pdf-extract"', '"package_id": "forged"'), text => text.replace("Declaration only.", "Approved runtime."), text => text + "\nthrow new Error('SYNTHETIC_PRIVATE_VALUE');\n"]) {
++    const root = fixture(), path = join(root, TARGET);
++    writeFileSync(path, change(readFileSync(path, "utf8"))); rejected(root);
++  }
++});
++test("duplicate JSON keys and excessive nesting are rejected without evaluation", () => {
++  const root = fixture(), path = join(root, MANIFEST), raw = readFileSync(path, "utf8");
++  writeFileSync(path, raw.replace('"schema":', '"schema":"duplicate","schema":')); rejected(root);
++  writeFileSync(path, "[".repeat(66) + "0" + "]".repeat(66)); rejected(root);
++});
++test("public references cannot escape to protected absolute private or traversal paths", () => {
++  for (const path of ["E:/SYNTHETIC_PRIVATE_VALUE", "F:/SYNTHETIC_PRIVATE_VALUE", "../outside.schema.json", "packages/contracts/../private/a.schema.json", "docs/private/SYNTHETIC_SECRET.json"]) {
++    const root = fixture(), file = join(root, MANIFEST), value = JSON.parse(readFileSync(file, "utf8"));
++    value.compatibility.contract_refs[0].path = path;
++    writeFileSync(file, JSON.stringify(value)); rejected(root);
++  }
++});
++test("missing and oversized fixed source or target are bounded failures", () => {
++  let root = fixture(); unlinkSync(join(root, "services/python-workers/routes.json")); rejected(root);
++  root = fixture(); writeFileSync(join(root, "scripts/contracts/validate_capability_package.py"), Buffer.alloc(4194305)); rejected(root);
++  root = fixture(); writeFileSync(join(root, TARGET), Buffer.alloc(524289)); rejected(root);
++});
++test("linked public schema directory is rejected before reading its target", () => {
++  const root = fixture(), original = join(root, "packages/contracts/v1"), moved = join(root, "owned-linked-source");
++  renameSync(original, moved);
++  symlinkSync(moved, original, process.platform === "win32" ? "junction" : "dir");
++  rejected(root);
++});

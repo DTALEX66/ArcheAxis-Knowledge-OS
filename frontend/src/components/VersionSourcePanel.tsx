@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { coreCommand } from "../api/core";
 import { coreFailureReason } from "../presentation/labels";
+import { RawReceiptButton } from "./DiagnosticConsole";
 
 export function VersionSourcePanel() {
   const [version, setVersion] = useState<Record<string, unknown> | null>(null);
@@ -18,14 +19,9 @@ export function VersionSourcePanel() {
   }, [retry]);
   return <section className="ui-reliability-panel" aria-label="版本与来源" data-section="runtime" tabIndex={-1}>
     <h2>当前运行身份</h2>
-    {error ? <p role="alert">{error}</p> : version ? <dl>
-      <dt>Core</dt><dd>{String(version.runtime)}</dd>
-      <dt>接口合同</dt><dd>{String(version.contract)}</dd>
-      <dt>数据结构</dt><dd>{String(version.schema_version)}</dd>
-      <dt>SQLite</dt><dd>{String(version.sqlite_version)}</dd>
-    </dl> : <p role="status">正在读取当前 Core…</p>}
+    {error ? <p role="alert">{error}</p> : version ? <><p>当前运行服务已连接。</p><RawReceiptButton label="运行版本详细信息" category="runtime" payload={version}/></> : <p role="status">正在读取当前运行信息…</p>}
     <button type="button" onClick={() => setRetry(value => value + 1)}>重新读取运行身份</button>
-    <p>安装包来源与构建 SHA：UNKNOWN。当前运行接口没有提供可验证的安装与构建回执。</p>
+    <p>安装来源与构建版本尚未核实。详细原因可在运行诊断中查看。</p>
     <p>下方原件、来源引用与文档版本来自当前工作区。历史版本是只读记录；恢复文档版本会创建新版本。</p>
   </section>;
 }

@@ -16,7 +16,7 @@ describe("StatusBar", () => {
 
   it("renders a status badge with readable text (never color-only)", () => {
     render(<StatusBar activeSpace="workspace" backendState="checking" />);
-    const badge = screen.getByText("正在验证本地后端…");
+    const badge = screen.getByText("正在检查本地连接…");
     expect(badge).toBeInTheDocument();
     expect(badge.textContent?.trim()).not.toBe("");
     expect(badge).toHaveAttribute("data-status", "pending");
@@ -39,7 +39,7 @@ describe("StatusBar", () => {
   it("renders unavailable state without exposing an unreachable recovery control", () => {
     render(<StatusBar activeSpace="workspace" backendState="unavailable" />);
 
-    expect(screen.getByText("后端状态：不可用")).toBeInTheDocument();
+    expect(screen.getByText("本地连接不可用")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "打开全局命令" })).toHaveAttribute("aria-keyshortcuts", "Control+K");
     expect(screen.queryByRole("button", { name: /重试后端|进入安全模式|恢复备份/ })).not.toBeInTheDocument();
   });
@@ -47,9 +47,9 @@ describe("StatusBar", () => {
   it("labels immediate non-desktop rendering as browser development mode", () => {
     render(<StatusBar activeSpace="workspace" backendState="web" />);
 
-    const badge = screen.getByText(/浏览器开发模式/);
+    const badge = screen.getByText(/浏览器预览/);
     expect(badge).toHaveAttribute("data-status", "development");
-    expect(screen.queryByText("后端状态：本地可用")).not.toBeInTheDocument();
+    expect(screen.queryByText("本地连接可用")).not.toBeInTheDocument();
   });
 
   it("switches the root theme and the rendered AAOS brand asset together", async () => {

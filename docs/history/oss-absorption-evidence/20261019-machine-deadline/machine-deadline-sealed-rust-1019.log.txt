@@ -1,0 +1,108 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo test -p archeaxis-application --lib --test machine_answer_resources --test model_configuration_execution --offline --locked -- --test-threads=1
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+warning: unused import: `OptionalExtension`
+ --> crates\archeaxis-domain\src\ai_asset.rs:7:28
+  |
+7 | use rusqlite::{Connection, OptionalExtension};
+  |                            ^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `self`
+ --> crates\archeaxis-domain\src\asset_context_grant.rs:4:16
+  |
+4 |     document::{self, Error},
+  |                ^^^^
+
+warning: `archeaxis-domain` (lib) generated 2 warnings (run `cargo fix --lib -p archeaxis-domain` to apply 2 suggestions)
+   Compiling archeaxis-application v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application)
+warning: function `stable_id` is never used
+  --> crates\archeaxis-application\src\lib.rs:45:4
+   |
+45 | fn stable_id(prefix: &str, seed: &str) -> String {
+   |    ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `worker` is never read
+  --> crates\archeaxis-application\src\executor.rs:58:5
+   |
+54 | pub struct Executor {
+   |            -------- field in this struct
+...
+58 |     worker: PathBuf,
+   |     ^^^^^^
+   |
+   = note: `Executor` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `archeaxis-application` (lib) generated 2 warnings
+warning: `archeaxis-application` (lib test) generated 2 warnings (2 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.30s
+     Running unittests src\lib.rs (.project-local\build\cargo\debug\deps\archeaxis_application-dda439597c459986.exe)
+
+running 32 tests
+test container::supported_member_route_tests::existing_routes_are_selected_without_json_collision_or_recursive_media ... ok
+test container::verbatim_path_tests::a_relative_path_is_left_alone ... ok
+test container::verbatim_path_tests::an_absolute_member_path_is_named_verbatim_and_only_once ... ok
+test executor::derived::inventory_pipe_tests::held_descendant_pipes_cancel_and_join_owned_readers ... ok
+test executor::dispatch::tests::cancelling_ready_wait_joins_promptly_and_withholds_material ... ok
+test executor::dispatch::tests::legacy_worker_without_ready_never_receives_document_material ... ok
+test executor::dispatch::tests::model_reconstruction_refuses_changed_document_and_unapproved_sources ... ok
+test executor::dispatch::tests::ready_protocol_is_exact_and_success_requires_approved_model ... ok
+test executor::dispatch::tests::search_actual_query_and_digest_and_replay_are_checked ... ok
+test executor::dispatch::tests::withdrawn_local_only_and_changed_material_never_approve ... ok
+test executor::inventory::tests::failed_inventory_is_unknown_and_does_not_echo_worker_content ... ok
+test executor::inventory::tests::full_inventory_queue_times_out_without_spawn ... ok
+test executor::inventory::tests::listed_model_is_not_loaded_or_inference_evidence ... ok
+test executor::inventory::tests::queued_inventory_rechecks_disable_after_initial_read ... ok
+test executor::machine_failure::deadline_tests::complete_success_at_or_after_deadline_is_rejected ... ok
+test executor::machine_failure::deadline_tests::expired_worker_is_not_admitted_and_remaining_budget_is_bounded ... ok
+test executor::machine_failure::tests::rejects_unknown_schema_code_fields_and_invalid_measurements ... ok
+test executor::media_input_budget_tests::only_execution_media_capabilities_receive_the_larger_budget ... ok
+test scheduler::tests::explicit_bad_profile_never_falls_back_to_a_valid_profile ... ok
+test scheduler::tests::explicit_scheduler_worker_wins_for_portable_runtime ... ok
+test scheduler::tests::legacy_scheduler_worker_name_is_supported ... ok
+test scheduler::tests::profile_interpreter_is_accepted ... ok
+test scheduler::tests::profile_load_rejects_oversized_files_and_missing_scripts ... ok
+test scheduler::tests::profile_rejects_a_linked_ancestor ... ok
+test scheduler::tests::profile_rejects_duplicate_unknown_missing_and_oversized_fields ... ok
+test scheduler::tests::profile_rejects_unsafe_paths_in_every_field ... ok
+test scheduler::tests::profile_requires_an_object_root ... ok
+test scheduler::tests::profile_with_declared_capability_routes_still_resolves_scheduler_python ... ok
+test scheduler::tests::relative_profile_interpreter_resolves_against_the_profile_directory ... ok
+test scheduler::tests::relative_profile_paths_accept_a_relocated_runtime ... ok
+test scheduler::tests::repository_worker_remains_development_fallback ... ok
+test scheduler::tests::wrong_schema_missing_interpreter_and_broken_json_each_name_their_reason ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.37s
+
+     Running tests\machine_answer_resources.rs (.project-local\build\cargo\debug\deps\machine_answer_resources-e39fd18c51e057d6.exe)
+
+running 13 tests
+test answer_passes_a_bounded_timeout_to_the_owned_worker ... ok
+test explicit_cancellation_reaps_only_the_owned_worker_before_return ... ok
+test hard_deadline_retains_bounded_measurements_and_reaps_owned_worker ... ok
+test invalid_input_and_budget_are_rejected_before_worker_spawn ... ok
+test inventory_overflow_is_unknown_and_owned_worker_is_reaped ... ok
+test inventory_settings_failure_refuses_before_owned_child_spawn ... ok
+test inventory_timeout_is_unknown_and_owned_worker_is_reaped ... ok
+test nonzero_worker_keeps_only_allowlisted_reason_and_never_accepts_answer ... ok
+test one_second_timeout_proves_actual_owned_pid_is_no_longer_running ... ok
+test pre_cancelled_machine_never_spawns_a_worker ... ok
+test private_parent_marker_isolated_without_mutating_global_test_environment ... ok
+test stdout_over_128k_is_rejected_and_direct_owned_child_is_reaped ... ok
+test valid_utf8_context_and_question_round_trip_normally ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.40s
+
+     Running tests\model_configuration_execution.rs (.project-local\build\cargo\debug\deps\model_configuration_execution-b0802a2a1cf83c0f.exe)
+
+running 1 test
+test configured_deep_executes_exact_destination_and_rejects_changed_revision ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+

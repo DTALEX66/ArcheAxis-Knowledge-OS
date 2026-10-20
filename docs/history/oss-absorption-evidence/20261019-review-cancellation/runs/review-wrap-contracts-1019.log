@@ -1,0 +1,16 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ✓ src/__tests__/StyleRuleCoverage.test.ts (2 tests) 41ms
+ ✓ src/__tests__/UiFirstWorkspace.test.tsx (9 tests) 331ms
+ ✓ src/__tests__/CanonicalReviewLearning.test.tsx (12 tests) 2838ms
+   ✓ finite knowledge and learning commands > guards both closing and replacing an unsaved search document 427ms
+   ✓ finite knowledge and learning commands > shows evidence before a user's version-checked review and preserves note on conflict 570ms
+   ✓ finite knowledge and learning commands > separates machine state and retries the same review event after unconfirmed response 691ms
+   ✓ finite knowledge and learning commands > reads the updated state after a confirmed review while the submission is still busy 484ms
+
+ Test Files  3 passed (3)
+      Tests  23 passed (23)
+   Start at  03:25:14
+   Duration  4.17s (transform 558ms, setup 274ms, collect 939ms, tests 3.21s, environment 591ms, prepare 237ms)
+

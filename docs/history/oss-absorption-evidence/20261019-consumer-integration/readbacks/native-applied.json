@@ -1,0 +1,30 @@
+{
+  "status": "APPLIED_MAIN_154_TEST_145_SUBTEST_PASS_NATIVE_NOT_EXECUTED",
+  "patch_sha256": "862b1c10094bf6c821cac75c1d7f7f4e313165f6b20756381b33aaf67d5cfc20",
+  "files": [
+    {
+      "path": "scripts/probes/aaos01_tauri_webdriver_loop.py",
+      "before_sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa",
+      "after_sha256": "b1d60b65b1458384c64e7d8542d5c1baa759c4b9b38415daf12dd0f7ea418916",
+      "bytes": 150310,
+      "new_file": false
+    },
+    {
+      "path": "scripts/probes/aaos01_material_independent_loop.py",
+      "before_sha256": null,
+      "after_sha256": "c0c4c223721bb0b24cd3aa3c59b342736851e0d00f42c1c5e8ad94a3f845a108",
+      "bytes": 7596,
+      "new_file": true
+    },
+    {
+      "path": "tests/test_material_independent_native_probe.py",
+      "before_sha256": null,
+      "after_sha256": "fdc678ec8b1c4915049684f5d0bc3b8a0f5fce12277698714bfb7a4562704a39",
+      "bytes": 15796,
+      "new_file": true
+    }
+  ],
+  "runs": [
+    "consumer-independent-probe-main-1019"
+  ]
+}

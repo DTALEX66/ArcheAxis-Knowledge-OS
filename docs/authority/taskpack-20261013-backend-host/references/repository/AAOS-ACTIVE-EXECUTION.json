@@ -1,0 +1,243 @@
+{
+  "schema": "archeaxis.active-execution/v1",
+  "selected_at": "2026-10-09",
+  "authorization": "Owner explicitly requested parallel handoff execution, new layout/architecture, palette preservation/uniformity, then G01 authority/index/description alignment; Owner explicitly prioritized G01; Owner requested comprehensive execution prioritizing governance and UI; Owner 2026-10-11 explicitly resumed complete core framework, common formats and shortest closed loop",
+  "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
+  "plan_id": "AAOS-UI-FIRST-PLAN-20261009",
+  "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "inherited_progress": [
+    "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+  ],
+  "inherited_contract_package": "docs/authority/taskpack-1004-aaos01",
+  "selection_role": "OWNER_SELECTED_EXECUTION_OVERLAY; immutable planning package is a dated source, not a live implementation receipt",
+  "selected_tasks": [
+    "UF00",
+    "UF01",
+    "UF02",
+    "UF03",
+    "CB01",
+    "UF04",
+    "UF06",
+    "S01.A",
+    "S01.B",
+    "S01.C",
+    "G01",
+    "H01",
+    "UF05",
+    "CB02",
+    "UF07",
+    "UF12",
+    "CB03",
+    "UF08",
+    "UF09",
+    "O01",
+    "UF10",
+    "CB04",
+    "UF11",
+    "UF13"
+  ],
+  "paused": [
+    "V01"
+  ],
+  "future_frozen": [
+    "FT01",
+    "FT02",
+    "FT03",
+    "FT04"
+  ],
+  "formal_stack": "Tauri 2 + React/TypeScript/Vite + Rust Core sole SQLite/CAS writer + isolated Python workers",
+  "theme_policy": {
+    "default": "blueprint",
+    "available": [
+      "blueprint",
+      "blueprint-light",
+      "black",
+      "white",
+      "cosmic"
+    ],
+    "layout": "new UI layout shared across themes",
+    "colors": "semantic colors from selected theme; new reference palette values preserved"
+  },
+  "handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+  "drift_readback": "docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
+  "permissions": {
+    "remote_description_update": "OWNER_REQUESTED",
+    "commit": "NOT_GRANTED_BY_THIS_POINTER",
+    "push": "NOT_GRANTED_BY_THIS_POINTER",
+    "merge": "NOT_GRANTED_BY_THIS_POINTER; current delivery grant recorded separately",
+    "cloud_ci": "OWNER_REQUESTED_CURRENT_SCOPE_QUALIFICATION; independent V01 remains paused",
+    "release": "NOT_GRANTED",
+    "bulk_delete": "EXACT_PATH_GRANT_REQUIRED"
+  },
+  "priority_tasks": [
+    "UF03",
+    "CB04",
+    "UF11",
+    "UF09",
+    "UF10",
+    "UF13"
+  ],
+  "freeze_register": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.md",
+  "design_overlays": [
+    "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.json"
+  ],
+  "execution_control": {
+    "state": "RUNNING_BY_OWNER",
+    "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
+    "whole_scope": "PARTIAL",
+    "owner_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
+    "automatic_continuation": true,
+    "previous_stop": {
+      "state": "PAUSED_BY_OWNER",
+      "stopped_after": "UF13 started local slice",
+      "instruction": "完成当天跑的任务就停止任务",
+      "whole_scope": "PARTIAL",
+      "receipt": "docs/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
+      "resume_requires": "new Owner instruction",
+      "automatic_continuation": false
+    }
+  },
+  "delivery_authorization": {
+    "date": "2026-10-12",
+    "owner_request": "所有分支该合并的合并，该清理的清理，该并入主线的并入主线；所有权威性质/索引/路径等相关内容更新到云端，防止换会话换软件漂移",
+    "scope": "Reviewed public project source and authority/navigation maintenance, normal commit/push/PR/merge and fully merged branch cleanup; no history rewrite or private runtime upload",
+    "commit": "GRANTED_CURRENT_DELIVERY_SCOPE",
+    "push": "GRANTED_CURRENT_DELIVERY_SCOPE",
+    "merge": "GRANTED_CURRENT_DELIVERY_SCOPE",
+    "release_install": "NOT_GRANTED_FOR_OWNER_MACHINE_OR_GREEN",
+    "product_execution": "RUNNING_BY_OWNER / PARTIAL",
+    "future_grants": "Recorded task scope only; new sessions must resolve their current request, not inherit unrestricted permissions"
+  },
+  "delivery_readback": {
+    "state": "MERGED_MAIN_BASELINE; current closure changes remain local until independently delivered",
+    "observed_date": "2026-10-13",
+    "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+    "pull_request": 185,
+    "source_snapshot_commit": "a6608a05858a37bf8a154e014ad17b10fa2c9c60",
+    "source_snapshot_tree": "fdf16af1a84c1b3056a22b279e0db54f985e56e9",
+    "merge_commit": "23f22a4928c69db2667b76b9c5cb84a2cd24252c",
+    "remote_branches": [
+      "main"
+    ],
+    "local_remote_main_identity": "MATCH_AT_RECORDED_OBSERVATION; task branch is separate",
+    "local_worktrees_equal": false,
+    "preserved_dirty_worktrees": 9,
+    "cosmic_remote": "DELETED_BY_EXPLICIT_OWNER_REQUEST; local dirty donor retained",
+    "ci": {
+      "head_sha": "23f22a4928c69db2667b76b9c5cb84a2cd24252c",
+      "run_id": 38274429552,
+      "state": "PASS"
+    },
+    "installed": "No new Owner machine/Green qualification inferred from CI",
+    "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
+    "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
+  },
+  "authority_routes": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+  "frozen_source_inputs": [
+    {
+      "index": "docs/history/conversation-summary-20261010/INDEX.md",
+      "manifest": "docs/history/conversation-summary-20261010/MANIFEST.json",
+      "state": "FROZEN_BY_OWNER",
+      "execution": "NOT_EXECUTED",
+      "activation": "requires new explicit Owner selection"
+    }
+  ],
+  "governance_maintenance": {
+    "owner_request": "先更新修复所有权威，防止本地/云端按旧文档旧路径旧权威访问审计",
+    "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+    "product_execution": "RESUMED_BY_OWNER_20261011",
+    "scope": "public project authority/navigation/aliases and anti-drift checks only"
+  },
+  "governance_delivery": {
+    "state": "MERGED_MAIN_BASELINE; subsequent authority metadata tracked by actual HEAD",
+    "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
+    "product_execution": "RUNNING_BY_OWNER / PARTIAL",
+    "historical_readback": "delivery_history.governance_delivery"
+  },
+  "delivery_history": {
+    "delivery_authorization": {
+      "date": "2026-10-10",
+      "owner_request": "全部上传 双端仓库一致",
+      "scope": "Project public source/documents/taskpack snapshot and normal fast-forward synchronization; ignored runtime/private data remain local",
+      "commit": "GRANTED",
+      "push": "GRANTED",
+      "local_branch_convergence": "GRANTED_WITHOUT_HISTORY_REWRITE",
+      "release_install": "NOT_GRANTED",
+      "product_execution": "REMAINS_PAUSED"
+    },
+    "delivery_readback": {
+      "state": "BRANCH_PUBLISHED",
+      "source_snapshot_commit": "3c1265be1017f565a64701b513bac3e51d724584",
+      "source_snapshot_tree": "982dafceddc85b8e023f3d028b86805b9592f041",
+      "remote_branches": [
+        "main",
+        "codex/Audit",
+        "codex/aaos-gov-ui-20261008"
+      ],
+      "native_github_sha_tree_match": true,
+      "local_worktrees_equal": true,
+      "ci": "UNVERIFIED; push response reported required a0-gates expected",
+      "installed": "NOT_EXECUTED",
+      "latest_delivery_metadata_sha": "resolve actual Git HEAD; do not treat snapshot commit as latest metadata commit"
+    },
+    "governance_delivery": {
+      "state": "BRANCH_PUBLISHED",
+      "payload_commit": "338c17bb17c652e0651b536edaae9b2a96a01ba0",
+      "payload_tree": "046d4b7f44258bafc35ff562f2f32617b88b7e38",
+      "remote_branches": [
+        "main",
+        "codex/Audit",
+        "codex/aaos-gov-ui-20261008"
+      ],
+      "native_github_ref_tree_and_six_files_match": true,
+      "local_active_checkouts_equal": true,
+      "about_readback": "PASS",
+      "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+      "ci": "UNVERIFIED; required a0-gates expected at push",
+      "latest_metadata_sha": "resolve actual HEAD/remote refs; payload commit is evidence identity",
+      "product_execution": "REMAINS_PAUSED"
+    },
+    "delivery_readback_20261012_pr184": {
+      "state": "MERGED_MAIN",
+      "observed_date": "2026-10-12",
+      "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+      "pull_request": 184,
+      "source_snapshot_commit": "fca7e7150c0e356b832730531f942af3f49b1b95",
+      "source_snapshot_tree": "9956bf790352ec4bfbeb0b96b3faeef2e05dcf11",
+      "merge_commit": "1a322045490075e68e4d8b5f26bdd706d3e4089a",
+      "remote_branches": [
+        "main",
+        "codex/minimax-aaos-cosmic-ui-20261001"
+      ],
+      "local_remote_main_identity": "MATCH_AT_RECORDED_OBSERVATION",
+      "local_worktrees_equal": false,
+      "preserved_dirty_worktrees": 9,
+      "ci": {
+        "head_sha": "fca7e7150c0e356b832730531f942af3f49b1b95",
+        "run_id": 38268676998,
+        "state": "PASS_REQUIRED_GATES",
+        "installer_lifecycle": "REAL_CI_WINDOWS_SYNTHETIC_MATERIAL"
+      },
+      "merge_sha_ci": {
+        "run_id": 38272440912,
+        "state": "IN_PROGRESS_AT_OBSERVATION; query live before claiming PASS"
+      },
+      "installed": "CI_WINDOWS_INSTALLED_JOURNEYS_PASS; Owner machine/Green acceptance NOT_GRANTED_OR_NOT_COMPLETED",
+      "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
+      "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
+    }
+  },
+  "conversation_closure_observation_20261013": {
+    "receipt": "docs/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json",
+    "pr186": "MERGED",
+    "pr187": "MERGED",
+    "main_sha": "eaaa2c2ce0677febe9d88550d510da1c20d65bb3",
+    "native_4b_27b": "PASS_REAL_SYNTHETIC_MATERIAL",
+    "overall": "PRODUCT_PARTIAL_AT_DECLARED_BOUNDARIES",
+    "pr188": "MERGED",
+    "pr189": "MERGED",
+    "main_ci": 38292838799,
+    "engineering_closure": "COMPLETE_AUTHORIZED_SCOPE",
+    "current_refs": "Read Git/remote live; dated delivery observation"
+  }
+}

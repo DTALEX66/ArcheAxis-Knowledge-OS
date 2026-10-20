@@ -1,0 +1,94 @@
+{
+  "schema": "archeaxis.capability-package/v1",
+  "declaration": "DECLARATION_ONLY",
+  "package_id": "archeaxis.pdf-extract",
+  "version": "0.1.0",
+  "capability_ids": [
+    "CAP-0020"
+  ],
+  "resource_keys": [
+    "pymupdf"
+  ],
+  "contribution_points": [
+    "format_conversion"
+  ],
+  "compatibility": {
+    "host_versions": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "1.0.0"
+    },
+    "contract_refs": [
+      {
+        "path": "packages/contracts/v1/core-document.schema.json",
+        "sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6"
+      }
+    ]
+  },
+  "runtime_capabilities": [
+    "pdf.extract"
+  ],
+  "permissions": {
+    "requested": [
+      "selected_source.read",
+      "derived_artifact.propose"
+    ],
+    "data_scope": "explicit_selected_objects_only",
+    "network": "none",
+    "cost": "none",
+    "explicit_grant_required": true,
+    "canonical_writer": "rust_core_only",
+    "credential_handling": "host_reference_only",
+    "local_to_cloud_fallback": "explicit_grant_only",
+    "grants_execution": false,
+    "grants_knowledge_acceptance": false
+  },
+  "dependencies": [
+    {
+      "resource_key": "pymupdf",
+      "requirement": "required",
+      "version_range": null
+    }
+  ],
+  "license": {
+    "expression": null,
+    "review": "UNVERIFIED",
+    "notice_refs": []
+  },
+  "inputs": [
+    {
+      "kind": "raw_asset_reference",
+      "contract": {
+        "path": "packages/contracts/v1/core-document.schema.json",
+        "sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6"
+      },
+      "max_bytes": 1048576
+    }
+  ],
+  "outputs": [
+    {
+      "kind": "document_reference",
+      "contract": {
+        "path": "packages/contracts/v1/core-document.schema.json",
+        "sha256": "3d02bad30f9dde3d0830d74a8b48fad9c73fb02f2393b5922ee0c9afcbb7aee6"
+      },
+      "max_bytes": 1048576
+    }
+  ],
+  "lifecycle": {
+    "cancellation": "host_propagated",
+    "exit": "bounded_cleanup",
+    "timeout_ms": 120000,
+    "unknown_result": "preserve_unknown_no_auto_retry",
+    "cleanup_evidence": "required_before_confirmed_exit"
+  },
+  "fallback": {
+    "mode": "unavailable",
+    "losses": [],
+    "automatic": false
+  },
+  "update": {
+    "strategy": "reviewed_replacement_only",
+    "rollback": "preserve_previous_identity_and_originals",
+    "canonical_data_migration": false
+  }
+}

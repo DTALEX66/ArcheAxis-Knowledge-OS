@@ -1,0 +1,116 @@
+{
+  "schema": "archeaxis.visual-tokens.plan/v1",
+  "state": "IMPLEMENTATION_BASELINE_VISUAL_REVIEW_REQUIRED",
+  "public_brand": {
+    "en": "ArcheAxis",
+    "zh": "星环知识系统"
+  },
+  "default_theme": "cosmic",
+  "colors": {
+    "canvas": "#030810",
+    "surface": "#0C141F",
+    "surfaceRaised": "#152231",
+    "text": "#E7EDF5",
+    "muted": "#A9B6C7",
+    "accent": "#B9DFFF",
+    "accentStrong": "#70D6FF",
+    "ready": "#66E0A2",
+    "unavailable": "#FF7285",
+    "attention": "#F2C16C",
+    "border": "#52657A"
+  },
+  "glass": {
+    "balanced": {
+      "background": "rgba(17,28,40,0.72)",
+      "blurPx": 12,
+      "saturation": 1.08,
+      "maxVisibleLargeBlurSurfaces": 2
+    },
+    "lite": {
+      "background": "rgba(12,20,31,0.96)",
+      "blurPx": 0,
+      "saturation": 1,
+      "maxVisibleLargeBlurSurfaces": 0
+    },
+    "enhanced": {
+      "background": "rgba(17,28,40,0.66)",
+      "blurPx": 16,
+      "saturation": 1.1,
+      "maxVisibleLargeBlurSurfaces": 2
+    },
+    "edgeTop": "rgba(224,241,255,0.46)",
+    "edgeSide": "rgba(166,197,224,0.16)"
+  },
+  "typography": {
+    "uiStack": "Segoe UI, Microsoft YaHei UI, Noto Sans CJK SC, sans-serif",
+    "uiPx": 14,
+    "metaPx": 12,
+    "bodyPx": 18,
+    "headingPx": 24,
+    "uiLineHeight": 1.45,
+    "readingLineHeight": 1.7,
+    "maxReadingWidthPx": 960,
+    "notoFontLoad": "optional_local_resource_not_startup_requirement"
+  },
+  "spacingPx": [
+    4,
+    8,
+    12,
+    16,
+    24,
+    32,
+    48
+  ],
+  "radiiPx": {
+    "button": 10,
+    "card": 14,
+    "dialog": 18,
+    "pill": 999
+  },
+  "shellPx": {
+    "top": 64,
+    "railCollapsed": 80,
+    "railExpanded": 224,
+    "inspector": 320,
+    "composerCollapsed": 64,
+    "outerGap": 16,
+    "panelGap": 12,
+    "minReadingWidth": 480
+  },
+  "motionMs": {
+    "hover": 120,
+    "panel": 180,
+    "theme": 240
+  },
+  "motion": {
+    "continuousBackground": "off_by_default",
+    "reducedMotion": "no_ambient_animation_or_transition",
+    "visibleExpensiveAvatarOwners": 1,
+    "activeAudioOwners": 1
+  },
+  "layers": {
+    "scene": 0,
+    "shell": 10,
+    "workPanels": 20,
+    "inspector": 30,
+    "menu": 40,
+    "dialog": 50,
+    "toast": 60
+  },
+  "controlStates": [
+    "default",
+    "hover",
+    "focus",
+    "selected",
+    "disabled",
+    "error",
+    "unconfigured",
+    "future"
+  ],
+  "qualityModes": [
+    "lite",
+    "balanced",
+    "enhanced"
+  ],
+  "themeCompatibility": "Existing blueprint, blueprint-light, black, white remain alternate skins with the same semantic token names and layout; complete in FE02."
+}

@@ -1,0 +1,81 @@
+...FF.................................................................. [ 86%]
+...........                                                              [100%]::error::PYTEST-FAILED tests/test_material_companion_native_probe.py::test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim[material]
+::error::PYTEST-FAIL-REASON purpose = 'material'
+
+    @pytest.mark.parametrize("purpose", ["material", "companion"])
+    def test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim(purpose):
+        receipt, preview, _ = fixture(purpose)
+        receipt.update(answer=None, provider_stop_state="UNKNOWN", outcome="failed", state="cancelled", reason_code="material_question_cancelled" if purpose == "material" else "conversation_cancelled")
+        probe.assert_cancelled_receipt(receipt, preview, purpose)
+        mutations = [dict(request_id="other"), dict(plan_sha256="b" * 64), dict(answer={"answer":"late"}), dict(provider_stop_state="STOPPED"), dict(reason_code="timeout"), dict(authority="accepted"), dict(grants_knowledge_acceptance=True)]
+        for mutation in mutations:
+            with pytest.raises(AssertionError):
+                probe.assert_cancelled_receipt({**receipt, **mutation}, preview, purpose)
+        with pytest.raises(AssertionError):
+>           probe.assert_calls({"rows": [row], "overflow": False}, [])
+                                         ^^^
+E           NameError: name 'row' is not defined
+
+tests\test_material_companion_native_probe.py:58: NameError
+::error::PYTEST-FAILED tests/test_material_companion_native_probe.py::test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim[companion]
+::error::PYTEST-FAIL-REASON purpose = 'companion'
+
+    @pytest.mark.parametrize("purpose", ["material", "companion"])
+    def test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim(purpose):
+        receipt, preview, _ = fixture(purpose)
+        receipt.update(answer=None, provider_stop_state="UNKNOWN", outcome="failed", state="cancelled", reason_code="material_question_cancelled" if purpose == "material" else "conversation_cancelled")
+        probe.assert_cancelled_receipt(receipt, preview, purpose)
+        mutations = [dict(request_id="other"), dict(plan_sha256="b" * 64), dict(answer={"answer":"late"}), dict(provider_stop_state="STOPPED"), dict(reason_code="timeout"), dict(authority="accepted"), dict(grants_knowledge_acceptance=True)]
+        for mutation in mutations:
+            with pytest.raises(AssertionError):
+                probe.assert_cancelled_receipt({**receipt, **mutation}, preview, purpose)
+        with pytest.raises(AssertionError):
+>           probe.assert_calls({"rows": [row], "overflow": False}, [])
+                                         ^^^
+E           NameError: name 'row' is not defined
+
+tests\test_material_companion_native_probe.py:58: NameError
+
+================================== FAILURES ===================================
+_ test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim[material] _
+
+purpose = 'material'
+
+    @pytest.mark.parametrize("purpose", ["material", "companion"])
+    def test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim(purpose):
+        receipt, preview, _ = fixture(purpose)
+        receipt.update(answer=None, provider_stop_state="UNKNOWN", outcome="failed", state="cancelled", reason_code="material_question_cancelled" if purpose == "material" else "conversation_cancelled")
+        probe.assert_cancelled_receipt(receipt, preview, purpose)
+        mutations = [dict(request_id="other"), dict(plan_sha256="b" * 64), dict(answer={"answer":"late"}), dict(provider_stop_state="STOPPED"), dict(reason_code="timeout"), dict(authority="accepted"), dict(grants_knowledge_acceptance=True)]
+        for mutation in mutations:
+            with pytest.raises(AssertionError):
+                probe.assert_cancelled_receipt({**receipt, **mutation}, preview, purpose)
+        with pytest.raises(AssertionError):
+>           probe.assert_calls({"rows": [row], "overflow": False}, [])
+                                         ^^^
+E           NameError: name 'row' is not defined
+
+tests\test_material_companion_native_probe.py:58: NameError
+_ test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim[companion] _
+
+purpose = 'companion'
+
+    @pytest.mark.parametrize("purpose", ["material", "companion"])
+    def test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim(purpose):
+        receipt, preview, _ = fixture(purpose)
+        receipt.update(answer=None, provider_stop_state="UNKNOWN", outcome="failed", state="cancelled", reason_code="material_question_cancelled" if purpose == "material" else "conversation_cancelled")
+        probe.assert_cancelled_receipt(receipt, preview, purpose)
+        mutations = [dict(request_id="other"), dict(plan_sha256="b" * 64), dict(answer={"answer":"late"}), dict(provider_stop_state="STOPPED"), dict(reason_code="timeout"), dict(authority="accepted"), dict(grants_knowledge_acceptance=True)]
+        for mutation in mutations:
+            with pytest.raises(AssertionError):
+                probe.assert_cancelled_receipt({**receipt, **mutation}, preview, purpose)
+        with pytest.raises(AssertionError):
+>           probe.assert_calls({"rows": [row], "overflow": False}, [])
+                                         ^^^
+E           NameError: name 'row' is not defined
+
+tests\test_material_companion_native_probe.py:58: NameError
+=========================== short test summary info ===========================
+FAILED tests/test_material_companion_native_probe.py::test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim[material]
+FAILED tests/test_material_companion_native_probe.py::test_cancelled_receipt_rejects_wrong_identity_answer_or_provider_stop_claim[companion]
+2 failed, 80 passed, 145 subtests passed in 6.43s

@@ -1,0 +1,272 @@
+[
+  {
+    "run_id": "material-summary-identity-red-1019",
+    "exit_code": 1,
+    "source_consistent": true,
+    "source_patch_sha256": "b9229c74de50310d5b9d8b34ab1e620150c1f81b4f9d5f419541220e1c771f52",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "tests/test_material_companion_native_probe.py",
+      "-k",
+      "summary_probe",
+      "-q"
+    ],
+    "started_at": "2026-10-18T22:58:52.328978+00:00",
+    "ended_at": "2026-10-18T22:58:55.685806+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/material-summary-identity-red-1019/logs/execution.log",
+      "bytes": 8506,
+      "sha256": "cf513f1ea5d7a515d56c362afd4f9ee7bf926e1e1e682bd36958945742064187"
+    }
+  },
+  {
+    "run_id": "material-summary-identity-green-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "d9342324e85e500ee5e57a9ae4c0cf1a174916d98cf366613cda63bc101244c7",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "tests/test_material_companion_native_probe.py",
+      "tests/test_material_independent_native_probe.py",
+      "tests/test_probe_identity_regression.py",
+      "-q"
+    ],
+    "started_at": "2026-10-18T22:59:07.808394+00:00",
+    "ended_at": "2026-10-18T22:59:52.739841+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/material-summary-identity-green-1019/logs/execution.log",
+      "bytes": 634,
+      "sha256": "69bd67f190a24399ccc732e70cd2e4f181dbd7c940b805b771bdbbc9709764fc"
+    }
+  },
+  {
+    "run_id": "material-context-wire-offline-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "a9f74e38ba566f7ba10222a81f956bec86c85aa0774942b8d3861db742fd9343",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "tests/test_material_context_request.py",
+      "tests/test_machine_request_measurements.py",
+      "-q"
+    ],
+    "started_at": "2026-10-18T23:00:27.277576+00:00",
+    "ended_at": "2026-10-18T23:00:30.641606+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/material-context-wire-offline-1019/logs/execution.log",
+      "bytes": 551,
+      "sha256": "72ba85096fa1d6eb3a66fc6d56a40011626e6845c32fc8b2a9ee887a618162fd"
+    }
+  },
+  {
+    "run_id": "material-summary-lint-1019",
+    "exit_code": 1,
+    "source_consistent": true,
+    "source_patch_sha256": "a9f74e38ba566f7ba10222a81f956bec86c85aa0774942b8d3861db742fd9343",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-m",
+      "ruff",
+      "check",
+      "scripts/probes/aaos01_material_companion_loop.py",
+      "tests/test_material_companion_native_probe.py",
+      "tests/test_material_context_request.py"
+    ],
+    "started_at": "2026-10-18T23:00:40.329922+00:00",
+    "ended_at": "2026-10-18T23:00:42.209593+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/material-summary-lint-1019/logs/execution.log",
+      "bytes": 9624,
+      "sha256": "610faae16a5112a15ad291e6ae51fa520b18ab524b1004b70cbda30618c0aa0b"
+    }
+  },
+  {
+    "run_id": "continuation-workspace-rustfmt-baseline-1019",
+    "exit_code": 1,
+    "source_consistent": true,
+    "source_patch_sha256": "996e7d2a177088c165f772efdb7c43d1dac0eb8cc92309bb138c39d638c8d0ea",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "started_at": "2026-10-18T23:03:13.868924+00:00",
+    "ended_at": "2026-10-18T23:03:18.142685+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/continuation-workspace-rustfmt-baseline-1019/logs/execution.log",
+      "bytes": 81083,
+      "sha256": "96a9c271a5264386d1a52390459c14787d33776ea31fe520b5e3a50b3e0dac11"
+    }
+  },
+  {
+    "run_id": "continuity-main-python-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "5c818b059496bab112ba853917c7315cc01ac557ed33f97cf37b8580102b4d3a",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/implementation-continuation-20261019/main_gates.py",
+      "python"
+    ],
+    "started_at": "2026-10-18T23:17:09.726509+00:00",
+    "ended_at": "2026-10-18T23:17:50.389719+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/continuity-main-python-1019/logs/execution.log",
+      "bytes": 46,
+      "sha256": "c7973af05d662c230d6e15e68f66d0583c13583232f3fedec9f32a5e2b8cc458"
+    }
+  },
+  {
+    "run_id": "continuity-main-rust-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "5c818b059496bab112ba853917c7315cc01ac557ed33f97cf37b8580102b4d3a",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/implementation-continuation-20261019/main_gates.py",
+      "rust"
+    ],
+    "started_at": "2026-10-18T23:17:09.784541+00:00",
+    "ended_at": "2026-10-18T23:18:31.776029+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/continuity-main-rust-1019/logs/execution.log",
+      "bytes": 118,
+      "sha256": "46df42dc0749fa1931a3814d919797768e722e1e2b98da8afe0565dba0eb7351"
+    }
+  },
+  {
+    "run_id": "continuity-main-frontend-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "5c818b059496bab112ba853917c7315cc01ac557ed33f97cf37b8580102b4d3a",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/implementation-continuation-20261019/main_gates.py",
+      "frontend"
+    ],
+    "started_at": "2026-10-18T23:17:09.791017+00:00",
+    "ended_at": "2026-10-18T23:17:24.975855+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/continuity-main-frontend-1019/logs/execution.log",
+      "bytes": 67,
+      "sha256": "95b1be79c6f82c3cd30551bd25695641bfbf88a4c0ed130d97cbc0ee3abf1087"
+    }
+  },
+  {
+    "run_id": "continuity-main-sources-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "5c818b059496bab112ba853917c7315cc01ac557ed33f97cf37b8580102b4d3a",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/implementation-continuation-20261019/main_gates.py",
+      "sources"
+    ],
+    "started_at": "2026-10-18T23:17:09.750687+00:00",
+    "ended_at": "2026-10-18T23:17:13.618436+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/continuity-main-sources-1019/logs/execution.log",
+      "bytes": 99,
+      "sha256": "01200812b04e3563308eb1c72221a0641af95a3167ca5f10ce24cf10b03ab7a2"
+    }
+  },
+  {
+    "run_id": "continuity-main-native-1019",
+    "exit_code": 101,
+    "source_consistent": true,
+    "source_patch_sha256": "7f29518ff62c0eb136c574ae6292a00bc4cf6a7eb59944c5f9de5eeef7413ae5",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/implementation-continuation-20261019/main_gates.py",
+      "native"
+    ],
+    "started_at": "2026-10-18T23:18:54.544740+00:00",
+    "ended_at": "2026-10-18T23:19:28.408055+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/continuity-main-native-1019/logs/execution.log",
+      "bytes": 5658,
+      "sha256": "a9c06dca31558feeb83432e249e040b97a9d91fb47be4ee5e14bd1531359e181"
+    }
+  },
+  {
+    "run_id": "continuity-final-python-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "7f29518ff62c0eb136c574ae6292a00bc4cf6a7eb59944c5f9de5eeef7413ae5",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/implementation-continuation-20261019/final_python_readback.py"
+    ],
+    "started_at": "2026-10-18T23:19:31.532830+00:00",
+    "ended_at": "2026-10-18T23:19:39.944514+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/continuity-final-python-1019/logs/execution.log",
+      "bytes": 651,
+      "sha256": "226a3178382c382a211fc63cd1aa8b29e0f305b215800807678a79aa53bd8ad7"
+    }
+  },
+  {
+    "run_id": "continuity-native-routed-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "7f29518ff62c0eb136c574ae6292a00bc4cf6a7eb59944c5f9de5eeef7413ae5",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/implementation-continuation-20261019/native_gate_routed.py"
+    ],
+    "started_at": "2026-10-18T23:20:27.972654+00:00",
+    "ended_at": "2026-10-18T23:21:04.990386+00:00",
+    "log": {
+      "path": ".project-local/runs/be268a2d33/continuity-native-routed-1019/logs/execution.log",
+      "bytes": 63,
+      "sha256": "1e98291e85ec9dee46a9182e066eb063aea4992acf29e9d8ed51b7f7af2f8b7b"
+    }
+  }
+]

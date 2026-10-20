@@ -1,0 +1,103 @@
+{
+  "state": "PROPOSAL_NOT_APPLIED",
+  "observed_at": "2026-10-18T21:14:37.893517+00:00",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "before_sha256": null,
+      "after_sha256": "766214fce769240751b82266cef1f169d3810d87f7075ef7e7895812311a9769",
+      "bytes": 2049
+    },
+    {
+      "path": "crates/archeaxis-api/src/launch.rs",
+      "before_sha256": "1b2b0fa1a4f336d9605f9233b58ffd6bb5ff66de9f6c89f2f6714173f75fe035",
+      "after_sha256": "cec839d9a8c50392c36fa711ddf0c080713f13788a05cf13a7d13043d6a5ce4a",
+      "bytes": 23188
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "before_sha256": "9d2780009a5f62e6f83661d479cb22787af48badab86f11d1521e20adf3d00e6",
+      "after_sha256": "4e62c9201668cc750036cd1c5a91a04f1f8b0bbed9de6ceda0f23e9e795d2ab4",
+      "bytes": 109929
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer/client.rs",
+      "before_sha256": null,
+      "after_sha256": "e3a4c225b2a0e6b22c86a1b70da2d4dec66de6cbabc763cf1de0d2db4a5cd285",
+      "bytes": 14609
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_observer.rs",
+      "before_sha256": null,
+      "after_sha256": "307a9e7f8798ce95a4c309c0ffdc65519e68b1d33057da83447c68ed04ee1400",
+      "bytes": 9891
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_api.rs",
+      "before_sha256": null,
+      "after_sha256": "0e668c049dd1ef7ec72b71fd83135513e698a102c98fad0166acafddb6fc4cbb",
+      "bytes": 3487
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_client.rs",
+      "before_sha256": null,
+      "after_sha256": "0b8dc7d4c768c80b7ddcab348ff7a5fd2932b93228cc3e60232f6e522762218d",
+      "bytes": 7712
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_process.rs",
+      "before_sha256": null,
+      "after_sha256": "0a86e3a3ac2c0267c47227ffb6a547602ffb8ee2ee555fe1d6068afc6588223e",
+      "bytes": 19326
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "before_sha256": "00d40b0d89096f3b56b898cd052973c1ac6cb4eb5018c68032d9cd34ea377739",
+      "after_sha256": "1cdbaf6078ff8754b6b6335d18ae8ebcdb5983f4116e2f162387a4e387d628d7",
+      "bytes": 399
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_observer.rs",
+      "before_sha256": null,
+      "after_sha256": "c54fb79907330bf8419ccdedcedb72b4834db8d6a96fd32a349c899aae110a9f",
+      "bytes": 4723
+    },
+    {
+      "path": "crates/archeaxis-contracts/tests/project_observer.rs",
+      "before_sha256": null,
+      "after_sha256": "24838da12a47803a34180472a207b17c1c2ba5d8f118f73b971462adaaf31ed1",
+      "bytes": 695
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "before_sha256": null,
+      "after_sha256": "61d42473f488aaca29c971eca5bfdfac4ebf6028dc075cdfc3f6a871ed3fa827",
+      "bytes": 5282
+    },
+    {
+      "path": "packages/contracts/v2/project-observer.cases.json",
+      "before_sha256": null,
+      "after_sha256": "f01139dac07b1530317ce51fe7f8e700505118aad79bcdca4d07787df90e3111",
+      "bytes": 25493
+    },
+    {
+      "path": "packages/contracts/v2/project-observer.schema.json",
+      "before_sha256": null,
+      "after_sha256": "9743c4f80dd424da62068b5a062f9d97d01aea7c760c1bbb9d394dc3159aff5c",
+      "bytes": 4649
+    },
+    {
+      "path": "tests/contract/test_project_observer_contract.py",
+      "before_sha256": null,
+      "after_sha256": "470f10ff7449e6ad3198c9546dfbbd7b24016f626f2475285ac35b1cf3a708c3",
+      "bytes": 690
+    }
+  ],
+  "patch_sha256": "4c0a09cf75101e641987e93fe2b4e6a1929786ddeb011da7993ddc2ad579c817",
+  "apply_check_exit_code": 0,
+  "apply_check_stderr": "",
+  "product_files_written": [],
+  "source_mirror": ".project-local/runs/be268a2d33/be10-proposal-prepare-1019/tmp/workspace",
+  "mirror_scope": "Cargo manifests/toolchain + crates source + contracts; no environments, dependencies, histories, hardlinks or runtime data",
+  "target": ".project-local/audits/be10-next-20261019/validation-target/deadline-v2"
+}

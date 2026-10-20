@@ -1,4 +1,6 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { qualityProfiles, usePerformanceMonitor, useVisibilityState, type QualityProfile } from "../runtime/performance";
+import "./CanvasBoard.css";
 
 interface CanvasNode {
   id: string;
@@ -19,12 +21,19 @@ interface CanvasEdge {
 }
 
 export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; onChange: (next: Record<string, unknown>) => void }) {
+  usePerformanceMonitor("CanvasBoard");
+  const visibility = useVisibilityState();
+  const [quality, setQuality] = useState<QualityProfile>("medium");
+  const decoration = qualityProfiles[quality];
   const nodes: CanvasNode[] = Array.isArray(doc.nodes) ? (doc.nodes as CanvasNode[]) : [];
   const edges: CanvasEdge[] = Array.isArray(doc.edges) ? (doc.edges as CanvasEdge[]) : [];
   const [dragging, setDragging] = useState<{ nodeId: string; offsetX: number; offsetY: number } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const editTrigger = useRef<HTMLButtonElement | null>(null), restoreEditFocus = useRef(false);
+  useEffect(() => { if (editingId===null && restoreEditFocus.current) { restoreEditFocus.current=false; editTrigger.current?.focus(); } }, [editingId]);
+  useEffect(() => { if (visibility!=="visible") setDragging(null); }, [visibility]);
 
   const updateNodes = useCallback((updater: (prev: CanvasNode[]) => CanvasNode[]) => {
     onChange({ ...doc, nodes: updater(nodes), edges });
@@ -39,11 +48,11 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
   }, [nodes]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging) return;
+    if (!dragging || visibility!=="visible") return;
     const newX = Math.max(0, Math.round((e.clientX - dragging.offsetX) / 10) * 10);
     const newY = Math.max(0, Math.round((e.clientY - dragging.offsetY) / 10) * 10);
     updateNodes((prev) => prev.map((n) => n.id === dragging.nodeId ? { ...n, x: newX, y: newY } : n));
-  }, [dragging, updateNodes]);
+  }, [dragging, updateNodes, visibility]);
 
   const handlePointerUp = useCallback(() => {
     setDragging(null);
@@ -64,13 +73,15 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
     });
   }
 
-  function startEdit(node: CanvasNode) {
+  function startEdit(node: CanvasNode, trigger: HTMLButtonElement) {
+    editTrigger.current = trigger;
     setEditingId(node.id);
     setEditText(node.text ?? "");
   }
 
-  function commitEdit() {
+  function commitEdit(returnFocus = false) {
     if (!editingId) return;
+    restoreEditFocus.current = returnFocus;
     updateNodes((prev) => prev.map((n) => n.id === editingId ? { ...n, text: editText } : n));
     setEditingId(null);
     setEditText("");
@@ -82,10 +93,12 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
 
   return (
-    <div className="canvas-board" aria-label="画布内容">
+    <div className="canvas-board" aria-label="画布内容" data-visibility={visibility} data-quality={quality}>
       <div className="canvas-toolbar">
         <button type="button" onClick={addTextNode}>添加文本节点</button>
+        <label>画布显示质量 <select value={quality} onChange={event=>setQuality(event.target.value as QualityProfile)}><option value="high">完整装饰</option><option value="medium">减少阴影</option><option value="low">最少装饰</option></select></label>
         <span className="muted">拖拽移动 · 网格 10px · 节点 {nodes.length} · 连线 {edges.length}</span>
+        <span className="muted">聚焦节点后方向键移动，Shift加速；编辑时Enter保存、Escape取消。</span>
       </div>
       <div
         ref={containerRef}
@@ -93,6 +106,7 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
         style={{ position: "relative", width: canvasWidth, height: canvasHeight, overflow: "auto", border: "1px solid var(--ax-border)", borderRadius: 12, background: "var(--ax-bg-inset)" }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
       >
         <svg style={{ position: "absolute", top: 0, left: 0, width: canvasWidth, height: canvasHeight, pointerEvents: "none" }}>
           {edges.map((edge) => {
@@ -116,23 +130,26 @@ export function CanvasBoard({ doc, onChange }: { doc: Record<string, unknown>; o
           <div
             key={node.id}
             className="canvas-node-card"
-            style={{ position: "absolute", left: node.x, top: node.y, width: node.width, minHeight: node.height, zIndex: dragging?.nodeId === node.id ? 10 : 1 }}
+            role="group" tabIndex={0} aria-label={`节点 ${node.text ?? node.id}`}
+            style={{ position: "absolute", left: node.x, top: node.y, width: node.width, minHeight: node.height, zIndex: dragging?.nodeId === node.id ? 10 : 1, boxShadow: decoration.enableShadows && visibility==="visible" ? undefined : "none", transition: decoration.enableTransitions && visibility==="visible" ? `box-shadow ${decoration.animationDuration}ms ease` : "none" }}
             onPointerDown={(e) => handlePointerDown(e, node.id)}
+            onKeyDown={event=>{if(event.target!==event.currentTarget||!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();const step=event.shiftKey?50:10;updateNodes(prev=>prev.map(item=>item.id===node.id?{...item,x:Math.max(0,item.x+(event.key==="ArrowRight"?step:event.key==="ArrowLeft"?-step:0)),y:Math.max(0,item.y+(event.key==="ArrowDown"?step:event.key==="ArrowUp"?-step:0))}:item));}}
           >
             <div className="canvas-node-header">
               <span className="canvas-node-type">{node.type}</span>
               <div className="canvas-node-actions">
-                <button type="button" aria-label={`编辑 ${node.text ?? node.id}`} onClick={() => startEdit(node)}>✏</button>
+                <button type="button" aria-label={`编辑 ${node.text ?? node.id}`} onClick={event => startEdit(node,event.currentTarget)}>✏</button>
                 <button type="button" aria-label={`删除 ${node.text ?? node.id}`} onClick={() => removeNode(node.id)}>×</button>
               </div>
             </div>
             {editingId === node.id ? (
               <textarea
                 className="canvas-node-edit"
+                aria-label={`编辑节点 ${node.text ?? node.id}`}
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                onBlur={commitEdit}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); commitEdit(); } }}
+                onBlur={()=>commitEdit()}
+                onKeyDown={(e) => { if(e.key==="Escape"){e.preventDefault();e.stopPropagation();restoreEditFocus.current=true;setEditingId(null);setEditText("");}else if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); commitEdit(true); } }}
                 autoFocus
               />
             ) : (

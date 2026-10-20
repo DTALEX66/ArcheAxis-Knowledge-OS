@@ -1,0 +1,183 @@
+{
+  "runs": [
+    {
+      "run_id": "integration-learning-ui-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-learning-ui-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1726,
+        "sha256": "d5da88efae9779867b8d8ddac3c83569eff11d213dfa6e883230c80ebf3fb4c5"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-learning-ui-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1768,
+        "sha256": "235739f85261289a4f1b6402daae62bee1d7a40ee3b3b1fcd937d39da9ec7e1e"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "86679926075c4c68d6f67109548511098539d2e2af128a60b341819fbc0101bd",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:27:08.864780+00:00",
+      "ended_at": "2026-10-18T21:27:24.755599+00:00"
+    },
+    {
+      "run_id": "integration-be10-api-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-be10-api-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1557,
+        "sha256": "623a28075a68ff4ad4c09a7c15b23eb72eb729e5dd50bd1d70aa1fc522613278"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-be10-api-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 8857,
+        "sha256": "2ec163a5773e93bbeb24e757fee430d468313d19b44ce207c1f60edf6a896b15"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "86679926075c4c68d6f67109548511098539d2e2af128a60b341819fbc0101bd",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:27:08.865659+00:00",
+      "ended_at": "2026-10-18T21:27:41.870864+00:00"
+    },
+    {
+      "run_id": "integration-observer-contract-python-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-observer-contract-python-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1387,
+        "sha256": "a370a50ad1898974366cc82d69bb89ab29bf52b7b0b75627156ce0afa799714c"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-observer-contract-python-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 100,
+        "sha256": "c650684da631a53569764f5af8f60c3e0d0a19a4321a45fbbac8d3f55d3a7118"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "86679926075c4c68d6f67109548511098539d2e2af128a60b341819fbc0101bd",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:27:08.811795+00:00",
+      "ended_at": "2026-10-18T21:27:12.215323+00:00"
+    },
+    {
+      "run_id": "integration-observer-contract-rust-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-observer-contract-rust-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1398,
+        "sha256": "55a41e3b43cbd430bbc7b4c493d1130b513bdc3be30d4b78257758bd9df9cc4e"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-observer-contract-rust-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 897,
+        "sha256": "32c92962de796c6148892c377dc6414ef3e238a449b139b83a3278521e0f5cf6"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "86679926075c4c68d6f67109548511098539d2e2af128a60b341819fbc0101bd",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:28:16.413845+00:00",
+      "ended_at": "2026-10-18T21:28:22.546658+00:00"
+    },
+    {
+      "run_id": "integration-learning-build-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-learning-build-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1461,
+        "sha256": "0bf7381adb90266e36abaaf77a8988e300983bff1ae25d92ecce42c0267acab6"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-learning-build-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 11764,
+        "sha256": "5a131f345e0860270b6d2513274d7e5fef411ec0bf0564f5bc9c6fa8257b1ef0"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "86679926075c4c68d6f67109548511098539d2e2af128a60b341819fbc0101bd",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:27:08.822388+00:00",
+      "ended_at": "2026-10-18T21:27:26.773944+00:00"
+    },
+    {
+      "run_id": "integration-observer-rustfmt-check-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-observer-rustfmt-check-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1941,
+        "sha256": "70c2dcc06b90f447f5358ecd5195798550a822012eb5905b4fa1865b8a01d997"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-observer-rustfmt-check-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "86679926075c4c68d6f67109548511098539d2e2af128a60b341819fbc0101bd",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:29:07.980608+00:00",
+      "ended_at": "2026-10-18T21:29:09.242965+00:00"
+    },
+    {
+      "run_id": "integration-frontend-full-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-frontend-full-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1439,
+        "sha256": "fec40ca4226a7a2cce9850669d274950dbd0650fe1770f536cb3e996b7a3ae38"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-frontend-full-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 119008,
+        "sha256": "eae0e87f42f062451d6b159f2d83cd8340f88de6e40dda30612fbedba7332694"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "86679926075c4c68d6f67109548511098539d2e2af128a60b341819fbc0101bd",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:29:27.827285+00:00",
+      "ended_at": "2026-10-18T21:33:57.831196+00:00"
+    },
+    {
+      "run_id": "integration-library-identity-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-library-identity-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1502,
+        "sha256": "240fda83b14d5f3ab27cd4042cbb2410ec72b173b6b71b0e6527e93c0661566f"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-library-identity-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 803,
+        "sha256": "9188f89a0f964e61c9faa6098c597313e045ef091860cdd4f0adba76e4aef30b"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "177a8c0356fb371b629231f0f171f4c568ccc97ea6ceba77eae329fc9ebfb878",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:34:43.811611+00:00",
+      "ended_at": "2026-10-18T21:34:53.552693+00:00"
+    },
+    {
+      "run_id": "integration-frontend-full-aligned-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integration-frontend-full-aligned-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1460,
+        "sha256": "5394e1fffe655151a2e04b3ce68b30ebf56fae548ea8ee517c6f17ef06599b3e"
+      },
+      "log": ".project-local/runs/be268a2d33/integration-frontend-full-aligned-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 25923,
+        "sha256": "2d726ba4954ccf6bee9d1572803b4940524c81b79847a7b2de85289eb7f1e4dd"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "177a8c0356fb371b629231f0f171f4c568ccc97ea6ceba77eae329fc9ebfb878",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:35:09.580079+00:00",
+      "ended_at": "2026-10-18T21:39:41.000102+00:00"
+    }
+  ],
+  "result_boundaries": {
+    "frontend": "177文件1781项，初轮1778 PASS/3 FAIL；结构化身份断言修正后全套复验结果读对应execution/log",
+    "api": "60 tests; real isolated Core/CLI/HTTP/SQLite/CAS with synthetic materials; no external product native consumer",
+    "contracts": "Python/Rust各1项遍历同27个case，不相加为54项独立能力",
+    "learning": "49定向tests，包含于全套；Library44亦包含于全套",
+    "build": "TypeScript/Vite在20文件应用patch通过，后继只修测试；未建立新Tauri/安装资格",
+    "native": "本轮新源码未原生验收；旧FAIL、取消未到达和启动调用数UNVERIFIED继续保留"
+  }
+}

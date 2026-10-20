@@ -1,0 +1,15 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ✓ src/__tests__/ProjectHandoffReader.test.tsx (25 tests) 2146ms
+ ✓ src/__tests__/CanonicalExchangeSpace.test.tsx (16 tests) 736ms
+ ✓ src/__tests__/CoreBridge.test.ts (26 tests) 8ms
+ ✓ src/__tests__/ProjectHandoffContract.test.ts (19 tests) 16ms
+ ✓ src/__tests__/ExchangePinnedIntegration.test.tsx (4 tests) 222ms
+
+ Test Files  5 passed (5)
+      Tests  90 passed (90)
+   Start at  07:40:45
+   Duration  6.81s (transform 794ms, setup 376ms, collect 1.22s, tests 3.13s, environment 1.31s, prepare 196ms)
+
+

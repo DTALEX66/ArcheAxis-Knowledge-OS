@@ -1,0 +1,196 @@
+{
+  "schema": "archeaxis.diagnostic-center-validation/v1",
+  "observed_on": "2026-10-18",
+  "status": "PARTIAL",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "tested_source_patch_sha256": "d4b950b990528a9c145f4849bfded534aabd5c68f2dead08c4940ee49445beba",
+  "frontend": {
+    "status": "PASS",
+    "files": 165,
+    "tests": 1596,
+    "skipped": 0,
+    "max_workers": 4,
+    "min_workers": 1,
+    "evidence_level": "SYNTHETIC_FRONTEND_JSDOM",
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/diagnostic-center-verified-all/artifacts/execution.json",
+      "sha256": "88297588623ee3edf0cd04d191039ad2bf1a0c99b2a0e603cc13a9081fc05aff"
+    },
+    "test_case_inventory": {
+      "path": "docs/current/receipts/AAOS-FRONTEND-TEST-CASES-20261018.json",
+      "sha256": "d70adb37e43ecf4d320ce20ee8f81a5c8c0eade41abf81fd9d4379fa96bb46d8"
+    },
+    "raw_report": {
+      "path": ".project-local/runs/be268a2d33/diagnostic-center-verified-all/artifacts/vitest.json",
+      "sha256": "af40d4fa11e467e6c80685e52dcb61a42473425e54787f5ee2c56def40827d5a"
+    }
+  },
+  "build": {
+    "status": "PASS",
+    "host": {
+      "path": ".project-local/runs/be268a2d33/diagnostic-center-native-host/artifacts/host-build.json",
+      "sha256": "995e3b709f7d5b3bd884961d4032d83f69bf28d2c2963262e8b30a2469f9f5a5"
+    },
+    "core": {
+      "path": ".project-local/runs/be268a2d33/diagnostic-center-native-core/artifacts/execution.json",
+      "sha256": "625baa74031f32f5d7db2c758ea52f7fa6330ea6540ab2f0f2b05b5eb5d23d1c"
+    },
+    "note": "TypeScript and Vite completed within host build; no bundle/install qualification"
+  },
+  "candidate": {
+    "promotion": {
+      "path": ".project-local/runs/be268a2d33/closure-native-stage/candidate-build-current-20261018T122907Z.json",
+      "sha256": "9ce302ee16a360431aaa5c617c46a94d4ddb5f5cc57818a7aa12d77c6800a827"
+    },
+    "host_sha256": "58de6e036806c2fbd10e4dd247e0761867f3d41fa4add5284ab8f9001080fa24",
+    "core_sha256": "ea805d51133e9b63bdacb09b1636f335e831993a7ac9d377eabb2f18940e073e",
+    "members": 19524,
+    "rt_members": 19522,
+    "backup": {
+      "path": ".project-local\\archives\\current-components-20261018T122907Z.zip",
+      "bytes": 42435872,
+      "sha256": "44be8ac05fa994790a10529eeb8e72b1dbeb71894d2dd3994eb73864c3b2322c"
+    },
+    "installed": false
+  },
+  "native": {
+    "status": "PASS",
+    "evidence_level": "REAL_NATIVE_UI_CORE_SYNTHETIC_FIXTURE",
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/diagnostic-center-native-journey/artifacts/execution.json",
+      "sha256": "30bbb43fdc4fdd1aea6bd51984d0b57c765a49a00ed36a6da24e15c1ffb704f1"
+    },
+    "canonical": {
+      "path": ".project-local/runs/be268a2d33/webdriver-8c18135a8067/tmp/journey/receipt.json",
+      "sha256": "23cf954b99adb51bd4ff9b9587af7e1c43d79ce0323c5a4e941bbbc69d8dd612"
+    },
+    "shared": {
+      "path": ".project-local/runs/be268a2d33/webdriver-8c18135a8067/tmp/journey/shared-companion-receipt.json",
+      "sha256": "af4070d6ca731a5ae1771f27eab10a5b43f3bc2a8695cc11588d79f42a4458cb"
+    },
+    "helper_sha256": "f406ad67a5b1837843706fc60ecdb2a140e7f5da5fd9065fe23440017291fbbe",
+    "ui_actions": 23,
+    "shared_snapshots": 11,
+    "shared_slots": [
+      "home",
+      "reader",
+      "sidebar",
+      "full"
+    ],
+    "navigation_to_full": "PASS",
+    "parent_pointer_clicks": 1,
+    "diagnostic_entries": [
+      {
+        "stage": "top-button",
+        "status": "PASS",
+        "trigger": "button[aria-label=\"诊断中心\"]",
+        "visible_dialogs": 1,
+        "labelledby_title": "诊断中心",
+        "closed": true,
+        "focus_returned": true
+      },
+      {
+        "stage": "session-receipt",
+        "status": "PASS",
+        "trigger": "[data-companion-slot=\"home\"] button[aria-label=\"查看原始回执（诊断）：会话运行记录\"]",
+        "visible_dialogs": 1,
+        "labelledby_title": "诊断中心",
+        "entry_initially_open": true,
+        "payload_identity_and_history": "PASS",
+        "payload_sha256": "bbcc991ef7e253444415e599677fa9531b9c17c0880efd2c792402a0882a27e6",
+        "closed": true,
+        "focus_returned": true
+      }
+    ],
+    "owned_process_cleanup": true,
+    "remaining_same_creation_owned_hosts": [],
+    "remaining_owned_port_listeners": [],
+    "model": "NOT_EXECUTED",
+    "worker": "NOT_EXECUTED",
+    "preview": "NOT_EXECUTED",
+    "cold_reopens": 0,
+    "draft_cold_start": "NOT_PERSISTED",
+    "screenshots": [
+      {
+        "path": ".project-local/runs/be268a2d33/webdriver-8c18135a8067/tmp/journey/shared-companion-diagnostics-session-receipt.png",
+        "sha256": "18612586859bd8fb0e91a19db5cbd713ca8c646cd40767d0a7adc30486c641f4"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/webdriver-8c18135a8067/tmp/journey/shared-companion-diagnostics-top-button.png",
+        "sha256": "64110dd02ebb4f6636603716402311682a7f63f05f9ac241591e9eed747a371c"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/webdriver-8c18135a8067/tmp/journey/shared-companion-home-sidebar.png",
+        "sha256": "ea61c81e502c1b24956f2e8fde89d0e29727e2bcdbc1b548d26f6c69a78e05f2"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/webdriver-8c18135a8067/tmp/journey/shared-companion-reader.png",
+        "sha256": "e76bd82b4c28830f11542b8a913f641c1f2866b3c5a23979a50b4e5c88f24a4c"
+      },
+      {
+        "path": ".project-local/runs/be268a2d33/webdriver-8c18135a8067/tmp/journey/shared-companion-reopened.png",
+        "sha256": "bc8ff88bd36c7b622c2a035b75950549e393e1658a848d448d9ddf1f94698069"
+      }
+    ]
+  },
+  "regressions": {
+    "diagnostic_center_cases": 8,
+    "presentation_cases": 5,
+    "boundaries": [
+      "Unique App-level dialog, exact payload, categories/clear, Escape and focus fallback",
+      "Independent post-restore ui_state_read, epoch/provider/workspace fence, late old read cannot unlock",
+      "Frozen material identity/model/destination; legacy candidates remain unselected",
+      "Exact unsaved shared snapshot, opaque node placeholder, untouched structure in diagnostics"
+    ]
+  },
+  "defects": {
+    "expanded_sidebar_zero_height_navigation": {
+      "status": "CLOSED_FOR_TESTED_NATIVE_CANDIDATE",
+      "previous": {
+        "path": "docs/current/receipts/AAOS-SHARED-COMPANION-20261018.json",
+        "sha256": "eb91bdd4a415147633c30f78211d925f2d6e4605f43b9dcfb5cd16aff55838a4"
+      },
+      "cause": "Unbounded companion flex consumed navigation height",
+      "change": "180px navigation minimum, companion max-height and own scroll",
+      "retest": "Original native parent13 to page14 passed with one pointer click; no JS navigation bypass"
+    },
+    "native_receipt_no_visible_center": {
+      "status": "CLOSED_FOR_TESTED_NATIVE_CANDIDATE",
+      "change": "App-level center with top and context entries; no console mirroring",
+      "retest": "Unique native dialog, exact Core history payload, close and focus return passed"
+    }
+  },
+  "preserved_failures": [
+    {
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/diagnostic-center-full/artifacts/execution.json",
+        "sha256": "59e2e8734b511236fbae38d2c78bf8e276e0dfafbc5a29eb9b178f23e5d4b3c0"
+      },
+      "failed": 12,
+      "note": "Old console-mirror assertions and business text/style mismatch; two first-editor readiness waits failed; retained"
+    },
+    {
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/diagnostic-center-closure-full/artifacts/execution.json",
+        "sha256": "a2b8e56236b5e0dac350b94433cbc674d9005cf9bad1757f46cbfebd9299cd1a"
+      },
+      "failed": 1,
+      "note": "Folder test checked whole batch after only first import; now awaits second file result, original identity/count assertions retained"
+    }
+  ],
+  "limitations": [
+    "Frontend full suite is not whole repository or product acceptance",
+    "Native fixture is real host/Core with synthetic data, no inference or worker run",
+    "Same-process four-slot draft continuity only; no cold-start draft persistence claim",
+    "Full theme/DPI/accessibility/performance/format and installer matrices remain incomplete",
+    "Earlier native model failure and first configuration save timeout remain independently open"
+  ],
+  "delivery": {
+    "commit": false,
+    "push": false,
+    "release": false,
+    "green_replaced": false,
+    "installed": false,
+    "owner_acceptance": false
+  }
+}

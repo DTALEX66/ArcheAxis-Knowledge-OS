@@ -1,0 +1,107 @@
+{
+  "schema": "archeaxis.shared-companion-validation/v1",
+  "observed_on": "2026-10-18",
+  "status": "PARTIAL",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "tested_source_patch_sha256": "feb958eb2fc609561c27251c0bade7b6e3abad3dd7276f1a23192c492c2260f8",
+  "frontend": {
+    "status": "PASS",
+    "files": 163,
+    "tests": 1583,
+    "evidence_level": "SYNTHETIC",
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-shared-conversation-serial-full/artifacts/execution.json",
+      "sha256": "1b181cd3eb0e2cb1a016042ba146d58dcb04ec3eafdf4733663955eb599eb7ae"
+    }
+  },
+  "shared_regressions": {
+    "new_tests": 14,
+    "scope": "Shared catalog/draft/frozen request, duplicate execute, view changes, restore barrier, stale response and workspace lifetime"
+  },
+  "build": {
+    "status": "PASS",
+    "native_host": {
+      "path": ".project-local/runs/be268a2d33/closure-shared-conversation-verified-host/artifacts/host-build.json",
+      "sha256": "2fc2ecf29a3b73d17dc2341d7645a147e6cc6eac2f1bf2cca97500605ee57c48"
+    },
+    "core": {
+      "path": ".project-local/runs/be268a2d33/closure-shared-conversation-verified-core/artifacts/execution.json",
+      "sha256": "d1c66ac4005036db8a8c463b281d676a41466d5407ff58ff0cfe0dab7993c6b8"
+    }
+  },
+  "candidate": {
+    "promotion": {
+      "path": ".project-local/runs/be268a2d33/closure-native-stage/candidate-build-current-20261018T114353Z.json",
+      "sha256": "00a1832361634cbe4d3983df1709eae7cca21d44d4d7a85d3944a14c6a72504d"
+    },
+    "host_sha256": "5124c6443c78f22abfd78cd55522ff1fa0ffbf3d248852bbf019efbfdfe28219",
+    "core_sha256": "ea805d51133e9b63bdacb09b1636f335e831993a7ac9d377eabb2f18940e073e",
+    "members": 19524,
+    "installed": false
+  },
+  "native_shared_journey": {
+    "status": "FAIL",
+    "evidence_level": "REAL_NATIVE_UI_CORE_SYNTHETIC_FIXTURE",
+    "verified_stages": [
+      "home-input",
+      "sidebar-read",
+      "sidebar-close-open",
+      "reader-shared",
+      "reader-close-open"
+    ],
+    "not_executed": [
+      "full-page",
+      "full-edit-return",
+      "cold-start",
+      "preview",
+      "model",
+      "worker"
+    ],
+    "draft_cold_start": "NOT_PERSISTED",
+    "defect": "Expanded companion leaves navigation overflow ancestors at zero height; actual parent navigation fails. Helper rendered check also misses ancestor clipping.",
+    "runs": [
+      {
+        "status": "FAIL",
+        "receipt": {
+          "path": ".project-local/runs/be268a2d33/webdriver-7c8330edeb2c/tmp/journey/receipt.json",
+          "sha256": "6c021f0af8f705ce5347f7095af7faf0af06729a191f1b9f5ee9169b955a5648"
+        },
+        "shared_receipt": {
+          "path": ".project-local/runs/be268a2d33/webdriver-7c8330edeb2c/tmp/journey/shared-companion-receipt.json",
+          "sha256": "b8b2223732dbc05be49d9a71222b88468f4f08fcbbaaf259ab4a7ee7fd613bd5"
+        },
+        "cleanup_error": null,
+        "remaining_owned": null
+      },
+      {
+        "status": "FAIL",
+        "receipt": {
+          "path": ".project-local/runs/be268a2d33/webdriver-7bd21c8466f0/tmp/journey/receipt.json",
+          "sha256": "f3741ab33bb008182f7f33a76d3bf01cdd1b4e47746671d726bac0fd79d8fcb0"
+        },
+        "shared_receipt": {
+          "path": ".project-local/runs/be268a2d33/webdriver-7bd21c8466f0/tmp/journey/shared-companion-receipt.json",
+          "sha256": "fd8259d1cd78c86a6c9eea66cf68ce4d5b00e6b69f975e191838782112f568a3"
+        },
+        "cleanup_error": null,
+        "remaining_owned": null
+      }
+    ]
+  },
+  "preserved_frontend_failure": {
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/closure-shared-conversation-verified-full/artifacts/execution.json",
+      "sha256": "8b69fc8c5d7e5bf10a634d4cc340f0abae5b0d6511802e74343d393a92faab83"
+    },
+    "note": "5 timeout failures under concurrent native build; serial same-source complete repeat passed without raising timeouts. Not discarded."
+  },
+  "product_acceptance": "NOT_EXECUTED",
+  "delivery": {
+    "commit": false,
+    "push": false,
+    "installed": false,
+    "published": false
+  },
+  "audit_explanation": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+  "source_note": "All execution/build/native statements bind the recorded pre-report patch. Later report-only edits do not change those historical results."
+}

@@ -1,0 +1,15 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ✓ src/__tests__/CoreBridge.test.ts (26 tests) 10ms
+ ✓ src/__tests__/PdfReader.test.tsx (5 tests) 606ms
+ ✓ src/__tests__/CanonicalCapabilitiesSpace.test.tsx (4 tests) 358ms
+ ✓ src/__tests__/CapabilityPackageDetails.test.tsx (4 tests) 124ms
+ ✓ src/__tests__/OperationReadiness.test.tsx (3 tests) 111ms
+
+ Test Files  5 passed (5)
+      Tests  42 passed (42)
+   Start at  07:17:19
+   Duration  4.31s (transform 198ms, setup 392ms, collect 490ms, tests 1.21s, environment 1.37s, prepare 208ms)
+
+

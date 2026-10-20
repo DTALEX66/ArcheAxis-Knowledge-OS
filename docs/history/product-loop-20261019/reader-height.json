@@ -1,0 +1,170 @@
+{
+  "schema": "archeaxis.bounded-reader-height-observation/v1",
+  "status": "PASS",
+  "evidence_level": "SYNTHETIC",
+  "engine_execution": "Real Chromium, controlled synthetic host/Core fixture",
+  "mode": "PUBLIC_CSS_NO_OVERLAY",
+  "source_commit": "1df9588a1d497d4e3a16009c68614083a93c5651",
+  "source_patch_sha256": "7fd9f01ff2d0e54a6c591da6100f4189b6e90be697486fffff9e84beb5fbb5c4",
+  "source_consistent": true,
+  "started_at": "2026-10-19T10:28:39.555887+00:00",
+  "ended_at": "2026-10-19T10:29:18.745327+00:00",
+  "service": {
+    "pid": 8412,
+    "port": 61238,
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vite\\bin\\vite.js",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "61238"
+    ],
+    "exit_code": 1,
+    "port_closed": true
+  },
+  "process_exit_code": 0,
+  "cases": [
+    {
+      "status": "PASS",
+      "viewport": [
+        "640x480@100",
+        640,
+        480,
+        1
+      ],
+      "theme": "blueprint",
+      "reading_area": {
+        "width": 352,
+        "height": 116,
+        "rawWidth": 352,
+        "rawHeight": 180,
+        "lineHeight": 28.05,
+        "fontSize": 17,
+        "reachable": true,
+        "label": "文档草稿"
+      },
+      "screenshot": ".project-local/runs/be268a2d33/product-loop-reader-height-public-20261019/artifacts/browser-smoke/reading-height-True-blueprint-640x480@100.png",
+      "screenshot_sha256": "dbc54a42c2a20fc39947b6b23258291b0c0a11948e5b28c6c8d7f86c68b177be"
+    },
+    {
+      "status": "PASS",
+      "viewport": [
+        "640x480@100",
+        640,
+        480,
+        1
+      ],
+      "theme": "blueprint-light",
+      "reading_area": {
+        "width": 352,
+        "height": 116,
+        "rawWidth": 352,
+        "rawHeight": 180,
+        "lineHeight": 28.05,
+        "fontSize": 17,
+        "reachable": true,
+        "label": "文档草稿"
+      },
+      "screenshot": ".project-local/runs/be268a2d33/product-loop-reader-height-public-20261019/artifacts/browser-smoke/reading-height-True-blueprint-light-640x480@100.png",
+      "screenshot_sha256": "98f27e71cd0d45aa95cec31c3f0beb8fccd787fe7262c8b559bbc6baca502ac2"
+    },
+    {
+      "status": "PASS",
+      "viewport": [
+        "640x800@100",
+        640,
+        800,
+        1
+      ],
+      "theme": "blueprint",
+      "reading_area": {
+        "width": 576,
+        "height": 180,
+        "rawWidth": 576,
+        "rawHeight": 180,
+        "lineHeight": 28.05,
+        "fontSize": 17,
+        "reachable": true,
+        "label": "文档草稿"
+      },
+      "screenshot": ".project-local/runs/be268a2d33/product-loop-reader-height-public-20261019/artifacts/browser-smoke/reading-height-True-blueprint-640x800@100.png",
+      "screenshot_sha256": "c9b13ebffb0edb901ca1f05df8e5d441497408a64b77450a1f7197d7c2fcac30"
+    },
+    {
+      "status": "PASS",
+      "viewport": [
+        "640x800@100",
+        640,
+        800,
+        1
+      ],
+      "theme": "blueprint-light",
+      "reading_area": {
+        "width": 576,
+        "height": 180,
+        "rawWidth": 576,
+        "rawHeight": 180,
+        "lineHeight": 28.05,
+        "fontSize": 17,
+        "reachable": true,
+        "label": "文档草稿"
+      },
+      "screenshot": ".project-local/runs/be268a2d33/product-loop-reader-height-public-20261019/artifacts/browser-smoke/reading-height-True-blueprint-light-640x800@100.png",
+      "screenshot_sha256": "d9b999ed9ab9ad033d4131c347b7c2e85b3361868880a63379579d7a9fe7b099"
+    },
+    {
+      "status": "PASS",
+      "viewport": [
+        "960x540@200",
+        960,
+        540,
+        2
+      ],
+      "theme": "blueprint",
+      "reading_area": {
+        "width": 672,
+        "height": 176,
+        "rawWidth": 672,
+        "rawHeight": 180,
+        "lineHeight": 28.05,
+        "fontSize": 17,
+        "reachable": true,
+        "label": "文档草稿"
+      },
+      "screenshot": ".project-local/runs/be268a2d33/product-loop-reader-height-public-20261019/artifacts/browser-smoke/reading-height-True-blueprint-960x540@200.png",
+      "screenshot_sha256": "ab655b06b19b1f5c5f72c7846fcd4040e9acfbb083d4a4fa6212b9b05f6b2426"
+    },
+    {
+      "status": "PASS",
+      "viewport": [
+        "960x540@200",
+        960,
+        540,
+        2
+      ],
+      "theme": "blueprint-light",
+      "reading_area": {
+        "width": 672,
+        "height": 176,
+        "rawWidth": 672,
+        "rawHeight": 180,
+        "lineHeight": 28.05,
+        "fontSize": 17,
+        "reachable": true,
+        "label": "文档草稿"
+      },
+      "screenshot": ".project-local/runs/be268a2d33/product-loop-reader-height-public-20261019/artifacts/browser-smoke/reading-height-True-blueprint-light-960x540@200.png",
+      "screenshot_sha256": "fd54b9ab81627654b312b7c18eaa8f5c82daa8cc315e97ffe8bc419a6124a54d"
+    }
+  ],
+  "console_problems": [],
+  "screenshots_viewed_by_root": [
+    ".project-local/runs/be268a2d33/product-loop-reader-height-public-20261019/artifacts/browser-smoke/reading-height-True-blueprint-640x480@100.png",
+    ".project-local/runs/be268a2d33/product-loop-reader-height-public-20261019/artifacts/browser-smoke/reading-height-True-blueprint-light-960x540@200.png"
+  ],
+  "browser_version_in_receipt": "UNVERIFIED",
+  "screenshot_baseline_established": false,
+  "physical_windows_dpi_and_native_host": "NOT_EXECUTED_THIS_RUN",
+  "full_a0": "Prior source-bound FAIL retained; not replaced by six local cases"
+}

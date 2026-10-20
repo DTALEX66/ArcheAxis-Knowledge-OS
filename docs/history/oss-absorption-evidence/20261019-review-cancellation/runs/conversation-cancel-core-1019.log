@@ -1,0 +1,62 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo test -p archeaxis-api --test conversation_api --test material_question_api --offline --locked -- --test-threads=1
+warning: unused import: `OptionalExtension`
+ --> crates\archeaxis-domain\src\ai_asset.rs:7:28
+  |
+7 | use rusqlite::{Connection, OptionalExtension};
+  |                            ^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `self`
+ --> crates\archeaxis-domain\src\asset_context_grant.rs:4:16
+  |
+4 |     document::{self, Error},
+  |                ^^^^
+
+warning: `archeaxis-domain` (lib) generated 2 warnings (run `cargo fix --lib -p archeaxis-domain` to apply 2 suggestions)
+warning: function `stable_id` is never used
+  --> crates\archeaxis-application\src\lib.rs:45:4
+   |
+45 | fn stable_id(prefix: &str, seed: &str) -> String {
+   |    ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `worker` is never read
+  --> crates\archeaxis-application\src\executor.rs:58:5
+   |
+54 | pub struct Executor {
+   |            -------- field in this struct
+...
+58 |     worker: PathBuf,
+   |     ^^^^^^
+   |
+   = note: `Executor` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `archeaxis-application` (lib) generated 2 warnings
+   Compiling archeaxis-api v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.78s
+     Running tests\conversation_api.rs (.project-local\build\cargo\debug\deps\conversation_api-4ed403d23ba6e9c6.exe)
+
+running 4 tests
+test cancellation_is_request_bound_and_publishes_no_late_answer ... ok
+test failed_conversation_measurements_survive_restart_without_repeating_worker ... ok
+test material_and_companion_history_replay_restart_and_presentation_reads_never_repeat_inference ... ok
+test unfinished_request_restart_returns_unknown_without_retry_and_finite_fields_reject_expansion ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s
+
+     Running tests\material_question_api.rs (.project-local\build\cargo\debug\deps\material_question_api-4b293108da237cf7.exe)
+
+running 6 tests
+test cancellation_preserves_frozen_material_request_and_returns_no_answer ... ok
+test failed_material_measurements_survive_restart_without_repeating_worker ... ok
+test hard_timeout_measurements_survive_reopen_without_repeating_inference ... ok
+test imported_text_extracts_and_answers_without_entering_accepted_knowledge ... ok
+test new_unaccepted_material_is_bound_confirmed_and_exactly_replayed_after_restart ... ok
+test transform_binding_and_unicode_selection_refuse_wrong_identity_without_knowledge ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.04s
+

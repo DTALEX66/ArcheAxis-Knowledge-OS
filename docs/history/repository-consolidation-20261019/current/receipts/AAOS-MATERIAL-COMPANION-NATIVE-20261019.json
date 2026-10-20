@@ -1,0 +1,54 @@
+{
+  "schema": "aaos.material-companion-native/v1",
+  "recorded_at": "2026-10-18T17:57:02.684700+00:00",
+  "status": "PARTIAL",
+  "whole_project": "PARTIAL",
+  "source_patch_sha256": "430bc832dfd1cc304458b0abc0f2ecee986b7f16eca9147b6a45c3483cad37ab",
+  "source_files_sha256": {
+    "scripts/probes/aaos01_material_companion_loop.py": "e3b905420039c85990252c0334666c0ef81b2941192050b7313cd0d159c16224",
+    "scripts/probes/aaos01_grouped_owner_loop.py": "d0ca93a1bca1baffa96113073d1c3ab522dabbe8786f36e4031cff0d9c92f353",
+    "scripts/probes/aaos01_tauri_webdriver_loop.py": "f948a27efa6732cd13703a37cbd4774bad0b55aae2bb347173309765335be130",
+    "tests/test_material_companion_native_probe.py": "fba8874eb28b537af78e8b86bb207b2dd79d93c1833234bf5d231902a2ab427e"
+  },
+  "verification": {
+    "probe-tests": {
+      "path": ".project-local/runs/be268a2d33/material-companion-probe-final-1019/artifacts/execution.json",
+      "sha256": "39156b2a8e649c684ac4c3c956a6a790aa3fc6440e262d53a42b9acddaab8b35",
+      "status": "LOCAL_PASS"
+    },
+    "host-build": {
+      "path": ".project-local/runs/be268a2d33/material-companion-host-final-1019/artifacts/execution.json",
+      "sha256": "0dda12886bc6d40e45b58a5ed7302a088c79ee209524962491086a60172c3cb6",
+      "status": "LOCAL_PASS"
+    },
+    "core-build": {
+      "path": ".project-local/runs/be268a2d33/material-companion-core-final-1019/artifacts/execution.json",
+      "sha256": "69198ddf9bf87f7965b8e170b7397df2adcfcec59d6e2ce95a8fed9d7782fa83",
+      "status": "LOCAL_PASS"
+    },
+    "native-execution": {
+      "path": ".project-local/runs/be268a2d33/material-companion-native-1019/artifacts/execution.json",
+      "sha256": "472062956e505db6b13a8b61383386bac299ef3a4ac7f40fd145fd35ba7b8eea",
+      "status": "FAIL"
+    }
+  },
+  "probe_tests": {
+    "passed": 58,
+    "subtests_passed": 145,
+    "evidence": "SIMULATED_PROBE_GUARDS"
+  },
+  "native_journey": "FAIL",
+  "native_summary": "docs/history/oss-absorption-evidence/20261019-material-companion/native-result.json",
+  "candidate_host_sha256": "19a8905c51a2c1a5bd1a8acd4b6c7ff92a975c90314c952341d3d8f7e4aa9c0b",
+  "candidate_core_sha256": "750c44943ecc8a6f7e3c691992490a6ce75d3a83eadbc99a2c3d24931fdee681",
+  "remaining": [
+    "Explicit same-process material recovery action then rerun",
+    "Cold reopen and backup restore of original requests",
+    "Native cancellation",
+    "BE10 bounded read-only admission",
+    "Readable review titles instead of internal item keys",
+    "Installed runtime, full formats, quality and Owner acceptance"
+  ],
+  "cloud_backup": "NOT_EXECUTED",
+  "commit_push": "NOT_EXECUTED"
+}

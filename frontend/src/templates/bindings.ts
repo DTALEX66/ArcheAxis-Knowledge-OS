@@ -103,7 +103,7 @@ export async function loadTemplateDocuments():Promise<{documents:DocumentDto[];b
     const page=await coreCommand<DocumentsListDto>("documents_list",cursor?{cursor}:{});
     if(!Array.isArray(page.documents)||!Number.isSafeInteger(page.snapshot_count)||page.snapshot_count<0
       || !(page.next_cursor===null || (typeof page.next_cursor==="string"&&/^[A-Za-z0-9_-]{1,1024}$/.test(page.next_cursor)))
-      || (count!==undefined&&count!==page.snapshot_count))throw new Error("文档分页合同不完整，请更新本地核心或重新读取。");
+      || (count!==undefined&&count!==page.snapshot_count))throw new Error("文档分页结果不完整，请更新本地核心或重新读取。");
     count=page.snapshot_count;
     for(const summary of page.documents){if(ids.has(summary.document_id))throw new Error("文档分页重复，集合未完成。");ids.add(summary.document_id);summaries.push(summary);}
     if(summaries.length>count|| (page.next_cursor!==null&&page.documents.length===0))throw new Error("文档分页数量不一致。");

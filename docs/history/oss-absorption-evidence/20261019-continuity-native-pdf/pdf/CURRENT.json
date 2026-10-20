@@ -1,0 +1,16 @@
+{
+  "status": "FROZEN_PROPOSAL_NOT_APPLIED",
+  "manifest": {
+    "path": "MANIFEST.json",
+    "sha256": "3687d6096d9c6770aef594f9a8eaa0cc332470867d8885117ab4fa1e85b327a4"
+  },
+  "patch": {
+    "path": "proposed-core.patch",
+    "sha256": "20aeac16e6901af82483f50c124bd085af68f95ac93fb7ac9382f89c5678164b"
+  },
+  "verification": {
+    "path": "verification.json",
+    "sha256": "6675c87889ab217b15ade27fa9722fada9db9884f3d1076013498817cf3b4240"
+  },
+  "generated_dto": "REGENERATE_AFTER_SCHEMA_MERGE; includes current BE10 project_handoff_preview; do not blindly copy older DTO"
+}

@@ -27,7 +27,7 @@
       "role": "LIVE_NAVIGATION"
     },
     {
-      "path": "AAOS-后续执行交接提示词-20261009.md",
+      "path": "docs/history/handoff-archive-20261018/AAOS-后续执行交接提示词-20261009.md",
       "role": "HISTORICAL_HANDOFF"
     },
     {
@@ -59,7 +59,7 @@
       "role": "LIVE_NAVIGATION"
     },
     {
-      "path": "HERMES_HANDOFF.md",
+      "path": "docs/history/handoff-archive-20261018/HERMES_HANDOFF.md",
       "role": "HISTORICAL_HANDOFF"
     },
     {
@@ -71,8 +71,8 @@
       "role": "LIVE_NAVIGATION"
     },
     {
-      "path": "SYSTEM_BOUNDARY.md",
-      "role": "HISTORICAL_RUNTIME_SNAPSHOT"
+      "path": "docs/history/repository-consolidation-20261019/root/SYSTEM_BOUNDARY.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
     {
       "path": "apps/desktop/README.md",
@@ -139,20 +139,20 @@
       "role": "LIVE_NAVIGATION"
     },
     {
-      "path": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
-      "role": "GOVERNANCE_READBACK"
+      "path": "docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
     {
       "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
       "role": "NAVIGATION_REGISTRY"
     },
     {
-      "path": "docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
-      "role": "LIVE_NAVIGATION"
+      "path": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
     {
-      "path": "docs/current/AAOS-REPOSITORY-SYNC-20261010.md",
-      "role": "LIVE_NAVIGATION"
+      "path": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-SYNC-20261010.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
     {
       "path": "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.json",
@@ -167,8 +167,8 @@
       "role": "SCOPED_PROGRESS"
     },
     {
-      "path": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
-      "role": "INHERITED_Q_PROGRESS"
+      "path": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
     {
       "path": "docs/current/UI_V3_PRODUCT_ROADMAP.md",
@@ -179,20 +179,20 @@
       "role": "LIVE_NAVIGATION"
     },
     {
-      "path": "docs/truth/ARCHITECTURE_FINAL.md",
-      "role": "SUPERSEDED_ARCHITECTURE"
+      "path": "docs/history/repository-consolidation-20261019/truth-snapshots/ARCHITECTURE_FINAL.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
     {
-      "path": "docs/truth/AUTHORITY_AND_STATUS_RULES_V1.md",
+      "path": "docs/history/repository-consolidation-20261019/truth-snapshots/AUTHORITY_AND_STATUS_RULES_V1.md",
       "role": "INHERITED_STATUS_RULES"
     },
     {
-      "path": "docs/truth/AUTHORITY_CONTRACT.md",
-      "role": "HISTORICAL_RULE_SNAPSHOT"
+      "path": "docs/history/repository-consolidation-20261019/truth-snapshots/AUTHORITY_CONTRACT.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
     {
-      "path": "docs/truth/CURRENT_STATE_TRUTH.md",
-      "role": "HISTORICAL_CAPABILITY_SNAPSHOT"
+      "path": "docs/history/repository-consolidation-20261019/truth-snapshots/CURRENT_STATE_TRUTH.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
     },
     {
       "path": "docs/truth/README.md",
@@ -219,8 +219,16 @@
       "role": "OWNER_SCOPE_OVERLAY_NOT_REPLACEMENT_TASKPACK"
     },
     {
-      "path": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
-      "role": "LIVE_NAVIGATION"
+      "path": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
+      "role": "HISTORICAL_SOURCE_OR_RECEIPT"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md",
+      "role": "INHERITED_CONSTRAINT_NOT_ACTIVE_QUEUE"
+    },
+    {
+      "path": "docs/history/repository-consolidation-20261019/current/R6-VERSION-RELEASE-FREEZE.md",
+      "role": "INHERITED_CONSTRAINT_NOT_ACTIVE_QUEUE"
     }
   ],
   "rules": [
@@ -282,6 +290,31 @@
       "old_path": "docs/operations/digest-canonicalization.md",
       "canonical_path": "docs/vnext-seed/operations/digest-canonicalization.md",
       "policy": "locator migration only; never recreate duplicate normative text"
+    },
+    {
+      "old_path": "DONE.txt",
+      "canonical_path": "docs/history/handoff-archive-20261018/DONE.txt",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "old_path": "AUTONOMOUS-EXECUTION-SUMMARY.md",
+      "canonical_path": "docs/history/handoff-archive-20261018/AUTONOMOUS-EXECUTION-SUMMARY.md",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "old_path": "NIGHT-EXECUTION-SUMMARY.md",
+      "canonical_path": "docs/history/handoff-archive-20261018/NIGHT-EXECUTION-SUMMARY.md",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "old_path": "AAOS-后续执行交接提示词-20261009.md",
+      "canonical_path": "docs/history/handoff-archive-20261018/AAOS-后续执行交接提示词-20261009.md",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
+    },
+    {
+      "old_path": "HERMES_HANDOFF.md",
+      "canonical_path": "docs/history/handoff-archive-20261018/HERMES_HANDOFF.md",
+      "policy": "Archived original bytes; historical source only; current execution uses docs/current/AAOS-AGENT-HANDOFF-CURRENT.md"
     }
   ],
   "consumer_policy": {
@@ -290,7 +323,8 @@
     "local_absolute_path": "machine-local locator only; cloud consumers use repository-relative public paths",
     "unknown_reference": "AUTHORITY_REFERENCE_MISSING or UNVERIFIED; do not invent authority",
     "frozen_source": "never auto-activate",
-    "product_execution": "resolve active_pointer.execution_control; selected_tasks alone never resumes"
+    "product_execution": "resolve active_pointer.execution_control; selected_tasks alone never resumes",
+    "retired_paths": "Resolve through migration_manifest; original locations stay absent. Frozen text retains its original date and base path."
   },
   "software_adapters": {
     "AGENTS.md": "Codex/Qoder/AGENTS-compatible tools",
@@ -298,5 +332,6 @@
     "GEMINI.md": "Gemini CLI project context",
     ".github/copilot-instructions.md": "GitHub Copilot repository instructions",
     "qualification": "Files wired and checked; actual per-software context load/runtime not tested"
-  }
+  },
+  "migration_manifest": "docs/history/repository-consolidation-20261019/MANIFEST.json"
 }

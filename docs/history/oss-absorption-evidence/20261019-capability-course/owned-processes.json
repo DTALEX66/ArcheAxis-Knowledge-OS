@@ -1,0 +1,21 @@
+{
+  "pid": 8200,
+  "started": "2026-10-18T17:16:43.347Z",
+  "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "command": [
+    "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-course-20261019\\launch.cjs"
+  ],
+  "port": 41730,
+  "host": "127.0.0.1",
+  "kind": "static immutable bundle only; no Vite proxy/Core/DB/model",
+  "test_command": [
+    "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+    "C:\\Users\\ALEX\\.codex\\tools\\visual-tool-lab\\node_modules\\@playwright\\test\\cli.js",
+    "test",
+    "--config",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-course-20261019\\playwright.config.cjs",
+    "--workers=1"
+  ],
+  "test_pid": 37348
+}

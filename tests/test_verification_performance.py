@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -57,6 +59,26 @@ def test_head_convention_scan_batches_git_blob_reads(tmp_path: Path, monkeypatch
     import scripts.check_repository_conventions as conventions
 
     _init_repo(tmp_path)
+    # This temporary repository has its own reviewed preservation set; use a
+    # real manifest/member pair so batching still includes preservation checks.
+    manifest_path = "docs/history/performance-fixture/MANIFEST.json"
+    member = b"preserved performance fixture\n"
+    manifest = json.dumps({
+        "schema": "performance-fixture/v1",
+        "files": [{"path": "original.txt", "bytes": len(member),
+                   "sha256": hashlib.sha256(member).hexdigest()}],
+    }).encode("utf-8")
+    target = tmp_path / manifest_path
+    target.parent.mkdir(parents=True)
+    target.write_bytes(manifest)
+    target.with_name("original.txt").write_bytes(member)
+    subprocess.run(["git", "add", "docs/history/performance-fixture"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "preservation fixture"], cwd=tmp_path, check=True)
+    monkeypatch.setattr(conventions, "_PRESERVED_MANIFESTS", {manifest_path: {
+        "schema": "performance-fixture/v1", "bytes": len(manifest),
+        "sha256": hashlib.sha256(manifest).hexdigest(),
+    }})
+    monkeypatch.setattr(conventions, "_PRESERVED_HASH_ONLY_MEMBER_SIZES", {})
     real_run = conventions.subprocess.run
     git_calls: list[tuple[str, ...]] = []
 

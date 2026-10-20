@@ -1,0 +1,20 @@
+{
+  "scope": "actual SpaceView page16 and reader source; SYNTHETIC finite invoke, no real API/model/native UI",
+  "started_at": "2026-10-18T23:41:51.670Z",
+  "pid": 31792,
+  "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "command": [
+    "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\be10-snapshot-integration-20261019\\browser.mjs"
+  ],
+  "checks": [],
+  "violations": [],
+  "incomplete": [],
+  "console_errors": [],
+  "request_log": [],
+  "status": "FAIL",
+  "error": "TypeError: createServer is not a function",
+  "ended_at": "2026-10-18T23:41:51.671Z",
+  "owned_browser_closed": false,
+  "owned_server_closed": false
+}

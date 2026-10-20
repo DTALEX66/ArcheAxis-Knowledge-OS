@@ -5,10 +5,13 @@ import { useDocumentWriteLease } from "../workspace/documentSessions";
 import type { WorkingDraft, WorkingEditor, PendingOriginal } from "../presentation/coreWorkingState";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import { DocumentJournalError } from "../presentation/documentSaveStage";
+import { confirmedImport } from "../presentation/importReceipt";
+import { sha256 } from "../presentation/exchangeProof";
 import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import type { JSONContent } from "@tiptap/core";
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
+import { DocumentSnapshot } from "../components/DocumentSnapshot";
 import type { SourceDto, DocumentDto, DocumentSummaryDto, DocumentsListDto, OriginalDto, AnchorDto, DocumentExportDto, RevisionBasisDto } from "../api/generated/core-contract";
 import { Section } from "../components/RealData";
 import { MediaReader } from "../components/MediaReader";
@@ -23,7 +26,7 @@ import { PdfPageRecognition } from "../components/PdfPageRecognition";
 import { FolderIngest } from "../components/FolderIngest";
 import { TemplateLauncher } from "../templates/TemplateWorkspace";
 import "../components/content.css";
-import type { InspectionTarget } from "../components/Inspector";
+import type { InspectionHandler } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 import { coreFailureReason } from "../presentation/labels";
 import { confirmOriginalNote, prepareOriginalNote, OriginalNoteRefused, type OriginalNoteAttempt } from "../presentation/originalNoteWrite";
@@ -37,7 +40,7 @@ const DocumentEditor = lazy(() => import("../components/DocumentEditor").then(mo
 
 import type { SourceJourneyTarget, CandidateJourneyTarget } from "../presentation/sourceJourney";
 
-export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{activationRevision?:number;initialSourceTarget?:SourceJourneyTarget;purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:(target?:CandidateJourneyTarget)=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:(target:InspectionTarget)=>void;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{activationRevision?:number;initialSourceTarget?:SourceJourneyTarget;purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:(target?:CandidateJourneyTarget)=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:InspectionHandler;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
   const workingContext=useOptionalCoreWorkingState();
   // Core working-state persistence belongs to the verified formal desktop host.
   // Browser presentation fixtures do not obtain a native persistence receipt.
@@ -148,7 +151,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   useEffect(()=>{
     if(!working||!libraryBootSettled)return;
     let alive=true;
-    void Promise.all(working.state.opened_documents.map(id=>coreCommand<DocumentDto>("document_get",{document_id:id}))).then(items=>{if(alive)setOpenedDocuments(previous=>[...previous,...items.filter(item=>!previous.some(row=>row.document_id===item.document_id))]);}).catch(()=>{if(alive){setMessage("已打开文档现场读取未完成；草稿仍保留。");setFailure(true);}});
+    void Promise.all(working.state.opened_documents.map(id=>coreCommand<DocumentDto>("document_get",{document_id:id}))).then(items=>{if(alive)setOpenedDocuments(previous=>[...previous,...items.filter(item=>!previous.some(row=>row.document_id===item.document_id))]);}).catch(()=>{if(alive){setMessage("已打开文档暂时无法加载；你的草稿仍保留，请重试。");setFailure(true);}});
     return()=>{alive=false;};
   },[libraryBootSettled,working?.session]);
   useEffect(() => {
@@ -165,16 +168,16 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     if (source) {
       levels.push(
         { id: "section:sources", label: "来源原件", region: "sources" },
-        { id: `source:${source.source_id}`, label: source.original_name, detail: `${source.source_id}@${source.source_revision}${document ? ` · 文档 v${document.version}` : ""}`, region: "sources" },
+        { id: `source:${source.source_id}`, label: source.original_name, detail: document ? `关联文档第 ${document.version} 版` : "已保存原件", region: "sources" },
       );
     } else if (document) {
       levels.push(
         { id: "section:documents", label: "已保存文档", region: "documents" },
-        { id: `document:${document.document_id}`, label: document.title, detail: `${document.document_id} · v${document.version}`, region: "documents" },
+        { id: `document:${document.document_id}`, label: document.title, detail: `文档第 ${document.version} 版`, region: "documents" },
       );
     }
     if (document && historicalDocument?.document_id === document.document_id) {
-      levels.push({ id: `version:${historicalDocument.version}`, label: `历史版本 v${historicalDocument.version}`, detail: historicalDocument.content_sha256, region: "versions" });
+      levels.push({ id: `version:${historicalDocument.version}`, label: `历史版本 v${historicalDocument.version}`, detail: "已保存的历史版本", region: "versions" });
     }
     onTrail?.(levels);
   }, [source, document, historicalDocument, onTrail]);
@@ -182,13 +185,14 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     if (!document && !source) return;
     onInspect?.({
       title: document?.title ?? source!.original_name,
-      source: source ? "CAS 原件 / Rust Core" : document?.source_id ? "有来源绑定的文档 / Rust Core" : "用户原创文档 / Rust Core",
-      lifecycle: document ? "已保存；核验与依据分析独立记录" : "原件已保留",
+      source: source ? "已保存的原件" : document?.source_id ? "关联原件的文档" : "原创笔记",
+      lifecycle: document ? "已保存，内容审核需另行确认" : "原件已保存",
       rawSha256: document ? undefined : source?.sha256,
-      version: document ? String(document.version) : source?.source_revision,
+      version: document ? String(document.version) : undefined,
       updatedAt: source?.imported_at,
-      detail: document ? `文档 ${document.document_id}；正文指纹 ${document.content_sha256}；${document.source_id ? `关联原件 ${document.source_id}@${document.source_revision}（原件 SHA 独立）` : "没有来源原件绑定"}；保存不表示已证实。` : `原件 ${source!.source_id}；${anchors.length} 条定位记录；处理状态以实际任务为准。`,
-    });
+      detail: document ? (document.source_id ? "已关联原件；原件和文档版本分别保留。保存不代表内容已被证实。" : "此笔记未关联原件。保存不代表内容已被证实。") : `原件已保存，有 ${anchors.length} 个引用位置；处理结果需单独查看。`,
+      identityDetails: document ? {document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,source_id:document.source_id,source_revision:document.source_revision} : {source_id:source!.source_id,source_revision:source!.source_revision,raw_sha256:source!.sha256,anchor_count:anchors.length},
+    }, { reveal: false });
   }, [document, source, anchors, onInspect]);
   useEffect(() => {
     libraryMounted.current = true;
@@ -266,15 +270,13 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     setImporting(true); setFailure(false); setMessage("正在导入原件…");
     try {
       const content = new Uint8Array(await file.arrayBuffer());
+      const expectedSha256 = await sha256(content);
       let binary = "";
       for (let offset = 0; offset < content.length; offset += 8192) binary += String.fromCharCode(...content.subarray(offset, offset + 8192));
-      const imported = await coreCommand<{ source_id?: unknown; sha256?: unknown; duplicate?: unknown }>("source_import", { body: { name: file.name, content_base64: btoa(binary) } });
-      if (typeof imported.source_id !== "string" || !imported.source_id || typeof imported.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(imported.sha256) || typeof imported.duplicate !== "boolean") {
-        setImportReceipt({name:file.name,bytes:file.size,state:"导入回执未确认，请保留原件"}); setMessage("导入回执未确认 source_id/sha256/duplicate；请保留原件并重试。"); setFailure(true); setImporting(false); return;
-      }
+      confirmedImport(await coreCommand("source_import", { body: { name: file.name, content_base64: btoa(binary) } }), expectedSha256);
       setImportReceipt({name:file.name,bytes:file.size,state:"原件已保留；转换尚未执行"}); setMessage("原件已导入；选择它开始阅读。");
       await refreshLists();
-    } catch { setImportReceipt({name:file.name,bytes:file.size,state:"导入未确认，请保留原件"}); setMessage("导入未完成，请保留原件并重试。"); setFailure(true); }
+    } catch (error) { setImportReceipt({name:file.name,bytes:file.size,state:"导入未确认，请保留原件"}); setMessage(error instanceof Error ? error.message : "导入未完成，请保留原件并重试。"); setFailure(true); }
     finally { setImporting(false); }
   }
   async function open(selected: SourceDto):Promise<"success"|"stale"|"failure"> {
@@ -368,12 +370,12 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       if(!libraryMounted.current)return;
       if(error instanceof OriginalNoteRefused) {
         try{if(noteAttempt.current)await working?.session.finishOriginal(noteAttempt.current.body as PendingOriginal);}
-        catch{setMessage("创建已明确拒绝；冻结请求清理尚未确认，请先核对工作状态。");setFailure(true);return;}
+        catch{setMessage("创建未被接受；请先确认上次操作的结果，草稿仍保留。");setFailure(true);return;}
         noteAttempt.current=null;setNoteUncertain(false);publishDirtyState();
         setMessage("原创笔记创建被明确拒绝；现有草稿保留，修正条件后可重新创建。");
       } else {
         setNoteUncertain(noteAttempt.current!==null);
-        setMessage("原创笔记建立未确认；冻结请求保留，请重试同一请求或核对结果，不会另建笔记。");
+        setMessage("笔记是否创建成功尚未确认；请重试同一次操作或检查结果，不会另建笔记。");
       }
       setFailure(true);
     }
@@ -483,11 +485,12 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       const historicalSource = sources.find(item => item.source_id === historical.source_id && item.source_revision === historical.source_revision);
       onInspect?.({
         title: historical.title,
-        source: historicalSource ? "CAS 原件 / Rust Core 历史文档" : "Rust Core 历史文档",
-        lifecycle: "历史版本；只读；核验与依据分析独立记录",
+        source: historicalSource ? "关联原件的历史文档" : "历史文档",
+        lifecycle: "历史版本，只能查看；内容审核需另行确认",
         version: String(historical.version),
         rawSha256: historicalSource?.sha256,
-        detail: `文档 ${historical.document_id}；历史正文指纹 ${historical.content_sha256}；当前草稿与最新版本保持不变；保存不表示已证实。`,
+        detail: "历史正文只读；当前草稿和最新版本不变。保存不代表内容已被证实。",
+        identityDetails: {document_id:historical.document_id,version:historical.version,content_sha256:historical.content_sha256,source_id:historical.source_id,source_revision:historical.source_revision,raw_sha256:historicalSource?.sha256??null},
       });
     } catch {
       if (isCurrentHistoryRequest()) { setMessage("历史版本未读取，请重试。"); setFailure(true); }
@@ -599,18 +602,18 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   // announces "正在读取资料…" / "正在读取原件与文档…", so a second placeholder region would make one
   // page read announce several times. The text stays where the editor appears.
   const sharedDraft=document?working?.state.drafts[document.document_id]:undefined;
-  const documentEditor = document ? documentLease.canWrite?<Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={sharedDraft?.editor_json??documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={sharedDraft?.base_version??documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onReadConflict={readDocumentConflict} onRetryWorkingState={()=>retrySavedJournal(document.document_id)} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense>:<section aria-label="共享文档只读视图" data-business-session-key={documentLease.sessionKey}><p>同一文档已有写入视图；当前显示 Core 工作草稿；只读查看不会建立第二写入会话。</p><button disabled={!documentLease.canRevealOwner} onClick={documentLease.revealOwner}>打开文档写入视图</button><pre>{sharedDraft?JSON.stringify(sharedDraft.editor_json,null,2):document.text_projection}</pre></section> : null;
+  const documentEditor = document ? documentLease.canWrite?<Suspense fallback={<p>正在载入文档编辑器…</p>}><DocumentEditor key={`${document.document_id}:${editorEpoch}`} content={sharedDraft?.editor_json??documentDrafts[document.document_id]?.content ?? document.editor_json as JSONContent} version={sharedDraft?.base_version??documentDrafts[document.document_id]?.baseVersion ?? document.version} onSave={save} onReadConflict={readDocumentConflict} onRetryWorkingState={()=>retrySavedJournal(document.document_id)} onDirtyChange={value=>reportEditorDirty(document.document_id,value)} onDraftChange={(content,baseVersion)=>rememberDraft(document.document_id,content,baseVersion)} onCreateReference={source && original && bytes ? cite : undefined} onReferenceActivate={jump} /></Suspense>:<section aria-label="共享文档只读视图" data-business-session-key={documentLease.sessionKey}><p>此文档已在另一处编辑，当前只读显示共享草稿。</p><button disabled={!documentLease.canRevealOwner} onClick={documentLease.revealOwner}>打开文档写入视图</button><DocumentSnapshot label="共享文档当前内容" value={sharedDraft?.editor_json??document.editor_json as JSONContent}/></section> : null;
 
   const originalPane = document ? <article className="original-derived-pane" aria-label="不可变原件">
               <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
               {linkedOriginal && documentBytes && documentOriginal && documentSource ? <>
-                <dl className="original-derived-identity"><div><dt>来源 ID</dt><dd>{documentSource.source_id}</dd></div><div><dt>来源版本</dt><dd>{documentSource.source_revision}</dd></div><div><dt>原件 SHA-256</dt><dd>{documentOriginal.sha256}</dd></div></dl>
+                <p>来源：{documentSource.original_name} · 文档第 {document.version} 版</p><RawReceiptButton label="关联原件身份" category="data" payload={{source_id:documentSource.source_id,source_revision:documentSource.source_revision,sha256:documentOriginal.sha256}}/>
                  {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre ref={purpose === "reader" ? textRegion : undefined} tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
               </> : <p>原件读取失败、身份不匹配或未绑定到此文档版本。正文指纹与原件指纹保持分开显示。</p>}
             </article> : null;
   const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy||!documentLease.canWrite} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
           {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
-  const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>冻结笔记请求已保留；先核对工作状态，再重试同一请求。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一笔记请求</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>核对笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
+  const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认；先检查结果，再重试同一次操作。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一次笔记创建</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>检查笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
   // List reads own one announcement; content/write outcomes remain independent.
   const listControls=<section className="library-list-controls" aria-label="资料列表刷新"><button type="button" disabled={refreshingLists} onClick={()=>void refreshLists()}>刷新资料列表</button>{refreshingLists?<p role="status">{libraryBootSettled?"正在刷新资料列表…":"正在读取资料…"}</p>:null}{listError?<p role="alert">{listError}</p>:null}{listFailureReason?<p className="state-reason">{listFailureReason}</p>:null}</section>;
   const filteredDocuments = documents.filter(item => {
@@ -633,6 +636,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   </>;
   const originalTextCitation=source&&bytes&&/\.(txt|md)$/i.test(source.original_name)?<OriginalTextCitation sourceId={source.source_id} revision={source.source_revision} bytes={bytes} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(item=>item.anchor_id!==anchor.anchor_id),anchor])}/>:null;
   if(purpose === "library") return <section className="ui-library-page" aria-label="知识库文档视图">
+    <h2>知识库</h2>
     {listControls}
     <div className="ui-content-tabs" role="group" aria-label="内容筛选">
       <button type="button" aria-pressed={contentFilter==="all"} onClick={()=>setContentFilter("all")}>全部内容</button>
@@ -644,7 +648,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       <aside className="ui-content-panel" aria-label="内容与视图"><h3>内容与视图</h3><p>笔记与关联原件共用文档版本。打开实际文档后阅读与编辑。</p><p>普通笔记无需依据即可保存；依据分析与用户采用分别记录。</p><h4>集合与视图</h4><p>集合、标签和其他视图尚未接通。</p><button type="button" onClick={()=>onOpenCapability?.("CAP-0020")} disabled={!onOpenCapability}>查看集合能力详情</button></aside>
     </div>{feedback}
   </section>;
-  const readerSourceTools=purpose==="reader"&&source&&original&&bytes?<section aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<p>{source.source_id} · {source.source_revision}</p>{!document?<><pre ref={textRegion} tabIndex={0} aria-label="并排原件正文">{original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"原字节已核对；派生正文从真实转换作业读取。"}</pre><button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null;
+  const readerSourceTools=purpose==="reader"&&source&&original&&bytes?<section aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<RawReceiptButton label="原件编号与版本详细信息" category="data" payload={{source_id:source.source_id,source_revision:source.source_revision}}/>{!document?<><pre ref={textRegion} tabIndex={0} aria-label="并排原件正文">{original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"原字节已核对；派生正文从真实转换作业读取。"}</pre><button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null;
   if(purpose === "reader" || purpose === "history") return <section className="ui-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"}>
     {!document?listControls:null}
     {!document||initialSourceTarget?readerSourceTools:null}
@@ -653,14 +657,14 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       <div className="ui-reader-layout"><article className="ui-reader-document" aria-label="文档正文与编辑"><header><p className="ui-document-meta">{document.source_id ? "关联原件文档" : "原创笔记"} · v{document.version} · 无需依据即可保存</p><h2>{document.title}</h2></header>{purpose!=="history" ? documentEditor : <p>{document.text_projection}</p>}
         {showSource ? <section className="ui-reader-original" aria-label="关联原件阅读">{document.source_id ? originalPane : <p>此原创笔记没有绑定来源原件。</p>}</section> : null}
       </article><aside className="ui-content-panel ui-reader-details" aria-label="内容详情"><h3>内容详情</h3><dl><div><dt>内容身份</dt><dd>{document.source_id ? "关联原件文档" : "原创笔记"}</dd></div><div><dt>文档版本</dt><dd>v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存更改" : ""}</dd></div><div><dt>来源版本</dt><dd>{document.source_id ? linkedOriginal ? "原件身份、版本与字节已核对" : "已绑定；原件读取尚未核对" : "未绑定；保存不要求来源"}</dd></div></dl>
-        <RawReceiptButton label="文档身份与来源指纹" visibleLabel="文档身份与来源指纹" payload={{document_id:document.document_id,source_id:document.source_id,source_revision:document.source_revision,content_sha256:document.content_sha256}}/>
+        <RawReceiptButton label="文档与来源详细信息" visibleLabel="文档与来源详细信息" payload={{document_id:document.document_id,source_id:document.source_id,source_revision:document.source_revision,content_sha256:document.content_sha256}}/>
         <details><summary>依据与修订记录</summary><CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}}/></details>
         {showVersions||purpose==="history" ? <section aria-label="版本与影响">{versionControls}</section> : <button type="button" onClick={()=>setShowVersions(true)}>查看历史版本</button>}
-        <details><summary>导出已保存文档</summary><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button>{exportProof?<RawReceiptButton label="导出格式与损失回执" payload={exportProof}/>:null}</details>
-        <details className="reader-material-tools"><summary>围绕此文档提问</summary><MaterialQuestionPanel key={`material:${document.document_id}:${document.version}`} material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}} text={document.text_projection}/><ConversationPanel material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}}/></details>
+        <details><summary>导出已保存文档</summary><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button>{exportProof?<RawReceiptButton label="导出详情与内容损失" payload={exportProof}/>:null}</details>
+        <details className="reader-material-tools"><summary>围绕此文档提问</summary><MaterialQuestionPanel key={`material:${document.document_id}:${document.version}`} material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}} text={document.text_projection} materialTitle={document.title}/><ConversationPanel materialTitle={document.title} slot="reader" material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}}/></details>
         {readerSourceTools&&!initialSourceTarget?<details className="reader-source-tools"><summary>整理关联来源</summary>{readerSourceTools}</details>:null}
       </aside></div>
-    </> : <section className="ui-content-panel"><h3>选择已保存文档</h3><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
+    </> : <section className="ui-content-panel"><h2>选择已保存文档</h2><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
     {feedback}
   </section>;
 
@@ -669,7 +673,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     <TemplateLauncher onOpen={id=>void openDocument(id)} onOpenCapability={onOpenCapability} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("template-properties");else dirtyDocumentIds.current.delete("template-properties");publishDirtyState();}} />
     <p className="muted">原件保留其不可变版本；草稿自动保存到本地核心，引用绑定原件版本。</p>
     <label className="content-import" data-section="import" tabIndex={-1}>导入原件 <input type="file" aria-label="导入原件" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; }} /></label>
-    {importReceipt?<dl className="receipt-grid" aria-label="导入回执"><div><dt>来源文件</dt><dd>{importReceipt.name}</dd></div><div><dt>原件大小</dt><dd>{importReceipt.bytes} 字节</dd></div><div><dt>导入状态</dt><dd>{importReceipt.state}</dd></div><div><dt>下一步</dt><dd>选择原件阅读或执行转换，再从实际引文整理待审核知识。</dd></div></dl>:null}
+    {importReceipt?<dl className="receipt-grid" aria-label="导入结果"><div><dt>来源文件</dt><dd>{importReceipt.name}</dd></div><div><dt>原件大小</dt><dd>{importReceipt.bytes} 字节</dd></div><div><dt>导入状态</dt><dd>{importReceipt.state}</dd></div><div><dt>下一步</dt><dd>选择原件阅读或执行转换，再从实际引文整理待审核知识。</dd></div></dl>:null}
     <div className="space-section-region" data-section="folder" tabIndex={-1} aria-label="目录批量导入"><FolderIngest /></div>
     <div className="canonical-library">
       <nav ref={sourceNavigation} tabIndex={-1} className="canonical-sources" data-section="sources" aria-label="保留原件">
@@ -691,10 +695,10 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
           <aside ref={anchorNavigation} tabIndex={-1} data-section="anchors" aria-label="来源版本证据">
             <h4>来源与引用</h4>
             <p>引用绑定不可变原件版本，选择引用可回到已记录位置。</p>
-            <details><summary>更多信息：来源链与内容指纹</summary><dl className="receipt-grid"><div><dt>来源</dt><dd>{source.original_name}</dd></div><div><dt>来源 ID</dt><dd>{source.source_id}</dd></div><div><dt>来源版本（原件指纹）</dt><dd>{source.source_revision}</dd></div><div><dt>原件 SHA-256</dt><dd>{original.sha256}</dd></div><div><dt>读取核验</dt><dd>原件字节与 Core 内容指纹已匹配</dd></div></dl></details>
+            <p>原件内容与保存记录一致。</p><RawReceiptButton label="原件与来源详细信息" category="data" payload={{source_id:source.source_id,source_revision:source.source_revision,sha256:original.sha256}}/>
             {anchors.length===0?<p className="muted">此来源尚无引用记录。</p>:null}
             {anchors.map((anchor) => { let location: Record<string, unknown> = {}; try { location = JSON.parse(anchor.position); } catch { /* Preserve unresolved position, never invent a locator. */ }
-              return <div key={anchor.anchor_id}><button type="button" disabled={anchor.location_status === "revision_mismatch"} onClick={() => void jump({ anchor_id:anchor.anchor_id, position:anchor.position, source_id: anchor.source_id, source_revision: anchor.source_revision })}>{typeof location.page === "number" ? `第 ${location.page} 页` : "来源引用"}{anchor.location_status === "revision_mismatch" ? " · 需重新定位" : anchor.location_status !== "located" ? " · 定位未核实" : ""}</button><details><summary>引用来源记录</summary><dl className="receipt-grid"><div><dt>引用 ID</dt><dd>{anchor.anchor_id}</dd></div><div><dt>来源版本（原件指纹）</dt><dd>{anchor.source_revision}</dd></div><div><dt>记录位置</dt><dd>{anchor.position}</dd></div><div><dt>定位状态</dt><dd>{anchor.location_status === "located" ? "已核实" : anchor.location_status === "revision_mismatch" ? "版本不匹配，需重新定位" : "定位未核实"}</dd></div></dl></details></div>;
+              return <div key={anchor.anchor_id}><button type="button" disabled={anchor.location_status === "revision_mismatch"} onClick={() => void jump({ anchor_id:anchor.anchor_id, position:anchor.position, source_id: anchor.source_id, source_revision: anchor.source_revision })}>{typeof location.page === "number" ? `第 ${location.page} 页` : "来源引用"}{anchor.location_status === "revision_mismatch" ? " · 需重新定位" : anchor.location_status !== "located" ? " · 定位未核实" : ""}</button><RawReceiptButton label="引用来源详细信息" category="data" payload={{anchor_id:anchor.anchor_id,source_revision:anchor.source_revision,position:anchor.position,location_status:anchor.location_status}}/></div>;
             })}
           </aside>
         </div>
@@ -710,7 +714,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       </div>)}
     </nav> : null}
     <button type="button" disabled={busy||noteUncertain} onClick={() => void singleWrite(createOriginal)}>新建原创笔记</button>
-    {noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认，原请求保留。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一笔记请求</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>核对笔记创建结果</button></div>:null}
+    {noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认，原请求保留。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一次笔记创建</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>检查笔记创建结果</button></div>:null}
     <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档">{documents.map(item => <button type="button" key={item.document_id} onClick={() => void openDocument(item.document_id)}>{item.title} · 文档</button>)}</nav>
     {nextDocumentCursor ? <button type="button" disabled={loadingDocuments} onClick={() => void loadMoreDocuments()}>{loadingDocuments ? "正在加载文档…" : "加载更多文档"}</button> : null}
     {!source && navigation?.section === "anchors" ? <section ref={anchorNavigation} tabIndex={-1} data-section="anchors" aria-label="来源版本证据"><p>请先选择实际来源原件；原创笔记可以没有来源锚点。</p></section> : null}
@@ -719,7 +723,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
           {document.source_id ? <section className="original-derived-split" aria-label="原件与派生文档并排阅读" style={{"--derived-focus":1} as CSSProperties}>
             {originalPane}
             <article className="original-derived-pane" aria-label="派生文档与版本核验">
-              <header><h4>派生文档</h4><p>文档版本 {document.version} · 正文 SHA-256 {document.content_sha256}</p></header>
+              <header><h4>派生文档</h4><p>文档第 {document.version} 版</p><RawReceiptButton label="文档内容详细信息" category="data" payload={{document_id:document.document_id,version:document.version,content_sha256:document.content_sha256}}/></header>
                {documentEditor}
               <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
             </article>
@@ -729,7 +733,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
           </>}
           {versionControls}
           <div className="space-section-region" data-section="export" tabIndex={-1} aria-label="文档导出"><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button></div>
-          {exportProof?<RawReceiptButton label="导出格式与损失回执" payload={exportProof} />:null}
+          {exportProof?<RawReceiptButton label="导出详情与内容损失" payload={exportProof} />:null}
         </> : null}
     {message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}
     {failureReason ? <p className="state-reason">{failureReason}</p> : null}

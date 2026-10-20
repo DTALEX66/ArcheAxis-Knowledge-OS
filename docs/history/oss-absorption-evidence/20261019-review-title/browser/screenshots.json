@@ -1,0 +1,35 @@
+[
+  {
+    "name": "01-readable-title-desktop",
+    "file": "01-readable-title-desktop.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "theme": "cosmic",
+    "DPR": 1
+  },
+  {
+    "name": "02-readable-title-narrow",
+    "file": "02-readable-title-narrow.png",
+    "viewport": {
+      "width": 640,
+      "height": 900
+    },
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "theme": "cosmic",
+    "DPR": 1
+  },
+  {
+    "name": "03-legacy-title-fallback",
+    "file": "03-legacy-title-fallback.png",
+    "viewport": {
+      "width": 640,
+      "height": 900
+    },
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "theme": "cosmic",
+    "DPR": 1
+  }
+]

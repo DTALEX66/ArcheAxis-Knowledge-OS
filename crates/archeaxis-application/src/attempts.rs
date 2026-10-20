@@ -11,9 +11,17 @@ use sha2::{Digest, Sha256};
 /// R08: engine identities a successful receipt may report, one per extraction
 /// route. The worker must name the engine it actually used; the Core no longer
 /// requires the text engine from every route.
+pub fn pdf_engine_version(version: &str) -> bool {
+    !version.is_empty()
+        && version.len() <= 64
+        && version.as_bytes()[0].is_ascii_digit()
+        && version
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b".+_-".contains(&b))
+}
+
 pub const ENGINE_PROFILES: &[(&str, &str)] = &[
     ("python-worker-text", "0.1.0"),
-    ("pymupdf-native-pdf", "pymupdf"),
     ("python-worker-ocr", "0.1.0"),
     ("python-worker-archive", "0.1.0"),
     ("python-worker-media", "0.1.0"),
@@ -593,9 +601,14 @@ fn finish_inner(
     let structure = structure.ok_or(JobError::InvalidReceipt("missing structure"))?;
     let loss = loss.ok_or(JobError::InvalidReceipt("missing loss receipt"))?;
     loss.validate().map_err(JobError::InvalidReceipt)?;
-    if !ENGINE_PROFILES
-        .iter()
-        .any(|(name, version)| loss.engine == *name && loss.engine_version == *version)
+    let engine_valid = if loss.engine == "pymupdf-native-pdf" {
+        req.capability == "pdf.extract" && pdf_engine_version(&loss.engine_version)
+    } else {
+        ENGINE_PROFILES
+            .iter()
+            .any(|(name, version)| loss.engine == *name && loss.engine_version == *version)
+    };
+    if !engine_valid
         || !same_spans(&structure, &expected)
         || loss.covered != Some(structure.len() as u64)
         || loss.total != Some(total as u64)

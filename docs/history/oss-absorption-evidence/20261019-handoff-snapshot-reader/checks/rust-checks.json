@@ -1,0 +1,93 @@
+[
+  {
+    "name": "workspace-format",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:05.840762+00:00",
+    "ended_at": "2026-10-18T23:39:08.484581+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/rust-workspace-format.log",
+    "sha256": "0331802bd73210794f0a8e4efac5ab7b5dc2c2be85dbabd14c53a189ccbcc9b3"
+  },
+  {
+    "name": "native-format",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "fmt",
+      "--manifest-path",
+      "src-tauri/Cargo.toml",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:08.485070+00:00",
+    "ended_at": "2026-10-18T23:39:10.292319+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/rust-native-format.log",
+    "sha256": "da503746d53601411d0c21480cff8b7a447f116c8a133e209168458538fc0ca0"
+  },
+  {
+    "name": "contracts",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "test",
+      "--offline",
+      "--locked",
+      "-p",
+      "archeaxis-contracts",
+      "project_handoff_preview::"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:10.293008+00:00",
+    "ended_at": "2026-10-18T23:39:13.475159+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/rust-contracts.log",
+    "sha256": "49309000237c73ed1d9d355d0351a0dbad4d5ac290b70b04948da7cfb544d2e5"
+  },
+  {
+    "name": "real-process-and-queue",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "test",
+      "--offline",
+      "--locked",
+      "-p",
+      "archeaxis-api",
+      "--test",
+      "project_handoff_preview_process",
+      "--test",
+      "project_handoff_snapshot_queue",
+      "--test",
+      "project_observer_process",
+      "--test",
+      "project_handoff_process",
+      "--",
+      "--test-threads=1"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:13.475650+00:00",
+    "ended_at": "2026-10-18T23:39:43.753219+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/rust-real-process-and-queue.log",
+    "sha256": "86319d7509b36d1f518ca28fff5bc8dfab838f997cca3be1329e82267ac4bea4"
+  }
+]

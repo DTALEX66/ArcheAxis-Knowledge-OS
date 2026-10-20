@@ -1,0 +1,37 @@
+{
+  "usage": "USER_SUPPLIED_DESIGN_REFERENCE_NOT_RUNTIME_ASSET",
+  "references": [
+    {
+      "id": "R1",
+      "file": "R1-dream-glass.png",
+      "role": "secondary reference",
+      "sha256": "83ed3730c2c5d59b12f9f62105a253832ae9eb8515f3c7b2162d7ba4f53b7016"
+    },
+    {
+      "id": "R2",
+      "file": "R2-dream-space.png",
+      "role": "secondary reference",
+      "sha256": "892c1f698bea13982701aa8dc3d97e873ccb495ef5661955ba6f4caf7380d66a"
+    },
+    {
+      "id": "R3",
+      "file": "R3-hard-scifi-glass.png",
+      "role": "primary material reference",
+      "sha256": "2e6fa07943b91a0b7728a89ce36f31e5e944dd9a1fbe7276423d6d0bb33b9d15"
+    },
+    {
+      "id": "R5",
+      "file": "R5-game-home.png",
+      "role": "secondary reference",
+      "sha256": "cac00e179d3946517acc76fea1e7740fcef78f65cac44dd54273cd19cafc351d"
+    },
+    {
+      "id": "R6",
+      "file": "R6-calm-person.png",
+      "role": "secondary reference",
+      "sha256": "67b0f3fc15b4210c5b17dd089d4e88b2cf54b81c2e4a599a8d2294ff940e0aa5"
+    }
+  ],
+  "R4": "same bytes as R3; deduplicated",
+  "real_person_reference": "composition only; not a pre-cleared character/voice asset"
+}

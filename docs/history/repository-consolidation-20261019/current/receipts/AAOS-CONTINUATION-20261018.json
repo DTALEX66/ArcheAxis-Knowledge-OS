@@ -1,0 +1,67 @@
+{
+  "schema": "archeaxis.continuation-validation/v1",
+  "observed_on": "2026-10-18",
+  "status": "PARTIAL",
+  "local_checks": {
+    "frontend": {
+      "path": ".project-local/runs/be268a2d33/xiaoqi-final-frontend/artifacts/execution.json",
+      "sha256": "16236a2061f938507010c16f2c92855a3aabd8383f426d1c14c3fc32263b7792",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "ac7918b069882b9e85dc0aeaf4ea7948fad795c4c1f89a5cfb501d245f0f49a4",
+      "source_consistent": true,
+      "exit_code": 0
+    },
+    "build": {
+      "path": ".project-local/runs/be268a2d33/xiaoqi-final-build/artifacts/execution.json",
+      "sha256": "60c4ff297ba63fb841106cfa1eceafdbd72b66c9c3f5d34e8cad8749dd27f7a4",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "ac7918b069882b9e85dc0aeaf4ea7948fad795c4c1f89a5cfb501d245f0f49a4",
+      "source_consistent": true,
+      "exit_code": 0
+    },
+    "worker_tests": {
+      "path": ".project-local/runs/be268a2d33/continuation-worker-tests/artifacts/execution.json",
+      "sha256": "5c95719439c217607e0f556e17a0774e218a22a0d7696169f1e976fc881cbda5",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "e337982c62bfc194f6673f41fc1a57bdbd5917d718443378df5cedc158799713",
+      "source_consistent": true,
+      "exit_code": 0
+    },
+    "profile_tests": {
+      "path": ".project-local/runs/be268a2d33/continuation-profile-tests/artifacts/execution.json",
+      "sha256": "9065d40df176ba2b006369377868286ab66fb17270a65c50f722ad1606dd5e30",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "e337982c62bfc194f6673f41fc1a57bdbd5917d718443378df5cedc158799713",
+      "source_consistent": true,
+      "exit_code": 0
+    },
+    "documentation": {
+      "path": ".project-local/runs/be268a2d33/continuation-doc-final/artifacts/execution.json",
+      "sha256": "a604b7970cd2dffc7d422ad2168f222225e0e4362956d6051676a52837d26172",
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256": "ac7918b069882b9e85dc0aeaf4ea7948fad795c4c1f89a5cfb501d245f0f49a4",
+      "source_consistent": true,
+      "exit_code": 0
+    }
+  },
+  "counts": {
+    "frontend_files": 160,
+    "frontend_tests": 1533,
+    "worker_and_runtime_policy_tests": 95,
+    "profile_safety_tests": 4,
+    "documentation_tests": 16
+  },
+  "source_note": "Each stage retains its own patch binding; final frontend/build/documentation share a patch. Later report-only writes do not rewrite these results.",
+  "real_inference": "docs/current/receipts/AAOS-LOCAL-LLM-20261018.json",
+  "xiaoqi_source": "frontend/src/companion/PROVENANCE.json",
+  "product_limits": [
+    "Latest worker diagnostic and Xiaoqi changes not promoted to old native candidate or installed runtime",
+    "Current direct SDK and source-worker MTP inference use synthetic material, not full current native learning loop",
+    "Full three-slot shared companion service, persona schema, speech and animation remain incomplete",
+    "Known top search shortcut ownership and mock search path still need replacement",
+    "Dockview/PDF/canonical canvas visibility and focus findings still need production wiring",
+    "Worker diagnostic metadata still needs bounded propagation through Core API",
+    "FE24 installed journeys and FE25 assets remain incomplete; no installer/Green/remote-write grant inferred"
+  ],
+  "writes": "Uncommitted; no push, merge, release or native-session mutation"
+}

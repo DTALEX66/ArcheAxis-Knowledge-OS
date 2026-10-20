@@ -1,0 +1,69 @@
+{
+  "state": "PROPOSAL_NOT_APPLIED",
+  "observed_at": "2026-10-18T21:59:00.376429+00:00",
+  "patch_sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f",
+  "files": [
+    {
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "before_sha256": null,
+      "after_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+      "bytes": 2469,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/src/__tests__/CapabilityPackageDetails.test.tsx",
+      "before_sha256": null,
+      "after_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+      "bytes": 3604,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "before_sha256": null,
+      "after_sha256": "ed7f991da044879c688e726de1c41f366f245e42d562c813467c910c0a551d54",
+      "bytes": 5626,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/src/components/CapabilityPackageDetails.tsx",
+      "before_sha256": null,
+      "after_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+      "bytes": 2256,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx",
+      "before_sha256": "27b0ece707a8e89dade9335dad6c4d11ebc030dc6507855ef806d9b3f86f0351",
+      "after_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+      "bytes": 15323,
+      "mirror_matches": true
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "before_sha256": "8b16ddda1d1dbd52ba793d22429e1fdcb73ad2eb8a8938bbc4a85478f339028b",
+      "after_sha256": "4a4348fbd71850e760695136f898ded0c474dc9f54ca1da8c80a7dc523b89033",
+      "bytes": 3609,
+      "mirror_matches": true
+    },
+    {
+      "path": "scripts/contracts/generate_capability_package_details.py",
+      "before_sha256": null,
+      "after_sha256": "3b9659ea88bf5477a1983a9cf776a072c6ab08090d96993231cd56ad705dfbfc",
+      "bytes": 5828,
+      "mirror_matches": true
+    },
+    {
+      "path": "tests/contract/test_capability_package_details.py",
+      "before_sha256": null,
+      "after_sha256": "80bdf76b9ff084f0d46d4a41e7ff52b415150d42829435362e123e826e91ee1f",
+      "bytes": 4884,
+      "mirror_matches": true
+    }
+  ],
+  "apply_check_exit_code": 0,
+  "product_files_written": [],
+  "dependencies_changed": false,
+  "registry_added": false,
+  "routes_changed": false,
+  "current_native_journey_qualification": "NOT_CONTRIBUTED"
+}

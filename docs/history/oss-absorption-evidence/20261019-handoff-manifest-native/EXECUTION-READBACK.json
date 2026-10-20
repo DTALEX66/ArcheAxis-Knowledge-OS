@@ -1,0 +1,312 @@
+{
+  "runs": [
+    {
+      "run_id": "integrated-probe-identity-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integrated-probe-identity-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1453,
+        "sha256": "24d8fbf021a50f11675a485aba08a365c5f5502834d5a5392de0672f1a46f78e"
+      },
+      "log": ".project-local/runs/be268a2d33/integrated-probe-identity-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1758,
+        "sha256": "7ae1d4378e7afd27de4b2161504e17299a2b007556e858d8b45ade833b9c3e5c"
+      },
+      "status": "FAIL",
+      "exit_code": 2,
+      "source_patch_sha256": "ca871a89525803ee270520e44d347f7c16a26fe0f718dca8a5e30f0cc1bf15fe",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:45:19.973159+00:00",
+      "ended_at": "2026-10-18T21:45:23.305595+00:00"
+    },
+    {
+      "run_id": "integrated-probe-package-imports-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integrated-probe-package-imports-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1474,
+        "sha256": "1586490d5fbe1e3a50edc8402239f293e7e317a94f959613cfb2f4c2a36fcabc"
+      },
+      "log": ".project-local/runs/be268a2d33/integrated-probe-package-imports-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 213,
+        "sha256": "30556498ca2a9506e69ef5a402535e407a3e678fcbb1498dd725d7bb08adbe57"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "6c56bc52f1b90fd06d4e5644c2fa73afb7c8472f302296ef8050ed9026b0cacc",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:45:44.243937+00:00",
+      "ended_at": "2026-10-18T21:46:40.921579+00:00"
+    },
+    {
+      "run_id": "final-integration-python-contracts-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-python-contracts-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1498,
+        "sha256": "7e82d8bc3001939f60904e05bd400bed54321671fd7d0fe4b7c54d09c0b522e5"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-python-contracts-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 183,
+        "sha256": "824a3c0e5462a7226728d78fdb26209a4c665c3810164218fb2e34fa1fb446dd"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.884683+00:00",
+      "ended_at": "2026-10-18T21:48:10.586530+00:00"
+    },
+    {
+      "run_id": "final-integration-rust-api-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-rust-api-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1620,
+        "sha256": "470113d157386ae3b54c8dee26410ae4f53fac15c0c3a8c60ede3c1bf27e014c"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-rust-api-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 9809,
+        "sha256": "e84fad2828f36c5fbb582e7a13504ec64d9eef5706591ed2e34e7c7903c0f1af"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.879631+00:00",
+      "ended_at": "2026-10-18T21:48:38.938411+00:00"
+    },
+    {
+      "run_id": "final-integration-rust-contracts-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-rust-contracts-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1434,
+        "sha256": "cc2bbf3f7cbc53522f131472287548ecd82ef39571574b45e30aaae828fb314b"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-rust-contracts-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1070,
+        "sha256": "c10a564d442d86a3f9ec93fee4c4d3401f2aa82debce221609ccac300c99a085"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:19.487988+00:00",
+      "ended_at": "2026-10-18T21:49:23.380113+00:00"
+    },
+    {
+      "run_id": "final-integration-generated-check-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-generated-check-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1360,
+        "sha256": "55ab2d9ca0b53e8fedcace34f79d5fda85a8d3912e89647309ddbfb53bd4f350"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-generated-check-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.860078+00:00",
+      "ended_at": "2026-10-18T21:48:07.655039+00:00"
+    },
+    {
+      "run_id": "final-integration-new-python-lint-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-new-python-lint-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1532,
+        "sha256": "8ece0faa4ca82e4bd89ab456448e31f9426dd8fddfddecc1a6ee5515353a8e17"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-new-python-lint-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 533,
+        "sha256": "cb925b1783865ab79dbbbe003b7d09efb78f3db3c3d5dca5b65aec393c70818d"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.861407+00:00",
+      "ended_at": "2026-10-18T21:48:07.664073+00:00"
+    },
+    {
+      "run_id": "final-integration-host-build-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integration-host-build-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1557,
+        "sha256": "d6e37d1ef95eacd450e5348cfbf56f9f40b46b36f79fca3cdc793c76a4afe72e"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integration-host-build-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 18636,
+        "sha256": "ebeb2482efd2286a04ab912639d1d70e749869f3aff4f900f7873238155150ee"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:05.879565+00:00",
+      "ended_at": "2026-10-18T21:49:04.703354+00:00"
+    },
+    {
+      "run_id": "final-integrated-python-lint-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-python-lint-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1529,
+        "sha256": "55e31db2f2ce08354a766c17955a38940377a03e24ef5aec807073ed7daf565a"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-python-lint-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 20,
+        "sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:42.095802+00:00",
+      "ended_at": "2026-10-18T21:49:43.826801+00:00"
+    },
+    {
+      "run_id": "final-integrated-rustfmt-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-rustfmt-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1671,
+        "sha256": "2b1624fd82156fd2e97cfaedacdd170103a566f044b95af4405d0bd7018c8260"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-rustfmt-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:42.104311+00:00",
+      "ended_at": "2026-10-18T21:49:43.669770+00:00"
+    },
+    {
+      "run_id": "final-integrated-core-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-core-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1381,
+        "sha256": "e2dd6e63bbe19fc834fa7964d99fb0c958b29a39d30c3ce236cf474ae6a1b014"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-core-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1974,
+        "sha256": "ee2c0c1e447a1b5fcb329106497d2eb5400a0ef39ddce60d876834a206dceaad"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:42.097009+00:00",
+      "ended_at": "2026-10-18T21:50:18.230678+00:00"
+    },
+    {
+      "run_id": "final-integrated-host-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-host-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1535,
+        "sha256": "97212b76ee209cb9a012934bd1b89dd629ea32213b32e73db44eed74c3fadb92"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-host-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 18630,
+        "sha256": "def7d343793ef17f999a6aaa2530f722649aa0d2f0a65633fc33b7f96c13eeb8"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:49:42.087866+00:00",
+      "ended_at": "2026-10-18T21:50:45.021274+00:00"
+    },
+    {
+      "run_id": "native-llm-profile-inspect-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/native-llm-profile-inspect-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1371,
+        "sha256": "20b2de10bd0117b868cc953becec506d88a561fd751820b4446abbd5983dc8f5"
+      },
+      "log": ".project-local/runs/be268a2d33/native-llm-profile-inspect-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 150,
+        "sha256": "bbd21131057c19d0c66f5ff321f1a079eb2e6abd90aa395701c6f35c119a6568"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "59196c365b889377249564f7e7a60e3c993610abb548c514dafe975d0694eefa",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:48:29.500941+00:00",
+      "ended_at": "2026-10-18T21:48:35.567420+00:00"
+    },
+    {
+      "run_id": "native-llm-profile-load-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/native-llm-profile-load-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1362,
+        "sha256": "3e30d202c7de5fce10f83bce104189ba5a7011c654e501a21ceee732cb685682"
+      },
+      "log": ".project-local/runs/be268a2d33/native-llm-profile-load-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 152,
+        "sha256": "3f64f24202c0441e5e93d8e576e9bcb37cd6ca854cade63025a6f51a1ac944c5"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:50:41.187384+00:00",
+      "ended_at": "2026-10-18T21:51:31.885837+00:00"
+    },
+    {
+      "run_id": "final-integrated-candidate-promotion-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/final-integrated-candidate-promotion-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1430,
+        "sha256": "1924c6d6d6b7041e6158cbd5a9e7d386d5a2fb96d283bccba4482eb60dedd94a"
+      },
+      "log": ".project-local/runs/be268a2d33/final-integrated-candidate-promotion-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 8087,
+        "sha256": "5bca5671d76668aa9e80f4e5049d6cd4d0a0fef063486a10318e6de4c9451384"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:50:59.786529+00:00",
+      "ended_at": "2026-10-18T21:51:19.178376+00:00"
+    },
+    {
+      "run_id": "integrated-handoff-native-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/integrated-handoff-native-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 2097,
+        "sha256": "10fc027b306cf05a009e3bb4e71424ab6cce5002dd72c98330dffa34f9b70e4d"
+      },
+      "log": ".project-local/runs/be268a2d33/integrated-handoff-native-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 8205,
+        "sha256": "9fbf31f27d5abeff2428673ef9cc6a965bdf8cc1b687f4e1511e3250b5264377"
+      },
+      "status": "FAIL",
+      "exit_code": 1,
+      "source_patch_sha256": "cb30165e59cf2b3862f71ecdf457185049a80fbebd77752944752913bd84f16c",
+      "source_consistent": true,
+      "started_at": "2026-10-18T21:51:42.828818+00:00",
+      "ended_at": "2026-10-18T21:55:28.373133+00:00"
+    }
+  ],
+  "counting_boundary": "122探针pytest+145子例；125 Python合同pytest；68 API Rust tests；2 Rust合同tests分别遍历67/27共享case。组间重叠，不能相加为产品验收覆盖。",
+  "historical_frontend_full_suite": "前一轮177文件1781项PASS仅保留其原patch，本轮新增生成类型有当前TypeScript/Vite构建，不重写历史全套资格。",
+  "native": "整体FAIL；import/read/anchor/claim/learn/practice/review PASS，真实27B original answer成功；纠正后复测MODEL_CALL_TIMEOUT118.03秒，材料/陪伴/取消及重开恢复未到达。",
+  "source_binding": "最终Core/Host/Promotion/Native同patch；随后仅导航与归档写入不重建原产品运行资格。"
+}

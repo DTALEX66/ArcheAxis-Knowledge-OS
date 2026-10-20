@@ -295,8 +295,18 @@ async fn capability(State(runtime): State<Runtime>, Path(name): Path<String>) ->
 async fn set_capability_enabled(
     State(runtime): State<Runtime>,
     Path(name): Path<String>,
+    headers: HeaderMap,
     Json(body): Json<CapabilityEnabledBody>,
 ) -> Response {
+    // Capability policy belongs to the human host. Launch middleware derives
+    // this actor from the bootstrap credential, overriding self-reported headers.
+    if crate::request_actor(&headers) != Ok("human") {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(json!({"code":"CAPABILITY_SETTINGS_HUMAN_REQUIRED"})),
+        )
+            .into_response();
+    }
     crate::capabilities::set_enabled(&runtime.executor, &name, body.enabled).await
 }
 
@@ -952,42 +962,52 @@ async fn cancel(
     State(runtime): State<Runtime>,
     Path((job, id)): Path<(String, String)>,
 ) -> Response {
-    {
-        let active = runtime.active.lock().await;
-        if let Some(entry) = active.get(&job) {
-            if entry.faulted {
-                return unavailable();
-            }
-            if entry.request_id != id {
-                return conflict();
-            }
-            entry.cancel.cancel();
-            return (
-                StatusCode::ACCEPTED,
-                Json(json!({"job_id":job,"request_id":id,"cancel_requested":true})),
-            )
-                .into_response();
+    let active = runtime.active.lock().await;
+    if let Some(entry) = active.get(&job) {
+        if entry.faulted {
+            return unavailable();
+        }
+        if entry.request_id != id {
+            return conflict();
         }
     }
     let query_job = job.clone();
     let query_id = id.clone();
-    let previous = runtime
-        .executor
-        .store()
-        .submit(move |conn| {
-            conn.query_row(
-                "SELECT state FROM job_attempts WHERE job_id=?1 AND request_id=?2",
-                [query_job, query_id],
-                |r| r.get::<_, String>(0),
-            )
-            .optional()
-        })
-        .await;
+    let previous = runtime.executor.store().submit(move |conn| {
+        conn.query_row(
+            "SELECT state FROM job_attempts WHERE job_id=?1 AND request_id=?2",
+            [query_job, query_id],
+            |r| r.get::<_, String>(0),
+        )
+        .optional()
+    });
+    let request_cancel = |entry: &Active| {
+        entry.cancel.cancel();
+        (
+            StatusCode::ACCEPTED,
+            Json(json!({"job_id":job,"request_id":id,"cancel_requested":true})),
+        )
+            .into_response()
+    };
+    // 已登记的取消不能等待繁忙的数据库队列；超时仅确认收到取消请求，
+    // 不把未知状态当作已结束。空闲时仍优先回读已持久化的终态。
+    let previous = if let Some(entry) = active.get(&job) {
+        match tokio::time::timeout(std::time::Duration::from_millis(25), previous).await {
+            Ok(previous) => previous,
+            Err(_) => return request_cancel(entry),
+        }
+    } else {
+        previous.await
+    };
     match previous {
         Ok(Ok(Some(state))) if state != "running" => {
             Json(json!({"job_id":job,"request_id":id,"state":state,"cancel_requested":false}))
                 .into_response()
         }
+        Ok(Ok(Some(_))) => match active.get(&job) {
+            Some(entry) => request_cancel(entry),
+            None => unavailable(),
+        },
         Ok(Ok(None)) => error(404, "AAK-VAL-004", "execution not found"),
         _ => unavailable(),
     }
@@ -1016,4 +1036,86 @@ async fn execute_document_check(
     Json(body): Json<crate::documents::CheckExecuteBody>,
 ) -> Response {
     crate::documents::execute_runtime_check(runtime.executor, id, headers, body).await
+}
+
+#[cfg(test)]
+mod cancel_terminal_tests {
+    use super::*;
+    use archeaxis_application::{attempts, jobs};
+    use archeaxis_domain::source::{self, ImportOutcome};
+
+    async fn fixture(faulted: bool) -> (tempfile::TempDir, Runtime, Cancellation) {
+        let dir = tempfile::tempdir().unwrap();
+        // No worker is launched: the regression exercises only the durable/active boundary.
+        let executor = Executor::open(
+            &dir.path().join("db.sqlite"),
+            &dir.path().join("staging"),
+            std::path::Path::new("unused-python"),
+            std::path::Path::new("unused-worker"),
+        )
+        .await
+        .unwrap();
+        executor
+            .store()
+            .submit(|conn| {
+                let source =
+                    match source::import_source(conn, b"cancel fixture", "fixture.txt", None)
+                        .unwrap()
+                    {
+                        ImportOutcome::Imported { source_id, .. } => source_id,
+                        _ => unreachable!(),
+                    };
+                jobs::enqueue(conn, "job", "text", &source).unwrap();
+                let request = attempts::claim(conn, "job", "request", 5000).unwrap();
+                attempts::terminate(conn, &request, "cancelled", "owned cancellation").unwrap();
+            })
+            .await
+            .unwrap();
+        let token = Cancellation::new();
+        let runtime = Runtime {
+            executor,
+            active: Arc::new(Mutex::new(HashMap::from([(
+                "job".into(),
+                Active {
+                    request_id: "request".into(),
+                    cancel: token.clone(),
+                    faulted,
+                },
+            )]))),
+            admission: Arc::new(Mutex::new(())),
+            colearning_admission: Arc::new(Mutex::new(())),
+            machine_active: Arc::new(std::sync::Mutex::new(HashMap::new())),
+        };
+        (dir, runtime, token)
+    }
+
+    #[tokio::test]
+    async fn terminal_receipt_wins_over_lingering_active_registration() {
+        let (_dir, runtime, token) = fixture(false).await;
+        let response = cancel(State(runtime), Path(("job".into(), "request".into()))).await;
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), 65536)
+            .await
+            .unwrap();
+        let body: Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["state"], "cancelled");
+        assert_eq!(body["cancel_requested"], false);
+        assert!(
+            !token.is_cancelled(),
+            "Terminal execution must not receive a new cancellation"
+        );
+    }
+
+    #[tokio::test]
+    async fn active_identity_and_fault_guards_remain_closed() {
+        for (faulted, request, expected) in [
+            (false, "other", StatusCode::CONFLICT),
+            (true, "request", StatusCode::SERVICE_UNAVAILABLE),
+        ] {
+            let (_dir, runtime, token) = fixture(faulted).await;
+            let response = cancel(State(runtime), Path(("job".into(), request.into()))).await;
+            assert_eq!(response.status(), expected);
+            assert!(!token.is_cancelled());
+        }
+    }
 }

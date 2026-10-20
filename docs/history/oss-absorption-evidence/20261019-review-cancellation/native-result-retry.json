@@ -1,0 +1,1344 @@
+{
+  "status": "PARTIAL",
+  "native_journey_exit": "FAIL",
+  "source_patch_sha256": "af63a79fac4a3420d033aed42403d1069e0ebe1043b64e165028985336065ff3",
+  "source_consistent": true,
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\closure-native-stage\\candidate-build-current-20261018T194829Z.json",
+      "sha256": "7f4d1ec4869f68aab12a1bb1e95da4c0f3476595c7b34967a9a425495a1b0638",
+      "bytes": 4703
+    },
+    "core_sha256": "6f35e32fc1c3b0f072c2cb7e7240b954afa665061b37d3c25e04dd7f158cc803"
+  },
+  "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE",
+  "review_title": {
+    "status": "PASS",
+    "item_key": "course:course-9435cb13a5274b9018dc6bd53723cd75c86b0e38c16e51c523922b37e72783a5:artifact:lesson-9435cb13a5274b9018dc6bd53723cd75c86b0e38c16e51c523922b37e72783a5",
+    "projection": {
+      "display_title": "grouped-owner.txt",
+      "item_key": "course:course-9435cb13a5274b9018dc6bd53723cd75c86b0e38c16e51c523922b37e72783a5:artifact:lesson-9435cb13a5274b9018dc6bd53723cd75c86b0e38c16e51c523922b37e72783a5",
+      "next_review": "2026-10-18T19:59:11.111000+00:00"
+    },
+    "layout": {
+      "clientWidth": 145,
+      "label": "grouped-owner.txt",
+      "queueScrollWidth": 460,
+      "queueWidth": 460,
+      "scrollWidth": 145,
+      "width": 146.5625
+    }
+  },
+  "material_companion": {
+    "status": "PASS_REAL_MODEL_SYNTHETIC_MATERIAL_NOT_QUALITY_QUALIFICATION",
+    "questions": {
+      "material_question": "合成材料 b3d9cf421ff6：请用一句中文概括所选材料的主题。",
+      "conversation_request": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。"
+    },
+    "document": {
+      "blocks": [
+        {
+          "block_id": "154b7b80-e205-49f0-9f85-c904a4f76743",
+          "codec_status": "known",
+          "kind": "paragraph",
+          "node_json": {
+            "attrs": {
+              "block_id": "154b7b80-e205-49f0-9f85-c904a4f76743"
+            },
+            "content": [
+              {
+                "text": "Grouped native source b209411ee0c54eaeae9152bdb009bf6a.",
+                "type": "text"
+              },
+              {
+                "type": "hardBreak"
+              },
+              {
+                "text": "ArcheAxis stores original bytes separately from a versioned document.Grouped document revision. ",
+                "type": "text"
+              },
+              {
+                "attrs": {
+                  "anchor_id": "anc_e1fe196cd4ec88edbd448b80",
+                  "excerpt": "grouped-owner.txt",
+                  "position": "{\"checksum\":\"16a7a754aa43990d451c0f9dfe055fd4e585dbbda199eadfa4cca3a9f92816bd\",\"end\":126,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+                  "source_id": "src_229a24a33796c8f5f0582562",
+                  "source_revision": "16a7a754aa43990d451c0f9dfe055fd4e585dbbda199eadfa4cca3a9f92816bd"
+                },
+                "type": "evidenceReference"
+              }
+            ],
+            "type": "paragraph"
+          },
+          "ordinal": 0,
+          "text_projection": "Grouped native source b209411ee0c54eaeae9152bdb009bf6a.\nArcheAxis stores original bytes separately from a versioned document.Grouped document revision. "
+        }
+      ],
+      "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+      "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+      "editor_json": {
+        "content": [
+          {
+            "attrs": {
+              "block_id": "154b7b80-e205-49f0-9f85-c904a4f76743"
+            },
+            "content": [
+              {
+                "text": "Grouped native source b209411ee0c54eaeae9152bdb009bf6a.",
+                "type": "text"
+              },
+              {
+                "type": "hardBreak"
+              },
+              {
+                "text": "ArcheAxis stores original bytes separately from a versioned document.Grouped document revision. ",
+                "type": "text"
+              },
+              {
+                "attrs": {
+                  "anchor_id": "anc_e1fe196cd4ec88edbd448b80",
+                  "excerpt": "grouped-owner.txt",
+                  "position": "{\"checksum\":\"16a7a754aa43990d451c0f9dfe055fd4e585dbbda199eadfa4cca3a9f92816bd\",\"end\":126,\"location_status\":\"located\",\"start\":0,\"type\":\"text\"}",
+                  "source_id": "src_229a24a33796c8f5f0582562",
+                  "source_revision": "16a7a754aa43990d451c0f9dfe055fd4e585dbbda199eadfa4cca3a9f92816bd"
+                },
+                "type": "evidenceReference"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "doc"
+      },
+      "revision_basis": null,
+      "source_id": "src_229a24a33796c8f5f0582562",
+      "source_revision": "16a7a754aa43990d451c0f9dfe055fd4e585dbbda199eadfa4cca3a9f92816bd",
+      "text_projection": "Grouped native source b209411ee0c54eaeae9152bdb009bf6a.\nArcheAxis stores original bytes separately from a versioned document.Grouped document revision. ",
+      "title": "grouped-owner.txt",
+      "version": 3
+    },
+    "resolved": {
+      "material": {
+        "configuration_revision": 1,
+        "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+        "lane": "deep",
+        "profile": {
+          "credential_ref": null,
+          "endpoint": "http://127.0.0.1:1234/v1",
+          "max_tokens": 1024,
+          "model": "aaos-deep-27b-mtp",
+          "protocol": "openai",
+          "timeout_s": 120
+        },
+        "profile_id": "local",
+        "purpose": "material",
+        "restore_epoch": "initial",
+        "schema": "archeaxis.resolved-model/v1",
+        "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+      },
+      "companion": {
+        "configuration_revision": 1,
+        "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+        "lane": "deep",
+        "profile": {
+          "credential_ref": null,
+          "endpoint": "http://127.0.0.1:1234/v1",
+          "max_tokens": 1024,
+          "model": "aaos-deep-27b-mtp",
+          "protocol": "openai",
+          "timeout_s": 120
+        },
+        "profile_id": "local",
+        "purpose": "companion",
+        "restore_epoch": "initial",
+        "schema": "archeaxis.resolved-model/v1",
+        "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+      }
+    },
+    "startup_execution_calls": "UNVERIFIED",
+    "material_preview": {
+      "plan": {
+        "context": {
+          "authority": "unverified_material",
+          "bytes": 153,
+          "context_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+          "material": {
+            "block_id": null,
+            "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+            "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+            "kind": "document",
+            "version": 3
+          },
+          "provenance": {
+            "source_id": "src_229a24a33796c8f5f0582562",
+            "source_revision": "16a7a754aa43990d451c0f9dfe055fd4e585dbbda199eadfa4cca3a9f92816bd"
+          },
+          "selection": {
+            "end_utf16": 152,
+            "quote_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+            "start_utf16": 0
+          }
+        },
+        "cost": null,
+        "destination": "LOCAL_LOOPBACK_ONLY",
+        "destination_candidates": [
+          "http://127.0.0.1:1234/v1"
+        ],
+        "network_scope": "configured_numeric_loopback_endpoint",
+        "request": {
+          "confirmed_plan_sha256": null,
+          "material": {
+            "block_id": null,
+            "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+            "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+            "kind": "document",
+            "version": 3
+          },
+          "max_tokens": 1024,
+          "model": "aaos-deep-27b-mtp",
+          "model_configuration": {
+            "configuration_revision": 1,
+            "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+            "lane": "deep",
+            "profile": {
+              "credential_ref": null,
+              "endpoint": "http://127.0.0.1:1234/v1",
+              "max_tokens": 1024,
+              "model": "aaos-deep-27b-mtp",
+              "protocol": "openai",
+              "timeout_s": 120
+            },
+            "profile_id": "local",
+            "purpose": "material",
+            "restore_epoch": "initial",
+            "schema": "archeaxis.resolved-model/v1",
+            "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+          },
+          "preview": false,
+          "purpose": "隔离合成材料原生验证",
+          "question": "合成材料 b3d9cf421ff6：请用一句中文概括所选材料的主题。",
+          "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+          "selection": {
+            "end_utf16": 152,
+            "quote_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+            "start_utf16": 0
+          },
+          "timeout_s": 120
+        },
+        "restore_epoch": "initial",
+        "schema": "archeaxis.material-question-plan/v1",
+        "selection_policy": "frozen_material_purpose_profile",
+        "usage": null
+      },
+      "plan_sha256": "a7ff0531b3affb3d1e4d9cca63b06e7870a90e1e20d0159d751c74e605cc52aa",
+      "schema": "archeaxis.material-question-preview/v1"
+    },
+    "execution_results": {
+      "material": {
+        "http_status": 200,
+        "bridge_error": null,
+        "response": {
+          "outcome": "succeeded",
+          "plan_sha256": "a7ff0531b3affb3d1e4d9cca63b06e7870a90e1e20d0159d751c74e605cc52aa",
+          "provider_stop_state": "NOT_REQUESTED",
+          "reason_code": null,
+          "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+          "schema": "archeaxis.material-answer/v1",
+          "task_id": "material_answer_0d57addbb3b5e71491acafcf3aa5b8f2808897d7ec54b5ee49589793537f6674"
+        }
+      },
+      "companion": {
+        "http_status": 200,
+        "bridge_error": null,
+        "response": {
+          "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+          "provider_stop_state": "UNKNOWN",
+          "reason_code": null,
+          "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+          "schema": "archeaxis.conversation-receipt/v1",
+          "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+          "state": "completed"
+        }
+      }
+    },
+    "companion_preview": {
+      "network_performed": false,
+      "plan": {
+        "character_context": {
+          "approved_memories": [],
+          "authority": "human_preferences_only",
+          "enabled": false,
+          "grants": [],
+          "knowledge_admitted": false,
+          "learning_goals": "",
+          "preferences": "",
+          "restore_epoch": "initial",
+          "revision": 0,
+          "schema": "archeaxis.character-context/v1",
+          "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+        },
+        "consumer": "archeaxis",
+        "context_sha256": "9c71d90c7a8ed0758be46588738032621137d596cc1351196d0c6a8d62451a51",
+        "cost": null,
+        "delivery": "BUFFERED",
+        "destination": "LOCAL_LOOPBACK_ONLY",
+        "destination_candidates": [
+          "http://127.0.0.1:1234/v1"
+        ],
+        "material_proof": null,
+        "model_binding": "frozen_purpose_profile",
+        "request": {
+          "confirmed_plan_sha256": null,
+          "material": null,
+          "max_tokens": 1024,
+          "model": "aaos-deep-27b-mtp",
+          "model_configuration": {
+            "configuration_revision": 1,
+            "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+            "lane": "deep",
+            "profile": {
+              "credential_ref": null,
+              "endpoint": "http://127.0.0.1:1234/v1",
+              "max_tokens": 1024,
+              "model": "aaos-deep-27b-mtp",
+              "protocol": "openai",
+              "timeout_s": 120
+            },
+            "profile_id": "local",
+            "purpose": "companion",
+            "restore_epoch": "initial",
+            "schema": "archeaxis.resolved-model/v1",
+            "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+          },
+          "preview": false,
+          "purpose": "companion",
+          "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。",
+          "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+          "selection": null,
+          "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+          "timeout_s": 120
+        },
+        "restore_epoch": "initial",
+        "schema": "archeaxis.conversation-plan/v1",
+        "session_sequence": 0,
+        "usage": null
+      },
+      "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+      "schema": "archeaxis.conversation-preview/v1"
+    },
+    "receipts": {
+      "material": {
+        "answer": {
+          "answer": "所选材料的主题是：ArcheAxis 将原始字节与版本化文档分开存储，并涉及分组来源/文档修订。",
+          "answer_source": "content",
+          "cost": null,
+          "cost_status": "UNKNOWN",
+          "elapsed_s": 109.26,
+          "endpoint": "http://127.0.0.1:1234/v1",
+          "engine": "python-worker-machine-answer",
+          "engine_version": "0.1.0",
+          "finish_reason": "stop",
+          "loss_receipt": {
+            "engine": "python-worker-machine-answer",
+            "engine_version": "0.1.0",
+            "loss_note": "an answer is model output awaiting human review, not accepted knowledge",
+            "losses": [],
+            "params": {
+              "answer_source": "content",
+              "authority": "candidate",
+              "endpoint": "http://127.0.0.1:1234/v1",
+              "finish_reason": "stop",
+              "max_tokens": 1024,
+              "model": "aaos-deep-27b-mtp",
+              "observed_model": "aaos-deep-27b-mtp",
+              "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+              "protocol": "openai",
+              "requested_model": "aaos-deep-27b-mtp"
+            }
+          },
+          "max_tokens": 1024,
+          "model": "aaos-deep-27b-mtp",
+          "observed_model": "aaos-deep-27b-mtp",
+          "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+          "protocol": "openai",
+          "requested_model": "aaos-deep-27b-mtp",
+          "text": "所选材料的主题是：ArcheAxis 将原始字节与版本化文档分开存储，并涉及分组来源/文档修订。",
+          "truncated": false,
+          "usage": {
+            "input_tokens": 209,
+            "output_tokens": 342,
+            "total_tokens": 551
+          },
+          "usage_status": "REPORTED"
+        },
+        "answer_sha256": "cd67d68c53f0dc2b95c6f9dde424ae553931a92623ad73b0bad6761b00682a97",
+        "authority": "candidate",
+        "grants_knowledge_acceptance": false,
+        "outcome": "succeeded",
+        "plan": {
+          "context": {
+            "authority": "unverified_material",
+            "bytes": 153,
+            "context_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+            "material": {
+              "block_id": null,
+              "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+              "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+              "kind": "document",
+              "version": 3
+            },
+            "provenance": {
+              "source_id": "src_229a24a33796c8f5f0582562",
+              "source_revision": "16a7a754aa43990d451c0f9dfe055fd4e585dbbda199eadfa4cca3a9f92816bd"
+            },
+            "selection": {
+              "end_utf16": 152,
+              "quote_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+              "start_utf16": 0
+            }
+          },
+          "cost": null,
+          "destination": "LOCAL_LOOPBACK_ONLY",
+          "destination_candidates": [
+            "http://127.0.0.1:1234/v1"
+          ],
+          "network_scope": "configured_numeric_loopback_endpoint",
+          "request": {
+            "confirmed_plan_sha256": null,
+            "material": {
+              "block_id": null,
+              "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+              "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+              "kind": "document",
+              "version": 3
+            },
+            "max_tokens": 1024,
+            "model": "aaos-deep-27b-mtp",
+            "model_configuration": {
+              "configuration_revision": 1,
+              "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+              "lane": "deep",
+              "profile": {
+                "credential_ref": null,
+                "endpoint": "http://127.0.0.1:1234/v1",
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "protocol": "openai",
+                "timeout_s": 120
+              },
+              "profile_id": "local",
+              "purpose": "material",
+              "restore_epoch": "initial",
+              "schema": "archeaxis.resolved-model/v1",
+              "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+            },
+            "preview": false,
+            "purpose": "隔离合成材料原生验证",
+            "question": "合成材料 b3d9cf421ff6：请用一句中文概括所选材料的主题。",
+            "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+            "selection": {
+              "end_utf16": 152,
+              "quote_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+              "start_utf16": 0
+            },
+            "timeout_s": 120
+          },
+          "restore_epoch": "initial",
+          "schema": "archeaxis.material-question-plan/v1",
+          "selection_policy": "frozen_material_purpose_profile",
+          "usage": null
+        },
+        "plan_sha256": "a7ff0531b3affb3d1e4d9cca63b06e7870a90e1e20d0159d751c74e605cc52aa",
+        "provider_stop_state": "NOT_REQUESTED",
+        "reason_code": null,
+        "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+        "schema": "archeaxis.material-answer/v1",
+        "task_id": "material_answer_0d57addbb3b5e71491acafcf3aa5b8f2808897d7ec54b5ee49589793537f6674"
+      },
+      "companion": {
+        "answer": {
+          "answer": "现有上下文没有提供今天如何复习知识的信息，因此我无法据此给出建议。",
+          "answer_source": "content",
+          "cost": null,
+          "cost_status": "UNKNOWN",
+          "elapsed_s": 71.62,
+          "endpoint": "http://127.0.0.1:1234/v1",
+          "engine": "python-worker-machine-answer",
+          "engine_version": "0.1.0",
+          "finish_reason": "stop",
+          "loss_receipt": {
+            "engine": "python-worker-machine-answer",
+            "engine_version": "0.1.0",
+            "loss_note": "an answer is model output awaiting human review, not accepted knowledge",
+            "losses": [],
+            "params": {
+              "answer_source": "content",
+              "authority": "candidate",
+              "endpoint": "http://127.0.0.1:1234/v1",
+              "finish_reason": "stop",
+              "max_tokens": 1024,
+              "model": "aaos-deep-27b-mtp",
+              "observed_model": "aaos-deep-27b-mtp",
+              "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+              "protocol": "openai",
+              "requested_model": "aaos-deep-27b-mtp"
+            }
+          },
+          "max_tokens": 1024,
+          "model": "aaos-deep-27b-mtp",
+          "observed_model": "aaos-deep-27b-mtp",
+          "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+          "protocol": "openai",
+          "requested_model": "aaos-deep-27b-mtp",
+          "text": "现有上下文没有提供今天如何复习知识的信息，因此我无法据此给出建议。",
+          "truncated": false,
+          "usage": {
+            "input_tokens": 180,
+            "output_tokens": 195,
+            "total_tokens": 375
+          },
+          "usage_status": "REPORTED"
+        },
+        "authority": "candidate",
+        "delivery": "BUFFERED",
+        "grants_knowledge_acceptance": false,
+        "plan": {
+          "character_context": {
+            "approved_memories": [],
+            "authority": "human_preferences_only",
+            "enabled": false,
+            "grants": [],
+            "knowledge_admitted": false,
+            "learning_goals": "",
+            "preferences": "",
+            "restore_epoch": "initial",
+            "revision": 0,
+            "schema": "archeaxis.character-context/v1",
+            "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+          },
+          "consumer": "archeaxis",
+          "context_sha256": "9c71d90c7a8ed0758be46588738032621137d596cc1351196d0c6a8d62451a51",
+          "cost": null,
+          "delivery": "BUFFERED",
+          "destination": "LOCAL_LOOPBACK_ONLY",
+          "destination_candidates": [
+            "http://127.0.0.1:1234/v1"
+          ],
+          "material_proof": null,
+          "model_binding": "frozen_purpose_profile",
+          "request": {
+            "confirmed_plan_sha256": null,
+            "material": null,
+            "max_tokens": 1024,
+            "model": "aaos-deep-27b-mtp",
+            "model_configuration": {
+              "configuration_revision": 1,
+              "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+              "lane": "deep",
+              "profile": {
+                "credential_ref": null,
+                "endpoint": "http://127.0.0.1:1234/v1",
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "protocol": "openai",
+                "timeout_s": 120
+              },
+              "profile_id": "local",
+              "purpose": "companion",
+              "restore_epoch": "initial",
+              "schema": "archeaxis.resolved-model/v1",
+              "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+            },
+            "preview": false,
+            "purpose": "companion",
+            "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。",
+            "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+            "selection": null,
+            "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+            "timeout_s": 120
+          },
+          "restore_epoch": "initial",
+          "schema": "archeaxis.conversation-plan/v1",
+          "session_sequence": 0,
+          "usage": null
+        },
+        "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+        "provider_stop_state": "UNKNOWN",
+        "reason_code": null,
+        "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+        "schema": "archeaxis.conversation-receipt/v1",
+        "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+        "state": "completed"
+      },
+      "history": {
+        "after_sequence": 0,
+        "consumer": "archeaxis",
+        "cross_project_consumer": "UNVERIFIED",
+        "delivery": "BUFFERED",
+        "events": [
+          {
+            "data": {
+              "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+              "purpose": "companion",
+              "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。"
+            },
+            "delivery": "BUFFERED",
+            "kind": "accepted",
+            "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+            "sequence": 1,
+            "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336"
+          },
+          {
+            "data": {
+              "answer": {
+                "answer": "现有上下文没有提供今天如何复习知识的信息，因此我无法据此给出建议。",
+                "answer_source": "content",
+                "cost": null,
+                "cost_status": "UNKNOWN",
+                "elapsed_s": 71.62,
+                "endpoint": "http://127.0.0.1:1234/v1",
+                "engine": "python-worker-machine-answer",
+                "engine_version": "0.1.0",
+                "finish_reason": "stop",
+                "loss_receipt": {
+                  "engine": "python-worker-machine-answer",
+                  "engine_version": "0.1.0",
+                  "loss_note": "an answer is model output awaiting human review, not accepted knowledge",
+                  "losses": [],
+                  "params": {
+                    "answer_source": "content",
+                    "authority": "candidate",
+                    "endpoint": "http://127.0.0.1:1234/v1",
+                    "finish_reason": "stop",
+                    "max_tokens": 1024,
+                    "model": "aaos-deep-27b-mtp",
+                    "observed_model": "aaos-deep-27b-mtp",
+                    "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+                    "protocol": "openai",
+                    "requested_model": "aaos-deep-27b-mtp"
+                  }
+                },
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "observed_model": "aaos-deep-27b-mtp",
+                "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+                "protocol": "openai",
+                "requested_model": "aaos-deep-27b-mtp",
+                "text": "现有上下文没有提供今天如何复习知识的信息，因此我无法据此给出建议。",
+                "truncated": false,
+                "usage": {
+                  "input_tokens": 180,
+                  "output_tokens": 195,
+                  "total_tokens": 375
+                },
+                "usage_status": "REPORTED"
+              },
+              "authority": "candidate",
+              "delivery": "BUFFERED",
+              "grants_knowledge_acceptance": false,
+              "plan": {
+                "character_context": {
+                  "approved_memories": [],
+                  "authority": "human_preferences_only",
+                  "enabled": false,
+                  "grants": [],
+                  "knowledge_admitted": false,
+                  "learning_goals": "",
+                  "preferences": "",
+                  "restore_epoch": "initial",
+                  "revision": 0,
+                  "schema": "archeaxis.character-context/v1",
+                  "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+                },
+                "consumer": "archeaxis",
+                "context_sha256": "9c71d90c7a8ed0758be46588738032621137d596cc1351196d0c6a8d62451a51",
+                "cost": null,
+                "delivery": "BUFFERED",
+                "destination": "LOCAL_LOOPBACK_ONLY",
+                "destination_candidates": [
+                  "http://127.0.0.1:1234/v1"
+                ],
+                "material_proof": null,
+                "model_binding": "frozen_purpose_profile",
+                "request": {
+                  "confirmed_plan_sha256": null,
+                  "material": null,
+                  "max_tokens": 1024,
+                  "model": "aaos-deep-27b-mtp",
+                  "model_configuration": {
+                    "configuration_revision": 1,
+                    "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+                    "lane": "deep",
+                    "profile": {
+                      "credential_ref": null,
+                      "endpoint": "http://127.0.0.1:1234/v1",
+                      "max_tokens": 1024,
+                      "model": "aaos-deep-27b-mtp",
+                      "protocol": "openai",
+                      "timeout_s": 120
+                    },
+                    "profile_id": "local",
+                    "purpose": "companion",
+                    "restore_epoch": "initial",
+                    "schema": "archeaxis.resolved-model/v1",
+                    "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+                  },
+                  "preview": false,
+                  "purpose": "companion",
+                  "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。",
+                  "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+                  "selection": null,
+                  "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+                  "timeout_s": 120
+                },
+                "restore_epoch": "initial",
+                "schema": "archeaxis.conversation-plan/v1",
+                "session_sequence": 0,
+                "usage": null
+              },
+              "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+              "provider_stop_state": "UNKNOWN",
+              "reason_code": null,
+              "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+              "schema": "archeaxis.conversation-receipt/v1",
+              "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+              "state": "completed"
+            },
+            "delivery": "BUFFERED",
+            "kind": "completed",
+            "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+            "sequence": 2,
+            "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336"
+          }
+        ],
+        "last_sequence": 2,
+        "limit": 64,
+        "requests": [
+          {
+            "plan": {
+              "character_context": {
+                "approved_memories": [],
+                "authority": "human_preferences_only",
+                "enabled": false,
+                "grants": [],
+                "knowledge_admitted": false,
+                "learning_goals": "",
+                "preferences": "",
+                "restore_epoch": "initial",
+                "revision": 0,
+                "schema": "archeaxis.character-context/v1",
+                "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+              },
+              "consumer": "archeaxis",
+              "context_sha256": "9c71d90c7a8ed0758be46588738032621137d596cc1351196d0c6a8d62451a51",
+              "cost": null,
+              "delivery": "BUFFERED",
+              "destination": "LOCAL_LOOPBACK_ONLY",
+              "destination_candidates": [
+                "http://127.0.0.1:1234/v1"
+              ],
+              "material_proof": null,
+              "model_binding": "frozen_purpose_profile",
+              "request": {
+                "confirmed_plan_sha256": null,
+                "material": null,
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "model_configuration": {
+                  "configuration_revision": 1,
+                  "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+                  "lane": "deep",
+                  "profile": {
+                    "credential_ref": null,
+                    "endpoint": "http://127.0.0.1:1234/v1",
+                    "max_tokens": 1024,
+                    "model": "aaos-deep-27b-mtp",
+                    "protocol": "openai",
+                    "timeout_s": 120
+                  },
+                  "profile_id": "local",
+                  "purpose": "companion",
+                  "restore_epoch": "initial",
+                  "schema": "archeaxis.resolved-model/v1",
+                  "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+                },
+                "preview": false,
+                "purpose": "companion",
+                "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。",
+                "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+                "selection": null,
+                "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+                "timeout_s": 120
+              },
+              "restore_epoch": "initial",
+              "schema": "archeaxis.conversation-plan/v1",
+              "session_sequence": 0,
+              "usage": null
+            },
+            "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+            "receipt": {
+              "answer": {
+                "answer": "现有上下文没有提供今天如何复习知识的信息，因此我无法据此给出建议。",
+                "answer_source": "content",
+                "cost": null,
+                "cost_status": "UNKNOWN",
+                "elapsed_s": 71.62,
+                "endpoint": "http://127.0.0.1:1234/v1",
+                "engine": "python-worker-machine-answer",
+                "engine_version": "0.1.0",
+                "finish_reason": "stop",
+                "loss_receipt": {
+                  "engine": "python-worker-machine-answer",
+                  "engine_version": "0.1.0",
+                  "loss_note": "an answer is model output awaiting human review, not accepted knowledge",
+                  "losses": [],
+                  "params": {
+                    "answer_source": "content",
+                    "authority": "candidate",
+                    "endpoint": "http://127.0.0.1:1234/v1",
+                    "finish_reason": "stop",
+                    "max_tokens": 1024,
+                    "model": "aaos-deep-27b-mtp",
+                    "observed_model": "aaos-deep-27b-mtp",
+                    "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+                    "protocol": "openai",
+                    "requested_model": "aaos-deep-27b-mtp"
+                  }
+                },
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "observed_model": "aaos-deep-27b-mtp",
+                "prompt_version": "archeaxis.vnext/v1 2026-10-02",
+                "protocol": "openai",
+                "requested_model": "aaos-deep-27b-mtp",
+                "text": "现有上下文没有提供今天如何复习知识的信息，因此我无法据此给出建议。",
+                "truncated": false,
+                "usage": {
+                  "input_tokens": 180,
+                  "output_tokens": 195,
+                  "total_tokens": 375
+                },
+                "usage_status": "REPORTED"
+              },
+              "authority": "candidate",
+              "delivery": "BUFFERED",
+              "grants_knowledge_acceptance": false,
+              "plan": {
+                "character_context": {
+                  "approved_memories": [],
+                  "authority": "human_preferences_only",
+                  "enabled": false,
+                  "grants": [],
+                  "knowledge_admitted": false,
+                  "learning_goals": "",
+                  "preferences": "",
+                  "restore_epoch": "initial",
+                  "revision": 0,
+                  "schema": "archeaxis.character-context/v1",
+                  "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+                },
+                "consumer": "archeaxis",
+                "context_sha256": "9c71d90c7a8ed0758be46588738032621137d596cc1351196d0c6a8d62451a51",
+                "cost": null,
+                "delivery": "BUFFERED",
+                "destination": "LOCAL_LOOPBACK_ONLY",
+                "destination_candidates": [
+                  "http://127.0.0.1:1234/v1"
+                ],
+                "material_proof": null,
+                "model_binding": "frozen_purpose_profile",
+                "request": {
+                  "confirmed_plan_sha256": null,
+                  "material": null,
+                  "max_tokens": 1024,
+                  "model": "aaos-deep-27b-mtp",
+                  "model_configuration": {
+                    "configuration_revision": 1,
+                    "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+                    "lane": "deep",
+                    "profile": {
+                      "credential_ref": null,
+                      "endpoint": "http://127.0.0.1:1234/v1",
+                      "max_tokens": 1024,
+                      "model": "aaos-deep-27b-mtp",
+                      "protocol": "openai",
+                      "timeout_s": 120
+                    },
+                    "profile_id": "local",
+                    "purpose": "companion",
+                    "restore_epoch": "initial",
+                    "schema": "archeaxis.resolved-model/v1",
+                    "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+                  },
+                  "preview": false,
+                  "purpose": "companion",
+                  "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。",
+                  "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+                  "selection": null,
+                  "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+                  "timeout_s": 120
+                },
+                "restore_epoch": "initial",
+                "schema": "archeaxis.conversation-plan/v1",
+                "session_sequence": 0,
+                "usage": null
+              },
+              "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+              "provider_stop_state": "UNKNOWN",
+              "reason_code": null,
+              "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+              "schema": "archeaxis.conversation-receipt/v1",
+              "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+              "state": "completed"
+            },
+            "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+            "state": "completed"
+          }
+        ],
+        "schema": "archeaxis.conversation-session/v1",
+        "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+        "title": "本地陪伴会话"
+      }
+    },
+    "same_process_recovery": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "additional_observed_ui_execution_calls": 0
+    },
+    "observed_calls": {
+      "overflow": false,
+      "rows": [
+        {
+          "completed": true,
+          "operation": "material_question",
+          "own": true,
+          "preview": true,
+          "preview_response": {
+            "plan": {
+              "context": {
+                "authority": "unverified_material",
+                "bytes": 153,
+                "context_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+                "material": {
+                  "block_id": null,
+                  "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+                  "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+                  "kind": "document",
+                  "version": 3
+                },
+                "provenance": {
+                  "source_id": "src_229a24a33796c8f5f0582562",
+                  "source_revision": "16a7a754aa43990d451c0f9dfe055fd4e585dbbda199eadfa4cca3a9f92816bd"
+                },
+                "selection": {
+                  "end_utf16": 152,
+                  "quote_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+                  "start_utf16": 0
+                }
+              },
+              "cost": null,
+              "destination": "LOCAL_LOOPBACK_ONLY",
+              "destination_candidates": [
+                "http://127.0.0.1:1234/v1"
+              ],
+              "network_scope": "configured_numeric_loopback_endpoint",
+              "request": {
+                "confirmed_plan_sha256": null,
+                "material": {
+                  "block_id": null,
+                  "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+                  "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+                  "kind": "document",
+                  "version": 3
+                },
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "model_configuration": {
+                  "configuration_revision": 1,
+                  "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+                  "lane": "deep",
+                  "profile": {
+                    "credential_ref": null,
+                    "endpoint": "http://127.0.0.1:1234/v1",
+                    "max_tokens": 1024,
+                    "model": "aaos-deep-27b-mtp",
+                    "protocol": "openai",
+                    "timeout_s": 120
+                  },
+                  "profile_id": "local",
+                  "purpose": "material",
+                  "restore_epoch": "initial",
+                  "schema": "archeaxis.resolved-model/v1",
+                  "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+                },
+                "preview": false,
+                "purpose": "隔离合成材料原生验证",
+                "question": "合成材料 b3d9cf421ff6：请用一句中文概括所选材料的主题。",
+                "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+                "selection": {
+                  "end_utf16": 152,
+                  "quote_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+                  "start_utf16": 0
+                },
+                "timeout_s": 120
+              },
+              "restore_epoch": "initial",
+              "schema": "archeaxis.material-question-plan/v1",
+              "selection_policy": "frozen_material_purpose_profile",
+              "usage": null
+            },
+            "plan_sha256": "a7ff0531b3affb3d1e4d9cca63b06e7870a90e1e20d0159d751c74e605cc52aa",
+            "schema": "archeaxis.material-question-preview/v1"
+          },
+          "request": {
+            "confirmed_plan_sha256": null,
+            "material": {
+              "block_id": null,
+              "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+              "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+              "kind": "document",
+              "version": 3
+            },
+            "max_tokens": 1024,
+            "model": "aaos-deep-27b-mtp",
+            "model_configuration": {
+              "configuration_revision": 1,
+              "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+              "lane": "deep",
+              "profile": {
+                "credential_ref": null,
+                "endpoint": "http://127.0.0.1:1234/v1",
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "protocol": "openai",
+                "timeout_s": 120
+              },
+              "profile_id": "local",
+              "purpose": "material",
+              "restore_epoch": "initial",
+              "schema": "archeaxis.resolved-model/v1",
+              "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+            },
+            "preview": true,
+            "purpose": "隔离合成材料原生验证",
+            "question": "合成材料 b3d9cf421ff6：请用一句中文概括所选材料的主题。",
+            "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+            "selection": {
+              "end_utf16": 152,
+              "quote_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+              "start_utf16": 0
+            },
+            "timeout_s": 120
+          },
+          "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+          "session_id": null,
+          "status": 200
+        },
+        {
+          "completed": true,
+          "operation": "material_question",
+          "own": true,
+          "preview": false,
+          "request": {
+            "confirmed_plan_sha256": "a7ff0531b3affb3d1e4d9cca63b06e7870a90e1e20d0159d751c74e605cc52aa",
+            "material": {
+              "block_id": null,
+              "content_sha256": "1838cbf649955d71bfd4ce7d4f567e2ba4dfc03d85a9700c67b7e8cf7d8ab656",
+              "document_id": "doc_req_6209f1d15b1d37d6e13204c4ef4a234750782cdb7c596ecf16d356a33ecbe64b",
+              "kind": "document",
+              "version": 3
+            },
+            "max_tokens": 1024,
+            "model": "aaos-deep-27b-mtp",
+            "model_configuration": {
+              "configuration_revision": 1,
+              "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+              "lane": "deep",
+              "profile": {
+                "credential_ref": null,
+                "endpoint": "http://127.0.0.1:1234/v1",
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "protocol": "openai",
+                "timeout_s": 120
+              },
+              "profile_id": "local",
+              "purpose": "material",
+              "restore_epoch": "initial",
+              "schema": "archeaxis.resolved-model/v1",
+              "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+            },
+            "preview": false,
+            "purpose": "隔离合成材料原生验证",
+            "question": "合成材料 b3d9cf421ff6：请用一句中文概括所选材料的主题。",
+            "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+            "selection": {
+              "end_utf16": 152,
+              "quote_sha256": "ad9c321a156afc2baed7c82d288818cad50ac60a376fb0a76b5e5897c4bdd329",
+              "start_utf16": 0
+            },
+            "timeout_s": 120
+          },
+          "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+          "session_id": null,
+          "status": 200,
+          "terminal_response": {
+            "outcome": "succeeded",
+            "plan_sha256": "a7ff0531b3affb3d1e4d9cca63b06e7870a90e1e20d0159d751c74e605cc52aa",
+            "provider_stop_state": "NOT_REQUESTED",
+            "reason_code": null,
+            "request_id": "67bef9fa-83e7-4c4b-a315-a80977911c5f",
+            "schema": "archeaxis.material-answer/v1",
+            "task_id": "material_answer_0d57addbb3b5e71491acafcf3aa5b8f2808897d7ec54b5ee49589793537f6674"
+          }
+        },
+        {
+          "completed": true,
+          "operation": "conversation_request",
+          "own": true,
+          "preview": true,
+          "preview_response": {
+            "network_performed": false,
+            "plan": {
+              "character_context": {
+                "approved_memories": [],
+                "authority": "human_preferences_only",
+                "enabled": false,
+                "grants": [],
+                "knowledge_admitted": false,
+                "learning_goals": "",
+                "preferences": "",
+                "restore_epoch": "initial",
+                "revision": 0,
+                "schema": "archeaxis.character-context/v1",
+                "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+              },
+              "consumer": "archeaxis",
+              "context_sha256": "9c71d90c7a8ed0758be46588738032621137d596cc1351196d0c6a8d62451a51",
+              "cost": null,
+              "delivery": "BUFFERED",
+              "destination": "LOCAL_LOOPBACK_ONLY",
+              "destination_candidates": [
+                "http://127.0.0.1:1234/v1"
+              ],
+              "material_proof": null,
+              "model_binding": "frozen_purpose_profile",
+              "request": {
+                "confirmed_plan_sha256": null,
+                "material": null,
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "model_configuration": {
+                  "configuration_revision": 1,
+                  "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+                  "lane": "deep",
+                  "profile": {
+                    "credential_ref": null,
+                    "endpoint": "http://127.0.0.1:1234/v1",
+                    "max_tokens": 1024,
+                    "model": "aaos-deep-27b-mtp",
+                    "protocol": "openai",
+                    "timeout_s": 120
+                  },
+                  "profile_id": "local",
+                  "purpose": "companion",
+                  "restore_epoch": "initial",
+                  "schema": "archeaxis.resolved-model/v1",
+                  "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+                },
+                "preview": false,
+                "purpose": "companion",
+                "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。",
+                "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+                "selection": null,
+                "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+                "timeout_s": 120
+              },
+              "restore_epoch": "initial",
+              "schema": "archeaxis.conversation-plan/v1",
+              "session_sequence": 0,
+              "usage": null
+            },
+            "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+            "schema": "archeaxis.conversation-preview/v1"
+          },
+          "request": {
+            "confirmed_plan_sha256": null,
+            "material": null,
+            "max_tokens": 1024,
+            "model": "aaos-deep-27b-mtp",
+            "model_configuration": {
+              "configuration_revision": 1,
+              "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+              "lane": "deep",
+              "profile": {
+                "credential_ref": null,
+                "endpoint": "http://127.0.0.1:1234/v1",
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "protocol": "openai",
+                "timeout_s": 120
+              },
+              "profile_id": "local",
+              "purpose": "companion",
+              "restore_epoch": "initial",
+              "schema": "archeaxis.resolved-model/v1",
+              "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+            },
+            "preview": true,
+            "purpose": "companion",
+            "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。",
+            "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+            "selection": null,
+            "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+            "timeout_s": 120
+          },
+          "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+          "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+          "status": 200
+        },
+        {
+          "completed": true,
+          "operation": "conversation_request",
+          "own": true,
+          "preview": false,
+          "request": {
+            "confirmed_plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+            "material": null,
+            "max_tokens": 1024,
+            "model": "aaos-deep-27b-mtp",
+            "model_configuration": {
+              "configuration_revision": 1,
+              "configuration_sha256": "6a5cc3d3df9b177d8fd48fb8c1dc90147bb72313cfc28d254e7a36e0576d1b7f",
+              "lane": "deep",
+              "profile": {
+                "credential_ref": null,
+                "endpoint": "http://127.0.0.1:1234/v1",
+                "max_tokens": 1024,
+                "model": "aaos-deep-27b-mtp",
+                "protocol": "openai",
+                "timeout_s": 120
+              },
+              "profile_id": "local",
+              "purpose": "companion",
+              "restore_epoch": "initial",
+              "schema": "archeaxis.resolved-model/v1",
+              "workspace_id": "4d35957efb3143b43d11e683f5038fac"
+            },
+            "preview": false,
+            "purpose": "companion",
+            "question": "合成陪伴 b3d9cf421ff6：请用一句中文建议今天如何复习知识。",
+            "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+            "selection": null,
+            "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+            "timeout_s": 120
+          },
+          "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+          "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+          "status": 200,
+          "terminal_response": {
+            "plan_sha256": "dffa67efa7df76a7a79a188dc078876db8926ff38fdde243bd5b8a454f072ed9",
+            "provider_stop_state": "UNKNOWN",
+            "reason_code": null,
+            "request_id": "d66a0981-fc2c-447b-b28f-851ea59710c9",
+            "schema": "archeaxis.conversation-receipt/v1",
+            "session_id": "d4029c73-9fa0-4d3e-b910-21552b3a1336",
+            "state": "completed"
+          }
+        }
+      ]
+    },
+    "cold_reopen": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "observed_after_attach_ui_execution_calls": 0,
+      "startup_execution_calls": "UNVERIFIED"
+    },
+    "cold_reopen_observation": {
+      "overflow": false,
+      "rows": []
+    },
+    "backup_restore": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "observed_after_attach_ui_execution_calls": 0,
+      "startup_execution_calls": "UNVERIFIED"
+    },
+    "backup_restore_observation": {
+      "overflow": false,
+      "rows": []
+    }
+  },
+  "cancellation": {
+    "status": "NOT_EXECUTED",
+    "observed_execution_or_cancel_requests": 0,
+    "stage": {
+      "status": "IN_PROGRESS",
+      "questions": {
+        "material_question": "隔离取消验证 0d023a4fdce9：请详细分二十节说明知识整理与复习流程，每节至少两百字。",
+        "conversation_request": "隔离取消验证 0d023a4fdce9：请详细分二十节说明知识整理与复习流程，每节至少两百字。"
+      },
+      "purposes": {},
+      "provider_stop_state": "UNKNOWN",
+      "worker_started": "UNVERIFIED"
+    }
+  },
+  "blocker": "WebDriverProtocolError: {'data': {'text': '草稿尚未保存，请先保留文字。仍要离开吗？'}, 'error': 'unexpected alert open', 'message': 'unexpected alert open: {Alert text : 草稿尚未保存，请先保留文字。仍要离开吗？}\\n  (Session info: MicrosoftEdge=155.0.4283.62)', 'stacktrace': '\\tmsedgedriver!GetHandleVerifier [0x7ff6aab98295+4f25]\\n\\tmsedge",
+  "cleanup": {
+    "owned_process_cleanup": true,
+    "owned_ports_released": true,
+    "remaining_same_creation_owned_hosts": [],
+    "remaining_owned_port_listeners": []
+  },
+  "screenshots": [
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-5d3ffff53cc5\\tmp\\journey\\grouped-learning-review.png",
+      "sha256": "1e29d208f6d6e185343d5f76888c5ad63f730936002323519673bcbfe18313f6",
+      "bytes": 964396,
+      "visually_reviewed": true
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-5d3ffff53cc5\\tmp\\journey\\material-companion-completed.png",
+      "sha256": "28565d156d36b93d9422db1213419f66b2eb8899b7ce956dab5ec7c33ebefa34",
+      "bytes": 1258222,
+      "visually_reviewed": true
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-5d3ffff53cc5\\tmp\\journey\\material-completed.png",
+      "sha256": "89271e2fa8a7178decafc24f5b227d14a09f93331a90f616c55880275c2e6b23",
+      "bytes": 1257891,
+      "visually_reviewed": true
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-5d3ffff53cc5\\tmp\\journey\\material-cold_reopen.png",
+      "sha256": "d8e4d117c02a569fcd7dd8d5d655047d4dca804fd221726d4fa4f1611fcf9176",
+      "bytes": 1256898,
+      "visually_reviewed": true
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-5d3ffff53cc5\\tmp\\journey\\companion-cold_reopen.png",
+      "sha256": "aadbb8c9c0bb98e41d042614ec71e915e77b4f53ddef3a3a7f109818b05e21c6",
+      "bytes": 1213506,
+      "visually_reviewed": true
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-5d3ffff53cc5\\tmp\\journey\\material-backup_restore.png",
+      "sha256": "444e761c5c624efe8718417b3f07c6b6b676cfd7eea4ac5fe008fbd44ba6bc59",
+      "bytes": 1254345,
+      "visually_reviewed": true
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-5d3ffff53cc5\\tmp\\journey\\companion-backup_restore.png",
+      "sha256": "3b92127c5947882e9f8925d6a9f978970543faf4270801de04b4a5a8233059d7",
+      "bytes": 1215429,
+      "visually_reviewed": true
+    }
+  ],
+  "raw_local_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-5d3ffff53cc5/tmp/journey/receipt.json",
+    "sha256": "174e3aa5a0a1bb4088e3f2ef7c5b7cfc4acc41aab450debcc93bc2b38a9e37dd"
+  },
+  "quality": "UNVERIFIED; ordinary companion advice still refused for missing context",
+  "installed": "NOT_EXECUTED"
+}

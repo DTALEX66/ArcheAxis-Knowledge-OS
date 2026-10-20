@@ -121,7 +121,11 @@ async fn health_reports_handshake_evidence_without_claiming_a_working_engine() {
     assert_eq!(body["declared_only"], false);
     assert_eq!(body["execution_verified"], false);
     let basis = body["capabilities"][0]["health_basis"].as_str().unwrap();
-    assert!(basis.contains("job has to run"), "{basis}");
+    assert!(basis.contains("live NDJSON hello"), "{basis}");
+    assert!(
+        basis.contains("no document executed or output qualified"),
+        "{basis}"
+    );
     assert_eq!(
         body["capabilities"][0]["health_basis"],
         body["capabilities"][1]["health_basis"]

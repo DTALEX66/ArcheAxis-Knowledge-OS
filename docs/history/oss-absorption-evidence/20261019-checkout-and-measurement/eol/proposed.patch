@@ -1,0 +1,276 @@
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -54,3 +54,23 @@
+ 
+ # Original authored capability strings: byte identity is a tested source contract.
+ frontend/src/__tests__/fixtures/ui-capability-details-original.json -text
++
++# 当前可变 capability manifest 仍遵循上方 LF 规则；其原字节身份变化须重新生成 details。
++# 下列精确目录是已封存证据，-text 保全 MANIFEST 约束的原字节，不能按源码重新排版。
++# 后继归档须在首次 git add 前登记自己的精确目录并做 clean/checkout 字节回读；此处不通配全部 history。
++docs/history/oss-absorption-evidence/20261019-capability-course/** -text
++docs/history/oss-absorption-evidence/20261019-companion-policy/** -text
++docs/history/oss-absorption-evidence/20261019-companion-recovery/** -text
++docs/history/oss-absorption-evidence/20261019-consumer-integration/** -text
++docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/** -text
++docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/** -text
++docs/history/oss-absorption-evidence/20261019-machine-deadline/** -text
++docs/history/oss-absorption-evidence/20261019-material-companion/** -text
++docs/history/oss-absorption-evidence/20261019-material-companion-final/** -text
++docs/history/oss-absorption-evidence/20261019-material-companion-qualified/** -text
++docs/history/oss-absorption-evidence/20261019-material-companion-recovery/** -text
++docs/history/oss-absorption-evidence/20261019-observer-learning/** -text
++docs/history/oss-absorption-evidence/20261019-review-cancellation/** -text
++docs/history/oss-absorption-evidence/20261019-review-title/** -text
++docs/history/oss-absorption-evidence/20261019-timeout-metadata/** -text
++docs/history/owner-dialogue-20261019/** -text
+--- a/config/capability-packages/pdf-extract.manifest.json
++++ b/config/capability-packages/pdf-extract.manifest.json
+@@ -1,94 +1,94 @@
+-{
+-  "schema": "archeaxis.capability-package/v1",
+-  "declaration": "DECLARATION_ONLY",
+-  "package_id": "archeaxis.pdf-extract",
+-  "version": "0.1.0",
+-  "capability_ids": [
+-    "CAP-0020"
+-  ],
+-  "resource_keys": [
+-    "pymupdf"
+-  ],
+-  "contribution_points": [
+-    "format_conversion"
+-  ],
+-  "compatibility": {
+-    "host_versions": {
+-      "minimum": "0.1.0",
+-      "maximum_exclusive": "1.0.0"
+-    },
+-    "contract_refs": [
+-      {
+-        "path": "packages/contracts/v1/core-document.schema.json",
+-        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+-      }
+-    ]
+-  },
+-  "runtime_capabilities": [
+-    "pdf.extract"
+-  ],
+-  "permissions": {
+-    "requested": [
+-      "selected_source.read",
+-      "derived_artifact.propose"
+-    ],
+-    "data_scope": "explicit_selected_objects_only",
+-    "network": "none",
+-    "cost": "none",
+-    "explicit_grant_required": true,
+-    "canonical_writer": "rust_core_only",
+-    "credential_handling": "host_reference_only",
+-    "local_to_cloud_fallback": "explicit_grant_only",
+-    "grants_execution": false,
+-    "grants_knowledge_acceptance": false
+-  },
+-  "dependencies": [
+-    {
+-      "resource_key": "pymupdf",
+-      "requirement": "required",
+-      "version_range": null
+-    }
+-  ],
+-  "license": {
+-    "expression": null,
+-    "review": "UNVERIFIED",
+-    "notice_refs": []
+-  },
+-  "inputs": [
+-    {
+-      "kind": "raw_asset_reference",
+-      "contract": {
+-        "path": "packages/contracts/v1/core-document.schema.json",
+-        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+-      },
+-      "max_bytes": 1048576
+-    }
+-  ],
+-  "outputs": [
+-    {
+-      "kind": "document_reference",
+-      "contract": {
+-        "path": "packages/contracts/v1/core-document.schema.json",
+-        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
+-      },
+-      "max_bytes": 1048576
+-    }
+-  ],
+-  "lifecycle": {
+-    "cancellation": "host_propagated",
+-    "exit": "bounded_cleanup",
+-    "timeout_ms": 120000,
+-    "unknown_result": "preserve_unknown_no_auto_retry",
+-    "cleanup_evidence": "required_before_confirmed_exit"
+-  },
+-  "fallback": {
+-    "mode": "unavailable",
+-    "losses": [],
+-    "automatic": false
+-  },
+-  "update": {
+-    "strategy": "reviewed_replacement_only",
+-    "rollback": "preserve_previous_identity_and_originals",
+-    "canonical_data_migration": false
+-  }
+-}
++{
++  "schema": "archeaxis.capability-package/v1",
++  "declaration": "DECLARATION_ONLY",
++  "package_id": "archeaxis.pdf-extract",
++  "version": "0.1.0",
++  "capability_ids": [
++    "CAP-0020"
++  ],
++  "resource_keys": [
++    "pymupdf"
++  ],
++  "contribution_points": [
++    "format_conversion"
++  ],
++  "compatibility": {
++    "host_versions": {
++      "minimum": "0.1.0",
++      "maximum_exclusive": "1.0.0"
++    },
++    "contract_refs": [
++      {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      }
++    ]
++  },
++  "runtime_capabilities": [
++    "pdf.extract"
++  ],
++  "permissions": {
++    "requested": [
++      "selected_source.read",
++      "derived_artifact.propose"
++    ],
++    "data_scope": "explicit_selected_objects_only",
++    "network": "none",
++    "cost": "none",
++    "explicit_grant_required": true,
++    "canonical_writer": "rust_core_only",
++    "credential_handling": "host_reference_only",
++    "local_to_cloud_fallback": "explicit_grant_only",
++    "grants_execution": false,
++    "grants_knowledge_acceptance": false
++  },
++  "dependencies": [
++    {
++      "resource_key": "pymupdf",
++      "requirement": "required",
++      "version_range": null
++    }
++  ],
++  "license": {
++    "expression": null,
++    "review": "UNVERIFIED",
++    "notice_refs": []
++  },
++  "inputs": [
++    {
++      "kind": "raw_asset_reference",
++      "contract": {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      },
++      "max_bytes": 1048576
++    }
++  ],
++  "outputs": [
++    {
++      "kind": "document_reference",
++      "contract": {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      },
++      "max_bytes": 1048576
++    }
++  ],
++  "lifecycle": {
++    "cancellation": "host_propagated",
++    "exit": "bounded_cleanup",
++    "timeout_ms": 120000,
++    "unknown_result": "preserve_unknown_no_auto_retry",
++    "cleanup_evidence": "required_before_confirmed_exit"
++  },
++  "fallback": {
++    "mode": "unavailable",
++    "losses": [],
++    "automatic": false
++  },
++  "update": {
++    "strategy": "reviewed_replacement_only",
++    "rollback": "preserve_previous_identity_and_originals",
++    "canonical_data_migration": false
++  }
++}
+--- a/frontend/src/api/generated/capability-package-details.ts
++++ b/frontend/src/api/generated/capability-package-details.ts
+@@ -16,7 +16,7 @@
+     },
+     {
+       "path": "config/capability-packages/pdf-extract.manifest.json",
+-      "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
++      "sha256": "d16cbc49ec6feae44452bed2b54b999ef6b17899f93430f332c5007b5e668241"
+     },
+     {
+       "path": "crates/archeaxis-api/Cargo.toml",
+@@ -57,7 +57,7 @@
+         "schema": "archeaxis.capability-package/v1",
+         "package_id": "archeaxis.pdf-extract",
+         "version": "0.1.0",
+-        "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
++        "sha256": "d16cbc49ec6feae44452bed2b54b999ef6b17899f93430f332c5007b5e668241"
+       },
+       "manifest": {
+         "schema": "archeaxis.capability-package/v1",
+--- a/tests/contract/test_capability_package_details_node.mjs
++++ b/tests/contract/test_capability_package_details_node.mjs
+@@ -86,3 +86,36 @@
+   symlinkSync(moved, original, process.platform === "win32" ? "junction" : "dir");
+   rejected(root);
+ });
++
++test("Git clean checkout preserves declaration identity and frozen archive bytes", () => {
++  const root = fixture();
++  const frozen = [
++    "docs/history/owner-dialogue-20261019/README.md",
++    "docs/history/owner-dialogue-20261019/decision-coverage.json",
++    "docs/history/oss-absorption-evidence/20261019-companion-policy/task-delta.diff",
++  ];
++  const names = [".gitattributes", ...frozen];
++  for (const name of names) {
++    mkdirSync(dirname(join(root, name)), { recursive: true });
++    copyFileSync(join(ROOT, name), join(root, name));
++  }
++  const originals = new Map([MANIFEST, ...frozen].map(name => [name, readFileSync(join(root, name))]));
++  function git(args) {
++    const env = { ...process.env };
++    // 父进程可能带有真实仓库的 Git 定位；fixture 子进程不能继承其 index/worktree/object 路由。
++    for (const key of Object.keys(env)) if (key.toUpperCase().startsWith("GIT_")) delete env[key];
++    const child = spawnSync("git", ["-c", "core.safecrlf=false", ...args], { cwd: root, encoding: "utf8", env });
++    assert.equal(child.status, 0, `isolated Git fixture failed: ${child.stderr}`);
++  }
++  git(["init", "--quiet"]);
++  git(["add", "--", ...FIXED, ...names]);
++  const checkout = join(root, "owned-checkout");
++  git(["checkout-index", "--all", "--force", "--prefix=" + checkout.replaceAll("\\", "/") + "/"]);
++  // Execute the actual guard against clean checkout bytes; no generated payload is evaluated.
++  assert.equal(checkCapabilityPackageDetails(checkout), true);
++  for (const [name, before] of originals) assert.deepEqual(readFileSync(join(checkout, name)), before, name);
++  // Preserve strict raw identity: a later byte change must still fail.
++  const path = join(checkout, MANIFEST);
++  writeFileSync(path, Buffer.concat([readFileSync(path), Buffer.from(" ")]));
++  rejected(checkout);
++});

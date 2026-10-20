@@ -1,0 +1,53 @@
+{
+  "schema": "aaos.isolated-eol-proposal/v1",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "before_sha256": "98a94ad33303945bf1613e290ca9ae7e5f2286b4f81227adfe48c600c10e6564",
+      "after_sha256": "28d699fb79d13f5c9d2294791a5c6e1208be54cebb91fa76ed84b3e6a6cddca1",
+      "before_crlf": 0,
+      "after_crlf": 0
+    },
+    {
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "before_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+      "after_sha256": "d16cbc49ec6feae44452bed2b54b999ef6b17899f93430f332c5007b5e668241",
+      "before_crlf": 94,
+      "after_crlf": 0
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "before_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+      "after_sha256": "712144d4a73272d57fe9b0549179888edc797f12fbf368b3464336d02e982e44",
+      "before_crlf": 0,
+      "after_crlf": 0
+    },
+    {
+      "path": "tests/contract/test_capability_package_details_node.mjs",
+      "before_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+      "after_sha256": "5e988c3ef9885f24ef83ea3dbec6785bda6a5898962c23560fe01287a19c8e7d",
+      "before_crlf": 0,
+      "after_crlf": 0
+    }
+  ],
+  "frozen_directories": [
+    "docs/history/oss-absorption-evidence/20261019-capability-course",
+    "docs/history/oss-absorption-evidence/20261019-companion-policy",
+    "docs/history/oss-absorption-evidence/20261019-companion-recovery",
+    "docs/history/oss-absorption-evidence/20261019-consumer-integration",
+    "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint",
+    "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native",
+    "docs/history/oss-absorption-evidence/20261019-machine-deadline",
+    "docs/history/oss-absorption-evidence/20261019-material-companion",
+    "docs/history/oss-absorption-evidence/20261019-material-companion-final",
+    "docs/history/oss-absorption-evidence/20261019-material-companion-qualified",
+    "docs/history/oss-absorption-evidence/20261019-material-companion-recovery",
+    "docs/history/oss-absorption-evidence/20261019-observer-learning",
+    "docs/history/oss-absorption-evidence/20261019-review-cancellation",
+    "docs/history/oss-absorption-evidence/20261019-review-title",
+    "docs/history/oss-absorption-evidence/20261019-timeout-metadata",
+    "docs/history/owner-dialogue-20261019"
+  ],
+  "frozen_members_modified": 0,
+  "patch_sha256": "8d1cba0c7d235ba4729c8fc92b840afacffe020fafb45ff3fd2fdee017ceb74a"
+}

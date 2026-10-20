@@ -1,9 +1,15 @@
+import {useDiagnostics} from "../presentation/diagnostics";
+import {findLearningItemButton} from "../test/learningQueue";
 import {useState} from "react";
 import {webcrypto} from "node:crypto";
 import {beforeEach,it,expect,vi} from "vitest";
-import {render,screen,fireEvent,waitFor} from "@testing-library/react";
+import {render,screen,fireEvent,waitFor,within} from "@testing-library/react";
 import {SpaceView} from "../spaces/SpaceView";
 import {CanonicalTeachingSpace} from "../spaces/CanonicalTeachingSpace";
+import {resolveLearningJourney} from "../presentation/learningJourney";
+let observedDiagnostics:ReturnType<typeof useDiagnostics>=[];
+function ObserveDiagnostics(){observedDiagnostics=useDiagnostics();return null;}
+function getDiagnosticEntries(){return observedDiagnostics;}
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const key="course:course-exact:artifact:lesson-exact",knowledgeId="knowledge-exact";
@@ -33,11 +39,12 @@ it("SIMULATED mounted accepted knowledge→actual course/assessment→page11 pra
  fireEvent.click(screen.getByRole("button",{name:"搜索知识"}));fireEvent.click(await screen.findByRole("button",{name:"已接受的同源知识"}));
  fireEvent.click(await screen.findByRole("button",{name:"从当前知识生成课程与课时"}));fireEvent.click(await screen.findByRole("button",{name:"由课程课时建立学习问题"}));
  fireEvent.click(await screen.findByRole("button",{name:"练习此学习项目"}));
+ await waitFor(()=>expect(within(screen.getByLabelText("同对象练习与复习")).getByText("同源课程")).toBeInTheDocument());
  const answer=await screen.findByRole("textbox",{name:"本次答案"});fireEvent.change(answer,{target:{value:"独立作答同一来源"}});
  fireEvent.click(screen.getByRole("button",{name:"反馈与修订"}));
  await waitFor(()=>expect(screen.getByRole("textbox",{name:"本次答案"})).toHaveValue("独立作答同一来源"));
  fireEvent.click(screen.getByRole("button",{name:"查看答案与核对内容"}));fireEvent.click(screen.getByLabelText("回答正确"));fireEvent.change(screen.getByLabelText("学习者自评"),{target:{value:"3"}});fireEvent.click(screen.getByRole("button",{name:"记录复习结果"}));
- await screen.findByText(/Core 已确认复习记录/);
+ await screen.findByText(/复习记录已保存/);
  expect(events).toHaveLength(1);expect(events[0]).toMatchObject({item_key:key,assessment_id:"assessment-exact",knowledge_version:knowledgeId,answer:"独立作答同一来源",correct:true,rating:3});
  expect(bridge.call.mock.calls.some(([op])=>["knowledge_review","machine_answer","teaching_create"].includes(op))).toBe(false);
  expect(bridge.call.mock.calls.filter(([op])=>op==="assessment_create")).toHaveLength(1);
@@ -51,7 +58,7 @@ it("SIMULATED page12 rejects learning_state bound to a different immutable knowl
 });
 it("SIMULATED explicitly selected persisted review item can continue into page11 without recreating its assessment",async()=>{
  setup();events.push({prior:true});render(<Journey initial="06"/>);
- fireEvent.click(await screen.findByRole("button",{name:key}));
+ fireEvent.click(await findLearningItemButton(key));
  await waitFor(()=>expect(screen.getByRole("button",{name:"练习此学习项目"})).toBeEnabled());
  fireEvent.click(screen.getByRole("button",{name:"练习此学习项目"}));
  await screen.findByRole("textbox",{name:"本次答案"});
@@ -106,4 +113,36 @@ it.each(["missing","stale","artifact","source"])("SIMULATED course return refuse
  expect(screen.queryByLabelText("课程候选课时")).not.toBeInTheDocument();expect(bridge.call.mock.calls.slice(before)).toEqual([["course_get",{course_id:"course-exact"}]]);
  expect(screen.getByLabelText("内容")).toHaveValue("不覆盖反馈草稿");expect(screen.getByLabelText("本次答案")).toHaveValue("不覆盖答案");
  expect(bridge.call.mock.calls.some(([op])=>["course_from_knowledge","assessment_create","learning_reference","learning_review","teaching_create"].includes(op))).toBe(false);
+});
+
+
+it("SIMULATED non-course journey derives a title from the fixed assessment without another Core read",async()=>{
+ setup();const original=bridge.call.getMockImplementation()!;const item_key="legacy-assessment-card";
+ bridge.call.mockImplementation((operation:string,payload:Record<string,unknown>)=>operation==="assessment_get"
+  ?Promise.resolve({...assessment(),item_key,content:"\n 固定\t题面标题\n第二行保持在快照中"})
+  :original(operation,payload));
+ const target=await resolveLearningJourney(item_key);
+ expect(target).toMatchObject({item_key,display_title:"固定 题面标题",knowledge_id:knowledgeId,assessment_id:"assessment-exact"});
+ expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["assessment_get","knowledge_get"]);
+ expect(events).toHaveLength(0);
+});
+
+it.each(["11","12"])("SYNTHETIC page%s presents the verified course title and publishes all binding identities only on request",async page=>{
+ setup();render(<><ObserveDiagnostics/><CanonicalTeachingSpace pageId={page} initialItemKey={key}/></>);
+ await screen.findByLabelText("本次答案");const section=screen.getByLabelText("同对象练习与复习");
+ expect(within(section).getByRole("heading",{name:"同源课程"})).toBeInTheDocument();
+ expect(section.textContent).not.toContain("知识 knowledge-exact · 问题 assessment-exact");
+ const identity=within(section).getByRole("button",{name:"查看诊断详情：同对象学习身份"});
+ fireEvent.click(identity);
+ expect(getDiagnosticEntries().at(0)?.payload).toMatchObject({item_key:key,knowledge_id:knowledgeId,knowledge_version:knowledgeId,assessment_id:"assessment-exact",source_id:"source-exact",anchor_id:"anchor-exact",course:{id:"course-exact",artifactId:"lesson-exact"}});
+ expect(within(section).getByLabelText("学习项目键").closest("details")).not.toHaveAttribute("open");
+ expect(events).toHaveLength(0);
+});
+it("SYNTHETIC unresolved learning object explicitly withholds its title and still exposes identity failure",async()=>{
+ setup("course");render(<><ObserveDiagnostics/><CanonicalTeachingSpace pageId="12" initialItemKey={key}/></>);
+ const section=screen.getByLabelText("同对象练习与复习");
+ expect(within(section).getByRole("heading",{name:"学习项目（标题尚未核对）"})).toBeInTheDocument();
+ await within(section).findByRole("alert");
+ expect(within(section).queryByLabelText("本次答案")).not.toBeInTheDocument();
+ expect(events).toHaveLength(0);
 });

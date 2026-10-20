@@ -1,0 +1,13 @@
+{
+  "schema": "archeaxis.frontend-build/v1",
+  "mode": "build",
+  "exit_code": 0,
+  "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+  "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\25753e75fe72",
+  "frontend_dist": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\25753e75fe72\\artifacts\\frontend-dist",
+  "tauri_config": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\25753e75fe72\\tmp\\tauri-build.json",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256": "420773b590aa27dd9f2ce2ca102187e3c3948c17e1d85ea53275a5089c30f742",
+  "source_patch_sha256_after": "420773b590aa27dd9f2ce2ca102187e3c3948c17e1d85ea53275a5089c30f742",
+  "source_consistent": true
+}

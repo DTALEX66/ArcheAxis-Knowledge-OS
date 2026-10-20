@@ -1,0 +1,86 @@
+{
+  "lab": "C:\\Users\\ALEX\\.codex\\tools\\visual-tool-lab",
+  "packages": [
+    {
+      "name": "@playwright/cli",
+      "version": "0.1.22",
+      "sha256": "1c545fd0ee14db9faed985aebfd205f9d6c2b2da5fbc8d142a7af8e26ee9c510"
+    },
+    {
+      "name": "@playwright/test",
+      "version": "1.64.1",
+      "sha256": "6b1c8bb530059f2555530e8dcc1b3803565237e17598683b3766c0fa313b3fd6"
+    },
+    {
+      "name": "@axe-core/playwright",
+      "version": "4.14.0",
+      "sha256": "8bede892b9021c7e0f9f14175277276c80de635a4aa7a4dbf75d5bee3dc18e9a"
+    },
+    {
+      "name": "motion",
+      "version": "14.3.0",
+      "sha256": "ed8976b39da19b369eb5d5e3b58aacecc5303c27133a6295736f6f12e11bdac1"
+    }
+  ],
+  "lock_sha256": "51f9b21da11477ed7f02bcda370ec9a4f741cc2d96cda46a5c172a1bcea8e6fe",
+  "documents": {
+    "README.md": "2504fd0ad359d5638be4008cc2d7d2131e04e537daf272efdbcad142945087f2",
+    "INSTALL-MANIFEST.md": "c629fdf60b6c9e247d98f2d6b9faf2a439f798c4d9a481cb9eebe556e73fcae1",
+    "CAPABILITY-MATRIX.md": "0c3023310fb10bf9b797128e44268544e2eab037ccb2b4559e32e710f364195a",
+    "BROWSER-USAGE.md": "c712dae50648c483f1743279464eb744242ed30f78bfcb0648643d039f8245b8",
+    "PROJECT-GUIDANCE.md": "e9490b6c8fc41a5df834d96c62c6c286d1c780c83b557b1cafc41e31473ac078",
+    "CURRENT-INSTALLATION.md": "5674362fe1d3f84d52cd74a0e4bbdd5b025630ed358037f3aa49ddc9ecbd0c91",
+    "scripts/browser.mjs": "42788d4560eecd07c8f3aa26ad703f1461f78730a4f2eaaa2f2d9a45882a874b"
+  },
+  "build": {
+    "schema": "archeaxis.frontend-build/v1",
+    "mode": "build",
+    "exit_code": 0,
+    "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ffaee3902aab",
+    "frontend_dist": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ffaee3902aab\\artifacts\\frontend-dist",
+    "tauri_config": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ffaee3902aab\\tmp\\tauri-build.json",
+    "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+    "source_patch_sha256": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+    "source_patch_sha256_after": "33f30131c97a33ad45d878cd8d825091a52ca8b74cebc0908942f62a669a2134",
+    "source_consistent": true
+  },
+  "bundle_members": {
+    "index.html": "677a77273b7fa31f932aa2dab3579c376aaea0255d7131204188e43f1427615e",
+    "assets\\aaos-brand-mark-black-983Gq3QE.png": "4a7c019bd335a414f5fc69043f8d2c4c610310a019ad2619d7d958d977669d6b",
+    "assets\\aaos-brand-mark-cosmic-bLvxzA9b.png": "31dc146b938fe395eedb0710244b39f0124e2590e9af455a7e5b383c92b2dc77",
+    "assets\\aaos-brand-mark-white-oRGwNmhR.png": "48d2558aabce6cb62a6db90474527f1ba4ceec499ca4e4aae1168b8ca9ce1168",
+    "assets\\awaiting_approval-CBHlPKKn.png": "2dcf8044ce691e3b617f97b13adf544c0ee67faa63c23d02624a2e45b712476b",
+    "assets\\completed-jF_IpipA.png": "35ab5ba7b2717da2bf79249cfa13abe6e56f75294b78f89d9bce66d071161aa0",
+    "assets\\deep-space-background-20261015-Bv2uooL6.png": "da732acf19fe7c6062863f6652b7e2b56692451466e307732f38385712724e9b",
+    "assets\\DocumentEditor-BfGVCEyB.js": "f4dda3142bce25e814a0847c3d6bf2df9fde910d5cec19c565b90d91b1c85cae",
+    "assets\\DocumentEditor-BFRcWqb7.css": "fa2797b3f5b3cc6bf3faae3232aec8be902785f899ba95ffa173e75940ee6ad2",
+    "assets\\executing-BjajoVot.png": "afa0354dc0301b5b5b84a9f3d0cc52211ae5b870112ce4e1e18dbdc1e5e91980",
+    "assets\\failed-C7RGHyo7.png": "e957f557ac8007508af2b36dbedb0e06751d42faaf9803426e904ffd14ff9141",
+    "assets\\idle-BidrzR8f.png": "871219e822f60080dbf1675ab86819b59cc51301468df16f05874034a5e295ec",
+    "assets\\ImportedCoursePanel-Bdr60LZ2.js": "538fae33bf87978938118b96f149302d478c708298d2cd591eb6e066ce677361",
+    "assets\\ImportedCoursePanel-C4zEV8kL.css": "a8d1f2f0ffb7936a641649e2e3c3c7bbd897c2cf3c0339718b435f4a9c1d8a56",
+    "assets\\index-DeOMJbci.css": "4d4675d0242a0460090d5fd2946d0cdef91f7b3da4d75f08a1ea262af9a85175",
+    "assets\\index-ZFkartmK.js": "100d0a0cdcb7154d5f0fc39bdf36bc005c148fd8275a4a060c6081c4aec794b6",
+    "assets\\interrupted-BL96UV4u.png": "b3f203dcaf4dd434496e1793f9e75b127bb668ea7e44b933f178dd7de4906882",
+    "assets\\listening-4fTDHf-4.png": "fe374f3b69210555e0c3e8f7bdadcc73b81ec2876a183746acd0c1564e97b9fe",
+    "assets\\pdf.worker.min-CjEcRF4W.mjs": "9536359f1b8367850d485731ca1d5e45c159a7b7a0912325e539937aa21ceb18",
+    "assets\\PdfReader-XW3J325q.js": "40391fe2cd9ef589850219dc20324ee43c7f4368b2b0318c7244f8b99634f71b",
+    "assets\\speaking-CJ_zdu-E.png": "cfcb6d4eb2f09c3fb3b8152e0366bd32d3a364ed7d4bcbd127a7913562065282",
+    "assets\\thinking-Cy0c68P_.png": "458d47b8e89dd8270f500c0429ea93c1a5cc5964ce9efd6b3a25affe9bd8970f"
+  },
+  "scripts": {
+    "audit.spec.cjs": "5fc65308663e996c68b09dcd259176a6b222331ea343cf07a0fa025c9874ee53",
+    "final-browser-launcher.log": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e",
+    "final-build-launcher.log": "5eb31c157df75a15e41ae7372c423a2cec5c3d5b7600bfd4164d3e8ebd3130da",
+    "final-full-launcher.log": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e",
+    "fixture.js": "2ce4c3a3f64657e7286872e0e45c6d264db6669702f4bfa486bca5411866fa01",
+    "launch.cjs": "8870bb9a33df66b61df554374cff554e44e3f8383a678832d19367ee7955adb6",
+    "playwright.config.cjs": "70f19b8bff1161c6b1e0a3d33fa35e2b54f371711beedf2c3bff37463ca3ba41",
+    "prepare.py": "c5da26905d9f7d2bc52feeb0c27000963f9afc6c20c78082c00548a6df37c333",
+    "run.py": "7a566394f9edfefff87c6db70c3ca9d041ed95472bffc420abd8d98d44c58238",
+    "style-browser-launcher.log": "6f5b23735eec4115b18f1e84fe09e8a7cd5a5c230930ea90294608f5c2c74a4e",
+    "style-build-launcher.log": "5eb31c157df75a15e41ae7372c423a2cec5c3d5b7600bfd4164d3e8ebd3130da",
+    "style-final-launcher.log": "be4761bbe2dbc985eb618e16a0af3093cedc06f234f11d674d22949af00aca2e"
+  }
+}

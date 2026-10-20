@@ -6,6 +6,7 @@ saved verbatim so this runner cannot imply coverage of an omitted CI step.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import hashlib
 import importlib.metadata
 import json
@@ -67,9 +68,7 @@ def source_snapshot(root):
             ".toml", ".lock", ".yaml", ".yml", ".ps1", ".sh", ".cs", ".csproj",
         }:
             continue
-        if any(p.lower().startswith(".env") or p.lower() in {
-            ".codex", ".hermes", ".dsh", ".zcode", ".agents", "private-agent-state",
-        } for p in relative.parts):
+        if dev.private_source_path(relative):
             continue
         path = dev.safe_path(root / relative)
         if path.is_file():
@@ -79,11 +78,38 @@ def source_snapshot(root):
             "status": dev.git(root, "status", "--short")}
 
 
+@contextmanager
+def owned_local_ci_lock(lock):
+    # O_EXCL failure means another caller owns it: do not remove that lock.
+    handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    identity = None
+    try:
+        identity = os.fstat(handle)
+        os.write(handle, str(os.getpid()).encode())
+        os.close(handle)
+        handle = None
+        yield
+    finally:
+        if handle is not None:
+            os.close(handle)
+        try:
+            current = lock.lstat()
+        except FileNotFoundError:
+            pass
+        else:
+            # A replacement lock belongs to its creator, even at the same path.
+            # Never follow a reparse target or inspect another owner's PID/body.
+            if identity is not None and (current.st_dev, current.st_ino) == (identity.st_dev, identity.st_ino):
+                lock.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", choices=("quick", "full"), required=True)
     parser.add_argument("--preflight", action="store_true", help="Check route inventories and generated contracts before compilation")
     parser.add_argument("--run-id")
+    parser.add_argument("--conventions-source", choices=("worktree", "index", "head"),
+                        default="worktree", help="Git source used by convention checks; other checks read worktree")
     parser.add_argument("--node", default=shutil.which("node"))
     parser.add_argument("--cargo", default=shutil.which("cargo"))
     parser.add_argument("--tests", nargs="*", help="Explicit affected pytest targets for quick profile")
@@ -97,155 +123,164 @@ def main():
                ARCHEAXIS_CAS_ROOT=str(paths["tmp"] / "cas"),
                PYTHONPYCACHEPREFIX=str(paths["tmp"] / "pycache"))
     lock = paths["build"] / "local-ci.lock"
-    handle = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-    os.write(handle, str(os.getpid()).encode())
-    os.close(handle)
-    report = {"schema": "archeaxis.local-ci/v1", "profile": args.profile,
-              "started_at": now(), "preflight_only": args.preflight, "source_before": source_snapshot(ROOT),
-              "tools": {"python": sys.version}, "checks": [],
-              "cloud": "NOT_QUERIED_BY_THIS_RUNNER",
-              "owner_local_source_preservation": "NOT_IN_PREFLIGHT_SCOPE" if args.preflight else "REQUIRED",
-              "evidence_boundary": "local execution; no installation or human acceptance"}
-    destination = paths["artifacts"] / "local-ci.json"
+    with owned_local_ci_lock(lock):
+        report = {"schema": "archeaxis.local-ci/v1", "profile": args.profile,
+                  "started_at": now(), "preflight_only": args.preflight, "source_before": source_snapshot(ROOT),
+                  "tools": {"python": sys.version}, "checks": [],
+                  "cloud": "NOT_QUERIED_BY_THIS_RUNNER",
+                  "conventions_source": args.conventions_source,
+                  "other_checks_source": "worktree",
+                  "head_qualification": "NOT_CLAIMED; untracked files and local checks are not hosted CI",
+                  "owner_local_source_preservation": "NOT_IN_PREFLIGHT_SCOPE" if args.preflight else "REQUIRED",
+                  "evidence_boundary": "local execution; no installation or human acceptance"}
+        destination = paths["artifacts"] / "local-ci.json"
 
-    def save():
-        destination.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        def save():
+            destination.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    def run(name, command, cwd=ROOT, child_env=None):
-        item = {"name": name, "command": command, "cwd": str(cwd), "started_at": now()}
-        report["checks"].append(item)
-        log = paths["logs"] / f"{len(report['checks']):02d}-{name}.log"
-        item["log"] = str(log)
-        print(f"[local-ci] {name}: {command}", flush=True)
-        try:
-            with log.open("x", encoding="utf-8") as output:
-                child = subprocess.Popen(dev._prepare_child_command(command), cwd=cwd,
-                                         env=child_env or env, stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT, text=True, encoding="utf-8",
-                                         errors="replace", creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-                                         start_new_session=os.name != "nt")
-                try:
-                    for line in child.stdout:
-                        output.write(line)
-                        output.flush()
-                        print(line, end="", flush=True)
-                    item["exit_code"] = child.wait()
-                finally:
-                    if child.poll() is None:
-                        dev.stop_owned_process(child)
-                    child.stdout.close()
-            item["status"] = "LOCAL_PASS" if item["exit_code"] == 0 else "FAIL"
-        except OSError as exc:
-            item.update(status="NOT_RUN", exit_code=None, reason=str(exc))
-        item["ended_at"] = now()
-        save()
-
-    def missing(name, reason):
-        report["checks"].append({"name": name, "status": "NOT_RUN", "reason": reason,
-                                 "exit_code": None, "started_at": now(), "ended_at": now()})
-        save()
-
-    def finish():
-        report["source_after"] = source_snapshot(ROOT)
-        consistent = report["source_before"] == report["source_after"]
-        report["source_consistent"] = consistent
-        if not consistent:
-            for item in report["checks"]:
-                if item["status"] == "LOCAL_PASS":
-                    item["status"] = "INVALIDATED"
-        states = {item["status"] for item in report["checks"]}
-        report["status"] = "INVALIDATED" if not consistent else "FAIL" if "FAIL" in states else "PARTIAL" if "NOT_RUN" in states else "LOCAL_PASS"
-        return 0 if report["status"] == "LOCAL_PASS" else 3 if not consistent else 1
-
-    py = [sys.executable, "-B"]
-    try:
-        import yaml
-        inventory = {}
-        for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
-            workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
-            inventory[path.name] = workflow["jobs"]
-        (paths["artifacts"] / "workflow-jobs.json").write_text(
-            json.dumps(inventory, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        for package in ("pytest", "ruff", "playwright", "PyYAML"):
+        def run(name, command, cwd=ROOT, child_env=None):
+            item = {"name": name, "command": command, "cwd": str(cwd), "started_at": now(),
+                    "source": args.conventions_source if name == "conventions" else "worktree"}
+            report["checks"].append(item)
+            log = paths["logs"] / f"{len(report['checks']):02d}-{name}.log"
+            item["log"] = str(log)
+            print(f"[local-ci] {name}: {command}", flush=True)
             try:
-                report["tools"][package] = importlib.metadata.version(package)
-            except importlib.metadata.PackageNotFoundError:
-                report["tools"][package] = "MISSING"
-        for name, executable in (() if args.preflight else (("node", args.node), ("cargo", args.cargo))):
-            if executable:
-                version = subprocess.run([executable, "--version"], capture_output=True, text=True, env=env)
-                report["tools"][name] = {"path": executable, "exit_code": version.returncode,
-                                          "version": version.stdout.strip(), "error": version.stderr.strip()}
-        for name, command in (
-            ("conventions", ["scripts/check_repository_conventions.py", "--source", "worktree"]),
-            ("architecture", ["scripts/check_architecture.py"]),
-            ("language-boundaries", ["scripts/check_language_boundaries.py"]),
-            ("format-matrix", ["scripts/check_format_matrix.py", "--matrix", "docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json"]),
-            ("path-conventions", ["scripts/check_path_conventions.py"]),
-            ("document-authority", ["scripts/ci/check_document_authority.py"]),
-            ("ui-design-increment", ["scripts/ci/check_ui_design_increment.py"]),
-        ):
-            run(name, py + command)
-        run("route-inventory", py + ["-m", "pytest", "--noconftest",
-             "tests/maintenance/test_contract_route_inventory.py",
-             "tests/maintenance/test_contract_number_consistency.py",
-             "tests/maintenance/test_contract_verification_map.py", "-q",
-             f"--basetemp={paths['tmp'] / 'preflight-pytest'}", "-o",
-             f"cache_dir={paths['run'] / 'preflight-cache'}"])
-        for name, command in CONTRACT_PREFLIGHT:
-            run(name, py + command)
-        # H01 requires owner-local original containers. It remains mandatory in
-        # local quick/full, but is not a portable contract-before-build check.
-        if not args.preflight:
-            run("h01-source-trace", py + ["scripts/ci/check_h01_source_trace.py"])
-        if args.preflight or any(item["status"] != "LOCAL_PASS" for item in report["checks"]):
-            return finish()
-        run("ruff", py + ["-m", "ruff", "check", "app", "shared", "knowledge_base",
-                            "inspiration_research", "Inspiration-Research", "shared-contracts/adapters",
-                            "app/workflow", "integration-tests", "scripts", "--select", "E9,F63,F7,F82"])
-        targets = args.tests if args.tests is not None else list(QUICK_TEST_TARGETS)
-        if args.profile == "full":
-            targets = ["tests", "knowledge_base/tests", "integration-tests"]
-        run("python-suite", py + ["-m", "pytest", *targets, "-q", "--tb=short",
-                                   f"--basetemp={paths['tmp'] / 'pytest'}", "-o",
-                                   f"cache_dir={paths['run'] / 'pytest-cache'}"])
-        run("workers", py + ["scripts/ci/check_vnext_workers.py"])
-        if args.node:
-            run("frontend-types", [args.node, "frontend/node_modules/typescript/bin/tsc", "--noEmit", "-p", "frontend/tsconfig.json"])
-            run("frontend-unit", [args.node, "frontend/node_modules/vitest/vitest.mjs", "run", "--root", "frontend"])
-        else:
-            missing("frontend", "Node not found; supply --node with an existing toolchain")
-        if args.cargo:
-            run("rust-format", [args.cargo, "fmt", "--all", "--", "--check"])
-            run("tauri-format", [args.cargo, "fmt", "--manifest-path", "src-tauri/Cargo.toml", "--", "--check"])
-        else:
-            missing("rust", "Cargo not found; supply --cargo with an existing toolchain")
-        if args.profile == "full":
-            run("workers-unit", py + ["-m", "unittest", "discover", "-s", "tests/workers", "-p", "test_*.py"])
-            run("compat-current-python", py + ["-m", "compileall", "-q", "app", "shared", "knowledge_base", "scripts"])
-            run("compat-imports", py + ["-m", "pytest", "tests/test_imported_modules.py", "-q",
-                                       f"--basetemp={paths['tmp'] / 'compat-pytest'}", "-o", f"cache_dir={paths['run'] / 'compat-cache'}"])
+                with log.open("x", encoding="utf-8") as output:
+                    child = subprocess.Popen(dev._prepare_child_command(command), cwd=cwd,
+                                             env=child_env or env, stdout=subprocess.PIPE,
+                                             stderr=subprocess.STDOUT, text=True, encoding="utf-8",
+                                             errors="replace", creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+                                             start_new_session=os.name != "nt")
+                    try:
+                        for line in child.stdout:
+                            output.write(line)
+                            output.flush()
+                            print(line, end="", flush=True)
+                        item["exit_code"] = child.wait()
+                    finally:
+                        if child.poll() is None:
+                            dev.stop_owned_process(child)
+                        child.stdout.close()
+                item["status"] = "LOCAL_PASS" if item["exit_code"] == 0 else "FAIL"
+            except OSError as exc:
+                item.update(status="NOT_RUN", exit_code=None, reason=str(exc))
+            item["ended_at"] = now()
+            save()
+
+        def missing(name, reason):
+            report["checks"].append({"name": name, "status": "NOT_RUN", "reason": reason,
+                                     "exit_code": None, "started_at": now(), "ended_at": now()})
+            save()
+
+        def finish():
+            report["source_after"] = source_snapshot(ROOT)
+            consistent = report["source_before"] == report["source_after"]
+            report["source_consistent"] = consistent
+            if not consistent:
+                for item in report["checks"]:
+                    if item["status"] == "LOCAL_PASS":
+                        item["status"] = "INVALIDATED"
+            states = {item["status"] for item in report["checks"]}
+            report["status"] = "INVALIDATED" if not consistent else "FAIL" if "FAIL" in states else "PARTIAL" if "NOT_RUN" in states else "LOCAL_PASS"
+            return 0 if report["status"] == "LOCAL_PASS" else 3 if not consistent else 1
+
+        py = [sys.executable, "-B"]
+        try:
+            if args.conventions_source == "head":
+                dirty_paths = dev.git(ROOT, "diff", "HEAD", "--name-only", "-z")
+                report["checks"].append({"name": "head-worktree-alignment", "source": "tracked-worktree-vs-HEAD",
+                    "status": "FAIL" if dirty_paths else "LOCAL_PASS", "exit_code": 1 if dirty_paths else 0,
+                    "reason": "tracked worktree differs from HEAD" if dirty_paths else "tracked worktree matches HEAD; untracked excluded from this claim",
+                    "started_at": now(), "ended_at": now()})
+                if dirty_paths:
+                    return finish()
+            import yaml
+            inventory = {}
+            for path in sorted((ROOT / ".github/workflows").glob("*.yml")):
+                workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
+                inventory[path.name] = workflow["jobs"]
+            (paths["artifacts"] / "workflow-jobs.json").write_text(
+                json.dumps(inventory, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            for package in ("pytest", "ruff", "playwright", "PyYAML"):
+                try:
+                    report["tools"][package] = importlib.metadata.version(package)
+                except importlib.metadata.PackageNotFoundError:
+                    report["tools"][package] = "MISSING"
+            for name, executable in (() if args.preflight else (("node", args.node), ("cargo", args.cargo))):
+                if executable:
+                    version = subprocess.run([executable, "--version"], capture_output=True, text=True, env=env)
+                    report["tools"][name] = {"path": executable, "exit_code": version.returncode,
+                                              "version": version.stdout.strip(), "error": version.stderr.strip()}
+            for name, command in (
+                ("conventions", ["scripts/check_repository_conventions.py", "--source", args.conventions_source]),
+                ("architecture", ["scripts/check_architecture.py"]),
+                ("language-boundaries", ["scripts/check_language_boundaries.py"]),
+                ("format-matrix", ["scripts/check_format_matrix.py", "--matrix", "docs/authority/taskpack-0910-r3/R15-FORMAT-STATUS.json"]),
+                ("path-conventions", ["scripts/check_path_conventions.py"]),
+                ("document-authority", ["scripts/ci/check_document_authority.py"]),
+                ("ui-design-increment", ["scripts/ci/check_ui_design_increment.py"]),
+            ):
+                run(name, py + command)
+            run("route-inventory", py + ["-m", "pytest", "--noconftest",
+                 "tests/maintenance/test_contract_route_inventory.py",
+                 "tests/maintenance/test_contract_number_consistency.py",
+                 "tests/maintenance/test_contract_verification_map.py", "-q",
+                 f"--basetemp={paths['tmp'] / 'preflight-pytest'}", "-o",
+                 f"cache_dir={paths['run'] / 'preflight-cache'}"])
+            for name, command in CONTRACT_PREFLIGHT:
+                run(name, py + command)
+            # H01 requires owner-local original containers. It remains mandatory in
+            # local quick/full, but is not a portable contract-before-build check.
+            if not args.preflight:
+                run("h01-source-trace", py + ["scripts/ci/check_h01_source_trace.py"])
+            if args.preflight or any(item["status"] != "LOCAL_PASS" for item in report["checks"]):
+                return finish()
+            run("ruff", py + ["-m", "ruff", "check", "app", "shared", "knowledge_base",
+                                "inspiration_research", "Inspiration-Research", "shared-contracts/adapters",
+                                "app/workflow", "integration-tests", "scripts", "--select", "E9,F63,F7,F82"])
+            targets = args.tests if args.tests is not None else list(QUICK_TEST_TARGETS)
+            if args.profile == "full":
+                targets = ["tests", "knowledge_base/tests", "integration-tests"]
+            run("python-suite", py + ["-m", "pytest", *targets, "-q", "--tb=short",
+                                       f"--basetemp={paths['tmp'] / 'pytest'}", "-o",
+                                       f"cache_dir={paths['run'] / 'pytest-cache'}"])
+            run("workers", py + ["scripts/ci/check_vnext_workers.py"])
             if args.node:
-                run("frontend-build", py + ["scripts/runtime/frontend.py", "--node", args.node, "build"])
-                run("browser-smoke", py + ["scripts/a0_browser_smoke.py"])
+                run("frontend-types", [args.node, "frontend/node_modules/typescript/bin/tsc", "--noEmit", "-p", "frontend/tsconfig.json"])
+                run("frontend-unit", [args.node, "frontend/node_modules/vitest/vitest.mjs", "run", "--root", "frontend"])
+            else:
+                missing("frontend", "Node not found; supply --node with an existing toolchain")
             if args.cargo:
-                compiler_env = frontend.msvc_environment(env, paths, args.node)
-                run("rust-workspace", [args.cargo, "test", "--workspace", "--locked", "--offline", "--release"], child_env=compiler_env)
-                run("vnext-receipt", py + ["scripts/ci/check_vnext_receipt.py"])
-                run("core-build", [args.cargo, "build", "-p", "archeaxis-api", "--locked", "--offline", "--release"], child_env=compiler_env)
-            missing("python-compat-3.11-and-3.13-linux", "Requires each supported Linux interpreter; current Python alone is not the CI matrix")
-            missing("wheel-smoke-linux", "Hosted wheel install strips packaging tools; requires a disposable locked environment, not the shared local interpreter")
-            missing("linux-security-scans", "pip-audit/gitleaks hosted tool versions and online vulnerability database not provisioned; no automatic installation/network call")
-            missing("desktop-vnext-and-green-donor", "Frozen Avalonia donor qualification requires .NET10 and isolated staged worker bundle; no daily Green reuse")
-            missing("desktop-fast-runtime-probes", "Requires a fresh lock-bound staged candidate; existing recovery materials must not be used")
-            missing("desktop-build-nsis", "Requires a fresh lock-bound staged candidate and installed offline NSIS dependencies; frontend/Core builds alone do not qualify it")
-            missing("installer-lifecycle", "Manual acceptance candidate and user confirmation required before actual install/uninstall/native windows")
-        return finish()
-    finally:
-        report["ended_at"] = now()
-        save()
-        lock.unlink()
-        print(f"[local-ci] receipt={destination}", flush=True)
+                run("rust-format", [args.cargo, "fmt", "--all", "--", "--check"])
+                run("tauri-format", [args.cargo, "fmt", "--manifest-path", "src-tauri/Cargo.toml", "--", "--check"])
+            else:
+                missing("rust", "Cargo not found; supply --cargo with an existing toolchain")
+            if args.profile == "full":
+                run("workers-unit", py + ["-m", "unittest", "discover", "-s", "tests/workers", "-p", "test_*.py"])
+                run("compat-current-python", py + ["-m", "compileall", "-q", "app", "shared", "knowledge_base", "scripts"])
+                run("compat-imports", py + ["-m", "pytest", "tests/test_imported_modules.py", "-q",
+                                           f"--basetemp={paths['tmp'] / 'compat-pytest'}", "-o", f"cache_dir={paths['run'] / 'compat-cache'}"])
+                if args.node:
+                    run("frontend-build", py + ["scripts/runtime/frontend.py", "--node", args.node, "build"])
+                    run("browser-smoke", py + ["scripts/a0_browser_smoke.py"])
+                if args.cargo:
+                    compiler_env = frontend.msvc_environment(env, paths, args.node)
+                    run("rust-workspace", [args.cargo, "test", "--workspace", "--locked", "--offline", "--release"], child_env=compiler_env)
+                    run("vnext-receipt", py + ["scripts/ci/check_vnext_receipt.py"])
+                    run("core-build", [args.cargo, "build", "-p", "archeaxis-api", "--locked", "--offline", "--release"], child_env=compiler_env)
+                missing("python-compat-3.11-and-3.13-linux", "Requires each supported Linux interpreter; current Python alone is not the CI matrix")
+                missing("wheel-smoke-linux", "Hosted wheel install strips packaging tools; requires a disposable locked environment, not the shared local interpreter")
+                missing("linux-security-scans", "pip-audit/gitleaks hosted tool versions and online vulnerability database not provisioned; no automatic installation/network call")
+                missing("desktop-vnext-and-green-donor", "Frozen Avalonia donor qualification requires .NET10 and isolated staged worker bundle; no daily Green reuse")
+                missing("desktop-fast-runtime-probes", "Requires a fresh lock-bound staged candidate; existing recovery materials must not be used")
+                missing("desktop-build-nsis", "Requires a fresh lock-bound staged candidate and installed offline NSIS dependencies; frontend/Core builds alone do not qualify it")
+                missing("installer-lifecycle", "Manual acceptance candidate and user confirmation required before actual install/uninstall/native windows")
+            return finish()
+        finally:
+            report["ended_at"] = now()
+            save()
+            print(f"[local-ci] receipt={destination}", flush=True)
 
 
 if __name__ == "__main__":

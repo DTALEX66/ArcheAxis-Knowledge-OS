@@ -1,0 +1,155 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo test --manifest-path "D:\All projects\ArcheAxis-Knowledge-OS\src-tauri\Cargo.toml" --offline --locked --test project_handoff_preview -- --test-threads=1
+
+   Compiling proc-macro2 v1.0.107
+   Compiling windows-sys v0.61.2
+   Compiling aho-corasick v1.1.5
+   Compiling parking_lot_core v0.9.12
+   Compiling quick-xml v0.41.0
+   Compiling serde_json v1.0.149
+   Compiling cc v1.4.3
+   Compiling parking_lot v0.12.5
+   Compiling quote v1.0.47
+   Compiling string_cache v0.9.0
+   Compiling syn v2.0.119
+   Compiling syn v3.0.3
+   Compiling string_cache_codegen v0.6.1
+   Compiling regex-automata v0.4.18
+   Compiling uuid v1.24.1
+   Compiling web_atoms v0.2.6
+   Compiling winapi-util v0.1.11
+   Compiling vswhom-sys v0.1.3
+   Compiling same-file v1.0.6
+   Compiling cfb v0.7.3
+   Compiling walkdir v2.5.0
+   Compiling infer v0.19.0
+   Compiling form_urlencoded v1.2.2
+   Compiling generic-array v0.14.7
+   Compiling winreg v0.55.0
+   Compiling vswhom v0.1.0
+   Compiling embed-resource v3.0.11
+   Compiling regex v1.13.1
+   Compiling dirs-sys v0.5.0
+   Compiling dirs v6.0.0
+   Compiling tauri-winres v0.3.6
+   Compiling crc32fast v1.5.0
+   Compiling cookie v0.18.2
+   Compiling tracing v0.1.44
+   Compiling socket2 v0.6.5
+   Compiling mio v1.2.2
+   Compiling zerovec-derive v0.11.5
+   Compiling synstructure v0.13.2
+   Compiling displaydoc v0.2.7
+   Compiling thiserror-impl v2.0.20
+   Compiling darling_core v0.23.0
+   Compiling serde_derive_internals v0.29.1
+   Compiling tokio v1.53.1
+   Compiling flate2 v1.1.9
+   Compiling thiserror v2.0.20
+   Compiling block-buffer v0.10.4
+   Compiling webview2-com-sys v0.38.2
+   Compiling crypto-common v0.1.7
+   Compiling windows-result v0.4.1
+   Compiling windows-version v0.1.7
+   Compiling windows-strings v0.5.1
+   Compiling futures-util v0.3.34
+   Compiling png v0.17.16
+   Compiling digest v0.10.7
+   Compiling zerofrom-derive v0.1.7
+   Compiling yoke-derive v0.8.2
+   Compiling serde_derive v1.0.228
+   Compiling phf_macros v0.13.1
+   Compiling windows-interface v0.59.3
+   Compiling windows-implement v0.60.2
+   Compiling darling_macro v0.23.0
+   Compiling phf v0.13.1
+   Compiling zerofrom v0.1.8
+   Compiling thiserror-impl v1.0.69
+   Compiling yoke v0.8.3
+   Compiling zerovec v0.11.7
+   Compiling zerotrie v0.2.5
+   Compiling darling v0.23.0
+   Compiling serde_with_macros v3.22.0
+   Compiling tinystr v0.8.4
+   Compiling potential_utf v0.1.6
+   Compiling icu_locale_core v2.3.0
+   Compiling icu_collections v2.3.0
+   Compiling thiserror v1.0.69
+   Compiling derive_more-impl v2.1.1
+   Compiling cssparser-macros v0.6.1
+   Compiling icu_provider v2.3.0
+   Compiling serde v1.0.228
+   Compiling icu_normalizer v2.3.0
+   Compiling icu_properties v2.3.0
+   Compiling cssparser v0.36.0
+   Compiling markup5ever v0.38.0
+   Compiling windows-core v0.61.2
+   Compiling derive_more v2.1.1
+   Compiling html5ever v0.38.0
+   Compiling indexmap v1.9.3
+   Compiling selectors v0.36.1
+   Compiling idna_adapter v1.2.2
+   Compiling idna v1.1.0
+   Compiling jsonptr v0.6.3
+   Compiling cargo-platform v0.1.9
+   Compiling schemars_derive v0.8.22
+   Compiling json-patch v3.0.1
+   Compiling url v2.5.8
+   Compiling dom_query v0.27.0
+   Compiling urlpattern v0.3.0
+   Compiling cargo_metadata v0.19.2
+   Compiling plist v1.10.0
+   Compiling serde_with v3.22.0
+   Compiling schemars v0.8.22
+   Compiling windows-collections v0.2.0
+   Compiling windows-future v0.2.1
+   Compiling windows-numerics v0.2.0
+   Compiling dpi v0.1.2
+   Compiling cargo_toml v0.22.3
+   Compiling webview2-com-macros v0.8.1
+   Compiling windows v0.61.3
+   Compiling windows-core v0.62.2
+   Compiling tauri-utils v2.9.3
+   Compiling sha2 v0.10.9
+   Compiling ico v0.5.0
+   Compiling futures-channel v0.3.34
+   Compiling sync_wrapper v1.0.2
+   Compiling hyper v1.11.0
+   Compiling tower v0.5.3
+   Compiling keyboard-types v0.7.0
+   Compiling serialize-to-javascript-impl v0.1.2
+   Compiling softbuffer v0.4.8
+   Compiling windows-threading v0.2.1
+   Compiling window-vibrancy v0.6.0
+   Compiling windows-future v0.3.2
+   Compiling muda v0.19.3
+   Compiling hyper-util v0.1.20
+   Compiling serialize-to-javascript v0.1.2
+   Compiling tower-http v0.6.11
+   Compiling getrandom v0.3.4
+   Compiling windows-numerics v0.3.1
+   Compiling windows-collections v0.3.2
+   Compiling serde_repr v0.1.21
+   Compiling tempfile v3.26.0
+   Compiling windows v0.62.2
+   Compiling reqwest v0.13.4
+   Compiling tauri-build v2.6.3
+   Compiling tauri-codegen v2.6.3
+   Compiling tauri v2.11.5
+   Compiling archeaxis-desktop v0.6.14 (D:\All projects\ArcheAxis-Knowledge-OS\src-tauri)
+   Compiling tauri-macros v2.6.3
+error: failed to run custom build command for `archeaxis-desktop v0.6.14 (D:\All projects\ArcheAxis-Knowledge-OS\src-tauri)`
+
+Caused by:
+  process didn't exit successfully: `D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo\debug\build\archeaxis-desktop-a9cedb32e654e6a0\build-script-build` (exit code: 101)
+  --- stdout
+  cargo:rerun-if-env-changed=ARCHEAXIS_FRONTEND_DIST
+  cargo:rerun-if-env-changed=TAURI_CONFIG
+
+  --- stderr
+
+  thread 'main' (36592) panicked at build.rs:31:14:
+  routed Tauri frontend directory is missing
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+warning: build failed, waiting for other jobs to finish...

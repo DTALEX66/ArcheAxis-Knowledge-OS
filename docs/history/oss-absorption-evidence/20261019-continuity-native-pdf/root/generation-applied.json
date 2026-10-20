@@ -1,0 +1,42 @@
+{
+  "mode": "generation",
+  "files": [
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "after_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
+      "bytes": 66441,
+      "review": "同一次生成合并project_handoff_preview operation与PDF dependencies UNKNOWN；不复制镜像DTO"
+    },
+    {
+      "path": "config/capability-packages/pdf-extract.manifest.json",
+      "before_sha256": "d16cbc49ec6feae44452bed2b54b999ef6b17899f93430f332c5007b5e668241",
+      "after_sha256": "8f53e26d96f72fb67eb594c08d5f10e001a09e0280b848ec171be728e9fb7df9",
+      "bytes": 2375,
+      "review": "三处精确合同引用跟随只有UNKNOWN enum增量的schema；许可/安装/依赖版本声明不变"
+    },
+    {
+      "path": "frontend/src/api/generated/capability-package-details.ts",
+      "before_sha256": "712144d4a73272d57fe9b0549179888edc797f12fbf368b3464336d02e982e44",
+      "after_sha256": "0c0a04e72e6e98931c45bda6f694a114cccaa2f80fe444cdb4a6a53e89349060",
+      "bytes": 5794,
+      "review": "从当前manifest及validator输入统一生成，只读说明不授予安装/运行资格"
+    },
+    {
+      "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "before_sha256": "e027edde570aaffb9f99fa27c2c626c49acecd2f85497bfff9a989f029cf05c0",
+      "after_sha256": "f7ec182d3988748a9d6e21c1683c389726e3b0fa069906d9ba5b7163723607f8",
+      "bytes": 314489,
+      "review": "仅两处当前版本来源SHA及有日期的依据；68项state/value原样保留"
+    },
+    {
+      "path": "frontend/src/api/generated/resource-catalog.ts",
+      "before_sha256": "c8bda5e35b5aebb877b0ff55d093b9ed3035211dae1599e0422b4893c317df88",
+      "after_sha256": "d101c7d3d9feb1d9a9b75cf4761b4ca3af6e15fbd6f00dcf22f04d9baa682ab5",
+      "bytes": 668080,
+      "review": "从显式重新绑定的overlay生成；历史资格未提升"
+    }
+  ],
+  "inherited_entries_preserved": 68,
+  "state_promotions": 0
+}

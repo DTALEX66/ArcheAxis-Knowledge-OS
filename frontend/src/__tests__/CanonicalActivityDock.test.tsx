@@ -28,18 +28,18 @@ describe("canonical activity dock", () => {
     fireEvent.click(screen.getByRole("button",{name:"展开活动坞"}));
     invoke.mockRejectedValue(new Error("Core stopped"));
     fireEvent.click(screen.getByRole("button",{name:"刷新任务"}));
-    await screen.findByText("正典任务读取未完成，请刷新重试。");
+    await screen.findByText("处理任务读取失败，请刷新重试。");
     expect(screen.queryByText("就绪")).toBeNull();
   });
   it("reads failed durable jobs through finite Core commands without legacy delivery controls", async () => {
     const invoke = bridge(); const inspect = vi.fn(); const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
     render(<ActivityDock onInspect={inspect} />);
-    await screen.findByText("前 1 个原件的正典任务：1");
+    await screen.findByText("前 1 个原件的处理任务：1");
     const user = userEvent.setup(); await user.click(screen.getByRole("button", { name: "展开活动坞" }));
     await user.click(screen.getByRole("button", { name: "查看活动详情" }));
     expect(inspect.mock.calls[0][0].detail).toContain("存在处理错误");
     expect(inspect.mock.calls[0][0].detail).not.toContain("private local path");
-    expect(screen.queryByRole("button", { name: "投递下一条" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "发送下一条" })).not.toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
     expect(invoke.mock.calls.every(([command]) => command === "core_command")).toBe(true);
   });
@@ -49,31 +49,31 @@ describe("canonical activity dock", () => {
     { source_id: source.source_id, jobs: [{ ...job, attempt: "passed" }], jobs_capped: false },
   ])("refuses mismatched or malformed durable receipts", async result => {
     bridge(result); render(<ActivityDock />);
-    await screen.findByText("正典任务读取未完成，请刷新重试。");
+    await screen.findByText("处理任务读取失败，请刷新重试。");
     expect(screen.queryByRole("button", { name: "查看活动详情" })).not.toBeInTheDocument();
   });
   it("refreshes from the Core when a real execution announces changed state", async () => {
     const invoke = bridge(); render(<ActivityDock />);
-    await screen.findByText("前 1 个原件的正典任务：1");
+    await screen.findByText("前 1 个原件的处理任务：1");
     const before = invoke.mock.calls.length;
     act(() => window.dispatchEvent(new Event("archeaxis-job-changed")));
     await waitFor(() => expect(invoke.mock.calls.length).toBeGreaterThan(before));
   });
   it("does not present old task rows as current when refreshed Core readback fails", async () => {
     const invoke = bridge(); render(<ActivityDock />); const user = userEvent.setup();
-    await screen.findByText("前 1 个原件的正典任务：1");
+    await screen.findByText("前 1 个原件的处理任务：1");
     await user.click(screen.getByRole("button", { name: "展开活动坞" }));
     expect(screen.getByRole("button", { name: "查看活动详情" })).toBeInTheDocument();
     invoke.mockRejectedValue(new Error("Core stopped"));
     await user.click(screen.getByRole("button", { name: "刷新任务" }));
-    await screen.findByText("正典任务读取未完成，请刷新重试。");
+    await screen.findByText("处理任务读取失败，请刷新重试。");
     expect(screen.queryByRole("button", { name: "查看活动详情" })).not.toBeInTheDocument();
   });
   it("shares keyboard and button expansion without editing a draft or making extra calls", async () => {
     // SIMULATED bridge: keyboard behavior only, never native/IME qualification.
     const invoke = bridge();
     render(<><textarea aria-label="draft" defaultValue="unsaved words"/><ActivityDock /></>);
-    await screen.findByText("前 1 个原件的正典任务：1");
+    await screen.findByText("前 1 个原件的处理任务：1");
     const calls = invoke.mock.calls.length;
     fireEvent.keyDown(window, { key: "j", ctrlKey: true, altKey: true });
     expect(screen.getByRole("button", {name:"折叠活动坞"})).toHaveAttribute("aria-expanded", "true");
@@ -84,7 +84,7 @@ describe("canonical activity dock", () => {
   });
   it("ignores repeat, composition, AltGraph and an open command palette", async () => {
     bridge(); const view=render(<ActivityDock />);
-    await screen.findByText("前 1 个原件的正典任务：1");
+    await screen.findByText("前 1 个原件的处理任务：1");
     fireEvent.keyDown(window, {key:"j",ctrlKey:true,altKey:true,repeat:true});
     fireEvent.keyDown(window, {key:"j",ctrlKey:true,altKey:true,isComposing:true});
     const graph=new KeyboardEvent("keydown",{key:"j",ctrlKey:true,altKey:true});
@@ -101,7 +101,7 @@ describe("canonical activity dock", () => {
   it("removes its exact shortcut listener on unmount", async () => {
     bridge();const add=vi.spyOn(window,"addEventListener");const remove=vi.spyOn(window,"removeEventListener");
     const view=render(<ActivityDock />);
-    await screen.findByText("前 1 个原件的正典任务：1");
+    await screen.findByText("前 1 个原件的处理任务：1");
     const listener=add.mock.calls.find(([type])=>type==="keydown")?.[1];
     expect(listener).toBeTypeOf("function");view.unmount();
     expect(remove).toHaveBeenCalledWith("keydown",listener);

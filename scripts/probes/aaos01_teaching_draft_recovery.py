@@ -22,7 +22,7 @@ const forms=[...document.querySelectorAll('form[aria-label="创建教学记录"]
 const form=forms.length===1?forms[0]:null;
 const field=label=>[...(form?.querySelectorAll('label')??[])].find(n=>[...n.childNodes].filter(x=>x.nodeType===3).map(x=>x.textContent).join('').trim()===label)?.querySelector('input,textarea,select');
 const observed={form_count:forms.length,page,purpose:field('用途')?.value,content:field('内容')?.value,
-rubric_version:field('Rubric版本')?.value,feedback_class:field('反馈分类')?.value??null,
+rubric_version:field('评测准则版本')?.value,feedback_class:field('反馈分类')?.value??null,
 editable:!!field('内容')&&!field('内容').disabled&&!field('内容').closest('fieldset')?.disabled};
 """
 
@@ -110,7 +110,7 @@ def run(*, ui, bridge, read, js, wait, restart, poll, screenshot, report):
     ui.page('12', confirm_navigation=True)
     ui.type('用途', other['purpose'], scope=form_scope('12'))
     ui.type('内容', other['content'], 'textarea', form_scope('12'))
-    ui.type('Rubric版本', other['rubric_version'], scope=form_scope('12'))
+    ui.type('评测准则版本', other['rubric_version'], scope=form_scope('12'))
     ui.keys(form_scope('12') + "//label[normalize-space(text())='反馈分类']/select", '\ue015\ue007')
     before = poll(read, 'ui_state_read', {}, lambda state: state['state'].get('teaching_drafts', {}).get('12:', {}).get('form', {}).get('feedback_class') == other['feedback_class'])
     for key, expected in [('11:', first), ('12:', other)]:

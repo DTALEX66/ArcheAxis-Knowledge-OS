@@ -1,0 +1,155 @@
+{
+  "schema": "aaos.openmaic-import-receipt/v1",
+  "recorded_at": "2026-10-18T16:55:47.915112+00:00",
+  "status": "PARTIAL",
+  "scope": "OSS-OMA-002/003 strict quiz M1; original manifest bytes plus typed external candidate through existing Source/Document contracts",
+  "head": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "frontend_build_source_patch_sha256": "6868ac9a3d2afb06734a66e3f1a4a5343fdec8d950a941f0aa0df9380ff97352",
+  "source_files_sha256": {
+    "frontend/src/adapters/openmaicCourse.ts": "134bccec04804bd3d0d4ad4feffa5fd7e0ccded06e6beb153472643134518cb1",
+    "frontend/src/presentation/importedCourse.ts": "2c1bf8b09e3d52fb0660185f228dbea072a7fba4d1ceb82e78730fed9f114a5e",
+    "frontend/src/presentation/importedCourseStorage.ts": "2c7825d99d41f25275cd827cf6b22f05bb0ebbfb81c5af5b6ff796e5812ccbdf",
+    "frontend/src/components/ImportedCoursePanel.tsx": "b40feca79147a1e4d936340a84cbb056c88bfa4437c1769d505b6589b0854247",
+    "frontend/src/spaces/CanonicalLearningJourneySpace.tsx": "2b424e15808a3992761e67d172d0f7b4acd1ab473c2fd86bf8a7013082a9065e",
+    "frontend/src/__tests__/OpenMaicCourse.test.ts": "a931df64ae04d1ddc4cf355e24a1c72a30143b2f41738f03179ab4062609377e",
+    "frontend/src/__tests__/ImportedCourseStorage.test.ts": "4d0806850641977321883b7f6f50e17ec846f8a5b403b651d4ec100e2854ae30",
+    "frontend/src/__tests__/ImportedCoursePanel.test.tsx": "75a09d9499420112e68b2939b4a8b5da83af6e7a415c65ec055dea86fadda24c",
+    "frontend/src/test/fixtures/openmaic.ts": "01f2e8bed3af8b2465ded95303655777cf6738672550990b3af79b282cde304f",
+    "packages/contracts/learning/v1/imported-course.schema.json": "41fe3743fe954660ef61415861cfe31f00cc3be3fc47ac3e87f4e61244ae6f42",
+    "crates/archeaxis-api/tests/document_draft_loop.rs": "7cd0bf66d525ffed0cd8e0ebc885651b135a317e883661215cddb94b91371600"
+  },
+  "upstream": {
+    "repository": "THU-MAIC/OpenMAIC",
+    "commit": "6b83751a87896df99c47e98c20cea40cec09efb4",
+    "license": "MIT; 2026 THU-MAIC",
+    "selected_public_texts_verified": 21,
+    "original_manifest_sha256": "8b74b44fe27ab1ea2e6446b05f16abbe3c046d074af698889725be632b85b83f",
+    "upstream_code_executed": false
+  },
+  "implementation": {
+    "input": "formatVersion 1 manifest.json; single/multiple/short_answer quiz only; 256 KiB, 64 scenes, 200 total questions, 32 options/question",
+    "rejected": [
+      "unknown fields/version",
+      "duplicate IDs within scene or scene order",
+      "invalid answer references",
+      "non-quiz scenes",
+      "nonempty actions/whiteboards/media/video",
+      "enabled multi-agent",
+      "over budget"
+    ],
+    "storage": "Rust Core remains sole CAS/SQLite writer; source_import -> source_original exact bytes/SHA -> deterministic document_create -> document_get; typed attrs and original reparsed on reopen",
+    "identity": "candidate / external_unverified / human_review_required; not accepted knowledge or course_from_knowledge output",
+    "recovery": "two-stage custody/write state; unknown write result retains frozen request; no silent rollback/delete or success",
+    "practice": "literal React text; inert commentPrompt; optional reference comparison; no answer means no grading; short answer requires review; no mastery/learning event writes",
+    "presentation": "lazy optional panel within existing learning journey; no new branded navigation, runtime, database, dependency or provider"
+  },
+  "checks": {
+    "frontend": {
+      "status": "PASS",
+      "evidence": "SYNTHETIC_CORE",
+      "files": 5,
+      "tests": 63,
+      "result": ".project-local/runs/be268a2d33/openmaic-final-targeted-1019/artifacts/vitest.json",
+      "execution": {
+        "command": [
+          "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+          "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+          "run",
+          "OpenMaicCourse",
+          "ImportedCourseStorage",
+          "ImportedCoursePanel",
+          "KnowledgeCoursePanel",
+          "CanonicalReviewLearning",
+          "--maxWorkers=1",
+          "--minWorkers=1",
+          "--reporter=default",
+          "--reporter=json",
+          "--outputFile=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\openmaic-final-targeted-1019\\artifacts\\vitest.json"
+        ],
+        "started_at": "2026-10-18T16:51:38.953565+00:00",
+        "finished_at": "2026-10-18T16:51:50.410292+00:00",
+        "seconds": 11.456719700014219,
+        "exit_code": 0
+      },
+      "coverage": [
+        "strict format and limits",
+        "original/readback mismatch",
+        "unchanged retry request",
+        "reparse rejects fabricated typed answers",
+        "no accidental submission",
+        "unknown stays unresolved",
+        "single flight",
+        "unmount late reply",
+        "200 by 32 within Core block budget",
+        "existing knowledge-course/review flow regression"
+      ]
+    },
+    "core": {
+      "status": "PASS",
+      "evidence": "INTEGRATED_REAL_RUST_API_AND_TEMP_SQLITE_CAS_WITH_SYNTHETIC_MATERIAL",
+      "tests": 1,
+      "filtered_out": 9,
+      "execution": {
+        "command": "call \"D:\\All projects\\OS External Configuration\\10-toolchains\\msvc\\VC\\Auxiliary\\Build\\vcvars64.bat\" >nul && \"D:\\All projects\\OS External Configuration\\10-toolchains\\cargo\\bin\\cargo.exe\" test --offline --locked -p archeaxis-api --test document_draft_loop imported_course -- --nocapture",
+        "started_at": "2026-10-18T16:46:33.279985+00:00",
+        "finished_at": "2026-10-18T16:46:55.617143+00:00",
+        "seconds": 22.337158000009367,
+        "exit_code": 0
+      },
+      "log": ".project-local/runs/be268a2d33/openmaic-real-core-msvc-1019/artifacts/cargo-test.log",
+      "coverage": [
+        "original bytes/SHA",
+        "typed attrs and document readback",
+        "restart",
+        "same-request replay",
+        "changed request conflict",
+        "machine create forbidden",
+        "learning_events stays empty"
+      ],
+      "limit": "handcrafted typed candidate exercises generic Core storage; not UI-to-Core end-to-end or upstream runtime"
+    },
+    "build": {
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/0f54bbeae6b4/artifacts/frontend-build.json",
+      "source_consistent": true,
+      "timings": ".project-local/runs/be268a2d33/0f54bbeae6b4/artifacts/bt-ce56f2f7.json",
+      "optional_panel_chunk_bytes_reported": 14000,
+      "large_main_chunk_warning": "retained"
+    },
+    "schema_structure": {
+      "status": "PASS",
+      "method": "jsonschema Draft202012Validator.check_schema; semantic cross-field checks remain in adapter"
+    }
+  },
+  "not_executed": [
+    "new panel production-browser visual/axe/keyboard audit",
+    "frontend bridge against real Core end-to-end",
+    "native WebView2",
+    "installed journeys",
+    "complete maic.zip/slide/media roundtrip",
+    "real upstream authored classroom fixture qualification",
+    "model inference or teaching quality",
+    "performance benchmarks"
+  ],
+  "failed_attempts_preserved": [
+    "openmaic-adapter-red-1019",
+    "openmaic-storage-red-1019",
+    "openmaic-storage-green-1019",
+    "openmaic-panel-red-1019",
+    "openmaic-panel-green-1019",
+    "openmaic-real-core-1019",
+    "openmaic-real-core2-1019"
+  ],
+  "failure_resolution": [
+    "early frozen-byte SHA validation",
+    "test queried exact empty-state message rather than an overlapping error phrase",
+    "project-only public Cargo cache and child MSVC environment; no global config changes",
+    "projection groups options without truncation and checks Core 5000-block/1-MiB limit"
+  ],
+  "next": [
+    "production browser/keyboard/axe/screenshots and real bridge qualification",
+    "OSS-HUB-001/002 capability center and truthful state",
+    "existing P0 contracts and BE10; no second task queue"
+  ],
+  "no_commit_push_release_green_or_global_config_change": true
+}

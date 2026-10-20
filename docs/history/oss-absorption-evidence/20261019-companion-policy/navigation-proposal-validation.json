@@ -1,0 +1,36 @@
+{
+  "status": "PASS_ISOLATED_PROPOSAL_ONLY",
+  "evidence_level": "SYNTHETIC_JSDOM_ACTUAL_DOCKVIEW",
+  "product_applied": false,
+  "product_sources_unchanged": true,
+  "patch": "navigation-labels.patch",
+  "patch_sha256": "79cf5f5ac5c5786c9526869e9ceb2e6f271e16c819a9448bae68a01c4c5e11da",
+  "patch_check": "PASS",
+  "proposal_run": {
+    "run_id": "ui-label-proposal-1019-r8",
+    "exit_code": 0,
+    "tests": 26,
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "execution_receipt": ".project-local/runs/be268a2d33/ui-label-proposal-1019-r8/artifacts/execution.json"
+  },
+  "original_product_negative_control": {
+    "run_id": "ui-label-proposal-1019-original",
+    "exit_code": 1,
+    "tests": 26,
+    "passed": 17,
+    "failed": 9,
+    "expected_failure": true,
+    "execution_receipt": ".project-local/runs/be268a2d33/ui-label-proposal-1019-original/artifacts/execution.json"
+  },
+  "earlier_isolation_runs": "ui-label-proposal-1019 through r7 retained as failed setup/intermediate proposal evidence; r7 exposed stale close-button aria-label and caused title-event subscription fix",
+  "typescript": "NOT_EXECUTED",
+  "native_visual_after_patch": "NOT_EXECUTED",
+  "source_manifest": "source-manifest.json",
+  "scope": [
+    "frontend/src/workspace/DockWorkspace.tsx",
+    "frontend/src/__tests__/DockWorkspace.test.tsx",
+    "frontend/src/__tests__/AppDockNavigation.test.tsx"
+  ]
+}

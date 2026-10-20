@@ -31,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize("path", [
+    "assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt",
     "docs/taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv",
     "docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv",
     "docs/history/conversation-summary-20261010/sources/AAOS_Conversation_Summary_20261010.md",
@@ -63,8 +64,8 @@ _PRESERVED_FIXTURE_HASHES = {
     "tests/fixtures/p1-quality/one-long-line.txt": "d9785ad494215a183ceaf55c11aeed1433227e88469f61159f2daf27e6929100",
 }
 _PRESERVED_HISTORICAL_REPORT_HASHES = {
-    "docs/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
-    "docs/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
+    "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
+    "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
 }
 
 
@@ -265,7 +266,8 @@ def test_path_scanner_reports_cross_platform_collisions_and_invalid_names() -> N
     assert codes == {"case-path-collision", "non-nfc-path", "windows-reserved-name"}
 
 
-def test_git_scanner_keeps_head_and_worktree_sources_separate(tmp_path: Path) -> None:
+def test_git_scanner_keeps_head_and_worktree_sources_separate(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("scripts.check_repository_conventions._PRESERVED_MANIFESTS", {})
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_path, check=True)
     subprocess.run(
@@ -291,7 +293,9 @@ def test_git_scanner_keeps_head_and_worktree_sources_separate(tmp_path: Path) ->
 def test_cli_scans_staged_index_and_returns_json_failure(
     tmp_path: Path,
     capsys,
+    monkeypatch,
 ) -> None:
+    monkeypatch.setattr("scripts.check_repository_conventions._PRESERVED_MANIFESTS", {})
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(["git", "config", "user.name", "Test"], cwd=tmp_path, check=True)
     subprocess.run(
@@ -362,6 +366,7 @@ def test_repository_convention_gates_are_wired() -> None:
     assert "check_repository_conventions.py --source index" in pre_commit
     assert '"pre-commit>=' in pyproject
     assert "check_repository_conventions.py --source head" in ci
+    assert "local_verify.py --profile quick --preflight --conventions-source head" in ci
 
 
 def test_workspace_upload_runtime_dependency_is_declared() -> None:
@@ -398,7 +403,7 @@ def test_product_naming_contract_v2_has_one_default_display_identity() -> None:
 
 def test_forbidden_terms_reject_legacy_name_in_active_doc() -> None:
     issues = scan_naming_forbidden_terms(
-        "docs/current/CURRENT_PRODUCT_PLAN_V2.md",
+        "docs/current/current-product-plan-negative.md",
         "当前计划：元枢工作台 是主产品。".encode(),
     )
     assert any(i.code == "legacy-product-name" for i in issues)
@@ -406,7 +411,7 @@ def test_forbidden_terms_reject_legacy_name_in_active_doc() -> None:
 
 def test_forbidden_terms_allow_legacy_context_docs() -> None:
     issues = scan_naming_forbidden_terms(
-        "docs/current/CURRENT_PRODUCT_PLAN_V2.md",
+        "docs/current/current-product-plan-negative.md",
         "迁移说明：旧名元枢工作台 仅在 Legacy 语境出现。".encode(),
     )
     assert not [i for i in issues if i.code == "legacy-product-name"]
@@ -428,7 +433,7 @@ def test_forbidden_terms_allow_generated_audit_receipts() -> None:
     assert not [
         i
         for i in scan_naming_forbidden_terms(
-            "docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json", receipt
+            "docs/current/branch-receipt-negative.json", receipt
         )
         if i.code == "legacy-product-name"
     ]
@@ -440,7 +445,7 @@ def test_forbidden_terms_still_reject_that_text_without_the_receipt_schema() -> 
         {"records": [{"subject": "feat: ArcheAxis OS rename"}]}
     ).encode()
     issues = scan_naming_forbidden_terms(
-        "docs/current/AAOS-BRANCH-COMMIT-PATH-AUDIT-20260925.json",
+        "docs/current/branch-receipt-negative.json",
         same_text_without_schema,
     )
     assert any(i.code == "legacy-product-name" for i in issues)

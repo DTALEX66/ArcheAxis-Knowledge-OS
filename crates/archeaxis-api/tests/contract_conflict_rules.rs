@@ -1,6 +1,6 @@
 //! The conflict rules the published contract states, as executable cases.
 //!
-//! docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md tells the UI:
+//! docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md tells the UI:
 //!
 //! * re-POSTing `/jobs/{id}/executions` with the **same** `idempotency-key` and the same
 //!   payload replays, and the reply says so;

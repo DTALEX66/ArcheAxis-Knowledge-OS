@@ -5,7 +5,7 @@ from pathlib import Path
 def test_hl01_registry_preserves_r5_source_counts_and_boundaries():
     root = Path(__file__).parents[1]
     registry = json.loads(
-        (root / "docs/current/R5-HL01-SOURCE-REGISTRY.json").read_text(encoding="utf-8")
+        (root / "docs/history/repository-consolidation-20261019/current/R5-HL01-SOURCE-REGISTRY.json").read_text(encoding="utf-8")
     )
 
     assert registry["schema"] == "archeaxis.hl01-source-registry/v1"

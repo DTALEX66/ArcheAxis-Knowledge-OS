@@ -1,0 +1,77 @@
+{
+  "observed_at": "2026-10-18T21:30:07.847820+00:00",
+  "files": [
+    {
+      "path": "AUTHORITY.md",
+      "sha256": "d3db94691e9d3fdba45b287114e5506443696463005d5e128ab855febd77671b",
+      "bytes": 8211
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "225d1c3f715104c4bac654419d2f82858b64b87ec459dd4bf827b83abd3c3a04",
+      "bytes": 14261
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "sha256": "9ab082d8e972d875b82e266a6d44c21758278253bf0581b358bcccbaf702ccd6",
+      "bytes": 18437
+    },
+    {
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "sha256": "47fe805d2567bebbc3ad783f052c5c4bbd1040c64a43819dbc7efa39a24efd4e",
+      "bytes": 29777
+    },
+    {
+      "path": "docs/authority/taskpack-20261013-backend-host/TASKS.json",
+      "sha256": "e2e67bb7b096b7f6009e13ceed4b360511a3f9a8780524a9546231db524056f2",
+      "bytes": 18437
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "sha256": "61d42473f488aaca29c971eca5bfdfac4ebf6028dc075cdfc3f6a871ed3fa827",
+      "bytes": 5282
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "sha256": "1cdbaf6078ff8754b6b6335d18ae8ebcdb5983f4116e2f162387a4e387d628d7",
+      "bytes": 399
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_observer.rs",
+      "sha256": "c54fb79907330bf8419ccdedcedb72b4834db8d6a96fd32a349c899aae110a9f",
+      "bytes": 4723
+    },
+    {
+      "path": "crates/archeaxis-contracts/Cargo.toml",
+      "sha256": "c7a1635b0a22e0323019ab04f2de3aa65fced0524b08221fad4f2ebaefb5cfc0",
+      "bytes": 241
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "49f617fd8267c7ee96c947cdaff60a9b7f835beb412571c4af3b56363c85ec13",
+      "bytes": 417
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
+      "bytes": 25004
+    },
+    {
+      "path": "config/capability-map.v1.json",
+      "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e",
+      "bytes": 2987
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "sha256": "4e62c9201668cc750036cd1c5a91a04f1f8b0bbed9de6ceda0f23e9e795d2ab4",
+      "bytes": 109929
+    },
+    {
+      "path": "crates/archeaxis-api/Cargo.toml",
+      "sha256": "92aefb0bc36e94865983dfb768bdcc3abb1bbe41c204d503280f693df2da19ad",
+      "bytes": 814
+    }
+  ],
+  "product_write_allowed": false,
+  "external_native": "UNVERIFIED"
+}

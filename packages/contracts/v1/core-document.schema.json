@@ -637,6 +637,11 @@
               "item_key": {
                 "type": "string"
               },
+              "display_title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
               "next_review": {
                 "type": [
                   "string",
@@ -2935,7 +2940,8 @@
         "dependencies": {
           "enum": [
             "AVAILABLE",
-            "MISSING"
+            "MISSING",
+            "UNKNOWN"
           ]
         },
         "connection": {

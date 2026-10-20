@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { XiaoqiState } from '../assets/index';
+import {useState} from 'react';
+import {xiaoqiImages, xiaoqiStateLabels, type XiaoqiState} from '../companion/xiaoqiAssets';
 
 interface XiaoqiAvatarProps {
   state?: XiaoqiState;
@@ -8,53 +8,23 @@ interface XiaoqiAvatarProps {
   onInteract?: () => void;
 }
 
-const stateImages: Record<XiaoqiState, string> = {
-  idle: '/src/assets/xiaoqi/idle.png',
-  thinking: '/src/assets/xiaoqi/thinking.png',
-  speaking: '/src/assets/xiaoqi/speaking.png',
-  listening: '/src/assets/xiaoqi/idle.png',
-  completed: '/src/assets/xiaoqi/idle.png',
-};
-
-const sizeClasses = {
-  sm: 'w-12 h-12',
-  md: 'w-16 h-16',
-  lg: 'w-24 h-24',
-};
-
+/** AAOS state presentation only; static frames do not imply speech or a second AI runtime. */
 export function XiaoqiAvatar({
   state = 'idle',
   size = 'md',
   className = '',
   onInteract
 }: XiaoqiAvatarProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <div
-      className={`xiaoqi-avatar ${sizeClasses[size]} ${className}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={onInteract}
-      role={onInteract ? 'button' : 'img'}
-      aria-label="小栖 AI助手"
-    >
-      <img
-        src={stateImages[state]}
-        alt={`小栖 - ${state}`}
-        className="w-full h-full object-cover rounded-full"
-        style={{
-          transition: 'transform 200ms ease-out',
-          transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-        }}
-      />
-      {state === 'thinking' && (
-        <div className="xiaoqi-thinking-indicator">
-          <span className="dot"></span>
-          <span className="dot"></span>
-          <span className="dot"></span>
-        </div>
-      )}
-    </div>
-  );
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const src = xiaoqiImages[state];
+  const label = `小栖：${xiaoqiStateLabels[state]}`;
+  const pixels = {sm: 48, md: 64, lg: 96}[size];
+  const picture = failedSource === src
+    ? <span role="img" aria-label={`${label}，图像暂不可用`}>{xiaoqiStateLabels[state]}</span>
+    : <img key={src} src={src} alt={onInteract ? '' : label} width={pixels} height={pixels}
+        style={{objectFit: 'contain'}} onError={() => setFailedSource(src)}/>;
+  return onInteract
+    ? <button type="button" className={`xiaoqi-avatar ${className}`} aria-label={`与小栖互动：${xiaoqiStateLabels[state]}`}
+        data-visible-state={state} data-media="raster-2d-still" onClick={onInteract}>{picture}</button>
+    : <span className={`xiaoqi-avatar ${className}`} data-visible-state={state} data-media="raster-2d-still">{picture}</span>;
 }

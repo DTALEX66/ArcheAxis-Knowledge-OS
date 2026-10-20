@@ -17,7 +17,7 @@ import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-CONTRACT = REPO / "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
+CONTRACT = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
 LANGUAGE_INDEX = REPO / "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md"
 BOUNDARY_GUARD = REPO / "scripts/check_language_boundaries.py"
 

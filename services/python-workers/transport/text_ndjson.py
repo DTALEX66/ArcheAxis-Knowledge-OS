@@ -772,7 +772,7 @@ def emit(message):
     sys.stdout.buffer.flush()
 
 
-def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path, artifact_root: Path | None = None) -> int:
+def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path, artifact_root: Path | None = None, *, runtime_dependency: dict | None = None) -> int:
     """R08: one stdio job loop for every route.
 
     The worker identity and the advertised capabilities are the only per-route
@@ -783,7 +783,8 @@ def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path, a
     emit({"schema": "archeaxis.worker-hello/v1", "type": "hello",
           "protocol": {"major": 1, "min_minor": 0, "max_minor": 0},
           "worker": {"name": worker_name, "version": "1"},
-          "capabilities": list(capabilities), "schemas": OUTPUT_SCHEMAS})
+          "capabilities": list(capabilities), "schemas": OUTPUT_SCHEMAS,
+          **({"runtime_dependency": runtime_dependency} if runtime_dependency is not None else {})})
     request = None
     response = response_for(request)
     try:
@@ -803,6 +804,8 @@ def serve_stdio(worker_name: str, capabilities: list[str], staging_root: Path, a
         advertised = request.get("capability") if isinstance(request, dict) else None
         if advertised not in capabilities:
             raise Rejected("unsupported capability")
+        if runtime_dependency is not None and runtime_dependency["status"] != "AVAILABLE":
+            raise Rejected("PDF_DEPENDENCY_" + runtime_dependency["status"], "AAK-DEP-001")
         outputs, measurements, warnings = execute(request, staging_root, artifact_root)
         response.update(status="succeeded", outputs=outputs, measurements=measurements, warnings=warnings)
     except Rejected as exc:

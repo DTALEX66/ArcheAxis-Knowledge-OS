@@ -724,6 +724,74 @@ pub fn item_keys_with_latest_review(
     rows.collect()
 }
 
+/// A display-only summary of the first nonempty line, capped in Unicode scalars.
+/// This never changes an item's identity or its persisted assessment snapshot.
+fn learning_title_excerpt(value: &str) -> Option<String> {
+    value.lines().find_map(|line| {
+        let clean: String = line
+            .chars()
+            .filter(|ch| !ch.is_control() || ch.is_whitespace())
+            .collect();
+        let normalized = clean.split_whitespace().collect::<Vec<_>>().join(" ");
+        (!normalized.is_empty()).then(|| normalized.chars().take(80).collect())
+    })
+}
+
+fn course_learning_identity(item_key: &str) -> Option<(&str, &str)> {
+    fn valid_id(value: &str) -> bool {
+        !value.is_empty()
+            && value.len() <= 256
+            && value.as_bytes()[0].is_ascii_alphanumeric()
+            && value
+                .bytes()
+                .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, b'_' | b'.' | b'-'))
+    }
+    let (course_id, artifact_id) = item_key.strip_prefix("course:")?.split_once(":artifact:")?;
+    (valid_id(course_id) && valid_id(artifact_id)).then_some((course_id, artifact_id))
+}
+
+/// Read a human-readable label without writing, following latest knowledge, or
+/// inferring mastery. A course prefix alone never establishes artifact ownership.
+pub fn item_display_title(conn: &Connection, item_key: &str) -> rusqlite::Result<String> {
+    let assessment = assessment_for_item_key(conn, item_key)?;
+    if let (Some((course_id, artifact_id)), Some(assessment)) =
+        (course_learning_identity(item_key), assessment.as_ref())
+    {
+        let title: Option<String> = conn
+            .query_row(
+                "SELECT c.title FROM general_courses c
+                 JOIN general_course_artifacts a ON a.manifest_id=c.manifest_id
+                 JOIN general_course_bindings b ON b.manifest_id=c.manifest_id
+                 JOIN json_each(a.artifact_json,'$.knowledge_ids') component
+                   ON component.type='text' AND component.value=b.component_id
+                 JOIN anchors h ON h.anchor_id=?6 AND h.source_id=b.source_id
+                   AND h.source_revision=b.source_revision
+                 WHERE c.manifest_id=?1 AND a.artifact_id=?2
+                   AND b.knowledge_id=?3 AND b.knowledge_version=?4 AND b.source_id=?5
+                 LIMIT 1",
+                rusqlite::params![
+                    course_id,
+                    artifact_id,
+                    assessment.knowledge_id,
+                    assessment.knowledge_version,
+                    assessment.source_id,
+                    assessment.anchor_id
+                ],
+                |row| row.get(0),
+            )
+            .optional()?;
+        if let Some(title) = title.as_deref().and_then(learning_title_excerpt) {
+            return Ok(title);
+        }
+    }
+    if let Some(assessment) = assessment {
+        if let Some(title) = learning_title_excerpt(&assessment.content) {
+            return Ok(title);
+        }
+    }
+    Ok("学习项目".to_owned())
+}
+
 /// R09: the table that links a learning item (card/question) to the knowledge
 /// revision it was created from. Created on demand like the FTS indexes, so no
 /// schema-version bump and no archive-layout change is needed.

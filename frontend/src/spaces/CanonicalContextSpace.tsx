@@ -129,7 +129,7 @@ export function CanonicalContextSpace({ onUse, onOpenReference, initialLearningI
     catch(reason){if(seq===searchEpoch.current&&mounted.current)setError(failureMessage(reason));}finally{if(seq===searchEpoch.current&&mounted.current)setBusy(false);}
   }
   const current = draft.current, grant = current.value;
-  return <section aria-label="项目记忆与上下文" className="ui-content-main-side">{!documentLease.canWrite?<p role="status">此文档已有写入视图；上下文授权只读，草稿保留。</p>:null}
+  return <section aria-label="项目记忆与上下文内容" className="ui-content-main-side">{!documentLease.canWrite?<p role="status">此文档已有写入视图；上下文授权只读，草稿保留。</p>:null}
     <div><h2>项目记忆与上下文</h2><p>保存产品内的上下文与明确授权，来源固定到实际对象。候选可先保存；用途、允许操作与时效由你决定。</p>
       {initialLearningItemKey||proposedKnowledgeId?<button disabled={busy} onClick={()=>void prepareJourneyContext()}>读取指定知识并建立上下文候选</button>:null}
       <button disabled={busy || listing} onClick={() => void list()}>刷新上下文</button>

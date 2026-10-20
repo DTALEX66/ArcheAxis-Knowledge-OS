@@ -1,0 +1,406 @@
+{
+  "schema": "archeaxis.component-catalog.plan/v1",
+  "state": "MATERIAL_BASELINE_NOT_PRODUCTION_CONNECTED",
+  "components": [
+    {
+      "id": "NavigationRail",
+      "reuse": "native buttons plus current navigation",
+      "owner_task": "FE05",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "BranchMenu",
+      "reuse": "native keyboard list / existing primitives",
+      "owner_task": "FE05",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "CommandPalette",
+      "reuse": "Radix dialog and unified registry",
+      "owner_task": "FE05",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "CurrentModelPicker",
+      "reuse": "Radix dialog/tabs + model contracts",
+      "owner_task": "FE14",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "WorkspaceDock",
+      "reuse": "dockview-react 8.5.1 open source",
+      "owner_task": "FE06",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "GlassSurface",
+      "reuse": "project material CSS recipe",
+      "owner_task": "FE04",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "ActionButton",
+      "reuse": "native button + project material CSS",
+      "owner_task": "FE04",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "ReaderSurface",
+      "reuse": "existing Tiptap and PDF.js",
+      "owner_task": "FE08",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "ObjectInspector",
+      "reuse": "current object projection + dock panel",
+      "owner_task": "FE08",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "Tabs",
+      "reuse": "existing @radix-ui/react-tabs 1.1.22",
+      "owner_task": "FE04",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "ModalDialog",
+      "reuse": "existing @radix-ui/react-dialog 1.2.0",
+      "owner_task": "FE04",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "ConnectionForm",
+      "reuse": "native fields + formal model contract",
+      "owner_task": "FE14",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "StatusLight",
+      "reuse": "host readiness + text + CSS",
+      "owner_task": "FE19",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "TaskProgress",
+      "reuse": "real host receipts, no fake clock",
+      "owner_task": "FE17",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "ContextChip",
+      "reuse": "formal source/version reference",
+      "owner_task": "FE18",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "ConversationComposer",
+      "reuse": "ASTRYN shared session",
+      "owner_task": "FE18",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "ConversationLog",
+      "reuse": "ASTRYN shared session",
+      "owner_task": "FE18",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "MemoryCard",
+      "reuse": "Core memory projection",
+      "owner_task": "FE18",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "AvatarSlot",
+      "reuse": "ASTRYN SVG renderer, replaceable",
+      "owner_task": "FE18",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "AssetPreview",
+      "reuse": "existing viewers + asset metadata",
+      "owner_task": "FE15",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "EmptyState",
+      "reuse": "project text and action recipe",
+      "owner_task": "FE21",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "PermissionSummary",
+      "reuse": "formal scope and destination",
+      "owner_task": "FE20",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "LayoutToolbar",
+      "reuse": "native actions + Dockview API",
+      "owner_task": "FE06",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "VersionCompare",
+      "reuse": "current version/readback projection",
+      "owner_task": "FE08",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    },
+    {
+      "id": "BackupRecoveryFlow",
+      "reuse": "existing recovery + reviewed plan",
+      "owner_task": "FE20",
+      "states": [
+        "default",
+        "hover",
+        "focus",
+        "selected",
+        "disabled",
+        "error",
+        "unconfigured",
+        "future"
+      ],
+      "implementation": "source_recipe_or_reuse_target; qualify in FE04"
+    }
+  ]
+}

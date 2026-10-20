@@ -1,0 +1,1170 @@
+{
+  "schema": "archeaxis.dialogue-continuity-readonly-review/v1",
+  "observed_at": "2026-10-18T22:22:44.259671+00:00",
+  "status": "PASS_STRUCTURAL_AND_SCOPED_SEMANTIC_COVERAGE",
+  "source_scope": "Only repository public indexes and frozen selected excerpts; no claim to all private/full conversation content",
+  "primary_files": [
+    {
+      "path": "docs/history/owner-dialogue-20261019/README.md",
+      "bytes": 2446,
+      "sha256": "f19920905f05529cfbfa918bab52969d8384b6b0e2349547aff00eb4c9f36ead"
+    },
+    {
+      "path": "docs/history/owner-dialogue-20261019/decision-coverage.json",
+      "bytes": 28199,
+      "sha256": "44df71303ea45987ef49b6636aba5a02e6fc9b2e36baa5613b27983c8e14954c"
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "bytes": 19147,
+      "sha256": "684e3222957466d6a51de0df7568116044c8b814e5536a10c3f871c301ba098a"
+    },
+    {
+      "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "bytes": 7103,
+      "sha256": "25329c40a1e13bd9f320a4a090c10f9edcba43f82b6fc13a7d8c75c3c6a4aefe"
+    },
+    {
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "bytes": 19245,
+      "sha256": "26beceaebe944f9b56f841a2efc441617a803d16dce1d12d06f724ab99a447a0"
+    }
+  ],
+  "archive_verifier": {
+    "command": ".venv/Scripts/python.exe -B docs/history/owner-dialogue-20261019/verify_archive.py",
+    "exit_code": 0,
+    "status": "PASS",
+    "frozen_members": 6,
+    "source_records": 39,
+    "current_reference_targets": 28,
+    "local_attachments_checked": 0,
+    "local_attachment_status": "NOT_EXECUTED",
+    "full_private_transcript": "UNVERIFIED"
+  },
+  "counts": {
+    "source_records": 39,
+    "source_kind_counts": {
+      "HISTORICAL_CLAIM": 1,
+      "REQUEST": 20,
+      "CONTEXT": 1,
+      "DECISION": 9,
+      "QUESTION": 8
+    },
+    "coverage_reference_occurrences": 78,
+    "coverage_unique_targets": 28,
+    "continuation_path_occurrences": 41,
+    "continuation_unique_targets": 39,
+    "continuation_groups": {
+      "read_order": 6,
+      "resource_navigation": 10,
+      "evidence_navigation": 25
+    },
+    "markdown_link_occurrences": 56,
+    "all_occurrences_checked": 175,
+    "unique_repository_targets_checked": 68,
+    "missing": 0
+  },
+  "markdown_references": [
+    {
+      "source": "docs/history/owner-dialogue-20261019/README.md",
+      "occurrences": 9,
+      "unique_targets": 9,
+      "references": [
+        {
+          "target": "SOURCE-EXCERPTS.md",
+          "path": "docs/history/owner-dialogue-20261019/SOURCE-EXCERPTS.md",
+          "exists": true
+        },
+        {
+          "target": "decision-coverage.json",
+          "path": "docs/history/owner-dialogue-20261019/decision-coverage.json",
+          "exists": true
+        },
+        {
+          "target": "tool-migration-navigation.json",
+          "path": "docs/history/owner-dialogue-20261019/tool-migration-navigation.json",
+          "exists": true
+        },
+        {
+          "target": "attachments.json",
+          "path": "docs/history/owner-dialogue-20261019/attachments.json",
+          "exists": true
+        },
+        {
+          "target": "MANIFEST.json",
+          "path": "docs/history/owner-dialogue-20261019/MANIFEST.json",
+          "exists": true
+        },
+        {
+          "target": "../../current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+          "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+          "exists": true
+        },
+        {
+          "target": "../../current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+          "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+          "exists": true
+        },
+        {
+          "target": "../../current/AAOS-ACTIVE-EXECUTION.json",
+          "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+          "exists": true
+        },
+        {
+          "target": "../../SHARED_RESOURCE_PATH_INDEX.md",
+          "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "source": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "occurrences": 27,
+      "unique_targets": 26,
+      "references": [
+        {
+          "target": "../history/owner-dialogue-20261019/README.md",
+          "path": "docs/history/owner-dialogue-20261019/README.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-ACTIVE-EXECUTION.json",
+          "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+          "exists": true
+        },
+        {
+          "target": "AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+          "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-UI-FIRST-EXECUTION-20261009.md",
+          "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+          "exists": true
+        },
+        {
+          "target": "../../AAOS-资料索引.md",
+          "path": "AAOS-资料索引.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-PROJECT-CLOSURE-20261018.md",
+          "path": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-AUTHORITY-ROUTES.json",
+          "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+          "exists": true
+        },
+        {
+          "target": "../DOCUMENTATION_AUTHORITY_INDEX.md",
+          "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+          "exists": true
+        },
+        {
+          "target": "../SHARED_RESOURCE_PATH_INDEX.md",
+          "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-SESSION-RECONCILIATION-20261018.md",
+          "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-CODEX-SESSION-INDEX-20261018.md",
+          "path": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-LOCAL-LLM-20261018.md",
+          "path": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+          "exists": true
+        },
+        {
+          "target": "../history/runtime-migration-20261018/README.md",
+          "path": "docs/history/runtime-migration-20261018/README.md",
+          "exists": true
+        },
+        {
+          "target": "../../workspace/intake/20261018-xiaoqi-in-project.md",
+          "path": "workspace/intake/20261018-xiaoqi-in-project.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-XIAOQI-MIGRATION-20261018.md",
+          "path": "docs/current/AAOS-XIAOQI-MIGRATION-20261018.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+          "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-OSS-UI-DONORS-20261019.md",
+          "path": "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-OPENMAIC-ABSORPTION-20261019.md",
+          "path": "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+          "exists": true
+        },
+        {
+          "target": "AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+          "path": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+          "exists": true
+        },
+        {
+          "target": "receipts/AAOS-HANDOFF-MANIFEST-NATIVE-20261019.json",
+          "path": "docs/current/receipts/AAOS-HANDOFF-MANIFEST-NATIVE-20261019.json",
+          "exists": true
+        },
+        {
+          "target": "../history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+          "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+          "exists": true
+        },
+        {
+          "target": "../history/oss-absorption-evidence/20261019-observer-learning/README.md",
+          "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/README.md",
+          "exists": true
+        },
+        {
+          "target": "../history/oss-absorption-evidence/20261019-companion-policy/README.md",
+          "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+          "exists": true
+        },
+        {
+          "target": "../history/oss-absorption-evidence/20261019-review-cancellation/README.md",
+          "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/README.md",
+          "exists": true
+        },
+        {
+          "target": "../history/oss-absorption-evidence/20261019-review-title/README.md",
+          "path": "docs/history/oss-absorption-evidence/20261019-review-title/README.md",
+          "exists": true
+        },
+        {
+          "target": "../history/oss-absorption-evidence/20261019-continuation-checkpoint/README.md",
+          "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/README.md",
+          "exists": true
+        },
+        {
+          "target": "../history/oss-absorption-evidence/20261019-material-companion-qualified/README.md",
+          "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md",
+          "exists": true
+        }
+      ]
+    },
+    {
+      "source": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "occurrences": 20,
+      "unique_targets": 17,
+      "references": [
+        {
+          "target": "current/AAOS-ACTIVE-EXECUTION.json",
+          "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+          "exists": true
+        },
+        {
+          "target": "current/AAOS-AUTHORITY-ROUTES.json",
+          "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+          "exists": true
+        },
+        {
+          "target": "current/receipts/AAOS-LOCAL-MODEL-SELECTION-20261011.json",
+          "path": "docs/current/receipts/AAOS-LOCAL-MODEL-SELECTION-20261011.json",
+          "exists": true
+        },
+        {
+          "target": "current/AAOS-ACTIVE-EXECUTION.json",
+          "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+          "exists": true
+        },
+        {
+          "target": "current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+          "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+          "exists": true
+        },
+        {
+          "target": "history/owner-dialogue-20261019/tool-migration-navigation.json",
+          "path": "docs/history/owner-dialogue-20261019/tool-migration-navigation.json",
+          "exists": true
+        },
+        {
+          "target": "current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+          "path": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+          "exists": true
+        },
+        {
+          "target": "../config/environment/capability-requirements.yaml",
+          "path": "config/environment/capability-requirements.yaml",
+          "exists": true
+        },
+        {
+          "target": "../config/environment/external-resources-index.json",
+          "path": "config/environment/external-resources-index.json",
+          "exists": true
+        },
+        {
+          "target": "../services/python-workers/tool_paths.py",
+          "path": "services/python-workers/tool_paths.py",
+          "exists": true
+        },
+        {
+          "target": "current/AAOS-ACTIVE-EXECUTION.json",
+          "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+          "exists": true
+        },
+        {
+          "target": "current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+          "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+          "exists": true
+        },
+        {
+          "target": "CONFIGURATION_AUTHORITY_INDEX.md",
+          "path": "docs/CONFIGURATION_AUTHORITY_INDEX.md",
+          "exists": true
+        },
+        {
+          "target": "DIRECTORY_AUTHORITY_INDEX.md",
+          "path": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+          "exists": true
+        },
+        {
+          "target": "DOCUMENTATION_AUTHORITY_INDEX.md",
+          "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+          "exists": true
+        },
+        {
+          "target": "authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+          "path": "docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md",
+          "exists": true
+        },
+        {
+          "target": "authority/taskpack-0919-r6/EXECUTOR-START.md",
+          "path": "docs/authority/taskpack-0919-r6/EXECUTOR-START.md",
+          "exists": true
+        },
+        {
+          "target": "current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+          "path": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md",
+          "exists": true
+        },
+        {
+          "target": "current/R6-EXECUTION.md",
+          "path": "docs/current/R6-EXECUTION.md",
+          "exists": true
+        },
+        {
+          "target": "current/M0-DIRECTION-OVERRIDE-20260920.md",
+          "path": "docs/current/M0-DIRECTION-OVERRIDE-20260920.md",
+          "exists": true
+        }
+      ]
+    }
+  ],
+  "coverage_references": [
+    {
+      "record": "OD-001",
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-001",
+      "path": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-002",
+      "path": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-002",
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "exists": true
+    },
+    {
+      "record": "OD-003",
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-003",
+      "path": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-004",
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-005",
+      "path": "AAOS-资料索引.md",
+      "exists": true
+    },
+    {
+      "record": "OD-005",
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-006",
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "exists": true
+    },
+    {
+      "record": "OD-006",
+      "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "exists": true
+    },
+    {
+      "record": "OD-007",
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "exists": true
+    },
+    {
+      "record": "OD-008",
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-008",
+      "path": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.json",
+      "exists": true
+    },
+    {
+      "record": "OD-009",
+      "path": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-009",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-010",
+      "path": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-010",
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "exists": true
+    },
+    {
+      "record": "OD-011",
+      "path": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-011",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-011",
+      "path": "config/model-profiles/lm-studio.json",
+      "exists": true
+    },
+    {
+      "record": "OD-012",
+      "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "exists": true
+    },
+    {
+      "record": "OD-012",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-013",
+      "path": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-013",
+      "path": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "exists": true
+    },
+    {
+      "record": "OD-014",
+      "path": "docs/history/runtime-migration-20261018/README.md",
+      "exists": true
+    },
+    {
+      "record": "OD-014",
+      "path": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-015",
+      "path": "docs/history/handoff-archive-20261018/README.md",
+      "exists": true
+    },
+    {
+      "record": "OD-015",
+      "path": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-016",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-016",
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "exists": true
+    },
+    {
+      "record": "OD-017",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-017",
+      "path": "AGENTS.md",
+      "exists": true
+    },
+    {
+      "record": "OD-018",
+      "path": "docs/history/handoff-archive-20261018/README.md",
+      "exists": true
+    },
+    {
+      "record": "OD-018",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-019",
+      "path": "workspace/intake/20261018-xiaoqi-in-project.md",
+      "exists": true
+    },
+    {
+      "record": "OD-019",
+      "path": "docs/current/AAOS-XIAOQI-MIGRATION-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-020",
+      "path": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-020",
+      "path": "config/model-profiles/lm-studio.json",
+      "exists": true
+    },
+    {
+      "record": "OD-020",
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "exists": true
+    },
+    {
+      "record": "OD-021",
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "exists": true
+    },
+    {
+      "record": "OD-021",
+      "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "exists": true
+    },
+    {
+      "record": "OD-022",
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "exists": true
+    },
+    {
+      "record": "OD-023",
+      "path": "docs/current/AAOS-XIAOQI-MIGRATION-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-023",
+      "path": "workspace/intake/20261018-xiaoqi-in-project.md",
+      "exists": true
+    },
+    {
+      "record": "OD-024",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-024",
+      "path": "docs/current/receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json",
+      "exists": true
+    },
+    {
+      "record": "OD-025",
+      "path": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-025",
+      "path": "docs/current/receipts/AAOS-FRONTEND-TEST-CASES-20261018.json",
+      "exists": true
+    },
+    {
+      "record": "OD-026",
+      "path": "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-026",
+      "path": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-026",
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "exists": true
+    },
+    {
+      "record": "OD-027",
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "exists": true
+    },
+    {
+      "record": "OD-027",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-028",
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "exists": true
+    },
+    {
+      "record": "OD-028",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-029",
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "exists": true
+    },
+    {
+      "record": "OD-030",
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "exists": true
+    },
+    {
+      "record": "OD-030",
+      "path": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-031",
+      "path": "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-031",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-032",
+      "path": "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-032",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-033",
+      "path": "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-033",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-033",
+      "path": "docs/current/receipts/AAOS-NEURAL-GRAPH-ABSORPTION-20261019.json",
+      "exists": true
+    },
+    {
+      "record": "OD-034",
+      "path": "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-034",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-035",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-035",
+      "path": "THIRD_PARTY_NOTICES.md",
+      "exists": true
+    },
+    {
+      "record": "OD-036",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-037",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-037",
+      "path": "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx",
+      "exists": true
+    },
+    {
+      "record": "OD-038",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-038",
+      "path": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+      "exists": true
+    },
+    {
+      "record": "OD-039",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "record": "OD-039",
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "exists": true
+    },
+    {
+      "record": "OD-039",
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "exists": true
+    }
+  ],
+  "continuation_references": [
+    {
+      "group": "read_order",
+      "path": "AUTHORITY.md",
+      "exists": true
+    },
+    {
+      "group": "read_order",
+      "path": "AGENTS.md",
+      "exists": true
+    },
+    {
+      "group": "read_order",
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "exists": true
+    },
+    {
+      "group": "read_order",
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "exists": true
+    },
+    {
+      "group": "read_order",
+      "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "exists": true
+    },
+    {
+      "group": "read_order",
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "source_archive",
+      "path": "AAOS-资料索引.md",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "path_identity",
+      "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "shared_roots_and_developer_tools",
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "runtime_declarations",
+      "path": "config/environment/capability-requirements.yaml",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "runtime_observation",
+      "path": "config/environment/external-resources-index.json",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "local_models",
+      "path": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "session_reconciliation",
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "codex_session_index",
+      "path": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "owner_dialogue_archive",
+      "path": "docs/history/owner-dialogue-20261019/README.md",
+      "exists": true
+    },
+    {
+      "group": "resource_navigation",
+      "key": "owner_dialogue_coverage",
+      "path": "docs/history/owner-dialogue-20261019/decision-coverage.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "latest_timeout_source_fix",
+      "path": "docs/current/receipts/AAOS-MACHINE-DEADLINE-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "timeout_source_and_regression_archive",
+      "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "companion_terminal_recovery",
+      "path": "docs/current/receipts/AAOS-COMPANION-RECOVERY-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "capability_center_and_external_quiz",
+      "path": "docs/current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "browser_scripts_and_evidence_snapshot",
+      "path": "docs/history/oss-absorption-evidence/20261019-capability-course/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "material_companion_native",
+      "path": "docs/current/receipts/AAOS-MATERIAL-COMPANION-QUALIFIED-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "qualified_native_material_companion",
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "latest_native_failure_and_replay",
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "historical_native_recovery",
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "archival_checkpoint_and_unapplied_proposals",
+      "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "review_title_applied_partial",
+      "path": "docs/current/receipts/AAOS-REVIEW-TITLE-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "review_title_source_and_dialogue_navigation",
+      "path": "docs/history/oss-absorption-evidence/20261019-review-title/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "review_title_and_cancellation_current",
+      "path": "docs/current/receipts/AAOS-REVIEW-CANCELLATION-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "review_title_and_cancellation_archive",
+      "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "owner_dialogue_archive_readback",
+      "path": "docs/current/receipts/AAOS-OWNER-DIALOGUE-ARCHIVE-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "companion_policy_and_semantic_titles",
+      "path": "docs/current/receipts/AAOS-COMPANION-POLICY-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "companion_policy_source_and_failure_archive",
+      "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "timeout_metadata_current",
+      "path": "docs/current/receipts/AAOS-TIMEOUT-METADATA-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "timeout_metadata_checkpoint",
+      "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "observer_learning_current",
+      "path": "docs/current/receipts/AAOS-OBSERVER-LEARNING-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "observer_learning_checkpoint",
+      "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "handoff_manifest_native_current",
+      "path": "docs/current/receipts/AAOS-HANDOFF-MANIFEST-NATIVE-20261019.json",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "handoff_manifest_native_checkpoint",
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "historical_native_timeout_failure_and_replay",
+      "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/README.md",
+      "exists": true
+    },
+    {
+      "group": "evidence_navigation",
+      "key": "latest_archival_checkpoint",
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+      "exists": true
+    }
+  ],
+  "critical_semantic_coverage": [
+    {
+      "area": "权威/规划/仓内来源/接续",
+      "ids": [
+        "OD-006",
+        "OD-009",
+        "OD-012",
+        "OD-016",
+        "OD-039"
+      ],
+      "finding": "AUTHORITY→AGENTS→active continuation→决定→唯一UI进度；active_taskpack明确；历史原件不改写",
+      "status": "COVERED"
+    },
+    {
+      "area": "模型库存/LM Studio/27B加速边界",
+      "ids": [
+        "OD-010",
+        "OD-011",
+        "OD-020",
+        "OD-038"
+      ],
+      "finding": "库存、配置、推理、质量分开；统一模型治理为底座是明确标注工程分析；无自动Ollama/云回退",
+      "status": "COVERED"
+    },
+    {
+      "area": "小栖归属与ASTRYN删除资格",
+      "ids": [
+        "OD-019",
+        "OD-023"
+      ],
+      "finding": "在AAOS复用Core会话/模型/记忆；源仓NOT_READY_TO_DELETE，问句不作删除许可",
+      "status": "COVERED"
+    },
+    {
+      "area": "工程诊断/业务展示",
+      "ids": [
+        "OD-024",
+        "OD-025"
+      ],
+      "finding": "业务状态与诊断归类、逐轮范围/商业验收/质量边界保留",
+      "status": "COVERED"
+    },
+    {
+      "area": "图谱/OpenMAIC/择优供体",
+      "ids": [
+        "OD-031",
+        "OD-032",
+        "OD-033",
+        "OD-034",
+        "OD-035"
+      ],
+      "finding": "固定供体、图谱算法行为、严格quiz子集、许可/降级/复杂未来规划分开",
+      "status": "COVERED"
+    },
+    {
+      "area": "扩展与内置目录市场",
+      "ids": [
+        "OD-036",
+        "OD-037"
+      ],
+      "finding": "模板/插件/技能/MCP/API按需接入，未来可展示但不冒充已启用；替代整体marketplace延期解释；不授权任意第三方执行",
+      "status": "COVERED"
+    },
+    {
+      "area": "强底座/清爽主UI",
+      "ids": [
+        "OD-009",
+        "OD-036",
+        "OD-037",
+        "OD-038"
+      ],
+      "finding": "最短闭环、完整架构、多格式核心不可依赖可选插件；扩展回原对象业务流程",
+      "status": "COVERED"
+    },
+    {
+      "area": "工具正式装载/中文说明/迁移旧路径",
+      "ids": [
+        "OD-026",
+        "OD-027",
+        "OD-028",
+        "OD-029"
+      ],
+      "finding": "shared index→tool-migration-navigation记录精确历史迁移回执和中文入口；本轮仅核登记不访问其外置位置",
+      "status": "COVERED"
+    },
+    {
+      "area": "Codex/Claude/Cowork来源边界",
+      "ids": [
+        "OD-003",
+        "OD-004",
+        "OD-005",
+        "OD-008"
+      ],
+      "finding": "索引与来源对账存在；归档不是完整私人逐字导出，Cowork全文UNVERIFIED",
+      "status": "COVERED"
+    },
+    {
+      "area": "迁移/清理/未知dirty保全",
+      "ids": [
+        "OD-013",
+        "OD-014",
+        "OD-015",
+        "OD-016",
+        "OD-018"
+      ],
+      "finding": "来源保全、替代位置、原身份和回退；不删除失败制造全绿",
+      "status": "COVERED"
+    },
+    {
+      "area": "按优先级继续/并行效率",
+      "ids": [
+        "OD-002",
+        "OD-007",
+        "OD-017",
+        "OD-021",
+        "OD-022",
+        "OD-030"
+      ],
+      "finding": "产品实施优先、单write set单writer；不以报告和计划数量替代产出，不擅改provider/auth",
+      "status": "COVERED"
+    },
+    {
+      "area": "历史结果不冒充当前资格",
+      "ids": [
+        "OD-001",
+        "OD-016",
+        "OD-025",
+        "OD-039"
+      ],
+      "finding": "现场资格、不同源码/证据级别及旧PASS/FAIL保留各自时间；本地归档不等于云同步/安装/Owner验收",
+      "status": "COVERED"
+    }
+  ],
+  "current_plan_routing": {
+    "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
+    "taskpack_exists": true,
+    "plan_id": "AAOS-UI-FIRST-PLAN-20261009",
+    "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "progress_routes_match": true
+  },
+  "registered_external_roots_only": [
+    "shared_models",
+    "shared_tools",
+    "green_application",
+    "green_material_library",
+    "project_test_corpus"
+  ],
+  "external_probe_performed": false,
+  "missing_references": [],
+  "new_substantive_decision_omissions_found": [],
+  "known_freshness_followup": {
+    "owner": "root",
+    "description": "handoff next CLI/HUB NOT_APPLIED and latest independent probe proposal navigation are known pending live-state archival refresh, not missing frozen Owner decisions",
+    "treated_as_new_code_or_archive_defect": false
+  },
+  "not_executed": [
+    "private sessions/memory",
+    "global config",
+    "credentials",
+    "external root filesystem access",
+    "E:/F: access",
+    "attachments payload read",
+    "product tests or runtime",
+    "product/navigation edits",
+    "full transcript completeness verification"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "baseline_regression_red": {
+    "exit_code": 1,
+    "stdout": "✔ guard succeeds from frontend cwd with no usable Python and empty PATH (98.7642ms)\n✔ manifest raw whitespace drift is rejected and exact restoration succeeds (34.478ms)\n✔ fixed validator generator host and schema drift cannot keep old projection (122.3843ms)\n✔ tampered sources cannot grant private path reads or duplicate source identity (75.027ms)\n✔ generated runtime flags identity manifest payload header and suffix tampering fail (109.1405ms)\n✔ duplicate JSON keys and excessive nesting are rejected without evaluation (12.346ms)\n✔ public references cannot escape to protected absolute private or traversal paths (55.2939ms)\n✔ missing and oversized fixed source or target are bounded failures (70.6741ms)\n✔ linked public schema directory is rejected before reading its target (18.7433ms)\n✖ Git clean checkout preserves declaration identity and frozen archive bytes (209.5774ms)\nℹ tests 10\nℹ suites 0\nℹ pass 9\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 920.954\n\n✖ failing tests:\n\ntest at .project-local\\audits\\hub-lifecycle-gap-20261019\\fixture-raw\\tests\\contract\\test_capability_package_details_node.mjs:90:1\n✖ Git clean checkout preserves declaration identity and frozen archive bytes (209.5774ms)\n  Error: MANIFEST_PROJECTION_CHECK_FAILED\n      at checkCapabilityPackageDetails (file:///D:/All%20projects/ArcheAxis-Knowledge-OS/.project-local/audits/hub-lifecycle-gap-20261019/fixture-raw/scripts/contracts/check_capability_package_details.mjs:167:19)\n      at TestContext.<anonymous> (file:///D:/All%20projects/ArcheAxis-Knowledge-OS/.project-local/audits/hub-lifecycle-gap-20261019/fixture-raw/tests/contract/test_capability_package_details_node.mjs:112:16)\n      at Test.runInAsyncScope (node:async_hooks:227:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)\n      at Test.postRun (node:internal/test_runner/test:1542:19)\n      at Test.run (node:internal/test_runner/test:1467:12)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)\n",
+    "stderr": ""
+  },
+  "candidate_node_green": {
+    "exit_code": 0,
+    "stdout": "✔ guard succeeds from frontend cwd with no usable Python and empty PATH (109.0594ms)\n✔ manifest raw whitespace drift is rejected and exact restoration succeeds (35.913ms)\n✔ fixed validator generator host and schema drift cannot keep old projection (126.5406ms)\n✔ tampered sources cannot grant private path reads or duplicate source identity (78.9749ms)\n✔ generated runtime flags identity manifest payload header and suffix tampering fail (105.6904ms)\n✔ duplicate JSON keys and excessive nesting are rejected without evaluation (18.8005ms)\n✔ public references cannot escape to protected absolute private or traversal paths (55.3592ms)\n✔ missing and oversized fixed source or target are bounded failures (65.2453ms)\n✔ linked public schema directory is rejected before reading its target (15.9031ms)\n✔ Git clean checkout preserves declaration identity and frozen archive bytes (198.3086ms)\nℹ tests 10\nℹ suites 0\nℹ pass 10\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 915.751\n",
+    "stderr": ""
+  },
+  "candidate_generation": {
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "candidate_checks": {
+    "python_details": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "node_guard": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "clean_python_details": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "clean_node_guard": {
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "production_writes": false,
+  "runtime_qualification": "NOT_EXECUTED",
+  "models_services_browser": "NOT_EXECUTED"
+}

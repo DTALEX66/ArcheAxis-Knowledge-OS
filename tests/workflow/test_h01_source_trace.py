@@ -132,3 +132,92 @@ def test_source_root_cannot_widen_project_boundary(current_sources):
     repo, scope, document = current_sources
     with pytest.raises(ValueError, match="project owning root"):
         gate.validate(document, repo, scope.parent)
+
+
+def _snapshot_migration_fixture(tmp_path):
+    import hashlib
+    import json
+
+    raw = b'{"task_rows":[{"key":"P001"}]}\n'
+    record = {"root": str(tmp_path / ".project-local/worktrees/gov-ui-20261008"),
+              "relative_path": "docs/current/ledger.json", "exists": True,
+              "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+    archive_path = "docs/history/repository-consolidation-20261019/current/ledger.json"
+    archive = tmp_path / archive_path
+    archive.parent.mkdir(parents=True)
+    archive.write_bytes(raw)
+    migration = {"schema": "archeaxis.repository-consolidation/v1", "files": [
+        {"original_path": record["relative_path"], "archive_path": archive_path,
+         "bytes": record["bytes"], "sha256": record["sha256"]}]}
+    manifest = tmp_path / gate.CONSOLIDATION
+    manifest.write_text(json.dumps(migration), encoding="utf-8")
+    return record, migration, manifest, archive
+
+
+def test_registered_snapshot_uses_exact_archive_without_probing_old_worktree(tmp_path, monkeypatch):
+    record, _, _, _ = _snapshot_migration_fixture(tmp_path)
+    original = copy.deepcopy(record)
+    real_lstat = Path.lstat
+
+    def reject_old_worktree(self, *args, **kwargs):
+        assert "gov-ui-20261008" not in self.parts, "retired worktree was probed"
+        return real_lstat(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "lstat", reject_old_worktree)
+    assert gate.load_registered_snapshot(record, tmp_path, tmp_path) == {"task_rows": [{"key": "P001"}]}
+    assert record == original
+
+
+@pytest.mark.parametrize("field,value", [("sha256", "0" * 64), ("bytes", 1),
+                                        ("relative_path", "docs/current/unregistered/ledger.json")])
+def test_registered_snapshot_rejects_source_identity_mismatch(tmp_path, monkeypatch, field, value):
+    record, _, _, archive = _snapshot_migration_fixture(tmp_path)
+    record[field] = value
+    real_read = Path.read_bytes
+
+    def reject_archive_read(self):
+        assert self != archive, "mismatched source identity reached archive bytes"
+        return real_read(self)
+
+    monkeypatch.setattr(Path, "read_bytes", reject_archive_read)
+    with pytest.raises(ValueError, match="snapshot migration"):
+        gate.load_registered_snapshot(record, tmp_path, tmp_path)
+
+
+@pytest.mark.parametrize("field,value", [("sha256", "0" * 64), ("bytes", 1)])
+def test_registered_snapshot_rejects_manifest_identity_mismatch(tmp_path, field, value):
+    import json
+
+    record, migration, manifest, _ = _snapshot_migration_fixture(tmp_path)
+    migration["files"][0][field] = value
+    manifest.write_text(json.dumps(migration), encoding="utf-8")
+    with pytest.raises(ValueError, match="SHA/bytes identity mismatch"):
+        gate.load_registered_snapshot(record, tmp_path, tmp_path)
+
+
+@pytest.mark.parametrize("changed", [b'{"task_rows":[{"key":"P999"}]}\n', b'{}\n'])
+def test_registered_snapshot_rejects_changed_archive_bytes(tmp_path, changed):
+    record, _, _, archive = _snapshot_migration_fixture(tmp_path)
+    archive.write_bytes(changed)
+    with pytest.raises(ValueError, match="archive bytes/SHA mismatch"):
+        gate.load_registered_snapshot(record, tmp_path, tmp_path)
+
+
+def test_registered_snapshot_rejects_duplicate_original_paths(tmp_path):
+    import json
+
+    record, migration, manifest, _ = _snapshot_migration_fixture(tmp_path)
+    migration["files"].append(copy.deepcopy(migration["files"][0]))
+    manifest.write_text(json.dumps(migration), encoding="utf-8")
+    with pytest.raises(ValueError, match="one exact original_path"):
+        gate.load_registered_snapshot(record, tmp_path, tmp_path)
+
+
+def test_registered_snapshot_rejects_unsafe_archive_path(tmp_path):
+    import json
+
+    record, migration, manifest, _ = _snapshot_migration_fixture(tmp_path)
+    migration["files"][0]["archive_path"] = "docs/history/repository-consolidation-20261019/../outside.json"
+    manifest.write_text(json.dumps(migration), encoding="utf-8")
+    with pytest.raises(ValueError, match="private/traversal"):
+        gate.load_registered_snapshot(record, tmp_path, tmp_path)

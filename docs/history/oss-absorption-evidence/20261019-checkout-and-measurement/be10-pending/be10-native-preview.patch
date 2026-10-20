@@ -1,0 +1,1481 @@
+diff --git a/crates/archeaxis-api/src/lib.rs b/crates/archeaxis-api/src/lib.rs
+--- a/crates/archeaxis-api/src/lib.rs
++++ b/crates/archeaxis-api/src/lib.rs
+@@ -16,6 +16,7 @@
+ mod ocr_locator;
+ mod pdf_locator;
+ pub mod project_handoff;
++mod project_handoff_preview;
+ pub mod project_observer;
+ pub mod runtime;
+ mod teaching;
+@@ -104,6 +105,7 @@
+         .route("/api/v2/teaching/imports", post(teaching::import))
+         .layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024));
+     let routes = Router::new()
++        .route("/api/v1/project-handoff/preview", post(project_handoff_preview::preview).layer(axum::extract::DefaultBodyLimit::max(65_536)))
+         .merge(ui_routes)
+         .merge(teaching_routes)
+         .route(
+diff --git a/crates/archeaxis-api/src/project_handoff_preview.rs b/crates/archeaxis-api/src/project_handoff_preview.rs
+new file mode 100644
+--- /dev/null
++++ b/crates/archeaxis-api/src/project_handoff_preview.rs
+@@ -0,0 +1,69 @@
++//! 原逻辑project.handoff.preview的本地human入口；无正文/写入/投递/外部连接。
++use crate::{AppState, project_handoff::proposal_fingerprint, project_observer::now_ms};
++use archeaxis_contracts::{
++    project_handoff::{AuthorizationScope, Handoff, Payload, Unverified},
++    project_handoff_preview::{Preview, ReferenceState, SCHEMA},
++    project_observer::NavigationState,
++};
++use archeaxis_domain::ui_state::existing_workspace_id;
++use archeaxis_store_sqlite::authorization_fence;
++use axum::{body::Bytes, extract::State, http::{HeaderMap, StatusCode, Uri}, response::{IntoResponse, Response}, Json};
++use rusqlite::OptionalExtension;
++
++fn error(status: StatusCode, code: &'static str) -> Response {
++    (status, Json(serde_json::json!({"schema":"archeaxis.project-handoff-preview-error/v1","code":code}))).into_response()
++}
++pub(crate) async fn preview(State(store): State<AppState>, uri: Uri, headers: HeaderMap, bytes: Bytes) -> Response {
++    if crate::request_actor(&headers) != Ok("human") {
++        return error(StatusCode::FORBIDDEN, "HANDOFF_PREVIEW_HUMAN_REQUIRED");
++    }
++    if uri.query().is_some() || bytes.len() > 65_536 {
++        return error(StatusCode::BAD_REQUEST, "HANDOFF_PREVIEW_INVALID_INPUT");
++    }
++    let proposal: Handoff = match serde_json::from_slice(&bytes) {
++        Ok(value) => value,
++        Err(_) => return error(StatusCode::BAD_REQUEST, "HANDOFF_PREVIEW_INVALID_INPUT"),
++    };
++    if !proposal.valid(now_ms()) || !matches!(proposal.payload, Payload::Context { .. }) {
++        return error(StatusCode::BAD_REQUEST, "HANDOFF_PREVIEW_INVALID_INPUT");
++    }
++    let result = store.submit(move |conn| -> Result<Preview, (&'static str, StatusCode)> {
++        let unavailable = || ("HANDOFF_PREVIEW_UNAVAILABLE", StatusCode::SERVICE_UNAVAILABLE);
++        let tx = conn.transaction().map_err(|_| unavailable())?;
++        // 仅查询已有身份；不调用首次初始化可能写入的workspace_id helper。
++        let workspace = existing_workspace_id(&tx).map_err(|_| unavailable())?.ok_or_else(unavailable)?;
++        let epoch = authorization_fence::authorization_epoch(&tx).map_err(|_| unavailable())?.unwrap_or_else(|| "initial".into());
++        if proposal.producer.workspace_id != workspace || proposal.producer.restore_epoch != epoch {
++            return Err(("HANDOFF_PREVIEW_IDENTITY_MISMATCH", StatusCode::CONFLICT));
++        }
++        let Payload::Context { source, .. } = &proposal.payload else { unreachable!() };
++        let current: Option<(i64, String)> = tx.query_row(
++            "SELECT d.current_version,v.content_sha256 FROM documents d JOIN document_versions v ON v.document_id=d.document_id AND v.version=d.current_version WHERE d.document_id=?1",
++            [&source.reference.document_id], |row| Ok((row.get(0)?,row.get(1)?))).optional().map_err(|_| unavailable())?;
++        if current.as_ref().is_some_and(|(version,hash)| *version <= 0 || !archeaxis_contracts::project_observer::hex(hash,64)) {
++            return Err(unavailable());
++        }
++        let reference_state = match current {
++            None => ReferenceState::NotFound,
++            Some((version, hash)) if version as u64 == source.reference.version && hash == source.reference.content_sha256 => ReferenceState::Current,
++            Some(_) => ReferenceState::Stale,
++        };
++        // 接收的consumer仅原提案声明；没有观察到外部身份或正文选区，不升级其资格。
++        let fingerprint = proposal_fingerprint(&proposal).map_err(|_| ("HANDOFF_PREVIEW_INVALID_INPUT", StatusCode::BAD_REQUEST))?;
++        tx.commit().map_err(|_| unavailable())?;
++        let checked_at_ms = now_ms();
++        let value = Preview {schema: SCHEMA.into(), checked_at_ms, expires_at_ms: proposal.expires_at_ms,
++            proposal, proposal_sha256: fingerprint, reference_state, source_authentication: Unverified::Unverified,
++            authority: AuthorizationScope::ReferenceMetadataOnly, navigation: NavigationState::Unavailable,
++            grants_execution: false, grants_knowledge_acceptance: false};
++        if !value.valid(checked_at_ms) {
++            return Err(("HANDOFF_PREVIEW_EXPIRED", StatusCode::CONFLICT));
++        }
++        Ok(value)
++    }).await;
++    match result {
++        Ok(Ok(value)) => Json(value).into_response(),
++        Ok(Err((code,status))) => error(status,code),
++        Err(_) => error(StatusCode::SERVICE_UNAVAILABLE,"HANDOFF_PREVIEW_UNAVAILABLE"),
++    }
++}
+diff --git a/crates/archeaxis-api/tests/project_handoff_preview_process.rs b/crates/archeaxis-api/tests/project_handoff_preview_process.rs
+new file mode 100644
+--- /dev/null
++++ b/crates/archeaxis-api/tests/project_handoff_preview_process.rs
+@@ -0,0 +1,228 @@
++//! 自建合成资料、真实 Core/HTTP/消费者进程；不代表外部产品或安装资格。
++use archeaxis_contracts::project_handoff_preview::Preview;
++use archeaxis_contracts::project_observer::{self as contract, ObjectReference};
++use serde_json::{Value, json};
++use std::{
++    io::{BufRead, BufReader, Read, Write},
++    net::TcpStream,
++    path::Path,
++    process::{Child, Command, Stdio},
++    sync::mpsc,
++    time::Duration,
++};
++const HUMAN: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
++const MACHINE: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
++const OBSERVER: &str = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
++const INSTANCE: &str = "dddddddddddddddddddddddddddddddd";
++struct Owned(Child);
++impl Drop for Owned {
++    fn drop(&mut self) {
++        let _ = self.0.kill();
++        let _ = self.0.wait();
++    }
++}
++fn seed(db: &Path) -> (String, ObjectReference, String) {
++    let mut conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
++    let workspace = archeaxis_domain::ui_state::workspace_id(&conn).unwrap();
++    let doc = archeaxis_domain::document::create_optional(&mut conn, None, None, "SYNTHETIC private title", json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"SYNTHETIC PRIVATE BODY NEVER EXPORT"}]}]})).unwrap();
++    let other = archeaxis_domain::document::create_optional(
++        &mut conn,
++        None,
++        None,
++        "not admitted",
++        json!({"type":"doc","content":[]}),
++    )
++    .unwrap();
++    (
++        workspace,
++        ObjectReference {
++            document_id: doc["document_id"].as_str().unwrap().into(),
++            version: 1,
++            content_sha256: doc["content_sha256"].as_str().unwrap().into(),
++        },
++        other["document_id"].as_str().unwrap().into(),
++    )
++}
++fn grant(workspace: &str, id: &str) -> Value {
++    json!({"token":OBSERVER,"consumer":{"namespace":"work-lab","instance_id":INSTANCE},"producer":{"namespace":"archeaxis","workspace_id":workspace,"restore_epoch":"initial"},"expires_at_ms":archeaxis_api::project_observer::now_ms()+60_000,"document_ids":[id]})
++}
++fn launch(grants: Value) -> Value {
++    json!({"protocol":"archeaxis.desktop-launch/v3","actor":"human","launch_token":HUMAN,"machine_token":MACHINE,"session_id":"e".repeat(32),"observer_grants":grants})
++}
++fn start(db: &Path, document: Value) -> (Owned, u16) {
++    let mut command = Command::new(env!("CARGO_BIN_EXE_archeaxis-api"));
++    command
++        .arg(db)
++        .arg("0")
++        .stdin(Stdio::piped())
++        .stdout(Stdio::piped())
++        .stderr(Stdio::null());
++    #[cfg(windows)]
++    {
++        use std::os::windows::process::CommandExt;
++        command.creation_flags(0x08000000);
++    }
++    let mut owned = Owned(command.spawn().unwrap());
++    writeln!(owned.0.stdin.take().unwrap(), "{document}").unwrap();
++    let stdout = owned.0.stdout.take().unwrap();
++    let (tx, rx) = mpsc::channel();
++    std::thread::spawn(move || {
++        for line in BufReader::new(stdout).lines() {
++            if tx.send(line.unwrap()).is_err() {
++                break;
++            }
++        }
++    });
++    let line = rx
++        .recv_timeout(Duration::from_secs(8))
++        .expect("owned Core bounded readiness");
++    for secret in [HUMAN, MACHINE, OBSERVER] {
++        assert!(!line.contains(secret));
++    }
++    let port = line
++        .split("127.0.0.1:")
++        .nth(1)
++        .unwrap()
++        .split_whitespace()
++        .next()
++        .unwrap()
++        .parse()
++        .unwrap();
++    (owned, port)
++}
++fn request(
++    port: u16,
++    token: &str,
++    method: &str,
++    path: &str,
++    extra: &str,
++    body: &str,
++) -> (u16, String) {
++    let mut socket = TcpStream::connect(("127.0.0.1", port)).unwrap();
++    socket
++        .set_read_timeout(Some(Duration::from_secs(4)))
++        .unwrap();
++    write!(socket,"{method} {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\nx-archeaxis-launch-token: {token}\r\nx-archeaxis-observer-protocol: {}\r\nx-archeaxis-observer-namespace: work-lab\r\nx-archeaxis-observer-instance: {INSTANCE}\r\nContent-Length: {}\r\n{extra}\r\n{body}",contract::PROTOCOL,body.len()).unwrap();
++    let mut raw = String::new();
++    socket.read_to_string(&mut raw).unwrap();
++    for secret in [HUMAN, MACHINE, OBSERVER] {
++        assert!(!raw.contains(secret));
++    }
++    (
++        raw.split_whitespace().nth(1).unwrap().parse().unwrap(),
++        raw.split_once("\r\n\r\n").unwrap().1.into(),
++    )
++}
++fn snapshot(db: &Path) -> Vec<(String, Vec<Vec<String>>)> {
++    let conn =
++        rusqlite::Connection::open_with_flags(db, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
++            .unwrap();
++    let mut statement = conn
++        .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
++        .unwrap();
++    let names: Vec<String> = statement
++        .query_map([], |row| row.get(0))
++        .unwrap()
++        .map(Result::unwrap)
++        .collect();
++    names
++        .into_iter()
++        .map(|name| {
++            let mut statement = conn
++                .prepare(&format!("SELECT * FROM \"{}\"", name.replace('"', "\"\"")))
++                .unwrap();
++            let count = statement.column_count();
++            let mut rows: Vec<Vec<String>> = statement
++                .query_map([], |row| {
++                    Ok((0..count)
++                        .map(|i| format!("{:?}", row.get_ref(i).unwrap()))
++                        .collect())
++                })
++                .unwrap()
++                .map(Result::unwrap)
++                .collect();
++            rows.sort();
++            (name, rows)
++        })
++        .collect()
++}
++
++fn proposal(workspace: &str, reference: &ObjectReference) -> Value {
++    let now=archeaxis_api::project_observer::now_ms();
++    json!({"schema":"archeaxis.project-handoff/v1","protocol":contract::PROTOCOL,
++        "idempotency_key":"1".repeat(32),"producer":{"namespace":"archeaxis","workspace_id":workspace,"restore_epoch":"initial"},
++        "consumer":{"namespace":"work-lab","instance_id":INSTANCE},"created_at_ms":now,"expires_at_ms":now+30_000,
++        "authority":"PREPARATION_ONLY","payload":{"kind":"context","source":{"reference":reference,"selection":{"kind":"whole_object"},"selection_qualification":"UNVERIFIED"},"purpose":"research","authorization_scope":"REFERENCE_METADATA_ONLY"}})
++}
++fn preview(port:u16, token:&str, value:&Value)->(u16,Value) {
++    let (status,body)=request(port,token,"POST","/api/v1/project-handoff/preview","Content-Type: application/json\r\n",&value.to_string());
++    let value:Value=serde_json::from_str(&body).unwrap();
++    for forbidden in ["private title","PRIVATE BODY",HUMAN,MACHINE,OBSERVER,"editor_json","launch_token"] {
++        assert!(!body.contains(forbidden));
++    }
++    (status,value)
++}
++fn setup()->(tempfile::TempDir,std::path::PathBuf,String,ObjectReference,Owned,u16) {
++    let dir=tempfile::tempdir().unwrap();let db=dir.path().join("synthetic.sqlite");
++    let (workspace,reference,_)=seed(&db);let (owned,port)=start(&db,launch(json!([grant(&workspace,&reference.document_id)])));
++    (dir,db,workspace,reference,owned,port)
++}
++#[test]
++fn human_preview_reads_real_fixed_metadata_and_leaves_all_business_tables_unchanged() {
++    let (_dir,db,workspace,reference,_core,port)=setup();let before=snapshot(&db);
++    for purpose in ["learning","research","conversion","visualization"] {
++        for selection in [json!({"kind":"whole_object"}),json!({"kind":"text_range","block_id":"unverified_block","start_utf16":1,"end_utf16":3}),json!({"kind":"page_range","first_page":1,"last_page":2}),json!({"kind":"time_range","start_ms":1,"end_ms":2})] {
++            let mut input=proposal(&workspace,&reference);input["payload"]["purpose"]=json!(purpose);input["payload"]["source"]["selection"]=selection;
++            let (status,value)=preview(port,HUMAN,&input);assert_eq!(status,200);
++            let decoded:Preview=serde_json::from_value(value.clone()).unwrap();assert!(decoded.valid(archeaxis_api::project_observer::now_ms()));
++            assert_eq!(value["proposal"],input);assert_eq!(value["reference_state"],"CURRENT");
++            assert_eq!(value["source_authentication"],"UNVERIFIED");assert_eq!(value["navigation"],"UNAVAILABLE");
++            assert_eq!(value["proposal"]["payload"]["source"]["selection_qualification"],"UNVERIFIED");
++            assert_eq!(value["grants_execution"],false);assert_eq!(value["grants_knowledge_acceptance"],false);
++            let original=serde_json::from_value(input).unwrap();assert_eq!(value["proposal_sha256"],archeaxis_api::project_handoff::proposal_fingerprint(&original).unwrap());
++        }
++    }
++    assert_eq!(before,snapshot(&db));
++}
++#[test]
++fn preview_rejects_machine_observer_credentials_and_keeps_local_api_independent() {
++    let (_dir,db,workspace,reference,_core,port)=setup();let before=snapshot(&db);let input=proposal(&workspace,&reference);
++    for token in [MACHINE,OBSERVER,"invalid"] { let(status,_)=preview(port,token,&input);assert!(matches!(status,401|403)); }
++    assert_eq!(request(port,HUMAN,"GET","/api/v1/documents","","").0,200);
++    assert_eq!(before,snapshot(&db));
++    // 不配置observer grant也可独立执行本地human预览；没有外部服务依赖。
++    drop(_core);let (_core,port)=start(&db,json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":HUMAN,"machine_token":MACHINE,"session_id":"e".repeat(32)}));
++    assert_eq!(preview(port,HUMAN,&input).0,200);
++}
++#[test]
++fn workspace_restore_epoch_expiry_and_future_context_fail_closed_without_writes() {
++    let (_dir,db,workspace,reference,_core,port)=setup();let before=snapshot(&db);
++    for field in ["workspace_id","restore_epoch"] {let mut input=proposal(&workspace,&reference);input["producer"][field]=json!("f".repeat(32));let(status,value)=preview(port,HUMAN,&input);assert_eq!(status,409);assert_eq!(value["code"],"HANDOFF_PREVIEW_IDENTITY_MISMATCH");}
++    for future in [false,true] {let mut input=proposal(&workspace,&reference);let now=archeaxis_api::project_observer::now_ms();input["created_at_ms"]=json!(if future {now+30_000}else{now-60_000});input["expires_at_ms"]=json!(if future {now+60_000}else{now-30_000});assert_eq!(preview(port,HUMAN,&input).0,400);}
++    assert_eq!(before,snapshot(&db));
++    // 只修改自建合成workspace的恢复fence作为真实失效负例，预览本身仍只读。
++    let conn=rusqlite::Connection::open(&db).unwrap();conn.execute("INSERT INTO workspace_meta(key,value) VALUES(?1,?2)",rusqlite::params![archeaxis_store_sqlite::authorization_fence::KEY,json!({"schema":archeaxis_store_sqlite::authorization_fence::SCHEMA,"epoch":"2".repeat(32),"blocked_grant_ids":[]}).to_string()]).unwrap();drop(conn);
++    let after_restore=snapshot(&db);let input=proposal(&workspace,&reference);assert_eq!(preview(port,HUMAN,&input).0,409);assert_eq!(after_restore,snapshot(&db));
++}
++#[test]
++fn stale_hash_version_missing_and_repeated_preview_are_explicit_and_read_only() {
++    let (_dir,db,workspace,reference,_core,port)=setup();let before=snapshot(&db);
++    let input=proposal(&workspace,&reference);
++    for _ in 0..2 {assert_eq!(preview(port,HUMAN,&input).1["reference_state"],"CURRENT");}
++    for field in ["version","content_sha256","document_id"] {let mut value=input.clone();value["payload"]["source"]["reference"][field]=match field {"version"=>json!(2),"content_sha256"=>json!("0".repeat(64)),_=>json!("missing")};let(status,out)=preview(port,HUMAN,&value);assert_eq!(status,200);assert_eq!(out["reference_state"],if field=="document_id"{"NOT_FOUND"}else{"STALE"});assert_eq!(out["proposal"],value);}
++    assert_eq!(before,snapshot(&db));
++}
++#[test]
++fn untrusted_json_fields_non_context_query_and_oversize_never_echo_input() {
++    let (_dir,db,workspace,reference,_core,port)=setup();let before=snapshot(&db);let original=proposal(&workspace,&reference);
++    let mut unknown=original.clone();unknown["token"]=json!("PRIVATE BODY NEVER ECHO");assert_eq!(preview(port,HUMAN,&unknown).0,400);
++    let cases:Value=serde_json::from_str(include_str!("../../../packages/contracts/v2/project-handoff.cases.json")).unwrap();
++    let valid_task=cases.as_array().unwrap().iter().find(|case|case["name"]=="valid_task").unwrap();
++    let mut candidate=original.clone();candidate["payload"]=valid_task["value"]["payload"].clone();
++    let task:archeaxis_contracts::project_handoff::Handoff=serde_json::from_value(candidate.clone()).unwrap();
++    assert!(task.valid(archeaxis_api::project_observer::now_ms()));assert_eq!(preview(port,HUMAN,&candidate).0,400);
++    for text in [original.to_string().replacen("\"schema\":", "\"schema\":\"PRIVATE BODY NEVER ECHO\",\"schema\":",1),"{".into()] {let(status,body)=request(port,HUMAN,"POST","/api/v1/project-handoff/preview","Content-Type: application/json\r\n",&text);assert_eq!(status,400);assert!(!body.contains("PRIVATE BODY"));assert_eq!(serde_json::from_str::<Value>(&body).unwrap()["code"],"HANDOFF_PREVIEW_INVALID_INPUT");}
++    assert_eq!(request(port,HUMAN,"POST","/api/v1/project-handoff/preview?url=https://invalid.test","Content-Type: application/json\r\n",&original.to_string()).0,400);
++    assert_eq!(request(port,HUMAN,"POST","/api/v1/project-handoff/preview","Content-Type: application/json\r\n",&" ".repeat(65_537)).0,413);
++    assert_eq!(before,snapshot(&db));
++}
+diff --git a/crates/archeaxis-contracts/src/lib.rs b/crates/archeaxis-contracts/src/lib.rs
+--- a/crates/archeaxis-contracts/src/lib.rs
++++ b/crates/archeaxis-contracts/src/lib.rs
+@@ -3,6 +3,7 @@
+ //! to detect drift; shared JSON cases exercise actual language parsers.
+ pub mod loss_receipt;
+ pub mod project_handoff;
++pub mod project_handoff_preview;
+ pub mod project_observer;
+ #[path = "generated/ui_host.rs"]
+ pub mod ui_host;
+diff --git a/crates/archeaxis-contracts/src/project_handoff_preview.rs b/crates/archeaxis-contracts/src/project_handoff_preview.rs
+new file mode 100644
+--- /dev/null
++++ b/crates/archeaxis-contracts/src/project_handoff_preview.rs
+@@ -0,0 +1,51 @@
++//! 本地human只读预览；外部metadata声明不成为认证、投递、执行或接纳资格。
++use crate::project_handoff::{AuthorizationScope, Handoff, Payload, Unverified};
++use crate::project_observer::{self, NavigationState};
++use serde::{Deserialize, Serialize};
++
++pub const SCHEMA: &str = "archeaxis.project-handoff-preview/v1";
++#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
++#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
++pub enum ReferenceState { Current, Stale, NotFound }
++#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
++#[serde(deny_unknown_fields)]
++pub struct Preview {
++    pub schema: String,
++    pub checked_at_ms: u64,
++    pub expires_at_ms: u64,
++    pub proposal: Handoff,
++    pub proposal_sha256: String,
++    pub reference_state: ReferenceState,
++    pub source_authentication: Unverified,
++    pub authority: AuthorizationScope,
++    pub navigation: NavigationState,
++    pub grants_execution: bool,
++    pub grants_knowledge_acceptance: bool,
++}
++impl Preview {
++    pub fn valid(&self, now_ms: u64) -> bool {
++        self.schema == SCHEMA
++            && self.proposal.valid(now_ms)
++            && matches!(self.proposal.payload, Payload::Context { .. })
++            && project_observer::hex(&self.proposal_sha256, 64)
++            && self.checked_at_ms >= self.proposal.created_at_ms
++            && self.checked_at_ms <= now_ms
++            && self.expires_at_ms > now_ms
++            && self.expires_at_ms <= self.proposal.expires_at_ms
++            && self.expires_at_ms - self.checked_at_ms <= project_observer::FRESHNESS_MS
++            && !self.grants_execution && !self.grants_knowledge_acceptance
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::Preview;
++    #[test]
++    fn shared_preview_cases_decode_and_validate_real_dto() {
++        let cases:serde_json::Value=serde_json::from_str(include_str!("../../../packages/contracts/v2/project-handoff-preview.cases.json")).unwrap();
++        for case in cases.as_array().unwrap() {
++            let accepted=serde_json::from_value::<Preview>(case["value"].clone()).is_ok_and(|value|value.valid(case["now_ms"].as_u64().unwrap()));
++            assert_eq!(accepted,case["runtime_valid"].as_bool().unwrap(),"{}",case["name"]);
++        }
++    }
++}
+diff --git a/docs/contracts/project-handoff-preview-v1.md b/docs/contracts/project-handoff-preview-v1.md
+new file mode 100644
+--- /dev/null
++++ b/docs/contracts/project-handoff-preview-v1.md
+@@ -0,0 +1,20 @@
++# Project Handoff Preview v1：本地human有限消费
++
++BE10原逻辑操作`project.handoff.preview`的真实Core与native有限命令；不是外部产品身份认证、投递、上下文正文传输、执行、知识接纳或OS深链接。
++
++`POST /api/v1/project-handoff/preview`只接受现有launch middleware验证的human会话。machine拒绝，Observer专用token仍只到既有三个只读端口；不给外部产品human token。64KiB输入、无query、严格既有Handoff DTO且kind只能context，未识别/重复字段、私有正文/凭据/URL字段及错误时间均返回有限错误而不回显输入。过大body由现有body-limit拒绝413；API无新DB/注册器/常驻服务。
++
++同一DEFERRED只读transaction读取已有workspace_id、恢复authorization epoch和当前文档版本/hash；缺失/损坏身份拒绝，不调用初始化身份helper。producer不匹配409；原冻结ID/version/hash与现有状态比较为CURRENT/STALE/NOT_FOUND，绝不换成最新版。STALE包括版本或hash不同，不代表真假裁定。原件元数据的source_authentication固定UNVERIFIED，选区存在性/语义仍原UNVERIFIED；consumer是原提案声明，没有声称认证了外部产品。
++
++输出schema `archeaxis.project-handoff-preview/v1`，严格DTO/JSON Schema及共同正负案例，包含原严格context提案与规范proposal_sha256、当前观察时间/到期、reference_state、REFERENCE_METADATA_ONLY及navigation UNAVAILABLE，执行/接纳false。状态和digest不能当投递、签名、已知manifest或执行权；preview的valid不独自验证digest真实性，生产handler实际重算，客户端若比较原提案须复用规范fingerprint。到期不超过原提案，队列等待超过期限也拒绝；没有持久化去重/投递或exactly-once承诺，重复预览无写入。
++
++原生入口复用现有Tauri `core_command`及主进程持有的人类凭据，仅增加固定`project_handoff_preview` operation，payload严格只含对象`body`。路由固定，输入与响应各64KiB、有限3秒HTTP传输；不接收URL/命令/凭据，不新增invoke或共享配置。凭据从既有主进程内存取得，不进入前端或Handoff。测试里的BE10_PREVIEW_CORE必须指向本轮构建的owned临时Core，不可使用用户服务；缺少时测试失败。
++
++## 到只读引用旅程的确切剩余接线
++
++1. 由后继当前FE授权在已有页面增加显式context预览入口，严格解析/限制字节；不从URL自动执行，不开第二主导航，不将它送入Library.openDocument（该路径能编辑及写working state）。显示来源认证/选区UNVERIFIED和三种引用状态；只有用户明确选择后进行本机阅读。
++2. 可复用PinnedReferencePanel的document_version+expectedDocumentSha和onClose返回行为；但它目前没有workspace/restore_epoch约束，普通DocumentVersion请求也不绑定这两个身份。不能先metadata预览后直接读正文而遗漏恢复竞态。后继需要在现有human有限桥增加**同事务**身份/冻结引用绑定的本地只读snapshot读取，或者等价原生绑定；正文只在本机human阅读，不外传给Observer。CURRENT仅观察时点，不能缓存当永续读取权。
++3. 保持原研究/关系/本地草稿、布局、焦点及打开上下文；关闭只读引用返回原位置。过期、恢复、版本变化、断连、切换竞态要拒绝或明确重核对，不默认为新版；无保存/执行/接受按钮。
++4. OS URI handler注册/安装、外部WORK-LAB/DESIGN-LAB真实native入口与返回链需要各自明确路径/配置授权及独立仓测试；本轮不配置、不冒充对端、也不宣称已完成它们。
++
++证据：实际Core进程API正负回归和全业务表前后快照、真实native有限桥调用owned Core、shared schema/Rust DTO。它们属于SYNTHETIC工程集成；实际外部产品UI/native、安装、完整用户旅程与Owner验收NOT_EXECUTED，BE10整体仍PARTIAL。
+diff --git a/packages/contracts/v2/project-handoff-preview.cases.json b/packages/contracts/v2/project-handoff-preview.cases.json
+new file mode 100644
+--- /dev/null
++++ b/packages/contracts/v2/project-handoff-preview.cases.json
+@@ -0,0 +1,831 @@
++[
++  {
++    "name": "CURRENT",
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": true,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "STALE",
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": true,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "STALE",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "NOT_FOUND",
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": true,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "NOT_FOUND",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "reject_source_authentication",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "AUTHENTICATED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "reject_authority",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "EXECUTION",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "reject_navigation",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "AVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "reject_grants_execution",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": true,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "reject_grants_knowledge_acceptance",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": true
++    }
++  },
++  {
++    "name": "reject_reference_state",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "SUCCESS",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "reject_proposal_sha256",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "reject_body",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false,
++      "body": "PRIVATE"
++    }
++  },
++  {
++    "name": "expiry_not_beyond_proposal",
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40001,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "future_checked",
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10001,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "expired_preview",
++    "now_ms": 10000,
++    "schema_valid": true,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 10000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "expired_proposal",
++    "now_ms": 40000,
++    "schema_valid": true,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "context",
++          "source": {
++            "reference": {
++              "document_id": "doc_a",
++              "version": 2,
++              "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++            },
++            "selection": {
++              "kind": "whole_object"
++            },
++            "selection_qualification": "UNVERIFIED"
++          },
++          "purpose": "learning",
++          "authorization_scope": "REFERENCE_METADATA_ONLY"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  },
++  {
++    "name": "only_context",
++    "now_ms": 10000,
++    "schema_valid": false,
++    "runtime_valid": false,
++    "value": {
++      "schema": "archeaxis.project-handoff-preview/v1",
++      "checked_at_ms": 10000,
++      "expires_at_ms": 40000,
++      "proposal": {
++        "schema": "archeaxis.project-handoff/v1",
++        "protocol": "archeaxis.project-observer/v1",
++        "idempotency_key": "22222222222222222222222222222222",
++        "producer": {
++          "namespace": "archeaxis",
++          "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++          "restore_epoch": "initial"
++        },
++        "consumer": {
++          "namespace": "work-lab",
++          "instance_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
++        },
++        "created_at_ms": 10000,
++        "expires_at_ms": 40000,
++        "authority": "PREPARATION_ONLY",
++        "payload": {
++          "kind": "task_proposal",
++          "target": {
++            "document_id": "doc_a",
++            "version": 2,
++            "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++          },
++          "context": [
++            {
++              "reference": {
++                "document_id": "doc_a",
++                "version": 2,
++                "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++              },
++              "selection": {
++                "kind": "whole_object"
++              },
++              "selection_qualification": "UNVERIFIED"
++            }
++          ],
++          "goal": "prepare_learning_activity",
++          "capability": {
++            "capability_id": "CAP-0060",
++            "contribution_point": "learning_activity",
++            "manifest_identity": "UNKNOWN"
++          },
++          "execution_authority": "NOT_GRANTED"
++        }
++      },
++      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++      "reference_state": "CURRENT",
++      "source_authentication": "UNVERIFIED",
++      "authority": "REFERENCE_METADATA_ONLY",
++      "navigation": "UNAVAILABLE",
++      "grants_execution": false,
++      "grants_knowledge_acceptance": false
++    }
++  }
++]
+diff --git a/packages/contracts/v2/project-handoff-preview.schema.json b/packages/contracts/v2/project-handoff-preview.schema.json
+new file mode 100644
+--- /dev/null
++++ b/packages/contracts/v2/project-handoff-preview.schema.json
+@@ -0,0 +1,78 @@
++{
++  "$schema": "https://json-schema.org/draft/2020-12/schema",
++  "$id": "archeaxis.project-handoff-preview/v1",
++  "type": "object",
++  "additionalProperties": false,
++  "properties": {
++    "schema": {
++      "const": "archeaxis.project-handoff-preview/v1"
++    },
++    "checked_at_ms": {
++      "type": "integer",
++      "minimum": 0,
++      "maximum": 9007199254740991
++    },
++    "expires_at_ms": {
++      "type": "integer",
++      "minimum": 1,
++      "maximum": 9007199254740991
++    },
++    "proposal": {
++      "allOf": [
++        {
++          "$ref": "project-handoff.schema.json"
++        },
++        {
++          "properties": {
++            "payload": {
++              "properties": {
++                "kind": {
++                  "const": "context"
++                }
++              }
++            }
++          }
++        }
++      ]
++    },
++    "proposal_sha256": {
++      "type": "string",
++      "pattern": "^[0-9a-f]{64}$"
++    },
++    "reference_state": {
++      "enum": [
++        "CURRENT",
++        "STALE",
++        "NOT_FOUND"
++      ]
++    },
++    "source_authentication": {
++      "const": "UNVERIFIED"
++    },
++    "authority": {
++      "const": "REFERENCE_METADATA_ONLY"
++    },
++    "navigation": {
++      "const": "UNAVAILABLE"
++    },
++    "grants_execution": {
++      "const": false
++    },
++    "grants_knowledge_acceptance": {
++      "const": false
++    }
++  },
++  "required": [
++    "schema",
++    "checked_at_ms",
++    "expires_at_ms",
++    "proposal",
++    "proposal_sha256",
++    "reference_state",
++    "source_authentication",
++    "authority",
++    "navigation",
++    "grants_execution",
++    "grants_knowledge_acceptance"
++  ]
++}
+diff --git a/src-tauri/src/core_bridge.rs b/src-tauri/src/core_bridge.rs
+--- a/src-tauri/src/core_bridge.rs
++++ b/src-tauri/src/core_bridge.rs
+@@ -33,6 +33,7 @@
+ #[serde(rename_all = "snake_case")]
+ pub enum Operation {
+     SystemVersion,
++    ProjectHandoffPreview,
+     SourceImport,
+     SourcesList,
+     SourceJobs,
+@@ -246,6 +247,13 @@
+     };
+     Ok(match request.operation {
+         SystemVersion => ("GET", "/api/v1/system/version".into(), None),
++        ProjectHandoffPreview => {
++            // 仅已有human会话的本地metadata预览；无URL、凭据或任意命令入口。
++            if p.as_object().is_none_or(|fields| fields.len() != 1) || !p.get("body").is_some_and(Value::is_object) {
++                return Err("CORE_COMMAND_PREVIEW_PAYLOAD_INVALID".into());
++            }
++            ("POST", "/api/v1/project-handoff/preview".into(), Some(body()?))
++        },
+         WorkspaceRestorePreview => (
+             "POST",
+             "/api/v2/workspace/restore/preview".into(),
+@@ -990,6 +998,7 @@
+         }
+         Operation::MachineRetest => 135,
+         Operation::WorkspaceBackup => 120,
++        Operation::ProjectHandoffPreview => 3,
+         // The Core caps a job deadline at 300 seconds and the reader polls for 310; real media
+         // jobs run past both, so the transport must outlive them.
+         Operation::JobExecute => 320,
+@@ -999,7 +1008,9 @@
+ }
+ 
+ fn request_byte_limit(operation: &Operation) -> usize {
+-    if matches!(operation, Operation::DocumentPackageImport) {
++    if matches!(operation, Operation::ProjectHandoffPreview) {
++        65_536
++    } else if matches!(operation, Operation::DocumentPackageImport) {
+         16 * 1024 * 1024
+     } else if matches!(operation, Operation::SourceImport) {
+         90 * 1024 * 1024
+@@ -1021,7 +1032,9 @@
+     }
+ }
+ fn response_byte_limit(operation: &Operation) -> usize {
+-    if matches!(operation, Operation::SourceOriginal) {
++    if matches!(operation, Operation::ProjectHandoffPreview) {
++        65_536
++    } else if matches!(operation, Operation::SourceOriginal) {
+         90 * 1024 * 1024
+     } else {
+         24 * 1024 * 1024
+diff --git a/src-tauri/tests/project_handoff_preview.rs b/src-tauri/tests/project_handoff_preview.rs
+new file mode 100644
+--- /dev/null
++++ b/src-tauri/tests/project_handoff_preview.rs
+@@ -0,0 +1,43 @@
++//! 本仓真实Core进程+正式native有限桥，合成资料；没有外部产品/OS URI/安装资格。
++#[path = "../src/core_bridge.rs"]
++mod core_bridge;
++use serde_json::{json, Value};
++use std::{io::{BufRead,BufReader,Write},process::{Child,Command,Stdio},sync::mpsc,time::Duration};
++const HUMAN:&str="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
++struct Owned(Child);
++impl Drop for Owned {fn drop(&mut self){let _=self.0.kill();let _=self.0.wait();}}
++fn start(db:&std::path::Path)->(Owned,u16){
++    // 必须由canonical runner指明刚构建的owned Core，缺失/错误为失败，绝不skip或使用用户服务。
++    let binary=std::env::var_os("BE10_PREVIEW_CORE").expect("BE10_PREVIEW_CORE owned candidate executable required");
++    let mut command=Command::new(binary);command.arg(db).arg("0").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null());
++    #[cfg(windows)] {use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
++    let mut owned=Owned(command.spawn().unwrap());
++    writeln!(owned.0.stdin.take().unwrap(),"{}",json!({"protocol":"archeaxis.desktop-launch/v2","actor":"human","launch_token":HUMAN,"machine_token":"b".repeat(64),"session_id":"c".repeat(32)})).unwrap();
++    let stdout=owned.0.stdout.take().unwrap();let(tx,rx)=mpsc::channel();
++    std::thread::spawn(move||{for line in BufReader::new(stdout).lines(){let line=line.unwrap();if let Some(port)=line.strip_prefix("archeaxis-api ready on http://127.0.0.1:"){let _=tx.send(port.parse::<u16>().unwrap());return;}}});
++    let port=rx.recv_timeout(Duration::from_secs(10)).unwrap();(owned,port)
++}
++fn call(port:u16, operation:&str,payload:Value)->core_bridge::Reply {
++    let request:core_bridge::Request=serde_json::from_value(json!({"operation":operation,"payload":payload})).unwrap();
++    core_bridge::execute(port,HUMAN,request).unwrap()
++}
++#[test]
++fn actual_native_finite_preview_consumes_owned_core_metadata_and_disconnect_never_succeeds(){
++    let dir=tempfile::tempdir().unwrap();let db=dir.path().join("native-synthetic.sqlite");let(core,port)=start(&db);
++    let workspace=call(port,"ui_state_read",json!({})).body["workspace_id"].as_str().unwrap().to_owned();
++    let document=call(port,"document_create",json!({"body":{"create_request_id":"synthetic-preview-create","source_id":null,"source_revision":null,"title":"PRIVATE NATIVE TITLE","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"PRIVATE NATIVE BODY"}]}]}}}));
++    assert!(matches!(document.status,200|201));
++    let now=std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis() as u64;
++    let proposal=json!({"schema":"archeaxis.project-handoff/v1","protocol":"archeaxis.project-observer/v1","idempotency_key":"1".repeat(32),"producer":{"namespace":"archeaxis","workspace_id":workspace,"restore_epoch":"initial"},"consumer":{"namespace":"work-lab","instance_id":"2".repeat(32)},"created_at_ms":now,"expires_at_ms":now+30_000,"authority":"PREPARATION_ONLY","payload":{"kind":"context","source":{"reference":{"document_id":document.body["document_id"],"version":document.body["version"],"content_sha256":document.body["content_sha256"]},"selection":{"kind":"whole_object"},"selection_qualification":"UNVERIFIED"},"purpose":"research","authorization_scope":"REFERENCE_METADATA_ONLY"}});
++    let reply=call(port,"project_handoff_preview",json!({"body":proposal}));assert_eq!(reply.status,200);assert_eq!(reply.body["proposal"],proposal);assert_eq!(reply.body["reference_state"],"CURRENT");assert_eq!(reply.body["source_authentication"],"UNVERIFIED");assert_eq!(reply.body["navigation"],"UNAVAILABLE");assert_eq!(reply.body["grants_execution"],false);
++    for forbidden in ["PRIVATE NATIVE TITLE","PRIVATE NATIVE BODY",HUMAN,db.to_str().unwrap(),"editor_json"]{assert!(!reply.body.to_string().contains(forbidden));}
++    for payload in [json!({"body":proposal,"url":"https://invalid.test"}),json!({"body":proposal,"token":HUMAN}),json!({"body":[]}),json!({})] {
++        let request=serde_json::from_value(json!({"operation":"project_handoff_preview","payload":payload})).unwrap();
++        assert!(matches!(core_bridge::execute(0,HUMAN,request),Err(code) if code=="CORE_COMMAND_PREVIEW_PAYLOAD_INVALID"));
++    }
++    let request=serde_json::from_value(json!({"operation":"project_handoff_preview","payload":{"body":{"oversize":"x".repeat(65_536)}}})).unwrap();
++    assert!(matches!(core_bridge::execute(0,HUMAN,request),Err(code) if code=="CORE_COMMAND_BODY_TOO_LARGE"));
++    drop(core);
++    let request=serde_json::from_value(json!({"operation":"project_handoff_preview","payload":{"body":proposal}})).unwrap();
++    assert!(matches!(core_bridge::execute(port,HUMAN,request),Err(code) if code=="CORE_TRANSPORT_FAILED"));
++}
+diff --git a/tests/contract/test_project_handoff_preview_contract.py b/tests/contract/test_project_handoff_preview_contract.py
+new file mode 100644
+--- /dev/null
++++ b/tests/contract/test_project_handoff_preview_contract.py
+@@ -0,0 +1,25 @@
++"""本地preview的实际Draft202012合同；不出网解析引用，语义由Rust共同案例检查。"""
++import json
++from pathlib import Path
++from urllib.parse import urljoin
++
++from jsonschema import Draft202012Validator
++from referencing import Registry, Resource
++
++ROOT = Path(__file__).resolve().parents[2]
++CONTRACTS = ROOT / "packages/contracts/v2"
++BASE = json.loads((CONTRACTS / "project-handoff.schema.json").read_text())
++SCHEMA = json.loads((CONTRACTS / "project-handoff-preview.schema.json").read_text())
++CASES = json.loads((CONTRACTS / "project-handoff-preview.cases.json").read_text())
++
++
++def test_preview_shared_cases_have_strict_schema_and_preserve_negative_controls():
++    Draft202012Validator.check_schema(SCHEMA)
++    registry = Registry().with_resource(
++        urljoin(SCHEMA["$id"], "project-handoff.schema.json"), Resource.from_contents(BASE)
++    )
++    validator = Draft202012Validator(SCHEMA, registry=registry)
++    assert any(case["schema_valid"] for case in CASES)
++    assert any(not case["schema_valid"] for case in CASES)
++    for case in CASES:
++        assert validator.is_valid(case["value"]) == case["schema_valid"], case["name"]
+diff --git a/packages/contracts/v1/core-command.schema.json b/packages/contracts/v1/core-command.schema.json
+--- a/packages/contracts/v1/core-command.schema.json
++++ b/packages/contracts/v1/core-command.schema.json
+@@ -11,6 +11,7 @@
+       "type": "string",
+       "enum": [
+         "system_version",
++        "project_handoff_preview",
+         "source_import",
+         "sources_list",
+         "source_jobs",

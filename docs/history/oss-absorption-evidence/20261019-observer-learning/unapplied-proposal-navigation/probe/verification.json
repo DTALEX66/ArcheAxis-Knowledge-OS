@@ -1,0 +1,66 @@
+{
+  "schema": "aaos.isolated-probe-proposal/v1",
+  "status": "SEALED_PROPOSAL_READY_FOR_ROOT_APPLICATION",
+  "evidence_level": "SIMULATED",
+  "product_application": "NOT_EXECUTED",
+  "native_or_model_execution": "NOT_EXECUTED",
+  "patch": "proposed.patch",
+  "patch_sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+  "hashes": "hashes.json",
+  "source_before": "source-before.json",
+  "negative_control": {
+    "source": "before/",
+    "status": "PASS_EXPECTED_RED",
+    "pytest_exit_code": 1,
+    "failed_original_behaviors": 5,
+    "log": "red.log"
+  },
+  "proposed_regression": {
+    "source": "proposal/",
+    "status": "PASS",
+    "pytest_exit_code": 0,
+    "passed": 122,
+    "subtests_passed": 145,
+    "log": "green.log",
+    "runtime_s": 53.62
+  },
+  "patch_applicability": {
+    "command": "git apply --check --whitespace=error-all .project-local/audits/probe-identity-fix-20261019/proposed.patch",
+    "exit_code": 0,
+    "status": "PASS_NO_APPLICATION"
+  },
+  "root_write_set_unchanged_since_capture": true,
+  "boundaries": [
+    "Only this audit directory written",
+    "No host/service/browser/model started",
+    "No private data or credential access",
+    "Main source and prior snapshots preserved",
+    "Provider stop UNKNOWN and startup calls UNVERIFIED retained"
+  ],
+  "artifacts": {
+    "proposed.patch": {
+      "sha256": "f3b40626b25327b5fc1ae701ecb41d996d1ed9c14a419e8c4464a72c0cd745c4",
+      "bytes": 41818
+    },
+    "hashes.json": {
+      "sha256": "25fc06e832f6dd6d44a9cbef9a66c16f45bb09dd3f8b75cb273864a21e1ad73f",
+      "bytes": 1611
+    },
+    "source-before.json": {
+      "sha256": "edbb308e0f92d4da85499468cbaf8aaf47f3fe2790d61278c2a4a71ad9428687",
+      "bytes": 1498
+    },
+    "README.md": {
+      "sha256": "05927e359ab40b3fa144f8f70ae936eb611cf91d0cc73d8831869cfe5d45f9e0",
+      "bytes": 4565
+    },
+    "red.log": {
+      "sha256": "2c1abd4ce9d756d666ed8bf43dd498f68c451a1e3e85b9bcf7f2360b3c9e900d",
+      "bytes": 12512
+    },
+    "green.log": {
+      "sha256": "f293827abe364b34d0b5522e9b75e8f8b4c5157b849411c61af6037219b7f042",
+      "bytes": 213
+    }
+  }
+}

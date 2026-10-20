@@ -1,0 +1,56 @@
+{
+  "observed_at": "2026-10-18T23:14:17.274950+00:00",
+  "scope": "DECLARED_ROOT_METADATA_ONLY_NO_CONTENT_OR_REPROBING",
+  "source_identities": [
+    {
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "sha256": "26beceaebe944f9b56f841a2efc441617a803d16dce1d12d06f724ab99a447a0"
+    },
+    {
+      "path": "config/environment/capability-requirements.yaml",
+      "sha256": "47245bf7b555ccbe4a8560bbed9ab5b59daf7ae796250fc79af52f6dfe28b3d3"
+    },
+    {
+      "path": "config/environment/external-resources-index.json",
+      "sha256": "ffa139e5f639839ca33cb6feee63bf155fab73ddb076530f1fa7b13a7669e19a"
+    }
+  ],
+  "manifest_binding": "PASS",
+  "roots": [
+    {
+      "path": "D:\\All projects\\Model library",
+      "directory_present": true,
+      "runtime_qualification": "UNVERIFIED_NOT_OBSERVED_BY_THIS_CHECK"
+    },
+    {
+      "path": "D:\\All projects\\OS External Configuration",
+      "directory_present": true,
+      "runtime_qualification": "UNVERIFIED_NOT_OBSERVED_BY_THIS_CHECK"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64",
+      "directory_present": true,
+      "runtime_qualification": "UNVERIFIED_NOT_OBSERVED_BY_THIS_CHECK"
+    },
+    {
+      "path": "D:\\All projects\\资料库",
+      "directory_present": true,
+      "runtime_qualification": "UNVERIFIED_NOT_OBSERVED_BY_THIS_CHECK"
+    },
+    {
+      "path": "D:\\All projects\\ceshi",
+      "directory_present": true,
+      "runtime_qualification": "UNVERIFIED_NOT_OBSERVED_BY_THIS_CHECK"
+    }
+  ],
+  "developer_tool_entries": [
+    {
+      "path": "C:\\Users\\ALEX\\.codex\\tools\\visual-tool-lab\\CURRENT-INSTALLATION.md",
+      "present": true
+    },
+    {
+      "path": "C:\\Users\\ALEX\\.codex\\plugins\\cache\\alex-local-tools\\visual-audit-tools\\1.0.0\\skills\\visual-project-audit\\SKILL.md",
+      "present": true
+    }
+  ]
+}

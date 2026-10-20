@@ -5,6 +5,9 @@ import originalText from "./fixtures/ui-capability-details-original.json?raw";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { UI_CAPABILITY_INTENT, UI_CAPABILITY_SOURCE } from "../presentation/uiCapabilityIntent";
+import userEvent from "@testing-library/user-event";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
 import { UI_DAILY_ENTRY_POINTS, UI_FIXED_ENTRY_POINTS } from "../presentation/uiPages";
 import { AAOS_THEMES, applyTheme, readThemePreference } from "../design-system/theme";
@@ -16,10 +19,10 @@ const originalBytes=originalText;
 const original=JSON.parse(originalText) as Record<string,string[]>;
 const expected=Object.fromEntries(Object.entries(original).map(([id,items])=>[`CAP-${id}`,items]));
 describe("preserved independent design intentions",()=>{
-  beforeEach(()=>{bridge.call.mockReset();});
+  beforeEach(()=>{bridge.call.mockReset();resetDiagnostics();});
   it.each(["CAP-0090","CAP-0100","CAP-0110"])("shows pending research/collection qualifications for %s without changing authored intent",async(id)=>{
     bridge.call.mockResolvedValue({capabilities:[]});
-    render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId={id}/>);
+    render(<><CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId={id}/><DiagnosticConsole/></>);
     const boundary=await screen.findByRole("region",{name:"集合与研究实施边界"});
     expect(boundary).toHaveTextContent("未执行");
     expect(boundary).toHaveTextContent("安装态、真人验收与来源平台语义资格仍分别核验");
@@ -39,12 +42,14 @@ describe("preserved independent design intentions",()=>{
   it.each(Object.keys(expected))("SIMULATED: healthy parent %s cannot promote a child to independently verified",async(id)=>{
     const parent=CAPABILITY_CATALOG.entries.find(entry=>entry.atlas.capability_id===id)!;
     bridge.call.mockResolvedValue({capabilities:parent.implementation.runtime_capabilities.map(capability=>({capability,enabled:true,health:"handshake_ready"}))});
-    render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId={id}/>);
+    render(<><CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId={id}/><DiagnosticConsole/></>);
     const detail=await screen.findByRole("region",{name:"设计细项与独立证据"});
     expect(detail).toHaveTextContent("父能力声明和运行握手不证明这些细项全部完成");
     const items=within(detail).getAllByRole("listitem");
     expect(items).toHaveLength(expected[id].length);
-    expected[id].forEach((intent,index)=>expect(items[index]).toHaveTextContent(`${intent} · 独立证据 UNKNOWN`));
+    for(const item of items){expect(item).toHaveTextContent("独立证据未核验");expect(item.textContent!.split(" · ")[0].trim()).not.toBe("");}
+    await userEvent.setup().click(within(detail).getByRole("button",{name:/设计来源与校验指纹/}));
+    expect(JSON.parse(screen.getByLabelText("诊断控制台").querySelector("pre")!.textContent!)).toEqual({source:UI_CAPABILITY_SOURCE,items:expected[id]});
     expect(detail).not.toHaveTextContent(/独立证据 (PASS|REAL|VERIFIED|已实现|已完成)/);
   });
   it("discovers every original child phrase through its stable parent in the shared command and capability search projection",()=>{

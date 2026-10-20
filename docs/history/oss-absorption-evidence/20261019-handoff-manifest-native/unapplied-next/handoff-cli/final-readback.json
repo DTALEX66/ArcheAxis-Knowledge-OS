@@ -1,0 +1,35 @@
+{
+  "pass": true,
+  "patch_sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16",
+  "manifest_sha256": "3bef40e1fd4d04a53beb357458edb9cbc0d03d1430732885980a8405c2fe18bf",
+  "validation_sha256": "85784536b3070d24fa54fa01a4f37e93e90bb4d9ce78b4e617b61902e56d3e5a",
+  "current_sha256": "4cfd9c7fe9f595df46ed3250d609ca5bf4dbc4425a97a56ed1821d678a17a331",
+  "delivery_sha256": "ca10eff580ccb6ea05225deba41a610f418e6c9e88cbd99b57659ef02435984e",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/bin/archeaxis-project-observer.rs",
+      "preimage_match": true,
+      "proposal_hash_match": true,
+      "tested_mirror_match": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_process.rs",
+      "preimage_match": true,
+      "proposal_hash_match": true,
+      "tested_mirror_match": true
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "preimage_match": true,
+      "proposal_hash_match": true,
+      "tested_mirror_match": true
+    },
+    {
+      "path": "docs/contracts/project-handoff-v1.md",
+      "preimage_match": true,
+      "proposal_hash_match": true,
+      "tested_mirror_match": true
+    }
+  ],
+  "product_writes": []
+}

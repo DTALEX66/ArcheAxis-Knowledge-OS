@@ -1,6 +1,7 @@
 import {coreCommand} from "../api/core";
+import {learningTitle} from "./learningTitle";
 import {readCourse,type Course} from "../components/KnowledgeCoursePanel";
-export type LearningJourneyTarget={item_key:string;knowledge_id:string;knowledge_version:string;assessment_id:string;source_id:string|null;anchor_id:string|null;course?:Course};
+export type LearningJourneyTarget={item_key:string;display_title?:string;knowledge_id:string;knowledge_version:string;assessment_id:string;source_id:string|null;anchor_id:string|null;course?:Course};
 function record(value:unknown):Record<string,unknown>{if(!value||typeof value!=="object"||Array.isArray(value))throw new Error("invalid learning identity");return value as Record<string,unknown>;}
 export function assertJourneyAssessment(value:unknown,target:LearningJourneyTarget){const a=record(value);if(a.item_key!==target.item_key||a.assessment_id!==target.assessment_id||a.knowledge_id!==target.knowledge_id||a.knowledge_version!==target.knowledge_version||a.source_id!==target.source_id||a.anchor_id!==target.anchor_id)throw new Error("learning assessment identity changed");}
 /** Read the exact persisted assessment; never create a substitute or select a search hit. */
@@ -16,5 +17,5 @@ export async function resolveLearningJourney(item_key:string):Promise<LearningJo
   course=readCourse(await coreCommand("course_get",{course_id:match[1]}),a.knowledge_id);
   if(course.id!==match[1]||course.artifactId!==match[2]||course.sourceId!==a.source_id)throw new Error("course learning identity mismatch");
  }
- return {item_key,knowledge_id:a.knowledge_id,knowledge_version:a.knowledge_id,assessment_id:a.assessment_id,source_id:a.source_id as string|null,anchor_id:a.anchor_id as string|null,course};
+ return {item_key,display_title:learningTitle(course?.title,a.content),knowledge_id:a.knowledge_id,knowledge_version:a.knowledge_id,assessment_id:a.assessment_id,source_id:a.source_id as string|null,anchor_id:a.anchor_id as string|null,course};
 }

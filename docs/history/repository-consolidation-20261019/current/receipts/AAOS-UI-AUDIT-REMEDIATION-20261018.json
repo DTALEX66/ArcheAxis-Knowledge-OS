@@ -1,0 +1,334 @@
+{
+  "schema": "aaos.ui-audit-remediation/v1",
+  "observed_utc": "2026-10-18T15:12:12.191906+00:00",
+  "status": "PARTIAL",
+  "tested_scope_status": "PASS",
+  "evidence_level": "SYNTHETIC",
+  "boundary": "actual production frontend bundle and real Chromium; synthetic isolated host/Core/data; no native installer/model/real workspace qualification",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256": "cf2e605e09574acdd4c10560a0ee3a07750be20c46e14c2eb2e51513cb7bb204",
+  "dirty": true,
+  "full_frontend": {
+    "files": 168,
+    "tests": 1632,
+    "failed": 0,
+    "pending": 0,
+    "receipt": ".project-local/runs/be268a2d33/ui-remediation-full-final-1018/artifacts/execution.json"
+  },
+  "targeted": {
+    "files": 11,
+    "tests": 143,
+    "receipt": ".project-local/runs/be268a2d33/ui-remediation-targeted-1018d/artifacts/execution.json"
+  },
+  "build": {
+    "status": "PASS",
+    "receipt": ".project-local/runs/be268a2d33/ui-remediation-targeted-1018d/artifacts/host-build.json",
+    "frontend_dist": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\e03f1819f24d\\artifacts\\frontend-dist"
+  },
+  "browser": {
+    "checks": 13,
+    "axe_scans": 10,
+    "axe_violations": 0,
+    "axe_incomplete": 15,
+    "screenshots": 15,
+    "environment": {
+      "browser": "155.0.8059.80",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "DPR": 1,
+      "locale": "zh-CN",
+      "timezone": "Asia/Shanghai",
+      "profile": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\ui-remediation-browser-1018c\\artifacts\\ui-pilot\\browser-profile",
+      "workers": 1,
+      "evidence": "REAL_CHROMIUM_RENDERING / SYNTHETIC_HOST_CORE",
+      "baseline": "no screenshot baseline created or updated"
+    },
+    "report": ".project-local/runs/be268a2d33/ui-remediation-browser-1018c/artifacts/ui-pilot/REPORT.md",
+    "process_port_readback": ".project-local/runs/be268a2d33/ui-remediation-browser-1018c/artifacts/ui-pilot/process-port-readback.json"
+  },
+  "findings": [
+    {
+      "id": "UI-PILOT-001",
+      "severity": "P2",
+      "status": "PASS",
+      "change": "顶部设置接既有 openPage(19)，遵守草稿、IME与恢复屏障。"
+    },
+    {
+      "id": "UI-PILOT-002",
+      "severity": "P2",
+      "status": "PASS",
+      "change": "公开 hideClose + 组头兄弟关闭按钮，保留原生键盘、中键、关闭回焦及草稿宿主。"
+    },
+    {
+      "id": "UI-PILOT-003",
+      "severity": "P2",
+      "status": "PASS",
+      "change": "命令显示使用目的，任务编号与工程状态仍可检索，完整能力地图保留。"
+    },
+    {
+      "id": "UI-PILOT-004",
+      "severity": "P3",
+      "status": "PASS",
+      "change": "窄窗自动检查不抢占正文；恢复后普通导航在已有组内开标签，保留显式分栏；压缩阅读标题留白。"
+    },
+    {
+      "id": "UI-PILOT-005",
+      "severity": "P3",
+      "status": "PASS",
+      "change": "平台提示统一：Windows/未知 Ctrl，macOS ⌘；实际 Control/Meta 支持保留。"
+    }
+  ],
+  "remaining": [
+    {
+      "id": "UI-FOLLOWUP-006",
+      "severity": "P2",
+      "status": "PARTIAL",
+      "evidence_level": "SYNTHETIC",
+      "location": "App uiPageId / DockWorkspace active panel",
+      "reproduce": "进入17后使用原生标签键盘/组头关闭回退到01；全局标题仍17，见07b-dock-adapter.png。",
+      "cause": "HEAD与本轮均没有 Dock 活动面板到 App 页面状态的同步通道，原工具栏/原关闭动作同样不更新 App；独立只读复核确认非本轮引入。",
+      "next": "单独设计经过草稿、恢复、业务家族和文档身份保护的双向导航；覆盖同页重开、拒绝导航与关闭回退，不直接把 onDidActivePanelChange 接 onOpenPage。"
+    }
+  ],
+  "task_files": [
+    {
+      "path": "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx",
+      "kind": "modified",
+      "before_sha256": "887a43aea840b4321d12b8dd3ec7bd7f52321b5a9bc06f6c687193959928aa4e",
+      "after_sha256": "f99d194c5b12ce1e985c0a5941d34ef87b533294ce6fb05606c4c8bf539de125"
+    },
+    {
+      "path": "frontend/src/__tests__/DockWorkspace.test.tsx",
+      "kind": "modified",
+      "before_sha256": "007b49dcd194c8a27ecc1a555e010528396c7d39301daf0311e6052286376f05",
+      "after_sha256": "6ee483b22d8d52d46ee1653508158aee81d57e8fe2e64bed681dc8646b4a9325"
+    },
+    {
+      "path": "frontend/src/app/App.tsx",
+      "kind": "modified",
+      "before_sha256": "aa255210300dbe45b2c04883a3568fe353581350e0c5f83860413188bafbbccb",
+      "after_sha256": "0eb8564818d48230a4c3fe10619867a0a419f3338aababa8b85e0e18c5742911"
+    },
+    {
+      "path": "frontend/src/components/CommandPalette.tsx",
+      "kind": "modified",
+      "before_sha256": "cdd307e0c70c708245d2304142c34e2accb376c91efb2ec864e4a8ece6c45705",
+      "after_sha256": "d533555894d7518a83c9d6b75bc59aa7d1567a098b8e9c7db791e42c84104349"
+    },
+    {
+      "path": "frontend/src/components/Inspector.tsx",
+      "kind": "modified",
+      "before_sha256": "c6fadc294073a1bb3cd66159bbc42b89319c18589d90dd5c2d861ea8dd3fb0e8",
+      "after_sha256": "789429a17f02cd7befda012153e1aa5566071116c71693b78406c3e97d912845"
+    },
+    {
+      "path": "frontend/src/components/TopNavBar.tsx",
+      "kind": "modified",
+      "before_sha256": "508db0f8ca9e1d8c776d70efc312044feb33cf896b492f4f729481c82b13b916",
+      "after_sha256": "53f08fdb7734f06d54fde1204838498db9db8d1c99c150b5ccdacf2f95ab9b72"
+    },
+    {
+      "path": "frontend/src/presentation/navigation.ts",
+      "kind": "modified",
+      "before_sha256": "70fabfa205e72f09996b0519614bf74ec90d61c216d232dafd5ef8ca529b430e",
+      "after_sha256": "ce42cf5e7801a409b3b25487c96163ed02fe207134af4c37c3fe8a2ded9cc6b5"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalLibrarySpace.tsx",
+      "kind": "modified",
+      "before_sha256": "eb5be0a15dfab63dc46362c3bf5a43c73df82630c2c3c7899c9fef5fed50a79c",
+      "after_sha256": "0cd46d6d4204a6d90550cdd6fb00de0fe4130032b3d7156f258ae1179a5b2141"
+    },
+    {
+      "path": "frontend/src/spaces/SpaceView.tsx",
+      "kind": "modified",
+      "before_sha256": "c3b1cbfd38538b2da2bd16bc96adddfcb659ff829cfdb3376d3f23581a4d667b",
+      "after_sha256": "b3248e4ed000f9fb949c7e54e3ddaece3928eef60bd9dca2dfe00a4dbb04d3bc"
+    },
+    {
+      "path": "frontend/src/spaces/ui-first.css",
+      "kind": "modified",
+      "before_sha256": "072fc212ae15b5c1af9e30dd696d9b270a95771c85102bda50a6868c732c7edd",
+      "after_sha256": "8bd6981bb801314738668f478fb0333d172458786da29a7b6d56271746135544"
+    },
+    {
+      "path": "frontend/src/workspace/dock-workspace.css",
+      "kind": "modified",
+      "before_sha256": "c2e3d7ba9ae56512ef8d7081460942cf5689f512080ed8a1ce92d6c1998dc74b",
+      "after_sha256": "afc40832ecacd2ac062d77e30ab9dfed2e81a32aca2e10edcf534e8bba501f4a"
+    },
+    {
+      "path": "frontend/src/workspace/DockWorkspace.tsx",
+      "kind": "modified",
+      "before_sha256": "9e078c7f91b31ddd8084ea194f960feab73e2af8cfa29ebd302d9ed548780e47",
+      "after_sha256": "acef084e704039ac78049a22ac0df386c1d6328884e9f5d775a79d7218ab7222"
+    },
+    {
+      "path": "frontend/src/presentation/keyboardShortcuts.ts",
+      "kind": "new",
+      "after_sha256": "87a23cb6b799891c8e5f802de4b8d9083a32860170757a649436b974b2fe3ef3"
+    },
+    {
+      "path": "frontend/src/__tests__/UIAuditRemediation.test.tsx",
+      "kind": "new",
+      "after_sha256": "ee68c4d8affe09f907437a057379513e2363b840e0976fade6ca69efeaa20f6e"
+    }
+  ],
+  "commands": [
+    {
+      "run": "ui-remediation-targeted-1018",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-targeted-1018/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/verify.py"
+      ],
+      "started_at": "2026-10-18T14:55:42.224344+00:00",
+      "ended_at": "2026-10-18T14:56:09.553896+00:00",
+      "exit_code": 1,
+      "source_patch_sha256": "72968d96b876fa9bd8803406bc92e2d5b2e11ec5897c4a78049952b750e1bacd",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-full-1018",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-full-1018/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/verify.py",
+        "--full"
+      ],
+      "started_at": "2026-10-18T14:56:28.660266+00:00",
+      "ended_at": "2026-10-18T15:00:57.192072+00:00",
+      "exit_code": 0,
+      "source_patch_sha256": "7915d2f3463fd5c4eb2171fd50b56166b46a95b0c4b1f61b53d677901848bb2f",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-targeted-final-1018",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-targeted-final-1018/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/verify.py"
+      ],
+      "started_at": "2026-10-18T15:01:29.138271+00:00",
+      "ended_at": "2026-10-18T15:01:55.670769+00:00",
+      "exit_code": 0,
+      "source_patch_sha256": "e968cffdb15a33af8c6c7fb9177f9158360d73c2441e30fc0237d702d26e9ef0",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-browser-1018",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-browser-1018/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/run.py"
+      ],
+      "started_at": "2026-10-18T15:02:00.418975+00:00",
+      "ended_at": "2026-10-18T15:02:26.658197+00:00",
+      "exit_code": 1,
+      "source_patch_sha256": "e968cffdb15a33af8c6c7fb9177f9158360d73c2441e30fc0237d702d26e9ef0",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-browser-1018b",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-browser-1018b/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/run.py"
+      ],
+      "started_at": "2026-10-18T15:03:19.973569+00:00",
+      "ended_at": "2026-10-18T15:03:38.726121+00:00",
+      "exit_code": 1,
+      "source_patch_sha256": "e968cffdb15a33af8c6c7fb9177f9158360d73c2441e30fc0237d702d26e9ef0",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-dock-red-1018",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-dock-red-1018/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/verify.py",
+        "--dock"
+      ],
+      "started_at": "2026-10-18T15:04:33.813445+00:00",
+      "ended_at": "2026-10-18T15:04:36.438620+00:00",
+      "exit_code": 1,
+      "source_patch_sha256": "b4c93bd4a90027a1e3ca153bd52908d8c232588fac69e4ba26d50fcfdc7e0632",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-targeted-1018c",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-targeted-1018c/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/verify.py"
+      ],
+      "started_at": "2026-10-18T15:05:07.910197+00:00",
+      "ended_at": "2026-10-18T15:05:36.122204+00:00",
+      "exit_code": 1,
+      "source_patch_sha256": "5017fd8eeb6dd37fdb33e83666b465781468ea9f5f5da36e57cde10cdb12f454",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-targeted-1018d",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-targeted-1018d/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/verify.py"
+      ],
+      "started_at": "2026-10-18T15:05:56.356672+00:00",
+      "ended_at": "2026-10-18T15:06:22.466616+00:00",
+      "exit_code": 0,
+      "source_patch_sha256": "cf2e605e09574acdd4c10560a0ee3a07750be20c46e14c2eb2e51513cb7bb204",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-full-final-1018",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-full-final-1018/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/verify.py",
+        "--full",
+        "--two-workers"
+      ],
+      "started_at": "2026-10-18T15:07:10.569879+00:00",
+      "ended_at": "2026-10-18T15:09:33.647720+00:00",
+      "exit_code": 0,
+      "source_patch_sha256": "cf2e605e09574acdd4c10560a0ee3a07750be20c46e14c2eb2e51513cb7bb204",
+      "source_consistent": true
+    },
+    {
+      "run": "ui-remediation-browser-1018c",
+      "receipt": ".project-local/runs/be268a2d33/ui-remediation-browser-1018c/artifacts/execution.json",
+      "command": [
+        "D:/All projects/ArcheAxis-Knowledge-OS/.venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/ui-audit-remediation-20261018/run.py"
+      ],
+      "started_at": "2026-10-18T15:07:10.570260+00:00",
+      "ended_at": "2026-10-18T15:07:32.591959+00:00",
+      "exit_code": 0,
+      "source_patch_sha256": "cf2e605e09574acdd4c10560a0ee3a07750be20c46e14c2eb2e51513cb7bb204",
+      "source_consistent": true
+    }
+  ],
+  "not_executed": [
+    "native WebView2/installer lifecycle",
+    "real Core/DB/model integration in this run",
+    "complete WCAG and screen reader",
+    "all themes/DPI/state journeys",
+    "performance qualification",
+    "commit/push/release/Green replacement"
+  ],
+  "documentation_written_after_validation": true
+}

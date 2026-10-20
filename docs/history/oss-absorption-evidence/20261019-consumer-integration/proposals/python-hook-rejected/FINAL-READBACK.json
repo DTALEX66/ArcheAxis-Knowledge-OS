@@ -1,0 +1,11 @@
+{
+  "state": "FROZEN_NOT_APPLIED",
+  "patch_sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f",
+  "code_manifest_sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e",
+  "all_mirror_members_match": true,
+  "product_existing_files_unchanged": true,
+  "product_new_files_absent": true,
+  "services_created": 0,
+  "browsers_created": 0,
+  "product_write_set": []
+}

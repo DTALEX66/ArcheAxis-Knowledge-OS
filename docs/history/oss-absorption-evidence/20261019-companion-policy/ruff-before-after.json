@@ -1,0 +1,32 @@
+[
+  {
+    "path": "services/python-workers/machine/worker_machine_answer.py",
+    "before": 3,
+    "after": 3,
+    "new_diagnostics": []
+  },
+  {
+    "path": "tests/test_worker_machine_answer.py",
+    "before": 11,
+    "after": 11,
+    "new_diagnostics": []
+  },
+  {
+    "path": "tests/contract/test_conversation_contract.py",
+    "before": 5,
+    "after": 5,
+    "new_diagnostics": []
+  },
+  {
+    "path": "scripts/probes/aaos01_material_companion_loop.py",
+    "before": 12,
+    "after": 12,
+    "new_diagnostics": []
+  },
+  {
+    "path": "tests/test_material_companion_native_probe.py",
+    "before": 3,
+    "after": 3,
+    "new_diagnostics": []
+  }
+]

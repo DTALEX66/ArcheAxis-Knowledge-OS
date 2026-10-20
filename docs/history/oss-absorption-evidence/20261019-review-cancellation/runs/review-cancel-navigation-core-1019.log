@@ -1,0 +1,39 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo build -p archeaxis-api --bin archeaxis-api --release --offline --locked
+warning: unused import: `OptionalExtension`
+ --> crates\archeaxis-domain\src\ai_asset.rs:7:28
+  |
+7 | use rusqlite::{Connection, OptionalExtension};
+  |                            ^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `self`
+ --> crates\archeaxis-domain\src\asset_context_grant.rs:4:16
+  |
+4 |     document::{self, Error},
+  |                ^^^^
+
+warning: `archeaxis-domain` (lib) generated 2 warnings (run `cargo fix --lib -p archeaxis-domain` to apply 2 suggestions)
+warning: function `stable_id` is never used
+  --> crates\archeaxis-application\src\lib.rs:45:4
+   |
+45 | fn stable_id(prefix: &str, seed: &str) -> String {
+   |    ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `worker` is never read
+  --> crates\archeaxis-application\src\executor.rs:58:5
+   |
+54 | pub struct Executor {
+   |            -------- field in this struct
+...
+58 |     worker: PathBuf,
+   |     ^^^^^^
+   |
+   = note: `Executor` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+warning: `archeaxis-application` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 0.10s

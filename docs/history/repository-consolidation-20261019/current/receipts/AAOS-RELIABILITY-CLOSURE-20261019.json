@@ -1,0 +1,515 @@
+{
+  "schema": "archeaxis.reliability-closure/v1",
+  "created_at": "2026-10-19T07:50:24.814157+00:00",
+  "status": "PARTIAL",
+  "local_scoped_repairs": "PASS",
+  "hosted_CI": "UNVERIFIED; query exact successor SHA on PR194",
+  "whole_product": "PARTIAL",
+  "source_base": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+  "owner_requests": [
+    "优先解决这类反复出现的问题，不限于CI问题",
+    "而且不是反复告诉过你这些问题了吗？该迁移清理整理梳理归档等任务，不是都做了吗？是没做到位吗？那反反复复的全量审计那么多批次都去哪了？还动不动就检查跑全量，"
+  ],
+  "evidence_boundary": "INTEGRATED existing project launchers/Git checks; SYNTHETIC owned failure fixtures; no model/native/installer qualification",
+  "prior_audit_coverage": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+  "diagnosis": [
+    "前端全套、定向后端、归档字节保全、目录分类、原生及安装各有边界；旧轮次通过不互相替代，不相加。",
+    "归档后当前归属与历史路径测试未同步，新增供体/报告缺少当前分类；旧完成声明不能据此延伸为完成。",
+    "普通报告尾空白、原附件Git换行转换、被跟踪的供体运行状态/日志令云端规范检查稳定失败；修复未完成就持续推送。",
+    "本地另有80个预存CRLF工作副本差异，Git归一化后与HEAD相同；此前只报云端49项不足以说明本地129项。",
+    "dev source identity在私有路径分类前构建binary diff，且两份排除名单漏.hilo；local_verify初始化/save异常可残留锁。",
+    "旧LESSONS全检查fail-open与过期当前路由冲突；必需门禁应失败拒绝，普通修复使用定向验证。"
+  ],
+  "repairs": [
+    {
+      "issue": "TEXT-CONVENTIONS",
+      "state": "PASS",
+      "changed_markdown": 39,
+      "changed_lines": 266,
+      "paragraph_hardbreaks_preserved_as_backslash": 180,
+      "fenced_code_padding_trimmed": 62,
+      "local_originals": ".project-local/archives/reliability-documents-20261019/originals",
+      "manifest": ".project-local/archives/reliability-documents-20261019/MANIFEST.json",
+      "manifest_sha256": "567ba0d777ee3adb18cb015c11884216a70412990c1d43d46a239a514ad36bd1",
+      "note": "Explicit fixed preimages; no broad history exclusion, no content rewrite beyond reviewed whitespace/hardbreak spelling."
+    },
+    {
+      "issue": "ORIGINAL-EOL",
+      "state": "PASS",
+      "path": "assets/astryn-full/docs/tasks/archive/ASTRYN-DEVELOPMENT-START-V1.0.txt",
+      "restored_bytes": 20960,
+      "restored_sha256": "866c151db45e0d0adfcafa9f059a836df859d830420b65ab95673fdd4b08450f",
+      "note": "Restored original CRLF from receipt/archive identity; no appended final LF. Exact -text + hash registration; no blanket exemption."
+    },
+    {
+      "issue": "WORKTREE-EOL",
+      "state": "PASS",
+      "files": 80,
+      "note": "Each normalized file proven byte-equal to HEAD before writing; no semantic source diff; raw before bytes retained locally.",
+      "manifest": ".project-local/archives/reliability-documents-20261019/worktree-eol/MANIFEST.json"
+    },
+    {
+      "issue": "TRACKED-RUNTIME",
+      "state": "PASS",
+      "removed_index_entries": 49,
+      "composition": "8 state/marker files + 40 thumbnails in two exact donor .hilo roots + root test-results.log",
+      "local_files": "49 preserved in place; target bodies not read",
+      "prevention": ".gitignore + DIRECTORY_AUTHORITY deny priority + scanner refusal before reading blobs/content",
+      "history": "Existing Git history remains; no history rewrite or source repository deletion."
+    },
+    {
+      "issue": "PATH-OWNERSHIP",
+      "state": "PASS",
+      "before_unowned": 437,
+      "after_unowned": 0,
+      "denied_tracked": 0,
+      "ambiguous": 0,
+      "note": "Bounded two donor roots, 3 exact learning paths, exact root historical/public/security files; future unknown assets stay unowned. Original historical measurement identity preserved."
+    },
+    {
+      "issue": "HISTORICAL-PATH-TEST",
+      "state": "PASS",
+      "note": "HERMES handoff resolved only through its exact migration manifest, original size/SHA, replacement and archive ownership; changed/duplicate/missing identity rejected."
+    },
+    {
+      "issue": "SOURCE-BOUNDARY",
+      "state": "PASS",
+      "note": "One shared path-only predicate, tracked metadata refused before binary diff/content, .hilo/root runtime diff exclusions, safe_path reparse refusal; CI preflight explicitly selects HEAD and refuses tracked dirty source."
+    },
+    {
+      "issue": "OWNED-LOCK",
+      "state": "PASS",
+      "note": "Initialization/receipt errors release only own lock; existing or replaced lock preserved using dev/inode identity; disappeared lock does not mask original failure."
+    },
+    {
+      "issue": "STALE-INSTRUCTIONS",
+      "state": "PASS",
+      "note": "LESSONS routes to current pointer and existing verification policy; required gates cannot fail-open. No new parallel governance layer."
+    }
+  ],
+  "verification": {
+    "first_baseline": {
+      "receipt": ".project-local/runs/be268a2d33/reliability-baseline-preflight-1019/artifacts/local-ci.json",
+      "receipt_sha256": "6b9c24c93684430849b27ba8cb295aa99b6c1eb6103c7280755f909683d0a4a2",
+      "status": "FAIL",
+      "source_consistent": true,
+      "checks": [
+        {
+          "name": "conventions",
+          "status": "FAIL",
+          "exit_code": 1
+        },
+        {
+          "name": "architecture",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "language-boundaries",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "format-matrix",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "path-conventions",
+          "status": "FAIL",
+          "exit_code": 1
+        },
+        {
+          "name": "document-authority",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "ui-design-increment",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "route-inventory",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "contracts",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "vocabulary",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "teaching-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "expression-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "research-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "ai-asset-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "resource-catalog-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "ui-working-state-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "layout-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "ui-host-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "media-policy",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        }
+      ]
+    },
+    "post_repair_preflight": {
+      "receipt": ".project-local/runs/be268a2d33/reliability-final-preflight-1019/artifacts/local-ci.json",
+      "receipt_sha256": "52ad481e7e10903e7b7855b1bfb2d5ab40317a818a0f897938b8e13563dffd9c",
+      "status": "FAIL",
+      "source_consistent": true,
+      "checks": [
+        {
+          "name": "conventions",
+          "status": "FAIL",
+          "exit_code": 1
+        },
+        {
+          "name": "architecture",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "language-boundaries",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "format-matrix",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "path-conventions",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "document-authority",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "ui-design-increment",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "route-inventory",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "contracts",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "vocabulary",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "teaching-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "expression-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "research-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "ai-asset-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "resource-catalog-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "ui-working-state-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "layout-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "ui-host-drift",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        },
+        {
+          "name": "media-policy",
+          "status": "LOCAL_PASS",
+          "exit_code": 0
+        }
+      ]
+    },
+    "failed_gate_retest": {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/check_repository_conventions.py",
+        "--source",
+        "worktree"
+      ],
+      "started_at": "2026-10-19T07:48:19.586874+00:00",
+      "ended_at": "2026-10-19T07:48:22.370922+00:00",
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_commit": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+      "source_patch_sha256": "d62e03bdb4c2a40e413ec81642cd00b09d8fdcda47e79757c733d92dc80cb675",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/reliability-conventions-retest-1019/artifacts/execution.json",
+      "receipt_sha256": "35450d62b9f70d2bc132c70b550438f6967c72991efc0230d54aae9553a3cc06"
+    },
+    "focused_regressions": {
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "--basetemp=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\reliability-regressions-1019b\\tmp\\pytest",
+        "-o",
+        "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\reliability-regressions-1019b\\pytest-cache",
+        "tests/test_execution_reliability.py",
+        "tests/test_naming_conventions.py",
+        "tests/test_frozen_manifest_conventions.py",
+        "tests/test_local_ci_profiles.py",
+        "tests/runtime-paths/test_dev_paths.py",
+        "-q"
+      ],
+      "started_at": "2026-10-19T07:42:57.779950+00:00",
+      "ended_at": "2026-10-19T07:43:21.976093+00:00",
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_commit": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+      "source_patch_sha256": "6fd4723c901dd80ce7b07764347aef2cc9b9ec87c628ee3a6e06d1fed9aee8a0",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/reliability-regressions-1019b/artifacts/execution.json",
+      "receipt_sha256": "a5fe8ae305a1c7cb88bdfb9322c56099eb16c20d3d34fa4ec8ff24c9e5f16d4c",
+      "passed": 137,
+      "skipped": 2,
+      "subtests_passed": 9,
+      "skips": "Two real file-symlink tests unavailable on this Windows account; not PASS. Existing Windows junction check executed."
+    },
+    "path_regressions": {
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "--basetemp=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\reliability-paths-1019b\\tmp\\pytest",
+        "-o",
+        "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\reliability-paths-1019b\\pytest-cache",
+        "tests/test_path_conventions.py",
+        "-q"
+      ],
+      "started_at": "2026-10-19T07:44:41.471772+00:00",
+      "ended_at": "2026-10-19T07:44:50.495196+00:00",
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_commit": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+      "source_patch_sha256": "d62e03bdb4c2a40e413ec81642cd00b09d8fdcda47e79757c733d92dc80cb675",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/reliability-paths-1019b/artifacts/execution.json",
+      "receipt_sha256": "b2fe90a65717a686873ecf438d7159ecae767d97935d99a063d69b5b402cb5fe",
+      "passed": 24
+    },
+    "changed_python_lint": {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "scripts/runtime/dev.py",
+        "scripts/ci/local_verify.py",
+        "scripts/check_repository_conventions.py",
+        "tests/test_execution_reliability.py",
+        "tests/test_path_conventions.py",
+        "tests/test_naming_conventions.py",
+        "tests/test_frozen_manifest_conventions.py",
+        "--select",
+        "E9,F63,F7,F82,F401"
+      ],
+      "started_at": "2026-10-19T07:47:55.714205+00:00",
+      "ended_at": "2026-10-19T07:47:57.001015+00:00",
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_commit": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+      "source_patch_sha256": "d62e03bdb4c2a40e413ec81642cd00b09d8fdcda47e79757c733d92dc80cb675",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/reliability-changed-lint-1019b/artifacts/execution.json",
+      "receipt_sha256": "ca076b4840573bc3b923710a6c6a3437a10029bef69205f137dafb224ec3ff13"
+    },
+    "CI_source_wiring": {
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "--basetemp=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\reliability-ci-source-wire-1019\\tmp\\pytest",
+        "-o",
+        "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\reliability-ci-source-wire-1019\\pytest-cache",
+        "tests/test_naming_conventions.py::test_repository_convention_gates_are_wired",
+        "-q"
+      ],
+      "started_at": "2026-10-19T07:49:10.549174+00:00",
+      "ended_at": "2026-10-19T07:49:13.607313+00:00",
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_commit": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+      "source_patch_sha256": "d58b94fa847740feb8a6d4e9ff75b1c172c12ab4f8244c75bd526dde409bf434",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/reliability-ci-source-wire-1019/artifacts/execution.json",
+      "receipt_sha256": "074dc1b0f3e6470ccb091b38bf8873d2b4e084b1577f7f8dfb8207e9bf5159b7",
+      "passed": 1
+    },
+    "policy": "Only failed convention gate repeated after 80 proven EOL-only restores; other 18 preflight checks not repeated. No full product audit/test/build.",
+    "index_before_commit": {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/check_repository_conventions.py",
+        "--source",
+        "index"
+      ],
+      "started_at": "2026-10-19T07:51:39.630797+00:00",
+      "ended_at": "2026-10-19T07:51:57.339780+00:00",
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_commit": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+      "source_patch_sha256": "7e6965b74583ca43581d7409946b9b20cab4dfc09e16732fb78e9904b092c6b1",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/reliability-index-check-1019/artifacts/execution.json",
+      "receipt_sha256": "6cef9a51954438f504ae33b66626625d5527ebd637eb3845c4bebda9264c4e1f"
+    },
+    "navigation_after_receipt": {
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-19T07:51:01.302250+00:00",
+      "ended_at": "2026-10-19T07:51:02.569160+00:00",
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_commit": "9c3d4d6738bb5a211d75c1df8f1ba0cbfb84f130",
+      "source_patch_sha256": "c9b584d5146d3c02d4144e04abbe7ceb42f14fea22edf0503e1500db4ea6de5f",
+      "source_consistent": true,
+      "receipt": ".project-local/runs/be268a2d33/reliability-navigation-check-1019/artifacts/execution.json",
+      "receipt_sha256": "4040efb0fa91b0fabdd3e0c0a6792f60a9d65c2f8cf82eded9d5410febaeda54"
+    }
+  },
+  "failed_attempts_preserved": [
+    "regressions-console.log: launcher refused remaining tracked .hilo thumbnails; scope completed by untracking the full two runtime roots without deleting files.",
+    "path-regressions-console.log: candidate hash drift correctly refused apply; subsequent shell step still tested unchanged old source (3 FAIL). Final frozen identity applied and only path tests rerun.",
+    "changed-lint-console.log: bare python selected base interpreter without ruff; corrected to existing project .venv interpreter, no install/PATH change.",
+    "post_repair_preflight: 80 pre-existing worktree CRLF errors remained; other 18 checks PASS. Only failed gate rerun after exact HEAD-equivalent restore.",
+    "ignored candidate RED/GREEN and original CI run failures retained under .project-local/audits/reliability-closure-20261019 and ci-explanation-20261019."
+  ],
+  "source_files": {
+    ".github/workflows/ci.yml": {
+      "bytes": 87372,
+      "sha256": "7fccf6f5d49826127ba38314c9eeac319f107180437a35a88020ce17b82d6442"
+    },
+    ".gitignore": {
+      "bytes": 1101,
+      "sha256": "fdfc69dd4139bb5ca11ec4fe121b17a2824c62e3ef2f466306e281b6d55bea84"
+    },
+    ".gitattributes": {
+      "bytes": 5766,
+      "sha256": "db2f14cbe728e8f755e3ad9920afd168f89f0be33fecd82f4b45d2fe027a5a5a"
+    },
+    "DIRECTORY_AUTHORITY.yaml": {
+      "bytes": 40809,
+      "sha256": "0277499af558264aafebb91e2ceb375be1f81170ce6eb4fbd346186a9f34f18f"
+    },
+    "LESSONS_LEARNED.md": {
+      "bytes": 6264,
+      "sha256": "b98642d1a6e5f3d6ddc2cbe8b9c8794fbb0972e3b058e76e48d11afafab47d16"
+    },
+    "docs/current/R5-PATH-DISPOSITION.json": {
+      "bytes": 22741,
+      "sha256": "a5b4e3fea75526c0b1093496478fc049a3675d2f081b6cb60c79fd2d131a39a2"
+    },
+    "scripts/runtime/dev.py": {
+      "bytes": 33923,
+      "sha256": "1e9a5bf6dd29a73c0736893713c848372915ef24a65682d43c200bdaedee5b4b"
+    },
+    "scripts/ci/local_verify.py": {
+      "bytes": 16844,
+      "sha256": "022636f33210a05da518e62db2a09c26926e44f415767ae8a16e529288bb61a5"
+    },
+    "scripts/check_repository_conventions.py": {
+      "bytes": 72356,
+      "sha256": "4db731429912226b0a91f8bd629adfad610ae695de0bc6a68865fdef7c3538ae"
+    },
+    "tests/test_execution_reliability.py": {
+      "bytes": 11912,
+      "sha256": "ecf05163fc620a4cb98cf3bd34d8419299cc23989d8ef831e2b9f039585f3dc3"
+    },
+    "tests/test_path_conventions.py": {
+      "bytes": 23083,
+      "sha256": "693689215d0da9b0a561f8f5d54ecec850b056507614245bcbd335a9dc3a65e4"
+    },
+    "tests/test_naming_conventions.py": {
+      "bytes": 18678,
+      "sha256": "1ac7f42eb7c0346fb298f58c22a919a2b6cbcb1e73a957cf6845186e268946ea"
+    }
+  },
+  "not_executed": [
+    "Full product suite",
+    "New model inference/quality/performance",
+    "Native installed journey",
+    "Release/Green replacement",
+    "Source project deletion"
+  ],
+  "rollback": "Revert the scoped delivery commit through normal Git review; original public bytes exist in the parent commit and local before archives. Runtime files retained locally; do not re-add them or rewrite history."
+}

@@ -1,0 +1,95 @@
+{
+  "state": "PROPOSAL_NOT_APPLIED",
+  "observed_at": "2026-10-18T21:41:18.964663+00:00",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "before_sha256": "4e62c9201668cc750036cd1c5a91a04f1f8b0bbed9de6ceda0f23e9e795d2ab4",
+      "after_sha256": "af0222202600bc73e66d47ac8fa530806bf2c63d4ad558dba9ee54dd9e6c8b54",
+      "bytes": 109954,
+      "added_lines": 1,
+      "removed_lines": 0
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff.rs",
+      "before_sha256": null,
+      "after_sha256": "904bc95afb75282af5c08bc2b96d021cc76613afd504fdbdbf4e591e31e2122a",
+      "bytes": 6972,
+      "added_lines": 194,
+      "removed_lines": 0
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_projection.rs",
+      "before_sha256": null,
+      "after_sha256": "14713ecbddebbf0b709a904f45862713949791081df1725725deadefb85d49aa",
+      "bytes": 12171,
+      "added_lines": 354,
+      "removed_lines": 0
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "before_sha256": "1cdbaf6078ff8754b6b6335d18ae8ebcdb5983f4116e2f162387a4e387d628d7",
+      "after_sha256": "f0ff5140b137ee93e7e86fe6c0bab322c8a908df001b04a28037ef5bb460c9ed",
+      "bytes": 424,
+      "added_lines": 1,
+      "removed_lines": 0
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff.rs",
+      "before_sha256": null,
+      "after_sha256": "fb8d0651f0f9afdec292c856080e253d8630c3a8566a8a1b9e70179b58ba157b",
+      "bytes": 13860,
+      "added_lines": 366,
+      "removed_lines": 0
+    },
+    {
+      "path": "crates/archeaxis-contracts/tests/project_handoff.rs",
+      "before_sha256": null,
+      "after_sha256": "7e81b54a8e4108ffb146f41a20a47af9162ea57dfa37874ed82bf6a606a4549e",
+      "bytes": 750,
+      "added_lines": 24,
+      "removed_lines": 0
+    },
+    {
+      "path": "docs/contracts/project-handoff-v1.md",
+      "before_sha256": null,
+      "after_sha256": "ed9323d232309bf3237796a1268be731ae179eb78bd74be3af74a343b00bc909",
+      "bytes": 5907,
+      "added_lines": 43,
+      "removed_lines": 0
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff.cases.json",
+      "before_sha256": null,
+      "after_sha256": "6356f4da305391ebbe58a22af3e56c0f0d6f5644799627b44e829886cea3e375",
+      "bytes": 102218,
+      "added_lines": 3173,
+      "removed_lines": 0
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff.schema.json",
+      "before_sha256": null,
+      "after_sha256": "27e758a5cdc52167e8d50885611db2dcc8ab9345f25dc2540c8b24b766402509",
+      "bytes": 13390,
+      "added_lines": 576,
+      "removed_lines": 0
+    },
+    {
+      "path": "tests/contract/test_project_handoff_contract.py",
+      "before_sha256": null,
+      "after_sha256": "03304cd4ab388f4cdeb00cae093e5593c85d82f42287f83c648fd80dc433966e",
+      "bytes": 1791,
+      "added_lines": 28,
+      "removed_lines": 0
+    }
+  ],
+  "patch_sha256": "5b427bda72524459e49c6d992d22d6ab7215c0cf99ff2b61147ffab7bbf59997",
+  "apply_check_exit_code": 0,
+  "product_files_written": [],
+  "dependencies_changed": false,
+  "cross_project_writes": false,
+  "manifest_identity": "UNKNOWN_ONLY",
+  "hub003_route": ".project-local/audits/capability-manifest-next-20261019/CURRENT.md",
+  "source_mirror": ".project-local/runs/be268a2d33/be10-proposal-prepare-1019/tmp/workspace",
+  "independent_target": ".project-local/audits/be10-handoff-next-20261019/validation-target"
+}

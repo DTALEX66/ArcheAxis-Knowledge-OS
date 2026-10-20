@@ -1,0 +1,18 @@
+{
+  "command": [
+    "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+    "run",
+    "src/__tests__/ConversationPanel.test.tsx",
+    "src/__tests__/CompanionSession.test.tsx",
+    "--maxWorkers=1",
+    "--minWorkers=1",
+    "--reporter=default",
+    "--reporter=json",
+    "--outputFile=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-recovery-green-1019\\artifacts\\vitest.json"
+  ],
+  "started_at": "2026-10-18T17:34:50.107504+00:00",
+  "finished_at": "2026-10-18T17:34:53.750178+00:00",
+  "seconds": 3.642676499992376,
+  "exit_code": 0
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "path": ".project-local/runs/be268a2d33/review-title-browser-echo-1019/artifacts/ui-pilot/01-readable-title-desktop.png",
+    "sha256": "844c235f42f9a770a8982b73cb07edd48124dc0f0bf2f1450cd473f1ec3a95e4",
+    "visually_reviewed": true
+  },
+  {
+    "path": ".project-local/runs/be268a2d33/review-title-browser-echo-1019/artifacts/ui-pilot/02-readable-title-narrow.png",
+    "sha256": "39b4b8013020935cb31e2bef66f923aab9d1489be5ed0857b99a80c90b215812",
+    "visually_reviewed": true
+  },
+  {
+    "path": ".project-local/runs/be268a2d33/review-title-browser-echo-1019/artifacts/ui-pilot/03-legacy-title-fallback.png",
+    "sha256": "646a6234129992c37d4e3b2b45a0278c79833bfc6f649308ca589307b600cc00",
+    "visually_reviewed": true
+  }
+]

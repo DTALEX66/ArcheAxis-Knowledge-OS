@@ -55,7 +55,9 @@ fn model_failure(error: &str) -> &'static str {
     match error {
         "no worker is registered for machine.answer" => "material_model_not_configured",
         "machine selection is not verified in local inventory" => "material_model_not_in_inventory",
-        "machine worker timed out" => "material_model_timeout",
+        "machine worker timed out" | "machine failure: MODEL_CALL_TIMEOUT" => {
+            "material_model_timeout"
+        }
         "machine failure: MODEL_CALL_FAILED" => "material_model_call_failed",
         "machine failure: NO_FINAL_ANSWER" => "material_no_final_answer",
         "machine worker returned invalid JSON" => "material_model_invalid_response",
@@ -99,7 +101,7 @@ pub(super) async fn question(
         }
         let (text,proof)=material::prepare(conn,&b.material,b.selection.as_ref())?;
         let epoch=archeaxis_domain::ui_state::machine_execution_epoch(conn).map_err(|_|"material_epoch_unavailable")?;
-        let plan=json!({"schema":"archeaxis.material-question-plan/v1","request":b,"context":proof,"destination":"LOCAL_LOOPBACK_ONLY","destination_candidates":["http://127.0.0.1:11434","http://127.0.0.1:1234/v1"],"selection_policy":"existing_owned_local_worker_probe","network_scope":"fixed_owned_local_worker","restore_epoch":epoch,"usage":null,"cost":null});
+        let plan=json!({"schema":"archeaxis.material-question-plan/v1","request":b,"context":proof,"destination":"LOCAL_LOOPBACK_ONLY","destination_candidates":["http://127.0.0.1:1234/v1"],"selection_policy":"existing_owned_local_worker_probe","network_scope":"fixed_owned_local_worker","restore_epoch":epoch,"usage":null,"cost":null});
         let mut plan=plan;
         if let Some(config)=&b.model_configuration {
             plan["destination_candidates"]=json!([config.profile.endpoint]);
@@ -162,7 +164,7 @@ pub(super) async fn question(
     };
     let execution = runtime
         .executor
-        .machine_answer_configured(
+        .machine_answer_configured_detailed(
             text,
             body.question.clone(),
             body.max_tokens,
@@ -172,17 +174,24 @@ pub(super) async fn question(
             body.model_configuration.clone(),
         )
         .await;
-    if execution
-        .as_ref()
-        .err()
-        .is_some_and(|e| e.contains("cleanup incomplete") || e.contains("cleanup_incomplete"))
-    {
+    if execution.as_ref().err().is_some_and(|e| {
+        e.message().contains("cleanup incomplete") || e.message().contains("cleanup_incomplete")
+    }) {
         return failure(
             StatusCode::SERVICE_UNAVAILABLE,
             "material_execution_unknown_retain_request",
         );
     }
     let cancelled = lease.close().unwrap_or(true);
+    let diagnostics = if cancelled {
+        None
+    } else {
+        execution
+            .as_ref()
+            .err()
+            .and_then(|e| e.diagnostics())
+            .cloned()
+    };
     let (answer, outcome, reason) = match execution {
         Ok(a)
             if !cancelled
@@ -192,21 +201,24 @@ pub(super) async fn question(
                             && a["model"].as_str() == Some(config.profile.model.as_str())
                             && a["protocol"].as_str() == Some(config.profile.protocol.as_str())
                     } else {
-                        ["http://127.0.0.1:11434", "http://127.0.0.1:1234/v1"].contains(&e)
+                        e == "http://127.0.0.1:1234/v1"
                     }
                 }) =>
         {
             (a, "succeeded", None)
         }
         _ if cancelled => (Value::Null, "failed", Some("material_question_cancelled")),
-        Err(e) => (Value::Null, "failed", Some(model_failure(&e))),
+        Err(e) => (Value::Null, "failed", Some(model_failure(e.message()))),
         _ => (
             Value::Null,
             "failed",
             Some("material_destination_unverified"),
         ),
     };
-    let receipt = json!({"schema":"archeaxis.material-answer/v1","task_id":id,"request_id":body.request_id,"plan":plan,"plan_sha256":plan_sha,"outcome":outcome,"reason_code":reason,"answer":answer,"answer_sha256":answer["answer"].as_str().map(|s|material::hash(s.as_bytes())),"authority":"candidate","grants_knowledge_acceptance":false,"provider_stop_state":if cancelled{"UNKNOWN"}else{"NOT_REQUESTED"}});
+    let mut receipt = json!({"schema":"archeaxis.material-answer/v1","task_id":id,"request_id":body.request_id,"plan":plan,"plan_sha256":plan_sha,"outcome":outcome,"reason_code":reason,"answer":answer,"answer_sha256":answer["answer"].as_str().map(|s|material::hash(s.as_bytes())),"authority":"candidate","grants_knowledge_acceptance":false,"provider_stop_state":if cancelled{"UNKNOWN"}else{"NOT_REQUESTED"}});
+    if let Some(diagnostics) = diagnostics {
+        receipt["diagnostics"] = diagnostics;
+    }
     let saved = runtime
         .executor
         .store()

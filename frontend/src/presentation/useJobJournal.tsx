@@ -1,6 +1,7 @@
 import { useOptionalCoreWorkingState } from "./useCoreWorkingState";
 import type { PendingJob } from "./coreWorkingState";
 import { useState } from "react";
+import { RawReceiptButton } from "../components/DiagnosticConsole";
 
 export function useJobJournal(surface:PendingJob["surface"]) {
   const working=useOptionalCoreWorkingState();
@@ -31,5 +32,5 @@ export function useJobJournal(surface:PendingJob["surface"]) {
 /** Restores a rendered scene only. Never dispatches an execution or relies on an old enable proof. */
 export function JobJournalRecovery({entries,disabled,onRestore,onAbandon}:{entries:PendingJob[];disabled?:boolean;onRestore:(entry:PendingJob)=>void;onAbandon:(entry:PendingJob)=>Promise<void>}) {
   const [busy,setBusy]=useState(false),[error,setError]=useState("");
-  return entries.length?<section aria-label="Core 保全的冻结执行"><p>以下请求由 Core 保全。恢复现场只读取原身份；执行、取消和能力启用仍需分别明确操作。</p>{error?<p role="alert">{error}</p>:null}{entries.map(entry=><div key={entry.request_id}><p>{entry.source_id} · {entry.job_id} · {entry.request_id} · {entry.kind} · {entry.body.deadline_ms} ms</p><button disabled={disabled||busy} onClick={()=>onRestore(structuredClone(entry))}>恢复冻结现场 {entry.request_id}</button><button disabled={disabled||busy} onClick={()=>{setBusy(true);setError("");void onAbandon(entry).catch(()=>setError("Core 未证明此请求未受理；冻结身份保留。已受理请求请核对状态或明确取消。" )).finally(()=>setBusy(false));}}>放弃未受理请求 {entry.request_id}（Core 核验）</button></div>)}</section>:null;
+  return entries.length?<section aria-label="待确认的处理任务"><p>这些任务已保存。恢复后先查看原进度；继续处理、取消或启用能力都需要你另行操作。</p>{error?<p role="alert">{error}</p>:null}{entries.map((entry,index)=><div key={entry.request_id} data-recovery-request={entry.request_id}><p>待确认任务 {index+1}</p><RawReceiptButton label={`处理任务 ${index+1} 的执行记录`} payload={entry}/><button data-recovery-action="restore" disabled={disabled||busy} onClick={()=>onRestore(structuredClone(entry))}>恢复处理任务 {index+1}</button><button disabled={disabled||busy} onClick={()=>{setBusy(true);setError("");void onAbandon(entry).catch(()=>setError("尚未确认任务是否开始，原记录已保留。请先查看进度；已开始的任务需要明确取消。" )).finally(()=>setBusy(false));}}>放弃尚未开始的任务 {index+1}</button></div>)}</section>:null;
 }

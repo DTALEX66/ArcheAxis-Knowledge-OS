@@ -1,0 +1,203 @@
+{
+  "schema": "archeaxis.machine-failure-diagnostics-validation/v1",
+  "observed_on": "2026-10-18",
+  "status": "PARTIAL",
+  "scope": "Safe failed-call measurement propagation across answer, retest, material and companion; local engineering qualification only",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "built_source_patch_sha256": "f6e53ec26fcd5db6292ce5608bb9d50d3a0f3ce1e226dc73391cba96933891d4",
+  "implementation": {
+    "status": "IMPLEMENTED_LOCAL_VALIDATED",
+    "paths": [
+      "worker -> typed Executor failure -> answer/retest 503 -> durable failure -> UI diagnostic center",
+      "worker -> typed Executor failure -> material receipt/task -> replay after reopen",
+      "worker -> typed Executor failure -> conversation session receipt/history -> replay after reopen"
+    ],
+    "invariants": [
+      "Unknown cleanup retains claim barrier",
+      "No successful answer task published after failure",
+      "Explicit same-request retry remains bounded to three attempts",
+      "No automatic inference on history/reopen",
+      "Missing observed identity/usage not fabricated; provider stop/cost remain UNKNOWN",
+      "No raw model text, reasoning text, exception body or stderr admitted"
+    ],
+    "legacy_string_methods_preserved": true
+  },
+  "gates": {
+    "api": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-rust-1018b/artifacts/execution.json",
+        "sha256": "bfec2096cf5a77e2686bfbf53aae0c737532b88f3680ea8e8fa4e2c7a4291277"
+      },
+      "source_patch_sha256": "b1e9ec40d2e8c853c1f978f28ab03a16cfcd7f464a885b4b15092a2bb1e86b43",
+      "tests": 29,
+      "evidence_level": "REAL_API_SQLITE_CHILD_PROCESS_SYNTHETIC_WORKER"
+    },
+    "application": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-application-1018b/artifacts/execution.json",
+        "sha256": "7b77f528bdd96d47b02871fca9af91fba108d3a3867b154e752451ad781b3fa9"
+      },
+      "source_patch_sha256": "b1e9ec40d2e8c853c1f978f28ab03a16cfcd7f464a885b4b15092a2bb1e86b43",
+      "tests": 42,
+      "evidence_level": "REAL_OWNED_CHILD_AND_HTTP_FIXTURES_SYNTHETIC_PROVIDER"
+    },
+    "python_contract_worker": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-contracts-1018b/artifacts/execution.json",
+        "sha256": "427913efe0bcc813d67f5279a7ae95731aea88180694e0959fe691aaace7242a"
+      },
+      "source_patch_sha256": "b1e9ec40d2e8c853c1f978f28ab03a16cfcd7f464a885b4b15092a2bb1e86b43",
+      "tests": 88,
+      "evidence_level": "SYNTHETIC_CONTRACT_WORKER"
+    },
+    "durable_claims": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-claims-1018c/artifacts/execution.json",
+        "sha256": "0707194fce1ef6bb45fb95c7467b5448d44a033e5722c03de2d075250b3d344d"
+      },
+      "source_patch_sha256": "f6e53ec26fcd5db6292ce5608bb9d50d3a0f3ce1e226dc73391cba96933891d4",
+      "tests": 6,
+      "filtered": 22
+    },
+    "frontend": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-frontend-1018c/artifacts/execution.json",
+        "sha256": "e45d0cb8052225f44336bfdaf7ebd400ce7442c7430e1c4f233b0f2ad38e62d4"
+      },
+      "source_patch_sha256": "f6e53ec26fcd5db6292ce5608bb9d50d3a0f3ce1e226dc73391cba96933891d4",
+      "files": 7,
+      "tests": 89,
+      "full_suite": false,
+      "raw_report": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-frontend-1018c/artifacts/vitest.json",
+        "sha256": "3d511e1481f631047e0031f371960e637408ce7a112f87a291ebd916acf3ac9b"
+      },
+      "evidence_level": "SYNTHETIC_JSDOM"
+    },
+    "native_host": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-native-host-1018c/artifacts/execution.json",
+        "sha256": "caf8a13a6eeda3bd4d4bb43994d25a4d42f6bc73a6e7e894cfe31aa683fabbbf"
+      },
+      "source_patch_sha256": "f6e53ec26fcd5db6292ce5608bb9d50d3a0f3ce1e226dc73391cba96933891d4",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-native-host-1018c/artifacts/host-build.json",
+        "sha256": "fab1d47656f8187785eabb7a167a72648902d9fecf436beb69be32557bd9c4ff"
+      },
+      "typescript": "PASS",
+      "vite": "PASS"
+    },
+    "core_build": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-native-core-1018c/artifacts/execution.json",
+        "sha256": "ec1d1cac48d5b6239f2e5ee3bf61ec123cd88510a45d1ecab72eacf56dd29a80"
+      },
+      "source_patch_sha256": "f6e53ec26fcd5db6292ce5608bb9d50d3a0f3ce1e226dc73391cba96933891d4"
+    },
+    "documentation": {
+      "status": "PASS",
+      "tests": 16,
+      "source_patch_sha256": "a5fd04102ccc75fda5bdb80ca9684bb068be2ce79865d478e756132820e8ffe7",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/failure-metadata-documents-1018d/artifacts/execution.json",
+        "sha256": "3490bc0e4a2e75bdc05cb2000086bfd731dd738cb9b4b3b81760b2249b9e257b"
+      }
+    }
+  },
+  "source_binding_note": "Each gate retains its own source patch. b-series API/application/Python gates precede the frontend test type-narrowing correction; c-series frontend/claims/build/native bind f6e53ec26fcd5db6292ce5608bb9d50d3a0f3ce1e226dc73391cba96933891d4. No full-suite or exact-SHA CI claim.",
+  "candidate": {
+    "promotion": {
+      "path": ".project-local/runs/be268a2d33/closure-native-stage/candidate-build-current-20261018T125653Z.json",
+      "sha256": "11b250f737e2467dd6b393b0950cd46879b824f1904dbb1227ba585425579244"
+    },
+    "host_sha256": "76a6198e2d9fc364d323d7b1da6cf0618a24731ca91b866fad39a5671eaed7a9",
+    "core_sha256": "750c44943ecc8a6f7e3c691992490a6ce75d3a83eadbc99a2c3d24931fdee681",
+    "candidate_members": 19524,
+    "rt_members": 19522,
+    "backup": {
+      "path": ".project-local\\archives\\current-components-20261018T125653Z.zip",
+      "bytes": 53019667,
+      "sha256": "249c11872a77e5c7c5f6432e3718afe87ec4e2fd9b1924e6bdd3331daa734616"
+    },
+    "updated_paths": [
+      ".project-local/rt/core/archeaxis-api.exe",
+      ".project-local/candidates/closure-20261018/backend/core/archeaxis-api.exe",
+      ".project-local/rt/workers/machine/worker_machine_answer.py",
+      ".project-local/rt/backend-runtime-manifest.json",
+      ".project-local/candidates/closure-20261018/backend/workers/machine/worker_machine_answer.py",
+      ".project-local/candidates/closure-20261018/backend/backend-runtime-manifest.json",
+      ".project-local/candidates/closure-20261018/backend/ArcheAxis.exe",
+      ".project-local/candidates/closure-20261018/backend/candidate-qualification.json"
+    ],
+    "installed": false,
+    "published": false
+  },
+  "native_smoke": {
+    "status": "PASS",
+    "execution": {
+      "path": ".project-local/runs/be268a2d33/failure-metadata-native-smoke-1018c/artifacts/execution.json",
+      "sha256": "5e1a1e8f24a58076ea2d87454fe257b1e6918a525d71b6e2dbeb7a19d6f58962"
+    },
+    "canonical": {
+      "path": ".project-local/runs/be268a2d33/webdriver-56d2937cd8bf/tmp/journey/receipt.json",
+      "sha256": "cc259f106ef1551f3b8389668172e23e300b1c90c877b8784b074ed05daf1b75"
+    },
+    "shared": {
+      "path": ".project-local/runs/be268a2d33/webdriver-56d2937cd8bf/tmp/journey/shared-companion-receipt.json",
+      "sha256": "1f6d59509c6ae28dcd04ce4b69f1d55acbcd1aa12aa2459ce1e8c47917eef146"
+    },
+    "ui_actions": 23,
+    "shared_snapshots": 11,
+    "navigation_to_full": "PASS",
+    "model": "NOT_EXECUTED",
+    "worker": "NOT_EXECUTED",
+    "cold_reopens": 0,
+    "owned_process_cleanup": true,
+    "remaining_owned_hosts": [],
+    "remaining_owned_port_listeners": [],
+    "scope": "Shell/shared-slot/diagnostic-center regression only; failure measurements verified by API and component tests, not a native provider-failure scenario"
+  },
+  "local_model_inspect": {
+    "receipt": {
+      "path": ".project-local/runs/lm-studio-profile/1792328164816-inspect.json",
+      "sha256": "5f3e542cc3ada509441bd99e6e8ef569ca0908b495541de9e5f8128b196549fd"
+    },
+    "status": "READ_VERIFIED",
+    "loaded_llm_instances": 0,
+    "observed_at": "2026-10-18T12:56:04.816Z",
+    "inference": "NOT_EXECUTED"
+  },
+  "preserved_failures": [
+    {
+      "path": ".project-local/runs/be268a2d33/failure-metadata-red-1018a/artifacts/execution.json",
+      "sha256": "ce8c4600f1707d38f1ff4954b67a675c318b86562f019dbed82976d2a629ceae"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/failure-metadata-frontend-red-1018a/artifacts/execution.json",
+      "sha256": "79e4188cf42731631eb2f52463c1391c0b274c3f7b88654d564f518c4c444acd"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/failure-metadata-frontend-final-1018a/artifacts/execution.json",
+      "sha256": "f534f147c636195439610b828ead0d2c6366cfc3e11115acbb08709e277c4df0"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/failure-metadata-types-build-1018b/artifacts/execution.json",
+      "sha256": "b4b62056ce714fd22953419ceb6f4376841dc68f977a1d34a806496b31bdb974"
+    }
+  ],
+  "limitations": [
+    "Historical provider 503 root causes remain UNVERIFIED; missing old diagnostics cannot be reconstructed",
+    "No current saved FAST/DEEP -> actual model -> retest -> cold-reopen qualification",
+    "No native provider-failure injection or model-quality evaluation this round",
+    "Not full frontend/Python/Rust workspace coverage or commercial/WCAG acceptance",
+    "No installed runtime, CI, commit, push, release or Green replacement"
+  ],
+  "rollback": "Restore the eight exact component paths from the member-verified ZIP; source changes remain uncommitted and must be reviewed against existing dirty changes."
+}

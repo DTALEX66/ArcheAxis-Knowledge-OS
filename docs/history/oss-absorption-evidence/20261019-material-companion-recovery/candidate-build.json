@@ -1,0 +1,83 @@
+{
+  "schema": "archeaxis.native-candidate-build/v1",
+  "status": "PASS",
+  "source_consistent": true,
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "source_patch_sha256": "9eba6d3558edd54c0adf2f18c8f258faaed6ffa692c8d90ebb43ecb4ce8b7751",
+  "host_sha256": "729365af8066eaa4a55d64b82cd9e6d26d815c781875a5d12fe65fef4aa3fa5a",
+  "core_sha256": "750c44943ecc8a6f7e3c691992490a6ce75d3a83eadbc99a2c3d24931fdee681",
+  "host_compiler_receipt": {
+    "path": ".project-local\\runs\\be268a2d33\\material-companion-host-recovery-1019\\artifacts\\host-build.json",
+    "bytes": 806,
+    "sha256": "623f0c8f793a69038d24274b83147186971cf93da005fd60eda0c7384935ddaa"
+  },
+  "core_compiler_receipt": {
+    "path": ".project-local\\runs\\be268a2d33\\material-companion-core-recovery-1019\\artifacts\\execution.json",
+    "bytes": 1404,
+    "sha256": "5739ec77c5f7d6807d8cd7af516f02038c4a0104365aafeed9b05f10db44cd99"
+  },
+  "backup": {
+    "path": ".project-local\\archives\\current-components-20261018T180055Z.zip",
+    "bytes": 42485191,
+    "sha256": "c01f93ce3110163c9307d371d2e69f80b738d442905a8ab6d246328dbbe84bba"
+  },
+  "before": {
+    ".project-local/rt/workers/machine/worker_machine_answer.py": {
+      "bytes": 26543,
+      "sha256": "22a4db08d9dfc1d477d0a414352df56c6b70b87809c4d2fbc8a50141a9bf3dee"
+    },
+    ".project-local/rt/backend-runtime-manifest.json": {
+      "bytes": 3551224,
+      "sha256": "5272f55c0421f5361bb281761e6899d10828ee0ab10337ef7e256e2f9d754949"
+    },
+    ".project-local/candidates/closure-20261018/backend/workers/machine/worker_machine_answer.py": {
+      "bytes": 26543,
+      "sha256": "22a4db08d9dfc1d477d0a414352df56c6b70b87809c4d2fbc8a50141a9bf3dee"
+    },
+    ".project-local/candidates/closure-20261018/backend/backend-runtime-manifest.json": {
+      "bytes": 3551224,
+      "sha256": "5272f55c0421f5361bb281761e6899d10828ee0ab10337ef7e256e2f9d754949"
+    },
+    ".project-local/candidates/closure-20261018/backend/ArcheAxis.exe": {
+      "bytes": 47266304,
+      "sha256": "19a8905c51a2c1a5bd1a8acd4b6c7ff92a975c90314c952341d3d8f7e4aa9c0b"
+    },
+    ".project-local/candidates/closure-20261018/backend/candidate-qualification.json": {
+      "bytes": 3548241,
+      "sha256": "1910eaba50a9d4c16b72b60dd09b8d8d095d80edd522f19151cbfd9c64a0d66d"
+    }
+  },
+  "installed": false,
+  "published": false,
+  "target_process_check": "No executable paths under the two exact targets at promotion",
+  "scope": "Two workers, two manifests and candidate host/qualification only; no runtime copy, no data traversal",
+  "verified_candidate_members": 19524,
+  "verified_rt_members": 19522,
+  "after": {
+    ".project-local\\rt\\workers\\machine\\worker_machine_answer.py": {
+      "bytes": 26543,
+      "sha256": "22a4db08d9dfc1d477d0a414352df56c6b70b87809c4d2fbc8a50141a9bf3dee"
+    },
+    ".project-local\\rt\\backend-runtime-manifest.json": {
+      "bytes": 3551224,
+      "sha256": "5272f55c0421f5361bb281761e6899d10828ee0ab10337ef7e256e2f9d754949"
+    },
+    ".project-local\\candidates\\closure-20261018\\backend\\workers\\machine\\worker_machine_answer.py": {
+      "bytes": 26543,
+      "sha256": "22a4db08d9dfc1d477d0a414352df56c6b70b87809c4d2fbc8a50141a9bf3dee"
+    },
+    ".project-local\\candidates\\closure-20261018\\backend\\backend-runtime-manifest.json": {
+      "bytes": 3551224,
+      "sha256": "5272f55c0421f5361bb281761e6899d10828ee0ab10337ef7e256e2f9d754949"
+    },
+    ".project-local\\candidates\\closure-20261018\\backend\\ArcheAxis.exe": {
+      "bytes": 47266304,
+      "sha256": "729365af8066eaa4a55d64b82cd9e6d26d815c781875a5d12fe65fef4aa3fa5a"
+    },
+    ".project-local\\candidates\\closure-20261018\\backend\\candidate-qualification.json": {
+      "bytes": 3548241,
+      "sha256": "949f9b2c0575f3d674ada0ea94aaadaa6f23695665864605aa0b01b227734554"
+    }
+  },
+  "qualification": "Static full member verification; native runtime journey not executed by this script"
+}

@@ -1,4 +1,5 @@
-import { BRAND_ASSETS } from '../assets/index';
+import { useAaosTheme } from '../design-system/ThemeProvider';
+import { AAOS_THEME_REGISTRY } from '../design-system/theme';
 import './BrandHeader.css';
 
 interface BrandHeaderProps {
@@ -16,11 +17,12 @@ export function BrandHeader({
   onNewDocument,
   onImportFile
 }: BrandHeaderProps) {
+  const { theme } = useAaosTheme();
   return (
     <div className="brand-header">
       <div className="brand-header-left">
         <img
-          src={BRAND_ASSETS.logo.white}
+          src={AAOS_THEME_REGISTRY[theme].brandMark}
           alt="ArcheAxis"
           className="brand-logo"
         />

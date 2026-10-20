@@ -1,0 +1,28 @@
+{
+  "schema": "aaos.archive-members/v1",
+  "members": {
+    "COMMANDS.json": "83bf72dd8ca11f9c2f9790353e8e8b32eeac2ec47d419725d70b127c279b9eaa",
+    "machine-deadline-edge-red-1019.log.txt": "e540aea15a7b06dcf9f546310b6307536b685eb9854d537673556a199bddd782",
+    "machine-deadline-sealed-api-1019.log.txt": "18662aaea3db5e1fcd3fe97c18121db33d27023a4c62e66a9c98e78940091692",
+    "machine-deadline-sealed-python-1019.log.txt": "927d72ca0f8b783c97a19530e4b5a87d2154a8b2a2217c9357f0b6361664e193",
+    "machine-deadline-sealed-rust-1019.log.txt": "67b154a37e2b618e3ab70423f3d685e634147a88f3f93a83246a2ff5adcc540f",
+    "machine-timeout-core-final-1019.log.txt": "e6adf1cdb1eb47f9a82866c2dd9b0f32a77d38006f9237a36e72038455946e76",
+    "machine-timeout-host-final-1019.log.txt": "7873ea3a3d7f475a20a655248930658bdc3b17e76e52ff8ff0efa806bd070d9b",
+    "machine-timeout-red-1019.log.txt": "0885378e8b4204c0a874eb342b876b73aba993b476f07aad841bb7d919f9709f",
+    "material-terminal-red-1019.log.txt": "6fcbfb1d81c14f2c369779dac29360f0cded0d23250f4c10c7e8665a7f0e5853",
+    "promotion-helper.py.txt": "946ca19943dcc982c85b52cac99b3aeae1e227be9de73862ec7abb4701e3f4e3",
+    "README.md": "75e098cb58af0494c2f5e6893c98f3caba3c29f5442366351a6f9f136b99306e",
+    "READONLY-REVIEW.md": "ab66538aa83f8db30f06c6ca87affc81f67818429107bdf674a5e29d591ca75c",
+    "RECEIPT.json": "523ae5298a1665b618de18e344e39ffca066c889c542cef7fe02d4aa42f23beb",
+    "ROUTES-OBSERVED.json": "65de86c76d3749b3445986ff6786c88def19d4c2bcc5c9ad2e6a08d30a70e214",
+    "source-aaos01_material_companion_loop.py.txt": "a3a186a2e36e631048e67e75f9756f3c29e865d18149989d49918a1a581a351f",
+    "source-executor.rs.txt": "940fcf6948cf6c096e9ff146781e24e88cb7fdd67773e260f824084e3b7dfb57",
+    "source-machine_answer_resources.rs.txt": "22a6e8080d90fc96277c8d4616966ea46652d7e11ff3da72006208743e62e08b",
+    "source-machine_failure.rs.txt": "5aa213f646529a52a78a6b2f148d799bbc2d751bb8ade90292801f77ffb3c76d",
+    "SOURCE-MAP.json": "5c4d4c3cd2e94c387915802d174b7f5db24ae2e833ee0d9ff4ab94189513dab2",
+    "source-material_question_api.rs.txt": "f8e69401363eccd634e9b2ce3a669516630d0f5b42dc00a72b207be4a2374d2f",
+    "source-test_material_companion_native_probe.py.txt": "b7243e807ce7258252f14c2742336706aa8b06172f1f4222be4e8b4cbd23bce4",
+    "source-test_worker_machine_answer.py.txt": "be5fc7717b60308c43f62110bffd2c8ad0a078dd0d1f6069e20b3a19ac70ac4c",
+    "source-worker_machine_answer.py.txt": "5be94f873b7efb412c1ce3994f32ed7862d2095c72fd570e314fb56f350244ba"
+  }
+}

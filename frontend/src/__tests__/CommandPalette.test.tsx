@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { CommandPalette } from "../components/CommandPalette";
 import { EFFECTIVE_NAVIGATION_ENTRIES } from "../presentation/navigation";
 import { SPACES } from "../spaces/spaces";
@@ -13,6 +15,37 @@ function renderPalette(onNavigate: (id: (typeof SPACES)[number]["id"]) => void =
 }
 
 describe("CommandPalette", () => {
+  it.each(["removed","hidden","inert","css-hidden"])("returns to the visible global trigger when navigation leaves the opener %s", async mode=>{
+    function Pages(){const [left,setLeft]=useState(false);return <>
+      {!(left&&mode==="removed")&&<div hidden={left&&mode==="hidden"} {...(left&&mode==="inert"?{inert:""}:{})} style={{display:left&&mode==="css-hidden"?"none":undefined}}><input aria-label="旧页草稿"/></div>}
+      <CommandPalette onNavigate={()=>setLeft(true)}/>
+    </>;}
+    render(<Pages/>);const user=userEvent.setup();
+    const input=screen.getByRole("textbox",{name:"旧页草稿"});input.focus();
+    await user.keyboard("{Control>}k{/Control}");
+    const option=within(screen.getByRole("listbox",{name:"可用命令"})).getAllByRole("option").find(n=>n.dataset.entryId==="space:workspace")!;
+    option.focus();await user.keyboard("{Enter}");
+    await waitFor(()=>expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.getByRole("button",{name:"打开全局命令"})).toHaveFocus();
+  });
+  it("returns Escape to the still-visible draft and preserves its text",async()=>{
+    render(<><input aria-label="当前草稿" defaultValue="保留文字"/><CommandPalette onNavigate={vi.fn()}/></>);
+    const draft=screen.getByRole("textbox",{name:"当前草稿"});draft.focus();const user=userEvent.setup();
+    await user.keyboard("{Control>}k{/Control}");await user.keyboard("{Escape}");
+    await waitFor(()=>expect(draft).toHaveFocus());expect(draft).toHaveValue("保留文字");
+  });
+  it("consumes each external open request once and allows a later request to reopen", () => {
+    const onNavigate = vi.fn();
+    const view = render(<CommandPalette onNavigate={onNavigate} openRequest={0} />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    view.rerender(<CommandPalette onNavigate={onNavigate} openRequest={1} />);
+    expect(screen.getByRole("dialog", {name:"全局命令"})).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", {name:"关闭全局命令"}));
+    view.rerender(<CommandPalette onNavigate={onNavigate} openRequest={1} />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    view.rerender(<CommandPalette onNavigate={onNavigate} openRequest={2} />);
+    expect(screen.getByRole("dialog", {name:"全局命令"})).toBeInTheDocument();
+  });
   it("advertises its keyboard shortcut on the trigger", () => {
     const trigger = renderPalette();
     expect(trigger).toHaveAttribute("aria-keyshortcuts", "Control+K");

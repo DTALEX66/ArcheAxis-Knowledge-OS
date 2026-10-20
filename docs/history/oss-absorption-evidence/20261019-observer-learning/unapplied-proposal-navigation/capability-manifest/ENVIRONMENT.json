@@ -1,0 +1,15 @@
+{
+  "observed_at": "2026-10-18T21:38:45.388847+00:00",
+  "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+  "executable": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+  "platform": "Windows-11-10.0.26100-SP0",
+  "packages": {
+    "jsonschema": "4.26.0",
+    "pytest": "9.1.1",
+    "ruff": "0.15.22"
+  },
+  "typescript": "5.9.3",
+  "node_path": "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+  "dependency_installation": "NOT_EXECUTED",
+  "configuration_changes": "NOT_EXECUTED"
+}

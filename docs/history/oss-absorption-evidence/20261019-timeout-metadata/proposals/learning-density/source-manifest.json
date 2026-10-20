@@ -1,0 +1,54 @@
+{
+  "schema": "aaos.isolated-ui-proposal/v1",
+  "generated_at": "2026-10-18T21:18:33.216609+00:00",
+  "status": "PARTIAL",
+  "evidence_level": "SYNTHETIC",
+  "patch_sha256": "70b66e7f13729ea7c15b82ff4820cfb6f4d685405e9789a1db2d0829711e1a89",
+  "files": [
+    {
+      "path": "frontend/src/spaces/CanonicalLearningSpace.tsx",
+      "preimage_sha256": "2dcc46266588fb261f1c69d00799fd193237539fdf0deac5946aea2bb30a03d3",
+      "proposed_sha256": "1ed3f65e069c9ee426c78e3f4b991aa8d2026e8c8a5d570b016c6d9d2dfc3109"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalTeachingSpace.tsx",
+      "preimage_sha256": "382a07067982237cccbe5cd303a813fd8623296a9408e45430a2a23eb43f9bb4",
+      "proposed_sha256": "fd92773d72e363da59332d68d40fd6d886d96e2852b9651e096906fff3026d7b"
+    },
+    {
+      "path": "frontend/src/__tests__/LearningPracticeJourney.test.tsx",
+      "preimage_sha256": "bb5e3265aa3c4613d55ccd7704926ac1fa93b8913e389f2d12b14a7816b4fbe5",
+      "proposed_sha256": "3064e321219062fca83d54dfebeb3f4e5d9ba85cbb3687c088d4c342967e0e9e"
+    },
+    {
+      "path": "frontend/src/__tests__/CanonicalLearningDensity.test.tsx",
+      "preimage_sha256": null,
+      "proposed_sha256": "ce7ba7b6c72792f692283c67d4f323fdbb04cd83ea60c68e9b0f8040e2e91476"
+    },
+    {
+      "path": "frontend/src/__tests__/CanonicalLearningDrafts.test.tsx",
+      "preimage_sha256": "dbb9ab988f48fb4e355dfe61b5ecdd1c2e3c3b70b2022000cc2ca3d9968da337",
+      "proposed_sha256": "43aa5e95cff65461cef6252618fb28488b09b1dcd8f14b9508d31dfdd03aef8d"
+    }
+  ],
+  "product_writes": false,
+  "native_validation": "NOT_EXECUTED",
+  "verification": "verification-summary.json",
+  "delivery": "DELIVERY.md",
+  "readback": "readback.json",
+  "unit_verdict": "PASS",
+  "baseline_verdict": "EXPECTED_NEGATIVE",
+  "tests": {
+    "original": {
+      "passed": 41,
+      "failed": 8
+    },
+    "proposal": {
+      "passed": 49,
+      "failed": 0
+    }
+  },
+  "typescript": "NOT_EXECUTED",
+  "applied": false,
+  "source_preimages_verified": true
+}

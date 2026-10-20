@@ -1,0 +1,111 @@
+[
+  {
+    "name": "python-contracts",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests/contract/test_project_handoff_snapshot_contract.py",
+      "tests/contract/test_project_handoff_preview_contract.py",
+      "tests/contract/test_project_handoff_contract.py",
+      "tests/contract/test_resource_catalog_projection.py",
+      "tests/test_native_preview_ci.py"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:05.844516+00:00",
+    "ended_at": "2026-10-18T23:39:19.986105+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/sources-python-contracts.log",
+    "sha256": "200716258f10fe13b366323abb6ccf96d617e2034f62f575b3110ea742a9d84a"
+  },
+  {
+    "name": "changed-python-lint",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-m",
+      "ruff",
+      "check",
+      "scripts/contracts/generate_project_handoff.py",
+      "tests/contract/test_project_handoff_snapshot_contract.py"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:19.986867+00:00",
+    "ended_at": "2026-10-18T23:39:20.233574+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/sources-changed-python-lint.log",
+    "sha256": "98733c3446b52dc3e6b6943142b19a142025d9727521f6abc3783a20e4b6d3c6"
+  },
+  {
+    "name": "generated-handoff",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "scripts/contracts/generate_project_handoff.py",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:20.234155+00:00",
+    "ended_at": "2026-10-18T23:39:20.507189+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/sources-generated-handoff.log",
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "name": "generated-catalog",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "scripts/contracts/generate_resource_catalog.py",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:20.508136+00:00",
+    "ended_at": "2026-10-18T23:39:20.936250+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/sources-generated-catalog.log",
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "name": "details-generation",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "scripts/contracts/generate_capability_package_details.py",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:20.936998+00:00",
+    "ended_at": "2026-10-18T23:39:21.594268+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/sources-details-generation.log",
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "name": "authority",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "scripts/ci/check_document_authority.py"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:39:21.595032+00:00",
+    "ended_at": "2026-10-18T23:39:21.894339+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/sources-authority.log",
+    "sha256": "3d966d3bd7e450f69bf6fc3fab56deb24c27a2f9c4bc3df059d116c7015830ff"
+  }
+]

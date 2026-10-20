@@ -1,0 +1,163 @@
+[
+  {
+    "name": "node-guard-tests",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "--test",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\validation-mirror\\tests\\contract\\test_capability_package_details_node.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:09:52.322165+00:00",
+    "seconds": 0.58,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "node-guard-tests.log",
+    "log_sha256": "d5575dc3445e7b8782e3146677dd84b7c3675001f4260663db283d5648296dcc"
+  },
+  {
+    "name": "vite-config-no-python",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\check_config.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\validation-mirror\\frontend",
+    "started_at": "2026-10-18T22:09:52.902444+00:00",
+    "seconds": 0.319,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "vite-config-no-python.log",
+    "log_sha256": "1410f9cedd9b613a338b2cf66c34a3b28660d729bb8876398d1dd4e896d363d5"
+  },
+  {
+    "name": "stdlib-python-no-jsonschema",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\stdlib-only-python\\Scripts\\python.exe",
+      "-B",
+      "-c",
+      "import importlib.util; assert importlib.util.find_spec(\"jsonschema\") is None; print(\"JSONSCHEMA_NOT_INSTALLED\")"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:09:53.221940+00:00",
+    "seconds": 0.043,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "stdlib-python-no-jsonschema.log",
+    "log_sha256": "bc5271761adf1184efe72f8dc5c29cf055f430bc4661103c784a1726a8a89ba1"
+  },
+  {
+    "name": "vite-config-no-jsonschema",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\check_config.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019",
+    "started_at": "2026-10-18T22:09:53.265574+00:00",
+    "seconds": 0.308,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "vite-config-no-jsonschema.log",
+    "log_sha256": "052c90523891ccf93e7d36f305fd2a328d0f1bd729bcc70451cf9ea8dbbda70e"
+  },
+  {
+    "name": "python-semantic-tests",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\validation-mirror\\tests\\contract\\test_capability_package_details.py",
+      "-c",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\pytest.ini",
+      "--basetemp",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\pytest-tmp",
+      "-o",
+      "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\pytest-cache",
+      "-q"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:09:53.574111+00:00",
+    "seconds": 2.956,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "python-semantic-tests.log",
+    "log_sha256": "e833587d140bd5e8092b1bba17a6bf7e72cd480aa1351785a8f3886a57c2920a"
+  },
+  {
+    "name": "python-explicit-check",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\validation-mirror\\scripts\\contracts\\generate_capability_package_details.py",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:09:56.529945+00:00",
+    "seconds": 0.562,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "python-explicit-check.log",
+    "log_sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+  },
+  {
+    "name": "vitest-page17",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+      "run",
+      "--config",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\vitest.config.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:09:57.112211+00:00",
+    "seconds": 1.547,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "vitest-page17.log",
+    "log_sha256": "ef0c0e4ae7c9fde9e34f78254004f700988e1950004e40b24e5acd06eae25fa5"
+  },
+  {
+    "name": "typescript-mirror",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\typescript\\bin\\tsc",
+      "--noEmit",
+      "--project",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\validation-mirror\\frontend\\tsconfig.json"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:09:58.659183+00:00",
+    "seconds": 7.238,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "typescript-mirror.log",
+    "log_sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+  },
+  {
+    "name": "ruff-changed-python",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "ruff",
+      "check",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\validation-mirror\\scripts\\contracts\\generate_capability_package_details.py",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-next-20261019\\validation-mirror\\tests\\contract\\test_capability_package_details.py"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:10:05.897414+00:00",
+    "seconds": 0.198,
+    "exit_code": 0,
+    "expected_exit": 0,
+    "pass": true,
+    "log": "ruff-changed-python.log",
+    "log_sha256": "881513cd027e0334026cfcbad052e34fecb3f2c1fef5ab000c86973bc0196cd7"
+  }
+]

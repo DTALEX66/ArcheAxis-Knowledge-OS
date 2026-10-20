@@ -1,0 +1,30 @@
+{
+  "observed_at": "2026-10-19T07:39:55.758983+08:00",
+  "result": "NO_REMAINING_BLOCKING_FINDING_WITHIN_STATIC_REVIEW_SCOPE",
+  "finding_closed": "P2 body snapshot retained by global explicit diagnostics after TTL/close; Reader raw body diagnostic removed, identity strips editor_json",
+  "source_sha256": {
+    "crates/archeaxis-api/src/project_handoff_preview.rs": "25326481054d8a376f28c81e91baa68e72d2a632c362240a0d36b0ef997b2eda",
+    "crates/archeaxis-contracts/src/project_handoff_preview.rs": "821381e8673e41f9f3a624d44982a477932d4df046f2d3026f3669bc94ed49e5",
+    "crates/archeaxis-api/src/lib.rs": "93cab855666aedc9efb52565e4eca0190c8e192c691bcd1841453fe4f31838dd",
+    "src-tauri/src/core_bridge.rs": "11f5ea7bf6fd69f456427d3e8b52c92411c36afe90c8e04cc52cea822ac5c9ae",
+    "packages/contracts/v1/core-command.schema.json": "b5dd78da0a09c3688306899a2311ad09d566f02adfe8e20aa6bc6e835310a89b",
+    "packages/contracts/v2/project-handoff-snapshot.schema.json": "10ed793ae48f80ecbb34f93dbbf49835dd9a7f074d4b70f4adf651db717d676b",
+    "packages/contracts/v2/project-handoff-snapshot.cases.json": "2dc9f422f7b2a101d2e60d6b95e9c7e33fa362a4971be2ce8f1e6592ae47bb5b",
+    "frontend/src/api/core.ts": "65a8f8bb16c354b68cd22df0848570024ce51ce031e59cffa294d4e7ac18e6a6",
+    "frontend/src/api/projectHandoff.ts": "88ef78308274cf7f9a2c7d9d5b5e6535151bf472d62d6a1b9fccdbbd5481af7b",
+    "frontend/src/api/generated/project-handoff.ts": "748f43191e7b64f094bc1c4958397af66f14e0423a77fdaf68f8d372cea404c5",
+    "frontend/src/components/ProjectHandoffReader.tsx": "3ff2f5e59e6f91e4d7e22242bb3cda85c92a95568e3db1de7ab1d8adc846c817",
+    "frontend/src/components/DocumentSnapshot.tsx": "7068d66aed9f4bdc3f6913e5209ffa73debf199590edc128023ac1f3fa37266e",
+    "frontend/src/components/DiagnosticConsole.tsx": "dc09489b28a9f8926d76de01a0b5d09654086f70755082b631143d101ff20eab",
+    "frontend/src/presentation/diagnostics.ts": "f19f2494f2658066697a5f0182cabf766fb4d689db784e45f9d28d8beab6ba91",
+    "frontend/src/presentation/focus.ts": "6c83b4b9968bd354f86f2500ee7d23ff71c7dc687e3b8b777091020d98fa8151",
+    "frontend/src/spaces/SpaceView.tsx": "93182b39479de65ab606289128a93dbcf0081781b935e4b225268d3a4a117e38",
+    "frontend/src/__tests__/ProjectHandoffReader.test.tsx": "3dffc070c07afdba747fa706695d940463cda30fe75e4b1a73257f947c2cfb5d",
+    "frontend/src/__tests__/ProjectHandoffContract.test.ts": "a5a3c815438b15564f32a256e5b8ea776b740f838e013e13d43e8049b250f5c0",
+    "crates/archeaxis-api/tests/project_handoff_preview_process.rs": "fb436b04207d4aaf52d68608d2728b13c723b3e60872a98d2cd22eefdc6c673a",
+    "src-tauri/tests/project_handoff_preview.rs": "7f0b2cfe0e35079bdf1833c9a704b4b630e1957b39b828145c9c05f43425c7f4"
+  },
+  "test_execution_by_reviewer": "NOT_EXECUTED_ROOT_OWNS_UNIFIED_GATE",
+  "product_and_public_writes": [],
+  "services_build_model_runs": []
+}

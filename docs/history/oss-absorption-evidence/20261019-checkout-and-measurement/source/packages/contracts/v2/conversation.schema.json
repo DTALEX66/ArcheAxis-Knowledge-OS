@@ -1,0 +1,1586 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/conversation/v1",
+  "$ref": "#/$defs/ConversationRequestDto",
+  "$defs": {
+    "MaterialContextDto": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "document"
+            },
+            "document_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "content_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "block_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "document_id",
+            "version",
+            "content_sha256",
+            "block_id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "transform"
+            },
+            "source_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "raw_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "job_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "transform_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "transform_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "kind",
+            "source_id",
+            "raw_sha256",
+            "job_id",
+            "transform_id",
+            "transform_sha256"
+          ]
+        }
+      ]
+    },
+    "MaterialSelectionDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start_utf16": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_utf16": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "start_utf16",
+        "end_utf16",
+        "quote_sha256"
+      ]
+    },
+    "MaterialContextProofDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "material": {
+          "$ref": "#/$defs/MaterialContextDto"
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaterialSelectionDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "source_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "source_revision": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "job_id": {
+              "type": "string"
+            },
+            "transform_id": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source_id",
+            "source_revision"
+          ]
+        },
+        "context_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128000
+        },
+        "authority": {
+          "const": "unverified_material"
+        }
+      },
+      "required": [
+        "material",
+        "selection",
+        "provenance",
+        "context_sha256",
+        "bytes",
+        "authority"
+      ]
+    },
+    "ConversationCreateDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "consumer": {
+          "const": "archeaxis"
+        }
+      },
+      "required": [
+        "session_id",
+        "title",
+        "consumer"
+      ]
+    },
+    "ConversationIdentityDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "session_id",
+        "request_id"
+      ]
+    },
+    "ConversationHistoryRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "after_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
+      },
+      "required": [
+        "session_id",
+        "after_sequence",
+        "limit"
+      ]
+    },
+    "ConversationRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "purpose": {
+          "enum": [
+            "companion",
+            "material_learning"
+          ]
+        },
+        "material": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaterialContextDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaterialSelectionDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 4096
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "preview": {
+          "type": "boolean"
+        },
+        "confirmed_plan_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_configuration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResolvedModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "session_id",
+        "request_id",
+        "purpose",
+        "material",
+        "selection",
+        "question",
+        "model",
+        "max_tokens",
+        "timeout_s",
+        "preview",
+        "confirmed_plan_sha256"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "companion"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "material": {
+                "type": "null"
+              },
+              "selection": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "purpose": {
+                "const": "material_learning"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "material": {
+                "$ref": "#/$defs/MaterialContextDto"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ConversationPlanDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.conversation-plan/v1"
+        },
+        "request": {
+          "$ref": "#/$defs/ConversationRequestDto"
+        },
+        "consumer": {
+          "const": "archeaxis"
+        },
+        "session_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "material_proof": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaterialContextProofDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "restore_epoch": {
+          "type": "string"
+        },
+        "delivery": {
+          "const": "BUFFERED"
+        },
+        "destination": {
+          "const": "LOCAL_LOOPBACK_ONLY"
+        },
+        "destination_candidates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "model_binding": {
+          "enum": [
+            "legacy_owned_local_probe",
+            "frozen_purpose_profile"
+          ]
+        },
+        "usage": {
+          "type": "null"
+        },
+        "cost": {
+          "type": "null"
+        },
+        "character_context": {
+          "$ref": "#/$defs/CharacterContext"
+        },
+        "answer_policy": {
+          "enum": [
+            "grounded",
+            "companion_general"
+          ]
+        },
+        "prompt_version": {
+          "enum": [
+            "archeaxis.vnext/v1 2026-10-02",
+            "archeaxis.companion/v1 2026-10-19"
+          ]
+        }
+      },
+      "required": [
+        "schema",
+        "request",
+        "consumer",
+        "session_sequence",
+        "context_sha256",
+        "material_proof",
+        "restore_epoch",
+        "delivery",
+        "destination",
+        "destination_candidates",
+        "model_binding",
+        "usage",
+        "cost"
+      ],
+      "dependentRequired": {
+        "answer_policy": [
+          "prompt_version"
+        ],
+        "prompt_version": [
+          "answer_policy"
+        ]
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "answer_policy"
+            ],
+            "properties": {
+              "answer_policy": {
+                "const": "grounded"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prompt_version": {
+                "const": "archeaxis.vnext/v1 2026-10-02"
+              },
+              "request": {
+                "properties": {
+                  "purpose": {
+                    "const": "material_learning"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "answer_policy"
+            ],
+            "properties": {
+              "answer_policy": {
+                "const": "companion_general"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "prompt_version": {
+                "const": "archeaxis.companion/v1 2026-10-19"
+              },
+              "request": {
+                "properties": {
+                  "purpose": {
+                    "const": "companion"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ConversationPreviewDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.conversation-preview/v1"
+        },
+        "plan": {
+          "$ref": "#/$defs/ConversationPlanDto"
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "network_performed": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "plan",
+        "plan_sha256",
+        "network_performed"
+      ]
+    },
+    "ConversationReceiptDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.conversation-receipt/v1"
+        },
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "state": {
+          "enum": [
+            "completed",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "plan": {
+          "$ref": "#/$defs/ConversationPlanDto"
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "delivery": {
+          "const": "BUFFERED"
+        },
+        "provider_stop_state": {
+          "const": "UNKNOWN"
+        },
+        "authority": {
+          "const": "candidate"
+        },
+        "grants_knowledge_acceptance": {
+          "const": false
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/MachineFailureDiagnostics"
+        }
+      },
+      "required": [
+        "schema",
+        "session_id",
+        "request_id",
+        "state",
+        "answer",
+        "reason_code",
+        "plan",
+        "plan_sha256",
+        "delivery",
+        "provider_stop_state",
+        "authority",
+        "grants_knowledge_acceptance"
+      ]
+    },
+    "ConversationStatusDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.conversation-status/v1"
+        },
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "execution_state": {
+          "const": "UNKNOWN"
+        },
+        "answer_published": {
+          "const": false
+        },
+        "plan": {
+          "$ref": "#/$defs/ConversationPlanDto"
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "delivery": {
+          "const": "BUFFERED"
+        }
+      },
+      "required": [
+        "schema",
+        "session_id",
+        "request_id",
+        "execution_state",
+        "answer_published",
+        "plan",
+        "plan_sha256",
+        "delivery"
+      ]
+    },
+    "ConversationCancelDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "cancel_requested": {
+          "type": "boolean"
+        },
+        "execution_state": {
+          "const": "UNKNOWN"
+        },
+        "provider_stop_state": {
+          "const": "UNKNOWN"
+        }
+      },
+      "required": [
+        "session_id",
+        "request_id",
+        "cancel_requested",
+        "execution_state",
+        "provider_stop_state"
+      ]
+    },
+    "ConversationEventDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "enum": [
+            "accepted",
+            "completed",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "data": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "question": {
+                  "type": "string"
+                },
+                "purpose": {
+                  "enum": [
+                    "companion",
+                    "material_learning"
+                  ]
+                },
+                "plan_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "question",
+                "purpose",
+                "plan_sha256"
+              ]
+            },
+            {
+              "$ref": "#/$defs/ConversationReceiptDto"
+            }
+          ]
+        },
+        "delivery": {
+          "const": "BUFFERED"
+        }
+      },
+      "required": [
+        "session_id",
+        "request_id",
+        "sequence",
+        "kind",
+        "data",
+        "delivery"
+      ]
+    },
+    "ConversationSavedRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "plan": {
+          "$ref": "#/$defs/ConversationPlanDto"
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "state": {
+          "enum": [
+            "EXECUTING",
+            "completed",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "receipt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConversationReceiptDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "execution_state": {
+          "const": "UNKNOWN"
+        }
+      },
+      "required": [
+        "request_id",
+        "plan",
+        "plan_sha256",
+        "state",
+        "receipt"
+      ]
+    },
+    "ConversationSessionDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.conversation-session/v1"
+        },
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string"
+        },
+        "consumer": {
+          "const": "archeaxis"
+        },
+        "last_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConversationEventDto"
+          },
+          "maxItems": 128
+        },
+        "requests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConversationSavedRequestDto"
+          },
+          "maxItems": 64
+        },
+        "delivery": {
+          "const": "BUFFERED"
+        },
+        "cross_project_consumer": {
+          "const": "UNVERIFIED"
+        },
+        "after_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        }
+      },
+      "required": [
+        "schema",
+        "session_id",
+        "title",
+        "consumer",
+        "last_sequence",
+        "events",
+        "requests",
+        "delivery",
+        "cross_project_consumer"
+      ]
+    },
+    "ConversationSummaryDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string"
+        },
+        "last_sequence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "consumer": {
+          "const": "archeaxis"
+        }
+      },
+      "required": [
+        "session_id",
+        "title",
+        "last_sequence",
+        "consumer"
+      ]
+    },
+    "ConversationCatalogDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.conversation-catalog/v1"
+        },
+        "sessions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConversationSummaryDto"
+          },
+          "maxItems": 16
+        },
+        "limit": {
+          "const": 16
+        }
+      },
+      "required": [
+        "schema",
+        "sessions",
+        "limit"
+      ]
+    },
+    "ModelPurpose": {
+      "enum": [
+        "answer",
+        "retest",
+        "material",
+        "document_check",
+        "embedding",
+        "companion"
+      ]
+    },
+    "ModelLane": {
+      "enum": [
+        "fast",
+        "deep"
+      ]
+    },
+    "ModelProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?$"
+        },
+        "protocol": {
+          "enum": [
+            "ollama",
+            "openai"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "credential_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^aak_cred_[a-f0-9]{32}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 4096
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        }
+      },
+      "required": [
+        "endpoint",
+        "protocol",
+        "model",
+        "credential_ref",
+        "max_tokens",
+        "timeout_s"
+      ]
+    },
+    "ModelPurposeBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        }
+      },
+      "required": [
+        "purpose",
+        "lane",
+        "profile_id"
+      ]
+    },
+    "ModelConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.model-configuration/v1"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "profiles": {
+          "type": "object",
+          "maxProperties": 32,
+          "additionalProperties": {
+            "$ref": "#/$defs/ModelProfile"
+          }
+        },
+        "bindings": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/ModelPurposeBinding"
+          }
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "revision",
+        "profiles",
+        "bindings",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "ResolvedModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.resolved-model/v1"
+        },
+        "configuration_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "profile": {
+          "$ref": "#/$defs/ModelProfile"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "configuration_revision",
+        "configuration_sha256",
+        "purpose",
+        "lane",
+        "profile_id",
+        "profile",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "ApprovedMemory": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "provenance": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "provenance"
+      ]
+    },
+    "CharacterProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.character-memory/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "preferences": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "learning_goals": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "memories": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/ApprovedMemory"
+          }
+        }
+      },
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "revision",
+        "enabled",
+        "preferences",
+        "learning_goals",
+        "memories"
+      ]
+    },
+    "CharacterMemoryWrite": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "command": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "profile"
+                },
+                "preferences": {
+                  "type": "string",
+                  "maxLength": 8192
+                },
+                "learning_goals": {
+                  "type": "string",
+                  "maxLength": 8192
+                }
+              },
+              "required": [
+                "operation",
+                "preferences",
+                "learning_goals"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "remember"
+                },
+                "memory": {
+                  "$ref": "#/$defs/ApprovedMemory"
+                }
+              },
+              "required": [
+                "operation",
+                "memory"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "correct"
+                },
+                "memory": {
+                  "$ref": "#/$defs/ApprovedMemory"
+                }
+              },
+              "required": [
+                "operation",
+                "memory"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "forget"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 128
+                }
+              },
+              "required": [
+                "operation",
+                "id"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "forget_all"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "disable"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "const": "enable"
+                }
+              },
+              "required": [
+                "operation"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "expected_revision",
+        "command"
+      ]
+    },
+    "CharacterContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.character-context/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "preferences": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "learning_goals": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "approved_memories": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/ApprovedMemory"
+          }
+        },
+        "authority": {
+          "const": "human_preferences_only"
+        },
+        "grants": {
+          "type": "array",
+          "maxItems": 0,
+          "items": {}
+        },
+        "knowledge_admitted": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "revision",
+        "enabled",
+        "preferences",
+        "learning_goals",
+        "approved_memories",
+        "authority",
+        "grants",
+        "knowledge_admitted"
+      ]
+    },
+    "MachineFailureDiagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "requested_model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9_.:/@+-]{1,256}$",
+          "maxLength": 256
+        },
+        "observed_model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9_.:/@+-]{1,256}$",
+          "maxLength": 256
+        },
+        "finish_reason": {
+          "enum": [
+            "stop",
+            "length",
+            "tool_calls",
+            "function_call",
+            "content_filter",
+            "error"
+          ]
+        },
+        "answer_source": {
+          "enum": [
+            "content",
+            "reasoning_content",
+            "response",
+            "none"
+          ]
+        },
+        "error_type": {
+          "enum": [
+            "HTTPError",
+            "URLError",
+            "TimeoutError",
+            "ConnectionError",
+            "OSError",
+            "ValueError",
+            "TypeError",
+            "KeyError",
+            "IndexError",
+            "JSONDecodeError"
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "http_status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "input_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "output_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "total_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "request_stage": {
+          "enum": [
+            "service_discovery",
+            "model_request",
+            "response_deadline",
+            "worker_deadline"
+          ]
+        },
+        "discovery_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "request_phase": {
+          "enum": [
+            "http_open",
+            "body_read",
+            "json_parse",
+            "response_validation"
+          ]
+        },
+        "http_open_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "body_read_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "json_parse_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "prompt_utf8_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "serialized_request_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "response_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    }
+  }
+}

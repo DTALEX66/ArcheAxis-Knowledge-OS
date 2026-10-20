@@ -2,6 +2,7 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -26,6 +27,10 @@ def test_lossless_original_surface_overlay_ledger_and_all_conflicts():
 
 
 def fixture_root(tmp_path):
+    # Keep exact historical reference paths; Windows needs its explicit long-path
+    # spelling when pytest adds a long test name and the launcher run ID.
+    if os.name == "nt":
+        tmp_path = Path("\\\\?\\" + str(tmp_path.resolve()))
     for name in [projection.CROSSWALK, projection.QUALIFICATION, projection.LEDGER, projection.FREEZE]:
         target = tmp_path / name
         target.parent.mkdir(parents=True, exist_ok=True)

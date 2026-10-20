@@ -1,0 +1,18 @@
+# 超时分类与有限阶段诊断：只读复核
+
+结论：**NO_BLOCKING_FINDING**。静态审阅及三份schema定义只读比较，无发现需要阻止当前集成的实际缺陷。没有修改产品、运行模型或启动服务；根Agent的在跑校验结果不由本审阅代为宣称通过。所读源码SHA在 SOURCE-MANIFEST.json。
+
+## 已核对的风险点
+
+- worker对直接TimeoutError及URLError包装TimeoutError使用MODEL_CALL_TIMEOUT；一般异常即便文字含timeout也不按文字升级。HTTPError不误作包装超时。迟到完整回复按response_deadline拒绝，未将响应正文、reasoning或原始异常写进失败回执。
+- Python失败码白名单及diagnostics有限request_stage/非负有限discovery_elapsed_s已同步；Rust from_worker原因白名单、reason_code映射和sanitize也同步。前端第三层白名单保留同样有限字段。未知字段、私人字符串及无效阶段仍无通行入口。
+- Core硬截止使用worker_deadline；worker的model_request阶段包含HTTP往返和解析，源码明确不能推断内部排队、prefill或生成。阶段标签没有伪造独立服务测量。
+- execution_claim::record_failure已将新码列入已知本地worker终态，保留冻结身份/有限attempt与未知cleanup屏障；新回归验证修改请求不能绕过原身份、同请求显式重试计数继续增加。没有新增自动重试。
+- 材料的两个超时来源归material_model_timeout；会话归conversation_model_timeout。取消优先、失败null/candidate/无知识接纳边界保持，cleanup未知仍不降级成确认终态。
+- OpenAPI v1与两份v2 MachineFailureDiagnostics的实际定义完全相同，包含同枚举和数值上限；v1 MachineCallFailure也已允许MODEL_CALL_TIMEOUT。已查看生成TS及合同回归覆盖点；未独立重跑generator。
+- core.ts识别新码并保留经过白名单的machineFailure；MaterialQuestionPanel覆盖执行/未确认状态读回/材料历史，CompanionSession覆盖执行/查询/会话load以及历史同步失败后的已知终态消息。只对确认failed解释超时，不将UNKNOWN或失败显示为成功。
+- 历史持久化receipt读取没有新增重算或重分类，旧material_model_call_failed保留当时含义；当前新错误映射不追写旧记录。
+
+## 边界
+
+本轮补诊断不证明真实调用变快、不是原生验收或Owner验收。旧118秒材料失败根因仍UNVERIFIED。model_request阶段仍不足以区分服务排队与生成，缺少精确输入token数也不能判定2048窗口溢出。service_discovery失败时discovery_elapsed_s可缺省，elapsed_s代表当次总耗时，不应补零。

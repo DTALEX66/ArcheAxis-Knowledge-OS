@@ -26,7 +26,7 @@ describe("five daily navigation", () => {
     view.rerender(<SpaceRail active="learning" pageId="21" onPage={onPage} onNavigate={vi.fn()} spaces={SPACES}/>);
     expect(screen.getByRole("button",{name:"画布与视觉表达"})).toHaveAttribute("aria-current","page");
     view.rerender(<SpaceRail active="ai-assets" pageId="22" onPage={onPage} onNavigate={vi.fn()} spaces={SPACES}/>);
-    expect(screen.getByRole("button",{name:"受限任务与回执"})).toHaveAttribute("aria-current","page");
+    expect(screen.getByRole("button",{name:"任务与记录"})).toHaveAttribute("aria-current","page");
     expect(screen.getByText("全能力目录")).toBeInTheDocument();
   });
   it("keeps keyboard navigation but does not consume composing, repeat or AltGraph input", () => {

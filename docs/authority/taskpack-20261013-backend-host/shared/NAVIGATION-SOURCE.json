@@ -1,0 +1,4783 @@
+{
+  "schema": "archeaxis.ui-navigation.plan/v1",
+  "schema_state": "PROPOSED_NOT_RUNTIME_CONTRACT",
+  "public_brand": {
+    "brand": "ArcheAxis",
+    "product_zh": "星环知识系统"
+  },
+  "internal_code_name": "AAOS",
+  "repository_baseline": "be79ff90e7394247171afc311b002eb96ff0581e",
+  "revision": "2026-10-13-navigation-consolidated",
+  "claim_boundary": "Design coverage only. No backend qualification or production implementation is claimed.",
+  "formal_pages": [
+    {
+      "id": "01",
+      "label": "今日工作台"
+    },
+    {
+      "id": "02",
+      "label": "知识库"
+    },
+    {
+      "id": "03",
+      "label": "阅读与编辑"
+    },
+    {
+      "id": "04",
+      "label": "双链与图谱"
+    },
+    {
+      "id": "05",
+      "label": "研究空间"
+    },
+    {
+      "id": "06",
+      "label": "学习路径"
+    },
+    {
+      "id": "07",
+      "label": "课程与视觉教学"
+    },
+    {
+      "id": "08",
+      "label": "教学需求"
+    },
+    {
+      "id": "09",
+      "label": "表达方案"
+    },
+    {
+      "id": "10",
+      "label": "交付与版本"
+    },
+    {
+      "id": "11",
+      "label": "练习 / Teach-back"
+    },
+    {
+      "id": "12",
+      "label": "反馈与修订"
+    },
+    {
+      "id": "13",
+      "label": "项目记忆与上下文"
+    },
+    {
+      "id": "14",
+      "label": "纠正、评测与复测"
+    },
+    {
+      "id": "15",
+      "label": "资源与扩展"
+    },
+    {
+      "id": "16",
+      "label": "导入导出与互通"
+    },
+    {
+      "id": "17",
+      "label": "全部能力与未来蓝图"
+    },
+    {
+      "id": "18",
+      "label": "能力详情"
+    },
+    {
+      "id": "19",
+      "label": "设置、权限与恢复"
+    },
+    {
+      "id": "20",
+      "label": "版本、来源与历史"
+    },
+    {
+      "id": "21",
+      "label": "画布与视觉表达"
+    },
+    {
+      "id": "22",
+      "label": "受限任务与回执"
+    }
+  ],
+  "primary_navigation": [
+    {
+      "id": "work",
+      "label": "工作台",
+      "children": [
+        {
+          "id": "work.home",
+          "label": "首页",
+          "page_ids": [
+            "01"
+          ],
+          "view_id": "home",
+          "canonical_owner": "work.home",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0010",
+            "CAP-0040"
+          ],
+          "presentation": "home",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "work.home.section01",
+              "label": "开始学习",
+              "target_view": "home",
+              "target_section": "work.home.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.home.section02",
+              "label": "导入资料",
+              "target_view": "home",
+              "target_section": "work.home.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.home.section03",
+              "label": "新建笔记",
+              "target_view": "home",
+              "target_section": "work.home.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.home.section04",
+              "label": "小栖入口",
+              "target_view": "home",
+              "target_section": "work.home.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "work.continue",
+          "label": "继续工作",
+          "page_ids": [
+            "01"
+          ],
+          "view_id": "recent-work",
+          "canonical_owner": "work.continue",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0090"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "work.continue.section01",
+              "label": "最近资料",
+              "target_view": "recent-work",
+              "target_section": "work.continue.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.continue.section02",
+              "label": "最近学习",
+              "target_view": "recent-work",
+              "target_section": "work.continue.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.continue.section03",
+              "label": "研究项目",
+              "target_view": "recent-work",
+              "target_section": "work.continue.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "work.workspaces",
+          "label": "工作区与布局",
+          "page_ids": [
+            "19"
+          ],
+          "view_id": "workspace-layout",
+          "canonical_owner": "work.workspaces",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0120"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "work.workspaces.section01",
+              "label": "工作区切换",
+              "target_view": "workspace-layout",
+              "target_section": "work.workspaces.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.workspaces.section02",
+              "label": "阅读布局",
+              "target_view": "workspace-layout",
+              "target_section": "work.workspaces.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.workspaces.section03",
+              "label": "学习布局",
+              "target_view": "workspace-layout",
+              "target_section": "work.workspaces.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.workspaces.section04",
+              "label": "研究布局",
+              "target_view": "workspace-layout",
+              "target_section": "work.workspaces.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "work.workspaces.section05",
+              "label": "自定义布局",
+              "target_view": "workspace-layout",
+              "target_section": "work.workspaces.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "knowledge",
+      "label": "知识",
+      "children": [
+        {
+          "id": "knowledge.library",
+          "label": "知识库",
+          "page_ids": [
+            "02"
+          ],
+          "view_id": "library",
+          "canonical_owner": "knowledge.library",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0010",
+            "CAP-0110"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "knowledge.library.section01",
+              "label": "全部资料",
+              "target_view": "library",
+              "target_section": "knowledge.library.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.library.section02",
+              "label": "原件与附件",
+              "target_view": "library",
+              "target_section": "knowledge.library.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.library.section03",
+              "label": "笔记与文档",
+              "target_view": "library",
+              "target_section": "knowledge.library.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.library.section04",
+              "label": "集合与筛选",
+              "target_view": "library",
+              "target_section": "knowledge.library.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "knowledge.editor",
+          "label": "阅读与编辑",
+          "page_ids": [
+            "03"
+          ],
+          "view_id": "document",
+          "canonical_owner": "knowledge.editor",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0010",
+            "CAP-0020",
+            "CAP-0110",
+            "CAP-0130",
+            "CAP-0150",
+            "CAP-0160"
+          ],
+          "presentation": "main",
+          "instance_policy": "object_session",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "knowledge.editor.section01",
+              "label": "正文与原件",
+              "target_view": "document",
+              "target_section": "knowledge.editor.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.editor.section02",
+              "label": "编辑与批注",
+              "target_view": "document",
+              "target_section": "knowledge.editor.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.editor.section03",
+              "label": "选区提问",
+              "target_view": "document",
+              "target_section": "knowledge.editor.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.editor.section04",
+              "label": "双链与引用",
+              "target_view": "document",
+              "target_section": "knowledge.editor.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.editor.section05",
+              "label": "文档导出",
+              "target_view": "document",
+              "target_section": "knowledge.editor.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "knowledge.graph",
+          "label": "双链与图谱",
+          "page_ids": [
+            "04"
+          ],
+          "view_id": "graph",
+          "canonical_owner": "knowledge.graph",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0110"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "knowledge.graph.section01",
+              "label": "局部关系",
+              "target_view": "graph",
+              "target_section": "knowledge.graph.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.graph.section02",
+              "label": "反向链接",
+              "target_view": "graph",
+              "target_section": "knowledge.graph.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.graph.section03",
+              "label": "关系筛选",
+              "target_view": "graph",
+              "target_section": "knowledge.graph.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.graph.section04",
+              "label": "全库图谱",
+              "target_view": "graph",
+              "target_section": "knowledge.graph.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "knowledge.research",
+          "label": "研究空间",
+          "page_ids": [
+            "05"
+          ],
+          "view_id": "research",
+          "canonical_owner": "knowledge.research",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0090",
+            "CAP-0070",
+            "CAP-0110"
+          ],
+          "presentation": "main",
+          "instance_policy": "object_session",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "knowledge.research.section01",
+              "label": "问题与范围",
+              "target_view": "research",
+              "target_section": "knowledge.research.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.research.section02",
+              "label": "文献与引用",
+              "target_view": "research",
+              "target_section": "knowledge.research.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.research.section03",
+              "label": "假设与反证",
+              "target_view": "research",
+              "target_section": "knowledge.research.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.research.section04",
+              "label": "方法与实验",
+              "target_view": "research",
+              "target_section": "knowledge.research.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.research.section05",
+              "label": "结果与交接",
+              "target_view": "research",
+              "target_section": "knowledge.research.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "knowledge.evidence",
+          "label": "来源与证据",
+          "page_ids": [
+            "20"
+          ],
+          "view_id": "source-evidence",
+          "canonical_owner": "knowledge.evidence",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0030",
+            "CAP-0010"
+          ],
+          "presentation": "inspector",
+          "instance_policy": "object_and_revision",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "knowledge.evidence.section01",
+              "label": "来源锚点",
+              "target_view": "source-evidence",
+              "target_section": "knowledge.evidence.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.evidence.section02",
+              "label": "识别忠实度",
+              "target_view": "source-evidence",
+              "target_section": "knowledge.evidence.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.evidence.section03",
+              "label": "专业依据",
+              "target_view": "source-evidence",
+              "target_section": "knowledge.evidence.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.evidence.section04",
+              "label": "争议与反证",
+              "target_view": "source-evidence",
+              "target_section": "knowledge.evidence.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.evidence.section05",
+              "label": "采用记录",
+              "target_view": "source-evidence",
+              "target_section": "knowledge.evidence.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "knowledge.history",
+          "label": "版本与历史",
+          "page_ids": [
+            "20"
+          ],
+          "view_id": "version-history",
+          "canonical_owner": "knowledge.history",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0010",
+            "CAP-0140",
+            "CAP-0110"
+          ],
+          "presentation": "inspector",
+          "instance_policy": "object_and_revision",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "knowledge.history.section01",
+              "label": "版本列表",
+              "target_view": "version-history",
+              "target_section": "knowledge.history.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.history.section02",
+              "label": "版本对照",
+              "target_view": "version-history",
+              "target_section": "knowledge.history.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.history.section03",
+              "label": "恢复预览",
+              "target_view": "version-history",
+              "target_section": "knowledge.history.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "knowledge.history.section04",
+              "label": "来源谱系",
+              "target_view": "version-history",
+              "target_section": "knowledge.history.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "learning",
+      "label": "学习",
+      "children": [
+        {
+          "id": "learning.path",
+          "label": "学习路径",
+          "page_ids": [
+            "06"
+          ],
+          "view_id": "learning-path",
+          "canonical_owner": "learning.path",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0040",
+            "CAP-0060",
+            "CAP-0070",
+            "CAP-0080"
+          ],
+          "presentation": "main",
+          "instance_policy": "object_session",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "learning.path.section01",
+              "label": "目标与路线",
+              "target_view": "learning-path",
+              "target_section": "learning.path.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.path.section02",
+              "label": "先修与误区",
+              "target_view": "learning-path",
+              "target_section": "learning.path.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.path.section03",
+              "label": "复习安排",
+              "target_view": "learning-path",
+              "target_section": "learning.path.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.path.section04",
+              "label": "学习记录",
+              "target_view": "learning-path",
+              "target_section": "learning.path.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "learning.courses",
+          "label": "课程与视觉教学",
+          "page_ids": [
+            "07"
+          ],
+          "view_id": "course",
+          "canonical_owner": "learning.courses",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0060"
+          ],
+          "presentation": "main",
+          "instance_policy": "object_session",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "learning.courses.section01",
+              "label": "课程与单元",
+              "target_view": "course",
+              "target_section": "learning.courses.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.courses.section02",
+              "label": "学习材料",
+              "target_view": "course",
+              "target_section": "learning.courses.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.courses.section03",
+              "label": "讲解与对照",
+              "target_view": "course",
+              "target_section": "learning.courses.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.courses.section04",
+              "label": "视觉教学",
+              "target_view": "course",
+              "target_section": "learning.courses.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "learning.requirements",
+          "label": "教学需求",
+          "page_ids": [
+            "08"
+          ],
+          "view_id": "teaching-requirements",
+          "canonical_owner": "learning.requirements",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0060"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "learning.requirements.section01",
+              "label": "学习目标",
+              "target_view": "teaching-requirements",
+              "target_section": "learning.requirements.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.requirements.section02",
+              "label": "受众与先修",
+              "target_view": "teaching-requirements",
+              "target_section": "learning.requirements.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.requirements.section03",
+              "label": "内容与素材",
+              "target_view": "teaching-requirements",
+              "target_section": "learning.requirements.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.requirements.section04",
+              "label": "约束与用途",
+              "target_view": "teaching-requirements",
+              "target_section": "learning.requirements.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "learning.expression",
+          "label": "表达方案",
+          "page_ids": [
+            "09"
+          ],
+          "view_id": "expression-plan",
+          "canonical_owner": "learning.expression",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0060",
+            "CAP-0070",
+            "CAP-0160"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "learning.expression.section01",
+              "label": "图文方案",
+              "target_view": "expression-plan",
+              "target_section": "learning.expression.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.expression.section02",
+              "label": "分步与对照",
+              "target_view": "expression-plan",
+              "target_section": "learning.expression.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.expression.section03",
+              "label": "动态解释",
+              "target_view": "expression-plan",
+              "target_section": "learning.expression.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.expression.section04",
+              "label": "方案版本",
+              "target_view": "expression-plan",
+              "target_section": "learning.expression.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "learning.delivery",
+          "label": "交付与版本",
+          "page_ids": [
+            "10"
+          ],
+          "view_id": "learning-delivery",
+          "canonical_owner": "learning.delivery",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0060",
+            "CAP-0100"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "learning.delivery.section01",
+              "label": "产物预览",
+              "target_view": "learning-delivery",
+              "target_section": "learning.delivery.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.delivery.section02",
+              "label": "交付版本",
+              "target_view": "learning-delivery",
+              "target_section": "learning.delivery.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.delivery.section03",
+              "label": "用途采用",
+              "target_view": "learning-delivery",
+              "target_section": "learning.delivery.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.delivery.section04",
+              "label": "导出与设计交接",
+              "target_view": "learning-delivery",
+              "target_section": "learning.delivery.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "learning.practice",
+          "label": "练习与复述",
+          "page_ids": [
+            "11"
+          ],
+          "view_id": "practice",
+          "canonical_owner": "learning.practice",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0040",
+            "CAP-0060"
+          ],
+          "presentation": "main",
+          "instance_policy": "object_session",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "learning.practice.section01",
+              "label": "主动提取",
+              "target_view": "practice",
+              "target_section": "learning.practice.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.practice.section02",
+              "label": "Teach-back",
+              "target_view": "practice",
+              "target_section": "learning.practice.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.practice.section03",
+              "label": "技能实战",
+              "target_view": "practice",
+              "target_section": "learning.practice.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.practice.section04",
+              "label": "评分依据",
+              "target_view": "practice",
+              "target_section": "learning.practice.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.practice.section05",
+              "label": "练习记录",
+              "target_view": "practice",
+              "target_section": "learning.practice.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "learning.feedback",
+          "label": "反馈与修订",
+          "page_ids": [
+            "12"
+          ],
+          "view_id": "learning-feedback",
+          "canonical_owner": "learning.feedback",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0040",
+            "CAP-0060"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "learning.feedback.section01",
+              "label": "反馈记录",
+              "target_view": "learning-feedback",
+              "target_section": "learning.feedback.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.feedback.section02",
+              "label": "问题与误区",
+              "target_view": "learning-feedback",
+              "target_section": "learning.feedback.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.feedback.section03",
+              "label": "修订对照",
+              "target_view": "learning-feedback",
+              "target_section": "learning.feedback.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.feedback.section04",
+              "label": "复习跟进",
+              "target_view": "learning-feedback",
+              "target_section": "learning.feedback.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "learning.canvas",
+          "label": "画布与视觉表达",
+          "page_ids": [
+            "21"
+          ],
+          "view_id": "learning-canvas",
+          "canonical_owner": "learning.canvas",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0080",
+            "CAP-0160"
+          ],
+          "presentation": "main",
+          "instance_policy": "object_session",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "learning.canvas.section01",
+              "label": "知识画布",
+              "target_view": "learning-canvas",
+              "target_section": "learning.canvas.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.canvas.section02",
+              "label": "关系与流程",
+              "target_view": "learning-canvas",
+              "target_section": "learning.canvas.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.canvas.section03",
+              "label": "教学表达",
+              "target_view": "learning-canvas",
+              "target_section": "learning.canvas.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.canvas.section04",
+              "label": "记忆地图",
+              "target_view": "learning-canvas",
+              "target_section": "learning.canvas.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "learning.canvas.section05",
+              "label": "空间学习",
+              "target_view": "learning-canvas",
+              "target_section": "learning.canvas.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ai",
+      "label": "AI",
+      "children": [
+        {
+          "id": "ai.models",
+          "label": "模型与连接",
+          "page_ids": [
+            "19"
+          ],
+          "view_id": "model-center",
+          "canonical_owner": "ai.models",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0150",
+            "CAP-0050",
+            "CAP-0110"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "ai.models.section01",
+              "label": "API 服务",
+              "target_view": "model-center",
+              "target_section": "ai.models.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.models.section02",
+              "label": "订阅与客户端",
+              "target_view": "model-center",
+              "target_section": "ai.models.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.models.section03",
+              "label": "本地模型",
+              "target_view": "model-center",
+              "target_section": "ai.models.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.models.section04",
+              "label": "用途绑定",
+              "target_view": "model-center",
+              "target_section": "ai.models.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.models.section05",
+              "label": "用量与诊断",
+              "target_view": "model-center",
+              "target_section": "ai.models.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "ai.companion",
+          "label": "小栖与陪伴",
+          "page_ids": [
+            "19",
+            "13"
+          ],
+          "view_id": "companion-center",
+          "canonical_owner": "ai.companion",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0050",
+            "CAP-0120",
+            "CAP-0150"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "ai.companion.section01",
+              "label": "对话与陪学",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.companion.section02",
+              "label": "人物与呈现",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.companion.section03",
+              "label": "关系与表达风格",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.companion.section04",
+              "label": "记忆管理",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.companion.section05",
+              "label": "声音与口型",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.companion.section06",
+              "label": "权限与上下文",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section06",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "ai.context",
+          "label": "项目记忆与上下文",
+          "page_ids": [
+            "13"
+          ],
+          "view_id": "ai-context",
+          "canonical_owner": "ai.context",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0050"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "ai.context.section01",
+              "label": "项目记忆",
+              "target_view": "ai-context",
+              "target_section": "ai.context.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.context.section02",
+              "label": "知识包与资产",
+              "target_view": "ai-context",
+              "target_section": "ai.context.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.context.section03",
+              "label": "规则与技能",
+              "target_view": "ai-context",
+              "target_section": "ai.context.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.context.section04",
+              "label": "上下文与用途授权",
+              "target_view": "ai-context",
+              "target_section": "ai.context.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.context.section05",
+              "label": "修订与撤回",
+              "target_view": "ai-context",
+              "target_section": "ai.context.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "ai.evaluation",
+          "label": "纠正评测与复测",
+          "page_ids": [
+            "14"
+          ],
+          "view_id": "ai-evaluation",
+          "canonical_owner": "ai.evaluation",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0050"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "ai.evaluation.section01",
+              "label": "原答案与来源",
+              "target_view": "ai-evaluation",
+              "target_section": "ai.evaluation.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.evaluation.section02",
+              "label": "纠正候选",
+              "target_view": "ai-evaluation",
+              "target_section": "ai.evaluation.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.evaluation.section03",
+              "label": "固定评测依据",
+              "target_view": "ai-evaluation",
+              "target_section": "ai.evaluation.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.evaluation.section04",
+              "label": "独立复测",
+              "target_view": "ai-evaluation",
+              "target_section": "ai.evaluation.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.evaluation.section05",
+              "label": "对照与历史",
+              "target_view": "ai-evaluation",
+              "target_section": "ai.evaluation.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "ai.receipts",
+          "label": "受限任务与回执",
+          "page_ids": [
+            "22"
+          ],
+          "view_id": "controlled-jobs",
+          "canonical_owner": "ai.receipts",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0130",
+            "CAP-0050"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "ai.receipts.section01",
+              "label": "任务与计划",
+              "target_view": "controlled-jobs",
+              "target_section": "ai.receipts.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.receipts.section02",
+              "label": "对象与工具范围",
+              "target_view": "controlled-jobs",
+              "target_section": "ai.receipts.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.receipts.section03",
+              "label": "步骤与预算",
+              "target_view": "controlled-jobs",
+              "target_section": "ai.receipts.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.receipts.section04",
+              "label": "取消与检查点",
+              "target_view": "controlled-jobs",
+              "target_section": "ai.receipts.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "ai.receipts.section05",
+              "label": "证据与回执",
+              "target_view": "controlled-jobs",
+              "target_section": "ai.receipts.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resources",
+      "label": "资源",
+      "children": [
+        {
+          "id": "resources.extensions",
+          "label": "资源与扩展",
+          "page_ids": [
+            "15"
+          ],
+          "view_id": "resource-center",
+          "canonical_owner": "resources.extensions",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0020",
+            "CAP-0120",
+            "CAP-0130",
+            "CAP-0070",
+            "CAP-0080"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "resources.extensions.section01",
+              "label": "已安装模块",
+              "target_view": "resource-center",
+              "target_section": "resources.extensions.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.extensions.section02",
+              "label": "本机引擎与运行服务",
+              "target_view": "resource-center",
+              "target_section": "resources.extensions.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.extensions.section03",
+              "label": "插件与技能",
+              "target_view": "resource-center",
+              "target_section": "resources.extensions.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.extensions.section04",
+              "label": "可用工具",
+              "target_view": "resource-center",
+              "target_section": "resources.extensions.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.extensions.section05",
+              "label": "部署更新与回退",
+              "target_view": "resource-center",
+              "target_section": "resources.extensions.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "resources.exchange",
+          "label": "导入导出与互通",
+          "page_ids": [
+            "16"
+          ],
+          "view_id": "exchange",
+          "canonical_owner": "resources.exchange",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0020",
+            "CAP-0100",
+            "CAP-0010",
+            "CAP-0140"
+          ],
+          "presentation": "flow",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "resources.exchange.section01",
+              "label": "多格式导入",
+              "target_view": "exchange",
+              "target_section": "resources.exchange.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.exchange.section02",
+              "label": "转换与损失报告",
+              "target_view": "exchange",
+              "target_section": "resources.exchange.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.exchange.section03",
+              "label": "内容与附件导出",
+              "target_view": "exchange",
+              "target_section": "resources.exchange.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.exchange.section04",
+              "label": "平台互通配置",
+              "target_view": "exchange",
+              "target_section": "resources.exchange.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.exchange.section05",
+              "label": "冲突与往返验证",
+              "target_view": "exchange",
+              "target_section": "resources.exchange.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "resources.services",
+          "label": "外部服务与常用接口",
+          "page_ids": [
+            "15",
+            "19"
+          ],
+          "view_id": "service-center",
+          "canonical_owner": "resources.services",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0020",
+            "CAP-0090",
+            "CAP-0130",
+            "CAP-0150"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "resources.services.section01",
+              "label": "搜索与文献",
+              "target_view": "service-center",
+              "target_section": "resources.services.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.services.section02",
+              "label": "OCR 与解析",
+              "target_view": "service-center",
+              "target_section": "resources.services.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.services.section03",
+              "label": "语音服务",
+              "target_view": "service-center",
+              "target_section": "resources.services.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.services.section04",
+              "label": "MCP 与工具接口",
+              "target_view": "service-center",
+              "target_section": "resources.services.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.services.section05",
+              "label": "自定义服务",
+              "target_view": "service-center",
+              "target_section": "resources.services.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.services.section06",
+              "label": "常用连接收藏",
+              "target_view": "service-center",
+              "target_section": "resources.services.section06",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "resources.projects",
+          "label": "项目互联",
+          "page_ids": [
+            "15"
+          ],
+          "view_id": "project-connections",
+          "canonical_owner": "resources.projects",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0100",
+            "CAP-0130",
+            "CAP-0120"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "resources.projects.section01",
+              "label": "连接与协议检查",
+              "target_view": "project-connections",
+              "target_section": "resources.projects.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.projects.section02",
+              "label": "WORKLAB 关联",
+              "target_view": "project-connections",
+              "target_section": "resources.projects.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.projects.section03",
+              "label": "DESIGNLAB 关联",
+              "target_view": "project-connections",
+              "target_section": "resources.projects.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.projects.section04",
+              "label": "上下文与任务交接",
+              "target_view": "project-connections",
+              "target_section": "resources.projects.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.projects.section05",
+              "label": "产物与知识候选",
+              "target_view": "project-connections",
+              "target_section": "resources.projects.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "resources.projects.section06",
+              "label": "投递与回执",
+              "target_view": "project-connections",
+              "target_section": "resources.projects.section06",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "capabilities",
+      "label": "全部能力",
+      "children": [
+        {
+          "id": "capabilities.catalog",
+          "label": "分类能力目录",
+          "page_ids": [
+            "17",
+            "18"
+          ],
+          "view_id": "capability-catalog",
+          "canonical_owner": "capabilities.catalog",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0010",
+            "CAP-0020",
+            "CAP-0030",
+            "CAP-0040",
+            "CAP-0050",
+            "CAP-0060",
+            "CAP-0070",
+            "CAP-0080",
+            "CAP-0090",
+            "CAP-0100",
+            "CAP-0110",
+            "CAP-0120",
+            "CAP-0130",
+            "CAP-0140",
+            "CAP-0150",
+            "CAP-0160"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "capabilities.catalog.section01",
+              "label": "知识与研究",
+              "target_view": "capability-catalog",
+              "target_section": "capabilities.catalog.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.catalog.section02",
+              "label": "学习与教学",
+              "target_view": "capability-catalog",
+              "target_section": "capabilities.catalog.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.catalog.section03",
+              "label": "AI 知识与治理",
+              "target_view": "capability-catalog",
+              "target_section": "capabilities.catalog.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.catalog.section04",
+              "label": "可视化与空间",
+              "target_view": "capability-catalog",
+              "target_section": "capabilities.catalog.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.catalog.section05",
+              "label": "资源与互联",
+              "target_view": "capability-catalog",
+              "target_section": "capabilities.catalog.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.catalog.section06",
+              "label": "平台与可靠性",
+              "target_view": "capability-catalog",
+              "target_section": "capabilities.catalog.section06",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "capabilities.roadmap",
+          "label": "未来路线",
+          "page_ids": [
+            "17"
+          ],
+          "view_id": "future-roadmap",
+          "canonical_owner": "capabilities.roadmap",
+          "alias_of": null,
+          "capability_ids": [],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "capabilities.roadmap.section01",
+              "label": "全部目标",
+              "target_view": "future-roadmap",
+              "target_section": "capabilities.roadmap.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.roadmap.section02",
+              "label": "首期范围",
+              "target_view": "future-roadmap",
+              "target_section": "capabilities.roadmap.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.roadmap.section03",
+              "label": "重载延期",
+              "target_view": "future-roadmap",
+              "target_section": "capabilities.roadmap.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.roadmap.section04",
+              "label": "依赖与阶段",
+              "target_view": "future-roadmap",
+              "target_section": "capabilities.roadmap.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "capabilities.interop",
+          "label": "互通目标",
+          "page_ids": [
+            "17"
+          ],
+          "view_id": "interop-targets",
+          "canonical_owner": "capabilities.interop",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0100"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "capabilities.interop.section01",
+              "label": "Markdown 与 JSON Canvas",
+              "target_view": "interop-targets",
+              "target_section": "capabilities.interop.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.interop.section02",
+              "label": "知识平台",
+              "target_view": "interop-targets",
+              "target_section": "capabilities.interop.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.interop.section03",
+              "label": "引用与复习工具",
+              "target_view": "interop-targets",
+              "target_section": "capabilities.interop.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.interop.section04",
+              "label": "开放知识库平台",
+              "target_view": "interop-targets",
+              "target_section": "capabilities.interop.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.interop.section05",
+              "label": "商业平台导出与 API",
+              "target_view": "interop-targets",
+              "target_section": "capabilities.interop.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "capabilities.interop.section06",
+              "label": "RAG 与研发资料",
+              "target_view": "interop-targets",
+              "target_section": "capabilities.interop.section06",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "settings",
+      "label": "设置",
+      "children": [
+        {
+          "id": "settings.general",
+          "label": "通用与数据位置",
+          "page_ids": [
+            "19"
+          ],
+          "view_id": "general-settings",
+          "canonical_owner": "settings.general",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0120",
+            "CAP-0080",
+            "CAP-0140"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "settings.general.section01",
+              "label": "语言与启动",
+              "target_view": "general-settings",
+              "target_section": "settings.general.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.general.section02",
+              "label": "资料存储位置",
+              "target_view": "general-settings",
+              "target_section": "settings.general.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.general.section03",
+              "label": "工作区初始化",
+              "target_view": "general-settings",
+              "target_section": "settings.general.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.general.section04",
+              "label": "本地个人配置",
+              "target_view": "general-settings",
+              "target_section": "settings.general.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "settings.appearance",
+          "label": "外观与布局",
+          "page_ids": [
+            "19"
+          ],
+          "view_id": "appearance-settings",
+          "canonical_owner": "settings.appearance",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0120",
+            "CAP-0160"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "settings.appearance.section01",
+              "label": "主题与玻璃材质",
+              "target_view": "appearance-settings",
+              "target_section": "settings.appearance.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.appearance.section02",
+              "label": "字体与内容密度",
+              "target_view": "appearance-settings",
+              "target_section": "settings.appearance.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.appearance.section03",
+              "label": "性能与动态",
+              "target_view": "appearance-settings",
+              "target_section": "settings.appearance.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.appearance.section04",
+              "label": "布局保存与恢复",
+              "target_view": "appearance-settings",
+              "target_section": "settings.appearance.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "settings.privacy",
+          "label": "权限与数据范围",
+          "page_ids": [
+            "19"
+          ],
+          "view_id": "permission-settings",
+          "canonical_owner": "settings.privacy",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0150",
+            "CAP-0140"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "settings.privacy.section01",
+              "label": "用途权限",
+              "target_view": "permission-settings",
+              "target_section": "settings.privacy.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.privacy.section02",
+              "label": "外部数据范围",
+              "target_view": "permission-settings",
+              "target_section": "settings.privacy.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.privacy.section03",
+              "label": "凭据管理",
+              "target_view": "permission-settings",
+              "target_section": "settings.privacy.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.privacy.section04",
+              "label": "授权与撤销",
+              "target_view": "permission-settings",
+              "target_section": "settings.privacy.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "settings.backup",
+          "label": "备份与恢复",
+          "page_ids": [
+            "19"
+          ],
+          "view_id": "backup-center",
+          "canonical_owner": "settings.backup",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0140"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "settings.backup.section01",
+              "label": "备份计划",
+              "target_view": "backup-center",
+              "target_section": "settings.backup.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.backup.section02",
+              "label": "校验与恢复",
+              "target_view": "backup-center",
+              "target_section": "settings.backup.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.backup.section03",
+              "label": "迁移与回退",
+              "target_view": "backup-center",
+              "target_section": "settings.backup.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.backup.section04",
+              "label": "同步与冲突",
+              "target_view": "backup-center",
+              "target_section": "settings.backup.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "settings.diagnostics",
+          "label": "版本更新与诊断",
+          "page_ids": [
+            "19"
+          ],
+          "view_id": "diagnostics",
+          "canonical_owner": "settings.diagnostics",
+          "alias_of": null,
+          "capability_ids": [
+            "CAP-0120",
+            "CAP-0140"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "settings.diagnostics.section01",
+              "label": "构建与版本",
+              "target_view": "diagnostics",
+              "target_section": "settings.diagnostics.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.diagnostics.section02",
+              "label": "模块健康",
+              "target_view": "diagnostics",
+              "target_section": "settings.diagnostics.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.diagnostics.section03",
+              "label": "更新与回退",
+              "target_view": "diagnostics",
+              "target_section": "settings.diagnostics.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.diagnostics.section04",
+              "label": "故障与日志",
+              "target_view": "diagnostics",
+              "target_section": "settings.diagnostics.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.diagnostics.section05",
+              "label": "测试反馈包",
+              "target_view": "diagnostics",
+              "target_section": "settings.diagnostics.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "settings.models",
+          "label": "模型与连接",
+          "page_ids": [
+            "19"
+          ],
+          "view_id": "model-center",
+          "canonical_owner": "ai.models",
+          "alias_of": "ai.models",
+          "capability_ids": [
+            "CAP-0150"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "settings.models.section01",
+              "label": "API 服务",
+              "target_view": "model-center",
+              "target_section": "ai.models.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.models.section02",
+              "label": "订阅与客户端",
+              "target_view": "model-center",
+              "target_section": "ai.models.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.models.section03",
+              "label": "本地模型",
+              "target_view": "model-center",
+              "target_section": "ai.models.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.models.section04",
+              "label": "用途绑定",
+              "target_view": "model-center",
+              "target_section": "ai.models.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.models.section05",
+              "label": "用量与诊断",
+              "target_view": "model-center",
+              "target_section": "ai.models.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "settings.companion",
+          "label": "小栖设置",
+          "page_ids": [
+            "19",
+            "13"
+          ],
+          "view_id": "companion-center",
+          "canonical_owner": "ai.companion",
+          "alias_of": "ai.companion",
+          "capability_ids": [
+            "CAP-0050",
+            "CAP-0120",
+            "CAP-0150"
+          ],
+          "presentation": "main",
+          "instance_policy": "workspace_singleton",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "settings.companion.section01",
+              "label": "对话与陪学",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.companion.section02",
+              "label": "人物与呈现",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.companion.section03",
+              "label": "关系与表达风格",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.companion.section04",
+              "label": "记忆管理",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.companion.section05",
+              "label": "声音与口型",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section05",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.companion.section06",
+              "label": "权限与上下文",
+              "target_view": "companion-center",
+              "target_section": "ai.companion.section06",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "settings.history",
+          "label": "对象版本与历史",
+          "page_ids": [
+            "20"
+          ],
+          "view_id": "version-history",
+          "canonical_owner": "knowledge.history",
+          "alias_of": "knowledge.history",
+          "capability_ids": [
+            "CAP-0010",
+            "CAP-0140"
+          ],
+          "presentation": "inspector",
+          "instance_policy": "object_and_revision",
+          "design_scope": "FRONTEND_REQUIRED",
+          "runtime_readiness": "HOST_STATUS_REQUIRED",
+          "children": [
+            {
+              "id": "settings.history.section01",
+              "label": "版本列表",
+              "target_view": "version-history",
+              "target_section": "knowledge.history.section01",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.history.section02",
+              "label": "版本对照",
+              "target_view": "version-history",
+              "target_section": "knowledge.history.section02",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.history.section03",
+              "label": "恢复预览",
+              "target_view": "version-history",
+              "target_section": "knowledge.history.section03",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            },
+            {
+              "id": "settings.history.section04",
+              "label": "来源谱系",
+              "target_view": "version-history",
+              "target_section": "knowledge.history.section04",
+              "source_kind": "DESIGN_TARGET_NOT_IMPLEMENTATION_EVIDENCE"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "category_registry": [
+    {
+      "id": "knowledge",
+      "label": "知识与研究",
+      "capability_ids": [
+        "CAP-0010",
+        "CAP-0030",
+        "CAP-0090",
+        "CAP-0110"
+      ]
+    },
+    {
+      "id": "learning",
+      "label": "学习与教学",
+      "capability_ids": [
+        "CAP-0040",
+        "CAP-0060"
+      ]
+    },
+    {
+      "id": "ai",
+      "label": "AI 知识与治理",
+      "capability_ids": [
+        "CAP-0050",
+        "CAP-0130",
+        "CAP-0150"
+      ]
+    },
+    {
+      "id": "visual",
+      "label": "可视化与空间",
+      "capability_ids": [
+        "CAP-0070",
+        "CAP-0080",
+        "CAP-0160"
+      ]
+    },
+    {
+      "id": "resources",
+      "label": "资源与互联",
+      "capability_ids": [
+        "CAP-0020",
+        "CAP-0100"
+      ]
+    },
+    {
+      "id": "platform",
+      "label": "平台与可靠性",
+      "capability_ids": [
+        "CAP-0120",
+        "CAP-0140"
+      ]
+    }
+  ],
+  "capability_intents": [
+    {
+      "capability_id": "CAP-0010",
+      "category_id": "knowledge",
+      "primary_navigation": "knowledge.library",
+      "page_id": "02",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0010:intent:01",
+          "source_text": "原件 / CAS",
+          "route": {
+            "navigation": "knowledge.library",
+            "capability_id": "CAP-0010",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0010:intent:02",
+          "source_text": "捕获与导入",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0010",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0010:intent:03",
+          "source_text": "来源身份",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0010",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0010:intent:04",
+          "source_text": "稳定对象ID",
+          "route": {
+            "navigation": "knowledge.library",
+            "capability_id": "CAP-0010",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0010:intent:05",
+          "source_text": "不可变版本",
+          "route": {
+            "navigation": "knowledge.history",
+            "capability_id": "CAP-0010",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0010:intent:06",
+          "source_text": "原件与解释分开",
+          "route": {
+            "navigation": "knowledge.editor",
+            "capability_id": "CAP-0010",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0010:intent:07",
+          "source_text": "普通草稿先保存",
+          "route": {
+            "navigation": "knowledge.editor",
+            "capability_id": "CAP-0010",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0010:intent:08",
+          "source_text": "来源谱系",
+          "route": {
+            "navigation": "knowledge.history",
+            "capability_id": "CAP-0010",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0020",
+      "category_id": "resources",
+      "primary_navigation": "resources.exchange",
+      "page_id": "16",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0020:intent:01",
+          "source_text": "TXT / Markdown",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:02",
+          "source_text": "文本PDF / 扫描PDF",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:03",
+          "source_text": "图片 / OCR",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:04",
+          "source_text": "DOCX / PPTX / XLSX",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:05",
+          "source_text": "HTML / 网页",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:06",
+          "source_text": "CSV / TSV",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:07",
+          "source_text": "JSON / JSONL / YAML / TOML / XML",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:08",
+          "source_text": "JSON Canvas",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:09",
+          "source_text": "音频 / ASR",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:10",
+          "source_text": "视频 / 字幕 / 抽帧",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:11",
+          "source_text": "SRT / VTT",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 11,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:12",
+          "source_text": "EPUB / EML",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 12,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:13",
+          "source_text": "ZIP / TAR清点",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 13,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:14",
+          "source_text": "旧Office / ODF / MHTML可选引擎",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0020",
+            "detail_index": 14,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:15",
+          "source_text": "结构转换与锚点",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 15,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:16",
+          "source_text": "损失与失败回执",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0020",
+            "detail_index": 16,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0020:intent:17",
+          "source_text": "冷启动与安装态",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0020",
+            "detail_index": 17,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0030",
+      "category_id": "knowledge",
+      "primary_navigation": "knowledge.evidence",
+      "page_id": "20",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0030:intent:01",
+          "source_text": "来源锚点",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0030",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0030:intent:02",
+          "source_text": "识别忠实度",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0030",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0030:intent:03",
+          "source_text": "专业依据",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0030",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0030:intent:04",
+          "source_text": "支持与反证",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0030",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0030:intent:05",
+          "source_text": "争议与不确定",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0030",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0030:intent:06",
+          "source_text": "适用时间与范围",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0030",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0030:intent:07",
+          "source_text": "来源独立性",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0030",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0030:intent:08",
+          "source_text": "用户采用独立判断",
+          "route": {
+            "navigation": "knowledge.evidence",
+            "capability_id": "CAP-0030",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0040",
+      "category_id": "learning",
+      "primary_navigation": "learning.path",
+      "page_id": "06",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0040:intent:01",
+          "source_text": "诊断",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:02",
+          "source_text": "先修与误区",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:03",
+          "source_text": "可解释路线",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:04",
+          "source_text": "认知负荷",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:05",
+          "source_text": "记忆编码",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:06",
+          "source_text": "间隔复习",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:07",
+          "source_text": "主动提取",
+          "route": {
+            "navigation": "learning.practice",
+            "capability_id": "CAP-0040",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:08",
+          "source_text": "主动训练",
+          "route": {
+            "navigation": "learning.practice",
+            "capability_id": "CAP-0040",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:09",
+          "source_text": "技能实战",
+          "route": {
+            "navigation": "learning.practice",
+            "capability_id": "CAP-0040",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:10",
+          "source_text": "Teach-back",
+          "route": {
+            "navigation": "learning.practice",
+            "capability_id": "CAP-0040",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:11",
+          "source_text": "元认知",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 11,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:12",
+          "source_text": "错误反馈",
+          "route": {
+            "navigation": "learning.feedback",
+            "capability_id": "CAP-0040",
+            "detail_index": 12,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:13",
+          "source_text": "学习画像",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 13,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:14",
+          "source_text": "长期巩固",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 14,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:15",
+          "source_text": "Profile / Recipe / Event",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 15,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0040:intent:16",
+          "source_text": "真实学习与模拟分开",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0040",
+            "detail_index": 16,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0050",
+      "category_id": "ai",
+      "primary_navigation": "ai.context",
+      "page_id": "13",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0050:intent:01",
+          "source_text": "项目记忆",
+          "route": {
+            "navigation": "ai.context",
+            "capability_id": "CAP-0050",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:02",
+          "source_text": "知识包",
+          "route": {
+            "navigation": "ai.context",
+            "capability_id": "CAP-0050",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:03",
+          "source_text": "跨会话 / 客户端上下文",
+          "route": {
+            "navigation": "ai.context",
+            "capability_id": "CAP-0050",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:04",
+          "source_text": "规则与技能",
+          "route": {
+            "navigation": "ai.context",
+            "capability_id": "CAP-0050",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:05",
+          "source_text": "观察与经验候选",
+          "route": {
+            "navigation": "ai.context",
+            "capability_id": "CAP-0050",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:06",
+          "source_text": "来源与用途权限",
+          "route": {
+            "navigation": "ai.context",
+            "capability_id": "CAP-0050",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:07",
+          "source_text": "独立评测",
+          "route": {
+            "navigation": "ai.evaluation",
+            "capability_id": "CAP-0050",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:08",
+          "source_text": "纠正与复测",
+          "route": {
+            "navigation": "ai.evaluation",
+            "capability_id": "CAP-0050",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:09",
+          "source_text": "有范围复用",
+          "route": {
+            "navigation": "ai.context",
+            "capability_id": "CAP-0050",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:10",
+          "source_text": "使用回执",
+          "route": {
+            "navigation": "ai.receipts",
+            "capability_id": "CAP-0050",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:11",
+          "source_text": "冲突与退化",
+          "route": {
+            "navigation": "ai.evaluation",
+            "capability_id": "CAP-0050",
+            "detail_index": 11,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:12",
+          "source_text": "修订与撤回",
+          "route": {
+            "navigation": "ai.context",
+            "capability_id": "CAP-0050",
+            "detail_index": 12,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0050:intent:13",
+          "source_text": "可选参数训练实验",
+          "route": {
+            "navigation": "ai.models",
+            "capability_id": "CAP-0050",
+            "detail_index": 13,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0060",
+      "category_id": "learning",
+      "primary_navigation": "learning.courses",
+      "page_id": "07",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0060:intent:01",
+          "source_text": "LER与Learning Compiler",
+          "route": {
+            "navigation": "learning.courses",
+            "capability_id": "CAP-0060",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:02",
+          "source_text": "课程目标与先修",
+          "route": {
+            "navigation": "learning.requirements",
+            "capability_id": "CAP-0060",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:03",
+          "source_text": "固定知识与来源引用",
+          "route": {
+            "navigation": "learning.courses",
+            "capability_id": "CAP-0060",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:04",
+          "source_text": "图文与结构化场景",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0060",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:05",
+          "source_text": "教学需求",
+          "route": {
+            "navigation": "learning.requirements",
+            "capability_id": "CAP-0060",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:06",
+          "source_text": "表达方案",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0060",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:07",
+          "source_text": "交付登记与用途采用",
+          "route": {
+            "navigation": "learning.delivery",
+            "capability_id": "CAP-0060",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:08",
+          "source_text": "讲解与对照",
+          "route": {
+            "navigation": "learning.courses",
+            "capability_id": "CAP-0060",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:09",
+          "source_text": "练习 / 评分 / rubric",
+          "route": {
+            "navigation": "learning.practice",
+            "capability_id": "CAP-0060",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:10",
+          "source_text": "进度与依赖",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0060",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:11",
+          "source_text": "离线降级",
+          "route": {
+            "navigation": "learning.courses",
+            "capability_id": "CAP-0060",
+            "detail_index": 11,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:12",
+          "source_text": "保存与迁出",
+          "route": {
+            "navigation": "learning.delivery",
+            "capability_id": "CAP-0060",
+            "detail_index": 12,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:13",
+          "source_text": "反馈分责与版本修订",
+          "route": {
+            "navigation": "learning.feedback",
+            "capability_id": "CAP-0060",
+            "detail_index": 13,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0060:intent:14",
+          "source_text": "音视频 / PBL / coding 等形态分别验收",
+          "route": {
+            "navigation": "learning.courses",
+            "capability_id": "CAP-0060",
+            "detail_index": 14,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0070",
+      "category_id": "visual",
+      "primary_navigation": "learning.expression",
+      "page_id": "09",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0070:intent:01",
+          "source_text": "动态解释",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0070",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0070:intent:02",
+          "source_text": "动画产物",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0070",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0070:intent:03",
+          "source_text": "参数仿真",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0070",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0070:intent:04",
+          "source_text": "单位与算法版本",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0070",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0070:intent:05",
+          "source_text": "初始条件",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0070",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0070:intent:06",
+          "source_text": "结果与实验记录",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0070",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0070:intent:07",
+          "source_text": "学习事件",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0070",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0070:intent:08",
+          "source_text": "Manim / 浏览器计算 / Python / WASM候选",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0070",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0070:intent:09",
+          "source_text": "各形态独立安全验收",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0070",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0080",
+      "category_id": "visual",
+      "primary_navigation": "learning.canvas",
+      "page_id": "21",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0080:intent:01",
+          "source_text": "World / Room / Locus / Route",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0080",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:02",
+          "source_text": "知识宫殿",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0080",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:03",
+          "source_text": "2D / 文本降级",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0080",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:04",
+          "source_text": "2.5D / 3D布局",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0080",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:05",
+          "source_text": "知识ID与坐标",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0080",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:06",
+          "source_text": "布局版本",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0080",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:07",
+          "source_text": "资源许可",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0080",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:08",
+          "source_text": "设备输入",
+          "route": {
+            "navigation": "settings.general",
+            "capability_id": "CAP-0080",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:09",
+          "source_text": "学习事件与重启保存",
+          "route": {
+            "navigation": "learning.path",
+            "capability_id": "CAP-0080",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:10",
+          "source_text": "VR / AR / XR",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0080",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:11",
+          "source_text": "Three.js / R3F候选",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0080",
+            "detail_index": 11,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0080:intent:12",
+          "source_text": "Godot / OpenXR候选",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0080",
+            "detail_index": 12,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0090",
+      "category_id": "knowledge",
+      "primary_navigation": "knowledge.research",
+      "page_id": "05",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0090:intent:01",
+          "source_text": "研究问题与范围",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0090",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:02",
+          "source_text": "文献原文与摘要",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0090",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:03",
+          "source_text": "假设与反证",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0090",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:04",
+          "source_text": "方法与实验",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0090",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:05",
+          "source_text": "结果 / Rubric / 未决",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0090",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:06",
+          "source_text": "版本与研发项目",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0090",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:07",
+          "source_text": "Crossref / OpenAlex",
+          "route": {
+            "navigation": "resources.services",
+            "capability_id": "CAP-0090",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:08",
+          "source_text": "Zotero / PaperQA2",
+          "route": {
+            "navigation": "resources.services",
+            "capability_id": "CAP-0090",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:09",
+          "source_text": "Asta / 科研Agent / Intern-S2 / 端砚",
+          "route": {
+            "navigation": "resources.services",
+            "capability_id": "CAP-0090",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0090:intent:10",
+          "source_text": "AstaBench / OpenScholar研究线索",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0090",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0100",
+      "category_id": "resources",
+      "primary_navigation": "resources.exchange",
+      "page_id": "16",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0100:intent:01",
+          "source_text": "功能等价",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:02",
+          "source_text": "数据兼容",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:03",
+          "source_text": "双向往返",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:04",
+          "source_text": "持续增量互通",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:05",
+          "source_text": "平台×版本×功能×方向×样本",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:06",
+          "source_text": "基准 / 三方差异 / tombstone",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:07",
+          "source_text": "冲突与恢复",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:08",
+          "source_text": "人工课程包交换",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:09",
+          "source_text": "五类交换合同",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:10",
+          "source_text": "无损 / 等价 / 保全 / 有损 / 阻塞 / 未验证",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:11",
+          "source_text": "Markdown / Obsidian / JSON Canvas",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 11,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:12",
+          "source_text": "Notion / 思源 / Joplin / Logseq",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 12,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:13",
+          "source_text": "Zotero / Anki",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 13,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:14",
+          "source_text": "AFFiNE / AppFlowy / Outline / Docmost / Wiki.js / BookStack",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 14,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:15",
+          "source_text": "Anytype / Trilium",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 15,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:16",
+          "source_text": "Evernote / OneNote / 语雀 / 飞书 / Confluence",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 16,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:17",
+          "source_text": "RAGFlow / FastGPT / MaxKB / Dify / WeKnora / Git研发资料",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 17,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:18",
+          "source_text": "Apple Notes / Bear / Craft / Heptabase",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 18,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0100:intent:19",
+          "source_text": "Tana / Capacities / RemNote / Roam持续发现",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0100",
+            "detail_index": 19,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0110",
+      "category_id": "knowledge",
+      "primary_navigation": "knowledge.graph",
+      "page_id": "04",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0110:intent:01",
+          "source_text": "独立全文检索",
+          "route": {
+            "navigation": "knowledge.library",
+            "capability_id": "CAP-0110",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:02",
+          "source_text": "中文检索策略",
+          "route": {
+            "navigation": "knowledge.library",
+            "capability_id": "CAP-0110",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:03",
+          "source_text": "语义模型 / 维度 / 分块 / 哈希",
+          "route": {
+            "navigation": "ai.models",
+            "capability_id": "CAP-0110",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:04",
+          "source_text": "混合检索与rerank",
+          "route": {
+            "navigation": "knowledge.library",
+            "capability_id": "CAP-0110",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:05",
+          "source_text": "页面 / 块引用",
+          "route": {
+            "navigation": "knowledge.editor",
+            "capability_id": "CAP-0110",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:06",
+          "source_text": "双链 / 反链",
+          "route": {
+            "navigation": "knowledge.graph",
+            "capability_id": "CAP-0110",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:07",
+          "source_text": "别名 / 消歧 / 类型关系",
+          "route": {
+            "navigation": "knowledge.graph",
+            "capability_id": "CAP-0110",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:08",
+          "source_text": "未解决引用",
+          "route": {
+            "navigation": "knowledge.graph",
+            "capability_id": "CAP-0110",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:09",
+          "source_text": "人工 / 导入 / AI推断关系身份",
+          "route": {
+            "navigation": "knowledge.graph",
+            "capability_id": "CAP-0110",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:10",
+          "source_text": "局部图谱",
+          "route": {
+            "navigation": "knowledge.graph",
+            "capability_id": "CAP-0110",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:11",
+          "source_text": "版本依赖影响",
+          "route": {
+            "navigation": "knowledge.history",
+            "capability_id": "CAP-0110",
+            "detail_index": 11,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0110:intent:12",
+          "source_text": "多跳GraphRAG研究",
+          "route": {
+            "navigation": "knowledge.research",
+            "capability_id": "CAP-0110",
+            "detail_index": 12,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0120",
+      "category_id": "platform",
+      "primary_navigation": "settings.general",
+      "page_id": "19",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0120:intent:01",
+          "source_text": "Tauri正式桌面",
+          "route": {
+            "navigation": "settings.diagnostics",
+            "capability_id": "CAP-0120",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0120:intent:02",
+          "source_text": "统一React产品界面",
+          "route": {
+            "navigation": "settings.appearance",
+            "capability_id": "CAP-0120",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0120:intent:03",
+          "source_text": "宿主adapter",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0120",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0120:intent:04",
+          "source_text": "Windows显示缩放",
+          "route": {
+            "navigation": "settings.appearance",
+            "capability_id": "CAP-0120",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0120:intent:05",
+          "source_text": "快捷键与深链接",
+          "route": {
+            "navigation": "settings.general",
+            "capability_id": "CAP-0120",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0120:intent:06",
+          "source_text": "普通用户能力发现",
+          "route": {
+            "navigation": "capabilities.catalog",
+            "capability_id": "CAP-0120",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0120:intent:07",
+          "source_text": "浅色 / 深色 / 专注阅读",
+          "route": {
+            "navigation": "settings.appearance",
+            "capability_id": "CAP-0120",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0120:intent:08",
+          "source_text": "移动捕获 / 阅读 / 搜索 / 复习",
+          "route": {
+            "navigation": "settings.general",
+            "capability_id": "CAP-0120",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0120:intent:09",
+          "source_text": "可选协作与平台适配",
+          "route": {
+            "navigation": "resources.projects",
+            "capability_id": "CAP-0120",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0130",
+      "category_id": "ai",
+      "primary_navigation": "ai.receipts",
+      "page_id": "22",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0130:intent:01",
+          "source_text": "有限知识Job",
+          "route": {
+            "navigation": "ai.receipts",
+            "capability_id": "CAP-0130",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:02",
+          "source_text": "主体与对象范围",
+          "route": {
+            "navigation": "ai.receipts",
+            "capability_id": "CAP-0130",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:03",
+          "source_text": "步骤 / 预算",
+          "route": {
+            "navigation": "ai.receipts",
+            "capability_id": "CAP-0130",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:04",
+          "source_text": "取消 / 检查点 / 回执",
+          "route": {
+            "navigation": "ai.receipts",
+            "capability_id": "CAP-0130",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:05",
+          "source_text": "受限runner",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0130",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:06",
+          "source_text": "Worker / Plugin / Skill / Provider / Tool身份",
+          "route": {
+            "navigation": "resources.extensions",
+            "capability_id": "CAP-0130",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:07",
+          "source_text": "外部内容静态可信呈现",
+          "route": {
+            "navigation": "knowledge.editor",
+            "capability_id": "CAP-0130",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:08",
+          "source_text": "API / CLI / SDK / MCP",
+          "route": {
+            "navigation": "resources.services",
+            "capability_id": "CAP-0130",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:09",
+          "source_text": "外部生产者与human guard",
+          "route": {
+            "navigation": "ai.receipts",
+            "capability_id": "CAP-0130",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0130:intent:10",
+          "source_text": "复杂编排WORK-LAB主责",
+          "route": {
+            "navigation": "resources.projects",
+            "capability_id": "CAP-0130",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0140",
+      "category_id": "platform",
+      "primary_navigation": "settings.backup",
+      "page_id": "19",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0140:intent:01",
+          "source_text": "导出与可迁出",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0140",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:02",
+          "source_text": "一致备份",
+          "route": {
+            "navigation": "settings.backup",
+            "capability_id": "CAP-0140",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:03",
+          "source_text": "独立副本恢复",
+          "route": {
+            "navigation": "settings.backup",
+            "capability_id": "CAP-0140",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:04",
+          "source_text": "文件同步 / 对象同步",
+          "route": {
+            "navigation": "settings.backup",
+            "capability_id": "CAP-0140",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:05",
+          "source_text": "三方冲突与撤回",
+          "route": {
+            "navigation": "resources.exchange",
+            "capability_id": "CAP-0140",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:06",
+          "source_text": "迁移",
+          "route": {
+            "navigation": "settings.backup",
+            "capability_id": "CAP-0140",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:07",
+          "source_text": "发布与安装态",
+          "route": {
+            "navigation": "settings.diagnostics",
+            "capability_id": "CAP-0140",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:08",
+          "source_text": "单人离线优先",
+          "route": {
+            "navigation": "settings.general",
+            "capability_id": "CAP-0140",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:09",
+          "source_text": "Yjs不替代权限与认可",
+          "route": {
+            "navigation": "settings.privacy",
+            "capability_id": "CAP-0140",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0140:intent:10",
+          "source_text": "加密密钥恢复",
+          "route": {
+            "navigation": "settings.backup",
+            "capability_id": "CAP-0140",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0150",
+      "category_id": "ai",
+      "primary_navigation": "ai.models",
+      "page_id": "19",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0150:intent:01",
+          "source_text": "模型 / Provider",
+          "route": {
+            "navigation": "ai.models",
+            "capability_id": "CAP-0150",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:02",
+          "source_text": "FAST / DEEP逻辑档位",
+          "route": {
+            "navigation": "ai.models",
+            "capability_id": "CAP-0150",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:03",
+          "source_text": "本地8GB按需排队",
+          "route": {
+            "navigation": "ai.models",
+            "capability_id": "CAP-0150",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:04",
+          "source_text": "预算 / 额度未知态",
+          "route": {
+            "navigation": "ai.models",
+            "capability_id": "CAP-0150",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:05",
+          "source_text": "用途范围权限",
+          "route": {
+            "navigation": "settings.privacy",
+            "capability_id": "CAP-0150",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:06",
+          "source_text": "数据出境 / 目的地",
+          "route": {
+            "navigation": "settings.privacy",
+            "capability_id": "CAP-0150",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:07",
+          "source_text": "安全凭据引用",
+          "route": {
+            "navigation": "settings.privacy",
+            "capability_id": "CAP-0150",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:08",
+          "source_text": "调用资格",
+          "route": {
+            "navigation": "ai.models",
+            "capability_id": "CAP-0150",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:09",
+          "source_text": "无额度照常保存",
+          "route": {
+            "navigation": "knowledge.editor",
+            "capability_id": "CAP-0150",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0150:intent:10",
+          "source_text": "参数训练实验资源与回滚",
+          "route": {
+            "navigation": "ai.models",
+            "capability_id": "CAP-0150",
+            "detail_index": 10,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    },
+    {
+      "capability_id": "CAP-0160",
+      "category_id": "visual",
+      "primary_navigation": "learning.canvas",
+      "page_id": "21",
+      "catalog_navigation": "capabilities.catalog",
+      "detail_page_id": "18",
+      "source_ref": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/blob/be79ff90e7394247171afc311b002eb96ff0581e/frontend/src/presentation/uiCapabilityIntent.ts",
+      "source_sha256": "4112017cbf06e469af09ca897f12b08f004f76e6de21bd3e0970517b71febda2",
+      "source_kind": "OWNER_DESIGN_INTENT_NOT_QUALIFICATION",
+      "details": [
+        {
+          "local_detail_id": "CAP-0160:intent:01",
+          "source_text": "可视化",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0160",
+            "detail_index": 1,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0160:intent:02",
+          "source_text": "画布",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0160",
+            "detail_index": 2,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0160:intent:03",
+          "source_text": "关系图 / 分步 / 对照",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0160",
+            "detail_index": 3,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0160:intent:04",
+          "source_text": "教学表达",
+          "route": {
+            "navigation": "learning.expression",
+            "capability_id": "CAP-0160",
+            "detail_index": 4,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0160:intent:05",
+          "source_text": "记忆地图",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0160",
+            "detail_index": 5,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0160:intent:06",
+          "source_text": "空间投影",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0160",
+            "detail_index": 6,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0160:intent:07",
+          "source_text": "布局与知识真值分开",
+          "route": {
+            "navigation": "learning.canvas",
+            "capability_id": "CAP-0160",
+            "detail_index": 7,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0160:intent:08",
+          "source_text": "可信本地呈现",
+          "route": {
+            "navigation": "knowledge.editor",
+            "capability_id": "CAP-0160",
+            "detail_index": 8,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        },
+        {
+          "local_detail_id": "CAP-0160:intent:09",
+          "source_text": "离线文本降级",
+          "route": {
+            "navigation": "knowledge.editor",
+            "capability_id": "CAP-0160",
+            "detail_index": 9,
+            "catalog_fallback_page": "18"
+          },
+          "readiness": "NOT_INFERRED_FROM_SOURCE"
+        }
+      ]
+    }
+  ],
+  "future_targets": [
+    {
+      "id": "F00",
+      "label": "真实基线接管",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F01",
+      "label": "编辑节点深化",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F02",
+      "label": "集合关系公式多视图",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F03",
+      "label": "全知识库互通",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F04",
+      "label": "学习诊断与辅导",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F05",
+      "label": "课程与视觉教学",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F06",
+      "label": "科研与研发空间",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F07",
+      "label": "AI资产与评测",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F08",
+      "label": "动态解释与仿真",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F09",
+      "label": "空间记忆与3D",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F10",
+      "label": "同步与协同",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F11",
+      "label": "插件技能与知识Agent",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F12",
+      "label": "移动Web与加密",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F13",
+      "label": "XR与AR",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    },
+    {
+      "id": "F14",
+      "label": "依赖维护与可迁出",
+      "source_state": "HISTORICAL_TARGET_INDEX_NOT_CURRENT_PROGRESS",
+      "target_navigation": "capabilities.roadmap"
+    }
+  ],
+  "interop_targets": [
+    {
+      "id": "I1",
+      "label": "Markdown Obsidian JSON Canvas",
+      "source_state": "TARGET_PROFILE_NOT_QUALIFIED_COMPATIBILITY",
+      "target_navigation": "capabilities.interop"
+    },
+    {
+      "id": "I2",
+      "label": "Notion 思源 Joplin Logseq",
+      "source_state": "TARGET_PROFILE_NOT_QUALIFIED_COMPATIBILITY",
+      "target_navigation": "capabilities.interop"
+    },
+    {
+      "id": "I3",
+      "label": "Zotero Anki",
+      "source_state": "TARGET_PROFILE_NOT_QUALIFIED_COMPATIBILITY",
+      "target_navigation": "capabilities.interop"
+    },
+    {
+      "id": "I4",
+      "label": "开放知识库平台",
+      "source_state": "TARGET_PROFILE_NOT_QUALIFIED_COMPATIBILITY",
+      "target_navigation": "capabilities.interop"
+    },
+    {
+      "id": "I5",
+      "label": "商业平台导出与授权API",
+      "source_state": "TARGET_PROFILE_NOT_QUALIFIED_COMPATIBILITY",
+      "target_navigation": "capabilities.interop"
+    },
+    {
+      "id": "I6",
+      "label": "RAG平台与研发资料",
+      "source_state": "TARGET_PROFILE_NOT_QUALIFIED_COMPATIBILITY",
+      "target_navigation": "capabilities.interop"
+    }
+  ],
+  "shell": {
+    "top": [
+      "public_brand",
+      "workspace_selector",
+      "global_search",
+      "current_conversation_model",
+      "project_selector"
+    ],
+    "left": [
+      "primary_navigation",
+      "contextual_submenus"
+    ],
+    "center": [
+      "home_companion_or_active_work",
+      "tab_groups",
+      "optional_split_views"
+    ],
+    "right": [
+      "object_sources",
+      "references",
+      "versions",
+      "context",
+      "related_jobs",
+      "deliverables"
+    ],
+    "bottom": [
+      "selected_context",
+      "conversation_input",
+      "attachments",
+      "stop"
+    ],
+    "empty_home": [
+      "import",
+      "new_note",
+      "companion",
+      "real_recent_objects_if_any"
+    ],
+    "max_navigation_levels": 3,
+    "object_selection": "inside_current_view_not_a_fourth_hover_menu",
+    "menu_open_policy": "one_primary_branch_at_a_time",
+    "layout_engine": "dockview-react_open_source_candidate",
+    "native_multi_window": "DEFERRED_HOST_QUALIFICATION",
+    "close_view": "preserve_business_session",
+    "reset_layout": "preserve_documents_drafts_conversations_jobs",
+    "hidden_expensive_views": "pause_renderer_not_submitted_backend_jobs"
+  },
+  "model_center": {
+    "owner_navigation": "ai.models",
+    "aliases": [
+      "settings.models",
+      "top.current_conversation_model"
+    ],
+    "tabs": [
+      "api",
+      "subscription-client",
+      "local",
+      "role-bindings",
+      "usage-diagnostics"
+    ],
+    "connection_profile_fields": [
+      "id",
+      "display_name",
+      "provider_id",
+      "adapter_id",
+      "access_method",
+      "endpoint_ref",
+      "credential_ref",
+      "model_inventory",
+      "enabled",
+      "revision"
+    ],
+    "api_binding_flow": [
+      "choose_template",
+      "enter_endpoint_and_credential",
+      "read_connection_status",
+      "read_models_or_enter_id",
+      "assign_purpose",
+      "explicit_test",
+      "save_confirmed_configuration"
+    ],
+    "subscription_modes": [
+      "provider_api_plan",
+      "official_authenticated_client_adapter"
+    ],
+    "subscription_boundary": "Subscription authentication and Platform API access are distinct; supported operations depend on the official adapter.",
+    "local_fields": [
+      "runtime_identity",
+      "local_or_remote_destination",
+      "server_state",
+      "available_models",
+      "model_asset_ref",
+      "disk_size",
+      "quantization_if_reported",
+      "loaded_state",
+      "resource_use_if_reported",
+      "tested_operations"
+    ],
+    "local_controls": [
+      "connect_existing_service",
+      "read_inventory",
+      "select_model",
+      "load_unload_if_adapter_supports",
+      "installation_plan_if_supported"
+    ],
+    "common_connection_favorites": true,
+    "cloud_fallback": "explicit_user_policy_never_implicit",
+    "secrets_owner": "native_host",
+    "secret_plaintext_in_layout": false,
+    "role_bindings": [
+      "conversation_learning",
+      "deep_research",
+      "vision",
+      "embedding",
+      "rerank",
+      "asr",
+      "tts"
+    ],
+    "embedding_change": "requires_index_compatibility_check_and_rebuild_plan",
+    "current_source_controls": [
+      "machine_configuration",
+      "machine_inventory",
+      "per_answer_model_selection"
+    ],
+    "current_source_gap": "Provider configuration write/read UI is todo in spaceSections; proposed center requires formal configuration contracts."
+  },
+  "companion": {
+    "subsystem": "ASTRYN",
+    "character": "小栖",
+    "owner_navigation": "ai.companion",
+    "shared_session_key": [
+      "workspace",
+      "character",
+      "session"
+    ],
+    "presentation_modes": [
+      "home",
+      "embedded",
+      "panel",
+      "future_native_floating"
+    ],
+    "persona_choices": [
+      "learning",
+      "close_companion",
+      "girlfriend_style_opt_in"
+    ],
+    "ports": [
+      "Host",
+      "Conversation",
+      "Memory",
+      "Action",
+      "Context",
+      "AvatarRenderer",
+      "PresentationMode",
+      "CharacterProfile"
+    ],
+    "memory_owner": "Core",
+    "active_audio_owner_count": 1,
+    "active_expensive_renderer_count": 1,
+    "first_release": [
+      "text_learning",
+      "visible_context",
+      "memory_controls",
+      "lightweight_avatar",
+      "preset_actions"
+    ],
+    "optional_next": [
+      "asr",
+      "tts",
+      "subtitles",
+      "audio_clock_lipsync",
+      "interruption"
+    ],
+    "deferred": [
+      "neural_talking_video",
+      "large_3d_world",
+      "native_desktop_pet"
+    ]
+  },
+  "project_connections": {
+    "owner_navigation": "resources.projects",
+    "products": [
+      "ArcheAxis",
+      "WORKLAB",
+      "DESIGNLAB"
+    ],
+    "ASTRYN_is_subsystem_not_fourth_product": true,
+    "shared_contracts": [
+      "handshake",
+      "capability_discovery",
+      "object_reference",
+      "context_package",
+      "task_proposal",
+      "receipt",
+      "asset_manifest",
+      "knowledge_candidate",
+      "deep_link",
+      "authorization_reference"
+    ],
+    "WORKLAB_observer": "READ_ONLY",
+    "DESIGNLAB_candidate": "not_accepted_until_ArcheAxis_admission",
+    "data_ownership": "independent_formal_stores",
+    "credentials": "no_shared_launch_token_or_plaintext_key"
+  },
+  "readiness": {
+    "green": "operation_ready_after_implementation_dependency_connection_qualification_permission_scope_checks",
+    "red": [
+      "not_implemented",
+      "not_installed",
+      "not_connected",
+      "unauthorized",
+      "failed"
+    ],
+    "amber": [
+      "unverified",
+      "expired",
+      "partially_available"
+    ],
+    "aggregation": "known_child_operation_scope_not_one_ready_child",
+    "requires_text": true
+  }
+}

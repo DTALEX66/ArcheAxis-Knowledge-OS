@@ -67,6 +67,32 @@ class OfficeBulkTests(unittest.TestCase):
         # formula cache is not presented as a live computation (data_only=False policy).
         self.assertIn("data_only=False", out["loss_receipt"]["loss_note"])
 
+    def test_xlsx_sparse_rows_and_second_sheet_keep_real_row_anchors(self):
+        from openpyxl import Workbook
+
+        with self._tmp() as tmp:
+            workbook = Workbook()
+            first = workbook.active
+            first.title = "First"
+            first["A3"] = "Anchor one"
+            first["B8"] = "Anchor two"
+            second = workbook.create_sheet("Second")
+            second["C5"] = "Anchor three"
+            path = Path(tmp) / "sparse-rows.xlsx"
+            workbook.save(path)
+            output = self.worker.extract(str(path))
+
+        expected = [["sheet-First", "row-3"], ["sheet-First", "row-8"],
+                    ["sheet-Second", "row-5"]]
+        self.assertEqual([row["path"] for row in output["structure"]], expected)
+        locations = output["loss_receipt"]["params"]["format"]["locations"]
+        self.assertEqual([cell["row"] for cell in locations], [3, 8, 5])
+        self.assertEqual(
+            [output["text"][row["char_start"]:row["char_end"]]
+            for row in output["structure"]],
+            ["A3=Anchor one", "B8=Anchor two", "C5=Anchor three"],
+        )
+
     def test_docx_without_body_is_rejected(self):
         with self._tmp() as tmp:
             root_xml = ET.Element(f"{{{W_NS}}}document")

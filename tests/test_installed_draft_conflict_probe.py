@@ -187,8 +187,12 @@ def test_simulated_ui_adapter_preserves_B_and_separates_fixture_from_real_UI_evi
         raise AssertionError(operation)
     def js(script):
         import json
-        if '.textContent' in script and 'details pre' in script:
-            return json.dumps(next(value for label,value in comparisons.items() if label in json.loads(script.split("document.querySelector(",1)[1].rsplit(").textContent",1)[0])))
+        if 'document-snapshot-text' in script:
+            selector = json.loads(script.split("document.querySelector(", 1)[1].rsplit(").textContent", 1)[0])
+            return next(value['content'][0]['content'][0]['text'] for label,value in comparisons.items() if label in selector)
+        if 'diagnostic-console' in script:
+            label = json.loads(script.split('startsWith(', 1)[1].split('))', 1)[0]).removesuffix('结构记录 · ')
+            return [json.dumps(comparisons[label])]
         return fixture['drafts'][b['document_id']]['editor_json']['content'][0]['content'][0]['text']
     def restart():
         actions.append(('normal_restart_contract',))
@@ -211,5 +215,31 @@ def test_simulated_ui_adapter_preserves_B_and_separates_fixture_from_real_UI_evi
     labels=[action[1] for action in actions if action[0]=='trusted_click_contract']
     assert labels.index('保留恢复候选') < labels.index('保存草稿') < labels.index('读取当前版本并比较（保留草稿）')
     assert labels.count('明确保留本稿并按已比较版本保存')==1
+    assert labels.count('关闭运行诊断') == 3
     assert all(action[1] in probe.READS for action in actions if action[0]=='readonly_bridge')
     assert docs[b['document_id']]==b
+
+
+@pytest.mark.parametrize('fault', ['preview', 'content', 'missing', 'duplicate', 'invalid_json'])
+def test_comparison_diagnostics_refuses_wrong_or_ambiguous_payload(fault):
+    import json
+    from types import SimpleNamespace
+    content = probe.editor('owned preview', 'owned-block')
+    clicks = []
+    def js(script):
+        if 'document-snapshot-text' in script:
+            return 'wrong preview' if fault == 'preview' else 'owned preview'
+        assert 'diagnostic-console' in script
+        if fault == 'missing':
+            return []
+        if fault == 'duplicate':
+            return [json.dumps(content), json.dumps(content)]
+        if fault == 'invalid_json':
+            return ['not JSON']
+        return [json.dumps(probe.editor('wrong content', 'other-block'))]
+    ui = SimpleNamespace(click_selector=lambda *args: clicks.append(args),
+                         click=lambda label: clicks.append(label))
+    with pytest.raises((AssertionError, json.JSONDecodeError)):
+        probe.assert_comparison_snapshot(ui, js, lambda script: None, '原基准', content)
+    assert '关闭运行诊断' not in clicks
+    assert not any('明确保留本稿' in str(item) for item in clicks)

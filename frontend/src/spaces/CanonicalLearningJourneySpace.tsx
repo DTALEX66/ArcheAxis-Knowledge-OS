@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { courseLearningTarget } from "../presentation/courseLearningTarget";
 import { coreCommand } from "../api/core";
 import { coreFailureReason } from "../presentation/labels";
@@ -9,6 +9,7 @@ import type { ObjectTrailLevel } from "../components/NavTrail";
 
 type CourseRow = { manifest_id: string; title: string; stale: boolean; status: "candidate"; human_review_required: true };
 type KnowledgeRow = { knowledge_id: string; head: string };
+const ImportedCoursePanel = lazy(() => import("../components/ImportedCoursePanel").then(module => ({ default: module.ImportedCoursePanel })));
 function record(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("invalid learning projection");
   return value as Record<string, unknown>;
@@ -41,6 +42,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
   const [courseId, setCourseId] = useState<string>();
   const [returnItemKey, setReturnItemKey] = useState<string>();
   const [courseRead, setCourseRead] = useState(0);
+  const [externalCourseOpen, setExternalCourseOpen] = useState(false);
   const [itemKey, setItemKey] = useState<string | undefined>(initialItemKey);
   const working = useOptionalCoreWorkingState();
   useEffect(() => {
@@ -99,12 +101,15 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
     setCourseId(target.courseId); setReturnItemKey(key); setCourseRead(value => value + 1);
     setMessage(""); setFailure(null); onOpenPage?.("07");
   }
-  return <section className="ui-learning-journey" aria-label={pageId === "07" ? "课程与视觉教学" : "学习路径"}>
+  return <section className="ui-learning-journey" aria-label={pageId === "07" ? "课程与视觉教学内容" : "学习路径内容"}>
     <div className="ui-content-tabs"><button aria-pressed={pageId === "06"} onClick={() => onOpenPage?.("06")}>学习路径</button><button aria-pressed={pageId === "07"} onClick={() => onOpenPage?.("07")}>课程与课时</button></div>
     <div className="ui-content-main-side">
       <div className="ui-content-panel">
         <h2>{pageId === "07" ? "从知识到课程与练习" : "继续你的学习路径"}</h2>
         <p>选择已保存课程，读取绑定的知识版本，再进入真实练习。课程候选、复习记录和掌握资格分别记录。</p>
+        <details onToggle={event => setExternalCourseOpen(event.currentTarget.open)}><summary>外部课程与测验</summary>
+          {externalCourseOpen ? <Suspense fallback={<p role="status">正在打开课程导入…</p>}><ImportedCoursePanel /></Suspense> : null}
+        </details>
         <ol className="ui-learning-steps" aria-label="学习旅程"><li>选择知识或课程</li><li>阅读绑定版本与学习目标</li><li>独立作答和核对</li><li>记录反馈，按真实安排复习</li></ol>
         <section aria-label="已保存课程"><div className="ui-library-toolbar"><h3>已保存课程</h3><button disabled={loading} onClick={() => void load()}>刷新课程</button></div>
           {loading ? <p role="status">正在读取课程…</p> : null}
@@ -121,7 +126,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
         {message ? <p role="status">{message}</p> : null}{failure ? <p className="state-reason">{failure}</p> : null}
       </div>
       <aside className="ui-content-panel" aria-label="学习边界与后续能力"><h3>学习计划与能力</h3><p>当前先完成已有课程、课时和复习事件的真实路径。没有模型或证据的项目明确保留为后续缺口。</p>
-        <details><summary>诊断、先修与负荷计划</summary><p>知识诊断、跨课程先修缺口、负荷配额和自动计划尚无接通的 Core 合同，不显示推测的学习画像或进度。</p></details>
+        <details><summary>诊断、先修与负荷计划</summary><p>知识诊断、跨课程先修检查和自动计划尚不可用，因此这里不推测你的学习情况或进度。</p></details>
         <details><summary>训练、Teach-back 与元认知</summary><p>本页可进入绑定版本的真实作答与复习；Teach-back、训练任务和反馈画像由 UF07 继续承接，不等同已完成。</p></details>
         <details><summary>视觉教学与扩展渲染</summary><p>当前接通 native-lesson 文本课时。其他 renderer 名称只是能力意图，不能当成已安装的教学引擎。</p></details>
         <button onClick={() => onOpenPage?.("17")}>查看完整能力与依赖</button>

@@ -1,0 +1,123 @@
+[
+  {
+    "name": "01-capability-center-desktop",
+    "file": "01-capability-center-desktop.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "10-capability-cards-desktop",
+    "file": "10-capability-cards-desktop.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "02-future-capability-details",
+    "file": "02-future-capability-details.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "03-scoped-capability-details",
+    "file": "03-scoped-capability-details.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "04-course-preview-desktop",
+    "file": "04-course-preview-desktop.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "09-course-options-desktop",
+    "file": "09-course-options-desktop.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "05-course-unknown-save",
+    "file": "05-course-unknown-save.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "06-course-explicit-failure",
+    "file": "06-course-explicit-failure.png",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "07-course-narrow",
+    "file": "07-course-narrow.png",
+    "viewport": {
+      "width": 640,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "08-capability-center-narrow",
+    "file": "08-capability-center-narrow.png",
+    "viewport": {
+      "width": 640,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  },
+  {
+    "name": "11-capability-cards-narrow",
+    "file": "11-capability-cards-narrow.png",
+    "viewport": {
+      "width": 640,
+      "height": 900
+    },
+    "theme": "cosmic",
+    "font": "\"Segoe UI\", -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+    "DPR": 1
+  }
+]

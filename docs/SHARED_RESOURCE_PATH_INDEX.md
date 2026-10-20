@@ -1,15 +1,27 @@
 # ArcheAxis 本机共享资源与数据路径索引
 
-> **2026-10-11 当前路由与状态**：Owner 已恢复完整框架、常用格式与最短闭环实施，整体 PARTIAL；当前执行入口读 [活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读该指针指定的 UI 执行记录。2026-10-10 暂停和下方带日期执行说明保留为历史快照。读取旧路径前先按 [路径身份路由](current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER；V01暂停、FT01–04冻结；发布、Green替换和真实用户数据覆盖未授权。
+> **2026-10-11 当前路由与状态**：Owner 已恢复完整框架、常用格式与最短闭环实施，整体 PARTIAL；当前执行入口读 [活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读该指针指定的 UI 执行记录。2026-10-10 暂停和下方带日期执行说明保留为历史快照。读取旧路径前先按 [路径身份路由](current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名CURRENT、旧COMPLETE或旧grant推导授权。六项核心能力增量 FROZEN_BY_OWNER；V01暂停、FT01–04冻结；公开发布和真实用户数据覆盖未授权；2026-10-19后继Owner允许覆盖下表Green目录的程序文件，具体范围见活动指针green_update_authorization。
 
 > 本项目本机资源路径的唯一登记入口。来源：用户 2026-09-07 明确指定；路径不是猜测、扫描推断或旧任务包默认值。
 > 本文件登记执行时如何找到资源，**不修改产品运行配置，也不证明软件已经读取这些路径**。配置文件、环境和启动参数仍遵循配置权威索引。
 
-2026-10-11 Owner补充：缺少资源先检查本项目权威、路径索引与已配置库存；确认不存在后再选择下载到对应声明目录，避免重复下载或另造资源根。本机现有LM Studio模型的只读库存、内存估算和三项实际文本样例见[本轮模型评估](current/receipts/AAOS-LOCAL-MODEL-SELECTION-20261011.json)。该评估没有更改模型路由或全局配置。
+2026-10-11 Owner补充：缺少资源先检查本项目权威、路径索引与已配置库存；确认不存在后再选择下载到对应声明目录，避免重复下载或另造资源根。本机现有LM Studio模型的只读库存、内存估算和三项实际文本样例见[本轮模型评估](history/repository-consolidation-20261019/current/receipts/AAOS-LOCAL-MODEL-SELECTION-20261011.json)。该评估没有更改模型路由或全局配置。
+
+## 2026-10-19 接续与开发工具定位
+
+换 Agent / 换会话按[活动指针](current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context` 读取最新决定、来源及执行记录。本文件登记共享根；产品运行时的具体路径仍由下述 manifest 与生成索引解析，历史工具表不能覆盖它们。
+
+开发者 Codex 的视觉审计工具与 AAOS 产品运行时分开定位：现行工具根为 `C:\Users\ALEX\.codex\tools\visual-tool-lab`；插件入口为 `C:\Users\ALEX\.codex\plugins\cache\alex-local-tools\visual-audit-tools\1.0.0\skills\visual-project-audit\SKILL.md`，其 `references/runtime.json` 指定工具根、Node 及锁文件身份。使用前读该 skill 和工具目录的 README、BROWSER-USAGE、PROJECT-GUIDANCE，核对实际文件、package-lock 与已装依赖；安装清单中的旧 `Documents\Codex\2026-10-18` 路径是安装时来源，不能作为当前入口。这里仅记录已读取的工具入口，不修改用户级配置，也不把开发工具登记成产品内置插件或证明当前会话已自动发现。
+
+该定位是本机观察，版本或路径变化后按现行插件元数据与实际文件核对，再更新登记；不扫描整个 Home，不重复安装，不使用旧工作区做输出。项目审计产物仍写 `.project-local/`；浏览器包装器的端口、资料目录和输出限制继续有效。[最新决定第九节](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)解释产品内置市场与开发工具库的区别。
+
+### 视觉工具既有迁移与中文说明的回执入口
+
+用户已明确要求可用后正式装载、适配分型、中文注释及迁移后处理旧路径。既有迁移回执为 `.project-local/runs/be268a2d33/codex-visual-install-20261018/artifacts/migration.json`；当前中文安装说明在上述工具根的 `CURRENT-INSTALLATION.md`。本轮已核对这两份文件和cache技能/runtime.json、lockfile的精确身份，最小脱敏记录见[迁移导航快照](history/owner-dialogue-20261019/tool-migration-navigation.json)。这是已登记视觉工具的入口，不代表截图中的全部技能、任意MCP或当前会话原生自动发现均已通过。原迁移回执含历史工具profile路径，本轮不复制或公开其中无关缓存/浏览器清单。
 
 ## 历史执行说明（2026-10-06，非当前路由）
 
-AAOS-01 / SUP-022 是当前执行包，唯一进度见[现行台账](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。下方带日期的工具和候选记录保留原身份，不代表当前默认工具或当前资格。旧表中的“本轮DP”限制属于其记录时点；当前用户已授权指定Green目录的独立候选部署及按精确审核清单清理，仍不得据目录名删除未知资产或覆盖旧默认数据。真实资料库不因该授权成为测试输出目录。
+AAOS-01 / SUP-022 是当前执行包，唯一进度见[现行台账](history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。下方带日期的工具和候选记录保留原身份，不代表当前默认工具或当前资格。旧表中的“本轮DP”限制属于其记录时点；当前用户已授权指定Green目录的独立候选部署及按精确审核清单清理，仍不得据目录名删除未知资产或覆盖旧默认数据。真实资料库不因该授权成为测试输出目录。
 
 当前本地Cargo调用明确使用 `D:\All projects\OS External Configuration\toolchains\rust\cargo\bin\cargo.exe`，`RUSTUP_HOME` 为 `D:\All projects\OS External Configuration\toolchains\rust\rustup`；2026-10-06已核存在，不能替换成历史 `10-toolchains` Rust路径。**机器可读使用入口（2026-10-08）**：本文件只登记资源根与职责；每项资源的声明路径、当前可解析位置、版本识别方法、所需进程级环境、许可与可用性等级，以 [`../config/environment/capability-requirements.yaml`](../config/environment/capability-requirements.yaml) 为唯一声明源，由生成器重建的 [`../config/environment/external-resources-index.json`](../config/environment/external-resources-index.json) 记录实测结果，运行时统一经 [`../services/python-workers/tool_paths.py`](../services/python-workers/tool_paths.py) 与 `scripts/runtime/dev.py` 解析；某个 Agent 的私人记忆或临时 Shell 环境不构成第二套路径说明。索引行的 `verification_level` 区分 REGISTERED / FILE_EXISTS / VERSION_PROBED / RESULT_VERIFIED，因此本文件登记了某路径、或索引里存在某行，都不等于该资源可用。项目CI Python为 `D:\All projects\OS External Configuration\ArcheAxis-Knowledge-OS-ci-venv\Scripts\python.exe`，产品解释器必须从实际候选manifest、launcher及进程身份核验，不能用此测试解释器代替。共享模型与工具根不变；LM Studio模型调用沿已有授权和产品profile，不修改全局provider/endpoint。
 
@@ -19,7 +31,7 @@ AAOS-01 / SUP-022 是当前执行包，唯一进度见[现行台账](current/AAO
 | --- | --- | --- | --- |
 | `shared_models` | `D:\All projects\Model library` | 多项目共用本地模型库；转换优先用现有本地模型，GPT 辅助审计 | 使用前核实项目指定模型/profile；不因本项目任务重组、清理或重复下载共享权重 |
 | `shared_tools` | `D:\All projects\OS External Configuration` | 多项目共用外置工具链/工具资源库，不是本项目，也不是 WORK-LAB | 先在明确工具目录定位需要的程序；禁止复制整库到项目或修改其他项目配置 |
-| `green_application` | `D:\All projects\ArcheAxis.Knowledge.Green-x64` | 本地现有绿色版本软件位置 | 保留现有软件和数据；本轮 DP 不替换、不清理、不启动它做测试、不发布新版本 |
+| `green_application` | `D:\All projects\ArcheAxis.Knowledge.Green-x64` | 本地日常绿色版部署位置；不同于 CI 隔离安装目录 | Owner 2026-10-19已允许覆盖程序文件；按活动指针 green_update_authorization 核候选资格、先备份回退再更新；保留用户数据、数据库、备份与未知目录，不公开发布 |
 | `green_material_library` | `D:\All projects\资料库` | 用户说明的绿色版本已设置资料库，属于真实产品资料 | 不是测试临时目录、不是缓存、不是 ceshi；本轮仅登记/核实路径元数据，不读取内容、不写入、不清理、不迁移 |
 | `project_test_corpus` | `D:\All projects\ceshi` | ArcheAxis 专属测试学习资料库/学习资料副本 | 测试按已授权的精确样例范围只读消费；保留原件，输出进项目 `.project-local`；不上传资料正文或复制进 Git |
 
@@ -99,9 +111,9 @@ The statements below describe the earlier toolchain investigation snapshot. Curr
 - [文档权威索引](DOCUMENTATION_AUTHORITY_INDEX.md)
 - [继承合同入口](authority/taskpack-1004-aaos01/01_完整执行任务书.md)
 - [历史R6执行入口](authority/taskpack-0919-r6/EXECUTOR-START.md)
-- [继承 Q00–Q15 台账](current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)
-- [历史R6台账](current/R6-EXECUTION.md)
-- [M0 优先级覆盖](current/M0-DIRECTION-OVERRIDE-20260920.md)
+- [继承 Q00–Q15 台账](history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)
+- [历史R6台账](history/repository-consolidation-20261019/current/R6-EXECUTION.md)
+- [M0 优先级覆盖](history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md)
 
 登记根路径不是授权读取全部内容；不得由此扩大到真实用户数据迁移、共享库清理或私有代理状态访问。
 

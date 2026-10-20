@@ -1,0 +1,23 @@
+﻿page_id,label,module_ids,state,required_states
+01,今日工作台,work.home|work.continue,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+02,知识库,knowledge.library,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+03,阅读与编辑,knowledge.editor,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+04,双链与图谱,knowledge.graph,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+05,研究空间,knowledge.research,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+06,学习路径,learning.path,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+07,课程与视觉教学,learning.courses,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+08,教学需求,learning.requirements,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+09,表达方案,learning.expression,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+10,交付与版本,learning.delivery,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+11,练习 / Teach-back,learning.practice,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+12,反馈与修订,learning.feedback,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+13,项目记忆与上下文,ai.companion|ai.context,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+14,纠正、评测与复测,ai.evaluation,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+15,资源与扩展,resources.extensions|resources.services|resources.projects,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+16,导入导出与互通,resources.exchange,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+17,全部能力与未来蓝图,capabilities.catalog|capabilities.roadmap|capabilities.interop,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+18,能力详情,capabilities.catalog,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+19,设置、权限与恢复,work.workspaces|ai.models|ai.companion|resources.services|settings.general|settings.appearance|settings.privacy|settings.backup|settings.diagnostics,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+20,版本、来源与历史,knowledge.evidence|knowledge.history,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+21,画布与视觉表达,learning.canvas,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering
+22,受限任务与回执,ai.receipts,REQUIRES_FE01_AND_NATIVE_ACCEPTANCE,empty|loading|normal|partial|error|offline|unconfigured|unauthorized|incompatible|future|recovering

@@ -1,0 +1,567 @@
+[
+  {
+    "name": "current-local-only",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": true
+  },
+  {
+    "name": "stale-is-exact-history",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "STALE",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": true
+  },
+  {
+    "name": "reject-scope-2",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "OBSERVER_READ",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-grants_execution-3",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": true,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-grants_knowledge_acceptance-4",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": true
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-reference_state-5",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "NOT_FOUND",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-source_authentication-6",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "VERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-selection_qualification-7",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "VERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-editor_json-8",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": [],
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-editor_json-9",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "html"
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-token-10",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false,
+      "token": "secret fixture"
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "reject-proposal_sha256-11",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": false,
+    "runtime_valid": false
+  },
+  {
+    "name": "expired",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10000,
+      "expires_at_ms": 10000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": false
+  },
+  {
+    "name": "future-observation",
+    "value": {
+      "schema": "archeaxis.project-handoff-snapshot/v1",
+      "checked_at_ms": 10001,
+      "expires_at_ms": 40000,
+      "proposal_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "producer": {
+        "namespace": "archeaxis",
+        "workspace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "restore_epoch": "initial"
+      },
+      "reference": {
+        "document_id": "doc_a",
+        "version": 2,
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "reference_state": "CURRENT",
+      "source_authentication": "UNVERIFIED",
+      "selection_qualification": "UNVERIFIED",
+      "scope": "LOCAL_HUMAN_READ_ONLY",
+      "editor_json": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "SYNTHETIC 中文 fixed body"
+              }
+            ]
+          }
+        ]
+      },
+      "grants_execution": false,
+      "grants_knowledge_acceptance": false
+    },
+    "now_ms": 10000,
+    "schema_valid": true,
+    "runtime_valid": false
+  }
+]

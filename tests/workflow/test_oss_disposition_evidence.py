@@ -21,6 +21,7 @@ the rows use five verdicts the document never defines.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -28,7 +29,40 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 SCRIPT = REPO / "scripts" / "audit" / "oss_disposition_evidence.py"
-DISPOSITION = REPO / "docs" / "current" / "AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json"
+DISPOSITION = REPO / 'docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json'
+
+
+def test_test_only_donor_identifier_cannot_qualify_runtime_absorption(tmp_path, monkeypatch):
+    spec = importlib.util.spec_from_file_location('isolated_donor_evidence', SCRIPT)
+    audit = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(audit)
+    monkeypatch.setattr(audit, 'REPO', tmp_path)
+    monkeypatch.setattr(audit, 'SOURCE_ROOTS', ['frontend/src'])
+    for name in ['__tests__/Resources.test.tsx', 'Resources.spec.tsx', 'fixtures/fake.tsx']:
+        p = tmp_path / 'frontend/src' / name
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text('import { XYFlow } from "simulated-donor";\nXYFlow();\n', 'utf-8')
+    assert audit.source_hits(['XYFlow']) == ({}, {}, {})
+    actual = tmp_path / 'frontend/src/Graph.tsx'
+    actual.write_text('import { XYFlow } from "actual-donor";\nXYFlow();\n', 'utf-8')
+    monkeypatch.setattr(audit, '_SCANNED', None)
+    code, _, _ = audit.source_hits(['XYFlow'])
+    assert code['XYFlow'] == ['frontend/src/Graph.tsx:1']
+
+
+def test_labels_literals_and_comments_do_not_become_runtime_donor_identifiers(tmp_path, monkeypatch):
+    spec = importlib.util.spec_from_file_location('literal_donor_evidence', SCRIPT)
+    audit = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(audit)
+    monkeypatch.setattr(audit, 'REPO', tmp_path)
+    monkeypatch.setattr(audit, 'SOURCE_ROOTS', ['frontend/src'])
+    base = tmp_path / 'frontend/src'
+    base.mkdir(parents=True)
+    (base/'labels.ts').write_text('const labels = ["WeKnora", \'XYFlow\', `DonorTemplate`];\n/*\nDonorComment()\n*/\n', 'utf-8')
+    (base/'labels.rs').write_text('let label = r###"RustDonor"###;\n', 'utf-8')
+    code, stub, mentions = audit.source_hits(['WeKnora','XYFlow','DonorTemplate','DonorComment','RustDonor'])
+    assert not code and not stub
+    assert set(mentions) == {'WeKnora','XYFlow','DonorTemplate','DonorComment','RustDonor'}
 
 
 def run_check(tmp_path: Path) -> tuple[str, dict]:

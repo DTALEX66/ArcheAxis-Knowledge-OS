@@ -2,6 +2,7 @@
 import ast
 import http.client
 import io
+import json
 import threading
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -9,6 +10,7 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import Request
+from types import SimpleNamespace
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +33,10 @@ def server():
                 self.wfile.write(b'{'); self.wfile.flush(); self.close_connection = True
             elif self.path == '/redirect':
                 self.send_response(302); self.send_header('Location', 'https://example.invalid/'); self.send_header('Content-Length', '0'); self.end_headers()
+            elif self.path.endswith(('/execute/sync', '/execute/async', '/element')) or self.path == '/http-protocol-error':
+                body = json.dumps({'value': {'error': 'expected application refusal', 'body': None}}).encode()
+                self.send_response(400 if self.path == '/http-protocol-error' else 200)
+                self.send_header('Content-Length', str(len(body))); self.end_headers(); self.wfile.write(body)
             else:
                 body=b'{"value":true}'
                 self.send_response(200); self.send_header('Content-Length', str(len(body))); self.end_headers(); self.wfile.write(body)
@@ -41,6 +47,31 @@ def server():
     finally: transport.close();listener.shutdown();listener.server_close();thread.join(3)
 
 def command(port, path): return Request(f'http://127.0.0.1:{port}{path}',data=b'{}',method='POST')
+
+def owned_request(transport, port):
+    tree = ast.parse((ROOT / 'scripts/probes/aaos01_tauri_webdriver_loop.py').read_text(encoding='utf-8'))
+    main = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'main')
+    request = next(n for n in main.body if isinstance(n, ast.FunctionDef) and n.name == 'request')
+    error = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'WebDriverProtocolError')
+    scope = {'json':json, 'Request':Request, 'HTTPError':HTTPError, 'port':port,
+             'driver_transport':transport, 'args':SimpleNamespace(session_timeout=3)}
+    exec(compile(ast.Module(body=[error, request], type_ignores=[]), '<owned-webdriver-request>', 'exec'), scope)
+    return scope['request'], scope['WebDriverProtocolError']
+
+@pytest.mark.parametrize('mode', ['sync', 'async'])
+def test_script_application_error_value_is_not_a_protocol_failure(mode):
+    with server() as (transport, port, events):
+        request, _ = owned_request(transport, port)
+        assert request('POST', f'/session/owned/execute/{mode}', {}) == {'error':'expected application refusal', 'body':None}
+        assert len(events) == 1
+
+@pytest.mark.parametrize('path', ['/session/owned/element', '/http-protocol-error'])
+def test_non_script_or_http_protocol_errors_still_refuse(path):
+    with server() as (transport, port, events):
+        request, protocol_error = owned_request(transport, port)
+        with pytest.raises(protocol_error):
+            request('POST', path, {})
+        assert len(events) == 1
 
 def test_repeated_commands_use_one_connection():
     with server() as (transport,port,events):

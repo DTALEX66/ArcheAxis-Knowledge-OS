@@ -1,0 +1,215 @@
+{
+  "schema": "archeaxis.frozen-checkpoint-members/v1",
+  "members": [
+    {
+      "path": "EXECUTION-READBACK.json",
+      "bytes": 14855,
+      "sha256": "387a6a6dde2d0a0b70511cf0b68945981b2844544b3828a11f18737b48c81f8e"
+    },
+    {
+      "path": "executions/final-integrated-candidate-promotion-1019.json",
+      "bytes": 1430,
+      "sha256": "1924c6d6d6b7041e6158cbd5a9e7d386d5a2fb96d283bccba4482eb60dedd94a"
+    },
+    {
+      "path": "executions/final-integrated-core-1019.json",
+      "bytes": 1381,
+      "sha256": "e2dd6e63bbe19fc834fa7964d99fb0c958b29a39d30c3ce236cf474ae6a1b014"
+    },
+    {
+      "path": "executions/final-integrated-host-1019.json",
+      "bytes": 1535,
+      "sha256": "97212b76ee209cb9a012934bd1b89dd629ea32213b32e73db44eed74c3fadb92"
+    },
+    {
+      "path": "executions/final-integrated-python-lint-1019.json",
+      "bytes": 1529,
+      "sha256": "55e31db2f2ce08354a766c17955a38940377a03e24ef5aec807073ed7daf565a"
+    },
+    {
+      "path": "executions/final-integrated-rustfmt-1019.json",
+      "bytes": 1671,
+      "sha256": "2b1624fd82156fd2e97cfaedacdd170103a566f044b95af4405d0bd7018c8260"
+    },
+    {
+      "path": "executions/final-integration-generated-check-1019.json",
+      "bytes": 1360,
+      "sha256": "55ab2d9ca0b53e8fedcace34f79d5fda85a8d3912e89647309ddbfb53bd4f350"
+    },
+    {
+      "path": "executions/final-integration-host-build-1019.json",
+      "bytes": 1557,
+      "sha256": "d6e37d1ef95eacd450e5348cfbf56f9f40b46b36f79fca3cdc793c76a4afe72e"
+    },
+    {
+      "path": "executions/final-integration-new-python-lint-1019.json",
+      "bytes": 1532,
+      "sha256": "8ece0faa4ca82e4bd89ab456448e31f9426dd8fddfddecc1a6ee5515353a8e17"
+    },
+    {
+      "path": "executions/final-integration-python-contracts-1019.json",
+      "bytes": 1498,
+      "sha256": "7e82d8bc3001939f60904e05bd400bed54321671fd7d0fe4b7c54d09c0b522e5"
+    },
+    {
+      "path": "executions/final-integration-rust-api-1019.json",
+      "bytes": 1620,
+      "sha256": "470113d157386ae3b54c8dee26410ae4f53fac15c0c3a8c60ede3c1bf27e014c"
+    },
+    {
+      "path": "executions/final-integration-rust-contracts-1019.json",
+      "bytes": 1434,
+      "sha256": "cc2bbf3f7cbc53522f131472287548ecd82ef39571574b45e30aaae828fb314b"
+    },
+    {
+      "path": "executions/integrated-handoff-native-1019.json",
+      "bytes": 2097,
+      "sha256": "10fc027b306cf05a009e3bb4e71424ab6cce5002dd72c98330dffa34f9b70e4d"
+    },
+    {
+      "path": "executions/integrated-probe-identity-1019.json",
+      "bytes": 1453,
+      "sha256": "24d8fbf021a50f11675a485aba08a365c5f5502834d5a5392de0672f1a46f78e"
+    },
+    {
+      "path": "executions/integrated-probe-package-imports-1019.json",
+      "bytes": 1474,
+      "sha256": "1586490d5fbe1e3a50edc8402239f293e7e317a94f959613cfb2f4c2a36fcabc"
+    },
+    {
+      "path": "executions/native-llm-profile-inspect-1019.json",
+      "bytes": 1371,
+      "sha256": "20b2de10bd0117b868cc953becec506d88a561fd751820b4446abbd5983dc8f5"
+    },
+    {
+      "path": "executions/native-llm-profile-load-1019.json",
+      "bytes": 1362,
+      "sha256": "3e30d202c7de5fce10f83bce104189ba5a7011c654e501a21ceee732cb685682"
+    },
+    {
+      "path": "native/candidate-build.json",
+      "bytes": 4687,
+      "sha256": "699b858246752cd719220bed4d2e664a9a47dbfac4d4430d3dbe1ba2952c5b6b"
+    },
+    {
+      "path": "native/FAILURE-METADATA.json",
+      "bytes": 1782,
+      "sha256": "285b8083108d62420295760255392e3ce5c8a601bf99887e40466c839e03ecec"
+    },
+    {
+      "path": "native/failure-review/evidence.json",
+      "bytes": 2640,
+      "sha256": "118fba256e33d478b79e1643f0de1f36b9ee427807c350904fd1fd8184f7f12d"
+    },
+    {
+      "path": "native/failure-review/REVIEW.md",
+      "bytes": 7620,
+      "sha256": "9e2b2989418c248a43d497f5b5aee137b448a387bc4ee57d7e6534e90fc26043"
+    },
+    {
+      "path": "native/lm-studio-load.json",
+      "bytes": 932,
+      "sha256": "9c40ca5b02cb6ad5466172b1bda768dce8abd0fefa25183bd05f83f365806cf2"
+    },
+    {
+      "path": "native/receipt.json",
+      "bytes": 127616,
+      "sha256": "a885ff1601ded0649852dc7f653796906dec57976053e3edc278b580ad5e0257"
+    },
+    {
+      "path": "native/VISUAL-READBACK.json",
+      "bytes": 2078,
+      "sha256": "a139d12680383a18994ea17ed8c060c4fc0c2ca9ee9d27b4c4045a91bab1b796"
+    },
+    {
+      "path": "NAVIGATION-OBSERVATION.json",
+      "bytes": 5851,
+      "sha256": "f6ea1b9ec7e4c0af72e9782b2c2b9ca0764f40c85bbb9430644dfe8ef055f69a"
+    },
+    {
+      "path": "OWNED-DELTA.patch",
+      "bytes": 418806,
+      "sha256": "18a0b78af327bf1fb8eae60e0b1e3b330de56546dd6e37a8b6661d12c75a3d87"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2257,
+      "sha256": "630b5a02b343841c8745da9a0d05d47240913f02ed256a25ccfdfc19b548f9a4"
+    },
+    {
+      "path": "SOURCE-IDENTITY.json",
+      "bytes": 9859,
+      "sha256": "068e1d2e5a3b964c9b292d8f0802d37b0a3e92ad7e4a01897ae6804230badd1a"
+    },
+    {
+      "path": "unapplied-next/handoff-cli/be10-cli-consumer.patch",
+      "bytes": 31572,
+      "sha256": "aeb7e489f63a04e839512d48f7141662d90a4ebf8ae3cb642b6b14f35a88bf16"
+    },
+    {
+      "path": "unapplied-next/handoff-cli/code-manifest.json",
+      "bytes": 1328,
+      "sha256": "3bef40e1fd4d04a53beb357458edb9cbc0d03d1430732885980a8405c2fe18bf"
+    },
+    {
+      "path": "unapplied-next/handoff-cli/CURRENT.md",
+      "bytes": 2325,
+      "sha256": "4cfd9c7fe9f595df46ed3250d609ca5bf4dbc4425a97a56ed1821d678a17a331"
+    },
+    {
+      "path": "unapplied-next/handoff-cli/DELIVERY.md",
+      "bytes": 2230,
+      "sha256": "ca10eff580ccb6ea05225deba41a610f418e6c9e88cbd99b57659ef02435984e"
+    },
+    {
+      "path": "unapplied-next/handoff-cli/final-readback.json",
+      "bytes": 1242,
+      "sha256": "1ea78a185714c9e5989b9fae41cb7d8ebe550bad92fca8d4fccc467dd595ac07"
+    },
+    {
+      "path": "unapplied-next/handoff-cli/validation.json",
+      "bytes": 5171,
+      "sha256": "85784536b3070d24fa54fa01a4f37e93e90bb4d9ce78b4e617b61902e56d3e5a"
+    },
+    {
+      "path": "unapplied-next/manifest-consumer/capability-manifest-consumer.patch",
+      "bytes": 64596,
+      "sha256": "16df8256ed8511d137c4d74e7668d551e1aabbd66cc344ed4a4c2b1c5dab188f"
+    },
+    {
+      "path": "unapplied-next/manifest-consumer/code-manifest.json",
+      "bytes": 2591,
+      "sha256": "a16773817b5346a68e8a6a9a101bfbf8c92c6f98f9803e75bc9653bf4f9ebd0e"
+    },
+    {
+      "path": "unapplied-next/manifest-consumer/CURRENT.md",
+      "bytes": 3079,
+      "sha256": "bbe25abc55bb6796502c5f91f75a769435bb9610d3b7bbf4fa5e28d8e55b96ee"
+    },
+    {
+      "path": "unapplied-next/manifest-consumer/DELIVERY.md",
+      "bytes": 1585,
+      "sha256": "7a1ff617a59fcfde5e117aba7e603ddcdcd02643a56955bb2ac92fa998bee704"
+    },
+    {
+      "path": "unapplied-next/manifest-consumer/FINAL-READBACK.json",
+      "bytes": 420,
+      "sha256": "5e7ab8767bc9a18d6b9c21890c28d881b1ee7e11b51bcde351aa7ab45d1efa9c"
+    },
+    {
+      "path": "unapplied-next/manifest-consumer/validation.json",
+      "bytes": 6223,
+      "sha256": "a71dc1576de33dbdc1d8c3d5e5e4a72c4be272d21bccd8c7cc054a0bf7fdcec6"
+    },
+    {
+      "path": "UNAPPLIED-NEXT.json",
+      "bytes": 3481,
+      "sha256": "88e7897d8f87fb60c8689aca006494df353035ca0d2e9cf3e548eb19346fe016"
+    },
+    {
+      "path": "verify_snapshot.py",
+      "bytes": 3500,
+      "sha256": "305f99431113a21e673b30f94a8f9369ee8f43063b1eb304e47585b20ee6748e"
+    }
+  ]
+}

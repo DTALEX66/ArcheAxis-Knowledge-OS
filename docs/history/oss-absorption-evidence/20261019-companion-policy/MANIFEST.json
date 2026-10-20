@@ -1,0 +1,82 @@
+{
+  "schema": "aaos.evidence-snapshot/v1",
+  "recorded_at": "2026-10-18T20:47:40.280256+00:00",
+  "status": "FROZEN_LOCAL_SNAPSHOT_NOT_PRODUCT_ACCEPTANCE",
+  "members": [
+    {
+      "path": "BE10-READONLY-PROPOSAL.md",
+      "bytes": 10237,
+      "sha256": "31d0286d7f07e5da6c190fbcab91b995b10dd6738801b6f3e40475902a094719"
+    },
+    {
+      "path": "document-index-before-update.md",
+      "bytes": 33221,
+      "sha256": "e047c20aafb4e3769ba822d85a51c9b4d6331193b305e979c9718f42b22910ae"
+    },
+    {
+      "path": "EXECUTIONS.json",
+      "bytes": 23818,
+      "sha256": "30fea8b643a8d544e215d5db18c6c0f1266fcb0029179a54de3138b7828eb52e"
+    },
+    {
+      "path": "handoff-before-update.md",
+      "bytes": 6418,
+      "sha256": "67c7953680f6806ece986749fa61394e74497ccd5a33624388298a1ef481f69c"
+    },
+    {
+      "path": "INTERMEDIATE-FAILURES.json",
+      "bytes": 10025,
+      "sha256": "36d36a9cdebf50fb0a3b2d9b066a4c2b2efa4d67828a610b02a398ecd297897a"
+    },
+    {
+      "path": "MODEL-OBSERVATION.json",
+      "bytes": 949,
+      "sha256": "06128af195c363a4bc2b1d141805e6bee209570eecffd5d66055c16c4997cdea"
+    },
+    {
+      "path": "native-material-failure-diagnostics.json",
+      "bytes": 681,
+      "sha256": "a3c16a9be07435f96a4083ba14b99eaa79727cafe885e7a75152e0ff3b89927f"
+    },
+    {
+      "path": "NATIVE-READBACK.json",
+      "bytes": 7437,
+      "sha256": "28e4cda1ddb4913f6ad4baa749b42a6bf33fa56ead3c50d68e873021b137ec55"
+    },
+    {
+      "path": "navigation-proposal-validation.json",
+      "bytes": 1432,
+      "sha256": "feba2c1edc201b5ed729ddb738b41aeb1cb8d9b87fe6496ea1df439c60f3a1e4"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4542,
+      "sha256": "a62b0e30290055897c6c868f2094f72122ea73f862f4b803b5d6d389c193be76"
+    },
+    {
+      "path": "real-companion-worker.json",
+      "bytes": 1920,
+      "sha256": "5a42fdad4b0c68f81e506f57d8ef0267773a24340fb16fe046be104cbe3c2ce3"
+    },
+    {
+      "path": "ruff-before-after.json",
+      "bytes": 687,
+      "sha256": "7c42208814edc01e603d8c2e5af6ac2942aa97d9b1f001ffd0761fcd13b5baef"
+    },
+    {
+      "path": "SOURCE-MANIFEST.json",
+      "bytes": 5223,
+      "sha256": "bd9a6d6c1d2d619267bb01313e4506d7b23c64788b0eaadf97675a40b2b3bc5b"
+    },
+    {
+      "path": "task-delta.diff",
+      "bytes": 70699,
+      "sha256": "1195eecec10b47898349bcb83a526cba44da7e3b82206130b1a92d21d0a3f493"
+    },
+    {
+      "path": "UI-READONLY-REVIEW.md",
+      "bytes": 5119,
+      "sha256": "3d670d9926aaf8797bac6ac09da5f5d84333c47ebcf7ec26240b4973d65adc63"
+    }
+  ]
+}

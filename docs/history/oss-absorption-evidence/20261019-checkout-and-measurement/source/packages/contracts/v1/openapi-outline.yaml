@@ -1,0 +1,775 @@
+openapi: 3.1.0
+info:
+  title: ArcheAxis Local Service
+  version: 0.2.0-reference-slice2
+  description: >
+    Reference contract for the vNext loopback API (T02 slice2 freeze).
+    Path/verb inventory below is the agreed surface for the closed loop;
+    it remains a reference until each route actually carries it (route
+    conformance is tracked in the T03/T04/T12 lanes, not claimed here).
+    Error semantics: errors.catalog.yaml codes map to HTTP statuses; every
+    reference failure body is {code, message, retryable} (component Error).
+    Current machine answer/retest execution failures use the independently
+    bounded MachineCallFailure component; 503 does not prove non-execution.
+    Status vocabulary: job-status.schema.json; review/evidence states:
+    assessment-vocabulary.schema.json; anchors: anchor-coordinate.schema.json.
+servers:
+  - url: http://127.0.0.1:{port}
+    variables:
+      port:
+        default: "0"
+security:
+  - launchToken: []
+x-freeze:
+  schema: archeaxis.openapi-reference/v1
+  slice: t02-slice2
+  date: 2026-09-05
+  status: reference-not-implementation
+paths:
+  /api/v1/workspace/ui-state/cancel-machine:
+    post:
+      operationId: cancelFrozenMachineWorker
+      description: Human-only exact frozen journal CAS/epoch/current attempt cancellation request. Only this runtime's owned worker is targeted; shared model services are never stopped. Acceptance is not terminal proof. Confirmed local worker cancellation is read through machine-status; provider stop, usage and cost remain UNKNOWN. Missing active worker retains the durable claim.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch, state_revision, journal_id]
+              properties:
+                workspace_id: {type: string}
+                restore_epoch: {type: string}
+                state_revision: {type: integer}
+                journal_id: {type: string}
+      responses:
+        "200":
+          description: Cancellation request or no confirmed current owned worker; never provider stopped proof
+          content:
+            application/json:
+              schema: {$ref: 'core-document.schema.json#/$defs/MachineCancelDto'}
+        "403": {description: Human identity required}
+        "409": {description: Working state CAS changed}
+        "422": {description: Missing or invalid frozen journal}
+        "503": {description: Cancellation unconfirmed; journal retained}
+  /api/v1/workspace/ui-state/machine-status:
+    post:
+      operationId: readFrozenMachineStatus
+      description: Human-only read of one current frozen journal and its exact current failure audit. Does not consume grants, read material, run inference or clear state. Unfinished, legacy or conflicting claims remain UNKNOWN. FAILED permits only explicit clear-machine with the exact task and current CAS; provider stop, usage and cost are not thereby verified.
+      x-contract-status: implemented-source-slice-not-native-or-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [workspace_id, restore_epoch, state_revision, journal_id]
+              properties:
+                workspace_id: {type: string}
+                restore_epoch: {type: string}
+                state_revision: {type: integer}
+                journal_id: {type: string}
+      responses:
+        "200":
+          description: Historical failure binding or explicit UNKNOWN
+          content:
+            application/json:
+              schema: {$ref: 'core-document.schema.json#/$defs/MachineJournalStatusDto'}
+        "403": {description: Human identity required}
+        "409": {description: Working state CAS changed}
+        "422": {description: Missing or invalid frozen journal}
+        "503": {description: Read unconfirmed; journal retained}
+  /api/v1/machine/inventory:
+    post:
+      operationId: readMachineInventory
+      description: "Explicit input-free local inventory observation; no inference, loading or task writes. Verified replies may expose bounded model_choices for task selection. Failed inventory has unknown count and presence. Raw endpoints and worker errors are never returned. Listing does not qualify inference."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              maxProperties: 0
+      responses:
+        "200":
+          description: Inventory-only observation
+          content:
+            application/json:
+              schema:
+                $ref: ./core-document.schema.json#/$defs/MachineInventoryDto
+        "400":
+          description: Nonempty payload rejected before worker launch
+        "503":
+          description: Shared model admission busy; inventory not executed
+  /api/v1/machine/configuration:
+    get:
+      operationId: readMachineConfiguration
+      description: "Launch policy only; no model discovery, network request, inference or task write. Registered worker does not establish model availability. Model identity, usage and cost are null; loaded state is UNKNOWN."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Configuration evidence only
+          content:
+            application/json:
+              schema:
+                $ref: ./core-document.schema.json#/$defs/MachineConfigurationDto
+  # AAOS-01 current-source slice; the older reference-only paths retain their status.
+  /api/v1/sources:
+    get:
+      operationId: listCanonicalSources
+      description: "Immutable source revision metadata."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/SourcesListDto"
+  /api/v1/sources/{source_id}/original:
+    parameters:
+      - name: source_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: readCanonicalOriginal
+      description: "Original bytes in bounded content_base64 with SHA; never a caller filesystem path."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/OriginalDto"
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents:
+    get:
+      operationId: listCanonicalDocuments
+      description: "Metadata summaries only; read one document for full editor JSON."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentsListDto"
+    post:
+      operationId: createCanonicalDocument
+      description: "Human only; body title, editor_json and optional source_id/source_revision pair. Original notes need no external source; supplied pair must reference an existing source revision."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "201":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "403": {description: Machine actor cannot mutate this resource}
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: readCanonicalDocument
+      description: "Current editor JSON, stable block IDs and text projection in one persisted version."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/checks/execute:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: executeDocumentCheck
+      description: "Human-only explicit version/hash-bound attempt, distinct from pending application and note save. Current unconfigured worker yields failed/not_configured, execution_verified=false, execution_state=not_executed; no cloud call or human approval is implied. Retry references a real previous attempt_id. Configured execution requires a matching snapshot/material/destination/configuration/restore-epoch preview fingerprint. Immutable request local_only and durable withdrawal deny new starts/retries; queued work rechecks Core policy after its worker slot becomes available. Withdrawal cannot recall sent materials and does not certify active-worker cancellation. Arbitrary model/provider fields are forbidden."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [check_id, expected_content_sha256]
+              properties:
+                check_id: {type: string}
+                expected_content_sha256: {type: string}
+                retry_of_task_id: {type: [string, "null"]}
+                withdraw: {type: [boolean, "null"], description: Human-only durable withdrawal; mutually exclusive with preview/confirmation/material/retry fields}
+                preview: {type: [boolean, "null"]}
+                selected_text: {type: [string, "null"], description: Exact saved professional-check excerpt; omitted means full saved text}
+                confirmed_egress_sha256: {type: [string, "null"], pattern: "^[a-f0-9]{64}$"}
+      responses:
+        "200":
+          description: Read-only material and destination preview or idempotent withdrawal receipt; configured execution requires its matching confirmation fingerprint
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentCheckDto"
+        "201":
+          description: Durable failed/not_configured attempt receipt; execution was not verified
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentCheckDto"
+        "403": {description: Actor not permitted}
+        "409": {description: Content/version or previous attempt identity mismatch}
+  /api/v1/documents/{document_id}/checks:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: readDocumentChecks
+      description: "Version/hash bound fidelity and professional basis records; optional version and offset, paginated next_offset."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Independent verification records
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentChecksDto"
+    post:
+      operationId: recordDocumentCheck
+      description: "Explicit manual report or pending cloud request. Optional search_query is human-only, cloud-only independent public query (1-1000 nonblank characters, at most 4000 UTF-8 bytes), persisted verbatim and forwarded to the worker; document text is never substituted as query. Recognition defaults to no search; professional execution requires an independent query. This query is not complete material/destination egress approval. Never a save prerequisite or human approval substitute."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [version, dimension, provider_mode]
+              properties:
+                version: {type: integer, minimum: 1}
+                dimension: {enum: [recognition_fidelity, professional_basis]}
+                provider_mode: {enum: [manual, cloud]}
+                local_only: {type: [boolean, "null"], description: Immutable scope of this human cloud request; true forbids preview/execution/search and never blocks ordinary saves}
+                search_query: {type: [string, "null"], maxLength: 1000, description: Independent public query; nonblank and at most 4000 UTF-8 bytes}
+                status: {type: [string, "null"]}
+                source_id: {type: [string, "null"]}
+                source_revision: {type: [string, "null"]}
+                position: {type: [object, "null"]}
+                recognition_job_id: {type: [string, "null"]}
+                recognition_result_sha256: {type: [string, "null"]}
+                basis: {type: [string, "null"]}
+                reason: {type: [string, "null"]}
+      responses:
+        "201":
+          description: Version-bound record
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentCheckDto"
+        "403": {description: Machine actor cannot mutate this resource}
+  /api/v1/documents/{document_id}/draft:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    put:
+      operationId: saveCanonicalDocument
+      description: "Human only; body expected_version, editor_json and optional revision_basis. Unknown fields rejected; stale version returns 409 without overwrite."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "403": {description: Machine actor cannot mutate this resource}
+        "409": {description: Stale version or conflicting canonical identity}
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/versions/{version}:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+      - name: version
+        in: path
+        required: true
+        schema: {type: integer, minimum: 1}
+    get:
+      operationId: readCanonicalDocumentVersion
+      description: "Immutable historical document version."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/restore:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: restoreCanonicalDocumentVersion
+      description: "Human only; body expected_version, restore_version. Unknown fields rejected; stale version 409; restore creates a new version."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentDto"
+        "403": {description: Machine actor cannot mutate this resource}
+        "409": {description: Stale version or conflicting canonical identity}
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/documents/{document_id}/package:
+    get:
+      operationId: exportOrdinaryDocumentPackage
+      description: "Bounded snapshot with bound source/expression media CAS bytes; historical anchors are metadata, not registered authority."
+      responses:
+        "200": {description: "archeaxis.document-package/v1; combined raw bytes <=2 MiB, JSON <=16 MiB"}
+  /api/v1/document-packages/import:
+    post:
+      operationId: importOrdinaryDocumentPackage
+      description: "Human explicit save into a new ordinary Document; idempotent request_id, all references in one transaction. No knowledge approval or grant migration."
+      responses:
+        "201": {description: "archeaxis.document-package-import/v1, persisted version readback and source mapping"}
+        "400": {description: "Changed request binding, corrupt/hash-mismatched/oversized package or unsupported governance metadata"}
+        "403": {description: "Human role required"}
+  /api/v1/documents/{document_id}/export:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema: {type: string}
+    get:
+      operationId: exportCanonicalDocument
+      description: "Query format=markdown or obsidian; unknown query fields rejected. Text projection and manifest preserve structured content with explicit loss; external app acceptance is separate."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/DocumentExportDto"
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/knowledge/{id}/review/versioned:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: reviewCanonicalKnowledgeVersioned
+      description: "Human only; body action, reviewer, expected_version, optional note/new_body. Stale expected_version returns 409 with current_version. No automatic human approval."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Knowledge id and new version
+        "403": {description: Machine actor cannot mutate this resource}
+        "409": {description: Stale version or conflicting canonical identity}
+        "404": {description: Referenced source/document/version not found}
+  /api/v1/workspace/backups:
+    get:
+      operationId: listCanonicalBackups
+      description: "Product-owned artifacts with hashes, schema and SQLite versions; no caller path."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "200":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/BackupsListDto"
+    post:
+      operationId: createCanonicalBackup
+      description: "Human only; no caller path. Creates a consistent artifact; independent restore remains a separate verification."
+      x-contract-status: implemented-source-slice-not-owner-acceptance
+      responses:
+        "201":
+          description: Canonical response
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/BackupDto"
+        "403": {description: Machine actor cannot mutate this resource}
+  /api/v1/jobs/{job_id}:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    get:
+      operationId: getJobExecutionStatus
+      responses:
+        "200": {description: "Persisted job_id, state, attempt, request_id, error"}
+        "404": {description: Unknown job}
+        "503": {description: Runtime or terminal storage unavailable}
+  /api/v1/jobs/{job_id}/executions:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+    post:
+      operationId: startTextExecution
+      description: Requires explicit text_worker launch profile. 202 follows durable claim, not completion. Same workspace-wide key/job/deadline replays; different payload conflicts. Two active worker slots; no automatic retry.
+      parameters:
+        - name: idempotency-key
+          in: header
+          required: true
+          schema: {type: string, pattern: '^[A-Za-z0-9_.-]{1,200}$'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [deadline_ms]
+              properties:
+                deadline_ms: {type: integer, minimum: 1, maximum: 300000}
+      responses:
+        "202": {description: "Accepted/replayed job_id, request_id, state, replayed"}
+        "409": {description: Identity conflict or disallowed state}
+        "422": {description: Invalid execution identity or request}
+        "503": {description: Capacity exhausted or runtime unavailable}
+  /api/v1/jobs/{job_id}/executions/{request_id}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+      - name: request_id
+        in: path
+        required: true
+        schema: {type: string}
+    post:
+      operationId: cancelTextExecution
+      description: Signal only the named attempt. Poll status; a committed success cannot be undone.
+      responses:
+        "202": {description: Cancellation signal accepted}
+        "200": {description: Already terminal; no mutation}
+        "404": {description: Unknown attempt}
+        "409": {description: Stale attempt identity}
+        "503": {description: Runtime unavailable}
+  /api/v1/jobs/{job_id}/outputs/{kind}:
+    parameters:
+      - $ref: "#/components/parameters/JobId"
+      - name: kind
+        in: path
+        required: true
+        schema: {type: string, enum: [text, document_structure, loss_report]}
+    get:
+      operationId: getTextExecutionOutput
+      responses:
+        "200": {description: Persisted metadata and UTF-8 content from latest verified attempt}
+        "404": {description: No such verified output}
+  /api/v1/system/version:
+    get:
+      operationId: getVersion
+      responses:
+        "200":
+          description: Runtime and contract versions
+  /api/v1/workspaces:
+    post:
+      operationId: createWorkspace
+      responses:
+        "201":
+          description: Workspace created
+  /api/v1/imports:
+    post:
+      operationId: importSource
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, metadata]
+              properties:
+                file: {type: string, format: binary}
+                metadata: {type: object}
+      responses:
+        "202":
+          description: Import job accepted
+  /api/v1/sources/{source_id}/anchors:
+    get:
+      operationId: readCanonicalSourceAnchors
+      description: Current-source slice; located, unverified and revision_mismatch are distinct. No new Owner acceptance is claimed.
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        "200":
+          description: Canonical anchors for this source revision
+          content:
+            application/json:
+              schema:
+                $ref: "core-document.schema.json#/$defs/AnchorsListDto"
+    post:
+      operationId: createAnchor
+      description: "Body revision, position, checksum?; UTF-8 text positions use byte offsets and the selected slice checksum. Revision binding alone is not verified location."
+      parameters:
+        - name: source_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Anchor created
+  /api/v1/knowledge-items:
+    post:
+      operationId: createKnowledge
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Personal knowledge created
+  /api/v1/candidate-extractions:
+    post:
+      operationId: requestCandidate
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Candidate job accepted
+  /api/v1/knowledge-items/{knowledge_item_id}/review-decisions:
+    post:
+      operationId: recordReview
+      parameters:
+        - name: knowledge_item_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "201":
+          description: Immutable review recorded
+  /api/v1/search:
+    post:
+      operationId: search
+      responses:
+        "200":
+          description: Search hits with anchor jump targets
+  /api/v1/learning-items/{learning_item_id}/events:
+    post:
+      operationId: recordLearningEvent
+      parameters:
+        - name: learning_item_id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/IfMatch"
+      responses:
+        "201":
+          description: Learning event recorded
+  /api/v1/learning/items:
+    get:
+      operationId: listLearningItems
+      responses:
+        "200":
+          description: Read-only learning queue projection with latest review deadlines
+  /api/v1/exports:
+    post:
+      operationId: createExport
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "202":
+          description: Export job accepted
+  /api/v1/restore-validations:
+    post:
+      operationId: validateRestore
+      responses:
+        "200":
+          description: Restore package validation receipt
+components:
+  securitySchemes:
+    launchToken:
+      type: apiKey
+      in: header
+      name: x-archeaxis-launch-token
+      description: Ephemeral per-process desktop credential sent through the inherited stdin pipe at launch; never in argv or readiness output. Native desktop only; browser Origin requests are denied. Requested scopes cannot grant authority.
+  schemas:
+    MachineFailureDiagnostics:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        requested_model:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Za-z0-9_.:/@+-]{1,256}$
+          maxLength: 256
+        observed_model:
+          type:
+          - string
+          - 'null'
+          pattern: ^[A-Za-z0-9_.:/@+-]{1,256}$
+          maxLength: 256
+        finish_reason:
+          enum:
+          - stop
+          - length
+          - tool_calls
+          - function_call
+          - content_filter
+          - error
+        answer_source:
+          enum:
+          - content
+          - reasoning_content
+          - response
+          - none
+        request_stage:
+          enum: [service_discovery, model_request, response_deadline, worker_deadline]
+        discovery_elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        request_phase:
+          enum: [http_open, body_read, json_parse, response_validation]
+        http_open_elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        body_read_elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        json_parse_elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        prompt_utf8_bytes:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        serialized_request_bytes:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        response_bytes:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        error_type:
+          enum:
+          - HTTPError
+          - URLError
+          - TimeoutError
+          - ConnectionError
+          - OSError
+          - ValueError
+          - TypeError
+          - KeyError
+          - IndexError
+          - JSONDecodeError
+        max_tokens:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        timeout_s:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        elapsed_s:
+          type: number
+          minimum: 0
+          maximum: 9007199254740991
+        http_status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        usage:
+          type: object
+          additionalProperties: false
+          minProperties: 1
+          properties:
+            input_tokens:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            output_tokens:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+            total_tokens:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+    MachineCallFailure:
+      type: object
+      additionalProperties: false
+      required: [schema, operation, reason_code, execution_state, answer_published]
+      properties:
+        schema: {const: archeaxis.machine-call-failure/v1}
+        operation: {enum: [answer, retest]}
+        reason_code:
+          enum: [MODEL_CALL_FAILED, MODEL_CALL_TIMEOUT, NO_FINAL_ANSWER, EMPTY_ANSWER, WORKER_TIMEOUT, OUTPUT_LIMIT, INVALID_OUTPUT, PIPE_DRAIN_FAILED, WORKER_FAILED]
+        execution_state: {const: UNVERIFIED}
+        answer_published: {const: false}
+        diagnostics: {$ref: "#/components/schemas/MachineFailureDiagnostics"}
+      description: HTTP 503 after worker execution failure; excludes raw exceptions, stderr and model text. A failure response alone does not grant retry permission. Core retains the unfinished claim for unknown outcomes or unconfirmed cleanup; only confirmed local-worker failures permit explicit same-request retries, with at most three total attempts per durable identity across restarts. Confirmed failures persist a redacted attempt-bound runtime.execution.failed audit and the claim terminal_task_id atomically; audit persistence failure rolls back retry release. Optional diagnostics retain bounded provider-reported measurements only; missing usage remains unknown, cost and provider stop remain unknown. Raw model text, reasoning and exception bodies are excluded. Legacy unknown attempt counts do not receive a fresh budget. The response is not a success receipt or proof of no prior side effect or provider-side stop. Frozen journal status and exact clear-machine provide explicit cold recovery; UNKNOWN never grants UI repeat inference or a fresh identity around an unresolved journey. Modern retest cache binds the effective timeout even without explicit model selection; legacy unknown budgets remain historical and cannot qualify a new execution receipt.
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message, retryable]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        retryable: {type: boolean}
+      description: Reference failure envelope (errors.catalog.yaml codes); current machine execution failures use MachineCallFailure.
+  parameters:
+    JobId:
+      name: job_id
+      in: path
+      required: true
+      schema: {type: string, pattern: '^[A-Za-z0-9_.-]{1,200}$'}
+    IdempotencyKey:
+      name: idempotency-key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 200
+      description: Bounded write idempotency key (protocol-mapping.md); replay-safe, payload conflicts rejected with AAK-CON-002.
+    ScopeHeader:
+      name: x-archeaxis-scopes
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Requested scopes (e.g. workspace:write) for gated writes.
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+        pattern: '^"r[0-9]+"$'

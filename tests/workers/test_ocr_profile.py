@@ -178,7 +178,7 @@ class OCRProfileTests(unittest.TestCase):
         # Keep the public fixture outside native agent worktree ancestors; the
         # worker correctly rejects profiles under private .codex directories.
         profile = self.root / "real-public-profile.yaml"
-        shutil.copyfile(ROOT / "config/model-profiles/local-2026-09-05.yaml", profile)
+        shutil.copyfile(ROOT / "config/model-profiles/current-local.yaml", profile)
         public = yaml.safe_load(profile.read_text(encoding="utf-8"))
         self.assertIn("tessdata_dir", public["ocr"])
         if not shutil.which("tesseract") or not Path(public["ocr"]["tessdata_dir"]).is_dir():

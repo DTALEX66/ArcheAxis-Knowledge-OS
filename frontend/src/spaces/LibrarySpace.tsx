@@ -187,7 +187,8 @@ export function LibrarySpace({ onInspect }: { onInspect: (target: InspectionTarg
                     source: "原件档案",
                     lifecycle: stateLabel(asset.conversion_state),
                     rawSha256: asset.raw_sha256,
-                    detail: `保留策略：${asset.retention}${asset.engine ? `；转换引擎：${asset.engine}` : ""}`,
+                    detail: `原件保存方式已记录${asset.engine ? "；内容转换方式可在详细信息中查看" : ""}` ,
+                    identityDetails: {raw_sha256:asset.raw_sha256,retention:asset.retention,engine:asset.engine},
                   })}>查看</button>{" "}
                   {asset.engine ? <button type="button" onClick={() => void openConverted(asset)}>转换文本</button> : null}{" "}
                   <button type="button" onClick={() => void openAsset(asset)}>打开原件</button>

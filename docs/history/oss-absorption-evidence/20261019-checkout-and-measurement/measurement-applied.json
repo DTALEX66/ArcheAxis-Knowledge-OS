@@ -1,0 +1,60 @@
+{
+  "status": "APPLIED_EXACT_BYTES",
+  "files": [
+    {
+      "path": "tests/test_machine_request_measurements.py",
+      "before_sha256": null,
+      "after_sha256": "4fc2b6bc27ca9142d5b35662b8aa1ea58514bb80565ad59951d8c7dfe8d84820"
+    },
+    {
+      "path": "tests/contract/test_machine_failure_diagnostics.py",
+      "before_sha256": "40e5befc12e2bece575d9e03d81a1baa5b9fc285edc099474785597e620e9871",
+      "after_sha256": "0af17de522a42637cdc656d9f313b90bc43b7352d73a09339e2be0a4ad98c4a8"
+    },
+    {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "before_sha256": "510c4973bc3c749cb2c5c0189d57245dcb2701c1e0c9c7da03622aed253a1e3d",
+      "after_sha256": "4e8d1eeb32a0cc8f055b78f9fb5631e4a85555debea2c2f2e25c29a5a7641e09"
+    },
+    {
+      "path": "packages/contracts/v1/openapi-outline.yaml",
+      "before_sha256": "b1f1f0db53575b2844c27b82da7fabd86724672e978101af46d6e07a57aebd40",
+      "after_sha256": "a02f211226733e8ead395a080395c9165cddefc051d8bcd6d5d7673e0e905e09"
+    },
+    {
+      "path": "packages/contracts/v2/conversation.schema.json",
+      "before_sha256": "54a42c2d93175d13bb2cb2e2293bc0ece162717cdfa5c60830625757c4d47707",
+      "after_sha256": "8c9647ece0f3893fc3e1eced2d270ed97a29b2d555ed60764136c116b54696e1"
+    },
+    {
+      "path": "packages/contracts/v2/material-question.schema.json",
+      "before_sha256": "2d281d5930b82e506d158c070b16e94fb605f4b74046f03fde2da2ac2a73abc2",
+      "after_sha256": "3b91aba301f56061f3562b693790650caf8a0b6469557feff7c03e24a3f205a1"
+    },
+    {
+      "path": "frontend/src/api/machineFailure.ts",
+      "before_sha256": "0646d2603b1280765e2e533638fff6345f02037640c2bda76653fc11ff249167",
+      "after_sha256": "a31b9f53afd926fa9c896a6ff223e6c93fed2be2d28ddb7008ba6dd81d28f6a8"
+    },
+    {
+      "path": "frontend/src/__tests__/MachineFailureDiagnostics.test.ts",
+      "before_sha256": "2c3766bb001f809e1cda1b67e8c2684a2c09ee43ca52f8600e278f1af6215a08",
+      "after_sha256": "9e129a67081409dc3af7cc1245604e66f59e8ff986b81aeced53e198afb7fc98"
+    },
+    {
+      "path": "frontend/src/api/generated/conversation.ts",
+      "before_sha256": "ae863eac8bc79feeca7c1108c1f09c8264f5ddf3eae695060c3d54ef617de6cc",
+      "after_sha256": "8bc51b8675709601281a132626079dcd1bf43bac587b751f3d0234fd4e8ce14a"
+    },
+    {
+      "path": "frontend/src/api/generated/material-question.ts",
+      "before_sha256": "9220e4a1730d1dec00ae4e6a22ed16407a3294ae0e69fb045911906fcbc69c8f",
+      "after_sha256": "37db792a97cddca9e730dfb45dd1546c80f8ad03a92ff9ebadfcd3f1a1c3e63b"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "before_sha256": "7b7ca92b147830e061631610666628495bce0d93faa1c8e539df082c4bd76ebe",
+      "after_sha256": "b40e288c16f47b9d36a5d8fea2d251991d6e5364f4f6174d4b056e3cfdea12e6"
+    }
+  ]
+}

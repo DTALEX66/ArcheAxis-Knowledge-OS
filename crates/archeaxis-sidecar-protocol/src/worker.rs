@@ -29,6 +29,30 @@ pub struct Worker {
 }
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct RuntimeDependency {
+    pub name: String,
+    pub status: String,
+    #[serde(deserialize_with = "required_version")]
+    pub version: Option<String>,
+}
+impl RuntimeDependency {
+    fn valid(&self) -> bool {
+        self.name == "pymupdf"
+            && match self.status.as_str() {
+                "AVAILABLE" => self.version.as_ref().is_some_and(|s| {
+                    !s.is_empty()
+                        && s.len() <= 64
+                        && s.as_bytes()[0].is_ascii_digit()
+                        && s.bytes()
+                            .all(|b| b.is_ascii_alphanumeric() || b".+_-".contains(&b))
+                }),
+                "MISSING" | "VERSION_UNKNOWN" | "IMPORT_FAILED" => self.version.is_none(),
+                _ => false,
+            }
+    }
+}
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Hello {
     pub schema: String,
     #[serde(rename = "type")]
@@ -37,6 +61,28 @@ pub struct Hello {
     pub worker: Worker,
     pub capabilities: Vec<String>,
     pub schemas: Vec<String>,
+    #[serde(
+        default,
+        deserialize_with = "runtime_dependency",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub runtime_dependency: Option<RuntimeDependency>,
+}
+impl Hello {
+    /// PDF requires a fresh observation before any request contents are sent.
+    /// Other legacy routes keep their existing hello contract.
+    pub fn require_runtime_dependency(&self, capability: &str) -> Result<()> {
+        if capability != "pdf.extract" {
+            return Ok(());
+        }
+        match self.runtime_dependency.as_ref().map(|d| d.status.as_str()) {
+            Some("AVAILABLE") => Ok(()),
+            Some("MISSING") => Err("PDF_DEPENDENCY_MISSING"),
+            Some("VERSION_UNKNOWN") => Err("PDF_DEPENDENCY_VERSION_UNKNOWN"),
+            Some("IMPORT_FAILED") => Err("PDF_DEPENDENCY_IMPORT_FAILED"),
+            _ => Err("PDF_DEPENDENCY_UNOBSERVED"),
+        }
+    }
 }
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -263,6 +309,10 @@ pub fn decode_hello(line: &str) -> Result<Hello> {
             .all(|schema| hello.schemas.iter().any(|s| s == schema))
         || !unique(&hello.capabilities)
         || !unique(&hello.schemas)
+        || hello
+            .runtime_dependency
+            .as_ref()
+            .is_some_and(|d| !d.valid())
     {
         return Err("incompatible worker hello");
     }
@@ -319,4 +369,16 @@ pub fn decode_response(line: &str, request: &Request) -> Result<Response> {
         _ => return Err("unsupported worker status"),
     }
     Ok(result)
+}
+
+fn required_version<'de, D: serde::Deserializer<'de>>(
+    d: D,
+) -> std::result::Result<Option<String>, D::Error> {
+    Option::<String>::deserialize(d)
+}
+
+fn runtime_dependency<'de, D: serde::Deserializer<'de>>(
+    d: D,
+) -> std::result::Result<Option<RuntimeDependency>, D::Error> {
+    RuntimeDependency::deserialize(d).map(Some)
 }

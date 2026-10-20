@@ -178,7 +178,7 @@ export function RecoveryShell({
           {diagnostic ? <p className="recovery-diagnostic">诊断：{diagnostic}</p> : null}
 
           <div className="recovery-actions" aria-label="恢复操作">
-            <button type="button" className="primary" disabled={disabled} onClick={() => void perform("retry", onRetry, "本地核心已就绪。")}>重试</button>
+            <button type="button" className="primary" disabled={disabled} onClick={() => void perform("retry", onRetry, "本地核心已就绪。")}>重试启动</button>
             <button type="button" disabled={disabled} onClick={() => void showLogs()}>安全诊断</button>
             <button type="button" disabled={disabled || status.safe_mode} onClick={() => void enterSafeMode()}>安全模式</button>
             <button

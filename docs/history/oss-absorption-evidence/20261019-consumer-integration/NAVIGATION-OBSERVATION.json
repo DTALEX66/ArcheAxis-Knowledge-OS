@@ -1,0 +1,161 @@
+{
+  "source_records": 39,
+  "purpose": "此时规范引用身份；current动态变化不要求永久保持旧hash，不是第二权威/进度库。",
+  "references": [
+    {
+      "path": "AAOS-资料索引.md",
+      "bytes": 5905,
+      "sha256": "7b7ac6a759e989da60cddbaee73531d88424aaa8e35833af6734fa8bde875bc2"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 14261,
+      "sha256": "225d1c3f715104c4bac654419d2f82858b64b87ec459dd4bf827b83abd3c3a04"
+    },
+    {
+      "path": "AUTHORITY.md",
+      "bytes": 8211,
+      "sha256": "d3db94691e9d3fdba45b287114e5506443696463005d5e128ab855febd77671b"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 10858,
+      "sha256": "0d38b51c193dbf9905d95365d42fc84772386dcd39e0c7fcac9798e70de32634"
+    },
+    {
+      "path": "config/environment/capability-requirements.yaml",
+      "bytes": 52329,
+      "sha256": "47245bf7b555ccbe4a8560bbed9ab5b59daf7ae796250fc79af52f6dfe28b3d3"
+    },
+    {
+      "path": "config/environment/external-resources-index.json",
+      "bytes": 74151,
+      "sha256": "ffa139e5f639839ca33cb6feee63bf155fab73ddb076530f1fa7b13a7669e19a"
+    },
+    {
+      "path": "config/model-profiles/lm-studio.json",
+      "bytes": 1290,
+      "sha256": "ee141998757783d5fb86267d74503475325abd5f2517bb226de320a421e63994"
+    },
+    {
+      "path": "docs/DIRECTORY_AUTHORITY_INDEX.md",
+      "bytes": 7574,
+      "sha256": "fd7891d3b887a070e80c32f2e480b930bfcedfef2b80b51caaef831e3b373ef0"
+    },
+    {
+      "path": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "bytes": 33931,
+      "sha256": "b8ffd46d3c63126fb59e35939c0fa46075c1e22df20cfc5d545e3d7a1cdd9b7b"
+    },
+    {
+      "path": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "bytes": 19245,
+      "sha256": "26beceaebe944f9b56f841a2efc441617a803d16dce1d12d06f724ab99a447a0"
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "bytes": 19370,
+      "sha256": "30bfc2aad0825a6daa331c2db3fdb7760b9c1eddcf6177f8ffcde21f6a05c145"
+    },
+    {
+      "path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "bytes": 7001,
+      "sha256": "f646e3b3e577ec01530bd830569e014b635a3daac671278d0cfde3d8f16ad94e"
+    },
+    {
+      "path": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md",
+      "bytes": 36055,
+      "sha256": "d13c39ca98b149bfa1bddfec816b86153862847943e6d23098ef3619a8868c59"
+    },
+    {
+      "path": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "bytes": 9852,
+      "sha256": "d176dc99304fa7eddcda592cc6daf65878289a5b3cbdf8f00e415146a76e2ca1"
+    },
+    {
+      "path": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.json",
+      "bytes": 28207,
+      "sha256": "ee6a713f46e23700c6e84345a7c89d1acc3911f7000a9bb0d913d0fd09669095"
+    },
+    {
+      "path": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md",
+      "bytes": 10630,
+      "sha256": "63da791e5aac5613d2b3a7d3cd04923919278b6b50355e0e0c4e1b664a158887"
+    },
+    {
+      "path": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+      "bytes": 5139,
+      "sha256": "c068a3d8c0adab2292083326dfb15709ad063c0d0a9b7369ced44b398887df7e"
+    },
+    {
+      "path": "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md",
+      "bytes": 11556,
+      "sha256": "7a2c84bd4a8af37b1e824c3bb8ccf54b4257d0c40d12079933d5a79a129d829b"
+    },
+    {
+      "path": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "bytes": 30203,
+      "sha256": "8d6d52d40a95a0e66c6b988fc0e7f9ad0132a64e8579006d57e3733e1e1f7c56"
+    },
+    {
+      "path": "docs/current/AAOS-OSS-UI-DONORS-20261019.md",
+      "bytes": 8370,
+      "sha256": "3f03363cbcbc44bf4528afb4bd237572f6035aae84f2e942c030913b0f9ddf95"
+    },
+    {
+      "path": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+      "bytes": 13683,
+      "sha256": "0d787752cf7cb4610c8c70fedfdeb68f2df3f8579feae349db6580755af8d665"
+    },
+    {
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "bytes": 16532,
+      "sha256": "cc7d1b160ed4ffc56f08cc0c126f9448797a458649f13e3549d8a4b12edac287"
+    },
+    {
+      "path": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "bytes": 315781,
+      "sha256": "8885309a360ed4308cd3250825d2fbf5904e71fbe113d3987d3526b525643e6c"
+    },
+    {
+      "path": "docs/current/AAOS-XIAOQI-MIGRATION-20261018.md",
+      "bytes": 5094,
+      "sha256": "5c436127b106dd7721feda0e55809203b03eb11bc540ae0fbe63407d30df707a"
+    },
+    {
+      "path": "docs/current/receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json",
+      "bytes": 8428,
+      "sha256": "8441b601d782034883d5ad4b642a8d64643f47bc73b533cc686a579fc8c64c67"
+    },
+    {
+      "path": "docs/current/receipts/AAOS-FRONTEND-TEST-CASES-20261018.json",
+      "bytes": 285264,
+      "sha256": "d70adb37e43ecf4d320ce20ee8f81a5c8c0eade41abf81fd9d4379fa96bb46d8"
+    },
+    {
+      "path": "docs/current/receipts/AAOS-NEURAL-GRAPH-ABSORPTION-20261019.json",
+      "bytes": 12528,
+      "sha256": "9f3772ce90e7daf325799b778dcb506c12f939af6bdd4161a77b33b0939d491b"
+    },
+    {
+      "path": "docs/history/handoff-archive-20261018/README.md",
+      "bytes": 552,
+      "sha256": "3d39208bdd3319502cb6da4ae6943192997fb97f42f14ae32a6d7f6d51340923"
+    },
+    {
+      "path": "docs/history/runtime-migration-20261018/README.md",
+      "bytes": 766,
+      "sha256": "23a2f26b3bb8f257b65127f417ddf13fbe5c39ffb52e99dfdcc22eb3f6620c3b"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx",
+      "bytes": 15323,
+      "sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+    },
+    {
+      "path": "workspace/intake/20261018-xiaoqi-in-project.md",
+      "bytes": 1506,
+      "sha256": "6f95fb616627576b92f5c013330e998279c227c73092dd4d0792c7b74e6a9667"
+    }
+  ]
+}

@@ -377,11 +377,15 @@ def test_truth_docs_do_not_overstate_startup_migration_or_delivery() -> None:
     root = Path(__file__).resolve().parents[1]
     readme = (root / "README.md").read_text(encoding="utf-8")
     migration = (root / "docs/MIGRATION_OPERATOR.md").read_text(encoding="utf-8")
-    handoff = (root / "docs/HANDOFF_2026-07-21.md").read_text(encoding="utf-8")
+    handoff = (root / "docs/history/repository-consolidation-20261019/legacy-docs/HANDOFF_2026-07-21.md").read_text(encoding="utf-8")
 
-    assert readme.index("python -m app.runtime_entrypoint migrate") < readme.index(
-        "python -m app.runtime_entrypoint core"
-    )
+    # The live product entry is the formal host; legacy Python startup remains
+    # a compatibility surface and must not be promoted by the public README.
+    assert "node scripts/runtime/frontend.mjs build" in readme
+    assert "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md" in readme
+    assert "Python-era FastAPI入口属于兼容/供体路径" in readme
+    assert "不能替代正式Tauri宿主启动与验证" in readme
+    assert "python -m app.runtime_entrypoint core" not in readme
     assert "applies all nine registered owners" not in migration
     assert "applies the five registered SQLite owners" in migration
     assert "## 当前候选基线" in handoff
@@ -636,13 +640,21 @@ def test_release_truth_documents_preserve_historical_and_source_manifest_truth()
         assert (root / relative).is_file(), f"missing release truth document: {relative}"
 
     readme = (root / "README.md").read_text(encoding="utf-8")
-    status = (root / "docs" / "PROJECT_STATUS.md").read_text(encoding="utf-8")
+    status = (root / 'docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md').read_text(encoding="utf-8")
     changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
     combined = "\n".join((readme, status, changelog))
     assert "v0.4.0" in combined
     assert "historical" in combined.lower()
     assert "incomplete checksum payload coverage" in combined
-    assert "unreleased / public=false" in combined
+    # Publication identity comes from the shipped manifest, independently of
+    # concise navigation or historical prose about older public releases.
+    manifest = json.loads((root / "app/release-manifest.json").read_text(encoding="utf-8"))
+    assert manifest["release"] == {
+        "status": "unreleased", "channel": "development", "public": False,
+    }
+    assert manifest["source"]["commit"] == "unavailable"
+    assert manifest["source"]["tree"] == "unavailable"
+    assert "不据此宣称该版本已发布、安装或完成整体验收" in readme
     assert "artifacts are signed" not in changelog.lower()
 
 

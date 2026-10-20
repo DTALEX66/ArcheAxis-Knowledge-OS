@@ -1,0 +1,34 @@
+{
+  "generator_command": [
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+    "-X",
+    "utf8",
+    "-B",
+    "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\be10-native-preview-revision-20261019\\generation-preview\\scripts\\contracts\\generate_core_document.py"
+  ],
+  "exit_code": 0,
+  "core_contract_before": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+  "core_contract_after": "db6f654230225da02fe37f0f282861ae4efa142d98cbe1705970f1af414b7975",
+  "overlay_refs_that_will_drift": [
+    {
+      "pointer": "/entries/3/evidence/version/source_refs/1",
+      "old_source_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "new_source_sha256": "db6f654230225da02fe37f0f282861ae4efa142d98cbe1705970f1af414b7975"
+    },
+    {
+      "pointer": "/entries/5/evidence/version/source_refs/1",
+      "old_source_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "new_source_sha256": "db6f654230225da02fe37f0f282861ae4efa142d98cbe1705970f1af414b7975"
+    }
+  ],
+  "qualification_entries": 68,
+  "qualification_entries_modified": 0,
+  "qualification_state_promotions": 0,
+  "mandatory_serial_next": [
+    "apply schema and generated CoreOperation together",
+    "root must explicitly rebind/requalify exact affected qualification refs without promoting inherited 68 states",
+    "regenerate resource-catalog using current overlay and fixed public-source guard",
+    "verify 68 stable keys/115 conflicts and all inherited state/value unchanged; generated drift --check plus page17 regressions"
+  ],
+  "public_product_writes": []
+}

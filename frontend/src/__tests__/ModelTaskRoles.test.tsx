@@ -12,7 +12,7 @@ describe("task roles use evidence boundaries",()=>{
  it("retains disabled local execution and separates registration from inference",()=>{
   render(<ModelTaskRoles capabilities={new Map([["machine.answer",{enabled:false}],["text.extract",{}]])}/>);
   expect(screen.getByText("本地回答路由已禁用")).toBeInTheDocument();
-  expect(screen.getByText(/登记 1 项转换路由；登记不代表产物已验证/)).toBeInTheDocument();
+  expect(screen.getByText(/登记 1 项转换工具；登记不代表产物已验证/)).toBeInTheDocument();
   expect(screen.getByText(/最终采用由用户决定/)).toBeInTheDocument();
  });
 });

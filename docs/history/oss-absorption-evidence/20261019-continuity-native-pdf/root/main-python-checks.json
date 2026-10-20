@@ -1,0 +1,34 @@
+[
+  {
+    "name": "regressions",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests/test_pdf_runtime_dependency.py",
+      "tests/test_worker_pdf_native.py",
+      "tests/test_worker_pdf_structure.py",
+      "tests/test_worker_pdf_reading_order.py",
+      "tests/test_pdf_sidecar_job.py",
+      "tests/workers/test_text_ndjson.py",
+      "tests/test_material_context_request.py",
+      "tests/test_material_companion_native_probe.py",
+      "tests/contract/test_project_handoff_preview_contract.py",
+      "tests/test_native_preview_ci.py",
+      "tests/contract/test_resource_catalog_projection.py",
+      "tests/contract/test_capability_package_details.py"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:17:10.788127+00:00",
+    "ended_at": "2026-10-18T23:17:49.595730+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/implementation-continuation-20261019/main-python-regressions.log",
+    "log_sha256": "bf171ec21f493b11ed39be036966fc75e49bdf6a6f27f1201300c2fcd4411da0"
+  }
+]

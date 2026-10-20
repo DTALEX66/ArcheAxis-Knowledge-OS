@@ -1,0 +1,207 @@
+{
+  "status": "PASS",
+  "whole_product": "PARTIAL",
+  "evidence_level": "REAL_NATIVE_REAL_MODEL_SYNTHETIC_MATERIAL",
+  "source_patch_sha256": "bf27efc04415d6de00714147225e410327042adebd9bfe8311316528507e30c8",
+  "source_consistent": true,
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\closure-native-stage\\candidate-build-current-20261018T185132Z.json",
+      "sha256": "2192d850d2b2da5498cbee8185c608be0bf1767f3b124ac018cfb8842231aca6",
+      "bytes": 4701
+    },
+    "core_sha256": "55a3ff7806f5d231deb99e06c6acc99ff8961d9bcbe90246d2cd7a86f1c107a3"
+  },
+  "phases": {
+    "same_process_recovery": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "additional_observed_ui_execution_calls": 0
+    },
+    "cold_reopen": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "observed_after_attach_ui_execution_calls": 0,
+      "startup_execution_calls": "UNVERIFIED"
+    },
+    "backup_restore": {
+      "status": "PASS",
+      "original_receipts_unchanged": true,
+      "observed_after_attach_ui_execution_calls": 0,
+      "startup_execution_calls": "UNVERIFIED"
+    }
+  },
+  "actual_model_results": [
+    {
+      "purpose": "material",
+      "terminal": "succeeded",
+      "answer_sha256": "e9ba4b85ad191ece0f0dcc350cf84fe4abc85ae477e2eb699b1912d3749a4914",
+      "requested_model": "aaos-deep-27b-mtp",
+      "observed_model": "aaos-deep-27b-mtp",
+      "finish_reason": "stop",
+      "truncated": false,
+      "elapsed_s": 88,
+      "usage": {
+        "input_tokens": 211,
+        "output_tokens": 320,
+        "total_tokens": 531
+      },
+      "answer_source": "content"
+    },
+    {
+      "purpose": "companion",
+      "terminal": "completed",
+      "answer_sha256": "678047aee027fce21f1af972c17d9bdd92eadc091dd9a3d8dbe09ff8b37aebff",
+      "requested_model": "aaos-deep-27b-mtp",
+      "observed_model": "aaos-deep-27b-mtp",
+      "finish_reason": "stop",
+      "truncated": false,
+      "elapsed_s": 27.86,
+      "usage": {
+        "input_tokens": 180,
+        "output_tokens": 85,
+        "total_tokens": 265
+      },
+      "answer_source": "content"
+    }
+  ],
+  "execution_results": {
+    "material": {
+      "http_status": 200,
+      "bridge_error": null,
+      "response": {
+        "outcome": "succeeded",
+        "plan_sha256": "4bfe145de6d519a5c497aa700597731e4556f0bd9a6f12abd98fd9c61099a4be",
+        "reason_code": null,
+        "request_id": "28fec6a6-8ea7-4844-ad4c-a6a1e7037889",
+        "schema": "archeaxis.material-answer/v1",
+        "task_id": "material_answer_6e7322e18de11ba3530853133a84932e3df40475d3e93ebfe1c20dd3b0443015"
+      }
+    },
+    "companion": {
+      "http_status": 200,
+      "bridge_error": null,
+      "response": {
+        "plan_sha256": "8fb2241335a1b6362677f4f1fecf3fc649a96505a13d9770ef4195fb4f9135b5",
+        "reason_code": null,
+        "request_id": "c6f35a65-0490-4b50-9505-79115524a0b4",
+        "schema": "archeaxis.conversation-receipt/v1",
+        "session_id": "ea745e3e-c71c-41a5-a16d-688895d1286a",
+        "state": "completed"
+      }
+    }
+  },
+  "observed_calls": [
+    {
+      "operation": "material_question",
+      "preview": true,
+      "own": true,
+      "completed": true,
+      "status": 200,
+      "terminal_response": null
+    },
+    {
+      "operation": "material_question",
+      "preview": false,
+      "own": true,
+      "completed": true,
+      "status": 200,
+      "terminal_response": {
+        "outcome": "succeeded",
+        "plan_sha256": "4bfe145de6d519a5c497aa700597731e4556f0bd9a6f12abd98fd9c61099a4be",
+        "reason_code": null,
+        "request_id": "28fec6a6-8ea7-4844-ad4c-a6a1e7037889",
+        "schema": "archeaxis.material-answer/v1",
+        "task_id": "material_answer_6e7322e18de11ba3530853133a84932e3df40475d3e93ebfe1c20dd3b0443015"
+      }
+    },
+    {
+      "operation": "conversation_request",
+      "preview": true,
+      "own": true,
+      "completed": true,
+      "status": 200,
+      "terminal_response": null
+    },
+    {
+      "operation": "conversation_request",
+      "preview": false,
+      "own": true,
+      "completed": true,
+      "status": 200,
+      "terminal_response": {
+        "plan_sha256": "8fb2241335a1b6362677f4f1fecf3fc649a96505a13d9770ef4195fb4f9135b5",
+        "reason_code": null,
+        "request_id": "c6f35a65-0490-4b50-9505-79115524a0b4",
+        "schema": "archeaxis.conversation-receipt/v1",
+        "session_id": "ea745e3e-c71c-41a5-a16d-688895d1286a",
+        "state": "completed"
+      }
+    }
+  ],
+  "reopen_observations": {
+    "cold_reopen": [],
+    "backup_restore": []
+  },
+  "screenshots": [
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-367cb42448fa/tmp/journey/companion-backup_restore.png",
+      "bytes": 1212125,
+      "sha256": "0952fd08a781348340d46535501cf2b8e26c4113f2efc5752c44018083752b7a",
+      "visually_viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-367cb42448fa/tmp/journey/companion-cold_reopen.png",
+      "bytes": 1210171,
+      "sha256": "1496d1d149973de97bcd99421da486f130936b010254776f2c4df94c5aa2c634",
+      "visually_viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-367cb42448fa/tmp/journey/grouped-learning-review.png",
+      "bytes": 963737,
+      "sha256": "57be63e50e03904945f7ce368ff3de52b9662849b162eef3f0900b6804d53671",
+      "visually_viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-367cb42448fa/tmp/journey/material-backup_restore.png",
+      "bytes": 1255334,
+      "sha256": "1e7b05edfb67552a82b7b9f5e288ac3dd090f796e903421b8ce9234ed5b512e9",
+      "visually_viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-367cb42448fa/tmp/journey/material-cold_reopen.png",
+      "bytes": 1257880,
+      "sha256": "8258a9a3cacdaf1c9f6836c072c4582ecc167fb4a57bedfc58b294d3b980a413",
+      "visually_viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-367cb42448fa/tmp/journey/material-companion-completed.png",
+      "bytes": 1255691,
+      "sha256": "41faebd82e93bf8efdedb95dc23e6f02a77cb98922f9e84b3e0b17d7f230a4eb",
+      "visually_viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-367cb42448fa/tmp/journey/material-completed.png",
+      "bytes": 1259189,
+      "sha256": "256dd08f5c12417d06f78f51c4969fe96d8d6c802da668b7440bc8dd00d95870",
+      "visually_viewed": true
+    }
+  ],
+  "launch_count": 6,
+  "trusted_actions": 275,
+  "raw_local_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-367cb42448fa/tmp/journey/receipt.json",
+    "sha256": "ff6ad8ea9b9089fc46d96774ae42d56c58807cf0c80df518fa14cfb5054f0c6d"
+  },
+  "cleanup": {
+    "owned_ports_released": true,
+    "remaining_owned_port_listeners": [],
+    "remaining_same_creation_owned_hosts": []
+  },
+  "quality": "UNVERIFIED; companion returned no practical study suggestion; completed is execution status only",
+  "startup_execution_calls": "UNVERIFIED",
+  "native_cancellation": "NOT_EXECUTED",
+  "installed_runtime": "NOT_EXECUTED",
+  "owner_acceptance": "NOT_EXECUTED"
+}

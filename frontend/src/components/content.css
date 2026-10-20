@@ -74,7 +74,7 @@
 .template-launcher > section > button { min-width:64px; }
 .template-launcher > section [aria-label="引用式画布"] { border:1px dashed var(--ax-border-strong); border-radius:var(--ax-radius-sm); }
 .template-launcher > section pre { max-width:100%; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
-@media (max-width: 900px) {
+@container content (max-width: 900px) {
   /* The two-column surfaces below genuinely cannot seat both tracks side by side here, so they
      collapse. `.template-launcher > section` is deliberately absent: its own track list already
      collapses when the container is too narrow, and forcing it here is what made the expanded

@@ -1,0 +1,90 @@
+[
+  {
+    "name": "generated-check",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "scripts/contracts/generate_capability_package_details.py",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:19:48.869363+00:00",
+    "seconds": 0.5474064000009093,
+    "exit_code": 0,
+    "log": ".project-local/audits/consumer-integration-20261019/main-generated-check.log"
+  },
+  {
+    "name": "node-guard",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+      "--test",
+      "--test-concurrency=1",
+      "tests/contract/test_capability_package_details_node.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:19:49.417090+00:00",
+    "seconds": 0.5710758999921381,
+    "exit_code": 0,
+    "log": ".project-local/audits/consumer-integration-20261019/main-node-guard.log"
+  },
+  {
+    "name": "python-contracts",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "tests/contract/test_capability_package_details.py",
+      "tests/contract/test_capability_package_contract.py",
+      "-q",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:19:49.988473+00:00",
+    "seconds": 4.404620699991938,
+    "exit_code": 0,
+    "log": ".project-local/audits/consumer-integration-20261019/main-python-contracts.log"
+  },
+  {
+    "name": "vite-config-ts",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+      "node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--skipLibCheck",
+      "--module",
+      "ESNext",
+      "--moduleResolution",
+      "bundler",
+      "--target",
+      "ES2022",
+      "--allowJs",
+      "--types",
+      "node,vitest",
+      "vite.config.ts"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend",
+    "started_at": "2026-10-18T22:19:54.393382+00:00",
+    "seconds": 0.6679410000215285,
+    "exit_code": 0,
+    "log": ".project-local/audits/consumer-integration-20261019/main-vite-config-ts.log"
+  },
+  {
+    "name": "python-lint",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "ruff",
+      "check",
+      "scripts/contracts/generate_capability_package_details.py",
+      "tests/contract/test_capability_package_details.py"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:19:55.061734+00:00",
+    "seconds": 0.20998789998702705,
+    "exit_code": 0,
+    "log": ".project-local/audits/consumer-integration-20261019/main-python-lint.log"
+  }
+]

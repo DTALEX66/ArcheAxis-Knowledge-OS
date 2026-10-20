@@ -125,7 +125,7 @@ describe("UI-03 distinct failure states", () => {
     expect(failureMessage(new ApiError(503, "workspace migration is unavailable", "backend_starting"))).toMatch(/^正在启动：/);
     // A transport failure the Core contract does not describe keeps the established sentence.
     expect(failureMessage(new ApiError(500, "/workspace/api/v1/home -> 500", "unavailable"))).toBe(
-      "本地数据暂时不可用，请稍后重试或打开系统诊断。",
+      "本地数据暂时不可用，请稍后重试或打开运行诊断。",
     );
   });
 

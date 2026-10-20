@@ -1,0 +1,163 @@
+{
+  "schema": "archeaxis.independent-recovery-readback/v1",
+  "status": "PASS_INDEPENDENT_RECOVERY_NOT_FULL_AI_CHAIN",
+  "engineering_status": "PASS",
+  "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE_SYNTHETIC_MATERIAL",
+  "source_patch_sha256": "c3585765dde1544db5535df552c81362e71bb8444c3801a7abc5256acd2db0b9",
+  "receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-0c6c5309cd12/tmp/journey/receipt.json",
+    "bytes": 127715,
+    "sha256": "e1df045abc5f5881c2e42c09395aac0f42946d414fdc6a34ab7ecfbab9737e3e"
+  },
+  "ok": true,
+  "source_consistent": true,
+  "answers": {
+    "material": {
+      "elapsed_s": 79.95,
+      "max_tokens": 1024,
+      "finish_reason": "stop",
+      "truncated": false,
+      "usage": {
+        "input_tokens": 210,
+        "output_tokens": 252,
+        "total_tokens": 462
+      },
+      "observed_model": "aaos-deep-27b-mtp",
+      "answer_policy": "grounded",
+      "answer_source": "content",
+      "answer": "上下文未提供合成材料 91375d0555ef 的主题，无法概括。",
+      "outcome": "succeeded",
+      "plan_sha256": "c3f9636e329e0bb7b78c45da94951e5678767d558e948f752c9f37f1b7150666"
+    },
+    "companion": {
+      "elapsed_s": 75.72,
+      "max_tokens": 1024,
+      "finish_reason": "stop",
+      "truncated": false,
+      "usage": {
+        "input_tokens": 254,
+        "output_tokens": 210,
+        "total_tokens": 464
+      },
+      "observed_model": "aaos-deep-27b-mtp",
+      "answer_policy": "companion_general",
+      "answer_source": "content",
+      "answer": "不确定你的具体科目，建议你先用10分钟回忆知识框架，再针对薄弱点做少量练习并标记疑问。",
+      "outcome": "completed",
+      "plan_sha256": "e067bdeb4b3ff301a4b5b55077bfb05d21034349458815ba3f7ab010e8e2d1ef"
+    }
+  },
+  "same_process_recovery": {
+    "status": "PASS",
+    "original_receipts_unchanged": true,
+    "additional_observed_ui_execution_calls": 0
+  },
+  "cold_reopen": {
+    "status": "PASS",
+    "original_receipts_unchanged": true,
+    "observed_after_attach_ui_execution_calls": 0,
+    "startup_execution_calls": "UNVERIFIED"
+  },
+  "backup_restore": {
+    "status": "PASS",
+    "original_receipts_unchanged": true,
+    "observed_after_attach_ui_execution_calls": 0,
+    "startup_execution_calls": "UNVERIFIED"
+  },
+  "original_document_core_equal": [
+    true,
+    true
+  ],
+  "workspace_restore": {
+    "status": "PASS",
+    "restore_epoch": "98bb05a2e9ea9a5999bb3b92177f09f0"
+  },
+  "cleanup": {
+    "requested_product_exits": [
+      {
+        "pid": 14608,
+        "created": 134368363556554190,
+        "requested": true,
+        "ack": "CONFIRMED"
+      },
+      {
+        "pid": 34808,
+        "created": 134368365287893093,
+        "requested": true,
+        "ack": "CONFIRMED"
+      },
+      {
+        "pid": 35892,
+        "created": 134368365556192344,
+        "requested": true,
+        "ack": "CONFIRMED"
+      }
+    ],
+    "owned_process_cleanup": true,
+    "owned_identity_collection_verified": true,
+    "remaining_same_creation_owned_hosts": [],
+    "remaining_owned_port_listeners": [],
+    "owned_ports_released": true
+  },
+  "screenshots": [
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c6c5309cd12/tmp/journey/material-completed.png",
+      "bytes": 1213912,
+      "sha256": "f76fbe1832f22ae2b73c82d52caffb200881cf357f4754d8eaa5c7525100c79b",
+      "actually_viewed_by_root": true,
+      "observation": "材料请求按深度1024/120秒显示，原请求历史已读回且没有再次推理；回答称上下文未提供主题，不能视为质量达标。",
+      "visual_limitations": "单次1600x1000画面，侧栏横向滚动/密度仍待完整视觉验收；非截图基准或无障碍合规。"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c6c5309cd12/tmp/journey/material-companion-completed.png",
+      "bytes": 1255777,
+      "sha256": "a2eef80573d35477319446a644564506e6f20ab8010b8a24d72f60c8eae50d39",
+      "actually_viewed_by_root": true,
+      "observation": "陪伴历史显示完成及具体复习建议；冷重开/恢复后新输入表单通道为快速，不代表原回执的深度冻结绑定改变。",
+      "visual_limitations": "单次1600x1000画面，侧栏横向滚动/密度仍待完整视觉验收；非截图基准或无障碍合规。"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c6c5309cd12/tmp/journey/material-cold_reopen.png",
+      "bytes": 1216268,
+      "sha256": "4a236950e4ad0619a9d6e9e4d01fe7f355afc43e748a7584c1d77f3fe9901e13",
+      "actually_viewed_by_root": true,
+      "observation": "材料请求按深度1024/120秒显示，原请求历史已读回且没有再次推理；回答称上下文未提供主题，不能视为质量达标。",
+      "visual_limitations": "单次1600x1000画面，侧栏横向滚动/密度仍待完整视觉验收；非截图基准或无障碍合规。"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c6c5309cd12/tmp/journey/companion-cold_reopen.png",
+      "bytes": 1216905,
+      "sha256": "bcc22c6cbbee5cd366b7e081bd2d143d06dfb52e3b340b33fcbd67eb61a6c09d",
+      "actually_viewed_by_root": true,
+      "observation": "陪伴历史显示完成及具体复习建议；冷重开/恢复后新输入表单通道为快速，不代表原回执的深度冻结绑定改变。",
+      "visual_limitations": "单次1600x1000画面，侧栏横向滚动/密度仍待完整视觉验收；非截图基准或无障碍合规。"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c6c5309cd12/tmp/journey/material-backup_restore.png",
+      "bytes": 1213306,
+      "sha256": "ee913cb5b097883b9fca0fd680ff124eee8333a751f0876c65abb72f315e2b3f",
+      "actually_viewed_by_root": true,
+      "observation": "材料请求按深度1024/120秒显示，原请求历史已读回且没有再次推理；回答称上下文未提供主题，不能视为质量达标。",
+      "visual_limitations": "单次1600x1000画面，侧栏横向滚动/密度仍待完整视觉验收；非截图基准或无障碍合规。"
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c6c5309cd12/tmp/journey/companion-backup_restore.png",
+      "bytes": 1217302,
+      "sha256": "d96cbacb410d6efe521eb42b67aa0805a346bdea4868b94bc7d525035b12c794",
+      "actually_viewed_by_root": true,
+      "observation": "陪伴历史显示完成及具体复习建议；冷重开/恢复后新输入表单通道为快速，不代表原回执的深度冻结绑定改变。",
+      "visual_limitations": "单次1600x1000画面，侧栏横向滚动/密度仍待完整视觉验收；非截图基准或无障碍合规。"
+    }
+  ],
+  "quality": {
+    "material_summary": "OBSERVED_LOW_UTILITY_NOT_QUALIFIED",
+    "companion": "ONE_USEFUL_SYNTHETIC_EXAMPLE_NOT_GENERAL_QUALIFICATION",
+    "next": "保持原样本/回答，另设材料概括真值与明确提问样本，区分prompt/选区/模型质量；不靠更换样本抹除此观察。"
+  },
+  "boundaries": [
+    "原完整回答/纠正/复测链未运行，旧MODEL_CALL_TIMEOUT不改写",
+    "非安装版、非P95基准、非学习质量或Owner验收",
+    "本轮测量11文件与EOL4文件在原生运行之后应用，其新源码原生测量NOT_EXECUTED",
+    "HTTP open非TTFT，provider内部queue/prefill/decode仍UNVERIFIED"
+  ]
+}

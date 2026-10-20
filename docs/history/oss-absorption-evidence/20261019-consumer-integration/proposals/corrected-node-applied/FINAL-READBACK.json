@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "state": "NOT_APPLIED",
+  "patch_sha256": "b5704554f3c934b362304b6262906aba2bfc0315c2cdc48ccff5cd72d089c981",
+  "manifest_sha256": "f579475f95b706eb9d62cd0c2c889ec0511e4b36787317112380219913540976",
+  "validation_sha256": "b911b10d8bea8e2e222712b633635d2fe4e007c25c0fa1689c048feb637793f3",
+  "current_sha256": "2b44d5cc2af6b4556513a7ee0cbb6569bac7202de6968a84480982e41ad3ce5c",
+  "root_cause_sha256": "be6711cfa54c2080fe8c85c8869db4084fc4957f27b68156cd7fc29a56b5906e",
+  "canonical_receipt": ".project-local/runs/be268a2d33/hub-node-corrected-1019/artifacts/execution.json",
+  "canonical_receipt_sha256": "91be60e45fec790d3281a25236cdf49cd5e0cc651dbf0c543c0d9bd75842b529",
+  "canonical_source_consistent": true,
+  "all11_steps_bound_all10_final_files": true,
+  "old_frozen_unchanged": true,
+  "public_baseline_unchanged": true,
+  "product_writes": [],
+  "services_started": []
+}

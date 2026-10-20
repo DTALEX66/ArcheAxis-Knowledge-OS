@@ -1,4 +1,5 @@
-export type WorkspaceReviewItem = { item_key: string; next_review: string | null };
+import type {LearningItemsDto} from "../api/generated/core-contract";
+export type WorkspaceReviewItem = LearningItemsDto["items"][number];
 /** Core's legacy SQLite datetime is UTC; never interpret it as browser local time. */
 export function reviewDeadline(value: string | null): number | null {
   if (value === null) return null;

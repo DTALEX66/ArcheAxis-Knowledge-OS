@@ -78,10 +78,10 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
     try {
       const bundle = await getEvidenceBundleInspection(bundleId);
       onInspect({
-        title: "受治理证据束",
+        title: "证据组合",
         source: "关联主张",
         lifecycle: stateLabel(bundle.latest_review?.decision ?? "unreviewed"),
-        detail: `证据束条目：${bundle.entries.length}；内容指纹已记录`,
+        detail: `共 ${bundle.entries.length} 条证据记录；内容保存信息已登记`,
         conflict: bundle.conflict,
         rights: bundle.rights,
         scopes: bundle.scopes,
@@ -99,7 +99,7 @@ export function EvidenceSpace({ onInspect }: { onInspect: (target: InspectionTar
 
   return (
     <Section title="证据账本">
-      <p className="muted">证据锚点与受治理证据束的只读投影。</p>
+      <p className="muted">这里展示已保存的来源引用和证据组合。</p>
       {loading ? (
         <Loading label="证据账本" />
       ) : error ? (

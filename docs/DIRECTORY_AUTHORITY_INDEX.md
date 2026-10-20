@@ -1,6 +1,6 @@
 # Directory Authority Index
 
-> **2026-10-12 当前路由与状态**：产品实施 RUNNING_BY_OWNER / PARTIAL；源码已通过 PR #184 并入 main。当前任务与授权读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录；仓库收敛与接续读[接续记录](current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。2026-10-10 暂停仅为历史快照；六项核心能力增量仍 FROZEN_BY_OWNER，V01 暂停、FT01–04 冻结。发布、Green 替换与真实用户数据覆盖未授权。 文件身份及旧路径按[路径身份路由](current/AAOS-AUTHORITY-ROUTES.json)分类。
+> **2026-10-12 当前路由与状态**：产品实施 RUNNING_BY_OWNER / PARTIAL；源码已通过 PR #184 并入 main。当前任务与授权读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录；仓库收敛与接续读[接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。2026-10-10 暂停仅为历史快照；六项核心能力增量仍 FROZEN_BY_OWNER，V01 暂停、FT01–04 冻结。发布、Green 替换与真实用户数据覆盖未授权。 文件身份及旧路径按[路径身份路由](current/AAOS-AUTHORITY-ROUTES.json)分类。
 
 > **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
 > 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
@@ -15,7 +15,7 @@
 ## Authoritative topology
 
 Current task selection is resolved by the active-execution pointer; ownership reconciliation retains the R6/M0 preservation constraints, SUP-022 and this index;
-[R5-PATH-DISPOSITION.json](current/R5-PATH-DISPOSITION.json) is historical evidence.
+[R5-PATH-DISPOSITION.json](../config/governance/path-disposition.json) is historical evidence.
 The 0910 measurement keeps its original SHA and 69 historical gaps. R5 assigned
 metadata owners and maintenance-only legacy lanes; that historical assignment is
 not semantic absorption or a deletion grant. `.zcode/**` is private state and
@@ -39,11 +39,11 @@ denied for commit.
 ## Required records before a move
 
 Every proposed relocation or archival action must first have one row compliant
-with the [AX-DIR-010 inventory schema](current/AX_DIR_010_INVENTORY_SCHEMA.md):
+with the [AX-DIR-010 inventory schema](history/repository-consolidation-20261019/current/AX_DIR_010_INVENTORY_SCHEMA.md):
 source and target path, owner, data class, hashes, consumer scan, rollback,
 verification and an exact deletion-authorization state.
 
-The [directory-migration adoption map](current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md)
+The [directory-migration adoption map](history/repository-consolidation-20261019/current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md)
 is a historical proposal, partially superseded by R6/M0 and its dated freeze
 banner. Use this index and the current project authority for present path roles.
 A dirty tree, unresolved consumer, missing rollback receipt or `NOT_REQUESTED`
@@ -57,7 +57,7 @@ deletion state still stops any exact-path move or deletion.
   governs the Windows executable chain.
 - [Language boundary authority](LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md)
   governs implementation ownership; a directory name cannot change it.
-- [Repository normalization state](current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md)
+- [Repository normalization state](history/repository-consolidation-20261019/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md)
   is a frozen 2026-09-03 snapshot; its React/Tauri and G0 sequencing are
   superseded by R6/M0. Its dated hygiene evidence remains historical and does
   not authorize a move or deletion.

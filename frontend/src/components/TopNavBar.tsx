@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
-import { BRAND_ASSETS } from '../assets/index';
-import { GlobalSearch } from './GlobalSearch';
+import { useConsoleWindow } from "./ConsoleWindow";
+import { useAaosTheme } from '../design-system/ThemeProvider';
+import { AAOS_THEME_REGISTRY } from '../design-system/theme';
 import './TopNavBar.css';
+import { DiagnosticCenterTrigger } from './DiagnosticConsole';
+import { commandKeyLabel } from '../presentation/keyboardShortcuts';
 
 interface Breadcrumb {
   label: string;
@@ -11,6 +13,7 @@ interface Breadcrumb {
 interface TopNavBarProps {
   breadcrumbs: Breadcrumb[];
   onSearch?: () => void;
+  onSettings?: () => void;
   notificationCount?: number;
   userName?: string;
 }
@@ -18,45 +21,29 @@ interface TopNavBarProps {
 export function TopNavBar({
   breadcrumbs,
   onSearch,
+  onSettings,
   notificationCount = 0,
   userName = 'User'
 }: TopNavBarProps) {
-  const [searchOpen, setSearchOpen] = useState(false);
-
-  const handleSearchTrigger = () => {
-    setSearchOpen(true);
-    onSearch?.();
-  };
-
-  const handleSearchSelect = (result: any) => {
-    console.log('Selected:', result);
-    // TODO: 导航到选中的结果
-  };
-
-  // Cmd+K 快捷键
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        handleSearchTrigger();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  });
+  const { theme } = useAaosTheme();
+  const consoleWindow = useConsoleWindow();
 
   return (
     <>
       <nav className="top-nav-bar">
         <div className="top-nav-container">
           {/* Left: Logo + Breadcrumbs */}
-          <div className="top-nav-left">
-            <img
-              src={BRAND_ASSETS.logo.white}
+          <div className="top-nav-left" onPointerDown={event=>consoleWindow?.begin(event,"move")} onPointerMove={consoleWindow?.move} onPointerUp={consoleWindow?.end} onPointerCancel={consoleWindow?.cancel} onLostPointerCapture={consoleWindow?.end}>
+            {consoleWindow && <span id="console-window-help" className="console-window-help">拖动标志或标题空白处移动；方向键移动，Shift加方向键调整大小；Esc取消正在进行的拖动。窄窗口自动铺满。</span>}
+            {consoleWindow ? <button type="button" className="console-move-handle" aria-label="移动主控台" aria-describedby="console-window-help" onKeyDown={consoleWindow.keys} disabled={consoleWindow.mode!=="floating"} title={consoleWindow.mode==="floating"?"拖动移动；方向键移动，Shift加方向键调整大小":"铺满时无需移动"}><img
+              src={AAOS_THEME_REGISTRY[theme].brandMark}
               alt="ArcheAxis"
               className="top-nav-logo"
-            />
+            /></button> : <img
+              src={AAOS_THEME_REGISTRY[theme].brandMark}
+              alt="ArcheAxis"
+              className="top-nav-logo"
+            />}
             <div className="top-nav-breadcrumb">
               {breadcrumbs.map((crumb, index) => (
                 <span key={index}>
@@ -85,21 +72,26 @@ export function TopNavBar({
           <div className="top-nav-center">
             <button
               className="top-nav-search-trigger"
-              onClick={handleSearchTrigger}
+              type="button"
+              aria-label="搜索页面、能力与内容"
+              aria-keyshortcuts="Control+K Meta+K"
+              onClick={onSearch}
             >
-              <span className="search-trigger-icon">🔍</span>
+              <span className="search-trigger-icon" aria-hidden="true">🔍</span>
               <span className="search-trigger-text">
-                搜索文档、知识、学习内容...
+                搜索页面、能力与内容
               </span>
-              <div className="search-trigger-shortcut">
-                <span className="search-trigger-key">⌘</span>
+            </button>
+              <div className="search-trigger-shortcut" aria-hidden="true">
+                <span className="search-trigger-key">{commandKeyLabel()}</span>
                 <span className="search-trigger-key">K</span>
               </div>
-            </button>
           </div>
 
           {/* Right: Actions */}
           <div className="top-nav-right">
+            {consoleWindow && <><button type="button" className="top-nav-action console-window-action" aria-label={consoleWindow.mode==="floating"?"铺满主控台":"还原主控台"} onClick={consoleWindow.toggle} disabled={consoleWindow.mode==="compact"} title={consoleWindow.mode==="compact"?"可用空间较小，主控台自动铺满":consoleWindow.mode==="full"?"还原主控台":"铺满主控台"}>{consoleWindow.mode==="floating"?"□":"▣"}</button><button type="button" className="top-nav-action console-window-action" aria-label="复位主控台" onClick={consoleWindow.reset} title="复位主控台的位置和大小">↺</button></>}
+            <DiagnosticCenterTrigger />
             <button
               className={`top-nav-action ${notificationCount > 0 ? 'has-badge' : ''}`}
               aria-label="通知"
@@ -112,6 +104,8 @@ export function TopNavBar({
               className="top-nav-action"
               aria-label="设置"
               title="设置"
+              type="button"
+              onClick={onSettings}
             >
               ⚙️
             </button>
@@ -125,12 +119,6 @@ export function TopNavBar({
         </div>
       </nav>
 
-      {/* Global Search Modal */}
-      <GlobalSearch
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        onSelect={handleSearchSelect}
-      />
     </>
   );
 }

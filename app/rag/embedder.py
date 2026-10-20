@@ -11,7 +11,7 @@ turn into a hard dependency.
 ``ollama``
     The registered local Ollama runtime, for example ``qwen3-embedding:0.6b``
     from the shared model library. Uses the same ``POST /api/embed`` request
-    shape as ``scripts/pipeline/eval_retrieval.py``.
+    shape as the explicitly selected legacy Ollama adapter.
 ``llm``
     LiteLLM remote embeddings for the configured model.
 
@@ -96,7 +96,7 @@ def ollama_embed(
 ) -> list[list[float]] | None:
     """Embed through a local Ollama runtime, or return ``None``.
 
-    Mirrors ``scripts/pipeline/eval_retrieval.py``: ``POST <base>/api/embed`` with
+    Explicit legacy adapter: ``POST <base>/api/embed`` with
     ``{"model": ..., "input": [...]}`` returns ``{"embeddings": [[...], ...]}``.
     Uses only the standard library, so the local runtime stays an optional
     dependency.

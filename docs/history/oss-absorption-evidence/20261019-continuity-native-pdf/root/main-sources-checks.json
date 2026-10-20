@@ -1,0 +1,50 @@
+[
+  {
+    "name": "capability-details",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "scripts/contracts/generate_capability_package_details.py",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:17:10.826506+00:00",
+    "ended_at": "2026-10-18T23:17:11.484977+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/implementation-continuation-20261019/main-sources-capability-details.log",
+    "log_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "name": "resource-catalog",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "scripts/contracts/generate_resource_catalog.py",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:17:11.485683+00:00",
+    "ended_at": "2026-10-18T23:17:11.865070+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/implementation-continuation-20261019/main-sources-resource-catalog.log",
+    "log_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "name": "node-details",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "--test",
+      "tests/contract/test_capability_package_details_node.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T23:17:11.865507+00:00",
+    "ended_at": "2026-10-18T23:17:12.701143+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/implementation-continuation-20261019/main-sources-node-details.log",
+    "log_sha256": "c4612828276d0d90ac40e3cbbf5a4b34575355467564a47dbe8fc8f8bf6fa1e5"
+  }
+]

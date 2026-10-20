@@ -4,6 +4,12 @@ contract_version: 1.0.0-draft
 effective_at: "2026-10-09T00:00:00Z"
 project: ArcheAxis Knowledge
 stage: aaos-ui-first-2026-10-09
+closed_loop_definition:
+  id: AAOS-SHORTEST-COMPLETE-LOOP-V2
+  source: docs/truth/CLOSED_LOOP_DEFINITION.md
+  owner_decided_at: "2026-10-19"
+  role: normative-scope-and-acceptance-not-implementation-receipt
+  precedence: supersedes-narrower-historical-loop-scope-only-preserve-core-and-safety-contracts
 # Owner-selected queue and acceptance routing: docs/current/AAOS-ACTIVE-EXECUTION.json.
 # The immutable 10/09 planning package and inherited AAOS-01 evidence remain dated sources.
 # V01 paused; this contract declares product requirements, never a remote/installation grant.
@@ -25,12 +31,12 @@ scope:
   excluded_until_v01_go:
     - system-level platform
     - WORK-LAB or DESIGN-LAB runtime contracts
-    - plugin marketplace
+    - public plugin distribution and paid marketplace; built-in capability catalog and controlled integrations follow the closed_loop_definition
     - online collaboration and cross-device sync
     - graph database and full event sourcing
     - unbounded autonomous web verification without budget
   planned_after_v01:
-    - additional formats without a qualified engine
+    - additional nonbaseline formats explicitly deferred under the closed_loop_definition; missing common-format engines remain tracked gaps
 # Normative requirements, not a receipt of implemented or verified behavior.
 content_policy:
   evidence_uses:

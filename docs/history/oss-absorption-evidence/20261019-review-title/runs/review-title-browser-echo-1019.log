@@ -1,0 +1,10 @@
+{"dependencies_verified": 4, "build": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\056543a77b63\\artifacts\\frontend-dist", "out": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\review-title-browser-echo-1019\\artifacts\\ui-pilot"}
+
+Running 1 test using 1 worker
+
+(node:10188) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/1] audit.spec.cjs:5:1 › review titles preserve identity, legacy fallback and readable narrow layout
+  1 passed (6.2s)

@@ -1,3 +1,5 @@
+import {useDiagnostics, resetDiagnostics} from "../presentation/diagnostics";
+import {renderHook} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -29,6 +31,7 @@ function setup() {
     throw new Error(op);
   });
 }
+beforeEach(resetDiagnostics);
 describe("knowledge → course → lesson → existing learning queue", () => {
   beforeEach(() => { bridge.call.mockReset(); setup(); });
   it("reads the Core course and text projection before binding the exact long learning key", async () => {
@@ -67,7 +70,7 @@ describe("knowledge → course → lesson → existing learning queue", () => {
     expect(screen.queryByRole("button", { name: "由课程课时建立学习问题" })).not.toBeInTheDocument();
   });
   it("keeps projection metadata in the diagnostic receipt while presenting teaching content", async () => {
-    const debug = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const debug = vi.spyOn(console, "debug").mockImplementation(() => {}); const diagnostics = renderHook(useDiagnostics);
     try {
       render(<KnowledgeCoursePanel knowledgeId="k1" />); const user = userEvent.setup();
       await user.click(screen.getByRole("button", { name: "从当前知识生成课程与课时" }));
@@ -76,9 +79,9 @@ describe("knowledge → course → lesson → existing learning queue", () => {
       expect(article).toHaveTextContent("解释证据并指出来源");
       expect(article).not.toHaveTextContent("RAW_PROJECTION_METADATA");
       expect(article).not.toHaveTextContent(courseId);
-      await user.click(screen.getByRole("button", { name: "查看原始回执（诊断）：课程课时渲染回执" }));
-      expect(debug.mock.calls.some(args => args.some(arg => arg && typeof arg === "object" && JSON.stringify(arg).includes("RAW_PROJECTION_METADATA")))).toBe(true);
-    } finally { debug.mockRestore(); }
+      await user.click(screen.getByRole("button", { name: "查看诊断详情：课程课时渲染回执" }));
+      expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(args => args.some(arg => arg && typeof arg === "object" && JSON.stringify(arg).includes("RAW_PROJECTION_METADATA")))).toBe(true);
+    } finally { expect(debug).not.toHaveBeenCalled(); debug.mockRestore(); }
   });
   it("rejects teaching content that changes between the course read and render", async () => {
     const changed = rendered(); changed.course.manifest.knowledge_components[0].statement = "替换正文";

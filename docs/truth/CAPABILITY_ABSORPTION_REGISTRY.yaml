@@ -37,7 +37,7 @@ entries:
       - "crates/archeaxis-api"
   - capability_id: CAP-DEEPTUTOR
     capability_name: "Source-grounded tutor and recoverable learning workspace"
-    current_internal_implementation: "scripts/launch/deeptutor_web.py; docs/current/R5-EXECUTION.md"
+    current_internal_implementation: "scripts/launch/deeptutor_web.py; docs/history/repository-consolidation-20261019/current/R5-EXECUTION.md"
     legacy_donor: "DeepTutor 1.5.17 custody adapter"
     upstream_project: "DeepTutor"
     upstream_commit_or_release: "UNPINNED_REVIEW_REQUIRED"

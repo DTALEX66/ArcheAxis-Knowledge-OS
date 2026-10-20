@@ -11,6 +11,8 @@
       "type": "string",
       "enum": [
         "system_version",
+        "project_handoff_preview",
+        "project_handoff_snapshot",
         "source_import",
         "sources_list",
         "source_jobs",

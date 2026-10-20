@@ -520,16 +520,16 @@ def local_runtime_lanes(role: str | None = None) -> list[dict]:
     itself (the text-answer route asks for a text model) uses the address only; a worker that
     must use the identity the declaration names passes `role` and reads `model`.
 
-    This exists because two addresses were written into Python source instead of the
-    declaration: a host that serves the models on the OpenAI-compatible lane while Ollama is
-    down had no way to say so, and the index said nothing about either lane at all.
+    Current automatic routing is LM Studio's OpenAI-compatible API. Old manifests can still
+    contain Ollama entries; they must not reactivate a retired automatic route. Explicit
+    per-worker endpoint overrides are handled separately by the worker.
     """
     seen: dict[tuple[str, str], dict] = {}
     for resource in endpoint_resources(role):
         endpoint = resource["endpoint"]
         protocol = str(endpoint.get("protocol") or "")
         base = str(endpoint.get("base_url") or "").rstrip("/")
-        if protocol not in ("ollama", "openai") or not base:
+        if protocol != "openai" or not base:
             continue
         key = (protocol, base)
         record = {"protocol": protocol, "base": base, "model": endpoint.get("model_id"),

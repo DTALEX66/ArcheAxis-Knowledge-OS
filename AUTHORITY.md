@@ -1,12 +1,14 @@
 # AUTHORITY.md — 根入口
 
-> 本地/云端仓库身份、分支保留及换会话接续：[接续记录](docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。路径和 SHA 是可核对的观察，不是永久环境或新权限。
+> 本地/云端仓库身份、分支保留及换会话接续：[接续记录](docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。路径和 SHA 是可核对的观察，不是永久环境或新权限。
 
-> **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。
+> **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；公开发布和真实用户数据覆盖未授权；Green程序精确目录更新已由Owner后继授权，范围读活动指针green_update_authorization。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。
 
 本文件是仓库的**导航入口**，不是新的真值来源。它只回答"该读哪个文件"，每一项都指向本仓已存在的规范文件。
-此前两处记录写"根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）"（`docs/current/AAOS-UI-COVERAGE-MATRIX-20261001.md`、
-`docs/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md`）；这两处是当时的实测，保留不改写；本文件使该引用可解析。
+用户所称闭环的唯一规范是 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V2`）；旧阶段对最短闭环的较窄解释按该定义及替代账本解析，实际进度仍由活动指针导航。
+换 Agent／换会话先读[活动指针的 continuation_context](docs/current/AAOS-ACTIVE-EXECUTION.json)，再读[当前对话决定及替代关系](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[接手入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录。权威、规划、会话来源及外置共用库按该指针导航，先读回登记再核实现场；不从旧摘要或私人记忆猜路径。
+此前两处记录写"根目录 `AUTHORITY.md` 缺失（`AUTHORITY_REFERENCE_MISSING`）"（`docs/history/repository-consolidation-20261019/current/AAOS-UI-COVERAGE-MATRIX-20261001.md`、
+`docs/history/repository-consolidation-20261019/current/AAOS-BACKEND-LOOP-EVIDENCE-20261001.md`）；这两处是当时的实测，保留不改写；本文件使该引用可解析。
 
 ## 1. 母定义（沿用输入文档原文，不转述）
 
@@ -31,7 +33,7 @@
 区分：仅目标 / 候选 / 结构实现 / 受控测试 / 真实运行 / 独立验收 / 发布。**测试数量、页面数量、单条纵向切片都不能定义项目本体。**
 以下是继承的 2026-10-05 审计时点声明（不是当前源码资格），至少包括：Q04"完成"声明已撤销；音视频已实测仅媒体头信息探测，未证明解码/转写/时间段内容闭环；
 引擎断言无有效结论（存在 cancelled/skipped 与桌面 failure）；更正记录中 Q14 为 NOT_RUN，且未做人工视觉确认。
-逐条原文与来源：[`docs/current/AAOS01-AUDIT-CORRECTIONS-20261005.md`](docs/current/AAOS01-AUDIT-CORRECTIONS-20261005.md)
+逐条原文与来源：[`docs/history/repository-consolidation-20261019/current/AAOS01-AUDIT-CORRECTIONS-20261005.md`](docs/history/repository-consolidation-20261019/current/AAOS01-AUDIT-CORRECTIONS-20261005.md)
 （字节 SHA-256 `da9998ee673086ed12dab824d951e76c2611efb92e72edccf276b91ed8d92d4d`，已核）。
 
 ## 4. 未来能力入口
@@ -51,14 +53,14 @@
 - **当前活动任务包**：`docs/taskpacks/aaos-ui-first-20261009/`（AAOS-UI-FIRST-PLAN-20261009），由用户当前执行/G01请求选中；规范路由为 [`docs/current/AAOS-ACTIVE-EXECUTION.json`](docs/current/AAOS-ACTIVE-EXECUTION.json)。
 - **当前 UI 实施进度**：[`docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md`](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)。任务包中的 NOT_EXECUTED 是规划时快照，不回填该原包。
 - **继承合同来源**：`docs/authority/taskpack-1004-aaos01/`（`01_完整执行任务书.md`），保留内容保存、身份与原 Q/F 验收条款，不作为并行当前队列。
-- **前一个任务包（保留继承约束与回执，不再作为当前）**：R6 absorb-first（`docs/authority/taskpack-0919-r6/`），其优先级覆盖 [`M0`](docs/current/M0-DIRECTION-OVERRIDE-20260920.md) 仍作为继承约束保留。
-- **继承 AAOS-01（仅 Q00—Q15）的进度记录**：[`docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`](docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。
+- **前一个任务包（保留继承约束与回执，不再作为当前）**：R6 absorb-first（`docs/authority/taskpack-0919-r6/`），其优先级覆盖 [`M0`](docs/history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md) 仍作为继承约束保留。
+- **继承 AAOS-01（仅 Q00—Q15）的进度记录**：[`docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`](docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md)。
 - **正式宿主**：Tauri 2 + React/TypeScript/Vite + Rust Core 单写者（[`DECISION_SUPERSESSION_LEDGER.yaml`](DECISION_SUPERSESSION_LEDGER.yaml) SUP-021 → SUP-022）；Avalonia 为供体并冻结。
 - `docs/taskpacks/README.md` 曾自称"唯一当前任务包"，已作废该表述并指向上述入口。
 
-> 2026-10-06 的 AAOS-01 接手纠错属于该阶段历史。本次用户已明确选中 10/09 UI 优先队列和 G01；旧 R6/M0/AAOS-01 整包顺序冻结，有效约束继承。V01 仍暂停，FT01–04 保留未来意图。新布局适用于所有主题；blueprint 默认，旧配色可切换且同一主题全局一致。
+> 2026-10-06 的 AAOS-01 接手纠错属于该阶段历史。10/09 用户选中 UI 优先队列和 G01；旧 R6/M0/AAOS-01 整包顺序冻结，有效约束继承。V01 仍暂停，FT01–04 保留未来意图。新布局适用于所有主题；当时的 blueprint 默认已由后续 UI 方向覆盖，现行主题策略读活动指针 theme_policy，同一主题全局一致。
 
-当前交接见 [`docs/current/AAOS-AGENT-HANDOFF-CURRENT.md`](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)，本地/云端漂移与未发布范围见 [`docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md`](docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
+当前交接见 [`docs/current/AAOS-AGENT-HANDOFF-CURRENT.md`](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)，本地/云端漂移与未发布范围见 [`docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md`](docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
 
 ## 7. 审计索引（可导航链：根入口 → 有效规则 → 来源 → 能力/任务 → 代码或证据 → 两端读回）
 
@@ -68,7 +70,7 @@
 | 冲突 / 更正 / 替代 crosswalk | [`DECISION_SUPERSESSION_LEDGER.yaml`](DECISION_SUPERSESSION_LEDGER.yaml) |
 | 覆盖矩阵（CAP / Q / F / I） | `docs/current/AAOS-COVERAGE-MATRIX-20261006.md` |
 | 输入来源与哈希（含 SOURCE_MISSING） | `docs/current/AAOS-INPUT-SOURCES-20261006.json` |
-| 本轮审计快照（observed_at / SHA / 命令 / 退出码） | `docs/current/AAOS-AUDIT-SNAPSHOT-20261006.json` |
+| 本轮审计快照（observed_at / SHA / 命令 / 退出码） | `docs/history/repository-consolidation-20261019/current/AAOS-AUDIT-SNAPSHOT-20261006.json` |
 | 供应链吸收决策账本 | [`docs/truth/SUPPLY_CHAIN_LEDGER.json`](docs/truth/SUPPLY_CHAIN_LEDGER.json) |
 | 文档/治理自动核验 | `scripts/ci/check_document_authority.py`（接入 CI） |
 

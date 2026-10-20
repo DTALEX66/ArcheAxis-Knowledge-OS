@@ -1,0 +1,51 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ❯ src/__tests__/CoreBridge.test.ts (24 tests | 4 failed) 13ms
+   × SIMULATED rejects a supplied malformed learning title null 4ms
+     → promise resolved "{ items: [ { …(3) } ], count: 1 }" instead of rejecting
+   × SIMULATED rejects a supplied malformed learning title  1ms
+     → promise resolved "{ items: [ { …(3) } ], count: 1 }" instead of rejecting
+   × SIMULATED rejects a supplied malformed learning title 🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰 1ms
+     → promise resolved "{ items: [ { …(3) } ], count: 1 }" instead of rejecting
+   × SIMULATED rejects a supplied malformed learning title 42 0ms
+     → promise resolved "{ items: [ { …(3) } ], count: 1 }" instead of rejecting
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/__tests__/CoreBridge.test.ts > SIMULATED rejects a supplied malformed learning title null
+ FAIL  src/__tests__/CoreBridge.test.ts > SIMULATED rejects a supplied malformed learning title 
+ FAIL  src/__tests__/CoreBridge.test.ts > SIMULATED rejects a supplied malformed learning title 🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰🛰
+ FAIL  src/__tests__/CoreBridge.test.ts > SIMULATED rejects a supplied malformed learning title 42
+AssertionError: promise resolved "{ items: [ { …(3) } ], count: 1 }" instead of rejecting
+
+- Expected
++ Received
+
+- [Error: rejected promise]
++ Object {
++   "count": 1,
++   "items": Array [
++     Object {
++       "display_title": null,
++       "item_key": "original-long-item-key",
++       "next_review": null,
++     },
++   ],
++ }
+
+ ❯ src/__tests__/CoreBridge.test.ts:103:45
+    101|   const body={items:[{item_key:"original-long-item-key",next_review:nu…
+    102|   window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200…
+    103|   await expect(coreCommand("learning_items")).rejects.toMatchObject({s…
+       |                                             ^
+    104| });
+    105| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 20 passed (24)
+   Start at  03:11:13
+   Duration  789ms (transform 98ms, setup 88ms, collect 112ms, tests 13ms, environment 277ms, prepare 56ms)
+

@@ -35,7 +35,7 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(window.location.hash).toBe("#page=02");
     view.unmount();window.history.replaceState(null,"","#space=library");
     render(<App/>);
-    expect(screen.getByRole("heading",{name:"资料库",level:2})).toBeInTheDocument();
+    expect(within(document.querySelector(".space-view")!).getByRole("heading",{name:"资料库",level:2})).toBeInTheDocument();
     expect(screen.getByLabelText("导入原件")).toBeInTheDocument();
     expect(screen.queryByRole("region",{name:"知识库文档视图"})).toBeNull();
   });
@@ -91,7 +91,7 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(within(tools).getByLabelText("材料问题")).toBe(input);
     expect(input).toHaveValue("保留尚未提交的问题");
     expect(screen.getByRole("textbox",{name:"文档草稿"})).toBe(editor);
-    expect(screen.getByRole("button",{name:"查看原始回执（诊断）：文档身份与来源指纹"})).toHaveTextContent("文档身份与来源指纹");
+    expect(screen.getByRole("button",{name:"文档与来源详细信息：文档与来源详细信息"})).toHaveTextContent("文档与来源详细信息");
     bridge.call.mockImplementation((op:string,payload:Record<string,unknown>={})=>op==="documents_list"?Promise.reject(new Error("refresh offline")):previous(op,payload));
     await user.click(screen.getByRole("button",{name:"刷新资料列表"}));
     expect(await screen.findByRole("alert")).toHaveTextContent("资料列表刷新失败");
@@ -192,4 +192,32 @@ describe("semantic 02 and 03 layouts",()=>{
     expect(editor).toHaveTextContent("仍保留未保存中文");
     expect(bridge.call.mock.calls.some(([op])=>op==="document_draft")).toBe(false);
   });
+});
+
+it("SIMULATED: library Inspector describes the actual loaded document without leaking raw identities into its prose",async()=>{
+ const inspect=vi.fn();render(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id} onInspect={inspect}/>);
+ await screen.findByRole("textbox",{name:"文档草稿"});
+ await waitFor(()=>expect(inspect).toHaveBeenCalled());const actual=inspect.mock.calls.at(-1)![0];
+ expect(actual).toMatchObject({title:doc.title,version:String(doc.version),identityDetails:{document_id:doc.document_id,version:doc.version,content_sha256:doc.content_sha256,source_id:doc.source_id,source_revision:doc.source_revision}});
+ expect(actual.detail).not.toContain(doc.document_id);expect(actual.detail).not.toContain(doc.content_sha256);expect(actual.detail).toContain("保存不代表内容已被证实");
+ expect(bridge.call.mock.calls.some(([op])=>["document_draft","material_question","conversation_request"].includes(op))).toBe(false);
+});
+
+
+it("SIMULATED: narrow document navigation keeps reading clear and the explicit Inspector control opens the synchronized object", async()=>{
+  vi.stubGlobal("innerWidth",640);
+  const user=userEvent.setup();render(<App/>);
+  await user.click(await screen.findByRole("button",{name:"打开文档 中文普通笔记"}));
+  const editor=await screen.findByRole("textbox",{name:"文档草稿"});
+  expect(editor).toHaveTextContent("真实返回正文");
+  expect(screen.queryByRole("complementary",{name:"检查器"})).toBeNull();
+  await user.click(screen.getByRole("button",{name:"展开检查器"}));
+  const inspector=screen.getByRole("complementary",{name:"检查器"});
+  expect(inspector).toHaveTextContent("中文普通笔记");
+  await user.click(within(inspector).getByRole("button",{name:"关闭检查器"}));
+  expect(screen.queryByRole("complementary",{name:"检查器"})).toBeNull();
+  await user.click(screen.getByRole("button",{name:"展开检查器"}));
+  expect(screen.getByRole("complementary",{name:"检查器"})).toHaveTextContent("中文普通笔记");
+  expect(editor).toHaveTextContent("真实返回正文");
+  expect(bridge.call.mock.calls.some(([op])=>op==="document_draft")).toBe(false);
 });

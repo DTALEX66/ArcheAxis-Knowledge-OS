@@ -92,7 +92,7 @@ def main() -> int:
     digest = hashlib.sha256(png.read_bytes()).hexdigest()
     ocr = subprocess.run(
         [sys.executable, "-B", str(REPO / "services/python-workers/vision/worker_ocr.py"),
-         str(png), "--profile", str(REPO / "config/model-profiles/local-2026-09-05.yaml")],
+         str(png), "--profile", str(REPO / "config/model-profiles/current-local.yaml")],
         cwd=REPO, capture_output=True, text=True, encoding="utf-8", errors="replace",
         timeout=120, creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
     )

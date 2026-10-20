@@ -66,6 +66,6 @@ def test_empty_inputs_rejected():
 
 
 def test_llm_grader_returns_none_without_provider():
-    # No API keys configured in test env → rubric fallback (None is safe)
+    # Missing explicit model never selects or calls an implicit provider.
     result = grade_with_llm("x", REFERENCE)
-    assert result is None or isinstance(result, dict)
+    assert result is None

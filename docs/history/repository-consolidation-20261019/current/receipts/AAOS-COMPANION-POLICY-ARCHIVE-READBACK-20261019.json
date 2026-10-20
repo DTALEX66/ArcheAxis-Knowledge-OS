@@ -1,0 +1,866 @@
+{
+  "schema": "aaos.increment-archive-readback/v1",
+  "recorded_at": "2026-10-18T20:48:55.581747+00:00",
+  "status": "PASS",
+  "evidence_level": "STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION",
+  "archive_members_verified": 15,
+  "previous_archive_members_unchanged": 79,
+  "source_files_match_current": 14,
+  "navigation_links_verified": 177,
+  "archive_manifest_sha256": "52636b1ab80db264541f66b1fe9f5a18e5edaf5a59214b3b61c3ebb32e7b6ff7",
+  "links": [
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/history/owner-dialogue-20261019/README.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "AAOS-资料索引.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-AUTHORITY-ROUTES.json"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/DOCUMENTATION_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/SHARED_RESOURCE_PATH_INDEX.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-LOCAL-LLM-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/history/runtime-migration-20261018/README.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-XIAOQI-MIGRATION-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-OSS-UI-DONORS-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/receipts/AAOS-COMPANION-POLICY-20261019.json"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-review-cancellation/README.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-review-title/README.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/README.md"
+    },
+    {
+      "from": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/owner-dialogue-20261019/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/AAOS-COMPANION-POLICY-20261019.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-review-cancellation/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-machine-deadline/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-recovery/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-material-companion-final/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-capability-course/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-AUDIT-TEST-COVERAGE-20261018.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/AAOS-FRONTEND-TEST-CASES-20261018.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/AAOS-DIAGNOSTIC-CENTER-20261018.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/AAOS-MACHINE-FAILURE-DIAGNOSTICS-20261018.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-AUTHORITY-ROUTES.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "AUTHORITY.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "AGENTS.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "PROJECT_CONTRACT.yaml"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "DECISION_SUPERSESSION_LEDGER.yaml"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": ".project/schemas/project-contract.schema.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/authority/taskpack-0919-r6/EXECUTOR-START.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/authority/taskpack-0919-r6/TASKS.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/R6-EXECUTION.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/R6-STATE.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/authority/taskpack-1004-aaos01/00_两包共同架构与交接规则.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/DOCUMENTATION-DRIFT-AUDIT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/BRANCH-DISPOSITION-CURRENT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/PROJECT-LOCAL-VOLUME-AUDIT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/SEPTEMBER-BACKEND-INTEGRATION-20260927.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/SEPTEMBER-CONSOLIDATION-READBACK-20260927.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/branch-donors/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/DOCUMENT-CONSOLIDATION-20260927.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/SHARED_RESOURCE_PATH_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/DIRECTORY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-COVERAGE-MATRIX-20261006.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-AUDIT-SNAPSHOT-20261006.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/LIVE-CHAIN-RECEIPTS.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/SHARED_RESOURCE_PATH_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/environment/EXTERNAL_DEPENDENCIES.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/CONFIGURATION_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/DOCUMENT-CONSOLIDATION-20260927.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "AGENTS.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/CONFIGURATION_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/R6-DIRECTION-RECONCILIATION-20260920.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/R6-EXECUTION.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/CURRENT_REALITY_2026-09-01.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/PROJECT_STATUS.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AXM_G0_MIGRATION_FREEZE_RULES_2026-09-02.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AXM_G0_OWNER_MAP_2026-09-02.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AXM_G0_EVIDENCE_GAP_REGISTER_2026-09-03.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AX_DIR_010_INVENTORY_SCHEMA.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/DIRECTORY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/truth/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/truth/NAMING_CONTRACT_V2.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/CONFIGURATION_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/RUNTIME_DELIVERY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/truth/CURRENT_STATE_TRUTH.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/R6-STATE.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/R6-EXECUTION.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/truth/FROZEN_EXECUTION_BASELINE_v1_2026-08-09.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/taskpacks/aaos-ui-first-20261009/TASKPACK.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/authority/taskpack-0919-r6/EXECUTOR-START.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/R6-EXECUTION.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/M0-DIRECTION-OVERRIDE-20260920.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "DECISION_SUPERSESSION_LEDGER.yaml"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/authority/taskpack-1004-aaos01/01_完整执行任务书.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "PROJECT_CONTRACT.yaml"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/architecture/CURRENT_ARCHITECTURE.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/REPOSITORY-DRIFT-CURRENT-RECEIPT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/DOCUMENTATION-DRIFT-AUDIT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/BRANCH-DISPOSITION-CURRENT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-LOCAL-REPOSITORY-LINEAGE-READBACK-20260925.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/PROJECT-LOCAL-VOLUME-AUDIT-20260923.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AXM_LANGUAGE_AUDIT_TASK_ADOPTION_2026-09-02.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AX_DIRECTORY_MIGRATION_TASK_ADOPTION_2026-09-02.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/DIRECTORY_AUTHORITY_INDEX.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/REPOSITORY_NORMALIZATION_STATE_2026-09-03.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/OPERATIONAL_ISSUE_ARCHIVE_2026-09-04.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/truth/EXECUTION_STATUS_LOG.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/RELEASE_LEDGER.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/VERIFICATION_POLICY.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/architecture"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/architecture/imported-designs"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/taskpacks"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/superpowers/plans/2026-09-03-runtime-authority-and-language-g0.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/DOCUMENT-CONSOLIDATION-20260927.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/DOCUMENT-CONSOLIDATION-20260927.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/architecture/CURRENT_ARCHITECTURE.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/environment/EXTERNAL_DEPENDENCIES.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/architecture/imported-designs/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/pre-v0.6.7-current-snapshots/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/history/planning-blueprint-absorption/2026-09-29/README.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-H01-SOURCE-TRACE-20261009.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-H01-SOURCE-TRACE-20261009.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-UI-DESIGN-INCREMENT-20261010.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/AAOS-TEACHING-STAGE-20261010.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/AAOS-CANVAS-STAGE-20261010.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/receipts/AAOS-RESEARCH-STAGE-20261010.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/current/AAOS-AUTHORITY-ROUTES.json"
+    },
+    {
+      "from": "docs/DOCUMENTATION_AUTHORITY_INDEX.md",
+      "target": "docs/SYSTEM_BOUNDARY.md"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/current/AAOS-ACTIVE-EXECUTION.json"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/owner-dialogue-20261019/README.md"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/SOURCE-MANIFEST.json"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/task-delta.diff"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/EXECUTIONS.json"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/real-companion-worker.json"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/native-material-failure-diagnostics.json"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/NATIVE-READBACK.json"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/ruff-before-after.json"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/current/receipts/AAOS-COMPANION-POLICY-20261019.json"
+    },
+    {
+      "from": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "target": "docs/history/oss-absorption-evidence/20261019-companion-policy/BE10-READONLY-PROPOSAL.md"
+    }
+  ],
+  "full_private_transcript": "UNVERIFIED",
+  "cloud_backup": "NOT_EXECUTED",
+  "product_status": "PARTIAL",
+  "owner_dialogue_verification_run": "owner-dialogue-final-policy-1019",
+  "document_authority_verification_run": "companion-policy-doc-authority-1019",
+  "archive_readback_run": "companion-policy-archive-readback-1019-r2",
+  "earlier_readback_run": "companion-policy-archive-readback-1019: failed verifier assumed list format; legacy manifest is path-to-SHA dict. Corrected readback supports both original formats without changing old manifests.",
+  "readonly_review": "No blocking issues; independent 15-member SHA/size and manifest-binding verification; prior cancellation terminal fields added to current receipt.",
+  "verification_runs": [
+    {
+      "run_id": "owner-dialogue-final-policy-1019",
+      "receipt": {
+        "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "dirty": true,
+        "source_patch_sha256": "a1a225bf77abc7f3f58e76d0ecde6a23212d0208e9b846b32d662f389ee7943d",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-18T20:47:42.451945+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\owner-dialogue-final-policy-1019",
+        "executable": ".venv/Scripts/python.exe",
+        "argument_count": 5,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-X",
+          "utf8",
+          "-B",
+          "docs/history/owner-dialogue-20261019/verify_archive.py",
+          "--require-local-attachments"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_patch_sha256_after": "a1a225bf77abc7f3f58e76d0ecde6a23212d0208e9b846b32d662f389ee7943d",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\owner-dialogue-final-policy-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-18T20:47:43.926495+00:00",
+        "seconds": 1.474545400007628
+      }
+    },
+    {
+      "run_id": "companion-policy-doc-authority-1019",
+      "receipt": {
+        "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "dirty": true,
+        "source_patch_sha256": "a1a225bf77abc7f3f58e76d0ecde6a23212d0208e9b846b32d662f389ee7943d",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-18T20:47:42.459545+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-policy-doc-authority-1019",
+        "executable": ".venv/Scripts/python.exe",
+        "argument_count": 4,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-X",
+          "utf8",
+          "-B",
+          "scripts/ci/check_document_authority.py"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_patch_sha256_after": "a1a225bf77abc7f3f58e76d0ecde6a23212d0208e9b846b32d662f389ee7943d",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-policy-doc-authority-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-18T20:47:43.940993+00:00",
+        "seconds": 1.4814452000136953
+      }
+    },
+    {
+      "run_id": "companion-policy-archive-readback-1019-r2",
+      "receipt": {
+        "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "dirty": true,
+        "source_patch_sha256": "a1a225bf77abc7f3f58e76d0ecde6a23212d0208e9b846b32d662f389ee7943d",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-18T20:48:54.753140+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-policy-archive-readback-1019-r2",
+        "executable": ".venv/Scripts/python.exe",
+        "argument_count": 4,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-X",
+          "utf8",
+          "-B",
+          ".project-local/audits/companion-policy-integration-20261019/readback_current_increment.py"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_patch_sha256_after": "a1a225bf77abc7f3f58e76d0ecde6a23212d0208e9b846b32d662f389ee7943d",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-policy-archive-readback-1019-r2\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-18T20:48:56.158938+00:00",
+        "seconds": 1.4057964000094216
+      }
+    }
+  ],
+  "final_diff_check": {
+    "run_id": "companion-policy-final-diff-1019",
+    "receipt": {
+      "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+      "dirty": true,
+      "source_patch_sha256": "6fd2c1ac008179bebf4ccc0c67a2227131f664453816fc28758774f8497a4f20",
+      "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+      "started_at": "2026-10-18T20:49:32.663762+00:00",
+      "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-policy-final-diff-1019",
+      "executable": "git",
+      "argument_count": 2,
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+      "boundary": "environment-routing-not-sandbox",
+      "child_exit_code": 0,
+      "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "source_patch_sha256_after": "6fd2c1ac008179bebf4ccc0c67a2227131f664453816fc28758774f8497a4f20",
+      "source_consistent": true,
+      "status": "LOCAL_PASS",
+      "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\companion-policy-final-diff-1019\\logs\\execution.log",
+      "exit_code": 0,
+      "ended_at": "2026-10-18T20:49:33.926084+00:00",
+      "seconds": 1.2623167999845464
+    }
+  },
+  "final_git_review": {
+    "status_entries": 264,
+    "status_saved": ".project-local/audits/companion-policy-integration-20261019/final-git-status.z",
+    "status_sha256": "6f7e8af77f8c02e1e2738efda3d7d14382d35b2754f6e0a1f0173ef070d32174",
+    "task_product_source_hashes_read_back": 14,
+    "original_dirty_changes_preserved": "No reset/restore/clean, branch switch or unrelated cleanup performed",
+    "commit_push_release": "NOT_EXECUTED"
+  }
+}

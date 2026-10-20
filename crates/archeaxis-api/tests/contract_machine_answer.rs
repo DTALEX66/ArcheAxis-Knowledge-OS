@@ -86,59 +86,48 @@ async fn machine_journal_clear_is_human_only_and_does_not_invoke_worker() {
 
 #[tokio::test]
 async fn actual_failure_status_and_clear_do_not_repeat_worker() {
-    let (dir, router, id) = fixture().await;
-    std::fs::write(dir.path().join("answer.py"),"import json,sys\nfrom pathlib import Path\np=Path(__file__).with_suffix('.count')\np.write_text('1')\nprint(json.dumps({'schema':'archeaxis.machine-worker-failure/v1','reason_code':'MODEL_CALL_FAILED'}))\nsys.exit(1)\n").unwrap();
-    let response = router
-        .clone()
-        .oneshot(
-            Request::builder()
-                .uri("/api/v1/workspace/ui-state")
-                .body(Body::empty())
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-    assert_eq!(response.status(), 200);
-    let basis: serde_json::Value =
-        serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
-    let body = serde_json::json!({"knowledge_id":id,"question":"Synthetic failure recovery","max_tokens":2048,"timeout_s":120,"client_request_id":"failure_recovery"});
-    let entry = serde_json::json!({"journal_id":"failure_recovery","owner_knowledge_id":id,"operation":"answer","origin_restore_epoch":"initial","body":body});
-    let payload = serde_json::json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"failure_recovery":entry}}});
-    let response = router
-        .clone()
-        .oneshot(
-            Request::builder()
-                .method("PUT")
-                .uri("/api/v1/workspace/ui-state")
-                .header("content-type", "application/json")
-                .body(Body::from(payload.to_string()))
-                .unwrap(),
-        )
-        .await
-        .unwrap();
-    assert_eq!(response.status(), 200);
-    let written: serde_json::Value =
-        serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes()).unwrap();
-    let query = serde_json::json!({"workspace_id":written["workspace_id"],"restore_epoch":written["restore_epoch"],"state_revision":written["state_revision"],"journal_id":"failure_recovery"});
-    let mut bypass = body.clone();
-    bypass["client_request_id"] = serde_json::json!("new_identity");
-    let (status, raw) = post(&router, "/api/v1/machine/answers", &bypass.to_string()).await;
-    assert_eq!(status, 409, "{raw}");
-    assert!(!dir.path().join("answer.count").exists());
-    let (status, raw) = post(
-        &router,
-        "/api/v1/workspace/ui-state/machine-status",
-        &query.to_string(),
-    )
-    .await;
-    assert_eq!(status, 200, "{raw}");
-    assert_eq!(
-        serde_json::from_str::<serde_json::Value>(&raw).unwrap()["status"],
-        "UNKNOWN"
-    );
-    let (status, raw) = post(&router, "/api/v1/machine/answers", &body.to_string()).await;
-    assert_eq!(status, 503, "{raw}");
-    for _ in 0..2 {
+    for code in ["MODEL_CALL_FAILED", "MODEL_CALL_TIMEOUT"] {
+        let (dir, router, id) = fixture().await;
+        std::fs::write(dir.path().join("answer.py"),"import json,sys\nfrom pathlib import Path\np=Path(__file__).with_suffix('.count')\np.write_text('1')\nprint(json.dumps({'schema':'archeaxis.machine-worker-failure/v1','reason_code':'REPLACE_REASON'}))\nsys.exit(1)\n".replace("REPLACE_REASON",code)).unwrap();
+        let response = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/api/v1/workspace/ui-state")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 200);
+        let basis: serde_json::Value =
+            serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes())
+                .unwrap();
+        let body = serde_json::json!({"knowledge_id":id,"question":"Synthetic failure recovery","max_tokens":2048,"timeout_s":120,"client_request_id":"failure_recovery"});
+        let entry = serde_json::json!({"journal_id":"failure_recovery","owner_knowledge_id":id,"operation":"answer","origin_restore_epoch":"initial","body":body});
+        let payload = serde_json::json!({"workspace_id":basis["workspace_id"],"restore_epoch":basis["restore_epoch"],"state_revision":basis["state_revision"],"state":{"drafts":{},"opened_documents":[],"active_document":null,"page_id":null,"pending_machine":{"failure_recovery":entry}}});
+        let response = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("PUT")
+                    .uri("/api/v1/workspace/ui-state")
+                    .header("content-type", "application/json")
+                    .body(Body::from(payload.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 200);
+        let written: serde_json::Value =
+            serde_json::from_slice(&response.into_body().collect().await.unwrap().to_bytes())
+                .unwrap();
+        let query = serde_json::json!({"workspace_id":written["workspace_id"],"restore_epoch":written["restore_epoch"],"state_revision":written["state_revision"],"journal_id":"failure_recovery"});
+        let mut bypass = body.clone();
+        bypass["client_request_id"] = serde_json::json!("new_identity");
+        let (status, raw) = post(&router, "/api/v1/machine/answers", &bypass.to_string()).await;
+        assert_eq!(status, 409, "{raw}");
+        assert!(!dir.path().join("answer.count").exists());
         let (status, raw) = post(
             &router,
             "/api/v1/workspace/ui-state/machine-status",
@@ -146,50 +135,69 @@ async fn actual_failure_status_and_clear_do_not_repeat_worker() {
         )
         .await;
         assert_eq!(status, 200, "{raw}");
-        let read: serde_json::Value = serde_json::from_str(&raw).unwrap();
-        assert_eq!(read["status"], "FAILED");
-        assert_eq!(read["can_clear"], true);
-    }
-    let (status, raw) = post(
-        &router,
-        "/api/v1/workspace/ui-state/machine-status",
-        &query.to_string(),
-    )
-    .await;
-    assert_eq!(status, 200);
-    let read: serde_json::Value = serde_json::from_str(&raw).unwrap();
-    let mut clear = query.clone();
-    clear["task_id"] = read["task_id"].clone();
-    let (status, raw) = post(
-        &router,
-        "/api/v1/workspace/ui-state/clear-machine",
-        &clear.to_string(),
-    )
-    .await;
-    assert_eq!(status, 200, "{raw}");
-    assert!(
-        serde_json::from_str::<serde_json::Value>(&raw).unwrap()["state"]
-            .get("pending_machine")
-            .is_none()
-    );
-    assert_eq!(
-        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
-        "1"
-    );
-    let response = router
-        .clone()
-        .oneshot(
-            Request::builder()
-                .method("POST")
-                .uri("/api/v1/workspace/ui-state/machine-status")
-                .header("content-type", "application/json")
-                .header("x-archeaxis-actor", "machine")
-                .body(Body::from(query.to_string()))
-                .unwrap(),
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&raw).unwrap()["status"],
+            "UNKNOWN"
+        );
+        let (status, raw) = post(&router, "/api/v1/machine/answers", &body.to_string()).await;
+        assert_eq!(status, 503, "{raw}");
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&raw).unwrap()["reason_code"],
+            code
+        );
+        for _ in 0..2 {
+            let (status, raw) = post(
+                &router,
+                "/api/v1/workspace/ui-state/machine-status",
+                &query.to_string(),
+            )
+            .await;
+            assert_eq!(status, 200, "{raw}");
+            let read: serde_json::Value = serde_json::from_str(&raw).unwrap();
+            assert_eq!(read["status"], "FAILED");
+            assert_eq!(read["can_clear"], true);
+        }
+        let (status, raw) = post(
+            &router,
+            "/api/v1/workspace/ui-state/machine-status",
+            &query.to_string(),
         )
-        .await
-        .unwrap();
-    assert_eq!(response.status(), 403);
+        .await;
+        assert_eq!(status, 200);
+        let read: serde_json::Value = serde_json::from_str(&raw).unwrap();
+        let mut clear = query.clone();
+        clear["task_id"] = read["task_id"].clone();
+        let (status, raw) = post(
+            &router,
+            "/api/v1/workspace/ui-state/clear-machine",
+            &clear.to_string(),
+        )
+        .await;
+        assert_eq!(status, 200, "{raw}");
+        assert!(
+            serde_json::from_str::<serde_json::Value>(&raw).unwrap()["state"]
+                .get("pending_machine")
+                .is_none()
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+            "1"
+        );
+        let response = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/v1/workspace/ui-state/machine-status")
+                    .header("content-type", "application/json")
+                    .header("x-archeaxis-actor", "machine")
+                    .body(Body::from(query.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), 403);
+    }
 }
 
 #[tokio::test]
@@ -955,6 +963,133 @@ async fn failed_worker_diagnostic_is_safe_and_never_creates_success_task() {
         let count:i64=conn.query_row("SELECT count(*) FROM machine_tasks WHERE scope IN ('runtime.answer','runtime.retest')",[],|row|row.get(0)).unwrap();
         assert_eq!(count, 0);
     }
+}
+
+async fn assert_failed_worker_measurements(retest: bool) {
+    let (dir, router, id) = fixture().await;
+    let mut request = serde_json::json!({"knowledge_id":id,"question":"SYNTHETIC_PRIVATE question","client_request_id":"diagnostic_failure"});
+    let path = if retest {
+        let (status, raw) = post(&router, "/api/v1/machine/answers", &request.to_string()).await;
+        assert_eq!(status, 200, "{raw}");
+        let answer: serde_json::Value = serde_json::from_str(&raw).unwrap();
+        let correction = serde_json::json!({"answer_id":answer["answer_id"],"knowledge_id":id,"question":request["question"],"machine_answer":answer["answer"]["answer"],"corrected_answer":"Synthetic correction","error_note":"synthetic omission"});
+        let (status, raw) = post(
+            &router,
+            "/api/v1/machine/corrections",
+            &correction.to_string(),
+        )
+        .await;
+        assert_eq!(status, 200, "{raw}");
+        let correction: serde_json::Value = serde_json::from_str(&raw).unwrap();
+        let candidate = correction["correction_candidate_id"].as_str().unwrap();
+        assert_eq!(
+            post(
+                &router,
+                &format!("/api/v1/knowledge-items/{candidate}/review-decisions"),
+                r#"{"action":"accepted","reviewer":"synthetic-human"}"#
+            )
+            .await
+            .0,
+            200
+        );
+        request = serde_json::json!({"knowledge_id":candidate,"question":"SYNTHETIC_PRIVATE question","retest_of":correction["failed_task_id"]});
+        "/api/v1/machine/retests"
+    } else {
+        "/api/v1/machine/answers"
+    };
+    let diagnostics = serde_json::json!({
+        "requested_model":"synthetic-model", "observed_model":null,
+        "finish_reason":"length", "answer_source":"reasoning_content",
+        "elapsed_s":2.5, "max_tokens":2048, "timeout_s":120,
+        "usage":{"input_tokens":12,"output_tokens":2048,"total_tokens":2060}
+    });
+    let mut untrusted = diagnostics.clone();
+    untrusted["stderr"] = serde_json::json!("SYNTHETIC_PRIVATE");
+    untrusted["reasoning_content"] = serde_json::json!("SYNTHETIC_PRIVATE");
+    untrusted["usage"]["raw"] = serde_json::json!("SYNTHETIC_PRIVATE");
+    let failure = serde_json::json!({"schema":"archeaxis.machine-worker-failure/v1",
+        "reason_code":"NO_FINAL_ANSWER", "diagnostics":untrusted,
+        "error":"SYNTHETIC_PRIVATE", "answer":"SYNTHETIC_PRIVATE"});
+    // Emit JSON (not Python's dictionary repr), then exit unsuccessfully.
+    std::fs::write(
+        dir.path().join("answer.py"),
+        format!(
+            "import sys\nprint({:?})\nsys.exit(1)\n",
+            failure.to_string()
+        ),
+    )
+    .unwrap();
+    let (status, body) = post(&router, path, &request.to_string()).await;
+    assert_eq!(status, 503, "{body}");
+    let value: serde_json::Value = serde_json::from_str(&body).unwrap();
+    assert_eq!(value["diagnostics"], diagnostics);
+    assert!(!body.contains("SYNTHETIC_PRIVATE"));
+    drop(router);
+    let conn = rusqlite::Connection::open(dir.path().join("db.sqlite")).unwrap();
+    let conditions: String = conn
+        .query_row(
+            "SELECT conditions FROM machine_tasks WHERE scope='runtime.execution.failed'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let audit: serde_json::Value = serde_json::from_str(&conditions).unwrap();
+    assert_eq!(audit["diagnostics"], diagnostics);
+    assert_eq!(audit["provider_stop_state"], "UNKNOWN");
+    assert_eq!(audit["answer_published"], false);
+    assert!(!conditions.contains("SYNTHETIC_PRIVATE"));
+    let published: i64 = conn
+        .query_row(
+            "SELECT count(*) FROM machine_tasks WHERE scope IN ('runtime.answer','runtime.retest')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(published, if retest { 1 } else { 0 });
+    drop(conn);
+    let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+    let transport = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../services/python-workers/transport/text_ndjson.py");
+    let executor = Executor::open_routes(
+        &dir.path().join("db.sqlite"),
+        &dir.path().join("staging"),
+        &python,
+        &transport,
+        &[("machine.answer", dir.path().join("answer.py"))],
+    )
+    .await
+    .unwrap();
+    let restarted = archeaxis_api::runtime::router(executor);
+    let response = restarted
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/machine/tasks")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 200);
+    let raw = response.into_body().collect().await.unwrap().to_bytes();
+    let history: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+    let task = history["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["scope"] == "runtime.execution.failed")
+        .unwrap();
+    let readback: serde_json::Value =
+        serde_json::from_str(task["conditions"].as_str().unwrap()).unwrap();
+    assert_eq!(readback, audit);
+}
+
+#[tokio::test]
+async fn failed_worker_measurements_survive_api_history_and_restart() {
+    assert_failed_worker_measurements(false).await;
+}
+#[tokio::test]
+async fn failed_retest_measurements_survive_api_history_and_restart() {
+    assert_failed_worker_measurements(true).await;
 }
 
 #[tokio::test]

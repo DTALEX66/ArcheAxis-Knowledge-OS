@@ -103,6 +103,39 @@ def validate_conflict_branch(args):
                         args.grouped_authored_intervention)), "Conflict branch cannot mix other fixtures"
 
 
+def navigate_rendered_product_page(ui, js, wait, page, accept_navigation_alert):
+    """Restored routes may have no hash; observe the page and use visible navigation."""
+    assert re.fullmatch(r"\d{2}", page), "Invalid product page"
+    observed = js(r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&
+ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ getComputedStyle(n).visibility==='visible';
+const pages=[...document.querySelectorAll('[aria-label="当前页面"][data-current-page-id]')].filter(visible);
+const drawer=visible(document.querySelector('button[aria-label="打开产品导航"]'));
+const sidebar=visible(document.querySelector('.navigation-sidebar'));
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ mode:drawer?'drawer':sidebar?'sidebar':null};
+""")
+    if observed["page"] == page:
+        return
+    assert observed["mode"] in {"drawer", "sidebar"}, "No visible product navigation"
+    if observed["mode"] == "drawer":
+        ui.click_selector('button[aria-label="打开产品导航"]', "css selector")
+        scope = ".ui-navigation-drawer"
+    else:
+        scope = ".navigation-sidebar"
+    selector = f'{scope} button[data-page-id="{page}"]'
+    wait("const n=document.querySelector(" + json.dumps(selector) + ");"
+         "if(!n||n.disabled||!n.getClientRects().length||n.closest('[hidden],[aria-hidden=\"true\"],[inert]'))return false;"
+         "for(let a=n;a;a=a.parentElement){const s=getComputedStyle(a);"
+         "if(s.display==='none'||s.visibility!=='visible')return false;}return true;")
+    ui.click_selector(selector, "css selector")
+    accept_navigation_alert()
+    wait("return [...document.querySelectorAll('[aria-label=\"当前页面\"][data-current-page-id]')]"
+         ".filter(n=>n.getClientRects().length>0).some(n=>n.getAttribute('data-current-page-id')==="
+         + json.dumps(page) + ")")
+
+
 def compatible_edge_versions(driver_version: str, runtime_version: str) -> bool:
     """Microsoft requires matching major/minor/build; patch updates are compatible.
 
@@ -126,7 +159,7 @@ def confirm_restored_working_state(bridge, ui_click, wait, js):
     js("const original=window.__TAURI__,invoke=original.core.invoke;window.__aaosRecoveryReplies=[];window.__aaosRecoveryOriginal=original;const observed=async function(command,args){const value=await invoke(command,args);if(command==='core_command'&&['ui_state_recover','ui_state_write'].includes(args?.request?.operation))window.__aaosRecoveryReplies.push({operation:args.request.operation,value});return value;};window.__TAURI__={...original,core:{...original.core,invoke:observed}};if(window.__TAURI__.core.invoke!==observed)throw new Error('Recovery observer installation refused');")
     try:
         ui_click("保留恢复候选")
-        wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
+        wait("return !!document.querySelector('[aria-label=\"工作草稿状态\"][data-working-state=\"ready\"]')")
         after = bridge("ui_state_read")
         observed = js("return window.__aaosRecoveryReplies")
     finally:
@@ -167,17 +200,42 @@ def navigate_compatibility_space(js, wait, space: str) -> None:
     # otherwise replace a hash written immediately after reopening the window.
     # The reference home hides the verbose ready-only notice, while recovery and
     # errors stay visible. Await the real hydrated state, not decorative copy.
-    wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
+    wait("return !!document.querySelector('[aria-label=\"工作草稿状态\"][data-working-state=\"ready\"]')")
     headings = {"library": "资料库", "vault": "知识库", "workspace": "工作台"}
     heading = headings[space]
     js("window.location.hash=arguments[0]", ["space=" + space])
     wait("return location.hash===" + json.dumps("#space=" + space) + " && [...document.querySelectorAll('h1,h2,h3')].some(h=>h.textContent.trim()===" + json.dumps(heading) + ")")
 
 
+def xpath_literal(value: str) -> str:
+    if "'" not in value:
+        return "'" + value + "'"
+    if '"' not in value:
+        return '"' + value + '"'
+    return "concat(" + ',"\'",'.join("'" + part + "'" for part in value.split("'")) + ")"
+
+
+def library_object_navigation_scope(js, wait, ui_click):
+    """Open the real compact navigation; DOM reads never activate hidden controls."""
+    observed = js("""const sidebar=document.querySelector('.navigation-sidebar');
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[inert]');
+return {sidebar:visible(sidebar),trigger:visible(document.querySelector('.ui-navigation-trigger'))};""")
+    if observed["sidebar"]:
+        return "//aside[contains(@class,'navigation-sidebar')]//ul[@aria-label='资料库对象导航']"
+    assert observed["trigger"], "Compact object navigation has no visible product navigation trigger"
+    ui_click("☰ 导航")
+    wait("""const drawer=document.querySelector('.ui-navigation-drawer');
+return !!drawer&&drawer.getClientRects().length>0&&
+drawer.querySelectorAll('ul[aria-label="资料库对象导航"] button').length===4;""")
+    return "//*[@role='dialog' and contains(@class,'ui-navigation-drawer')]//ul[@aria-label='资料库对象导航']"
+
+
 def navigation_button_selector(text: str, scope: str = "") -> str:
+    if scope == "//ul[@aria-label='复习队列']":
+        return f"{scope}//button[@data-learning-item-key={xpath_literal(text)} and not(ancestor-or-self::*[@hidden])]"
     # Object-navigation buttons contain a label and description. Match the exact
     # label child and click its actual parent button, rather than widening all labels.
-    if scope == "//ul[@aria-label='资料库对象导航']":
+    if scope.endswith("//ul[@aria-label='资料库对象导航']"):
         return f"{scope}//button[b[normalize-space(.)='{text}']]"
     return f"{scope}//button[normalize-space(.)='{text}']"
 
@@ -500,7 +558,7 @@ def ui_original_import_loop(bridge, ui_type, wait, manifest, repo):
         assert digest == entry["sha256"] and len(raw) == entry["bytes"]
         assert 0 < len(raw) <= 64 * 1024 * 1024
         ui_type('input[type="file"][aria-label="导入原件"]', str(path))
-        wait("const r=document.querySelector('[aria-label=\"导入回执\"]');return !!r&&r.textContent.includes(" + json.dumps(path.name) + ")&&r.textContent.includes('原件已保留；转换尚未执行')")
+        wait("const r=document.querySelector('[aria-label=\"导入结果\"]');return !!r&&r.textContent.includes(" + json.dumps(path.name) + ")&&r.textContent.includes('原件已保留；转换尚未执行')")
         sources = bridge("sources_list")["sources"]
         matches = [s for s in sources if s["original_name"] == path.name and s["sha256"] == digest]
         assert len(matches) == 1
@@ -1058,8 +1116,8 @@ def synthetic_course_loop(bridge, bridge_status, js, wait, ui_click, ui_type, sc
     key = suggested["item_key"]
     assert len(key) == 159 and created["course"]["status"] == "candidate" and created["human_review_required"] is True
     ui_click("由课程课时建立学习问题")
-    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent===" + json.dumps(key) + ")")
-    ui_click(key)
+    wait("return [...document.querySelectorAll('ul[aria-label=\"复习队列\"] button[data-learning-item-key]')].some(b=>b.getAttribute('data-learning-item-key')===" + json.dumps(key) + ")")
+    ui_click(key, "//ul[@aria-label='复习队列']")
     wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('本次答案'))")
     assessment = bridge("assessment_get", {"item_key": key})
     state = bridge("learning_state", {"item_key": key})
@@ -1110,6 +1168,56 @@ def synthetic_template_pagination(bridge, js, wait, ui_click, screenshot):
         "page_sizes":[len(first["documents"]),len(second["documents"])],"cross_page_backlink":"PASS","relation_total":1}
 
 
+def independent_material_mode(parser, args):
+    mode = "recovery" if args.material_companion_recovery_loop else "cancel" if args.material_companion_cancel_loop else None
+    if mode is None:
+        if args.material_companion_actual_model or args.material_companion_model:
+            parser.error("independent material/companion options require an explicit independent mode")
+        return None
+    if not args.material_companion_actual_model or not args.material_companion_model:
+        parser.error("independent material/companion requires explicit --material-companion-actual-model and --material-companion-model")
+    if not re.fullmatch(r"[A-Za-z0-9_.:/@+-]{1,256}", args.material_companion_model):
+        parser.error("invalid independent material/companion model identity")
+    if any((args.grouped_common_owner_loop, args.grouped_run_ai, args.grouped_authored_intervention,
+            args.grouped_model, args.grouped_save_deep_binding, args.grouped_material_companion_loop,
+            args.grouped_material_companion_cancel, args.grouped_max_tokens, args.require_actual_ai_loop,
+            args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss,
+            args.grouped_machine_ack_loss, args.grouped_machine_cancel, args.closure_features,
+            args.closure_downloads, args.synthetic_course_loop, args.synthetic_template_pagination,
+            args.installed_draft_conflict_loop, args.character_memory_loop, args.configuration_plan_loop,
+            args.be10_handoff_reader_loop, args.ui_import_manifest, args.ui_format_conversion, args.ui_format_reparse,
+            args.ui_format_citations, args.ui_original_text_citations, args.installer)):
+        parser.error("independent material/companion cannot mix other journeys or installer qualification")
+    if any(os.environ.get(key) == "1" for key in ("AAOS01_TEACHING_DRAFT_ONLY", "AAOS01_LEARNING_DRAFT_ONLY")):
+        parser.error("independent material/companion cannot mix draft isolation modes")
+    return mode
+
+
+def independent_element_command(request, session, element_id, action, body):
+    if action == "pointer_click":
+        return request("POST", f"/session/{session}/actions", {"actions":[{
+            "type":"pointer", "id":"independent-owned-pointer", "parameters":{"pointerType":"mouse"},
+            "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
+                       {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
+    if action == "wheel":
+        return request("POST", f"/session/{session}/actions", {"actions":[{
+            "type":"wheel", "id":"independent-owned-scroll", "actions":[{
+                "type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
+    return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+
+
+def run_material_independent_branch(*, mode, selected_model, grouped, js, wait, element, command, bridge, restart, screenshot, accept_navigation_alert, receipt):
+    actions = []
+    section = receipt["material_companion_independent"] = {"actions": actions}
+    ui = grouped.GroupedUI(js, wait, element, command, actions, accept_navigation_alert)
+    helper = load("independent_material_native_journey", REPO / "scripts/probes/aaos01_material_independent_loop.py")
+    material = load("independent_material_controls", REPO / "scripts/probes/aaos01_material_companion_loop.py")
+    helper.run(mode=mode, ui=ui, read=grouped.readonly_bridge(bridge), js=js, wait=wait,
+               restart=restart, screenshot=screenshot, grouped=grouped, material=material,
+               selected_model=selected_model, report=section)
+    return section["engineering_status"] == "PASS"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", type=Path, required=True)
@@ -1117,6 +1225,7 @@ def main():
     parser.add_argument("--native-driver", type=Path)
     parser.add_argument("--build-receipt", type=Path, help="Bind a candidate to its current source and host/Core hashes")
     parser.add_argument("--configuration-plan-loop", action="store_true", help="Explicit isolated BE08 native configuration and read-only plan journey; no installer or model execution")
+    parser.add_argument("--be10-handoff-reader-loop", action="store_true", help="Isolated page-16 pinned reader with synthetic UI note, actual Core read-only handoff, no receiver or model")
     parser.add_argument("--character-memory-loop", action="store_true", help="Explicit independent BE06 synthetic memory UI, cold reopen and owned local JSON download; no model or installed claim")
     parser.add_argument("--ui-import-manifest", type=Path, help="Explicit 18-format synthetic fixture identities for actual file input qualification")
     parser.add_argument("--ui-format-conversion", action="store_true", help="Execute actual UI content controls for explicit synthetic import manifest")
@@ -1135,6 +1244,9 @@ def main():
     parser.add_argument("--grouped-authored-intervention", action="store_true", help="Explicit identity-bound engineering intervention/adoption and independent actual-model retest; not Owner or independent model-error adjudication")
     parser.add_argument("--grouped-run-ai", "--actual-model", action="store_true", help="Opt-in existing actual model route only; no model/provider changes or fabricated errors")
     parser.add_argument("--grouped-model", help="Explicit already-authorized local model choice through the formal UI; no endpoint or global configuration change")
+    parser.add_argument("--grouped-save-deep-binding", action="store_true", help="Save answer/retest DEEP bindings through UI on the fresh synthetic workspace; require frozen binding receipts and cold reopen")
+    parser.add_argument("--grouped-material-companion-loop", action="store_true", help="Extend saved-DEEP actual-model journey to material/companion UI calls, readonly receipts and cold/restore reopen on the synthetic workspace")
+    parser.add_argument("--grouped-material-companion-cancel", action="store_true", help="After the material/companion journey, cancel one admitted request per purpose through UI and verify cold readback; provider stop remains UNKNOWN")
     parser.add_argument("--grouped-max-tokens", type=int, choices=[2048,4096], help="Explicit per-task output budget through the formal UI")
     parser.add_argument("--require-actual-ai-loop", action="store_true", help="Require actual answer, adopted engineering correction, independent retest and restore refusal; no Owner or accuracy qualification")
     parser.add_argument("--synthetic-course-loop", action="store_true", help="Explicit authored fixture with synthetic review actor; never human signoff")
@@ -1150,7 +1262,13 @@ def main():
         type=Path,
         help="Exact parent-verified NSIS installer identity; does not itself establish installation",
     )
+    independent_modes = parser.add_mutually_exclusive_group()
+    independent_modes.add_argument("--material-companion-recovery-loop", action="store_true", help="Independent actual material/companion, cold and backup recovery on fresh synthetic data; no answer/retest qualification")
+    independent_modes.add_argument("--material-companion-cancel-loop", action="store_true", help="Independent admitted material/companion UI cancel and cold recovery; no prior successful generation or provider-stop claim")
+    parser.add_argument("--material-companion-actual-model", action="store_true", help="Explicit actual model opt-in only for an independent material/companion mode")
+    parser.add_argument("--material-companion-model", help="Explicit authorized local model for independent material/companion; no global provider changes")
     args = parser.parse_args()
+    material_mode = independent_material_mode(parser, args)
     assert not args.ui_original_text_citations or args.ui_import_manifest is not None, "Original text citations require synthetic import manifest"
     assert not args.ui_format_citations or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI citations require explicit synthetic import and conversion"
     assert not args.ui_format_reparse or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI reparse requires explicit synthetic import and conversion"
@@ -1170,8 +1288,14 @@ def main():
         parser.error("closure features require the grouped native journey")
     if args.grouped_model and not args.grouped_run_ai:
         parser.error("explicit local selection requires an actual-model grouped journey")
+    if args.grouped_save_deep_binding and (not args.require_actual_ai_loop or not args.grouped_model or args.grouped_machine_ack_loss or args.grouped_machine_cancel):
+        parser.error("saved DEEP binding requires explicit model and required actual AI loop; separate ACK-loss/cancellation qualification")
     if args.grouped_max_tokens and not args.grouped_run_ai:
         parser.error("explicit output budget requires an actual-model grouped journey")
+    if args.grouped_material_companion_loop and not args.grouped_save_deep_binding:
+        parser.error("material/companion requires --grouped-save-deep-binding and its actual-model requirements")
+    if args.grouped_material_companion_cancel and not args.grouped_material_companion_loop:
+        parser.error("material/companion cancellation requires --grouped-material-companion-loop")
     if args.grouped_common_owner_loop and (args.synthetic_course_loop or args.synthetic_template_pagination):
         parser.error("grouped qualification cannot mix compatibility fixtures")
     validate_conflict_branch(args)
@@ -1179,6 +1303,15 @@ def main():
         parser.error("character-memory candidate qualification cannot mix other journeys or installer qualification")
     if args.configuration_plan_loop and any((args.character_memory_loop, args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.installer, args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss, args.grouped_machine_ack_loss, args.grouped_run_ai)):
         parser.error("configuration-plan candidate qualification cannot mix other journeys, models or installer qualification")
+    if args.be10_handoff_reader_loop and any((args.configuration_plan_loop, args.character_memory_loop, args.grouped_common_owner_loop, args.installed_draft_conflict_loop, args.synthetic_course_loop, args.synthetic_template_pagination, args.ui_import_manifest, args.ui_format_conversion, args.ui_format_reparse,
+            args.ui_format_citations, args.ui_original_text_citations, args.installer,
+            args.grouped_run_ai, args.grouped_model, args.grouped_save_deep_binding,
+            args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss,
+            args.grouped_machine_ack_loss, args.grouped_machine_cancel, args.closure_features,
+            args.closure_downloads, args.grouped_material_companion_loop,
+            args.grouped_material_companion_cancel, args.grouped_authored_intervention,
+            args.grouped_max_tokens, args.require_actual_ai_loop, material_mode)):
+        parser.error("BE10 page-16 reader cannot mix other journeys, model calls or installer qualification")
     host = args.host.resolve()
     tools = REPO / ".project-local/task-runtime/aaos01-tools"
     driver = (args.driver or tools / "tauri-driver-2.1.0/bin/tauri-driver.exe").resolve()
@@ -1282,7 +1415,10 @@ def main():
             if isinstance(protocol, dict) and protocol.get("error"):
                 raise WebDriverProtocolError(protocol) from error
             raise RuntimeError(f"WebDriver {method} {path}: {body}") from error
-        if isinstance(value, dict) and value.get("error"):
+        # Successful script results are arbitrary JSON, including application
+        # objects with an "error" field. Protocol failures use the HTTP error
+        # branch above; keep malformed error checks for non-script commands.
+        if isinstance(value, dict) and value.get("error") and not path.endswith(("/execute/sync", "/execute/async")):
             raise WebDriverProtocolError(value)
         return value
 
@@ -1461,7 +1597,9 @@ def main():
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
         wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
-        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop:
+        wait("const images=[...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length);return images.length>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
+        receipt.setdefault("brand_images", []).append(js("return [...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))"))
+        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or args.be10_handoff_reader_loop or material_mode:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
@@ -1564,11 +1702,7 @@ def main():
             def accept_conflict_alert():
                 accept_native_alert(request, session, evidence)
             def conflict_navigate(page):
-                if js("return location.hash") == "#page=" + page:
-                    return
-                controls.click_selector(f'.navigation-sidebar button[data-page-id="{page}"]', "css selector")
-                accept_conflict_alert()
-                wait("return location.hash===" + json.dumps("#page=" + page))
+                navigate_rendered_product_page(controls, js, wait, page, accept_conflict_alert)
             def conflict_restart():
                 old_pid, old_session = owned_host.pid, session
                 close_session()
@@ -1596,6 +1730,33 @@ def main():
             close_session()
             receipt["ok"] = receipt["configuration_plan_loop"]["status"] == "PASS"
             raise _GroupedJourneyCompleteError()
+        if args.be10_handoff_reader_loop:
+            grouped = load("handoff_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            handoff = load("handoff_native_journey", REPO / "scripts/probes/aaos01_handoff_native_loop.py")
+            actions = []
+            def handoff_command(element_id, action, body):
+                if action == "pointer_click":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"pointer", "id":"handoff-owned-pointer", "parameters":{"pointerType":"mouse"},
+                        "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
+                                   {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
+                if action == "wheel":
+                    return request("POST", f"/session/{session}/actions", {"actions":[{
+                        "type":"wheel", "id":"handoff-owned-scroll",
+                        "actions":[{"type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
+                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+            def handoff_restart():
+                close_session()
+                launch()
+            controls = grouped.GroupedUI(js, wait, ui_element, handoff_command, actions)
+            receipt["be10_handoff_reader_loop"] = {"ui_actions": actions}
+            handoff.run(ui=controls, bridge=bridge, js=js, wait=wait,
+                        restart=handoff_restart, screenshot=screenshot,
+                        report=receipt["be10_handoff_reader_loop"])
+            receipt["steps"].append("BE10 native page-16 pinned reader; fresh synthetic UI note; Core read-only during handoff; no external receiver or OS URI")
+            close_session()
+            receipt["ok"] = receipt["be10_handoff_reader_loop"]["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
         if args.character_memory_loop:
             grouped = load("memory_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
             memory = load("memory_native_journey", REPO / "scripts/probes/aaos01_character_memory_loop.py")
@@ -1616,6 +1777,32 @@ def main():
             receipt["steps"].append("BE06 explicit memory UI and current-store readback only; no model, Owner or installer qualification")
             close_session()
             receipt["ok"] = receipt["character_memory_loop"]["status"] == "PASS"
+            raise _GroupedJourneyCompleteError()
+        if material_mode:
+            grouped = load("independent_material_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+            def material_command(element_id, action, body):
+                return independent_element_command(request, session, element_id, action, body)
+            def material_restart():
+                close_session()
+                launch()
+            def material_accept_navigation_alert():
+                try:
+                    text = request("GET", f"/session/{session}/alert/text")
+                except WebDriverProtocolError as error:
+                    if error.value.get("error") != "no such alert":
+                        raise
+                    receipt["steps"].append("Owned material navigation required no native confirmation")
+                    return
+                assert text == "草稿尚未保存，请先保留文字。仍要离开吗？", "Unexpected material navigation confirmation"
+                request("POST", f"/session/{session}/alert/accept", {})
+                receipt["steps"].append("Trusted confirmation to leave only an owned synthetic material draft")
+            receipt["ok"] = run_material_independent_branch(
+                mode=material_mode, selected_model=args.material_companion_model, grouped=grouped,
+                js=js, wait=wait, element=ui_element, command=material_command, bridge=bridge,
+                restart=material_restart, screenshot=screenshot,
+                accept_navigation_alert=material_accept_navigation_alert, receipt=receipt)
+            receipt["steps"].append("Independent material/companion " + material_mode + "; no full grouped AI chain or Owner qualification")
+            close_session()
             raise _GroupedJourneyCompleteError()
         if args.grouped_common_owner_loop:
             grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
@@ -1669,6 +1856,9 @@ def main():
                 download_control=grouped_download_control if args.closure_downloads else None,
                 selected_model=args.grouped_model,
                 selected_max_tokens=args.grouped_max_tokens,
+                save_deep_binding=args.grouped_save_deep_binding,
+                material_companion_loop=args.grouped_material_companion_loop,
+                material_companion_cancel=args.grouped_material_companion_cancel,
                 accept_navigation_alert=grouped_accept_navigation_alert,
             )
             receipt["steps"].append("Current grouped UI authored same-object engineering journey; see explicit partial/NOT_EXECUTED stages")
@@ -1677,11 +1867,11 @@ def main():
             raise _GroupedJourneyCompleteError
         # Same-space navigation must reach real object regions without writes
         # or a workspace remount, even before any source/document exists.
-        object_scope = "//ul[@aria-label='资料库对象导航']"
         wait("return document.querySelectorAll('ul[aria-label=\"资料库对象导航\"] button').length===4")
         empty_sources = bridge("sources_list")
         empty_documents = bridge("documents_list")
         for label, region in [("来源锚点", "来源版本证据"), ("文档版本", "文档版本导航"), ("已保存文档", "已保存文档"), ("来源原件", "保留原件")]:
+            object_scope = library_object_navigation_scope(js, wait, ui_click)
             ui_click(label, object_scope)
             wait(f"return document.activeElement?.getAttribute('aria-label')==={json.dumps(region)}")
         assert bridge("sources_list") == empty_sources

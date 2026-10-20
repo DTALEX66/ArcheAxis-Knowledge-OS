@@ -1,0 +1,17 @@
+{
+  "schema": "aaos.archive-members/v1",
+  "members": {
+    "aaos01_grouped_owner_loop.py": "ac6aa884a259322bdc26c0f721206579b71658119b02c2798753b5c4d4b47467",
+    "aaos01_material_companion_loop.py": "a3a186a2e36e631048e67e75f9756f3c29e865d18149989d49918a1a581a351f",
+    "aaos01_tauri_webdriver_loop.py": "f948a27efa6732cd13703a37cbd4774bad0b55aae2bb347173309765335be130",
+    "candidate-build.json": "73ecfcd831c143c5a78d8cf5aad447cd5025dbe2f8d47b0e9685d1d377c683b4",
+    "machine-deadline-core-native-1019.json": "a7cbbe4b25d0f915efa928d687d08b9eb5a951e05b2d623fe2355ee908555265",
+    "machine-deadline-host-native-1019.json": "9390ff179bdd433644352420171d13268395b50d96fed74ec560e907b93622c3",
+    "machine-deadline-material-native-1019.json": "93faf356d5f5415432650f30924aa6f4ca2c263dd760904e80afd2eebe0f295d",
+    "model-profile-observed.json": "166ba6e78f053324a89b70fddccc7c7e3278b8bfc8e9104569fb56d1a370f9e9",
+    "native-result.json": "ca66ab74834ee5984b45f5e9657fd80608d6794f15498cc88b95bc407a2ada3e",
+    "README.md": "9f9c32d72459fd2d8f6cbdebd0d5702f9fe2c54f5b346893522b47868cba78c6",
+    "READONLY-REVIEW.md": "94a6f5039e78ddcd2587c9f3e5a2c0f9418b845edaf9cbd112872e1188d03149",
+    "RECEIPT.json": "8cb108a5124adb85580689d28ba6d7561739da335e535a629be303b1fc1454d4"
+  }
+}

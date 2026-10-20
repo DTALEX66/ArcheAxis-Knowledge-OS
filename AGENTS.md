@@ -1,6 +1,8 @@
 # AGENTS.md - 星环知识系统（ArcheAxis Knowledge）Operating Guide
 
-> **2026-10-11 当前路由与状态**：Owner 已明确恢复完整框架、常见常用格式与最短闭环产品实施；状态 RUNNING_BY_OWNER / PARTIAL。当前范围与恢复决定读[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度仍在该指针指定的 UI 执行记录。2026-10-10 暂停仅为历史时点，旧 COMPLETE、FAIL 和证据保留各自 SHA。六项核心能力对话增量仍 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换和真实用户数据覆盖未授权。 文件身份与旧路径按[路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)核对。
+> **2026-10-19 当前路由与状态**：Owner 明确恢复当前产品任务，并要求今天停止额度监控；状态 RUNNING_BY_OWNER / PARTIAL。今天不查询额度、不因额度阈值停工。活动指针及唯一 UI 执行记录保存范围与实测；旧暂停仅为历史时点。六项增量仍冻结，V01 暂停、FT01–04 冻结。Owner 后继明确允许覆盖 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 的程序安装，具体范围、备份与资格条件见活动指针 `green_update_authorization`；公开发布和真实用户数据覆盖仍未授权。文件身份及旧路径按 [路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json) 核对。
+
+> **2026-10-19 最新执行优先级**：Owner要求全量前端先行，再推进后端与同候选完整闭环。分片由[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_priority_overlay`选择，配合[完整接手提示词](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)读取；原任务ID及唯一执行记录不变，不据交接整理宣称产品完成。
 
 > 全局执行标准（跨软件跨项目）：见 WORK-LAB `00-governance/global-execution-standard.md`（执行生命周期：理解→扫技能→分片→执行→验证→落地；全局边界：E盘禁访/数据不外溢/官方优先/全功率）。
 > 经验教训铁律（核实优先/治理最小化/官方优先）：见本项目 `LESSONS_LEARNED.md`。
@@ -12,6 +14,8 @@ without exposing credentials, private keys, tokens, machine-specific secrets, or
 personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_INDEX.md`.
 
 ## 1. Project Mission
+
+用户提到“闭环／最短闭环／最快闭环／完整闭环／全链路跑通”时，必须先读唯一规范 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V2`），再读活动指针与实际进度。不得缩成单文件导入加一次模型回答；全面非企业知识库特色、免费外部检索、本地与云端模型均按该定义验收。该定义是目标，不是已完成声明。
 
 ArcheAxis Knowledge is a local-first, evidence-driven, bidirectional Human–AI
 Learning & Trusted-Knowledge Workspace. The current minimum closed loop is broad
@@ -32,6 +36,8 @@ identity and naming are locked by `docs/truth/NAMING_CONTRACT_V2.md`
 Legacy systems (Knowledge-Base, Inspiration-Research, Cognitive-OS, Obsidian)
 exist as compatibility surfaces only; current routing, capability truth and
 migration history are documented under `docs/truth/` and `workspace/intake/`.
+
+> 后继 Owner 决定的接续路由（2026-10-19）：上文及继承 M0 中 Marketplace 延期是原规划时点。Owner 已明确选中内置能力目录、管理及分期接入，现读[决定第九节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)与活动指针；这不整体激活通用 Agent Runtime、公开分发/支付或其他冻结项。关键对话出处见[冻结摘录与映射](docs/history/owner-dialogue-20261019/README.md)，共享路径仍只由原索引/manifest解析。
 
 ## 2. Configuration Categories
 
@@ -84,7 +90,7 @@ blueprint-light and black/white/cosmic are switchable themes. All themes share
 the new layout; each theme uses consistent semantic colors throughout the UI.
 The inherited AAOS-01 package is `docs/authority/taskpack-1004-aaos01/`;
 its Q00-Q15 progress alone remains in
-the inherited `docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`. It does not define a
+the inherited `docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md`. It does not define a
 second current UI queue or authorize old handoff permissions.
 SUP-022 makes `frontend/` and `src-tauri/` the formal Tauri/React host.
 Rust Core remains the only canonical SQLite/CAS writer, with isolated Python
@@ -99,7 +105,7 @@ The preceding R6 Local Green absorb-first pack is installed at
 `docs/authority/taskpack-0919-r6/` (plan_id `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`,
 package_revision `R6`). Read its `EXECUTOR-START.md`, `TASKS.json` and
 `TASKPACK.md`. Its historical progress is maintained outside the immutable package
-in historical `docs/current/R6-EXECUTION.md` and `docs/current/R6-STATE.json`. R5 remains
+in historical `docs/history/repository-consolidation-20261019/current/R6-EXECUTION.md` and `docs/history/repository-consolidation-20261019/current/R6-STATE.json`. R5 remains
 historical source material and its receipts retain their own SHAs. R6 preserves
 the Rust canonical writer, fixed shared-resource paths, and the no-release boundary;
 Local Green qualification is separate from publication. Preserve unknown private
@@ -107,7 +113,7 @@ state and user assets; destructive cleanup needs an exact reviewed path list.
 At low remaining account-wide Codex allowance, prepare the handoff and publish only
 verified, task-owned changes under the owner's current authorization.
 
-The inherited priority overlay is `docs/current/M0-DIRECTION-OVERRIDE-20260920.md`
+The inherited priority overlay is `docs/history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md`
 (`M0-SHORTEST-COMPLETE-LOOP`, ledger `SUP-020`). It does not replace the immutable
 R6 TaskPack; it serializes execution around one real core loop (P0–P6) and defers
 second providers, extra domains/renderers, marketplaces, and advanced capabilities

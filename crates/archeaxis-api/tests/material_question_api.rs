@@ -26,12 +26,132 @@ async fn call(router: &Router, path: &str, body: Value) -> (u16, Value) {
     (status, serde_json::from_slice(&b).unwrap_or(Value::Null))
 }
 #[tokio::test]
+async fn failed_material_measurements_survive_restart_without_repeating_worker() {
+    for (code, expected_reason, expected_diagnostics) in [
+        (
+            "MODEL_CALL_FAILED",
+            "material_model_call_failed",
+            json!({"http_status":503,"elapsed_s":1.5,"error_type":"HTTPError"}),
+        ),
+        (
+            "MODEL_CALL_TIMEOUT",
+            "material_model_timeout",
+            json!({"request_stage":"model_request","discovery_elapsed_s":0.25,"elapsed_s":5.0,"error_type":"TimeoutError"}),
+        ),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let script = dir.path().join("worker.py");
+        let count = dir.path().join("count");
+        let mut diagnostics = expected_diagnostics.clone();
+        diagnostics["stderr"] = json!("PRIVATE_SENTINEL");
+        let failure = json!({"schema":"archeaxis.machine-worker-failure/v1","reason_code":code,"diagnostics":diagnostics});
+        std::fs::write(&script,format!("import sys\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\nprint({})\nsys.exit(1)\n",serde_json::to_string(&count).unwrap(),serde_json::to_string(&failure.to_string()).unwrap())).unwrap();
+        let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+        let db = dir.path().join("w.sqlite");
+        let staging = dir.path().join("staging");
+        let routes = [("machine.answer", script.clone())];
+        let open = || Executor::open_routes(&db, &staging, &python, &script, &routes);
+        let executor = open().await.unwrap();
+        let doc=executor.store().submit_wait(|c|document::create_optional(c,None,None,"material",json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Synthetic material"}]}]}))).await.unwrap().unwrap();
+        let router = archeaxis_api::runtime::router(executor);
+        let mut body = json!({"request_id":"failed_material","material":{"kind":"document","document_id":doc["document_id"],"version":1,"content_sha256":doc["content_sha256"],"block_id":null},"selection":null,"question":"Question","purpose":"learning","model":null,"max_tokens":128,"timeout_s":5,"preview":true,"confirmed_plan_sha256":null});
+        let (status, preview) = call(&router, "/api/v1/material/questions", body.clone()).await;
+        assert_eq!(status, 200, "{preview}");
+        body["preview"] = json!(false);
+        body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
+        let (status, receipt) = call(&router, "/api/v1/material/questions", body.clone()).await;
+        assert_eq!(status, 200, "{receipt}");
+        assert_eq!(receipt["outcome"], "failed");
+        assert_eq!(receipt["reason_code"], expected_reason);
+        assert_eq!(receipt["diagnostics"], expected_diagnostics);
+        assert!(receipt["answer"].is_null());
+        assert!(!receipt.to_string().contains("PRIVATE_SENTINEL"));
+        drop(router);
+        let router = archeaxis_api::runtime::router(open().await.unwrap());
+        assert_eq!(
+            call(&router, "/api/v1/material/questions", body).await.1,
+            receipt
+        );
+        assert_eq!(
+            call(
+                &router,
+                "/api/v1/material/questions/status",
+                json!({"request_id":"failed_material"})
+            )
+            .await
+            .1,
+            receipt
+        );
+        assert_eq!(std::fs::read_to_string(count).unwrap(), "1");
+    }
+}
+
+#[tokio::test]
+async fn hard_timeout_measurements_survive_reopen_without_repeating_inference() {
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("worker.py");
+    let count = dir.path().join("count");
+    std::fs::write(&script, format!(
+        "import time\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\ntime.sleep(60)\n",
+        serde_json::to_string(&count).unwrap()
+    )).unwrap();
+    let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
+    let db = dir.path().join("w.sqlite");
+    let staging = dir.path().join("staging");
+    let routes = [("machine.answer", script.clone())];
+    let open = || Executor::open_routes(&db, &staging, &python, &script, &routes);
+    let executor = open().await.unwrap();
+    let doc = executor.store().submit_wait(|c| document::create_optional(
+        c, None, None, "material", json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Synthetic material"}]}]})
+    )).await.unwrap().unwrap();
+    let router = archeaxis_api::runtime::router(executor);
+    let mut body = json!({"request_id":"timeout_material","material":{"kind":"document","document_id":doc["document_id"],"version":1,"content_sha256":doc["content_sha256"],"block_id":null},"selection":null,"question":"SYNTHETIC_PRIVATE_QUESTION","purpose":"learning","model":null,"max_tokens":128,"timeout_s":1,"preview":true,"confirmed_plan_sha256":null});
+    let (status, preview) = call(&router, "/api/v1/material/questions", body.clone()).await;
+    assert_eq!(status, 200);
+    body["preview"] = json!(false);
+    body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
+    let (status, receipt) = call(&router, "/api/v1/material/questions", body.clone()).await;
+    assert_eq!(status, 200);
+    assert_eq!(receipt["outcome"], "failed");
+    assert_eq!(receipt["reason_code"], "material_model_timeout");
+    assert!(receipt["answer"].is_null());
+    assert_eq!(receipt["diagnostics"]["timeout_s"], 1);
+    assert_eq!(receipt["diagnostics"]["max_tokens"], 128);
+    assert_eq!(receipt["diagnostics"]["error_type"], "TimeoutError");
+    assert!(receipt["diagnostics"]["elapsed_s"].as_f64().unwrap() >= 1.0);
+    assert!(receipt["diagnostics"].get("observed_model").is_none());
+    assert!(
+        !receipt["diagnostics"]
+            .to_string()
+            .contains("SYNTHETIC_PRIVATE")
+    );
+    assert_eq!(receipt["provider_stop_state"], "NOT_REQUESTED");
+    drop(router);
+    let router = archeaxis_api::runtime::router(open().await.unwrap());
+    assert_eq!(
+        call(&router, "/api/v1/material/questions", body).await.1,
+        receipt
+    );
+    assert_eq!(
+        call(
+            &router,
+            "/api/v1/material/questions/status",
+            json!({"request_id":"timeout_material"})
+        )
+        .await
+        .1,
+        receipt
+    );
+    assert_eq!(std::fs::read_to_string(count).unwrap(), "1");
+}
+
+#[tokio::test]
 async fn new_unaccepted_material_is_bound_confirmed_and_exactly_replayed_after_restart() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("workspace.sqlite");
     let script = dir.path().join("worker.py");
     let marker = dir.path().join("calls");
-    std::fs::write(&script,format!("import json,sys\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\ncontext=Path(sys.argv[1]).read_text()\nassert context=='原文😀'\nprint(json.dumps({{'answer':'SYNTHETIC answer','model':'fixture','endpoint':'http://127.0.0.1:11434','protocol':'synthetic','loss_receipt':{{'params':{{'authority':'candidate'}}}}}}))\n",serde_json::to_string(&marker).unwrap())).unwrap();
+    std::fs::write(&script,format!("import json,sys\nfrom pathlib import Path\np=Path({})\np.write_text(str(int(p.read_text())+1) if p.exists() else '1')\ncontext=Path(sys.argv[1]).read_text()\nassert context=='原文😀'\nprint(json.dumps({{'answer':'SYNTHETIC answer','model':'fixture','endpoint':'http://127.0.0.1:1234/v1','protocol':'synthetic','loss_receipt':{{'params':{{'authority':'candidate'}}}}}}))\n",serde_json::to_string(&marker).unwrap())).unwrap();
     let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());
     let staging = dir.path().join("staging");
     let routes = [("machine.answer", script.clone())];
@@ -59,13 +179,17 @@ async fn new_unaccepted_material_is_bound_confirmed_and_exactly_replayed_after_r
     body["preview"] = json!(true);
     let (status, preview) = call(&router, "/api/v1/material/questions", body.clone()).await;
     assert_eq!(status, 200, "{preview}");
+    assert_eq!(
+        preview["plan"]["destination_candidates"],
+        json!(["http://127.0.0.1:1234/v1"])
+    );
     assert!(!marker.exists());
     body["preview"] = json!(false);
     body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
     let (status, receipt) = call(&router, "/api/v1/material/questions", body.clone()).await;
     assert_eq!(status, 200, "{receipt}");
     assert_eq!(receipt["outcome"], "succeeded");
-    assert_eq!(receipt["answer"]["endpoint"], "http://127.0.0.1:11434");
+    assert_eq!(receipt["answer"]["endpoint"], "http://127.0.0.1:1234/v1");
     assert_eq!(
         call(&router, "/api/v1/material/questions", body.clone())
             .await
@@ -119,7 +243,7 @@ async fn new_unaccepted_material_is_bound_confirmed_and_exactly_replayed_after_r
 async fn imported_text_extracts_and_answers_without_entering_accepted_knowledge() {
     let dir = tempfile::tempdir().unwrap();
     let script = dir.path().join("answer.py");
-    std::fs::write(&script,"import json,sys\nfrom pathlib import Path\nassert Path(sys.argv[1]).read_text()=='新导入材料😀'\nprint(json.dumps({'answer':'SYNTHETIC imported answer','model':'fixture','endpoint':'http://127.0.0.1:11434','protocol':'synthetic'}))\n").unwrap();
+    std::fs::write(&script,"import json,sys\nfrom pathlib import Path\nassert Path(sys.argv[1]).read_text()=='新导入材料😀'\nprint(json.dumps({'answer':'SYNTHETIC imported answer','model':'fixture','endpoint':'http://127.0.0.1:1234/v1','protocol':'synthetic'}))\n").unwrap();
     let worker = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../services/python-workers/transport/text_ndjson.py");
     let python = std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap());

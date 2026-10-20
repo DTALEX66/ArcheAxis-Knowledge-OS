@@ -1,0 +1,74 @@
+{
+  "sources": [
+    {
+      "path": "config/model-profiles/lm-studio.json",
+      "bytes": 1290,
+      "sha256": "ee141998757783d5fb86267d74503475325abd5f2517bb226de320a421e63994"
+    },
+    {
+      "path": "scripts/runtime/lm_studio_profile.mjs",
+      "bytes": 7232,
+      "sha256": "ceb42b35ecf993b1d0515218c6227e199459a09e6425db5d945a071154b4ef1e"
+    },
+    {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "bytes": 31816,
+      "sha256": "510c4973bc3c749cb2c5c0189d57245dcb2701c1e0c9c7da03622aed253a1e3d"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor.rs",
+      "bytes": 67197,
+      "sha256": "08668dbe5a886cbb64b9e189af86c6a0ec9fa710c99acc722363a52ec8701360"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "bytes": 11418,
+      "sha256": "7b7ca92b147830e061631610666628495bce0d93faa1c8e539df082c4bd76ebe"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/colearning.rs",
+      "bytes": 53070,
+      "sha256": "f6e242e8cc02cb490794dfe0cd6b9552fd7fe9ed78fd8ebcc6a2e21b13e88d5a"
+    },
+    {
+      "path": "scripts/probes/aaos01_grouped_owner_loop.py",
+      "bytes": 136655,
+      "sha256": "a37ef467c28e92ac62ce2b466b747d3e65ee555fe8ed476ff78abf2d53f54630"
+    },
+    {
+      "path": "docs/current/receipts/AAOS-27B-MATCHED-MTP-20261013.json",
+      "bytes": 4399,
+      "sha256": "8a404922075dfd9341858637e5c3b6502f64da404600197a4ab7272826fe02c7"
+    },
+    {
+      "path": "docs/current/receipts/AAOS-HANDOFF-MANIFEST-NATIVE-20261019.json",
+      "bytes": 18946,
+      "sha256": "27bc6c7cefd0d0c4c3f7c813a4b76b4ffe165565a5f6c7d3b019b7dd80a9abf1"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/receipt.json",
+      "bytes": 127616,
+      "sha256": "a885ff1601ded0649852dc7f653796906dec57976053e3edc278b580ad5e0257"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/FAILURE-METADATA.json",
+      "bytes": 1782,
+      "sha256": "285b8083108d62420295760255392e3ce5c8a601bf99887e40466c839e03ecec"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/native/lm-studio-load.json",
+      "bytes": 932,
+      "sha256": "9c40ca5b02cb6ad5466172b1bda768dce8abd0fefa25183bd05f83f365806cf2"
+    },
+    {
+      "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/NATIVE-READBACK.json",
+      "bytes": 9029,
+      "sha256": "2cd825595955140062e7e0f34bce8d807cf6076d8b13bb67858c9c91c5dc335c"
+    },
+    {
+      "path": ".project-local/audits/material-timeout-next-20261019/DIAGNOSIS.json",
+      "bytes": 7302,
+      "sha256": "cd4dfce6a111c9b72670fc816997e06c208b3c6825260c3e21766dd6ea2131c2"
+    }
+  ]
+}

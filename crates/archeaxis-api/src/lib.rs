@@ -15,6 +15,9 @@ mod layout;
 mod machine_governance;
 mod ocr_locator;
 mod pdf_locator;
+pub mod project_handoff;
+mod project_handoff_preview;
+pub mod project_observer;
 pub mod runtime;
 mod teaching;
 mod ui_state;
@@ -102,6 +105,16 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v2/teaching/imports", post(teaching::import))
         .layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024));
     let routes = Router::new()
+        .route(
+            "/api/v1/project-handoff/preview",
+            post(project_handoff_preview::preview)
+                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+        )
+        .route(
+            "/api/v1/project-handoff/snapshot",
+            post(project_handoff_preview::snapshot)
+                .layer(axum::extract::DefaultBodyLimit::max(65_536)),
+        )
         .merge(ui_routes)
         .merge(teaching_routes)
         .route(
@@ -425,17 +438,21 @@ async fn learning_history(
 /// inferred here.
 async fn learning_items(State(state): State<AppState>) -> impl IntoResponse {
     with_store(state, |conn| {
-        match learning::item_keys_with_latest_review(conn) {
-            Ok(items) => {
-                let rows: Vec<serde_json::Value> = items
-                    .into_iter()
-                    .map(|(item_key, next_review)| {
-                        serde_json::json!({
-                            "item_key": item_key,
-                            "next_review": next_review,
-                        })
-                    })
-                    .collect();
+        let rows = learning::item_keys_with_latest_review(conn).and_then(|items| {
+            items
+                .into_iter()
+                .map(|(item_key, next_review)| {
+                    let display_title = learning::item_display_title(conn, &item_key)?;
+                    Ok(serde_json::json!({
+                        "item_key": item_key,
+                        "next_review": next_review,
+                        "display_title": display_title,
+                    }))
+                })
+                .collect::<rusqlite::Result<Vec<serde_json::Value>>>()
+        });
+        match rows {
+            Ok(rows) => {
                 let count = rows.len();
                 (
                     StatusCode::OK,

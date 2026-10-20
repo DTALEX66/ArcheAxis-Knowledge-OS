@@ -1,0 +1,26 @@
+{
+  "observed_at": "2026-10-18T23:13:12.545343+00:00",
+  "schema_path": ".project-local\\audits\\pdf-readiness-runtime-20261019\\mirror\\packages\\contracts\\v1\\worker-protocol.schema.json",
+  "schema_sha256": "35f6a3d2b203611126b94460d145d32dfe60609dbc71176834d2571beab24477",
+  "cases": [
+    {
+      "version_repr": "'1.28.2'",
+      "characters": 6,
+      "json_schema_accepts": true,
+      "rust_validator_accepts_by_exact_predicate": true
+    },
+    {
+      "version_repr": "'1\\n'",
+      "characters": 2,
+      "json_schema_accepts": true,
+      "rust_validator_accepts_by_exact_predicate": false
+    },
+    {
+      "version_repr": "'1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\\n'",
+      "characters": 65,
+      "json_schema_accepts": true,
+      "rust_validator_accepts_by_exact_predicate": false
+    }
+  ],
+  "execution_scope": "pure JSON Schema validation only; no canonical/test/service started"
+}

@@ -1,0 +1,150 @@
+{
+  "status": "ISOLATED_CONSUMER_PASS_NOT_APPLIED",
+  "python_passed": 11,
+  "vitest_passed": 8,
+  "vitest_files": 2,
+  "typescript": "PASS",
+  "ruff": "PASS",
+  "vite_guard": [
+    {
+      "case": "positive",
+      "command": [
+        "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\load-vite-config.mjs"
+      ],
+      "elapsed_seconds": 0.533,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "CONFIG_ACCEPTED_NO_SERVER_STARTED",
+      "log": "vite-config-final-positive.log",
+      "no_server_created": true
+    },
+    {
+      "case": "negative-stale-raw-bytes",
+      "command": [
+        "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\load-vite-config.mjs"
+      ],
+      "elapsed_seconds": 0.533,
+      "exit_code": 23,
+      "expected_exit_code": 23,
+      "stdout": "MANIFEST_PROJECTION_CHECK_FAILED_NO_SERVER_STARTED",
+      "log": "vite-config-final-negative-stale-raw-bytes.log",
+      "no_server_created": true
+    },
+    {
+      "case": "restored",
+      "command": [
+        "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\load-vite-config.mjs"
+      ],
+      "elapsed_seconds": 0.525,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "CONFIG_ACCEPTED_NO_SERVER_STARTED",
+      "log": "vite-config-final-restored.log",
+      "no_server_created": true
+    }
+  ],
+  "runs": [
+    {
+      "name": "python",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "pytest",
+        "-c",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\pytest.ini",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\validation-mirror\\tests\\contract\\test_capability_package_details.py",
+        "--basetemp",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\pytest-final-tmp",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "started_at": "2026-10-18T21:57:50.826620+00:00",
+      "elapsed_seconds": 1.742,
+      "exit_code": 0,
+      "log": "python-validation.log",
+      "log_sha256": "b94bc17e42b9a856b4250d591e4077a7080bfa1e57d4ddc46527841754c0f4f0"
+    },
+    {
+      "name": "vitest",
+      "command": [
+        "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+        "run",
+        "--config",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\vitest.config.mjs"
+      ],
+      "started_at": "2026-10-18T21:57:52.568323+00:00",
+      "elapsed_seconds": 1.514,
+      "exit_code": 0,
+      "log": "vitest-validation.log",
+      "log_sha256": "d95dfd9f55c3ef146befc0650714ea65eed67c2515cf45c66d6fe1dd20f369a1"
+    },
+    {
+      "name": "typescript",
+      "command": [
+        "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.exe",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\typescript\\bin\\tsc",
+        "--noEmit",
+        "--project",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\validation-mirror\\frontend\\tsconfig.json"
+      ],
+      "started_at": "2026-10-18T21:57:54.082833+00:00",
+      "elapsed_seconds": 6.694,
+      "exit_code": 0,
+      "log": "typescript-validation.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "ruff",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "-m",
+        "ruff",
+        "check",
+        "--no-cache",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\proposal\\scripts\\contracts\\generate_capability_package_details.py",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\proposal\\tests\\contract\\test_capability_package_details.py"
+      ],
+      "started_at": "2026-10-18T21:58:00.777093+00:00",
+      "elapsed_seconds": 0.125,
+      "exit_code": 0,
+      "log": "ruff-validation.log",
+      "log_sha256": "a4443afdcfb6d7363adb285762515ccf7cf50473b1a05c20c1a50f6bed4d26b0"
+    },
+    {
+      "name": "projection-check",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\validation-mirror\\scripts\\contracts\\generate_capability_package_details.py",
+        "--root",
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-next-20261019\\validation-mirror",
+        "--check"
+      ],
+      "started_at": "2026-10-18T21:58:00.902491+00:00",
+      "elapsed_seconds": 0.269,
+      "exit_code": 0,
+      "log": "projection-check-validation.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "services_created": 0,
+  "browsers_created": 0,
+  "real_engine_calls": 0,
+  "limitations": [
+    "Only isolated source mirror consumed proposed code; product NOT_APPLIED",
+    "Runtime/engine/publisher authenticity/license qualification remain UNKNOWN or UNVERIFIED",
+    "No native UI, real cross-product, installed engine or Owner qualification"
+  ]
+}

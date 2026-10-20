@@ -1,0 +1,37 @@
+[
+  {
+    "name": "typescript",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\typescript\\bin\\tsc",
+      "--noEmit"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend",
+    "started_at": "2026-10-18T23:39:05.843133+00:00",
+    "ended_at": "2026-10-18T23:39:15.169475+00:00",
+    "exit_code": 0,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/frontend-typescript.log",
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+  },
+  {
+    "name": "affected-components",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+      "run",
+      "--maxWorkers=1",
+      "--minWorkers=1",
+      "src/__tests__/ProjectHandoffReader.test.tsx",
+      "src/__tests__/ProjectHandoffContract.test.ts",
+      "src/__tests__/CoreBridge.test.ts",
+      "src/__tests__/CanonicalExchangeSpace.test.tsx",
+      "src/__tests__/ExchangePinnedIntegration.test.tsx"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend",
+    "started_at": "2026-10-18T23:39:15.169941+00:00",
+    "ended_at": "2026-10-18T23:39:23.157450+00:00",
+    "exit_code": 1,
+    "log": ".project-local/audits/be10-snapshot-integration-20261019/frontend-affected-components.log",
+    "sha256": "e1872046e3e0e8382b8708672511757b954a8d86143c066e78a0fc1ac61ffb9d"
+  }
+]

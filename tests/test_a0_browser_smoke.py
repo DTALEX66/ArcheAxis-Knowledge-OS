@@ -56,6 +56,46 @@ def _load_smoke_module():
     return module
 
 
+@pytest.mark.parametrize('inner_overflow,inner_height,unreachable', [
+    ('auto', 'auto', False),
+    ('hidden', '80px', True),
+    ('clip', '80px', True),
+])
+def test_real_browser_reachability_skips_nonoverflowing_auto_but_keeps_clip_barriers(
+    inner_overflow, inner_height, unreachable,
+):
+    """Real layout regression: an auto wrapper is not necessarily the scroller."""
+    smoke = _load_smoke_module()
+    with smoke.sync_playwright() as playwright:
+        options = {'headless': True}
+        if sys.platform == 'win32':
+            executable = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert executable, 'declared project Chromium required; do not install implicitly'
+            options['executable_path'] = executable
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={'width': 800, 'height': 600})
+            page.set_content(f'''<style>
+                body {{margin:0}}
+                .outer {{height:120px;width:300px;overflow:auto}}
+                .inner {{overflow:{inner_overflow};height:{inner_height}}}
+                #templates {{height:500px;display:flex;flex-direction:column;justify-content:flex-end}}
+                button {{height:32px}}
+                </style><div class="outer"><div class="inner"><section id="templates">
+                <button>模板操作</button></section></div></div>''')
+            measured = smoke.measure_geometry(page, {'templates': '#templates'})
+            assert bool(measured['unreachableBands']) is unreachable, measured
+            if not unreachable:
+                button = page.get_by_role('button', name='模板操作')
+                button.scroll_into_view_if_needed()
+                assert button.evaluate('''e => {const r=e.getBoundingClientRect();
+                    return r.y>=0 && r.bottom<=120 && e.contains(document.elementFromPoint(
+                        r.x+r.width/2,r.y+r.height/2));}''')
+                button.click(timeout=3000)
+        finally:
+            browser.close()
+
+
 def _install_vite_entrypoint_fixture(smoke, monkeypatch, tmp_path):
     """Provide the only local prerequisite that Windows start_vite validates."""
     vite = tmp_path / "frontend" / "node_modules" / "vite" / "bin" / "vite.js"
@@ -205,8 +245,26 @@ def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
     branches = [int(value) for value in re.findall(r"if width <= (\d+):", smoke)]
     assert all(branch > 600 for branch in branches), branches
 
-    # The band between them asserts the reading column keeps its declared minimum.
-    assert re.search(
-        r"if width <= 1200:\s*\n(?:\s*#[^\n]*\n)*\s*assert geometry\[\"main\"\]\[\"width\"\] >= 280",
-        smoke,
-    )
+    # Exercise the actual gate, including the independent short-window branch.
+    # Boundary cases catch OR -> AND, a lowered 280px floor, or a moved cutoff.
+    gate = _load_smoke_module()
+    bands = {"navigation_trigger": ".ui-navigation-trigger"}
+    for width, height, required in ((1200, 761, True), (1201, 760, True),
+                                    (640, 480, True), (1201, 761, False)):
+        geometry = {
+            "scrollWidth": width, "clientWidth": width,
+            "dock": {"y": 100, "bottom": 120}, "rail": {"width": 0},
+            "main": {"x": 0, "bottom": 100, "width": 280},
+            "body": {"x": 0, "width": 280}, "inspector": None,
+            "devicePixelRatio": 1, "statusBarOverlaps": [], "missingBands": [],
+            "landmarkCount": len(bands), "expectedBands": sorted(bands),
+            "landmarkOverlaps": [], "clippedBands": [], "unreachableBands": [],
+            "unscrollableBands": [], "escapedChildren": [], "motionFast": "0ms",
+        }
+        assert gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands) is geometry
+        geometry["main"]["width"] = geometry["body"]["width"] = 279
+        if required:
+            with pytest.raises(AssertionError):
+                gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands)
+        else:
+            gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands)

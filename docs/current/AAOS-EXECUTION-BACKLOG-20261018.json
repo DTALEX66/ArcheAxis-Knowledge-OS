@@ -1,0 +1,1496 @@
+{
+  "schema": "archeaxis.backlog-source-index/v1",
+  "as_of": "2026-10-18",
+  "overall": "PARTIAL",
+  "role": "SOURCE_INDEX_NOT_SECOND_EXECUTION_LEDGER",
+  "current_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "active_pointer": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+  "task_ids": 88,
+  "tasks": [
+    {
+      "id": "D01",
+      "title": "为已上传候选建立对 main 的草稿 PR",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "DELIVERY_HISTORY_RECONCILE_CURRENT_REFS_BEFORE_ACTION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "D02",
+      "title": "当前候选 exact-SHA CI 与安装链资格",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "DELIVERY_HISTORY_RECONCILE_CURRENT_REFS_BEFORE_ACTION",
+      "dependencies": [
+        "D01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "D03",
+      "title": "统一主线交付与远端读回",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "DELIVERY_HISTORY_RECONCILE_CURRENT_REFS_BEFORE_ACTION",
+      "dependencies": [
+        "D02"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "BE01",
+      "title": "有限宿主合同与所有权登记",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE00"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL_INTEGRATED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE02",
+      "title": "独立布局偏好与 CAS 恢复",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL_INTEGRATED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE03",
+      "title": "材料上下文与受限问答",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01",
+        "BE04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL_INTEGRATED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE04",
+      "title": "模型配置凭据与用途绑定",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL_INTEGRATED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE05",
+      "title": "正式陪伴会话流与取消",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01",
+        "BE04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL_INTEGRATED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE06",
+      "title": "角色档案与受控长期记忆",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL_INTEGRATED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE07",
+      "title": "能力状态与范围化就绪探测",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL_INTEGRATED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE08",
+      "title": "配置依赖与部署计划边界",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01",
+        "BE07"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE09",
+      "title": "页面草稿和学习对象最小保存",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE10",
+      "title": "跨项目只读接入与版本协商",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "未实施"
+        }
+      ]
+    },
+    {
+      "id": "BE11",
+      "title": "格式资格与转换回执",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "BE12",
+      "title": "原生桥接与联合验收",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE02",
+        "BE03",
+        "BE05",
+        "BE06",
+        "BE07",
+        "BE08",
+        "BE09",
+        "BE10",
+        "BE11"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "未实施"
+        }
+      ]
+    },
+    {
+      "id": "FE00",
+      "title": "主线接手与分支范围登记",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE01",
+      "title": "逐页面和逐功能区交互定稿",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE00"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE02",
+      "title": "视觉变量和组件状态定稿",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE03",
+      "title": "效果图升级与分层资产生产",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE02"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE04",
+      "title": "组件库复用与适配",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE02"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE05",
+      "title": "五区 Shell 与三级导航",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE01",
+        "FE04",
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE06",
+      "title": "自由布局与共享业务会话",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE05",
+        "BE02"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL_INTEGRATED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE07",
+      "title": "知识库与导入入口",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE05"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE08",
+      "title": "阅读编辑与来源历史",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE07",
+        "BE03"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE09",
+      "title": "图谱与研究工作面",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE08",
+        "BE09"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE10",
+      "title": "学习路径与课程",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE08",
+        "BE09"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE11",
+      "title": "教学表达与交付修订",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE10",
+        "BE09"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE12",
+      "title": "练习复述与反馈节奏",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE10",
+        "BE09"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE13",
+      "title": "基础画布与视觉表达",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE11",
+        "BE09"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE14",
+      "title": "模型中心与用途绑定",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE05",
+        "BE04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE15",
+      "title": "资源扩展与常用服务",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE14",
+        "BE07",
+        "BE08"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE16",
+      "title": "项目互联工作面",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE15",
+        "BE10"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE17",
+      "title": "受控 AI 旅程与任务回执",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE08",
+        "BE07"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE18",
+      "title": "小栖正式前端槽位",
+      "current_acceptance": "PARTIAL_SOURCE_ASSETS_AND_FORMAL_CONVERSATION_PRESENTATION",
+      "execution_boundary": "OWNER_AUTHORIZED_DIRECT_AAOS_INTEGRATION",
+      "dependencies": [
+        "FE06",
+        "GF08"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "DELEGATED_TO_QODER"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "FE19",
+      "title": "分类能力与未来蓝图",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE05",
+        "BE07"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE20",
+      "title": "设置恢复与诊断",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE06",
+        "BE04",
+        "BE09"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE21",
+      "title": "全状态与可访问性",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE05",
+        "FE14",
+        "FE19"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE22",
+      "title": "多格式与导入导出闭环",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE07",
+        "BE11"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "PARTIAL_INTEGRATED"
+        }
+      ]
+    },
+    {
+      "id": "FE23",
+      "title": "可见性生命周期与性能",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE06",
+        "FE18",
+        "FE22"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE24",
+      "title": "原生安装与五旅程验收",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE08",
+        "FE12",
+        "FE14",
+        "FE18",
+        "FE20",
+        "FE21",
+        "FE22",
+        "FE23",
+        "BE12",
+        "GF10"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "FE25",
+      "title": "真实宣传资产与交接",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "FE24"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#frontend_selected_tasks",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "WA02",
+      "title": "Readonly dismissible stale/conflict/duplicate diagnostics; no autonomous mutation",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "WA01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "未实施"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#current_required_gaps",
+          "reported_state": "未实施"
+        }
+      ]
+    },
+    {
+      "id": "WA03",
+      "title": "Source-linked answer/retest/ASR journey; model cause remains editable hypothesis",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE03",
+        "BE09"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "未实施"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#current_required_gaps",
+          "reported_state": "未实施"
+        }
+      ]
+    },
+    {
+      "id": "WA04",
+      "title": "Public query comparison contract first; paid supplier calls require exact new grant",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "CORE-EGRESS",
+        "WA01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "外部授权待定"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#current_required_gaps",
+          "reported_state": "外部授权待定"
+        }
+      ]
+    },
+    {
+      "id": "OSS-NECESSARY",
+      "title": "Review existing adapters and bounded dispositions; candidate registration never verified absorption",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "BE00"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "已实施缺验证"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#current_required_gaps",
+          "reported_state": "已实施缺验证"
+        }
+      ]
+    },
+    {
+      "id": "NATIVE-UNIFIED",
+      "title": "Same-source isolated installed synthetic journey and native retest cancellation; existing4B27B only",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "CORE-EGRESS",
+        "CORE-SEMANTIC",
+        "WA01",
+        "BE03",
+        "BE09",
+        "BE11"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "未实施"
+        },
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#current_required_gaps",
+          "reported_state": "未实施"
+        }
+      ]
+    },
+    {
+      "id": "GF00",
+      "title": "ASTRYN 独立分支接手",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF01",
+      "title": "人物与关系档案",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF00",
+        "BE01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF02",
+      "title": "抽离共享会话管理器",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF01",
+        "BE05"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF03",
+      "title": "轻量人物资产与状态表现",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF01"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF04",
+      "title": "八类宿主端口适配",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF02",
+        "BE03",
+        "BE05",
+        "BE06",
+        "BE07"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF05",
+      "title": "资料学习与女友陪伴的融合",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF06",
+      "title": "记忆查看纠正与遗忘",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF04",
+        "BE06"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF07",
+      "title": "真实文本流与取消恢复",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF08",
+      "title": "首页嵌入与侧边统一呈现",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF03",
+        "GF05",
+        "GF06",
+        "GF07"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF09",
+      "title": "声音字幕与口型接口外壳",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF08"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF10",
+      "title": "角色与真实宿主联合验收",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF08",
+        "GF09",
+        "BE12"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "GF11",
+      "title": "小栖交接与宣传资产",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "OWNER_AUTHORIZED_IN_PROJECT_RECONCILIATION",
+      "dependencies": [
+        "GF10"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "EXTERNAL_UNVERIFIED"
+        }
+      ],
+      "owner_override": "workspace/intake/20261018-xiaoqi-in-project.md"
+    },
+    {
+      "id": "A01",
+      "title": "修正实际 Cargo 缓存路径与 cargo-audit 预检",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A02",
+      "title": "缓存 key 输入与依赖/产物策略",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A03",
+      "title": "已有 quick/preflight 前置合同快失败",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A04",
+      "title": "构建内部阶段计时",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A05",
+      "title": "不可变基础环境缓存与当前 wheel 组装",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "A04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A06",
+      "title": "前端产物复用与重建原因测量",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "A04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A07",
+      "title": "测试耗时与受控分片",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "A04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A08",
+      "title": "变更到消费者与资格映射",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "A04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A09",
+      "title": "实际队列SQL与前端性能采样",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "A04"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "A10",
+      "title": "保留边界精简权威入口",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "NORM01",
+      "title": "目录体积分区与测量补全",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL"
+        }
+      ]
+    },
+    {
+      "id": "NORM02",
+      "title": "消费者索引与逐文件去重核对",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL"
+        }
+      ]
+    },
+    {
+      "id": "NORM03",
+      "title": "精确迁移清单及回退",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "NORM04",
+      "title": "云端受跟踪树与Git对象规范化",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "NORM05",
+      "title": "经核对的清理与空间读回",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "NOT_EXECUTED"
+        }
+      ]
+    },
+    {
+      "id": "Q-SOURCE",
+      "title": "原始材料独立语义覆盖",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL"
+        }
+      ]
+    },
+    {
+      "id": "Q-OSS",
+      "title": "O01/UF10逐资源实际资格",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL"
+        }
+      ]
+    },
+    {
+      "id": "Q-FORMAT",
+      "title": "CB04/UF11常见格式实际闭环",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL"
+        }
+      ]
+    },
+    {
+      "id": "Q-UI",
+      "title": "UF13与UI-first需求验收对账",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL"
+        }
+      ]
+    },
+    {
+      "id": "Q-INSTALLED",
+      "title": "M0当前源版本已安装真实闭环",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/AAOS-SESSION-UNFINISHED-20261014.json",
+          "reported_state": "PARTIAL"
+        }
+      ]
+    },
+    {
+      "id": "BE00",
+      "title": "BE00",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#tasks",
+          "reported_state": "PASS_SOURCE_AUDIT"
+        }
+      ]
+    },
+    {
+      "id": "CORE-EGRESS",
+      "title": "CORE-EGRESS",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#current_required_gaps",
+          "reported_state": "MERGED_MAIN_CI_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "CORE-SEMANTIC",
+      "title": "CORE-SEMANTIC",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#current_required_gaps",
+          "reported_state": "MERGED_MAIN_CI_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "WA01",
+      "title": "WA01",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [
+        "CORE-EGRESS"
+      ],
+      "source_records": [
+        {
+          "path": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json#current_required_gaps",
+          "reported_state": "MERGED_MAIN_CI_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "F01",
+      "title": "F01",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": []
+    },
+    {
+      "id": "F02",
+      "title": "F02",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": []
+    },
+    {
+      "id": "F03",
+      "title": "F03",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": []
+    },
+    {
+      "id": "F04",
+      "title": "F04",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": []
+    },
+    {
+      "id": "F05",
+      "title": "F05",
+      "current_acceptance": "PARTIAL",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": []
+    },
+    {
+      "id": "F06",
+      "title": "F06",
+      "current_acceptance": "UNVERIFIED",
+      "execution_boundary": "ELIGIBLE_SEQUENTIAL_RECONCILIATION",
+      "dependencies": [],
+      "source_records": []
+    }
+  ],
+  "source_findings": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+  "rule": "Historical states retain their original snapshot. Reconcile current code and evidence before acting; no blanket completion. V01/FT01-04 and frozen dialogue increments remain. Owner 20261018 supersedes FE18/ASTRYN separate development with direct AAOS integration; source and remote preserved."
+}

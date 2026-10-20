@@ -1,0 +1,935 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "archeaxis/material-question/v1",
+  "$ref": "#/$defs/MaterialQuestionRequestDto",
+  "$defs": {
+    "MaterialContextDto": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "document"
+            },
+            "document_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "content_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "block_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "document_id",
+            "version",
+            "content_sha256",
+            "block_id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "transform"
+            },
+            "source_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "raw_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "job_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "transform_id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "transform_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [
+            "kind",
+            "source_id",
+            "raw_sha256",
+            "job_id",
+            "transform_id",
+            "transform_sha256"
+          ]
+        }
+      ]
+    },
+    "MaterialSelectionDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start_utf16": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_utf16": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "start_utf16",
+        "end_utf16",
+        "quote_sha256"
+      ]
+    },
+    "MaterialQuestionRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "material": {
+          "$ref": "#/$defs/MaterialContextDto"
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaterialSelectionDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 4096
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "preview": {
+          "type": "boolean"
+        },
+        "confirmed_plan_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "model_configuration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResolvedModel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "request_id",
+        "material",
+        "selection",
+        "question",
+        "purpose",
+        "model",
+        "max_tokens",
+        "timeout_s",
+        "preview",
+        "confirmed_plan_sha256"
+      ]
+    },
+    "MaterialContextProofDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "material": {
+          "$ref": "#/$defs/MaterialContextDto"
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaterialSelectionDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "source_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "source_revision": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "job_id": {
+              "type": "string"
+            },
+            "transform_id": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source_id",
+            "source_revision"
+          ]
+        },
+        "context_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 128000
+        },
+        "authority": {
+          "const": "unverified_material"
+        }
+      },
+      "required": [
+        "material",
+        "selection",
+        "provenance",
+        "context_sha256",
+        "bytes",
+        "authority"
+      ]
+    },
+    "MaterialQuestionPlanDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.material-question-plan/v1"
+        },
+        "request": {
+          "$ref": "#/$defs/MaterialQuestionRequestDto"
+        },
+        "context": {
+          "$ref": "#/$defs/MaterialContextProofDto"
+        },
+        "destination": {
+          "const": "LOCAL_LOOPBACK_ONLY"
+        },
+        "destination_candidates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "selection_policy": {
+          "enum": [
+            "existing_owned_local_worker_probe",
+            "frozen_material_purpose_profile"
+          ]
+        },
+        "network_scope": {
+          "enum": [
+            "fixed_owned_local_worker",
+            "configured_numeric_loopback_endpoint"
+          ]
+        },
+        "restore_epoch": {
+          "type": "string"
+        },
+        "usage": {
+          "type": "null"
+        },
+        "cost": {
+          "type": "null"
+        }
+      },
+      "required": [
+        "schema",
+        "request",
+        "context",
+        "destination",
+        "destination_candidates",
+        "selection_policy",
+        "network_scope",
+        "restore_epoch",
+        "usage",
+        "cost"
+      ]
+    },
+    "MaterialQuestionPreviewDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.material-question-preview/v1"
+        },
+        "plan": {
+          "$ref": "#/$defs/MaterialQuestionPlanDto"
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "schema",
+        "plan",
+        "plan_sha256"
+      ]
+    },
+    "MaterialAnswerDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.material-answer/v1"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "plan": {
+          "$ref": "#/$defs/MaterialQuestionPlanDto"
+        },
+        "plan_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "outcome": {
+          "enum": [
+            "succeeded",
+            "failed"
+          ]
+        },
+        "reason_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "answer": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "answer": {
+                  "type": "string"
+                },
+                "model": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string"
+                },
+                "protocol": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "answer",
+                "model"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "answer_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "authority": {
+          "const": "candidate"
+        },
+        "grants_knowledge_acceptance": {
+          "const": false
+        },
+        "provider_stop_state": {
+          "enum": [
+            "UNKNOWN",
+            "NOT_REQUESTED"
+          ]
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/MachineFailureDiagnostics"
+        }
+      },
+      "required": [
+        "schema",
+        "task_id",
+        "request_id",
+        "plan",
+        "plan_sha256",
+        "outcome",
+        "reason_code",
+        "answer",
+        "answer_sha256",
+        "authority",
+        "grants_knowledge_acceptance",
+        "provider_stop_state"
+      ]
+    },
+    "MaterialQuestionCancelDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string"
+        },
+        "cancel_requested": {
+          "type": "boolean"
+        },
+        "execution_state": {
+          "const": "UNKNOWN"
+        },
+        "provider_stop_state": {
+          "const": "UNKNOWN"
+        }
+      },
+      "required": [
+        "request_id",
+        "cancel_requested",
+        "execution_state",
+        "provider_stop_state"
+      ]
+    },
+    "MaterialQuestionJournalDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.material-question-journal/v1"
+        },
+        "plans": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/MaterialQuestionPlanDto"
+          }
+        },
+        "limit": {
+          "const": 16
+        },
+        "scope": {
+          "const": "latest_requests_only"
+        }
+      },
+      "required": [
+        "schema",
+        "plans",
+        "limit",
+        "scope"
+      ]
+    },
+    "MaterialContextRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "material": {
+          "$ref": "#/$defs/MaterialContextDto"
+        },
+        "selection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaterialSelectionDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "material",
+        "selection"
+      ]
+    },
+    "MaterialContextResultDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.material-context/v1"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 128000
+        },
+        "proof": {
+          "$ref": "#/$defs/MaterialContextProofDto"
+        },
+        "network_performed": {
+          "const": false
+        }
+      },
+      "required": [
+        "schema",
+        "text",
+        "proof",
+        "network_performed"
+      ]
+    },
+    "MaterialQuestionStatusRequestDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "request_id"
+      ]
+    },
+    "MaterialQuestionPendingDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "plan": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MaterialQuestionPlanDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "execution_state": {
+          "enum": [
+            "UNKNOWN",
+            "NOT_EXECUTED"
+          ]
+        },
+        "answer_published": {
+          "const": false
+        },
+        "provider_stop_state": {
+          "const": "UNKNOWN"
+        }
+      },
+      "required": [
+        "request_id",
+        "plan",
+        "execution_state",
+        "answer_published",
+        "provider_stop_state"
+      ]
+    },
+    "ModelPurpose": {
+      "enum": [
+        "answer",
+        "retest",
+        "material",
+        "document_check",
+        "embedding",
+        "companion"
+      ]
+    },
+    "ModelLane": {
+      "enum": [
+        "fast",
+        "deep"
+      ]
+    },
+    "ModelProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "maxLength": 256,
+          "pattern": "^http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?$"
+        },
+        "protocol": {
+          "enum": [
+            "ollama",
+            "openai"
+          ]
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "credential_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^aak_cred_[a-f0-9]{32}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 4096
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        }
+      },
+      "required": [
+        "endpoint",
+        "protocol",
+        "model",
+        "credential_ref",
+        "max_tokens",
+        "timeout_s"
+      ]
+    },
+    "ModelPurposeBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        }
+      },
+      "required": [
+        "purpose",
+        "lane",
+        "profile_id"
+      ]
+    },
+    "ModelConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.model-configuration/v1"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "profiles": {
+          "type": "object",
+          "maxProperties": 32,
+          "additionalProperties": {
+            "$ref": "#/$defs/ModelProfile"
+          }
+        },
+        "bindings": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/ModelPurposeBinding"
+          }
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "revision",
+        "profiles",
+        "bindings",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "ResolvedModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema": {
+          "const": "archeaxis.resolved-model/v1"
+        },
+        "configuration_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ModelPurpose"
+        },
+        "lane": {
+          "$ref": "#/$defs/ModelLane"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "profile": {
+          "$ref": "#/$defs/ModelProfile"
+        },
+        "workspace_id": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "restore_epoch": {
+          "type": "string",
+          "pattern": "^(initial|[a-f0-9]{32})$"
+        }
+      },
+      "required": [
+        "schema",
+        "configuration_revision",
+        "configuration_sha256",
+        "purpose",
+        "lane",
+        "profile_id",
+        "profile",
+        "workspace_id",
+        "restore_epoch"
+      ]
+    },
+    "MachineFailureDiagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "requested_model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9_.:/@+-]{1,256}$",
+          "maxLength": 256
+        },
+        "observed_model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Za-z0-9_.:/@+-]{1,256}$",
+          "maxLength": 256
+        },
+        "finish_reason": {
+          "enum": [
+            "stop",
+            "length",
+            "tool_calls",
+            "function_call",
+            "content_filter",
+            "error"
+          ]
+        },
+        "answer_source": {
+          "enum": [
+            "content",
+            "reasoning_content",
+            "response",
+            "none"
+          ]
+        },
+        "error_type": {
+          "enum": [
+            "HTTPError",
+            "URLError",
+            "TimeoutError",
+            "ConnectionError",
+            "OSError",
+            "ValueError",
+            "TypeError",
+            "KeyError",
+            "IndexError",
+            "JSONDecodeError"
+          ]
+        },
+        "max_tokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "timeout_s": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "http_status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "input_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "output_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "total_tokens": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "request_stage": {
+          "enum": [
+            "service_discovery",
+            "model_request",
+            "response_deadline",
+            "worker_deadline"
+          ]
+        },
+        "discovery_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "request_phase": {
+          "enum": [
+            "http_open",
+            "body_read",
+            "json_parse",
+            "response_validation"
+          ]
+        },
+        "http_open_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "body_read_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "json_parse_elapsed_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "prompt_utf8_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "serialized_request_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "response_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    }
+  }
+}

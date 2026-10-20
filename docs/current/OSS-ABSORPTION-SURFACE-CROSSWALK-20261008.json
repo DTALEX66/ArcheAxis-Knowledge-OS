@@ -6,7 +6,7 @@
   "purpose": "One honest surface_class per open-source absorption entry, joining the A-E reuse-verification vocabulary to the capability absorption registry's allowed_absorption_modes, so the UI can show absorption sources without rendering all of them as enable-able plugins.",
   "generator": {
     "path": "scripts/audit/build_oss_absorption_crosswalk.py",
-    "sha256": "f4802c4f4be790fef0ca385fc528211992714f91c7edebbe4af0c57df555d45c"
+    "sha256": "e2a6925a7cdefcf1c82a39ee50ac206bc2a66aa9996256e765e647da0eace186"
   },
   "producing_command": [
     "<python>",
@@ -21,7 +21,7 @@
     "capability_absorption_registry": 11,
     "supply_chain_ledger": 51,
     "grouped_entries": 68,
-    "excluded": "The 369-row historical research pool and the 691-row lossless crosswalk it produces. Those rows are candidate names, not absorption entries (docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json: '369 pool entries are not 369 installations'); they stay in the regenerated payload described by docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json, which this artifact does not replace."
+    "excluded": "The 369-row historical research pool and the 691-row lossless crosswalk it produces. Those rows are candidate names, not absorption entries (docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json: '369 pool entries are not 369 installations'); they stay in the regenerated payload described by docs/history/repository-consolidation-20261019/current/OSS-REUSE-CROSSWALK-20261008.manifest.json, which this artifact does not replace."
   },
   "id_namespaces": {
     "capability_atlas": {
@@ -79,7 +79,7 @@
     "not_adopted": "Not adopted for the stated role: tier E, REJECT-CORE/REVIEW-BLOCK with nothing carried, or a claimed adoption whose donor artifact is absent."
   },
   "derivation": {
-    "verification_tier": "the category scripts/audit/build_oss_reuse_inventory.py carries for this entry's records; B is promoted to A only by bound verification in docs/current/OSS-REUSE-VERIFICATION-20261008.json, never by a decision",
+    "verification_tier": "the category scripts/audit/build_oss_reuse_inventory.py carries for this entry's records; B is promoted to A only by bound verification in docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json, never by a decision",
     "absorption_mode": "declared values are kept per namespace and never overwritten; derived_mode is computed from the artifact shape in the registry's own vocabulary",
     "atlas_capability_id": "the entry's dotted capability id appearing in config/capability-map.v1.json runtime_capabilities, or the donor name appearing in docs/truth/CAPABILITY_ATLAS_V2.yaml dependencies; two different matches make the row a conflict and refuse the plugin class",
     "adoption": "donor-specific terms only. Tokens that are the capability's own name or acronym are stripped first, then probed as declared package names (pyproject.toml, uv.lock, requirements.txt, frontend/package.json, frontend/package-lock.json, Cargo.lock), vendor roots, first-party source identifiers excluding self-declared unavailable stubs, the bound external resource index, and the declared route worker files",
@@ -87,12 +87,12 @@
   },
   "class_counts": {
     "base_dependency": 20,
-    "absorbed_algorithm": 16,
+    "absorbed_algorithm": 15,
     "future_candidate": 10,
     "enableable_plugin": 7,
     "not_adopted": 11,
     "format_spec": 3,
-    "ux_donor": 1
+    "ux_donor": 2
   },
   "class_order": [
     "enableable_plugin",
@@ -173,7 +173,8 @@
           },
           "mentioned_only": {
             "antiword": [
-              "services/python-workers/tool_paths.py:54"
+              "services/python-workers/tool_paths.py:54",
+              "frontend/src/api/conversionKinds.ts:38"
             ]
           }
         },
@@ -214,7 +215,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "office.doc",
             "declared_runtime_capabilities_in_the_same_domain": [
               "office.structure"
@@ -287,7 +288,7 @@
           },
           "mentioned_only": {
             "Apache Tika": [
-              "services/python-workers/document/worker_office.py:772",
+              "services/python-workers/document/worker_office.py:773",
               "crates/archeaxis-application/src/attempts.rs:297"
             ],
             "tika": [
@@ -333,7 +334,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "office.ppt",
             "declared_runtime_capabilities_in_the_same_domain": [
               "office.structure"
@@ -432,7 +433,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "legacy.runtime.scheduler",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -526,7 +527,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "document.save",
             "declared_runtime_capabilities_in_the_same_domain": [
               "document.detect"
@@ -579,7 +580,7 @@
           "tool_invoked": {
             "Azul Zulu Community JRE 21": [
               "zulu-jre",
-              "services/python-workers/document/worker_office.py:740",
+              "services/python-workers/document/worker_office.py:741",
               "services/python-workers/tool_paths.py:56"
             ]
           }
@@ -620,7 +621,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "runtime.jvm",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -742,8 +743,8 @@
         "hits": {
           "pipeline_invoked": {
             "Chromium": [
-              ".github/workflows/ci.yml:677",
-              ".github/workflows/nightly.yml:82"
+              ".github/workflows/ci.yml:707",
+              ".github/workflows/nightly.yml:89"
             ]
           },
           "imported_in_source": {
@@ -759,7 +760,7 @@
           },
           "mentioned_only": {
             "Chromium": [
-              "services/python-workers/README.md:31",
+              "services/python-workers/README.md:35",
               "services/python-workers/tool_paths.py:55",
               "app/ingestion/web_screenshot.py:1"
             ]
@@ -801,7 +802,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "web.snapshot.dynamic",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -950,7 +951,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "legacy.web.fetch",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -1110,7 +1111,8 @@
               "shared/evidence_connectors.py:4"
             ],
             "crossref": [
-              "shared/pipeline.py:11"
+              "shared/pipeline.py:11",
+              "frontend/src/presentation/uiCapabilityIntent.ts:128"
             ]
           }
         },
@@ -1148,7 +1150,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "evidence.crossref",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -1248,7 +1250,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "evidence.datacite",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -1597,6 +1599,14 @@
               "requirements.txt:21"
             ]
           },
+          "pipeline_invoked": {
+            "faster-whisper": [
+              "scripts/ci/common_asr.lock.json:3"
+            ],
+            "faster_whisper": [
+              "scripts/ci/run_common_speech_candidate.py:28"
+            ]
+          },
           "tool_invoked": {
             "faster-whisper": [
               "faster-whisper",
@@ -1615,7 +1625,7 @@
             "faster-whisper": [
               "shared/bakeoff_engines.py:156",
               "services/python-workers/media/worker_transcribe.py:4",
-              "services/python-workers/README.md:19"
+              "services/python-workers/README.md:23"
             ],
             "faster_whisper": [
               "shared/bakeoff_engines.py:159",
@@ -1703,9 +1713,9 @@
         "hits": {
           "pipeline_invoked": {
             "FFmpeg": [
-              ".github/workflows/ci.yml:192",
-              ".github/workflows/nightly.yml:87",
-              "scripts/ci/check_vnext_workers.py:243"
+              ".github/workflows/ci.yml:213",
+              ".github/workflows/nightly.yml:94",
+              "scripts/ci/check_vnext_workers.py:253"
             ]
           },
           "imported_in_source": {
@@ -1730,7 +1740,7 @@
           "mentioned_only": {
             "FFmpeg": [
               "shared/adapter_contract.py:63",
-              "services/python-workers/README.md:20",
+              "services/python-workers/README.md:24",
               "services/python-workers/tool_paths.py:9"
             ]
           }
@@ -1880,7 +1890,7 @@
           },
           "pipeline_invoked": {
             "fsrs": [
-              ".github/workflows/vnext-ci.yml:90"
+              ".github/workflows/vnext-ci.yml:52"
             ]
           },
           "imported_in_source": {
@@ -1892,9 +1902,8 @@
           },
           "stub_only": {
             "fsrs": [
-              "crates/archeaxis-api/src/lib.rs:635",
-              "crates/archeaxis-api/tests/contract_constant_fields.rs:332",
-              "crates/archeaxis-api/tests/contract_review_cost.rs:206"
+              "crates/archeaxis-api/src/lib.rs:808",
+              "crates/archeaxis-application/src/scheduler.rs:171"
             ]
           },
           "mentioned_only": {
@@ -1932,7 +1941,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "learning.fsrs",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -1994,7 +2003,7 @@
         "hits": {
           "mentioned_only": {
             "SenseVoice": [
-              "services/python-workers/README.md:47",
+              "services/python-workers/README.md:51",
               "app/ingestion/asr_adapter.py:95"
             ]
           }
@@ -2070,10 +2079,12 @@
         "hits": {
           "pipeline_invoked": {
             "Gitleaks": [
-              ".github/workflows/ci.yml:172"
+              ".github/workflows/ci.yml:170",
+              "scripts/ci/local_verify.py:238"
             ],
             "gitleaks": [
-              ".github/workflows/ci.yml:172"
+              ".github/workflows/ci.yml:170",
+              "scripts/ci/local_verify.py:238"
             ]
           }
         },
@@ -2343,7 +2354,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "quality.text",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -2535,7 +2546,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "contract.json-schema",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -2620,7 +2631,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "graph.core-replacement",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -2707,7 +2718,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "legacy.observability",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -2909,11 +2920,11 @@
           },
           "mentioned_only": {
             "litellm": [
-              "services/python-workers/machine/document_check.py:43",
+              "services/python-workers/machine/document_check.py:85",
               "app/memory/reasoning_memory.py:11"
             ],
             "LiteLLM": [
-              "services/python-workers/machine/document_check.py:43",
+              "services/python-workers/machine/document_check.py:85",
               "app/memory/reasoning_memory.py:11"
             ]
           }
@@ -2952,7 +2963,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "legacy.llm.gateway",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -3079,7 +3090,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "runtime.logging",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -3149,14 +3160,6 @@
               "shared/models/magika"
             ]
           },
-          "imported_in_source": {
-            "magika": [
-              "frontend/src/__tests__/ContentDetectionPanel.test.tsx:14"
-            ],
-            "Magika": [
-              "frontend/src/__tests__/ContentDetectionPanel.test.tsx:14"
-            ]
-          },
           "stub_only": {
             "magika": [
               "services/python-workers/document/worker_detect.py:70"
@@ -3203,7 +3206,7 @@
             "verification_tier": "B",
             "supply_chain_disposition": "EVALUATE",
             "adoption_artifact": "package_declared",
-            "source": "docs/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
+            "source": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
           }
         },
         {
@@ -3227,14 +3230,6 @@
                 ],
                 "Magika": [
                   "shared/models/magika"
-                ]
-              },
-              "imported_in_source": {
-                "magika": [
-                  "frontend/src/__tests__/ContentDetectionPanel.test.tsx:14"
-                ],
-                "Magika": [
-                  "frontend/src/__tests__/ContentDetectionPanel.test.tsx:14"
                 ]
               },
               "stub_only": {
@@ -3275,7 +3270,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "file.detect",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -3324,7 +3319,7 @@
         "hits": {
           "pipeline_invoked": {
             "Marker": [
-              ".github/workflows/ci.yml:51"
+              ".github/workflows/ci.yml:50"
             ]
           },
           "imported_in_source": {
@@ -3337,13 +3332,12 @@
           "stub_only": {
             "Marker": [
               "services/python-workers/media/worker_transcribe.py:123",
-              "services/python-workers/media/worker_video.py:132",
-              "frontend/src/__tests__/StatusBar.test.tsx:27"
+              "services/python-workers/media/worker_video.py:132"
             ]
           },
           "mentioned_only": {
             "Marker": [
-              "services/python-workers/vision/worker_caption.py:67",
+              "services/python-workers/vision/worker_caption.py:70",
               "app/ingestion/raw_asset.py:187",
               "app/setup/setup_status.py:37"
             ]
@@ -3376,7 +3370,7 @@
             "hits": {
               "pipeline_invoked": {
                 "Marker": [
-                  ".github/workflows/ci.yml:51"
+                  ".github/workflows/ci.yml:50"
                 ]
               },
               "imported_in_source": {
@@ -3389,13 +3383,12 @@
               "stub_only": {
                 "Marker": [
                   "services/python-workers/media/worker_transcribe.py:123",
-                  "services/python-workers/media/worker_video.py:132",
-                  "frontend/src/__tests__/StatusBar.test.tsx:27"
+                  "services/python-workers/media/worker_video.py:132"
                 ]
               },
               "mentioned_only": {
                 "Marker": [
-                  "services/python-workers/vision/worker_caption.py:67",
+                  "services/python-workers/vision/worker_caption.py:70",
                   "app/ingestion/raw_asset.py:187",
                   "app/setup/setup_status.py:37"
                 ]
@@ -3551,7 +3544,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "legacy.document.convert",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -3938,7 +3931,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "legacy.graph.compute",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -4003,10 +3996,12 @@
           },
           "mentioned_only": {
             "OpenAlex": [
-              "shared/pipeline.py:198"
+              "shared/pipeline.py:198",
+              "frontend/src/presentation/uiCapabilityIntent.ts:128"
             ],
             "openalex": [
-              "shared/pipeline.py:198"
+              "shared/pipeline.py:198",
+              "frontend/src/presentation/uiCapabilityIntent.ts:128"
             ]
           }
         },
@@ -4044,7 +4039,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "evidence.openalex",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -4111,7 +4106,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "contract.openapi",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -4391,29 +4386,18 @@
               "frontend/package-lock.json:packages"
             ]
           },
-          "imported_in_source": {
-            "pdf.js": [
-              "frontend/src/__tests__/PdfReader.test.tsx:7",
-              "frontend/src/components/PdfReader.tsx:3"
-            ],
-            "PDF.js": [
-              "frontend/src/__tests__/PdfReader.test.tsx:7",
-              "frontend/src/components/PdfReader.tsx:3"
-            ]
-          },
           "mentioned_only": {
             "pdf.js": [
               "app/evidence/pdf_serve.py:1",
               "app/workspace/router.py:332",
-              "frontend/src/spaces/CanonicalLibrarySpace.tsx:22"
+              "frontend/src/spaces/CanonicalLibrarySpace.tsx:35"
             ],
             "PDF.js": [
               "app/evidence/pdf_serve.py:1",
               "app/workspace/router.py:332",
-              "frontend/src/spaces/CanonicalLibrarySpace.tsx:22"
+              "frontend/src/spaces/CanonicalLibrarySpace.tsx:35"
             ],
             "pdfjs-dist": [
-              "frontend/src/__tests__/PdfReader.test.tsx:7",
               "frontend/src/components/PdfReader.tsx:3"
             ]
           }
@@ -4452,7 +4436,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "pdf.read",
             "declared_runtime_capabilities_in_the_same_domain": [
               "pdf.extract"
@@ -4572,7 +4556,8 @@
         "hits": {
           "pipeline_invoked": {
             "pip-audit": [
-              ".github/workflows/ci.yml:159"
+              ".github/workflows/ci.yml:157",
+              "scripts/ci/local_verify.py:238"
             ]
           }
         },
@@ -4652,8 +4637,7 @@
         "hits": {
           "mentioned_only": {
             "prosemirror": [
-              "frontend/src/spaces/CanonicalLibrarySpace.tsx:24",
-              "frontend/src/test/setup.ts:7"
+              "frontend/src/spaces/CanonicalLibrarySpace.tsx:37"
             ]
           }
         },
@@ -4690,7 +4674,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "document.edit",
             "declared_runtime_capabilities_in_the_same_domain": [
               "document.detect"
@@ -4754,40 +4738,24 @@
               "pyproject.toml:79"
             ]
           },
-          "imported_in_source": {
-            "PyMuPDF": [
-              "crates/archeaxis-api/tests/source_transform_readback.rs:55",
-              "crates/archeaxis-application/src/attempts.rs:16",
-              "crates/archeaxis-application/tests/pdf_job_end_to_end.rs:157"
-            ],
-            "pymupdf": [
-              "crates/archeaxis-api/tests/source_transform_readback.rs:55",
-              "crates/archeaxis-application/src/attempts.rs:16",
-              "crates/archeaxis-application/tests/pdf_job_end_to_end.rs:157"
-            ]
-          },
           "stub_only": {
             "PyMuPDF": [
-              "services/python-workers/document/worker_office.py:496",
-              "crates/archeaxis-application/src/executor.rs:519",
-              "crates/archeaxis-application/tests/pdf_ocr_chain.rs:106"
+              "services/python-workers/document/worker_office.py:497"
             ],
             "pymupdf": [
-              "services/python-workers/document/worker_office.py:496",
-              "crates/archeaxis-application/src/executor.rs:519",
-              "crates/archeaxis-application/tests/pdf_ocr_chain.rs:106"
+              "services/python-workers/document/worker_office.py:497"
             ]
           },
           "mentioned_only": {
             "PyMuPDF": [
               "shared/media_extractor.py:4",
               "services/python-workers/document/worker_pdf.py:36",
-              "services/python-workers/README.md:16"
+              "services/python-workers/README.md:20"
             ],
             "pymupdf": [
               "shared/media_extractor.py:4",
               "services/python-workers/document/worker_pdf.py:36",
-              "services/python-workers/README.md:16"
+              "services/python-workers/README.md:20"
             ]
           }
         },
@@ -4936,17 +4904,17 @@
           },
           "pipeline_invoked": {
             "tesseract": [
-              ".github/workflows/ci.yml:192",
-              ".github/workflows/nightly.yml:79",
-              "scripts/ci/check_vnext_workers.py:271"
+              ".github/workflows/ci.yml:213",
+              ".github/workflows/nightly.yml:86",
+              "scripts/ci/check_vnext_workers.py:281"
             ],
             "Tesseract": [
-              ".github/workflows/ci.yml:192",
-              ".github/workflows/nightly.yml:79",
-              "scripts/ci/check_vnext_workers.py:271"
+              ".github/workflows/ci.yml:213",
+              ".github/workflows/nightly.yml:86",
+              "scripts/ci/check_vnext_workers.py:281"
             ],
             "pytesseract": [
-              ".github/workflows/ci.yml:585"
+              ".github/workflows/ci.yml:615"
             ]
           },
           "imported_in_source": {
@@ -5011,12 +4979,12 @@
           "mentioned_only": {
             "tesseract": [
               "shared/adapter_contract.py:63",
-              "services/python-workers/README.md:21",
+              "services/python-workers/README.md:25",
               "services/python-workers/tool_paths.py:7"
             ],
             "Tesseract": [
               "shared/adapter_contract.py:63",
-              "services/python-workers/README.md:21",
+              "services/python-workers/README.md:25",
               "services/python-workers/tool_paths.py:7"
             ],
             "pytesseract": [
@@ -5221,7 +5189,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "quality.text.similarity",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -5300,7 +5268,7 @@
           },
           "mentioned_only": {
             "RapidOCR": [
-              "services/python-workers/README.md:32"
+              "services/python-workers/README.md:36"
             ]
           }
         },
@@ -5333,7 +5301,7 @@
             "verification_tier": "B",
             "supply_chain_disposition": "EVALUATE",
             "adoption_artifact": "tool_invoked",
-            "source": "docs/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
+            "source": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
           }
         },
         {
@@ -5359,7 +5327,7 @@
               },
               "mentioned_only": {
                 "RapidOCR": [
-                  "services/python-workers/README.md:32"
+                  "services/python-workers/README.md:36"
                 ]
               }
             }
@@ -5368,7 +5336,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "legacy.image.ocr",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -5563,7 +5531,7 @@
             "verification_tier": "B",
             "supply_chain_disposition": "EVALUATE",
             "adoption_artifact": "package_declared",
-            "source": "docs/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
+            "source": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json vs docs/truth/SUPPLY_CHAIN_LEDGER.json"
           }
         },
         {
@@ -5625,7 +5593,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "media.transcribe.sensevoice",
             "declared_runtime_capabilities_in_the_same_domain": [
               "media.diarize",
@@ -5782,7 +5750,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "legacy.audio.vad",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -6003,7 +5971,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "runtime.structured-logging",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -6124,7 +6092,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "sbom.tool",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -6154,38 +6122,48 @@
       },
       "verification_tier": "B",
       "currently_usable": false,
-      "absorption_mode": "PYTHON_WORKER",
+      "absorption_mode": "DIRECT_DEPENDENCY",
       "declared_modes": {
         "capability_absorption_registry": null,
         "capability_absorption_registry_status": null,
         "supply_chain_ledger": null,
-        "derived_mode": "PYTHON_WORKER"
+        "derived_mode": "DIRECT_DEPENDENCY"
       },
       "atlas_capability_id": null,
       "map_state": null,
       "adoption": {
-        "artifact": "imported_in_source",
+        "artifact": "package_declared",
         "carried": true,
         "terms": [
           "tiptap",
           "Tiptap"
         ],
         "hits": {
-          "imported_in_source": {
+          "package_declared": {
             "tiptap": [
-              "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx:1",
-              "frontend/src/__tests__/CanonicalReviewLearning.test.tsx:1",
-              "frontend/src/__tests__/TemplateBindings.test.tsx:55"
+              "frontend/package.json:dependencies",
+              "frontend/package-lock.json:packages"
             ],
             "Tiptap": [
-              "frontend/src/__tests__/CanonicalLibrarySpace.test.tsx:1",
-              "frontend/src/__tests__/CanonicalReviewLearning.test.tsx:1",
-              "frontend/src/__tests__/TemplateBindings.test.tsx:55"
+              "frontend/package.json:dependencies",
+              "frontend/package-lock.json:packages"
+            ]
+          },
+          "mentioned_only": {
+            "tiptap": [
+              "frontend/src/components/DocumentEditor.tsx:2",
+              "frontend/src/presentation/coreWorkingState.ts:1",
+              "frontend/src/presentation/originalNoteWrite.ts:1"
+            ],
+            "Tiptap": [
+              "frontend/src/components/DocumentEditor.tsx:2",
+              "frontend/src/presentation/coreWorkingState.ts:1",
+              "frontend/src/presentation/originalNoteWrite.ts:1"
             ]
           }
         },
         "bound_resource_entries": [],
-        "direct_declaration": false,
+        "direct_declaration": true,
         "ledger_reported_evidence_state": null
       },
       "route_binding": {
@@ -6197,15 +6175,15 @@
         ],
         "enableable": false,
         "degrade_reason": "no single atlas capability joins it: capability ids ['document.edit'] appear in neither config/capability-map.v1.json runtime_capabilities nor docs/truth/CAPABILITY_ATLAS_V2.yaml dependencies",
-        "frontend_only_client": false
+        "frontend_only_client": true
       },
-      "surface_class": "absorbed_algorithm",
-      "surface_class_reason": "no single atlas capability joins it: capability ids ['document.edit'] appear in neither config/capability-map.v1.json runtime_capabilities nor docs/truth/CAPABILITY_ATLAS_V2.yaml dependencies",
+      "surface_class": "ux_donor",
+      "surface_class_reason": "the donor is declared only in the client manifest scope (frontend/package.json, frontend/package-lock.json) and no atlas capability joins it, so it is a UI-layer donor.",
       "conflicts": [
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "document.edit",
             "declared_runtime_capabilities_in_the_same_domain": [
               "document.detect"
@@ -6346,23 +6324,23 @@
             "trafilatura": [
               "shared/adapter_fixtures.py:117",
               "shared/web_search.py:104",
-              "services/python-workers/machine/document_check.py:152"
+              "services/python-workers/machine/document_check.py:203"
             ],
             "Trafilatura": [
               "shared/adapter_fixtures.py:117",
               "shared/web_search.py:104",
-              "services/python-workers/machine/document_check.py:152"
+              "services/python-workers/machine/document_check.py:203"
             ]
           },
           "mentioned_only": {
             "trafilatura": [
               "shared/pipeline.py:105",
-              "services/python-workers/README.md:34",
+              "services/python-workers/README.md:38",
               "services/python-workers/web/worker_webpage.py:15"
             ],
             "Trafilatura": [
               "shared/pipeline.py:105",
-              "services/python-workers/README.md:34",
+              "services/python-workers/README.md:38",
               "services/python-workers/web/worker_webpage.py:15"
             ]
           }
@@ -6435,12 +6413,18 @@
       "atlas_capability_id": null,
       "map_state": null,
       "adoption": {
-        "artifact": "NONE",
+        "artifact": "mentioned_only",
         "carried": false,
         "terms": [
           "WeKnora"
         ],
-        "hits": {},
+        "hits": {
+          "mentioned_only": {
+            "WeKnora": [
+              "frontend/src/presentation/uiCapabilityIntent.ts:150"
+            ]
+          }
+        },
         "bound_resource_entries": [],
         "direct_declaration": false,
         "ledger_reported_evidence_state": null
@@ -6666,7 +6650,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "evidence.wikidata",
             "declared_runtime_capabilities_in_the_same_domain": [],
             "sources": [
@@ -6722,14 +6706,14 @@
           },
           "imported_in_source": {
             "xlrd": [
-              "services/python-workers/document/worker_office.py:570"
+              "services/python-workers/document/worker_office.py:571"
             ]
           },
           "mentioned_only": {
             "xlrd": [
               "services/python-workers/transport/text_ndjson.py:341",
               "crates/archeaxis-application/src/attempts.rs:294",
-              "crates/archeaxis-application/tests/office_job_end_to_end.rs:84"
+              "frontend/src/api/conversionKinds.ts:39"
             ]
           }
         },
@@ -6767,7 +6751,7 @@
         {
           "reason": "capability-id-is-not-a-declared-route",
           "values": {
-            "named_by": "docs/current/OSS-REUSE-DECISIONS-20261008.json",
+            "named_by": "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json",
             "capability_id": "office.xls",
             "declared_runtime_capabilities_in_the_same_domain": [
               "office.structure"
@@ -6850,11 +6834,11 @@
     }
   ],
   "inputs": {
-    "docs/current/OSS-REUSE-DECISIONS-20261008.json": {
+    "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json": {
       "sha256": "ba938bc36d74551a08b7ab94b4b1513122b4d853353e6d41c15feedab86cbe38",
       "bytes": 23384
     },
-    "docs/current/OSS-REUSE-VERIFICATION-20261008.json": {
+    "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json": {
       "sha256": "67c25efebac6d42ab4a20e82c27b4f771acaffeafff0a5d913cab38b45ae2cf0",
       "bytes": 14105
     },
@@ -6886,7 +6870,7 @@
       "sha256": "8d5f9d30c7f7585d9dc7db1f6476d5ee2c418a2b6ea656c88bfe1c1b922d7cd2",
       "bytes": 77157
     },
-    "docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json": {
+    "docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json": {
       "sha256": "29810dc3978cd90f4bcf8a8859e489655d3a52ff564eabb80ae17c52a82d2917",
       "bytes": 11591
     },
@@ -6895,8 +6879,8 @@
       "bytes": 8562
     },
     "scripts/audit/oss_disposition_evidence.py": {
-      "sha256": "4900fd22b84ba7ba5f05a56ec52510c63b7a8ca7e21de073abf8dec1c2f71de2",
-      "bytes": 18439
+      "sha256": "fe1dfdb9f9ff29c3ba7baec84fbcf2a648def927a93c07797768e3c90051f5c2",
+      "bytes": 19527
     }
   },
   "limits": [

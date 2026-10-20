@@ -62,7 +62,7 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialRetestConsu
       const value:Selection={document,grant,snapshot:actual,current:knowledgeCurrent,knowledge};
       if(which==="original"){setOriginal(value);if(original?.grant.knowledge_id!==grant.knowledge_id){setCandidateId(null);setCorrected(null);}}
       else setCorrected(value);
-      setMessage(grant.state==="revoked"?"授权已撤回；历史仍可读取，新推理不可执行。":"已读取实际对象及消费快照；是否允许执行仍由 Core 校验。");
+      setMessage(grant.state==="revoked"?"授权已撤回；历史仍可读取，新推理不可执行。":"已读取所选内容；开始运行时还会再次检查使用权限。");
     } catch(reason) {
       if(mounted.current && seq===readEpoch.current){setError(failureMessage(reason));if(which==="original")setOriginal(old=>old?.document.document_id===id?{...old,current:false}:old);else setCorrected(old=>old?.document.document_id===id?{...old,current:false}:old);}
     } finally {if(mounted.current && seq===readEpoch.current)setReading(false);}
@@ -79,11 +79,11 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialRetestConsu
   const retestPermission=eligible(corrected,"retest",candidateId)?corrected!.snapshot:undefined;
   function receiveCandidate(id:string){setCandidateId(id);onCandidate?.(id);}
   function receiveTask(id:string){setLatestTask(id);onTask?.(id);}
-  return <section aria-label="纠正、评测与复测" data-section="ai-journey">
+  return <section aria-label="纠正、评测与复测内容" data-section="ai-journey">
     <h2>纠正、评测与复测</h2><p>原问题、机器回答和纠正候选分别保留；采用或调用成功都不等于独立评测通过。缺模型时保留草稿与历史，不自动下载。</p>
     {onOpenContext?<button onClick={()=>onOpenContext("original",knowledgeId??undefined)}>返回项目记忆与授权</button>:null}
     {candidateId&&onOpenContext?<button onClick={()=>onOpenContext("corrected",candidateId)}>为此纠正知识建立独立复测授权</button>:null}
-    {latestTask&&onOpenReceipts?<button onClick={()=>onOpenReceipts(latestTask)}>读取此机器旅程的持久化回执</button>:null}
+    {latestTask&&onOpenReceipts?<button onClick={()=>onOpenReceipts(latestTask)}>查看本次运行详细记录</button>:null}
     <section aria-label="实际上下文授权">
       <h3>选择已保存授权</h3><button disabled={listing} onClick={()=>void list()}>刷新上下文列表</button>
       {listing?<p role="status">正在读取实际上下文…</p>:null}
@@ -94,14 +94,14 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialRetestConsu
     {error?<p role="alert">{error}</p>:null}{message?<p role="status">{message}</p>:null}
     <div className="ai-journey-grants">{([original,corrected] as const).map((selection,index)=><section key={index} aria-label={index===0?"原知识授权快照":"纠正候选授权快照"}>
       <h3>{index===0?"原知识授权":"纠正候选授权"}</h3>{selection?<>
-        <p>{selection.document.title} · v{selection.document.version} · {selection.grant.state}</p><p>用途：{selection.grant.purpose}</p>
-        <p>知识：{selection.grant.knowledge_id??"尚未绑定"}；授权依据：{selection.grant.authorization_basis||"未填写"}</p>
-        {selection.knowledge?<><p>知识当前修订：{String(selection.knowledge.version)} · 来源 {String(selection.knowledge.source_id??"未绑定")} · 锚点 {String(selection.knowledge.anchor_id??"未绑定")}</p><pre aria-label={index===0?"原知识当前正文":"纠正知识当前正文"}>{String(selection.knowledge.body)}</pre></>:null}
-        <p>有效期：{selection.grant.expires_at===null?"未设置到期时间":String(selection.grant.expires_at)}；范围：local-machine；操作：{selection.grant.operations.join(" / ")}</p>
-        <p>{(index===0?answerPermission:retestPermission)?"当前快照可提交 Core 核验":"当前快照不允许该项新推理；历史只读保留。"}</p>
+        <p>{selection.document.title} · 第 {selection.document.version} 版 · {selection.grant.state === "granted" ? "已授权" : selection.grant.state === "revoked" ? "已撤回" : "待确认"}</p><p>用途：{selection.grant.purpose}</p>
+        <p>关联知识：{selection.grant.knowledge_id ? "已关联" : "尚未关联"}；授权依据：{selection.grant.authorization_basis||"未填写"}</p>
+        {selection.knowledge?<><p>知识当前第 {String(selection.knowledge.version)} 版；来源与引用位置已记录。</p><pre aria-label={index===0?"原知识当前正文":"纠正知识当前正文"}>{String(selection.knowledge.body)}</pre></>:null}
+        <p>有效期：{selection.grant.expires_at===null?"未设置到期时间":String(selection.grant.expires_at)}；仅在本机使用；允许：{selection.grant.operations.map(operation => operation === "answer" ? "回答" : "复测").join(" / ")}</p>
+        <p>{(index===0?answerPermission:retestPermission)?"当前选择可以提交检查":"当前选择不能用于新的回答；历史记录仍可查看。"}</p>
         <button disabled={reading} onClick={()=>void select(index===0?"original":"corrected",selection.document.document_id,selection.snapshot,true)}>核对此授权当前快照</button>
-        <RawReceiptButton label={index===0?"原知识授权固定回执":"纠正候选授权固定回执"} payload={selection}/>
-      </>:<p>尚未选择。{index===1?"实际纠正候选读回后再选择匹配其知识 ID 的授权。":"不会推测知识 ID 或授权。"}</p>}</section>)}</div>
+        <RawReceiptButton label={index===0?"原知识授权详细信息":"纠正候选授权详细信息"} payload={selection}/>
+      </>:<p>尚未选择。{index===1?"先打开已保存的纠正候选，再选择与它匹配的授权。":"不会自动选择知识或授权。"}</p>}</section>)}</div>
     <AssetMachineSlots initial={initialAssetConsumption} onAnswer={setAssetAnswer} onRetest={setAssetRetest} blocked={blocked}/>
     {knowledgeId?<MachineAnswerPanel knowledgeId={knowledgeId} scoped contextGrant={answerPermission} retestContextGrant={retestPermission} assetScoped={!!assetAnswer} retestAssetScoped={!!assetRetest} assetContextGrant={assetAnswer?.current?assetAnswer.request:undefined} retestAssetContextGrant={assetRetest?.current?assetRetest.request:undefined} onTask={receiveTask} onCandidate={receiveCandidate}/>:<p>请先选择绑定真实知识的上下文对象；无绑定候选仍可在项目记忆页保存和阅读。</p>}
     <MachineEvaluationPanel taskId={latestTask}/>

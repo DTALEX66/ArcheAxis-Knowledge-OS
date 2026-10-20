@@ -5,6 +5,9 @@ import { ApiError, type JobAdmissionRefusal } from "../api/client";
 import { FrozenCapabilityRecovery } from "./FrozenCapabilityRecovery";
 import { recoverableJobRefusal } from "../api/jobAdmission";
 import { conversionKindFor } from "../api/conversionKinds";
+import { confirmedImport, type ImportReceipt } from "../presentation/importReceipt";
+import { sha256 as contentSha256 } from "../presentation/exchangeProof";
+import { RawReceiptButton } from "./DiagnosticConsole";
 import type { BoundedJobCommand, JobStatus } from "./BoundedJobPanel";
 import { freezeFolderAttempt, folderCancelAck, folderExecutionAck, freshAttemptEligible, jobState, pollFolderAttempt, readFolderStatus, terminalJobState, type FolderAttempt, type JobState } from "../presentation/folderIngestExecution";
 
@@ -114,19 +117,19 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     const base = { key: `${batch}:${relative}`, batch_id: batch, relative, bytes: file.size };
     const refusal = refuseBeforeUpload(relative, file.size);
     if (refusal) { handled.current.add(relative); return { ...base, ...refusal }; }
-    let imported: { source_id?: unknown; sha256?: unknown; duplicate?: unknown };
+    let imported: ImportReceipt;
     try {
-      const content_base64 = base64Of(await file.arrayBuffer()); if (!current(generation)) return null;
-      imported = await coreCommand("source_import", { body: { name: relative, content_base64, origin_kind: "path", origin_ref: batch, origin_name: file.name } });
+      const bytes = await file.arrayBuffer();
+      const expectedSha256 = await contentSha256(new Uint8Array(bytes));
+      const content_base64 = base64Of(bytes); if (!current(generation)) return null;
+      imported = confirmedImport(await coreCommand("source_import", { body: { name: relative, content_base64, origin_kind: "path", origin_ref: batch, origin_name: file.name } }), expectedSha256);
       if (!current(generation)) return null;
       handled.current.add(relative);
-      if (typeof imported.source_id !== "string" || !imported.source_id || typeof imported.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(imported.sha256)
-        || typeof imported.duplicate !== "boolean") return { ...base, state: "IMPORT_FAILED", detail: "导入回执未确认 source_id/sha256/duplicate；请保留原件，未启动转换。" };
     } catch (error) {
       if (!current(generation)) return null;
       handled.current.add(relative); return { ...base, state: "IMPORT_FAILED", detail: error instanceof Error ? error.message : "原件导入未确认" };
     }
-    const source_id = imported.source_id as string, sha256 = imported.sha256 as string, kind = conversionKindFor(relative);
+    const {source_id, sha256} = imported, kind = conversionKindFor(relative);
     if (!kind) return { ...base, source_id, sha256, state: "ORIGINAL_ONLY", detail: "此扩展名没有映射到任何 Core 作业种类；原件独立保管，未入队。" };
     const job_id = `folder-${kind}-${sha256}`, original = { ...base, source_id, sha256, kind, job_id };
     try {
@@ -222,7 +225,7 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
   async function executeBatch() {
     const generation = lock(); if (generation === null) return;
     try {
-      const keys = rowsRef.current.filter(row => ["queued", "pending"].includes(row.state) && row.job_id && !row.attempt).map(row => row.key);
+      const keys = rowsRef.current.filter(row => row.batch_id===batchRef.current && ["queued", "pending"].includes(row.state) && row.job_id && !row.attempt).map(row => row.key);
       for (const key of keys) { if (!current(generation) || stopAfter.current) break; await executeOne(key, "queued", generation); }
       if (current(generation)) setMessage(`本批次转换：${tally(rowsRef.current)}${stopAfter.current ? " · 后续转换未开始，当前回执保留" : ""}。`);
     } finally { unlock(generation); }
@@ -263,7 +266,7 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined);
   }
   const capabilityBusy = rows.some(row=>row.capabilityBusy);
-  return <section aria-label="文件夹导入"><h4>文件夹导入</h4><JobJournalRecovery entries={journal.entries} disabled={busy||cancelBusy||capabilityFlight.current||journal.blocked} onRestore={entry=>{const key=`recovered:${entry.request_id}`;replace({key,batch_id:"recovered",relative:entry.relative??entry.source_id,bytes:0,source_id:entry.source_id,sha256:entry.source_revision,job_id:entry.job_id,kind:entry.kind,attempt:{job_id:entry.job_id,request_id:entry.request_id,body:entry.body},state:"UNKNOWN",detail:"Core 保全现场已恢复；本地文件待上传队列未恢复。先核对原冻结状态，未自动执行。"});}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");update(old=>old.filter(row=>row.attempt?.request_id!==entry.request_id));}}/>
+  return <section aria-label="文件夹导入"><h4>文件夹导入</h4><JobJournalRecovery entries={journal.entries} disabled={busy||cancelBusy||capabilityFlight.current||journal.blocked} onRestore={entry=>{const key=`recovered:${entry.request_id}`;replace({key,batch_id:"recovered",relative:entry.relative??entry.source_id,bytes:0,source_id:entry.source_id,sha256:entry.source_revision,job_id:entry.job_id,kind:entry.kind,attempt:{job_id:entry.job_id,request_id:entry.request_id,body:entry.body},state:"UNKNOWN",detail:"待确认任务已找回；本地待处理文件列表未恢复。请先检查状态，不会自动再次执行。"});}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");update(old=>old.filter(row=>row.attempt?.request_id!==entry.request_id));}}/>
     <label className="content-import">选择一个文件夹<input type="file" aria-label="选择文件夹" disabled={busy || rows.some(row => !!row.attempt)} {...({ webkitdirectory: "", directory: "" } as Record<string, string>)} multiple onChange={event => {
       if (capabilityFlight.current || running.current || rowsRef.current.some(row => !!row.attempt)) return;
       const files = Array.from(event.target.files ?? []); event.target.value = "";
@@ -271,23 +274,26 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
       const root = folderOf(files); if (!root) { setMessage("所选内容不像是同一个文件夹，未开始导入。"); return; }
       const privates = files.map(privateVisibleSegment).filter((p): p is string => p !== null);
       if (privates.length) { setMessage(`整个文件夹被拒绝：${privates.length} 条路径落在私有状态目录里（如 ${privates[0]}），未导入任何文件。请重新选择或明确缩小范围。`); return; }
-      if (folderRef.current !== root) { epoch.current++; handled.current.clear(); queue.current.clear(); folderRef.current = root; batchRef.current = crypto.randomUUID(); update(() => []); setFolder(root); setBatchId(batchRef.current); setRemaining(0); }
+      // A picker selection is a new provenance batch: identical root names do not
+      // identify the same disk folder or the same content revision. Preserve rows
+      // and frozen-request guards; Core job identity remains content-addressed.
+      epoch.current++; handled.current.clear(); queue.current.clear(); folderRef.current = root; batchRef.current = crypto.randomUUID(); setFolder(root); setBatchId(batchRef.current); setRemaining(0);
       for (const file of files) queue.current.set(relativeOf(file), file); void runBatch();
     }}/></label>
-    {folder ? <p>当前批次「{folder}」· 批次标识 {batchId?.slice(0, 8)}…；来源关系为该批次下的相对路径。浏览器不把磁盘绝对路径交给产品，所以此处不声称绝对路径，父目录链无法核验；当前队列是本页面会话状态，不声称重启恢复。</p> : null}
-    <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。当前转换须单独请求 Core 取消，预算 90s；拒绝或资格未知不会自动重执行。</p>
+    {folder ? <p>当前批次「{folder}」；来源关系为该批次下的相对路径。每次选择建立新的更新批次，保留已处理记录并替换尚未处理的文件队列；续跑当前选择请用“下一批”。浏览器不把磁盘绝对路径交给产品，所以此处不声称绝对路径，父目录链无法核验；当前队列是本页面会话状态，不声称重启恢复。</p> : null}
+    <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。正在转换的文件需单独请求取消，最长等待 90 秒；失败或状态未知时不会自动重试。</p>
     <div>{remaining > 0 ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void runBatch()}>下一批（剩余 {remaining}）</button> : null}
-      {rows.some(row => ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
+      {rows.some(row => row.batch_id===batchId && ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
       <button disabled={!busy} onClick={() => { stopAfter.current = true; setMessage("已请求停止后续处理；当前受理项仍须读回真实状态。"); }}>停止</button>
     </div>{message ? <p role="status">{message}</p> : null}
     {rows.length ? <><p aria-label="批次真实统计">{tally(rows)}</p><p>表格可横向滚动查看操作列。</p><div className="folder-ingest-table-scroll" role="region" aria-label="批次明细与操作，可横向滚动" tabIndex={0}><table className="data-table"><thead><tr>{["文件夹内路径","字节","原件","转换结果","说明","操作"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>
-      <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保管 · {row.source_id}<br/>SHA-256 {row.sha256}</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
-      <td>{row.detail}{row.job_id ? <><br/>job {row.job_id}</> : null}{row.attempt ? <><br/>冻结请求 {row.attempt.request_id} · {row.attempt.body.deadline_ms}ms</> : row.status?.request_id ? <><br/>实际请求 {row.status.request_id}</> : null}</td>
+      <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保存</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
+      <td>{row.detail}{row.source_id || row.job_id || row.attempt || row.status ? <RawReceiptButton label="此文件导入与转换详细信息" category="data" payload={{source_id:row.source_id,sha256:row.sha256,job_id:row.job_id,attempt:row.attempt,status:row.status}}/> : null}</td>
       <td><div>{row.job_id ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "核对冻结请求状态" : "读取转换状态"}</button> : null}
         {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"same")}>同请求重试</button> : null}
         {row.attempt&&row.admissionProof&&row.source_id?<FrozenCapabilityRecovery key={row.attempt.request_id} proof={row.admissionProof} attempt={row.attempt} source={row.source_id} kind={row.kind} disabled={busy||cancelBusy||capabilityBusy} current={()=>mounted.current&&!running.current&&!cancelFlight.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)} onBusyChange={value=>{if(mounted.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)){capabilityFlight.current=value;patch(row.key,{capabilityBusy:value});}}}/>:null}{!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"fresh")}>重试失败项（新请求）</button> : null}
         {row.attempt ? <button disabled={cancelBusy||capabilityBusy} onClick={() => void cancel(row.key)}>请求取消当前转换</button> : null}
         {row.source_id && onOpenSource ? <button disabled={busy || rows.some(item => !!item.attempt)} onClick={() => open(row)}>{row.state === "succeeded" ? "打开成功产物与来源" : "打开保留原件"}</button> : null}</div></td>
-    </tr>)}</tbody></table></div><p>执行终态不等同识别核验或专业依据已确认；成功产物须按真实 source_id/job_id 从持久化记录读取。</p></> : null}
+    </tr>)}</tbody></table></div><p>任务完成后仍需核对识别内容和专业依据。成功结果可从对应文件的已保存记录中打开。</p></> : null}
   </section>;
 }

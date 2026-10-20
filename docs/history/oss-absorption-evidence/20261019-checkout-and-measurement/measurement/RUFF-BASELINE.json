@@ -1,0 +1,17 @@
+{
+  "status": "PREEXISTING_3_ERRORS_UNCHANGED_NOT_LINT_PASS",
+  "signature": [
+    [
+      "I001",
+      "Import block is un-sorted or un-formatted"
+    ],
+    [
+      "N818",
+      "Exception name `FinalAnswerFailure` should be named with an Error suffix"
+    ],
+    [
+      "N818",
+      "Exception name `ModelCallFailure` should be named with an Error suffix"
+    ]
+  ]
+}

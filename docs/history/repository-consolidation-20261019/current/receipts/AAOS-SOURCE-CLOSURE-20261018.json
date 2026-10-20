@@ -1,0 +1,105 @@
+{
+  "schema": "archeaxis.project-source-closure/v1",
+  "as_of": "2026-10-18T07:32:44.843518+00:00",
+  "status": "PASS_REGISTERED_SOURCE_RECOVERY",
+  "overall": "PARTIAL",
+  "scope": "Existing registered project history, current authority routes and named frontend/backend packages; not proof of complete native conversation recovery or product completion.",
+  "record_archive": {
+    "schema": "archeaxis/record-recovery/v1",
+    "status": "PASS",
+    "completed_at": "2026-10-18T07:16:02.325865+00:00",
+    "registered_files_verified": 121,
+    "derived_files_verified": 1,
+    "manifest_sha256": "76b675c8bd459972ebd52764ed40fb0288a575fc6051308c005dcdc9ec3da148",
+    "pack_sha256": "474944f43c5f84c96b4060080df846a648d91996671e17a9de14b34e2a9bb256",
+    "scope": "Registered project/shared historical inputs only; no source execution or authority activation."
+  },
+  "record_manifest": {
+    "path": "docs/history/record-archive-20261009/MANIFEST.json",
+    "sha256": "76b675c8bd459972ebd52764ed40fb0288a575fc6051308c005dcdc9ec3da148"
+  },
+  "zip_consolidation": {
+    "original_zip_count": 13,
+    "original_bytes": 15042293812,
+    "stored_bytes": 1911212397,
+    "saved_bytes": 13131081415,
+    "pack_sha256": "474944f43c5f84c96b4060080df846a648d91996671e17a9de14b34e2a9bb256",
+    "catalog_sha256": "783b591117ccabbdc6a439f30086d94f36dbca9234dc8a6bfb2e8335bef005e3",
+    "bundle_relative_path": ".project-local/archives/record-20261009/compact-recovery-v1"
+  },
+  "taskpack_restoration": [
+    {
+      "source": "01-Frontend-UI-Taskpack.zip",
+      "sha256": "f672e5212d6f96147b97ef91a01613fd517308c6f5f8157614163ae15a063b0f",
+      "members_verified": 105,
+      "canonical_route": "docs/authority/taskpack-20261013-frontend-ui",
+      "original_project_copy": ".project-local/archives/taskpacks-20261013/01-Frontend-UI-Taskpack.zip",
+      "scripts_executed": false
+    },
+    {
+      "source": "02-Backend-Host-Taskpack.zip",
+      "sha256": "4be70e98fe70ea4e9febe3df83ced8fcdd69941edf8303d35edb39b1e1b48d38",
+      "members_verified": 34,
+      "canonical_route": "docs/authority/taskpack-20261013-backend-host",
+      "original_project_copy": ".project-local/archives/taskpacks-20261013/02-Backend-Host-Taskpack.zip",
+      "scripts_executed": false
+    }
+  ],
+  "authority_routes": {
+    "checked": 51,
+    "missing": []
+  },
+  "key_inputs": [
+    {
+      "path": "AUTHORITY.md",
+      "sha256": "8e30009bf7684ac74afd66ba50a21c20edb7ba6dbb5f784315c573fd53d55bdd"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "28ef7d28c0d6fa35d72add9d2709d1f501d66e56b495184a5f443460c8033670"
+    },
+    {
+      "path": "PROJECT_CONTRACT.yaml",
+      "sha256": "1cffefdda7646fcbe7ccae0d0389808bec82b3eb5d6f67cd6443c66b82efe4b8"
+    },
+    {
+      "path": "AAOS-资料索引.md",
+      "sha256": "c9bc9fbc0c1873dfb07e3e2ed1f94de125e8285b2c870cfcc6f196e00ff9be15"
+    },
+    {
+      "path": "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "sha256": "3a818836dab8681abf264563bdff58f64f5aa356a572aad78e9aced74f791410"
+    },
+    {
+      "path": "docs/current/AAOS-EXECUTION-BACKLOG-20261018.json",
+      "sha256": "45aab1d62699211c72e72f592da4a5a069300e033d5b1b335d145278a441a7bc"
+    },
+    {
+      "path": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.json",
+      "sha256": "ee6a713f46e23700c6e84345a7c89d1acc3911f7000a9bb0d913d0fd09669095"
+    },
+    {
+      "path": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "sha256": "4c70eb049c75220ae177d58d598a1d6e9cfc36c6f60508555a1387b3b64b0041"
+    },
+    {
+      "path": "docs/truth/CAPABILITY_ABSORPTION_REGISTRY.yaml",
+      "sha256": "a5241e1f2e2ec634e957bcd2551dc78eefe216c596b91f08181b4ba5f5d046a8"
+    },
+    {
+      "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
+      "sha256": "91e3da2c2c3771a5fffb1eba8e82fde973308821e0b1d9fd55b0068992642169"
+    },
+    {
+      "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
+      "sha256": "445a062ba2737a8bc0b1406dbace47aeeaaa87b269bb4fc47dfb5e1d2d389ae5"
+    }
+  ],
+  "evidence_level": "REAL_FILES_AND_BYTE_EXACT_HASH_VERIFICATION",
+  "source_mutation": "No source Record files, native sessions, private settings or shared tools/models changed.",
+  "limits": [
+    "Complete Cowork verbatim body/native task ID remains UNVERIFIED.",
+    "The 369-candidate pool is not 369 installations. Historical qualification keeps its own bytes and environment.",
+    "Raw archives remain project-local ignored; no commit/push/upload/release/Green replacement."
+  ]
+}

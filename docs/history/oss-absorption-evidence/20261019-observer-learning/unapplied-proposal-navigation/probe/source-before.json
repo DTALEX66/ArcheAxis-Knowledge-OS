@@ -1,0 +1,32 @@
+{
+  "scripts/probes/aaos01_grouped_owner_loop.py": {
+    "before_sha256": "163e0345d6d8bd7fe190e9dc96adc54382cecc15c04125caaa455f8c93fe3a7c"
+  },
+  "scripts/probes/aaos01_material_companion_loop.py": {
+    "before_sha256": "5969aad910616c7e883e62a36782c2e6eb3eebddd3dc3168f132fb496a922add"
+  },
+  "scripts/probes/aaos01_tauri_webdriver_loop.py": {
+    "before_sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa"
+  },
+  "scripts/probes/aaos01_office_runtime_loop.py": {
+    "before_sha256": "8bc4b7988731d98e6f82b84137caf730b7ab0172c15486ae32a9cfea9a54c8a2"
+  },
+  "scripts/probes/native_tcp_listeners.py": {
+    "before_sha256": "ca30b0e3b672dae47670cacd12ab3d65e556c3adfa3b7f124c5dcd86352b36e8"
+  },
+  "scripts/probes/aaos01_ai_receipt_qualification.py": {
+    "before_sha256": "7b82b2827cccb681d6c889b0ece6d793e93191076d7cc61490d48c9121cc13f8"
+  },
+  "scripts/probes/aaos01_learning_draft_recovery.py": {
+    "before_sha256": "17c7ec9036a70fbd1047a0b98a8aef326b3798a1cb228a0c55afbb6665c324e0"
+  },
+  "services/python-workers/tool_paths.py": {
+    "before_sha256": "18bd72e867946aea4cb98f76433421246dc63b099c2884c7206362faf6f69986"
+  },
+  "services/python-workers/machine/worker_machine_answer.py": {
+    "before_sha256": "510c4973bc3c749cb2c5c0189d57245dcb2701c1e0c9c7da03622aed253a1e3d"
+  },
+  "config/environment/capability-requirements.yaml": {
+    "before_sha256": "47245bf7b555ccbe4a8560bbed9ab5b59daf7ae796250fc79af52f6dfe28b3d3"
+  }
+}

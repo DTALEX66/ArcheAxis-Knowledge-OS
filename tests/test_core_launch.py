@@ -37,6 +37,17 @@ def _load():
 launcher = _load()
 
 
+def test_check_probes_current_lm_studio_port_without_retired_runtime(monkeypatch, capsys):
+    ports = []
+    monkeypatch.setattr(launcher, "dependencies", lambda: [])
+    monkeypatch.setattr(launcher, "port_in_use", lambda port: ports.append(port) or False)
+    assert launcher.main(["--check"]) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert ports == [8001, 3782, 1234]
+    assert "port_1234_lm_studio" in report
+    assert not any("11434" in key for key in report)
+
+
 def test_probe_does_not_use_persistent_database_or_session(tmp_path, monkeypatch, capsys):
     legacy = tmp_path / 'legacy-launch'
     legacy.mkdir()

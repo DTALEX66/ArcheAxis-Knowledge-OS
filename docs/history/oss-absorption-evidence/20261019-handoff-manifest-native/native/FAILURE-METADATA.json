@@ -1,0 +1,40 @@
+{
+  "source": ".project-local/runs/be268a2d33/webdriver-934ae2333af5/tmp/journey/data/archeaxis.sqlite",
+  "access": "sqlite mode=ro; isolated synthetic fixture only",
+  "records": [
+    {
+      "task_id": "failure_240b0db565b03288e68195e43010c7f85cc92c4ac0b73ca56cdf1199284bd4ab",
+      "conditions": {
+        "admission_request_sha256": "858d65804ed96e7da7d6d853a548fc72d8aa0ecd4226046ba0389dae65318506",
+        "answer_published": false,
+        "attempt": 1,
+        "audit_task_id": "failure_240b0db565b03288e68195e43010c7f85cc92c4ac0b73ca56cdf1199284bd4ab",
+        "authority": "historical_execution_audit",
+        "client_request_id": null,
+        "cost": null,
+        "diagnostics": {
+          "discovery_elapsed_s": 0.0,
+          "elapsed_s": 118.03,
+          "error_type": "TimeoutError",
+          "max_tokens": 1024,
+          "request_stage": "model_request",
+          "requested_model": "aaos-deep-27b-mtp",
+          "timeout_s": 118
+        },
+        "execution_state": "UNVERIFIED",
+        "knowledge_id": "k_4b9a286a6b920fe8ec036e4c",
+        "max_attempts": 3,
+        "operation": "retest",
+        "provider_stop_state": "UNKNOWN",
+        "reason_code": "machine failure: MODEL_CALL_TIMEOUT",
+        "request_sha256": "c7f9e0c07a0ce043f2ef35cac2ca33ad40d30b12dab988805ac7b9392522e3d9",
+        "retest_of": "evaluation_answer_req_09b2484fa4a2ce2f0e89f6f33472b14a680e5bdf646bd39480de31b8d2ab0457",
+        "schema": "archeaxis.machine-execution-failed/v1",
+        "usage": null
+      },
+      "failure": "machine failure: MODEL_CALL_TIMEOUT",
+      "retest_of": "evaluation_answer_req_09b2484fa4a2ce2f0e89f6f33472b14a680e5bdf646bd39480de31b8d2ab0457",
+      "recorded_at": "2026-10-18 21:55:25"
+    }
+  ]
+}

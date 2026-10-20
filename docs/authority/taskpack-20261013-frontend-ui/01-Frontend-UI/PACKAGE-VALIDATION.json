@@ -1,0 +1,126 @@
+{
+  "scope": "Taskpack/asset structure and source integrity; no production runtime qualification",
+  "checks": {
+    "task_fields": "PASS",
+    "dependency_DAG": "PASS",
+    "identical_shared_contracts": "PASS",
+    "navigation_source_fidelity": "PASS",
+    "22_pages_158_functional_regions_186_intents": "PASS",
+    "5_package_identity_SRI": "PASS",
+    "24_upstream_icons": "PASS",
+    "official_font_blob": "PASS",
+    "9_original_avatar_states": "PASS",
+    "opaque_surface_text_contrast": "PASS",
+    "public_brand_labels": "PASS",
+    "required_taskpack_files": "PASS"
+  },
+  "topological_layers": [
+    [
+      "BE00",
+      "FE00",
+      "GF00"
+    ],
+    [
+      "BE01",
+      "FE01"
+    ],
+    [
+      "BE02",
+      "BE04",
+      "BE06",
+      "BE07",
+      "BE09",
+      "BE10",
+      "BE11",
+      "FE02",
+      "GF01"
+    ],
+    [
+      "BE03",
+      "BE05",
+      "BE08",
+      "FE03",
+      "FE04",
+      "GF03"
+    ],
+    [
+      "BE12",
+      "FE05",
+      "GF02"
+    ],
+    [
+      "FE06",
+      "FE07",
+      "FE14",
+      "FE19",
+      "GF04"
+    ],
+    [
+      "FE08",
+      "FE15",
+      "FE20",
+      "FE21",
+      "FE22",
+      "GF05",
+      "GF06",
+      "GF07"
+    ],
+    [
+      "FE09",
+      "FE10",
+      "FE16",
+      "FE17",
+      "GF08"
+    ],
+    [
+      "FE11",
+      "FE12",
+      "FE18",
+      "GF09"
+    ],
+    [
+      "FE13",
+      "FE23",
+      "GF10"
+    ],
+    [
+      "FE24",
+      "GF11"
+    ],
+    [
+      "FE25"
+    ]
+  ],
+  "contrast_ratios": {
+    "text": 15.7,
+    "muted": 8.99,
+    "ready": 11.23,
+    "unavailable": 7.04,
+    "attention": 11.11
+  },
+  "production_installation": "NOT_EXECUTED",
+  "new_effect_generation": "NOT_EXECUTED",
+  "document_visual_QA": {
+    "status": "PASS",
+    "method": "all rendered pages viewed at original resolution",
+    "pages": {
+      "frontend": 6,
+      "backend": 5,
+      "companion": 5
+    }
+  },
+  "TSX_check": {
+    "status": "SYNTAX_PASS",
+    "semantic_application_typecheck": "NOT_EXECUTED"
+  },
+  "static_HTML_browser_QA": {
+    "status": "BLOCKED",
+    "reason": "local headless browser download was truncated; HTML gallery was not qualified in browser",
+    "fallback": "SVG XML and local raster rendering only; not browser behavior evidence"
+  },
+  "SVG_asset_QA": {
+    "status": "PASS",
+    "method": "9 character state SVGs and orbital scene raster-rendered and visually inspected",
+    "production_runtime": "NOT_QUALIFIED_BY_THIS_CHECK"
+  }
+}

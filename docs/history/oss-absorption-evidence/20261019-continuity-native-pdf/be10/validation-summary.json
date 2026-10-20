@@ -1,0 +1,299 @@
+{
+  "pass": true,
+  "state": "ISOLATED_REVISION_PASS_NOT_APPLIED",
+  "apply_check": {
+    "exit_code": 0,
+    "stderr": ""
+  },
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "candidate_sha256": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+      "tested_sha256": "dc356f5f35b6416492290640187d9027ec84138d2233da173ba5e86d581f8aba",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "candidate_sha256": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+      "tested_sha256": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff_preview.rs",
+      "candidate_sha256": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+      "tested_sha256": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+      "candidate_sha256": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+      "tested_sha256": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "candidate_sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "tested_sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff_preview.rs",
+      "candidate_sha256": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+      "tested_sha256": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "docs/contracts/project-handoff-preview-v1.md",
+      "candidate_sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "tested_sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "candidate_sha256": "db6f654230225da02fe37f0f282861ae4efa142d98cbe1705970f1af414b7975",
+      "tested_sha256": "db6f654230225da02fe37f0f282861ae4efa142d98cbe1705970f1af414b7975",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "candidate_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "tested_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.cases.json",
+      "candidate_sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "tested_sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.schema.json",
+      "candidate_sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "tested_sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "candidate_sha256": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+      "tested_sha256": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "src-tauri/tests/project_handoff_preview.rs",
+      "candidate_sha256": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+      "tested_sha256": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "tests/contract/test_project_handoff_preview_contract.py",
+      "candidate_sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "tested_sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "tests/test_native_preview_ci.py",
+      "candidate_sha256": "3b7da3132ec180171f0629aefc095b1ec809483a6ccccb3bbf3a1f419791a496",
+      "tested_sha256": "3b7da3132ec180171f0629aefc095b1ec809483a6ccccb3bbf3a1f419791a496",
+      "preimage_match": true,
+      "candidate_matches": true
+    }
+  ],
+  "baseline_count": 119,
+  "baseline_drift": [],
+  "runs": [
+    {
+      "run_id": "be10-native-preview-revision-format-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-revision-format-1019/artifacts/execution.json",
+      "sha256": "e08b52fac9ff1c0156d435e164c5ac10fb4fdaa02da83c66eb8868d06d885d8f",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-native-preview-revision-20261019/format_prepare.py"
+      ],
+      "started_at": "2026-10-18T22:59:18.461099+00:00",
+      "ended_at": "2026-10-18T22:59:20.357099+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run_id": "be10-native-preview-revision-green1-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-revision-green1-1019/artifacts/execution.json",
+      "sha256": "c6e9b9c14529941d2cde51bb9580bf0b31553c5abf7127812c26d8fa04e98d01",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-native-preview-revision-20261019/run_checks.py"
+      ],
+      "started_at": "2026-10-18T23:00:27.360614+00:00",
+      "ended_at": "2026-10-18T23:01:51.550085+00:00",
+      "child_exit_code": 0,
+      "exit_code": 3,
+      "source_consistent": false,
+      "status": "INVALIDATED"
+    },
+    {
+      "run_id": "be10-native-preview-revision-format-actual-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-revision-format-actual-1019/artifacts/execution.json",
+      "sha256": "3ec68cd5f8871b24e5f967a020b2dbcf0651795a03ae7cb39b0b09a67cf6ea00",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-native-preview-revision-20261019/format_actual_editions.py"
+      ],
+      "started_at": "2026-10-18T23:02:39.813191+00:00",
+      "ended_at": "2026-10-18T23:02:41.749094+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run_id": "be10-native-preview-revision-red-identity-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-revision-red-identity-1019/artifacts/execution.json",
+      "sha256": "3b67bd94d1b31aac71dcfdd69e746117d0ba0b41a369000f821da06b09b8e9bb",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-native-preview-revision-20261019/run_red.py"
+      ],
+      "started_at": "2026-10-18T23:03:01.815107+00:00",
+      "ended_at": "2026-10-18T23:03:25.863727+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run_id": "be10-native-preview-revision-red-ci-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-revision-red-ci-1019/artifacts/execution.json",
+      "sha256": "8e8d6287dbd7bd192ced7f6590522566a01d25759bbab5e456a0ae39e71746ce",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-native-preview-revision-20261019/run_red_ci.py"
+      ],
+      "started_at": "2026-10-18T23:03:26.874667+00:00",
+      "ended_at": "2026-10-18T23:03:30.008814+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run_id": "be10-native-preview-revision-final-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-revision-final-1019/artifacts/execution.json",
+      "sha256": "c319ad7d2711232d9e468d0ce227bffd94ce4729d96f771d0dc1dd5fab69aec3",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-native-preview-revision-20261019/run_checks.py"
+      ],
+      "started_at": "2026-10-18T23:04:07.956584+00:00",
+      "ended_at": "2026-10-18T23:04:51.242421+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    }
+  ],
+  "final_steps": "validation.json",
+  "final_steps_sha256": "02e169f5b0e7d8a5b11cfa04c499fb5c7486f8a7807a171c70cc8406c66532e5",
+  "results": {
+    "rustfmt-actual-edition-2024": [],
+    "rustfmt-actual-edition-2021": [],
+    "generated-core-client": [],
+    "ci-wiring-contract": [
+      "6 passed in 0.28s"
+    ],
+    "schema-shared-cases": [
+      "1 passed in 0.14s"
+    ],
+    "contracts-rust-shared": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ],
+    "core-preview-process": [
+      "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s",
+      "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.14s",
+      "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+      "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.72s"
+    ],
+    "ci-owned-artifact-binding": [],
+    "ci-missing-artifact-rejected": [],
+    "native-missing-owned-artifact-rejected": [
+      "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 28 filtered out; finished in 0.00s"
+    ],
+    "native-real-core-bridge": [
+      "test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.11s"
+    ],
+    "ruff-python-contract": [
+      "All checks passed!"
+    ]
+  },
+  "expected_negative_exits": {
+    "ci-missing-artifact-rejected": 1,
+    "native-missing-owned-artifact-rejected": 101
+  },
+  "red_identity_sha256": "8a33936536107edc3f7d2f0e76656c660b2f88fbed6b3aeb5a9c3ac68c4a5ee0",
+  "red_CI_sha256": "cd3db8348c25a5592049891fbca5e6e277ef44f81cdba3dbcdb12354aee01092",
+  "old_proposal_checks": {
+    "code-manifest.json": true,
+    "be10-native-preview.patch": true,
+    "CURRENT.md": true,
+    "validation-summary.json": true,
+    "proposal/crates/archeaxis-api/src/lib.rs": true,
+    "proposal/crates/archeaxis-api/src/project_handoff_preview.rs": true,
+    "proposal/crates/archeaxis-api/tests/project_handoff_preview_process.rs": true,
+    "proposal/crates/archeaxis-contracts/src/lib.rs": true,
+    "proposal/crates/archeaxis-contracts/src/project_handoff_preview.rs": true,
+    "proposal/docs/contracts/project-handoff-preview-v1.md": true,
+    "proposal/packages/contracts/v2/project-handoff-preview.cases.json": true,
+    "proposal/packages/contracts/v2/project-handoff-preview.schema.json": true,
+    "proposal/src-tauri/src/core_bridge.rs": true,
+    "proposal/src-tauri/tests/project_handoff_preview.rs": true,
+    "proposal/tests/contract/test_project_handoff_preview_contract.py": true,
+    "proposal/packages/contracts/v1/core-command.schema.json": true
+  },
+  "actual_editions_sha256": "3c628caf07079280b5e5da5ddf15b7700041a79c7b0275e0965bc5542e72e0b5",
+  "native_harness_manifest_sha256": "ca93e9c7dd3e2a5cf6cdb37df8bda1ee9a799c9d058bf8551d10622cbdfcbcdb",
+  "native_harness_lock_sha256": "e1c0bde19a9d643039855c5aff3923bea5652149f79910fa0a27a448147ed3e7",
+  "artifact_binding_sha256": "102c084892371791ce4e17112e697b937a8dc9e69b7648879db5f0fa13367c05",
+  "generation_chain_sha256": "01f2e94962d76816d739c63c81ab1d3e71bb3b323d0ec2cfbfb356ab4558340a",
+  "qualification_baseline_sha256": "6f026221020548abd195f068786a59a24a34ca00bf4e8d71d9d8edf8417111b4",
+  "scope": "SYNTHETIC actual owned Core/HTTP/native bridge engineering integration; not external product or installed qualification",
+  "full_Tauri_build": "NOT_EXECUTED",
+  "cloud_CI": "NOT_EXECUTED",
+  "release_optimized_build": "NOT_EXECUTED",
+  "external_UI_native": "NOT_EXECUTED",
+  "OS_URI_install": "NOT_EXECUTED",
+  "owner_acceptance": "NOT_EXECUTED",
+  "overall_BE10": "PARTIAL",
+  "product_writes": []
+}

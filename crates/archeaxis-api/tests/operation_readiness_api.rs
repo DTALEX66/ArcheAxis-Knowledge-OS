@@ -104,3 +104,46 @@ async fn readiness_is_scoped_input_free_and_rechecked_before_execution() {
     );
     assert!(!worker.with_extension("spawned").exists());
 }
+
+#[tokio::test]
+async fn pdf_static_readiness_never_claims_engine_available_or_spawns_worker() {
+    let d = tempfile::tempdir().unwrap();
+    let worker = d.path().join("pdf.py");
+    std::fs::write(
+        &worker,
+        "raise AssertionError('static readiness spawned PDF')",
+    )
+    .unwrap();
+    let python = PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").expect("declared Python"));
+    let e = Executor::open_routes(
+        &d.path().join("db"),
+        &d.path().join("staging"),
+        &python,
+        &worker,
+        &[("pdf.extract", worker.clone())],
+    )
+    .await
+    .unwrap();
+    let app = archeaxis_api::runtime::router(e);
+    let (status, value) = call(
+        &app,
+        "POST",
+        "/api/v1/operation-readiness",
+        "human",
+        json!({"scope":"pdf-test","operations":["pdf.extract"]}),
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(value["operations"][0]["dependencies"], "UNKNOWN");
+    assert_eq!(value["aggregate"], "UNVERIFIED");
+    assert!(
+        value["operations"][0]["reasons"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("PDF_ENGINE_NOT_OBSERVED"))
+    );
+    assert_eq!(
+        std::fs::read_dir(d.path().join("staging")).unwrap().count(),
+        0
+    );
+}

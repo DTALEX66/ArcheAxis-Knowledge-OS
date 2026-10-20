@@ -1,0 +1,64 @@
+{
+  "schema": "archeaxis.checkout-measurement-checkpoint/v1",
+  "observed_at": "2026-10-18T22:53:26.098257+00:00",
+  "overall": "PARTIAL",
+  "public_delivery": "UNCOMMITTED_LOCAL_ONLY",
+  "current_decisions": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+  "unique_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "owner_original_topics": 39,
+  "applied": {
+    "eol_paths": 4,
+    "measurement_paths": 11,
+    "catalog_paths": 3,
+    "total_distinct_paths": 18,
+    "root_attribute_followup": "为本新快照增加精确-text规则，candidate后继SHA另列SOURCE-IDENTITY。",
+    "catalog_qualification": "68项INHERITED_ONLY保留，运行未重观测；不是新安装/许可/运行授权"
+  },
+  "actual_main_checks": {
+    "python_measurement": "142 PASS",
+    "ui": "4 files / 52 PASS",
+    "rust_actual_machine_failure_module": "6 PASS",
+    "rust_core_api": "34 PASS",
+    "node_manifest": "10 PASS",
+    "python_manifest": "11 PASS",
+    "resource_catalog": "16 PASS",
+    "typescript_and_generators": "PASS_AT_THEIR_RECORDED_PATCHES",
+    "aggregation": "不跨组相加；每组按execution的源码patch与范围解释"
+  },
+  "native": {
+    "status": "PASS_INDEPENDENT_RECOVERY_NOT_FULL_AI_CHAIN",
+    "source_patch_sha256": "c3585765dde1544db5535df552c81362e71bb8444c3801a7abc5256acd2db0b9",
+    "scope": "真实Tauri/Core/LM Studio27B；自有合成材料；同进程/冷重开/备份恢复",
+    "new_18_source_paths_native": "NOT_EXECUTED:本轮18文件在该原生运行之后应用",
+    "material_quality": "OBSERVED_LOW_UTILITY_NOT_QUALIFIED",
+    "original_full_ai_chain": "NOT_EXECUTED_THIS_RUN; previous MODEL_CALL_TIMEOUT remains FAIL",
+    "provider_stop": "UNKNOWN",
+    "screenshots_actually_viewed": 6,
+    "cleanup": "owned host/process/ports confirmed released; shared model service untouched"
+  },
+  "pending_be10": {
+    "status": "NOT_APPLIED",
+    "application": "BLOCKED",
+    "isolated_proposal": "PASS_LIMITED_SCOPE",
+    "paths": 12,
+    "blockers": [
+      "新增native测试依赖BE10_PREVIEW_CORE，现有CI cargo test未提供；需正式runner或独立显式probe方案",
+      "新Rust未完成与现有CI一致的rustfmt检查；修订后重新绑定哈希并验证"
+    ],
+    "remaining": "metadata预览不等于真实外部产品投递/native consumer/deeplink或整个BE10完成"
+  },
+  "retained_failures": [
+    "原完整AI旅程retest MODEL_CALL_TIMEOUT",
+    "EOL旧工作副本PASS而Git clean后FAIL的原始证据",
+    "measurement初轮13 FAIL及3项既有Ruff错误；continuation通过不擦除初轮失败",
+    "catalog原始1 FAIL/15 PASS及中间失败",
+    "BE10原身份guard负例RED和正式应用阻断"
+  ],
+  "not_qualified": [
+    "整个产品、全量最新源码、exact-SHA CI、安装/Green、Owner验收",
+    "P95/TTFT/27B速度或学习质量；HTTP open不是TTFT",
+    "完整Cowork逐字正文与云端备份UNVERIFIED",
+    "ASTRYN源仓库NOT_READY_TO_DELETE",
+    "HUB004安装更新/运行准入、全格式/原生闭环仍依原合同推进"
+  ]
+}

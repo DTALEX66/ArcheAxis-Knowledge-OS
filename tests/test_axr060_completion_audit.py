@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-AUDIT = ROOT / "docs" / "current" / "AXR_060_COMPLETION_AUDIT_2026-08-23.md"
+AUDIT = ROOT / 'docs/history/repository-consolidation-20261019/current/AXR_060_COMPLETION_AUDIT_2026-08-23.md'
 
 # Bounded remote probe. A slow or unreachable remote must fail loudly instead of
 # hanging the suite or being mistaken for "the branch was deleted".
@@ -18,7 +18,7 @@ _REMOTE_TIMEOUT_SECONDS = 60
 # Surfaces that make present-day release claims. They are checked unconditionally:
 # a receipt marker inside them can never exempt them from the SHA scan.
 _LOCKED_SURFACES = (
-    "SYSTEM_BOUNDARY.md",
+    "docs/SYSTEM_BOUNDARY.md",
     "reports/current",
 )
 
@@ -44,6 +44,25 @@ _RECEIPT_SCHEMAS = frozenset(
 _RECEIPT_MD_MARKERS = (
     "FROZEN AUDIT SNAPSHOT / NON-AUTHORITY",
 )
+
+# These two reviewed research bibliographies pin upstream source objects.
+# Such IDs are not AAOS release objects; this does not qualify the upstream
+# commit, its licensing, or any product implementation.
+_EXTERNAL_SOURCE_REPORTS = {
+    "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md": {"THU-MAIC/OpenMAIC"},
+    "docs/current/AAOS-OSS-UI-DONORS-20261019.md": {
+        "Linye-ai/neural-creator-dashboard", "SENLIN-SAMA/win-.-",
+    },
+}
+
+
+def _external_source_shas(relative: str, text: str) -> set[str]:
+    repositories = _EXTERNAL_SOURCE_REPORTS.get(relative, set())
+    return {
+        sha for repository, sha in re.findall(
+            r"https://github\.com/([^/\s)]+/[^/\s)]+)/(?:tree|blob)/([0-9a-f]{40})\b", text
+        ) if repository in repositories
+    }
 
 
 def _receipt_schema_of(path: Path, root: Path = ROOT) -> str | None:
@@ -80,7 +99,7 @@ def _receipt_schema_of(path: Path, root: Path = ROOT) -> str | None:
 
 def _surface_shas(root: Path) -> set[str]:
     """40-hex identifiers the SHA-existence scan must check under ``root``."""
-    surfaces = [root / "SYSTEM_BOUNDARY.md"]
+    surfaces = [root / _LOCKED_SURFACES[0]]
     surfaces.extend((root / "docs" / "current").glob("*"))
     surfaces.extend((root / "reports" / "current").glob("*"))
     found: set[str] = set()
@@ -89,9 +108,9 @@ def _surface_shas(root: Path) -> set[str]:
             continue
         if _receipt_schema_of(path, root) is not None:
             continue
-        found.update(
-            re.findall(r"\b[0-9a-f]{40}\b", path.read_text(encoding="utf-8", errors="replace"))
-        )
+        text = path.read_text(encoding="utf-8", errors="replace")
+        relative = path.relative_to(root).as_posix()
+        found.update(set(re.findall(r"\b[0-9a-f]{40}\b", text)) - _external_source_shas(relative, text))
     return found
 
 TASK_IDS = tuple(
@@ -150,7 +169,7 @@ def test_axr060_audit_keeps_release_and_product_completion_separate() -> None:
 
 def _declared_r5_source_objects() -> set[str]:
     """Source blob identity is not a claim that its commit was released."""
-    reuse = json.loads((ROOT / 'docs/current/R5-M0-REUSE.json').read_text(encoding='utf-8'))
+    reuse = json.loads((ROOT / 'docs/history/repository-consolidation-20261019/current/R5-M0-REUSE.json').read_text(encoding='utf-8'))
     base = reuse['baseline_sha']
 
     def git(*args: str) -> str:
@@ -159,14 +178,14 @@ def _declared_r5_source_objects() -> set[str]:
     assert re.fullmatch('[0-9a-f]{40}', base)
     assert git('cat-file', '-t', base) == 'commit'
     declared = {base, git('rev-parse', f'{base}^{{tree}}')}
-    state = json.loads((ROOT / 'docs/current/R5-STATE.json').read_text(encoding='utf-8'))
+    state = json.loads((ROOT / 'docs/history/repository-consolidation-20261019/current/R5-STATE.json').read_text(encoding='utf-8'))
     main_snapshot = state['baseline_local_main_sha']
     assert re.fullmatch('[0-9a-f]{40}', main_snapshot)
     assert git('cat-file', '-t', main_snapshot) == 'commit'
     declared.add(main_snapshot)
     # Execution receipts identify tested source, not a release. Require an
     # explicit label and a real commit in this checkout's history.
-    execution = (ROOT / 'docs/current/R5-EXECUTION.md').read_text(encoding='utf-8')
+    execution = (ROOT / 'docs/history/repository-consolidation-20261019/current/R5-EXECUTION.md').read_text(encoding='utf-8')
     for sha in re.findall(r'`tested-source-sha:([0-9a-f]{40})`', execution):
         assert git('cat-file', '-t', sha) == 'commit'
         subprocess.run(
@@ -190,7 +209,7 @@ def _declared_r5_source_objects() -> set[str]:
                 visit(child)
 
     visit(reuse)
-    disposition = json.loads((ROOT / 'docs/current/R5-PATH-DISPOSITION.json').read_text(encoding='utf-8'))
+    disposition = json.loads((ROOT / 'config/governance/path-disposition.json').read_text(encoding='utf-8'))
     measured = disposition['measured']['measured_at_commit']
     assert re.fullmatch('[0-9a-f]{40}', measured)
     assert git('cat-file', '-t', measured) == 'commit'
@@ -222,7 +241,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
         )
         if isinstance(value, str)
     }
-    delta = (ROOT / "docs" / "current" / "AXR_060_POST_RELEASE_DELTA_2026-08-24.md").read_text(
+    delta = (ROOT / 'docs/history/repository-consolidation-20261019/current/AXR_060_POST_RELEASE_DELTA_2026-08-24.md').read_text(
         encoding="utf-8"
     )
     delta_release = releases[-2]["source"]
@@ -232,7 +251,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     assert declared_delta_shas
     allowed_shas.update(declared_delta_shas)
     r2_reality = (
-        ROOT / "docs" / "current" / "AXR_CURRENT_REALITY_2026-08-27.md"
+        ROOT / 'docs/history/repository-consolidation-20261019/current/AXR_CURRENT_REALITY_2026-08-27.md'
     ).read_text(encoding="utf-8")
     declared_qualification_shas = set(
         re.findall(r"(?:Qualification|Release) baseline[^\n]*`([0-9a-f]{40})`", r2_reality)
@@ -240,7 +259,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     assert declared_qualification_shas
     allowed_shas.update(declared_qualification_shas)
     current_reality = (
-        ROOT / "docs" / "current" / "CURRENT_REALITY_2026-09-01.md"
+        ROOT / 'docs/history/repository-consolidation-20261019/current/CURRENT_REALITY_2026-09-01.md'
     ).read_text(encoding="utf-8")
     declared_current_shas = set(
         re.findall(r"`(?:main|origin/main)@([0-9a-f]{40})`", current_reality)
@@ -263,7 +282,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     # assertion here. Resolve that case by asking the remote whether the branch
     # is gone: a deleted tip stays admissible as historical evidence, while a
     # documented merge-base still has to be a real object.
-    convergence = ROOT / "docs" / "current" / "BRANCH-CONVERGENCE.json"
+    convergence = ROOT / 'docs/history/repository-consolidation-20261019/current/BRANCH-CONVERGENCE.json'
     if convergence.is_file():
         payload = json.loads(convergence.read_text(encoding="utf-8"))
         # One round trip: a per-branch `ls-remote` costs seconds each and this
@@ -334,7 +353,7 @@ def test_tracked_current_surfaces_only_reference_declared_release_delta_or_sourc
     # Release surfaces are checked unconditionally; only generated receipts in
     # the approved directory may be exempt, and only for an exact schema
     # identifier (see _receipt_schema_of). A body marker alone is not a waiver,
-    # so a receipt marker placed inside SYSTEM_BOUNDARY.md changes nothing.
+    # so a receipt marker placed inside docs/SYSTEM_BOUNDARY.md changes nothing.
     found = _surface_shas(ROOT)
 
     # Current evidence surfaces intentionally retain historical receipt SHAs.
@@ -413,7 +432,9 @@ _FAKE_FULL_ID = "0123456789abcdef0123456789abcdef01234567"
 def _fixture_root(tmp_path: Path, *, boundary: str = "", reports: bool = True) -> Path:
     """Minimal repo-shaped tree with the two locked surfaces."""
     (tmp_path / "docs" / "current").mkdir(parents=True, exist_ok=True)
-    (tmp_path / "SYSTEM_BOUNDARY.md").write_text(boundary, encoding="utf-8")
+    boundary_path = tmp_path / _LOCKED_SURFACES[0]
+    boundary_path.parent.mkdir(parents=True, exist_ok=True)
+    boundary_path.write_text(boundary, encoding="utf-8")
     if reports:
         (tmp_path / "reports" / "current").mkdir(parents=True, exist_ok=True)
         (tmp_path / "reports" / "current" / "README.md").write_text(
@@ -436,7 +457,7 @@ def test_A_release_surface_is_scanned_even_when_it_carries_a_receipt_marker(
     )
     assert _FAKE_FULL_ID in _surface_shas(root)
     # The locked path is refused before any marker is even considered.
-    assert _receipt_schema_of(root / "SYSTEM_BOUNDARY.md", root) is None
+    assert _receipt_schema_of(root / "docs/SYSTEM_BOUNDARY.md", root) is None
 
 
 def test_A2_reports_current_is_scanned_even_with_a_receipt_schema(tmp_path: Path) -> None:
@@ -530,6 +551,33 @@ def test_E2_marker_only_markdown_outside_the_eligible_path_is_not_a_waiver(
         encoding="utf-8",
     )
     assert _receipt_schema_of(outside, root) is None
+
+
+def test_E3_historical_boundary_is_not_a_current_surface_or_an_eligible_receipt(tmp_path: Path) -> None:
+    """Archive lookup must never replace or extend the current release scan."""
+    root = _fixture_root(tmp_path, boundary=f"# Current boundary\n{_FAKE_FULL_ID}\n")
+    historical_id = "fedcba9876543210fedcba9876543210fedcba98"
+    archived = root / "docs/history/repository-consolidation-20261019/root/SYSTEM_BOUNDARY.md"
+    archived.parent.mkdir(parents=True, exist_ok=True)
+    archived.write_text(
+        f"FROZEN AUDIT SNAPSHOT / NON-AUTHORITY\n{historical_id}\n", encoding="utf-8"
+    )
+    assert _receipt_schema_of(archived, root) is None
+    assert _surface_shas(root) == {_FAKE_FULL_ID}
+
+
+def test_external_source_ids_are_scoped_to_exact_research_bibliographies(tmp_path: Path):
+    foreign_id = "fedcba9876543210fedcba9876543210fedcba98"
+    url = f"https://github.com/THU-MAIC/OpenMAIC/tree/{foreign_id}"
+    root = _fixture_root(tmp_path, boundary=f"# Current boundary\n{foreign_id}\n")
+    report = root / "docs/current/AAOS-OPENMAIC-ABSORPTION-20261019.md"
+    report.write_text(f"{url}\nAAOS source: {_FAKE_FULL_ID}\n", encoding="utf-8")
+    assert _external_source_shas(report.relative_to(root).as_posix(), report.read_text()) == {foreign_id}
+    # The local ID remains checked; the same external ID on a locked boundary
+    # remains checked too. A similar report name and an AAOS URL get no waiver.
+    assert _surface_shas(root) == {_FAKE_FULL_ID, foreign_id}
+    assert _external_source_shas("docs/current/other-research.md", url) == set()
+    assert _external_source_shas(report.relative_to(root).as_posix(), url.replace("THU-MAIC/OpenMAIC", "DTALEX66/ArcheAxis-Knowledge-OS")) == set()
 
 
 def test_F_remote_absence_is_a_three_way_classification() -> None:

@@ -69,7 +69,7 @@ export const SPACE_SECTIONS: Readonly<Record<SpaceId, readonly SpaceSectionDef[]
     { id: "outbox", label: "投递队列", description: "外部投递与回执状态", state: "todo", reason: "导出写入产品资料目录后由外部应用读取；当前没有投递队列的 Core 读回入口。" },
   ],
   settings: [
-    { id: "capabilities", label: "本机能力与健康", description: "Atlas 投影与当前 worker 握手", state: "ready", surface: "canonical_capabilities", region: "catalog" },
+    { id: "capabilities", label: "本机能力与健康", description: "能力目录与本机运行状态", state: "ready", surface: "canonical_capabilities", region: "catalog" },
     { id: "details", label: "能力详情", description: "所选能力的前提、依赖与下一步", state: "ready", surface: "canonical_capabilities", region: "details" },
     { id: "provider", label: "模型与 Provider 配置", description: "在本机界面调整模型提供方", state: "todo", reason: "模型与 Provider 由 config 文件承担，命令面没有配置读写操作；不在界面伪造配置项。" },
   ],

@@ -3,7 +3,7 @@
 /* Prevent card stacking and overlap */
 .ui-workspace-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)) !important;
   gap: 24px !important;
   width: 100% !important;
   position: relative !important;
@@ -29,6 +29,8 @@
 
 /* Ensure content is scrollable */
 .space-view {
+  container: content / inline-size;
+  min-width: 0;
   position: relative !important;
   overflow-y: auto !important;
 }

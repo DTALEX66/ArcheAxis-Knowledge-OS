@@ -1,0 +1,17 @@
+{
+  "name": "dockview",
+  "version": "8.5.1",
+  "filename": "dockview-8.5.1.tgz",
+  "source_url": "https://registry.npmjs.org/dockview/-/dockview-8.5.1.tgz",
+  "registry_url": "https://registry.npmjs.org/dockview/8.5.1",
+  "integrity": "sha512-ThlNLXBHP1TBMlsAXTWvoJl17nPYVO8WTtUMyoGf15K6DBCRnoKPzIcISlWben9XBx99txUfSjkVBZ9szGA9iQ==",
+  "sha256": "ba5107bb210b9587c774d0a758cd3cbf874733e521f90196885d6a0bc0728dd5",
+  "bytes": 305286,
+  "license": "MIT",
+  "peerDependencies": {},
+  "dependencies": {
+    "dockview-core": "^8.5.1"
+  },
+  "installed": false,
+  "verification": "package identity and registry SRI verified; registry signatures not independently verified"
+}

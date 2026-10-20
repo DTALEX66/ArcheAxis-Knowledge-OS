@@ -1,3 +1,5 @@
+import {useDiagnostics, resetDiagnostics} from "../presentation/diagnostics";
+import {renderHook} from "@testing-library/react";
 import { webcrypto } from "node:crypto";
 import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
 // Mock persisted receipts test reopen behavior; no ASR runtime claim.
@@ -18,17 +20,18 @@ async function fixture(listing?:unknown){
   if(op==="job_enqueue")return {job_id:p.body.job_id};return {};
  });
 }
+beforeEach(resetDiagnostics);
 describe("persisted mock transcription reopen",()=>{
  beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
  it("loads old success while retaining latest failure, without new execution",async()=>{
   await fixture();render(<JobContent sourceId="s" sourceRevision={revision} name="speech.wav"/>);
   await screen.findByRole("button",{name:"引用时间段"});
   // The retained failure stays reachable verbatim through the diagnostic channel.
-  const debug=vi.spyOn(console,"debug").mockImplementation(()=>{});
+  const debug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
   await userEvent.setup().click(screen.getByRole("button",{name:/最新处理状态与错误记录/}));
-  expect(debug.mock.calls.some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("AAK-WORKER-003"))).toBe(true);
+  expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="最新处理状态与错误记录"&&JSON.stringify(payload).includes("AAK-WORKER-003"))).toBe(true);
   expect(screen.queryByText(/AAK-WORKER-003/)).not.toBeInTheDocument();
-  debug.mockRestore();
+  expect(debug).not.toHaveBeenCalled(); debug.mockRestore();
   expect(bridge.call.mock.calls.some(([op])=>op==="job_execute"||op==="job_enqueue")).toBe(false);
  });
  it("refuses an unbounded list rather than following pages implicitly",async()=>{

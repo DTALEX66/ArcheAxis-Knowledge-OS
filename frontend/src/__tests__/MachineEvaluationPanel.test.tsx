@@ -42,7 +42,7 @@ describe("SIMULATED finite human machine evaluation UI",()=>{
   const {persisted}=await defaultBridge();const implementation=bridge.call.getMockImplementation()!;let first=true;
   bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{const value=await implementation(op,payload);if(op==="machine_evaluation_create"&&first){first=false;throw new Error("response lost after Core saved");}return value;});
   render(<MachineEvaluationPanel/>);const user=await setupEvaluation();await user.click(screen.getByRole("button",{name:"登记人工评测"}));await screen.findByText(/写入未确认/);
-  expect(screen.getByLabelText("整体评测依据")).toHaveValue("已对照原答案及固定准则");await user.click(screen.getByRole("button",{name:"同 ID 重试评测"}));await screen.findByText(/已登记并核对固定版本/);
+  expect(screen.getByLabelText("整体评测依据")).toHaveValue("已对照原答案及固定准则");await user.click(screen.getByRole("button",{name:"重试同一次评测"}));await screen.findByText(/已登记并核对固定版本/);
   const attempts=bridge.call.mock.calls.filter(([op])=>op==="machine_evaluation_create");expect(attempts).toHaveLength(2);expect(attempts[0][1]).toEqual(attempts[1][1]);expect(persisted.size).toBe(1);
  });
  it("does not let a new task hint replace unsaved judgments and uses separate dirty owners",async()=>{
@@ -54,7 +54,7 @@ describe("SIMULATED finite human machine evaluation UI",()=>{
  it("retains rubric request identity after lost ACK and can reconcile with GET without another POST",async()=>{
   await defaultBridge();const impl=bridge.call.getMockImplementation()!;bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>={})=>{const result=await impl(op,p);if(op==="machine_rubric_create")throw new Error("ACK lost");return result;});
   render(<MachineEvaluationPanel/>);const user=userEvent.setup();await user.type(screen.getByLabelText("量规标题"),"新量规");await user.type(screen.getByLabelText("量规用途"),"核对依据");await user.type(screen.getByLabelText("准则名称 1"),"引用");await user.type(screen.getByLabelText("准则预期 1"),"引用可核实");await user.click(screen.getByRole("button",{name:"登记新量规"}));await screen.findByText(/写入未确认/);
-  await user.click(screen.getByRole("button",{name:"核对冻结量规"}));await screen.findByText(/已登记并核对固定版本/);expect(bridge.call.mock.calls.filter(([op])=>op==="machine_rubric_create")).toHaveLength(1);
+  await user.click(screen.getByRole("button",{name:"检查待确认的准则保存"}));await screen.findByText(/已登记并核对固定版本/);expect(bridge.call.mock.calls.filter(([op])=>op==="machine_rubric_create")).toHaveLength(1);
  });
  it("does not report success when Core rejects machine identity or readback answer hashes differ",async()=>{
   await defaultBridge();const impl=bridge.call.getMockImplementation()!;bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>={})=>{if(op==="machine_evaluation_create")throw new ApiError(403,"machine principal refused","unauthorized");return impl(op,p);});

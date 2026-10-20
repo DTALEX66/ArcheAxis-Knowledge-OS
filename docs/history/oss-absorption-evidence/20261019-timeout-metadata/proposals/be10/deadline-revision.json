@@ -1,0 +1,297 @@
+{
+  "state": "PROPOSAL_NOT_APPLIED",
+  "observed_at": "2026-10-18T21:16:02.923369+00:00",
+  "old_patch_sha256": "1642aa55797fa212d559690174aefc265348077935da5d23d8c3bb501c72cc8d",
+  "new_patch_sha256": "4c0a09cf75101e641987e93fe2b4e6a1929786ddeb011da7993ddc2ad579c817",
+  "old_manifest_sha256": "f8d0bb9187fb524ac6f0e86df3fbda870871b85aedfc1a88d9c70fff484618a0",
+  "new_manifest_sha256": "e3d07a6678cd65ad4cac70f268fcd5ff2700c813f34c245a6a2a7dc2b9d3d210",
+  "preserved_directory": ".project-local/audits/be10-next-20261019/revisions/pre-deadline-fix",
+  "old_bytes_preserved_and_verified": [
+    {
+      "path": "be10-observer.patch",
+      "sha256": "1642aa55797fa212d559690174aefc265348077935da5d23d8c3bb501c72cc8d",
+      "bytes": 101529
+    },
+    {
+      "path": "code-manifest.json",
+      "sha256": "f8d0bb9187fb524ac6f0e86df3fbda870871b85aedfc1a88d9c70fff484618a0",
+      "bytes": 4134
+    },
+    {
+      "path": "DELIVERY.md",
+      "sha256": "ac261da53236cbd104c4d8561c542e76a91af7b0613d3820096923610e4a4e1a",
+      "bytes": 3973
+    },
+    {
+      "path": "proposal/crates/archeaxis-api/src/project_observer/client.rs",
+      "sha256": "51994499bc73b8d46fd2ed41068112e8c1279485840358accfda68919dbd7baf",
+      "bytes": 7398
+    },
+    {
+      "path": "proposal/crates/archeaxis-api/tests/project_observer_client.rs",
+      "sha256": "1ae85523ea2131ffcb4a5b61c2a97faf51a33f9e3ddb406b6c67fbceb4f40ab5",
+      "bytes": 5238
+    },
+    {
+      "path": "validation.json",
+      "sha256": "42ebcb96dae184c43ecd911b7c16b08c94de1afbbc4ea8ce0a7c49f6ac49d996",
+      "bytes": 11328
+    }
+  ],
+  "changed_proposal_files": [
+    {
+      "path": "crates/archeaxis-api/src/project_observer/client.rs",
+      "old_sha256": "51994499bc73b8d46fd2ed41068112e8c1279485840358accfda68919dbd7baf",
+      "new_sha256": "e3a4c225b2a0e6b22c86a1b70da2d4dec66de6cbabc763cf1de0d2db4a5cd285"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_observer_client.rs",
+      "old_sha256": "1ae85523ea2131ffcb4a5b61c2a97faf51a33f9e3ddb406b6c67fbceb4f40ab5",
+      "new_sha256": "0b8dc7d4c768c80b7ddcab348ff7a5fd2932b93228cc3e60232f6e522762218d"
+    },
+    {
+      "path": "docs/contracts/project-observer-v1.md",
+      "old_sha256": "b732d24ab1731d1889e3ad0bb8c28040522eccff03e775799a2227315d77bc80",
+      "new_sha256": "61d42473f488aaca29c971eca5bfdfac4ebf6028dc075cdfc3f6a871ed3fa827"
+    }
+  ],
+  "incremental_diff": ".project-local/audits/be10-next-20261019/deadline-fix.diff",
+  "incremental_diff_sha256": "439bca64b6d6ca32ad6a9ec031f88a495d599362a0ed483b36baf864774a4288",
+  "apply_check_exit_code": 0,
+  "new_runs": [
+    {
+      "run_id": "be10-deadline-clean-integration-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-deadline-clean-integration-1019/artifacts/execution.json",
+      "receipt_sha256": "dab2e4e88cf9e858f02bb9d0766cca19c3e6db9ec502f6926935b0c9ac99d3b9",
+      "started_at": "2026-10-18T21:14:15.805326+00:00",
+      "ended_at": "2026-10-18T21:14:35.042613+00:00",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "project_observer_client",
+        "--test",
+        "project_observer_process",
+        "--test",
+        "project_observer_api",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_tests_passed": 10,
+      "qualification": "ISOLATED_PROPOSAL_PASS",
+      "results": [
+        "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.21s",
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.15s"
+      ],
+      "measurements": [
+        "production deadline silent peer elapsed_ms=3003"
+      ]
+    },
+    {
+      "run_id": "be10-deadline-clean-unit-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-deadline-clean-unit-1019/artifacts/execution.json",
+      "receipt_sha256": "ee4feef880578aecf73e02e0fde214df03f73cbba59f87e6b4eece72c151a92e",
+      "started_at": "2026-10-18T21:13:40.857877+00:00",
+      "ended_at": "2026-10-18T21:13:59.702949+00:00",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--lib",
+        "project_observer::client::deadline_tests",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_tests_passed": 4,
+      "qualification": "ISOLATED_PROPOSAL_PASS",
+      "results": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 28 filtered out; finished in 0.90s"
+      ],
+      "measurements": [
+        "deadline timely positive elapsed_ms=2",
+        "deadline slow stream elapsed_ms=250",
+        "deadline delayed EOF elapsed_ms=260"
+      ]
+    },
+    {
+      "run_id": "be10-deadline-integration-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-deadline-integration-1019/artifacts/execution.json",
+      "receipt_sha256": "fb0e880b23ee91ee21ee766f39fe50ac7fe93fa75ef0c55f43ab39d5020994c7",
+      "started_at": "2026-10-18T21:13:02.735092+00:00",
+      "ended_at": "2026-10-18T21:13:07.538712+00:00",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "project_observer_client",
+        "--test",
+        "project_observer_process",
+        "--test",
+        "project_observer_api",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "child_exit_code": 101,
+      "exit_code": 101,
+      "status": "FAIL",
+      "source_consistent": true,
+      "observed_tests_passed": 0,
+      "qualification": "FAIL",
+      "results": [],
+      "measurements": []
+    },
+    {
+      "run_id": "be10-deadline-legacy-launch-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-deadline-legacy-launch-1019/artifacts/execution.json",
+      "receipt_sha256": "f854b7bb5eeaa72395cab5e959b18024aa78a9e83876587a012749d6f3470e6c",
+      "started_at": "2026-10-18T21:15:07.771316+00:00",
+      "ended_at": "2026-10-18T21:15:10.922819+00:00",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "launch_auth",
+        "launch_",
+        "--offline",
+        "--locked"
+      ],
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_tests_passed": 4,
+      "qualification": "ISOLATED_PROPOSAL_PASS",
+      "results": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.16s"
+      ],
+      "measurements": []
+    },
+    {
+      "run_id": "be10-deadline-legacy-v2-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-deadline-legacy-v2-1019/artifacts/execution.json",
+      "receipt_sha256": "ff124684473fec9269a9dd12f1bd31494548badd825026bd674c453f8dd0920c",
+      "started_at": "2026-10-18T21:14:51.734049+00:00",
+      "ended_at": "2026-10-18T21:14:55.798742+00:00",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "launch_auth",
+        "v2_",
+        "--offline",
+        "--locked"
+      ],
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_tests_passed": 3,
+      "qualification": "ISOLATED_PROPOSAL_PASS",
+      "results": [
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.68s"
+      ],
+      "measurements": []
+    },
+    {
+      "run_id": "be10-deadline-unit-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-deadline-unit-1019/artifacts/execution.json",
+      "receipt_sha256": "fffc7bbead7edf8f884de7e08621432b5f9814761a73530cad95043e54803fca",
+      "started_at": "2026-10-18T21:12:22.274048+00:00",
+      "ended_at": "2026-10-18T21:12:34.096197+00:00",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--lib",
+        "project_observer::client::deadline_tests",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "child_exit_code": 101,
+      "exit_code": 101,
+      "status": "FAIL",
+      "source_consistent": true,
+      "observed_tests_passed": 0,
+      "qualification": "FAIL",
+      "results": [],
+      "measurements": []
+    },
+    {
+      "run_id": "be10-deadline-unit-fixed-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-deadline-unit-fixed-1019/artifacts/execution.json",
+      "receipt_sha256": "3181caafc534db52d7b27209426c019fc9ac2e5c091bc8c692d330e6385992d8",
+      "started_at": "2026-10-18T21:12:46.252317+00:00",
+      "ended_at": "2026-10-18T21:12:49.684119+00:00",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-next-20261019/run_validation.py",
+        "test",
+        "-p",
+        "archeaxis-api",
+        "--lib",
+        "project_observer::client::deadline_tests",
+        "--offline",
+        "--locked",
+        "--",
+        "--nocapture"
+      ],
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "status": "LOCAL_PASS",
+      "source_consistent": true,
+      "observed_tests_passed": 0,
+      "qualification": "NOT_EXECUTED_WRONG_SOURCE_ZERO_TESTS",
+      "results": [
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.00s"
+      ],
+      "measurements": []
+    }
+  ],
+  "production_timeout_ms": 3000,
+  "private_test_timeout_only": true,
+  "product_files_written": [],
+  "limitations": [
+    "No deterministic kernel connect/write stall injection: remaining-budget logic is code-reviewed; actual loopback tests cover silence, slow stream, late EOF, valid positive and final valid DTO gate. No OS backlog manipulation.",
+    "The old v2 INVALIDATED receipt remains historical; fresh deadline-v2 isolated run now passed 3 selected old v2 cases. Entire launch_auth suite remains NOT_EXECUTED."
+  ]
+}

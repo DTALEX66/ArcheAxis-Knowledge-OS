@@ -1,4 +1,5 @@
-import type { ModelConfiguration, ModelLane, ResolvedModel } from "../api/generated/model-configuration-contract";
+import { resolveProductModel } from "../runtime/modelBinding";
+import type { ModelLane } from "../api/generated/model-configuration-contract";
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
 import type { ContextConsumptionDto, MachineTaskRowDto, MachineTasksPageDto, MachineConfigurationDto, MachineInventoryDto, MachineJournalStatusDto, MachineCancelDto } from "../api/generated/core-contract";
@@ -72,7 +73,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   const [uncertain, setUncertain] = useState(false);
   const [withheld, setWithheld] = useState(false);
   const [admissionRefusal,setAdmissionRefusal]=useState<MachineAdmissionRefusal|null>(null);
-  const [retestFailure,setRetestFailure]=useState<{phase:string;status:number|null;code:string;reason_code?:string}|null>(null);
+  const [retestFailure,setRetestFailure]=useState<{phase:string;status:number|null;code:string;reason_code?:string;diagnostics?:Record<string,unknown>}|null>(null);
+  const [answerFailure,setAnswerFailure]=useState<ApiError["machineFailure"]|null>(null);
   const frozenAnswer = useRef<Record<string, unknown> | null>(null);
   const frozenRetest = useRef<Record<string, unknown> | null>(null);
   const dirtyOwner = useId(); const savedReview = useRef("");
@@ -83,6 +85,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     frozenAnswer.current = null; frozenRetest.current = null; savedReview.current = "";
     pendingAnswer.current=null;pendingRetest.current=null;setRestoredPending(false);setWithheldAudit(null);setSelectedJournal("");
     setRetestFailure(null);
+    setAnswerFailure(null);
     inventoryPending.current = false; setInventoryBusy(false); setInventory(null); setModelConfiguration(null); setSelectedModel(""); setMaxTokens(2048);
     setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setQuestion(""); setCorrected(""); setNote(""); setReviewNote(""); setReviewer(""); setCorrectionAuthor("");
@@ -369,10 +372,8 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
   }
 
   async function configuredRequest(purpose:"answer"|"retest") {
-    const configuration=await coreCommand<ModelConfiguration>("model_configuration_get");
-    if(configuration.revision===0)return {};
-    const frozen=await coreCommand<ResolvedModel>("model_configuration_resolve",{body:{purpose,lane}});
-    if(frozen.purpose!==purpose||frozen.lane!==lane||frozen.configuration_revision!==configuration.revision||frozen.workspace_id!==configuration.workspace_id||frozen.restore_epoch!==configuration.restore_epoch)throw new Error("配置身份已变化");
+    const frozen=await resolveProductModel(purpose,lane);
+    if(!frozen)return {};
     return {model_configuration:frozen,model:frozen.profile.model,max_tokens:Math.min(maxTokens,frozen.profile.max_tokens),timeout_s:frozen.profile.timeout_s};
   }
   async function ask() {
@@ -385,6 +386,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     const request = frozenAnswer.current ?? Object.freeze({knowledge_id:knowledgeId,question:question.trim(),max_tokens:maxTokens,timeout_s:120,
       ...(selectedModel ? {model:selectedModel} : {}), ...(contextGrant ? {context_grant:structuredClone(contextGrant)} : {}), ...(assetContextGrant ? {asset_context_grant:{...structuredClone(assetContextGrant),request_id:`assetanswer_${crypto.randomUUID()}`,consumer:"local-machine",operation:"answer"}} : {}), client_request_id:`machine_${crypto.randomUUID()}`, ...binding});
     frozenAnswer.current = request;
+    setAnswerFailure(null);
     setBusy(true); setAnswer(null); setTask(null); setCorrection(null); setCandidate(null); setRetest(null); setRetestTask(null);
     setAdmissionRefusal(null);
     setCorrected(""); setNote(""); setReviewNote(""); setMessage("正在执行本地机器回答，等待真实回执…");
@@ -402,6 +404,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       if (requestLive(generation)) { frozenAnswer.current = null; setUncertain(false); setAnswer(response); setTask(proof); onTask?.(String(response.answer_id)); setMessage("本地回答已持久化读回；可能为同请求的历史重放。它仍是候选，不是已接受知识或能力评分。"); }
     } catch (reason) {
       if (requestLive(generation)) {
+        if(reason instanceof ApiError && reason.machineFailure)setAnswerFailure(reason.machineFailure);
         if (reason instanceof ApiError && reason.machineAdmission) {
           const refusal=await readMachineAdmissionRefusal(reason.machineAdmission,"answer",request);
           if(!requestLive(generation))return;
@@ -491,6 +494,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
     const request = frozenRetest.current ?? { ...binding, retest_of: failedTaskId, knowledge_id: candidateId, question: originalQuestion, max_tokens: maxTokens, timeout_s: 120, ...(selectedModel ? {model:selectedModel} : typeof record(answer.request??{}).model === "string" ? {model:record(answer.request).model} : {}), ...(retestContextGrant ? {context_grant:structuredClone(retestContextGrant)} : {}), ...(retestAssetContextGrant ? {asset_context_grant:{...structuredClone(retestAssetContextGrant),request_id:`assetretest_${crypto.randomUUID()}`,consumer:"local-machine",operation:"retest"}} : {}), ...binding };
     frozenRetest.current=request;
     setRetestFailure(null);
+    setAnswerFailure(null);
     let phase = "invoke";
     setAdmissionRefusal(null); setBusy(true); setMessage("正在以已审核纠正知识重答原问题；Core 回执与任务读回确认前不显示为完成…");
     try {
@@ -531,19 +535,20 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         else if (reason instanceof ApiError && reason.execution) {frozenRetest.current=null;setUncertain(true);setWithheld(true);setMessage(reason.execution.audit_status === "RECORDED" ? `复测推理已执行，答案未发布；脱敏审计 ${reason.execution.audit_task_id} 已保存，不自动重跑。` : "复测推理已执行，答案未发布；审计持久化未确认，不自动重跑。");}
         else if (reason instanceof ApiError && [400,403,404,422].includes(reason.status)) {setMessage("Core 明确拒绝复测请求；仅说明本次拒绝，历史执行仍未确认。原冻结复测、回答与纠正保留，请读取历史核对，不自动换授权或重跑。");}
         else {setUncertain(true);setMessage("复测未完成或持久化读回未确认。" + (reason instanceof ApiError && reason.machineFailure ? reason.message : "") + "保留纠正与原失败回执；先核对终态，不再次推理。");}
-        setRetestFailure({phase,status:reason instanceof ApiError ? reason.status : null,code:reason instanceof ApiError ? reason.code : "unverified",...(reason instanceof ApiError && reason.machineFailure ? {reason_code:reason.machineFailure.reason_code}: {})});
+        setRetestFailure({phase,status:reason instanceof ApiError ? reason.status : null,code:reason instanceof ApiError ? reason.code : "unverified",...(reason instanceof ApiError && reason.machineFailure ? {reason_code:reason.machineFailure.reason_code,...(reason.machineFailure.diagnostics?{diagnostics:reason.machineFailure.diagnostics}:{})}: {})});
         setUncertain(true);
       }
     } finally { if (requestLive(generation)) setBusy(false); }
   }
 
   return <section aria-label="知识到机器回答" className="ui-machine-answer" data-retest-failure={retestFailure?JSON.stringify(retestFailure):undefined}>
+    {answerFailure?<RawReceiptButton label="回答失败脱敏诊断" payload={answerFailure}/>:null}
     {retestFailure?<RawReceiptButton label="复测失败脱敏诊断" payload={retestFailure}/>:null}
     {admissionRefusal?<section aria-label="恢复授权拒绝" data-context-admission-refusal={JSON.stringify(admissionRefusal)}><p>拒绝依据：恢复后的旧授权隔离。仅确认本次调用未执行；历史执行 UNVERIFIED。</p><RawReceiptButton label="恢复授权拒绝回执" payload={admissionRefusal}/></section>:null}
     {withheld ? <><p>先读取并核对已保存的扣留审计；审计未确认时保留执行屏障。</p><button disabled={busy||!withheldAudit||!working} onClick={()=>void finishWithheld()}>结束已执行但未发布的请求，保留草稿</button></> : null}
     {working&&hasPendingOwner()?<><button disabled={working.status!=="ready"} onClick={()=>void cancelMachine()}>请求取消当前本地 worker</button><button disabled={busy||working.status!=="ready"} onClick={()=>void inspectFailure()}>核对冻结机器请求的失败状态</button></>:null}
     {withheldAudit?.failed?<button disabled={busy||!working} onClick={()=>void finishWithheld()}>结束失败请求，保留草稿</button>:null}
-    <h4>既有机器学习回执</h4>
+    <h4>已保存的 AI 回答记录</h4>
     {working&&Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).length>1?
       <label>待核对机器请求 <select value={selectedJournal} disabled={busy||working.status!=="ready"} onChange={event=>{
         const entry=working.state.pending_machine?.[event.target.value];setSelectedJournal(event.target.value);setWithheldAudit(null);setWithheld(false);
@@ -551,19 +556,19 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         pendingAnswer.current=entry.operation==="answer"?structuredClone(entry):null;pendingRetest.current=entry.operation==="retest"?structuredClone(entry):null;
         frozenAnswer.current=entry.operation==="answer"?Object.freeze(structuredClone(entry.body)):null;frozenRetest.current=entry.operation==="retest"?Object.freeze(structuredClone(entry.body)):null;
         setQuestion(entry.body.question);setSelectedModel(entry.body.model??"");setMaxTokens(entry.body.max_tokens===4096?4096:2048);setRestoredPending(true);setUncertain(true);
-      }}><option value="">选择一条请求核对</option>{Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).map(entry=><option key={entry.journal_id} value={entry.journal_id}>{entry.operation==="answer"?"回答":"复测"} · {entry.body.question.slice(0,80)} · {entry.journal_id}</option>)}</select></label>:null}
+      }}><option value="">选择一条请求核对</option>{Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).map(entry=><option key={entry.journal_id} value={entry.journal_id}>{entry.operation==="answer"?"回答":"复测"} · {entry.body.question.slice(0,80)}</option>)}</select></label>:null}
     <button disabled={busy} onClick={() => void readHistory()}>读取机器学习历史</button>
-    <ul aria-label="既有机器学习任务">{history.filter(row => ["runtime.answer","runtime.evaluation.failed","runtime.retest","runtime.execution.withheld"].includes(row.scope)).map(row => <li key={row.task_id}><span>{row.task_id} · {row.scope} · {row.outcome}</span><button disabled={busy} onClick={() => void restoreHistory(row)}>读取此任务旅程 {row.task_id}</button></li>)}</ul>
+    <ul aria-label="既有机器学习任务">{history.filter(row => ["runtime.answer","runtime.evaluation.failed","runtime.retest","runtime.execution.withheld"].includes(row.scope)).map(row => <li key={row.task_id} data-task-id={row.task_id}><span>{row.scope === "runtime.execution.withheld" ? "已执行但未发布" : row.scope === "runtime.evaluation.failed" ? "评测失败" : row.scope === "runtime.retest" ? "复测" : "回答"} · {row.outcome === "succeeded" ? "已完成" : row.outcome === "failed" ? "失败" : "未测评"} · {row.recorded_at}</span><button disabled={busy} onClick={() => void restoreHistory(row)}>查看这次任务</button></li>)}</ul>
     {cursor ? <button disabled={busy} onClick={() => void readHistory(true)}>读取更多任务</button> : null}
-    {uncertain ? <p>{withheldAudit?.failed ? "本地调用失败已核对；服务停止状态仍未知。结束请求前保留冻结输入。" : "执行状态 UNKNOWN；先核对既有历史，避免重复调用。"}</p> : null}
+    {uncertain ? <p>{withheldAudit?.failed ? "本地调用失败已核对；服务停止状态仍未知。结束请求前保留冻结输入。" : "运行结果尚未确认；请先检查已保存记录，避免重复运行。"}</p> : null}
     <h4>基于当前知识的本地回答</h4>
     <button disabled={busy} onClick={()=>void coreCommand<MachineConfigurationDto>("machine_configuration").then(setModelConfiguration).catch(()=>setModelConfiguration(null))}>读取模型配置状态</button>
-    <p>{modelConfiguration ? (modelConfiguration.worker_registered ? "本地回答 worker 已配置；模型身份、加载和推理接通尚未验证。" : "本地回答 worker 未注册。") : "模型配置状态未读取或读取失败。"}</p>
+    <p>{modelConfiguration ? (modelConfiguration.worker_registered ? "本地回答服务已配置；模型是否已加载和能否回答仍需实际验证。" : "本地回答服务尚未配置。") : "模型配置状态未读取或读取失败。"}</p>
     <p>本地回答仅向本机服务发送已授权知识与明确填写的问题；用量和费用在服务未返回前为未知。读取配置状态不会调用模型。</p>
     <button disabled={busy || inventoryBusy || uncertain || !!frozenRetest.current} onClick={() => void readInventory()}>探测本地模型清单</button>
     <p>探测只读取本机服务清单，不发送知识或问题，不加载模型或执行推理。</p>
     <p aria-label="本地模型清单探测结果">{inventoryBusy ? "正在读取本地清单…" : !inventory ? "清单未探测或读取失败。" : inventory.status === "READ_VERIFIED" ? `清单已读取，共 ${inventory.listed_model_count} 项；声明模型${inventory.selected_model_listed ? "已列出" : "未列出"}。加载状态未知，推理尚未验证。` : inventory.status === "DISABLED" ? "本地回答能力已禁用，未探测。" : inventory.status === "BUSY" ? "模型服务入口正忙，请稍后重试。" : "清单读取未确认；模型数量与可用性未知。"}</p>
-    <label>用途执行通道 <select value={lane} disabled={busy||uncertain||!!frozenRetest.current} onChange={e=>setLane(e.target.value as ModelLane)}><option value="fast">FAST</option><option value="deep">DEEP</option></select></label>
+    <label>用途执行通道 <select value={lane} disabled={busy||uncertain||!!frozenRetest.current} onChange={e=>setLane(e.target.value as ModelLane)}><option value="fast">快速</option><option value="deep">深入</option></select></label>
     <label>兼容模式本地回答模型 <select value={selectedModel} disabled={busy||uncertain||!!frozenRetest.current||inventoryBusy} onChange={event=>setSelectedModel(event.target.value)}><option value="">沿用本地启动配置（模型尚未绑定）</option>{selectedModel&&(inventory?.status!=="READ_VERIFIED"||!inventory.model_choices?.includes(selectedModel))?<option value={selectedModel}>{selectedModel}（此前选择，本次清单未确认）</option>:null}{inventory?.status==="READ_VERIFIED"?inventory.model_choices?.map(model=><option key={model} value={model}>{model}（清单已列出，推理未验证）</option>):null}</select></label>
     <p>选择仅用于本次回答及复测，不修改全局配置。执行可能由本机服务加载所选模型；不会自动转云。重试保留原选择。</p>
     <label>本次输出预算 <select value={maxTokens} disabled={busy||uncertain||!!frozenRetest.current} onChange={event=>setMaxTokens(event.target.value==="4096"?4096:2048)}><option value="2048">2048 tokens</option><option value="4096">4096 tokens</option></select></label>
@@ -579,11 +584,11 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         <dt>请求模型</dt><dd>{String(record(answer.answer).requested_model ?? record(answer.answer).model ?? "未知")}</dd>
         <dt>服务返回模型</dt><dd>{typeof record(answer.answer).observed_model === "string" && record(answer.answer).observed_model ? String(record(answer.answer).observed_model) : "未知；服务未提供模型身份"}</dd>
         <dt>完成状态</dt><dd>{record(answer.answer).finish_reason === "stop" && record(answer.answer).truncated === false ? "完整返回候选答案" : record(answer.answer).truncated === true ? "答案截断" : "未知；完成状态未提供"}</dd>
-        <dt>用量与费用</dt><dd>{record(answer.answer).usage_status === "REPORTED" ? `服务报告 token：${JSON.stringify(record(answer.answer).usage)}；费用未知` : "未知；本次回执未提供可核实的计量"}</dd>
+        <dt>用量与费用</dt><dd>{record(answer.answer).usage_status === "REPORTED" ? `服务报告了用量；费用未知` : "未知；本次回执未提供可核实的计量"}</dd>
       </dl>
       <p>这些证据只属于本次调用，不证明服务持续可用、其他模型接通或答案正确。</p>
       <p>机器回答未被接受为知识。保存错误纠正不会自行改变已接受知识，也不会证明机器改进。</p>
-      <RawReceiptButton label="持久化任务与模型回执" payload={task} />
+      <RawReceiptButton label="任务、模型与用量详细信息" payload={{task,answer:answer.answer}} />
       <p>若你实际发现错误，可记录具体更正；没有错误无需提交。</p>
       <label>正确答案 <textarea value={corrected} disabled={busy} onChange={event => setCorrected(event.target.value)} /></label>
       <label>具体错误依据 <textarea value={note} disabled={busy} onChange={event => setNote(event.target.value)} /></label>
@@ -591,15 +596,14 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       <button disabled={busy || !corrected.trim() || !note.trim() || !correctionAuthor.trim()} onClick={() => void correct()}>记录使用者纠正候选</button>
       {correction ? <>
         <h4>纠正对照与范围</h4>
-        <dl><div><dt>纠正候选 ID</dt><dd>{String(correction.correction_candidate_id)}</dd></div>
-          <div><dt>绑定知识</dt><dd>{String(correction.corrects_knowledge_id)}</dd></div>
-          <div><dt>纠正候选修订</dt><dd>{candidate ? String(candidate.version) : "Core 候选读回未确认"}</dd></div>
+        <dl><div><dt>纠正候选</dt><dd>已保存并关联原知识</dd></div>
+          <div><dt>纠正候选修订</dt><dd>{candidate ? String(candidate.version) : "纠正候选尚未核实"}</dd></div>
           <div><dt>本题</dt><dd>{String(correction.question)}</dd></div>
           <div><dt>原机器回答</dt><dd>{String(correction.machine_answer)}</dd></div>
           <div><dt>使用者纠正</dt><dd>{String(correction.corrected_answer)}</dd></div>
-          <div><dt>Core 候选正文读回</dt><dd>{candidate ? String(candidate.body) : "未确认；审核操作不可用"}</dd></div>
+          <div><dt>已保存的纠正正文</dt><dd>{candidate ? String(candidate.body) : "未确认；审核操作不可用"}</dd></div>
           <div><dt>错误依据</dt><dd>{String(correction.error_note)}</dd></div>
-          <div><dt>状态</dt><dd>{candidate ? String(candidate.status) : "候选读回未确认"}</dd></div>
+          <div><dt>状态</dt><dd>{candidate ? candidate.status === "accepted" ? "已接受" : candidate.status === "rejected" ? "已拒绝" : candidate.status === "deprecated" ? "已撤回" : "待审核" : "纠正候选尚未核实"}</dd></div>
         </dl>
         <RawReceiptButton label="机器纠正候选回执" payload={correction} />
         {!candidate ? <button disabled={busy} onClick={() => void reloadCandidate()}>重新读取纠正候选</button> : null}
@@ -613,16 +617,16 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         <button disabled={busy} onClick={() => void reloadCandidate()}>重新读取审核版本</button>
         <button disabled={busy || candidate.status !== "accepted" || !reviewer.trim() || !reviewNote.trim()} onClick={() => void reviewCorrection("deprecated")}>撤回已接受纠正（标记为弃用）</button>
         {candidate.status === "accepted" ? <>
-          <p>已审核知识可用于重答原问题。Core 会校验先前失败任务和知识修订 lineage；接受知识本身不等同复测通过。</p>
+          <p>已审核知识可用于重答原问题。复测会再次核对先前失败任务和知识版本；接受纠正知识本身不代表复测通过。</p>
           {scoped && !retestContextGrant ? <p>请先为已接受的纠正知识保存并选择独立复测授权。</p> : null}
           <button disabled={restoredPending || busy || uncertain || withheld || Boolean(retest) || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : frozenRetest.current ? "重试同一冻结复测请求" : "以已接受纠正知识运行独立复测"}</button>
         </> : null}
           {retest ? <section aria-label="独立复测结果对照">
             <h4>独立复测结果对照</h4>
-            <dl><div><dt>复测任务</dt><dd>{String(retest.retest_task_id)}</dd></div><div><dt>绑定失败任务</dt><dd>{String(retest.retest_of)}</dd></div><div><dt>作答知识 ID</dt><dd>{String(retest.knowledge_id)}</dd></div><div><dt>候选审核读回版本</dt><dd>{String(candidate.version)}</dd></div><div><dt>评价状态</dt><dd>未测评；等待真人比较</dd></div></dl>
+            <p>这次复测关联先前失败的任务，使用已审核知识第 {String(candidate.version)} 版。结果尚未由真人比较。</p>
             <h5>原机器回答（失败样本）</h5><pre>{String(record(answer.answer).answer)}</pre>
             <h5>纠正后复测回答（候选）</h5><pre aria-label="独立复测机器回答">{String(record(retest.answer).answer)}</pre>
-            <p>Core 仅记录独立复测及其失败任务绑定，不自动推断纠正有效；真人比较结果尚未记录。</p>
+            <p>系统仅记录独立复测及其与失败任务的关联，不自动推断纠正有效；真人比较结果尚未记录。</p>
             <RawReceiptButton label="复测任务持久化回执" payload={retestTask} />
             <RawReceiptButton label="机器复测回执" payload={retest} />
           </section> : null}

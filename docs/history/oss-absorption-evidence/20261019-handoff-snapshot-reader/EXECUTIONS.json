@@ -1,0 +1,181 @@
+[
+  {
+    "run_id": "be10-snapshot-browser-1019",
+    "exit_code": 1,
+    "source_consistent": true,
+    "source_patch_sha256": "2064eb2e1f87ffbb2b535e5ae73acc9f514cd5a7a4c3b7163766c3ae6bb72bef",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      ".project-local/audits/be10-snapshot-integration-20261019/browser.mjs"
+    ],
+    "started_at": "2026-10-18T23:41:50.525012+00:00",
+    "ended_at": "2026-10-18T23:41:52.502868+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-browser-v2-1019",
+    "exit_code": 1,
+    "source_consistent": true,
+    "source_patch_sha256": "2064eb2e1f87ffbb2b535e5ae73acc9f514cd5a7a4c3b7163766c3ae6bb72bef",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      ".project-local/audits/be10-snapshot-integration-20261019/browser.mjs",
+      "v2"
+    ],
+    "started_at": "2026-10-18T23:42:18.839927+00:00",
+    "ended_at": "2026-10-18T23:42:20.723016+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-browser-v3-1019",
+    "exit_code": 1,
+    "source_consistent": true,
+    "source_patch_sha256": "2064eb2e1f87ffbb2b535e5ae73acc9f514cd5a7a4c3b7163766c3ae6bb72bef",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      ".project-local/audits/be10-snapshot-integration-20261019/browser.mjs",
+      "v3"
+    ],
+    "started_at": "2026-10-18T23:42:38.078394+00:00",
+    "ended_at": "2026-10-18T23:42:42.832980+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-browser-v4-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "2064eb2e1f87ffbb2b535e5ae73acc9f514cd5a7a4c3b7163766c3ae6bb72bef",
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      ".project-local/audits/be10-snapshot-integration-20261019/browser.mjs",
+      "v4"
+    ],
+    "started_at": "2026-10-18T23:45:02.876385+00:00",
+    "ended_at": "2026-10-18T23:45:07.680810+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-format-1019",
+    "exit_code": 3,
+    "source_consistent": false,
+    "source_patch_sha256": "d9faf89a9c6a56dd8eedf479848751d1c31129ac6f4004521d751cf29dadfb5d",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "fmt",
+      "--all"
+    ],
+    "started_at": "2026-10-18T23:35:11.143373+00:00",
+    "ended_at": "2026-10-18T23:35:15.410886+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-frontend-1019",
+    "exit_code": 1,
+    "source_consistent": true,
+    "source_patch_sha256": "873981b7f8d6e5113bd66686b5fc1f9b9a5223875f04ea3faa885b0654522084",
+    "command": [
+      ".\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/be10-snapshot-integration-20261019/gates.py",
+      "frontend"
+    ],
+    "started_at": "2026-10-18T23:39:04.707973+00:00",
+    "ended_at": "2026-10-18T23:39:24.023011+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-frontend-final-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "2064eb2e1f87ffbb2b535e5ae73acc9f514cd5a7a4c3b7163766c3ae6bb72bef",
+    "command": [
+      ".\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/be10-snapshot-integration-20261019/gates.py",
+      "frontend-final"
+    ],
+    "started_at": "2026-10-18T23:40:37.262645+00:00",
+    "ended_at": "2026-10-18T23:40:53.125712+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-native-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "2064eb2e1f87ffbb2b535e5ae73acc9f514cd5a7a4c3b7163766c3ae6bb72bef",
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/be10-snapshot-integration-20261019/native_gate_routed.py"
+    ],
+    "started_at": "2026-10-18T23:45:13.212273+00:00",
+    "ended_at": "2026-10-18T23:45:51.102730+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-native-format-1019",
+    "exit_code": 3,
+    "source_consistent": false,
+    "source_patch_sha256": "a81d39bb187e06925a4ec2d397460b7406184a492c52a9b622d5d35520644f2f",
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "fmt",
+      "--manifest-path",
+      "src-tauri/Cargo.toml",
+      "--all"
+    ],
+    "started_at": "2026-10-18T23:38:12.827066+00:00",
+    "ended_at": "2026-10-18T23:38:16.086959+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-original-red-1019",
+    "exit_code": 1,
+    "source_consistent": true,
+    "source_patch_sha256": "f4a4669a533531f5e78ab12e0802cc085571b9855ee187fa5531a75da38d5991",
+    "command": [
+      ".\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/be10-snapshot-integration-20261019/baseline_red.py"
+    ],
+    "started_at": "2026-10-18T23:36:20.826106+00:00",
+    "ended_at": "2026-10-18T23:36:22.966564+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-rust-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "873981b7f8d6e5113bd66686b5fc1f9b9a5223875f04ea3faa885b0654522084",
+    "command": [
+      ".\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/be10-snapshot-integration-20261019/gates.py",
+      "rust"
+    ],
+    "started_at": "2026-10-18T23:39:04.711185+00:00",
+    "ended_at": "2026-10-18T23:39:44.587173+00:00"
+  },
+  {
+    "run_id": "be10-snapshot-sources-1019",
+    "exit_code": 0,
+    "source_consistent": true,
+    "source_patch_sha256": "873981b7f8d6e5113bd66686b5fc1f9b9a5223875f04ea3faa885b0654522084",
+    "command": [
+      ".\\.venv\\Scripts\\python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/be10-snapshot-integration-20261019/gates.py",
+      "sources"
+    ],
+    "started_at": "2026-10-18T23:39:04.729779+00:00",
+    "ended_at": "2026-10-18T23:39:22.950257+00:00"
+  }
+]

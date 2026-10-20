@@ -25,6 +25,18 @@ fallback:
 # then unioned across every matching risk class so mixed changes take the
 # broadest required set.
 risk_classes:
+  - id: astryn-product-character-assets
+    description: Owner-confirmed imported product character resources; same gates as formal frontend UI resources
+    paths:
+      - "assets/astryn/**"
+    gates: [static, lint, browser-smoke]
+
+  - id: astryn-preserved-donor-assets
+    description: Exact retained ASTRYN full donor tree; static checks only, with no donor execution or qualification upgrade
+    paths:
+      - "assets/astryn-full/**"
+    gates: [static, lint]
+
   - id: vnext-shared-vocabulary
     description: Single-source vocabulary and shared wire cases verify all three consumers
     paths:
@@ -161,13 +173,13 @@ risk_classes:
       - docs/DIRECTORY_AUTHORITY_INDEX.md
       - docs/CONFIGURATION_AUTHORITY_INDEX.md
       - docs/LANGUAGE_BOUNDARY_AUTHORITY_INDEX.md
-      - docs/PROJECT_STATUS.md
-      - docs/truth/CURRENT_STATE_TRUTH.md
+      - docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md
+      - docs/history/repository-consolidation-20261019/truth-snapshots/CURRENT_STATE_TRUTH.md
       # Files inside test_axr060's scanned surface: every 40-hex identifier in
       # them must resolve to a real object, and the authority index asserts
       # their local links resolve.
-      - docs/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md
-      - docs/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md
+      - docs/history/repository-consolidation-20261019/current/AAOS-CLOUD-AUDIT-HANDOFF-20260926.md
+      - docs/history/repository-consolidation-20261019/current/AAOS-DSH-TAKEOVER-CHECKPOINT-20260926.md
       - docs/history/branch-donors/README.md
     gates: [static, lint, py-primary]
 
@@ -332,10 +344,8 @@ risk_classes:
   - id: legacy-ui-other
     description: Legacy UI shell assets outside the dedicated frontend/desktop/src paths (maintenance-only)
     paths:
-      - "OSUI/**"
       - "frontend/**"
       - "desktop/**"
-      - "verified-knowledge/**"
     gates: [static, lint]
 
   - id: legacy-root-scripts

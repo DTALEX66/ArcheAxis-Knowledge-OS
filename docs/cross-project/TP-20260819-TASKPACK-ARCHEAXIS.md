@@ -12,7 +12,7 @@ PASS / PARTIAL / FAIL / NOT_EXECUTED / BLOCKED。禁止用 DONE 代替证据状�
 
 ## AA-P0（修复任务）
 
-- [ ] AA-P0-001 重新生成当前状态：SYSTEM_BOUNDARY.md/产品计划与真实 HEAD 一致，旧阶段/旧执行器不作为当前事实
+- [ ] AA-P0-001 重新生成当前状态：docs/history/repository-consolidation-20261019/root/SYSTEM_BOUNDARY.md/产品计划与真实 HEAD 一致，旧阶段/旧执行器不作为当前事实
 - [ ] AA-P0-002 稳定跨项目知识 API：批量 Candidate Submission / 幂等键 / 权限身份 / Candidate Receipt / Verified 回读 / 分页错误码速率版本协商 / 来源版权可信度 / hash readback
 - [ ] AA-P0-003 保留人类学习核心：新机器接口必须验证人类学习 Workspace 未降级，AI 内容默认只进 Candidate
 

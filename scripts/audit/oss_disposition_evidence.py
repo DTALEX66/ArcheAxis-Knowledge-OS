@@ -33,7 +33,7 @@ import tokenize
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-DISPOSITION = REPO / "docs" / "current" / "AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json"
+DISPOSITION = REPO / 'docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json'
 
 # Where a dependency can be declared or a donor vendored. Lockfiles are evidence of resolution,
 # manifests of declaration, and the vendored roots of a real copy.
@@ -65,6 +65,15 @@ TEXT_SUFFIXES = {".py", ".rs", ".ts", ".tsx", ".js", ".jsx", ".toml", ".yaml", "
 # Only a programming language names a capability in an identifier. A word in a README or a JSON
 # fixture is a mention, and treating those as code made prose read as implementation.
 CODE_SUFFIXES = {".py", ".rs", ".ts", ".tsx", ".js", ".jsx"}
+
+
+def runtime_source_path(path: Path) -> bool:
+    """Test doubles and assertions cannot establish production donor adoption."""
+    parts = {part.casefold() for part in path.parts}
+    name = path.name.casefold()
+    return not (parts & {'tests', 'test', '__tests__', 'fixtures', '__fixtures__', 'testdata'}
+                or name.startswith('test_')
+                or re.search(r'\.(?:test|spec|stories)\.[^.]+$', name))
 # Floors and ceilings are deliberately wide: an unavailable-honest registry states the limitation in
 # its module docstring and its classes a few lines later.
 STUB_WINDOW = 20
@@ -176,6 +185,8 @@ def _source_files():
             # under a `.project-local/` path, so an absolute-path check would skip everything.
             if any(part in SKIP_DIRS for part in path.relative_to(REPO).parts):
                 continue
+            if not runtime_source_path(path.relative_to(REPO)):
+                continue
             if path.suffix.casefold() not in TEXT_SUFFIXES:
                 continue
             yield path
@@ -214,9 +225,16 @@ def _scan(path: Path) -> tuple[dict[str, int], set[int], list[int], list[str]]:
         except (tokenize.TokenError, IndentationError):
             pass
         return identifiers, prose, stub_lines, lines
-    for number, line in enumerate(lines, start=1):
+    # For JS/TS/Rust, labels and import-path strings are mentions, not identifiers.
+    # Preserve newlines so reported locators still point to the original file.
+    single = r"'(?:\x5c.|[^'\x5c\r\n])'" if path.suffix == '.rs' else r"'(?:\x5c.|[^'\x5c])*'"
+    literals = re.compile(r'r(?P<raw_hash>#{0,16})"[\s\S]*?"(?P=raw_hash)'
+                          + r'|"(?:\\.|[^"\\])*"|' + single
+                          + r'|`(?:\\.|[^`\\])*`|/\*[\s\S]*?\*/|//[^\r\n]*')
+    code = literals.sub(lambda match: re.sub(r'[^\r\n]', ' ', match.group()), text)
+    for number, line in enumerate(code.splitlines(), start=1):
         stripped = line.strip()
-        if stripped.startswith(("#", "//", "/*", "*", "<!--")):
+        if not stripped or stripped.startswith(("#", "//", "/*", "*", "<!--")):
             prose.add(number)
             continue
         for match in _IDENTIFIER.finditer(line):

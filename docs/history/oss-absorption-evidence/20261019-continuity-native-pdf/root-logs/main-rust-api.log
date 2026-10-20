@@ -1,0 +1,111 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo test --offline --locked -p archeaxis-api --test operation_readiness_api --test file_format_qualification --test project_handoff_preview_process --test project_handoff_process --test project_observer_process --test project_handoff_projection -- --test-threads=1
+
+running 3 tests
+test static_unknown_pdf_can_execute_with_live_version_and_qualify_its_file ... ok
+test successful_execution_without_usable_receipt_is_not_qualified ... ok
+test text_docx_failure_and_reopen_keep_operation_qualifications_separate ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.47s
+
+
+running 2 tests
+test pdf_static_readiness_never_claims_engine_available_or_spawns_worker ... ok
+test readiness_is_scoped_input_free_and_rechecked_before_execution ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 5 tests
+test human_preview_reads_real_fixed_metadata_and_leaves_all_business_tables_unchanged ... ok
+test preview_rejects_machine_observer_credentials_and_keeps_local_api_independent ... ok
+test stale_hash_version_missing_and_repeated_preview_are_explicit_and_read_only ... ok
+test untrusted_json_fields_non_context_query_and_oversize_never_echo_input ... ok
+test workspace_restore_epoch_expiry_and_future_context_fail_closed_without_writes ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+
+running 6 tests
+test a_disconnected_core_cannot_prepare_from_a_callers_cached_original ... ok
+test five_handoff_kinds_are_prepared_by_real_core_and_cli_without_database_writes ... ok
+test input_cannot_smuggle_url_body_credentials_or_execution_and_argv_is_refused ... ok
+test malformed_auth_and_wrong_token_identity_fail_without_echo_or_writes ... ok
+test receipts_require_original_identity_freshness_and_consistent_state ... ok
+test stale_unlisted_and_invalid_contracts_are_never_prepared_as_current ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.01s
+
+
+running 8 tests
+test all_nonreceipt_positive_kinds_have_real_reference_bound_projection ... ok
+test candidate_evidence_does_not_gain_human_acceptance_or_verified_support ... ok
+test every_asset_source_and_loss_receipt_must_be_in_the_observed_allowlist ... ok
+test prepared_receipt_cannot_resurrect_expired_or_stale_proposal ... ok
+test receipt_fingerprint_rejects_same_key_kind_with_changed_payload ... ok
+test receipt_requires_original_and_preserves_unknown_conflict_and_identity_binding ... ok
+test retry_equivalence_is_scoped_and_conflicting_payload_or_expiry_cannot_renew_key ... ok
+test stale_expired_unlisted_and_wrong_revision_are_not_projected_as_current ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 6 tests
+test an_admitted_live_observer_expires_and_cannot_turn_cached_success_into_a_new_read ... ok
+test malformed_or_colliding_bootstrap_grants_fail_before_opening_a_workspace ... ok
+test observer_cannot_reach_mutations_private_reads_or_forge_identity_and_old_roles_survive ... ok
+test observer_empty_store_does_not_initialize_identity_and_wrong_workspace_is_not_current ... ok
+test real_adapter_two_independent_workspaces_reads_metadata_without_writes_or_acceptance ... ok
+test revision_change_is_stale_restore_fence_rejects_old_admission_and_disconnect_is_not_success ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.78s
+
+
+   Compiling archeaxis-contracts v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-contracts)
+   Compiling archeaxis-sidecar-protocol v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-sidecar-protocol)
+   Compiling archeaxis-domain v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-domain)
+warning: unused import: `OptionalExtension`
+ --> crates\archeaxis-domain\src\ai_asset.rs:7:28
+  |
+7 | use rusqlite::{Connection, OptionalExtension};
+  |                            ^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `self`
+ --> crates\archeaxis-domain\src\asset_context_grant.rs:4:16
+  |
+4 |     document::{self, Error},
+  |                ^^^^
+
+   Compiling archeaxis-application v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-application)
+warning: function `stable_id` is never used
+  --> crates\archeaxis-application\src\lib.rs:45:4
+   |
+45 | fn stable_id(prefix: &str, seed: &str) -> String {
+   |    ^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `worker` is never read
+  --> crates\archeaxis-application\src\executor.rs:79:5
+   |
+75 | pub struct Executor {
+   |            -------- field in this struct
+...
+79 |     worker: PathBuf,
+   |     ^^^^^^
+   |
+   = note: `Executor` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
+
+   Compiling archeaxis-api v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-api)
+warning: `archeaxis-application` (lib) generated 2 warnings
+warning: `archeaxis-domain` (lib) generated 2 warnings (run `cargo fix --lib -p archeaxis-domain` to apply 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 16.06s
+     Running tests\file_format_qualification.rs (.project-local\build\cargo\debug\deps\file_format_qualification-aa199fa86253fa6e.exe)
+     Running tests\operation_readiness_api.rs (.project-local\build\cargo\debug\deps\operation_readiness_api-8b9539c8b31da432.exe)
+     Running tests\project_handoff_preview_process.rs (.project-local\build\cargo\debug\deps\project_handoff_preview_process-f47bbda5f2cf4e42.exe)
+     Running tests\project_handoff_process.rs (.project-local\build\cargo\debug\deps\project_handoff_process-b6760e914cc0f502.exe)
+     Running tests\project_handoff_projection.rs (.project-local\build\cargo\debug\deps\project_handoff_projection-10cd7f582134e937.exe)
+     Running tests\project_observer_process.rs (.project-local\build\cargo\debug\deps\project_observer_process-dcfe176a0859123c.exe)

@@ -1,0 +1,293 @@
+[
+  {
+    "run_id": "recovery-final-core-1019",
+    "source_patch_sha256": "c3585765dde1544db5535df552c81362e71bb8444c3801a7abc5256acd2db0b9",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:28:30.145491+00:00",
+    "ended_at": "2026-10-18T22:28:33.142743+00:00",
+    "seconds": 2.9972485000034794,
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "build",
+      "-p",
+      "archeaxis-api",
+      "--bin",
+      "archeaxis-api",
+      "--release",
+      "--offline",
+      "--locked"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/recovery-final-core-1019/logs/execution.log",
+      "bytes": 1551,
+      "sha256": "6e542c427e17116aa8968cd49896d7b21c6bc7082a1b1f42f065e5578966684e"
+    }
+  },
+  {
+    "run_id": "recovery-final-host-1019",
+    "source_patch_sha256": "c3585765dde1544db5535df552c81362e71bb8444c3801a7abc5256acd2db0b9",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:28:30.151360+00:00",
+    "ended_at": "2026-10-18T22:29:25.513372+00:00",
+    "seconds": 55.362032199976966,
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "scripts/runtime/frontend.mjs",
+      "tauri",
+      "--receipt",
+      ".project-local/runs/be268a2d33/recovery-final-host-1019/artifacts/host-build.json",
+      "--",
+      "build",
+      "--no-bundle",
+      "--",
+      "--offline",
+      "--locked"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/recovery-final-host-1019/logs/execution.log",
+      "bytes": 19059,
+      "sha256": "464094d1572fca39f94779f2bc8deaa174bcb9a9a8f80336f4f044e34168be5f"
+    }
+  },
+  {
+    "run_id": "recovery-model-load-1019",
+    "source_patch_sha256": "c3585765dde1544db5535df552c81362e71bb8444c3801a7abc5256acd2db0b9",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:28:30.150238+00:00",
+    "ended_at": "2026-10-18T22:29:26.046706+00:00",
+    "seconds": 55.89646650000941,
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "scripts/runtime/lm_studio_profile.mjs",
+      "load",
+      "deep-mtp"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/recovery-model-load-1019/logs/execution.log",
+      "bytes": 152,
+      "sha256": "763a51d7c36449a942b09176665e0de010ac3c27da022cc4f08e050e24902a05"
+    }
+  },
+  {
+    "run_id": "recovery-candidate-promotion-1019",
+    "source_patch_sha256": "c3585765dde1544db5535df552c81362e71bb8444c3801a7abc5256acd2db0b9",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:32:00.855904+00:00",
+    "ended_at": "2026-10-18T22:32:19.980876+00:00",
+    "seconds": 19.12497119998443,
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/runs/be268a2d33/closure-native-stage/promote_timeout_components.py",
+      "recovery-final-host-1019",
+      "recovery-final-core-1019"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/recovery-candidate-promotion-1019/logs/execution.log",
+      "bytes": 8375,
+      "sha256": "8cf61db42e9b1d7813a31b21ee4a0c32eb4bb5ab2c09b0bcb22070bee5e9e97a"
+    }
+  },
+  {
+    "run_id": "independent-recovery-native-1019",
+    "source_patch_sha256": "c3585765dde1544db5535df552c81362e71bb8444c3801a7abc5256acd2db0b9",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:32:32.025664+00:00",
+    "ended_at": "2026-10-18T22:36:03.845461+00:00",
+    "seconds": 211.81980029999977,
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-B",
+      "scripts/probes/aaos01_tauri_webdriver_loop.py",
+      "--host",
+      ".project-local/candidates/closure-20261018/backend/ArcheAxis.exe",
+      "--build-receipt",
+      ".project-local/runs/be268a2d33/closure-native-stage/candidate-build-current-20261018T223203Z.json",
+      "--driver",
+      "D:/All projects/OS External Configuration/toolchains/rust/cargo/bin/tauri-driver.exe",
+      "--native-driver",
+      ".project-local/tools/edge-155.0.4283.60/msedgedriver.exe",
+      "--material-companion-recovery-loop",
+      "--material-companion-actual-model",
+      "--material-companion-model",
+      "aaos-deep-27b-mtp",
+      "--session-timeout",
+      "180"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/independent-recovery-native-1019/logs/execution.log",
+      "bytes": 8377,
+      "sha256": "c05a8a7b980a5202e96b7ebc4d295bed97caca500449b3a04d5da5e0684ff240"
+    }
+  },
+  {
+    "run_id": "measurement-main-python-1019",
+    "source_patch_sha256": "137ed852499a0c9657af7d22494c3c14cc269cd1200b6cb9ef4e287d7d67baf0",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:39:18.089573+00:00",
+    "ended_at": "2026-10-18T22:39:26.894894+00:00",
+    "seconds": 8.805317999998806,
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "tests/test_machine_request_measurements.py",
+      "tests/test_worker_machine_answer.py",
+      "tests/contract/test_machine_failure_diagnostics.py",
+      "-q"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/measurement-main-python-1019/logs/execution.log",
+      "bytes": 633,
+      "sha256": "9999c3166892b0a572f2040bd7b266a931ec247a270c555c02657a3c9706444a"
+    }
+  },
+  {
+    "run_id": "measurement-main-sources-1019",
+    "source_patch_sha256": "137ed852499a0c9657af7d22494c3c14cc269cd1200b6cb9ef4e287d7d67baf0",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:40:09.507455+00:00",
+    "ended_at": "2026-10-18T22:40:23.641605+00:00",
+    "seconds": 14.134150700003374,
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      ".project-local/audits/recovery-measurement-integration-20261019/check_sources.py"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/measurement-main-sources-1019/logs/execution.log",
+      "bytes": 122,
+      "sha256": "90ba8a900efd517397f0648f1fb5ab6305e71076031bc6aeeb0cfc4a2344fcff"
+    }
+  },
+  {
+    "run_id": "measurement-main-ui-1019",
+    "source_patch_sha256": "137ed852499a0c9657af7d22494c3c14cc269cd1200b6cb9ef4e287d7d67baf0",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:40:09.477617+00:00",
+    "ended_at": "2026-10-18T22:40:16.250997+00:00",
+    "seconds": 6.773382099985611,
+    "command": [
+      "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+      "frontend/node_modules/vitest/vitest.mjs",
+      "run",
+      "--root",
+      "frontend",
+      "--maxWorkers",
+      "1",
+      "--minWorkers",
+      "1",
+      "src/__tests__/MachineFailureDiagnostics.test.ts",
+      "src/__tests__/MaterialQuestionPanel.test.tsx",
+      "src/__tests__/ConversationPanel.test.tsx",
+      "src/__tests__/CapabilityPackageDetails.test.tsx"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/measurement-main-ui-1019/logs/execution.log",
+      "bytes": 533,
+      "sha256": "8c3207e619ea6b40dd8d98deb7874d649b7d6d1d3a9028a290757af1471a7d5a"
+    }
+  },
+  {
+    "run_id": "measurement-main-rust-1019",
+    "source_patch_sha256": "137ed852499a0c9657af7d22494c3c14cc269cd1200b6cb9ef4e287d7d67baf0",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:40:09.495485+00:00",
+    "ended_at": "2026-10-18T22:40:20.906087+00:00",
+    "seconds": 11.410601599985966,
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "-p",
+      "archeaxis-application",
+      "--lib",
+      "machine_failure",
+      "--offline",
+      "--locked"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/measurement-main-rust-1019/logs/execution.log",
+      "bytes": 2828,
+      "sha256": "ee2b5c1909437798da58cdaf88373cc4217c9064ddb988e2cccf78e96f5c60e2"
+    }
+  },
+  {
+    "run_id": "measurement-main-api-1019",
+    "source_patch_sha256": "137ed852499a0c9657af7d22494c3c14cc269cd1200b6cb9ef4e287d7d67baf0",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:40:52.131221+00:00",
+    "ended_at": "2026-10-18T22:41:09.657141+00:00",
+    "seconds": 17.525915999984136,
+    "command": [
+      "cmd",
+      "/d",
+      "/c",
+      "scripts\\ci\\cargo_test.bat",
+      "-p",
+      "archeaxis-api",
+      "--test",
+      "material_question_api",
+      "--test",
+      "conversation_api",
+      "--test",
+      "contract_machine_answer",
+      "--offline",
+      "--locked"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/measurement-main-api-1019/logs/execution.log",
+      "bytes": 5314,
+      "sha256": "698c845ea9a6b7363de0b1914090c61222952687869f04a7beacbf8383d3db55"
+    }
+  },
+  {
+    "run_id": "catalog-main-rebind-1019",
+    "source_patch_sha256": "9558e506c77f6eb377e6fc93e92b3189516246298542c8a9e295988710baf279",
+    "exit_code": 0,
+    "source_consistent": true,
+    "started_at": "2026-10-18T22:47:56.027703+00:00",
+    "ended_at": "2026-10-18T22:48:07.500734+00:00",
+    "seconds": 11.47302779997699,
+    "command": [
+      ".venv/Scripts/python.exe",
+      "-X",
+      "utf8",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "tests/contract/test_resource_catalog_projection.py",
+      "-q"
+    ],
+    "log": {
+      "path": ".project-local/runs/be268a2d33/catalog-main-rebind-1019/logs/execution.log",
+      "bytes": 551,
+      "sha256": "2d67345c9b8f679009677f9ecc3e264ab49bb406074fe8a186a09f21b8129e94"
+    }
+  }
+]

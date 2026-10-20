@@ -1,0 +1,200 @@
+{
+  "pass": true,
+  "state": "ISOLATED_PROPOSAL_PASS_NOT_APPLIED",
+  "apply_check": {
+    "exit_code": 0,
+    "stderr": ""
+  },
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "candidate_sha256": "e6e4a456091682f0e33ac3c47705a5b608d2dd515edacb1d5626fedb330d60b7",
+      "tested_sha256": "e6e4a456091682f0e33ac3c47705a5b608d2dd515edacb1d5626fedb330d60b7",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff_preview.rs",
+      "candidate_sha256": "6a8408e9c4a1ddcc630a71d3199c607a6d89bb265fb13a975701e834d2237206",
+      "tested_sha256": "6a8408e9c4a1ddcc630a71d3199c607a6d89bb265fb13a975701e834d2237206",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+      "candidate_sha256": "27350ad121f1a4f1c2b9117694ff418aaaa2acd1177e65b9a57be8114bcb3f2e",
+      "tested_sha256": "27350ad121f1a4f1c2b9117694ff418aaaa2acd1177e65b9a57be8114bcb3f2e",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/lib.rs",
+      "candidate_sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "tested_sha256": "e8d79ea9f7d023e74def2279c76a10c40064d4bbb095425be06669f759abb363",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff_preview.rs",
+      "candidate_sha256": "4677dba97b8af8048739f2fb4349605d4124352d315ea738c297e3ff19aa63d2",
+      "tested_sha256": "4677dba97b8af8048739f2fb4349605d4124352d315ea738c297e3ff19aa63d2",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "docs/contracts/project-handoff-preview-v1.md",
+      "candidate_sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "tested_sha256": "97bbbc6dfc3380b3cf68e9d42dc46ce39b3c08c3ca8592b5669d7924285f6a82",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.cases.json",
+      "candidate_sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "tested_sha256": "e559d9da4f1f7f9b2f897504f042ed21ca06b348b45fd44cf310bf5146cd339c",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-preview.schema.json",
+      "candidate_sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "tested_sha256": "8b69148fc98e17117ebdfab60e88acda3780779318c553986c4c93d13a260104",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "candidate_sha256": "10ccf97376e3b9b5f15f115aaa8dd1ffe85bb4130ebc36613813297d0e5218b6",
+      "tested_sha256": "10ccf97376e3b9b5f15f115aaa8dd1ffe85bb4130ebc36613813297d0e5218b6",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "src-tauri/tests/project_handoff_preview.rs",
+      "candidate_sha256": "5b30cdfc4f104820ca20ede927eeea388b2297eb708fe613682f11fe9c467d69",
+      "tested_sha256": "5b30cdfc4f104820ca20ede927eeea388b2297eb708fe613682f11fe9c467d69",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "tests/contract/test_project_handoff_preview_contract.py",
+      "candidate_sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "tested_sha256": "e93888ee43d7d96788cfcd46716ac5021a1f18a0deb1c908884dfbe610b78d44",
+      "preimage_match": true,
+      "candidate_matches": true
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "candidate_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "tested_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "preimage_match": true,
+      "candidate_matches": true
+    }
+  ],
+  "baseline_count": 114,
+  "baseline_drift": [],
+  "runs": [
+    {
+      "run_id": "be10-native-preview-v6-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-v6-1019/artifacts/execution.json",
+      "sha256": "cdfadf865ce69361ad372166fe2c27d78225a879a3bf11d2d4ce4e1a487a9d6c",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-B",
+        ".project-local/audits/be10-next-consumer-20261019/run_checks.py"
+      ],
+      "started_at": "2026-10-18T22:43:42.110546+00:00",
+      "ended_at": "2026-10-18T22:44:29.830749+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run_id": "be10-native-preview-red-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-red-1019/artifacts/execution.json",
+      "sha256": "4b2ab96da8ce43b8a4c5ec592c7891090028b6560504e6a2846a99d6115f746a",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-next-consumer-20261019/run_red.py"
+      ],
+      "started_at": "2026-10-18T22:44:43.031088+00:00",
+      "ended_at": "2026-10-18T22:45:05.806873+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run_id": "be10-native-preview-final-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-final-1019/artifacts/execution.json",
+      "sha256": "fb6c178a61f921dbda439ddaf27cfb6b770ff21ae39a5f159513bc887849f726",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-next-consumer-20261019/run_checks.py"
+      ],
+      "started_at": "2026-10-18T22:45:18.224767+00:00",
+      "ended_at": "2026-10-18T22:45:56.647817+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    },
+    {
+      "run_id": "be10-native-preview-final-current-1019",
+      "receipt": ".project-local/runs/be268a2d33/be10-native-preview-final-current-1019/artifacts/execution.json",
+      "sha256": "308b7fca5fe59f867807ef3cad79cbe5d65a710dcf664ac64e3b346b0d78ed18",
+      "command": [
+        ".venv/Scripts/python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        ".project-local/audits/be10-next-consumer-20261019/run_checks.py"
+      ],
+      "started_at": "2026-10-18T22:46:19.415855+00:00",
+      "ended_at": "2026-10-18T22:46:55.714832+00:00",
+      "child_exit_code": 0,
+      "exit_code": 0,
+      "source_consistent": true,
+      "status": "LOCAL_PASS"
+    }
+  ],
+  "final_step_receipt": "validation.json",
+  "final_step_receipt_sha256": "447dd7e709e1edeca7b989ea50df89966a266f4ab22d71078368e9c0223cac53",
+  "test_results": {
+    "schema-shared-cases": [
+      "1 passed in 0.13s"
+    ],
+    "contracts-rust-shared": [
+      "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+    ],
+    "core-preview-process": [
+      "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s",
+      "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.03s",
+      "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s",
+      "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.75s"
+    ],
+    "native-real-core-bridge": [
+      "test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.11s"
+    ],
+    "ruff-python-contract": [
+      "All checks passed!"
+    ]
+  },
+  "red": "red-validation.json",
+  "red_sha256": "b86dad4dc9f8f52d629ef5fe6c0aa7d22937bf87f3f32a8eb969e1194455c850",
+  "native_harness_manifest_sha256": "ca93e9c7dd3e2a5cf6cdb37df8bda1ee9a799c9d058bf8551d10622cbdfcbcdb",
+  "native_harness_lock_sha256": "e1c0bde19a9d643039855c5aff3923bea5652149f79910fa0a27a448147ed3e7",
+  "public_schema_harness_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+  "product_writes": [],
+  "external_product_ui_native": "NOT_EXECUTED",
+  "full_tauri_build": "NOT_EXECUTED",
+  "OS_URI_installation": "NOT_EXECUTED",
+  "owner_acceptance": "NOT_EXECUTED"
+}

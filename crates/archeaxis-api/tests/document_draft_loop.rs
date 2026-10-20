@@ -5,6 +5,119 @@ use serde_json::{Value, json};
 use tower::ServiceExt;
 
 #[tokio::test]
+async fn imported_course_original_and_typed_candidate_survive_restart_and_same_request_replay() {
+    use base64::{Engine, engine::general_purpose::STANDARD};
+    let directory = tempfile::tempdir().unwrap();
+    let db = directory.path().join("imported-course.sqlite");
+    let router = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    // Synthetic external export. This tests real Core custody, not upstream classroom execution.
+    let manifest = json!({"formatVersion":1,"exportedAt":"2026-10-19T00:00:00Z","appVersion":"1.2.1",
+    "stage":{"name":"来源测验","createdAt":1,"updatedAt":2},"agents":[],"mediaIndex":{},
+    "scenes":[{"type":"quiz","title":"来源","order":2,"content":{"type":"quiz","questions":[
+        {"id":"q1","type":"single","question":"原件 <script>never()</script>","options":[
+            {"label":"原件","value":"source"},{"label":"猜测","value":"guess"}],"answer":["source"]},
+        {"id":"q2","type":"short_answer","question":"解释","hasAnswer":false,"commentPrompt":"inert"}
+    ]}}]});
+    let bytes = serde_json::to_vec_pretty(&manifest).unwrap();
+    let encoded = STANDARD.encode(&bytes);
+    let (status, imported) = call(
+        &router,
+        "POST",
+        "/api/v1/imports",
+        json!({"name":"manifest.json","content_base64":encoded}),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 202, "{imported}");
+    let typed = json!({"schema":"archeaxis.imported-course/v1","status":"candidate",
+        "grounding":"external_unverified","human_review_required":true,"title":"来源测验",
+        "scenes":[{"title":"来源","order":2,"questions":manifest["scenes"][0]["content"]["questions"]}],
+        "report":["参考答案由外部课件提供，尚未核验。"],
+        "provenance":{"adapter":"openmaic-manifest/v1",
+            "upstream_commit":"6b83751a87896df99c47e98c20cea40cec09efb4","file_name":"manifest.json",
+            "source_id":imported["source_id"],"sha256":imported["sha256"],"byte_length":bytes.len()}});
+    let editor = json!({"type":"doc","attrs":{"archeaxis_imported_course":typed},"content":[
+        {"type":"paragraph","attrs":{"block_id":"course_0"},"content":[{"type":"text","text":"来源测验"}]}]});
+    let body = json!({"create_request_id":"imported_course_fixed_request","source_id":imported["source_id"],
+        "source_revision":imported["sha256"],"title":"外部课程候选 · 来源测验","editor_json":editor});
+    let (status, created) = call(&router, "POST", "/api/v1/documents", body.clone(), "human").await;
+    assert_eq!(status, 201, "{created}");
+    assert_eq!(created["editor_json"], editor);
+    assert_eq!(created["version"], 1);
+    let route = format!(
+        "/api/v1/documents/{}",
+        created["document_id"].as_str().unwrap()
+    );
+    assert_eq!(
+        call(&router, "GET", &route, json!(null), "human").await.1,
+        created
+    );
+    let (status, replayed) =
+        call(&router, "POST", "/api/v1/documents", body.clone(), "human").await;
+    assert_eq!(status, 201);
+    assert_eq!(replayed, created);
+    let mut changed = body.clone();
+    changed["editor_json"]["attrs"]["archeaxis_imported_course"]["scenes"][0]["questions"][0]["answer"] =
+        json!(["guess"]);
+    assert_eq!(
+        call(&router, "POST", "/api/v1/documents", changed, "human")
+            .await
+            .0,
+        409
+    );
+    assert_eq!(
+        call(
+            &router,
+            "POST",
+            "/api/v1/documents",
+            body.clone(),
+            "machine"
+        )
+        .await
+        .0,
+        403
+    );
+    drop(router);
+    let restarted = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        call(&restarted, "GET", &route, json!(null), "human")
+            .await
+            .1,
+        created
+    );
+    let (_, original) = call(
+        &restarted,
+        "GET",
+        &format!(
+            "/api/v1/sources/{}/original",
+            imported["source_id"].as_str().unwrap()
+        ),
+        json!(null),
+        "human",
+    )
+    .await;
+    assert_eq!(original["sha256"], imported["sha256"]);
+    assert_eq!(
+        STANDARD
+            .decode(original["content_base64"].as_str().unwrap())
+            .unwrap(),
+        bytes
+    );
+    assert_eq!(
+        call(&restarted, "POST", "/api/v1/documents", body, "human")
+            .await
+            .1,
+        created
+    );
+    // CAS is custody only: external content was not accepted as knowledge or a learning review.
+    let connection = rusqlite::Connection::open(&db).unwrap();
+    let reviews: i64 = connection
+        .query_row("SELECT COUNT(*) FROM learning_events", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(reviews, 0);
+}
+
+#[tokio::test]
 async fn live_owned_writer_backups_are_human_only_pathless_and_independently_restorable() {
     let dir = tempfile::tempdir().unwrap();
     let mut parent = dir.path().to_path_buf();
@@ -560,7 +673,7 @@ async fn versioned_human_review_refuses_machine_and_stale_versions_without_parti
         queue["items"]
             .as_array()
             .unwrap()
-            .contains(&json!({"item_key":"fresh-card","next_review":null})),
+            .contains(&json!({"item_key":"fresh-card","next_review":null,"display_title":"same immutable body"})),
         "unreviewed referenced assessment must be visible: {queue}"
     );
     let count: i64 = conn

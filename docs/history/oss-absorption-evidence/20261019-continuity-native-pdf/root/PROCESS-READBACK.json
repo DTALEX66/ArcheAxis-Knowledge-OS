@@ -1,0 +1,8 @@
+{
+  "observed_at": "2026-10-18T23:22:21.3689836Z",
+  "exact_owned_executable": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\cargo\\debug\\archeaxis-api.exe",
+  "remaining_owned_processes": [],
+  "status": "PASS_NO_OWNED_CORE_PROCESS",
+  "ports": "UNVERIFIED_NO_PORT_IDENTITY_EXPORTED_BY_TEST",
+  "shared_services": "UNTOUCHED"
+}

@@ -1,0 +1,37 @@
+cargo_test: repo=D:\All projects\ArcheAxis-Knowledge-OS
+cargo_test: target=D:\All projects\ArcheAxis-Knowledge-OS\.project-local\build\cargo
+cargo_test: cargo test --offline --locked -p archeaxis-contracts project_handoff_preview::
+
+running 1 test
+test project_handoff_preview::tests::shared_preview_cases_decode_and_validate_real_dto ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+
+   Compiling archeaxis-contracts v0.1.0 (D:\All projects\ArcheAxis-Knowledge-OS\crates\archeaxis-contracts)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.48s
+     Running unittests src\lib.rs (.project-local\build\cargo\debug\deps\archeaxis_contracts-10e6623bf6f625b5.exe)
+     Running tests\project_handoff.rs (.project-local\build\cargo\debug\deps\project_handoff-17b3f7b71e88c3cd.exe)
+     Running tests\project_observer.rs (.project-local\build\cargo\debug\deps\project_observer-8925c22ec92c2afc.exe)
+     Running tests\ui_host_contract.rs (.project-local\build\cargo\debug\deps\ui_host_contract-bc5b5aad7ad15f0b.exe)
+     Running tests\vocabulary.rs (.project-local\build\cargo\debug\deps\vocabulary-079b47ca473f9723.exe)

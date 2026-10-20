@@ -1,0 +1,32 @@
+{
+  "schema": "archeaxis.lm-studio-profile-result/v1",
+  "observed_at": "2026-10-18T19:37:01.528Z",
+  "operation": "load",
+  "profile": "deep-mtp",
+  "model_key": "qwen3.8-27b",
+  "identifier": "aaos-deep-27b-mtp",
+  "evidence_level": "REAL_LOCAL_SDK_NOT_APPLICATION_QUALIFICATION",
+  "status": "PASS_LOAD_READBACK",
+  "before": [],
+  "load_requested": true,
+  "created_instance": true,
+  "load_elapsed_s": 40.1015098,
+  "effective_config": {
+    "gpu": {
+      "splitStrategy": "evenly",
+      "disabledGpus": [],
+      "ratio": 0.4,
+      "numCpuExpertLayersRatio": "off"
+    },
+    "gpuStrictVramCap": true,
+    "offloadKVCacheToGpu": false,
+    "contextLength": 2048,
+    "maxParallelPredictions": 1,
+    "flashAttention": true,
+    "speculativeDraftMtp": true,
+    "speculativeDraftSimple": false,
+    "speculativeDraftMaxTokens": 2,
+    "speculativeDraftMinTokens": 1
+  },
+  "instance_kept_available_with_ttl_seconds": 1800
+}

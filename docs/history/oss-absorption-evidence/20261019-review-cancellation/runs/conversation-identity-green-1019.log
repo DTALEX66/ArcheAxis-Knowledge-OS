@@ -1,0 +1,12 @@
+
+ RUN  v2.1.9 D:/All projects/ArcheAxis-Knowledge-OS/frontend
+
+ ✓ src/__tests__/MaterialQuestionPanel.test.tsx (17 tests) 524ms
+ ✓ src/__tests__/ConversationPanel.test.tsx (15 tests) 826ms
+ ✓ src/__tests__/CompanionSession.test.tsx (19 tests) 1048ms
+
+ Test Files  3 passed (3)
+      Tests  51 passed (51)
+   Start at  03:28:40
+   Duration  1.93s (transform 269ms, setup 267ms, collect 554ms, tests 2.40s, environment 851ms, prepare 201ms)
+

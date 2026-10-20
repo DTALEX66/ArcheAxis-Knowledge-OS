@@ -1,0 +1,40 @@
+{
+  "recorded_at": "2026-10-18T21:17:48.745742+00:00",
+  "source_kind": "CURRENT_VISIBLE_OWNER_INSTRUCTION_AND_PROJECT_EVIDENCE_DERIVATIVES",
+  "owner_instruction": "这些对话和决定的内容一定要做好归档，避免换AGENT或者换会话又忘了，尤其不要像各类权威/路径/规划/入口/各类外置共用库等那样总是忘记了",
+  "canonical_decisions": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+  "canonical_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "canonical_resources": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+  "full_private_transcript": "UNVERIFIED",
+  "cloud_sync": "NOT_EXECUTED",
+  "commit_push": "NOT_EXECUTED",
+  "product_status": "PARTIAL",
+  "changed_source_files": 31,
+  "preserved_dirty_preimages": ".project-local/audits/material-timeout-next-20261019/root-fix/before",
+  "navigation_preimages": ".project-local/archives/owner-continuity-checkpoint-20261019",
+  "do_next": [
+    "Fix probe reader identity check with business title plus exact canonical identity; preserve FAIL and add meaningful regression",
+    "Correct cancellation recovered terminal text and requested/effective budget reporting without changing model payload",
+    "Review/apply BE10 proposal by sole writer, then validate canonical repository gates; proposal PASS is not APPLIED",
+    "Review/apply learning-density proposal, preserve full diagnostic identities and manual lookup",
+    "Rebuild own candidate only after source changes, revalidate native cancellation and later lifecycle stages",
+    "Continue HUB-003/004, model-base contracts and existing backlog; no whole-product completion inferred"
+  ],
+  "unapplied_proposals": [
+    {
+      "kind": "BE10",
+      "entry": "proposals/be10/CURRENT.md",
+      "patch_sha256": "4c0a09cf75101e641987e93fe2b4e6a1929786ddeb011da7993ddc2ad579c817",
+      "status": "NOT_APPLIED",
+      "isolated_selected_tests": 21
+    },
+    {
+      "kind": "learning-density",
+      "entry": "proposals/learning-density/DELIVERY.md",
+      "patch_sha256": "70b66e7f13729ea7c15b82ff4820cfb6f4d685405e9789a1db2d0829711e1a89",
+      "status": "NOT_APPLIED",
+      "isolated_tests": 49,
+      "evidence_level": "SYNTHETIC"
+    }
+  ]
+}

@@ -194,8 +194,8 @@ cd frontend && npm run dev
 - 更新依赖
 
 ### 文档位置
-- API: `docs/API-DOCUMENTATION.md`
-- 部署: `docs/DEPLOYMENT-GUIDE.md`
+- API: `docs/history/repository-consolidation-20261019/legacy-docs/API-DOCUMENTATION.md`
+- 部署: `docs/history/repository-consolidation-20261019/legacy-docs/DEPLOYMENT-GUIDE.md`
 - README: `README.md`
 - Changelog: `CHANGELOG.md`
 

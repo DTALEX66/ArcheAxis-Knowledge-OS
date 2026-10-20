@@ -6,7 +6,7 @@
   "plan_id": "AAOS-UI-FIRST-PLAN-20261009",
   "active_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
   "inherited_progress": [
-    "docs/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
+    "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
   ],
   "inherited_contract_package": "docs/authority/taskpack-1004-aaos01",
   "selection_role": "OWNER_SELECTED_EXECUTION_OVERLAY; immutable planning package is a dated source, not a live implementation receipt",
@@ -60,7 +60,7 @@
     "preference": "New or invalid preference defaults to cosmic per current UI package; valid saved theme remains unchanged."
   },
   "handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
-  "drift_readback": "docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
+  "drift_readback": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md",
   "permissions": {
     "remote_description_update": "OWNER_REQUESTED",
     "commit": "NOT_GRANTED_BY_THIS_POINTER",
@@ -84,24 +84,26 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
-    "state": "PAUSED_BY_OWNER",
+    "state": "RUNNING_BY_OWNER",
     "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
     "whole_scope": "PARTIAL",
-    "owner_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
+    "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
+    "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
     "automatic_continuation": false,
+    "continuation_scope": "Owner latest frontend-first priority: complete all current UI slices and frontend qualification before backend implementation, then full closed-loop qualification. Handoff preparation does not start background work. No allowance polling or threshold stopping on 2026-10-19.",
     "previous_stop": {
       "state": "PAUSED_BY_OWNER",
       "stopped_after": "UF13 started local slice",
       "instruction": "完成当天跑的任务就停止任务",
       "whole_scope": "PARTIAL",
-      "receipt": "docs/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
+      "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-FINAL-SLICE-20261010.json",
       "resume_requires": "new Owner instruction",
       "automatic_continuation": false
     },
     "parallel_lanes": [
-      "backend",
-      "storage_and_directory_normalization",
-      "non_character_reference_ui"
+      "UI_SOURCE_AND_EVIDENCE_READ_REVIEW",
+      "UI_STANDARDS_AND_ACCESSIBILITY_READ_REVIEW",
+      "UI_IMPLEMENTATION_SINGLE_WRITER_OR_AUTHORIZED_ISOLATED_WRITERS"
     ],
     "allowance_guard": {
       "owner_confirmed": "Stop and hand off when remaining account allowance is at or below 15 percent.",
@@ -114,13 +116,36 @@
       "publication_boundary": "No secrets, private agent state, runtime/database/cache/archive payloads, unrelated dirty changes, QODER, release or Green replacement. Merge requires current review and full required CI.",
       "resumption": "Explicit Owner instruction; quota reset alone does not resume.",
       "threshold_observation": {
-        "observed_at": "2026-10-16T05:14:29+08:00",
-        "remaining_percent": 15,
-        "state": "TRIGGERED"
+        "observed_at": "2026-10-19T12:48:05Z",
+        "used_percent": 86,
+        "remaining_percent": 14,
+        "state": "TRIGGERED_AFTER_EXPLICIT_RESUME",
+        "monitor_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED"
+      },
+      "today_override": {
+        "date": "2026-10-19",
+        "state": "DISABLED_BY_OWNER",
+        "instruction": "额度监控今天停止监控 赶紧完成任务",
+        "chat_polling": "STOPPED",
+        "automation_pause": "UNVERIFIED_TOOL_UPDATE_REJECTED; not a blocker for product work",
+        "automation_delete": "Requested; archeaxis delete returned not_found; unnamed screenshot card identity UNVERIFIED"
       }
     },
-    "pause_reason": "Owner-confirmed account remaining <=15 percent reached",
-    "pause_receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
+    "last_pause": {
+      "state": "PAUSED_BY_OWNER",
+      "reason": "New allowance observation after explicit resume: used86%, remaining14%; Owner threshold applies again",
+      "observed_at": "2026-10-19T12:48:05Z",
+      "receipt": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+      "goal": "ALREADY_PAUSED_FROM_PRIOR_CHECKPOINT",
+      "monitor": "UNVERIFIED; no unknown automation configuration overwritten",
+      "resumption": "Explicit Owner instruction; quota reset alone does not resume."
+    },
+    "last_resume": {
+      "date": "2026-10-19",
+      "owner_instruction": "额度监控今天停止监控 赶紧完成任务；不是停止额度监控了吗？；赶紧完成任务啊",
+      "scope": "Resume current density/glass and native navigation fixes, verification and authorized delivery",
+      "allowance_guard": "DISABLED_BY_OWNER_FOR_2026_10_19; no allowance polling or threshold stopping today"
+    }
   },
   "delivery_authorization": {
     "date": "2026-10-12",
@@ -129,9 +154,9 @@
     "commit": "GRANTED_CURRENT_DELIVERY_SCOPE",
     "push": "GRANTED_CURRENT_DELIVERY_SCOPE",
     "merge": "GRANTED_CURRENT_DELIVERY_SCOPE",
-    "release_install": "NOT_GRANTED_FOR_OWNER_MACHINE_OR_GREEN",
-    "product_execution": "RUNNING_BY_OWNER / PARTIAL",
-    "future_grants": "Recorded task scope only; new sessions must resolve their current request, not inherit unrestricted permissions"
+    "release_install": "GREEN_PROGRAM_UPDATE_GRANTED_ONLY_AT_EXACT_PATH; public release and real user data overwrite NOT_GRANTED; see green_update_authorization",
+    "future_grants": "Recorded task scope only; new sessions must resolve their current request, not inherit unrestricted permissions",
+    "product_execution_ref": "#/execution_control"
   },
   "delivery_readback": {
     "state": "MERGED_MAIN_BASELINE; current closure changes remain local until independently delivered",
@@ -155,7 +180,7 @@
     },
     "installed": "No new Owner machine/Green qualification inferred from CI",
     "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
-    "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
+    "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
   },
   "authority_routes": "docs/current/AAOS-AUTHORITY-ROUTES.json",
   "frozen_source_inputs": [
@@ -169,15 +194,15 @@
   ],
   "governance_maintenance": {
     "owner_request": "先更新修复所有权威，防止本地/云端按旧文档旧路径旧权威访问审计",
-    "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+    "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md",
     "product_execution": "RESUMED_BY_OWNER_20261011",
     "scope": "public project authority/navigation/aliases and anti-drift checks only"
   },
   "governance_delivery": {
     "state": "MERGED_MAIN_BASELINE; subsequent authority metadata tracked by actual HEAD",
-    "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
-    "product_execution": "RUNNING_BY_OWNER / PARTIAL",
-    "historical_readback": "delivery_history.governance_delivery"
+    "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md",
+    "historical_readback": "delivery_history.governance_delivery",
+    "product_execution_ref": "#/execution_control"
   },
   "delivery_history": {
     "delivery_authorization": {
@@ -217,7 +242,7 @@
       "native_github_ref_tree_and_six_files_match": true,
       "local_active_checkouts_equal": true,
       "about_readback": "PASS",
-      "status_record": "docs/current/AAOS-AUTHORITY-REPAIR-20261010.md",
+      "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md",
       "ci": "UNVERIFIED; required a0-gates expected at push",
       "latest_metadata_sha": "resolve actual HEAD/remote refs; payload commit is evidence identity",
       "product_execution": "REMAINS_PAUSED"
@@ -249,11 +274,11 @@
       },
       "installed": "CI_WINDOWS_INSTALLED_JOURNEYS_PASS; Owner machine/Green acceptance NOT_GRANTED_OR_NOT_COMPLETED",
       "latest_delivery_metadata_sha": "Resolve actual Git HEAD and origin/main; this file cannot bind its own commit",
-      "status_record": "docs/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
+      "status_record": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
     }
   },
   "conversation_closure_observation_20261013": {
-    "receipt": "docs/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json",
+    "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json",
     "pr186": "MERGED",
     "pr187": "MERGED",
     "main_sha": "eaaa2c2ce0677febe9d88550d510da1c20d65bb3",
@@ -285,8 +310,8 @@
     ],
     "owner_selected": "2026-10-13 current explicit request",
     "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "remaining_receipt": "docs/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
-    "state": "PAUSED_BY_OWNER / PARTIAL",
+    "remaining_receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
+    "state": "RUNNING_BY_OWNER / PARTIAL",
     "scope": "Supplement existing queue; not replacement or historical freeze activation"
   },
   "frontend_execution_overlay": {
@@ -322,13 +347,173 @@
     "ui_commit": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e",
     "owner_decision": "独立 UI 分支纳入合并；全部推进到主线",
     "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "receipt": "docs/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
+    "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REMAINING-EXECUTION-20261013.json",
     "handoff_summary": "workspace/intake/ui-handoff-20261013/SUMMARY.md",
-    "state": "PAUSED_BY_OWNER / PARTIAL",
+    "state": "RUNNING_BY_OWNER / PARTIAL",
     "owner_direction": "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json",
     "delegated_tasks": {
-      "FE18": "QODER_OWNED; do not implement or copy character branch"
+      "FE18": "OWNER_SUPERSEDED_20261018: direct Xiaoqi/ASTRYN integration in AAOS; workspace/intake/20261018-xiaoqi-in-project.md"
     },
     "implementation_standard": "Reference composition, materials and geometry; actual rendered comparisons; no palette-only completion claim."
+  },
+  "project_source_closure": "docs/current/AAOS-PROJECT-CLOSURE-20261018.md",
+  "backlog_source_index": "docs/current/AAOS-EXECUTION-BACKLOG-20261018.json",
+  "oss_integration_owner_decision": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+  "format_scope_override": {
+    "decision_id": "OWNER-FORMAT-SCOPE-20261019",
+    "source": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+    "source_section": "十、专业源文件移出多格式目标（2026-10-19）",
+    "removed_direct_support_targets": [
+      "PSD",
+      "Illustrator AI",
+      "CDR",
+      "CAD engineering files",
+      "3D model files"
+    ],
+    "professional_native_adapters": "REMOVED_FROM_TARGETS_AND_DEFAULT_EXTENSION_ROADMAP",
+    "external_export_route": "Export images or PDF in the original software, then use common image/PDF ingestion; no built-in professional conversion commitment",
+    "preservation_boundary": "Only actually imported common-format files; no implied native layers, CAD constraints, 3D structure or editable roundtrip",
+    "ai_term": "Illustrator .ai file, not artificial intelligence or model services",
+    "history": "Inherited F16 and frozen evidence retained; current decision supersedes professional native-format scope"
+  },
+  "continuation_context": {
+    "purpose": "换 Agent / 换会话先沿固定入口读回，不从旧摘要、私人记忆或默认安装位置推导当前事实",
+    "read_order": [
+      "AUTHORITY.md",
+      "AGENTS.md",
+      "docs/current/AAOS-ACTIVE-EXECUTION.json",
+      "docs/truth/CLOSED_LOOP_DEFINITION.md",
+      "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+      "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
+      "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    ],
+    "resource_navigation": {
+      "source_archive": "AAOS-资料索引.md",
+      "path_identity": "docs/current/AAOS-AUTHORITY-ROUTES.json",
+      "shared_roots_and_developer_tools": "docs/SHARED_RESOURCE_PATH_INDEX.md",
+      "runtime_declarations": "config/environment/capability-requirements.yaml",
+      "runtime_observation": "config/environment/external-resources-index.json",
+      "local_models": "docs/current/AAOS-LOCAL-LLM-20261018.md",
+      "session_reconciliation": "docs/current/AAOS-SESSION-RECONCILIATION-20261018.md",
+      "codex_session_index": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.md",
+      "owner_dialogue_archive": "docs/history/owner-dialogue-20261019/README.md",
+      "owner_dialogue_coverage": "docs/history/owner-dialogue-20261019/decision-coverage.json",
+      "closed_loop_definition": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+      "execution_priority_overlay": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md"
+    },
+    "verification": "索引仅导航；现场核对文件/manifest 哈希、版本、进程和源码资格，UNKNOWN 不升级为可用；新决定注明替代关系，实际进度只回写 active_progress",
+    "evidence_navigation": {
+      "latest_timeout_source_fix": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-MACHINE-DEADLINE-20261019.json",
+      "timeout_source_and_regression_archive": "docs/history/oss-absorption-evidence/20261019-machine-deadline/README.md",
+      "companion_terminal_recovery": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-COMPANION-RECOVERY-20261019.json",
+      "capability_center_and_external_quiz": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CAPABILITY-COURSE-UI-20261019.json",
+      "browser_scripts_and_evidence_snapshot": "docs/history/oss-absorption-evidence/20261019-capability-course/README.md",
+      "material_companion_native": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-MATERIAL-COMPANION-QUALIFIED-20261019.json",
+      "qualified_native_material_companion": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/README.md",
+      "historical_native_recovery": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/README.md",
+      "review_title_applied_partial": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REVIEW-TITLE-20261019.json",
+      "review_title_source_and_dialogue_navigation": "docs/history/oss-absorption-evidence/20261019-review-title/README.md",
+      "review_title_and_cancellation_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REVIEW-CANCELLATION-20261019.json",
+      "review_title_and_cancellation_archive": "docs/history/oss-absorption-evidence/20261019-review-cancellation/README.md",
+      "owner_dialogue_archive_readback": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-OWNER-DIALOGUE-ARCHIVE-20261019.json",
+      "companion_policy_and_semantic_titles": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-COMPANION-POLICY-20261019.json",
+      "companion_policy_source_and_failure_archive": "docs/history/oss-absorption-evidence/20261019-companion-policy/README.md",
+      "timeout_metadata_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-TIMEOUT-METADATA-20261019.json",
+      "timeout_metadata_checkpoint": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/README.md",
+      "observer_learning_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-OBSERVER-LEARNING-20261019.json",
+      "observer_learning_checkpoint": "docs/history/oss-absorption-evidence/20261019-observer-learning/README.md",
+      "handoff_manifest_native_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-HANDOFF-MANIFEST-NATIVE-20261019.json",
+      "handoff_manifest_native_checkpoint": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+      "historical_native_timeout_failure_and_replay": "docs/history/oss-absorption-evidence/20261019-material-companion-final/README.md",
+      "latest_archival_checkpoint": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/README.md",
+      "consumer_integration_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONSUMER-INTEGRATION-20261019.json",
+      "consumer_integration_checkpoint": "docs/history/oss-absorption-evidence/20261019-consumer-integration/README.md",
+      "checkout_measurement_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CHECKOUT-MEASUREMENT-20261019.json",
+      "checkout_measurement_checkpoint": "docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/README.md",
+      "historical_full_ai_retest_failure_and_replay": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/README.md",
+      "historical_continuation_proposals_checkpoint": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/README.md",
+      "continuity_native_pdf_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONTINUITY-NATIVE-PDF-20261019.json",
+      "continuity_native_pdf_checkpoint": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/README.md",
+      "handoff_snapshot_reader_current": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-HANDOFF-SNAPSHOT-READER-20261019.json",
+      "handoff_snapshot_reader_checkpoint": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/README.md"
+    }
+  },
+  "green_update_authorization": {
+    "date": "2026-10-19",
+    "owner_instruction": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64 安装版定义的路径是这里吗？可以覆盖的",
+    "target": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64",
+    "target_role": "Owner daily Green/portable deployment directory; distinct from CI isolated NSIS test installation",
+    "operation": "Replace project-owned application program files with the qualified current candidate; preserve user data and a rollback copy",
+    "status": "GRANTED_NOT_EXECUTED",
+    "observed_identity_label": "release-identity.json reports v0.6.14; metadata is not proof of current complete executable/member consistency",
+    "observed_executable_sha256": "132f1c8ccc5344cd8b709826b79c59ba01cf59b919073fd36a67ec249c5a0538",
+    "conditions": [
+      "Identify exact source/candidate and member manifest; complete relevant isolated installed journey before daily replacement",
+      "Verify target application is stopped; do not terminate unknown or shared processes",
+      "Preserve hash-identified program rollback and deployment manifest before replacing declared application files",
+      "Read back candidate/target hashes and deployment identity; use isolated data for validation",
+      "Preserve data, databases including root archeaxis.sqlite, backups, user assets, preferences and unknown directories; no bulk deletion or incompatible real-data migration"
+    ],
+    "qualification": "UNVERIFIED; prior installed journey failure remains open; this grant does not turn failed CI into PASS",
+    "not_granted": [
+      "Public release",
+      "Real user data overwrite",
+      "Unknown shared process termination",
+      "Other deployment paths"
+    ]
+  },
+  "conversation_closeout": {
+    "date": "2026-10-19",
+    "owner_request": "断了 收尾 本对话汇总好归档 全部上传 双端仓库一致",
+    "archive": "docs/history/product-loop-20261019/conversation-closeout.md",
+    "receipt": "docs/history/product-loop-20261019/conversation-closeout.json",
+    "automatic_continuation": false,
+    "product_status": "PARTIAL",
+    "scope": "Close this conversation and synchronize public task-owned branch; no new feature work in this closeout"
+  },
+  "closed_loop_definition": {
+    "id": "AAOS-SHORTEST-COMPLETE-LOOP-V2",
+    "source": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+    "owner_decided_at": "2026-10-19",
+    "role": "Normative scope and acceptance; no implementation or completion claim",
+    "aliases": [
+      "闭环",
+      "最短闭环",
+      "最快闭环",
+      "完整闭环",
+      "全链路跑通"
+    ],
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "supersession": "SUP-025"
+  },
+  "execution_priority_overlay": {
+    "id": "OWNER-FRONTEND-FIRST-20261019",
+    "source": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
+    "owner_decided_at": "2026-10-19",
+    "owner_instruction": "全量的UI界面相关的任务优先执行，先前端任务再执行后端任务，包括类似系统桌面的感觉、缩放适配、可拆分及本会话全部前端要求",
+    "order": [
+      "LIVE_BASELINE_AND_EXISTING_FAILURE_EVIDENCE",
+      "UI-P01..UI-P24",
+      "FRONTEND_STAGE_HANDOFF_WITH_BACKEND_GAPS",
+      "BE-P01..BE-P15",
+      "SAME_CANDIDATE_J1..J6_AND_QUALIFIED_DELIVERY"
+    ],
+    "role": "Current execution order and acceptance slices; original task IDs retained; no second progress ledger",
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "boundary": "Read backend contracts during UI phase; record missing API blockers and continue independent UI; no broad backend implementation, fake success or frozen-scope activation"
+  },
+  "repository_convergence": {
+    "owner_decided_at": "2026-10-19",
+    "owner_instructions": [
+      "还有分支的合并",
+      "还有体积清理，本地和云端仓库的规范化，目录的规范化"
+    ],
+    "source": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
+    "source_section": "5. 补充交付任务：分支合并、体积和双端目录规范",
+    "slices": "RC-P01..RC-P08; inherited G01/UF13/delivery, not a separate product queue",
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "execution_order": "Read-only baseline and UI donor disposition during frontend; reviewed/qualified merges and exact-object cleanup by relevant stage. Do not override frontend-first or merge failing PRs.",
+    "boundary": "Preserve unknown dirty work, unique evidence, rollback and shared resources; no history rewrite, force push, real-data overwrite or release"
   }
 }

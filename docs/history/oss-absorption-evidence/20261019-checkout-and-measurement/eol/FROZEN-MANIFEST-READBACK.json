@@ -1,0 +1,98 @@
+[
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-capability-course/MANIFEST.json",
+    "before_sha256": "4fc05405e63084863b79629e1a715dd3d063d572512955fd4192a5d3e8b7c471",
+    "checkout_sha256": "4fc05405e63084863b79629e1a715dd3d063d572512955fd4192a5d3e8b7c471",
+    "members": 25
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-companion-policy/MANIFEST.json",
+    "before_sha256": "52636b1ab80db264541f66b1fe9f5a18e5edaf5a59214b3b61c3ebb32e7b6ff7",
+    "checkout_sha256": "52636b1ab80db264541f66b1fe9f5a18e5edaf5a59214b3b61c3ebb32e7b6ff7",
+    "members": 15
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-companion-recovery/MANIFEST.json",
+    "before_sha256": "a0c183e57092922263d65d563002f5f15927832c0941a919b9205ffcb2737351",
+    "checkout_sha256": "a0c183e57092922263d65d563002f5f15927832c0941a919b9205ffcb2737351",
+    "members": 15
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-consumer-integration/MANIFEST.json",
+    "before_sha256": "b416be12481bd7127525b6b895b475841ebbe35ef052ff38fd6c1add156533c6",
+    "checkout_sha256": "b416be12481bd7127525b6b895b475841ebbe35ef052ff38fd6c1add156533c6",
+    "members": 64
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/MANIFEST.json",
+    "before_sha256": "1b4dbf1b10f85b9488e112bf4410426b4ac91c48ee7301b4cdef185ed0ac436a",
+    "checkout_sha256": "1b4dbf1b10f85b9488e112bf4410426b4ac91c48ee7301b4cdef185ed0ac436a",
+    "members": 7
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/MANIFEST.json",
+    "before_sha256": "4f93e06978e16cb919075aa149fe785d2f4c297ddb8b9ce5303cc2bd22cd8766",
+    "checkout_sha256": "4f93e06978e16cb919075aa149fe785d2f4c297ddb8b9ce5303cc2bd22cd8766",
+    "members": 42
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-machine-deadline/MANIFEST.json",
+    "before_sha256": "00eecd4b11a3d12f0c3e8dfa7def5850e3e06442045fd45170108f30d0748a2f",
+    "checkout_sha256": "00eecd4b11a3d12f0c3e8dfa7def5850e3e06442045fd45170108f30d0748a2f",
+    "members": 23
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-material-companion/MANIFEST.json",
+    "before_sha256": "f6b2427e371d3ff4eb55102baa48ac6c6c9b59eeca2233390bcb7f8d4b728d5c",
+    "checkout_sha256": "f6b2427e371d3ff4eb55102baa48ac6c6c9b59eeca2233390bcb7f8d4b728d5c",
+    "members": 11
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-material-companion-final/MANIFEST.json",
+    "before_sha256": "b5dcda5f042b7fc8715be28085c05839edcbc6396e5ca33b584fc8e895aca9e7",
+    "checkout_sha256": "b5dcda5f042b7fc8715be28085c05839edcbc6396e5ca33b584fc8e895aca9e7",
+    "members": 18
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-material-companion-qualified/MANIFEST.json",
+    "before_sha256": "1cc9845f808d388818a847a31f17d884f7c9f90badababd6e26c37460e130487",
+    "checkout_sha256": "1cc9845f808d388818a847a31f17d884f7c9f90badababd6e26c37460e130487",
+    "members": 12
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-material-companion-recovery/MANIFEST.json",
+    "before_sha256": "e0e0a2007b7a07711b70159c907fe28a506b21a411501817be7f212f609076b6",
+    "checkout_sha256": "e0e0a2007b7a07711b70159c907fe28a506b21a411501817be7f212f609076b6",
+    "members": 9
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-observer-learning/MANIFEST.json",
+    "before_sha256": "25047879921775738bf4f7dbb0a5ca195e962b0f611b5f50e290a8406ce7b553",
+    "checkout_sha256": "25047879921775738bf4f7dbb0a5ca195e962b0f611b5f50e290a8406ce7b553",
+    "members": 43
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-review-cancellation/MANIFEST.json",
+    "before_sha256": "93a879d1cd7e2a65ef8bce3b3f8b2dfccd076c53a91b16e38601fd513701198e",
+    "checkout_sha256": "93a879d1cd7e2a65ef8bce3b3f8b2dfccd076c53a91b16e38601fd513701198e",
+    "members": 79
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-review-title/MANIFEST.json",
+    "before_sha256": "52b380eb0ba47979a1af1c72327135640726b3d66f770766117b59d276de9671",
+    "checkout_sha256": "52b380eb0ba47979a1af1c72327135640726b3d66f770766117b59d276de9671",
+    "members": 71
+  },
+  {
+    "path": "docs/history/oss-absorption-evidence/20261019-timeout-metadata/MANIFEST.json",
+    "before_sha256": "7e2168f413163f865b9ab156c7c18a924acf20891f1f45bc6a826f56547c87b9",
+    "checkout_sha256": "7e2168f413163f865b9ab156c7c18a924acf20891f1f45bc6a826f56547c87b9",
+    "members": 30
+  },
+  {
+    "path": "docs/history/owner-dialogue-20261019/MANIFEST.json",
+    "before_sha256": "5d40b24687d11fe3e78c29d11da093b5e6ee6d5d93ba2948fa49dcd9fe8681c3",
+    "checkout_sha256": "5d40b24687d11fe3e78c29d11da093b5e6ee6d5d93ba2948fa49dcd9fe8681c3",
+    "members": 6
+  }
+]

@@ -294,7 +294,7 @@
   background: var(--ax-panel);
   padding: 8px 10px;
   color: var(--ax-fg-secondary);
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   font-weight: 650;
   cursor: pointer;
   border-top: 1px solid var(--ax-border);
@@ -302,24 +302,24 @@
 .capability-rail section h3 {
   padding: 8px 10px 3px;
   color: var(--ax-fg-quaternary);
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 600;
   letter-spacing: .04em;
   text-transform: none;
 }
 .capability-rail-list { list-style: none; display: grid; gap: 1px; }
-.capability-nav-group > summary { padding: 6px 10px 3px; color: var(--ax-fg-quaternary); font-size: 11px; font-weight: 600; cursor: pointer; }
+.capability-nav-group > summary { padding: 6px 10px 3px; color: var(--ax-fg-quaternary); font-size: var(--ax-text-caption); font-weight: 600; cursor: pointer; }
 .capability-nav-group[open] > summary { color: var(--ax-fg-secondary); }
-.capability-rail-item { min-height: 32px; padding: 5px 8px; font-size: 12px; }
+.capability-rail-item { min-height: 32px; padding: 5px 8px; font-size: var(--ax-text-ui); }
 .capability-rail-item > span:last-child { overflow: hidden; text-overflow: ellipsis; }
 .theme-picker { display: inline-flex; align-items: center; min-width: 0; }
 .capability-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; color: var(--aaos-muted); }
 .capability-directory { display: grid; gap: 8px; margin: 14px 0; padding: 0; list-style: none; }
 .capability-directory > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--aaos-border); border-radius: var(--ax-radius-md); background: var(--aaos-surface); }
 .capability-directory > li > button { display: grid; justify-items: start; gap: 3px; min-width: 0; max-width: 100%; text-align: left; white-space: normal; overflow-wrap: anywhere; }
-.capability-directory > li > button small { color: var(--aaos-muted); font-size: 11px; }
-.capability-directory > li > span { color: var(--aaos-muted); font-size: 12px; }
-.aaos-action-reason { display: block; max-width: 100%; color: var(--aaos-muted); font-size: 12px; font-weight: 400; white-space: normal; }
+.capability-directory > li > button small { color: var(--aaos-muted); font-size: var(--ax-text-caption); }
+.capability-directory > li > span { color: var(--aaos-muted); font-size: var(--ax-text-ui); }
+.aaos-action-reason { display: block; max-width: 100%; color: var(--aaos-muted); font-size: var(--ax-text-ui); font-weight: 400; white-space: normal; }
 .aaos-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .theme-picker { flex-shrink: 0; }
 .theme-picker select {
@@ -333,7 +333,7 @@
   background: var(--ax-panel);
   color: var(--ax-fg);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
 }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
@@ -353,27 +353,27 @@
 
 /* UI-02: the secondary object groups and the tertiary object path. */
 .space-section-group { display: grid; gap: var(--ax-space-2); margin: 0 0 10px; }
-.space-section-group h3 { margin: 0; color: var(--ax-fg-quaternary); font-size: 11px; font-weight: 600; }
+.space-section-group h3 { margin: 0; color: var(--ax-fg-quaternary); font-size: var(--ax-text-caption); font-weight: 600; }
 .space-section-group ul { list-style: none; display: grid; gap: 1px; margin: 0; padding: 0; }
-.space-section-button { display: grid; justify-items: start; gap: 2px; width: 100%; min-height: 34px; padding: 5px 8px; text-align: left; border: 1px solid transparent; border-radius: var(--ax-radius); background: transparent; color: inherit; font: inherit; cursor: pointer; }
-.space-section-button small { color: var(--ax-fg-secondary); font-size: 11px; }
+.context-subnav .space-section-button { display: grid; justify-items: start; gap: 4px; width: 100%; min-height: 36px; padding: 8px 10px; text-align: left; border: 1px solid transparent; border-radius: var(--ax-radius); background: transparent; color: inherit; font-size:var(--ax-text-ui); line-height:1.5; white-space:normal; overflow-wrap:anywhere; cursor: pointer; }
+.space-section-button small { color: var(--ax-fg-secondary); font-size: var(--ax-text-caption); }
 .space-section-button[aria-current="location"] { border-color: var(--ax-border); background: var(--ax-panel); }
 .space-section-todo { display: grid; gap: 2px; min-height: 34px; padding: 5px 8px; border: 1px dashed var(--ax-border); border-radius: var(--ax-radius); color: var(--ax-fg-secondary); }
-.space-section-todo small { font-size: 11px; overflow-wrap: anywhere; }
-.space-section-badge { margin-left: 6px; padding: 1px 5px; border: 1px solid var(--ax-control-border); border-radius: var(--ax-radius); font-size: 10px; font-weight: 600; }
+.space-section-todo small { font-size: var(--ax-text-caption); overflow-wrap: anywhere; }
+.space-section-badge { margin-left: 6px; padding: 1px 5px; border: 1px solid var(--ax-control-border); border-radius: var(--ax-radius); font-size: var(--ax-text-caption); font-weight: 600; }
 .space-section-region { scroll-margin-block: 12px; }
 .space-section-region:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .nav-trail { margin: 0 0 10px; }
 .nav-trail-list { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .nav-trail-item { display: flex; align-items: center; gap: 2px; min-width: 0; }
 .nav-trail-separator { color: var(--ax-fg-quaternary); padding: 0 2px; }
-.nav-trail-link, .nav-trail-current { display: grid; gap: 1px; max-width: 100%; padding: 3px 7px; border-radius: var(--ax-radius); font-size: 12px; text-align: left; overflow-wrap: anywhere; }
+.nav-trail-link, .nav-trail-current { display: grid; gap: 1px; max-width: 100%; padding: 3px 7px; border-radius: var(--ax-radius); font-size: var(--ax-text-ui); text-align: left; overflow-wrap: anywhere; }
 .nav-trail-link { border: 1px solid var(--ax-border); background: var(--ax-panel); color: inherit; cursor: pointer; }
 .nav-trail-current { border: 1px solid transparent; color: var(--ax-fg-secondary); }
-.nav-trail-detail { color: var(--ax-fg-quaternary); font-size: 11px; }
-.nav-trail-notice { margin: 6px 0; color: var(--ax-fg-secondary); font-size: 12px; }
+.nav-trail-detail { color: var(--ax-fg-quaternary); font-size: var(--ax-text-caption); }
+.nav-trail-notice { margin: 6px 0; color: var(--ax-fg-secondary); font-size: var(--ax-text-ui); }
 /* UI-03: the classified failure reason sits beside the generic sentence, never replacing it. */
-.state-reason { margin: 6px 0; padding-left: 8px; border-left: 2px solid var(--ax-border); color: var(--ax-fg-secondary); font-size: 12px; overflow-wrap: anywhere; }
+.state-reason { margin: 6px 0; padding-left: 8px; border-left: 2px solid var(--ax-border); color: var(--ax-fg-secondary); font-size: var(--ax-text-ui); overflow-wrap: anywhere; }
 /* 2026-10-09 UI reference tokens, preserved verbatim in each theme scope.
    Source: AAOS_UI_Frontend_20261009/reference/tokens.css. */
 :root[data-aaos-theme="blueprint"] {

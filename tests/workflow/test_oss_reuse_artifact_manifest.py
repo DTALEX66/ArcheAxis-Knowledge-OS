@@ -25,11 +25,14 @@ from pathlib import Path
 
 import pytest
 
+from scripts.maintenance.authority_routes import CONSOLIDATION, REGISTRY, public_path, resolve
+
 ROOT = Path(__file__).resolve().parents[2]
-MANIFEST_PATH = ROOT / "docs/current/OSS-REUSE-CROSSWALK-20261008.manifest.json"
+MANIFEST_PATH = ROOT / "config/provenance/oss-reuse-crosswalk.json"
+ARCHIVED_MANIFEST_PATH = ROOT / "docs/history/repository-consolidation-20261019/current/OSS-REUSE-CROSSWALK-20261008.manifest.json"
 GENERATOR = ROOT / "scripts/audit/build_oss_reuse_inventory.py"
-DECISIONS = ROOT / "docs/current/OSS-REUSE-DECISIONS-20261008.json"
-VERIFICATION = ROOT / "docs/current/OSS-REUSE-VERIFICATION-20261008.json"
+DECISIONS = ROOT / "docs/history/repository-consolidation-20261019/current/OSS-REUSE-DECISIONS-20261008.json"
+VERIFICATION = ROOT / "docs/history/repository-consolidation-20261019/current/OSS-REUSE-VERIFICATION-20261008.json"
 TRACKED_TABLES = (
     "docs/current/OSS-REUSE-CROSSWALK-20261008.json",
     "docs/current/OSS-REUSE-CROSSWALK-20261008.csv",
@@ -122,6 +125,14 @@ def pairing_failures(manifest_path: Path, produced: dict[str, bytes]) -> list[st
         reasons.append("generator-not-lf: the tracked generator itself carries CRLF bytes, so the "
                        "recorded raw digest would stop being comparable across machines")
 
+    if data["generator"]["bytes"] != len(generator_raw):
+        reasons.append("generator-size-drift: generator bytes differ from the recorded size")
+    for field, expected in (("decisions_input", DECISIONS), ("verification_input", VERIFICATION)):
+        entry = data[field]
+        raw = expected.read_bytes()
+        if entry["path"] != expected.relative_to(ROOT).as_posix() or entry["sha256"] != hashlib.sha256(raw).hexdigest() or entry["bytes"] != len(raw):
+            reasons.append(f"control-input-drift[{field}]: recorded path/bytes/SHA disagree with generator controls")
+
     for key, raw in produced.items():
         entry = data["outputs"][key]
         digest = portable_digest(raw)
@@ -136,6 +147,10 @@ def pairing_failures(manifest_path: Path, produced: dict[str, bytes]) -> list[st
     # source row, and one CSV data row per record. An emptied or silently collapsed table fails here
     # even if a digest were somehow made to agree with it.
     source_rows = sum(meta["recorded_rows"] for meta in data["inputs"].values())
+    if len(data["inputs"]) != 6 or source_rows < 701:
+        reasons.append("source-floor-not-lossless: require all six sources and at least the retained 701 rows")
+    if data["outputs"]["json"]["pool_record_count"] != 369:
+        reasons.append("historical-pool-count-drift: require the original 369-row pool")
     json_out, csv_out = data["outputs"]["json"], data["outputs"]["csv"]
     if json_out["record_count"] != source_rows:
         reasons.append(f"record-count-not-lossless: the manifest records {json_out['record_count']} "
@@ -195,7 +210,7 @@ def test_no_input_is_recorded_at_a_digest_no_committed_revision_has() -> None:
     """The defect the payload arrived with, kept from recurring.
 
     The table committed in 15f79cf7 hashed docs/truth/SUPPLY_CHAIN_LEDGER.json (17 committed
-    revisions) and docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json (2 committed revisions)
+    revisions) and docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json (2 committed revisions)
     at digests matching none of them. A reader could not tell from the file that its own provenance
     block was describing bytes that existed nowhere recorded.
     """
@@ -213,12 +228,36 @@ def test_the_generated_tables_stay_out_of_git() -> None:
 
 def test_the_pointers_do_not_send_a_reader_to_a_file_that_is_no_longer_there() -> None:
     ledger = json.loads((ROOT / "docs/truth/SUPPLY_CHAIN_LEDGER.json").read_text(encoding="utf-8"))
-    overlay = json.loads((ROOT / "docs/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json")
+    overlay = json.loads((ROOT / "docs/history/repository-consolidation-20261019/current/AAOS-OSS-DONOR-DISPOSITION-V2-20261002.json")
                          .read_text(encoding="utf-8"))["current_evidence_overlay"]
-    for label, target in (("SUPPLY_CHAIN_LEDGER.current_crosswalk", ledger["current_crosswalk"]),
-                          ("current_evidence_overlay.crosswalk", overlay["crosswalk"])):
-        assert (ROOT / target).is_file(), f"{label} points at {target}, which is not in the tree"
-        assert target.endswith(".manifest.json"), f"{label} points at a payload instead of a pointer"
+    assert ledger["current_crosswalk"] == MANIFEST_PATH.relative_to(ROOT).as_posix()
+    assert resolved_manifest_target(ledger["current_crosswalk"]) == MANIFEST_PATH
+    routes = json.loads(public_path(ROOT, REGISTRY).read_text(encoding="utf-8"))
+    retired = resolve(overlay["crosswalk"], routes, ROOT)
+    assert retired["role"] == "RETIRED_LOCATOR", retired
+    assert retired["canonical_path"] == ARCHIVED_MANIFEST_PATH.relative_to(ROOT).as_posix()
+    assert resolved_manifest_target(overlay["crosswalk"]) == ARCHIVED_MANIFEST_PATH
+
+
+def resolved_manifest_target(target: str) -> Path:
+    routes = json.loads(public_path(ROOT, REGISTRY).read_text(encoding="utf-8"))
+    identity = resolve(target, routes, ROOT)
+    canonical = identity.get("canonical_path", target)
+    path = public_path(ROOT, canonical)
+    assert path.is_file(), f"manifest target is absent: {target} -> {canonical}"
+    assert path.suffix == ".json" and (path.name.endswith(".manifest.json") or path == MANIFEST_PATH)
+    return path
+
+
+def test_the_archived_manifest_retains_its_migration_source_bytes() -> None:
+    archive = json.loads(public_path(ROOT, CONSOLIDATION).read_text(encoding="utf-8"))
+    path = ARCHIVED_MANIFEST_PATH.relative_to(ROOT).as_posix()
+    entries = [entry for entry in archive["files"] if entry["archive_path"] == path]
+    assert len(entries) == 1
+    raw = ARCHIVED_MANIFEST_PATH.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == entries[0]["sha256"]
+    assert len(raw) == entries[0]["bytes"]
+
 
 
 # ---------------------------------------------------------------------------------------------
@@ -264,8 +303,10 @@ def test_control_a_hollowed_out_record_count_is_refused(tmp_path) -> None:
 
 def test_control_the_tracked_payload_probe_reads_the_index_not_a_hardcoded_empty() -> None:
     """The probe fires on a tracked file, so its silence on the two tables is evidence."""
-    assert tracked_files("docs/current/OSS-REUSE-DECISIONS-20261008.json") == [
-        "docs/current/OSS-REUSE-DECISIONS-20261008.json"]
+    # The renamed decisions file may not be staged yet. This stable source path
+    # is tracked before and after consolidation, so the negative probe still reads the index.
+    generator_path = GENERATOR.relative_to(ROOT).as_posix()
+    assert tracked_files(generator_path) == [generator_path]
     assert tracked_files(TRACKED_TABLES) == []
 
 
@@ -276,3 +317,27 @@ def test_control_a_stale_input_digest_is_named(tmp_path) -> None:
     path.write_text(json.dumps(forged), encoding="utf-8")
     reasons = pairing_failures(path, {})
     assert [reason for reason in reasons if reason.startswith("input-drift[")]
+
+
+def test_control_a_missing_retired_locator_is_not_accepted() -> None:
+    with pytest.raises(AssertionError, match="manifest target is absent"):
+        resolved_manifest_target("docs/current/NO-SUCH-OSS-PROVENANCE.manifest.json")
+
+
+@pytest.mark.parametrize("field", ["decisions_input", "verification_input"])
+def test_control_a_stale_control_input_is_named(tmp_path, field) -> None:
+    forged = json.loads(json.dumps(manifest()))
+    forged[field]["sha256"] = "0" * 64
+    path = tmp_path / "manifest.json"
+    path.write_text(json.dumps(forged), encoding="utf-8")
+    assert any(reason.startswith(f"control-input-drift[{field}]") for reason in pairing_failures(path, {}))
+
+
+def test_control_reducing_both_output_counts_cannot_hide_source_loss(tmp_path) -> None:
+    forged = json.loads(json.dumps(manifest()))
+    forged["inputs"] = {next(iter(forged["inputs"])): {"recorded_rows": 369, "sha256_of_bytes_read_by_generator": "0" * 64}}
+    forged["outputs"]["json"]["record_count"] = 369
+    forged["outputs"]["csv"]["data_rows"] = 369
+    path = tmp_path / "manifest.json"
+    path.write_text(json.dumps(forged), encoding="utf-8")
+    assert any(reason.startswith("source-floor-not-lossless") for reason in pairing_failures(path, {}))

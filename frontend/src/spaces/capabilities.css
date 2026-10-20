@@ -1,0 +1,7 @@
+.capability-center-filters { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+.capability-center-filters [aria-pressed="true"] { outline:2px solid var(--accent, currentColor); outline-offset:2px; }
+.capability-center-list { list-style:none; padding:0; display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); }
+/* 同时匹配原目录类，保证局部卡片布局优先于旧主题中的两列列表规则。 */
+.capability-directory.capability-center-list > li { min-width:0; display:flex; flex-direction:column; align-items:stretch; gap:8px; padding:12px; border:1px solid var(--aaos-border, currentColor); border-radius:8px; }
+.capability-directory.capability-center-list > li > button { min-width:0; width:100%; display:flex; flex-direction:column; align-items:flex-start; gap:8px; text-align:left; white-space:normal; overflow-wrap:anywhere; }
+.capability-directory.capability-center-list > li > span { overflow-wrap:anywhere; font-size:0.875rem; }

@@ -1,0 +1,45 @@
+{
+  "frozen_candidate_sha256": "be224eab3c4a8f4078d0c539477fa92165b69f76ca8a48bb223fdfba97f1a812",
+  "frozen_mirror_sha256": "be224eab3c4a8f4078d0c539477fa92165b69f76ca8a48bb223fdfba97f1a812",
+  "corrected_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+  "actual_tested_sha256": "be224eab3c4a8f4078d0c539477fa92165b69f76ca8a48bb223fdfba97f1a812",
+  "vite_accepts_duplicate_imports": true,
+  "typescript_duplicate_diagnostics": [
+    {
+      "code": 2300,
+      "message": "Duplicate identifier 'checkCapabilityPackageDetails'.",
+      "line": 6
+    },
+    {
+      "code": 2300,
+      "message": "Duplicate identifier 'checkCapabilityPackageDetails'.",
+      "line": 7
+    },
+    {
+      "code": 2300,
+      "message": "Duplicate identifier 'checkCapabilityPackageDetails'.",
+      "line": 8
+    },
+    {
+      "code": 2300,
+      "message": "Duplicate identifier 'checkCapabilityPackageDetails'.",
+      "line": 9
+    },
+    {
+      "code": 2300,
+      "message": "Duplicate identifier 'checkCapabilityPackageDetails'.",
+      "line": 10
+    },
+    {
+      "code": 2300,
+      "message": "Duplicate identifier 'checkCapabilityPackageDetails'.",
+      "line": 11
+    },
+    {
+      "code": 2300,
+      "message": "Duplicate identifier 'checkCapabilityPackageDetails'.",
+      "line": 12
+    }
+  ],
+  "restored_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+}

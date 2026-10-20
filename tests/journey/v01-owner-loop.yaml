@@ -17,9 +17,9 @@ acceptance_reason: >-
   Q00/R14 is FAIL/BLOCKED and Q01/R16 is BLOCKED, and an executor cannot sign the
   audit of its own work. Owner acceptance therefore has no admissible evidence yet.
 evidence_index:
-  - docs/current/R5-STATE.json
-  - docs/current/R5-HANDOFF-20260918.md
-  - docs/truth/CURRENT_STATE_TRUTH.md
+  - docs/history/repository-consolidation-20261019/current/R5-STATE.json
+  - docs/history/repository-consolidation-20261019/current/R5-HANDOFF-20260918.md
+  - docs/history/repository-consolidation-20261019/truth-snapshots/CURRENT_STATE_TRUTH.md
   - config/product/UI_CONTRACT_V2.json
 steps:
   - id: import
@@ -34,8 +34,8 @@ steps:
       UNVERIFIED/BLOCKED beyond the verified format set.
     evidence:
       - integration-tests/test_web_full_chain_e2e.py
-      - docs/current/R5-STATE.json
-      - docs/truth/CURRENT_STATE_TRUTH.md
+      - docs/history/repository-consolidation-20261019/current/R5-STATE.json
+      - docs/history/repository-consolidation-20261019/truth-snapshots/CURRENT_STATE_TRUTH.md
   - id: read
     surface: source-viewer
     status: PARTIAL
@@ -73,7 +73,7 @@ steps:
       X07 remains PARTIAL_NEEDS_WORK.
     evidence:
       - docs/current/UI_V3_PRODUCT_ROADMAP.md
-      - docs/current/R5-STATE.json
+      - docs/history/repository-consolidation-20261019/current/R5-STATE.json
   - id: learn
     surface: learning-space
     status: PARTIAL
@@ -85,8 +85,8 @@ steps:
       A real in-host DeepTutor mount and the first-use restart readback are not
       closed (R10).
     evidence:
-      - docs/current/R5-LEARNING-STATE.md
-      - docs/current/R5-HANDOFF-20260918.md
+      - docs/history/repository-consolidation-20261019/current/R5-LEARNING-STATE.md
+      - docs/history/repository-consolidation-20261019/current/R5-HANDOFF-20260918.md
       - tests/test_desktop_learning_review_contract.py
   - id: practice
     surface: learning-space
@@ -97,7 +97,7 @@ steps:
     not_verified: >-
       Adapter journey search assertions remain unclosed (X03 gap).
     evidence:
-      - docs/current/R5-STATE.json
+      - docs/history/repository-consolidation-20261019/current/R5-STATE.json
       - tests/test_core_client.py
   - id: review
     surface: learning-space
@@ -110,7 +110,7 @@ steps:
       executed.
     evidence:
       - packages/contracts/learning/v2/review.schema.json
-      - docs/current/R5-LEARNING-STATE.md
+      - docs/history/repository-consolidation-20261019/current/R5-LEARNING-STATE.md
       - tests/test_desktop_learning_review_contract.py
   - id: distill
     surface: learning-space
@@ -137,5 +137,5 @@ steps:
       use and real Green install acceptance need controlled Windows packaging
       resources; this step stays BLOCKED until they are available.
     evidence:
-      - docs/current/R5-HANDOFF-20260918.md
-      - docs/current/R5-STATE.json
+      - docs/history/repository-consolidation-20261019/current/R5-HANDOFF-20260918.md
+      - docs/history/repository-consolidation-20261019/current/R5-STATE.json

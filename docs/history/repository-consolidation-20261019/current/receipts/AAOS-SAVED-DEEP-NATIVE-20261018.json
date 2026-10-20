@@ -1,0 +1,253 @@
+{
+  "schema": "archeaxis.saved-deep-native-validation/v1",
+  "observed_on": "2026-10-18",
+  "status": "PARTIAL",
+  "scope": "Native directory diagnosis and saved DEEP answer/retest binding across ordinary reopen and backup restore; isolated authored engineering sample",
+  "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "built_source_patch_sha256": "700392b0e69d8a94ddaced49bce142260f2250ace62a59469894391f23764bc1",
+  "defect": {
+    "id": "NATIVE_MODEL_DIRECTORY_CORS",
+    "status": "CLOSED_FOR_TESTED_NATIVE_CANDIDATE",
+    "before": {
+      "path": ".project-local/runs/be268a2d33/webdriver-d799a69c1103/tmp/journey/receipt.json",
+      "sha256": "0ef8a9b301e977a2b017ab2b0fd8fb963e8c54f2793787885794421236fc9068"
+    },
+    "failure_screenshot": {
+      "path": ".project-local/runs/be268a2d33/webdriver-d799a69c1103/tmp/journey/failure.png",
+      "sha256": "27d2784f590ba9da7bdbb7e5d2e12588a89e84c0b39908cb86e7cd19fe90a2fb"
+    },
+    "directory_http_observation": {
+      "path": ".project-local/runs/be268a2d33/closure-native-stage/model-directory-cors-1018e.json",
+      "sha256": "215703a535967813d40642c709a8cc2d2d132b4a11ef66c01f598cd2d771b404"
+    },
+    "cause": "Renderer fetch could not read a successful local directory HTTP response without CORS permission",
+    "fix": "Finite native read-only loopback GET command; no credentials, redirects, model load or inference; bounded timeout/body/rows/names",
+    "original_path_retested": true
+  },
+  "gates": {
+    "probe_contract": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/saved-binding-probe-verified-1018c/artifacts/execution.json",
+        "sha256": "e0bb39c985ac3f0df35f66157f3a2459a3ea07e3696b33b164d168656aeb95b4"
+      },
+      "source_patch_sha256": "d397e280d2c66e66a92f284d7a54e1eca1e411b2d255c5e17f12c0d99e085cc8",
+      "tests": 50,
+      "subtests": 145
+    },
+    "frontend": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-frontend-1018d/artifacts/execution.json",
+        "sha256": "93f8a5a33303cf3bc153d07cb875a7b80f88bb0092374f78a9173b90b73ab614"
+      },
+      "source_patch_sha256": "6b2039ddfbee911b05ef3b32fe9efdbf69c72aa2588e26c884a726b61f28f048",
+      "files": 5,
+      "tests": 48,
+      "full_suite": false,
+      "evidence_level": "SYNTHETIC_JSDOM",
+      "raw_report": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-frontend-1018d/artifacts/vitest.json",
+        "sha256": "9fbaeb06ca76e9868f8852dfea7e9451838febd448b7340e42a32a6e08b3a2b8"
+      }
+    },
+    "host_directory": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-host-tests-1018e/artifacts/execution.json",
+        "sha256": "0d914c7b3068098186731d50e7bfec8901b01dce96316edbd67b56b6c8f98d87"
+      },
+      "source_patch_sha256": "700392b0e69d8a94ddaced49bce142260f2250ace62a59469894391f23764bc1",
+      "tests": 5,
+      "filtered": 95,
+      "evidence_level": "REAL_OWNED_LOOPBACK_HTTP_FIXTURES"
+    },
+    "host_build": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-host-1018e/artifacts/execution.json",
+        "sha256": "a64ef7b4ac0e0ce1a2490e9b8fb26289f5ce634fdda9f60d8132328f5b584cab"
+      },
+      "source_patch_sha256": "700392b0e69d8a94ddaced49bce142260f2250ace62a59469894391f23764bc1",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-host-1018e/artifacts/host-build.json",
+        "sha256": "35974127a0e7ce8dda0dfb9484f83d88f60fa49545681dda85f7e7c8dd3198ba"
+      },
+      "typescript": "PASS",
+      "vite": "PASS"
+    },
+    "core_build": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-core-1018e/artifacts/execution.json",
+        "sha256": "ae05b837637d556d4bf2bbf0b3ba9490498972aed042b4c4939bec97835fc50a"
+      },
+      "source_patch_sha256": "700392b0e69d8a94ddaced49bce142260f2250ace62a59469894391f23764bc1"
+    },
+    "native_journey": {
+      "status": "PASS",
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-native-1018e/artifacts/execution.json",
+        "sha256": "44c9cab020166eca9451a90b4ce277f80ba665cc3d4656a983388d777562cd79"
+      },
+      "source_patch_sha256": "700392b0e69d8a94ddaced49bce142260f2250ace62a59469894391f23764bc1",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/webdriver-8a003abdb645/tmp/journey/receipt.json",
+        "sha256": "b872d148d52d15fb3d52c4272a3e9a9f7caa0fc3f82bc9c0e6afd327b453b34c"
+      },
+      "evidence_level": "REAL_TAURI_CORE_WORKER_LOCAL_27B_SYNTHETIC_MATERIAL",
+      "actions": 172,
+      "launches": 6
+    }
+  },
+  "candidate": {
+    "promotion": {
+      "path": ".project-local/runs/be268a2d33/closure-native-stage/candidate-build-current-20261018T132633Z.json",
+      "sha256": "1908b56caaa470ac3f08a169231f088b136412e853171980d109a013c80f3d47"
+    },
+    "host_sha256": "824c800dfe9cca18d9c288eb97da58d581a922959d51f9b6af53f0924c0cf587",
+    "core_sha256": "750c44943ecc8a6f7e3c691992490a6ce75d3a83eadbc99a2c3d24931fdee681",
+    "verified_members": 19524,
+    "verified_rt_members": 19522,
+    "rollback": {
+      "path": ".project-local\\archives\\current-components-20261018T132633Z.zip",
+      "bytes": 53024351,
+      "sha256": "a00face042cac84c6dd501a2fcebae948898124153dd65b392d1c8b4507a65cd"
+    }
+  },
+  "native_observations": {
+    "engineering_status": "PASS",
+    "overall_journey_status": "PARTIAL",
+    "stage_statuses": [
+      {
+        "id": "import",
+        "status": "PASS"
+      },
+      {
+        "id": "read",
+        "status": "PASS"
+      },
+      {
+        "id": "anchor",
+        "status": "PASS"
+      },
+      {
+        "id": "claim",
+        "status": "PASS"
+      },
+      {
+        "id": "learn",
+        "status": "PASS"
+      },
+      {
+        "id": "practice",
+        "status": "PASS"
+      },
+      {
+        "id": "review",
+        "status": "PASS"
+      },
+      {
+        "id": "distill",
+        "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+      },
+      {
+        "id": "recover",
+        "status": "PASS"
+      }
+    ],
+    "saved_binding_status": "ANSWER_RETEST_FROZEN_BINDINGS_VERIFIED",
+    "saved_revision": 1,
+    "purposes": [
+      "answer",
+      "retest"
+    ],
+    "lane": "deep",
+    "max_tokens": 1024,
+    "timeout_s": 120,
+    "configuration_inference_calls": 0,
+    "compatibility_model_selection": "NOT_USED",
+    "ordinary_reopen": "PASS",
+    "backup_restore_readback": "PASS",
+    "restored_grant_refusal": {
+      "status": "PASS",
+      "exact_core_reason": "RESTORED_GRANT_FENCED",
+      "tasks_unchanged": true
+    },
+    "observed_inference_calls": 2,
+    "calls": {
+      "answer": {
+        "requested_model": "aaos-deep-27b-mtp",
+        "observed_model": "aaos-deep-27b-mtp",
+        "finish_reason": "stop",
+        "truncated": false,
+        "elapsed_s": 92.25,
+        "usage": {
+          "input_tokens": 196,
+          "output_tokens": 258,
+          "total_tokens": 454
+        }
+      },
+      "retest": {
+        "requested_model": "aaos-deep-27b-mtp",
+        "observed_model": "aaos-deep-27b-mtp",
+        "finish_reason": "stop",
+        "truncated": false,
+        "elapsed_s": 45.88,
+        "usage": {
+          "input_tokens": 214,
+          "output_tokens": 137,
+          "total_tokens": 351
+        }
+      }
+    },
+    "quality_status": "EXECUTED_CANDIDATE_NOT_EVALUATED",
+    "closed_loop_verified": false,
+    "cleanup": {
+      "owned_process_cleanup": true,
+      "remaining_hosts": [],
+      "remaining_port_listeners": []
+    }
+  },
+  "preserved_failures": [
+    {
+      "kind": "PRODUCT_FAILURE",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/saved-binding-native-1018c/artifacts/execution.json",
+        "sha256": "20a45d2ae3e4cc99b8df5ab6f2da30545aaa6b3702bf13263f19359e2d115fd4"
+      }
+    },
+    {
+      "kind": "RED_MISSING_NATIVE_DIRECTORY_PATH",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-red-1018b/artifacts/execution.json",
+        "sha256": "c53973e627dda0077f825963cb270eae37d7aa4b6ec049b45b3a19f9ca59481a"
+      }
+    },
+    {
+      "kind": "TEST_LAUNCHER_SETUP_FAILURE_NOT_EXECUTED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-red-1018a/artifacts/execution.json",
+        "sha256": "141d4eb8d310cf97dfc87ce945b5d0fe2491cd065405529da0a9ab8cebec02dd"
+      }
+    },
+    {
+      "kind": "TAURI_TEST_BUILD_SETUP_FAILURE_NOT_EXECUTED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/native-inventory-host-tests-1018d/artifacts/execution.json",
+        "sha256": "a5a6d0898398dd67968c3c078e68ddbf02182e8681ecd914ccd09e45ad7caa11"
+      }
+    }
+  ],
+  "limitations": [
+    "Gate source snapshots differ and are retained separately; no full repository rerun claimed",
+    "Native executable candidate, not installer lifecycle or installed user workspace qualification",
+    "Author-written synthetic source/correction/learner does not demonstrate accuracy or learning improvement",
+    "No physical IME, complete accessibility, all-format roundtrip, representative performance or Owner acceptance",
+    "Historical provider failures remain historically failed; this success does not establish their root causes",
+    "User workspace model bindings were not accessed or modified"
+  ],
+  "installed": false,
+  "published": false,
+  "green_replaced": false
+}

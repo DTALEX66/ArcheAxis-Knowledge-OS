@@ -1,0 +1,78 @@
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+*.7z binary
+*.db binary
+*.dll binary
+*.doc binary
+*.docx binary
+*.exe binary
+*.gif binary
+*.gz binary
+*.ico binary
+*.jpeg binary
+*.jpg binary
+*.mp3 binary
+*.mp4 binary
+*.pdf binary
+*.png binary
+*.ppt binary
+*.pptx binary
+*.pyc binary
+*.sqlite binary
+*.tar binary
+*.wav binary
+*.webm binary
+*.webp binary
+*.xls binary
+*.xlsx binary
+*.zip binary
+
+# Preserve owner-supplied historical package members and the B10 reference bytes.
+docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/** -text
+docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/*.csv whitespace=cr-at-eol
+docs/history/planning-blueprint-absorption/2026-09-29/package-unpacked/AAOS_完整历史规划蓝图吸收池与当前状态总报告_2026-09-29.md whitespace=-blank-at-eol
+tests/fixtures/aaos-ui-mother/index.html -text
+
+# Manifest-bound Oct09/10 originals retain their bytes in every checkout.
+"docs/history/authority-repair-20261010/AAOS-AGENT-HANDOFF-before-repair.md" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/authority-repair-20261010/SYSTEM_BOUNDARY-before-repair.md" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/conversation-summary-20261010/sources/AAOS_Conversation_Summary_20261010.md" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/02_旧22页新入口与职责映射.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/03_核心操作流程.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/04_公共组件状态规格.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/05_按钮动作与真实接线清单.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/history/ui-design-increment-20261009/sources/zip-members/06_成熟度验收场景.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/DESIGN-DETAIL-CROSSWALK.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/ORIGINAL-CONTRACT-DEPENDENCIES.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/PAGE-PLAN.csv" -text whitespace=cr-at-eol,-blank-at-eol
+"docs/taskpacks/aaos-ui-first-20261009/REQUIREMENT-CROSSWALK.csv" -text whitespace=cr-at-eol,-blank-at-eol
+
+# Original authored capability strings: byte identity is a tested source contract.
+frontend/src/__tests__/fixtures/ui-capability-details-original.json -text
+
+# 当前可变 capability manifest 仍遵循上方 LF 规则；其原字节身份变化须重新生成 details。
+# 下列精确目录是已封存证据，-text 保全 MANIFEST 约束的原字节，不能按源码重新排版。
+# 后继归档须在首次 git add 前登记自己的精确目录并做 clean/checkout 字节回读；此处不通配全部 history。
+docs/history/oss-absorption-evidence/20261019-capability-course/** -text
+docs/history/oss-absorption-evidence/20261019-companion-policy/** -text
+docs/history/oss-absorption-evidence/20261019-companion-recovery/** -text
+docs/history/oss-absorption-evidence/20261019-consumer-integration/** -text
+docs/history/oss-absorption-evidence/20261019-continuation-checkpoint/** -text
+docs/history/oss-absorption-evidence/20261019-handoff-manifest-native/** -text
+docs/history/oss-absorption-evidence/20261019-machine-deadline/** -text
+docs/history/oss-absorption-evidence/20261019-material-companion/** -text
+docs/history/oss-absorption-evidence/20261019-material-companion-final/** -text
+docs/history/oss-absorption-evidence/20261019-material-companion-qualified/** -text
+docs/history/oss-absorption-evidence/20261019-material-companion-recovery/** -text
+docs/history/oss-absorption-evidence/20261019-observer-learning/** -text
+docs/history/oss-absorption-evidence/20261019-review-cancellation/** -text
+docs/history/oss-absorption-evidence/20261019-review-title/** -text
+docs/history/oss-absorption-evidence/20261019-timeout-metadata/** -text
+docs/history/owner-dialogue-20261019/** -text
+docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/** -text
+docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/** -text

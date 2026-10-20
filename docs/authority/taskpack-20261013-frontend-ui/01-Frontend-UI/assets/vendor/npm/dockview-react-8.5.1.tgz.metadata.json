@@ -1,0 +1,20 @@
+{
+  "name": "dockview-react",
+  "version": "8.5.1",
+  "filename": "dockview-react-8.5.1.tgz",
+  "source_url": "https://registry.npmjs.org/dockview-react/-/dockview-react-8.5.1.tgz",
+  "registry_url": "https://registry.npmjs.org/dockview-react/8.5.1",
+  "integrity": "sha512-xWDfQ+yOvkBwDhpJCsSVs+PBQh5+CZRN4lWD6VL9xV1Syi2LPM8cy/u2qnmvhEEvDmg0kx1NLpi/bq3lKV5lKQ==",
+  "sha256": "19b99dfef6cd6d8d76b6c306e79a9e0d1b422de2b3ccee92aafe15b49501e512",
+  "bytes": 339840,
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "dockview": "^8.5.1"
+  },
+  "installed": false,
+  "verification": "package identity and registry SRI verified; registry signatures not independently verified"
+}

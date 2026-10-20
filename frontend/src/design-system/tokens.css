@@ -48,6 +48,13 @@
   --ax-space-6: 24px;
   --ax-space-8: 32px;
 
+  /* 菜单、正文与辅助说明共享字号；portal 也从根继承，不依赖主控台层级。 */
+  --ax-text-body: 1rem;
+  --ax-text-ui: .875rem;
+  --ax-text-caption: .8125rem;
+  --ax-text-sm: var(--ax-text-ui);
+  --ax-text-xs: var(--ax-text-caption);
+
   --ax-font: "Segoe UI", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   --ax-mono: "Cascadia Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
 
@@ -74,7 +81,7 @@ body {
   font-family: var(--ax-font);
   background: var(--ax-canvas);
   color: var(--ax-fg);
-  font-size: 14px;
+  font-size: var(--ax-text-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -109,7 +116,7 @@ html, body {
 /* Buttons — modern ghost/primary/danger with layered micro-interactions */
 button, .btn {
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   font-weight: 540;
   letter-spacing: 0.01em;
   padding: 8px 16px;
@@ -124,7 +131,10 @@ button, .btn {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   outline: none;
   position: relative;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -218,7 +228,7 @@ button.ghost:hover:not(:disabled), .btn-ghost:hover:not(:disabled) {
 /* Size variants */
 button.btn-sm, .btn-sm {
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   border-radius: 6px;
 }
 
@@ -236,7 +246,7 @@ button.icon-btn {
 /* Inputs */
 input, textarea, select {
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   padding: 8px 12px;
   border: 1px solid var(--ax-border-strong);
   border-radius: 8px;
@@ -299,7 +309,7 @@ input:disabled, textarea:disabled, select:disabled {
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   margin-top: var(--ax-space-3);
 }
 
@@ -308,7 +318,7 @@ input:disabled, textarea:disabled, select:disabled {
   padding: 10px 12px;
   font-weight: 510;
   color: var(--ax-fg-tertiary);
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   letter-spacing: 0.02em;
   border-bottom: 1px solid var(--ax-border);
 }
@@ -326,7 +336,7 @@ input:disabled, textarea:disabled, select:disabled {
 
 .table-sub {
   display: block;
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   color: var(--ax-fg-quaternary);
   margin-top: 2px;
 }
@@ -360,7 +370,7 @@ input:disabled, textarea:disabled, select:disabled {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   font-weight: 590;
   color: var(--ax-fg-secondary);
 }
@@ -377,7 +387,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .receipt-grid dt {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   color: var(--ax-fg-tertiary);
   text-transform: uppercase;
@@ -386,7 +396,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .receipt-grid dd {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg);
   overflow-wrap: anywhere;
 }
@@ -402,7 +412,7 @@ input:disabled, textarea:disabled, select:disabled {
   border-radius: var(--ax-radius);
   max-height: 160px;
   overflow: auto;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
 }
 
 .batch-progress {
@@ -416,7 +426,7 @@ input:disabled, textarea:disabled, select:disabled {
 .batch-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-secondary);
   margin-bottom: var(--ax-space-3);
 }
@@ -428,7 +438,7 @@ input:disabled, textarea:disabled, select:disabled {
   background: var(--ax-danger-soft);
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: var(--ax-radius);
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-danger);
 }
 
@@ -449,7 +459,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .archive-eyebrow {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   color: var(--ax-accent-bright);
   text-transform: uppercase;
@@ -473,7 +483,7 @@ input:disabled, textarea:disabled, select:disabled {
 .library-document pre {
   white-space: pre-wrap;
   word-break: break-word;
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   line-height: 1.5;
 }
 
@@ -485,7 +495,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .converted-document {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
 }
 
 .anchor-create {
@@ -496,7 +506,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .anchor-create label {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   font-weight: 590;
   color: var(--ax-fg-secondary);
 }
@@ -558,7 +568,7 @@ input:disabled, textarea:disabled, select:disabled {
   background: var(--ax-raised);
   border: 1px solid var(--ax-border);
   border-radius: var(--ax-radius-md);
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-secondary);
 }
 
@@ -579,12 +589,12 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .diagnostic-console-count {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
 }
 
 .diagnostic-console-empty {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
 }
 
@@ -598,12 +608,12 @@ input:disabled, textarea:disabled, select:disabled {
 .diagnostic-console-list pre {
   max-height: 200px;
   overflow: auto;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   overflow-wrap: anywhere;
 }
 
 .raw-receipt {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   align-self: start;
 }
 
@@ -627,7 +637,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .recovery-kicker {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -641,7 +651,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .recovery-diagnostic {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
   overflow-wrap: anywhere;
 }
@@ -668,7 +678,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .recovery-progress {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-secondary);
 }
 
@@ -693,7 +703,7 @@ input:disabled, textarea:disabled, select:disabled {
   gap: 4px;
   max-height: 220px;
   overflow: auto;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-secondary);
   overflow-wrap: anywhere;
 }
@@ -715,7 +725,7 @@ input:disabled, textarea:disabled, select:disabled {
 
 .command-empty {
   padding: var(--ax-space-4);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-secondary);
 }
 
@@ -744,7 +754,7 @@ input:disabled, textarea:disabled, select:disabled {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
 }
 
 th {
@@ -752,7 +762,7 @@ th {
   padding: 10px 12px;
   font-weight: 510;
   color: var(--ax-fg-tertiary);
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   letter-spacing: 0.02em;
   border-bottom: 1px solid var(--ax-border);
 }
@@ -775,7 +785,7 @@ tr:hover {
   gap: 4px;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   letter-spacing: 0.01em;
 }
@@ -864,7 +874,7 @@ tr:hover {
 
 .status-bar-brand small {
   font-weight: 400;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-quaternary);
 }
 
@@ -885,7 +895,7 @@ tr:hover {
   gap: 6px;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   font-weight: 510;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--ax-border);
@@ -910,7 +920,7 @@ tr:hover {
 .status-pill--development { color: var(--ax-fg-quaternary); }
 
 .status-bar-space {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   font-weight: 510;
   color: var(--ax-fg-secondary);
   min-width: 80px;
@@ -961,7 +971,7 @@ tr:hover {
   border: none;
   background: transparent;
   color: var(--ax-fg-tertiary);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   font-weight: 520;
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease, transform 0.08s ease;
@@ -1035,7 +1045,7 @@ tr:hover {
 }
 
 .context-subnav header span {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1049,7 +1059,7 @@ tr:hover {
 }
 
 .context-subnav p {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
   margin: 0;
   line-height: 1.4;
@@ -1071,7 +1081,7 @@ tr:hover {
   border: none;
   background: transparent;
   color: var(--ax-fg-tertiary);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.14s ease, color 0.14s ease, transform 0.08s ease;
@@ -1104,7 +1114,7 @@ tr:hover {
 
 .context-subnav button span small {
   display: block;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-quaternary);
   font-weight: 400;
   margin-top: 1px;
@@ -1114,7 +1124,7 @@ tr:hover {
   margin-top: auto;
   padding-top: var(--ax-space-3);
   border-top: 1px solid var(--ax-border);
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   color: var(--ax-fg-quaternary);
   line-height: 1.4;
 }
@@ -1151,7 +1161,7 @@ tr:hover {
 }
 
 .inspector-title {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   font-weight: 590;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1166,7 +1176,7 @@ tr:hover {
 }
 
 .inspector-details dt {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   color: var(--ax-fg-tertiary);
   text-transform: uppercase;
@@ -1174,13 +1184,13 @@ tr:hover {
 }
 
 .inspector-details dd {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg);
   overflow-wrap: anywhere;
 }
 
 .inspector-empty {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-secondary);
 }
 
@@ -1244,14 +1254,14 @@ tr:hover {
 }
 
 .canvas-node-type {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   color: var(--ax-fg-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .canvas-node-text {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg);
 }
 
@@ -1279,13 +1289,13 @@ tr:hover {
 }
 
 .activity-dock-item {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
 }
 
 .activity-dock button {
   padding: 2px 8px;
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   margin-left: auto;
 }
 
@@ -1311,14 +1321,14 @@ tr:hover {
 }
 
 .form-label {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   font-weight: 590;
   color: var(--ax-fg-secondary);
   letter-spacing: 0.01em;
 }
 
 .form-hint {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-quaternary);
 }
 
@@ -1420,7 +1430,7 @@ tr:hover {
 }
 
 .ws-action-card small {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
 }
 
@@ -1474,7 +1484,7 @@ tr:hover {
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
 }
 
@@ -1490,7 +1500,7 @@ tr:hover {
 .state-pending { color: var(--ax-fg-tertiary); }
 
 .ws-empty {
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-quaternary);
   padding: var(--ax-space-3);
   background: rgba(255, 255, 255, 0.02);
@@ -1511,7 +1521,7 @@ tr:hover {
   padding: 8px 10px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: var(--ax-radius);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
 }
 
 .ws-activity-label {
@@ -1519,7 +1529,7 @@ tr:hover {
 }
 
 .ws-activity-state {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   padding: 2px 8px;
   border-radius: 999px;
@@ -1582,7 +1592,7 @@ tr:hover {
 }
 
 .mode-option > div div:last-child {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
 }
 
@@ -1592,7 +1602,7 @@ tr:hover {
   border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: var(--ax-radius);
   color: var(--ax-danger);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
 }
 
 /* Path input with browse button */
@@ -1604,13 +1614,13 @@ tr:hover {
 }
 
 .path-input-group .form-label {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   font-weight: 590;
   color: var(--ax-fg-secondary);
 }
 
 .path-input-group .form-hint {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-quaternary);
   margin-bottom: 4px;
 }
@@ -1681,7 +1691,7 @@ tr:hover {
 }
 
 .mode-option-desc {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg-tertiary);
 }
 
@@ -1710,7 +1720,7 @@ tr:hover {
 }
 
 .health-card-path {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   margin-bottom: 8px;
   word-break: break-all;
 }
@@ -1740,7 +1750,7 @@ tr:hover {
 }
 
 .readiness-item-desc {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
 }
 
 /* Backup row */
@@ -1763,7 +1773,7 @@ tr:hover {
 
 /* Utility */
 .dev-marker {
-  font-size: 10px;
+  font-size: var(--ax-text-caption);
   font-weight: 590;
   padding: 1px 6px;
   border-radius: 999px;
@@ -1812,7 +1822,7 @@ tr:hover {
 
 .space-hint {
   color: var(--ax-fg-tertiary);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   margin: var(--ax-space-2) 0;
 }
 
@@ -1832,7 +1842,7 @@ tr:hover {
   background: transparent;
   border-color: transparent;
   color: var(--ax-fg-tertiary);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   font-weight: 510;
   padding: 6px 12px;
   box-shadow: none;
@@ -1874,7 +1884,7 @@ tr:hover {
 }
 
 .learning-panel label {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   font-weight: 590;
   color: var(--ax-fg-secondary);
 }
@@ -1886,7 +1896,7 @@ tr:hover {
   border-radius: var(--ax-radius);
   color: var(--ax-fg);
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
 }
 
 .learning-panel select {
@@ -1907,7 +1917,7 @@ tr:hover {
 
 .mastery-bars dt,
 .teachback-result dt {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   color: var(--ax-fg-tertiary);
   margin-bottom: 4px;
@@ -1917,7 +1927,7 @@ tr:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   color: var(--ax-fg);
 }
 
@@ -2029,7 +2039,7 @@ tr:hover {
   background: var(--ax-raised);
   border: 1px solid var(--ax-border);
   border-radius: var(--ax-radius);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
 }
 
 .action-list li span {
@@ -2076,7 +2086,7 @@ tr:hover {
   border: none;
   background: transparent;
   color: var(--ax-fg-secondary);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   text-align: left;
   border-radius: var(--ax-radius);
   cursor: pointer;
@@ -2094,7 +2104,7 @@ tr:hover {
 }
 
 .vault-kind {
-  font-size: 10px;
+  font-size: var(--ax-text-caption);
   font-weight: 510;
   color: var(--ax-accent-bright);
   text-transform: uppercase;
@@ -2106,7 +2116,7 @@ tr:hover {
 }
 
 .vault-search-results small {
-  font-size: 11px;
+  font-size: var(--ax-text-caption);
   color: var(--ax-fg-quaternary);
   white-space: nowrap;
   overflow: hidden;
@@ -2135,7 +2145,7 @@ tr:hover {
   flex: 1;
   min-height: 300px;
   font-family: var(--ax-mono);
-  font-size: 13px;
+  font-size: var(--ax-text-ui);
   line-height: 1.6;
   padding: var(--ax-space-3);
   background: rgba(255, 255, 255, 0.03);
@@ -2152,7 +2162,7 @@ tr:hover {
 }
 
 .vault-backups h5 {
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
   font-weight: 590;
   color: var(--ax-fg-secondary);
   margin-bottom: var(--ax-space-2);
@@ -2172,7 +2182,7 @@ tr:hover {
   padding: 8px 10px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: var(--ax-radius);
-  font-size: 12px;
+  font-size: var(--ax-text-ui);
 }
 
 /* Mono utility */

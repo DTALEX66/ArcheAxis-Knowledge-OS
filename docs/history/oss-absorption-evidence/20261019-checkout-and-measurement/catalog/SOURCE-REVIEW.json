@@ -1,0 +1,81 @@
+{
+  "sources": [
+    {
+      "path": "scripts/contracts/generate_core_document.py",
+      "head_sha256": "bc5b6ed59b82904f9fc2684326eff2208b8423d1a5dedf826393821f5506a565",
+      "current_sha256": "bc5b6ed59b82904f9fc2684326eff2208b8423d1a5dedf826393821f5506a565",
+      "current_crlf": 0,
+      "head_equal": true
+    },
+    {
+      "path": "packages/contracts/v1/core-document.schema.json",
+      "head_sha256": "ea9aabb03dbe92f7d472b1c09e415ea915292718f3a334985babc58bdab8c32b",
+      "current_sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76",
+      "current_crlf": 0,
+      "head_equal": false
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "head_sha256": "fbbd6074b2c37a15f6c1d02d8704b484775f51fa86f565dfc2f3dd191ef7aae2",
+      "current_sha256": "fbbd6074b2c37a15f6c1d02d8704b484775f51fa86f565dfc2f3dd191ef7aae2",
+      "current_crlf": 0,
+      "head_equal": true
+    },
+    {
+      "path": "packages/contracts/v1/file-format-qualification.schema.json",
+      "head_sha256": "9484f3039f66b709289359dc64c8e3aa5e5d8985e61fa7c0afb365b69ddfe5e8",
+      "current_sha256": "9484f3039f66b709289359dc64c8e3aa5e5d8985e61fa7c0afb365b69ddfe5e8",
+      "current_crlf": 0,
+      "head_equal": true
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "head_sha256": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775",
+      "current_sha256": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf",
+      "current_crlf": 0,
+      "head_equal": false
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "head_sha256": "8d15693693371a22ef5fb157de83523af576718338f914855a2dc1c075c7f260",
+      "current_sha256": "0d38b51c193dbf9905d95365d42fc84772386dcd39e0c7fcac9798e70de32634",
+      "current_crlf": 145,
+      "head_equal": false
+    }
+  ],
+  "generated_changed_definitions": [
+    "LearningItemsDto"
+  ],
+  "document_dto_unchanged": true,
+  "exact_optional_addition": {
+    "type": "string",
+    "minLength": 1,
+    "maxLength": 80
+  },
+  "notice_added_text": "\n\n## Neural Creator Dashboard — visual algorithm adaptation (2026-10-18)\n\nSource: https://github.com/Linye-ai/neural-creator-dashboard/tree/e12317fbc570fd290654db7692e2a1b4bdd7fcb5\n\nMIT, Copyright (c) 2026 linye-ai. The complete upstream permission notice and\nadaptation map are retained in `frontend/src/components/neural-creator-NOTICE.txt`\nand referenced as a Vite URL asset by the production constellation renderer.\nThe adapter uses the existing Core fixed-version SVG graph; it does not include\nthe upstream shell, importer, localStorage, sample content or astronomical tables.\n\n中文说明：本次吸收星团布局、聚焦展开、曲线与光点的呈现算法；保留完整版权许可，\n不新增知识推断或业务存储。GlassBoard 仅为文档设计参考，未复制其程序或资源。\n",
+  "current_notice_content_preserved": true,
+  "qualification_refs_changed": [
+    {
+      "stable_key": "archeaxiscoreknowledge",
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "old": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775",
+      "new": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf"
+    },
+    {
+      "stable_key": "capcoreknowledge",
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "old": "44553fce7686b765a77b39a963ce137786dd06a83e3127a8982ddb112fa11775",
+      "new": "4718df2184917a5f0c1d87220da9d71b9479a67d9dede886a7ed778af30edcaf"
+    },
+    {
+      "location": "sources",
+      "path": "THIRD_PARTY_NOTICES.md",
+      "old": "8d15693693371a22ef5fb157de83523af576718338f914855a2dc1c075c7f260",
+      "new": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09"
+    }
+  ],
+  "all_68_historical_qualifications_preserved": true,
+  "source_count": 28,
+  "new_qualification_granted": false,
+  "production_writes": false
+}

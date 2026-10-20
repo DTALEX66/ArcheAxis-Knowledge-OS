@@ -15,6 +15,7 @@ PACK = "docs/taskpacks/aaos-ui-first-20261009"
 POINTER = "docs/current/AAOS-ACTIVE-EXECUTION.json"
 PROGRESS = "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
 TRACE = "docs/current/AAOS-H01-SOURCE-TRACE-20261009.json"
+CONSOLIDATION = "docs/history/repository-consolidation-20261019/MANIFEST.json"
 PRIVATE = {".codex", ".hermes", ".git", ".ssh", "sessions", "session", "memory", "memories", "credentials", "cookies"}
 
 
@@ -57,6 +58,37 @@ def csv_rows(path: Path, root: Path) -> list[dict]:
         return list(csv.DictReader(stream))
 
 
+def load_registered_snapshot(record: dict, repo: Path, scope: Path) -> dict:
+    """Resolve frozen source identity, never its retired machine-specific worktree."""
+    original = record.get("relative_path")
+    expected_hash, expected_size = record.get("sha256"), record.get("bytes")
+    if (not isinstance(original, str) or not original or "\\" in original or ":" in original
+            or Path(original).is_absolute() or ".." in Path(original).parts
+            or any(part.casefold() in PRIVATE or part.casefold().startswith(".env") for part in Path(original).parts)
+            or not isinstance(expected_hash, str) or len(expected_hash) != 64
+            or any(char not in "0123456789abcdef" for char in expected_hash)
+            or type(expected_size) is not int or expected_size <= 0 or record.get("exists") is not True):
+        raise ValueError("invalid registered snapshot identity")
+    migration = load(repo / CONSOLIDATION, scope)
+    if migration.get("schema") != "archeaxis.repository-consolidation/v1":
+        raise ValueError("invalid snapshot migration manifest schema")
+    matches = [item for item in migration.get("files", [])
+               if isinstance(item, dict) and item.get("original_path") == original]
+    if len(matches) != 1:
+        raise ValueError("snapshot migration requires one exact original_path")
+    item = matches[0]
+    if (item.get("sha256") != expected_hash or type(item.get("bytes")) is not int
+            or item["bytes"] != expected_size):
+        raise ValueError("snapshot migration SHA/bytes identity mismatch")
+    archive = item.get("archive_path")
+    if not isinstance(archive, str) or not archive.startswith("docs/history/repository-consolidation-20261019/"):
+        raise ValueError("invalid snapshot archive path")
+    raw = safe_path(repo / archive, scope).read_bytes()
+    if len(raw) != expected_size or hashlib.sha256(raw).hexdigest() != expected_hash:
+        raise ValueError("snapshot archive bytes/SHA mismatch")
+    return json.loads(raw.decode("utf-8-sig"))
+
+
 def validate(document: dict, repo: Path, source_root: Path | None = None) -> list[str]:
     """Compare projection against real immutable input rows, not copied fixture totals."""
     scope = source_root or owning_root(repo)
@@ -74,7 +106,7 @@ def validate(document: dict, repo: Path, source_root: Path | None = None) -> lis
     require(authority == {"pointer": POINTER, "active_taskpack": PACK, "active_progress": PROGRESS}, "current authority routing")
     pointer = load(repo / POINTER, scope)
     require(pointer.get("active_taskpack") == PACK and pointer.get("active_progress") == PROGRESS, "owner-selected pointer mismatch")
-    for name in (PROGRESS, "docs/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md"):
+    for name in (PROGRESS, "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md"):
         require(safe_path(repo / name, scope).is_file(), "existing execution/G01 reference: " + name)
     plan = repo / PACK
     old = load(plan / "OLD-TASK-DISPOSITION.json", scope)
@@ -94,9 +126,8 @@ def validate(document: dict, repo: Path, source_root: Path | None = None) -> lis
     require(len(crosswalk) == 96 and {row["包内追踪ID"] for row in crosswalk} == expected96, "96 crosswalk source IDs")
     require(all(all(row.get(k) == v for k, v in by96.get(row["包内追踪ID"], {}).items()) for row in crosswalk), "96 original columns retained")
     original270 = next(row for row in register["snapshot"] if row["relative_path"] == "docs/current/AAOS-ALL-TASKS-LEDGER-20261001.json" and row["root"].endswith("gov-ui-20261008"))
-    old_path = Path(original270["root"]) / original270["relative_path"]
-    raw270 = load(old_path, scope)["task_rows"]
-    require(len(raw270) == 270 and byte_hash(old_path, scope) == old["original_source_sha256"], "270 original source bytes/row coverage")
+    raw270 = load_registered_snapshot(original270, repo, scope)["task_rows"]
+    require(len(raw270) == 270 and original270["sha256"] == old["original_source_sha256"], "270 original source bytes/row coverage")
     by_old = {row["key"]: row for row in old["rows"]}
     require(len(by_old) == len(old["rows"]) == 330 and all(":" in key for key in by_old), "330 original namespaced keys")
     require(all(all(by_old.get(row["key"], {}).get(k) == v for k, v in row.items()) for row in raw270), "270 full original row fields preserved")

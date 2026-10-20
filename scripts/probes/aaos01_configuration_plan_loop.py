@@ -22,7 +22,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Plan observer refuse
         js("window.__TAURI__=window.__planProbeOriginal;delete window.__planProbeOriginal;delete window.__planProbeOps;")
 
     def ready():
-        wait("return !!document.querySelector('[aria-label=\"工作草稿保全\"][data-working-state=\"ready\"]')")
+        wait("return !!document.querySelector('[aria-label=\"工作草稿状态\"][data-working-state=\"ready\"]')")
         ui.page("19")
         wait("const panel=document.querySelector('[aria-label=\"配置与部署计划\"]');return !!panel && !panel.closest('[hidden]') && !!panel.getClientRects().length")
 

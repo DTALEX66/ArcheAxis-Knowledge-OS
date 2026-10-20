@@ -1,0 +1,58 @@
+{
+  "status": "NO_BLOCKING_FINDING_FOR_SERIAL_APPLICATION",
+  "review_type": "READ_ONLY_SOURCE_CROSS_REVIEW",
+  "reviewed_utc": "2026-10-18T22:10:38.342756+00:00",
+  "patch_sha256": "862b1c10094bf6c821cac75c1d7f7f4e313165f6b20756381b33aaf67d5cfc20",
+  "manifest_sha256": "18e8fa17d5d8c31606c0826b7b73ec226e48f53f317e46201f4c2bbfcb9e3467",
+  "verification_sha256": "1db514566c52f8d638409ca758895fd12b928594e7cc9e89a5db6086a058a5fe",
+  "source_members": [
+    {
+      "path": "scripts/probes/aaos01_tauri_webdriver_loop.py",
+      "proposal_sha256": "b1d60b65b1458384c64e7d8542d5c1baa759c4b9b38415daf12dd0f7ea418916",
+      "current_product_sha256": "b1d60b65b1458384c64e7d8542d5c1baa759c4b9b38415daf12dd0f7ea418916",
+      "expected_before_sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa",
+      "expected_after_sha256": "b1d60b65b1458384c64e7d8542d5c1baa759c4b9b38415daf12dd0f7ea418916"
+    },
+    {
+      "path": "scripts/probes/aaos01_material_independent_loop.py",
+      "proposal_sha256": "c0c4c223721bb0b24cd3aa3c59b342736851e0d00f42c1c5e8ad94a3f845a108",
+      "current_product_sha256": "c0c4c223721bb0b24cd3aa3c59b342736851e0d00f42c1c5e8ad94a3f845a108",
+      "expected_before_sha256": null,
+      "expected_after_sha256": "c0c4c223721bb0b24cd3aa3c59b342736851e0d00f42c1c5e8ad94a3f845a108"
+    },
+    {
+      "path": "tests/test_material_independent_native_probe.py",
+      "proposal_sha256": "fdc678ec8b1c4915049684f5d0bc3b8a0f5fce12277698714bfb7a4562704a39",
+      "current_product_sha256": "fdc678ec8b1c4915049684f5d0bc3b8a0f5fce12277698714bfb7a4562704a39",
+      "expected_before_sha256": null,
+      "expected_after_sha256": "fdc678ec8b1c4915049684f5d0bc3b8a0f5fce12277698714bfb7a4562704a39"
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "scripts/probes/aaos01_grouped_owner_loop.py",
+      "sha256": "a37ef467c28e92ac62ce2b466b747d3e65ee555fe8ed476ff78abf2d53f54630"
+    },
+    {
+      "path": "scripts/probes/aaos01_material_companion_loop.py",
+      "sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f"
+    },
+    {
+      "path": "frontend/src/spaces/CanonicalLibrarySpace.tsx",
+      "sha256": "77b3c88cbdba2bf0751125ae342b1c84d6e8633b53a33c7f39845a949dc1f422"
+    },
+    {
+      "path": "frontend/src/components/DocumentEditor.tsx",
+      "sha256": "8de5039e5b5264f36fc523336b82aed7ecdb86db8c158f005ea0e1c0191ef357"
+    }
+  ],
+  "new_tests_or_services_or_inference_executed": false,
+  "product_writes": false,
+  "proposal_writes": false,
+  "reported_existing_validation": {
+    "evidence_level": "SIMULATED_UNIT_AND_PROBE_REGRESSION",
+    "green_passed": 154,
+    "subtests_passed": 145,
+    "red_failed": 18
+  }
+}

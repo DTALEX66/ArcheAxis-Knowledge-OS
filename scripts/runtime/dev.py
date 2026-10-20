@@ -263,47 +263,68 @@ def external_toolchain(repo_root: Path | None = None, run_tmp: Path | None = Non
     return discovered
 
 
-def worktree_identity(root: Path) -> tuple[bool, str]:
-    """The tested source as it actually is, not merely the commit it branches from.
+PRIVATE_SOURCE_PARTS = frozenset({
+    '.codex', '.dsh', '.hermes', '.zcode', '.ssh', '.aws', '.azure',
+    '.gnupg', '.claude', '.agents', '.npmrc', '.pypirc', '.netrc', '.hilo',
+    'credentials', 'keychain', 'agent-private', 'private-agent-state',
+})
 
-    ``git rev-parse HEAD`` is the same value for a clean checkout and for one carrying
-    uncommitted edits, so a receipt that records only the commit claims an identity the
-    run never tested. That happened here: the M0 loop, the receipt positives and the
-    affected regressions all ran against ``69a3baed`` *plus an uncommitted patch*, and
-    the journey receipt still said ``source_commit: 69a3baed`` - and the gate accepted
-    it. The digest covers the tracked diff plus every untracked, non-ignored file, so
-    two different working states cannot share one identity. Ignored paths are excluded
-    because they are build output, not source. Both reads go through :func:`git`, the
-    single Git boundary this launcher already has, so a caller that stubs Git for a
-    unit test stubs this too instead of silently reaching the real repository.
+
+def private_source_path(relative: Path) -> bool:
+    """Path spelling only; never stat/read protected state to classify it."""
+    return relative.as_posix().casefold() == 'test-results.log' or any(
+        part.casefold() in PRIVATE_SOURCE_PARTS
+        or part.casefold().startswith('.env') for part in relative.parts)
+
+
+def _private_diff_exclusions() -> tuple[str, ...]:
+    # Exclude before Git constructs a binary diff, not after reading its output.
+    return (':(top,icase,exclude)test-results.log',) + tuple(
+                 pattern for part in sorted(PRIVATE_SOURCE_PARTS | {'.env*'})
+                 for pattern in (f':(glob,icase,exclude)**/{part}',
+                                 f':(glob,icase,exclude)**/{part}/**'))
+
+
+def worktree_identity(root: Path) -> tuple[bool, str]:
+    """Identity of public working source; private runtime state is not source.
+
+    Keep all Git access behind git() so callers can stub that single boundary.
+    Tracked protected paths are an error: neither read nor silently qualify them.
+    Untracked .hilo runtime files are excluded without opening them. Other
+    protected untracked paths keep the existing explicit refusal behavior.
     """
-    diff = git(root, "diff", "HEAD", "--binary")
-    names = sorted(filter(None, git(root, "ls-files", "--others",
-                                    "--exclude-standard", "-z").split("\0")))
-    digest = hashlib.sha256()
-    digest.update(diff.encode("utf-8", "surrogateescape"))
-    for name in names:
-        digest.update(name.encode("utf-8", "surrogateescape"))
+    tracked = filter(None, git(root, 'ls-files', '--cached', '-z').split('\0'))
+    for name in tracked:
         relative = Path(name)
-        private = {'.codex', '.dsh', '.hermes', '.zcode', '.ssh', '.aws', '.azure',
-                   '.gnupg', '.claude', '.agents', '.npmrc', '.pypirc', '.netrc',
-                   'credentials', 'keychain', 'agent-private', 'private-agent-state'}
-        if relative.is_absolute() or '..' in relative.parts or any(
-            part.casefold() in private or part.casefold().startswith('.env')
-            for part in relative.parts
-        ):
+        if relative.is_absolute() or '..' in relative.parts or private_source_path(relative):
             raise ValueError('protected source path cannot be included in run identity')
-        # Reject the raw spelling and each ancestor before any file stat/read can
-        # follow a link outside this checkout. Private ancestors above the exact
-        # repo root are not traversed as source (native managed worktrees live there).
+        # Reject tracked reparse points before Git can inspect working bytes.
+        safe_path(root / relative)
+    names = sorted(filter(None, git(root, 'ls-files', '--others',
+                                    '--exclude-standard', '-z').split('\0')))
+    public_files = []
+    for name in names:
+        relative = Path(name)
+        if relative.is_absolute() or '..' in relative.parts:
+            raise ValueError('protected source path cannot be included in run identity')
+        if private_source_path(relative):
+            if any(part.casefold() == '.hilo' for part in relative.parts):
+                continue
+            raise ValueError('protected source path cannot be included in run identity')
         path = safe_path(root / relative)
         path.relative_to(root.absolute())
+        public_files.append((name, path))
+    diff = git(root, 'diff', 'HEAD', '--binary', '--', '.', *_private_diff_exclusions())
+    digest = hashlib.sha256()
+    digest.update(diff.encode('utf-8', 'surrogateescape'))
+    for name, path in public_files:
+        digest.update(name.encode('utf-8', 'surrogateescape'))
         if path.is_file():
-            digest.update(str(path.stat().st_size).encode("ascii"))
+            digest.update(str(path.stat().st_size).encode('ascii'))
             with path.open('rb') as source:
                 for block in iter(lambda: source.read(1024 * 1024), b''):
                     digest.update(block)
-    return bool(diff) or bool(names), digest.hexdigest()
+    return bool(diff) or bool(public_files), digest.hexdigest()
 
 
 def environment(paths: dict[str, Path]) -> dict[str, str]:

@@ -1,0 +1,167 @@
+{
+  "status": "APPLIED",
+  "files": [
+    {
+      "path": "crates/archeaxis-api/src/lib.rs",
+      "before_sha256": "b3b2df12464608f22ee8eeac923aecd576a829a1abf72f8ce880be9d5b6f686f",
+      "after_sha256": "93cab855666aedc9efb52565e4eca0190c8e192c691bcd1841453fe4f31838dd",
+      "bytes": 110373,
+      "frozen_source": "source/crates/archeaxis-api/src/lib.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/src/project_handoff_preview.rs",
+      "before_sha256": "831139d4fdda806b65cc5bdcb495d58719972d1a241cf842b1d56543346116cf",
+      "after_sha256": "25326481054d8a376f28c81e91baa68e72d2a632c362240a0d36b0ef997b2eda",
+      "bytes": 10273,
+      "frozen_source": "source/crates/archeaxis-api/src/project_handoff_preview.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_preview_process.rs",
+      "before_sha256": "84f581a52d9b9e458bce778419883ffafb169bd5552f55a20a7ae04806a63b12",
+      "after_sha256": "fb436b04207d4aaf52d68608d2728b13c723b3e60872a98d2cd22eefdc6c673a",
+      "bytes": 21462,
+      "frozen_source": "source/crates/archeaxis-api/tests/project_handoff_preview_process.rs"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/project_handoff_snapshot_queue.rs",
+      "before_sha256": null,
+      "after_sha256": "72ea8a9ddef027df75f2e86e3fb5d72c9e0fca0c56de3ef967d6fa6f0027def5",
+      "bytes": 5634,
+      "frozen_source": "source/crates/archeaxis-api/tests/project_handoff_snapshot_queue.rs"
+    },
+    {
+      "path": "crates/archeaxis-contracts/src/project_handoff_preview.rs",
+      "before_sha256": "ea2d65040adb4032dc6c1f182bf1863a19e51e3135299887aeff282f92d7ac14",
+      "after_sha256": "821381e8673e41f9f3a624d44982a477932d4df046f2d3026f3669bc94ed49e5",
+      "bytes": 4722,
+      "frozen_source": "source/crates/archeaxis-contracts/src/project_handoff_preview.rs"
+    },
+    {
+      "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
+      "before_sha256": "f7ec182d3988748a9d6e21c1683c389726e3b0fa069906d9ba5b7163723607f8",
+      "after_sha256": "e16b5cb4bc2737f20cff8abcf81ac63d2fa0c7e235c961fa6c1ca15e8b22b02a",
+      "bytes": 315424,
+      "frozen_source": "source/docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json"
+    },
+    {
+      "path": "frontend/src/__tests__/ProjectHandoffContract.test.ts",
+      "before_sha256": null,
+      "after_sha256": "a0f6b4cb0dda552eb692c4cadec716ffa3954b147b0261e3c7f65a6be19745c7",
+      "bytes": 5471,
+      "frozen_source": "source/frontend/src/__tests__/ProjectHandoffContract.test.ts"
+    },
+    {
+      "path": "frontend/src/__tests__/ProjectHandoffReader.test.tsx",
+      "before_sha256": null,
+      "after_sha256": "3dffc070c07afdba747fa706695d940463cda30fe75e4b1a73257f947c2cfb5d",
+      "bytes": 15431,
+      "frozen_source": "source/frontend/src/__tests__/ProjectHandoffReader.test.tsx"
+    },
+    {
+      "path": "frontend/src/api/core.ts",
+      "before_sha256": "ac1eea5b37aa81e8fdff9411f0986b393fc3b17acdc296e42aa90872bbfa1a9d",
+      "after_sha256": "ccd79047e120c3f771822fd607e29999c49653612338e06d9b7f7dc5663ac0c2",
+      "bytes": 12240,
+      "frozen_source": "source/frontend/src/api/core.ts"
+    },
+    {
+      "path": "frontend/src/api/generated/core-contract.ts",
+      "before_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
+      "after_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a",
+      "bytes": 66470,
+      "frozen_source": "source/frontend/src/api/generated/core-contract.ts"
+    },
+    {
+      "path": "frontend/src/api/generated/project-handoff.ts",
+      "before_sha256": null,
+      "after_sha256": "748f43191e7b64f094bc1c4958397af66f14e0423a77fdaf68f8d372cea404c5",
+      "bytes": 16108,
+      "frozen_source": "source/frontend/src/api/generated/project-handoff.ts"
+    },
+    {
+      "path": "frontend/src/api/generated/resource-catalog.ts",
+      "before_sha256": "d101c7d3d9feb1d9a9b75cf4761b4ca3af6e15fbd6f00dcf22f04d9baa682ab5",
+      "after_sha256": "d1246aa9cee2b8a5934b5a7720a48153dd0e81d0e5e1f8df3395d946db16e9dc",
+      "bytes": 669049,
+      "frozen_source": "source/frontend/src/api/generated/resource-catalog.ts"
+    },
+    {
+      "path": "frontend/src/api/projectHandoff.ts",
+      "before_sha256": null,
+      "after_sha256": "88ef78308274cf7f9a2c7d9d5b5e6535151bf472d62d6a1b9fccdbbd5481af7b",
+      "bytes": 4446,
+      "frozen_source": "source/frontend/src/api/projectHandoff.ts"
+    },
+    {
+      "path": "frontend/src/components/DocumentSnapshot.tsx",
+      "before_sha256": "28173672a55ae3b9c7819d6f49afcfa4026841a63e7ee6c3fceddaaf8f7362c1",
+      "after_sha256": "7068d66aed9f4bdc3f6913e5209ffa73debf199590edc128023ac1f3fa37266e",
+      "bytes": 1154,
+      "frozen_source": "source/frontend/src/components/DocumentSnapshot.tsx"
+    },
+    {
+      "path": "frontend/src/components/ProjectHandoffReader.tsx",
+      "before_sha256": null,
+      "after_sha256": "3ff2f5e59e6f91e4d7e22242bb3cda85c92a95568e3db1de7ab1d8adc846c817",
+      "bytes": 9002,
+      "frozen_source": "source/frontend/src/components/ProjectHandoffReader.tsx"
+    },
+    {
+      "path": "frontend/src/spaces/SpaceView.tsx",
+      "before_sha256": "1ea3537c3638467bf949c06d10cde5df2a37b487df4aebebd850ad53b875d595",
+      "after_sha256": "93182b39479de65ab606289128a93dbcf0081781b935e4b225268d3a4a117e38",
+      "bytes": 12831,
+      "frozen_source": "source/frontend/src/spaces/SpaceView.tsx"
+    },
+    {
+      "path": "packages/contracts/v1/core-command.schema.json",
+      "before_sha256": "27b81d3beba4b9730895caaf9c239ac09d44afb60ae2c5d7a7ebe99b7987bd8f",
+      "after_sha256": "b5dd78da0a09c3688306899a2311ad09d566f02adfe8e20aa6bc6e835310a89b",
+      "bytes": 3486,
+      "frozen_source": "source/packages/contracts/v1/core-command.schema.json"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-snapshot.cases.json",
+      "before_sha256": null,
+      "after_sha256": "2dc9f422f7b2a101d2e60d6b95e9c7e33fa362a4971be2ce8f1e6592ae47bb5b",
+      "bytes": 17325,
+      "frozen_source": "source/packages/contracts/v2/project-handoff-snapshot.cases.json"
+    },
+    {
+      "path": "packages/contracts/v2/project-handoff-snapshot.schema.json",
+      "before_sha256": null,
+      "after_sha256": "10ed793ae48f80ecbb34f93dbbf49835dd9a7f074d4b70f4adf651db717d676b",
+      "bytes": 1326,
+      "frozen_source": "source/packages/contracts/v2/project-handoff-snapshot.schema.json"
+    },
+    {
+      "path": "scripts/contracts/generate_project_handoff.py",
+      "before_sha256": null,
+      "after_sha256": "f76cd256cbb7b29d22924ef51e08b16b0e62d63dd87b8a6149936ec70c42b252",
+      "bytes": 4848,
+      "frozen_source": "source/scripts/contracts/generate_project_handoff.py"
+    },
+    {
+      "path": "src-tauri/src/core_bridge.rs",
+      "before_sha256": "711422dcf29ec424f093f10f51e6be959bb639a505a6a2146b6643be0dd82297",
+      "after_sha256": "11f5ea7bf6fd69f456427d3e8b52c92411c36afe90c8e04cc52cea822ac5c9ae",
+      "bytes": 74123,
+      "frozen_source": "source/src-tauri/src/core_bridge.rs"
+    },
+    {
+      "path": "src-tauri/tests/project_handoff_preview.rs",
+      "before_sha256": "b73e13cf60365a0bd02f41c54e86b961bd825ed68f9d7cb47facc7d9eaa55dd7",
+      "after_sha256": "7f0b2cfe0e35079bdf1833c9a704b4b630e1957b39b828145c9c05f43425c7f4",
+      "bytes": 6974,
+      "frozen_source": "source/src-tauri/tests/project_handoff_preview.rs"
+    },
+    {
+      "path": "tests/contract/test_project_handoff_snapshot_contract.py",
+      "before_sha256": null,
+      "after_sha256": "33d90ff67eadd9e4021eda39b0631e58a7ba8a558abf9192223a25db31324942",
+      "bytes": 1107,
+      "frozen_source": "source/tests/contract/test_project_handoff_snapshot_contract.py"
+    }
+  ],
+  "note": "源码冻结仅适用于各组execution所列patch；文档后续导航不改变旧测试所属源码"
+}

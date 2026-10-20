@@ -12,4 +12,4 @@ DEFERRED_REVIEW / NOT_EXECUTED。Owner允许重型能力延期归档；此页保
 | Semantica/Agentero | 结构解释、文献交接 | revision/API/许可UNKNOWN，只补现有图与连接器的真实缺口 |
 | Fish Audio/雾象/设计资产工具 | 语音、教学动画、编辑资产 | API/权重/字体/素材权利与费用独立；科学正确性用数据核验 |
 
-恢复需用户选定范围、版本/许可/资源/合同、同输入收益及正式入口回滚验证；不能由README宣传或星标数触发。原报告原地保留，不移动删除。详情见[审计与后续候选](../current/AAOS-WATCHA-AUDIT-20261013.md)。
+恢复需用户选定范围、版本/许可/资源/合同、同输入收益及正式入口回滚验证；不能由README宣传或星标数触发。原报告原地保留，不移动删除。详情见[审计与后续候选](../history/repository-consolidation-20261019/current/AAOS-WATCHA-AUDIT-20261013.md)。

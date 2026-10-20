@@ -19,7 +19,7 @@ it("SIMULATED: failed list cannot masquerade as empty or success", async () => {
   bridge.call.mockRejectedValue(new Error("read failed"));
   render(<CanonicalMachineReceiptsSpace />);
   expect(await screen.findByRole("alert")).toBeTruthy();
-  expect(screen.queryByText("尚无已保存的机器任务。执行回答后可在此读取实际回执。")).toBeNull();
+  expect(screen.queryByText("尚无已保存的机器任务。执行回答后可在此查看详细记录。")).toBeNull();
 });
 it("SIMULATED: detail identity or conditions mismatch is rejected", async () => {
   bridge.call.mockImplementation(async (op: string) => op === "machine_tasks_list" ? { items: [row()], next_cursor: null } : { ...row(), conditions: "different" });
@@ -31,7 +31,7 @@ it("SIMULATED: detail identity or conditions mismatch is rejected", async () => 
 it("SIMULATED: stable pagination adds unique receipts without running tasks", async () => {
   bridge.call.mockImplementation(async (_op: string, p: { cursor?: string }) => p.cursor ? { items: [row("answer_b")], next_cursor: null } : { items: [row()], next_cursor: "answer_a" });
   render(<CanonicalMachineReceiptsSpace />);
-  fireEvent.click(await screen.findByRole("button", { name: "读取下一页任务回执" }));
+  fireEvent.click(await screen.findByRole("button", { name: "查看更多任务记录" }));
   expect(await screen.findByRole("button", { name: "answer_b · 未测评" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "answer_a · 未测评" })).toBeTruthy();
   expect(bridge.call).toHaveBeenCalledWith("machine_tasks_list", { cursor: "answer_a" });
@@ -41,7 +41,7 @@ it("SIMULATED: closed detail ignores a late readback", async () => {
   bridge.call.mockImplementation((op: string) => op === "machine_tasks_list" ? Promise.resolve({ items: [row()], next_cursor: null }) : new Promise(resolve => { finish = resolve; }));
   render(<CanonicalMachineReceiptsSpace />);
   fireEvent.click(await screen.findByRole("button", { name: "answer_a · 未测评" }));
-  fireEvent.click(screen.getByRole("button", { name: "关闭回执详情" }));
+  fireEvent.click(screen.getByRole("button", { name: "关闭任务详情" }));
   await act(async () => finish(row()));
   expect(screen.queryByText("SYNTHETIC answer")).toBeNull();
   expect(screen.getByText("选择实际任务，核对来源版本、条件与结果。")).toBeTruthy();

@@ -1,0 +1,16 @@
+{
+  "schema": "aaos.evidence-members/v1",
+  "members": {
+    "aaos01_grouped_owner_loop.py": "d0ca93a1bca1baffa96113073d1c3ab522dabbe8786f36e4031cff0d9c92f353",
+    "aaos01_material_companion_loop.py": "e3b905420039c85990252c0334666c0ef81b2941192050b7313cd0d159c16224",
+    "aaos01_tauri_webdriver_loop.py": "f948a27efa6732cd13703a37cbd4774bad0b55aae2bb347173309765335be130",
+    "candidate-build.json": "fdd15952515be16b9888ebfce41f077bece7f4dee75a710f34fceb4d4f149609",
+    "core-build.json": "69198ddf9bf87f7965b8e170b7397df2adcfcec59d6e2ce95a8fed9d7782fa83",
+    "host-build.json": "0dda12886bc6d40e45b58a5ed7302a088c79ee209524962491086a60172c3cb6",
+    "native-execution.json": "472062956e505db6b13a8b61383386bac299ef3a4ac7f40fd145fd35ba7b8eea",
+    "native-result.json": "6f847995d7852b0688e20ab11ef31e78adcdb3930deab6b798457763eadf7e9e",
+    "probe-tests.json": "39156b2a8e649c684ac4c3c956a6a790aa3fc6440e262d53a42b9acddaab8b35",
+    "README.md": "6904472f587380c431d7e6eccce10d05e11dbd26e291e041cfb2a02a29cf1f8b",
+    "test_material_companion_native_probe.py": "fba8874eb28b537af78e8b86bb207b2dd79d93c1833234bf5d231902a2ab427e"
+  }
+}

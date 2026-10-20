@@ -1,0 +1,243 @@
+{
+  "runs": [
+    {
+      "run_id": "consumer-cli-main-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-cli-main-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1451,
+        "sha256": "aded34dd82ba3c5a3954154f6722ce22bf08a03e68c094e4476156b9a5eb8503"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-cli-main-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 4219,
+        "sha256": "10c31cd42fc997164a84cb215c5cbda2fb32db5e804bf9d7b7e2f807a9882d6b"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "0d91baed8ab0033b4c193cee15194322fee250e63ceb50370bfa58473731bd02",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:02:33.620159+00:00",
+      "ended_at": "2026-10-18T22:02:44.162234+00:00"
+    },
+    {
+      "run_id": "consumer-cli-rustfmt-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-cli-rustfmt-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1556,
+        "sha256": "c19adfb5242a20e3d5b1e4e213ffdce0fdfdef7e52b473346e192ba6ee6c903a"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-cli-rustfmt-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "0d91baed8ab0033b4c193cee15194322fee250e63ceb50370bfa58473731bd02",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:03:31.148845+00:00",
+      "ended_at": "2026-10-18T22:03:32.524715+00:00"
+    },
+    {
+      "run_id": "consumer-independent-probe-main-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-independent-probe-main-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1564,
+        "sha256": "fb239b86a21f3cdaca38d768ad5b25de2e832e61974a8b37524190475fd6dac1"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-independent-probe-main-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 744,
+        "sha256": "eec0c71fb09b0041c107898bc4578a1f22f679ba198aa5f35e661e077af43b54"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "2d82b5eb1c2ad76d5915e70b3b103d072e9fa490ea06b001798354684e6efa49",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:09:48.163732+00:00",
+      "ended_at": "2026-10-18T22:10:46.656858+00:00"
+    },
+    {
+      "run_id": "hub-node-consumer-frozen-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/hub-node-consumer-frozen-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1338,
+        "sha256": "7c34821695442dacfa199fc8676e91fc33f8ca50a225d949198652ab58ba0edf"
+      },
+      "log": ".project-local/runs/be268a2d33/hub-node-consumer-frozen-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 443,
+        "sha256": "84c8d061ea4c2efc50125cdccb664d3d220b65dcbebbe444208cede64b1b1dd5"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "2d82b5eb1c2ad76d5915e70b3b103d072e9fa490ea06b001798354684e6efa49",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:09:50.534722+00:00",
+      "ended_at": "2026-10-18T22:10:06.796853+00:00"
+    },
+    {
+      "run_id": "hub-node-corrected-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/hub-node-corrected-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1331,
+        "sha256": "91be60e45fec790d3281a25236cdf49cd5e0cc651dbf0c543c0d9bd75842b529"
+      },
+      "log": ".project-local/runs/be268a2d33/hub-node-corrected-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 411,
+        "sha256": "91bde2639eac5b875090e78ce894ddab0740b391165fe41980aa14c33ea9b09e"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "2d82b5eb1c2ad76d5915e70b3b103d072e9fa490ea06b001798354684e6efa49",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:16:43.935459+00:00",
+      "ended_at": "2026-10-18T22:17:00.645206+00:00"
+    },
+    {
+      "run_id": "consumer-hub-main-checks-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-hub-main-checks-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1347,
+        "sha256": "d3e41fd78c66c856b713626e23a95fe963acf8c53b07418d2a719bf108d1f7e2"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-hub-main-checks-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1720,
+        "sha256": "d3257dc6debaf6b04523beaf87e1a93f389c0ad3aeef96a48e8eb42e58f34cee"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "11407d4277d7f96c44ab3ea5e1382ecab3ab715dca30532daf87ed55c4946f38",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:19:47.986247+00:00",
+      "ended_at": "2026-10-18T22:19:55.965594+00:00"
+    },
+    {
+      "run_id": "consumer-frontend-full-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-frontend-full-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1438,
+        "sha256": "6a1c4c94d7a0864fd08d7867beb7136c0a92233ccd66ee67151dfc478068ac19"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-frontend-full-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 26302,
+        "sha256": "8346443a9d1c014001706d69aa187aa0c08ede4b0f8d1b568d4391c503bfb1a1"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "11407d4277d7f96c44ab3ea5e1382ecab3ab715dca30532daf87ed55c4946f38",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:19:47.988781+00:00",
+      "ended_at": "2026-10-18T22:24:19.460862+00:00"
+    },
+    {
+      "run_id": "consumer-final-core-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-final-core-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1378,
+        "sha256": "85ec2f270c37bb8b093638defb91df4b9223e328e018925786d6a35adea3b244"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-final-core-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 1551,
+        "sha256": "6e542c427e17116aa8968cd49896d7b21c6bc7082a1b1f42f065e5578966684e"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "11407d4277d7f96c44ab3ea5e1382ecab3ab715dca30532daf87ed55c4946f38",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:20:04.540513+00:00",
+      "ended_at": "2026-10-18T22:20:07.505060+00:00"
+    },
+    {
+      "run_id": "consumer-final-host-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-final-host-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1529,
+        "sha256": "58dfb31407e62f9487ad07dfc262ad2798a7775779278f7437982a8cc7b150cf"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-final-host-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 19059,
+        "sha256": "5123a56356ef6a83378416b81d8cadedc082c63002135963b15f2c8e24361d94"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "11407d4277d7f96c44ab3ea5e1382ecab3ab715dca30532daf87ed55c4946f38",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:20:04.544437+00:00",
+      "ended_at": "2026-10-18T22:21:01.950835+00:00"
+    },
+    {
+      "run_id": "consumer-model-load-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-model-load-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1354,
+        "sha256": "0c18f6a131eb69ded396104a09d0b0005540e2980b9ea51da92fa8ccd08ef8d9"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-model-load-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 152,
+        "sha256": "0a4cd5536231e452d3104e5007a352ab1220d3abf4c8993105505201d1ade072"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "11407d4277d7f96c44ab3ea5e1382ecab3ab715dca30532daf87ed55c4946f38",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:21:13.708665+00:00",
+      "ended_at": "2026-10-18T22:21:23.881665+00:00"
+    },
+    {
+      "run_id": "consumer-candidate-promotion-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-candidate-promotion-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1434,
+        "sha256": "b007507c084371e03da949d13d3c4b6ec7f2c07010f4f6347d252af440df2e9f"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-candidate-promotion-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 8375,
+        "sha256": "ca1cd16a7d045e171d22c41bb9af00ee29cece994bb204bc2f12f8bcf5c549f9"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "11407d4277d7f96c44ab3ea5e1382ecab3ab715dca30532daf87ed55c4946f38",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:21:50.792923+00:00",
+      "ended_at": "2026-10-18T22:22:09.786051+00:00"
+    },
+    {
+      "run_id": "consumer-independent-cancel-native-1019",
+      "execution_receipt": ".project-local/runs/be268a2d33/consumer-independent-cancel-native-1019/artifacts/execution.json",
+      "execution_identity": {
+        "bytes": 1919,
+        "sha256": "c3e0a5feac36e4a99a83ac77d4de78c5791de0fef19d9d470349f3a8c37813f9"
+      },
+      "log": ".project-local/runs/be268a2d33/consumer-independent-cancel-native-1019/logs/execution.log",
+      "log_identity": {
+        "bytes": 8377,
+        "sha256": "726703e00d4139f762009622bc332cee6f7a541b3a6834bf1c25a7d24d4bc474"
+      },
+      "status": "LOCAL_PASS",
+      "exit_code": 0,
+      "source_patch_sha256": "11407d4277d7f96c44ab3ea5e1382ecab3ab715dca30532daf87ed55c4946f38",
+      "source_consistent": true,
+      "started_at": "2026-10-18T22:22:22.346837+00:00",
+      "ended_at": "2026-10-18T22:22:47.019391+00:00"
+    }
+  ],
+  "counting_boundary": "20 Rust、154 pytest+145子例、133合同、9 Node及前端178文件1785项分组覆盖且patch不同，不能合计为全产品同源资格。",
+  "native": "同源码候选的独立原生取消路径限定PASS（24.67秒，真实Tauri/Core＋自有合成材料）：材料/陪伴均经预览、Core准入、实际UI取消、取消终态及无答案读回；冷重开保留相同回执/历史与原文，观察器挂接后执行调用0。worker_started UNVERIFIED、provider_stop UNKNOWN、启动期执行次数UNVERIFIED，不能宣称服务端已停止或实际模型推理成功。4张PNG逐张实看，业务取消提示可见但视觉密度/滚动未获完整资格；所建宿主退出与端口释放已确认。最终Core/Host/Promotion/Native同patch 11407d4277d7f96c44ab3ea5e1382ecab3ab715dca30532daf87ed55c4946f38；原完整AI旅程的retest MODEL_CALL_TIMEOUT仍FAIL，本独立路径没有运行该链或备份恢复。",
+  "remaining": [
+    "完整AI旅程复测118秒超时仍未解决；有限阶段计时尚不能区分queue/prefill/decode/read，不擅改模型/profile/预算",
+    "provider实际收到并停止请求、worker确已开始、启动期执行计数尚UNVERIFIED/UNKNOWN",
+    "独立recovery模式的成功生成与备份恢复未在本patch执行；历史限定PASS保留原源码",
+    "BE10真实外部consumer/native/deeplink/投递与原合同其余范围仍PARTIAL",
+    "HUB004安装更新与运行准入、统一模型底座和全格式完整验收仍PARTIAL",
+    "工程字段密度、完整可访问性、性能基准、学习质量、原生安装及Owner验收未获资格",
+    "ASTRYN来源不可删除，完整Cowork逐字正文UNVERIFIED；本地资料未提交/推送/云备份"
+  ]
+}

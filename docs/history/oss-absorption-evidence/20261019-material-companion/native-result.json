@@ -1,0 +1,132 @@
+{
+  "status": "PARTIAL",
+  "native_journey": "FAIL",
+  "evidence_level": "REAL_TAURI_WEBDRIVER_CANDIDATE_WITH_SYNTHETIC_MATERIAL",
+  "source_patch_sha256": "430bc832dfd1cc304458b0abc0f2ecee986b7f16eca9147b6a45c3483cad37ab",
+  "source_consistent": true,
+  "compiled_source_binding": {
+    "status": "PASS",
+    "build_receipt": {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\closure-native-stage\\candidate-build-current-20261018T174816Z.json",
+      "sha256": "fdd15952515be16b9888ebfce41f077bece7f4dee75a710f34fceb4d4f149609",
+      "bytes": 3928
+    },
+    "core_sha256": "750c44943ecc8a6f7e3c691992490a6ce75d3a83eadbc99a2c3d24931fdee681"
+  },
+  "host": {
+    "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\candidates\\closure-20261018\\backend\\ArcheAxis.exe",
+    "sha256": "19a8905c51a2c1a5bd1a8acd4b6c7ff92a975c90314c952341d3d8f7e4aa9c0b",
+    "bytes": 47266304
+  },
+  "completed_stages": [
+    {
+      "id": "import",
+      "status": "PASS"
+    },
+    {
+      "id": "read",
+      "status": "PASS"
+    },
+    {
+      "id": "anchor",
+      "status": "PASS"
+    },
+    {
+      "id": "claim",
+      "status": "PASS"
+    },
+    {
+      "id": "learn",
+      "status": "PASS"
+    },
+    {
+      "id": "practice",
+      "status": "PASS"
+    },
+    {
+      "id": "review",
+      "status": "PASS"
+    },
+    {
+      "id": "distill",
+      "status": "EXECUTED_CANDIDATE_NOT_EVALUATED"
+    }
+  ],
+  "actual_model_results": [
+    {
+      "purpose": "material",
+      "outcome": "succeeded",
+      "answer_sha256": "f944ec8194c3fba764231c9cfa0d3f9044a866031ab5b17139e9470c2cc434d6",
+      "requested_model": "aaos-deep-27b-mtp",
+      "observed_model": "aaos-deep-27b-mtp",
+      "protocol": "openai",
+      "endpoint": "http://127.0.0.1:1234/v1",
+      "finish_reason": "stop",
+      "truncated": false,
+      "elapsed_s": 71.98,
+      "usage": {
+        "input_tokens": 214,
+        "output_tokens": 241,
+        "total_tokens": 455
+      },
+      "answer_source": "content"
+    },
+    {
+      "purpose": "companion",
+      "outcome": "completed",
+      "answer_sha256": "4267dd56f29bf5cf355cae74af4c10aecd5bba646073e08c518038541d666c0e",
+      "requested_model": "aaos-deep-27b-mtp",
+      "observed_model": "aaos-deep-27b-mtp",
+      "protocol": "openai",
+      "endpoint": "http://127.0.0.1:1234/v1",
+      "finish_reason": "stop",
+      "truncated": false,
+      "elapsed_s": 46.86,
+      "usage": {
+        "input_tokens": 182,
+        "output_tokens": 145,
+        "total_tokens": 327
+      },
+      "answer_source": "content"
+    }
+  ],
+  "trusted_actions": 139,
+  "failure": "Same-process navigation back to material panel discarded component-local receipt; probe waited for original answer before using the existing explicit recovery action.",
+  "failure_classification": "Probe omitted required UI recovery action; product auto-recovery policy not qualified.",
+  "failure_traceback": "Traceback (most recent call last):\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_tauri_webdriver_loop.py\", line 1664, in main\n    grouped.run_grouped_loop(\n    ~~~~~~~~~~~~~~~~~~~~~~~~^\n        bridge=bridge, js=js, wait=wait, element=ui_element,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<16 lines>...\n        accept_navigation_alert=grouped_accept_navigation_alert,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_grouped_owner_loop.py\", line 1163, in run_grouped_loop\n    mc.run(ui, read, js, wait, screenshot, document, ai_stage[\"saved_deep_binding\"], result[\"material_companion\"])\n    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py\", line 171, in run\n    visible_answer(wait, scope, stage[\"receipts\"][\"material\"][\"answer\"][\"answer\"])\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py\", line 104, in visible_answer\n    wait(\"const n=\" + node(scope) + \";return !!n&&[...n.querySelectorAll('p')].some(p=>p.getClientRects().length>0&&p.textContent===\" + json.dumps(text) + \")\")\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_tauri_webdriver_loop.py\", line 1401, in wait\n    raise TimeoutError(\"Window assertion deadline: \" + script)\nTimeoutError: Window assertion deadline: const n=document.evaluate(\"//section[@aria-label='\\u56fa\\u5b9a\\u7248\\u672c\\u6750\\u6599\\u95ee\\u7b54' and not(ancestor-or-self::*[@hidden])]\",document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;return !!n&&[...n.querySelectorAll('p')].some(p=>p.getClientRects().length>0&&p.textContent===\"\\u6240\\u9009\\u6750\\u6599\\u6982\\u62ec\\u4e86 ArcheAxis \\u5c06\\u539f\\u59cb\\u5b57\\u8282\\u4e0e\\u7248\\u672c\\u5316\\u6587\\u6863\\u5206\\u5f00\\u5b58\\u50a8\\uff0c\\u5e76\\u6d89\\u53ca\\u5206\\u7ec4\\u6765\\u6e90\\u4e0e\\u6587\\u6863\\u4fee\\u8ba2\\u7684\\u4e3b\\u9898\\u3002\")\n",
+  "cold_reopen": "NOT_EXECUTED",
+  "backup_restore": "NOT_EXECUTED",
+  "startup_execution_calls": "UNVERIFIED",
+  "installed_runtime": "NOT_EXECUTED",
+  "learning_quality": "UNVERIFIED",
+  "whole_product": "PARTIAL",
+  "cleanup": {
+    "owned_ports_released": true,
+    "remaining_owned_port_listeners": [],
+    "remaining_same_creation_owned_hosts": []
+  },
+  "raw_local_receipt": {
+    "path": ".project-local/runs/be268a2d33/webdriver-0bcab4219268/tmp/journey/receipt.json",
+    "sha256": "df4c0e833736103ae26df3fc30a1ea998bcda7774d2c571fd0a2b2cd20390bf7"
+  },
+  "screenshots": [
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0bcab4219268/tmp/journey/failure.png",
+      "sha256": "f87a91add41feee0deb679698282d57969ed414aa5fc9ee558a658a1501cc01f",
+      "bytes": 1222895,
+      "actually_viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0bcab4219268/tmp/journey/grouped-learning-review.png",
+      "sha256": "a2b5f19e442109b6e938a553b5bd0e51a3f2720f73d5b581da439a405356953e",
+      "bytes": 964097,
+      "actually_viewed": true
+    },
+    {
+      "path": ".project-local/runs/be268a2d33/webdriver-0bcab4219268/tmp/journey/material-companion-completed.png",
+      "sha256": "a2017e1472a8cf5bcb6c3fd83fe38eecaec089102996e225afd64ab277627efa",
+      "bytes": 1329239,
+      "actually_viewed": true
+    }
+  ]
+}

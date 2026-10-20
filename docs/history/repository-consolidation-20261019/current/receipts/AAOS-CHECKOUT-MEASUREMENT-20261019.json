@@ -1,0 +1,407 @@
+{
+  "schema": "archeaxis.checkout-measurement-receipt/v1",
+  "overall": "PARTIAL",
+  "archive": "docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/README.md",
+  "manifest": {
+    "path": "docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/MANIFEST.json",
+    "bytes": 14231,
+    "sha256": "8bfe40a4fbe36c41cc8a8689fc54f5fc755637593189e5d4f4ac3268e4809bcd"
+  },
+  "frozen_members": 84,
+  "source_paths": 18,
+  "executions": 11,
+  "owner_topics": 39,
+  "fixed_handoff": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+  "unique_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "results": "docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/RESULTS.json",
+  "archival_validation": "PASS_AFTER_NAVIGATION_REPAIR",
+  "public_delivery": "UNCOMMITTED_LOCAL_ONLY",
+  "whole_product": "PARTIAL",
+  "evidence_level": "STRUCTURAL_AND_GIT_BYTE_READBACK_NOT_PRODUCT_QUALIFICATION",
+  "updated_at": "2026-10-18T22:55:42.933533+00:00",
+  "first_checks": [
+    {
+      "name": "resource-generated",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/contracts/generate_resource_catalog.py",
+        "--check"
+      ],
+      "started_at": "2026-10-18T22:53:59.343292+00:00",
+      "ended_at": "2026-10-18T22:53:59.661550+00:00",
+      "seconds": 0.31825620000017807,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-resource-generated.log",
+      "log_bytes": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "manifest-generated",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/contracts/generate_capability_package_details.py",
+        "--check"
+      ],
+      "started_at": "2026-10-18T22:53:59.661890+00:00",
+      "ended_at": "2026-10-18T22:54:00.204566+00:00",
+      "seconds": 0.5426803000154905,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-manifest-generated.log",
+      "log_bytes": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "manifest-node",
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "--test",
+        "tests/contract/test_capability_package_details_node.mjs"
+      ],
+      "started_at": "2026-10-18T22:54:00.204863+00:00",
+      "ended_at": "2026-10-18T22:54:00.926048+00:00",
+      "seconds": 0.7211873999913223,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-manifest-node.log",
+      "log_bytes": 1019,
+      "log_sha256": "2dcb649cb8029939639fb4e5dd2a3e3c14255d9cbfde81f56fce2f0da6901b2d"
+    },
+    {
+      "name": "typescript",
+      "command": [
+        "C:/Users/ALEX/.local/node-v24.21.0-win-x64/node.exe",
+        "frontend/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--project",
+        "frontend/tsconfig.json"
+      ],
+      "started_at": "2026-10-18T22:54:00.926354+00:00",
+      "ended_at": "2026-10-18T22:54:07.774034+00:00",
+      "seconds": 6.847682899999199,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-typescript.log",
+      "log_bytes": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "authority",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-18T22:54:07.774463+00:00",
+      "ended_at": "2026-10-18T22:54:08.023777+00:00",
+      "seconds": 0.24931680000736378,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-authority.log",
+      "log_bytes": 208,
+      "log_sha256": "69dc08c30f56c2a13e3e44691eedc10cbec0c439dcaf2e944716dfa690f7cc38"
+    },
+    {
+      "name": "owner-dialogue",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/owner-dialogue-20261019/verify_archive.py",
+        "--require-local-attachments"
+      ],
+      "started_at": "2026-10-18T22:54:08.024073+00:00",
+      "ended_at": "2026-10-18T22:54:08.247379+00:00",
+      "seconds": 0.22331020000274293,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-owner-dialogue.log",
+      "log_bytes": 319,
+      "log_sha256": "5eb73bd6029f2efe7ef3cf817fd19449699fbb989e0599ea8405a4054ca7872c",
+      "readback": {
+        "status": "PASS",
+        "evidence_level": "STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION",
+        "frozen_members": 6,
+        "source_records": 39,
+        "current_reference_targets": 28,
+        "local_attachments_checked": 3,
+        "local_attachment_status": "PASS",
+        "product_status": "PARTIAL",
+        "full_private_transcript": "UNVERIFIED"
+      }
+    },
+    {
+      "name": "previous-archive",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/oss-absorption-evidence/20261019-consumer-integration/verify_snapshot.py",
+        "--require-local-evidence"
+      ],
+      "started_at": "2026-10-18T22:54:08.247673+00:00",
+      "ended_at": "2026-10-18T22:54:08.505672+00:00",
+      "seconds": 0.2580022999900393,
+      "exit_code": 1,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-previous-archive.log",
+      "log_bytes": 814,
+      "log_sha256": "a0f0eae776b2ece41b5c95fe1125851f674e7a39c685c549809f29df20afba8b"
+    },
+    {
+      "name": "new-archive-git",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/verify_snapshot.py",
+        "--require-local-evidence",
+        "--git-checkout"
+      ],
+      "started_at": "2026-10-18T22:54:08.506020+00:00",
+      "ended_at": "2026-10-18T22:54:10.568960+00:00",
+      "seconds": 2.0629435000009835,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-new-archive-git.log",
+      "log_bytes": 250,
+      "log_sha256": "92961d28bb674ccee8ecbc94c2a9421d3886e92b6c70cdc9f85582230900a804",
+      "readback": {
+        "status": "PASS",
+        "evidence_level": "STRUCTURAL_AND_GIT_BYTE_READBACK_NOT_PRODUCT_QUALIFICATION",
+        "frozen_members": 84,
+        "navigation_targets": 35,
+        "local_evidence_checked": 100,
+        "git_checkout_files": 572,
+        "product_status": "PARTIAL"
+      }
+    },
+    {
+      "name": "diff-whitespace",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-18T22:54:10.569339+00:00",
+      "ended_at": "2026-10-18T22:54:10.663565+00:00",
+      "seconds": 0.09422830000403337,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/final-diff-whitespace.log",
+      "log_bytes": 2822,
+      "log_sha256": "d9576ca29e95c86bd673bb889f9adca8a39af8f47bf5ffe6f82f4bd1c495f7a5"
+    }
+  ],
+  "navigation_repair": "handoff最新摘要替换时漏保留旧consumer直接链接；补回显式历史入口，不修改旧冻结字节或降低校验",
+  "repaired_checks": [
+    {
+      "name": "authority",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "scripts/ci/check_document_authority.py"
+      ],
+      "started_at": "2026-10-18T22:54:44.656390+00:00",
+      "ended_at": "2026-10-18T22:54:44.903332+00:00",
+      "seconds": 0.2469418999971822,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/repaired-authority.log",
+      "log_bytes": 208,
+      "log_sha256": "69dc08c30f56c2a13e3e44691eedc10cbec0c439dcaf2e944716dfa690f7cc38"
+    },
+    {
+      "name": "owner-dialogue",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/owner-dialogue-20261019/verify_archive.py",
+        "--require-local-attachments"
+      ],
+      "started_at": "2026-10-18T22:54:44.903710+00:00",
+      "ended_at": "2026-10-18T22:54:45.122249+00:00",
+      "seconds": 0.2185425000207033,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/repaired-owner-dialogue.log",
+      "log_bytes": 319,
+      "log_sha256": "5eb73bd6029f2efe7ef3cf817fd19449699fbb989e0599ea8405a4054ca7872c",
+      "readback": {
+        "status": "PASS",
+        "evidence_level": "STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION",
+        "frozen_members": 6,
+        "source_records": 39,
+        "current_reference_targets": 28,
+        "local_attachments_checked": 3,
+        "local_attachment_status": "PASS",
+        "product_status": "PARTIAL",
+        "full_private_transcript": "UNVERIFIED"
+      }
+    },
+    {
+      "name": "previous-archive",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/oss-absorption-evidence/20261019-consumer-integration/verify_snapshot.py",
+        "--require-local-evidence"
+      ],
+      "started_at": "2026-10-18T22:54:45.122622+00:00",
+      "ended_at": "2026-10-18T22:54:45.358878+00:00",
+      "seconds": 0.2362573999853339,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/repaired-previous-archive.log",
+      "log_bytes": 261,
+      "log_sha256": "1ac6608f61a7128fbf2fe0503b45720d5c616ff5ea0cd0df0f54196ad04fb4aa",
+      "readback": {
+        "status": "PASS",
+        "evidence_level": "STRUCTURAL_READBACK_NOT_PRODUCT_QUALIFICATION",
+        "frozen_members": 64,
+        "source_records": 39,
+        "navigation_targets": 31,
+        "local_executions_checked": 12,
+        "local_evidence": "PASS",
+        "product_status": "PARTIAL"
+      }
+    },
+    {
+      "name": "new-archive-git",
+      "command": [
+        "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+        "-X",
+        "utf8",
+        "-B",
+        "docs/history/oss-absorption-evidence/20261019-checkout-and-measurement/verify_snapshot.py",
+        "--require-local-evidence",
+        "--git-checkout"
+      ],
+      "started_at": "2026-10-18T22:54:45.359183+00:00",
+      "ended_at": "2026-10-18T22:54:47.406802+00:00",
+      "seconds": 2.04762340002344,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/repaired-new-archive-git.log",
+      "log_bytes": 250,
+      "log_sha256": "92961d28bb674ccee8ecbc94c2a9421d3886e92b6c70cdc9f85582230900a804",
+      "readback": {
+        "status": "PASS",
+        "evidence_level": "STRUCTURAL_AND_GIT_BYTE_READBACK_NOT_PRODUCT_QUALIFICATION",
+        "frozen_members": 84,
+        "navigation_targets": 35,
+        "local_evidence_checked": 100,
+        "git_checkout_files": 572,
+        "product_status": "PARTIAL"
+      }
+    },
+    {
+      "name": "diff-whitespace",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "started_at": "2026-10-18T22:54:47.407126+00:00",
+      "ended_at": "2026-10-18T22:54:47.502661+00:00",
+      "seconds": 0.09553910000249743,
+      "exit_code": 0,
+      "log": ".project-local/audits/recovery-measurement-integration-20261019/repaired-diff-whitespace.log",
+      "log_bytes": 2822,
+      "log_sha256": "d9576ca29e95c86bd673bb889f9adca8a39af8f47bf5ffe6f82f4bd1c495f7a5"
+    }
+  ],
+  "archival_executions": [
+    {
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/checkout-measurement-archive-final-1019/artifacts/execution.json",
+        "bytes": 1372,
+        "sha256": "7daef678838fa4586f88260f14b2c0475bf506d4ab9dc2985fa09a4ba34ad5e5"
+      },
+      "execution": {
+        "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "dirty": true,
+        "source_patch_sha256": "b83a45f3e1f23eb7addaf94becfecc9d10ccb187d13ebf579eee538d75e38ec3",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-18T22:53:58.393541+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\checkout-measurement-archive-final-1019",
+        "executable": ".venv/Scripts/python.exe",
+        "argument_count": 4,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-X",
+          "utf8",
+          "-B",
+          ".project-local/audits/recovery-measurement-integration-20261019/final_checks.py"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 1,
+        "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_patch_sha256_after": "b83a45f3e1f23eb7addaf94becfecc9d10ccb187d13ebf579eee538d75e38ec3",
+        "source_consistent": true,
+        "status": "FAIL",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\checkout-measurement-archive-final-1019\\logs\\execution.log",
+        "exit_code": 1,
+        "ended_at": "2026-10-18T22:54:11.443798+00:00",
+        "seconds": 13.050251099979505
+      },
+      "log": {
+        "path": ".project-local/runs/be268a2d33/checkout-measurement-archive-final-1019/logs/execution.log",
+        "bytes": 1015,
+        "sha256": "7e0a9422427011dfde667e0d46e03eacb128de6a90a7dca3fcf160395af90584"
+      }
+    },
+    {
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/checkout-measurement-navigation-repaired-1019/artifacts/execution.json",
+        "bytes": 1416,
+        "sha256": "7686067af0c4b1fa719674b2436d20bef063d0d31edd6f40e2acafcfe3614d05"
+      },
+      "execution": {
+        "source_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_tree": "78755d49b893a15cb1abe48415bfc7f1c65d1fac",
+        "dirty": true,
+        "source_patch_sha256": "6fe347c6b6fd80f6052e66001fc9e647e344731780ce296f64afdb45fde83d3e",
+        "worktree_root": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+        "started_at": "2026-10-18T22:54:43.711645+00:00",
+        "run_root": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\checkout-measurement-navigation-repaired-1019",
+        "executable": ".venv/Scripts/python.exe",
+        "argument_count": 5,
+        "command": [
+          ".venv/Scripts/python.exe",
+          "-X",
+          "utf8",
+          "-B",
+          ".project-local/audits/recovery-measurement-integration-20261019/final_checks.py",
+          "--navigation-only"
+        ],
+        "python": "3.13.14 (main, Jul 23 2026, 14:44:10) [MSC v.1944 64 bit (AMD64)]",
+        "boundary": "environment-routing-not-sandbox",
+        "child_exit_code": 0,
+        "source_commit_after": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+        "source_patch_sha256_after": "6fe347c6b6fd80f6052e66001fc9e647e344731780ce296f64afdb45fde83d3e",
+        "source_consistent": true,
+        "status": "LOCAL_PASS",
+        "log": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\checkout-measurement-navigation-repaired-1019\\logs\\execution.log",
+        "exit_code": 0,
+        "ended_at": "2026-10-18T22:54:48.233036+00:00",
+        "seconds": 4.5213902999821585
+      },
+      "log": {
+        "path": ".project-local/runs/be268a2d33/checkout-measurement-navigation-repaired-1019/logs/execution.log",
+        "bytes": 104,
+        "sha256": "bfa3ecc69df256d3a8828156b8c594dc9dd33936ffe2e5b4210579fb2f4a8cf0"
+      }
+    }
+  ],
+  "final_route_readback": "PASS_FIXED_AUTHORITY_PROGRESS_RESOURCE_AND_EVIDENCE_TARGETS",
+  "new_source_identity_readback": "18_CURRENT_SHA_MATCH",
+  "native_new_18_paths": "NOT_EXECUTED"
+}

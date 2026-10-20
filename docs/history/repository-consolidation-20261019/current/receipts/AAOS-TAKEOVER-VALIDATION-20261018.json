@@ -1,0 +1,106 @@
+{
+  "schema": "archeaxis.takeover-local-validation/v1",
+  "observed_on": "2026-10-18",
+  "overall": "PARTIAL",
+  "baseline_commit": "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+  "tested_source_patch_sha256": "9de58e1368977005e796023f3ea238e475b2b80cab491f50ea36d04624d35f14",
+  "binding": "One consistent dirty source snapshot across these four gates; final documentation emitted afterward. Not exact-SHA CI.",
+  "codex_sessions": {
+    "main": 7,
+    "execution_audit": 53,
+    "guardian_metadata_only": 134,
+    "historical_finals_extracted": 307,
+    "index": "docs/current/AAOS-CODEX-SESSION-INDEX-20261018.json",
+    "native_writes": false
+  },
+  "frontend": {
+    "status": "PASS",
+    "files": 158,
+    "tests": 1516,
+    "evidence_level": "SYNTHETIC",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/takeover-frontend-confirmed-20261018/artifacts/execution.json",
+      "sha256": "3e5d606097441577b386a4e6441ff79b25c84bc1f1f2f7e37f71eb92eae0c492",
+      "source_patch_sha256": "9de58e1368977005e796023f3ea238e475b2b80cab491f50ea36d04624d35f14",
+      "source_consistent": true,
+      "exit_code": 0
+    }
+  },
+  "documentation_and_browser_tool_tests": {
+    "status": "PASS",
+    "tests": 24,
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/takeover-final-gates-20261018/artifacts/execution.json",
+      "sha256": "77ce1af7b0002fab2f657b21daff73de92d3b2ecfe34eec8f9838e8349bfef69",
+      "source_patch_sha256": "9de58e1368977005e796023f3ea238e475b2b80cab491f50ea36d04624d35f14",
+      "source_consistent": true,
+      "exit_code": 0
+    }
+  },
+  "frontend_build": {
+    "status": "PASS",
+    "typescript": "PASS",
+    "vite": "PASS",
+    "bundle_size_warning_retained": true,
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/a610fc3d8f04/artifacts/frontend-build.json",
+      "sha256": "94a26f75a928ee6f03ce3176ae8653f53d00fa533172fee6fb5c032dc4a17936",
+      "source_patch_sha256": "9de58e1368977005e796023f3ea238e475b2b80cab491f50ea36d04624d35f14",
+      "source_consistent": true,
+      "exit_code": 0
+    }
+  },
+  "browser": {
+    "status": "PASS",
+    "viewports": 13,
+    "themes": 5,
+    "fixture": "SIMULATED_HOST_CORE_FIXTURE",
+    "render_engine": "Real declared Chromium",
+    "receipt": {
+      "path": ".project-local/runs/be268a2d33/takeover-browser-final-20261018/artifacts/execution.json",
+      "sha256": "6f05abafb11a05303d1f6d78b22f68ac5fa002c94285e2f955723ef50fcf106e",
+      "source_patch_sha256": "9de58e1368977005e796023f3ea238e475b2b80cab491f50ea36d04624d35f14",
+      "source_consistent": true,
+      "exit_code": 0
+    },
+    "report": ".project-local/runs/be268a2d33/takeover-browser-final-20261018/artifacts/browser-smoke/canonical-browser-smoke.json",
+    "report_sha256": "401fb77f060bb0f0f71b5b520a8a0dec27e83e8d3328146e0ae6c7c29018341e",
+    "scope": "Shell geometry, status focus/contrast/targets, templates, library/reader, narrow Dock and top navigation; not full WCAG or installed acceptance"
+  },
+  "fixes": [
+    "Protocol-aware model inventory diagnosis and real component assertions",
+    "Folder reselection update batches retain prior records and frozen request guards",
+    "Recovered material selection bounds and quote identity; cancellation failure and late response protection",
+    "Production render-to-layout-commit monitoring and canvas quality/visibility hooks",
+    "Canvas keyboard/edit/focus controls and scoped accessibility audit correctness",
+    "Browser gate skips nonoverflowing auto wrappers while hidden/clip rejection remains",
+    "Restore deleted narrow reader inspector media query without reverting other layout work"
+  ],
+  "retained_failures": [
+    "takeover-browser-20261018: template false positive diagnosed by actual scroll/hit test",
+    "takeover-browser-green-20261018: real narrow inspector regression plus source INVALIDATED during documentation edits",
+    "takeover-scroll-gate-red-20261018: 1 failed / 2 passed before gate repair",
+    "Scoped RED runs remain under their original run IDs"
+  ],
+  "remaining": {
+    "CW_AAOS_01": "PARTIAL: receipt shape exists; uploaded-byte hash binding and actual CAS qualification remain unverified",
+    "FE21_FE23": "PARTIAL: full application assistive technology, theme audit and native resource/performance measurements remain",
+    "FE24": "NOT_EXECUTED_CURRENT_NATIVE: no current bound host candidate or default-path WebDriver tools; no installation qualified",
+    "FE25": "NOT_EXECUTED_CURRENT_CAPTURE: current native build assets/support/restore proof remain; public deployment is not a contractual prerequisite",
+    "historical_windows_clipping": "UNVERIFIED_CURRENT: browser gate repair does not close historical native document click failure",
+    "CI": "NOT_EXECUTED_CURRENT_EXACT_SHA",
+    "Owner_acceptance": "NOT_EXECUTED"
+  },
+  "preservation": {
+    "original_dirty_backups": 11,
+    "integrity": "PASS",
+    "evidence": ".project-local/runs/be268a2d33/session-integration-20261018/artifacts/final-preservation-review.json"
+  },
+  "delivery": {
+    "commit": false,
+    "push": false,
+    "release": false,
+    "green_replacement": false,
+    "global_provider_auth_changes": false
+  }
+}

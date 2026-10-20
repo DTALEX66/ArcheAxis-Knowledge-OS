@@ -96,20 +96,20 @@
   "progress_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
   "latest_reader_observation": {
     "date": "2026-10-16",
-    "receipt": "docs/current/receipts/AAOS-READER-RESPONSIVE-20261016.json",
+    "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-READER-RESPONSIVE-20261016.json",
     "implemented": "Full background/inset shell, reader two columns/horizontal metadata, retained narrow Inspector and non-overlapping small header",
     "acceptance": "PARTIAL; controlled browser fixture and reference-size inspection, not full visual or native acceptance"
   },
   "latest_top_navigation_observation": {
     "date": "2026-10-16",
-    "receipt": "docs/current/receipts/AAOS-TOP-NAVIGATION-20261016.json",
+    "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-TOP-NAVIGATION-20261016.json",
     "implemented": "Optional top-menu presentation using existing guarded routes; editor retained; narrow drawer and five themes verified",
     "acceptance": "PARTIAL; controlled browser fixture, not reference-5 complete composition or installed/Owner acceptance"
   },
   "latest_workbench_observation": {
     "date": "2026-10-16",
-    "receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
+    "receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json",
     "status": "LOCAL_PASS; overall PARTIAL"
   },
-  "pause_receipt": "docs/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
+  "pause_receipt": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
 }

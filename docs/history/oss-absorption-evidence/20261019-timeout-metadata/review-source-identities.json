@@ -1,0 +1,120 @@
+{
+  "schema": "aaos.timeout-static-review/v1",
+  "recorded_at": "2026-10-18T21:03:11.534662+00:00",
+  "verdict": "NO_BLOCKING_FINDING",
+  "evidence_level": "STATIC_REVIEW_AND_READONLY_SCHEMA_COMPARISON_NOT_TEST_EXECUTION",
+  "product_modified": false,
+  "model_or_service_started": false,
+  "files": [
+    {
+      "path": "services/python-workers/machine/worker_machine_answer.py",
+      "bytes": 31816,
+      "sha256": "510c4973bc3c749cb2c5c0189d57245dcb2701c1e0c9c7da03622aed253a1e3d"
+    },
+    {
+      "path": "crates/archeaxis-application/src/executor/machine_failure.rs",
+      "bytes": 11418,
+      "sha256": "7b7ca92b147830e061631610666628495bce0d93faa1c8e539df082c4bd76ebe"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/execution_claim.rs",
+      "bytes": 16255,
+      "sha256": "caf282adb15b3105bf9955ec9842f736094156a8a26c2ca9f8d8ab0d31c8e3be"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/material_questions.rs",
+      "bytes": 15834,
+      "sha256": "7859c67f0d212d1e22d56ecca115c397b14050e7744a025e8c8b556bd2fc8feb"
+    },
+    {
+      "path": "crates/archeaxis-api/src/runtime/conversation.rs",
+      "bytes": 23003,
+      "sha256": "9e3346c350e6e1d6a74ae0680119099ce809463e85d6a10019e816236bd99227"
+    },
+    {
+      "path": "packages/contracts/v1/openapi-outline.yaml",
+      "bytes": 32137,
+      "sha256": "b1f1f0db53575b2844c27b82da7fabd86724672e978101af46d6e07a57aebd40"
+    },
+    {
+      "path": "packages/contracts/v2/material-question.schema.json",
+      "bytes": 21448,
+      "sha256": "2d281d5930b82e506d158c070b16e94fb605f4b74046f03fde2da2ac2a73abc2"
+    },
+    {
+      "path": "packages/contracts/v2/conversation.schema.json",
+      "bytes": 37417,
+      "sha256": "54a42c2d93175d13bb2cb2e2293bc0ece162717cdfa5c60830625757c4d47707"
+    },
+    {
+      "path": "frontend/src/api/generated/material-question.ts",
+      "bytes": 4670,
+      "sha256": "9220e4a1730d1dec00ae4e6a22ed16407a3294ae0e69fb045911906fcbc69c8f"
+    },
+    {
+      "path": "frontend/src/api/generated/conversation.ts",
+      "bytes": 6868,
+      "sha256": "ae863eac8bc79feeca7c1108c1f09c8264f5ddf3eae695060c3d54ef617de6cc"
+    },
+    {
+      "path": "frontend/src/api/machineFailure.ts",
+      "bytes": 2494,
+      "sha256": "0646d2603b1280765e2e533638fff6345f02037640c2bda76653fc11ff249167"
+    },
+    {
+      "path": "frontend/src/api/core.ts",
+      "bytes": 10438,
+      "sha256": "ac1eea5b37aa81e8fdff9411f0986b393fc3b17acdc296e42aa90872bbfa1a9d"
+    },
+    {
+      "path": "frontend/src/companion/CompanionSession.ts",
+      "bytes": 14353,
+      "sha256": "36ea7d75c26465b59c8e936618137292a62ffe963c5016323e2363aa7ddcef3b"
+    },
+    {
+      "path": "frontend/src/components/MaterialQuestionPanel.tsx",
+      "bytes": 11264,
+      "sha256": "0d22bd59587442c3cbe186956f005018afa2d6e9df8980d4d3ae130437b86135"
+    },
+    {
+      "path": "tests/test_worker_machine_answer.py",
+      "bytes": 42377,
+      "sha256": "d0d70a7b4cb79d0ab4fd101f49de3089d18c76a646ef2f7a43c6294f868065d5"
+    },
+    {
+      "path": "tests/contract/test_machine_failure_diagnostics.py",
+      "bytes": 2821,
+      "sha256": "40e5befc12e2bece575d9e03d81a1baa5b9fc285edc099474785597e620e9871"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/material_question_api.rs",
+      "bytes": 19699,
+      "sha256": "bf8a768c9ac69420b20cd210d9391fc8066ff2a4534c6fb73317ee537096ef66"
+    },
+    {
+      "path": "crates/archeaxis-api/tests/conversation_api.rs",
+      "bytes": 29342,
+      "sha256": "3002d5ea263146a462621b57d4a747c9eda55a9e1eb1edf6e6cf56578107de31"
+    },
+    {
+      "path": "frontend/src/__tests__/MachineFailureDiagnostics.test.ts",
+      "bytes": 1458,
+      "sha256": "2c3766bb001f809e1cda1b67e8c2684a2c09ee43ca52f8600e278f1af6215a08"
+    },
+    {
+      "path": "frontend/src/__tests__/CoreBridge.test.ts",
+      "bytes": 9434,
+      "sha256": "674429a0a813806333a9e23c19125917b2b0261e003a36aba110b715b56884da"
+    },
+    {
+      "path": "frontend/src/__tests__/MaterialQuestionPanel.test.tsx",
+      "bytes": 23661,
+      "sha256": "87c8bf592fc2760cd0ae189ba2be1c0067d4d66d1467b3a95c624e2e47b71fc5"
+    },
+    {
+      "path": "frontend/src/__tests__/ConversationPanel.test.tsx",
+      "bytes": 19032,
+      "sha256": "c938e708501b3aae9fcb59f16eda1a5a7267a3c59c15d5ef3065c561340d14fe"
+    }
+  ]
+}

@@ -1,0 +1,1118 @@
+[
+  {
+    "name": "root-cause-frozen-config",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\investigate.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:16:44.807802+00:00",
+    "seconds": 1.004,
+    "exit_code": 0,
+    "pass": true,
+    "log": "root-cause-frozen-config.log",
+    "log_sha256": "10735dcea076d0fa80440cf5bd84f23ec8e59750eb5ab83e57872511d7b17666",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "node-guard-tests",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "--test",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\validation-mirror\\tests\\contract\\test_capability_package_details_node.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:16:45.813545+00:00",
+    "seconds": 0.581,
+    "exit_code": 0,
+    "pass": true,
+    "log": "node-guard-tests.log",
+    "log_sha256": "cb1fab7df2cd9a49a81dec08ad942563f68b1a1111207eb6d4bc483b06e9d980",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "vite-config-no-python",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\check_config.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\validation-mirror\\frontend",
+    "started_at": "2026-10-18T22:16:46.395787+00:00",
+    "seconds": 0.324,
+    "exit_code": 0,
+    "pass": true,
+    "log": "vite-config-no-python.log",
+    "log_sha256": "ecb30ee009ff696a1cc6fceaf9eecf53379b0fd670cb7959cb140cd2c2ae269e",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "stdlib-python-no-jsonschema",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\stdlib-only-python\\Scripts\\python.exe",
+      "-B",
+      "-c",
+      "import importlib.util; assert importlib.util.find_spec(\"jsonschema\") is None; print(\"JSONSCHEMA_NOT_INSTALLED\")"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:16:46.986244+00:00",
+    "seconds": 0.054,
+    "exit_code": 0,
+    "pass": true,
+    "log": "stdlib-python-no-jsonschema.log",
+    "log_sha256": "bc5271761adf1184efe72f8dc5c29cf055f430bc4661103c784a1726a8a89ba1",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "vite-config-no-jsonschema",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\check_config.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019",
+    "started_at": "2026-10-18T22:16:47.041844+00:00",
+    "seconds": 0.33,
+    "exit_code": 0,
+    "pass": true,
+    "log": "vite-config-no-jsonschema.log",
+    "log_sha256": "a986d1fee860f51994fc57c54c0ac5c7de1a7c699d1e508f8aecaf22a24bcca4",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "python-semantic-tests",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\validation-mirror\\tests\\contract\\test_capability_package_details.py",
+      "-c",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\pytest.ini",
+      "--basetemp",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\pytest-tmp",
+      "-o",
+      "cache_dir=D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\pytest-cache",
+      "-q"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:16:47.372968+00:00",
+    "seconds": 2.851,
+    "exit_code": 0,
+    "pass": true,
+    "log": "python-semantic-tests.log",
+    "log_sha256": "95576f7c9439ac302884b8b2232359776f2102f55ae8378b2c2f75d7bac7788e",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "python-explicit-check",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\validation-mirror\\scripts\\contracts\\generate_capability_package_details.py",
+      "--check"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:16:50.225163+00:00",
+    "seconds": 0.545,
+    "exit_code": 0,
+    "pass": true,
+    "log": "python-explicit-check.log",
+    "log_sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "vitest-page17",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\vitest\\vitest.mjs",
+      "run",
+      "--config",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\vitest.config.mjs"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:16:50.792579+00:00",
+    "seconds": 1.541,
+    "exit_code": 0,
+    "pass": true,
+    "log": "vitest-page17.log",
+    "log_sha256": "57f5b55ed4033a84d632fc510827037e25d4add72845ba33bcd76be0ba3c5446",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "typescript-mirror-src",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\typescript\\bin\\tsc",
+      "--noEmit",
+      "--project",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\validation-mirror\\frontend\\tsconfig.json"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:16:52.334865+00:00",
+    "seconds": 6.875,
+    "exit_code": 0,
+    "pass": true,
+    "log": "typescript-mirror-src.log",
+    "log_sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "typescript-vite-config",
+    "command": [
+      "C:\\Users\\ALEX\\.local\\node-v24.21.0-win-x64\\node.EXE",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\frontend\\node_modules\\typescript\\bin\\tsc",
+      "--noEmit",
+      "--skipLibCheck",
+      "--module",
+      "ESNext",
+      "--moduleResolution",
+      "bundler",
+      "--target",
+      "ES2022",
+      "--allowJs",
+      "--types",
+      "node,vitest",
+      "vite.config.ts"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\validation-mirror\\frontend",
+    "started_at": "2026-10-18T22:16:59.211525+00:00",
+    "seconds": 0.583,
+    "exit_code": 0,
+    "pass": true,
+    "log": "typescript-vite-config.log",
+    "log_sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  },
+  {
+    "name": "ruff-changed-python",
+    "command": [
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "ruff",
+      "check",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\validation-mirror\\scripts\\contracts\\generate_capability_package_details.py",
+      "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\audits\\capability-manifest-consumer-node-corrected-20261019\\validation-mirror\\tests\\contract\\test_capability_package_details.py"
+    ],
+    "cwd": "D:\\All projects\\ArcheAxis-Knowledge-OS",
+    "started_at": "2026-10-18T22:16:59.796268+00:00",
+    "seconds": 0.197,
+    "exit_code": 0,
+    "pass": true,
+    "log": "ruff-changed-python.log",
+    "log_sha256": "881513cd027e0334026cfcbad052e34fecb3f2c1fef5ab000c86973bc0196cd7",
+    "candidate_tested_before": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    },
+    "candidate_tested_after": {
+      "config/capability-packages/pdf-extract.manifest.json": {
+        "candidate_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5",
+        "tested_sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
+      },
+      "frontend/src/__tests__/CapabilityPackageDetails.test.tsx": {
+        "candidate_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35",
+        "tested_sha256": "39972ea51b7dda1a35b4767da75918268010e41e53d8aed38a307ddf58252d35"
+      },
+      "frontend/src/api/generated/capability-package-details.ts": {
+        "candidate_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d",
+        "tested_sha256": "e950b70f6a789a0fd4ddc3ce444b059230760704d09708055e66a4ec5e3d6a0d"
+      },
+      "frontend/src/components/CapabilityPackageDetails.tsx": {
+        "candidate_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac",
+        "tested_sha256": "62e73f370da825800d8d5a526b910afc9c9b6dd340e622c453c0b377ec91f6ac"
+      },
+      "frontend/src/spaces/CanonicalCapabilitiesSpace.tsx": {
+        "candidate_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09",
+        "tested_sha256": "e7cc71573266fcf5cc525ed8377aa3cfbab11ffbc72dd3769739aa333f654f09"
+      },
+      "frontend/vite.config.ts": {
+        "candidate_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579",
+        "tested_sha256": "65efc5497288d6b9f0e6294ec4cafc8f275047c3bded8082c5fc6ba3d1b47579"
+      },
+      "scripts/contracts/generate_capability_package_details.py": {
+        "candidate_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12",
+        "tested_sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
+      },
+      "tests/contract/test_capability_package_details.py": {
+        "candidate_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6",
+        "tested_sha256": "9cd3638306a191ca482677a2b50a7fdd5d357087814a95fcb6ffc9be51d3c8c6"
+      },
+      "scripts/contracts/check_capability_package_details.mjs": {
+        "candidate_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215",
+        "tested_sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
+      },
+      "tests/contract/test_capability_package_details_node.mjs": {
+        "candidate_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b",
+        "tested_sha256": "3986a82f956c1c2bc7f648a40d3fe85b72653ef7f64fc6899f77321a1317797b"
+      }
+    }
+  }
+]

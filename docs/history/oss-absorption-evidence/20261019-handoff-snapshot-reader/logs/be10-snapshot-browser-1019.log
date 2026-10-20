@@ -1,0 +1,10 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+{"status":"FAIL","checks":[],"violations":0,"incomplete":0,"console_errors":[]}
+file:///D:/All%20projects/ArcheAxis-Knowledge-OS/.project-local/audits/be10-snapshot-integration-20261019/browser.mjs:26
+ server=await createServer({configFile:false,root:site,cacheDir:join(out,'vite-cache'),plugins:[react()],resolve:{alias:{react:join(root,'frontend/node_modules/react'),'react-dom':join(root,'frontend/node_modules/react-dom')}},server:{host:'127.0.0.1',port:0,strictPort:true,hmr:false,fs:{strict:true,allow:[join(root,'frontend'),site]}}});
+              ^
+
+TypeError: createServer is not a function
+    at file:///D:/All%20projects/ArcheAxis-Knowledge-OS/.project-local/audits/be10-snapshot-integration-20261019/browser.mjs:26:15
+
+Node.js v24.21.0

@@ -798,7 +798,7 @@ def test_sleep_loop_real_file_read_requires_evidence_before_done():
                     "title": "读取引擎文档",
                     "content": "读取已提交的工程说明，必须返回 path + content evidence",
                     "executor": "file_read",
-                    "payload": {"path": "docs/HERMES_SLEEP_LOOP_ENGINE.md"},
+                    "payload": {"path": "docs/history/repository-consolidation-20261019/legacy-docs/HERMES_SLEEP_LOOP_ENGINE.md"},
                 }
             ],
             "config": {"max_runtime_hours": None},
@@ -818,7 +818,7 @@ def test_sleep_loop_real_file_read_requires_evidence_before_done():
     assert result["tool"] == "file_read"
     assert result["path"].endswith("docs\\HERMES_SLEEP_LOOP_ENGINE.md") or result[
         "path"
-    ].endswith("docs/HERMES_SLEEP_LOOP_ENGINE.md")
+    ].endswith("docs/history/repository-consolidation-20261019/legacy-docs/HERMES_SLEEP_LOOP_ENGINE.md")
     assert "content" in result
     assert result["real_evidence"] == "file_read_content_evidence"
     sl.stop_loop("test_done")

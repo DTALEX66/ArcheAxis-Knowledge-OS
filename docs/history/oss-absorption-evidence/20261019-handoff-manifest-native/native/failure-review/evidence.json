@@ -1,0 +1,77 @@
+{
+  "schema": "archeaxis.native-failure-readonly-review/v1",
+  "observed_at": "2026-10-18T21:58:12.029894+00:00",
+  "status": "FAIL_NATIVE_JOURNEY_MATERIAL_COMPANION_NOT_EXECUTED",
+  "read_only_database": {
+    "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-934ae2333af5\\tmp\\journey\\data\\archeaxis.sqlite",
+    "uri_mode": "ro",
+    "scope": "synthetic machine_tasks metadata and diagnostics only",
+    "modified": false
+  },
+  "source_files": [
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-934ae2333af5\\tmp\\journey\\receipt.json",
+      "sha256": "a885ff1601ded0649852dc7f653796906dec57976053e3edc278b580ad5e0257"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_tauri_webdriver_loop.py",
+      "sha256": "16b139b7bb4d348ab0d71a0c304b6a6429eda479aae5b75668495e9cc6eb66fa"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_grouped_owner_loop.py",
+      "sha256": "a37ef467c28e92ac62ce2b466b747d3e65ee555fe8ed476ff78abf2d53f54630"
+    },
+    {
+      "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\scripts\\probes\\aaos01_material_companion_loop.py",
+      "sha256": "8228c949940e9e722bd5f0e04e707f44421b84ec359e5d391298a948e9836c7f"
+    }
+  ],
+  "original_answer": {
+    "requested_model": "aaos-deep-27b-mtp",
+    "observed_model": "aaos-deep-27b-mtp",
+    "elapsed_s": 74.95,
+    "max_tokens": 1024,
+    "finish_reason": "stop"
+  },
+  "retest": {
+    "invoke_status": 503,
+    "failure_scope": "runtime.execution.failed",
+    "reason_code": "machine failure: MODEL_CALL_TIMEOUT",
+    "diagnostics": {
+      "discovery_elapsed_s": 0.0,
+      "elapsed_s": 118.03,
+      "error_type": "TimeoutError",
+      "max_tokens": 1024,
+      "request_stage": "model_request",
+      "requested_model": "aaos-deep-27b-mtp",
+      "timeout_s": 118
+    },
+    "answer_published": false,
+    "provider_stop_state": "UNKNOWN",
+    "attempt": 1,
+    "max_attempts": 3
+  },
+  "entrypoint": {
+    "standalone_material_companion_mode_exists": false,
+    "material_reached": false,
+    "companion_reached": false,
+    "cancel_reached": false
+  },
+  "performed": [
+    "read exact synthetic receipt",
+    "sqlite mode=ro metadata/diagnostic queries",
+    "read probe source and existing test entrypoints"
+  ],
+  "not_executed": [
+    "model inference",
+    "service or browser startup",
+    "product or proposal changes",
+    "tests",
+    "native runtime",
+    "failed workspace mutation"
+  ],
+  "artifacts": [
+    "REVIEW.md",
+    "evidence.json"
+  ]
+}

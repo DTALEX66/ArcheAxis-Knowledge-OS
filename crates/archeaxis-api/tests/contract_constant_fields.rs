@@ -1,6 +1,6 @@
 //! The contract's "fields that are constants, not data" list, as executable checks.
 //!
-//! docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md §4 warns the UI not to render six
+//! docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md §4 warns the UI not to render six
 //! things as measured values. A warning like that is only useful if it is true, so each is
 //! driven through the real HTTP router here.
 //!

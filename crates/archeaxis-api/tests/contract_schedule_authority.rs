@@ -1,6 +1,6 @@
 //! Which `schedule_authority` a review reports, and why it is a property of the launch.
 //!
-//! Two contracts describe this route differently. `docs/current/DSH-BACKEND-CONTRACT-20260927.md`
+//! Two contracts describe this route differently. `docs/history/repository-consolidation-20261019/current/DSH-BACKEND-CONTRACT-20260927.md`
 //! §9.2 says the Core needs `ARCHEAXIS_PYTHON` pointing at an interpreter with `fsrs`, and that
 //! otherwise `/api/v1/learning/reviews` reports `schedule_authority: "unavailable"` with a null
 //! `next_review`. The contract written on this branch had said the same request reports

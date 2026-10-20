@@ -2,7 +2,7 @@
 
 > 文档位置：`D:\All projects\OS External Configuration\EXTERNAL_DEPENDENCIES.md`
 > 仓库同步：`docs/environment/EXTERNAL_DEPENDENCIES.md`
-> 更新：2026-09-18
+> 更新：2026-10-18
 > 生产主机：Windows 10/11 x64
 >
 > **本文是 ArcheAxis-Knowledge-OS 项目外置依赖的唯一权威文档。任何新增系统工具、模型文件、外部服务
@@ -15,6 +15,28 @@
 > 本目录中的 HERMES_HOME 仅作环境变量登记，不代表本目录拥有或管理全局配置。**
 
 ---
+
+## 当前本地模型运行配置 · 2026-10-18
+
+当前项目选择 **LM Studio**，地址 `http://127.0.0.1:1234/v1`，使用 OpenAI-compatible API。
+机器回答、视觉描述、材料提问/对话的默认目标与新建 UI profile 均采用此地址；LM Studio
+不可用时具名失败，不自动探测、启动或回退 Ollama。显式选择的旧协议适配器只保留兼容用途，
+不属于当前自动路由，也不构成安装或运行 Ollama 的要求。
+
+机器绑定清单为 `config/environment/capability-requirements.yaml`。生成索引
+`config/environment/external-resources-index.json` 携带该清单的 SHA-256；更改声明后必须重建索引。
+共享权重保留在 `D:\All projects\Model library`，不复制进仓库、不改共享软件配置。
+模型清单可读、模型已加载、推理成功、embedding 和 rerank 成功分别验证。
+
+选择依据：项目已有 LM Studio 实际调用与共享 GGUF 模型；其官方 API 支持
+[`/v1/models`、`/v1/chat/completions`、`/v1/embeddings`](https://lmstudio.ai/docs/developer/openai-compat)，
+也支持[使用外部下载的 GGUF](https://lmstudio.ai/docs/app/advanced/import-model)。
+Ollama 也有 [OpenAI 兼容接口](https://docs.ollama.com/api/openai-compatibility)，
+但本项目当前不需要第二套自动推理服务；没有证据支持仅凭运行器名称推断模型质量或速度。
+
+旧模型 profile 的原字节、哈希与迁移记录见
+[`docs/history/runtime-migration-20261018/MANIFEST.json`](../history/runtime-migration-20261018/MANIFEST.json)。
+以下带日期的环境复核属于历史观察，不能覆盖本节的当前运行选择。
 
 ## 0.1 2026-09-15 实机目录复核
 
@@ -357,7 +379,7 @@ uv run python -m app.runtime_entrypoint
 ArcheAxis Knowledge — a local-first, evidence-driven, bidirectional Human–AI Learning Workspace for individuals and AI.
 ```
 
-**注意**：GitHub 仓库描述（About section）是固定字段，更新受限。产品名 "ArcheAxis Knowledge" 已在此文档和仓库的 `AGENTS.md`、`app/main.py`、`docs/PROJECT_STATUS.md` 等文件中使用，但 GH 描述字段中的旧名 "ArcheAxis Knowledge" 暂不在维护范围内手工修改。后期更新绕开此字段，以仓库内 `app/main.py` 的 `title` 为准。
+**注意**：GitHub 仓库描述（About section）是固定字段，更新受限。产品名 "ArcheAxis Knowledge" 已在此文档和仓库的 `AGENTS.md`、`app/main.py`、`docs/history/repository-consolidation-20261019/legacy-docs/PROJECT_STATUS.md` 等文件中使用，但 GH 描述字段中的旧名 "ArcheAxis Knowledge" 暂不在维护范围内手工修改。后期更新绕开此字段，以仓库内 `app/main.py` 的 `title` 为准。
 
 ---
 

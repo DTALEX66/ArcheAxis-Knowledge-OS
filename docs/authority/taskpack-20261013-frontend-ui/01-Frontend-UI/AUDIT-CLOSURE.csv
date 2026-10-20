@@ -1,0 +1,7 @@
+﻿audit_id,task_ids,verification
+P0-01,FE01|BE01,158 view state specifications and formal DTO admission
+P0-02,BE03|FE08|GF05,new material source-linked question
+P0-03,BE04|FE14,configuration restart and real trial
+P0-04,GF02|GF04|GF08|FE18|BE05,shared session and actual host
+P0-05,BE02|FE06,CAS layout and restart
+P0-06,FE02|FE03|FE04,7 key views and reusable materials

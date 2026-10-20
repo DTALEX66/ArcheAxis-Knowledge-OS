@@ -1,0 +1,76 @@
+{
+  "schema": "archeaxis.capability-human-admission/v1",
+  "observed_at": "2026-10-19T00:03:56.364230+00:00",
+  "status": "PASS",
+  "evidence_level": "INTEGRATED",
+  "scope": "Owned real Core process + launch middleware, synthetic tokens and empty isolated DB; not installed-host or real provider qualification",
+  "behavior": "Only launch-authenticated human may PUT capability enabled; machine cannot forge x-archeaxis-actor, including legacy machine launches",
+  "sources": {
+    "crates/archeaxis-api/src/runtime/mod.rs": "f93f680365d2c35ecda1f1e70fc2fd06bf486a572887c02920e3c77395b3c2d0",
+    "crates/archeaxis-api/tests/capability_settings_process.rs": "5403c516e2813ce265cdab306c89992cb7bf23e86f7aef36dbb1d866f32ccd55"
+  },
+  "verification": {
+    "red": {
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "scripts\\ci\\cargo_test.bat",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "capability_settings_process",
+        "--",
+        "--test-threads=1"
+      ],
+      "started_at": "2026-10-18T23:54:45.519462+00:00",
+      "ended_at": "2026-10-18T23:54:49.568024+00:00",
+      "exit_code": 101,
+      "source_patch_sha256": "d4aa2fd2fbb6760ff8e897498e3dfdb60450c2fa9747155e7fe92f948735a1e5",
+      "source_consistent": true,
+      "local_receipt": ".project-local/runs/be268a2d33/capability-human-red-v6-1019/artifacts/execution.json",
+      "receipt_sha256": "2f6d44786c6a53f3d52aaf4e2415f67b67376e80dfb20c2c9d5425f6eec10460"
+    },
+    "green": {
+      "command": [
+        "cmd",
+        "/d",
+        "/c",
+        "scripts\\ci\\cargo_test.bat",
+        "test",
+        "--offline",
+        "--locked",
+        "-p",
+        "archeaxis-api",
+        "--test",
+        "capability_settings_process",
+        "--",
+        "--test-threads=1"
+      ],
+      "started_at": "2026-10-19T00:01:32.423386+00:00",
+      "ended_at": "2026-10-19T00:01:37.485414+00:00",
+      "exit_code": 0,
+      "source_patch_sha256": "9ab5dffe59b6c9934dbffa4a84888cf74892a96d6de9eac48795c5a9d7ab952d",
+      "source_consistent": true,
+      "local_receipt": ".project-local/runs/be268a2d33/cloud-sync-capability-final-1019/artifacts/execution.json",
+      "receipt_sha256": "1dd5c3ba27f274065c48d2673a3366453eb0c83dc0aea90ee5559a8150d9c47d"
+    }
+  },
+  "tests_passed": 2,
+  "expected_red": "Both real process regressions returned 200 before guard; final guard returns 403 and exact settings remain unchanged",
+  "additional_checks": [
+    "invalid credential 401",
+    "unknown capability 404",
+    "malformed/duplicate/unknown fields 422",
+    "human disable/re-enable readback",
+    "zero documents/jobs/job_attempts side effects"
+  ],
+  "unresolved": [
+    "Executor model=None disabled-capability bypass static reachable path; guard patch NOT_CREATED/NOT_APPLIED, process regression NOT_EXECUTED",
+    "Already accepted work stopping and provider cancellation not established",
+    "HUB004 lifecycle/package qualification remains PARTIAL/UNKNOWN"
+  ]
+}

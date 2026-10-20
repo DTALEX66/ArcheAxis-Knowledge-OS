@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "evidence": "REAL_CHROMIUM / ACTUAL_PRODUCTION_BUNDLE / SYNTHETIC_CORE",
+  "checks": [
+    {
+      "name": "capability catalog: filters/search/future details stay read-only",
+      "status": "PASS"
+    },
+    {
+      "name": "capability scoped state: history and partial model settings are explicit",
+      "status": "PASS"
+    },
+    {
+      "name": "course preview and keyboard reference practice do not write or execute HTML",
+      "status": "PASS"
+    },
+    {
+      "name": "unknown save keeps original request; synthetic reopen reparses the original",
+      "status": "PASS"
+    },
+    {
+      "name": "unsupported input and list failure never look successful",
+      "status": "PASS"
+    },
+    {
+      "name": "narrow window and reduced motion: readable controls without horizontal page overflow",
+      "status": "PASS"
+    }
+  ],
+  "serious": []
+}

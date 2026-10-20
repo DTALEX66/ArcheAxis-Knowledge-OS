@@ -1,0 +1,74 @@
+{
+  "id": "capabilities",
+  "label": "全部能力",
+  "page_ids": [
+    "17",
+    "18"
+  ],
+  "state": "DESIGN_BRIEF_NOT_NEWLY_GENERATED_EFFECT",
+  "target_size": [
+    1920,
+    1080
+  ],
+  "verify_sizes": [
+    [
+      1366,
+      768
+    ],
+    [
+      1920,
+      1080
+    ],
+    [
+      2560,
+      1440
+    ]
+  ],
+  "layers": [
+    {
+      "order": 0,
+      "layer": "category_navigation",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 1,
+      "layer": "search_filters",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 2,
+      "layer": "current_category_list",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 3,
+      "layer": "single_selected_detail",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 4,
+      "layer": "readiness_text_light",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    },
+    {
+      "order": 5,
+      "layer": "future_source_links",
+      "render_owner": "code UI, except scene/character assets",
+      "export": "editable UI source or separate source asset"
+    }
+  ],
+  "rule": "分类列表加单详情，不叠加全能力窗口。",
+  "required_views": [
+    "empty",
+    "normal",
+    "unavailable",
+    "error",
+    "lite_quality"
+  ],
+  "prompt": "Create an adult-oriented professional learning workspace concept for ArcheAxis 星环知识系统. Use the supplied R3 hard sci-fi cosmic glass material reference. Preserve the formal page 17/18 and the five-zone shell; this screen is 全部能力. 分类列表加单详情，不叠加全能力窗口。 Dark orbital space, cool white-blue reflected edges, calm charcoal reading surfaces, restrained bloom, visible glass thickness. Include all of these functional regions with generous negative space: category_navigation, search_filters, current_category_list, single_selected_detail, readiness_text_light, future_source_links. Keep science fiction atmosphere while making body text easy to read. No internal AAOS logo, no fabricated progress or capability status. Use the supplied original 小栖 character only where this screen requires her. Render text and real values with code overlay after image generation; output scene and character layers separately."
+}

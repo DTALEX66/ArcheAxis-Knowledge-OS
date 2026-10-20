@@ -38,6 +38,15 @@ fn usable_receipt(meta: &Value, wire: &str) -> Option<Value> {
             return None;
         }
     }
+    // Historical PDF receipts used the package name as a fabricated version.
+    // Preserve stored execution/output evidence while withholding version-bound qualification.
+    if receipt["engine"] == "pymupdf-native-pdf"
+        && !receipt["engine_version"]
+            .as_str()
+            .is_some_and(|s| archeaxis_application::attempts::pdf_engine_version(s))
+    {
+        return None;
+    }
     Some(receipt)
 }
 

@@ -1,0 +1,572 @@
+*** Begin Patch
+*** Add File: frontend/src/presentation/learningTitle.ts
++/** Display-only labels. Identity, persistence and navigation always use item_key.
++ * Match Core's first nonempty line, Unicode whitespace and 80-scalar limit.
++ * Missing titles from an older Core remain a normal, non-identifying fallback.
++ */
++export function learningTitle(...candidates: unknown[]): string {
++  for (const candidate of candidates) {
++    if (typeof candidate !== "string") continue;
++    for (const line of candidate.split(/\r?\n/u)) {
++      const clean = line.replace(/\p{Cc}/gu, character => /\p{White_Space}/u.test(character) ? character : "");
++      const normalized = clean.split(/\p{White_Space}+/u).filter(Boolean).join(" ");
++      if (normalized) return Array.from(normalized).slice(0, 80).join("");
++    }
++  }
++  return "学习项目";
++}
+*** Add File: frontend/src/test/learningQueue.ts
++import {waitFor} from "@testing-library/react";
++
++/** Select one original identity; labels may be absent or shared by many items. */
++export function getLearningItemButton(itemKey: string, scope: ParentNode = document): HTMLButtonElement {
++  const matches = Array.from(scope.querySelectorAll<HTMLButtonElement>("button[data-learning-item-key]"))
++    .filter(button => button.getAttribute("data-learning-item-key") === itemKey);
++  if (matches.length !== 1) throw new Error(`Expected one learning item ${itemKey}, got ${matches.length}`);
++  return matches[0];
++}
++export function findLearningItemButton(itemKey: string, scope: ParentNode = document): Promise<HTMLButtonElement> {
++  return waitFor(() => getLearningItemButton(itemKey, scope));
++}
+*** Update File: frontend/src/spaces/CanonicalLearningSpace.tsx
+@@
+ import type {LearningDraft, PendingReview} from "../presentation/coreWorkingState";
+ import { courseLearningTarget } from "../presentation/courseLearningTarget";
+ import { coreCommand } from "../api/core";
++import type {LearningItemsDto} from "../api/generated/core-contract";
++import {learningTitle} from "../presentation/learningTitle";
+ import { ApiError } from "../api/client";
+ import { RawReceiptButton } from "../components/DiagnosticConsole";
+ import { Section } from "../components/RealData";
+@@
+   const localDrafts=useRef<Record<string,LearningDraft>>({});
+   const draftAtReview=useRef<LearningDraft|undefined>(undefined);
+   const [focusMode, setFocusMode] = useState(false);
+-  const [items, setItems] = useState<Record<string, unknown>[]>([]);
++  const [items, setItems] = useState<LearningItemsDto["items"]>([]);
+   const [itemKey, setItemKey] = useState("");
+   const [state, setState] = useState<Record<string, unknown>|null>(null);
+   const [history, setHistory] = useState<unknown>(null);
+@@
+   useEffect(()=>()=>{window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:dirtyOwner,dirty:false}}));},[dirtyOwner]);
+   async function refresh() {
+     try {
+-      const list = record(await coreCommand("learning_items"));
++      const list = await coreCommand<LearningItemsDto>("learning_items");
+       if (!Array.isArray(list.items)) throw new Error("invalid items");
+-      const rows = list.items.map(record);
+-      if (rows.some(row=>typeof row.item_key !== "string")) throw new Error("invalid item key");
+-      setItems(rows);
++      if (list.items.some(row=>typeof row.item_key !== "string")) throw new Error("invalid item key");
++      setItems(list.items);
+     } catch (error) {setMessage("学习队列读取失败，请重试。");setFailureReason(coreFailureReason(error));}
+   }
+   useEffect(()=>{void refresh();return()=>{epoch.current+=1;};},[]);
+@@
+       const item = items.find((row) => row.item_key === itemKey);
+       levels.push(
+         { id: "section:review", label: "复习队列", region: "review" },
+-        { id: `item:${itemKey}`, label: itemKey, detail: typeof item?.next_review === "string" ? `下次复习 ${item.next_review}` : "下次复习未安排", region: "review" },
++        { id: `item:${itemKey}`, label: learningTitle(item?.display_title, expectedJourney?.display_title), detail: typeof item?.next_review === "string" ? `下次复习 ${item.next_review}` : "下次复习未安排", region: "review" },
+       );
+     }
+     onTrail?.(levels);
+-  }, [itemKey, state, items, onTrail]);
++  }, [itemKey, state, items, onTrail, expectedJourney?.display_title]);
+   function currentDrafts(){return working?.session.getSnapshot().state.learning_drafts??localDrafts.current;}
+   async function discardDraft(draft:LearningDraft) {
+     if(busy||Object.values(working?.session.getSnapshot().state.pending_reviews??{}).some(entry=>entry.item_key===draft.item_key)||frozenReview.current&&itemKey===draft.item_key)return;
+@@
+   return <Section title="学习"><button type="button" aria-pressed={focusMode} onClick={()=>{setFocusMode(value=>{const next=!value;window.dispatchEvent(new CustomEvent("archeaxis-learning-focus",{detail:next}));return next;});}}>{focusMode?"退出聚焦模式":"进入聚焦模式"}</button><p>学习者记录与机器能力分别显示。记录复习结果不会自动证明机器能力或知识正确性。</p>{!focusMode?<button onClick={()=>void refresh()}>刷新学习队列</button>:null}
+     {Object.values(learningDrafts).length>0?<section aria-label="未提交学习草稿"><p>以下答案尚未提交复习；题目修订分别保留。</p>{Object.values(learningDrafts).map(draft=><details key={draft.assessment_id}><summary>学习草稿 {draft.item_key} · {draft.knowledge_version}</summary><label>保留的学习答案 {draft.assessment_id}<textarea readOnly value={draft.answer}/></label><button disabled={busy} onClick={()=>void open(draft.item_key)}>打开草稿题目 {draft.item_key}</button><button disabled={busy||pendingReviews.some(entry=>entry.item_key===draft.item_key)||reviewPending&&itemKey===draft.item_key} onClick={()=>void discardDraft(draft)}>丢弃草稿 {draft.item_key}</button></details>)}</section>:null}
+     {pendingReviews.length>1?<section aria-label="未确认复习请求"><p>有多个未确认的复习请求，请明确选择；其他请求仍由 Core 保留。</p>{pendingReviews.map(entry=><button key={entry.client_event_id} disabled={busy} onClick={()=>void open(entry.item_key)}>恢复复习请求 {entry.item_key}</button>)}</section>:null}
+-    <ul tabIndex={-1} data-section="review" aria-label="复习队列">{items.map(item=><li key={String(item.item_key)}><button disabled={busy} onClick={()=>void open(String(item.item_key))}>{String(item.item_key)}</button> · 下次复习 {typeof item.next_review === "string" ? item.next_review : "未安排"}</li>)}</ul>
++    <ul tabIndex={-1} data-section="review" aria-label="复习队列">{items.map(item=><li key={String(item.item_key)}><button data-learning-item-key={item.item_key} disabled={busy} onClick={()=>void open(item.item_key)}>{learningTitle(item.display_title)}</button> · 下次复习 {typeof item.next_review === "string" ? item.next_review : "未安排"}</li>)}</ul>
+     <form onSubmit={event=>{event.preventDefault();void open(itemKey);}}><label>学习项目键 <input value={itemKey} disabled={busy||reviewPending} onChange={event=>{epoch.current+=1;setItemKey(event.target.value);setState(null);}} /></label><button disabled={!itemKey.trim()||busy}>读取项目</button></form>
+     {state?<article>{(()=>{const learner=record(state.learner);const assessment=learner.assessment?record(learner.assessment):null;return <>
+       <h3>复习题</h3>
+*** Update File: frontend/src/spaces/CanonicalWorkspaceSpace.tsx
+@@
+ import { useEffect, useRef, useState } from "react";
+ import { coreCommand } from "../api/core";
+-import type { DocumentSummaryDto } from "../api/generated/core-contract";
++import type { DocumentSummaryDto, LearningItemsDto } from "../api/generated/core-contract";
+ import { coreFailureReason } from "../presentation/labels";
+ import type { SpaceId } from "./spaces";
+ import { LocalDocumentSearch } from "../components/LocalDocumentSearch";
+ import { workspaceReviews } from "../presentation/workspaceReview";
++import {learningTitle} from "../presentation/learningTitle";
+ import { AaosIcon } from "../components/AaosIcon";
+ import { BrandHeader } from "../components/BrandHeader";
+ import {ConversationPanel} from "../components/ConversationPanel";
+@@
+ export function CanonicalWorkspaceSpace({onNavigate,onOpenDocument,onReviewItem}:{onNavigate:(space:SpaceId)=>void;onOpenDocument?:(id:string)=>void;onReviewItem?:(key:string)=>void}) {
+   const searchOptions = useRef<HTMLDetailsElement>(null);
+   const [documents,setDocuments] = useState<DocumentSummaryDto[]>([]);
+-  const [learning,setLearning] = useState<{item_key:string;next_review:string|null}[]>([]);
++  const [learning,setLearning] = useState<LearningItemsDto["items"]>([]);
+   const [state,setState] = useState("正在读取本地工作区…");
+   const [failed,setFailed] = useState(false);
+   const [retry,setRetry] = useState(0);
+@@
+   useEffect(()=>{
+     let alive=true;
+     setState("正在读取本地工作区…");setFailed(false);
+-    Promise.all([coreCommand<{documents:DocumentSummaryDto[]}>("documents_list"),coreCommand<{items:{item_key:string;next_review:string|null}[]}>("learning_items")])
++    Promise.all([coreCommand<{documents:DocumentSummaryDto[]}>("documents_list"),coreCommand<LearningItemsDto>("learning_items")])
+       .then(([docs,items])=>{
+         if (!Array.isArray(docs.documents) || !Array.isArray(items.items)) throw new Error("工作区内容合同不兼容");
+         if(alive){setDocuments(docs.documents);setLearning(items.items);setState("");}
+@@
+     {!failed&&!state&&!empty?<><div className="ui-workspace-grid">
+       <section data-section="documents" tabIndex={-1}><div className="workspace-section-heading"><AaosIcon name="Source"/><h2>继续阅读与编辑</h2></div><p>本地已保存文档。列表不代表最近编辑排序。</p>{documents.length?<ul>{documents.slice(0,8).map(document=><li key={document.document_id}><button onClick={()=>onOpenDocument?.(document.document_id)}>{document.title} · v{document.version}</button><small>{document.source_id?"关联来源原件":"原创文档 · 未绑定来源"}</small></li>)}</ul>:<div className="workspace-empty"><AaosIcon name="Knowledge" size={28}/><p>还没有已保存文档，可从新建笔记开始。</p></div>}</section>
+       <section data-section="review" tabIndex={-1}><div className="workspace-section-heading"><AaosIcon name="Review"/><h2>到期复习</h2></div><p>{reviews.due.length} 个已到期 · {reviews.unscheduled} 个未安排 · {reviews.unverified} 个日期待核实</p>
+-        {reviews.due.length?<ul>{reviews.due.slice(0,8).map(item=><li key={item.item_key}><button disabled={!onReviewItem} onClick={()=>onReviewItem?.(item.item_key)}>{item.item_key}</button><small>到期 {item.next_review}（UTC）</small></li>)}</ul>:<p>{learning.length?"当前没有已核实的到期复习。":"当前没有本地学习条目。"}</p>}
++        {reviews.due.length?<ul>{reviews.due.slice(0,8).map(item=><li key={item.item_key}><button data-learning-item-key={item.item_key} disabled={!onReviewItem} onClick={()=>onReviewItem?.(item.item_key)}>{learningTitle(item.display_title)}</button><small>到期 {item.next_review}（UTC）</small></li>)}</ul>:<p>{learning.length?"当前没有已核实的到期复习。":"当前没有本地学习条目。"}</p>}
+         {reviews.due.length>8?<p>先显示最早到期的 8 个，全部条目可进入学习查看。</p>:null}<button onClick={()=>onNavigate("learning")}>查看全部学习条目</button>
+       </section>
+     </div></>:null}
+*** Update File: frontend/src/presentation/workspaceReview.ts
+@@
+-export type WorkspaceReviewItem = { item_key: string; next_review: string | null };
++import type {LearningItemsDto} from "../api/generated/core-contract";
++export type WorkspaceReviewItem = LearningItemsDto["items"][number];
+ /** Core's legacy SQLite datetime is UTC; never interpret it as browser local time. */
+ export function reviewDeadline(value: string | null): number | null {
+   if (value === null) return null;
+*** Update File: frontend/src/presentation/learningJourney.ts
+@@
+ import {coreCommand} from "../api/core";
++import {learningTitle} from "./learningTitle";
+ import {readCourse,type Course} from "../components/KnowledgeCoursePanel";
+-export type LearningJourneyTarget={item_key:string;knowledge_id:string;knowledge_version:string;assessment_id:string;source_id:string|null;anchor_id:string|null;course?:Course};
++export type LearningJourneyTarget={item_key:string;display_title?:string;knowledge_id:string;knowledge_version:string;assessment_id:string;source_id:string|null;anchor_id:string|null;course?:Course};
+ function record(value:unknown):Record<string,unknown>{if(!value||typeof value!=="object"||Array.isArray(value))throw new Error("invalid learning identity");return value as Record<string,unknown>;}
+ export function assertJourneyAssessment(value:unknown,target:LearningJourneyTarget){const a=record(value);if(a.item_key!==target.item_key||a.assessment_id!==target.assessment_id||a.knowledge_id!==target.knowledge_id||a.knowledge_version!==target.knowledge_version||a.source_id!==target.source_id||a.anchor_id!==target.anchor_id)throw new Error("learning assessment identity changed");}
+ /** Read the exact persisted assessment; never create a substitute or select a search hit. */
+@@
+   course=readCourse(await coreCommand("course_get",{course_id:match[1]}),a.knowledge_id);
+   if(course.id!==match[1]||course.artifactId!==match[2]||course.sourceId!==a.source_id)throw new Error("course learning identity mismatch");
+  }
+- return {item_key,knowledge_id:a.knowledge_id,knowledge_version:a.knowledge_id,assessment_id:a.assessment_id,source_id:a.source_id as string|null,anchor_id:a.anchor_id as string|null,course};
++ return {item_key,display_title:learningTitle(course?.title,a.content),knowledge_id:a.knowledge_id,knowledge_version:a.knowledge_id,assessment_id:a.assessment_id,source_id:a.source_id as string|null,anchor_id:a.anchor_id as string|null,course};
+ }
+*** Update File: frontend/src/spaces/CanonicalTeachingSpace.tsx
+@@
+ import type { TeachingDraft } from "../presentation/coreWorkingState";
+ 
+ import {resolveLearningJourney,type LearningJourneyTarget} from "../presentation/learningJourney";
++import {learningTitle} from "../presentation/learningTitle";
+ 
+ type Kind = TeachingRecord["kind"];
+ type Knowledge = { knowledge_id: string; head: string };
+@@
+       {parent&&courseId?<button disabled={busy} onClick={()=>void chooseCourse(courseId)}>核对父课程并读取练习入口</button>:null}
+       {pageId==="11"?<><button disabled={busy||!itemKey||pending} onClick={()=>void readAssessment()}>读取绑定的真实学习问题</button><button disabled={busy||!itemKey} onClick={()=>setPractice(value=>!value)}>打开真实练习队列</button><p>独立作答/成绩记录由真实学习合同承接；Teach-back只是手工记录，不调用旧Python评分。</p></>:null}
+     </aside></div>
+-    {initialItemKey&&["11","12"].includes(pageId)?<section aria-label="同对象练习与复习"><h3>此学习项目的练习与复习</h3><p>{initialItemKey}</p>{journey?<><p>知识 {journey.knowledge_id} · 问题 {journey.assessment_id}{journey.course?` · 课程 ${journey.course.id} · 课时 ${journey.course.artifactId}`:""}</p><CanonicalLearningSpace key={journey.item_key} initialItemKey={journey.item_key} expectedJourney={journey} onReturnCourse={journey.course?returnCourse:undefined} onTrail={onTrail}/></>:journeyFailure?<p role="alert">同对象学习身份未核对，不能提交结果。{journeyFailure}</p>:<p role="status">正在核对原学习项目、知识与问题身份…</p>}</section>:null}
++    {initialItemKey&&["11","12"].includes(pageId)?<section aria-label="同对象练习与复习"><h3>此学习项目的练习与复习</h3><p>{learningTitle(journey?.display_title)}</p>{journey?<><p>知识 {journey.knowledge_id} · 问题 {journey.assessment_id}{journey.course?` · 课程 ${journey.course.id} · 课时 ${journey.course.artifactId}`:""}</p><CanonicalLearningSpace key={journey.item_key} initialItemKey={journey.item_key} expectedJourney={journey} onReturnCourse={journey.course?returnCourse:undefined} onTrail={onTrail}/></>:journeyFailure?<p role="alert">同对象学习身份未核对，不能提交结果。{journeyFailure}</p>:<p role="status">正在核对原学习项目、知识与问题身份…</p>}</section>:null}
+     {returnedCourse?.course?<section aria-label="原课程与绑定版本"><h3>当前学习问题绑定的原课程</h3><p>仅阅读本题绑定的知识修订 {returnedCourse.knowledge_version}；不创建或升级课程、问题和复习记录。</p><button type="button" onClick={()=>setReturnedCourse(undefined)}>关闭课程并继续编辑</button><KnowledgeCoursePanel key={courseRead} readOnly courseId={returnedCourse.course.id} knowledgeId={returnedCourse.knowledge_id} expectedItemKey={returnedCourse.item_key} expectedCourse={returnedCourse.course}/></section>:null}
+     {!initialItemKey&&practice&&itemKey?<CanonicalLearningSpace initialItemKey={itemKey} onTrail={onTrail}/>:null}
+ 
+*** Update File: frontend/src/__tests__/CanonicalLearningDrafts.test.tsx
+@@
++import {findLearningItemButton,getLearningItemButton} from "../test/learningQueue";
+ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+ import userEvent from "@testing-library/user-event";
+ import { afterEach, beforeEach, expect, it, vi } from "vitest";
+@@
+ it("preserves independent unsubmitted answers and checks when switching a -> b -> a",async()=>{
+   const f=fixture();await f.session.load();
+   render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
+-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));
++  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));
+   await user.type(await screen.findByLabelText("本次答案"),"  answer A\n第二行  ");
+   await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));
+   await user.click(screen.getByLabelText("回答正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"3");
+-  await user.click(screen.getByRole("button",{name:"b"}));
++  await user.click(getLearningItemButton("b"));
+   await user.type(await screen.findByLabelText("本次答案"),"answer B");
+-  await user.click(screen.getByRole("button",{name:"a"}));
++  await user.click(getLearningItemButton("a"));
+   await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("  answer A\n第二行  "));
+   expect(screen.getByLabelText("回答正确")).toBeChecked();expect(screen.getByLabelText("学习者自评")).toHaveValue("3");
+-  await user.click(screen.getByRole("button",{name:"b"}));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("answer B"));
++  await user.click(getLearningItemButton("b"));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("answer B"));
+   expect(call.mock.calls.some(([op])=>op==="learning_review")).toBe(false);
+ });
+ it("reopens an unsubmitted answer from a new Core working-state session without creating a review event",async()=>{
+   const f=fixture();await f.session.load();const first=render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
+-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));await user.type(await screen.findByLabelText("本次答案"),"尚未提交的答案");
++  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"尚未提交的答案");
+   await act(async()=>{await f.session.flush();});first.unmount();
+   const reopened=new CoreWorkingStateSession(f.transport);await reopened.load();render(<CoreWorkingStateProvider session={reopened}><CanonicalLearningSpace initialItemKey="a"/></CoreWorkingStateProvider>);
+   await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("尚未提交的答案"));
+@@
+ });
+ it("retains an old assessment answer separately when the item's current assessment changes",async()=>{
+   const f=fixture();await f.session.load();render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
+-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));await user.type(await screen.findByLabelText("本次答案"),"original revision answer");
+-  await user.click(screen.getByRole("button",{name:"b"}));await screen.findByText("question b");
++  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"original revision answer");
++  await user.click(getLearningItemButton("b"));await screen.findByText("question b");
+   const original=call.getMockImplementation()!;call.mockImplementation(async(op,payload)=>op==="learning_state"&&payload.item_key==="a"?{item_key:"a",learner:{assessment:assessment("a","v2")},machine:{status:"not_recorded"}}:original(op,payload));
+-  await user.click(screen.getByRole("button",{name:"a"}));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue(""));
++  await user.click(getLearningItemButton("a"));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue(""));
+   await user.type(screen.getByLabelText("本次答案"),"new revision answer");
+   expect(f.session.getSnapshot().state.learning_drafts?.assessment_a_v1.answer).toBe("original revision answer");
+   expect(f.session.getSnapshot().state.learning_drafts?.assessment_a_v2.answer).toBe("new revision answer");
+@@
+   const f=fixture();await f.session.load();let release!:(value:unknown)=>void;
+   const original=call.getMockImplementation()!;call.mockImplementation(async(op,payload)=>op==="learning_state"&&payload.item_key==="a"?new Promise(resolve=>{release=resolve;}):original(op,payload));
+   render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
+-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));await user.click(screen.getByRole("button",{name:"b"}));
++  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.click(getLearningItemButton("b"));
+   await user.type(await screen.findByLabelText("本次答案"),"belongs to B");
+   await act(async()=>release({item_key:"a",learner:{assessment:assessment("a")},machine:{status:"not_recorded"}}));
+   expect(screen.getByText("question b")).toBeInTheDocument();expect(screen.getByLabelText("本次答案")).toHaveValue("belongs to B");
+@@
+   const f=fixture();await f.session.load();let attempts=0;
+   const original=call.getMockImplementation()!;call.mockImplementation(async(op,payload)=>{if(op==="learning_review"){if(++attempts===1)throw new Error("lost receipt");return {next_review_days:1};}return original(op,payload);});
+   render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
+-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"b"}));await user.type(await screen.findByLabelText("本次答案"),"answer B");
+-  await user.click(screen.getByRole("button",{name:"a"}));await user.type(await screen.findByLabelText("本次答案"),"  answer A  ");
++  const user=userEvent.setup();await user.click(await findLearningItemButton("b"));await user.type(await screen.findByLabelText("本次答案"),"answer B");
++  await user.click(getLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"  answer A  ");
+   await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));await user.click(screen.getByLabelText("回答正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"3");
+   await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/复习提交未确认/);
+   const frozen=structuredClone(f.session.getSnapshot().state.pending_reviews);
+@@
+ });
+ it("discards only an explicitly confirmed draft and resets the current answer after Core ACK",async()=>{
+   const f=fixture();await f.session.load();render(<CoreWorkingStateProvider session={f.session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);
+-  const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a"}));await user.type(await screen.findByLabelText("本次答案"),"discard only on request");
++  const user=userEvent.setup();await user.click(await findLearningItemButton("a"));await user.type(await screen.findByLabelText("本次答案"),"discard only on request");
+   await user.click(screen.getByText("学习草稿 a · v1"));const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+   await user.click(screen.getByRole("button",{name:"丢弃草稿 a"}));expect(f.session.getSnapshot().state.learning_drafts?.assessment_a_v1.answer).toBe("discard only on request");
+   confirm.mockReturnValue(true);await user.click(screen.getByRole("button",{name:"丢弃草稿 a"}));await screen.findByText("Core 已确认丢弃这份学习草稿。");
+*** Update File: frontend/src/__tests__/CanonicalReviewLearning.test.tsx
+@@
++import {findLearningItemButton,getLearningItemButton} from "../test/learningQueue";
+ import {useDiagnostics, resetDiagnostics} from "../presentation/diagnostics";
+ import {renderHook} from "@testing-library/react";
+ import {CoreWorkingStateProvider} from "../presentation/useCoreWorkingState";
+@@
+    if(op==="learning_history") return {events:[]};
+    if(op==="learning_review") throw new Error("unconfirmed");
+   });
+-  render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a1"}));
++  render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await findLearningItemButton("a1"));
+   const machineDebug=vi.spyOn(console,"debug").mockImplementation(()=>{}); const diagnostics = renderHook(useDiagnostics);
+   await user.click(await screen.findByRole("button",{name:/机器能力/}));
+   expect(diagnostics.result.current.map(entry => [null, entry.label, entry.payload]).some(([,label,payload])=>label==="机器能力记录回执"&&JSON.stringify(payload).includes("not_recorded"))).toBe(true);
+@@
+   await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));expect(screen.getByText("绑定修订中的核对内容")).toBeInTheDocument();
+   await user.click(screen.getByLabelText("回答不正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"1");
+   await user.click(screen.getByRole("button",{name:"记录复习结果"}));await screen.findByText(/提交未确认/);
+-  await user.click(screen.getByRole("button",{name:"a1"}));
++  await user.click(getLearningItemButton("a1"));
+   expect(screen.getByLabelText("本次答案")).toHaveValue("本次实际答案");
+   expect(screen.getByLabelText("本次答案")).toBeDisabled();
+   expect(screen.getByLabelText("学习者自评")).toBeDisabled();
+@@
+    if(op==="learning_history")return {events:[]};if(op==="learning_review")throw new Error("synthetic ACK unknown");throw new Error("unexpected mutation");
+   });
+   render(<CoreWorkingStateProvider session={session}><CanonicalLearningSpace/></CoreWorkingStateProvider>);const user=userEvent.setup();
+-  await screen.findByRole("button",{name:"a2"});expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).toHaveLength(0);
++  await findLearningItemButton("a2");expect(bridge.call.mock.calls.filter(([op])=>op==="learning_state")).toHaveLength(0);
+   await user.click(screen.getByRole("button",{name:"恢复复习请求 a2"}));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("answer_a2"));expect(screen.getByLabelText("本次答案")).toBeDisabled();
+   await user.click(screen.getByRole("button",{name:"恢复复习请求 a1"}));await waitFor(()=>expect(screen.getByLabelText("本次答案")).toHaveValue("answer_a1"));
+   expect(session.getSnapshot().state.pending_reviews).toEqual(server.state.pending_reviews);expect(write).not.toHaveBeenCalled();expect(bridge.call.mock.calls.filter(([op])=>op==="learning_review")).toHaveLength(0);
+@@
+    if(op==="learning_history")return {events:reviewed?[{event_id:"event"}]:[]};
+    if(op==="learning_review"){reviewed=true;return {next_review:"tomorrow"};}throw new Error("unexpected");
+   });
+-  render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await screen.findByRole("button",{name:"a1"}));
++  render(<CanonicalLearningSpace/>);const user=userEvent.setup();await user.click(await findLearningItemButton("a1"));
+   await user.type(screen.getByLabelText("本次答案"),"answer");await user.click(screen.getByRole("button",{name:"查看答案与核对内容"}));await user.click(screen.getByLabelText("回答正确"));await user.selectOptions(screen.getByLabelText("学习者自评"),"3");await user.click(screen.getByRole("button",{name:"记录复习结果"}));
+   await screen.findByText("已读回新状态");expect(screen.getByLabelText("本次答案")).toHaveValue("");expect(screen.getByLabelText("本次答案")).not.toBeDisabled();expect(screen.getByText(/已读回 1 条复习事件/)).toBeInTheDocument();
+  });
+ 
+ });
++
++
++it("SIMULATED queue and breadcrumb show shared titles while selecting each exact long item key",async()=>{
++  const keys=[`course:${"a".repeat(64)}:artifact:${"b".repeat(64)}`,`course:${"c".repeat(64)}:artifact:${"d".repeat(64)}`];
++  bridge.call.mockImplementation(async(operation:string,payload:Record<string,unknown>={})=>{
++    if(operation==="learning_items")return {items:keys.map(item_key=>({item_key,display_title:"同名学习主题",next_review:null})),count:2};
++    if(operation==="learning_state")return {item_key:payload.item_key,learner:{assessment:{assessment_id:`assessment_${payload.item_key}`,question:"固定问题",content:"固定核对内容",knowledge_version:"fixed-version"}},machine:{status:"not_recorded"}};
++    if(operation==="learning_history")return {events:[]};
++    throw new Error(operation);
++  });
++  const onTrail=vi.fn(),selected=vi.fn();render(<CanonicalLearningSpace onTrail={onTrail} onItemSelected={selected}/>);
++  await waitFor(()=>expect(screen.getAllByRole("button",{name:"同名学习主题"})).toHaveLength(2));
++  for(const key of keys){
++    const button=getLearningItemButton(key);expect(button).toHaveTextContent("同名学习主题");
++    expect(screen.queryByRole("button",{name:key})).not.toBeInTheDocument();
++    fireEvent.click(button);
++    await waitFor(()=>expect(onTrail).toHaveBeenLastCalledWith([
++      expect.objectContaining({id:"section:review"}),
++      expect.objectContaining({id:`item:${key}`,label:"同名学习主题"}),
++    ]));
++    expect(screen.getByLabelText("学习项目键")).toHaveValue(key);
++  }
++  expect(selected.mock.calls).toEqual(keys.map(key=>[key]));
++  expect(bridge.call.mock.calls.filter(([operation])=>operation==="learning_state").map(([,payload])=>payload)).toEqual(keys.map(item_key=>({item_key})));
++  expect(bridge.call.mock.calls.some(([operation])=>["learning_review","assessment_create","learning_reference"].includes(operation))).toBe(false);
++});
+*** Update File: frontend/src/__tests__/LearningPracticeJourney.test.tsx
+@@
++import {findLearningItemButton} from "../test/learningQueue";
+ import {useState} from "react";
+ import {webcrypto} from "node:crypto";
+ import {beforeEach,it,expect,vi} from "vitest";
+-import {render,screen,fireEvent,waitFor} from "@testing-library/react";
++import {render,screen,fireEvent,waitFor,within} from "@testing-library/react";
+ import {SpaceView} from "../spaces/SpaceView";
+ import {CanonicalTeachingSpace} from "../spaces/CanonicalTeachingSpace";
++import {resolveLearningJourney} from "../presentation/learningJourney";
+ const bridge=vi.hoisted(()=>({call:vi.fn()}));
+ vi.mock("../api/core",()=>({coreCommand:bridge.call}));
+ const key="course:course-exact:artifact:lesson-exact",knowledgeId="knowledge-exact";
+@@
+  fireEvent.click(screen.getByRole("button",{name:"搜索知识"}));fireEvent.click(await screen.findByRole("button",{name:"已接受的同源知识"}));
+  fireEvent.click(await screen.findByRole("button",{name:"从当前知识生成课程与课时"}));fireEvent.click(await screen.findByRole("button",{name:"由课程课时建立学习问题"}));
+  fireEvent.click(await screen.findByRole("button",{name:"练习此学习项目"}));
++ await waitFor(()=>expect(within(screen.getByLabelText("同对象练习与复习")).getByText("同源课程")).toBeInTheDocument());
+  const answer=await screen.findByRole("textbox",{name:"本次答案"});fireEvent.change(answer,{target:{value:"独立作答同一来源"}});
+  fireEvent.click(screen.getByRole("button",{name:"反馈与修订"}));
+  await waitFor(()=>expect(screen.getByRole("textbox",{name:"本次答案"})).toHaveValue("独立作答同一来源"));
+@@
+ });
+ it("SIMULATED explicitly selected persisted review item can continue into page11 without recreating its assessment",async()=>{
+  setup();events.push({prior:true});render(<Journey initial="06"/>);
+- fireEvent.click(await screen.findByRole("button",{name:key}));
++ fireEvent.click(await findLearningItemButton(key));
+  await waitFor(()=>expect(screen.getByRole("button",{name:"练习此学习项目"})).toBeEnabled());
+  fireEvent.click(screen.getByRole("button",{name:"练习此学习项目"}));
+  await screen.findByRole("textbox",{name:"本次答案"});
+@@
+  expect(screen.getByLabelText("内容")).toHaveValue("不覆盖反馈草稿");expect(screen.getByLabelText("本次答案")).toHaveValue("不覆盖答案");
+  expect(bridge.call.mock.calls.some(([op])=>["course_from_knowledge","assessment_create","learning_reference","learning_review","teaching_create"].includes(op))).toBe(false);
+ });
++
++
++it("SIMULATED non-course journey derives a title from the fixed assessment without another Core read",async()=>{
++ setup();const original=bridge.call.getMockImplementation()!;const item_key="legacy-assessment-card";
++ bridge.call.mockImplementation((operation:string,payload:Record<string,unknown>)=>operation==="assessment_get"
++  ?Promise.resolve({...assessment(),item_key,content:"\n 固定\t题面标题\n第二行保持在快照中"})
++  :original(operation,payload));
++ const target=await resolveLearningJourney(item_key);
++ expect(target).toMatchObject({item_key,display_title:"固定 题面标题",knowledge_id:knowledgeId,assessment_id:"assessment-exact"});
++ expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["assessment_get","knowledge_get"]);
++ expect(events).toHaveLength(0);
++});
+*** Update File: frontend/src/__tests__/LiveRegionBudget.test.tsx
+@@
++import {findLearningItemButton} from "../test/learningQueue";
+ import {useDiagnostics} from "../presentation/diagnostics";
+ import { jobContentCoreFixture } from "./fixtures/jobContentCoreFixture";
+ // @vitest-environment jsdom
+@@
+       throw new Error(String(operation));
+     });
+     const { container } = render(<CanonicalLearningSpace />);
+-    await userEvent.setup().click(await screen.findByRole("button", { name: "a1" }));
++    await userEvent.setup().click(await findLearningItemButton("a1"));
+ 
+     const recordRegion = await screen.findByText("历史与回执");
+     expect(recordRegion.parentElement?.querySelector("pre")).toBeNull();
+*** Update File: frontend/src/__tests__/ThreeLevelNavigation.test.tsx
+@@
+ // @vitest-environment jsdom
++import {getLearningItemButton} from "../test/learningQueue";
+ import { readFileSync } from "node:fs";
+ import { dirname, join } from "node:path";
+ import { fileURLToPath } from "node:url";
+@@
+     expect(document.activeElement).toBe(region);
+   });
+ 
+-  it("publishes the real learning item key as the tertiary level of the review group", async () => {
++  it("keeps the real learning item identity while publishing its readable tertiary label", async () => {
+     bridge.call.mockImplementation(async (operation: string) => {
+-      if (operation === "learning_items") return { items: [{ item_key: "item_ui02", next_review: "2026-10-09T00:00:00Z" }] };
++      if (operation === "learning_items") return { items: [{ item_key: "item_ui02", display_title: "固定复习主题", next_review: "2026-10-09T00:00:00Z" }] };
+       if (operation === "learning_state") return { item_key: "item_ui02", learner: {}, machine: { status: "not_recorded" } };
+       if (operation === "learning_history") return { events: [] };
+       throw new Error(operation);
+@@
+     render(<CanonicalLearningSpace onTrail={onTrail} />);
+     const queue = await screen.findByLabelText("复习队列");
+     expect(queue).toHaveAttribute("data-section", "review");
+-    await userEvent.setup().click(screen.getByRole("button", { name: "item_ui02" }));
++    await userEvent.setup().click(getLearningItemButton("item_ui02"));
+     await waitFor(() => expect(onTrail).toHaveBeenCalledWith([
+       expect.objectContaining({ id: "section:review", region: "review" }),
+-      expect.objectContaining({ id: "item:item_ui02", label: "item_ui02", detail: "下次复习 2026-10-09T00:00:00Z", region: "review" }),
++      expect.objectContaining({ id: "item:item_ui02", label: "固定复习主题", detail: "下次复习 2026-10-09T00:00:00Z", region: "review" }),
+     ]));
+   });
+ 
+*** Update File: frontend/src/__tests__/UiFirstWorkspace.test.tsx
+@@
++import {getLearningItemButton} from "../test/learningQueue";
+ import { CommandPalette } from "../components/CommandPalette";
+ import { afterEach, describe, expect, it, vi } from "vitest";
+ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+@@
+     const navigate=vi.fn(),open=vi.fn(),review=vi.fn();
+     render(<div className="cabin-shell" data-navigation-appearance="top"><CanonicalWorkspaceSpace onNavigate={navigate} onOpenDocument={open} onReviewItem={review}/></div>);
+     fireEvent.click(await screen.findByRole("button",{name:"保留文档 · v2"}));expect(open).toHaveBeenCalledWith("kept_doc");
+-    fireEvent.click(screen.getByRole("button",{name:"due_item"}));expect(review).toHaveBeenCalledWith("due_item");
++    expect(getLearningItemButton("due_item")).toHaveTextContent("学习项目");
++    fireEvent.click(getLearningItemButton("due_item"));expect(review).toHaveBeenCalledWith("due_item");
+     fireEvent.click(screen.getByRole("button",{name:/开始使用/}));expect(navigate).toHaveBeenLastCalledWith("intake");
+     fireEvent.click(screen.getByRole("button",{name:"打开学习空间"}));expect(navigate).toHaveBeenLastCalledWith("learning");
+     fireEvent.click(screen.getByRole("button",{name:"查找本地文档"}));
+@@
+     expect(resolveNavigationHash("#page=99")).toBeNull();
+   });
+ });
++
++
++it("SIMULATED due items with one shared title keep separate original callback identities",async()=>{
++  const keys=[`course:${"a".repeat(64)}:artifact:${"b".repeat(64)}`,`course:${"c".repeat(64)}:artifact:${"d".repeat(64)}`];
++  bridge.call.mockImplementation(async(operation:string)=>{
++    if(operation==="conversation_history")return {schema:"archeaxis.conversation-catalog/v1",sessions:[],limit:16};
++    if(operation==="documents_list")return {documents:[]};
++    if(operation==="learning_items")return {items:keys.map(item_key=>({item_key,display_title:"同名复习主题",next_review:"2020-01-01T00:00:00Z"})),count:2};
++    throw new Error(operation);
++  });
++  const review=vi.fn();render(<CanonicalWorkspaceSpace onNavigate={vi.fn()} onReviewItem={review}/>);
++  await waitFor(()=>expect(screen.getAllByRole("button",{name:"同名复习主题"})).toHaveLength(2));
++  for(const key of keys){
++    const button=getLearningItemButton(key);
++    expect(button).toHaveTextContent("同名复习主题");
++    expect(screen.queryByRole("button",{name:key})).not.toBeInTheDocument();
++    fireEvent.click(button);
++  }
++  expect(review.mock.calls).toEqual(keys.map(key=>[key]));
++  expect(bridge.call.mock.calls.map(([operation])=>operation)).toEqual(["conversation_history","documents_list","learning_items"]);
++});
+*** Update File: frontend/src/__tests__/CoreBridge.test.ts
+@@
+   expect(error.machineFailure?.diagnostics).toEqual(diagnostics);
+   expect(JSON.stringify(error)).not.toContain("SYNTHETIC_PRIVATE");
+ });
++
++
++it("SIMULATED learning titles remain optional for an older Core and accept 80 Unicode scalars",async()=>{
++  const legacy={items:[{item_key:"original-long-item-key",next_review:null}],count:1};
++  const invoke=vi.fn().mockResolvedValue({status:200,body:legacy});window.__TAURI__={core:{invoke}};
++  await expect(coreCommand("learning_items")).resolves.toEqual(legacy);
++  const current={items:[{...legacy.items[0],display_title:"🛰".repeat(80)}],count:1};
++  invoke.mockResolvedValue({status:200,body:current});
++  await expect(coreCommand("learning_items")).resolves.toEqual(current);
++});
++it.each([null,"","🛰".repeat(81),42])("SIMULATED rejects a supplied malformed learning title %s",async(display_title)=>{
++  const body={items:[{item_key:"original-long-item-key",next_review:null,display_title}],count:1};
++  window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body})}};
++  await expect(coreCommand("learning_items")).rejects.toMatchObject({status:502,code:"incompatible"});
++});
+*** Add File: frontend/src/__tests__/LearningTitle.test.ts
++import {expect,it} from "vitest";
++import {learningTitle} from "../presentation/learningTitle";
++
++it.each([
++  [undefined,"学习项目"],
++  [null,"学习项目"],
++  ["\n \t\n\u0000","学习项目"],
++  ["\n 固定\t 摘要\u0000 内容\n不要取第二行","固定 摘要 内容"],
++  ["\u0085标题\u0085摘要","标题 摘要"],
++  ["星🛰".repeat(50),"星🛰".repeat(40)],
++] as const)("keeps the Core-equivalent display-only title for %s",(value,expected)=>{
++  expect(learningTitle(value)).toBe(expected);
++});
++it("uses a verified course title before its fixed assessment, with an empty-title fallback",()=>{
++  expect(learningTitle("课程原标题","固定题面")).toBe("课程原标题");
++  expect(learningTitle(" \n\t ","固定题面")).toBe("固定题面");
++});
+*** Update File: scripts/probes/aaos01_grouped_owner_loop.py
+@@
+ 
+ 
+ def button_selector(label: str, scope: str = "") -> str:
++    if scope == "//ul[@aria-label='复习队列']":
++        return f"{scope}//button[@data-learning-item-key={xpath_literal(label)} and not(ancestor-or-self::*[@hidden])]"
+     return f"{scope}//button[normalize-space(.)={xpath_literal(label)} and not(ancestor-or-self::*[@hidden])]"
+ 
+ 
+*** Update File: scripts/probes/aaos01_tauri_webdriver_loop.py
+@@
+     wait("return location.hash===" + json.dumps("#space=" + space) + " && [...document.querySelectorAll('h1,h2,h3')].some(h=>h.textContent.trim()===" + json.dumps(heading) + ")")
+ 
+ 
++def xpath_literal(value: str) -> str:
++    if "'" not in value:
++        return "'" + value + "'"
++    if '"' not in value:
++        return '"' + value + '"'
++    return "concat(" + ',"\'",'.join("'" + part + "'" for part in value.split("'")) + ")"
++
++
+ def navigation_button_selector(text: str, scope: str = "") -> str:
++    if scope == "//ul[@aria-label='复习队列']":
++        return f"{scope}//button[@data-learning-item-key={xpath_literal(text)} and not(ancestor-or-self::*[@hidden])]"
+     # Object-navigation buttons contain a label and description. Match the exact
+     # label child and click its actual parent button, rather than widening all labels.
+     if scope == "//ul[@aria-label='资料库对象导航']":
+@@
+     key = suggested["item_key"]
+     assert len(key) == 159 and created["course"]["status"] == "candidate" and created["human_review_required"] is True
+     ui_click("由课程课时建立学习问题")
+-    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent===" + json.dumps(key) + ")")
+-    ui_click(key)
++    wait("return [...document.querySelectorAll('ul[aria-label=\"复习队列\"] button[data-learning-item-key]')].some(b=>b.getAttribute('data-learning-item-key')===" + json.dumps(key) + ")")
++    ui_click(key, "//ul[@aria-label='复习队列']")
+     wait("return [...document.querySelectorAll('label')].some(l=>l.textContent.includes('本次答案'))")
+     assessment = bridge("assessment_get", {"item_key": key})
+     state = bridge("learning_state", {"item_key": key})
+*** Update File: tests/test_grouped_native_owner_probe.py
+@@
+         for field in pin:
+             with self.subTest(field=field), self.assertRaisesRegex(AssertionError, field):
+                 self.probe.assert_assessment({**pin, field: "another"}, pin)
++
++    def test_learning_queue_selector_uses_identity_with_same_titles_and_hidden_views(self):
++        from lxml import etree
++        tree = etree.Element("ul", {"aria-label": "复习队列"})
++        key = "course:one'quoted\"name:artifact:exact"
++        first = etree.SubElement(tree, "button", {"data-learning-item-key": key})
++        first.text = "同名学习主题"
++        etree.SubElement(tree, "button", {"data-learning-item-key": "other"}).text = first.text
++        hidden = etree.SubElement(tree, "li", {"hidden": ""})
++        etree.SubElement(hidden, "button", {"data-learning-item-key": key}).text = first.text
++        selector = self.probe.button_selector(key, "//ul[@aria-label='复习队列']")
++        self.assertEqual(tree.xpath(selector), [first])
++        self.assertIn("@data-learning-item-key", selector)
+ 
+     def test_selectors_quote_and_hidden_boundary(self):
+         self.assertTrue(self.probe.xpath_literal("one'quoted\"name").startswith("concat("))
+*** Update File: tests/test_tauri_shell_authority.py
+@@
+     elevation = probe.process_elevation(os.getpid())
+     assert elevation["elevation_verified"] is True
+     assert isinstance(elevation["elevated"], bool)
++
++
++def test_review_queue_identity_survives_same_titles_and_quotes(monkeypatch):
++    from lxml import etree
++    probe = load_probe(monkeypatch)
++    tree = etree.Element("ul", {"aria-label": "复习队列"})
++    key = "course:one'quoted\"name:artifact:exact"
++    first = etree.SubElement(tree, "button", {"data-learning-item-key": key})
++    first.text = "同名学习主题"
++    etree.SubElement(tree, "button", {"data-learning-item-key": "other"}).text = first.text
++    hidden = etree.SubElement(tree, "li", {"hidden": ""})
++    etree.SubElement(hidden, "button", {"data-learning-item-key": key}).text = first.text
++    selector = probe.navigation_button_selector(key, "//ul[@aria-label='复习队列']")
++    assert tree.xpath(selector) == [first]
++    assert "@data-learning-item-key" in selector
+*** End Patch

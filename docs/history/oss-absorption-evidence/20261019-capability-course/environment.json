@@ -1,0 +1,14 @@
+{
+  "browser": "155.0.8059.80",
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "DPR": 1,
+  "locale": "zh-CN",
+  "timezone": "Asia/Shanghai",
+  "profile": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\capability-course-style-browser-1019\\artifacts\\ui-pilot\\browser-profile",
+  "workers": 1,
+  "baseline": "none created or updated",
+  "evidence": "ACTUAL_FRONTEND_BUNDLE / SYNTHETIC_CORE"
+}

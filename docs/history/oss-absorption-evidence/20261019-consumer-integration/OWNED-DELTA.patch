@@ -1,0 +1,2051 @@
+--- a/crates/archeaxis-api/src/bin/archeaxis-project-observer.rs
++++ b/crates/archeaxis-api/src/bin/archeaxis-project-observer.rs
+@@ -1,6 +1,10 @@
+ //! 明确授权的只读适配器消费者；连接资料仅 stdin，stdout 只输出有限 metadata DTO。
++use archeaxis_api::project_handoff::{prepare, prepare_receipt};
+ use archeaxis_api::project_observer::client::{ClientAdmission, ObserverClient, ReadError};
+-use archeaxis_contracts::project_observer::ObjectReference;
++use archeaxis_contracts::{
++    project_handoff::{Handoff, Payload, PrepareError, ReceiptReason, ReceiptState},
++    project_observer::ObjectReference,
++};
+ use serde::Deserialize;
+ use std::io::Read;
+ #[derive(Deserialize)]
+@@ -14,9 +18,48 @@
+ enum Action {
+     Handshake,
+     Objects,
+-    Status { reference: ObjectReference },
++    Status {
++        reference: ObjectReference,
++    },
++    PrepareHandoff {
++        key: String,
++        payload: Payload,
++    },
++    PrepareReceipt {
++        key: String,
++        original: Handoff,
++        state: ReceiptState,
++        reason: ReceiptReason,
++    },
+ }
+-fn run() -> Result<(), ReadError> {
++// 不回显输入、token、引用正文或内部错误；新准备错误保持有限枚举。
++enum CliError {
++    Read(ReadError),
++    Prepare(PrepareError),
++}
++impl From<ReadError> for CliError {
++    fn from(value: ReadError) -> Self {
++        Self::Read(value)
++    }
++}
++impl From<PrepareError> for CliError {
++    fn from(value: PrepareError) -> Self {
++        Self::Prepare(value)
++    }
++}
++impl CliError {
++    fn code(&self) -> &'static str {
++        match self {
++            Self::Read(error) => error.code(),
++            Self::Prepare(PrepareError::InvalidSnapshot) => "HANDOFF_INVALID_SNAPSHOT",
++            Self::Prepare(PrepareError::InvalidProposal) => "HANDOFF_INVALID_PROPOSAL",
++            Self::Prepare(PrepareError::ReferenceNotCurrent) => "HANDOFF_REFERENCE_NOT_CURRENT",
++            Self::Prepare(PrepareError::OriginalRequired) => "HANDOFF_ORIGINAL_REQUIRED",
++            Self::Prepare(PrepareError::IdentityMismatch) => "HANDOFF_IDENTITY_MISMATCH",
++        }
++    }
++}
++fn run() -> Result<(), CliError> {
+     let (send, receive) = std::sync::mpsc::channel();
+     std::thread::spawn(move || {
+         let mut bytes = Vec::new();
+@@ -28,15 +71,44 @@
+         .map_err(|_| ReadError::InvalidAdmission)?
+         .map_err(|_| ReadError::InvalidAdmission)?;
+     if bytes.len() > 65_536 {
+-        return Err(ReadError::InvalidAdmission);
++        return Err(ReadError::InvalidAdmission.into());
+     }
+     let input: Input = serde_json::from_slice(&bytes).map_err(|_| ReadError::InvalidAdmission)?;
+     let client = ObserverClient::connect(input.admission)?;
+     let response = match input.action {
+-        Action::Handshake => client.handshake()?,
+-        Action::Objects => client.objects()?,
+-        Action::Status { reference } => client.status(&reference)?,
+-    };
++        Action::Handshake => serde_json::to_value(client.handshake()?),
++        Action::Objects => serde_json::to_value(client.objects()?),
++        Action::Status { reference } => serde_json::to_value(client.status(&reference)?),
++        Action::PrepareHandoff { key, payload } => {
++            // 固定metadata端口；不接受调用者伪造的snapshot或任意URL。
++            let snapshot = client.objects()?;
++            let proposal = prepare(
++                &snapshot,
++                &key,
++                payload,
++                archeaxis_api::project_observer::now_ms(),
++            )?;
++            serde_json::to_value(proposal)
++        }
++        Action::PrepareReceipt {
++            key,
++            original,
++            state,
++            reason,
++        } => {
++            let snapshot = client.objects()?;
++            let receipt = prepare_receipt(
++                &snapshot,
++                &original,
++                &key,
++                state,
++                reason,
++                archeaxis_api::project_observer::now_ms(),
++            )?;
++            serde_json::to_value(receipt)
++        }
++    }
++    .map_err(|_| ReadError::InvalidResponse)?;
+     println!(
+         "{}",
+         serde_json::to_string(&response).map_err(|_| ReadError::InvalidResponse)?
+--- a/crates/archeaxis-api/tests/project_handoff_process.rs
++++ b/crates/archeaxis-api/tests/project_handoff_process.rs
+@@ -0,0 +1,530 @@
++//! 自建合成资料、真实 Core/HTTP/消费者进程；不代表外部产品或安装资格。
++use archeaxis_contracts::project_handoff::Handoff;
++use archeaxis_contracts::project_observer::{self as contract, ObjectReference};
++use serde_json::{Value, json};
++use std::{
++    io::{BufRead, BufReader, Read, Write},
++    net::TcpStream,
++    path::Path,
++    process::{Child, Command, Stdio},
++    sync::mpsc,
++    time::Duration,
++};
++const HUMAN: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
++const MACHINE: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
++const OBSERVER: &str = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
++const INSTANCE: &str = "dddddddddddddddddddddddddddddddd";
++struct Owned(Child);
++impl Drop for Owned {
++    fn drop(&mut self) {
++        let _ = self.0.kill();
++        let _ = self.0.wait();
++    }
++}
++fn seed(db: &Path) -> (String, ObjectReference, String) {
++    let mut conn = archeaxis_store_sqlite::init_workspace(db.to_str().unwrap()).unwrap();
++    let workspace = archeaxis_domain::ui_state::workspace_id(&conn).unwrap();
++    let doc = archeaxis_domain::document::create_optional(&mut conn, None, None, "SYNTHETIC private title", json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"SYNTHETIC PRIVATE BODY NEVER EXPORT"}]}]})).unwrap();
++    let other = archeaxis_domain::document::create_optional(
++        &mut conn,
++        None,
++        None,
++        "not admitted",
++        json!({"type":"doc","content":[]}),
++    )
++    .unwrap();
++    (
++        workspace,
++        ObjectReference {
++            document_id: doc["document_id"].as_str().unwrap().into(),
++            version: 1,
++            content_sha256: doc["content_sha256"].as_str().unwrap().into(),
++        },
++        other["document_id"].as_str().unwrap().into(),
++    )
++}
++fn grant(workspace: &str, id: &str) -> Value {
++    json!({"token":OBSERVER,"consumer":{"namespace":"work-lab","instance_id":INSTANCE},"producer":{"namespace":"archeaxis","workspace_id":workspace,"restore_epoch":"initial"},"expires_at_ms":archeaxis_api::project_observer::now_ms()+60_000,"document_ids":[id]})
++}
++fn launch(grants: Value) -> Value {
++    json!({"protocol":"archeaxis.desktop-launch/v3","actor":"human","launch_token":HUMAN,"machine_token":MACHINE,"session_id":"e".repeat(32),"observer_grants":grants})
++}
++fn start(db: &Path, document: Value) -> (Owned, u16) {
++    let mut command = Command::new(env!("CARGO_BIN_EXE_archeaxis-api"));
++    command
++        .arg(db)
++        .arg("0")
++        .stdin(Stdio::piped())
++        .stdout(Stdio::piped())
++        .stderr(Stdio::null());
++    #[cfg(windows)]
++    {
++        use std::os::windows::process::CommandExt;
++        command.creation_flags(0x08000000);
++    }
++    let mut owned = Owned(command.spawn().unwrap());
++    writeln!(owned.0.stdin.take().unwrap(), "{document}").unwrap();
++    let stdout = owned.0.stdout.take().unwrap();
++    let (tx, rx) = mpsc::channel();
++    std::thread::spawn(move || {
++        for line in BufReader::new(stdout).lines() {
++            if tx.send(line.unwrap()).is_err() {
++                break;
++            }
++        }
++    });
++    let line = rx
++        .recv_timeout(Duration::from_secs(8))
++        .expect("owned Core bounded readiness");
++    for secret in [HUMAN, MACHINE, OBSERVER] {
++        assert!(!line.contains(secret));
++    }
++    let port = line
++        .split("127.0.0.1:")
++        .nth(1)
++        .unwrap()
++        .split_whitespace()
++        .next()
++        .unwrap()
++        .parse()
++        .unwrap();
++    (owned, port)
++}
++fn request(
++    port: u16,
++    token: &str,
++    method: &str,
++    path: &str,
++    extra: &str,
++    body: &str,
++) -> (u16, String) {
++    let mut socket = TcpStream::connect(("127.0.0.1", port)).unwrap();
++    socket
++        .set_read_timeout(Some(Duration::from_secs(4)))
++        .unwrap();
++    write!(socket,"{method} {path} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\nx-archeaxis-launch-token: {token}\r\nx-archeaxis-observer-protocol: {}\r\nx-archeaxis-observer-namespace: work-lab\r\nx-archeaxis-observer-instance: {INSTANCE}\r\nContent-Length: {}\r\n{extra}\r\n{body}",contract::PROTOCOL,body.len()).unwrap();
++    let mut raw = String::new();
++    socket.read_to_string(&mut raw).unwrap();
++    for secret in [HUMAN, MACHINE, OBSERVER] {
++        assert!(!raw.contains(secret));
++    }
++    (
++        raw.split_whitespace().nth(1).unwrap().parse().unwrap(),
++        raw.split_once("\r\n\r\n").unwrap().1.into(),
++    )
++}
++fn snapshot(db: &Path) -> Vec<(String, Vec<Vec<String>>)> {
++    let conn =
++        rusqlite::Connection::open_with_flags(db, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
++            .unwrap();
++    let mut statement = conn
++        .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
++        .unwrap();
++    let names: Vec<String> = statement
++        .query_map([], |row| row.get(0))
++        .unwrap()
++        .map(Result::unwrap)
++        .collect();
++    names
++        .into_iter()
++        .map(|name| {
++            let mut statement = conn
++                .prepare(&format!("SELECT * FROM \"{}\"", name.replace('"', "\"\"")))
++                .unwrap();
++            let count = statement.column_count();
++            let mut rows: Vec<Vec<String>> = statement
++                .query_map([], |row| {
++                    Ok((0..count)
++                        .map(|i| format!("{:?}", row.get_ref(i).unwrap()))
++                        .collect())
++                })
++                .unwrap()
++                .map(Result::unwrap)
++                .collect();
++            rows.sort();
++            (name, rows)
++        })
++        .collect()
++}
++fn adapter(port: u16, workspace: &str, action: Value) -> (bool, Value) {
++    let mut command = Command::new(env!("CARGO_BIN_EXE_archeaxis-project-observer"));
++    command
++        .stdin(Stdio::piped())
++        .stdout(Stdio::piped())
++        .stderr(Stdio::piped());
++    #[cfg(windows)]
++    {
++        use std::os::windows::process::CommandExt;
++        command.creation_flags(0x08000000);
++    }
++    let mut child = command.spawn().unwrap();
++    let input = json!({"admission":{"port":port,"token":OBSERVER,"producer":{"namespace":"archeaxis","workspace_id":workspace,"restore_epoch":"initial"},"consumer":{"namespace":"work-lab","instance_id":INSTANCE}},"action":action});
++    writeln!(child.stdin.take().unwrap(), "{input}").unwrap();
++    let output = child.wait_with_output().unwrap();
++    let text = String::from_utf8(output.stdout).unwrap();
++    for secret in [HUMAN, MACHINE, OBSERVER] {
++        assert!(!text.contains(secret));
++    }
++    for secret in [HUMAN, MACHINE, OBSERVER] {
++        assert!(!String::from_utf8_lossy(&output.stderr).contains(secret));
++    }
++    assert!(output.stderr.is_empty());
++    (
++        output.status.success(),
++        serde_json::from_str(&text).unwrap(),
++    )
++}
++
++fn selected(reference: &ObjectReference) -> Value {
++    json!({"reference":reference,"selection":{"kind":"whole_object"},"selection_qualification":"UNVERIFIED"})
++}
++fn context(reference: &ObjectReference) -> Value {
++    json!({"kind":"context","source":selected(reference),"purpose":"learning","authorization_scope":"REFERENCE_METADATA_ONLY"})
++}
++fn assert_metadata(value: &Value, db: &Path, forbidden: &str) {
++    let raw = value.to_string();
++    for secret in [
++        HUMAN,
++        MACHINE,
++        OBSERVER,
++        "PRIVATE BODY",
++        "private title",
++        forbidden,
++        db.to_str().unwrap(),
++        "editor_json",
++        "workspace_db",
++        "launch_token",
++    ] {
++        assert!(!raw.contains(secret), "metadata boundary violated");
++    }
++}
++fn prepare_action(key: char, payload: Value) -> Value {
++    json!({"operation":"prepare_handoff","key":key.to_string().repeat(32),"payload":payload})
++}
++fn expect_error(port: u16, workspace: &str, action: Value, code: &str) {
++    let (success, value) = adapter(port, workspace, action);
++    assert!(!success);
++    assert_eq!(
++        value,
++        json!({"schema":"archeaxis.project-observer-error/v1","code":code})
++    );
++}
++
++#[test]
++fn five_handoff_kinds_are_prepared_by_real_core_and_cli_without_database_writes() {
++    let dir = tempfile::tempdir().unwrap();
++    let db = dir.path().join("five-kinds.sqlite");
++    let (workspace, reference, forbidden) = seed(&db);
++    let (_host, port) = start(
++        &db,
++        launch(json!([grant(&workspace, &reference.document_id)])),
++    );
++    let before = snapshot(&db);
++    let payloads = [
++        context(&reference),
++        json!({"kind":"task_proposal","target":reference,"context":[selected(&reference)],"goal":"prepare_learning_activity","capability":{"capability_id":"CAP-0060","contribution_point":"learning_activity","manifest_identity":"UNKNOWN"},"execution_authority":"NOT_GRANTED"}),
++        json!({"kind":"asset_manifest","assets":[{"reference":reference,"source_reference":reference,"relationship":"ORIGINAL","format":"unknown","format_qualification":"UNVERIFIED","loss":{"state":"UNKNOWN"}}]}),
++        json!({"kind":"knowledge_candidate","candidate_id":"candidate_metadata","candidate_revision":1,"claim_sha256":"7".repeat(64),"basis":reference,"evidence":[selected(&reference)],"review_state":"PENDING_HUMAN_REVIEW","evidence_support":"NOT_ASSESSED"}),
++    ];
++    for (index, payload) in payloads.into_iter().enumerate() {
++        let key = char::from(b'1' + index as u8);
++        let (success, original) = adapter(port, &workspace, prepare_action(key, payload.clone()));
++        assert!(success, "{original}");
++        let parsed: Handoff = serde_json::from_value(original.clone()).unwrap();
++        assert!(parsed.valid(archeaxis_api::project_observer::now_ms()));
++        assert_eq!(original["authority"], "PREPARATION_ONLY");
++        assert_eq!(original["payload"], payload);
++        assert_eq!(original["producer"]["workspace_id"], workspace);
++        assert_eq!(original["consumer"]["instance_id"], INSTANCE);
++        assert_metadata(&original, &db, &forbidden);
++        for (state, reason) in [
++            ("PREPARED", "NONE"),
++            ("UNKNOWN", "UNOBSERVED"),
++            ("CONFLICT", "IDEMPOTENCY_CONFLICT"),
++        ] {
++            let (success, receipt) = adapter(
++                port,
++                &workspace,
++                json!({"operation":"prepare_receipt","key":"9".repeat(32),"original":original,"state":state,"reason":reason}),
++            );
++            assert!(success, "{receipt}");
++            let parsed_receipt: Handoff = serde_json::from_value(receipt.clone()).unwrap();
++            assert!(archeaxis_api::project_handoff::receipt_matches(
++                &parsed_receipt,
++                &parsed,
++                archeaxis_api::project_observer::now_ms()
++            ));
++            assert_eq!(receipt["payload"]["state"], state);
++            assert_eq!(
++                receipt["payload"]["proposal"]["proposal_sha256"],
++                archeaxis_api::project_handoff::proposal_fingerprint(&parsed).unwrap()
++            );
++            assert_metadata(&receipt, &db, &forbidden);
++        }
++    }
++    assert_eq!(
++        snapshot(&db),
++        before,
++        "CLI preparation wrote business tables"
++    );
++}
++
++#[test]
++fn stale_unlisted_and_invalid_contracts_are_never_prepared_as_current() {
++    let dir = tempfile::tempdir().unwrap();
++    let db = dir.path().join("rejected.sqlite");
++    let (workspace, reference, forbidden) = seed(&db);
++    let (_host, port) = start(
++        &db,
++        launch(json!([grant(&workspace, &reference.document_id)])),
++    );
++    let before = snapshot(&db);
++    for changed in [
++        ObjectReference {
++            document_id: forbidden,
++            ..reference.clone()
++        },
++        ObjectReference {
++            version: 2,
++            ..reference.clone()
++        },
++        ObjectReference {
++            content_sha256: "0".repeat(64),
++            ..reference.clone()
++        },
++    ] {
++        expect_error(
++            port,
++            &workspace,
++            prepare_action('1', context(&changed)),
++            "HANDOFF_REFERENCE_NOT_CURRENT",
++        );
++    }
++    let invalid = json!({"kind":"task_proposal","target":reference,"context":[selected(&reference)],"goal":"prepare_learning_activity","capability":{"capability_id":"CAP-0020","contribution_point":"learning_activity","manifest_identity":"UNKNOWN"},"execution_authority":"NOT_GRANTED"});
++    expect_error(
++        port,
++        &workspace,
++        prepare_action('1', invalid),
++        "HANDOFF_INVALID_PROPOSAL",
++    );
++    expect_error(
++        port,
++        &workspace,
++        prepare_action(
++            '1',
++            json!({"kind":"receipt","proposal":{"idempotency_key":"2".repeat(32),"proposal_sha256":"3".repeat(64),"kind":"context"},"state":"PREPARED","reason":"NONE"}),
++        ),
++        "HANDOFF_ORIGINAL_REQUIRED",
++    );
++    assert_eq!(snapshot(&db), before);
++    // 仅测试fixture的human写入，用于制造真实版本冲突；CLI依旧只有Observer凭据。
++    let body = json!({"expected_version":1,"editor_json":{"type":"doc","content":[]}}).to_string();
++    assert_eq!(
++        request(
++            port,
++            HUMAN,
++            "PUT",
++            &format!("/api/v1/documents/{}/draft", reference.document_id),
++            "Content-Type: application/json\r\n",
++            &body
++        )
++        .0,
++        200
++    );
++    let after_fixture_update = snapshot(&db);
++    expect_error(
++        port,
++        &workspace,
++        prepare_action('1', context(&reference)),
++        "HANDOFF_REFERENCE_NOT_CURRENT",
++    );
++    assert_eq!(snapshot(&db), after_fixture_update);
++}
++
++#[test]
++fn receipts_require_original_identity_freshness_and_consistent_state() {
++    let dir = tempfile::tempdir().unwrap();
++    let db = dir.path().join("receipt.sqlite");
++    let (workspace, reference, _) = seed(&db);
++    let (_host, port) = start(
++        &db,
++        launch(json!([grant(&workspace, &reference.document_id)])),
++    );
++    let before = snapshot(&db);
++    let (success, original) = adapter(port, &workspace, prepare_action('1', context(&reference)));
++    assert!(success);
++    let action = |value: Value, state: &str, reason: &str| json!({"operation":"prepare_receipt","key":"2".repeat(32),"original":value,"state":state,"reason":reason});
++    let mut wrong = original.clone();
++    wrong["producer"]["workspace_id"] = json!("0".repeat(32));
++    expect_error(
++        port,
++        &workspace,
++        action(wrong, "PREPARED", "NONE"),
++        "HANDOFF_IDENTITY_MISMATCH",
++    );
++    expect_error(
++        port,
++        &workspace,
++        action(original.clone(), "UNKNOWN", "NONE"),
++        "HANDOFF_INVALID_PROPOSAL",
++    );
++    let mut expired = original.clone();
++    let now = archeaxis_api::project_observer::now_ms();
++    expired["created_at_ms"] = json!(now - 1000);
++    expired["expires_at_ms"] = json!(now - 1);
++    expect_error(
++        port,
++        &workspace,
++        action(expired.clone(), "PREPARED", "NONE"),
++        "HANDOFF_INVALID_PROPOSAL",
++    );
++    let (success, unknown) = adapter(port, &workspace, action(expired, "UNKNOWN", "UNOBSERVED"));
++    assert!(success);
++    assert_eq!(unknown["payload"]["state"], "UNKNOWN");
++    assert_eq!(unknown["authority"], "PREPARATION_ONLY");
++    assert_eq!(snapshot(&db), before);
++}
++
++#[test]
++fn a_disconnected_core_cannot_prepare_from_a_callers_cached_original() {
++    let dir = tempfile::tempdir().unwrap();
++    let db = dir.path().join("disconnect.sqlite");
++    let (workspace, reference, _) = seed(&db);
++    let (host, port) = start(
++        &db,
++        launch(json!([grant(&workspace, &reference.document_id)])),
++    );
++    let (success, original) = adapter(port, &workspace, prepare_action('1', context(&reference)));
++    assert!(success);
++    drop(host);
++    let before = snapshot(&db);
++    expect_error(
++        port,
++        &workspace,
++        prepare_action('2', context(&reference)),
++        "OBSERVER_UNAVAILABLE",
++    );
++    expect_error(
++        port,
++        &workspace,
++        json!({"operation":"prepare_receipt","key":"2".repeat(32),"original":original,"state":"UNKNOWN","reason":"DISCONNECTED"}),
++        "OBSERVER_UNAVAILABLE",
++    );
++    assert_eq!(snapshot(&db), before);
++}
++
++#[test]
++fn input_cannot_smuggle_url_body_credentials_or_execution_and_argv_is_refused() {
++    let dir = tempfile::tempdir().unwrap();
++    let db = dir.path().join("strict-input.sqlite");
++    let (workspace, reference, _) = seed(&db);
++    let (_host, port) = start(
++        &db,
++        launch(json!([grant(&workspace, &reference.document_id)])),
++    );
++    let before = snapshot(&db);
++    for (key, value) in [
++        ("url", json!("https://SYNTHETIC_PRIVATE_VALUE.invalid")),
++        ("command", json!("SYNTHETIC_PRIVATE_VALUE")),
++        ("snapshot", json!({"token":"SYNTHETIC_PRIVATE_VALUE"})),
++    ] {
++        let mut action = prepare_action('1', context(&reference));
++        action[key] = value;
++        expect_error(port, &workspace, action, "OBSERVER_INVALID_ADMISSION");
++    }
++    let mut payload = context(&reference);
++    payload["body"] = json!("SYNTHETIC_PRIVATE_VALUE");
++    expect_error(
++        port,
++        &workspace,
++        prepare_action('1', payload),
++        "OBSERVER_INVALID_ADMISSION",
++    );
++    let mut payload = context(&reference);
++    payload["authorization_scope"] = json!("EXECUTE");
++    expect_error(
++        port,
++        &workspace,
++        prepare_action('1', payload),
++        "OBSERVER_INVALID_ADMISSION",
++    );
++    let output = Command::new(env!("CARGO_BIN_EXE_archeaxis-project-observer"))
++        .arg("SYNTHETIC_PRIVATE_VALUE")
++        .output()
++        .unwrap();
++    assert_eq!(output.status.code(), Some(2));
++    assert!(output.stdout.is_empty());
++    assert_eq!(
++        String::from_utf8(output.stderr).unwrap().trim(),
++        "OBSERVER_STDIN_ONLY"
++    );
++    assert_eq!(snapshot(&db), before);
++}
++
++#[test]
++fn malformed_auth_and_wrong_token_identity_fail_without_echo_or_writes() {
++    let dir = tempfile::tempdir().unwrap();
++    let db = dir.path().join("auth-input.sqlite");
++    let (workspace, reference, _) = seed(&db);
++    let (_host, port) = start(
++        &db,
++        launch(json!([grant(&workspace, &reference.document_id)])),
++    );
++    let before = snapshot(&db);
++    let input = json!({"admission":{"port":port,"token":OBSERVER,"producer":{"namespace":"archeaxis","workspace_id":workspace,"restore_epoch":"initial"},"consumer":{"namespace":"work-lab","instance_id":INSTANCE}},"action":prepare_action('1',context(&reference))});
++    let mut attempts: Vec<(Vec<u8>, &str)> = Vec::new();
++    let mut wrong = input.clone();
++    wrong["admission"]["token"] = json!("8".repeat(64));
++    attempts.push((serde_json::to_vec(&wrong).unwrap(), "OBSERVER_REJECTED"));
++    let mut wrong = input.clone();
++    wrong["admission"]["consumer"]["instance_id"] = json!("8".repeat(32));
++    attempts.push((serde_json::to_vec(&wrong).unwrap(), "OBSERVER_REJECTED"));
++    let mut wrong = input.clone();
++    wrong["admission"]["producer"]["workspace_id"] = json!("8".repeat(32));
++    attempts.push((
++        serde_json::to_vec(&wrong).unwrap(),
++        "OBSERVER_INVALID_RESPONSE",
++    ));
++    let mut wrong = input.clone();
++    wrong["auth"] = json!({"token":OBSERVER,"secret":"SYNTHETIC_PRIVATE_VALUE"});
++    attempts.push((
++        serde_json::to_vec(&wrong).unwrap(),
++        "OBSERVER_INVALID_ADMISSION",
++    ));
++    attempts.push((
++        format!("{{\"admission\":\"{OBSERVER}\"}}").into_bytes(),
++        "OBSERVER_INVALID_ADMISSION",
++    ));
++    attempts.push((
++        b"SYNTHETIC_PRIVATE_VALUE".repeat(3200),
++        "OBSERVER_INVALID_ADMISSION",
++    ));
++    for (raw, code) in attempts {
++        let mut command = Command::new(env!("CARGO_BIN_EXE_archeaxis-project-observer"));
++        command
++            .stdin(Stdio::piped())
++            .stdout(Stdio::piped())
++            .stderr(Stdio::piped());
++        #[cfg(windows)]
++        {
++            use std::os::windows::process::CommandExt;
++            command.creation_flags(0x08000000);
++        }
++        let mut child = command.spawn().unwrap();
++        // 超限输入允许CLI提前关管道；不能因测试writer的BrokenPipe掩盖产品结果。
++        let _ = child.stdin.take().unwrap().write_all(&raw);
++        let output = child.wait_with_output().unwrap();
++        assert!(!output.status.success());
++        let stdout = String::from_utf8(output.stdout).unwrap();
++        let stderr = String::from_utf8(output.stderr).unwrap();
++        for secret in [HUMAN, MACHINE, OBSERVER, "SYNTHETIC_PRIVATE_VALUE"] {
++            assert!(!stdout.contains(secret) && !stderr.contains(secret));
++        }
++        assert!(stderr.is_empty());
++        assert_eq!(
++            serde_json::from_str::<Value>(&stdout).unwrap(),
++            json!({"schema":"archeaxis.project-observer-error/v1","code":code})
++        );
++    }
++    assert_eq!(snapshot(&db), before);
++}
+--- a/docs/contracts/project-observer-v1.md
++++ b/docs/contracts/project-observer-v1.md
+@@ -44,4 +44,17 @@
+ 
+ `project_observer_process` 使用两个自建合成工作区、真实 Core 及 Rust CLI/HTTP，核对所有业务表不变、无私有正文/路径泄漏、旧角色保持、版本变更、恢复失效、断连与过期；`project_observer_client` 使用 owned loopback 负例响应检查拒绝能力。JSON Schema 和 Rust 使用同一组合同案例。
+ 
+-这些属于合成资料的工程集成证据，不是 WORK-LAB/DESIGN-LAB 实际原生互通或用户资料验收。独立外部产品接入、可见关联 UI、真实 deep link、context/task/asset/candidate/receipt 后续 handoff 合同、幂等投递和安装分发仍未由本切片交付。读请求可重复且无写入，不承诺 exactly-once delivery。
++这些属于合成资料的工程集成证据，不是 WORK-LAB/DESIGN-LAB 实际原生互通或用户资料验收。独立外部产品接入、可见关联 UI、真实 deep link、context/task/asset/candidate/receipt 合同及本CLI准备消费见project-handoff-v1.md；幂等投递和安装分发仍未交付。读请求可重复且无写入，不承诺 exactly-once delivery。
++
++## CLI真实只读准备消费
++
++在原有handshake/objects/status之外，`archeaxis-project-observer`的有界stdin action支持：
++
++- `{operation:"prepare_handoff",key:<hex32>,payload:<strict project-handoff Payload>}`：上下文、任务提案、资产清单或知识候选。receipt payload不能绕过原提案绑定。
++- `{operation:"prepare_receipt",key:<hex32>,original:<strict Handoff>,state:<ReceiptState>,reason:<ReceiptReason>}`：必须提供原提案，调用既有digest绑定和状态语义；PREPARED只表示metadata准备完成，UNKNOWN/CONFLICT不是成功投递。
++
++两个动作都先沿用专用stdin admission进行真实只读握手，再读取固定objects端口，调用`project_handoff::prepare`或`prepare_receipt`。调用者不能提供snapshot、任意URL、endpoint、命令、正文或grant。输出严格`archeaxis.project-handoff/v1`，只包含冻结metadata及PREPARATION_ONLY；manifest identity仍UNKNOWN。没有目标产品投递、执行、持久化幂等表或业务数据库写入；不创建业务工作区。
++
++错误继续使用`archeaxis.project-observer-error/v1`有限code：已有OBSERVER_*或HANDOFF_INVALID_SNAPSHOT、HANDOFF_INVALID_PROPOSAL、HANDOFF_REFERENCE_NOT_CURRENT、HANDOFF_ORIGINAL_REQUIRED、HANDOFF_IDENTITY_MISMATCH。输入/认证原文及token不输出。stdin原有64KiB/5秒边界、argv拒绝及每HTTP请求3秒deadline保留；这不是整个多请求流程3秒承诺。
++
++工程验收由`project_handoff_process`使用自建合成资料、owned临时Core和CLI真实进程验证；所有业务表前后快照不变，检查无token/title/body/路径泄漏。仍不代表WORK-LAB/DESIGN-LAB真实UI、原生宿主、安装分发或Owner接纳通过。
+--- a/docs/contracts/project-handoff-v1.md
++++ b/docs/contracts/project-handoff-v1.md
+@@ -41,3 +41,16 @@
+ 共享67案例验证真实Rust严格解码/语义与JSON Schema；实际纯投影测试覆盖五类用途、11种非回执正例、版本/hash/allowlist、资产来源和损失、候选不接纳、回执关联、过期与同key内容冲突。仅owned临时镜像中的先前key/kind-only比较用于红控，正式提案与产品不注入缺陷。
+ 
+ 本期未执行：真实跨产品投递/写入、持久化去重、外部产品UI/native、deep link、共享配置、安装分发、真实用户资料或Owner验收。独立Observer首切片的既有HTTP证据保留自己的SHA/时点，本合同测试不替代该证据。
++
++## CLI真实只读准备消费
++
++在原有handshake/objects/status之外，`archeaxis-project-observer`的有界stdin action支持：
++
++- `{operation:"prepare_handoff",key:<hex32>,payload:<strict project-handoff Payload>}`：上下文、任务提案、资产清单或知识候选。receipt payload不能绕过原提案绑定。
++- `{operation:"prepare_receipt",key:<hex32>,original:<strict Handoff>,state:<ReceiptState>,reason:<ReceiptReason>}`：必须提供原提案，调用既有digest绑定和状态语义；PREPARED只表示metadata准备完成，UNKNOWN/CONFLICT不是成功投递。
++
++两个动作都先沿用专用stdin admission进行真实只读握手，再读取固定objects端口，调用`project_handoff::prepare`或`prepare_receipt`。调用者不能提供snapshot、任意URL、endpoint、命令、正文或grant。输出严格`archeaxis.project-handoff/v1`，只包含冻结metadata及PREPARATION_ONLY；manifest identity仍UNKNOWN。没有目标产品投递、执行、持久化幂等表或业务数据库写入；不创建业务工作区。
++
++错误继续使用`archeaxis.project-observer-error/v1`有限code：已有OBSERVER_*或HANDOFF_INVALID_SNAPSHOT、HANDOFF_INVALID_PROPOSAL、HANDOFF_REFERENCE_NOT_CURRENT、HANDOFF_ORIGINAL_REQUIRED、HANDOFF_IDENTITY_MISMATCH。输入/认证原文及token不输出。stdin原有64KiB/5秒边界、argv拒绝及每HTTP请求3秒deadline保留；这不是整个多请求流程3秒承诺。
++
++工程验收由`project_handoff_process`使用自建合成资料、owned临时Core和CLI真实进程验证；所有业务表前后快照不变，检查无token/title/body/路径泄漏。仍不代表WORK-LAB/DESIGN-LAB真实UI、原生宿主、安装分发或Owner接纳通过。
+--- a/scripts/probes/aaos01_tauri_webdriver_loop.py
++++ b/scripts/probes/aaos01_tauri_webdriver_loop.py
+@@ -1120,6 +1120,56 @@
+         "page_sizes":[len(first["documents"]),len(second["documents"])],"cross_page_backlink":"PASS","relation_total":1}
+ 
+ 
++def independent_material_mode(parser, args):
++    mode = "recovery" if args.material_companion_recovery_loop else "cancel" if args.material_companion_cancel_loop else None
++    if mode is None:
++        if args.material_companion_actual_model or args.material_companion_model:
++            parser.error("independent material/companion options require an explicit independent mode")
++        return None
++    if not args.material_companion_actual_model or not args.material_companion_model:
++        parser.error("independent material/companion requires explicit --material-companion-actual-model and --material-companion-model")
++    if not re.fullmatch(r"[A-Za-z0-9_.:/@+-]{1,256}", args.material_companion_model):
++        parser.error("invalid independent material/companion model identity")
++    if any((args.grouped_common_owner_loop, args.grouped_run_ai, args.grouped_authored_intervention,
++            args.grouped_model, args.grouped_save_deep_binding, args.grouped_material_companion_loop,
++            args.grouped_material_companion_cancel, args.grouped_max_tokens, args.require_actual_ai_loop,
++            args.grouped_pointer_navigation, args.grouped_review_ack_loss, args.grouped_multi_review_ack_loss,
++            args.grouped_machine_ack_loss, args.grouped_machine_cancel, args.closure_features,
++            args.closure_downloads, args.synthetic_course_loop, args.synthetic_template_pagination,
++            args.installed_draft_conflict_loop, args.character_memory_loop, args.configuration_plan_loop,
++            args.ui_import_manifest, args.ui_format_conversion, args.ui_format_reparse,
++            args.ui_format_citations, args.ui_original_text_citations, args.installer)):
++        parser.error("independent material/companion cannot mix other journeys or installer qualification")
++    if any(os.environ.get(key) == "1" for key in ("AAOS01_TEACHING_DRAFT_ONLY", "AAOS01_LEARNING_DRAFT_ONLY")):
++        parser.error("independent material/companion cannot mix draft isolation modes")
++    return mode
++
++
++def independent_element_command(request, session, element_id, action, body):
++    if action == "pointer_click":
++        return request("POST", f"/session/{session}/actions", {"actions":[{
++            "type":"pointer", "id":"independent-owned-pointer", "parameters":{"pointerType":"mouse"},
++            "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
++                       {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
++    if action == "wheel":
++        return request("POST", f"/session/{session}/actions", {"actions":[{
++            "type":"wheel", "id":"independent-owned-scroll", "actions":[{
++                "type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
++    return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
++
++
++def run_material_independent_branch(*, mode, selected_model, grouped, js, wait, element, command, bridge, restart, screenshot, accept_navigation_alert, receipt):
++    actions = []
++    section = receipt["material_companion_independent"] = {"actions": actions}
++    ui = grouped.GroupedUI(js, wait, element, command, actions, accept_navigation_alert)
++    helper = load("independent_material_native_journey", REPO / "scripts/probes/aaos01_material_independent_loop.py")
++    material = load("independent_material_controls", REPO / "scripts/probes/aaos01_material_companion_loop.py")
++    helper.run(mode=mode, ui=ui, read=grouped.readonly_bridge(bridge), js=js, wait=wait,
++               restart=restart, screenshot=screenshot, grouped=grouped, material=material,
++               selected_model=selected_model, report=section)
++    return section["engineering_status"] == "PASS"
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument("--host", type=Path, required=True)
+@@ -1163,7 +1213,13 @@
+         type=Path,
+         help="Exact parent-verified NSIS installer identity; does not itself establish installation",
+     )
++    independent_modes = parser.add_mutually_exclusive_group()
++    independent_modes.add_argument("--material-companion-recovery-loop", action="store_true", help="Independent actual material/companion, cold and backup recovery on fresh synthetic data; no answer/retest qualification")
++    independent_modes.add_argument("--material-companion-cancel-loop", action="store_true", help="Independent admitted material/companion UI cancel and cold recovery; no prior successful generation or provider-stop claim")
++    parser.add_argument("--material-companion-actual-model", action="store_true", help="Explicit actual model opt-in only for an independent material/companion mode")
++    parser.add_argument("--material-companion-model", help="Explicit authorized local model for independent material/companion; no global provider changes")
+     args = parser.parse_args()
++    material_mode = independent_material_mode(parser, args)
+     assert not args.ui_original_text_citations or args.ui_import_manifest is not None, "Original text citations require synthetic import manifest"
+     assert not args.ui_format_citations or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI citations require explicit synthetic import and conversion"
+     assert not args.ui_format_reparse or (args.ui_format_conversion and args.ui_import_manifest is not None), "UI reparse requires explicit synthetic import and conversion"
+@@ -1482,7 +1538,7 @@
+         wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
+         wait("const images=[...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length);return images.length>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
+         receipt.setdefault("brand_images", []).append(js("return [...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))"))
+-        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop:
++        if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or material_mode:
+             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
+         else:
+             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "DECLARED_LEGACY_COMPATIBILITY_ROUTES", "new_layout_coverage": "SEPARATE_BROWSER_SMOKE"}
+@@ -1637,6 +1693,32 @@
+             receipt["steps"].append("BE06 explicit memory UI and current-store readback only; no model, Owner or installer qualification")
+             close_session()
+             receipt["ok"] = receipt["character_memory_loop"]["status"] == "PASS"
++            raise _GroupedJourneyCompleteError()
++        if material_mode:
++            grouped = load("independent_material_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
++            def material_command(element_id, action, body):
++                return independent_element_command(request, session, element_id, action, body)
++            def material_restart():
++                close_session()
++                launch()
++            def material_accept_navigation_alert():
++                try:
++                    text = request("GET", f"/session/{session}/alert/text")
++                except WebDriverProtocolError as error:
++                    if error.value.get("error") != "no such alert":
++                        raise
++                    receipt["steps"].append("Owned material navigation required no native confirmation")
++                    return
++                assert text == "草稿尚未保存，请先保留文字。仍要离开吗？", "Unexpected material navigation confirmation"
++                request("POST", f"/session/{session}/alert/accept", {})
++                receipt["steps"].append("Trusted confirmation to leave only an owned synthetic material draft")
++            receipt["ok"] = run_material_independent_branch(
++                mode=material_mode, selected_model=args.material_companion_model, grouped=grouped,
++                js=js, wait=wait, element=ui_element, command=material_command, bridge=bridge,
++                restart=material_restart, screenshot=screenshot,
++                accept_navigation_alert=material_accept_navigation_alert, receipt=receipt)
++            receipt["steps"].append("Independent material/companion " + material_mode + "; no full grouped AI chain or Owner qualification")
++            close_session()
+             raise _GroupedJourneyCompleteError()
+         if args.grouped_common_owner_loop:
+             grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+--- a/scripts/probes/aaos01_material_independent_loop.py
++++ b/scripts/probes/aaos01_material_independent_loop.py
+@@ -0,0 +1,115 @@
++"""Independent authored-material native journeys; no answer/retest prerequisite.
++
++Only called by the explicitly opted-in native harness on its fresh owned workspace.
++All writes go through trusted product UI; ``read`` is the grouped read-only bridge.
++"""
++import uuid
++
++
++def create_document(ui, read, wait, grouped):
++    """A single original note, with exact Core identity and known authored body."""
++    assert read("sources_list")["sources"] == [], "Requires fresh owned sources"
++    assert read("documents_list")["snapshot_count"] == 0, "Requires fresh owned documents"
++    assert grouped.machine_tasks(read) == [], "Requires fresh owned task journal"
++    config = read("model_configuration_get")
++    assert config["revision"] == 0 and config["profiles"] == {} and config["bindings"] == [], "Requires fresh owned model configuration"
++    ui.page("02")
++    ui.click_revealed("新建笔记")
++    wait("""return location.hash==="#page=03" && !!document.querySelector('[aria-label="版本化草稿编辑器"] .tiptap')""")
++    rows = grouped.poll(read, "documents_list", {}, lambda value: len(value["documents"]) == 1)["documents"]
++    document = read("document_get", {"document_id": rows[0]["document_id"]})
++    assert document["source_id"] is None and document["source_revision"] is None
++    text = "Independent synthetic material " + uuid.uuid4().hex + ". ArcheAxis keeps a versioned local note for reading and review."
++    selector = '[aria-label="版本化草稿编辑器"] .tiptap'
++    ui.reveal_selector("//*[@aria-label='版本化草稿编辑器']//*[contains(concat(' ',normalize-space(@class),' '),' tiptap ')]")
++    ui.keys(selector, "\ue009a\ue000" + text, "css selector")
++    ui.click_revealed("保存草稿")
++    saved = grouped.poll(read, "document_get", {"document_id": document["document_id"]}, lambda value: value["version"] > document["version"])
++    assert saved["document_id"] == document["document_id"] and saved["source_id"] is None and saved["source_revision"] is None
++    assert saved["text_projection"] == text, "Authored document body mismatch"
++    return saved
++
++
++def open_reader(ui, read, js, wait, grouped, document):
++    ui.page("02")
++    ui.click_revealed_selector("//nav[@aria-label='已保存文档']//button[@aria-label=" + grouped.xpath_literal("打开文档 " + document["title"]) + "]")
++    return grouped.restored_reader(ui, read, js, wait, document)
++
++
++def assert_cancel_bindings(stage, saved, document, material):
++    assert set(stage["purposes"]) == {"material", "companion"}
++    for purpose, value in stage["purposes"].items():
++        preview = value["preview"]
++        request = preview["plan"]["request"]
++        resolved = saved["resolved"][purpose]
++        assert request["model_configuration"] == resolved, "Cancellation saved binding mismatch"
++        for key in ("model", "max_tokens", "timeout_s"):
++            assert request[key] == resolved["profile"][key], "Cancellation profile mismatch: " + key
++        expected_material = {"kind": "document", "document_id": document["document_id"], "version": document["version"], "content_sha256": document["content_sha256"], "block_id": None} if purpose == "material" else None
++        assert request["material"] == expected_material, "Cancellation material identity mismatch"
++        material.assert_cancelled_receipt(value["receipt"], preview, purpose)
++
++
++def restore_backup(ui, read, wait, grouped):
++    ui.page("19")
++    prior = {row["backup_id"] for row in read("workspace_backups")["backups"]}
++    ui.click_revealed("创建一致备份")
++    backups = grouped.poll(read, "workspace_backups", {}, lambda value: len(value["backups"]) == len(prior) + 1)["backups"]
++    assert len([row for row in backups if row["backup_id"] not in prior]) == 1
++    ui.click_revealed("预检此备份")
++    ui.click_revealed("确认恢复整个工作区")
++    wait("return document.body.innerText.includes('整个工作区已恢复，Core 已重启并读回')")
++    wait("return [...document.querySelectorAll('button')].some(b=>b.textContent==='保留恢复候选')")
++    before = read("ui_state_read")
++    ui.click_revealed("保留恢复候选")
++    after = grouped.poll(read, "ui_state_read", {}, lambda value: value["recovery_requires_confirmation"] is False)
++    assert before["restore_epoch"] == after["restore_epoch"] and after["state"] == before["recovery_candidates"]
++    return {"status": "PASS", "restore_epoch": after["restore_epoch"]}
++
++
++def run(*, mode, ui, read, js, wait, restart, screenshot, grouped, material, selected_model, report):
++    if mode not in ("recovery", "cancel"):
++        raise ValueError("Unknown independent material/companion mode")
++    report.update(schema="archeaxis.material-companion-independent-probe/v1", mode=mode,
++                  engineering_status="IN_PROGRESS", status="PARTIAL", evidence_level="REAL_TAURI_WEBDRIVER_CANDIDATE_SYNTHETIC_MATERIAL",
++                  owner_acceptance="NOT_EXECUTED", human_signoff=False, closed_loop_verified=False,
++                  full_grouped_ai_chain="NOT_EXECUTED", startup_execution_calls="UNVERIFIED",
++                  provider_stop_state="UNKNOWN", worker_started="UNVERIFIED")
++    try:
++        document = create_document(ui, read, wait, grouped)
++        report["document"] = document
++        report["reader_initial"] = grouped.restored_reader(ui, read, js, wait, document)
++        grouped.save_deep_model_binding(ui, read, wait, report, selected_model, purposes=("material", "companion"))
++        saved = report["saved_deep_binding"]
++        if mode == "recovery":
++            stage = report["material_companion"] = {}
++            material.run(ui, read, js, wait, screenshot, document, saved, stage)
++        else:
++            stage = report["material_companion_cancellation"] = {}
++            # No prior successful generation or mc.run is required for cancellation.
++            material.run_cancel(ui, read, js, wait, screenshot, document, stage, grouped.poll)
++            assert_cancel_bindings(stage, saved, document, material)
++        tasks = grouped.machine_tasks(read)
++        restart()
++        grouped.read_saved_model_configuration(ui, read, wait, report, restored=False)
++        assert grouped.machine_tasks(read) == tasks, "Cold reopen changed unrelated task journal"
++        report["reader_cold_reopen"] = open_reader(ui, read, js, wait, grouped, document)
++        if mode == "cancel":
++            material.reopen_cancel(ui, read, js, wait, screenshot, document, stage)
++            assert_cancel_bindings(stage, saved, document, material)
++        else:
++            material.reopen(ui, read, js, wait, screenshot, document, stage, "cold_reopen")
++            report["workspace_restore"] = restore_backup(ui, read, wait, grouped)
++            restart()
++            grouped.read_saved_model_configuration(ui, read, wait, report, restored=True)
++            assert grouped.machine_tasks(read) == tasks, "Backup reopen changed unrelated task journal"
++            report["reader_backup_restore"] = open_reader(ui, read, js, wait, grouped, document)
++            material.reopen(ui, read, js, wait, screenshot, document, stage, "backup_restore")
++        assert read("document_get", {"document_id": document["document_id"]}) == document, "Original document changed"
++        report["engineering_status"] = "PASS"
++        report["status"] = "PASS_INDEPENDENT_RECOVERY_NOT_FULL_AI_CHAIN" if mode == "recovery" else "PASS_CORE_ADMISSION_UI_CANCEL_RECOVERY_NOT_PROVIDER_STOP"
++        return report
++    except Exception as error:
++        report["engineering_status"] = "FAIL"
++        report["failure_type"] = type(error).__name__
++        raise
+--- a/tests/test_material_independent_native_probe.py
++++ b/tests/test_material_independent_native_probe.py
+@@ -0,0 +1,246 @@
++"""SIMULATED independent dispatch/guard regressions; no host, model or database."""
++import copy
++import importlib.util
++import os
++from pathlib import Path
++import sys
++from types import SimpleNamespace
++from unittest.mock import patch
++
++import pytest
++
++ROOT = Path(os.environ.get("AAOS_PROBE_TEST_ROOT", Path(__file__).resolve().parents[1]))
++sys.path.insert(0, str(ROOT / "scripts/probes"))
++
++
++def load(name):
++    path = ROOT / "scripts/probes" / (name + ".py")
++    assert path.exists(), "Independent native journey implementation missing"
++    spec = importlib.util.spec_from_file_location(name + "_isolated_test", path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++class LaunchReached(Exception):
++    pass
++
++
++def parse_until_environment(flags):
++    native = load("aaos01_tauri_webdriver_loop")
++    with patch.object(sys, "argv", ["probe", "--host", "never-launch.exe", *flags]), patch.object(native, "probe_environment", side_effect=LaunchReached):
++        native.main()
++
++
++@pytest.mark.parametrize("mode", ["recovery", "cancel"])
++def test_independent_cli_reaches_environment_without_grouped_answer_retest(mode):
++    with pytest.raises(LaunchReached):
++        parse_until_environment(["--material-companion-" + mode + "-loop", "--material-companion-actual-model", "--material-companion-model", "owned-model"])
++
++
++@pytest.mark.parametrize("extra", [[], ["--material-companion-actual-model"], ["--material-companion-model", "owned-model"], ["--material-companion-actual-model", "--material-companion-model", "bad model"], ["--material-companion-actual-model", "--material-companion-model", "owned-model", "--grouped-common-owner-loop"], ["--material-companion-actual-model", "--material-companion-model", "owned-model", "--grouped-run-ai"], ["--material-companion-actual-model", "--material-companion-model", "owned-model", "--character-memory-loop"], ["--material-companion-actual-model", "--material-companion-model", "owned-model", "--installer", "never.exe"], ["--material-companion-actual-model", "--material-companion-model", "owned-model", "--material-companion-cancel-loop"]])
++def test_cli_rejects_missing_authorization_or_mixed_journey_before_environment(extra):
++    with pytest.raises(SystemExit) as error:
++        parse_until_environment(["--material-companion-recovery-loop", *extra])
++    assert error.value.code == 2
++
++
++@pytest.mark.parametrize("flags", [["--material-companion-model", "m"], ["--material-companion-actual-model"]])
++def test_orphan_independent_options_rejected_before_environment(flags):
++    with pytest.raises(SystemExit) as error:
++        parse_until_environment(flags)
++    assert error.value.code == 2
++
++
++def test_existing_grouped_material_still_requires_saved_complete_ai_chain():
++    with pytest.raises(SystemExit) as error:
++        parse_until_environment(["--grouped-material-companion-loop"])
++    assert error.value.code == 2
++
++
++def test_isolation_rejects_draft_environment_before_launch():
++    with patch.dict(os.environ, {"AAOS01_LEARNING_DRAFT_ONLY": "1"}):
++        with pytest.raises(SystemExit) as error:
++            parse_until_environment(["--material-companion-cancel-loop", "--material-companion-actual-model", "--material-companion-model", "m"])
++    assert error.value.code == 2
++
++
++@pytest.mark.parametrize("action", ["pointer_click", "wheel", "value"])
++def test_native_independent_command_uses_real_actions_protocol(action):
++    native = load("aaos01_tauri_webdriver_loop")
++    calls = []
++    body = {"x": 10, "y": 20} if action == "pointer_click" else {"x": 10, "y": 20, "deltaX": 0, "deltaY": 120} if action == "wheel" else {"text": "owned"}
++    native.independent_element_command(lambda *args: calls.append(args), "session", "element", action, body)
++    assert len(calls) == 1
++    method, path, payload = calls[0]
++    assert method == "POST"
++    if action == "value":
++        assert path == "/session/session/element/element/value" and payload == body
++    else:
++        assert path == "/session/session/actions"
++        device = payload["actions"][0]
++        assert device["type"] == ("pointer" if action == "pointer_click" else "wheel")
++        assert [a["type"] for a in device["actions"]] == (["pointerMove", "pointerDown", "pointerUp"] if action == "pointer_click" else ["scroll"])
++
++
++def scenario():
++    grouped = load("aaos01_grouped_owner_loop")
++    real_mc = load("aaos01_material_companion_loop")
++    trace, report = [], {}
++    state = {"doc": None, "typed": "", "epoch": "initial", "saved": None, "wrong": False, "existing": False, "fail": False, "page": None}
++    profile = {"endpoint": "http://127.0.0.1:1234/v1", "protocol": "openai", "model": "owned-model", "credential_ref": None, "max_tokens": 1024, "timeout_s": 120}
++    class UI:
++        def page(self, page, **kw):
++            trace.append(("page", page, kw)); state["page"] = page
++        def click_revealed(self, label, scope=""):
++            trace.append(("click", label))
++            if label == "新建笔记":
++                state["page"] = "03"
++                state["doc"] = {"document_id": "d", "title": "原创笔记", "version": 1, "text_projection": "", "source_id": None, "source_revision": None, "content_sha256": "a" * 64}
++            elif label == "保存草稿":
++                state["doc"].update(version=2, text_projection=state["typed"], content_sha256="b" * 64)
++            elif label == "确认恢复整个工作区": state["epoch"] = "restored"
++        def click(self, label, scope=""): return self.click_revealed(label, scope)
++        def keys(self, selector, text, using="xpath"):
++            trace.append(("keys", selector, using)); state["typed"] = text.replace("\ue009a\ue000", "")
++        def reveal_selector(self, selector): trace.append(("reveal", selector))
++        def click_revealed_selector(self, selector):
++            trace.append(("click_selector", selector)); assert state["page"] == "02"; state["page"] = "03"
++    def bridge(op, payload=None):
++        trace.append(("read", op))
++        if op == "sources_list": return {"sources": []}
++        if op == "documents_list": return {"snapshot_count": int(state["doc"] is not None or state["existing"]), "documents": [state["doc"]] if state["doc"] else []}
++        if op == "document_get": return copy.deepcopy(state["doc"])
++        if op == "machine_tasks_list": return {"items": [], "next_cursor": None}
++        if op == "model_configuration_get": return {"revision": 0, "profiles": {}, "bindings": []}
++        if op == "workspace_backups": return {"backups": [{"backup_id": "backup"}] if any(t == ("click", "创建一致备份") for t in trace) else []}
++        if op == "ui_state_read": return {"restore_epoch": state["epoch"], "state": {"owned": True}, "recovery_candidates": {"owned": True}, "recovery_requires_confirmation": not any(t == ("click", "保留恢复候选") for t in trace)}
++        raise AssertionError(op)
++    def poll(read, op, payload, predicate, seconds=30):
++        value = read(op, payload); assert predicate(value); return value
++    def save(ui, read, wait, stage, model, purposes):
++        assert purposes == ("material", "companion") and model == "owned-model"
++        trace.append(("binding", purposes)); ui.page("19")
++        stage["saved_deep_binding"] = {"configuration": {"restore_epoch": "initial"}, "resolved": {p: {"purpose": p, "lane": "deep", "profile": profile} for p in purposes}}
++        state["saved"] = stage["saved_deep_binding"]
++    def config(*args, restored):
++        trace.append(("configuration", restored)); args[0].page("19")
++    def restored_reader(ui, read, js, wait, doc):
++        trace.append(("reader", doc["document_id"])); assert state["page"] == "03"; assert read("document_get", {"document_id": doc["document_id"]}) == doc
++        return {"status": "PASS"}
++    controls = SimpleNamespace(xpath_literal=grouped.xpath_literal, machine_tasks=grouped.machine_tasks, save_deep_model_binding=save, read_saved_model_configuration=config, restored_reader=restored_reader, poll=poll)
++    class MC:
++        def run(self, ui, read, js, wait, screenshot, document, saved, stage):
++            trace.append(("mc.run",))
++            if state["fail"]:
++                stage["execution_results"] = {"material": {"http_status": 200, "response": {"outcome": "failed", "reason_code": "timeout"}}}
++                raise AssertionError("failed terminal")
++            stage["status"] = "PASS"
++        def reopen(self, *args): trace.append(("mc.reopen", args[-1]))
++        def run_cancel(self, ui, read, js, wait, screenshot, document, stage, poll):
++            trace.append(("mc.run_cancel",))
++            stage["purposes"] = {}
++            for p in ("material", "companion"):
++                request = {"request_id": p, "session_id": "s", "model_configuration": copy.deepcopy(state["saved"]["resolved"][p]), "model": "owned-model", "max_tokens": 1024, "timeout_s": 120, "material": {"kind": "document", "document_id": document["document_id"], "version": document["version"], "content_sha256": document["content_sha256"], "block_id": None} if p == "material" else None}
++                if state["wrong"]: request["model_configuration"]["purpose"] = "answer"
++                preview = {"plan": {"request": request}, "plan_sha256": "a" * 64}
++                receipt = {**preview, "request_id": p, "session_id": "s", "authority": "candidate", "grants_knowledge_acceptance": False, "answer": None, "provider_stop_state": "UNKNOWN", "schema": "archeaxis.material-answer/v1" if p == "material" else "archeaxis.conversation-receipt/v1", "outcome": "failed", "state": "cancelled", "reason_code": "material_question_cancelled" if p == "material" else "conversation_cancelled"}
++                stage["purposes"][p] = {"preview": preview, "receipt": receipt}
++        def reopen_cancel(self, *args): trace.append(("mc.reopen_cancel",))
++        assert_cancelled_receipt = staticmethod(real_mc.assert_cancelled_receipt)
++    kwargs = dict(ui=UI(), read=grouped.readonly_bridge(bridge), js=lambda s: None, wait=lambda *a, **kw: trace.append(("wait",)), restart=lambda: trace.append(("restart",)), screenshot=lambda name: trace.append(("screenshot", name)), grouped=controls, material=MC(), selected_model="owned-model", report=report)
++    return kwargs, state, trace, report
++
++
++@pytest.mark.parametrize("mode", ["recovery", "cancel"])
++def test_actual_independent_dispatch_has_no_answer_retest_or_acceptance(mode):
++    helper = load("aaos01_material_independent_loop")
++    kwargs, state, trace, report = scenario()
++    helper.run(mode=mode, **kwargs)
++    assert report["engineering_status"] == "PASS" and report["closed_loop_verified"] is False
++    assert report["owner_acceptance"] == "NOT_EXECUTED"
++    assert ("binding", ("material", "companion")) in trace
++    assert ("mc.run",) in trace if mode == "recovery" else ("mc.run",) not in trace
++    assert ("mc.run_cancel",) in trace if mode == "cancel" else ("mc.run_cancel",) not in trace
++    assert trace.count(("restart",)) == (2 if mode == "recovery" else 1)
++    assert ("configuration", False) in trace
++    assert ("mc.reopen", "cold_reopen") in trace if mode == "recovery" else ("mc.reopen_cancel",) in trace
++    if mode == "recovery":
++        assert ("mc.reopen", "backup_restore") in trace and ("configuration", True) in trace
++    assert not any(t[0] == "read" and t[1] in {"answer", "retest", "knowledge_create", "document_draft"} for t in trace)
++
++
++def test_existing_workspace_refused_before_any_ui_write():
++    helper = load("aaos01_material_independent_loop")
++    kwargs, state, trace, report = scenario(); state["existing"] = True
++    with pytest.raises(AssertionError): helper.run(mode="cancel", **kwargs)
++    assert not any(t[0] in {"click", "keys", "binding", "mc.run_cancel"} for t in trace)
++    assert report["engineering_status"] == "FAIL"
++
++
++def test_200_failed_terminal_does_not_become_success_or_proceed_to_recovery():
++    helper = load("aaos01_material_independent_loop")
++    kwargs, state, trace, report = scenario(); state["fail"] = True
++    with pytest.raises(AssertionError): helper.run(mode="recovery", **kwargs)
++    assert report["engineering_status"] == "FAIL" and ("restart",) not in trace
++    assert report["material_companion"]["execution_results"]["material"]["http_status"] == 200
++
++
++def test_cancel_refuses_wrong_saved_binding_before_cold_restart():
++    helper = load("aaos01_material_independent_loop")
++    kwargs, state, trace, report = scenario(); state["wrong"] = True
++    with pytest.raises(AssertionError): helper.run(mode="cancel", **kwargs)
++    assert report["engineering_status"] == "FAIL" and ("restart",) not in trace
++
++
++def test_unknown_mode_refused_before_ui_work():
++    helper = load("aaos01_material_independent_loop")
++    kwargs, state, trace, report = scenario()
++    with pytest.raises(ValueError): helper.run(mode="fake", **kwargs)
++    assert trace == []
++
++
++def test_harness_dispatch_runs_real_independent_helper_with_readonly_bridge(monkeypatch):
++    native = load("aaos01_tauri_webdriver_loop")
++    helper = load("aaos01_material_independent_loop")
++    real_grouped = load("aaos01_grouped_owner_loop")
++    kwargs, state, trace, report = scenario()
++    grouped = kwargs["grouped"]
++    def construct(*args):
++        assert args[3] is command and args[5] is accept
++        trace.append(("controls_constructed",))
++        return kwargs["ui"]
++    grouped.GroupedUI = construct
++    grouped.readonly_bridge = real_grouped.readonly_bridge
++    def modules(name, path):
++        assert path.name in {"aaos01_material_independent_loop.py", "aaos01_material_companion_loop.py"}
++        return helper if path.name == "aaos01_material_independent_loop.py" else kwargs["material"]
++    monkeypatch.setattr(native, "load", modules)
++    command, accept = object(), object()
++    receipt = {}
++    assert native.run_material_independent_branch(mode="cancel", selected_model="owned-model", grouped=grouped, js=kwargs["js"], wait=kwargs["wait"], element=object(), command=command, bridge=kwargs["read"], restart=kwargs["restart"], screenshot=kwargs["screenshot"], accept_navigation_alert=accept, receipt=receipt)
++    assert receipt["material_companion_independent"]["mode"] == "cancel"
++    assert ("controls_constructed",) in trace and ("mc.run",) not in trace
++    assert ("mc.run_cancel",) in trace and ("mc.reopen_cancel",) in trace
++
++
++def test_independent_ui_test_double_matches_real_grouped_reveal_signature():
++    import inspect
++    grouped = load("aaos01_grouped_owner_loop")
++    kwargs, state, trace, report = scenario()
++    assert tuple(inspect.signature(type(kwargs["ui"]).reveal_selector).parameters) == tuple(inspect.signature(grouped.GroupedUI.reveal_selector).parameters)
++
++
++@pytest.mark.parametrize("mutation", ["request_id", "plan_sha256", "answer", "provider_stop_state", "material", "model_configuration"])
++def test_cancel_binding_projection_keeps_identity_and_no_answer_guards(mutation):
++    helper = load("aaos01_material_independent_loop")
++    kwargs, state, trace, report = scenario()
++    kwargs["grouped"].save_deep_model_binding(kwargs["ui"], kwargs["read"], kwargs["wait"], report, "owned-model", ("material", "companion"))
++    document = {"document_id":"d","version":2,"content_sha256":"b"*64}
++    stage = {}; kwargs["material"].run_cancel(kwargs["ui"], kwargs["read"], kwargs["js"], kwargs["wait"], kwargs["screenshot"], document, stage, kwargs["grouped"].poll)
++    value = stage["purposes"]["material"]
++    if mutation in {"request_id", "plan_sha256", "answer", "provider_stop_state"}:
++        value["receipt"][mutation] = {"answer": "late"} if mutation == "answer" else "other"
++    else:
++        value["preview"]["plan"]["request"][mutation] = {} if mutation == "material" else {"purpose":"answer"}
++    with pytest.raises(AssertionError): helper.assert_cancel_bindings(stage, state["saved"], document, kwargs["material"])
+--- a/config/capability-packages/pdf-extract.manifest.json
++++ b/config/capability-packages/pdf-extract.manifest.json
+@@ -0,0 +1,94 @@
++{
++  "schema": "archeaxis.capability-package/v1",
++  "declaration": "DECLARATION_ONLY",
++  "package_id": "archeaxis.pdf-extract",
++  "version": "0.1.0",
++  "capability_ids": [
++    "CAP-0020"
++  ],
++  "resource_keys": [
++    "pymupdf"
++  ],
++  "contribution_points": [
++    "format_conversion"
++  ],
++  "compatibility": {
++    "host_versions": {
++      "minimum": "0.1.0",
++      "maximum_exclusive": "1.0.0"
++    },
++    "contract_refs": [
++      {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      }
++    ]
++  },
++  "runtime_capabilities": [
++    "pdf.extract"
++  ],
++  "permissions": {
++    "requested": [
++      "selected_source.read",
++      "derived_artifact.propose"
++    ],
++    "data_scope": "explicit_selected_objects_only",
++    "network": "none",
++    "cost": "none",
++    "explicit_grant_required": true,
++    "canonical_writer": "rust_core_only",
++    "credential_handling": "host_reference_only",
++    "local_to_cloud_fallback": "explicit_grant_only",
++    "grants_execution": false,
++    "grants_knowledge_acceptance": false
++  },
++  "dependencies": [
++    {
++      "resource_key": "pymupdf",
++      "requirement": "required",
++      "version_range": null
++    }
++  ],
++  "license": {
++    "expression": null,
++    "review": "UNVERIFIED",
++    "notice_refs": []
++  },
++  "inputs": [
++    {
++      "kind": "raw_asset_reference",
++      "contract": {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      },
++      "max_bytes": 1048576
++    }
++  ],
++  "outputs": [
++    {
++      "kind": "document_reference",
++      "contract": {
++        "path": "packages/contracts/v1/core-document.schema.json",
++        "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++      },
++      "max_bytes": 1048576
++    }
++  ],
++  "lifecycle": {
++    "cancellation": "host_propagated",
++    "exit": "bounded_cleanup",
++    "timeout_ms": 120000,
++    "unknown_result": "preserve_unknown_no_auto_retry",
++    "cleanup_evidence": "required_before_confirmed_exit"
++  },
++  "fallback": {
++    "mode": "unavailable",
++    "losses": [],
++    "automatic": false
++  },
++  "update": {
++    "strategy": "reviewed_replacement_only",
++    "rollback": "preserve_previous_identity_and_originals",
++    "canonical_data_migration": false
++  }
++}
+--- a/frontend/src/__tests__/CapabilityPackageDetails.test.tsx
++++ b/frontend/src/__tests__/CapabilityPackageDetails.test.tsx
+@@ -0,0 +1,48 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++import { act, render, screen, within } from "@testing-library/react";
++import { CanonicalCapabilitiesSpace } from "../spaces/CanonicalCapabilitiesSpace";
++import { CAPABILITY_PACKAGE_DETAILS } from "../api/generated/capability-package-details";
++import { scopedReadiness } from "../test/fixtures/readiness";
++const bridge = vi.hoisted(() => ({ call: vi.fn() }));
++vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
++vi.mock("../components/DiagnosticConsole", () => ({ RawReceiptButton: ({ label }: { label: string }) => <button>{label}</button> }));
++
++describe("page17 consumes verified manifest declaration without runtime authority", () => {
++  beforeEach(() => {
++    bridge.call.mockReset();
++    bridge.call.mockImplementation(async (_op: string, payload: { body: { scope: string; operations: string[] } }) => scopedReadiness(payload.body));
++  });
++  it("shows actual byte identity declaration only for its exact selected CAP", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    const pack = screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" });
++    expect(pack).toHaveTextContent("声明校验通过");
++    expect(pack).toHaveTextContent("pymupdf");
++    expect(pack).toHaveTextContent("不证明关联引擎内置、已安装或可用");
++    expect(within(pack).getByRole("button", { name: /包说明身份与来源/ })).toBeInTheDocument();
++    expect(CAPABILITY_PACKAGE_DETAILS.entries[0].identity.sha256).toMatch(/^[a-f0-9]{64}$/);
++    expect(bridge.call).toHaveBeenCalledTimes(1);
++    expect(bridge.call.mock.calls[0][0]).toBe("operation_readiness");
++  });
++  it("keeps unknown license, authenticity, qualification and runtime distinct", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    const pack = screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" });
++    expect(pack).toHaveTextContent("许可声明：UNKNOWN · 审查 UNVERIFIED");
++    expect(pack).toHaveTextContent("发布者真实性 UNVERIFIED");
++    expect(pack).toHaveTextContent("独立资格 UNKNOWN · 当前运行状态 UNKNOWN");
++    expect(pack).toHaveTextContent("均未授权执行");
++    expect(within(pack).queryByRole("button", { name: /安装|执行|启用|重试/ })).not.toBeInTheDocument();
++  });
++  it("does not borrow another CAP manifest and clears it on selection change", async () => {
++    let view!: ReturnType<typeof render>;
++    await act(async () => { view = render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0020" />); });
++    expect(screen.getByRole("article", { name: "包说明 archeaxis.pdf-extract" })).toBeInTheDocument();
++    await act(async () => { view.rerender(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} selectedCapabilityId="CAP-0090" />); });
++    expect(screen.queryByRole("article", { name: "包说明 archeaxis.pdf-extract" })).not.toBeInTheDocument();
++    expect(screen.getByText(/此能力尚无已验证的包说明/)).toHaveTextContent("manifest 身份 UNKNOWN");
++  });
++  it("has no manifest display or additional package request before a CAP is selected", async () => {
++    await act(async () => { render(<CanonicalCapabilitiesSpace onNavigate={vi.fn()} />); });
++    expect(screen.queryByRole("region", { name: "能力包声明" })).not.toBeInTheDocument();
++    expect(bridge.call).not.toHaveBeenCalled();
++  });
++});
+--- a/frontend/src/api/generated/capability-package-details.ts
++++ b/frontend/src/api/generated/capability-package-details.ts
+@@ -0,0 +1,164 @@
++// Generated from exact builtin manifest and public validator inputs. Declaration only.
++import type { CapabilityManifestIdentity, CapabilityPackageManifest } from './capability-package';
++export type CapabilityPackageDetail = {
++  identity: CapabilityManifestIdentity; manifest: CapabilityPackageManifest; source_path: string;
++  validation: 'VALIDATED_DECLARATION'; host_version: string;
++  source_authenticity: 'UNVERIFIED'; qualification: 'UNKNOWN'; runtime: 'UNKNOWN';
++};
++export type CapabilityPackageDetailProjection = {
++  sources: { path: string; sha256: string }[]; entries: CapabilityPackageDetail[];
++};
++export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = {
++  "sources": [
++    {
++      "path": "config/capability-map.v1.json",
++      "sha256": "d5873a524c04d5b6213dbd3f5f39d20c0056e5fc96e4d3c977daf7d4f572ed0e"
++    },
++    {
++      "path": "config/capability-packages/pdf-extract.manifest.json",
++      "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
++    },
++    {
++      "path": "crates/archeaxis-api/Cargo.toml",
++      "sha256": "92aefb0bc36e94865983dfb768bdcc3abb1bbe41c204d503280f693df2da19ad"
++    },
++    {
++      "path": "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++      "sha256": "445a062ba2737a8bc0b1406dbace47aeeaaa87b269bb4fc47dfb5e1d2d389ae5"
++    },
++    {
++      "path": "packages/contracts/v1/core-document.schema.json",
++      "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++    },
++    {
++      "path": "packages/contracts/v2/capability-package.schema.json",
++      "sha256": "248b38fbaf6ce16b87e7acdd4395f4515ba082977da0d6538fe8c14f9ac02d2f"
++    },
++    {
++      "path": "scripts/contracts/check_capability_package_details.mjs",
++      "sha256": "3411ea2086c532ab848f1d0e371177c01c759d9ba3f1511d2df92198825ee215"
++    },
++    {
++      "path": "scripts/contracts/generate_capability_package_details.py",
++      "sha256": "f71cfac89b083a8c668c8cbffb45a2d861e02f435e6b2d6a03a3334b84063a12"
++    },
++    {
++      "path": "scripts/contracts/validate_capability_package.py",
++      "sha256": "7575d12775fbbec60b697da10cd53f003f177845c735b90f4d2afdc6093eaef1"
++    },
++    {
++      "path": "services/python-workers/routes.json",
++      "sha256": "0ac3068fe9a9179eb6575609305d3eaf88e7d9d485a0794b7948333c0a70706f"
++    }
++  ],
++  "entries": [
++    {
++      "identity": {
++        "schema": "archeaxis.capability-package/v1",
++        "package_id": "archeaxis.pdf-extract",
++        "version": "0.1.0",
++        "sha256": "2ecafecb8dc5c6f8b9ef6a29573a6ef30816113f7fc7587450697b10eb02f2c5"
++      },
++      "manifest": {
++        "schema": "archeaxis.capability-package/v1",
++        "declaration": "DECLARATION_ONLY",
++        "package_id": "archeaxis.pdf-extract",
++        "version": "0.1.0",
++        "capability_ids": [
++          "CAP-0020"
++        ],
++        "resource_keys": [
++          "pymupdf"
++        ],
++        "contribution_points": [
++          "format_conversion"
++        ],
++        "compatibility": {
++          "host_versions": {
++            "minimum": "0.1.0",
++            "maximum_exclusive": "1.0.0"
++          },
++          "contract_refs": [
++            {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            }
++          ]
++        },
++        "runtime_capabilities": [
++          "pdf.extract"
++        ],
++        "permissions": {
++          "requested": [
++            "selected_source.read",
++            "derived_artifact.propose"
++          ],
++          "data_scope": "explicit_selected_objects_only",
++          "network": "none",
++          "cost": "none",
++          "explicit_grant_required": true,
++          "canonical_writer": "rust_core_only",
++          "credential_handling": "host_reference_only",
++          "local_to_cloud_fallback": "explicit_grant_only",
++          "grants_execution": false,
++          "grants_knowledge_acceptance": false
++        },
++        "dependencies": [
++          {
++            "resource_key": "pymupdf",
++            "requirement": "required",
++            "version_range": null
++          }
++        ],
++        "license": {
++          "expression": null,
++          "review": "UNVERIFIED",
++          "notice_refs": []
++        },
++        "inputs": [
++          {
++            "kind": "raw_asset_reference",
++            "contract": {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            },
++            "max_bytes": 1048576
++          }
++        ],
++        "outputs": [
++          {
++            "kind": "document_reference",
++            "contract": {
++              "path": "packages/contracts/v1/core-document.schema.json",
++              "sha256": "5737798a22163b66f3471c72aac792dfc70f4cd5eabf1288dc8a7e3e534c7f76"
++            },
++            "max_bytes": 1048576
++          }
++        ],
++        "lifecycle": {
++          "cancellation": "host_propagated",
++          "exit": "bounded_cleanup",
++          "timeout_ms": 120000,
++          "unknown_result": "preserve_unknown_no_auto_retry",
++          "cleanup_evidence": "required_before_confirmed_exit"
++        },
++        "fallback": {
++          "mode": "unavailable",
++          "losses": [],
++          "automatic": false
++        },
++        "update": {
++          "strategy": "reviewed_replacement_only",
++          "rollback": "preserve_previous_identity_and_originals",
++          "canonical_data_migration": false
++        }
++      },
++      "source_path": "config/capability-packages/pdf-extract.manifest.json",
++      "validation": "VALIDATED_DECLARATION",
++      "host_version": "0.1.0",
++      "source_authenticity": "UNVERIFIED",
++      "qualification": "UNKNOWN",
++      "runtime": "UNKNOWN"
++    }
++  ]
++};
+--- a/frontend/src/components/CapabilityPackageDetails.tsx
++++ b/frontend/src/components/CapabilityPackageDetails.tsx
+@@ -0,0 +1,22 @@
++import { CAPABILITY_PACKAGE_DETAILS } from "../api/generated/capability-package-details";
++import { RawReceiptButton } from "./DiagnosticConsole";
++
++/** 仅所选稳定CAP的构建时验证声明；不参与运行握手，也不授予安装、执行或许可资格。 */
++export function CapabilityPackageDetails({ capabilityId }: { capabilityId: string }) {
++  const rows = CAPABILITY_PACKAGE_DETAILS.entries.filter(row =>
++    (row.manifest.capability_ids as readonly string[]).includes(capabilityId));
++  return <section aria-label="能力包声明">
++    <h4>能力包声明</h4>
++    {!rows.length ? <p>此能力尚无已验证的包说明，manifest 身份 UNKNOWN；许可、资格与运行状态分别未知。</p> : rows.map(row => <article key={row.identity.sha256} aria-label={`包说明 ${row.identity.package_id}`}>
++      <p>包说明 {row.identity.package_id} · 声明版本 {row.identity.version}</p>
++      <p>声明校验通过：原字节身份、公共来源引用与构建宿主 {row.host_version} 兼容；发布者真实性 {row.source_authenticity}。</p>
++      <p>这里内置的是 manifest 说明，不证明关联引擎内置、已安装或可用。</p>
++      <p>贡献形式：{row.manifest.contribution_points.join("、")} · 来源稳定键：{row.manifest.resource_keys.join("、") || "无外部来源声明"}</p>
++      <p>许可声明：{row.manifest.license.expression ?? "UNKNOWN"} · 审查 {row.manifest.license.review}；声明校验不提供商业许可结论。</p>
++      <p>独立资格 {row.qualification} · 当前运行状态 {row.runtime}；当前健康与权限仍以下方范围化读回为准。</p>
++      <p>申请权限：{row.manifest.permissions.requested.join("、") || "无"} · 网络 {row.manifest.permissions.network} · 费用 {row.manifest.permissions.cost}；均未授权执行。</p>
++      <p>降级声明：{row.manifest.fallback.mode} · 损失 {row.manifest.fallback.losses.join("、") || "未声明损失"}；不自动降级或重试。</p>
++      <RawReceiptButton label={`包说明身份与来源 · ${row.identity.package_id}`} payload={{ identity: row.identity, source_path: row.source_path, sources: CAPABILITY_PACKAGE_DETAILS.sources }} />
++    </article>)}
++  </section>;
++}
+--- a/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx
++++ b/frontend/src/spaces/CanonicalCapabilitiesSpace.tsx
+@@ -14,6 +14,7 @@
+ import { ModelTaskRoles } from "../components/ModelTaskRoles";
+ import { readScopedReadiness } from "../api/scopedReadiness";
+ import { capabilityPresentation, type CapabilityGroup } from "../presentation/capabilityCenter";
++import { CapabilityPackageDetails } from "../components/CapabilityPackageDetails";
+ import "./capabilities.css";
+ 
+ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCapabilityId, navigation, onTrail }: { onNavigate: (id: SpaceId) => void; onOpenPage?: (id: string) => void; selectedCapabilityId?: string | null; navigation?: { section: string; sequence: number }; onTrail?: (levels: readonly ObjectTrailLevel[]) => void }) {
+@@ -130,6 +131,7 @@
+     </li>)}</ul> : <p>模板套件当前没有声明此能力；这不代表能力无用，只代表联接尚未建立。</p>}
+     <p>{requiring.length ? "此处只列声明了该 ID 的模板；模板不复制插件代码、依赖安装或连接配置。对象在资料库的「学科模板」展开区，本视图不建立第二份模板清单。" : "无声明联接时不提供跳转，避免打开一个没有对象的入口。"}</p>
+     {requiring.length ? <AaosButton variant="secondary" onClick={() => onNavigate("library")}>到资料库打开学科模板</AaosButton> : null}
++    <CapabilityPackageDetails capabilityId={selected.atlas.capability_id} />
+     <h4>当前运行联接、权限与健康</h4>
+     <ModelTaskRoles capabilities={live} scopeLabel={selected.atlas.canonical_name}/>
+     <p>实现声明来源：config/capability-map.v1.json · {selected.implementation.state}。声明本身不证明本轮执行。</p>
+--- a/frontend/vite.config.ts
++++ b/frontend/vite.config.ts
+@@ -3,6 +3,7 @@
+ import { join, resolve } from "node:path";
+ import { defineConfig } from "vite";
+ import react from "@vitejs/plugin-react";
++import { checkCapabilityPackageDetails } from "../scripts/contracts/check_capability_package_details.mjs";
+ import { verifyBuildEnvironment } from "../scripts/runtime/frontend_paths.mjs";
+ 
+ // AXW-UI-801: App Shell built with Vite; dev server binds loopback only.
+@@ -19,6 +20,9 @@
+   : fileURLToPath(new URL("../.project-local/build/vite-cache", import.meta.url));
+ 
+ export default defineConfig(({ command }) => {
++  // 只检查不生成：来源、版本或原字节漂移时禁止继续使用旧能力包详情。
++  const root = resolve(frontendRoot, "..");
++  checkCapabilityPackageDetails(root);
+   const frontendDist = process.env.ARCHEAXIS_FRONTEND_DIST;
+   if (command === "build" && !frontendDist) throw new Error("Use npm run build: frontend output requires the project run router");
+   if (command === "build") verifyBuildEnvironment(resolve(frontendRoot, ".."));
+--- a/scripts/contracts/generate_capability_package_details.py
++++ b/scripts/contracts/generate_capability_package_details.py
+@@ -0,0 +1,124 @@
++"""从明确内置说明原字节生成只读能力详情；不注册、安装或执行任何引擎。"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import stat
++import tomllib
++from pathlib import Path
++
++from validate_capability_package import ManifestValidationError, parse_manifest_bytes
++
++# 这是随产品审阅的说明字节入口，不是运行引擎/安装状态注册表，也不自动枚举目录。
++BUILTIN_MANIFEST = "config/capability-packages/pdf-extract.manifest.json"
++TARGET = "frontend/src/api/generated/capability-package-details.ts"
++SOURCES = (
++    "packages/contracts/v2/capability-package.schema.json",
++    "scripts/contracts/validate_capability_package.py",
++    "scripts/contracts/generate_capability_package_details.py",
++    "scripts/contracts/check_capability_package_details.mjs",
++    "config/capability-map.v1.json",
++    "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++    "services/python-workers/routes.json",
++    "crates/archeaxis-api/Cargo.toml",
++)
++MAX_PUBLIC_BYTES = 4194304
++
++
++def read_public(root: Path, name: str, limit=MAX_PUBLIC_BYTES):
++    # 调用方仅传固定公开输入或已经由现有validator验证的公共引用；读取前再次拒绝链接。
++    if not name or any(x in ("", ".", "..") for x in name.split("/")) or ":" in name or "\\" in name:
++        raise ManifestValidationError("MANIFEST_PROJECTION_PATH_REJECTED")
++    current = root
++    try:
++        for part in name.split("/"):
++            current /= part
++            info = current.lstat()
++            if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
++                raise ManifestValidationError("MANIFEST_PROJECTION_LINK_REJECTED")
++        if not stat.S_ISREG(info.st_mode) or info.st_size > limit:
++            raise ManifestValidationError("MANIFEST_PROJECTION_SIZE_REJECTED")
++        with current.open("rb") as handle:
++            raw = handle.read(limit + 1)
++        if len(raw) > limit:
++            raise ManifestValidationError("MANIFEST_PROJECTION_SIZE_REJECTED")
++        return raw
++    except OSError:
++        raise ManifestValidationError("MANIFEST_PROJECTION_SOURCE_UNAVAILABLE") from None
++
++
++def build(root: Path):
++    raw = read_public(root, BUILTIN_MANIFEST, 262144)
++    identity = parse_manifest_bytes(raw, root)
++    manifest = json.loads(raw)
++    catalog = json.loads(read_public(root, "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json"))["entries"]
++    by_key = {item["stable_key"]: item for item in catalog}
++    # 本切片只接受目录已明确联接的来源，不能用相似名/候选CAP建立新的吸收事实。
++    for key in manifest["resource_keys"]:
++        row = by_key[key]
++        if row.get("atlas_capability_id") not in manifest["capability_ids"]:
++            raise ManifestValidationError("MANIFEST_PROJECTION_CATALOG_JOIN_UNCONFIRMED")
++        route = row["route_binding"].get("named_route")
++        if route and route not in manifest["runtime_capabilities"]:
++            raise ManifestValidationError("MANIFEST_PROJECTION_ROUTE_JOIN_UNCONFIRMED")
++    paths = set(SOURCES) | {BUILTIN_MANIFEST}
++    refs = manifest["compatibility"]["contract_refs"] + manifest["license"]["notice_refs"]
++    refs += [item["contract"] for item in manifest["inputs"] + manifest["outputs"]]
++    paths.update(ref["path"] for ref in refs)
++    sources = [{"path": name, "sha256": hashlib.sha256(read_public(root, name)).hexdigest()}
++               for name in sorted(paths)]
++    host = tomllib.loads(read_public(root, "crates/archeaxis-api/Cargo.toml").decode("utf-8"))["package"]["version"]
++    return {"sources": sources, "entries": [{
++        "identity": identity,
++        "manifest": manifest,
++        "source_path": BUILTIN_MANIFEST,
++        "validation": "VALIDATED_DECLARATION",
++        "host_version": host,
++        "source_authenticity": "UNVERIFIED",
++        "qualification": "UNKNOWN",
++        "runtime": "UNKNOWN",
++    }]}
++
++
++TYPES = """import type { CapabilityManifestIdentity, CapabilityPackageManifest } from './capability-package';
++export type CapabilityPackageDetail = {
++  identity: CapabilityManifestIdentity; manifest: CapabilityPackageManifest; source_path: string;
++  validation: 'VALIDATED_DECLARATION'; host_version: string;
++  source_authenticity: 'UNVERIFIED'; qualification: 'UNKNOWN'; runtime: 'UNKNOWN';
++};
++export type CapabilityPackageDetailProjection = {
++  sources: { path: string; sha256: string }[]; entries: CapabilityPackageDetail[];
++};
++"""
++
++
++def generate(root: Path):
++    payload = build(root)
++    return ("// Generated from exact builtin manifest and public validator inputs. Declaration only.\n"
++            + TYPES + "export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = "
++            + json.dumps(payload, ensure_ascii=False, indent=2) + ";\n")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
++    parser.add_argument("--output", type=Path)
++    parser.add_argument("--check", action="store_true")
++    args = parser.parse_args()
++    try:
++        rendered = generate(args.root)
++        target = args.output or args.root / TARGET
++        if args.check:
++            if not target.is_file() or target.read_text(encoding="utf-8") != rendered:
++                raise ManifestValidationError("MANIFEST_PROJECTION_STALE")
++        else:
++            target.parent.mkdir(parents=True, exist_ok=True)
++            target.write_text(rendered, encoding="utf-8", newline="\n")
++    except (ManifestValidationError, OSError, ValueError, KeyError):
++        # 不回显manifest、路径、来源正文、license任意文本或解析器错误。
++        raise SystemExit("MANIFEST_PROJECTION_CHECK_FAILED") from None
++
++
++if __name__ == "__main__":
++    main()
+--- a/tests/contract/test_capability_package_details.py
++++ b/tests/contract/test_capability_package_details.py
+@@ -0,0 +1,104 @@
++"""已应用manifest合同的真实业务消费；临时镜像测试不提供引擎/许可/运行资格。"""
++import hashlib
++import importlib.util
++import json
++import shutil
++import subprocess
++import sys
++from pathlib import Path
++
++import pytest
++
++ROOT = Path(__file__).resolve().parents[2]
++SCRIPTS = ROOT / "scripts/contracts"
++sys.path.insert(0, str(SCRIPTS))
++spec = importlib.util.spec_from_file_location("details", SCRIPTS / "generate_capability_package_details.py")
++DETAILS = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(DETAILS)
++
++
++@pytest.fixture
++def local(tmp_path):
++    for source in DETAILS.build(ROOT)["sources"]:
++        name = source["path"]
++        dest = tmp_path / name
++        dest.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copyfile(ROOT / name, dest)
++    return tmp_path
++
++
++def mutate(root, change):
++    path = root / DETAILS.BUILTIN_MANIFEST
++    manifest = json.loads(path.read_text(encoding="utf-8"))
++    change(manifest)
++    path.write_text(json.dumps(manifest), encoding="utf-8")
++
++
++def test_actual_builtin_bytes_are_consumed_as_identity_only():
++    data = DETAILS.build(ROOT)
++    row = data["entries"][0]
++    assert row["identity"]["sha256"] == hashlib.sha256((ROOT / DETAILS.BUILTIN_MANIFEST).read_bytes()).hexdigest()
++    assert row["manifest"]["package_id"] == "archeaxis.pdf-extract"
++    assert row["manifest"]["capability_ids"] == ["CAP-0020"]
++    assert row["manifest"]["resource_keys"] == ["pymupdf"]
++    assert row["manifest"]["license"] == {"expression": None, "review": "UNVERIFIED", "notice_refs": []}
++    assert row["source_authenticity"] == "UNVERIFIED"
++    assert row["qualification"] == row["runtime"] == "UNKNOWN"
++    assert row["manifest"]["permissions"]["grants_execution"] is False
++    assert "installed" not in row
++    for source in data["sources"]:
++        assert source["sha256"] == hashlib.sha256((ROOT / source["path"]).read_bytes()).hexdigest()
++
++
++@pytest.mark.parametrize("change,code", [
++    (lambda m: m["capability_ids"].append("CAP-9999"), "MANIFEST_SCHEMA_REJECTED"),
++    (lambda m: m["resource_keys"].append("unknown-donor"), "MANIFEST_CATALOG_REFERENCE_UNKNOWN"),
++    (lambda m: m["compatibility"]["host_versions"].update(minimum="9.0.0", maximum_exclusive="10.0.0"), "MANIFEST_HOST_INCOMPATIBLE"),
++    (lambda m: m["inputs"][0]["contract"].update(sha256="0" * 64), "MANIFEST_SOURCE_DRIFT"),
++    (lambda m: m.update(capability_ids=["CAP-0090"], runtime_capabilities=[]), "MANIFEST_PROJECTION_CATALOG_JOIN_UNCONFIRMED"),
++    (lambda m: m.update(runtime_capabilities=[]), "MANIFEST_PROJECTION_ROUTE_JOIN_UNCONFIRMED"),
++], ids=["unknown-cap", "unknown-key", "host-incompatible", "source-hash-drift", "wrong-cap-join", "wrong-route-join"])
++def test_unverified_or_mismatched_declarations_do_not_generate_fallback(local, change, code):
++    mutate(local, change)
++    with pytest.raises(DETAILS.ManifestValidationError, match="^" + code + "$"):
++        DETAILS.generate(local)
++
++
++def test_changed_raw_bytes_change_identity_even_for_same_declaration(local):
++    before = DETAILS.build(local)["entries"][0]["identity"]
++    path = local / DETAILS.BUILTIN_MANIFEST
++    path.write_bytes(path.read_bytes() + b" ")
++    after = DETAILS.build(local)["entries"][0]["identity"]
++    assert before["sha256"] != after["sha256"]
++    assert before["version"] == after["version"]
++
++
++def test_missing_manifest_does_not_invent_identity(local):
++    (local / DETAILS.BUILTIN_MANIFEST).unlink()
++    with pytest.raises(DETAILS.ManifestValidationError, match="^MANIFEST_PROJECTION_SOURCE_UNAVAILABLE$"):
++        DETAILS.build(local)
++
++
++def test_cli_check_blocks_old_generated_projection_on_manifest_drift(local):
++    target = local / DETAILS.TARGET
++    target.parent.mkdir(parents=True, exist_ok=True)
++    target.write_text(DETAILS.generate(local), encoding="utf-8")
++    command = [sys.executable, "-B", str(SCRIPTS / "generate_capability_package_details.py"), "--root", str(local), "--check"]
++    assert subprocess.run(command, capture_output=True).returncode == 0
++    before = target.read_bytes()
++    (local / DETAILS.BUILTIN_MANIFEST).write_bytes((local / DETAILS.BUILTIN_MANIFEST).read_bytes() + b" ")
++    result = subprocess.run(command, capture_output=True)
++    assert result.returncode != 0
++    assert result.stderr.strip() == b"MANIFEST_PROJECTION_CHECK_FAILED"
++    assert result.stdout == b""
++    assert target.read_bytes() == before  # 保全旧字节，但门禁拒绝继续启动/构建。
++
++
++def test_node_guard_source_identity_is_bound_in_projection(local):
++    name = "scripts/contracts/check_capability_package_details.mjs"
++    original = DETAILS.generate(local)
++    source = local / name
++    before = source.read_bytes()
++    assert {"path": name, "sha256": hashlib.sha256(before).hexdigest()} in DETAILS.build(local)["sources"]
++    source.write_bytes(before + b"\n// synthetic changed guard\n")
++    assert DETAILS.generate(local) != original
+--- a/scripts/contracts/check_capability_package_details.mjs
++++ b/scripts/contracts/check_capability_package_details.mjs
+@@ -0,0 +1,175 @@
++// Node标准库只读漂移检查；不替代Python Schema/semantic验收，不生成、安装或执行能力。
++import { createHash } from "node:crypto";
++import { closeSync, constants, fstatSync, lstatSync, openSync, readSync } from "node:fs";
++import { dirname, isAbsolute, join, resolve } from "node:path";
++import { fileURLToPath } from "node:url";
++
++const FAIL = "MANIFEST_PROJECTION_CHECK_FAILED";
++const MANIFEST = "config/capability-packages/pdf-extract.manifest.json";
++const TARGET = "frontend/src/api/generated/capability-package-details.ts";
++const FIXED = [
++  "packages/contracts/v2/capability-package.schema.json",
++  "scripts/contracts/validate_capability_package.py",
++  "scripts/contracts/generate_capability_package_details.py",
++  "scripts/contracts/check_capability_package_details.mjs",
++  "config/capability-map.v1.json",
++  "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++  "services/python-workers/routes.json",
++  "crates/archeaxis-api/Cargo.toml",
++];
++const HEADER = `// Generated from exact builtin manifest and public validator inputs. Declaration only.
++import type { CapabilityManifestIdentity, CapabilityPackageManifest } from './capability-package';
++export type CapabilityPackageDetail = {
++  identity: CapabilityManifestIdentity; manifest: CapabilityPackageManifest; source_path: string;
++  validation: 'VALIDATED_DECLARATION'; host_version: string;
++  source_authenticity: 'UNVERIFIED'; qualification: 'UNKNOWN'; runtime: 'UNKNOWN';
++};
++export type CapabilityPackageDetailProjection = {
++  sources: { path: string; sha256: string }[]; entries: CapabilityPackageDetail[];
++};
++export const CAPABILITY_PACKAGE_DETAILS: CapabilityPackageDetailProjection = `;
++const sha = bytes => createHash("sha256").update(bytes).digest("hex");
++const requireThat = value => { if (!value) throw new Error(FAIL); };
++
++function safeRoot(root) {
++  requireThat(typeof root === "string" && isAbsolute(root) && !/^[EF]:[\\/]|^[/\\]{2}/i.test(root));
++  root = resolve(root);
++  const ancestors = [];
++  for (let part = root; ; part = dirname(part)) {
++    ancestors.unshift(part);
++    if (dirname(part) === part) break;
++  }
++  for (const part of ancestors) requireThat(!lstatSync(part).isSymbolicLink());
++  return root;
++}
++
++function readPublic(root, name, limit = 4194304) {
++  requireThat(typeof name === "string" && name.length <= 240 && !/[\\:]/.test(name));
++  const parts = name.split("/");
++  const denied = /^(private|secrets|credentials|sessions?|memor(?:y|ies)|tokens|cookies|auth|data|node_modules|target|dist)$/i;
++  requireThat(parts.every(part => /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(part) && part !== ".." && !denied.test(part)));
++  let path = root;
++  for (const part of parts) {
++    path = join(path, part);
++    requireThat(!lstatSync(path).isSymbolicLink()); // 包括Windows junction；读取前拒绝，不跟随到私有/其他盘。
++  }
++  const fd = openSync(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
++  try {
++    const info = fstatSync(fd);
++    requireThat(info.isFile() && info.size <= limit);
++    const bytes = Buffer.alloc(limit + 1);
++    let length = 0;
++    while (length < bytes.length) {
++      const count = readSync(fd, bytes, length, bytes.length - length, null);
++      if (count === 0) break;
++      length += count;
++    }
++    requireThat(length <= limit);
++    return bytes.subarray(0, length);
++  } finally { closeSync(fd); }
++}
++
++// 有界JSON解析，额外拒绝重复key/depth；不执行TS/代码，不回显解析器输入。
++function parseJSON(bytes) {
++  const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
++  let at = 0;
++  const space = () => { while (/\s/.test(text[at] ?? "") && at < text.length) at++; };
++  function string() {
++    const start = at++;
++    while (at < text.length) {
++      const char = text[at++];
++      if (char === "\\") { at++; continue; }
++      if (char === '"') return JSON.parse(text.slice(start, at));
++    }
++    throw new Error(FAIL);
++  }
++  function value(depth) {
++    requireThat(depth <= 64); space();
++    if (text[at] === '"') return string();
++    if (text[at] === "{" || text[at] === "[") {
++      const object = text[at++] === "{";
++      const close = object ? "}" : "]";
++      const keys = new Set();
++      space(); if (text[at] === close) { at++; return; }
++      while (at < text.length) {
++        if (object) {
++          space(); requireThat(text[at] === '"');
++          const key = string(); requireThat(!keys.has(key)); keys.add(key);
++          space(); requireThat(text[at++] === ":");
++        }
++        value(depth + 1); space();
++        const char = text[at++];
++        if (char === close) return;
++        requireThat(char === ",");
++      }
++      throw new Error(FAIL);
++    }
++    const start = at;
++    while (at < text.length && !/[,}\]\s]/.test(text[at])) at++;
++    requireThat(at > start); JSON.parse(text.slice(start, at));
++  }
++  value(0); space(); requireThat(at === text.length);
++  return JSON.parse(text);
++}
++
++function publicReference(ref, contractsOnly) {
++  requireThat(ref && typeof ref === "object" && Object.keys(ref).sort().join() === "path,sha256");
++  requireThat(typeof ref.sha256 === "string" && /^[a-f0-9]{64}$/.test(ref.sha256));
++  requireThat(typeof ref.path === "string" && (contractsOnly
++    ? /^packages\/contracts\/[A-Za-z0-9/_.-]+\.schema\.json$/.test(ref.path)
++    : /^(LICENSE|THIRD_PARTY_NOTICES\.md|docs\/[A-Za-z0-9/_.-]+\.(md|json|yaml)|packages\/contracts\/[A-Za-z0-9/_.-]+\.schema\.json)$/.test(ref.path)));
++  return ref.path;
++}
++
++/** 只核对已生成的声明字节与固定公共输入；不能由此授予真实性、许可或执行资格。 */
++export function checkCapabilityPackageDetails(root) {
++  try {
++    root = safeRoot(root);
++    const raw = readPublic(root, MANIFEST, 262144);
++    const manifest = parseJSON(raw);
++    requireThat(manifest.schema === "archeaxis.capability-package/v1" && manifest.declaration === "DECLARATION_ONLY");
++    requireThat(typeof manifest.package_id === "string" && manifest.package_id.length <= 96);
++    requireThat(typeof manifest.version === "string" && /^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})$/.test(manifest.version));
++    const paths = new Set([...FIXED, MANIFEST]);
++    requireThat(Array.isArray(manifest.compatibility?.contract_refs) && manifest.compatibility.contract_refs.length <= 16);
++    requireThat(Array.isArray(manifest.license?.notice_refs) && manifest.license.notice_refs.length <= 8);
++    requireThat(Array.isArray(manifest.inputs) && manifest.inputs.length <= 8 && Array.isArray(manifest.outputs) && manifest.outputs.length <= 8);
++    for (const items of [manifest.compatibility.contract_refs, manifest.license.notice_refs, manifest.inputs, manifest.outputs]) {
++      requireThat(new Set(items.map(item => JSON.stringify(item))).size === items.length);
++    }
++    const refs = [...manifest.compatibility.contract_refs, ...manifest.inputs.map(x => x.contract), ...manifest.outputs.map(x => x.contract)];
++    for (const ref of refs) {
++      paths.add(publicReference(ref, true));
++      requireThat(sha(readPublic(root, ref.path)) === ref.sha256);
++    }
++    for (const ref of manifest.license.notice_refs) {
++      paths.add(publicReference(ref, false));
++      requireThat(sha(readPublic(root, ref.path)) === ref.sha256);
++    }
++    const sources = [...paths].sort().map(path => ({ path, sha256: sha(readPublic(root, path)) }));
++    const cargo = new TextDecoder("utf-8", { fatal: true }).decode(readPublic(root, "crates/archeaxis-api/Cargo.toml"));
++    const packageSection = cargo.split(/^\[package\]\s*$/m)[1]?.split(/^\[/m)[0];
++    const versions = [...(packageSection ?? "").matchAll(/^version\s*=\s*"([0-9]+\.[0-9]+\.[0-9]+)"\s*$/gm)];
++    requireThat(versions.length === 1);
++    const expected = { sources, entries: [{
++      identity: { schema: manifest.schema, package_id: manifest.package_id, version: manifest.version, sha256: sha(raw) },
++      manifest, source_path: MANIFEST, validation: "VALIDATED_DECLARATION", host_version: versions[0][1],
++      source_authenticity: "UNVERIFIED", qualification: "UNKNOWN", runtime: "UNKNOWN",
++    }] };
++    const target = readPublic(root, TARGET, 524288);
++    const output = new TextDecoder("utf-8", { fatal: true }).decode(target);
++    requireThat(output.startsWith(HEADER) && output.endsWith(";\n"));
++    const projection = parseJSON(Buffer.from(output.slice(HEADER.length, -2)));
++    // sources路径永不来自projection；完整目标必须匹配从固定实际来源重建的只读投影。
++    requireThat(JSON.stringify(projection) === JSON.stringify(expected));
++    requireThat(output === HEADER + JSON.stringify(expected, null, 2) + ";\n");
++    return true;
++  } catch { throw new Error(FAIL); }
++}
++
++if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
++  try {
++    requireThat(process.argv.length === 2 || (process.argv.length === 3 && process.argv[2] === "--check"));
++    checkCapabilityPackageDetails(resolve(dirname(fileURLToPath(import.meta.url)), "../.."));
++  } catch { console.error(FAIL); process.exitCode = 1; }
++}
+--- a/tests/contract/test_capability_package_details_node.mjs
++++ b/tests/contract/test_capability_package_details_node.mjs
+@@ -0,0 +1,88 @@
++// 内置Node runner；仅自有ignored fixture，不安装依赖、不启动服务。
++import { test } from "node:test";
++import assert from "node:assert/strict";
++import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, renameSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
++import { dirname, join, resolve } from "node:path";
++import { fileURLToPath } from "node:url";
++import { spawnSync } from "node:child_process";
++import { checkCapabilityPackageDetails } from "../../scripts/contracts/check_capability_package_details.mjs";
++const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
++const OUTPUT = join(ROOT, ".project-local", "node-manifest-guard-cases");
++const MANIFEST = "config/capability-packages/pdf-extract.manifest.json";
++const TARGET = "frontend/src/api/generated/capability-package-details.ts";
++const FIXED = [MANIFEST, TARGET,
++  "packages/contracts/v2/capability-package.schema.json",
++  "packages/contracts/v1/core-document.schema.json",
++  "scripts/contracts/validate_capability_package.py",
++  "scripts/contracts/generate_capability_package_details.py",
++  "scripts/contracts/check_capability_package_details.mjs",
++  "config/capability-map.v1.json",
++  "docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json",
++  "services/python-workers/routes.json", "crates/archeaxis-api/Cargo.toml",
++];
++function fixture() {
++  mkdirSync(OUTPUT, { recursive: true });
++  const root = mkdtempSync(join(OUTPUT, "owned-"));
++  for (const name of FIXED) {
++    mkdirSync(dirname(join(root, name)), { recursive: true });
++    copyFileSync(join(ROOT, name), join(root, name));
++  }
++  return root;
++}
++function rejected(root) {
++  assert.throws(() => checkCapabilityPackageDetails(root), error => error.message === "MANIFEST_PROJECTION_CHECK_FAILED");
++}
++test("guard succeeds from frontend cwd with no usable Python and empty PATH", () => {
++  const root = fixture();
++  const child = spawnSync(process.execPath, [join(root, "scripts/contracts/check_capability_package_details.mjs"), "--check"], {
++    cwd: join(root, "frontend"), encoding: "utf8",
++    env: { ...process.env, PATH: "", ARCHEAXIS_PYTHON: join(root, "NO_PYTHON_EXISTS.exe") },
++  });
++  assert.equal(child.status, 0); assert.equal(child.stdout, ""); assert.equal(child.stderr, "");
++});
++test("manifest raw whitespace drift is rejected and exact restoration succeeds", () => {
++  const root = fixture(), path = join(root, MANIFEST), original = readFileSync(path);
++  writeFileSync(path, Buffer.concat([original, Buffer.from(" ")])); rejected(root);
++  writeFileSync(path, original); assert.equal(checkCapabilityPackageDetails(root), true);
++});
++test("fixed validator generator host and schema drift cannot keep old projection", () => {
++  for (const name of ["scripts/contracts/validate_capability_package.py", "scripts/contracts/generate_capability_package_details.py", "scripts/contracts/check_capability_package_details.mjs", "crates/archeaxis-api/Cargo.toml", "packages/contracts/v2/capability-package.schema.json"]) {
++    const root = fixture(), path = join(root, name);
++    writeFileSync(path, Buffer.concat([readFileSync(path), Buffer.from("\n")])); rejected(root);
++  }
++});
++test("tampered sources cannot grant private path reads or duplicate source identity", () => {
++  for (const change of [text => text.replace('"config/capability-map.v1.json"', '"docs/private/SYNTHETIC_SECRET.json"'), text => text.replace('"sources": [', '"sources": [{"path":"docs/private/SYNTHETIC_SECRET.json","sha256":"' + "0".repeat(64) + '"},'), text => text.replace(/("sources": \[\n)(    \{[\s\S]*?\n    \},\n)/, "$1$2$2")]) {
++    const root = fixture(), path = join(root, TARGET);
++    writeFileSync(path, change(readFileSync(path, "utf8"))); rejected(root);
++  }
++});
++test("generated runtime flags identity manifest payload header and suffix tampering fail", () => {
++  for (const change of [text => text.replace('"runtime": "UNKNOWN"', '"runtime": "AVAILABLE"'), text => text.replace('"package_id": "archeaxis.pdf-extract"', '"package_id": "forged"'), text => text.replace("Declaration only.", "Approved runtime."), text => text + "\nthrow new Error('SYNTHETIC_PRIVATE_VALUE');\n"]) {
++    const root = fixture(), path = join(root, TARGET);
++    writeFileSync(path, change(readFileSync(path, "utf8"))); rejected(root);
++  }
++});
++test("duplicate JSON keys and excessive nesting are rejected without evaluation", () => {
++  const root = fixture(), path = join(root, MANIFEST), raw = readFileSync(path, "utf8");
++  writeFileSync(path, raw.replace('"schema":', '"schema":"duplicate","schema":')); rejected(root);
++  writeFileSync(path, "[".repeat(66) + "0" + "]".repeat(66)); rejected(root);
++});
++test("public references cannot escape to protected absolute private or traversal paths", () => {
++  for (const path of ["E:/SYNTHETIC_PRIVATE_VALUE", "F:/SYNTHETIC_PRIVATE_VALUE", "../outside.schema.json", "packages/contracts/../private/a.schema.json", "docs/private/SYNTHETIC_SECRET.json"]) {
++    const root = fixture(), file = join(root, MANIFEST), value = JSON.parse(readFileSync(file, "utf8"));
++    value.compatibility.contract_refs[0].path = path;
++    writeFileSync(file, JSON.stringify(value)); rejected(root);
++  }
++});
++test("missing and oversized fixed source or target are bounded failures", () => {
++  let root = fixture(); unlinkSync(join(root, "services/python-workers/routes.json")); rejected(root);
++  root = fixture(); writeFileSync(join(root, "scripts/contracts/validate_capability_package.py"), Buffer.alloc(4194305)); rejected(root);
++  root = fixture(); writeFileSync(join(root, TARGET), Buffer.alloc(524289)); rejected(root);
++});
++test("linked public schema directory is rejected before reading its target", () => {
++  const root = fixture(), original = join(root, "packages/contracts/v1"), moved = join(root, "owned-linked-source");
++  renameSync(original, moved);
++  symlinkSync(moved, original, process.platform === "win32" ? "junction" : "dir");
++  rejected(root);
++});

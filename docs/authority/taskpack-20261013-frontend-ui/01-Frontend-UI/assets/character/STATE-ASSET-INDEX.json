@@ -1,0 +1,71 @@
+{
+  "state": "PACKAGED_ORIGINAL_SVG_REFERENCE",
+  "source": "ASTRYN src/avatar/xiaoqi-avatar.ts and state-visuals.ts",
+  "source_blob": "4638227f0c864308cd62a16360ebe30d00cf0276",
+  "files": [
+    {
+      "state": "awaiting_approval",
+      "path": "states/awaiting_approval.svg",
+      "sha256": "043871d7059fd5bc90c3c1e7f422f1acf8702685e4568e8bc165c332ee3e985b",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    },
+    {
+      "state": "completed",
+      "path": "states/completed.svg",
+      "sha256": "96dca45f2b15b9685fd8ff2a9f7d2409ffa7d889c2598f379d814d8a8bab2a74",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    },
+    {
+      "state": "executing",
+      "path": "states/executing.svg",
+      "sha256": "dc0884a3b5790bd10ff6b5e2e711ce401452901210bbff020818334b3788dba4",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    },
+    {
+      "state": "failed",
+      "path": "states/failed.svg",
+      "sha256": "ae9279cc012d718dee13d7ed632370249f63653637e1c0f13bf2132518eef94a",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    },
+    {
+      "state": "idle",
+      "path": "states/idle.svg",
+      "sha256": "8102f8b01ecf69b200015e7e568cd09b7d6dc947f529ce757041997cd716d74f",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    },
+    {
+      "state": "interrupted",
+      "path": "states/interrupted.svg",
+      "sha256": "295f2d83dc4cf31126f65725a8c62034756e7aea5cd18c40b282abca9314cd05",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    },
+    {
+      "state": "listening",
+      "path": "states/listening.svg",
+      "sha256": "619418d5ee7f6519ddf493f75a6371ae8471a98d0eaeb1e4331db560b1cb33ae",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    },
+    {
+      "state": "speaking",
+      "path": "states/speaking.svg",
+      "sha256": "ff6b6f08897a5084f34b310f7f8e5ec5a91c5450773fe20338fdecae0a45519f",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    },
+    {
+      "state": "thinking",
+      "path": "states/thinking.svg",
+      "sha256": "459dc0ac1e5d0f385ec1f9d5b64fc3b5f11851b1a35b29fcad44b3c6b32109ba",
+      "format": "SVG",
+      "viewBox": "0 0 120 140"
+    }
+  ],
+  "voice_or_phoneme_qualification": false
+}
