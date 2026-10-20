@@ -25,7 +25,7 @@
         "contract_refs": [
           {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           }
         ]
       },
@@ -64,7 +64,7 @@
           "kind": "raw_asset_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -74,7 +74,7 @@
           "kind": "document_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -124,7 +124,7 @@
         "contract_refs": [
           {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           }
         ]
       },
@@ -161,7 +161,7 @@
           "kind": "raw_asset_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -171,7 +171,7 @@
           "kind": "document_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -221,7 +221,7 @@
         "contract_refs": [
           {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           }
         ]
       },
@@ -258,7 +258,7 @@
           "kind": "raw_asset_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -268,7 +268,7 @@
           "kind": "document_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -318,7 +318,7 @@
         "contract_refs": [
           {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           }
         ]
       },
@@ -355,7 +355,7 @@
           "kind": "raw_asset_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -365,7 +365,7 @@
           "kind": "document_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -415,7 +415,7 @@
         "contract_refs": [
           {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           }
         ]
       },
@@ -452,7 +452,7 @@
           "kind": "raw_asset_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -462,7 +462,7 @@
           "kind": "document_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -512,7 +512,7 @@
         "contract_refs": [
           {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           }
         ]
       },
@@ -549,7 +549,7 @@
           "kind": "raw_asset_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -559,7 +559,7 @@
           "kind": "document_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -609,7 +609,7 @@
         "contract_refs": [
           {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           }
         ]
       },
@@ -648,7 +648,7 @@
           "kind": "raw_asset_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -658,7 +658,7 @@
           "kind": "document_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -711,7 +711,7 @@
         "contract_refs": [
           {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           }
         ]
       },
@@ -747,7 +747,7 @@
           "kind": "raw_asset_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
@@ -757,7 +757,7 @@
           "kind": "document_reference",
           "contract": {
             "path": "packages/contracts/v1/core-document.schema.json",
-            "sha256": "1d8e24b1f4b07523a29dc7c3c9e241ad23faa1c54d47057ffcb61dc79b3ce3ec"
+            "sha256": "5cea9a2861b9d47b7c07801526d376b8c8483f08e5c140ad5d47b8bb5f1bfe08"
           },
           "max_bytes": 1048576
         }
