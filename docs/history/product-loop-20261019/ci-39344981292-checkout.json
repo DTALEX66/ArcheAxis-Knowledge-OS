@@ -1,0 +1,26 @@
+{
+  "schema": "archeaxis/historical-ci-checkout/v1",
+  "evidence_level": "REAL_CI",
+  "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+  "run_id": 39344981292,
+  "run_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39344981292",
+  "pr_number": 194,
+  "head_sha": "206d56dafd00d0d3ccfd949ce6a4e424a324112a",
+  "checkout_kind": "temporary_pull_request_merge_commit",
+  "checkout_sha": "733c50059fe7215e83564f65edb86110d31fb33e",
+  "checkout_tree": "a3f89a589364d388d2912cf9f001886d5dffeffa",
+  "parents": [
+    "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+    "206d56dafd00d0d3ccfd949ce6a4e424a324112a"
+  ],
+  "verification": {
+    "github_git_commit_api_readback_date": "2026-10-20",
+    "tree_equals_head_tree": true,
+    "run_conclusion": "success",
+    "installer_lifecycle_conclusion": "success",
+    "a0_gates_conclusion": "success",
+    "not_required_jobs_skipped": 5,
+    "installed_native_journey_artifact_id": 12231488177
+  },
+  "boundary": "Historical CI checkout identity only. Temporary PR merge objects need not exist in later fresh clones. This does not qualify later commits, main merge, daily Green replacement or full business acceptance. Actual progress remains in docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md."
+}

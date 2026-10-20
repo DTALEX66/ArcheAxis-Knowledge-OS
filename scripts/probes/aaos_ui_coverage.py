@@ -91,9 +91,55 @@ def navigate(page, page_id: str) -> None:
         nav = surface()
     nav.locator(f'[data-page-id="{page_id}"]').click()
     page.wait_for_function("id => location.hash === '#page=' + id", arg=page_id)
-    page.locator(".space-view").wait_for()
+    page.locator(".space-view:visible").wait_for()
     page.wait_for_function("() => document.fonts.status === 'loaded'")
     page.wait_for_timeout(200)
+
+
+def dock_interactions(page, output: Path, theme: str) -> dict:
+    """Visible input against existing tabs and the real changing dock rectangle."""
+    page.set_viewport_size({"width": 1600, "height": 1000})
+    navigate(page, "03")
+    navigate(page, "17")
+    navigate(page, "03")
+    workspace = page.get_by_role("region", name="自由布局工作区", exact=True)
+    workspace.locator(".dock-layout-options > summary").click()
+
+    def observe(label):
+        page.wait_for_timeout(350)
+        path = output / f"dock-{label}-{theme}.png"
+        page.screenshot(path=str(path))
+        return {"screenshot": str(path), "viewport": page.viewport_size,
+                "surface": workspace.locator(".dock-surface").bounding_box(),
+                "groups": workspace.locator(".dv-groupview").evaluate_all("nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {width:r.width,height:r.height,x:r.x,y:r.y,tabs:[...n.querySelectorAll('[role=tab]')].map(t=>t.getAttribute('aria-label'))};})"),
+                "tabs": workspace.get_by_role("tab").all_text_contents()}
+
+    result = {"theme": theme, "before": observe("before")}
+    workspace.get_by_role("button", name="左右分栏", exact=True).click()
+    result["horizontal"] = observe("horizontal")
+    workspace.get_by_role("button", name="上下分栏", exact=True).click()
+    result["vertical"] = observe("vertical")
+    workspace.get_by_role("button", name="左右分栏", exact=True).click()
+    page.set_viewport_size({"width": 640, "height": 480})
+    result["narrow"] = observe("narrow")
+    workspace.get_by_role("tab", name="阅读与编辑", exact=True).click()
+    page.get_by_role("region", name="阅读与编辑文档视图", exact=True).wait_for()
+    result["reader_tab_reachable"] = True
+    page.set_viewport_size({"width": 1600, "height": 1000})
+    result["restored"] = observe("restored")
+    horizontal, vertical = result["horizontal"]["groups"], result["vertical"]["groups"]
+    result["axes_verified"] = (len(horizontal) == len(vertical) == 2 and
+        abs(horizontal[0]["y"] - horizontal[1]["y"]) < 2 and abs(horizontal[0]["x"] - horizontal[1]["x"]) > 100 and
+        abs(vertical[0]["x"] - vertical[1]["x"]) < 2 and abs(vertical[0]["y"] - vertical[1]["y"]) > 100)
+    result["status"] = "PASS" if (len(result["horizontal"]["groups"]) == 2 and
+        len(result["vertical"]["groups"]) == 2 and len(result["narrow"]["groups"]) == 1 and
+        len(result["restored"]["groups"]) == 2 and result["axes_verified"]) else "FAIL"
+    # Entry-state coverage below is intentionally separate from the multi-panel
+    # gesture journey. Reset using the visible product control, retaining hosts.
+    (output / f"dock-journey-{theme}.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    workspace.get_by_role("button", name="重置视图布局", exact=True).click()
+    workspace.locator(".dock-layout-options > summary").click()
+    return result
 
 
 def main() -> int:
@@ -104,6 +150,7 @@ def main() -> int:
     parser.add_argument("--sizes", nargs="+", default=["1600x1000", "640x480"])
     parser.add_argument("--state", choices=["baseline", "read-failure"], default="baseline")
     parser.add_argument("--console-gestures", action="store_true")
+    parser.add_argument("--dock-interactions", action="store_true")
     args = parser.parse_args()
     root = Path(os.environ["ARCHEAXIS_RUN_ROOT"])
     output = root / "artifacts" / "ui-coverage"
@@ -162,8 +209,10 @@ def main() -> int:
                     page.route("**/*", route)
                     try:
                         page.goto(a0.URL, wait_until="networkidle")
-                        page.locator(".space-view").wait_for()
+                        page.locator(".space-view:visible").wait_for()
                         a0.select_ui_theme(page, theme)
+                        if args.dock_interactions:
+                            report.setdefault("dock_interactions", []).append(dock_interactions(page, output, theme))
                         if args.console_gestures:
                             report.setdefault("console_gestures", []).append({"theme": theme, "viewport": [width, height],
                                 "observations": console_gestures(page, output, theme)})
@@ -181,7 +230,7 @@ def main() -> int:
                                   .map(n=>({text:n.innerText,font:parseFloat(getComputedStyle(n).fontSize),
                                     color:getComputedStyle(n).color,background:getComputedStyle(n).backgroundColor}))""")
                                 assert all(tab["font"] >= 14 for tab in case["dock_tabs"]), case["dock_tabs"]
-                                case["observed"] = page.locator(".space-view").evaluate("""node => ({
+                                case["observed"] = page.locator(".space-view:visible").evaluate("""node => ({
                                   text:node.innerText.slice(0,12000),
                                   headings:[...node.querySelectorAll('h1,h2,h3')].map(n=>n.innerText),
                                   notices:[...node.querySelectorAll('[role=alert],[role=status]')].map(n=>n.innerText),
@@ -217,6 +266,7 @@ def main() -> int:
             report["service"].update(exit_code=process.poll(), port_closed=check.connect_ex(("127.0.0.1", a0.PORT)) != 0)
         report["ended_at"] = datetime.now(timezone.utc).isoformat()
         report["status"] = "FAIL" if (report["errors"] or report["external_requests"] or
+                                        any(c["status"] == "FAIL" for c in report.get("dock_interactions", [])) or
                                         any(c["status"] == "FAIL" for c in report["cases"])) else "PASS_AUTOMATED_ONLY"
         (output / "coverage.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"report={output / 'coverage.json'} status={report['status']}")

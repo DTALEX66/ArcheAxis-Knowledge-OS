@@ -5,6 +5,18 @@ import { findUiPage } from "../presentation/uiPages";
 type Node={type:"leaf"|"branch";size?:number;data:any};
 const axis=(orientation:Orientation):"horizontal"|"vertical"=>orientation===Orientation.HORIZONTAL?"horizontal":"vertical";
 const other=(orientation:Orientation)=>orientation===Orientation.HORIZONTAL?Orientation.VERTICAL:Orientation.HORIZONTAL;
+/** Use the business surface, not the outer window: chrome and toolbars consume space. */
+export function layoutFitsSurface(layout:LayoutLayout,width:number,height:number):boolean{
+ const fits=(tree:LayoutDock,w:number,h:number):boolean=>tree.kind==="empty"||tree.kind==="tabs"?tree.kind==="empty"||(w>=320&&h>=180):tree.axis==="horizontal"?fits(tree.first,w*tree.ratio,h)&&fits(tree.second,w*(1-tree.ratio),h):fits(tree.first,w,h*tree.ratio)&&fits(tree.second,w,h*(1-tree.ratio));
+ const bounds=[...Object.values(layout.floating_bounds),...(layout.schema_version===2?layout.floating_groups??[]:[]).map(group=>group.bounds)];
+ return fits(layout.dock_tree,width,height)&&bounds.every(b=>b.x+b.width<=width&&b.y+b.height<=height);
+}
+export function tabbedLayout(layout:LayoutLayout,active?:string):LayoutLayout{
+ if(!layout.registered_panels.length)return layout;
+ if(layout.dock_tree.kind!=="split"&&!Object.keys(layout.floating_bounds).length&&!(layout.schema_version===2&&layout.floating_groups?.length))return layout;
+ const dock_tree={kind:"tabs" as const,panels:[...layout.registered_panels],active:active&&layout.registered_panels.includes(active)?active:layout.registered_panels[0]};
+ return layout.schema_version===2?{...layout,dock_tree,floating_bounds:{},floating_groups:[]}:{...layout,dock_tree,floating_bounds:{}};
+}
 /** Only the finite Core tree is persisted, never arbitrary Dockview components or params. */
 export function captureLayout(api:DockviewApi,preset_id:LayoutLayout["preset_id"],identity?:{workspaceId:string;epoch:string;locked:boolean}):LayoutLayout{
  const json=api.toJSON();

@@ -321,7 +321,7 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 
 本轮映射 **UI-P01/UF00/G01/H01、UI-P04/UF01/02、UI-P07/08/S01、UI-P21/23/UF13**。没有重新搭壳、替换Dock/图谱renderer或扩写后端。接手时工作树干净，原分支`codex/sync-20261019`、HEAD`206d56dafd00d0d3ccfd949ce6a4e424a324112a`；Owner补充的TRAE最后总结明确以该SHA为交付终点。本轮直接基于此SHA，保留UI-P02术语、A0正文等待和grouped可见导航修复及原记录，不重复实施。
 
-**现场CI与安装失败的后继结果**：GitHub REST及连接器日志实查[run39344981292](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39344981292)成功，installer-lifecycle/a0-gates成功；5个not-required作业skipped，不称全部作业执行。run关联PR头206d56da，实际checkout是`733c50059fe7215e83564f65edb86110d31fb33e`，父提交为main`fe18fdc3`和206d56da；合并候选与本地HEAD的tree均为`a3f89a589364d388d2912cf9f001886d5dffeffa`。安装日志三段原生旅程`ok=true`，产物ID`12231488177`。因此TRAE总结时仍在跑的安装失败已有后继工程回归通过；旧FAIL保留，不继续当成当前未修源码。此CI**不覆盖本轮新增代码**，也不证明日常Green已更新或完整业务闭环。
+**现场CI与安装失败的后继结果**：GitHub REST及连接器日志实查[run39344981292](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39344981292)成功，installer-lifecycle/a0-gates成功；5个not-required作业skipped，不称全部作业执行。run关联PR头206d56da，实际checkout是临时PR合并对象`733c5005`，其完整身份、tree与父提交保存在[历史CI对象回执](../history/product-loop-20261019/ci-39344981292-checkout.json)，不能要求后继fresh clone仍包含旧PR临时对象；父提交为main`fe18fdc3`和206d56da，合并候选tree与该头相同。安装日志三段原生旅程`ok=true`，产物ID`12231488177`。因此TRAE总结时仍在跑的安装失败已有后继工程回归通过；旧FAIL保留，不继续当成当前未修源码。此CI**不覆盖本轮新增代码**，也不证明日常Green已更新或完整业务闭环。
 
 **本轮原问题、修改与回归**：
 
@@ -350,3 +350,24 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 **当前仍PARTIAL**：UI-P02全域术语、UI-P05窄窗拆分与布局真实重启、UI-P14三类外部检索界面/真实接线、UI-P21辅助技术人工检查、UI-P22性能、UI-P23批准视觉基准及UI-P24本轮候选安装/Owner验收尚未全量收口。保持前端先行；前端阶段未交付，不启动BE-P01—15或缩减CL-01—07/J1—J6。真实云端模型、耐久批次、外部研究和扩展生命周期欠账保留。未覆盖Green、发布或真实用户数据。回退仅针对本轮列明文件，保留TRAE基线与全部历史证据；不执行整工作区reset/restore。
 
 后继交付与CI：产品/覆盖切片已提交并正常推送`66a59d1f36a0f113142e67e121dd4772c023011a`，远端SHA读回一致，直接父提交206d56da。其[CI39414692550](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39414692550)实际FAIL：lint的architecture guard拒绝新增覆盖脚本的sys.path修改，并将直接写出的HTTP路径`/workspace/api/`判为外部绝对路径；后续required作业skipped，不当PASS。现改用项目包导入，A0同时兼容包导入/直接入口，并复用已有API_PREFIX/WORKSPACE_PREFIX；没有修改门禁或加入豁免。`ui-coverage-architecture-fix-20261020`架构门禁通过，`ui-architecture-import-regressions-20261020`原A0/架构31项通过，`ui-ci-ruff-final-20261020`与CI同命令Ruff通过，`ui-coverage-package-import-20261020`实际white/640×480知识库试点通过并回收自有服务。此后继仅调整审计脚本的导入/路由引用，产品源码未改变；新exact-SHA CI仍须另行取得，PR194/main未合并、Green未更新。
+
+## 2026-10-20 UI-P05：已开标签分栏、窄窗退回与失效布局保护
+
+映射UI-P05/UF02/UF12、UI-P06/10/11及UI-P01/G01的失败接续。基线为0e5755b4，TRAE的206d56da完整保留。本轮只修改既有DockWorkspace与有限布局适配，不换Dockview/业务renderer、不扩写后端。
+
+- **复现与修复**：先以实际浏览器和组件测试复现“03阅读与17能力已作为标签打开，再点左右分栏只激活标签”；existing分支忽略direction。现移动既有面板；已有两组时移动组以切换左右/上下轴，不凭空多开业务会话。左右/上下使用各自Dockview API实际方向（新增below与移动bottom分别适配）。
+- **窄窗**：ResizeObserver读取真实`.dock-surface`宽高，按各分支比例及320×180最小正文区域判断；不足时临时合并为标签，提供可见说明，空间恢复后恢复原分组。原始布局偏好、对象绑定和锁定保留；窄窗保存不会偷偷覆盖为临时单栏。用户主动关闭/新增标签后检查即时panels，避免延迟layout事件导致关闭标签在放大时复活；关闭/重开仍是同一草稿DOM/业务会话。窄窗临时标签期间不允许拖拽/再浮动来制造不可见组。
+- **负例保护**：新增失效保存布局（重复业务宿主）回归；初次实现恢复前停车导致拒绝时正文被隐藏，RED后修复为先完成验证/布局替换再变更响应偏好，保留同一正文及输入。Dock旧slot只停车仍由自身持有的宿主，避免过期清理抢走新slot。
+- **已有CI失败接续**：[run39415324811](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39415324811)的head0e5755b4已出现两个required失败：browser-smoke在1280×720缩放语义知识库测到首项高度0（行位于折叠线下）；现先真实滚动到文档按钮再保留原命中/24px断言，并在断言前留截图。test(3.12)两项对象门禁失败源于旧PR临时merge对象不在fresh clone；完整SHA/tree/父提交经GitHub REST重读后保全到历史CI对象回执，当前记录引用该历史证据。未修改门禁、豁免规则或降低断言。其他已通过作业不能抵消失败；installer-lifecycle当时仍运行，PR194仍Draft/Open、无已提交review，main仍fe18fdc3。
+
+| 验证 | 实测与边界 |
+| --- | --- |
+| 原问题RED | `ui-dock-split-red-20261020`两项失败、`ui-dock-browser-red-20261020`实际分栏失败；原截图/日志保留。失效布局RED为`ui-dock-rejected-red-20261020`。 |
+| 最终定向 | `ui-dock-rejected-green-20261020`：3文件/34项PASS，含窄窗保存、关闭不复活、同一草稿、浮动对象身份与拒绝布局；native command由fixture模拟，不能称真实持久化。 |
+| 浏览器实际输入 | `ui-dock-browser-final4-20261020`：Chromium149.0.7827.55、DPR1、reduced-motion，cosmic/white各自左右/上下轴几何、640×480标签/阅读切换、1600×1000恢复均PASS；入口03共2项PASS_AUTOMATED_ONLY，axe无violation、4条incomplete保留。实际查看10帧联系图及纵向/窄窗/恢复原图。仍是SYNTHETIC host/Core。 |
+| 最终前端套件 | `ui-dock-final-suite2-20261020`：182文件/1851项通过，exit0，36.20秒。 |
+| 固定源码A0 | `ui-dock-a0-final2-20261020`：正式完整A0 PASS，13档视口/五主题及既有业务/导航断言，312.92秒、exit0、source_consistent=true；源码补丁4a4d0ba2eb80357a5badcca10943ebabb87aeb1d6eab5dbd63978c9bf347c20f，base0e5755b4。此前`ui-dock-a0-20261020`运行期间源码变动/HMR并在模板按钮测量时报DOM脱离，保留FAIL，不重命名为成功。 |
+| 合同与文档 | `ui-dock-ci-contracts-20261020`：原A0/架构31项PASS；`ui-dock-audit-20261020`：对象门禁15项PASS（使用既有正常SSH只读核远端）；Ruff按CI同命令PASS。pyreadline3退出析构句柄警告仍保留，不影响exit0。 |
+| 类型/构建 | TypeScript PASS；最终正式frontend.mjs build的run为d156ac815141，PASS，原大chunk警告保留。 |
+
+证据仍在`.project-local/runs/be268a2d33/<run-id>/`；浏览器报告自有Vite PID33708、端口63301已关闭，terminate后exit1不称优雅退出。探针曾把多个保留/隐藏space-view当单页、以及summary范围过宽而失败，已改为实际可见正文与布局自身summary；所有FAIL保留，没有用隐藏点击绕过产品入口。没有宣称原生DPI、物理IME、屏幕阅读器、真实Core重启布局或Owner验收完成，UI-P05及前端总体仍PARTIAL。下一独立前端片为UI-P02能力中心工程文案与运行诊断分离；不启动后端阶段。未合main、未清理分支/数据、未覆盖Green。

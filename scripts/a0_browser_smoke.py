@@ -1612,10 +1612,14 @@ def read_semantic_reading(browser, viewport, problems, theme):
         row = library.get_by_role("button", name="打开文档 引用目标 1 · 独立历史正文", exact=True)
         row.wait_for()
         library_targets = check_shell_pointer_targets(page)
+        # Loaded rows can legitimately start below the fold at scaled/short
+        # viewports. Scroll the real nested surface before measuring the hit
+        # target; clipping and pointer reachability remain mandatory.
+        row.scroll_into_view_if_needed()
         library_row = visible_control_box(row)
-        assert library_row["reachable"] and library_row["height"] >= 24, library_row
         library_shot = ARTIFACTS / f"semantic-library-{theme}-{label}.png"
         page.screenshot(path=str(library_shot), full_page=True)
+        assert library_row["reachable"] and library_row["height"] >= 24, library_row
         row.click()
         reader = page.get_by_role("region", name="阅读与编辑文档视图", exact=True)
         reader.wait_for()
