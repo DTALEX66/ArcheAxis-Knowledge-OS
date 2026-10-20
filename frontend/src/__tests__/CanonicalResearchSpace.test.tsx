@@ -66,6 +66,86 @@ it("keeps original reference records accessible when another view owns the write
  expect(sessions.session("doc_a").owner).toBe("writer");expect(requests).toHaveLength(0);
 });
 
+async function replayFixture(status:"CURRENT"|"STALE"="CURRENT") {
+ const reference={kind:"source" as const,source_id:"source_actual",sha256:"b".repeat(64)};
+ const position=JSON.stringify({type:"text",start:0,end:6});
+ const digest=async(text:string)=>Array.from(new Uint8Array(await webcrypto.subtle.digest("SHA-256",new TextEncoder().encode(text)))).map(v=>v.toString(16).padStart(2,"0")).join("");
+ const citation={schema:"archeaxis.research-citation/v1" as const,anchor_id:"anchor_replay",source_sha256:reference.sha256,anchor_position_sha256:await digest(position),quote:"原文",quote_sha256:await digest("原文"),read_snapshot_sha256:reference.sha256};
+ const result={source_id:reference.source_id,anchor_id:citation.anchor_id,status,reason:status==="CURRENT"?"MATCH":"REVISION_CHANGED",source_revision:reference.sha256,current_source_revision:status==="CURRENT"?reference.sha256:"c".repeat(64),position,scope:"locator_provenance_only"};
+ (docs.get("doc_a")!.editor_json as J).attrs.archeaxis_research.materials=[{id:"m",note:"作者引文",reference,citation}];
+ return {reference,citation,result};
+}
+
+it.each(["CURRENT","STALE"] as const)("explains citation location %s in Chinese while preserving the complete resolution",async status=>{
+ const fixture=await replayFixture(status);
+ bridge.call.mockImplementation((op:string,p:J)=>op==="anchor_resolve"?Promise.resolve(structuredClone(fixture.result)):original(op,p));
+ const view=render(<><CanonicalResearchSpace/><DiagnosticConsole/></>);await openA();
+ fireEvent.click(screen.getByRole("button",{name:"重新核验引文定位"}));
+ await screen.findByText(status==="CURRENT"?"引文定位仍有效；仅核对定位，不表示内容已证实。":"引文定位已过期；历史快照仍保留，可核对当前原件。");
+ const quote=screen.getByRole("complementary",{name:"已保存版本的引文快照"});
+ expect(quote.textContent).not.toContain(status);
+ fireEvent.click(within(quote).getByRole("button",{name:"查看诊断详情：引文定位核验记录"}));
+ expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({...fixture,observed_at:expect.any(String),outcome:"read"});
+ expect(requests).toHaveLength(0);
+});
+
+it("does not let an old citation replay overwrite a newer research save outcome",async()=>{
+ const fixture=await replayFixture();let finish!:(value:unknown)=>void;
+ bridge.call.mockImplementation((op:string,p:J)=>op==="anchor_resolve"?new Promise(resolve=>{finish=resolve;}):original(op,p));
+ render(<CanonicalResearchSpace/>);await openA();fireEvent.click(screen.getByRole("button",{name:"重新核验引文定位"}));
+ editQuestion("核验期间的新研究输入");await save();await act(async()=>{finish(fixture.result);});
+ expect(screen.getByRole("status")).toHaveTextContent("研究草稿已保存并读回；未变为核验或采用状态。");
+ expect(screen.getByLabelText("研究问题")).toHaveValue("核验期间的新研究输入");
+ expect(screen.queryByRole("button",{name:"查看诊断详情：引文定位核验记录"})).not.toBeInTheDocument();
+ expect(requests).toHaveLength(1);
+});
+
+it("keeps identically titled local knowledge results distinct without exposing their raw identifiers",async()=>{
+ const items=[{knowledge_id:"knowledge_private_1",head:"同名材料",status:"candidate",active:false},{knowledge_id:"knowledge_private_2",head:"同名材料",status:"candidate",active:false}];
+ bridge.call.mockImplementation((op:string,p:J)=>op==="search"?Promise.resolve({items,transforms:[],count:2,transform_count:0}):original(op,p));
+ const view=render(<><CanonicalResearchSpace/><DiagnosticConsole/></>);await openA();fireEvent.click(screen.getByRole("button",{name:"添加材料或待整理说明"}));
+ const dialog=await screen.findByRole("dialog",{name:"选择研究引用"});fireEvent.click(within(dialog).getByRole("button",{name:"检索本地知识"}));
+ const second=await within(dialog).findByRole("button",{name:"选择本地知识结果 2 · 同名材料"});
+ expect(dialog.textContent).not.toMatch(/knowledge_private_[12]/);
+ fireEvent.click(within(dialog).getByRole("button",{name:"查看诊断详情：本地知识结果 2"}));
+ expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual(items[1]);
+ fireEvent.click(second);fireEvent.click(within(dialog).getByRole("button",{name:"添加所选引用"}));await save();
+ expect(requests[0].body.editor_json.attrs.archeaxis_research.materials[0].reference).toEqual({kind:"knowledge",knowledge_id:"knowledge_private_2"});
+});
+
+it.each(["empty","failed"])("distinguishes a confirmed empty local search from %s",async mode=>{
+ bridge.call.mockImplementation((op:string,p:J)=>op==="search"?(mode==="failed"?Promise.reject(new Error("unavailable")):Promise.resolve({items:[],transforms:[],count:0,transform_count:0})):original(op,p));
+ render(<CanonicalResearchSpace/>);await openA();fireEvent.click(screen.getByRole("button",{name:"添加材料或待整理说明"}));
+ const dialog=await screen.findByRole("dialog",{name:"选择研究引用"});
+ expect(within(dialog).getByText("尚未检索本地知识。")).toBeInTheDocument();
+ fireEvent.click(within(dialog).getByRole("button",{name:"检索本地知识"}));
+ await within(dialog).findByText(mode==="failed"?"本地检索失败，是否存在结果仍未知；可重新检索。":"本地检索完成：0 项结果。");
+ if(mode==="failed")expect(within(dialog).queryByText("本地检索完成：0 项结果。")).not.toBeInTheDocument();
+ expect(requests).toHaveLength(0);
+});
+
+it("does not present a delayed local search as results for a newly edited query",async()=>{
+ const item={knowledge_id:"knowledge_old_query",head:"旧问题的材料",status:"candidate",active:false};let finish!:(value:unknown)=>void;
+ bridge.call.mockImplementation((op:string,p:J)=>op==="search"?new Promise(resolve=>{finish=resolve;}):original(op,p));
+ render(<CanonicalResearchSpace/>);await openA();fireEvent.click(screen.getByRole("button",{name:"添加材料或待整理说明"}));
+ const dialog=await screen.findByRole("dialog",{name:"选择研究引用"}),input=within(dialog).getByLabelText("研究本地知识检索");
+ fireEvent.change(input,{target:{value:"旧问题"}});fireEvent.click(within(dialog).getByRole("button",{name:"检索本地知识"}));fireEvent.change(input,{target:{value:"新问题"}});
+ await act(async()=>{finish({items:[item],transforms:[],count:1,transform_count:0});});
+ expect(within(dialog).getByText("以下是上次关键词“旧问题”的结果；输入已变化，请重新检索。")).toBeInTheDocument();
+ expect(within(dialog).getByRole("button",{name:"选择本地知识结果 1 · 旧问题的材料"})).toBeDisabled();
+ expect(within(dialog).getByRole("button",{name:"添加所选引用"})).toBeDisabled();expect(requests).toHaveLength(0);
+});
+
+it("retains a missing locator response without reporting a valid citation location",async()=>{
+ const fixture=await replayFixture(),missing={...fixture.result,status:"MISSING",reason:"ANCHOR_NOT_FOUND",position:null,source_revision:null};
+ bridge.call.mockImplementation((op:string,p:J)=>op==="anchor_resolve"?Promise.resolve(missing):original(op,p));
+ const view=render(<><CanonicalResearchSpace/><DiagnosticConsole/></>);await openA();fireEvent.click(screen.getByRole("button",{name:"重新核验引文定位"}));
+ await screen.findByText("引文当前定位未确认；历史快照仍保留。");expect(screen.queryByText("引文定位仍有效；仅核对定位，不表示内容已证实。")).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button",{name:"查看诊断详情：引文定位核验记录"}));
+ expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({reference:fixture.reference,citation:fixture.citation,result:missing,observed_at:expect.any(String),outcome:"failed"});
+ expect(requests).toHaveLength(0);
+});
+
 it.each(["cancel","escape","add"])("returns the reference picker to its actual keyboard opener after %s",async action=>{
  render(<CanonicalResearchSpace/>);await openA();const user=userEvent.setup();
  const opener=screen.getByRole("button",{name:"添加材料或待整理说明"});opener.focus();await user.keyboard("{Enter}");

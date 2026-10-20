@@ -30,3 +30,6 @@
 .research-editor .research-citation > p { margin: 0; overflow-wrap: anywhere; }
 .research-editor > fieldset > section { margin-block: var(--ax-space-4); }
 .research-editor > fieldset > section > h3 { margin-block-end: var(--ax-space-2); }
+.research-knowledge-results { display:grid; gap:var(--ax-space-3); list-style:none; padding:0; }
+.research-knowledge-results > li { display:flex; flex-wrap:wrap; align-items:center; gap:var(--ax-space-2); min-width:0; }
+.research-knowledge-results > li > button:first-child { flex:1 1 16rem; min-width:0; max-width:100%; white-space:normal; overflow-wrap:anywhere; text-align:start; }
