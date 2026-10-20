@@ -697,6 +697,7 @@ mod tests {
             .unwrap()
             .parse()
             .unwrap();
+        let process = observe_process(pid).expect("UNKNOWN opening owned process");
         cancel.cancel();
         assert_eq!(
             tokio::time::timeout(Duration::from_secs(2), task)
@@ -706,7 +707,7 @@ mod tests {
                 .unwrap_err(),
             "public_research_cancelled"
         );
-        await_process_exit(pid).await;
+        await_process_exit(process).await;
         assert!(!dir.path().join("research.late").exists());
         await_staging_clean(dir.path()).await;
     }
@@ -714,19 +715,20 @@ mod tests {
     #[tokio::test]
     async fn deadline_reaps_hung_process() {
         let (dir, ex) = fixture(HANG).await;
-        let result = ex
-            .public_research_until(
-                json!({}),
-                Cancellation::new(),
-                Instant::now() + Duration::from_millis(500),
-            )
-            .await;
-        assert_eq!(result.unwrap_err(), "public_research_timeout");
+        let deadline = Instant::now() + Duration::from_millis(500);
+        let task = tokio::spawn(async move {
+            ex.public_research_until(json!({}), Cancellation::new(), deadline)
+                .await
+        });
+        wait_for(&dir.path().join("research.pid")).await;
         let pid: u32 = std::fs::read_to_string(dir.path().join("research.pid"))
             .unwrap()
             .parse()
             .unwrap();
-        await_process_exit(pid).await;
+        let process = observe_process(pid).expect("UNKNOWN opening owned process before deadline");
+        let result = task.await.unwrap();
+        assert_eq!(result.unwrap_err(), "public_research_timeout");
+        await_process_exit(process).await;
         assert!(!dir.path().join("research.late").exists());
         await_staging_clean(dir.path()).await;
     }
@@ -840,9 +842,10 @@ mod tests {
             .unwrap()
             .parse()
             .unwrap();
+        let process = observe_process(pid).expect("UNKNOWN opening owned process");
         task.abort();
         assert!(task.await.unwrap_err().is_cancelled());
-        await_process_exit(pid).await;
+        await_process_exit(process).await;
         await_staging_clean(dir.path()).await;
         assert!(!dir.path().join("research.late").exists());
     }
@@ -881,37 +884,190 @@ mod tests {
     }
 
     #[cfg(windows)]
-    #[tokio::test]
-    async fn descendant_held_read_pipes_do_not_leave_reader_threads() {
-        let (dir,ex)=fixture("import subprocess,sys,time\nfrom pathlib import Path\np=Path(__file__).with_name('holder.py')\nsubprocess.Popen([sys.executable,'-I','-B',str(p)],stdout=sys.stdout,stderr=sys.stderr,creationflags=0x08000000)\nwhile not p.with_suffix('.ready').exists(): time.sleep(.005)\nprint('{}')\n").await;
-        std::fs::write(dir.path().join("holder.py"),"import time\nfrom pathlib import Path\np=Path(__file__)\np.with_suffix('.ready').touch()\ntime.sleep(3)\np.with_suffix('.done').touch()\n").unwrap();
-        let result = ex.public_research(json!({}), Cancellation::new()).await;
+    async fn held_descendant(
+        lock_stdin: bool,
+        hold_read_pipes: bool,
+        request: Value,
+    ) -> Result<Value, String> {
+        // These four process/handle cases test ownership, not parallel launch
+        // throughput. Avoid adding a burst of redirectors to other deadline tests.
+        static DESCENDANTS: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+        let _serial = DESCENDANTS.lock().await;
+        let worker = format!(
+            r#"import json,os,subprocess,sys,time
+from pathlib import Path
+p=Path(__file__).with_name('holder.py')
+Path(__file__).with_suffix('.pid').write_text(str(os.getpid()))
+# Isolate the requested stream ownership from incidental per-call HOME/TEMP
+# directory retention by this platform's Python redirector.
+child_env=os.environ.copy()
+for key in ('HOME','TEMP','TMP','TMPDIR','USERPROFILE','APPDATA','LOCALAPPDATA'):
+    child_env[key]=str(p.parent)
+child=subprocess.Popen([sys.executable,'-I','-B',str(p),'{mode}'],stdin={stdin},stdout={stdout},stderr={stderr},cwd=p.parent,env=child_env,creationflags=0x08000000)
+p.with_suffix('.spawned').write_text(str(child.pid))
+end=time.monotonic()+4
+while not p.with_suffix('.ready').exists():
+    assert time.monotonic()<end, 'holder did not establish its handles'
+    time.sleep(.005)
+while not p.with_suffix('.observed').exists():
+    assert time.monotonic()<end, 'Rust did not capture live process handles'
+    time.sleep(.005)
+print('{{}}')
+"#,
+            mode = if lock_stdin { "lock" } else { "free" },
+            stdin = if lock_stdin {
+                "sys.stdin"
+            } else {
+                "subprocess.DEVNULL"
+            },
+            stdout = if hold_read_pipes {
+                "sys.stdout"
+            } else {
+                "subprocess.DEVNULL"
+            },
+            stderr = if hold_read_pipes {
+                "sys.stderr"
+            } else {
+                "subprocess.DEVNULL"
+            }
+        );
+        let (dir, ex) = fixture(&worker).await;
+        std::fs::write(
+            dir.path().join("holder.py"),
+            r#"import os,sys,time
+from pathlib import Path
+p=Path(__file__)
+p.with_suffix('.pid').write_text(str(os.getpid()))
+locked=None
+try:
+    if sys.argv[1]=='lock':
+        import ctypes,msvcrt
+        from ctypes import wintypes
+        kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+        kernel.GetFileType.argtypes=[wintypes.HANDLE]
+        kernel.GetFileType.restype=wintypes.DWORD
+        kernel.ReOpenFile.argtypes=[wintypes.HANDLE,wintypes.DWORD,wintypes.DWORD,wintypes.DWORD]
+        kernel.ReOpenFile.restype=wintypes.HANDLE
+        kernel.CloseHandle.argtypes=[wintypes.HANDLE]
+        kernel.CloseHandle.restype=wintypes.BOOL
+        inherited=msvcrt.get_osfhandle(sys.stdin.fileno())
+        assert kernel.GetFileType(inherited)==1, 'stdin must be the actual regular input file'
+        # Unlike mere inheritance, this actual file handle explicitly refuses
+        # FILE_SHARE_DELETE. Ready is published only after the lock is confirmed.
+        candidate=kernel.ReOpenFile(inherited,0x80000000,0x1|0x2,0)
+        assert candidate not in (None,ctypes.c_void_p(-1).value), 'stdin delete lock failed'
+        locked=candidate
+    p.with_suffix('.ready').write_text(sys.argv[1])
+    end=time.monotonic()+8
+    while not p.with_suffix('.release').exists():
+        if time.monotonic()>=end:
+            p.with_suffix('.expired').touch()
+            raise AssertionError('holder expired before explicit release')
+        time.sleep(.005)
+except BaseException:
+    p.with_suffix('.failed').touch()
+    raise
+finally:
+    try:
+        if locked not in (None,-1):
+            assert kernel.CloseHandle(locked), 'stdin lock close failed'
+    finally:
+        p.with_suffix('.done').touch()
+"#,
+        )
+        .unwrap();
+        let task =
+            tokio::spawn(async move { ex.public_research(request, Cancellation::new()).await });
+        wait_for(&dir.path().join("holder.ready")).await;
+        let mut processes = Vec::new();
+        let mut observation_error = None;
+        for file in ["research.pid", "holder.spawned", "holder.pid"] {
+            wait_for(&dir.path().join(file)).await;
+            let pid = std::fs::read_to_string(dir.path().join(file))
+                .unwrap()
+                .parse()
+                .unwrap();
+            match observe_process(pid) {
+                Ok(process) => processes.push(process),
+                Err(error) => observation_error = Some(error),
+            }
+        }
+        // Even UNKNOWN releases the fixture gate; it cannot qualify this test.
+        std::fs::write(dir.path().join("holder.observed"), b"observed").unwrap();
+        let result = task.await.unwrap();
         let returned_before_descendant = !dir.path().join("holder.done").exists();
+        // Always release our exact fixture before checking outcomes. No process
+        // discovery or descendant termination is used, including failure cases.
+        std::fs::write(dir.path().join("holder.release"), b"release").unwrap();
         wait_for(&dir.path().join("holder.done")).await;
+        for process in processes {
+            await_process_exit(process).await;
+        }
+        assert!(
+            observation_error.is_none(),
+            "UNKNOWN process observation: {observation_error:?}"
+        );
+        assert!(
+            !dir.path().join("holder.expired").exists(),
+            "fixture expired instead of being released"
+        );
+        assert!(
+            !dir.path().join("holder.failed").exists(),
+            "fixture did not establish/release its requested handles"
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.path().join("holder.ready")).unwrap(),
+            if lock_stdin { "lock" } else { "free" }
+        );
         assert!(
             returned_before_descendant,
-            "only owned child is reaped; descendant fixture must self-exit"
+            "only owned child is reaped; fixture descendant must remain alive until explicitly released"
         );
-        // Popen inherits stdin too: retained input makes cleanup uncertainty
-        // take precedence over the earlier pipe-drain failure.
+        if !lock_stdin {
+            let remaining: Vec<_> = std::fs::read_dir(dir.path().join("staging"))
+                .unwrap()
+                .map(|entry| {
+                    let entry = entry.unwrap();
+                    (entry.file_name(), entry.file_type().unwrap().is_dir())
+                })
+                .collect();
+            assert!(
+                remaining.is_empty(),
+                "control outcome {result:?}; own staging entries {remaining:?}"
+            );
+            await_staging_clean(dir.path()).await;
+        }
+        result
+    }
+
+    #[cfg(windows)]
+    #[tokio::test]
+    async fn descendant_held_read_pipes_do_not_leave_reader_threads() {
+        // Retained stdin explicitly denies deletion, so its cleanup uncertainty
+        // must take precedence over the earlier pipe-drain failure.
+        let result = held_descendant(true, true, json!({})).await;
         assert_eq!(result.unwrap_err(), "public_research_cleanup_failed");
     }
 
     #[cfg(windows)]
     #[tokio::test]
     async fn descendant_held_stdin_reports_unverified_cleanup() {
-        let (dir,ex)=fixture("import subprocess,sys,time\nfrom pathlib import Path\np=Path(__file__).with_name('holder.py')\nsubprocess.Popen([sys.executable,'-I','-B',str(p)],stdin=sys.stdin,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=0x08000000)\nwhile not p.with_suffix('.ready').exists(): time.sleep(.005)\nprint('{}')\n").await;
-        std::fs::write(dir.path().join("holder.py"),"import time\nfrom pathlib import Path\np=Path(__file__)\np.with_suffix('.ready').touch()\ntime.sleep(3)\np.with_suffix('.done').touch()\n").unwrap();
-        let result = ex
-            .public_research(json!({"x":"x".repeat(16384-8)}), Cancellation::new())
-            .await;
-        let returned_before_descendant = !dir.path().join("holder.done").exists();
-        wait_for(&dir.path().join("holder.done")).await;
-        assert!(
-            returned_before_descendant,
-            "stdin must not require a blocked writer or waiting for fixture descendant"
-        );
+        let result = held_descendant(true, false, json!({"x":"x".repeat(16384-8)})).await;
         assert_eq!(result.unwrap_err(), "public_research_cleanup_failed");
+    }
+
+    #[cfg(windows)]
+    #[tokio::test]
+    async fn descendant_held_read_pipes_without_stdin_lock_fail_closed() {
+        let result = held_descendant(false, true, json!({})).await;
+        assert_eq!(result.unwrap_err(), "public_research_pipe_incomplete");
+    }
+
+    #[cfg(windows)]
+    #[tokio::test]
+    async fn descendant_without_inherited_streams_allows_verified_cleanup() {
+        let result = held_descendant(false, false, json!({})).await;
+        assert_eq!(result.unwrap(), json!({}));
     }
 
     #[tokio::test]
@@ -985,43 +1141,132 @@ mod tests {
         );
     }
 
-    async fn await_process_exit(pid: u32) {
+    async fn await_process_exit(process: ObservedProcess) {
         // The Windows venv redirector owns its real Python child. Its termination
         // notification can lag direct-child wait by a scheduler tick; never kill
         // by a discovered PID or mistake that wrapper PID for the worker itself.
         let end = Instant::now() + Duration::from_millis(500);
-        while process_alive(pid) && Instant::now() < end {
+        while process.is_alive().expect("UNKNOWN querying owned process") && Instant::now() < end {
             tokio::time::sleep(POLL).await;
         }
         assert!(
-            !process_alive(pid),
+            !process.is_alive().expect("UNKNOWN querying owned process"),
             "launch-owned Python did not exit after direct child reaped"
         );
     }
 
     #[cfg(windows)]
-    fn process_alive(pid: u32) -> bool {
+    fn process_query_result(
+        open_error: Option<u32>,
+        wait: u32,
+        wait_error: u32,
+    ) -> Result<bool, String> {
+        if let Some(error) = open_error {
+            // ERROR_INVALID_PARAMETER (87) is not a documented absence proof.
+            return Err(format!("UNKNOWN OpenProcess error {error}"));
+        }
+        match wait {
+            0 => Ok(false),  // WAIT_OBJECT_0: this owned process object is signaled.
+            258 => Ok(true), // WAIT_TIMEOUT: this owned process object is not signaled.
+            _ => Err(format!(
+                "UNKNOWN process wait {wait}, OS error {wait_error}"
+            )),
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn process_query_failures_remain_unknown() {
+        for error in [5, 87] {
+            assert!(
+                process_query_result(Some(error), 0, 0).is_err(),
+                "OpenProcess error {error} was misreported as exit"
+            );
+        }
+        assert!(process_query_result(None, u32::MAX, 5).is_err());
+        assert!(process_query_result(None, 128, 0).is_err());
+        assert_eq!(process_query_result(None, 0, 0).unwrap(), false);
+        assert_eq!(process_query_result(None, 258, 0).unwrap(), true);
+        assert!(observe_process(0).is_err()); // Rejected before any Windows API call.
+    }
+
+    #[cfg(windows)]
+    struct ObservedProcess(std::os::windows::io::OwnedHandle);
+
+    #[cfg(windows)]
+    fn observe_process(pid: u32) -> Result<ObservedProcess, String> {
+        use std::os::windows::io::FromRawHandle;
+        if pid == 0 {
+            return Err("UNKNOWN invalid fixture PID".into());
+        }
         #[link(name = "kernel32")]
         unsafe extern "system" {
             fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void;
-            fn WaitForSingleObject(h: *mut std::ffi::c_void, ms: u32) -> u32;
-            fn CloseHandle(h: *mut std::ffi::c_void) -> i32;
+            fn GetLastError() -> u32;
         }
-        unsafe {
-            let h = OpenProcess(0x00100000, 0, pid);
-            if h.is_null() {
-                return false;
+        let process = unsafe {
+            let handle = OpenProcess(0x00100000, 0, pid); // SYNCHRONIZE only.
+            if handle.is_null() {
+                process_query_result(Some(GetLastError()), 0, 0)?;
+                return Err("UNKNOWN missing process handle".into());
             }
-            let alive = WaitForSingleObject(h, 0) == 258;
-            CloseHandle(h);
-            alive
+            ObservedProcess(std::os::windows::io::OwnedHandle::from_raw_handle(handle))
+        };
+        if !process.is_alive()? {
+            return Err("UNKNOWN fixture exited before observation".into());
+        }
+        Ok(process)
+    }
+
+    #[cfg(windows)]
+    impl ObservedProcess {
+        fn is_alive(&self) -> Result<bool, String> {
+            use std::os::windows::io::AsRawHandle;
+            #[link(name = "kernel32")]
+            unsafe extern "system" {
+                fn WaitForSingleObject(handle: *mut std::ffi::c_void, milliseconds: u32) -> u32;
+                fn GetLastError() -> u32;
+            }
+            unsafe {
+                let waited = WaitForSingleObject(self.0.as_raw_handle(), 0);
+                let error = if waited == u32::MAX {
+                    GetLastError()
+                } else {
+                    0
+                };
+                process_query_result(None, waited, error)
+            }
         }
     }
+
     #[cfg(unix)]
-    fn process_alive(pid: u32) -> bool {
-        unsafe extern "C" {
-            fn kill(pid: i32, sig: i32) -> i32;
+    struct ObservedProcess(u32);
+
+    #[cfg(unix)]
+    fn observe_process(pid: u32) -> Result<ObservedProcess, String> {
+        if pid == 0 || pid > i32::MAX as u32 {
+            return Err("UNKNOWN invalid fixture PID".into());
         }
-        unsafe { kill(pid as i32, 0) == 0 }
+        let process = ObservedProcess(pid);
+        if !process.is_alive()? {
+            return Err("UNKNOWN fixture exited before observation".into());
+        }
+        Ok(process)
+    }
+
+    #[cfg(unix)]
+    impl ObservedProcess {
+        fn is_alive(&self) -> Result<bool, String> {
+            unsafe extern "C" {
+                fn kill(pid: i32, sig: i32) -> i32;
+            }
+            if unsafe { kill(self.0 as i32, 0) } == 0 {
+                return Ok(true);
+            }
+            match std::io::Error::last_os_error().raw_os_error() {
+                Some(3) => Ok(false), // ESRCH on the supported Unix targets.
+                error => Err(format!("UNKNOWN process observation: {error:?}")),
+            }
+        }
     }
 }
