@@ -59,6 +59,21 @@ export function DiagnosticCenterTrigger() {
 /** One App-owned surface, independent of page, activity expansion or recovery UI. */
 export function DiagnosticCenter() {
   const {open} = useDiagnosticState();
+  useLayoutEffect(() => {
+    if (!open) return;
+    // This App-owned portal can open above a picker owned by another tree.
+    // Handle its focused Escape before a lower Radix document listener can
+    // dismiss that picker during the portal's layer-registration effects.
+    const dismissFocusedDiagnostic = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !(event.target instanceof Element) || !event.target.closest('.aaos-dialog-content')?.classList.contains("diagnostic-center")) return;
+      event.stopPropagation();
+      if (event.isComposing || event.defaultPrevented) return;
+      event.preventDefault();
+      closeDiagnostics();
+    };
+    window.addEventListener("keydown", dismissFocusedDiagnostic, true);
+    return () => window.removeEventListener("keydown", dismissFocusedDiagnostic, true);
+  }, [open]);
   const working = useOptionalCoreWorkingState();
   const identity = useRef<{session: unknown; workspace: string; restore: string} | null>(null);
   const latest = useRef(working); latest.current = working;

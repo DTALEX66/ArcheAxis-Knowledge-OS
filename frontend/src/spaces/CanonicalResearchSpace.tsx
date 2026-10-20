@@ -19,6 +19,14 @@ type EntrySection = "hypotheses" | "methods" | "experiments" | "counterevidence"
 type Target = { kind: "material" } | { kind: EntrySection; id: string } | { kind: "conclusion"; id: string; field: "sources" | "basis" };
 type Attempt = { operation: "document_create" | "document_draft"; payload: Record<string, unknown>; editor: Record<string, unknown>; serial: number; version: number; expectedDocumentId?: string };
 type Buffer = { value: ResearchValue; envelope: Record<string, unknown>; title: string; base: DocumentDto | null; serial: number; dirty: boolean; attempt?: Attempt };
+type CitationRead = { key:string; epoch:number; generation:number; state:"reading"|"read"|"failed"; result?:AnchorResolutionDto; observed_at:string };
+type KnowledgeRead = {state:"not_read"}|{state:"reading"|"read"|"failed";query:string};
+const citationStatusText: Record<AnchorResolutionDto["status"],string> = {
+  CURRENT:"引文定位仍有效；仅核对定位，不表示内容已证实。",
+  STALE:"引文定位已过期；历史快照仍保留，可核对当前原件。",
+  UNSUPPORTED:"当前无法解析这种定位；历史快照仍保留。",
+  MISSING:"未找到对应定位；历史快照仍保留。",
+};
 const sections: [EntrySection, string][] = [["hypotheses", "假设"], ["methods", "方法"], ["experiments", "实验"], ["counterevidence", "反证"], ["unresolved", "未决"]];
 const blank = (): ResearchValue => ({ schema: "archeaxis.research/v1", question: "", materials: [], hypotheses: [], methods: [], experiments: [], counterevidence: [], conclusions: [], unresolved: [] });
 const bytes = (s: string) => new TextEncoder().encode(s).length;
@@ -63,6 +71,9 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   const [target,setTarget]=useState<Target|null>(null),[materialNote,setMaterialNote]=useState(""),[picked,setPicked]=useState<ResearchReference|null>(null),[pickedDoc,setPickedDoc]=useState<DocumentDto|null>(null),[documentBusy,setDocumentBusy]=useState(false),[searchBusy,setSearchBusy]=useState(false),[sources,setSources]=useState<SourceDto[]>([]),[query,setQuery]=useState(""),[knowledgeRows,setKnowledgeRows]=useState<SearchDto["items"]>([]),[sourceRead,setSourceRead]=useState<{ref:ResearchReference;name:string;sha256:string;length:number;raw:Uint8Array;materialId?:string;owner:string;text?:string}|null>(null);
   const pickerBusy=documentBusy||searchBusy;
   const historyGeneration=useRef(0);
+  const [citationRead,setCitationRead]=useState<CitationRead|null>(null);
+  const [knowledgeRead,setKnowledgeRead]=useState<KnowledgeRead>({state:"not_read"});
+  const citationRequest=useRef(0),messageRevision=useRef(0);
   const researchRegion=useRef<HTMLDivElement>(null),pickerOpener=useRef<HTMLElement|null>(null),switchOpener=useRef<HTMLElement|null>(null);
   function restoreDialogFocus(event:Event,opener:typeof pickerOpener){event.preventDefault();focusVisibleTarget(opener.current,researchRegion.current);opener.current=null;}
   const pickerSession=useRef(0), referenceRequest=useRef(0), searchRequest=useRef(0), sourceRequest=useRef(0);
@@ -81,7 +92,7 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   }
   const documentLease=useDocumentWriteLease(b.base?.document_id);
   function publish() { if (!mounted.current) return; window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:[...buffers.current.values()].some(v=>v.dirty||!!v.attempt)||saving.current||pending.current})); redraw(n=>n+1); }
-  function note(text:string, failed=false) { if(mounted.current){setMessage(text);setError(failed);} }
+  function note(text:string, failed=false) { if(mounted.current){messageRevision.current++;setMessage(text);setError(failed);} }
   useEffect(()=>{ mounted.current=true;void list(false);return()=>{mounted.current=false;epoch.current++;window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:false}));};},[]);
   useEffect(()=>{publish();},[target,pickerBusy]);
   useEffect(()=>{onTrail?.([{id:"page:05",label:"研究空间",region:"research"},...(b.base?[{id:b.base.document_id,label:b.base.title,detail:`版本 ${b.base.version}`,region:"research"}]:[])]);},[b.base?.document_id,b.base?.version,onTrail]);
@@ -110,9 +121,19 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
   }
   async function reconcile(){if(!b.base||saving.current||pending.current)return;const cur=buffers.current.get(active.current)!;saving.current=true;setBusy(true);publish();try{const read=await coreCommand<DocumentDto>("document_get",{document_id:cur.base!.document_id});if(read.document_id!==cur.base!.document_id)throw new Error("identity");if(cur.attempt&&read.version===cur.attempt.version&&preserved(cur.attempt.editor,read.editor_json))accept(cur,cur.attempt,read);else if(read.version===cur.base!.version)note("已保存版本未变化；草稿及原保存请求仍保留，可重试。");else{setUnsupported(read);note("已保存版本发生变化；最新文档只读，当前草稿和原保存版本不会自动覆盖。",true);}}catch{note("核对最新版本失败；当前草稿保留。",true);}finally{saving.current=false;if(mounted.current){setBusy(false);publish();}}}
   async function readHistory(){if(pending.current||saving.current){note("先完成或取消引用选择／保存；历史未改变临时输入。",true);return;}if(!b.base)return;const id=b.base.document_id,v=Number(historyVersion),request=epoch.current,key=active.current,serial=b.serial,generation=++historyGeneration.current;if(!Number.isSafeInteger(v)||v<1||v>b.base.version){note("请输入已有的正整数历史版本。",true);return;}const current=()=>generation===historyGeneration.current&&request===epoch.current&&active.current===key&&buffers.current.get(key)?.serial===serial&&mounted.current;try{const doc=await coreCommand<DocumentDto>("document_version",{document_id:id,version:v});if(doc.document_id!==id||doc.version!==v)throw new Error("history identity");if(current()){setHistory(doc);note("历史只读，当前草稿未替换。");}}catch{if(current())note("历史读取失败；当前草稿保留。",true);}}
-  async function beginPick(next:Target){if(saving.current)return;pickerOpener.current=document.activeElement instanceof HTMLElement?document.activeElement:null;const session=++pickerSession.current;sourceRequest.current++;setDocumentBusy(false);setSearchBusy(false);setTarget(next);setPicked(null);setPickedDoc(null);setMaterialNote("");setSourceRead(null);const request=epoch.current;try{const result=await coreCommand<SourcesListDto>("sources_list");if(request===epoch.current&&session===pickerSession.current&&mounted.current){if(!Array.isArray(result.sources))throw new Error("sources shape");setSources(result.sources);}}catch{note("来源列表读取失败；引用选择未伪造来源。",true);}}
+  async function beginPick(next:Target){if(saving.current)return;pickerOpener.current=document.activeElement instanceof HTMLElement?document.activeElement:null;const session=++pickerSession.current;sourceRequest.current++;setDocumentBusy(false);setSearchBusy(false);setKnowledgeRead({state:"not_read"});setTarget(next);setPicked(null);setPickedDoc(null);setMaterialNote("");setSourceRead(null);const request=epoch.current;try{const result=await coreCommand<SourcesListDto>("sources_list");if(request===epoch.current&&session===pickerSession.current&&mounted.current){if(!Array.isArray(result.sources))throw new Error("sources shape");setSources(result.sources);}}catch{note("来源列表读取失败；引用选择未伪造来源。",true);}}
   async function pickDocument(id:string){const request=epoch.current,cur=active.current,session=pickerSession.current,serial=++referenceRequest.current;setPicked(null);setPickedDoc(null);setDocumentBusy(true);try{const doc=await coreCommand<DocumentDto>("document_get",{document_id:id});if(doc.document_id!==id||!Number.isSafeInteger(doc.version)||doc.version<1)throw new Error("reference identity");if(request===epoch.current&&session===pickerSession.current&&serial===referenceRequest.current&&active.current===cur&&mounted.current){setPickedDoc(doc);setPicked({kind:"document",document_id:id,version:doc.version,block_id:null});}}catch{if(session===pickerSession.current&&serial===referenceRequest.current)note("材料文档读取失败；未猜测引用版本。",true);}finally{if(mounted.current&&session===pickerSession.current&&serial===referenceRequest.current)setDocumentBusy(false);}}
-  async function searchKnowledge(){const request=epoch.current,session=pickerSession.current,serial=++searchRequest.current;setSearchBusy(true);try{const result=await coreCommand<SearchDto>("search",{q:query,active_only:false});if(!Array.isArray(result.items))throw new Error("search shape");if(request===epoch.current&&session===pickerSession.current&&serial===searchRequest.current&&mounted.current)setKnowledgeRows(result.items);}catch{if(session===pickerSession.current&&serial===searchRequest.current)note("本地检索失败；未显示虚构结果或空结果。",true);}finally{if(mounted.current&&session===pickerSession.current&&serial===searchRequest.current)setSearchBusy(false);}}
+  async function searchKnowledge(){
+    const request=epoch.current,session=pickerSession.current,serial=++searchRequest.current,submitted=query;
+    const current=()=>request===epoch.current&&session===pickerSession.current&&serial===searchRequest.current&&mounted.current;
+    setSearchBusy(true);setKnowledgeRead({state:"reading",query:submitted});setPicked(previous=>previous?.kind==="knowledge"?null:previous);
+    try{
+      const result=await coreCommand<SearchDto>("search",{q:submitted,active_only:false});
+      if(!Array.isArray(result.items))throw new Error("search shape");
+      if(current()){setKnowledgeRows(result.items);setKnowledgeRead({state:"read",query:submitted});}
+    }catch{if(current()){setKnowledgeRead({state:"failed",query:submitted});note("本地检索失败；未显示虚构结果或空结果。",true);}}
+    finally{if(current())setSearchBusy(false);}
+  }
   function cancelPick(){pickerSession.current++;referenceRequest.current++;searchRequest.current++;setTarget(null);setPicked(null);setPickedDoc(null);setMaterialNote("");setDocumentBusy(false);setSearchBusy(false);}
   function addPicked(){if(!target||!picked||pickerBusy)return;const next=structuredClone(b.value);if(target.kind==="material")next.materials.push({id:crypto.randomUUID(),note:materialNote,reference:picked});else if(target.kind==="conclusion"){const item=next.conclusions.find(v=>v.id===target.id);if(item)item[target.field].push(picked);}else{const item=next[target.kind].find(v=>v.id===target.id);if(item)item.references.push(picked);}if(!parseResearch(next)){note("研究条目或引用超过保存限制；临时选择保留。",true);return;}edit(next);cancelPick();}
   function keepUnboundMaterial(){if(!target||target.kind!=="material")return;const next=structuredClone(b.value);next.unresolved.push({id:crypto.randomUUID(),text:materialNote,references:[]});if(!parseResearch(next)){note("待整理材料说明超过限制，原输入保留。",true);return;}edit(next);cancelPick();note("说明已保留为未决草稿；未伪造材料来源。");}
@@ -139,18 +160,37 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
     }catch{if(request===epoch.current)note("引文快照未确认；材料说明和原输入保留。",true);}
   }
   async function replayCitation(captured:ResearchCitation,ref:ResearchReference){
-    const request=epoch.current;if(ref.kind!=="source")return;
+    if(ref.kind!=="source")return;
+    const request=epoch.current,generation=historyGeneration.current,serial=++citationRequest.current,key=JSON.stringify([ref,captured]);
+    const current=()=>request===epoch.current&&generation===historyGeneration.current&&serial===citationRequest.current&&mounted.current;
+    note("正在核验所选引文的位置…");const notice=messageRevision.current;
+    setCitationRead({key,epoch:request,generation,state:"reading",observed_at:new Date().toISOString()});
+    let result:AnchorResolutionDto|undefined;
     try{
-      const result=await coreCommand<AnchorResolutionDto>("anchor_resolve",{source_id:ref.source_id,anchor_id:captured.anchor_id});
-      if(request!==epoch.current||!mounted.current)return;
+      result=await coreCommand<AnchorResolutionDto>("anchor_resolve",{source_id:ref.source_id,anchor_id:captured.anchor_id});
+      if(!current())return;
       if(result.source_id!==ref.source_id||result.anchor_id!==captured.anchor_id||result.source_revision!==captured.source_sha256||result.scope!=="locator_provenance_only"||typeof result.position!=="string"||await sha256(new TextEncoder().encode(result.position))!==captured.anchor_position_sha256)throw new Error("resolution identity");
-      if(request!==epoch.current||!mounted.current)return;
-      note(`引文当前定位：${result.status}；历史引文仍保留，不表示专业正确。`,result.status!=="CURRENT");
-    }catch{if(request===epoch.current)note("引文当前定位未确认；历史快照仍保留。",true);}
+      if(!current())return;
+      setCitationRead({key,epoch:request,generation,state:"read",result,observed_at:new Date().toISOString()});
+      if(messageRevision.current===notice)note(citationStatusText[result.status],result.status!=="CURRENT");
+    }catch{if(current()){
+      setCitationRead({key,epoch:request,generation,state:"failed",result,observed_at:new Date().toISOString()});
+      if(messageRevision.current===notice)note("引文当前定位未确认；历史快照仍保留。",true);
+    }}
   }
-  function showCitation(captured:ResearchCitation|undefined,ref:ResearchReference){return captured?<aside className="research-citation" aria-label="已保存版本的引文快照"><blockquote style={{whiteSpace:"pre-wrap"}}>{captured.quote}</blockquote><p>引文保留所选原件版本与位置；当前定位有效性需重新核验。</p><div className="research-reference-actions"><RawReceiptButton label="研究引文原始记录" payload={{reference:ref,citation:captured}} category="data"/><button type="button" onClick={()=>void replayCitation(captured,ref)}>重新核验引文定位</button></div></aside>:null;}
+  function showCitation(captured:ResearchCitation|undefined,ref:ResearchReference){
+    if(!captured)return null;
+    const observation=citationRead?.key===JSON.stringify([ref,captured])&&citationRead.epoch===epoch.current&&citationRead.generation===historyGeneration.current?citationRead:null;
+    return <aside className="research-citation" aria-label="已保存版本的引文快照"><blockquote style={{whiteSpace:"pre-wrap"}}>{captured.quote}</blockquote><p>引文保留所选原件版本与位置；当前定位有效性需重新核验。</p>
+      {observation?<p>{observation.state==="reading"?"正在核验当前引文定位…":`最近一次定位核验：${observation.state==="read"&&observation.result?citationStatusText[observation.result.status]:"定位尚未确认，历史快照仍保留。"}`}</p>:null}
+      <div className="research-reference-actions"><RawReceiptButton label="研究引文原始记录" payload={{reference:ref,citation:captured}} category="data"/>
+        <button type="button" disabled={ref.kind!=="source"||observation?.state==="reading"} onClick={()=>void replayCitation(captured,ref)}>重新核验引文定位</button>
+        {observation&&observation.state!=="reading"?<RawReceiptButton label="引文定位核验记录" payload={{reference:ref,citation:captured,result:observation.result??null,observed_at:observation.observed_at,outcome:observation.state}} category="data"/>:null}
+      </div></aside>;
+  }
   function showRefs(refs:ResearchReference[],remove?:(index:number)=>void){return <ul className="research-reference-list">{refs.map((ref,i)=><li key={`${JSON.stringify(ref)}-${i}`}><span className="research-reference-name">{refName(ref)}</span><RawReceiptButton label={`研究引用 ${i+1} 的原始身份`} payload={ref} category="data"/>{ref.kind!=="knowledge"||onOpenReference?<button type="button" onClick={()=>navigateRef(ref)}>{ref.kind==="source"?"读取校验原件":ref.kind==="knowledge"?"打开不变知识版本":"打开固定版本"}</button>:<span>作者引用；不表示知识已接受或AI资格</span>}{remove?<button type="button" onClick={()=>remove(i)} aria-label={`删除引用 ${i+1}`}>删除引用</button>:null}</li>)}</ul>;}
   const readonly=!!history||!!unsupported||!documentLease.canWrite;const shown=history??unsupported;const shownValue=shown?decode(shown):null;
+  const knowledgeCurrent=knowledgeRead.state==="read"&&knowledgeRead.query===query;
   return <Section title="研究空间">{!documentLease.canWrite?<p role="status">此文档已有写入视图；研究记录只读，草稿保留。</p>:null}<div className="research-editor" ref={researchRegion} tabIndex={-1} role="region" aria-label="研究编辑区" style={{minWidth:0,maxWidth:"100%"}} data-section="research">
     <p>作者研究记录：问题、假设、方法、实验、反证与结论可非线性编辑。保存不代表核验、专业采用或 AI 资格；学术检索与多步自动研究当前未接通。</p>
     <div><button type="button" disabled={busy} onClick={()=>requestOpen("__new")}>新建研究草稿</button><button type="button" disabled={loading} onClick={()=>void list(false)}>刷新文档列表</button></div>
@@ -171,7 +211,9 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
       <label>文档<select aria-label="引用文档" value={picked?.kind==="document"?picked.document_id:""} onChange={e=>{if(e.target.value)void pickDocument(e.target.value);}}><option value="">选择实际文档</option>{rows.map(row=><option key={row.document_id} value={row.document_id}>{row.title} · 版本 {row.version}</option>)}</select></label>
       {pickedDoc?<label>固定版本中的片段<select aria-label="引用块" value={picked?.kind==="document"?picked.block_id??"":""} onChange={e=>setPicked({kind:"document",document_id:pickedDoc.document_id,version:pickedDoc.version,block_id:e.target.value||null})}><option value="">整个固定版本</option>{pickedDoc.blocks.map(block=><option key={block.block_id} value={block.block_id}>片段 {block.ordinal+1} · {block.text_projection||"无文字预览"}</option>)}</select></label>:null}
       <label>原件来源<select aria-label="引用原件" value={picked?.kind==="source"?picked.source_id:""} onChange={e=>{const src=sources.find(v=>v.source_id===e.target.value);if(src){referenceRequest.current++;setDocumentBusy(false);setPickedDoc(null);setPicked({kind:"source",source_id:src.source_id,sha256:src.sha256});}}}><option value="">选择实际来源</option>{sources.map(src=><option key={src.source_id} value={src.source_id}>{src.original_name}</option>)}</select></label>
-      <label>本地知识检索<input aria-label="研究本地知识检索" value={query} onChange={e=>setQuery(e.target.value)}/></label><button type="button" disabled={pickerBusy} onClick={()=>void searchKnowledge()}>检索本地知识</button><ul>{knowledgeRows.map(item=><li key={item.knowledge_id}><button type="button" onClick={()=>{referenceRequest.current++;setDocumentBusy(false);setPickedDoc(null);setPicked({kind:"knowledge",knowledge_id:item.knowledge_id});}}>{item.head} · {item.knowledge_id}</button></li>)}</ul>
+      <label>本地知识检索<input aria-label="研究本地知识检索" value={query} onChange={e=>{if(e.target.value!==query)setPicked(previous=>previous?.kind==="knowledge"?null:previous);setQuery(e.target.value);}}/></label><button type="button" disabled={pickerBusy} onClick={()=>void searchKnowledge()}>检索本地知识</button>
+      <p role={knowledgeRead.state==="failed"?"alert":knowledgeRead.state==="not_read"?undefined:"status"}>{knowledgeRead.state==="not_read"?"尚未检索本地知识。":knowledgeRead.state==="reading"?"正在检索本地知识，请稍候。":knowledgeRead.state==="failed"?"本地检索失败，是否存在结果仍未知；可重新检索。":knowledgeCurrent?`本地检索完成：${knowledgeRows.length} 项结果。`:`以下是上次关键词“${knowledgeRead.query}”的结果；输入已变化，请重新检索。`}</p>
+      {knowledgeRead.state==="read"||knowledgeRead.state==="reading"?<ul className="research-knowledge-results">{knowledgeRows.map((item,index)=><li key={item.knowledge_id}><button type="button" disabled={!knowledgeCurrent||pickerBusy} aria-label={`选择本地知识结果 ${index+1} · ${item.head}`} onClick={()=>{referenceRequest.current++;setDocumentBusy(false);setPickedDoc(null);setPicked({kind:"knowledge",knowledge_id:item.knowledge_id});}}>结果 {index+1} · {item.head}</button><RawReceiptButton label={`本地知识结果 ${index+1}`} payload={item} category="data"/></li>)}</ul>:null}
       {picked?<><p>将绑定 {refName(picked)}</p><RawReceiptButton label="所选研究引用身份" payload={picked} category="data"/></>:<p>未选择真实引用；不填充虚构来源。</p>}<button type="button" disabled={!picked||pickerBusy} onClick={addPicked}>添加所选引用</button>{target?.kind==="material"?<button type="button" disabled={pickerBusy} onClick={keepUnboundMaterial}>无来源说明先保留为未决草稿</button>:null}<button type="button" onClick={cancelPick}>取消引用选择</button>
     </AaosDialog>
     <AaosDialog title="保留研究草稿并切换" description="取消保留当前输入；确认切换只在本页保留各对象草稿，不表示已完成保存。" open={switchTo!==null} onOpenChange={open=>{if(!open)setSwitchTo(null);}} onCloseAutoFocus={event=>restoreDialogFocus(event,switchOpener)}><button type="button" onClick={()=>setSwitchTo(null)}>取消切换</button><button type="button" onClick={()=>{const next=switchTo;setSwitchTo(null);if(next)void open(next);}}>保留草稿并切换</button></AaosDialog>

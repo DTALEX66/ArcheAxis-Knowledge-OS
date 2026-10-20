@@ -467,3 +467,27 @@ Owner后继明确要求“该合并的合并啊”。本轮完成已获授权的
 **仍未完成**：UI-P02其余页面和本地知识结果编号/引文定位枚举等尚需收敛；UI-P14三类免费外部检索与比较没有真实接线，不能把本地search或合成引文当检索成功。UI-P21人工辅助技术、UI-P22规模性能、UI-P23全域视觉基准和UI-P24同候选安装/Owner验收继续PARTIAL/UNVERIFIED；前端未阶段交付，后端队列不启动。原六项冻结、V01/FT状态、Green、真实数据及模型配置不变。回退仅反向修订本片研究显示、局部CSS及消费者/探针，保留已合入模板片、TRAE和失败证据。本片新提交的exact-SHA CI及合并待独立现场读回。
 
 交付前`ui-research-conventions-20261020`工作树规范、`ui-research-authority-20261020`单一记录/引用/仓内7个hash、`ui-research-delivery-lint-20261020`CI同选项Ruff及diff --check均PASS；外部私人4项仍UNVERIFIED。定向审阅确认只读诊断仅展示已读取对象，不新增读取权限或改变写入租约/保存保护。
+
+## 2026-10-20 UI-P02/10/11/14：研究核验状态与引用选择
+
+**上一片现场交付**：[PR197](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/197)候选841f595c经[CI39443271934](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39443271934)SUCCESS，required a0-gates及lint/browser-smoke通过；未选中的作业不算已验。源码审阅无阻断，live规则要求a0-gates，未发现review/inline阻断。普通merge成为main的69f7cae6，tree14113ac4与候选及CI合成合并树一致；[main CI39449002023](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39449002023)SUCCESS。当前writer在保留本片dirty修改时--ff-only快进69f7cae6，前后已提交tree相同，工作树binary diff逐字相同；本地main暂仍5f6a845e，待干净后安全快进。TRAE的206d56da仍为HEAD祖先，不覆盖其修改。
+
+本片把引文定位枚举转为中文，并保留“仅核对定位、不表示内容证实”的边界。核验结果、时间、原引用及完整返回对象进入既有运行诊断；缺少定位/版本或身份不匹配保留失败返回，不显示定位有效。核验期间编辑、保存、切换或后继消息发生后，迟到结果不能覆盖新保存反馈。历史引文、CRLF/表情、原定位指纹和严格保存保护均保留。
+
+本地知识选择区明确区分未检索、正在检索、实际空结果、读取失败及关键词已变化。查询冻结在原请求，输入变化后旧结果不可选择或添加；同名结果按序号区分，原knowledge_id仅在诊断中，保存仍绑定所选确切身份。原文档/原件选择和并发保护沿用，不把本地search解释为免费外部检索。
+
+五主题扩展检查发现嵌套弹层真实键盘缺陷：诊断已聚焦，Radix下层document Escape监听仍可能先关闭引用选择器，诊断未关闭。只等待焦点不能消除问题，未以sleep/重复按键/点击关闭替代断言。DiagnosticCenter在打开时用layout effect登记有范围的window capture监听，仅处理实际位于诊断内容内的Escape，先隔离下层；普通Escape只关闭诊断，组合输入Escape不关闭。监听随关闭/卸载移除，不接管其他页面或其他弹层快捷键。
+
+| 验证 | 实际结果与限制 |
+| --- | --- |
+| RED | `ui-research-state-red-20261020`4项FAIL；`ui-research-query-red-20261020`3项FAIL，定位缺失负例原已通过。`ui-diagnostic-ime-red-20261020`组合输入Escape误关FAIL。各原日志保留。 |
+| 最终定向 | `ui-research-state-tests-qualified-20261020`3文件49项PASS（研究42、诊断5、真实租约消费者2）；含固定身份、原文逐值、迟到响应/保存、失败不冒充空、同名第二项实际保存，以及可关闭的父picker在第一次Escape保留输入/焦点、第二次才关闭。SIMULATED command，不是Core耐久持久化验收。 |
+| 真实浏览器 | `ui-research-keyboard-browser-20261020`正式研究页05，五主题×640×480/1440×900共10场PASS_AUTOMATED_ONLY。引文原文及核验/原件诊断逐值、四次Escape焦点返回、同名选择、空/失败/旧查询、按钮完整可达/8px间距均通过。实际Chromium149.0.7827.55，DPR1、reduced-motion=reduce；SYNTHETIC host/Core，无pageerror或外网请求。页面及两个picker状态各扫axe4.14.0，0违规，60条incomplete原样保留（渐变/伪元素对比等需人工核验），不称全面合规。实际查看最终blueprint/blueprint-light/white窄窗选择图、cosmic窄窗失败图及black宽窗引文图。 |
+| 失败矩阵 | `ui-research-state-matrix-20261020`命令参数误用逗号，argparse退出2，未运行场景；改为独立参数。`ui-research-state-matrix-final-20261020`6/10场PASS、4场Escape FAIL；`ui-research-dialog-ready-20261020`显式要求诊断关闭按钮自然获得焦点后仍7/8场PASS、1场嵌套Escape FAIL。两批均整体FAIL保留，不拼成全绿；产品修复后的最终10场独立通过。 |
+| 构建 | `ui-research-keyboard-build-20261020`因新增测试用了Testing Library不支持的exact参数，TypeScript四处FAIL；移除无效参数（字符串name仍严格匹配），最终`ui-research-state-build-final-20261020`正式frontend.mjs build PASS，内层5ae157f2c28e，含TypeScript，既有大chunk警告保留。最终49项测试在修正后重跑通过；产品源码/CSS与上述10场浏览器一致。 |
+
+最终浏览器base69f7cae6、dirty diff SHA256 `129a78e34040a00c6869fe22a7d72fc3e9c6e1d11ca2adcdfa63ea4de8bfbf12`，dev.py source_consistent=true、exit0。自有PID6584/127.0.0.1:59685已回收，port_closed=true；服务terminate退出1不当优雅退出。原始证据仍在`.project-local/runs/be268a2d33/<run-id>/`，不提交profile、运行日志或缓存。
+
+**RC-P05只读分批清点**：`rc-footprint-readonly-20261020/artifacts/footprint.json` SHA256 `79d2c71b5b3056b251b40cad01b1239f48c8d422ad8d0773c0fa45c09395efbc`，精确登记此前3份可重建前端dist及26份运行日志/证据根，共135422112字节，逐文件hash、归属、保留理由及重建/回退保留。仅此范围，非全工作区体积；tracked普通文件lstat合计1228579841字节，Git loose+pack分配462879744字节，分别记录，不相加冒充整体。`cloud-artifacts.json` SHA256 `ce7e0748421bf291eb2b8a8ac73c23ea98fdb7c170dca866698de144ce5afc93`，只读3个指定CI run的首分页18份artifact元数据/服务端digest，共756636037字节，非整个云端、未下载验证归档字节。全部RETAIN，无删除/GC/历史改写、共享模型工具或未知资料操作；后继新增运行不在这批快照，不能借此清理。
+
+**继续执行/阻断**：UI-P14百科/社区/科研检索独立界面仍缺，当前正式CoreOperation无三类检索操作；既有document_check的DuckDuckGo文章获取和模型核验不能替代免费三类通道。后继前端需公开关键词/范围、来源/限流/未知、结果详情和去重/支持反对冲突比较；后端阶段补具名检索响应、出处/取得内容/许可/失败、取消迟到隔离和Rust单写者落库/固定引用合同，未接线期间不得生成结果或把0当失败。UI-P21人工辅助技术、UI-P22性能规模、UI-P23全域视觉基准、UI-P24同候选原生安装/Owner验收仍PARTIAL/UNVERIFIED；尚未前端阶段交付，不启动BE-P01—15。Green/真实数据/模型配置和冻结项未变，CL-01—07/J1—J6不缩减。新候选exact-SHA CI/合并待单独读回；回退本片研究状态/局部CSS、诊断键盘及消费者，不退TRAE/已合入基线，不删失败证据。

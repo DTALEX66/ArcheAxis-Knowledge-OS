@@ -27,6 +27,18 @@ PARENTS = {"03": "02", "04": "02", "05": "02", "07": "06", "08": "06", "09": "06
            "20": "19", "21": "06", "22": "13"}
 
 
+def axe_report(page, source: str) -> dict:
+    if not page.evaluate("() => typeof window.axe === 'object'"):
+        page.add_script_tag(content=source)
+    return page.evaluate("""async () => {
+      const r=await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','best-practice']}});
+      const compact=items=>items.map(({id,impact,description,nodes})=>({id,impact,description,
+        nodes:nodes.map(({target,html,failureSummary})=>({target,html,failureSummary}))}));
+      return {version:r.testEngine.version,violations:compact(r.violations),
+        incomplete:compact(r.incomplete),passes:r.passes.map(x=>x.id)};
+    }""")
+
+
 def console_gestures(page, output: Path, theme: str) -> list[dict]:
     """Actual pointer/keyboard input against each internal edge; no native DPI claim."""
     console = page.locator(".console-window")
@@ -214,7 +226,11 @@ def research_fixture() -> dict:
             "sha256": revision, "original_name": "中文原件排版样例.txt", "imported_at": "2026-10-20T00:00:00Z"},
             "original": {"source_id": reference["source_id"], "name": "中文原件排版样例.txt", "sha256": revision,
                          "media_type": "text/plain", "content_base64": base64.b64encode(raw).decode()},
-            "reference": reference, "citation": citation, "byte_length": len(raw)}
+            "reference": reference, "citation": citation, "byte_length": len(raw),
+            "resolution": {"source_id": reference["source_id"], "anchor_id": citation["anchor_id"], "status": "CURRENT",
+                           "source_revision": revision, "current_source_revision": revision, "position": position,
+                           "scope": "locator_provenance_only", "reason": "SYNTHETIC_MATCH"},
+            "knowledge_items": [{"knowledge_id": f"ui_knowledge_{n}", "head": "同名合成材料", "status": "candidate", "active": False} for n in (1, 2)]}
 
 
 def research_fixture_bridge(fixture: dict) -> str:
@@ -242,12 +258,29 @@ def research_fixture_bridge(fixture: dict) -> str:
           return {status:200,body:structuredClone(fixture.original)};
         if(op==="source_jobs"&&payload.source_id===fixture.source.source_id)
           return {status:200,body:{source_id:fixture.source.source_id,jobs:[],jobs_capped:false}};
+        if(op==="anchor_resolve"&&payload.source_id===fixture.source.source_id&&payload.anchor_id===fixture.citation.anchor_id)
+          return {status:200,body:structuredClone(fixture.resolution)};
+        if(op==="search"&&["对照样例","无匹配样例","服务错误样例","迟到样例"].includes(payload.q)) {
+          if(payload.q==="服务错误样例")return {status:503,body:{error:"SYNTHETIC_SEARCH_FAILURE"}};
+          if(payload.q==="迟到样例")await new Promise(resolve=>setTimeout(resolve,250));
+          const items=payload.q==="无匹配样例"?[]:structuredClone(fixture.knowledge_items);
+          return {status:200,body:{items,transforms:[],count:items.length,transform_count:0,documents:[],document_count:0}};
+        }
         return original(command,args);
       };
     })();""".replace("__FIXTURE__", json.dumps(fixture, ensure_ascii=False))
 
 
-def research_citations(page, output: Path, case_id: str, fixture: dict) -> dict:
+def research_citations(page, output: Path, case_id: str, fixture: dict, axe_source: str) -> dict:
+    def dismiss_diagnostic(dialog, trigger):
+        # Visible portal text can precede Radix's focus/effect setup. Assert the
+        # real keyboard target before sending one Escape; never force focus or
+        # repeat the key to hide a failed dismiss/focus-return interaction.
+        expect(dialog.get_by_role("button", name="关闭运行诊断", exact=True)).to_be_focused(timeout=8000)
+        page.keyboard.press("Escape")
+        dialog.wait_for(state="hidden")
+        expect(trigger).to_be_focused(timeout=8000)
+
     page.get_by_role("button", name="研究引文排版样例 · 版本 1", exact=True).click()
     region = page.get_by_role("region", name="研究编辑区", exact=True)
     quote = region.get_by_role("complementary", name="已保存版本的引文快照", exact=True)
@@ -258,9 +291,15 @@ def research_citations(page, output: Path, case_id: str, fixture: dict) -> dict:
     trigger.click()
     dialog = page.get_by_role("dialog", name="运行诊断", exact=True)
     assert json.loads(dialog.locator("pre").inner_text()) == {"reference": fixture["reference"], "citation": fixture["citation"]}
-    page.keyboard.press("Escape")
-    dialog.wait_for(state="hidden")
-    expect(trigger).to_be_focused(timeout=8000)
+    dismiss_diagnostic(dialog, trigger)
+    quote.get_by_role("button", name="重新核验引文定位", exact=True).click()
+    page.get_by_text("引文定位仍有效；仅核对定位，不表示内容已证实。", exact=True).wait_for()
+    replay_trigger = quote.get_by_role("button", name="查看诊断详情：引文定位核验记录", exact=True)
+    replay_trigger.click()
+    resolution = json.loads(dialog.locator("pre").first.inner_text())
+    assert resolution["result"] == fixture["resolution"] and resolution["outcome"] == "read", resolution
+    assert resolution["citation"] == fixture["citation"] and resolution["reference"] == fixture["reference"]
+    dismiss_diagnostic(dialog, replay_trigger)
     region.get_by_role("button", name="摘录材料 1原文", exact=True).click()
     original = region.get_by_role("region", name="已读取并核对指纹的原件", exact=True)
     original.wait_for()
@@ -269,9 +308,40 @@ def research_citations(page, output: Path, case_id: str, fixture: dict) -> dict:
     record = json.loads(dialog.locator("pre").first.inner_text())
     assert record == {"reference": fixture["reference"], "name": fixture["original"]["name"],
                       "sha256": fixture["source"]["sha256"], "byte_length": fixture["byte_length"]}
-    page.keyboard.press("Escape")
-    dialog.wait_for(state="hidden")
-    expect(source_trigger).to_be_focused(timeout=8000)
+    dismiss_diagnostic(dialog, source_trigger)
+    region.get_by_role("button", name="添加材料或待整理说明", exact=True).click()
+    picker = page.get_by_role("dialog", name="选择研究引用", exact=True)
+    search = picker.get_by_role("button", name="检索本地知识", exact=True)
+    query = picker.get_by_role("textbox", name="研究本地知识检索", exact=True)
+    query.fill("对照样例")
+    search.click()
+    picker.get_by_text("本地检索完成：2 项结果。", exact=True).wait_for()
+    assert "ui_knowledge_" not in picker.inner_text()
+    result_trigger = picker.get_by_role("button", name="查看诊断详情：本地知识结果 2", exact=True)
+    result_trigger.click()
+    assert json.loads(dialog.locator("pre").first.inner_text()) == fixture["knowledge_items"][1]
+    dismiss_diagnostic(dialog, result_trigger)
+    picker.get_by_role("button", name="选择本地知识结果 2 · 同名合成材料", exact=True).click()
+    picker.get_by_text("将绑定 同名合成材料 · 固定知识版本", exact=True).wait_for()
+    picker_axe = axe_report(page, axe_source)
+    page.screenshot(path=str(output / f"research-picker-{case_id}.png"))
+    query.fill("无匹配样例")
+    search.click()
+    picker.get_by_text("本地检索完成：0 项结果。", exact=True).wait_for()
+    query.fill("服务错误样例")
+    search.click()
+    picker.get_by_role("alert").get_by_text("本地检索失败，是否存在结果仍未知；可重新检索。", exact=True).wait_for()
+    assert picker.get_by_text("本地检索完成：0 项结果。", exact=True).count() == 0
+    error_axe = axe_report(page, axe_source)
+    page.screenshot(path=str(output / f"research-picker-error-{case_id}.png"))
+    query.fill("迟到样例")
+    search.click()
+    query.fill("输入已更新")
+    picker.get_by_text("以下是上次关键词“迟到样例”的结果；输入已变化，请重新检索。", exact=True).wait_for()
+    expect(picker.get_by_role("button", name="选择本地知识结果 2 · 同名合成材料", exact=True)).to_be_disabled()
+    expect(picker.get_by_role("button", name="添加所选引用", exact=True)).to_be_disabled()
+    picker.get_by_role("button", name="取消引用选择", exact=True).click()
+    picker.wait_for(state="hidden")
     trigger.scroll_into_view_if_needed()
     control = a0.visible_control_box(trigger)
     assert control["reachable"] and abs(control["height"] - control["rawHeight"]) <= 1, control
@@ -285,7 +355,9 @@ def research_citations(page, output: Path, case_id: str, fixture: dict) -> dict:
     page.screenshot(path=str(screenshot))
     return {"status": "PASS", "quote_exact": True, "diagnostic_focus_restored": True,
             "original_byte_length": fixture["byte_length"], "control": control,
-            "reference_spacing": reference_spacing, "screenshot": str(screenshot)}
+            "reference_spacing": reference_spacing, "screenshot": str(screenshot),
+            "resolution_record_exact": True, "query_states": ["read", "empty", "failed", "stale"],
+            "picker_axe": picker_axe, "error_axe": error_axe}
 
 
 def main() -> int:
@@ -394,7 +466,7 @@ def main() -> int:
                                 if args.template_requirements and page_id == "15":
                                     case["template_requirements"] = template_requirements(page, output, f"{theme}-{width}x{height}")
                                 if args.research_citations and page_id == "05":
-                                    case["research_citations"] = research_citations(page, output, f"{theme}-{width}x{height}", research_fixture())
+                                    case["research_citations"] = research_citations(page, output, f"{theme}-{width}x{height}", research_fixture(), axe_source)
                                 if page_id == "18":
                                     heading = page.get_by_role("article", name="能力详情", exact=True).locator(":scope > h3")
                                     case["detail_heading"] = a0.visible_control_box(heading)
@@ -413,15 +485,10 @@ def main() -> int:
                                   overflow:document.documentElement.scrollWidth>innerWidth+1})""")
                                 assert not case["observed"]["overflow"], "document horizontal overflow"
                                 assert case["observed"]["text"].strip(), "empty production page"
-                                page.add_script_tag(content=axe_source)
-                                case["axe"] = page.evaluate("""async () => {
-                                  const r=await axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','best-practice']}});
-                                  const compact=items=>items.map(({id,impact,description,nodes})=>({id,impact,description,
-                                    nodes:nodes.map(({target,html,failureSummary})=>({target,html,failureSummary}))}));
-                                  return {version:r.testEngine.version,violations:compact(r.violations),
-                                    incomplete:compact(r.incomplete),passes:r.passes.map(x=>x.id)};
-                                }""")
-                                case["status"] = "FAIL" if case["axe"]["violations"] else "PASS_AUTOMATED_ONLY"
+                                case["axe"] = axe_report(page, axe_source)
+                                research = case.get("research_citations", {})
+                                child_violations = research.get("picker_axe", {}).get("violations", []) + research.get("error_axe", {}).get("violations", [])
+                                case["status"] = "FAIL" if case["axe"]["violations"] or child_violations else "PASS_AUTOMATED_ONLY"
                             except Exception as error:
                                 case.update(status="FAIL", error=str(error))
                                 case["surface_snapshot"] = page.locator(".space-view:visible").aria_snapshot()
