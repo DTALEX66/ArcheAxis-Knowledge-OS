@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "50bacd843b1336b23853dd9a574416c2986ee775e71577e1d4e68f01bd908829"
+      "sha256": "5817663ef8f8f54591083f094eff115a31b2b8a3b1b2c9c3148e7ab20fb8d35a"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -308,7 +308,10 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     "layout_contract_refresh_20261014": {
       "date": "2026-10-14",
-      "source_change_commit": "7897bbd35d618efecf73c146e5334259bd4366a2",
+      "source_change_commit": "980f9796c62387766cae334595662cca31f3d820",
+      "source_binding_repair_date": "2026-10-20",
+      "original_source_change_commit_reference": "docs/history/product-loop-20261019/branch-convergence-20261020.json#/removed_remote/0/patch_equivalent/0",
+      "source_binding_repair_note": "Original retired-branch source 7897bbd3 and main source 980f9796 have identical git patch-id --stable. Bind the surviving main patch; preserve original full identity in the historical receipt. No declaration, activation, permission, runtime or Owner qualification change.",
       "reason": "Reviewed finite layout_read/write/recover operation additions only; existing CoreDocument DTO, donor qualification, activation and permissions unchanged.",
       "qualification": "NOT_GRANTED_BY_HASH_REFRESH",
       "changed_sources": [

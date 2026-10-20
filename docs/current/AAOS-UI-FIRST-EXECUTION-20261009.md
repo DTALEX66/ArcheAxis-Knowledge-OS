@@ -2,7 +2,7 @@
 
 状态 **RUNNING_BY_OWNER / PARTIAL**（Owner 明确要求今天停止额度监控并继续；今天不查询额度、不因额度阈值停工）。本文件是 [活动指针](AAOS-ACTIVE-EXECUTION.json) 指定的唯一进度源；按指针及 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md) 接续当前任务，不从旧暂停或旧 COMPLETE 推导现场事实。
 
-最新接续见文末 **2026-10-20 UI-P05** 与 **UI-P02能力中心**：完整承接TRAE的206d56da，已保存分栏/窄窗/失效布局保护的28533c26，并继续能力中心中文化、诊断保真与详情焦点修复。P05完整本地A0及1851项通过；后继P02以定向回归/64项浏览器详情检查分层记证。旧head0e5755b4的CI39415324811最终FAIL（原生installer成功不抵消required失败）；新聚合候选需另核CI。前端阶段仍PARTIAL，未进入后端、未合main或更新Green。早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
+最新接续见文末 **2026-10-20 RC-P03/P04：主线合并与分支收敛**：PR194的2574b40d经定向审阅及required exact-SHA CI39423295711全部通过后，已正常合入main的52147d6b；TRAE的206d56da完整保留。PR192/193按补丁已包含关闭，已清理19个本地、4个远端分支，6个有不等价patch的分支保留。main后继CI39427148307须独立读回，不将PR候选安装通过当成Green/Owner验收。P05本地A0/1851项及P02定向/64项浏览器证据仍分别绑定原候选；前端总体PARTIAL、后端阶段尚未启动、Green未更新。早期FAIL/PASS保留各自源码，不从旧快照推导当前事实。
 
 ## 已实施与证据边界
 
@@ -395,3 +395,29 @@ Owner 明确要求"分支合并、体积清理、双端仓库及目录规范"。
 
 
 本片结束检查补充：第一次worktree目录规范仅因Add-Content引入CRLF失败，已将本唯一执行记录规范为UTF-8无BOM/LF，保持原内容与失败记录。对应复验见ui-capability-record-conventions2-20261020；未修改规范规则。
+
+## 2026-10-20 RC-P03/P04：主线合并与分支收敛
+
+Owner后继明确要求“该合并的合并啊”。本轮完成已获授权的主线交付和精确分支清理，不以全量前端尚未完成为由搁置合格切片。完整分支头、逐分支等价patch、保留项、恢复档及现场读回见[不可变分支收敛证据](../history/product-loop-20261019/branch-convergence-20261020.json)；实际进度仍只更新本文件。
+
+| 对象 | 本轮实测与处置 |
+| --- | --- |
+| PR194候选 | head2574b40d；[CI39423295711](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39423295711)最终SUCCESS，含browser-smoke、Rust、系统测试、desktop-fast、Windows构建、installer-lifecycle及a0-gates。5个非required作业skipped，不称执行了全矩阵。实际CI checkout为4b749b6b，其tree与head相同，完整身份在上述回执。 |
+| 审阅 | 冻结2574b40d，完成Dock/主控台/能力详情改动及分支等价核对；依VERIFICATION_POLICY的权限/恢复触发，另完成一次只读定向review，核Observer有限只读/路径、workspace/epoch/version/hash/过期、machine准入/取消/清理UNKNOWN及固定bridge命令，未发现该范围阻断缺陷。GitHub无已提交approval/未解决thread；实际main ruleset要求a0-gates，无审批人数要求。源码审阅不称全仓安全审计或运行验证。 |
+| main | [PR194](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/194)已以merge方式合入52147d6b，父提交为原main fe18fdc3及候选2574b40d；tree815228eb与CI候选完全相同。正常fetch后，本地main/origin/main读回一致，TRAE206d56da仍是main祖先。 |
+| main后继CI | [CI39427148307](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39427148307)已触发；本回执写入时尚未完成，**UNVERIFIED**，须现场读回后才称main该SHA CI通过。PR候选通过与main后继CI分别记账。 |
+| PR192/193 | 原头9daf1221/02368f0e分别6/55个非祖先提交均有等价patch、无独有patch。PR194合入后，已将两者以“被后继包含”关闭并保留后继链接；没有把旧冲突整包再合一次，也不伪称这两个PR自身merged。 |
+| 分支清理 | 再核精确头、main等价补丁、无独有merge解决、唯一worktree/无占用后，删除19个本地分支与4个远端分支。远端删除为character-memory-ui、layout-preferences、closure-integration、remaining-loop-stage1各原日期分支；完整名字/SHA在回执。读回本地27→8 heads、远端7→3 heads；main及当前writer分支保留。 |
+| 保留6分支 | astryn/integration、closure-machine、glass-cabin、旧Avalonia minimax-cosmic、reader-inspector-responsive、ui-polish仍有不等价patch，共10提交。已发现部分功能在后继实现中存在，但尚未证明所有原件/补丁均可退役，因此本轮保留；不盲merge或删除。 |
+
+**回退与归属**：精确原分支先归档到本项目忽略运行目录`.project-local/runs/be268a2d33/rc-merge-readback-20261020/artifacts/branch-recovery.bundle`，3,292,510字节，SHA-256为`4710efae60761a471889e76f84f64c9ba952d89c6e953b13c5ac9c26ffc77721`；git bundle verify通过，删除前再次核大小/hash。它只保存列明旧分支的必要恢复对象，依赖已在main的历史；按回执先验hash，再以bundle原ref fetch回指定分支。该恢复档、清理前清单、资格清单、review及后继读回均归本轮项目证据，不能自动当缓存删除。未执行git gc、历史改写、未知文件/失败证据/云端artifact清除；本轮仅清引用，不宣称Git历史体积缩小。RC-P05—08的剩余空间治理仍单独分批处理。
+
+**验证和边界**：接手新增206d56da..2574b40d的diff检查通过；整个继承main差异有保全历史/不可变源文件的空白及EOF诊断，按cr-at-eol解读仍263条，明确保留PARTIAL而未为求绿规范化原件。CI正式lint/目录/架构/安全门禁通过，没有修改断言或豁免。自动审查曾拒绝强制移动本地main的命令；该命令未执行，随后核实main无独有提交，改用git switch及merge --ff-only安全快进成功，无权限阻断遗留。源码交付**MERGED_MAIN**；本轮CI Windows安装旅程为真实宿主/合成材料，不是日常Green、真实模型完整业务链或Owner验收。前端全阶段与UI-P14/21/22/23/24等原欠账继续PARTIAL；不据本次合并启动后端或激活冻结能力。
+
+记录及历史回执更新后的定向验证：`rc-merge-conventions2-20261020`工作树目录规范PASS、`rc-merge-authority-20261020`单一记录/链接/仓内hash PASS（外部私人4项仍UNVERIFIED）、`rc-merge-object-guards-20261020`原对象门禁15项PASS，dirty diff检查PASS。首个目录命令误用`--scope`而非现有`--source`导致usage/exit2，原运行保留；修正调用后通过，未改产品或规范。新文档提交及后继CI/PR以现场实际SHA读回，不重复产品全量本地测试。
+
+**清理后的fresh clone补查与修复**：按实际剩余3个远端heads计算可达对象，`rc-source-reachability-red-20261020`发现现行覆盖说明仍写退役4fc9006a的完整SHA，资源overlay仍绑定退役7897bbd3；本机对象门禁因对象尚未gc而通过，不能替代fresh clone可达性。完整历史身份已在原并行整合回执和上述分支收敛回执中保留。覆盖说明改用短名及原回执；资源绑定改为main已有的980f9796，两个布局提交的git patch-id --stable完全相同，并新增原身份JSON pointer及修复日期/限定说明。68项资源、115条原冲突、全部entries/selected_scope/资格/激活声明逐值不变；现有生成器同步只读resource-catalog的来源hash及metadata，没有改门禁或生成器。
+
+`rc-source-reachability-green-20261020`的当前声明缺失对象为0；`rc-resource-projection-green-20261020`16项原投影合同PASS，`rc-resource-ui-green-20261020`资源页/供体2文件20项PASS。生成步骤`rc-resource-regenerate-20261020`的child exit0，但因预期改写生成文件，被dev.py正确记SOURCE_INVALIDATED/exit3，**不称验证PASS**；后继只读投影/消费者门禁才是通过证据。Python退出时已有pyreadline3句柄析构警告仍保留，进程exit0。此补查修复纳入后继PR195重新资格，不凭82f420f3那次仅文档CI通过直接合入新源码。
+
+后继文档Authority与生成投影`--check`通过。`rc-source-conventions-final-20261020`另发现本轮Python生成的分支回执工作副本为CRLF；Git已提交blob为LF，数据没有差异。已逐字节核对后将本轮工作副本对齐原已提交LF blob，未修改历史记录数据、生成规则或云端blob；该FAIL保留，后继规范复验另记。

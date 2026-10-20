@@ -1,0 +1,601 @@
+{
+  "schema": "aaos.branch-convergence-readback/v1",
+  "observed_at": "2026-10-20T13:07:05.050436+00:00",
+  "scope": "Immutable evidence for RC-P01/P02/P03/P04/P08; actual progress remains docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "repository": "DTALEX66/ArcheAxis-Knowledge-OS",
+  "candidate": {
+    "head": "2574b40d6c897800b9ebe48b8bbcf453056af6c7",
+    "ci_run": 39423295711,
+    "ci_conclusion": "success",
+    "ci_checkout": "4b749b6b765efea3b623df0f0cafdebcd2334834",
+    "tree": "815228eb1be3aac8cc3bed3380b83e7ae923dcef",
+    "jobs": [
+      {
+        "name": "gateplan",
+        "id": 118629415090,
+        "conclusion": "success"
+      },
+      {
+        "name": "lint",
+        "id": 118629599517,
+        "conclusion": "success"
+      },
+      {
+        "name": "contracts-vnext",
+        "id": 118630023141,
+        "conclusion": "success"
+      },
+      {
+        "name": "desktop-fast",
+        "id": 118630023212,
+        "conclusion": "success"
+      },
+      {
+        "name": "desktop-vnext",
+        "id": 118630023235,
+        "conclusion": "success"
+      },
+      {
+        "name": "desktop-build",
+        "id": 118630023284,
+        "conclusion": "success"
+      },
+      {
+        "name": "green-candidate-vnext",
+        "id": 118630023297,
+        "conclusion": "success"
+      },
+      {
+        "name": "rust-vnext",
+        "id": 118630023342,
+        "conclusion": "success"
+      },
+      {
+        "name": "workers-vnext",
+        "id": 118630023380,
+        "conclusion": "success"
+      },
+      {
+        "name": "browser-smoke",
+        "id": 118630023456,
+        "conclusion": "success"
+      },
+      {
+        "name": "security-targeted",
+        "id": 118630023567,
+        "conclusion": "success"
+      },
+      {
+        "name": "test (3.12)",
+        "id": 118630023664,
+        "conclusion": "success"
+      },
+      {
+        "name": "py-compat",
+        "id": 118630024551,
+        "conclusion": "skipped"
+      },
+      {
+        "name": "format-targeted",
+        "id": 118630024685,
+        "conclusion": "skipped"
+      },
+      {
+        "name": "windows-runtime-smoke",
+        "id": 118630024762,
+        "conclusion": "skipped"
+      },
+      {
+        "name": "wheel-smoke",
+        "id": 118630025648,
+        "conclusion": "skipped"
+      },
+      {
+        "name": "migration-targeted",
+        "id": 118630025937,
+        "conclusion": "skipped"
+      },
+      {
+        "name": "installer-lifecycle",
+        "id": 118638373686,
+        "conclusion": "success"
+      },
+      {
+        "name": "a0-gates",
+        "id": 118641755972,
+        "conclusion": "success"
+      }
+    ]
+  },
+  "merge": {
+    "sha": "52147d6b42c76c5ed4276efb88556faec1b6b7f4",
+    "tree": "815228eb1be3aac8cc3bed3380b83e7ae923dcef",
+    "parents": [
+      "fe18fdc3cbcab9a0f84a02c5a4db1b6bcef13f46",
+      "2574b40d6c897800b9ebe48b8bbcf453056af6c7"
+    ],
+    "trae_206d56da_ancestor": true,
+    "main_ci_at_observation": {
+      "id": 39427148307,
+      "head": "52147d6b42c76c5ed4276efb88556faec1b6b7f4",
+      "status": "in_progress",
+      "conclusion": null
+    }
+  },
+  "review": {
+    "result": "NO_BLOCKING_DEFECT_IDENTIFIED_IN_REVIEWED_SCOPE",
+    "scope": [
+      "credentials determine observer role and finite read-only handler",
+      "fixed workspace/restore epoch/version/hash and expiry; reject stale/unscoped response",
+      "loopback-only bounded client; no redirected or arbitrary endpoints",
+      "machine switch/inventory admission and durable cancellation; UNKNOWN on incomplete cleanup",
+      "two fixed handoff bridge commands",
+      "Dock host retention, compact layout preference, invalid layout rejection",
+      "raw capability declarations retained in diagnostics and focus scope"
+    ],
+    "github_submitted_approval": false,
+    "policy": "docs/VERIFICATION_POLICY.md AXC-100",
+    "local_receipt_sha256": "f4d467338f60d413479e161ec51c8e15ae5ee94afb22713eb846543459982cd2"
+  },
+  "pull_requests": [
+    {
+      "number": 192,
+      "state": "closed",
+      "merged": false,
+      "head_sha": "9daf1221952133374181a6c7c81b6529d0e6419f",
+      "merge_commit_sha": null,
+      "disposition": "SUPERSEDED_PATCH_EQUIVALENT_IN_194"
+    },
+    {
+      "number": 193,
+      "state": "closed",
+      "merged": false,
+      "head_sha": "02368f0e69fea6fe7861ebb0b003b7a2e200e8e2",
+      "merge_commit_sha": null,
+      "disposition": "SUPERSEDED_PATCH_EQUIVALENT_IN_194"
+    },
+    {
+      "number": 194,
+      "state": "closed",
+      "merged": true,
+      "head_sha": "2574b40d6c897800b9ebe48b8bbcf453056af6c7",
+      "merge_commit_sha": "52147d6b42c76c5ed4276efb88556faec1b6b7f4",
+      "disposition": "MERGED"
+    }
+  ],
+  "removed_local": [
+    {
+      "branch": "codex/build-optimization-20261014",
+      "sha": "00d0fb71f824f29332ad2df83783bf6968e8f46e"
+    },
+    {
+      "branch": "codex/closure-egress-20261013",
+      "sha": "97fc1de1bf8dfbaefc4a1fdae5afa43785bf2429"
+    },
+    {
+      "branch": "codex/closure-integration-20261014",
+      "sha": "5a3246aa43866de19942adfb0b98dee176530cac"
+    },
+    {
+      "branch": "codex/closure-portable-20261013",
+      "sha": "fe1fa27ecb635d83c22a7a511ece4fe7c1c5c4d8"
+    },
+    {
+      "branch": "codex/cloud-dispatch-ci-20261016",
+      "sha": "3c3b6e8547e3f7c85d9d3de76a12d214904fb980"
+    },
+    {
+      "branch": "codex/course-return-20261016",
+      "sha": "1baaf5ee42f71186c6582d3bd874dd26c6d78071"
+    },
+    {
+      "branch": "codex/course-teaching-return-20261016",
+      "sha": "dbb99f87f39f2918c5d7000d4bbccba4bad017de"
+    },
+    {
+      "branch": "codex/format-qualification-20261016",
+      "sha": "2a10bb6c1f367fc80b747bf29fc013bcb054957f"
+    },
+    {
+      "branch": "codex/graph-research-20261016",
+      "sha": "3685135f68068c2000879dfe24c4caa187466c7f"
+    },
+    {
+      "branch": "codex/learning-drafts-20261015",
+      "sha": "66ced6abec2c2fa21b2c95cb261dd6b7dc92af0c"
+    },
+    {
+      "branch": "codex/learning-native-20261015",
+      "sha": "cc93fe45d5a89a3d6415263c7aadd8567b60b849"
+    },
+    {
+      "branch": "codex/library-announcements-20261015",
+      "sha": "811b3aeab37db3422a4344be5ce43a71fbe0d74b"
+    },
+    {
+      "branch": "codex/library-refresh-20261015",
+      "sha": "92b1cf6444647412e200d25386b6507305df32ff"
+    },
+    {
+      "branch": "codex/native-port-observer-20261016",
+      "sha": "a5e34efdde98e9ac5ac4e0a371630d95e3c100f8"
+    },
+    {
+      "branch": "codex/native-teaching-probe-20261016",
+      "sha": "d64616a82875df8c8421bf89d7bed0cd21750c4c"
+    },
+    {
+      "branch": "codex/reader-reference-20261015",
+      "sha": "344df8bea3b3d796131ff424c970504114c38fbd"
+    },
+    {
+      "branch": "codex/teaching-draft-20261015",
+      "sha": "b7bbf1c00f675e0989e9f1d6156df72791927c97"
+    },
+    {
+      "branch": "codex/teaching-save-integrity-20261015",
+      "sha": "f10891c62649b942049a0009d6305e4dda4aa9d6"
+    },
+    {
+      "branch": "codex/video-health-contract-20261016",
+      "sha": "65262d5cb87b71b8bc390cad2bb56d1d1252de4f"
+    }
+  ],
+  "removed_remote": [
+    {
+      "ref": "refs/heads/codex/character-memory-ui-20261015",
+      "sha": "02368f0e69fea6fe7861ebb0b003b7a2e200e8e2",
+      "ancestor": false,
+      "patch_equivalent": [
+        "7897bbd35d618efecf73c146e5334259bd4366a2",
+        "93a6c7f11c952aa84fbc22cac5b7233a7948250f",
+        "e62e5e3969182448d7ef14543140922af7ea13fc",
+        "2db01bfee641b48cf0255d529ac7af98a3930f02",
+        "caf1373ddd02fc5ed5ba26c801ceead72c896c1c",
+        "9daf1221952133374181a6c7c81b6529d0e6419f",
+        "015a5cff20a666653dacb304108229426c06cb89",
+        "5a3246aa43866de19942adfb0b98dee176530cac",
+        "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "7091f650934e96605730e7484e7eeb5a2a589c65",
+        "d957dbf8be7dd44936d36d0ed25ea9488fd95e2f",
+        "c95c1fafca6386ee183af46c7cfe0a82cb674dbd",
+        "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+        "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+        "c519b50bb23682f4ad7cc74bb3bc47fa727ae9a0",
+        "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+        "3116be2b6c9b74053bb41decdc072ee3c2968e85",
+        "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+        "95010eeafb204314c9646cd37f3f3f22672ec0d4",
+        "244f2cf862075b99fd3fb0bdd6a0da9ab54d40d7",
+        "8c86b1c9673e477dc86882a1f8c96bc504fb58f1",
+        "699d3483dc52c05c36dcbb7556988d238e5f3ea1",
+        "41e22bf934e37529a5f23f8fc88ee6da9fb45e43",
+        "003397f4fd926eca124bc42b0d84c1ac6bd8d0df",
+        "eb668d6a8886f7da9500c28730ae1e4e84b5eccc",
+        "7ecb65d52b6690646b405891e2c46d1f577f7ed5",
+        "e980f5b865b0b92f5340efdb190ed4328cf71b5c",
+        "0aada4d2b1711add696ca5a776b5506f2748b847",
+        "4fc9006a2bd59cf9e0733ffc46357f0488d6a27b",
+        "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+        "749668117631e423db5e0284d301a3660f866134",
+        "1b231207ac2aa47a7c028f38b7d99b7b565f4b79",
+        "748ba2f5be90f9ac397e01436804d19d980d7c6d",
+        "a6fb08cc33ec0bf2c0a92871650c761a10a1f005",
+        "9f3969efd21c1318f25d0a28d61d6bbeead5073a",
+        "06554fd1a6ed6710b23a87383a8652451e96d103",
+        "adbe144e6902683516262797831e346561eb32fb",
+        "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+        "5e5deffa06a9d566666409296b6fc00f67ea809e",
+        "a3989ce1c018bed64c10d31c8e5b57677036593c",
+        "9f6617398b77d35bda973d1db40c622d44149377",
+        "214413c82f422c30798c9f4100ca079a5bda475c",
+        "685d903901e6843e780a3020a36d11e8a2877874",
+        "5c42a08af21f58e7d28c2aeae5bf62d0fc28dba1",
+        "6bee1d88b78526722da09967b3b3696af48fdaae",
+        "dc81b929fa270173821919da2a46ec535d24c1bd",
+        "e21552577c6b1535d7698b3029f611a15d6c5142",
+        "5ae78579422d552245236d740f4d47480aa4ddbc",
+        "dbb99f87f39f2918c5d7000d4bbccba4bad017de",
+        "0f4c703c3324d2da96a2987e90e1eda0e9eec39d",
+        "2ce3c37b8f15f37213c6f63d587f15e170bccefd",
+        "36edc3ea228638ce88eed2f9478d41ca77c0b94c",
+        "02368f0e69fea6fe7861ebb0b003b7a2e200e8e2"
+      ],
+      "unique_patches": [],
+      "cherry_exit": 0
+    },
+    {
+      "ref": "refs/heads/codex/closure-integration-20261014",
+      "sha": "015a5cff20a666653dacb304108229426c06cb89",
+      "ancestor": false,
+      "patch_equivalent": [
+        "7897bbd35d618efecf73c146e5334259bd4366a2",
+        "93a6c7f11c952aa84fbc22cac5b7233a7948250f",
+        "e62e5e3969182448d7ef14543140922af7ea13fc",
+        "2db01bfee641b48cf0255d529ac7af98a3930f02",
+        "caf1373ddd02fc5ed5ba26c801ceead72c896c1c",
+        "9daf1221952133374181a6c7c81b6529d0e6419f",
+        "015a5cff20a666653dacb304108229426c06cb89"
+      ],
+      "unique_patches": [],
+      "cherry_exit": 0
+    },
+    {
+      "ref": "refs/heads/codex/layout-preferences-20261014",
+      "sha": "9daf1221952133374181a6c7c81b6529d0e6419f",
+      "ancestor": false,
+      "patch_equivalent": [
+        "7897bbd35d618efecf73c146e5334259bd4366a2",
+        "93a6c7f11c952aa84fbc22cac5b7233a7948250f",
+        "e62e5e3969182448d7ef14543140922af7ea13fc",
+        "2db01bfee641b48cf0255d529ac7af98a3930f02",
+        "caf1373ddd02fc5ed5ba26c801ceead72c896c1c",
+        "9daf1221952133374181a6c7c81b6529d0e6419f"
+      ],
+      "unique_patches": [],
+      "cherry_exit": 0
+    },
+    {
+      "ref": "refs/heads/codex/remaining-loop-stage1-20261013",
+      "sha": "b2e283b669dc096c9d1898882990825b0762488c",
+      "ancestor": true,
+      "patch_equivalent": [],
+      "unique_patches": [],
+      "cherry_exit": 0
+    }
+  ],
+  "retained_unique_patches": [
+    {
+      "branch": "astryn/integration-20261015",
+      "sha": "773f74b0c9558a1ad0fe6f997c0af1c752f1bcb9",
+      "ancestor": false,
+      "patch_equivalent": [
+        "7897bbd35d618efecf73c146e5334259bd4366a2",
+        "93a6c7f11c952aa84fbc22cac5b7233a7948250f",
+        "e62e5e3969182448d7ef14543140922af7ea13fc",
+        "2db01bfee641b48cf0255d529ac7af98a3930f02",
+        "caf1373ddd02fc5ed5ba26c801ceead72c896c1c",
+        "9daf1221952133374181a6c7c81b6529d0e6419f",
+        "015a5cff20a666653dacb304108229426c06cb89",
+        "5a3246aa43866de19942adfb0b98dee176530cac",
+        "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "7091f650934e96605730e7484e7eeb5a2a589c65",
+        "d957dbf8be7dd44936d36d0ed25ea9488fd95e2f",
+        "c95c1fafca6386ee183af46c7cfe0a82cb674dbd",
+        "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+        "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+        "c519b50bb23682f4ad7cc74bb3bc47fa727ae9a0",
+        "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b"
+      ],
+      "unique_patches": [
+        "07d88bb2516a215c59b93fad8972dcefee8d4489",
+        "23a83f65bbe1c13a8b19ff35087bd79622b011f2",
+        "773f74b0c9558a1ad0fe6f997c0af1c752f1bcb9"
+      ],
+      "cherry_exit": 0
+    },
+    {
+      "branch": "codex/closure-machine-20261013",
+      "sha": "d967a6349db9758c0e9f070273c45449654eae39",
+      "ancestor": false,
+      "patch_equivalent": [],
+      "unique_patches": [
+        "d967a6349db9758c0e9f070273c45449654eae39"
+      ],
+      "cherry_exit": 0
+    },
+    {
+      "branch": "codex/glass-cabin-20261015",
+      "sha": "127a3a4494d727abe0e9836a20d54da1ef1adca6",
+      "ancestor": false,
+      "patch_equivalent": [
+        "7897bbd35d618efecf73c146e5334259bd4366a2",
+        "93a6c7f11c952aa84fbc22cac5b7233a7948250f",
+        "e62e5e3969182448d7ef14543140922af7ea13fc",
+        "2db01bfee641b48cf0255d529ac7af98a3930f02",
+        "caf1373ddd02fc5ed5ba26c801ceead72c896c1c",
+        "9daf1221952133374181a6c7c81b6529d0e6419f",
+        "015a5cff20a666653dacb304108229426c06cb89",
+        "5a3246aa43866de19942adfb0b98dee176530cac",
+        "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "7091f650934e96605730e7484e7eeb5a2a589c65",
+        "d957dbf8be7dd44936d36d0ed25ea9488fd95e2f",
+        "c95c1fafca6386ee183af46c7cfe0a82cb674dbd",
+        "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+        "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+        "c519b50bb23682f4ad7cc74bb3bc47fa727ae9a0",
+        "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+        "9035639ea35bc96095ec9d7426ccba6b466762bd",
+        "127a3a4494d727abe0e9836a20d54da1ef1adca6"
+      ],
+      "unique_patches": [
+        "686dd947be5adf144442725003494bbbda375ac2",
+        "e2606d3c672fb558747580bc2f782f8cdcf74cf1"
+      ],
+      "cherry_exit": 0
+    },
+    {
+      "branch": "codex/minimax-aaos-cosmic-ui-20261001",
+      "sha": "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a",
+      "ancestor": false,
+      "patch_equivalent": [],
+      "unique_patches": [
+        "fec7a18f12b541a3e55a9215c408cffffa61ad25",
+        "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a"
+      ],
+      "cherry_exit": 0
+    },
+    {
+      "branch": "codex/reader-inspector-responsive-20261016",
+      "sha": "570336614c260ecc1bee1efad856dca1159cb3b1",
+      "ancestor": false,
+      "patch_equivalent": [
+        "7897bbd35d618efecf73c146e5334259bd4366a2",
+        "93a6c7f11c952aa84fbc22cac5b7233a7948250f",
+        "e62e5e3969182448d7ef14543140922af7ea13fc",
+        "2db01bfee641b48cf0255d529ac7af98a3930f02",
+        "caf1373ddd02fc5ed5ba26c801ceead72c896c1c",
+        "9daf1221952133374181a6c7c81b6529d0e6419f",
+        "015a5cff20a666653dacb304108229426c06cb89",
+        "5a3246aa43866de19942adfb0b98dee176530cac",
+        "00d0fb71f824f29332ad2df83783bf6968e8f46e",
+        "7091f650934e96605730e7484e7eeb5a2a589c65",
+        "d957dbf8be7dd44936d36d0ed25ea9488fd95e2f",
+        "c95c1fafca6386ee183af46c7cfe0a82cb674dbd",
+        "f10891c62649b942049a0009d6305e4dda4aa9d6",
+        "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+        "f66f095dd129ade1721838c8712b3082d9ae382b",
+        "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+        "c519b50bb23682f4ad7cc74bb3bc47fa727ae9a0",
+        "0a4f7b05636e2c5bf1a3c4a0bfe155a0a9a90b3b",
+        "3116be2b6c9b74053bb41decdc072ee3c2968e85",
+        "8fc22a40a425340bcf8d3ecfd95b87b9477b9ae3",
+        "95010eeafb204314c9646cd37f3f3f22672ec0d4",
+        "244f2cf862075b99fd3fb0bdd6a0da9ab54d40d7",
+        "8c86b1c9673e477dc86882a1f8c96bc504fb58f1",
+        "699d3483dc52c05c36dcbb7556988d238e5f3ea1",
+        "41e22bf934e37529a5f23f8fc88ee6da9fb45e43",
+        "003397f4fd926eca124bc42b0d84c1ac6bd8d0df",
+        "eb668d6a8886f7da9500c28730ae1e4e84b5eccc",
+        "7ecb65d52b6690646b405891e2c46d1f577f7ed5",
+        "e980f5b865b0b92f5340efdb190ed4328cf71b5c",
+        "0aada4d2b1711add696ca5a776b5506f2748b847",
+        "4fc9006a2bd59cf9e0733ffc46357f0488d6a27b",
+        "6ddf8b1b72efbc94e333c1c83e6c1aa3163f3f92",
+        "749668117631e423db5e0284d301a3660f866134",
+        "1b231207ac2aa47a7c028f38b7d99b7b565f4b79",
+        "748ba2f5be90f9ac397e01436804d19d980d7c6d",
+        "a6fb08cc33ec0bf2c0a92871650c761a10a1f005",
+        "9f3969efd21c1318f25d0a28d61d6bbeead5073a",
+        "06554fd1a6ed6710b23a87383a8652451e96d103",
+        "adbe144e6902683516262797831e346561eb32fb",
+        "94690d1d1cd94a9c99b7eaa8036135ec18306b90",
+        "5e5deffa06a9d566666409296b6fc00f67ea809e",
+        "a3989ce1c018bed64c10d31c8e5b57677036593c",
+        "9f6617398b77d35bda973d1db40c622d44149377",
+        "214413c82f422c30798c9f4100ca079a5bda475c",
+        "685d903901e6843e780a3020a36d11e8a2877874",
+        "5c42a08af21f58e7d28c2aeae5bf62d0fc28dba1",
+        "6bee1d88b78526722da09967b3b3696af48fdaae",
+        "dc81b929fa270173821919da2a46ec535d24c1bd",
+        "e21552577c6b1535d7698b3029f611a15d6c5142",
+        "5ae78579422d552245236d740f4d47480aa4ddbc"
+      ],
+      "unique_patches": [
+        "570336614c260ecc1bee1efad856dca1159cb3b1"
+      ],
+      "cherry_exit": 0
+    },
+    {
+      "branch": "codex/ui-polish-20261013",
+      "sha": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e",
+      "ancestor": false,
+      "patch_equivalent": [],
+      "unique_patches": [
+        "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e"
+      ],
+      "cherry_exit": 0
+    }
+  ],
+  "after": {
+    "local": [
+      {
+        "branch": "astryn/integration-20261015",
+        "sha": "773f74b0c9558a1ad0fe6f997c0af1c752f1bcb9"
+      },
+      {
+        "branch": "codex/closure-machine-20261013",
+        "sha": "d967a6349db9758c0e9f070273c45449654eae39"
+      },
+      {
+        "branch": "codex/glass-cabin-20261015",
+        "sha": "127a3a4494d727abe0e9836a20d54da1ef1adca6"
+      },
+      {
+        "branch": "codex/minimax-aaos-cosmic-ui-20261001",
+        "sha": "627e74ffcc2b16e2109ab85c0a8183f1e4a6b21a"
+      },
+      {
+        "branch": "codex/reader-inspector-responsive-20261016",
+        "sha": "570336614c260ecc1bee1efad856dca1159cb3b1"
+      },
+      {
+        "branch": "codex/sync-20261019",
+        "sha": "52147d6b42c76c5ed4276efb88556faec1b6b7f4"
+      },
+      {
+        "branch": "codex/ui-polish-20261013",
+        "sha": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e"
+      },
+      {
+        "branch": "main",
+        "sha": "52147d6b42c76c5ed4276efb88556faec1b6b7f4"
+      }
+    ],
+    "remote": [
+      {
+        "ref": "refs/heads/codex/sync-20261019",
+        "sha": "2574b40d6c897800b9ebe48b8bbcf453056af6c7"
+      },
+      {
+        "ref": "refs/heads/codex/ui-polish-20261013",
+        "sha": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e"
+      },
+      {
+        "ref": "refs/heads/main",
+        "sha": "52147d6b42c76c5ed4276efb88556faec1b6b7f4"
+      }
+    ],
+    "worktrees": "worktree D:/All projects/ArcheAxis-Knowledge-OS\nHEAD 52147d6b42c76c5ed4276efb88556faec1b6b7f4\nbranch refs/heads/codex/sync-20261019",
+    "status_at_observation": ""
+  },
+  "recovery": {
+    "bundle": ".project-local\\runs\\be268a2d33\\rc-merge-readback-20261020\\artifacts\\branch-recovery.bundle",
+    "bytes": 3292510,
+    "sha256": "4710efae60761a471889e76f84f64c9ba952d89c6e953b13c5ac9c26ffc77721",
+    "refs": [
+      "refs/heads/codex/build-optimization-20261014",
+      "refs/heads/codex/closure-egress-20261013",
+      "refs/heads/codex/closure-integration-20261014",
+      "refs/heads/codex/closure-portable-20261013",
+      "refs/heads/codex/cloud-dispatch-ci-20261016",
+      "refs/heads/codex/course-return-20261016",
+      "refs/heads/codex/course-teaching-return-20261016",
+      "refs/heads/codex/format-qualification-20261016",
+      "refs/heads/codex/graph-research-20261016",
+      "refs/heads/codex/learning-drafts-20261015",
+      "refs/heads/codex/learning-native-20261015",
+      "refs/heads/codex/library-announcements-20261015",
+      "refs/heads/codex/library-refresh-20261015",
+      "refs/heads/codex/native-port-observer-20261016",
+      "refs/heads/codex/native-teaching-probe-20261016",
+      "refs/heads/codex/reader-reference-20261015",
+      "refs/heads/codex/teaching-draft-20261015",
+      "refs/heads/codex/teaching-save-integrity-20261015",
+      "refs/heads/codex/video-health-contract-20261016",
+      "refs/remotes/origin/codex/character-memory-ui-20261015",
+      "refs/remotes/origin/codex/closure-integration-20261014",
+      "refs/remotes/origin/codex/layout-preferences-20261014",
+      "refs/remotes/origin/codex/remaining-loop-stage1-20261013"
+    ],
+    "prerequisite": "2574b40d6c897800b9ebe48b8bbcf453056af6c7",
+    "verify_exit": 0
+  },
+  "cleanup_reasons": {
+    "delete": "All non-ancestor commits patch-equivalent in qualified main; no unique merge resolution; exact old head rechecked; only one worktree, not occupying any deleted branch; PRs superseded/closed. Original commit recovery bundle verified before ref deletion.",
+    "retain": "Six branches have non-equivalent patches. No blind merge/deletion; later source/asset/function disposition required. Current writer branch and main retained.",
+    "rollback": "Verify bundle SHA256, then git fetch the local bundle with the archived original source ref and destination branch. Ancestor refs can also be recreated from recorded exact SHA. No git gc or history rewrite performed.",
+    "storage": "Ref cleanup only; no claim of Git history disk reduction. No current artifacts, failed evidence, shared tools/models, Green or unknown files deleted."
+  },
+  "diff_review": {
+    "new_takeover_diff_check": "206d56da..2574b40d: PASS",
+    "whole_inherited_diff_check": "PARTIAL: 263 whitespace/EOF diagnostics under cr-at-eol interpretation, largely preserved immutable/history bytes; original raw CRLF output much larger; no byte normalization or gate exemption. CI lint/convention/security gates PASS."
+  },
+  "execution_boundary": "Pre-merge exact-head CI includes actual Windows installed journeys with synthetic materials. Main post-merge CI separately observed; no Owner/Green/full business-loop acceptance."
+}
