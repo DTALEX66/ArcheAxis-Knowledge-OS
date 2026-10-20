@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "91f2ef04ca19bcc198b839cde2a2db6b58103968ebbb3db7094932b3077a835c"
+      "sha256": "63dd563cb61c3ad75aacbc4e050ea68fa15da82b53cae84c1a4bbfcb704176c5"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -220,7 +220,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "uv.lock",
-        "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+        "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
       },
       {
         "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
@@ -564,6 +564,67 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "path": "frontend/src/api/generated/core-contract.ts",
           "previous_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55",
           "current_sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
+        }
+      ]
+    },
+    "certifi_security_lock_rebind_20261021": {
+      "advisory": "https://github.com/advisories/GHSA-6q48-6c7w-9gw2",
+      "change": "Only certifi lock record 2026.6.17 to 2026.10.19; hashes matched official PyPI release.",
+      "unchanged_bound_package_records": [
+        "fsrs",
+        "jsonschema",
+        "pymupdf",
+        "trafilatura"
+      ],
+      "boundary": "Rebind current lock readback only. Version/license values and runtime, activation and qualification states unchanged; no installation or lifecycle qualification.",
+      "changed_sources": [
+        {
+          "stable_key": "fsrs",
+          "facet": "version",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "fsrs",
+          "facet": "license",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "jsonschemaspec",
+          "facet": "version",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "pymupdf",
+          "facet": "version",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "pymupdf",
+          "facet": "license",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "trafilatura",
+          "facet": "version",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "trafilatura",
+          "facet": "license",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "scope": "current_top_level_source_index",
+          "path": "uv.lock",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
         }
       ]
     }
@@ -4991,7 +5052,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
               },
               {
                 "path": "pyproject.toml",
@@ -5017,7 +5078,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
               }
             ]
           },
@@ -6510,7 +6571,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
               }
             ]
           },
@@ -11847,7 +11908,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
               },
               {
                 "path": "pyproject.toml",
@@ -11873,7 +11934,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
               }
             ]
           },
@@ -15538,7 +15599,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
               },
               {
                 "path": "pyproject.toml",
@@ -15564,7 +15625,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
               }
             ]
           },
