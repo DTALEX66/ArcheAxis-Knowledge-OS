@@ -15,6 +15,7 @@
         "project_handoff_snapshot",
         "source_import",
         "sources_list",
+        "source_get",
         "source_jobs",
         "source_job_format_qualification",
         "source_members",

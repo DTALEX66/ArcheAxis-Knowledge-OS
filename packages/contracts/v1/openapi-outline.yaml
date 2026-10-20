@@ -221,6 +221,14 @@ paths:
               schema:
                 $ref: ./core-document.schema.json#/$defs/MachineConfigurationDto
   # AAOS-01 current-source slice; the older reference-only paths retain their status.
+  /api/v1/sources/{source_id}:
+    get:
+      summary: Read the exact retained source identity without listing or title matching
+      parameters:
+        - {in: path, name: source_id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Canonical SourceDto with immutable source_revision and sha256}
+        '404': {description: Source identity does not exist}
   /api/v1/sources:
     get:
       operationId: listCanonicalSources

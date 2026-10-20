@@ -164,6 +164,7 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
             get(machine_governance::answer_snapshot),
         )
         .route("/api/v1/sources", get(documents::sources))
+        .route("/api/v1/sources/:source_id", get(documents::source))
         .route(
             "/api/v1/sources/:source_id/jobs/:job_id/format-qualification",
             get(format_qualification::read),

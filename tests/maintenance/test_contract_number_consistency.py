@@ -86,9 +86,9 @@ def test_the_launch_shape_split_adds_up():
     """Production method/path pairs differ from route mounts and omit manual receipts."""
     projections, conditional, runtime = router_mounts()
     inventory = tree_facts()["inventory_pairs"]
-    assert projections == 68, f"unconditional projection mounts changed: {projections}"
+    assert projections == 70, f"unconditional projection mounts changed: {projections}"
     assert conditional == 1, f"conditional manual receipt mounts changed: {conditional}"
-    assert runtime == 48, f"runtime mounts changed: {runtime}"
+    assert runtime == 49, f"runtime mounts changed: {runtime}"
     lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
     runtime_source = (REPO / "crates/archeaxis-api/src/runtime/mod.rs").read_text(encoding="utf-8")
     runtime_builder = runtime_source[runtime_source.index("pub fn router("):runtime_source.index(".merge(projections)")]
@@ -115,13 +115,13 @@ def test_the_launch_shape_split_adds_up():
     assert base & runtime_set == set(), "runtime duplicate mount"
     assert runtime_set & wrapper == execute, "only the execution handler is replaced"
     assert "crate::projections_base(executor.store().clone(), false)" in runtime_source
-    assert len(wrapper | base) == 80
-    assert len(base) == 79
-    assert len(runtime_set) == 51
+    assert len(wrapper | base) == 82
+    assert len(base) == 81
+    assert len(runtime_set) == 52
     assert len(base | runtime_set) == inventory
     contract = CONTRACT.read_text(encoding="utf-8")
-    assert "80 projection method/path pairs" in contract
-    assert "68 unconditional mounts" in contract
+    assert "82 projection method/path pairs" in contract
+    assert "70 unconditional mounts" in contract
     assert "manual legacy `/jobs/{id}/receipts` remains absent" in contract
 
 

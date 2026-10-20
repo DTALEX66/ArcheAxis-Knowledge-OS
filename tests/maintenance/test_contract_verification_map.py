@@ -26,6 +26,12 @@ RUNBOOK = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-BA
 # Contract section number -> (artifact, what the artifact establishes). Keyed by number rather
 # than title, because the titles carry suffixes that change as the document is edited.
 COVERAGE: dict[str, tuple[str, str]] = {
+    "19": ("crates/archeaxis-api/tests/ingest_relations.rs",
+           "single retained Source identity readback and missing-source refusal before relation consumption"),
+    "18": ("crates/archeaxis-api/tests/material_question_api.rs",
+           "bounded async admission, disconnected submitter, terminal replay, cancellation and orphan/restore guards; controlled worker is not real model qualification"),
+    "17": ("crates/archeaxis-api/tests/ingest_relations.rs",
+           "explicit original-CAS batch relations reach the canonical graph with version and restore scope guards"),
     "16": ("crates/archeaxis-api/tests/project_handoff_snapshot_queue.rs",
            "human-only fixed snapshot, expiry and queue/transaction guards; no knowledge acceptance or execution grant"),
     "15": ("crates/archeaxis-api/tests/file_format_qualification.rs",
@@ -82,6 +88,10 @@ ALSO_CHECKS: dict[str, list[str]] = {
 # reachable through the maintained contract's exact commands, never a rewritten
 # historical qualification receipt.
 CURRENT_CHECK_COMMANDS = {
+    "crates/archeaxis-api/tests/ingest_relations.rs":
+        "cargo test -p archeaxis-api --test ingest_relations --offline",
+    "crates/archeaxis-api/tests/material_question_api.rs":
+        "cargo test -p archeaxis-api --test material_question_api --offline",
     "crates/archeaxis-api/tests/ingest_batches_api.rs":
         "cargo test -p archeaxis-api --test ingest_batches_api --offline",
     "crates/archeaxis-api/tests/public_research_api.rs":

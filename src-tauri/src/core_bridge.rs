@@ -43,6 +43,7 @@ pub enum Operation {
     IngestMemberEnqueue,
     IngestMemberRelationsApply,
     SourcesList,
+    SourceGet,
     SourceJobs,
     SourceJobFormatQualification,
     SourceMembers,
@@ -376,6 +377,11 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             ("GET", path, None)
         }
         SourcesList => ("GET", "/api/v1/sources".into(), None),
+        SourceGet => (
+            "GET",
+            format!("/api/v1/sources/{}", id(p, "source_id")?),
+            None,
+        ),
         SourceJobs => (
             "GET",
             format!("/api/v1/sources/{}/jobs", id(p, "source_id")?),
@@ -2152,5 +2158,28 @@ mod material_async_bridge_tests {
             transport_timeout(&Operation::MaterialQuestionSubmit),
             std::time::Duration::from_secs(30)
         );
+    }
+}
+
+#[cfg(test)]
+mod single_source_identity_route {
+    use super::*;
+    #[test]
+    fn source_identity_route_is_fixed_and_rejects_traversal() {
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"source_get","payload":{"source_id":"src_exact"}}),
+        )
+        .unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/sources/src_exact");
+        assert_eq!(body, None);
+        for value in ["../secret", "src/other", "https://example.invalid", ""] {
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":"source_get","payload":{"source_id":value}}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
     }
 }

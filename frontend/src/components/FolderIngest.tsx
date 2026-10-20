@@ -1,3 +1,4 @@
+import type { FolderMemberSelection } from "../presentation/ingestRelations";
 import { useJobJournal, JobJournalRecovery } from "../presentation/useJobJournal";
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
@@ -82,7 +83,7 @@ function refuseBeforeUpload(relative: string, bytes: number): Refusal | null {
   return null;
 }
 
-export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: string, jobId?: string) => void }) {
+export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource?: (sourceId: string, jobId?: string, revision?:string) => void; onSelectRelations?:(selection:FolderMemberSelection)=>void }) {
   const journal=useJobJournal("folder");
   const [rows, setRows] = useState<Row[]>([]), [folder, setFolder] = useState<string | null>(null);
   const [batchId, setBatchId] = useState<string | null>(null), [message, setMessage] = useState("");
@@ -374,7 +375,12 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
   }
   function open(row: Row) {
     if (capabilityFlight.current || running.current || rowsRef.current.some(item => item.attempt || item.cancelPending)) { setMessage("仍有运行或冻结请求，请先核对状态再打开来源；批次与原件保留。"); return; }
-    if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined);
+    if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined, row.sha256);
+  }
+  function selectRelations(row:Row) {
+    const saved=durable.current,ordinal=ordinals.current.get(row.relative);
+    if(running.current||capabilityFlight.current||rowsRef.current.some(item=>item.attempt||item.cancelPending)||!saved||saved.batch_id!==row.batch_id||ordinal===undefined||!row.source_id||!row.sha256)return;
+    onSelectRelations?.({batch_id:row.batch_id,ordinal,workspace_id:saved.workspace_id,restore_epoch:saved.restore_epoch,source_id:row.source_id,source_revision:row.sha256});
   }
   const capabilityBusy = rows.some(row=>row.capabilityBusy);
   return <section aria-label="文件夹导入"><h4>文件夹导入</h4><JobJournalRecovery entries={journal.entries} disabled={busy||cancelBusy||capabilityFlight.current||journal.blocked} onRestore={entry=>{const key=`recovered:${entry.request_id}`;replace({key,batch_id:"recovered",relative:entry.relative??entry.source_id,bytes:0,source_id:entry.source_id,sha256:entry.source_revision,job_id:entry.job_id,kind:entry.kind,attempt:{job_id:entry.job_id,request_id:entry.request_id,body:entry.body},state:"UNKNOWN",detail:"待确认任务已找回；本地待处理文件列表未恢复。请先检查状态，不会自动再次执行。"});}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");update(old=>old.filter(row=>row.attempt?.request_id!==entry.request_id));}}/>
@@ -425,6 +431,7 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
         {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"same")}>同请求重试</button> : null}
         {row.attempt&&row.admissionProof&&row.source_id?<FrozenCapabilityRecovery key={row.attempt.request_id} proof={row.admissionProof} attempt={row.attempt} source={row.source_id} kind={row.kind} disabled={busy||cancelBusy||capabilityBusy} current={()=>mounted.current&&!running.current&&!cancelFlight.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)} onBusyChange={value=>{if(mounted.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)){capabilityFlight.current=value;patch(row.key,{capabilityBusy:value});}}}/>:null}{!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"fresh")}>重试失败项（新请求）</button> : null}
         {row.attempt ? <button disabled={cancelBusy||capabilityBusy} onClick={() => void cancel(row.key)}>请求取消当前转换</button> : null}
+        {onSelectRelations&&row.source_id&&row.sha256&&row.batch_id===batchId&&/\.(md|markdown)$/i.test(row.relative)?<button disabled={busy||rows.some(item=>!!item.attempt)} onClick={()=>selectRelations(row)}>映射此原件中的链接</button>:null}
         {row.source_id && onOpenSource ? <button disabled={busy || rows.some(item => !!item.attempt)} onClick={() => open(row)}>{row.state === "succeeded" ? "打开成功产物与来源" : "打开保留原件"}</button> : null}</div></td>
     </tr>)}</tbody></table></div><p>任务完成后仍需核对识别内容和专业依据。成功结果可从对应文件的已保存记录中打开。</p></> : null}
   </section>;

@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (132 pairs in a `text_worker` launch)
+## 3. Route inventory (133 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -608,8 +608,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 81 projection method/path pairs (69 unconditional mounts, twelve dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue is present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 132 addresses (80 base projection method/path pairs + 52 runtime method/path pairs on 49 runtime mounts) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **no** `text_worker` | 82 projection method/path pairs (70 unconditional mounts, twelve dual-method mounts); manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue is present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 133 addresses (81 base projection method/path pairs + 52 runtime method/path pairs on 49 runtime mounts) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
 The runtime builder carries **49** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
@@ -814,7 +814,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 80 base projection pairs plus 52 runtime pairs total 132. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 81 base projection pairs plus 52 runtime pairs total 133. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
@@ -918,7 +918,7 @@ The following 21 method/path pairs record the 2026-10-14 source reconciliation; 
 
 ## 16. 2026-10-19 local-human handoff reads
 
-Current-source inventory (2026-10-21 successor update): **132** unique production method/path pairs. Projection-only: **69** unconditional mounts / **81** pairs (twelve dual-method mounts); text-worker: **80** base projection pairs + **52** runtime pairs on **49** runtime mounts. The one conditional manual receipt remains excluded. Dated counts in §§10–15 and historical OBSERVED receipts retain their original measurement scope; §3 and §6 are current-source counts, not new runtime qualification.
+Current-source inventory (2026-10-21 successor update): **133** unique production method/path pairs. Projection-only: **70** unconditional mounts / **82** pairs (twelve dual-method mounts); text-worker: **81** base projection pairs + **52** runtime pairs on **49** runtime mounts. The one conditional manual receipt remains excluded. Dated counts in §§10–15 and historical OBSERVED receipts retain their original measurement scope; §3 and §6 are current-source counts, not new runtime qualification.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
@@ -938,7 +938,7 @@ This source inventory adds one pair (130 → 131), not J3 acceptance. Wikilinks 
 Portable Document packages now include and remap declared canonical Source relation references. Unbundled Document/Knowledge relation references are refused before destination writes, even if their IDs coincide with local objects. Existing historical research-citation closure remains unchanged. Ordinary Markdown/Obsidian projection export is not a native-Vault roundtrip; API qualification is not installed-host, UI-consumer or Owner acceptance.
 
 
-### Material async admission (2026-10-21, phase 1)
+## 18. Material async admission (2026-10-21, phase 1)
 
 | Id | Method/path | Authority | Contract |
 | --- | --- | --- | --- |
@@ -949,3 +949,14 @@ Portable Document packages now include and remap declared canonical Source relat
 A 202 `archeaxis.material-question-admission/v1` acknowledges a durable claim and a registered Core-owned task, not an answer or a provider stop. One existing model admission slot is held until execution and postchecks finish; excess async requests receive 429 without a claim. Matching active retries acknowledge the same request, terminal retries read the stored receipt, and an unfinished claim without a live owner remains UNKNOWN and is never automatically repeated. The submitting HTTP/UI waiter does not own the accepted task.
 
 Existing human-only material status/cancel routes retain the frozen request ID. Status distinguishes a registered async Core task (RUNNING), stored terminal answer/failure, and an unfinished unowned claim (UNKNOWN). Explicit cancel stops only the owned worker; provider stop remains UNKNOWN. Core restart/restore does not replay inference. Source/version/configuration/restore checks precede admission and follow execution. The UI can explicitly select async and poll that same request, stop waiting on navigation or UNKNOWN, and explicitly recover status without submitting another inference. The canonical DTOs are in `packages/contracts/v2/material-question.schema.json`; no new general runtime or conversion job kind is introduced.
+
+Current successor checks: `cargo test -p archeaxis-api --test ingest_relations --offline` and `cargo test -p archeaxis-api --test material_question_api --offline`. These commands qualify only their explicit local test scope.
+
+
+## 19. Single retained source identity consumer
+
+| # | Method + path | Authorization | Contract |
+| --- | --- | --- | --- |
+| 226 | `GET /api/v1/sources/{source_id}` | Existing read token | Returns the exact canonical `SourceDto` (source_id, source_revision=sha256, original_name, imported_at); missing identity is 404. No capped listing, title matching, source creation or write. Finite Core operation `source_get`. |
+
+The folder source opener binds this row to the selected member SHA before opening original bytes. It does not automatically choose a Document. The explicit relation consumer requires a current source-bound saved Document and selected same-batch targets; dirty state and an outstanding write block submission. Original Markdown CAS, current body, manual relations and unresolved loss remain distinct. One frozen apply is sent; an absent or inconsistent ACK remains UNKNOWN, with read-only reconciliation and no automatic resend/version rebase. This is source-contract wiring, not native-host or Owner acceptance. The current combined inventory has 133 method/path pairs.

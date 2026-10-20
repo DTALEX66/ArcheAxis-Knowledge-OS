@@ -18,3 +18,31 @@ async function search(){await screen.findByRole("button",{name:"doc_a · 版本 
 it("materializes derived and raw fixed references as two unverified materials, then saves via the existing draft operation",async()=>{const open=vi.fn();render(<CanonicalResearchSpace onOpenReference={open}/>);const panel=await search();expect(request.query).toBe("public");expect(JSON.stringify(request)).not.toContain("private research");expect(saved).toEqual([]);fireEvent.click(within(panel).getByRole("button",{name:"读取科研原始 API 原件"}));expect(open).toHaveBeenCalledWith(raw);fireEvent.click(within(panel).getByRole("button",{name:`将${hit.title}固定快照与原始 API 加入材料`}));await screen.findByRole("textbox",{name:"材料说明 2"});expect((screen.getByRole("textbox",{name:"材料说明 1"}) as HTMLTextAreaElement).value).toContain("仅元数据");expect((screen.getByRole("textbox",{name:"材料说明 2"}) as HTMLTextAreaElement).value).toContain("原始 API 响应字节已保全");expect(saved).toEqual([]);fireEvent.click(screen.getByRole("button",{name:"保存研究草稿"}));await waitFor(()=>expect(saved).toHaveLength(1));const materials=(saved[0] as any).body.editor_json.attrs.archeaxis_research.materials;expect(materials.map((m:any)=>m.reference)).toEqual([derived,raw]);expect(materials[0].id).not.toBe(materials[1].id);expect(materials.every((m:any)=>m.citation===undefined)).toBe(true);expect(bridge.call.mock.calls.some(([op])=>String(op).includes("knowledge"))).toBe(false);});
 it("keeps results readable but blocks material writes when another view owns the lease",async()=>{const sessions=new DocumentBusinessSessions(scope.workspace_id,"initial");sessions.acquire("doc_a","writer");render(<DocumentBusinessProvider sessions={sessions} viewId="reader"><CanonicalResearchSpace/></DocumentBusinessProvider>);const panel=await search();expect(within(panel).getByRole("button",{name:`将${hit.title}固定快照与原始 API 加入材料`})).toBeDisabled();expect(within(panel).getByRole("button",{name:"读取科研原始 API 原件"})).toBeEnabled();expect(saved).toHaveLength(0);});
 it("does not append a late materialization into another research page",async()=>{let resolve!:(v:unknown)=>void;const original=bridge.call.getMockImplementation()!;bridge.call.mockImplementation((op:string,p:any)=>op==="public_research_materialize"?new Promise(r=>{resolve=r;}):original(op,p));render(<CanonicalResearchSpace/>);const panel=await search();fireEvent.click(within(panel).getByRole("button",{name:`将${hit.title}固定快照与原始 API 加入材料`}));await waitFor(()=>expect(bridge.call.mock.calls.some(([op])=>op==="public_research_materialize")).toBe(true));fireEvent.click(screen.getByRole("button",{name:"doc_b · 版本 1"}));await waitFor(()=>expect(screen.getByText("doc_b · 当前基准版本 1")).toBeInTheDocument());await act(async()=>resolve(selection()));expect(screen.queryByRole("textbox",{name:"材料说明 1"})).not.toBeInTheDocument();expect(saved).toHaveLength(0);});
+
+it("binds authored comparison to materialized source hashes and a Core anchor before the ordinary save",async()=>{
+ const original=bridge.call.getMockImplementation()!;
+ const text="Synthetic fixed metadata snapshot\r\nPublic metadata", bytes=new TextEncoder().encode(text);
+ const hash=async(data:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",data.slice().buffer)),b=>b.toString(16).padStart(2,"0")).join("");
+ const sha=await hash(bytes), reference={...derived,sha256:sha};
+ bridge.call.mockImplementation(async(op:string,p:any)=>{
+  if(op==="public_research_materialize")return {...selection(),reference};
+  if(op==="source_original")return {source_id:reference.source_id,sha256:sha,name:"derived.txt",media_type:"text/plain",content_base64:btoa(String.fromCharCode(...bytes))};
+  if(op==="anchor_create")return {anchor_id:"comparison_anchor",source_id:reference.source_id,source_revision:sha,location_status:"located",position:JSON.stringify({...JSON.parse(p.body.position),checksum:p.body.checksum,location_status:"located"})};
+  if(op==="anchor_resolve")return {anchor_id:"comparison_anchor",source_id:reference.source_id,source_revision:sha,current_source_revision:sha,status:"CURRENT",scope:"locator_provenance_only",position:JSON.stringify({type:"text",start:0,end:bytes.length,checksum:sha,location_status:"located"})};
+  return original(op,p);
+ });
+ render(<CanonicalResearchSpace/>);const panel=await search();
+ fireEvent.click(within(panel).getByRole("checkbox",{name:"对照结果 1"}));
+ fireEvent.change(within(panel).getByRole("combobox",{name:"对照 1 判断"}),{target:{value:"supports"}});
+ fireEvent.click(within(panel).getByRole("button",{name:"把对照记录加入未决草稿"}));
+ await waitFor(()=>expect(within(panel).getByRole("button",{name:"把对照记录加入未决草稿"})).toBeDisabled());
+ await screen.findByRole("textbox",{name:"材料说明 2"});
+ fireEvent.click(screen.getByRole("button",{name:"保存研究草稿"}));await waitFor(()=>expect(saved).toHaveLength(1));
+ const attrs=(saved[0] as any).body.editor_json.attrs, research=attrs.archeaxis_research;
+ expect(research.materials.map((m:any)=>m.reference)).toEqual([reference,raw]);
+ expect(research.materials[0].citation).toMatchObject({anchor_id:"comparison_anchor",source_sha256:sha,quote:text});
+ expect(research.unresolved.at(-1).references).toEqual([reference,raw]);
+ expect(research.unresolved.at(-1).text).toContain("独立性：UNKNOWN");
+ expect(attrs.archeaxis_relations.relations.at(-1)).toMatchObject({kind:"supports",target:reference});
+ expect(bridge.call.mock.calls.some(([op])=>String(op).includes("knowledge"))).toBe(false);
+});

@@ -3,19 +3,20 @@ import { coreCommand } from "../api/core";
 import { assertCoreDto, type PublicResearchRequest, type PublicResearchTarget, type PublicResearchReceiptDto, type PublicResearchJournalDto, type PublicResearchCancelDto, type PublicResearchSelectionDto, type PublicResearchHitDto } from "../api/generated/core-contract";
 import { assertUiWorkingState, type UiWorkingStateRead } from "../api/generated/ui-working-state-contract";
 import type { PublicResearchFamily, PublicResearchSnapshot } from "../components/PublicResearchPanel";
+import { captureEvidenceComparisons, type ComparisonChoice, type EvidenceComparison } from "./publicEvidenceComparison";
 
 type Phase="idle"|"loading"|"read"|"failed"|"cancelled";
 type State={phase:Phase;target:PublicResearchTarget|null;frozen:PublicResearchRequest|null;receipt:PublicResearchReceiptDto|null;journal:PublicResearchReceiptDto[];message:string;acting:boolean};
 const initial=():State=>({phase:"idle",target:null,frozen:null,receipt:null,journal:[],message:"",acting:false});
 const sameTarget=(a:PublicResearchTarget,b:PublicResearchTarget)=>a.workspace_id===b.workspace_id&&a.restore_epoch===b.restore_epoch&&a.request_id===b.request_id;
-async function scope(){const state=assertUiWorkingState<UiWorkingStateRead>("Read",await coreCommand("ui_state_read"));return {workspace_id:state.workspace_id,restore_epoch:state.restore_epoch};}
+async function scope(){const state=assertUiWorkingState<UiWorkingStateRead>("Read",await coreCommand("ui_state_read"));if(state.recovery_requires_confirmation)throw Error("workspace recovery pending");return {workspace_id:state.workspace_id,restore_epoch:state.restore_epoch};}
 function boundReceipt(value:unknown,target:PublicResearchTarget,frozen:PublicResearchRequest|null){const receipt=assertCoreDto<PublicResearchReceiptDto>("PublicResearchReceiptDto",value);if(!sameTarget(receipt,target))throw Error("receipt identity");if(frozen&&(receipt.query!==frozen.query||receipt.limit!==frozen.limit||receipt.families.length!==frozen.families.length||!frozen.families.every(f=>receipt.families.includes(f))))throw Error("query identity");return receipt;}
 
 // Every asynchronous continuation belongs to one view generation. Core owns the
 // durable journal; mounting, page switches and cancellation never retry a query.
-export function usePublicResearch(owner:string,onMaterialize:(selection:PublicResearchSelectionDto)=>boolean){
- const store=useRef(new Map<string,State>()),current=useRef(owner),generation=useRef(0),alive=useRef(true),callback=useRef(onMaterialize);
- const [,redraw]=useState(0);callback.current=onMaterialize;
+export function usePublicResearch(owner:string,onMaterialize:(selection:PublicResearchSelectionDto)=>boolean,onCompare?:(bindings:readonly EvidenceComparison[])=>boolean){
+ const store=useRef(new Map<string,State>()),current=useRef(owner),generation=useRef(0),alive=useRef(true),callback=useRef(onMaterialize),comparisonCallback=useRef(onCompare);
+ const [,redraw]=useState(0);callback.current=onMaterialize;comparisonCallback.current=onCompare;
  if(current.current!==owner){
   const previous=store.current.get(current.current);
   if(previous&&(previous.phase==="loading"||previous.acting)){previous.phase=previous.phase==="loading"?"failed":previous.phase;previous.acting=false;previous.message="页面已切换；原请求身份与结果保留，执行状态需显式回读。";}
@@ -55,6 +56,20 @@ export function usePublicResearch(owner:string,onMaterialize:(selection:PublicRe
    if(valid(run))update({message:callback.current(result)?"已将派生快照与原始 API 加入材料草稿；未核验，仍需保存。":"固定快照已保全，材料草稿未改变；请处理保存限制后显式再加入。"});
   }catch{if(valid(run))update({message:"固定材料加入未确认；输入与已取得结果保留，没有自动重试。"});}finally{if(valid(run))update({acting:false});}
  }
+ async function compare(choices:readonly ComparisonChoice[]):Promise<boolean>{
+  const receipt=state.receipt;if(!receipt||!comparisonCallback.current||state.acting||state.phase!=="read")return false;
+  const run=begin();update({acting:true,message:"正在固定所选派生快照与定位；尚未追加比较草稿。"});
+  try{
+   const identity=await scope();if(!valid(run))return false;
+   const guard=async()=>{if(!valid(run))throw Error("comparison view changed");const latest=await scope();if(!valid(run)||latest.workspace_id!==identity.workspace_id||latest.restore_epoch!==identity.restore_epoch)throw Error("comparison scope changed");};
+   const bindings=await captureEvidenceComparisons(receipt,choices,identity,guard);
+   await guard();
+   if(!valid(run))return false;
+   const kept=comparisonCallback.current?.(bindings)===true;
+   update({message:kept?"人工判断已绑定固定来源与派生快照定位，加入未决草稿；仍需保存，独立性未知，未知识采用。":"固定来源已保全；草稿未追加，请处理保存限制后显式重试。"});return kept;
+  }catch{if(valid(run))update({message:"比较来源或定位未确认（完整派生快照须不超过16KiB）；未追加研究记录。输入与选择保留，可显式重试。"});return false;}
+  finally{if(valid(run))update({acting:false});}
+ }
  const snapshot=useMemo<PublicResearchSnapshot>(()=>state.phase==="read"&&state.receipt?.channels?{status:"read",query:state.receipt.query,families:state.receipt.families,channels:state.receipt.channels,hits:state.receipt.channels.flatMap(c=>c.hits.map(h=>({...h,retrievedAt:h.retrieved_at,freeAccess:h.free_access})))}:{status:state.phase==="read"?"failed":state.phase},[state.phase,state.receipt]);
- return {...state,snapshot,search,cancel,read,list,materialize};
+ return {...state,snapshot,search,cancel,read,list,materialize,compare};
 }

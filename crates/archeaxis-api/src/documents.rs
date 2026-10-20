@@ -360,6 +360,21 @@ pub(crate) async fn list(
     .await
 }
 
+pub(crate) async fn source(State(state): State<AppState>, Path(id): Path<String>) -> Response {
+    crate::with_store(state, move |conn| {
+        let row = conn.query_row(
+            "SELECT source_id,sha256,original_name,imported_at FROM sources WHERE source_id=?1",
+            [&id], |r| Ok(json!({"source_id":r.get::<_,String>(0)?,"source_revision":r.get::<_,String>(1)?,
+                "sha256":r.get::<_,String>(1)?,"original_name":r.get::<_,String>(2)?,"imported_at":r.get::<_,String>(3)?})),
+        ).optional();
+        match row {
+            Ok(Some(value)) => Json(value).into_response(),
+            Ok(None) => failure(document::Error::NotFound),
+            Err(error) => failure(error.into()),
+        }
+    }).await
+}
+
 pub(crate) async fn sources(State(state): State<AppState>) -> Response {
     crate::with_store(state,move |conn| {
         let rows = (|| -> rusqlite::Result<Vec<Value>> {

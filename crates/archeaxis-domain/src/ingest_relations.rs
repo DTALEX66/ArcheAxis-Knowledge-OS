@@ -387,7 +387,7 @@ pub fn apply(
             return Err(Error::Invalid("duplicate generated relation identity"));
         }
         let label = format!(
-            "Original CAS {} 路 {}{}{}",
+            "Original CAS {} · {}{}{}",
             input.source_revision,
             if link.embed {
                 "embed reference (not rendered): "

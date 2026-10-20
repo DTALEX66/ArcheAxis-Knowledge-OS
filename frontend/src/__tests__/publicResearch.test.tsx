@@ -85,3 +85,20 @@ it.each(["workspace_id","restore_epoch"])("rejects draft append when final canon
  const {result}=renderHook(()=>usePublicResearch("a",accept));await act(async()=>{await result.current.read(saved);});await act(async()=>{await result.current.materialize(hit);});
  expect(bridge.call.mock.calls.filter(([op])=>op==="public_research_materialize")).toHaveLength(1);expect(accept).not.toHaveBeenCalled();expect(result.current.receipt).toEqual(saved);expect(result.current.message).toContain("未确认");
 });
+
+
+it.each(["workspace_id","restore_epoch"])("does not append a comparison after actor %s changes during materialization",async field=>{
+ const saved=receipt({...scope,request_id:"saved_comparison",query:"public",families:["research"],limit:1});
+ const hit=saved.channels![0].hits[0],accept=vi.fn(()=>true);let changed=false;
+ bridge.call.mockImplementation(async(op:string)=>{
+  if(op==="ui_state_read")return {...ui,...(changed?{[field]:changedScope}:{})};
+  if(op==="public_research_read")return saved;
+  if(op==="public_research_materialize"){changed=true;return {schema:"archeaxis.public-research-selection/v1",request_id:saved.request_id,family:hit.family,hit_id:hit.id,title:hit.title,representation:hit.representation,truncated:false,reference:{kind:"source",source_id:"derived_public",sha256:"b".repeat(64)},raw_reference:saved.channels![0].raw_source,note:"Unverified",knowledge_admission:"not_executed"};}
+  throw Error(op);
+ });
+ const {result}=renderHook(()=>usePublicResearch("a",()=>true,accept));await act(async()=>{await result.current.read(saved);});
+ await act(async()=>{expect(await result.current.compare([{family:hit.family,id:hit.id,stance:"supports"}])).toBe(false);});
+ expect(accept).not.toHaveBeenCalled();expect(result.current.receipt).toEqual(saved);
+ expect(bridge.call.mock.calls.some(([op])=>op==="source_original"||op==="anchor_create")).toBe(false);
+ expect(result.current.message).toContain("未追加研究记录");
+});

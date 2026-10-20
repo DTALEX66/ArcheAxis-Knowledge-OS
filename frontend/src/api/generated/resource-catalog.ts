@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "a35bec0fa26e57927dbc9d72cb792c933101539a212c06645d8800478d96d52d"
+      "sha256": "91f2ef04ca19bcc198b839cde2a2db6b58103968ebbb3db7094932b3077a835c"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -518,6 +518,52 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "path": "Cargo.lock",
           "previous_sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
           "current_sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+        }
+      ]
+    },
+    "ingest_relation_source_contract_rebind_20261021": {
+      "reason": "Reviewed Document save_tx extraction and generated additive relation DTO/finite operations; source-contract references only. Existing runtime/license/qualification/activation states are unchanged. This is not installed or OSS lifecycle qualification.",
+      "changed_sources": [
+        {
+          "stable_key": "archeaxiscoreknowledge",
+          "path": "crates/archeaxis-domain/src/document.rs",
+          "previous_sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e",
+          "current_sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
+        },
+        {
+          "stable_key": "archeaxiscoreknowledge",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3",
+          "current_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55"
+        },
+        {
+          "stable_key": "capcoreknowledge",
+          "path": "crates/archeaxis-domain/src/document.rs",
+          "previous_sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e",
+          "current_sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
+        },
+        {
+          "stable_key": "capcoreknowledge",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3",
+          "current_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55"
+        }
+      ]
+    },
+    "source_get_source_contract_rebind_20261021": {
+      "reason": "Additive finite source_get operation uses the existing SourceDto. Only current source-contract bindings change; no runtime, license, lifecycle or installation qualification.",
+      "changed_sources": [
+        {
+          "stable_key": "archeaxiscoreknowledge",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55",
+          "current_sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
+        },
+        {
+          "stable_key": "capcoreknowledge",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55",
+          "current_sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
         }
       ]
     }
@@ -1508,11 +1554,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
+                "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3"
+                "sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
               }
             ]
           },
@@ -1935,11 +1981,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
+                "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3"
+                "sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
               }
             ]
           },

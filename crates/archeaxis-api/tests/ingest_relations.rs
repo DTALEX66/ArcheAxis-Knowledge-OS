@@ -55,6 +55,30 @@ async fn imported_note_links_reach_the_existing_document_graph() {
         assert_eq!(status, 202, "{source}");
         imported.push(source);
     }
+    for source in &imported {
+        let (status, actual) = call(
+            &app,
+            "GET",
+            &format!("/api/v1/sources/{}", source["source_id"].as_str().unwrap()),
+            Value::Null,
+        )
+        .await;
+        assert_eq!(
+            status, 200,
+            "single-source identity must not require a capped listing: {actual}"
+        );
+        assert_eq!(actual["source_id"], source["source_id"]);
+        assert_eq!(actual["source_revision"], source["sha256"]);
+        assert_eq!(actual["sha256"], source["sha256"]);
+        assert!(actual["imported_at"].is_string());
+        assert!(actual["original_name"].is_string());
+    }
+    assert_eq!(
+        call(&app, "GET", "/api/v1/sources/missing", Value::Null)
+            .await
+            .0,
+        404
+    );
     let mut docs = Vec::new();
     for ordinal in 0..2 {
         let (status,doc) = call(&app,"POST","/api/v1/documents",json!({

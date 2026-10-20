@@ -4,6 +4,7 @@ import { coreCommand } from "../api/core";
 import { OriginalTextCitation } from "../components/OriginalTextCitation";
 import { PublicResearchPanel } from "../components/PublicResearchPanel";
 import { usePublicResearch } from "../presentation/publicResearch";
+import { appendEvidenceComparisons, type EvidenceComparison } from "../presentation/publicEvidenceComparison";
 import type { PublicResearchSelectionDto } from "../api/generated/core-contract";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
 import type { DocumentDto, DocumentsListDto, DocumentSummaryDto, SourcesListDto, SourceDto, OriginalDto, SearchDto, DocumentExportDto, AnchorDto, AnchorResolutionDto } from "../api/generated/core-contract";
@@ -204,7 +205,18 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
     if(!parseResearch(next))return false;
     edit(next);return true;
   }
-  const publicResearch=usePublicResearch(`${active.current}:${!!shown}`,keepPublicMaterial);
+  function keepPublicComparison(bindings:readonly EvidenceComparison[]):boolean {
+    if(readonly||busy||b.attempt||pending.current||saving.current)return false;
+    try{
+      const cur=buffers.current.get(active.current)!;
+      const attrs=object(cur.envelope.attrs)?cur.envelope.attrs:{};
+      const next=appendEvidenceComparisons(cur.value,attrs.archeaxis_relations,bindings);
+      if(!parseResearch(next.research))throw Error("comparison research bounds");
+      cur.envelope={...cur.envelope,attrs:{...attrs,archeaxis_relations:next.relations}};
+      edit(next.research);return true;
+    }catch{note("比较条目或引用超限／身份冲突；原研究正文、属性与人工判断保留，未部分追加。",true);return false;}
+  }
+  const publicResearch=usePublicResearch(`${active.current}:${!!shown}`,keepPublicMaterial,keepPublicComparison);
   function keepPublicResearchNote(text:string):boolean {
     if(readonly||busy||b.attempt||pending.current){note("先完成引用选择或保存核对；公开检索准备仍留在本页。",true);return false;}
     const next={...b.value,unresolved:[...b.value.unresolved,{id:crypto.randomUUID(),text,references:[]}]};
@@ -218,7 +230,7 @@ export function CanonicalResearchSpace({ onOpenReference, onOpenDocument, onTrai
     <ul aria-label="研究文档列表">{rows.map(row=><li key={row.document_id}><button type="button" onClick={()=>requestOpen(row.document_id)}>{row.title} · 版本 {row.version}</button></li>)}</ul>{cursor?<button type="button" disabled={loading} onClick={()=>void list(true)}>更多文档</button>:null}
     <p role={error?"alert":"status"} aria-label="研究操作状态">{message}</p>
     {shown?<aside aria-label="只读文档"><h3>{shown.title} · 版本 {shown.version} · 只读</h3>{shownValue?<><p style={{whiteSpace:"pre-wrap"}}>问题：{shownValue.question}</p><h4>材料</h4>{shownValue.materials.map(m=><article key={m.id}><p style={{whiteSpace:"pre-wrap"}}>{m.note}</p>{showRefs([m.reference])}{showCitation(m.citation,m.reference)}</article>)}{sections.map(([key,label])=><section key={key} aria-label={`历史${label}`}><h4>{label}</h4>{shownValue[key].map(e=><article key={e.id}><p style={{whiteSpace:"pre-wrap"}}>{e.text}</p>{showRefs(e.references)}</article>)}</section>)}<h4>结论（作者记录）</h4>{shownValue.conclusions.map(c=><div key={c.id}><p style={{whiteSpace:"pre-wrap"}}>{c.text}</p><h4>来源</h4>{showRefs(c.sources)}<h4>依据</h4>{showRefs(c.basis)}</div>)}</>:<p>不支持的研究属性保持完整原文，只读不转换。</p>}<RawReceiptButton label="完整原文与未知载荷" payload={shown.editor_json}/><button type="button" onClick={()=>{historyGeneration.current++;setHistory(null);setUnsupported(null);}}>返回当前研究草稿</button></aside>:null}
-    {!shown?<PublicResearchPanel key={active.current} snapshot={publicResearch.snapshot} receipt={publicResearch.receipt} requestId={publicResearch.target?.request_id} journal={publicResearch.journal} message={publicResearch.message} acting={publicResearch.acting} onSearch={(q,f)=>void publicResearch.search(q,f)} onCancel={()=>void publicResearch.cancel()} onRead={r=>void publicResearch.read(r)} onList={()=>void publicResearch.list()} onMaterialize={hit=>{const record=publicResearch.receipt?.channels?.flatMap(c=>c.hits).find(h=>h.id===hit.id&&h.family===hit.family);if(record)void publicResearch.materialize(record);}} onOpenRaw={navigateRef} onKeepNote={keepPublicResearchNote} readOnly={readonly||busy||!!b.attempt||pending.current}/>:null}
+    {!shown?<PublicResearchPanel key={active.current} snapshot={publicResearch.snapshot} receipt={publicResearch.receipt} requestId={publicResearch.target?.request_id} journal={publicResearch.journal} message={publicResearch.message} acting={publicResearch.acting} onSearch={(q,f)=>void publicResearch.search(q,f)} onCancel={()=>void publicResearch.cancel()} onRead={r=>void publicResearch.read(r)} onList={()=>void publicResearch.list()} onMaterialize={hit=>{const record=publicResearch.receipt?.channels?.flatMap(c=>c.hits).find(h=>h.id===hit.id&&h.family===hit.family);if(record)void publicResearch.materialize(record);}} onOpenRaw={navigateRef} onKeepNote={keepPublicResearchNote} onCompare={choices=>publicResearch.compare(choices)} readOnly={readonly||busy||!!b.attempt||pending.current}/>:null}
     <fieldset disabled={readonly} style={{minWidth:0}}><legend>{b.base?`${b.base.title} · 当前基准版本 ${b.base.version}`:"尚未持久化研究草稿"}</legend>{!b.base?<label>研究标题<input aria-label="研究标题" value={b.title} disabled={busy||!!b.attempt} onChange={event=>{b.title=event.target.value;b.serial++;b.dirty=true;publish();}}/></label>:null}
     <label>研究问题<textarea aria-label="研究问题" value={b.value.question} style={{width:"100%",boxSizing:"border-box"}} onChange={event=>changeText(()=>({...b.value,question:event.target.value}),event.target.value)}/></label>
     <h3>材料与原文</h3><button type="button" onClick={()=>void beginPick({kind:"material"})}>添加材料或待整理说明</button><ul>{b.value.materials.map((m,i)=><li key={m.id}><label>材料说明 {i+1}<textarea aria-label={`材料说明 ${i+1}`} value={m.note} onChange={e=>changeText(()=>({...b.value,materials:b.value.materials.map(v=>v.id===m.id?{...v,note:e.target.value}:v)}),e.target.value)}/></label>{showRefs([m.reference])}{showCitation(m.citation,m.reference)}{m.reference.kind==="source"?<button type="button" disabled={busy||!!b.attempt} onClick={()=>{if(m.reference.kind==="source")void readSource(m.reference,m.id);}}>摘录材料 {i+1}原文</button>:null}<button type="button" onClick={()=>edit({...b.value,materials:b.value.materials.filter(v=>v.id!==m.id)})}>删除材料 {i+1}</button></li>)}</ul>

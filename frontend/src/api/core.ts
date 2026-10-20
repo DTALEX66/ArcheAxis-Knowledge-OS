@@ -34,7 +34,7 @@ const responseSchemas: Partial<Record<CoreOperation, string>> = {
   ui_state_machine_status: "MachineJournalStatusDto",
   ui_state_cancel_machine: "MachineCancelDto",
   document_graph: "RelationProjectionDto",
-  sources_list: "SourcesListDto", source_jobs: "SourceJobsDto", source_members: "SourceMembersDto", source_pages: "SourcePagesDto", source_original: "OriginalDto", documents_list: "DocumentsListDto",
+  sources_list: "SourcesListDto", source_get: "SourceDto", source_jobs: "SourceJobsDto", source_members: "SourceMembersDto", source_pages: "SourcePagesDto", source_original: "OriginalDto", documents_list: "DocumentsListDto",
   document_create: "DocumentDto", document_get: "DocumentDto", document_draft: "DocumentDto",
   document_checks: "DocumentChecksDto", document_check_record: "DocumentCheckDto", document_check_execute: "DocumentCheckDto",
   document_version: "DocumentDto", document_restore: "DocumentDto", anchors_list: "AnchorsListDto", anchor_create: "AnchorDto", anchor_resolve: "AnchorResolutionDto",
