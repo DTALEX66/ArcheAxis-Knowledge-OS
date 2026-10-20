@@ -25,6 +25,24 @@ beforeEach(()=>{vi.stubGlobal("crypto",webcrypto);docs=new Map([["doc_a",dto("do
 };bridge.call.mockImplementation(original);});
 afterEach(()=>{resetDiagnostics();vi.restoreAllMocks();vi.unstubAllGlobals();});
 
+it("keeps public search preparation local and saves only an explicit unresolved plan",async()=>{
+ render(<CanonicalResearchSpace/>);await openA();
+ const panel=screen.getByRole("region",{name:"公开资料检索"});
+ expect(within(panel).getByRole("textbox",{name:"公开检索关键词"})).toHaveValue("");
+ expect(panel).toHaveTextContent("百科、社区、科研检索尚未接线");
+ expect(within(panel).getByRole("button",{name:"检索公开资料"})).toBeDisabled();
+ fireEvent.change(within(panel).getByRole("textbox",{name:"公开检索关键词"}),{target:{value:"间隔复习 证据"}});
+ fireEvent.click(within(panel).getByRole("button",{name:"把检索计划加入未决草稿"}));
+ expect(requests).toHaveLength(0);
+ expect((screen.getByRole("textbox",{name:"未决 1"}) as HTMLTextAreaElement).value).toContain("间隔复习 证据");
+ fireEvent.click(screen.getByRole("button",{name:"保存研究草稿"}));
+ await waitFor(()=>expect(requests).toHaveLength(1));
+ const saved=requests[0].body.editor_json.attrs.archeaxis_research;
+ expect(saved.unresolved[0].references).toEqual([]);
+ expect(saved.unresolved[0].text).toContain("未执行外部检索");
+ expect(bridge.call.mock.calls.some(([op])=>op==="search"||String(op).includes("external"))).toBe(false);
+});
+
 it("keeps the saved quote readable and its complete fixed identity in diagnostics without changing the stored research",async()=>{
  resetDiagnostics();
  const research=(docs.get("doc_a")!.editor_json as J).attrs.archeaxis_research as ResearchValue;
@@ -94,7 +112,7 @@ it("does not let an old citation replay overwrite a newer research save outcome"
  bridge.call.mockImplementation((op:string,p:J)=>op==="anchor_resolve"?new Promise(resolve=>{finish=resolve;}):original(op,p));
  render(<CanonicalResearchSpace/>);await openA();fireEvent.click(screen.getByRole("button",{name:"重新核验引文定位"}));
  editQuestion("核验期间的新研究输入");await save();await act(async()=>{finish(fixture.result);});
- expect(screen.getByRole("status")).toHaveTextContent("研究草稿已保存并读回；未变为核验或采用状态。");
+ expect(screen.getByRole("status",{name:"研究操作状态"})).toHaveTextContent("研究草稿已保存并读回；未变为核验或采用状态。");
  expect(screen.getByLabelText("研究问题")).toHaveValue("核验期间的新研究输入");
  expect(screen.queryByRole("button",{name:"查看诊断详情：引文定位核验记录"})).not.toBeInTheDocument();
  expect(requests).toHaveLength(1);

@@ -491,3 +491,24 @@ Owner后继明确要求“该合并的合并啊”。本轮完成已获授权的
 **RC-P05只读分批清点**：`rc-footprint-readonly-20261020/artifacts/footprint.json` SHA256 `79d2c71b5b3056b251b40cad01b1239f48c8d422ad8d0773c0fa45c09395efbc`，精确登记此前3份可重建前端dist及26份运行日志/证据根，共135422112字节，逐文件hash、归属、保留理由及重建/回退保留。仅此范围，非全工作区体积；tracked普通文件lstat合计1228579841字节，Git loose+pack分配462879744字节，分别记录，不相加冒充整体。`cloud-artifacts.json` SHA256 `ce7e0748421bf291eb2b8a8ac73c23ea98fdb7c170dca866698de144ce5afc93`，只读3个指定CI run的首分页18份artifact元数据/服务端digest，共756636037字节，非整个云端、未下载验证归档字节。全部RETAIN，无删除/GC/历史改写、共享模型工具或未知资料操作；后继新增运行不在这批快照，不能借此清理。
 
 **继续执行/阻断**：UI-P14百科/社区/科研检索独立界面仍缺，当前正式CoreOperation无三类检索操作；既有document_check的DuckDuckGo文章获取和模型核验不能替代免费三类通道。后继前端需公开关键词/范围、来源/限流/未知、结果详情和去重/支持反对冲突比较；后端阶段补具名检索响应、出处/取得内容/许可/失败、取消迟到隔离和Rust单写者落库/固定引用合同，未接线期间不得生成结果或把0当失败。UI-P21人工辅助技术、UI-P22性能规模、UI-P23全域视觉基准、UI-P24同候选原生安装/Owner验收仍PARTIAL/UNVERIFIED；尚未前端阶段交付，不启动BE-P01—15。Green/真实数据/模型配置和冻结项未变，CL-01—07/J1—J6不缩减。新候选exact-SHA CI/合并待单独读回；回退本片研究状态/局部CSS、诊断键盘及消费者，不退TRAE/已合入基线，不删失败证据。
+
+## 2026-10-20/21 UI-P14：三类公开检索前端与作者对照
+
+**前片交付**：[PR198](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/198)候选c5f4d35a的[CI39452223018](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39452223018)SUCCESS，required a0-gates及lint/browser-smoke均完成通过；未选中的安装/后端作业为skipped，不计资格。实时ruleset20849492只要求a0-gates，无审阅数量规则，PR无review/inline阻断；已审源码，候选与合成合并树均c75a0be6，按expected head正常merge为main的7ca69cc8。writer随后--ff-only快进同一tree，binary dirty diff及两个新文件hash前后相同；TRAE仍保留。main的后继CI待单独读回，本片不继承c5f4d35a资格。
+
+在既有研究页05加入`PublicResearchPanel`，不增主壳、产品路由、来源/能力注册表或后端操作。生产态明确百科/社区/科研接口尚未接线，检索按钮禁用，结果未知且没有示例结果。关键词初始为空，不自动取研究问题、正文、附件或模型链接。可手动选择三类范围，把检索计划显式放入现有未决草稿；此操作不调用任何外部检索，仍需现有“保存研究草稿”才写入Rust合同，references为空，不冒充固定来源或已采用知识。
+
+独立呈现层支持逐来源完成/限流/失败/离线/未知、仅元数据/摘录/全文筛选、取得时间/许可未知/免费条件未知、原文定位缺失说明和完整诊断。相同地址只作显示分组，所有返回记录/时间/内容差异仍保留，不按同名猜测同一来源或宣称来源独立。最多6个地址并列作者对照，可标支持/反对/冲突/不确定；文字只显式加入未核验、未绑定固定原件的未决草稿。旧关键词/范围、后继返回和只读状态隔离选择及添加，拒绝添加时原选择保留。上述结果状态使用纯UI输入/回调测试，**没有对应生产transport，更不是已执行外部检索**。请求取消回调只显示停止等待/远端停止未知，不伪造取消成功。
+
+| 验证 | 实际结果与限制 |
+| --- | --- |
+| RED与修复 | `ui-public-research-entry-red-20261020`缺公开检索入口1项FAIL；首次green48/50通过，两个失败为新增测试的toHaveValue不支持不对称匹配器、原保存测试假设全页只有一个status。修正为逐字值包含及具名“研究操作状态”，保留原保存反馈内容/角色断言；首次类型检查因vi.fn空参数推断FAIL，精确声明text参数后修复。`ui-public-research-channel-red-20261020`复现一个来源重复完成/失败被误当完整空检索，改为每来源唯一complete才认定完成，保留该负例。 |
+| 最终定向 | `ui-public-research-final-tests-20261020`4文件60项PASS（研究43、公开呈现10、诊断5、租约2）；包含真实保存调用的公开计划读回结构、零外部操作、三个范围只传明确关键词、完整同地址记录保全、作者冲突/反对记述、部分空/歧义状态不冒充完成、旧查询不可选、拒绝/只读/六项上限/后继返回隔离。SIMULATED Core/呈现输入，非真实免费检索与Core耐久重开。 |
+| 浏览器 | `ui-public-research-browser-20261020`4场生产页面准备/加入未决通过；查看截图后修复范围checkbox与中文标签纵向分离，改为同排40px标签目标，复用现有token。最终`ui-public-research-final-browser-20261020`cosmic/blueprint-light×640×480/1440×900共4场PASS_AUTOMATED_ONLY：关键词初始空、检索禁用、明确未接线、选择百科/科研范围、计划逐字加入未决草稿/无重复添加。axe4.14.0无违规，8条incomplete保留，无pageerror/外网请求。实际查看最终两主题窄窗图；结果/对照视图仅有组件测试，未以准备界面截图称完整结果视觉验收。Chromium149.0.7827.55、DPR1/reduced-motion=reduce，SYNTHETIC host/Core，非原生DPI/安装。 |
+| 构建 | `ui-public-research-final-build-20261020`正式frontend.mjs build PASS（内层0388df96cd06，含TypeScript）；既有大chunk警告保留。最终测试、浏览器和构建均source_consistent=true，不改断言求绿，不重跑全仓测试。 |
+
+最终浏览器基于c5f4d35a（与当前7ca69cc8的committed tree相同），dirty diff SHA256 `ca5671dc5ec6a5c3d72f9e4a0c35847d830e924cfad80a9fe5def81576e0cbbe`；当时两个新文件未入index，另核PublicResearchPanel.tsx SHA256 `c39e89a8be48f373c69eebe5450f8a0ee88388820ee4a969bc5c4dcaff4301f5`、其测试 `4e9f3b52cc80a0a8c02dd0a83df93420f42ad140a1f97e073571555c6908865a`。自有PID24100/127.0.0.1:61158回收，port_closed=true；服务terminate退出1，不称优雅退出。所有原始运行/失败/截图在同一`.project-local/runs/be268a2d33/<run-id>/`保留，不提交。
+
+交付前`ui-public-research-conventions-20261021`工作树及随后index规范PASS，`ui-public-research-authority-20261021`单一记录/引用/仓内7个hash PASS，外部私人4项仍UNVERIFIED；changed probe的CI同选项Ruff及diff --check PASS。前片main7ca69cc8的[CI39453613855](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39453613855)已启动，写此条时仍in_progress，不写作PASS。
+
+**UI-P14仍PARTIAL**：准备入口及结果/对照独立呈现已实现本地；真实三类检索、来源/限流/许可/可得内容合同、请求取消/迟到响应控制、原文打开、落库固定引用、去重身份及重启导出仍BLOCKED于BE-P04/05所需正式接线，不能以纯UI回调冒充集成。后端阶段前需完成结果/对照真实浏览器视觉与键盘检查；不能只以禁用入口结束该项。前端全阶段未交付，继续其他UI分片及原生/DPI/人工无障碍/性能欠账；BE-P01—15暂不启动。六项冻结、Green、真实数据及模型/provider保持原状，完整CL-01—07/J1—J6目标不变。回退仅本片独立呈现组件、研究页嵌入/局部CSS、测试和探针消费者，不回退TRAE/前片已合并修复，不删除证据。

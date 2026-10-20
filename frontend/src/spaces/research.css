@@ -33,3 +33,13 @@
 .research-knowledge-results { display:grid; gap:var(--ax-space-3); list-style:none; padding:0; }
 .research-knowledge-results > li { display:flex; flex-wrap:wrap; align-items:center; gap:var(--ax-space-2); min-width:0; }
 .research-knowledge-results > li > button:first-child { flex:1 1 16rem; min-width:0; max-width:100%; white-space:normal; overflow-wrap:anywhere; text-align:start; }
+.public-research-panel { display:grid; gap:var(--ax-space-3); margin-block:var(--ax-space-4); min-width:0; }
+.public-research-panel > h3, .public-research-panel > p { margin:0; }
+.public-research-panel fieldset { display:flex; flex-wrap:wrap; gap:var(--ax-space-3); min-width:0; }
+.public-research-panel label:has(> input[type="checkbox"]) { display:inline-flex; flex-direction:row; align-items:center; gap:var(--ax-space-2); min-height:40px; cursor:pointer; }
+.public-research-panel input[type="checkbox"] { flex:none; width:1rem; height:1rem; min-height:0; margin:0; }
+.public-research-panel input:not([type="checkbox"]), .public-research-panel select { max-width:100%; box-sizing:border-box; }
+.public-research-results { display:grid; gap:var(--ax-space-3); list-style:none; padding:0; }
+.public-research-results article, .public-research-comparison article { padding:var(--ax-space-3); border:1px solid var(--ax-border-strong); border-radius:var(--ax-radius-md); min-width:0; overflow-wrap:anywhere; }
+.public-research-results blockquote, .public-research-comparison p { white-space:pre-wrap; }
+.public-research-comparison { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr)); gap:var(--ax-space-3); margin-block:var(--ax-space-3); }
