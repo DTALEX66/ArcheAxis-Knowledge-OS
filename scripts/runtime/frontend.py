@@ -10,10 +10,11 @@ import sys
 from pathlib import Path
 
 if __package__:
-    from . import dev
+    from . import dev, runtime_resources
     from .build_timing import BuildTimings
 else:
     import dev
+    import runtime_resources
     from build_timing import BuildTimings
 
 ROOT = Path(__file__).absolute().parents[2]
@@ -214,6 +215,12 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
                     or any(actual_core[key] != core_input[key] for key in ("bytes", "sha256"))
                     or actual_manifest["sha256"] != staged_manifest["sha256"]):
                 raise ValueError("runtime input changed or stale Tauri resources were copied")
+            configured_resources = set(json.loads((root / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))["bundle"]["resources"].values())
+            # Tauri may retain old resource files in its build cache. Matching the
+            # Core/manifest pair does not establish every copied member or closure.
+            # Use the assembler's exact read-only verifier before issuing PASS.
+            runtime_resources.verify_runtime_resources(host.parent, configured_resources)
+            runtime_resources.regular(host, cargo_host=True)
             qualification = {
                 "status": "PASS", "host": str(host), "core": actual_core["path"],
                 "portable_build_arguments": arguments,

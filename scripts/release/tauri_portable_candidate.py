@@ -7,118 +7,36 @@ import json
 import os
 import re
 import shutil
-import stat
 import sys
 from pathlib import Path, PurePosixPath
 
 REPO = Path(__file__).resolve().parents[2]
 if __package__:
-    from scripts.runtime import dev
+    from scripts.runtime import dev, runtime_resources
 else:
     import importlib.util
     # Direct CLI: load only these repository-owned modules without sys.path edits.
-    for module_name in ('dev',):
+    for module_name in ('dev', 'runtime_resources'):
         spec = importlib.util.spec_from_file_location(module_name, REPO / "scripts/runtime" / (module_name + ".py"))
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
         globals()[module_name] = module
 
-RESOURCES = {"runtime", "core", "workers", "shared", "worker-profile.json",
-             "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json"}
-SHA = re.compile(r"[0-9a-f]{64}\Z")
+# Preserve the assembler's public validation helpers for existing consumers.
+RESOURCES = runtime_resources.RESOURCES
+SHA = runtime_resources.SHA
+PUBLIC_UPSTREAM_FILES = runtime_resources.PUBLIC_UPSTREAM_FILES
+native = runtime_resources.native
+checked = runtime_resources.checked
+digest = runtime_resources.digest
+relative_path = runtime_resources.relative_path
+regular = runtime_resources.regular
+inventory = runtime_resources.inventory
+verify_members = runtime_resources.verify_members
+verify_worker_contract = runtime_resources.verify_worker_contract
+verify_runtime_resources = runtime_resources.verify_runtime_resources
 SCHEMA = "archeaxis.tauri-portable-candidate/v1"
-# Public file shipped by the already qualified locked FastAPI distribution.
-# This exception never authorizes a native agent directory or changed bytes.
-PUBLIC_UPSTREAM_FILES = {
-    "runtime/Lib/site-packages/fastapi/.agents/skills/fastapi/SKILL.md": {
-        "bytes": 13665, "sha256": "833e99b101b657690f44e9d6cab5d77b6b31dbf477e1fb64b5b7b8da27095917"},
-}
-
-
-def native(path: Path) -> str:
-    text = os.fspath(path)
-    return "\\\\?\\" + text if os.name == "nt" and not text.startswith("\\\\?\\") else text
-
-
-def checked(path: Path) -> Path:
-    path = dev.safe_path(path)
-    for part in (*reversed(path.parents), path):
-        try:
-            info = os.lstat(native(part))
-        except FileNotFoundError:
-            continue
-        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
-            raise ValueError("Linked candidate path rejected")
-    return path
-
-
-def digest(path: Path) -> str:
-    with open(native(path), "rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
-
-
-def relative_path(value: str) -> str:
-    if not isinstance(value, str) or not value or "\\" in value or ":" in value:
-        raise ValueError("Invalid relative member path")
-    parsed = PurePosixPath(value)
-    if parsed.is_absolute() or parsed.as_posix() != value or any(p in {".", ".."} for p in parsed.parts):
-        raise ValueError("Unsafe or noncanonical member path")
-    if value not in PUBLIC_UPSTREAM_FILES and any(
-            p.casefold() in {".git", ".codex", ".hermes", ".ssh", ".agents", ".env"}
-            or p.casefold().startswith(".env.") for p in parsed.parts):
-        raise ValueError("Private material is not a candidate input")
-    return value
-
-
-def regular(path: Path, *, cargo_host: bool = False) -> Path:
-    path = checked(path)
-    info = os.lstat(native(path))
-    cargo_pair = False
-    if cargo_host and info.st_nlink == 2 and path.parent.name == "release":
-        alias = checked(path.parent / "deps" / path.name)
-        try:
-            cargo_pair = os.path.samestat(info, os.lstat(native(alias)))
-        except FileNotFoundError:
-            pass
-    if not stat.S_ISREG(info.st_mode) or (info.st_nlink != 1 and not cargo_pair):
-        raise ValueError(f"Expected an independent regular file: {path}")
-    return path
-
-
-def inventory(root: Path) -> set[str]:
-    checked(root)
-    result = set()
-    def fail(error):
-        raise error
-    for directory, dirs, files in os.walk(native(root), onerror=fail, followlinks=False):
-        relative = Path(directory).relative_to(Path(native(root)))
-        for name in dirs:
-            checked(root / relative / name)
-        for name in files:
-            path = regular(root / relative / name)
-            result.add(path.relative_to(root).as_posix())
-    return result
-
-
-def verify_members(root: Path, members: dict) -> None:
-    if not isinstance(members, dict) or not members:
-        raise ValueError("Missing member manifest")
-    folded = set()
-    for name, row in members.items():
-        relative_path(name)
-        if name.casefold() in folded:
-            raise ValueError("Case-insensitive duplicate member")
-        folded.add(name.casefold())
-        if (not isinstance(row, dict) or type(row.get("bytes")) is not int
-                or row["bytes"] < 0 or not isinstance(row.get("sha256"), str)
-                or not SHA.fullmatch(row["sha256"])):
-            raise ValueError("Invalid member identity")
-        if name in PUBLIC_UPSTREAM_FILES and row != PUBLIC_UPSTREAM_FILES[name]:
-            raise ValueError("Public upstream exception bytes changed")
-        path = regular(root / name)
-        if os.stat(native(path)).st_size != row["bytes"] or digest(path) != row["sha256"]:
-            raise ValueError(f"Member identity mismatch: {name}")
 
 
 def plan(host: Path, build: dict, configured_resources: set[str]) -> dict:
@@ -129,28 +47,9 @@ def plan(host: Path, build: dict, configured_resources: set[str]) -> dict:
             or digest(host) != build.get("host_sha256")):
         raise ValueError("Host is not bound to a qualified build")
     root = host.parent
-    runtime_manifest = regular(root / "backend-runtime-manifest.json")
-    backend = json.loads(runtime_manifest.read_text(encoding="utf-8"))
-    if backend.get("schema") != "archeaxis.backend-runtime/v1":
-        raise ValueError("Unrecognized backend manifest")
+    backend = verify_runtime_resources(root, configured_resources)
     members = backend["files"]
-    for name in members:
-        relative_path(name)
-        if PurePosixPath(name).parts[0] not in RESOURCES:
-            raise ValueError("Backend member outside declared runtime resources")
-    verify_members(root, members)
-    verify_worker_contract(root, members)
-    expected = set(members) | {"backend-runtime-manifest.json"}
-    observed = set()
-    for resource in RESOURCES:
-        path = checked(root / resource)
-        if path.is_dir():
-            observed.update(resource + "/" + name for name in inventory(path))
-        else:
-            regular(path)
-            observed.add(resource)
-    if observed != expected:
-        raise ValueError("Unmanifested or missing runtime resources")
+    runtime_manifest = regular(root / "backend-runtime-manifest.json")
     if digest(regular(root / "core/archeaxis-api.exe")) != build.get("core_sha256"):
         raise ValueError("Core differs from qualified build")
     all_members = {name: {"bytes": row["bytes"], "sha256": row["sha256"]}
@@ -165,35 +64,6 @@ def plan(host: Path, build: dict, configured_resources: set[str]) -> dict:
             "files": all_members, "logical_bytes": sum(row["bytes"] for row in all_members.values()),
             "optional_models": "Referenced separately; not copied or claimed offline available",
             "qualification": "Static member qualification; runtime journey required separately"}
-
-
-def verify_worker_contract(root: Path, members: dict) -> None:
-    profile = json.loads(regular(root / "worker-profile.json").read_text(encoding="utf-8"))
-    routes = json.loads(regular(root / "workers/routes.json").read_text(encoding="utf-8"))
-    if (profile.get("schema") != "archeaxis.worker-profile/v1"
-            or routes.get("schema") != "archeaxis.worker-routes/v1"
-            or profile.get("python") not in {"runtime/python.exe", "runtime/python/python.exe"}
-            or profile.get("script") != "workers/transport/text_ndjson.py"
-            or profile.get("staging") != "data/worker-staging"):
-        raise ValueError("Invalid formal worker launch contract")
-    required = {profile["python"], profile["script"], "core/archeaxis-api.exe", "workers/routes.json"}
-    mapping = routes.get("routes")
-    if not isinstance(mapping, dict) or not mapping:
-        raise ValueError("Missing native worker routes")
-    expected = {}
-    for capability, scripts in mapping.items():
-        if not isinstance(capability, str) or not isinstance(scripts, list) or not scripts:
-            raise ValueError("Invalid native worker route")
-        for script in scripts:
-            required.add("workers/" + relative_path(script))
-        expected[capability] = "workers/" + scripts[0]
-    observed = {}
-    for row in profile["routes"]:
-        if row["capability"] in observed:
-            raise ValueError("Duplicate worker profile route")
-        observed[row["capability"]] = relative_path(row["script"])
-    if observed != expected or not required.issubset(members):
-        raise ValueError("Native/profile routes differ or worker input absent")
 
 
 def assemble(host: Path, destination: Path, manifest: dict) -> dict:

@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import shutil
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -33,7 +34,12 @@ def project(tmp_path, monkeypatch):
     root.mkdir()
     subprocess.run(["git", "init", "-q", str(root)], check=True)
     (root / ".gitignore").write_text(".project-local/\n", encoding="utf-8")
-    subprocess.run(["git", "-C", str(root), "add", ".gitignore"], check=True)
+    resources = ("runtime", "core", "workers", "shared", "worker-profile.json",
+                 "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json")
+    (root / "src-tauri").mkdir()
+    (root / "src-tauri/tauri.conf.json").write_text(json.dumps({"bundle": {"resources": {
+        "../.project-local/rt/" + name: name for name in resources}}}), encoding="utf-8")
+    subprocess.run(["git", "-C", str(root), "add", ".gitignore", "src-tauri/tauri.conf.json"], check=True)
     subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-qm", "fixture"], check=True)
     return root
 
@@ -149,15 +155,42 @@ def qualified_core(project, monkeypatch, compiler_exit=0, write_output=True):
     return router.dev.layout(project, "core")["artifacts"] / "execution.json"
 
 
+def staged_runtime(project):
+    """Complete synthetic resource contract; it is never an executable runtime."""
+    staged = project / ".project-local/rt"
+    payloads = {
+        "runtime/python.exe": b"synthetic-interpreter",
+        "core/archeaxis-api.exe": b"synthetic-core",
+        "workers/transport/text_ndjson.py": b"synthetic transport",
+        "workers/document/worker.py": b"synthetic worker",
+        "shared/learning_scheduler.py": b"synthetic scheduler",
+        "start-backend.py": b"synthetic launcher",
+        "start-backend.cmd": b"synthetic launcher cmd",
+        "workers/routes.json": json.dumps({"schema": "archeaxis.worker-routes/v1", "routes": {
+            "document.detect": ["document/worker.py"]}}).encode(),
+        "worker-profile.json": json.dumps({"schema": "archeaxis.worker-profile/v1",
+            "python": "runtime/python.exe", "script": "workers/transport/text_ndjson.py",
+            "staging": "data/worker-staging", "routes": [{"capability": "document.detect",
+                "script": "workers/document/worker.py"}]}).encode(),
+    }
+    members = {}
+    for name, content in payloads.items():
+        path = staged / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+        members[name] = {"bytes": len(content), "sha256": hashlib.sha256(content).hexdigest()}
+    (staged / "backend-runtime-manifest.json").write_text(json.dumps({
+        "schema": "archeaxis.backend-runtime/v1", "files": members,
+        "runtime_source": {"evidence": "SYNTHETIC_NOT_RUNTIME_QUALIFIED"}}), encoding="utf-8")
+    return staged
+
+
 def test_canonical_builder_receipt_connects_actual_tauri_target_to_portable(project, monkeypatch):
     from scripts.release import tauri_portable_candidate as portable
     core_receipt = qualified_core(project, monkeypatch)
     core = json.loads(core_receipt.read_text(encoding="utf-8"))
     assert core["core_build"]["artifact"]["sha256"] == __import__("hashlib").sha256(b"synthetic-core").hexdigest()
-    staged = project / ".project-local/rt"
-    (staged / "core").mkdir(parents=True)
-    (staged / "core/archeaxis-api.exe").write_bytes(b"synthetic-core")
-    (staged / "backend-runtime-manifest.json").write_text("{}")
+    staged = staged_runtime(project)
     def compiler(*args, **kwargs):
         successful_compiler(*args, **kwargs)
         target = Path(kwargs["env"]["CARGO_TARGET_DIR"]) / "release"
@@ -175,6 +208,7 @@ def test_canonical_builder_receipt_connects_actual_tauri_target_to_portable(proj
     host = portable.qualified_host(receipt_path, build, paths, env)
     assert host == paths["tauri_build"] / "release/ArcheAxis.exe"
     assert host != paths["cargo_build"] / "release/ArcheAxis.exe"
+    assert portable.plan(host, build, portable.RESOURCES)["status"] == "PLAN"
     for key, value in [("host", str(paths["cargo_build"] / "release/ArcheAxis.exe")),
                        ("host_sha256", "0" * 64), ("source_patch_sha256", "0" * 64),
                        ("exit_code", 1), ("mode", "build"), ("status", "RUNNING"),
@@ -195,6 +229,52 @@ def test_canonical_builder_receipt_connects_actual_tauri_target_to_portable(proj
     (host.parent / "core/archeaxis-api.exe").write_bytes(b"changed-after-build")
     with pytest.raises(ValueError):
         portable.qualified_host(receipt_path, build, paths, env)
+
+
+@pytest.mark.parametrize("change", ["extra", "missing", "corrupt", "worker_contract"])
+def test_qualified_builder_rejects_incomplete_resource_namespace(project, monkeypatch, change):
+    from scripts.release import tauri_portable_candidate as portable
+    core_receipt = qualified_core(project, monkeypatch)
+    staged = staged_runtime(project)
+    if change == "worker_contract":
+        path = staged / "worker-profile.json"
+        profile = json.loads(path.read_text())
+        profile["routes"] = []
+        path.write_text(json.dumps(profile), encoding="utf-8")
+        manifest = staged / "backend-runtime-manifest.json"
+        value = json.loads(manifest.read_text())
+        value["files"]["worker-profile.json"] = {"bytes": path.stat().st_size,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        manifest.write_text(json.dumps(value), encoding="utf-8")
+    output = None
+    def compiler(*args, **kwargs):
+        nonlocal output
+        successful_compiler(*args, **kwargs)
+        output = Path(kwargs["env"]["CARGO_TARGET_DIR"]) / "release"
+        output.mkdir(parents=True, exist_ok=True)
+        (output / "ArcheAxis.exe").write_bytes(b"synthetic-host")
+        shutil.copytree(staged, output, dirs_exist_ok=True)
+        if change == "extra":
+            stale = output / "runtime/Lib/site-packages/certifi-old.dist-info/METADATA"
+            Path(portable.native(stale.parent)).mkdir(parents=True)
+            Path(portable.native(stale)).write_bytes(b"owned synthetic stale distribution metadata")
+        elif change == "missing":
+            Path(portable.native(output / "workers/document/worker.py")).unlink()
+        elif change == "corrupt":
+            Path(portable.native(output / "runtime/python.exe")).write_bytes(b"corrupted-interpreter")
+        return 0
+    monkeypatch.setattr(router.subprocess, "call", compiler)
+    with pytest.raises((ValueError, FileNotFoundError)):
+        router.build(project, "node", "tauri", ["build", "--no-bundle", "--", "--offline", "--locked"],
+                     core_build_receipt=core_receipt)
+    receipt_path = next((project / ".project-local/runs").glob("*/*/artifacts/frontend-build.json"))
+    value = json.loads(receipt_path.read_text())
+    assert value["exit_code"] != 0 and value.get("status") != "PASS"
+    assert "host_sha256" not in value
+    assert value["source_consistent"] is True
+    assert output is not None
+    if change == "extra":
+        assert Path(portable.native(output / "runtime/Lib/site-packages/certifi-old.dist-info/METADATA")).read_bytes() == b"owned synthetic stale distribution metadata"
 
 
 @pytest.mark.parametrize("change", ["missing_hash", "other_crate", "debug", "changed_source", "failed"])
