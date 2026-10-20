@@ -632,3 +632,16 @@ Stitch完整中文可复制提示词已交到ignored `.project-local/artifacts/s
 root `be-public-process-observer-root-20261021`在CI两线程模式19 PASS，`be-public-health-root-corrected-20261021`integration target4 PASS，`be-public-process-fmt-root-20261021`canonical fmt PASS，均source_consistent=true；首次health误用lib过滤器实际0例，保留收据、不称health通过。以上仅对应本地SYNTHETIC回归，后继提交需新exact-SHA CI；54a候选/真实子链收据保持旧源码身份，不冒充新SHA已安装。同候选云端、J3兼容/扩展生命周期、真实语义质量与Owner验收仍PARTIAL/BLOCKED/UNVERIFIED；当前main/PR200不得因本地PASS盲合。回退仅反向撤销该测试修复及本条记录；失败证据、候选、旧runtime归档及共享资源均保留。
 
 `be-process-followup-preflight-20261021`完整结构预检及29接口维护PASS/source_consistent=true；pyreadline3退出析构WinError告警保留，未当用例失败或声称修复。最终write set仅测试文件与唯一执行记录，diff --check通过；新提交身份按实际Git/PR读取。
+
+
+### 2026-10-21 后继CI与开放归档闭包修复（本地检查点，PARTIAL）
+
+`f65e59c38b0d54c954099d4db003bff45f7a1d6f`已commit/push、PR200转Ready但未合并。exact CI39481611471最终FAIL：Windows rust-vnext job118832080579确认head/run匹配，前述两个持管清理回归已通过；后继teaching_archive_roundtrip为1 PASS/4 FAIL，当前/历史恢复实际schema13而旧测试仍期待12，并把13当future。required a0-gates job118839599112据rust失败正确FAIL；其它选中门禁SUCCESS，installer-lifecycle、migration、security、windows-runtime等非选SKIP不算通过。只读CI回报首次误写18:23时间已更正为同job实际19:23，未凭旧job判当前失败。PR200未达到合并资格，不强合。
+
+root进一步定位为产品归档缺口，非仅断言：当前DB13但开放JSONL归档仅携旧31表，遗漏ingest_batches/ingest_batch_members/public_research_runs；archive_tables只接历史10/11及当前13，旧v12的31表无分支；恢复仍用hard_link，本机实际Win5。`be-archive-schema13-red-20261021`原5项2 PASS/3 FAIL（两个历史恢复Win5及当前13≠12）；新`be-archive-newtable-red-20261021`3项全部真实RED，分别缺批次表、当前出口不完整、v12 unsupported；`be-store-schema13-red-20261021`1 PASS/1 FAIL及`be-store-writer-schema13-red-20261021`4 PASS/1 FAIL定位其余旧12期待，source_consistent=true，不把本机Win5说成CI同一失败值。
+
+产品修复：归档当前34表完整携新增3表，sources/jobs先于batch成员，固定literal v12=31表与v10/v11=28逐项保留；按版本与精确表集合验收，缺件/额外/未知/future仍拒绝，不推造缺失数据。将已验证domain backup的owned原子no-clobber函数体移到store raw_objects供两出口复用，domain原pub wrapper保持；无依赖/锁/SQL schema升级，使用已锁tempfile3.27。完整existing target alias检查仍在接管TempPath前，非NotFound错误failclosed，原件先/DB最后，碰撞保原目标，仅清本次owned文件、非递归目录清理。原未来负例改为当前+1（14），历史v10/v11数据/FK/原件/触发器断言未削减，bounded迁移夹具真实移除post-version新增表。新v12自造历史布局测试明确不是原生产备份，并验证恢复后新表存在但无虚构rows；新current往返逐值核批次与research请求/receipt/状态/时间列、原CAS字节、两次重开及目标碰撞。
+
+`be-archive-schema13-green-20261021`archive全部targets共30 PASS，`be-store-migration-schema13-final-20261021`受影响teaching2+writer5=7 PASS，`be-backup-shared-publish-regression-20261021`backup_safety15 PASS，`be-archive-schema13-fmt-check-20261021`canonical fmt PASS，均source_consistent=true。范围为本地真实Rust/SQLite/CAS与作者自造fixture，不是新安装候选/公开检索或模型实跑。格式化写入命令`be-archive-schema13-fmt-20261021`child_exit0但改动源码，外层INVALIDATED/exit3/source_consistent=false，未当测试PASS。扩大store all-targets的`be-store-schema13-green-20261021`在既有cas_bounded_read创建链接Win5处FAIL（此前lib3 PASS），不改ACL/提权或放宽断言，整组不能称PASS；后继原问题targets另跑如上。
+
+独立只读复审7文件逐hash匹配（清单`.project-local/artifacts/backend-followup-20261021/archive-schema13-freeze.json`），确认原发布函数体除路径限定/函数名及空白外等同、固定布局/事务/FK/恢复授权fence与owned回滚保留，无阻断。旧预发布schema13但缺三表的31表归档不猜补为完整13，需保留并从仍完整源库重新导出；既有全SQLite备份与失败证据不删除、不追认旧不完整出口无损。此检查点未push、未新CI/新候选、未merge/Green更新。J3来源链接消费者与材料异步生命周期在独立f65工作树进行，不把donor测试计入root或完整J3/J4；根串行接收/聚合后再定向与exact-SHA交付，仍不缩CL-01—07/J1—J6。

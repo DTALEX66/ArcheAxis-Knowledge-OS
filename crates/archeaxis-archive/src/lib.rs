@@ -51,6 +51,55 @@ pub const EXPORT_TABLES: &[&str] = &[
     "document_blocks",
     "document_checks",
     "teaching_records",
+    "teaching_withdrawals", // Schema 13: durable folder membership and public research receipts.
+    "ingest_batches",
+    "ingest_batch_members",
+    "public_research_runs",
+];
+
+/// Frozen schema 12 exporter layout (31 tables).
+pub const V12_LAYOUT: &[&str] = &[
+    "workspace_meta",
+    "sources",
+    "transforms",
+    "anchors",
+    "knowledge",
+    "review_events",
+    "learning_events",
+    "jobs",
+    "job_attempts",
+    "job_outputs",
+    "canvas_projections",
+    "canvas_projection_nodes",
+    "canvas_projection_edges",
+    "source_origins",
+    "learning_event_keys",
+    "knowledge_supersedes",
+    // These four are live tables that the export used to omit, so an archive/restore round
+    // trip silently lost human-learning assessments, machine receipts, card references and
+    // the V3 governance metadata. They are appended rather than inserted: `restore` inserts
+    // in this order, and each one's foreign keys name `knowledge`, `sources` or `anchors`,
+    // which are all written earlier, so appending is sufficient and keeps the historical
+    // layout above byte-identical for readers that expect it.
+    "knowledge_v3_metadata",
+    "learning_assessments",
+    "card_references",
+    "machine_tasks",
+    // R7/G1: the capability enable/disable record. It has no foreign keys, so appending is safe
+    // for `restore`, and omitting it would silently lose which capabilities an operator turned off.
+    "capability_settings",
+    // R7/G2: the vault link graph. It references `knowledge`, which is written earlier, so
+    // appending is safe for `restore`; omitting it would silently lose every link a vault
+    // declared, which is the gap this table exists to close.
+    "vault_links",
+    "general_courses",
+    "general_course_artifacts",
+    "general_course_bindings",
+    "documents",
+    "document_versions",
+    "document_blocks",
+    "document_checks",
+    "teaching_records",
     "teaching_withdrawals",
 ];
 
@@ -324,6 +373,7 @@ fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str],
             .ok_or_else(|| ArchiveError::Table("unknown v8 archive layout".into())),
         9 if same_set(V9_LAYOUT) => Ok(V9_LAYOUT),
         10 | 11 if same_set(V10_V11_LAYOUT) => Ok(V10_V11_LAYOUT),
+        12 if same_set(V12_LAYOUT) => Ok(V12_LAYOUT),
         version if version == archeaxis_store_sqlite::SCHEMA_VERSION => CURRENT_LAYOUTS
             .iter()
             .find(|layout| same_set(layout))
@@ -653,10 +703,13 @@ pub fn restore_workspace(
     };
     for digest in raw_bytes.keys() {
         let path = final_objects.join(digest);
-        std::fs::hard_link(staged_objects.join(digest), &path).map_err(ArchiveError::Io)?;
+        archeaxis_store_sqlite::raw_objects::publish_owned_file_noclobber(
+            &staged_objects.join(digest),
+            &path,
+        )?;
         publication.files.push(path);
     }
-    std::fs::hard_link(&staged, target).map_err(ArchiveError::Io)?;
+    archeaxis_store_sqlite::raw_objects::publish_owned_file_noclobber(&staged, target)?;
     publication.committed = true;
     Ok(manifest)
 }

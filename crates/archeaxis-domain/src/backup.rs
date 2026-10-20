@@ -81,36 +81,7 @@ pub fn backup(conn: &Connection, dst_path: &str) -> rusqlite::Result<()> {
 /// Locked tempfile 3.27.0 uses Windows MoveFileExW without replacement/copy flags;
 /// a cross-volume destination fails instead of becoming a partial copy.
 pub fn publish_backup_file_noclobber(staged: &Path, target: &Path) -> rusqlite::Result<()> {
-    raw_objects::reject_links(staged)?;
-    raw_objects::reject_links(target)?;
-    let staged = staged.canonicalize().map_err(io_error)?;
-    if !staged.is_file() {
-        return Err(rusqlite::Error::InvalidPath(staged));
-    }
-    // Canonicalize the complete existing destination before taking ownership:
-    // Windows may resolve differently cased names to this very staging file.
-    match target.canonicalize() {
-        Ok(existing) if existing == staged => {
-            return Err(rusqlite::Error::InvalidPath(staged));
-        }
-        Ok(_) => {}
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-        Err(error) => return Err(io_error(error)),
-    }
-    let parent = target
-        .parent()
-        .filter(|p| !p.as_os_str().is_empty())
-        .unwrap_or(Path::new("."));
-    let filename = target.file_name().ok_or(rusqlite::Error::InvalidQuery)?;
-    let target = parent.canonicalize().map(|parent| parent.join(filename));
-    if target.as_ref().is_ok_and(|target| target == &staged) {
-        return Err(rusqlite::Error::InvalidPath(staged));
-    }
-    // Own the staged regular file before propagating destination IO failure.
-    let staged = tempfile::TempPath::try_from_path(staged).map_err(io_error)?;
-    staged
-        .persist_noclobber(target.map_err(io_error)?)
-        .map_err(|error| io_error(error.error))
+    raw_objects::publish_owned_file_noclobber(staged, target)
 }
 
 struct Publication {

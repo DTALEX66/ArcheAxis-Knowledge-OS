@@ -1,6 +1,6 @@
 use archeaxis_archive::{ArchiveManifest, export_workspace, restore_workspace};
 use archeaxis_domain::{anchor, knowledge, source, teaching::*};
-use archeaxis_store_sqlite::init_workspace;
+use archeaxis_store_sqlite::{SCHEMA_VERSION, init_workspace};
 use rusqlite::Connection;
 use sha2::{Digest, Sha256};
 use std::path::Path;
@@ -111,7 +111,7 @@ fn row(k: RecordKind, id: &str, p: Option<&str>, kid: &str) -> TeachingRecord {
     }
 }
 #[test]
-fn schema12_roundtrip_preserves_checks_withdrawals_topology_and_triggers() {
+fn current_schema_roundtrip_preserves_checks_withdrawals_topology_and_triggers() {
     let d = tempfile::tempdir().unwrap();
     let db = d.path().join("source.sqlite");
     let a = d.path().join("archive");
@@ -145,7 +145,7 @@ fn schema12_roundtrip_preserves_checks_withdrawals_topology_and_triggers() {
         .collect();
     drop(c);
     let m = export_workspace(db.to_str().unwrap(), a.to_str().unwrap()).unwrap();
-    assert_eq!(m.schema_version, 12);
+    assert_eq!(m.schema_version, SCHEMA_VERSION);
     assert_eq!(m.tables["document_checks"].rows, 1);
     assert_eq!(m.tables["teaching_records"].rows, 5);
     assert_eq!(m.tables["teaching_withdrawals"].rows, 1);
@@ -255,7 +255,7 @@ fn historic(version: i64) {
             |r| r.get::<_, String>(0)
         )
         .unwrap(),
-        "12"
+        SCHEMA_VERSION.to_string()
     );
     let basis: Option<String> = c
         .query_row("SELECT revision_basis FROM document_versions", [], |r| {
@@ -288,7 +288,7 @@ fn historical_v11_contract_restores_without_inventing_omitted_checks() {
     historic(11)
 }
 #[test]
-fn current12_missing_table_or_future_version_never_publishes_target() {
+fn current_missing_table_or_future_version_never_publishes_target() {
     for future in [false, true] {
         let d = tempfile::tempdir().unwrap();
         let db = d.path().join("seed.sqlite");
@@ -299,12 +299,15 @@ fn current12_missing_table_or_future_version_never_publishes_target() {
         drop(c);
         let mut m = export_workspace(db.to_str().unwrap(), a.to_str().unwrap()).unwrap();
         if future {
-            m.schema_version = 13;
+            m.schema_version = SCHEMA_VERSION + 1;
             rewrite(
                 &mut m,
                 &a,
                 "workspace_meta",
-                "{\"key\":\"schema_version\",\"value\":\"13\"}\n",
+                &format!(
+                    "{{\"key\":\"schema_version\",\"value\":\"{}\"}}\n",
+                    SCHEMA_VERSION + 1
+                ),
             );
         } else {
             m.tables.remove("teaching_withdrawals");
