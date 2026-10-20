@@ -3,6 +3,8 @@ import { useDocumentWriteLease } from "../workspace/documentSessions";
 import { coreCommand } from "../api/core";
 import type { DocumentDto } from "../api/generated/core-contract";
 import { CanonicalLearningSpace } from "../spaces/CanonicalLearningSpace";
+import { RawReceiptButton } from "../components/DiagnosticConsole";
+import { templateRequirementPresentation } from "../presentation/templateCapabilities";
 import { DISCIPLINES, TEMPLATES } from "./disciplines";
 import { resolveTemplateRequirements, templateDefinition, type CapabilityRead, type LiveCapabilityRow } from "./capabilityRequirements";
 import { backlinks, binding, collection, executeTemplateWrite, loadTemplateDocuments, prepareTemplateCreate, prepareTemplateSave, readTemplateWrite, readableBinding, resolveReference, type TemplateBinding, type TemplateWriteAttempt } from "./bindings";
@@ -32,20 +34,20 @@ function TemplateCapabilityRequirements({ templateId, read, pending, busy, onRef
   const rows = resolveTemplateRequirements(templateId, read);
   const bound = rows.filter((row) => row.navigable).length;
   return <section aria-label="模板能力需求">
-    <h4>{template?.name ?? templateId} · 所需能力</h4>
-    <p className="template-list-state">{pending ? "正在读取 Core 能力握手…" : read.state === "read_failed" ? "本轮能力握手读取失败，运行状态显示未知。" : read.state === "not_read" ? "本轮未读取运行状态（NOT_RUN）。" : `本轮已读回 ${read.rows.size} 条 Core 握手记录。`} 本表只陈述联接与状态：不复制插件代码、依赖安装或连接配置，未联接到稳定 ID 的声明不显示为可跳转。</p>
-    <div className="capability-actions"><button disabled={busy} onClick={onRefresh}>重新读取运行状态</button><span>{rows.length} 项声明需求；其中 {bound} 项联接到稳定 ID。</span></div>
+    <h3>{template?.name ?? templateId} · 所需能力</h3>
+    <p className="template-list-state">{pending ? "正在读取能力运行状态…" : read.state === "read_failed" ? "本轮运行状态读取失败，是否可用仍未知。" : read.state === "not_read" ? "本轮尚未读取运行状态。" : `本轮已读取 ${read.rows.size} 条能力运行状态。`} 实现登记与实际运行分开核对；尚未接入的增强功能不影响模板编辑与保存。</p>
+    <div className="capability-actions"><button disabled={busy} onClick={onRefresh}>重新读取运行状态</button><span>{rows.length} 项需求；其中 {bound} 项可查看能力详情。</span><RawReceiptButton label="模板能力登记与运行状态" payload={{template, requirements: rows, read: read.state === "read" ? {state: read.state, rows: [...read.rows.values()]} : read}} category="runtime" /></div>
     <table className="data-table">
-      <caption>模板 {templateId} 的能力需求、当前提供方、可用性与缺失原因</caption>
-      <thead><tr><th>需求与提供方</th><th>状态</th><th>缺失原因</th><th>插件详情</th></tr></thead>
-      <tbody>{rows.map((row) => <tr key={row.declared}>
-        <td><b>{row.declared}</b><small className="table-sub">{row.capability_id ?? "无稳定 ID"}{row.capability_name ? ` · ${row.capability_name}` : ""}</small><small className="table-sub">{row.join_label} · {row.provider}</small></td>
-        <td>{row.status_label}<small className="table-sub">{row.availability_label}{row.health ? ` · ${row.health}` : ""}</small></td>
-        <td>{row.missing_reason}</td>
+      <caption>{template?.name ?? "当前模板"}的能力需求、当前提供方、可用性与缺失原因</caption>
+      <thead><tr><th>需求与提供方</th><th>状态</th><th>缺失原因</th><th>能力详情</th></tr></thead>
+      <tbody>{rows.map((row) => { const display = templateRequirementPresentation(row); return <tr key={row.declared}>
+        <td><b>{display.name}</b>{row.capability_name ? <small className="table-sub">{row.capability_name}</small> : null}<small className="table-sub">{display.provider}</small></td>
+        <td>{display.status}<small className="table-sub">{display.availability}</small></td>
+        <td>{display.reason}</td>
         <td>{row.navigable && onOpenCapability
-          ? <button disabled={busy} aria-label={`打开能力详情 ${row.capability_id} · ${row.declared}`} onClick={() => onOpenCapability(row.capability_id as string)}>能力详情</button>
-          : <span className="muted">{row.navigable ? "当前视图未提供能力入口" : "无 ID，不可跳转"}</span>}</td>
-      </tr>)}</tbody>
+          ? <button disabled={busy} aria-label={`查看${display.name}的能力详情`} onClick={() => onOpenCapability(row.capability_id as string)}>能力详情</button>
+          : <span className="muted">{row.navigable ? "当前视图未提供能力入口" : "尚未关联到能力目录"}</span>}</td>
+      </tr>; })}</tbody>
     </table>
   </section>;
 }
