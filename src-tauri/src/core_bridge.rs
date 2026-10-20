@@ -1381,12 +1381,10 @@ mod tests {
             "retry-safe"
         );
         for invalid in ["", "../private", "a/b", "a%2fb"] {
-            assert!(
-                execution_request_id(
-                    &serde_json::json!({"job_id":"job-safe","request_id":invalid})
-                )
-                .is_err()
-            );
+            assert!(execution_request_id(
+                &serde_json::json!({"job_id":"job-safe","request_id":invalid})
+            )
+            .is_err());
             let request: Request=serde_json::from_value(serde_json::json!({"operation":"job_execution_cancel","payload":{"job_id":"job-safe","request_id":invalid}})).unwrap();
             assert!(route(&request).is_err());
         }
@@ -1467,16 +1465,14 @@ mod tests {
     }
     #[test]
     fn bridge_rejects_arbitrary_transport_and_traversal() {
-        assert!(
-            serde_json::from_str::<Request>(
-                r#"{"operation":"fetch","payload":{"url":"https://example.com"}}"#
-            )
-            .is_err()
-        );
-        assert!(
-            serde_json::from_str::<Request>(r#"{"operation":"sources_list","token":"secret"}"#)
-                .is_err()
-        );
+        assert!(serde_json::from_str::<Request>(
+            r#"{"operation":"fetch","payload":{"url":"https://example.com"}}"#
+        )
+        .is_err());
+        assert!(serde_json::from_str::<Request>(
+            r#"{"operation":"sources_list","token":"secret"}"#
+        )
+        .is_err());
         let request = serde_json::from_str::<Request>(
             r#"{"operation":"source_original","payload":{"source_id":"../private"}}"#,
         )
@@ -1608,12 +1604,10 @@ mod tests {
             serde_json::json!(42),
             serde_json::json!("body"),
         ] {
-            assert!(
-                serde_json::from_value::<Request>(
-                    serde_json::json!({"operation":"system_version","payload":payload})
-                )
-                .is_err()
-            );
+            assert!(serde_json::from_value::<Request>(
+                serde_json::json!({"operation":"system_version","payload":payload})
+            )
+            .is_err());
         }
         let default =
             serde_json::from_value::<Request>(serde_json::json!({"operation":"system_version"}))
@@ -1777,13 +1771,11 @@ mod teaching_bridge_tests {
             assert!(routed.2.is_none());
         }
         for id in ["../other", "E:\\private", "x?actor=human", "x/y", ".."] {
-            assert!(
-                route(&Request {
-                    operation: Operation::TeachingGet,
-                    payload: json!({"record_id":id})
-                })
-                .is_err()
-            );
+            assert!(route(&Request {
+                operation: Operation::TeachingGet,
+                payload: json!({"record_id":id})
+            })
+            .is_err());
         }
         let preview = route(&Request {
             operation: Operation::TeachingImportPreview,
@@ -1819,13 +1811,11 @@ mod teaching_bridge_tests {
             serde_json::json!({"document_id":"doc","version":18446744073709551615_u64}),
             serde_json::json!({"document_id":"doc","cursor":"x?actor=human"}),
         ] {
-            assert!(
-                route(&Request {
-                    operation: Operation::DocumentGraph,
-                    payload
-                })
-                .is_err()
-            );
+            assert!(route(&Request {
+                operation: Operation::DocumentGraph,
+                payload
+            })
+            .is_err());
         }
         for payload in [
             serde_json::json!({"document_id":"doc","view_id":"view","limit":0}),
@@ -1833,13 +1823,11 @@ mod teaching_bridge_tests {
             serde_json::json!({"document_id":"doc","view_id":"view","offset":501}),
             serde_json::json!({"document_id":"doc","view_id":"view/escape"}),
         ] {
-            assert!(
-                route(&Request {
-                    operation: Operation::CollectionQuery,
-                    payload
-                })
-                .is_err()
-            );
+            assert!(route(&Request {
+                operation: Operation::CollectionQuery,
+                payload
+            })
+            .is_err());
         }
     }
 }
@@ -1899,16 +1887,11 @@ mod folder_native_contract_regression {
                         if bytes.len() < header_end + 4 + length {
                             continue;
                         }
-                        assert!(
-                            headers.starts_with(
-                                "POST /api/v1/jobs/folder-text-safe/executions HTTP/1.1"
-                            )
-                        );
-                        assert!(
-                            lower
-                                .lines()
-                                .any(|line| line == "idempotency-key: folder-explicit-request")
-                        );
+                        assert!(headers
+                            .starts_with("POST /api/v1/jobs/folder-text-safe/executions HTTP/1.1"));
+                        assert!(lower
+                            .lines()
+                            .any(|line| line == "idempotency-key: folder-explicit-request"));
                         assert!(lower.lines().any(|line| line
                             == "x-archeaxis-launch-token: synthetic-owned-native-contract"));
                         let body: Value =
@@ -1969,13 +1952,11 @@ mod folder_native_contract_regression {
             for invalid in ["../other", "x/y", "x?role=human", ""] {
                 let mut payload = serde_json::json!({"source_id":"src-1","anchor_id":"anchor-1"});
                 payload[key] = serde_json::json!(invalid);
-                assert!(
-                    route(&Request {
-                        operation: Operation::AnchorResolve,
-                        payload
-                    })
-                    .is_err()
-                );
+                assert!(route(&Request {
+                    operation: Operation::AnchorResolve,
+                    payload
+                })
+                .is_err());
             }
         }
     }
@@ -2037,13 +2018,11 @@ mod folder_native_contract_regression {
                 assert!(route(&invalid).is_err());
             }
         }
-        assert!(
-            route(&Request {
-                operation: Operation::UiStateRead,
-                payload: serde_json::json!({"body":{}})
-            })
-            .is_err()
-        );
+        assert!(route(&Request {
+            operation: Operation::UiStateRead,
+            payload: serde_json::json!({"body":{}})
+        })
+        .is_err());
     }
     #[test]
     fn layout_routes_are_finite_and_device_query_cannot_inject_transport() {

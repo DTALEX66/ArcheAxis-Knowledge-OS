@@ -67,12 +67,50 @@ pub fn backup(conn: &Connection, dst_path: &str) -> rusqlite::Result<()> {
     };
     for digest in digests {
         let path = final_objects.join(&digest);
-        std::fs::hard_link(staged_objects.join(digest), &path).map_err(io_error)?;
+        publish_backup_file_noclobber(&staged_objects.join(digest), &path)?;
         publication.files.push(path);
     }
-    std::fs::hard_link(&staged, target).map_err(io_error)?;
+    publish_backup_file_noclobber(&staged, target)?;
     publication.committed = true;
     Ok(())
+}
+
+/// Publish an owned, fully synced backup staging file without replacing a target.
+/// After path validation, a failed final publication cleans the owned staging file.
+/// Existing parent canonicalization preserves Windows extended-path support.
+/// Locked tempfile 3.27.0 uses Windows MoveFileExW without replacement/copy flags;
+/// a cross-volume destination fails instead of becoming a partial copy.
+pub fn publish_backup_file_noclobber(staged: &Path, target: &Path) -> rusqlite::Result<()> {
+    raw_objects::reject_links(staged)?;
+    raw_objects::reject_links(target)?;
+    let staged = staged.canonicalize().map_err(io_error)?;
+    if !staged.is_file() {
+        return Err(rusqlite::Error::InvalidPath(staged));
+    }
+    // Canonicalize the complete existing destination before taking ownership:
+    // Windows may resolve differently cased names to this very staging file.
+    match target.canonicalize() {
+        Ok(existing) if existing == staged => {
+            return Err(rusqlite::Error::InvalidPath(staged));
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => return Err(io_error(error)),
+    }
+    let parent = target
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    let filename = target.file_name().ok_or(rusqlite::Error::InvalidQuery)?;
+    let target = parent.canonicalize().map(|parent| parent.join(filename));
+    if target.as_ref().is_ok_and(|target| target == &staged) {
+        return Err(rusqlite::Error::InvalidPath(staged));
+    }
+    // Own the staged regular file before propagating destination IO failure.
+    let staged = tempfile::TempPath::try_from_path(staged).map_err(io_error)?;
+    staged
+        .persist_noclobber(target.map_err(io_error)?)
+        .map_err(|error| io_error(error.error))
 }
 
 struct Publication {
@@ -441,4 +479,38 @@ pub fn preview(snapshot_path: &Path) -> rusqlite::Result<()> {
     validate_workspace(&view)?;
     verify_source_objects(&view)?;
     view.commit()
+}
+
+#[cfg(test)]
+mod publication_tests {
+    use super::*;
+
+    #[test]
+    fn database_publication_collision_cleans_owned_objects_without_replacing_target() {
+        let dir = tempfile::tempdir().unwrap();
+        let objects = dir.path().join("backup.sqlite.objects");
+        std::fs::create_dir(&objects).unwrap();
+        let mut publication = Publication {
+            directory: objects.clone(),
+            files: Vec::new(),
+            committed: false,
+        };
+        let staged_object = dir.path().join("staged-object");
+        let object = objects.join("owned-object");
+        std::fs::write(&staged_object, b"original").unwrap();
+        publish_backup_file_noclobber(&staged_object, &object).unwrap();
+        publication.files.push(object);
+        let staged_db = dir.path().join("staged.sqlite");
+        let database = dir.path().join("backup.sqlite");
+        std::fs::write(&staged_db, b"new snapshot").unwrap();
+        std::fs::write(&database, b"concurrently published backup").unwrap();
+        assert!(publish_backup_file_noclobber(&staged_db, &database).is_err());
+        drop(publication);
+        assert!(!objects.exists());
+        assert!(!staged_db.exists());
+        assert_eq!(
+            std::fs::read(database).unwrap(),
+            b"concurrently published backup"
+        );
+    }
 }

@@ -207,7 +207,7 @@ def main():
         version = call("GET", "/api/v1/system/version")
         receipt["system"] = version
         workspace_info = call("GET", "/api/v1/workspaces/info")
-        assert workspace_info["schema_version"] == 12, workspace_info
+        assert workspace_info["schema_version"] == 13, workspace_info
         receipt["workspace_info"] = workspace_info
         ack_request = {
             "create_request_id": "policy_ack_" + uuid.uuid4().hex,

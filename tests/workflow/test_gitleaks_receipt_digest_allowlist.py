@@ -6,6 +6,8 @@ import subprocess
 import tomllib
 from pathlib import Path
 
+import pytest
+
 from scripts.maintenance.authority_routes import REGISTRY, public_path, resolve
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,6 +21,40 @@ def proof_and_rule():
     return proof, rule
 
 
+# Finding commits remain immutable evidence locators. These two pre-rebase commits
+# have byte-identical trees in current reachable history; CI need not fetch orphans.
+REACHABLE_SOURCE_IDENTITIES = {
+    "3855f2bb032e69dd10e9ef94d854b0ac8640f137": (
+        "88c47a5c32b13351b6642403970b80e53c9954ae",
+        "d6a4d027b24f51c0ef0f2a7cd606016e4d722671",
+        "crates/archeaxis-api/tests/configuration_plans_api.rs",
+        "1faa7429c7b4b7c46ba2888c01ba34bcd9f95f7b50de4e777e2f2aae2edc3ae3",
+    ),
+    "110fc9d05d4ad46e77c8f339991a31204f79c3b4": (
+        "fd32ae1302b0a06193ea5fa9de8d94295f0e7a9f",
+        "8b0b2c6027d14dc1893a74741938a39e0868c834",
+        "crates/archeaxis-api/tests/character_memory_api.rs",
+        "32779d275e481f45155191cd0bb4a3b4fe204927fb69394c6c8b65daa0983a45",
+    ),
+}
+
+
+def committed_source(row):
+    identity = REACHABLE_SOURCE_IDENTITIES.get(row["Commit"])
+    commit = row["Commit"]
+    if identity is not None:
+        commit, tree, path, digest = identity
+        assert row["source_path"] == path
+        assert row["source_sha256"] == digest
+        actual_tree = subprocess.check_output(
+            ["git", "rev-parse", commit + "^{tree}"], cwd=ROOT
+        ).decode("ascii").strip()
+        assert actual_tree == tree
+    # An orphan object retained by this machine cannot qualify the proof.
+    subprocess.check_output(["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=ROOT)
+    return subprocess.check_output(["git", "show", commit + ":" + row["source_path"]], cwd=ROOT)
+
+
 def test_every_receipt_exception_is_an_actual_committed_public_file_digest():
     proof, rule = proof_and_rule()
     assert rule["condition"] == "AND"
@@ -26,7 +62,7 @@ def test_every_receipt_exception_is_an_actual_committed_public_file_digest():
     assert rule["regexTarget"] == "secret"
     assert len(proof["findings"]) == 22
     for row in proof["findings"]:
-        raw = subprocess.check_output(["git", "show", row["Commit"] + ":" + row["source_path"]], cwd=ROOT)
+        raw = committed_source(row)
         assert hashlib.sha256(raw).hexdigest() == row["source_sha256"]
         # File is the historical finding locator, while the current scan sees its archive path.
         routes = json.loads(public_path(ROOT, REGISTRY).read_text(encoding="utf-8"))
@@ -146,3 +182,62 @@ def test_scoped_digest_exceptions_reject_bad_values_and_unreviewed_paths():
                      "docs/history/repository-consolidation-20261019/current/receipts/UNREVIEWED.json",
                      "docs/history/unreviewed/RECEIPT.json", "app/credential-adapter.py"):
             assert not scoped_waives(path, digest)
+
+
+def test_receipt_digest_proof_does_not_require_unreachable_finding_commits(monkeypatch):
+    """A full checkout fetches current history, not abandoned pre-rebase commits."""
+    original = subprocess.check_output
+    unavailable = {
+        "3855f2bb032e69dd10e9ef94d854b0ac8640f137",
+        "110fc9d05d4ad46e77c8f339991a31204f79c3b4",
+    }
+
+    def current_history_only(command, **kwargs):
+        if command[:2] == ["git", "show"] and command[2].split(":", 1)[0] in unavailable:
+            raise subprocess.CalledProcessError(128, command)
+        return original(command, **kwargs)
+
+    monkeypatch.setattr(subprocess, "check_output", current_history_only)
+    test_every_receipt_exception_is_an_actual_committed_public_file_digest()
+
+
+@pytest.mark.parametrize("field,value", [
+    ("source_path", "crates/archeaxis-api/tests/unreviewed.rs"),
+    ("source_sha256", "0" * 64),
+])
+def test_reachable_source_identity_rejects_changed_path_or_digest(field, value):
+    proof, _ = proof_and_rule()
+    for original in proof["findings"][-2:]:
+        row = dict(original, **{field: value})
+        with pytest.raises(AssertionError):
+            committed_source(row)
+
+
+def test_reachable_source_identity_rejects_wrong_tree(monkeypatch):
+    proof, _ = proof_and_rule()
+    original = subprocess.check_output
+
+    def wrong_tree(command, **kwargs):
+        if command[:2] == ["git", "rev-parse"]:
+            return b"0" * 40 + b"\n"
+        return original(command, **kwargs)
+
+    monkeypatch.setattr(subprocess, "check_output", wrong_tree)
+    for row in proof["findings"][-2:]:
+        with pytest.raises(AssertionError):
+            committed_source(row)
+
+
+def test_reachable_source_identity_rejects_unreachable_commit(monkeypatch):
+    proof, _ = proof_and_rule()
+    original = subprocess.check_output
+
+    def unreachable(command, **kwargs):
+        if command[:3] == ["git", "merge-base", "--is-ancestor"]:
+            raise subprocess.CalledProcessError(1, command)
+        return original(command, **kwargs)
+
+    monkeypatch.setattr(subprocess, "check_output", unreachable)
+    for row in proof["findings"][-2:]:
+        with pytest.raises(subprocess.CalledProcessError):
+            committed_source(row)

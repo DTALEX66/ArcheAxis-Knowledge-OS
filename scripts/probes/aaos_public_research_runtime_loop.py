@@ -78,6 +78,47 @@ def hidden_start(office, candidate, work, launcher):
         office.subprocess = original
 
 
+def stop_owned(child, launcher, records):
+    """Observe the existing terminate/wait/optional-kill path, not graceful exit."""
+    record = {"pid": child.pid, "method": "backend_launcher.stop",
+              "actions": [], "returncode": None, "wait_reaped": False,
+              "graceful_exit_verified": False}
+    records.append(record)
+
+    class ObservedChild:
+        def __getattr__(self, name):
+            return getattr(child, name)
+
+        def terminate(self):
+            record["actions"].append("terminate")
+            return child.terminate()
+
+        def kill(self):
+            record["actions"].append("kill")
+            return child.kill()
+
+        def wait(self, timeout=None):
+            record["actions"].append({"wait_timeout_seconds": timeout})
+            code = child.wait(timeout=timeout)
+            record.update({"returncode": code, "wait_reaped": True})
+            return code
+
+    observed = ObservedChild()
+    try:
+        launcher.stop(observed)
+        # The launcher skips wait when poll already observes an exited child.
+        # Confirm reap explicitly without changing its termination behavior.
+        if not record["wait_reaped"]:
+            observed.wait(timeout=0)
+        record["returncode"] = child.returncode
+        require(record["returncode"] is not None, "owned Core termination is unconfirmed")
+    except Exception as error:
+        record["error"] = f"{type(error).__name__}: {error}"
+        record["returncode"] = child.returncode
+        raise
+    return record
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--candidate", type=Path, required=True)
@@ -116,6 +157,7 @@ def main():
             "Text anchors address selected derived snapshots, not upstream HTTP byte offsets",
             "Package checks fixed source bytes only; other document/knowledge dependencies are not rebuilt",
             "Workspace restore and restore-epoch recovery are NOT_EXECUTED",
+            "Restart uses process terminate/wait with optional kill; normal host graceful exit awaits native verification",
         ],
         "backup": "NOT_EXECUTED", "restore": "NOT_EXECUTED",
     }
@@ -128,6 +170,14 @@ def main():
 
     def checkpoint():
         output.write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    def stop():
+        nonlocal child
+        try:
+            stop_owned(child, launcher, receipt.setdefault("stopped", []))
+            child = None
+        finally:
+            checkpoint()
 
     def call(label, method, path, body=None, expected=200, timeout=30):
         step = {"label": label, "method": method, "path": path, "state": "STARTED"}
@@ -270,8 +320,7 @@ def main():
         for name, content in files.items():
             (work / name).write_text(content, encoding="utf-8")
         (work / "research-package.json").write_text(json.dumps(package, ensure_ascii=False), encoding="utf-8")
-        launcher.stop(child)
-        child = None
+        stop()
         child, base, token, _ = hidden_start(office, candidate, work, launcher)
         receipt["restart_pid"] = child.pid
         restarted = call("restart_workspace", "GET", "/api/v1/workspace/ui-state")
@@ -311,9 +360,10 @@ def main():
     finally:
         if child is not None:
             try:
-                launcher.stop(child)
+                stop()
             except Exception as error:
-                receipt.update({"ok": False, "status": "FAIL", "cleanup_error": type(error).__name__})
+                receipt.update({"ok": False, "status": "FAIL",
+                                "cleanup_error": f"{type(error).__name__}: {error}"})
         try:
             receipt["source_after"] = source_identity()
             receipt["candidate_files_after"] = candidate_identity()

@@ -119,33 +119,42 @@ fn research_quote(material: &Value) -> Option<Value> {
         "source_id":material["reference"]["source_id"],"citation":citation})
     })
 }
+/// Only the declared historical citation shape grants a source dependency.
+/// Unknown historical metadata stays opaque and cannot request local CAS bytes.
+fn historical_refs(
+    references: &mut BTreeMap<String, String>,
+    anchors: &[Value],
+) -> Result<(), Error> {
+    for anchor in anchors {
+        if anchor["kind"] != "research_citation" {
+            continue;
+        }
+        let id = anchor["source_id"]
+            .as_str()
+            .filter(|id| !id.is_empty())
+            .ok_or(bad("missing historical source identity"))?;
+        let citation = &anchor["citation"];
+        let digest = citation["source_sha256"]
+            .as_str()
+            .ok_or(bad("missing historical source hash"))?;
+        if citation["schema"] != "archeaxis.research-citation/v1"
+            || digest.len() != 64
+            || !digest.bytes().all(|byte| byte.is_ascii_hexdigit())
+            || citation["read_snapshot_sha256"] != digest
+        {
+            return Err(bad("historical source snapshot identity invalid"));
+        }
+        if references
+            .insert(id.to_owned(), digest.to_owned())
+            .is_some_and(|old| old != digest)
+        {
+            return Err(bad("conflicting historical source identity"));
+        }
+    }
+    Ok(())
+}
 pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     let snapshot = document::read(conn, id, None)?;
-    let mut objects = Vec::new();
-    let mut total = 0usize;
-    let references = refs(&snapshot)?;
-    if references.len() > 128 {
-        return Err(bad("source count limit exceeded"));
-    }
-    for (source_id, digest) in references {
-        let (stored, name): (String, String) = conn.query_row(
-            "SELECT sha256,original_name FROM sources WHERE source_id=?1",
-            [&source_id],
-            |r| Ok((r.get(0)?, r.get(1)?)),
-        )?;
-        if stored != digest {
-            return Err(bad("source identity changed"));
-        }
-        let bytes =
-            archeaxis_store_sqlite::raw_objects::read_bounded(conn, &digest, MAX_BYTES - total)?;
-        total += bytes.len();
-        objects.push(Object {
-            source_id,
-            sha256: digest,
-            original_name: name,
-            bytes,
-        });
-    }
     let mut historical_anchors = if let Some(source) = snapshot["source_id"].as_str() {
         let mut stmt=conn.prepare("SELECT anchor_id,source_revision,position FROM anchors WHERE source_id=?1 ORDER BY anchor_id LIMIT 5001")?;
         let rows=stmt.query_map([source],|r| Ok(json!({"anchor_id":r.get::<_,String>(0)?,"source_revision":r.get::<_,String>(1)?,"position":r.get::<_,String>(2)?})))?.collect::<Result<Vec<_>,_>>()?;
@@ -168,10 +177,59 @@ pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     {
         historical_anchors.extend(inherited.iter().cloned());
     }
+    // Ordinary saves intentionally have no inherited revision/authorization
+    // basis. The immutable import origin is v1 of this same document; inspect
+    // only its historical locations, never export arbitrary prior versions.
+    let initial_basis: Option<String> = conn.query_row(
+        "SELECT revision_basis FROM document_versions WHERE document_id=?1 AND version=1",
+        [id],
+        |row| row.get(0),
+    )?;
+    let basis: Value = initial_basis
+        .map(|raw| serde_json::from_str(&raw).map_err(|_| bad("invalid initial revision basis")))
+        .transpose()?
+        .unwrap_or(Value::Null);
+    if let Some(inherited) = basis["portable_import"]["historical_anchors"].as_array() {
+        historical_anchors.extend(inherited.iter().cloned());
+    }
     let mut unique = BTreeSet::new();
     historical_anchors.retain(|value| unique.insert(value.to_string()));
     if historical_anchors.len() > 5000 {
         return Err(bad("anchor budget exceeded"));
+    }
+    let mut references = refs(&snapshot)?;
+    historical_refs(&mut references, &historical_anchors)?;
+    if references.len() > 128 {
+        return Err(bad("source count limit exceeded"));
+    }
+    let mut objects = Vec::new();
+    let mut total = 0usize;
+    for (source_id, digest) in references {
+        // Imported historical IDs remain provenance, not active locators. Resolve
+        // their bytes only through this document's immutable explicit import map.
+        let local_id = match basis["portable_import"]["source_mapping"].get(&source_id) {
+            Some(value) => value
+                .as_str()
+                .ok_or(bad("invalid historical source mapping"))?,
+            None => &source_id,
+        };
+        let (stored, name): (String, String) = conn.query_row(
+            "SELECT sha256,original_name FROM sources WHERE source_id=?1",
+            [local_id],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )?;
+        if stored != digest {
+            return Err(bad("source identity changed"));
+        }
+        let bytes =
+            archeaxis_store_sqlite::raw_objects::read_bounded(conn, &digest, MAX_BYTES - total)?;
+        total += bytes.len();
+        objects.push(Object {
+            source_id,
+            sha256: digest,
+            original_name: name,
+            bytes,
+        });
     }
     let package = Package {
         schema: "archeaxis.document-package/v1".into(),
@@ -206,7 +264,11 @@ pub fn import(
     {
         return Err(bad("unsupported or oversized package"));
     }
-    let expected = refs(&package.document)?;
+    let mut expected = refs(&package.document)?;
+    historical_refs(&mut expected, &package.historical_anchors)?;
+    if expected.len() > 128 {
+        return Err(bad("source count limit exceeded"));
+    }
     let mut seen = BTreeSet::new();
     let mut total = 0usize;
     for object in &package.objects {

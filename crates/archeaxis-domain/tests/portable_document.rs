@@ -10,6 +10,162 @@ fn fixture(conn: &mut rusqlite::Connection) -> Value {
     let editor = json!({"type":"doc","attrs":{"future_attribute":{"keep":true},"archeaxis_expression":{"schema":"archeaxis.expression/v1","nodes":[{"id":"pic","type":"media","text":"合成媒体","x":0,"y":0,"width":32,"height":32,"media":{"source_id":id,"sha256":sha,"media_type":"image/png"}}],"edges":[]}},"content":[{"type":"future_widget","attrs":{"opaque":{"keep":[1,2,3]}},"content":[{"type":"text","text":"中文未知节点"}]}]});
     document::create_optional(conn, Some(&id), Some(&sha), "便携合成资料", editor).unwrap()
 }
+
+fn historical_source_after_edit(replace: bool) {
+    let dir = tempfile::tempdir().unwrap();
+    let workspace = |name: &str| {
+        archeaxis_store_sqlite::init_workspace(dir.path().join(name).to_str().unwrap()).unwrap()
+    };
+    let mut a = workspace("a.sqlite");
+    let raw = b"Historical authored source";
+    let hash = |bytes: &[u8]| hex::encode(Sha256::digest(bytes));
+    let (source_id, digest) =
+        match source::import_source(&mut a, raw, "historical.txt", None).unwrap() {
+            ImportOutcome::Imported { source_id, sha256 }
+            | ImportOutcome::Duplicate { source_id, sha256 } => (source_id, sha256),
+        };
+    let position = json!({"type":"text","start":0,"end":raw.len(),
+        "checksum":hash(raw),"location_status":"located"})
+    .to_string();
+    let anchor =
+        archeaxis_domain::anchor::add_anchor(&mut a, &source_id, &digest, &position).unwrap();
+    let citation = json!({"schema":"archeaxis.research-citation/v1","anchor_id":anchor,
+        "source_sha256":digest,"anchor_position_sha256":hash(position.as_bytes()),
+        "quote":std::str::from_utf8(raw).unwrap(),"quote_sha256":hash(raw),"read_snapshot_sha256":digest});
+    let editor = json!({"type":"doc","content":[],"attrs":{"archeaxis_research":{
+        "schema":"archeaxis.research/v1","question":"Synthetic historical evidence",
+        "materials":[{"id":"old","note":"Public authored fixture",
+            "reference":{"kind":"source","source_id":source_id,"sha256":digest},"citation":citation}],
+        "hypotheses":[],"methods":[],"experiments":[],"counterevidence":[],"conclusions":[],"unresolved":[]}}});
+    let original = document::create_optional(&mut a, None, None, "History", editor).unwrap();
+    let mut package =
+        portable_document::export(&a, original["document_id"].as_str().unwrap()).unwrap();
+    // A foreign producer may use another Source ID for these same immutable bytes.
+    // The old locator identity stays historical; only explicit mapping resolves it.
+    let foreign = "foreign_historical_source";
+    package.objects[0].source_id = foreign.into();
+    package.document["editor_json"]["attrs"]["archeaxis_research"]["materials"][0]["reference"]["source_id"] =
+        json!(foreign);
+    package.document["content_sha256"] =
+        json!(hash(package.document["editor_json"].to_string().as_bytes()));
+    package.historical_anchors[0]["source_id"] = json!(foreign);
+    package
+        .historical_anchors
+        .push(json!({"kind":"opaque_future_metadata",
+        "source_id":"never_read_this_unrelated_source","sha256":hash(b"not a dependency")}));
+    let mut b = workspace("b.sqlite");
+    let imported = portable_document::import(&mut b, package, "history_a_b").unwrap();
+    let id = imported["document"]["document_id"].as_str().unwrap();
+    let mut edited = imported["document"]["editor_json"].clone();
+    edited["attrs"]["archeaxis_research"]["materials"] = json!([]);
+    if replace {
+        let (new_id, new_sha) =
+            match source::import_source(&mut b, b"Replacement authored source", "new.txt", None)
+                .unwrap()
+            {
+                ImportOutcome::Imported { source_id, sha256 }
+                | ImportOutcome::Duplicate { source_id, sha256 } => (source_id, sha256),
+            };
+        edited["attrs"]["archeaxis_research"]["materials"] = json!([{
+            "id":"new","note":"New source replaces every old active reference",
+            "reference":{"kind":"source","source_id":new_id,"sha256":new_sha}}]);
+    }
+    let saved = document::save(&mut b, id, 1, edited.clone()).unwrap();
+    assert!(saved["revision_basis"].is_null());
+    let exported = portable_document::export(&b, id).unwrap();
+    assert_eq!(exported.document["editor_json"], edited);
+    let old = exported
+        .objects
+        .iter()
+        .find(|object| object.sha256 == digest);
+    assert!(
+        old.is_some(),
+        "historical quote lost its original after all active references changed"
+    );
+    assert_eq!(old.unwrap().bytes, raw);
+    assert_eq!(exported.objects.len(), if replace { 2 } else { 1 });
+    let encoded = serde_json::to_value(&exported).unwrap();
+    let mut incomplete = encoded.clone();
+    incomplete["objects"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|object| object["sha256"] != digest);
+    let mut c = workspace("c.sqlite");
+    assert!(
+        portable_document::import(
+            &mut c,
+            serde_json::from_value(incomplete).unwrap(),
+            "incomplete"
+        )
+        .is_err()
+    );
+    let mut wrong_hash = encoded.clone();
+    wrong_hash["historical_anchors"][0]["citation"]["source_sha256"] =
+        json!(hash(b"wrong history"));
+    assert!(
+        portable_document::import(
+            &mut c,
+            serde_json::from_value(wrong_hash).unwrap(),
+            "wrong_history"
+        )
+        .is_err()
+    );
+    if replace {
+        let mut conflict = encoded.clone();
+        conflict["historical_anchors"][0]["source_id"] =
+            edited["attrs"]["archeaxis_research"]["materials"][0]["reference"]["source_id"].clone();
+        assert!(
+            portable_document::import(
+                &mut c,
+                serde_json::from_value(conflict).unwrap(),
+                "conflicting_history"
+            )
+            .is_err()
+        );
+    }
+    assert!(document::list(&c).unwrap().is_empty());
+    assert_eq!(
+        c.query_row::<i64, _, _>("SELECT count(*) FROM sources", [], |r| r.get(0))
+            .unwrap(),
+        0
+    );
+    let result = portable_document::import(&mut c, exported, "history_b_c").unwrap();
+    assert_eq!(result["document"]["editor_json"], edited);
+    assert_eq!(result["historical_anchors"], imported["historical_anchors"]);
+    assert_eq!(
+        archeaxis_store_sqlite::raw_objects::read(&c, &digest).unwrap(),
+        raw
+    );
+    assert_eq!(result["anchor_registration"], "NOT_EXECUTED");
+    assert_eq!(result["knowledge_admission"], "NOT_EXECUTED");
+    assert_eq!(
+        c.query_row::<i64, _, _>("SELECT count(*) FROM anchors", [], |r| r.get(0))
+            .unwrap(),
+        0
+    );
+    assert_eq!(
+        c.query_row::<i64, _, _>("SELECT count(*) FROM knowledge", [], |r| r.get(0))
+            .unwrap(),
+        0
+    );
+    let forwarded =
+        portable_document::export(&c, result["document"]["document_id"].as_str().unwrap()).unwrap();
+    assert_eq!(
+        serde_json::to_value(&forwarded.objects).unwrap(),
+        encoded["objects"]
+    );
+}
+
+#[test]
+fn historical_source_closure_survives_deleting_all_active_refs() {
+    historical_source_after_edit(false);
+}
+
+#[test]
+fn historical_source_closure_survives_replacing_all_active_refs() {
+    historical_source_after_edit(true);
+}
+
 #[test]
 fn source_media_unknown_nodes_restart_and_retry_are_preserved() {
     let dir = tempfile::tempdir().unwrap();
@@ -301,6 +457,72 @@ fn research_sources_raw_response_and_historical_quote_travel_together_without_ad
             .unwrap(),
         0
     );
+    // An ordinary B save must not make A's historical quote disappear from the
+    // next exchange. Ordinary saves deliberately do not inherit authorization basis.
+    let imported_id = imported["document"]["document_id"].as_str().unwrap();
+    let mut edited = imported["document"]["editor_json"].clone();
+    edited["attrs"]["archeaxis_research"]["question"] = json!("Edited question in B");
+    let saved = document::save(&mut to, imported_id, 1, edited.clone()).unwrap();
+    assert_eq!(saved["version"], 2);
+    assert!(
+        saved["revision_basis"].is_null(),
+        "ordinary save semantics stay unchanged"
+    );
+    let edited_package = portable_document::export(&to, imported_id).unwrap();
+    assert_eq!(edited_package.document["editor_json"], edited);
+    assert_eq!(
+        serde_json::to_value(&edited_package.objects).unwrap(),
+        encoded_objects
+    );
+    assert_eq!(
+        serde_json::to_value(&edited_package.historical_anchors).unwrap(),
+        imported["historical_anchors"]
+    );
+    let mut edited_third = archeaxis_store_sqlite::init_workspace(
+        dir.path()
+            .join("research-edited-third.sqlite")
+            .to_str()
+            .unwrap(),
+    )
+    .unwrap();
+    let edited_import =
+        portable_document::import(&mut edited_third, edited_package, "edited_research_package")
+            .unwrap();
+    assert_eq!(edited_import["document"]["editor_json"], edited);
+    assert_eq!(
+        edited_import["historical_anchors"],
+        imported["historical_anchors"]
+    );
+    assert_eq!(edited_import["anchor_registration"], "NOT_EXECUTED");
+    assert_eq!(edited_import["knowledge_admission"], "NOT_EXECUTED");
+    assert_eq!(
+        edited_third
+            .query_row::<i64, _, _>("SELECT count(*) FROM anchors", [], |r| r.get(0))
+            .unwrap(),
+        0
+    );
+    assert_eq!(
+        edited_third
+            .query_row::<i64, _, _>("SELECT count(*) FROM knowledge", [], |r| r.get(0))
+            .unwrap(),
+        0
+    );
+    for (index, expected) in [
+        b"Synthetic derived excerpt".as_slice(),
+        b"{\"original\":true}".as_slice(),
+    ]
+    .iter()
+    .enumerate()
+    {
+        assert_eq!(
+            archeaxis_store_sqlite::raw_objects::read(
+                &edited_third,
+                references[index]["sha256"].as_str().unwrap()
+            )
+            .unwrap(),
+            *expected
+        );
+    }
     assert_eq!(
         document::read(&from, original["document_id"].as_str().unwrap(), None).unwrap(),
         original
