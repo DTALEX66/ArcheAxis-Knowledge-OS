@@ -7,6 +7,7 @@ The report retains all axe violations/incomplete results and navigation failures
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -18,10 +19,10 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from scripts import a0_browser_smoke as a0
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 
-PARENTS = {"03": "02", "07": "06", "08": "06", "09": "06", "10": "06",
+PARENTS = {"03": "02", "04": "02", "05": "02", "07": "06", "08": "06", "09": "06", "10": "06",
            "11": "06", "12": "06", "14": "13", "16": "15", "18": "17",
            "20": "19", "21": "06", "22": "13"}
 
@@ -191,6 +192,102 @@ def template_requirements(page, output: Path, case_id: str) -> dict:
             "details_button": control, "screenshot": str(screenshot)}
 
 
+def research_fixture() -> dict:
+    """Public synthetic input only; never read a user's research or original files."""
+    raw = "第一段😀\r\n第二段保留原件；长中文引文用于核对阅读、换行和定位。".encode()
+    revision = sha256(raw).hexdigest()
+    quote = "第一段😀\r\n"
+    position = json.dumps({"type": "text", "start": 0, "end": len(quote.encode())}, separators=(",", ":"))
+    reference = {"kind": "source", "source_id": "ui_research_source", "sha256": revision}
+    citation = {"schema": "archeaxis.research-citation/v1", "anchor_id": "ui_research_anchor",
+                "source_sha256": revision, "anchor_position_sha256": sha256(position.encode()).hexdigest(),
+                "quote": quote, "quote_sha256": sha256(quote.encode()).hexdigest(), "read_snapshot_sha256": revision}
+    research = {"schema": "archeaxis.research/v1", "question": "比较资料中的支持、反对与未解决问题",
+                "materials": [{"id": "ui_material", "note": "合成材料：保留中文、表情和原始换行；不作为真实研究依据。",
+                               "reference": reference, "citation": citation}],
+                "hypotheses": [], "methods": [], "experiments": [], "counterevidence": [], "conclusions": [], "unresolved": []}
+    editor = {"type": "doc", "attrs": {"archeaxis_research": research}, "content": []}
+    doc = {"document_id": "ui_research_document", "title": "研究引文排版样例", "version": 1,
+           "source_id": None, "source_revision": None, "content_sha256": sha256(json.dumps(editor).encode()).hexdigest(),
+           "editor_json": editor, "text_projection": research["question"], "blocks": []}
+    return {"document": doc, "source": {"source_id": reference["source_id"], "source_revision": revision,
+            "sha256": revision, "original_name": "中文原件排版样例.txt", "imported_at": "2026-10-20T00:00:00Z"},
+            "original": {"source_id": reference["source_id"], "name": "中文原件排版样例.txt", "sha256": revision,
+                         "media_type": "text/plain", "content_base64": base64.b64encode(raw).decode()},
+            "reference": reference, "citation": citation, "byte_length": len(raw)}
+
+
+def research_fixture_bridge(fixture: dict) -> str:
+    # Extend the existing isolated bridge only for named fixture objects. Unknown calls retain 501.
+    return """(() => {
+      const fixture=__FIXTURE__, original=window.__TAURI__.core.invoke;
+      window.__TAURI__.core.invoke=async(command,args)=>{
+        const request=args?.request, op=request?.operation, payload=request?.payload??{};
+        if(command!=="core_command") return original(command,args);
+        if(op==="documents_list"||op==="sources_list") {
+          const response=await original(command,args); if(response.status!==200)return response;
+          const body=structuredClone(response.body);
+          if(op==="documents_list") {
+            const {editor_json,blocks,text_projection,...summary}=fixture.document;
+            body.documents=[summary,...body.documents];body.snapshot_count++;
+          }
+          else body.sources=[fixture.source,...body.sources];
+          return {status:200,body};
+        }
+        if((op==="document_get"||op==="document_version")&&payload.document_id===fixture.document.document_id)
+          return op==="document_version"&&payload.version!==1?{status:404,body:{error:"FIXTURE_VERSION_NOT_FOUND"}}:{status:200,body:structuredClone(fixture.document)};
+        if(op==="document_draft"&&payload.document_id===fixture.document.document_id)
+          return {status:409,body:{error:"READ_ONLY_UI_FIXTURE"}};
+        if(op==="source_original"&&payload.source_id===fixture.source.source_id)
+          return {status:200,body:structuredClone(fixture.original)};
+        if(op==="source_jobs"&&payload.source_id===fixture.source.source_id)
+          return {status:200,body:{source_id:fixture.source.source_id,jobs:[],jobs_capped:false}};
+        return original(command,args);
+      };
+    })();""".replace("__FIXTURE__", json.dumps(fixture, ensure_ascii=False))
+
+
+def research_citations(page, output: Path, case_id: str, fixture: dict) -> dict:
+    page.get_by_role("button", name="研究引文排版样例 · 版本 1", exact=True).click()
+    region = page.get_by_role("region", name="研究编辑区", exact=True)
+    quote = region.get_by_role("complementary", name="已保存版本的引文快照", exact=True)
+    quote.wait_for()
+    assert quote.locator("blockquote").text_content() == fixture["citation"]["quote"]
+    assert not re.search(r"ui_research_source|ui_research_anchor|[a-f0-9]{64}|expected_version|GraphRAG", region.inner_text())
+    trigger = quote.get_by_role("button", name="查看诊断详情：研究引文原始记录", exact=True)
+    trigger.click()
+    dialog = page.get_by_role("dialog", name="运行诊断", exact=True)
+    assert json.loads(dialog.locator("pre").inner_text()) == {"reference": fixture["reference"], "citation": fixture["citation"]}
+    page.keyboard.press("Escape")
+    dialog.wait_for(state="hidden")
+    expect(trigger).to_be_focused(timeout=8000)
+    region.get_by_role("button", name="摘录材料 1原文", exact=True).click()
+    original = region.get_by_role("region", name="已读取并核对指纹的原件", exact=True)
+    original.wait_for()
+    source_trigger = original.get_by_role("button", name="查看诊断详情：研究原件读取记录", exact=True)
+    source_trigger.click()
+    record = json.loads(dialog.locator("pre").first.inner_text())
+    assert record == {"reference": fixture["reference"], "name": fixture["original"]["name"],
+                      "sha256": fixture["source"]["sha256"], "byte_length": fixture["byte_length"]}
+    page.keyboard.press("Escape")
+    dialog.wait_for(state="hidden")
+    expect(source_trigger).to_be_focused(timeout=8000)
+    trigger.scroll_into_view_if_needed()
+    control = a0.visible_control_box(trigger)
+    assert control["reachable"] and abs(control["height"] - control["rawHeight"]) <= 1, control
+    reference_spacing = quote.locator("..").locator(":scope > ul > li").first.evaluate("""row=>{
+      const label=row.querySelector('span').getBoundingClientRect(),button=row.querySelector('button').getBoundingClientRect();
+      const sameLine=button.top<label.bottom && button.bottom>label.top;
+      return {same_line:sameLine,gap:sameLine?button.left-label.right:button.top-label.bottom};
+    }""")
+    assert reference_spacing["gap"] >= 7.5, reference_spacing
+    screenshot = output / f"research-citation-{case_id}.png"
+    page.screenshot(path=str(screenshot))
+    return {"status": "PASS", "quote_exact": True, "diagnostic_focus_restored": True,
+            "original_byte_length": fixture["byte_length"], "control": control,
+            "reference_spacing": reference_spacing, "screenshot": str(screenshot)}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--axe-source", type=Path, required=True)
@@ -202,9 +299,12 @@ def main() -> int:
     parser.add_argument("--dock-interactions", action="store_true")
     parser.add_argument("--capability-details", action="store_true")
     parser.add_argument("--template-requirements", action="store_true")
+    parser.add_argument("--research-citations", action="store_true")
     args = parser.parse_args()
     if args.template_requirements and args.pages and "15" not in args.pages:
         parser.error("--template-requirements requires production page 15")
+    if args.research_citations and (args.state != "baseline" or (args.pages and "05" not in args.pages)):
+        parser.error("--research-citations requires baseline state and production page 05")
     root = Path(os.environ["ARCHEAXIS_RUN_ROOT"])
     output = root / "artifacts" / "ui-coverage"
     output.mkdir(parents=True, exist_ok=False)
@@ -241,6 +341,8 @@ def main() -> int:
                     bridge = bridge.replace('bodies[operation] ?? {}', 'bodies[operation] ?? {error:"UNIMPLEMENTED_UI_FIXTURE",operation}')
                     bridge = bridge.replace('return { status: 200, body: bodies[operation]',
                                             'return { status: bodies[operation] ? 200 : 501, body: bodies[operation]')
+                    if args.research_citations:
+                        bridge += research_fixture_bridge(research_fixture())
                     # axe's temporary frames must not initialize a second host or
                     # run document hashes in an insecure about:blank context.
                     context.add_init_script(f"if(window.top===window && location.origin==={json.dumps(a0.URL)}){{{bridge}}}")
@@ -291,6 +393,8 @@ def main() -> int:
                                 case["navigation_ms"] = round((time.perf_counter() - started) * 1000, 2)
                                 if args.template_requirements and page_id == "15":
                                     case["template_requirements"] = template_requirements(page, output, f"{theme}-{width}x{height}")
+                                if args.research_citations and page_id == "05":
+                                    case["research_citations"] = research_citations(page, output, f"{theme}-{width}x{height}", research_fixture())
                                 if page_id == "18":
                                     heading = page.get_by_role("article", name="能力详情", exact=True).locator(":scope > h3")
                                     case["detail_heading"] = a0.visible_control_box(heading)

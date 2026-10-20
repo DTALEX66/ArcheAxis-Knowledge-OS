@@ -5,6 +5,9 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import userEvent from "@testing-library/user-event";
 import { CanonicalResearchSpace, parseResearch, type ResearchValue } from "../spaces/CanonicalResearchSpace";
 import type { DocumentDto } from "../api/generated/core-contract";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
+import { DocumentBusinessProvider, DocumentBusinessSessions } from "../workspace/documentSessions";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 type J=Record<string,any>;
 const value=(question:string):ResearchValue=>({schema:"archeaxis.research/v1",question,materials:[],hypotheses:[],methods:[],experiments:[],counterevidence:[],conclusions:[],unresolved:[]});
@@ -20,7 +23,48 @@ beforeEach(()=>{vi.stubGlobal("crypto",webcrypto);docs=new Map([["doc_a",dto("do
  if(op==="document_draft"){requests.push(structuredClone(p));const old=docs.get(p.document_id)!;if(old.version!==p.body.expected_version)throw new Error("409");const d={...old,version:old.version+1,editor_json:structuredClone(p.body.editor_json)};docs.set(d.document_id,d);return structuredClone(d);}
  throw new Error(`unimplemented fixture operation ${op}`);
 };bridge.call.mockImplementation(original);});
-afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
+afterEach(()=>{resetDiagnostics();vi.restoreAllMocks();vi.unstubAllGlobals();});
+
+it("keeps the saved quote readable and its complete fixed identity in diagnostics without changing the stored research",async()=>{
+ resetDiagnostics();
+ const research=(docs.get("doc_a")!.editor_json as J).attrs.archeaxis_research as ResearchValue;
+ const reference={kind:"source" as const,source_id:"source_actual",sha256:"b".repeat(64)};
+ const citation={schema:"archeaxis.research-citation/v1" as const,anchor_id:"anchor_private",source_sha256:"b".repeat(64),anchor_position_sha256:"c".repeat(64),quote:"原文甲😀\r\n乙仍保留",quote_sha256:"d".repeat(64),read_snapshot_sha256:"b".repeat(64)};
+ research.materials=[{id:"material_private",note:"作者说明",reference,citation}];
+ const stored=structuredClone(docs.get("doc_a"));
+ const view=render(<><CanonicalResearchSpace/><DiagnosticConsole/></>);await openA();
+ const region=screen.getByRole("region",{name:"研究编辑区"});
+ expect(region.textContent).not.toMatch(/source_actual|anchor_private|b{64}|c{64}/);
+ const quote=within(region).getByRole("complementary",{name:"已保存版本的引文快照"});
+ expect(quote.querySelector("blockquote")!.textContent).toBe(citation.quote);
+ fireEvent.click(within(quote).getByRole("button",{name:"查看诊断详情：研究引文原始记录"}));
+ expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({reference,citation});
+ expect(docs.get("doc_a")).toEqual(stored);expect(requests).toHaveLength(0);
+});
+
+it("does not borrow a newer document title for an older fixed reference",async()=>{
+ const latest=dto("doc_b","B",2);latest.title="只属于新版的标题";docs.set("doc_b",latest);
+ const research=(docs.get("doc_a")!.editor_json as J).attrs.archeaxis_research as ResearchValue;
+ research.hypotheses=[{id:"h",text:"作者假设",references:[{kind:"document",document_id:"doc_b",version:1,block_id:"block_private"}]}];
+ const open=vi.fn();render(<CanonicalResearchSpace onOpenDocument={open}/>);await openA();
+ const section=screen.getByRole("region",{name:"假设"});
+ expect(section).toHaveTextContent("文档名称尚未读取 · 版本 1");
+ expect(section.textContent).not.toMatch(/只属于新版的标题|doc_b|block_private/);
+ fireEvent.click(within(section).getByRole("button",{name:"打开固定版本"}));
+ expect(open).toHaveBeenCalledWith("doc_b",1,"block_private");expect(requests).toHaveLength(0);
+});
+
+it("keeps original reference records accessible when another view owns the write lease",async()=>{
+ resetDiagnostics();
+ const sessions=new DocumentBusinessSessions("workspace","initial");sessions.acquire("doc_a","writer");
+ const research=(docs.get("doc_a")!.editor_json as J).attrs.archeaxis_research as ResearchValue;
+ research.materials=[{id:"m",note:"只读材料",reference:{kind:"source",source_id:"source_actual",sha256:"b".repeat(64)}}];
+ const view=render(<><DocumentBusinessProvider sessions={sessions} viewId="reader"><CanonicalResearchSpace/></DocumentBusinessProvider><DiagnosticConsole/></>);
+ await openA();expect(screen.getByRole("button",{name:"保存研究草稿"})).toBeDisabled();
+ const button=screen.getByRole("button",{name:"查看诊断详情：只读研究引用记录"});expect(button).toBeEnabled();fireEvent.click(button);
+ expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({base_document:{document_id:"doc_a",version:1},draft:research,draft_dirty:false,save_pending:false});
+ expect(sessions.session("doc_a").owner).toBe("writer");expect(requests).toHaveLength(0);
+});
 
 it.each(["cancel","escape","add"])("returns the reference picker to its actual keyboard opener after %s",async action=>{
  render(<CanonicalResearchSpace/>);await openA();const user=userEvent.setup();
@@ -73,7 +117,7 @@ async function openA(){fireEvent.click(await screen.findByRole("button",{name:"d
 function editQuestion(text:string){fireEvent.change(screen.getByLabelText("研究问题"),{target:{value:text}});}
 async function save(){fireEvent.click(screen.getByRole("button",{name:"保存研究草稿"}));await screen.findByText("研究草稿已保存并读回；未变为核验或采用状态。");}
 it("stores incomplete counterevidence and unresolved research without question, materials, course or adoption prerequisite",async()=>{
- render(<CanonicalResearchSpace/>);fireEvent.click(screen.getByRole("button",{name:"添加反证"}));fireEvent.change(screen.getByLabelText("反证 1"),{target:{value:"反例\n尚未查证"}});fireEvent.click(screen.getByRole("button",{name:"添加未决"}));fireEvent.change(screen.getByLabelText("未决 1"),{target:{value:"实验未做"}});await save();const stored=requests[0].body.editor_json.attrs.archeaxis_research;expect(stored.question).toBe("");expect(stored.materials).toEqual([]);expect(stored.counterevidence[0]).toMatchObject({text:"反例\n尚未查证",references:[]});expect(stored.unresolved[0].text).toBe("实验未做");expect(bridge.call.mock.calls.map(c=>c[0])).not.toContain("knowledge_review");expect(screen.getByText(/学术检索与 GraphRAG 当前未接通/)).toBeInTheDocument();
+ render(<CanonicalResearchSpace/>);fireEvent.click(screen.getByRole("button",{name:"添加反证"}));fireEvent.change(screen.getByLabelText("反证 1"),{target:{value:"反例\n尚未查证"}});fireEvent.click(screen.getByRole("button",{name:"添加未决"}));fireEvent.change(screen.getByLabelText("未决 1"),{target:{value:"实验未做"}});await save();const stored=requests[0].body.editor_json.attrs.archeaxis_research;expect(stored.question).toBe("");expect(stored.materials).toEqual([]);expect(stored.counterevidence[0]).toMatchObject({text:"反例\n尚未查证",references:[]});expect(stored.unresolved[0].text).toBe("实验未做");expect(bridge.call.mock.calls.map(c=>c[0])).not.toContain("knowledge_review");expect(screen.getByText(/学术检索与多步自动研究当前未接通/)).toBeInTheDocument();
 });
 it("retains Chinese composition and all envelope/body unknown data through research edits and save",async()=>{
  const view=render(<CanonicalResearchSpace/>);await openA();const area=screen.getByLabelText("研究问题");fireEvent.compositionStart(area);editQuestion("中文输入\n第二行 ");fireEvent.keyDown(area,{key:"Enter",isComposing:true});fireEvent.compositionEnd(area);document.documentElement.dataset.aaosTheme="white";view.rerender(<CanonicalResearchSpace/>);expect(area).toHaveValue("中文输入\n第二行 ");await save();expect(requests[0].body.expected_version).toBe(1);expect(requests[0].body.editor_json.attrs.ownerUnknown).toEqual({raw:"未修改的外层载荷"});expect(requests[0].body.editor_json.content).toEqual((dto("doc_a","A").editor_json as J).content);
@@ -88,7 +132,7 @@ it("keeps dirty buffers through cancelled and confirmed object switching",async(
  render(<CanonicalResearchSpace/>);await openA();editQuestion("UNSAVED A");fireEvent.click(screen.getByRole("button",{name:"doc_b · 版本 1"}));fireEvent.click(screen.getByRole("button",{name:"取消切换"}));expect(screen.getByLabelText("研究问题")).toHaveValue("UNSAVED A");fireEvent.click(screen.getByRole("button",{name:"doc_b · 版本 1"}));fireEvent.click(screen.getByRole("button",{name:"保留草稿并切换"}));await waitFor(()=>expect(screen.getByLabelText("研究问题")).toHaveValue("B"));fireEvent.click(screen.getByRole("button",{name:"doc_a · 版本 1"}));expect(screen.getByLabelText("研究问题")).toHaveValue("UNSAVED A");
 });
 it("unknown research envelope remains complete readonly and cannot silently drop unknown fields in a rewrite",async()=>{
- const invalid=dto("doc_bad","original");(invalid.editor_json as J).attrs.archeaxis_research.future={source:"must survive"};docs.set("doc_bad",invalid);render(<CanonicalResearchSpace/>);fireEvent.click(await screen.findByRole("button",{name:"doc_bad · 版本 1"}));await screen.findByText("不支持的metadata保持完整原文，只读不转换。");expect(screen.getByRole("button",{name:"保存研究草稿"})).toBeDisabled();expect(requests).toEqual([]);expect((docs.get("doc_bad")!.editor_json as J).attrs.archeaxis_research.future).toEqual({source:"must survive"});
+ const invalid=dto("doc_bad","original");(invalid.editor_json as J).attrs.archeaxis_research.future={source:"must survive"};docs.set("doc_bad",invalid);render(<CanonicalResearchSpace/>);fireEvent.click(await screen.findByRole("button",{name:"doc_bad · 版本 1"}));await screen.findByText("不支持的研究属性保持完整原文，只读不转换。");expect(screen.getByRole("button",{name:"保存研究草稿"})).toBeDisabled();expect(requests).toEqual([]);expect((docs.get("doc_bad")!.editor_json as J).attrs.archeaxis_research.future).toEqual({source:"must survive"});
 });
 it("pending material input guards save, history and switch; cancellation does not clear existing content dirty",async()=>{
  const listener=(event:Event)=>events.push((event as CustomEvent<boolean>).detail);window.addEventListener("archeaxis-draft-dirty",listener);try{render(<CanonicalResearchSpace/>);await openA();editQuestion("CONTENT DIRTY");const saveButton=screen.getByRole("button",{name:"保存研究草稿"}),historyButton=screen.getByRole("button",{name:"读取研究历史"});fireEvent.click(screen.getByRole("button",{name:"添加材料或待整理说明"}));const dialog=await screen.findByRole("dialog",{name:"选择研究引用"});fireEvent.change(within(dialog).getByLabelText("待整理材料说明"),{target:{value:"未选择出处"}});expect(events.at(-1)).toBe(true);fireEvent.click(saveButton);expect(requests).toHaveLength(0);fireEvent.click(historyButton);expect(bridge.call.mock.calls.map(c=>c[0])).not.toContain("document_version");fireEvent.click(within(dialog).getByRole("button",{name:"取消引用选择"}));expect(events.at(-1)).toBe(true);expect(screen.getByLabelText("研究问题")).toHaveValue("CONTENT DIRTY");}finally{window.removeEventListener("archeaxis-draft-dirty",listener);}
@@ -126,7 +170,7 @@ it("history response arriving after a new edit never changes the draft into a re
  let complete!:(v:unknown)=>void;bridge.call.mockImplementation((op:string,p:J)=>op==="document_version"?new Promise(resolve=>{complete=resolve;}):original(op,p));render(<CanonicalResearchSpace/>);await openA();fireEvent.click(screen.getByRole("button",{name:"读取研究历史"}));editQuestion("读取之后的新输入");await act(async()=>{complete(dto("doc_a","迟到历史",1));});expect(screen.queryByRole("complementary",{name:"只读文档"})).not.toBeInTheDocument();expect(screen.getByLabelText("研究问题")).toHaveValue("读取之后的新输入");expect(screen.getByRole("button",{name:"保存研究草稿"})).toBeEnabled();
 });
 it("late fallback original failures cannot overwrite a later reference picker state",async()=>{
- const r=(docs.get("doc_a")!.editor_json as J).attrs.archeaxis_research as ResearchValue;r.materials=[{id:"m",note:"原件",reference:{kind:"source",source_id:"source_actual",sha256:"b".repeat(64)}}];let rejectOriginal!:(v:unknown)=>void;bridge.call.mockImplementation((op:string,p:J)=>op==="source_original"?new Promise((_,reject)=>{rejectOriginal=reject;}):original(op,p));render(<CanonicalResearchSpace/>);await openA();fireEvent.click(screen.getByRole("button",{name:"读取校验原件"}));fireEvent.click(screen.getByRole("button",{name:"添加材料或待整理说明"}));await screen.findByRole("dialog",{name:"选择研究引用"});await act(async()=>{rejectOriginal(new Error("late original failure"));});expect(screen.queryByText("原件读取或SHA核对失败，未伪造内容。")).not.toBeInTheDocument();
+ const r=(docs.get("doc_a")!.editor_json as J).attrs.archeaxis_research as ResearchValue;r.materials=[{id:"m",note:"原件",reference:{kind:"source",source_id:"source_actual",sha256:"b".repeat(64)}}];let rejectOriginal!:(v:unknown)=>void;bridge.call.mockImplementation((op:string,p:J)=>op==="source_original"?new Promise((_,reject)=>{rejectOriginal=reject;}):original(op,p));render(<CanonicalResearchSpace/>);await openA();fireEvent.click(screen.getByRole("button",{name:"读取校验原件"}));fireEvent.click(screen.getByRole("button",{name:"添加材料或待整理说明"}));await screen.findByRole("dialog",{name:"选择研究引用"});await act(async()=>{rejectOriginal(new Error("late original failure"));});expect(screen.queryByText("原件读取或内容指纹核对失败，未显示未经核对的内容。")).not.toBeInTheDocument();
 });
 
 it.each(["document_id","title","source_id"])("rejects wrong create ACK %s even when its v1 research envelope exactly matches the frozen request",async(field)=>{
@@ -143,12 +187,14 @@ it("history shows the immutable quote even after a newer research edit",async()=
  research.materials=[{id:"historical_material",note:"旧材料",reference:{kind:"source",source_id:"source_actual",sha256:"b".repeat(64)},citation:{schema:"archeaxis.research-citation/v1",anchor_id:"anchor_history",source_sha256:"b".repeat(64),anchor_position_sha256:"c".repeat(64),quote:"旧版本原文\r\n仍保留",quote_sha256:"d".repeat(64),read_snapshot_sha256:"b".repeat(64)}}];
  docs.set("doc_a",structuredClone(historic));
  bridge.call.mockImplementation((op:string,p:J)=>op==="document_version"?Promise.resolve(structuredClone(historic)):original(op,p));
- render(<CanonicalResearchSpace/>);await openA();editQuestion("新版研究问题");await save();
+ const view=render(<><CanonicalResearchSpace/><DiagnosticConsole/></>);await openA();editQuestion("新版研究问题");await save();
  fireEvent.change(screen.getByLabelText("研究历史版本"),{target:{value:"1"}});
  fireEvent.click(screen.getByRole("button",{name:"读取研究历史"}));
  const history=await screen.findByRole("complementary",{name:"只读文档"});
  expect(within(history).getByLabelText("已保存版本的引文快照")).toHaveTextContent("旧版本原文");
- expect(within(history).getByText(/anchor_history/)).toBeInTheDocument();
+ expect(within(history).queryByText(/anchor_history/)).not.toBeInTheDocument();
+ fireEvent.click(within(history).getByRole("button",{name:"查看诊断详情：研究引文原始记录"}));
+ expect(JSON.parse(view.container.querySelector(".diagnostic-console pre")!.textContent!)).toEqual({reference:research.materials[0].reference,citation:research.materials[0].citation});
  expect(within(history).getByRole("button",{name:"重新核验引文定位"})).toBeEnabled();
  expect(screen.getByLabelText("研究问题")).toHaveValue("新版研究问题");
 });
