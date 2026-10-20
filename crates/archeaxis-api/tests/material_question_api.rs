@@ -7,6 +7,60 @@ use archeaxis_domain::{document, material_question::hash, source};
 use axum::{Router, body::Body, http::Request};
 use serde_json::{Value, json};
 use tower::ServiceExt;
+
+#[tokio::test]
+async fn dormant_material_cloud_never_admits_a_production_request() {
+    let dir = tempfile::tempdir().unwrap();
+    let worker = dir.path().join("worker.py");
+    std::fs::write(&worker,"from pathlib import Path\nPath(__file__).with_suffix('.started').touch()\nraise SystemExit(1)\n").unwrap();
+    let executor = Executor::open_routes(
+        &dir.path().join("db"),
+        &dir.path().join("staging"),
+        &std::path::PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap()),
+        &worker,
+        &[("machine.answer", worker.clone())],
+    )
+    .await
+    .unwrap();
+    let doc=executor.store().submit_wait(|c|document::create_optional(c,None,None,"synthetic material",json!({"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Synthetic material"}]}]}))).await.unwrap().unwrap();
+    let router = archeaxis_api::runtime::router(executor.clone());
+    let body = json!({"request_id":"dormant_cloud","material":{"kind":"document","document_id":doc["document_id"],"version":1,"content_sha256":doc["content_sha256"],"block_id":null},
+        "selection":null,"question":"Synthetic question","purpose":"learning","model":"synthetic-model","max_tokens":128,"timeout_s":5,"preview":true,"confirmed_plan_sha256":null,
+        "model_configuration":{"workspace_id":"a".repeat(32),"restore_epoch":"initial","schema":"archeaxis.resolved-model/v1","configuration_revision":1,"configuration_sha256":"b".repeat(64),"purpose":"material","lane":"fast","profile_id":"synthetic_cloud",
+            "profile":{"endpoint":"https://synthetic.invalid/v1","protocol":"openai","model":"synthetic-model","credential_ref":format!("aak_cred_{}","c".repeat(32)),"max_tokens":128,"timeout_s":5}}});
+    for (path, preview, asynchronous) in [
+        ("/api/v1/material/questions", true, false),
+        ("/api/v1/material/questions", false, false),
+        ("/api/v1/material/questions/submissions", false, true),
+    ] {
+        let mut request = body.clone();
+        request["preview"] = json!(preview);
+        if !preview {
+            request["confirmed_plan_sha256"] = json!("d".repeat(64));
+        }
+        if asynchronous {
+            request["execution_mode"] = json!("async");
+        }
+        let (status, receipt) = call(&router, path, request).await;
+        assert_eq!(status, 422, "{receipt}");
+        assert_eq!(receipt["reason_code"], "MATERIAL_CLOUD_NOT_ACTIVATED");
+        assert_eq!(receipt["answer_published"], false);
+    }
+    assert!(!worker.with_extension("started").exists());
+    assert_eq!(
+        executor
+            .store()
+            .submit_wait(|c| c.query_row(
+                "SELECT count(*) FROM workspace_meta WHERE key LIKE 'material_request_%'",
+                [],
+                |r| r.get::<_, i64>(0)
+            ))
+            .await
+            .unwrap()
+            .unwrap(),
+        0
+    );
+}
 async fn call(router: &Router, path: &str, body: Value) -> (u16, Value) {
     let r = router
         .clone()

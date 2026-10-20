@@ -76,6 +76,7 @@ mod recovery_contract_tests {
             resolver: Arc::new(Mutex::new(None)),
             recovery: Arc::new(Mutex::new(RecoveryState::booting(false))),
             operations: Arc::new(Mutex::new(())),
+            exiting: Arc::new(std::sync::atomic::AtomicBool::new(false)),
         }
     }
 
@@ -232,6 +233,44 @@ mod recovery_contract_tests {
     }
 
     #[test]
+    fn exit_waits_off_event_loop_and_prevents_new_operations() {
+        let state = idle_backend();
+        let operations = state.operations.clone();
+        let guard = operations.lock().unwrap();
+        let (tx, rx) = std::sync::mpsc::channel();
+        let started = std::time::Instant::now();
+        super::begin_backend_exit(state.clone(), move |report| {
+            tx.send(report).unwrap();
+        });
+        let (duplicate_tx, duplicate_rx) = std::sync::mpsc::channel();
+        super::begin_backend_exit(state.clone(), move |_| {
+            duplicate_tx.send(()).unwrap();
+        });
+        assert!(
+            duplicate_rx
+                .recv_timeout(std::time::Duration::from_millis(20))
+                .is_err(),
+            "duplicate close started another teardown"
+        );
+        assert!(started.elapsed() < std::time::Duration::from_millis(100));
+        assert!(
+            rx.recv_timeout(std::time::Duration::from_millis(50))
+                .is_err(),
+            "host exited before owner released operation"
+        );
+        assert!(try_operation_guard(&state).is_err());
+        drop(guard);
+        assert_eq!(
+            rx.recv_timeout(std::time::Duration::from_secs(2)).unwrap()["outcome"],
+            "NO_OWNED_CORE"
+        );
+        assert!(
+            try_operation_guard(&state).is_err(),
+            "exit must not permit late startup"
+        );
+    }
+
+    #[test]
     fn recovery_dtos_exclude_tokens_paths_and_request_response_bodies() {
         let unsafe_message = "token=launch-secret C:\\Users\\Alex\\private\\vault.db \
             http://127.0.0.1:4312/api request={\"body\":\"response-secret\"}";
@@ -377,6 +416,7 @@ struct DesktopBackend {
     resolver: Arc<Mutex<Option<RuntimeResolutionContext>>>,
     recovery: Arc<Mutex<RecoveryState>>,
     operations: Arc<Mutex<()>>,
+    exiting: Arc<std::sync::atomic::AtomicBool>,
 }
 
 #[cfg(windows)]
@@ -400,8 +440,12 @@ fn record_failure(state: &DesktopBackend, message: &str) {
 
 #[cfg(windows)]
 fn try_operation_guard(state: &DesktopBackend) -> Result<MutexGuard<'_, ()>, String> {
+    if state.exiting.load(std::sync::atomic::Ordering::SeqCst) {
+        return Err("CORE_SHUTDOWN_IN_PROGRESS".into());
+    }
     match state.operations.try_lock() {
-        Ok(guard) => Ok(guard),
+        Ok(guard) if !state.exiting.load(std::sync::atomic::Ordering::SeqCst) => Ok(guard),
+        Ok(_) => Err("CORE_SHUTDOWN_IN_PROGRESS".into()),
         Err(TryLockError::WouldBlock) => Err(RECOVERY_OPERATION_IN_PROGRESS.to_owned()),
         Err(TryLockError::Poisoned(_)) => Err(RECOVERY_STATE_UNAVAILABLE.to_owned()),
     }
@@ -610,6 +654,9 @@ async fn core_command(
             .operations
             .lock()
             .map_err(|_| RECOVERY_STATE_UNAVAILABLE.to_owned())?;
+        if state.exiting.load(std::sync::atomic::Ordering::SeqCst) {
+            return Err("CORE_SHUTDOWN_IN_PROGRESS".into());
+        }
         refresh_backend_state(&state)?;
         let save_export = matches!(
             request.operation,
@@ -1014,7 +1061,60 @@ where
 }
 
 #[cfg(windows)]
+fn begin_backend_exit(
+    state: DesktopBackend,
+    finish: impl FnOnce(serde_json::Value) + Send + 'static,
+) {
+    use std::sync::atomic::Ordering;
+    if state.exiting.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    // Never wait on Tauri's event loop or the UI's long-operation mutex.
+    std::thread::spawn(move || {
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(8);
+        let result = loop {
+            match state.operations.try_lock() {
+                Ok(_operation) => match state.process.try_lock() {
+                    Ok(mut slot) => {
+                        let process = slot.take();
+                        drop(slot);
+                        break if let Some(mut process) = process {
+                            serde_json::to_value(process.shutdown_with_timeout(
+                                deadline.saturating_duration_since(std::time::Instant::now()),
+                            ))
+                            .unwrap_or_else(|_| serde_json::json!({"outcome":"UNKNOWN"}))
+                        } else {
+                            serde_json::json!({"outcome":"NO_OWNED_CORE","wait_reaped":false})
+                        };
+                    }
+                    Err(TryLockError::Poisoned(_)) => {
+                        break serde_json::json!({"outcome":"UNKNOWN","reason":"process_lock_poisoned"})
+                    }
+                    Err(TryLockError::WouldBlock) => (),
+                },
+                Err(TryLockError::Poisoned(_)) => {
+                    break serde_json::json!({"outcome":"UNKNOWN","reason":"operation_lock_poisoned"})
+                }
+                Err(TryLockError::WouldBlock) => (),
+            }
+            if std::time::Instant::now() >= deadline {
+                break serde_json::json!({"outcome":"UNKNOWN","reason":"operation_owner_not_released"});
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        };
+        finish(result);
+    });
+}
+
+#[cfg(windows)]
 fn cleanup_backend_on_exit(state: DesktopBackend) {
+    // OS/WM_CLOSE retains its native fallback; no normal-exit qualification.
+    if state
+        .exiting
+        .swap(true, std::sync::atomic::Ordering::SeqCst)
+    {
+        return;
+    }
     std::thread::spawn(move || {
         let process = state
             .process
@@ -1030,8 +1130,20 @@ fn cleanup_backend_on_exit(state: DesktopBackend) {
 #[cfg(windows)]
 #[tauri::command]
 fn exit_application(app: AppHandle) -> Result<(), String> {
-    dispatch_exit_immediately(|code| {
-        app.exit(code);
+    let state = app.state::<DesktopBackend>().inner().clone();
+    dispatch_exit_immediately(|_| {
+        begin_backend_exit(state, move |report| {
+            eprintln!("Core shutdown: {report}");
+            let code = if matches!(
+                report["outcome"].as_str(),
+                Some("GRACEFUL" | "NO_OWNED_CORE")
+            ) {
+                0
+            } else {
+                1
+            };
+            app.exit(code);
+        })
     });
     Ok(())
 }
@@ -1044,6 +1156,7 @@ fn main() {
         resolver: Arc::new(Mutex::new(None)),
         recovery: Arc::new(Mutex::new(RecoveryState::booting(false))),
         operations: Arc::new(Mutex::new(())),
+        exiting: Arc::new(std::sync::atomic::AtomicBool::new(false)),
     };
     let startup_backend = backend.clone();
     let exit_backend = backend.clone();
@@ -1155,6 +1268,12 @@ fn main() {
                         record_failure(&launch_state, RECOVERY_STATE_UNAVAILABLE);
                         return;
                     };
+                    if launch_state
+                        .exiting
+                        .load(std::sync::atomic::Ordering::SeqCst)
+                    {
+                        return;
+                    }
                     // Prefer the canonical Core when the candidate ships one. The host still
                     // owns the port and the launch token; only the process behind them changes.
                     // The legacy entrypoint remains the fallback so a candidate without a Core

@@ -21,6 +21,7 @@ pub mod project_handoff;
 mod project_handoff_preview;
 pub mod project_observer;
 pub mod runtime;
+pub mod session_shutdown;
 mod teaching;
 mod ui_state;
 mod workspace_backup;
@@ -184,8 +185,9 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         )
         .route(
             "/api/v1/document-packages/import",
-            post(documents::package_import)
-                .layer(axum::extract::DefaultBodyLimit::max(16 * 1024 * 1024)),
+            post(documents::package_import).layer(axum::extract::DefaultBodyLimit::max(
+                archeaxis_domain::portable_document::MAX_IMPORT_JSON_BYTES,
+            )),
         )
         .route(
             "/api/v1/documents/:document_id/relations",

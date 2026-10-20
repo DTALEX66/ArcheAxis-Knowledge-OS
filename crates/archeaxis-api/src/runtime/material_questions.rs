@@ -262,6 +262,9 @@ async fn question_inner(
     }
     let b = body.clone();
     let prepared=runtime.executor.store().submit_wait(move |conn|{
+        if let Some(config)=&b.model_configuration {
+            archeaxis_application::executor::require_material_local_transport(config)?;
+        }
         let configured=archeaxis_domain::model_configuration::read(conn).map_err(|_|"MODEL_CONFIGURATION_UNAVAILABLE")?;
         if configured.revision>0 || b.model_configuration.is_some() {
             let config=b.model_configuration.as_ref().ok_or("MODEL_PURPOSE_BINDING_REQUIRED")?;

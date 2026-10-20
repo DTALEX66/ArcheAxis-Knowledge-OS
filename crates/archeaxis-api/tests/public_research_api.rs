@@ -312,6 +312,195 @@ async fn dropped_http_request_remains_unknown_and_cannot_silently_restart() {
     );
 }
 
+async fn enable_public(router: &Router, enabled: bool) {
+    let response = router
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("PUT")
+                .uri("/api/v1/capabilities/research.public/enabled")
+                .header("content-type", "application/json")
+                .header("x-archeaxis-actor", "human")
+                .body(Body::from(json!({"enabled":enabled}).to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.status(), 200);
+}
+
+#[cfg(windows)]
+struct OwnedObservation(std::os::windows::io::OwnedHandle);
+#[cfg(unix)]
+struct OwnedObservation(u32);
+
+impl OwnedObservation {
+    fn capture(pid: u32) -> Self {
+        assert!(
+            pid > 0 && pid <= i32::MAX as u32,
+            "invalid owned fixture PID"
+        );
+        #[cfg(windows)]
+        let observation = {
+            use std::os::windows::io::FromRawHandle;
+            #[link(name = "kernel32")]
+            unsafe extern "system" {
+                fn OpenProcess(access: u32, inherit: i32, pid: u32) -> *mut std::ffi::c_void;
+            }
+            let handle = unsafe { OpenProcess(0x00100000, 0, pid) };
+            assert!(
+                !handle.is_null(),
+                "UNKNOWN opening owned fixture: {}",
+                std::io::Error::last_os_error()
+            );
+            Self(unsafe { std::os::windows::io::OwnedHandle::from_raw_handle(handle) })
+        };
+        #[cfg(unix)]
+        let observation = Self(pid);
+        assert!(
+            observation.alive(),
+            "owned fixture exited before observation"
+        );
+        observation
+    }
+
+    fn alive(&self) -> bool {
+        #[cfg(windows)]
+        {
+            use std::os::windows::io::AsRawHandle;
+            #[link(name = "kernel32")]
+            unsafe extern "system" {
+                fn WaitForSingleObject(handle: *mut std::ffi::c_void, milliseconds: u32) -> u32;
+            }
+            match unsafe { WaitForSingleObject(self.0.as_raw_handle(), 0) } {
+                0 => false,
+                258 => true,
+                result => panic!(
+                    "UNKNOWN owned process wait {result}: {}",
+                    std::io::Error::last_os_error()
+                ),
+            }
+        }
+        #[cfg(unix)]
+        {
+            unsafe extern "C" {
+                fn kill(pid: i32, sig: i32) -> i32;
+            }
+            if unsafe { kill(self.0 as i32, 0) } == 0 {
+                return true;
+            }
+            let error = std::io::Error::last_os_error();
+            assert_eq!(
+                error.raw_os_error(),
+                Some(3),
+                "UNKNOWN owned process observation: {error}"
+            );
+            false
+        }
+    }
+}
+
+#[tokio::test]
+async fn disable_withdraws_running_research_and_reenable_cannot_revive_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let ex = open(dir.path(), &script(false)).await;
+    let router = archeaxis_api::runtime::router(ex.clone());
+    let historical = request(&ex, "historical_public").await;
+    let (status, history) = call(
+        &router,
+        "/api/v1/research/public/search",
+        historical.clone(),
+        "human",
+    )
+    .await;
+    assert_eq!(status, 200);
+    assert_eq!(history["state"], "complete");
+    std::fs::remove_file(dir.path().join("public.ready")).unwrap();
+    let waiting = script(true)
+        .replace("p=Path(__file__)", "p=Path(__file__)\nimport os\np.with_suffix('.pid').write_text(str(os.getpid()))")
+        .replace("while not p.with_suffix('.release').exists(): time.sleep(.01)",
+            "end=time.monotonic()+10\nwhile not p.with_suffix('.release').exists():\n assert time.monotonic()<end, 'fixture release expired'\n time.sleep(.01)\np.with_suffix('.late').touch()");
+    std::fs::write(dir.path().join("public.py"), waiting).unwrap();
+    let current = request(&ex, "withdrawn_public").await;
+    let copy = router.clone();
+    let body = current.clone();
+    let mut run =
+        tokio::spawn(
+            async move { call(&copy, "/api/v1/research/public/search", body, "human").await },
+        );
+    wait_for(&dir.path().join("public.ready")).await;
+    let pid = std::fs::read_to_string(dir.path().join("public.pid"))
+        .unwrap()
+        .parse()
+        .unwrap();
+    let process = OwnedObservation::capture(pid);
+    enable_public(&router, false).await;
+    // Historical read/list remain available while execution is withdrawn.
+    assert_eq!(
+        call(
+            &router,
+            "/api/v1/research/public/read",
+            target(&historical),
+            "human"
+        )
+        .await,
+        (200, history.clone())
+    );
+    let scope =
+        json!({"workspace_id":current["workspace_id"],"restore_epoch":current["restore_epoch"]});
+    let (status, journal) = call(&router, "/api/v1/research/public/list", scope, "human").await;
+    assert_eq!(status, 200);
+    assert!(journal["receipts"].as_array().unwrap().contains(&history));
+    enable_public(&router, true).await;
+    let completed = tokio::time::timeout(Duration::from_secs(2), &mut run).await;
+    let withdrawn_without_release = completed.is_ok();
+    let (status, receipt) = match completed {
+        Ok(result) => result.unwrap(),
+        Err(_) => {
+            // Only failure cleanup releases this exact fixture, so a RED run
+            // cannot strand its process or turn a release into cancellation proof.
+            std::fs::write(dir.path().join("public.release"), "").unwrap();
+            tokio::time::timeout(Duration::from_secs(3), run)
+                .await
+                .unwrap()
+                .unwrap()
+        }
+    };
+    let end = Instant::now() + Duration::from_millis(500);
+    while process.alive() && Instant::now() < end {
+        tokio::time::sleep(Duration::from_millis(5)).await;
+    }
+    assert!(!process.alive(), "owned worker was not observed exited");
+    assert!(
+        withdrawn_without_release,
+        "disable did not withdraw its running worker; reenable revived the old execution"
+    );
+    assert_eq!(status, 200, "{receipt}");
+    assert_eq!(receipt["state"], "cancelled");
+    assert!(receipt["channels"].is_null());
+    assert!(!dir.path().join("public.late").exists());
+    assert_eq!(
+        std::fs::read_dir(dir.path().join("staging"))
+            .unwrap()
+            .count(),
+        0
+    );
+    assert_eq!(
+        call(&router, "/api/v1/research/public/search", current, "human").await,
+        (200, receipt)
+    );
+    // A new request after reenabling can run; the old token stays withdrawn.
+    std::fs::write(dir.path().join("public.py"), script(false)).unwrap();
+    let fresh = request(&ex, "new_public_after_enable").await;
+    let (status, receipt) = call(&router, "/api/v1/research/public/search", fresh, "human").await;
+    assert_eq!(status, 200);
+    assert_eq!(receipt["state"], "complete");
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("public.calls")).unwrap(),
+        "3"
+    );
+}
+
 #[tokio::test]
 async fn restore_during_network_rejects_old_epoch_results_before_any_source_publication() {
     let dir = tempfile::tempdir().unwrap();

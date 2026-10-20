@@ -166,3 +166,17 @@ bounded stderr tails are retained as response warnings. Text line ranges and los
 coverage are checked against the decoded text, not only metadata. This remains
 distinct from multi-format dispatch, automatic retries, full resource isolation
 and authenticated user-facing endpoints; see the Full Loop execution ledger.
+
+### Native session close (additive fixed HTTP control)
+
+The EOF-delimited launch document is unchanged. The native owner uses authenticated
+`POST /api/v1/system/shutdown` with exactly `{ "session_id": "<current launch>" }`.
+Only the current human credential is accepted; machine, Observer and browser-origin
+requests do not grant session-control authority. A complete 202 response has schema
+`archeaxis.session-shutdown/v1`, the same `session_id`, and `state: "draining"`.
+It acknowledges admission closure, not normal exit. New business requests are 503;
+accepted HTTP/background operations drain through the same canonical Store. The Core
+returns exit0 only after successful HTTP drain and checked writer-thread join. The
+host separately observes ACK, PID, exit code, reap and any forced fallback. A lost ACK,
+forced termination, nonzero exit or unconfirmed reap never proves graceful shutdown.
+See maintained production HTTP contract §20 and `session_shutdown_process.rs`.

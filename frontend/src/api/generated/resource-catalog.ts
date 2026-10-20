@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "63dd563cb61c3ad75aacbc4e050ea68fa15da82b53cae84c1a4bbfcb704176c5"
+      "sha256": "841bddcc3d795591f7f0595929e572bf09d67d6f8ff2513ae3466d1734aed00e"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -1619,7 +1619,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
+                "sha256": "8e2720590400c97904b42aff49cff0707fdf3141388c30d4efaaa511fe4f96c1"
               }
             ]
           },
@@ -2046,7 +2046,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
+                "sha256": "8e2720590400c97904b42aff49cff0707fdf3141388c30d4efaaa511fe4f96c1"
               }
             ]
           },

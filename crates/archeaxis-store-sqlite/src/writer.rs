@@ -49,7 +49,7 @@ impl From<rusqlite::Error> for StoreError {
 type Work = Box<dyn FnOnce(&mut Connection) + Send>;
 struct Inner {
     sender: Option<SyncSender<Work>>,
-    thread: Option<JoinHandle<()>>,
+    thread: Option<JoinHandle<Result<(), StoreError>>>,
 }
 impl Drop for Inner {
     fn drop(&mut self) {
@@ -132,10 +132,11 @@ impl Store {
                     if std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| work(&mut conn)))
                         .is_err()
                     {
-                        break;
+                        return Err(StoreError::Closed);
                     }
                 }
                 drop(conn); // Database closes before the OS lock is released.
+                Ok(())
             })?;
         Ok(Self(Arc::new(Inner {
             sender: Some(sender),
@@ -151,6 +152,28 @@ impl Store {
         work: impl FnOnce(&mut Connection) -> T + Send + 'static,
     ) -> Result<T, StoreError> {
         self.submit_mode(work, false).await
+    }
+
+    /// Called only after HTTP admission has closed. Existing Runtime/Executor
+    /// holders finish their accepted work before the last owner closes the queue.
+    /// This deliberately has no success-on-timeout: the supervisor owns its bounded
+    /// forced-exit fallback. A failed writer or join must never become exit 0.
+    pub async fn close(self) -> Result<(), StoreError> {
+        let mut owned = self.0;
+        let mut inner = loop {
+            match Arc::try_unwrap(owned) {
+                Ok(inner) => break inner,
+                Err(shared) => {
+                    owned = shared;
+                    tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+                }
+            }
+        };
+        inner.sender.take(); // Finish every already queued callback before joining.
+        let writer = inner.thread.take().ok_or(StoreError::Closed)?;
+        tokio::task::spawn_blocking(move || writer.join().map_err(|_| StoreError::Closed)?)
+            .await
+            .map_err(|_| StoreError::Closed)?
     }
 
     /// Owned accepted operations retain their callback while the bounded queue

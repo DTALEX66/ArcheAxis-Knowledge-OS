@@ -326,6 +326,29 @@ async fn set_capability_enabled(
         )
             .into_response();
     }
+    // Public admission and withdrawal share one boundary: a request cannot
+    // register an old lease between withdrawal and the persisted disable.
+    let _admission = if name == "research.public" {
+        Some(runtime.admission.lock().await)
+    } else {
+        None
+    };
+    if name == "research.public" && !body.enabled {
+        let Ok(entries) = runtime.machine_active.lock() else {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"code":"PUBLIC_RESEARCH_WITHDRAWAL_UNKNOWN"})),
+            )
+                .into_response();
+        };
+        for (key, entry) in entries.iter() {
+            if key.starts_with("public_research_") && entry.accepting {
+                entry.cancel.cancel();
+            }
+        }
+        // Tokens are monotonic, including if persisting/readback fails. A
+        // later enable authorizes new requests, never these withdrawn leases.
+    }
     crate::capabilities::set_enabled(&runtime.executor, &name, body.enabled).await
 }
 

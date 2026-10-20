@@ -177,6 +177,11 @@ impl TextWorker {
 const MAX_LAUNCH_BYTES: usize = 65536;
 
 impl Launch {
+    /// Non-secret identity used by the native session control route.
+    pub fn session_id(&self) -> &str {
+        &self.session_id
+    }
+
     fn validate_identity(&self) -> Result<(), &'static str> {
         if !hex(&self.launch_token, 64) || !hex(&self.session_id, 32) {
             return Err("invalid launch identity");

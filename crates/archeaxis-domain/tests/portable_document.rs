@@ -2,6 +2,134 @@ use archeaxis_domain::{ImportOutcome, document, portable_document, source};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
+fn media_document(conn: &mut rusqlite::Connection, raw: &[u8]) -> Value {
+    let (id, sha) = match source::import_source(conn, raw, "authored-scan.pdf", None).unwrap() {
+        ImportOutcome::Imported { source_id, sha256 }
+        | ImportOutcome::Duplicate { source_id, sha256 } => (source_id, sha256),
+    };
+    document::create_optional(
+        conn,
+        Some(&id),
+        Some(&sha),
+        "Bound original",
+        json!({"type":"doc","content":[]}),
+    )
+    .unwrap()
+}
+
+#[test]
+fn media_package_preserves_scan_size_and_exact_eight_mib_boundary() {
+    for size in [4_564_915, 8 * 1024 * 1024] {
+        let dir = tempfile::tempdir().unwrap();
+        let mut from = archeaxis_store_sqlite::init_workspace(
+            dir.path().join("from.sqlite").to_str().unwrap(),
+        )
+        .unwrap();
+        // The observed scan's byte count, with worst-case four-character JSON bytes.
+        let raw = vec![255; size];
+        let doc = media_document(&mut from, &raw);
+        let package =
+            portable_document::export(&from, doc["document_id"].as_str().unwrap()).unwrap();
+        assert_eq!(package.objects[0].bytes, raw);
+        assert!(serde_json::to_vec(&package).unwrap().len() > 16 * 1024 * 1024);
+        let mut to =
+            archeaxis_store_sqlite::init_workspace(dir.path().join("to.sqlite").to_str().unwrap())
+                .unwrap();
+        let imported = portable_document::import(&mut to, package, "bounded-media").unwrap();
+        let again =
+            portable_document::export(&to, imported["document"]["document_id"].as_str().unwrap())
+                .unwrap();
+        assert_eq!(again.objects[0].bytes, raw);
+        assert_eq!(
+            again.objects[0].sha256,
+            doc["source_revision"].as_str().unwrap()
+        );
+    }
+}
+
+#[test]
+fn media_package_rejects_over_budget_and_corrupt_cas_without_database_changes() {
+    for corrupt in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let mut conn = archeaxis_store_sqlite::init_workspace(
+            dir.path().join("source.sqlite").to_str().unwrap(),
+        )
+        .unwrap();
+        let raw = vec![255; if corrupt { 32 } else { 8 * 1024 * 1024 + 1 }];
+        let doc = media_document(&mut conn, &raw);
+        if corrupt {
+            let path = archeaxis_store_sqlite::raw_objects::root(&conn)
+                .unwrap()
+                .join(doc["source_revision"].as_str().unwrap());
+            std::fs::write(path, b"tampered synthetic CAS").unwrap();
+        }
+        let changes = conn.total_changes();
+        let error = portable_document::export(&conn, doc["document_id"].as_str().unwrap())
+            .err()
+            .unwrap();
+        assert!(
+            matches!(error, document::Error::Invalid(_)),
+            "bounded CAS rejection must be a package error: {error:?}"
+        );
+        assert_eq!(conn.total_changes(), changes);
+        assert_eq!(
+            document::read(&conn, doc["document_id"].as_str().unwrap(), None).unwrap(),
+            doc
+        );
+    }
+}
+
+#[test]
+fn media_package_aggregate_and_serialized_limits_reject_before_import_writes() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut from =
+        archeaxis_store_sqlite::init_workspace(dir.path().join("from.sqlite").to_str().unwrap())
+            .unwrap();
+    let mut to =
+        archeaxis_store_sqlite::init_workspace(dir.path().join("to.sqlite").to_str().unwrap())
+            .unwrap();
+    let raw = vec![255; 4 * 1024 * 1024];
+    let doc = media_document(&mut from, &raw);
+    let mut package =
+        portable_document::export(&from, doc["document_id"].as_str().unwrap()).unwrap();
+    let second = vec![254; 4 * 1024 * 1024 + 1];
+    let digest = format!("{:x}", Sha256::digest(&second));
+    package.document["editor_json"]["attrs"] = json!({"archeaxis_relations":{"schema":"archeaxis.relations/v1","relations":[
+        {"id":"second","kind":"related","label":"second original","target":{"kind":"source","source_id":"foreign_second","sha256":digest}}]}});
+    package.document["content_sha256"] = json!(format!(
+        "{:x}",
+        Sha256::digest(package.document["editor_json"].to_string().as_bytes())
+    ));
+    package.objects.push(portable_document::Object {
+        source_id: "foreign_second".into(),
+        sha256: digest,
+        original_name: "second.pdf".into(),
+        bytes: second,
+    });
+    let changes = to.total_changes();
+    assert!(matches!(
+        portable_document::import(&mut to, package, "too-many-bytes"),
+        Err(document::Error::Invalid(
+            "object identity or byte budget invalid"
+        ))
+    ));
+    assert_eq!(to.total_changes(), changes);
+    let doc = media_document(&mut from, b"small original");
+    let mut package =
+        portable_document::export(&from, doc["document_id"].as_str().unwrap()).unwrap();
+    package
+        .historical_anchors
+        .push(json!({"opaque": "x".repeat(40 * 1024 * 1024)}));
+    assert!(matches!(
+        portable_document::import(&mut to, package, "too-much-json"),
+        Err(document::Error::Invalid(
+            "serialized package budget exceeded"
+        ))
+    ));
+    assert_eq!(to.total_changes(), changes);
+    assert!(document::list(&to).unwrap().is_empty());
+}
+
 #[test]
 fn source_relation_packages_original_bytes_and_remaps_foreign_identity() {
     let dir = tempfile::tempdir().unwrap();

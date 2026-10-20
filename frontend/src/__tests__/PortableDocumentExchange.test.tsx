@@ -33,3 +33,24 @@ it("SIMULATED reselecting the same package after remount retains its idempotency
   fireEvent.click(screen.getByRole("button",{name:"确认保存为新普通文档"}));await waitFor(()=>expect(coreCommand).toHaveBeenCalledTimes(2));
   expect(vi.mocked(coreCommand).mock.calls[1][1]).toEqual(first);
 });
+
+it("SIMULATED accepts a scan-sized package above the former raw and JSON limits",async()=>{
+  const value={...bundle,objects:[{source_id:"scan",sha256:"b".repeat(64),original_name:"scan.pdf",bytes:Array(4_564_915).fill(255)}]};
+  const text=JSON.stringify(value);expect(text.length).toBeGreaterThan(16*1024*1024);
+  const selected=new File([text],"scan.json",{type:"application/json"});Object.defineProperty(selected,"text",{value:async()=>text});
+  render(<PortableDocumentExchange saved={null}/>);
+  fireEvent.change(screen.getByLabelText("选择本地文档包"),{target:{files:[selected]}});
+  await screen.findByText(/待保存：合成包/);expect(coreCommand).not.toHaveBeenCalled();
+},15000);
+
+it("SIMULATED refuses over-budget JSON before parsing and aggregate originals before saving",async()=>{
+  const tooLarge=new File([],"large.json");const read=vi.fn();Object.defineProperties(tooLarge,{size:{value:40*1024*1024+1},text:{value:read}});
+  render(<PortableDocumentExchange saved={null}/>);
+  fireEvent.change(screen.getByLabelText("选择本地文档包"),{target:{files:[tooLarge]}});
+  await screen.findByText("包超过 40 MiB 文本上限。");expect(read).not.toHaveBeenCalled();
+  const object={source_id:"scan",sha256:"b".repeat(64),original_name:"scan.pdf",bytes:Array(4*1024*1024+1).fill(255)};
+  const text=JSON.stringify({...bundle,objects:[object,{...object,source_id:"other"}]});
+  const selected=new File([],"aggregate.json");Object.defineProperty(selected,"text",{value:async()=>text});
+  fireEvent.change(screen.getByLabelText("选择本地文档包"),{target:{files:[selected]}});
+  await screen.findByText("媒体和原件总字节超过 8 MiB 上限。");expect(coreCommand).not.toHaveBeenCalled();
+},15000);

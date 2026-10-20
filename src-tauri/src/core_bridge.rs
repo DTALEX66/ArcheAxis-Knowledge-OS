@@ -1226,7 +1226,9 @@ fn request_byte_limit(operation: &Operation) -> usize {
     ) {
         65_536
     } else if matches!(operation, Operation::DocumentPackageImport) {
-        16 * 1024 * 1024
+        // 8 MiB originals can occupy 32 MiB as JSON byte arrays, plus bounded
+        // package metadata and the import request envelope.
+        40 * 1024 * 1024 + 65_536
     } else if matches!(
         operation,
         Operation::SourceImport | Operation::IngestMemberImport
@@ -1254,6 +1256,8 @@ fn response_byte_limit(operation: &Operation) -> usize {
         65_536
     } else if matches!(operation, Operation::SourceOriginal) {
         90 * 1024 * 1024
+    } else if matches!(operation, Operation::DocumentPackageExport) {
+        40 * 1024 * 1024
     } else {
         24 * 1024 * 1024
     }
@@ -1763,6 +1767,22 @@ mod media_bridge_budget_tests {
     #[test]
     fn enlarged_budgets_are_bound_to_original_transfer_operations() {
         use super::*;
+        assert_eq!(
+            request_byte_limit(&Operation::DocumentPackageImport),
+            40 * 1024 * 1024 + 65_536
+        );
+        assert_eq!(
+            response_byte_limit(&Operation::DocumentPackageExport),
+            40 * 1024 * 1024
+        );
+        assert_eq!(
+            request_byte_limit(&Operation::DocumentPackageExport),
+            8 * 1024 * 1024
+        );
+        assert_eq!(
+            response_byte_limit(&Operation::DocumentPackageImport),
+            24 * 1024 * 1024
+        );
         assert_eq!(
             request_byte_limit(&Operation::SourceImport),
             90 * 1024 * 1024

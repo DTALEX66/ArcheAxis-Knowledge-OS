@@ -62,6 +62,19 @@ impl Cancellation {
     }
 }
 
+/// A declaration is not an egress grant. Cloud Material execution is dormant;
+/// preserve every existing local path and all other purposes' validation.
+pub fn require_material_local_transport(
+    configuration: &archeaxis_domain::model_configuration::Resolved,
+) -> Result<(), &'static str> {
+    if configuration.purpose == archeaxis_domain::model_configuration::Purpose::Material
+        && configuration.profile.endpoint.starts_with("https://")
+    {
+        return Err("MATERIAL_CLOUD_NOT_ACTIVATED");
+    }
+    Ok(())
+}
+
 /// Whether a path exists as a regular file, used to decide if a registered route can actually run.
 ///
 /// R7/G1: a route whose worker or interpreter is missing is not a provider choice, so choosing it
@@ -322,6 +335,7 @@ impl Executor {
         policy: AnswerPolicy,
     ) -> Result<serde_json::Value, MachineFailure> {
         if let Some(c) = &configuration {
+            require_material_local_transport(c)?;
             if c.profile.credential_ref.is_some() {
                 return Err("LOCAL_CREDENTIAL_NOT_SUPPORTED".into());
             }

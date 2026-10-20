@@ -19,11 +19,14 @@ struct Fixture {
 }
 impl Fixture {
     fn new(text: &str, paths: &[(&str, &str)]) -> Self {
+        Self::at("notes/start.md", text, paths)
+    }
+    fn at(source_path: &str, text: &str, paths: &[(&str, &str)]) -> Self {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("workspace.sqlite");
         let mut conn = init_workspace(path.to_str().unwrap()).unwrap();
         let (workspace_id, restore_epoch) = batches::identity(&conn).unwrap();
-        let files: Vec<_> = std::iter::once(("notes/start.md", text))
+        let files: Vec<_> = std::iter::once((source_path, text))
             .chain(paths.iter().copied())
             .collect();
         batches::register(
@@ -100,6 +103,176 @@ impl Fixture {
             document::read(&self.conn, &self.request.document_id, None).unwrap(),
             self.original
         );
+    }
+}
+
+#[test]
+fn contained_parent_links_resolve_original_four_member_batch() {
+    let text = "[[target]] and ![[../assets/evidence.svg]]\n`[[ghost]]`\n```md\n[[ghost]]\n```";
+    let mut f = Fixture::at(
+        "notes/index.md",
+        text,
+        &[
+            ("notes/target.md", "Target note"),
+            ("notes/assets-only.md", "[Evidence](../assets/evidence.svg)"),
+            ("assets/evidence.svg", "<svg/>"),
+        ],
+    );
+    let asset = f.request.targets[2].clone();
+    let expected =
+        json!({"kind":"source","source_id":asset.source_id,"sha256":asset.source_revision});
+    let r = f.apply().unwrap();
+    assert_eq!(
+        r["added_relations"], 2,
+        "contained parent wiki embed was lost: {r}"
+    );
+    assert_eq!(
+        r["links"].as_array().unwrap().len(),
+        2,
+        "code ghosts must not become links"
+    );
+    assert_eq!(r["links"][1]["target"], "../assets/evidence.svg");
+    assert_eq!(r["links"][1]["status"], "resolved_reference");
+    assert_eq!(r["links"][1]["reason"], "embed_rendering_not_supported");
+    assert_eq!(
+        r["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][1]["target"],
+        expected
+    );
+    assert_eq!(
+        r["document"]["editor_json"]["content"],
+        f.original["editor_json"]["content"]
+    );
+    let other = f.request.targets[1].clone();
+    let binding = other.document.unwrap();
+    let other = Apply {
+        source_id: other.source_id,
+        source_revision: other.source_revision,
+        document_id: binding.document_id,
+        expected_version: binding.version,
+        content_sha256: binding.content_sha256,
+        targets: vec![asset],
+        ..f.request.clone()
+    };
+    let markdown = links::apply(&mut f.conn, "batch", 2, other).unwrap();
+    assert_eq!(markdown["added_relations"], 1);
+    assert_eq!(markdown["links"][0]["target"], "../assets/evidence.svg");
+    assert_eq!(
+        markdown["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0]["target"],
+        expected
+    );
+    f.request.expected_version = r["document"]["version"].as_i64().unwrap();
+    f.request.content_sha256 = r["document"]["content_sha256"].as_str().unwrap().into();
+    let repeat = f.apply().unwrap();
+    assert_eq!(repeat["added_relations"], 0);
+    assert_eq!(repeat["document"], r["document"]);
+}
+
+#[test]
+fn dot_segments_are_relative_to_the_member_parent_not_a_root_shadow() {
+    for target in ["./asset.svg", "sub/../asset.svg", "./sub/../asset.svg"] {
+        let mut f = Fixture::new(
+            &format!("![[{target}]]"),
+            &[
+                ("asset.svg", "wrong root asset"),
+                ("notes/asset.svg", "correct relative asset"),
+            ],
+        );
+        let r = f.apply().unwrap();
+        assert_eq!(r["added_relations"], 1, "{target}: {r}");
+        assert_eq!(r["links"][0]["target"], target);
+        assert_eq!(
+            r["links"][0]["target_ordinal"], 2,
+            "root shadow misbound: {r}"
+        );
+        assert_eq!(
+            r["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0]["target"],
+            json!({"kind":"source","source_id":f.request.targets[1].source_id,"sha256":f.request.targets[1].source_revision})
+        );
+    }
+}
+
+#[test]
+fn parent_normalization_never_escapes_decodes_or_guesses_a_binding() {
+    for (target, reason) in [
+        ("../../assets/evidence.svg", "unsafe_or_unsupported_target"),
+        (
+            "../../notes/../assets/evidence.svg",
+            "unsafe_or_unsupported_target",
+        ),
+        ("/assets/evidence.svg", "unsafe_or_unsupported_target"),
+        (
+            "//server/assets/evidence.svg",
+            "external_reference_not_followed",
+        ),
+        ("C:/assets/evidence.svg", "external_reference_not_followed"),
+        (
+            "file:///assets/evidence.svg",
+            "external_reference_not_followed",
+        ),
+        (
+            "https://example.invalid/evidence.svg",
+            "external_reference_not_followed",
+        ),
+        ("../assets/%65vidence.svg", "unsafe_or_unsupported_target"),
+        ("%2e%2e/assets/evidence.svg", "unsafe_or_unsupported_target"),
+        (
+            "%252e%252e/assets/evidence.svg",
+            "unsafe_or_unsupported_target",
+        ),
+        (r"..\assets\evidence.svg", "unsafe_or_unsupported_target"),
+        (
+            "../assets/evidence.svg?download=1",
+            "unsafe_or_unsupported_target",
+        ),
+        (
+            "../assets/evidence.svg#section",
+            "fragment_resolution_not_supported",
+        ),
+    ] {
+        let mut f = Fixture::new(
+            &format!("![[{target}]]"),
+            &[("assets/evidence.svg", "<svg/>")],
+        );
+        let r = f.apply().unwrap();
+        assert_eq!(r["added_relations"], 0, "{target}: {r}");
+        assert_eq!(r["links"][0]["reason"], reason, "{target}: {r}");
+        f.unchanged();
+    }
+    let mut f = Fixture::new(
+        "![[../assets/evidence.svg]]",
+        &[
+            ("assets/evidence.svg", "first"),
+            ("assets/Evidence.svg", "second"),
+        ],
+    );
+    let r = f.apply().unwrap();
+    assert_eq!(r["added_relations"], 0);
+    assert_eq!(r["links"][0]["reason"], "ambiguous_target");
+    f.unchanged();
+
+    let mut f = Fixture::new(
+        "![[../assets/evidence.svg]]",
+        &[("assets/evidence.svg", "<svg/>")],
+    );
+    f.request.targets.clear();
+    let r = f.apply().unwrap();
+    assert_eq!(r["added_relations"], 0);
+    assert_eq!(r["links"][0]["target_ordinal"], 1);
+    assert_eq!(r["links"][0]["reason"], "target_binding_required");
+    f.unchanged();
+
+    for text in [
+        "![[./../assets/./evidence.svg]]",
+        "![[sub/../../assets/evidence.svg]]",
+        "[Evidence](./../assets/./evidence.svg)",
+    ] {
+        let mut f = Fixture::new(text, &[("assets/evidence.svg", "<svg/>")]);
+        let r = f.apply().unwrap();
+        assert_eq!(
+            r["added_relations"], 1,
+            "contained dot path rejected: {text}: {r}"
+        );
+        assert_eq!(r["links"][0]["target_ordinal"], 1);
     }
 }
 

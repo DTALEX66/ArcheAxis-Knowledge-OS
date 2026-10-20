@@ -6,6 +6,114 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use tower::ServiceExt;
 
+#[tokio::test]
+async fn contained_parent_links_reach_existing_api_graph_without_rewriting_original_targets() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("workspace.sqlite");
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let (_, scope) = call(&app, "GET", "/api/v1/ingest-batches", Value::Null).await;
+    let files = [
+        (
+            "notes/index.md",
+            "[[target]] and ![[../assets/evidence.svg]]\n`[[ghost]]`\n```md\n[[ghost]]\n```",
+        ),
+        ("notes/target.md", "Target note"),
+        ("notes/assets-only.md", "[Evidence](../assets/evidence.svg)"),
+        ("assets/evidence.svg", "<svg/>"),
+    ];
+    let members: Vec<_> = files.iter().enumerate().map(|(i,(path,text))|
+        json!({"ordinal":i,"relative_path":path,"byte_length":text.len(),"disposition":"pending"})).collect();
+    let (status, manifest) = call(&app,"POST","/api/v1/ingest-batches",json!({
+        "workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],
+        "batch_id":"contained","folder_label":"selected-copy","expected_members":4,"members":members})).await;
+    assert_eq!(status, 200, "{manifest}");
+    let mut sources = Vec::new();
+    for (ordinal, (_, text)) in files.iter().enumerate() {
+        let (status, source) = call(&app,"POST","/api/v1/ingest-batches/contained/imports",json!({
+            "workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],"ordinal":ordinal,
+            "expected_sha256":format!("{:x}",Sha256::digest(text.as_bytes())),
+            "content_base64":base64::engine::general_purpose::STANDARD.encode(text)})).await;
+        assert_eq!(status, 202, "{source}");
+        sources.push(source);
+    }
+    let mut docs = Vec::new();
+    for ordinal in 0..3 {
+        let (status, doc) = call(&app,"POST","/api/v1/documents",json!({
+            "source_id":sources[ordinal]["source_id"],"source_revision":sources[ordinal]["sha256"],
+            "title":files[ordinal].0,"editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Edited body [[body-ghost]]"}]}]}})).await;
+        assert_eq!(status, 201, "{doc}");
+        docs.push(doc);
+    }
+    let targets: Vec<_> = (1..4).map(|i|json!({"ordinal":i,"source_id":sources[i]["source_id"],"source_revision":sources[i]["sha256"],
+        "document":docs.get(i).map(|d|json!({"document_id":d["document_id"],"version":d["version"],"content_sha256":d["content_sha256"]}))})).collect();
+    let mut request = json!({"workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],
+        "source_id":sources[0]["source_id"],"source_revision":sources[0]["sha256"],
+        "document_id":docs[0]["document_id"],"expected_version":docs[0]["version"],"content_sha256":docs[0]["content_sha256"],"targets":targets});
+    let path = "/api/v1/ingest-batches/contained/members/0/relations";
+    let (status, receipt) = call(&app, "POST", path, request.clone()).await;
+    assert_eq!(status, 200, "{receipt}");
+    assert_eq!(
+        receipt["added_relations"], 2,
+        "same-batch parent embed lost at real API boundary: {receipt}"
+    );
+    assert_eq!(receipt["links"].as_array().unwrap().len(), 2);
+    assert_eq!(receipt["links"][1]["target"], "../assets/evidence.svg");
+    assert_eq!(receipt["links"][1]["status"], "resolved_reference");
+    assert_eq!(
+        receipt["links"][1]["reason"],
+        "embed_rendering_not_supported"
+    );
+    let asset =
+        json!({"kind":"source","source_id":sources[3]["source_id"],"sha256":sources[3]["sha256"]});
+    assert_eq!(
+        receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][1]["target"],
+        asset
+    );
+    assert_eq!(
+        receipt["document"]["editor_json"]["content"],
+        docs[0]["editor_json"]["content"]
+    );
+    let graph_path = format!(
+        "/api/v1/documents/{}/relations",
+        docs[0]["document_id"].as_str().unwrap()
+    );
+    let (status, graph) = call(&app, "GET", &graph_path, Value::Null).await;
+    assert_eq!(status, 200);
+    assert_eq!(graph["edges"].as_array().unwrap().len(), 2);
+    let mut markdown = request.clone();
+    markdown["source_id"] = sources[2]["source_id"].clone();
+    markdown["source_revision"] = sources[2]["sha256"].clone();
+    markdown["document_id"] = docs[2]["document_id"].clone();
+    markdown["expected_version"] = docs[2]["version"].clone();
+    markdown["content_sha256"] = docs[2]["content_sha256"].clone();
+    let (status, other) = call(
+        &app,
+        "POST",
+        "/api/v1/ingest-batches/contained/members/2/relations",
+        markdown,
+    )
+    .await;
+    assert_eq!(status, 200, "{other}");
+    assert_eq!(other["added_relations"], 1);
+    assert_eq!(
+        other["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0]["target"],
+        asset
+    );
+    assert_eq!(call(&app, "POST", path, request.clone()).await.0, 409);
+    request["expected_version"] = receipt["document"]["version"].clone();
+    request["content_sha256"] = receipt["document"]["content_sha256"].clone();
+    let (status, repeated) = call(&app, "POST", path, request).await;
+    assert_eq!(status, 200, "{repeated}");
+    assert_eq!(repeated["added_relations"], 0);
+    assert_eq!(repeated["document"], receipt["document"]);
+    drop(app);
+    let reopened = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        call(&reopened, "GET", &graph_path, Value::Null).await.1["edges"],
+        graph["edges"]
+    );
+}
+
 async fn call(app: &Router, method: &str, path: &str, body: Value) -> (u16, Value) {
     let response = app
         .clone()

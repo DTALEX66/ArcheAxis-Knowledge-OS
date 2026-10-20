@@ -3,6 +3,7 @@
   "$id": "archeaxis/core-document/v1",
   "$defs": {
     "DocumentPackageDto": {
+      "description": "Bounded document exchange: at most 8 MiB of original/media bytes in aggregate and 40 MiB serialized JSON. Source import has a separate budget.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -45,7 +46,7 @@
               },
               "bytes": {
                 "type": "array",
-                "maxItems": 2097152,
+                "maxItems": 8388608,
                 "items": {
                   "type": "integer",
                   "minimum": 0,

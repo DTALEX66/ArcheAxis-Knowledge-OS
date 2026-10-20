@@ -373,7 +373,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
+              "sha256": "8e2720590400c97904b42aff49cff0707fdf3141388c30d4efaaa511fe4f96c1"
             }
           ]
         },
@@ -597,7 +597,7 @@
             },
             {
               "path": "frontend/src/api/generated/core-contract.ts",
-              "sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
+              "sha256": "8e2720590400c97904b42aff49cff0707fdf3141388c30d4efaaa511fe4f96c1"
             }
           ]
         },

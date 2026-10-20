@@ -9,7 +9,12 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const MAX_BYTES: usize = 2 * 1024 * 1024;
+/// Aggregate originals/media budget, independent of the source import budget.
+pub const MAX_BYTES: usize = 8 * 1024 * 1024;
+/// JSON encodes each u8 in up to four bytes including its separator. Keep a
+/// finite metadata margin; do not raise limits for unrelated API operations.
+pub const MAX_JSON_BYTES: usize = 40 * 1024 * 1024;
+pub const MAX_IMPORT_JSON_BYTES: usize = MAX_JSON_BYTES + 65_536;
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Object {
@@ -224,8 +229,14 @@ pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
         if stored != digest {
             return Err(bad("source identity changed"));
         }
-        let bytes =
-            archeaxis_store_sqlite::raw_objects::read_bounded(conn, &digest, MAX_BYTES - total)?;
+        let bytes = archeaxis_store_sqlite::raw_objects::read_bounded(conn, &digest, MAX_BYTES - total)
+            .map_err(|error| match error {
+                // This CAS helper performs no SQL: InvalidQuery denotes its
+                // bounded size/identity rejection, not a writable query. Keep
+                // IO and actual SQL failures distinct from this package error.
+                rusqlite::Error::InvalidQuery => bad("package original exceeds remaining 8 MiB byte budget or CAS integrity check failed"),
+                other => Error::Sql(other),
+            })?;
         total += bytes.len();
         objects.push(Object {
             source_id,
@@ -243,7 +254,7 @@ pub fn export(conn: &Connection, id: &str) -> Result<Package, Error> {
     if serde_json::to_vec(&package)
         .map_err(|_| bad("package serialization failed"))?
         .len()
-        > 16 * 1024 * 1024
+        > MAX_JSON_BYTES
     {
         return Err(bad("serialized package budget exceeded"));
     }
@@ -257,7 +268,7 @@ pub fn import(
     if serde_json::to_vec(&package)
         .map_err(|_| bad("package serialization failed"))?
         .len()
-        > 16 * 1024 * 1024
+        > MAX_JSON_BYTES
     {
         return Err(bad("serialized package budget exceeded"));
     }

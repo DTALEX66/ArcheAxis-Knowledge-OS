@@ -26,6 +26,7 @@ RUNBOOK = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-BA
 # Contract section number -> (artifact, what the artifact establishes). Keyed by number rather
 # than title, because the titles carry suffixes that change as the document is edited.
 COVERAGE: dict[str, tuple[str, str]] = {
+    "20": ("crates/archeaxis-api/tests/session_shutdown_process.rs", "complete shutdown ACK, owned process exit0, accepted background conversion and saved object reopen"),
     "19": ("crates/archeaxis-api/tests/ingest_relations.rs",
            "single retained Source identity readback and missing-source refusal before relation consumption"),
     "18": ("crates/archeaxis-api/tests/material_question_api.rs",
@@ -88,6 +89,8 @@ ALSO_CHECKS: dict[str, list[str]] = {
 # reachable through the maintained contract's exact commands, never a rewritten
 # historical qualification receipt.
 CURRENT_CHECK_COMMANDS = {
+    "crates/archeaxis-api/tests/session_shutdown_process.rs":
+        "cargo test -p archeaxis-api --test session_shutdown_process --offline",
     "crates/archeaxis-api/tests/ingest_relations.rs":
         "cargo test -p archeaxis-api --test ingest_relations --offline",
     "crates/archeaxis-api/tests/material_question_api.rs":

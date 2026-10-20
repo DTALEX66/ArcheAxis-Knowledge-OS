@@ -209,7 +209,11 @@ fn resolve(
     let parent = source_path.rsplit_once('/').map(|(p, _)| p).unwrap_or("");
     let relative = normalized(parent, target).ok_or("unsafe_or_unsupported_target")?;
     let bare = !target.contains('/');
-    let names = if link.syntax == "wiki" && !bare {
+    // Dot segments explicitly select the current member's parent. They must
+    // never be reinterpreted against the batch root (or shadowed by a root
+    // member); normalized() has already refused any step above that root.
+    let relative_dots = target.split('/').any(|part| matches!(part, "." | ".."));
+    let names = if link.syntax == "wiki" && !bare && !relative_dots {
         let root = normalized("", target).ok_or("unsafe_or_unsupported_target")?;
         let root_names = candidates(&root);
         if paths

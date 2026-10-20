@@ -7,6 +7,55 @@ use std::{
     time::Duration,
 };
 
+#[tokio::test]
+async fn explicit_close_waits_for_background_owner_and_reports_writer_failure() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("close.sqlite");
+    let store = Store::open(&path).unwrap();
+    let background = store.clone();
+    let close = tokio::spawn(store.close());
+    tokio::time::sleep(Duration::from_millis(40)).await;
+    assert!(!close.is_finished(), "background owner was abandoned");
+    background
+        .submit(|conn| {
+            conn.execute(
+                "INSERT INTO workspace_meta(key,value) VALUES('close_ack','kept')",
+                [],
+            )
+            .unwrap()
+        })
+        .await
+        .unwrap();
+    drop(background);
+    tokio::time::timeout(Duration::from_secs(2), close)
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    let reopened = Store::open(&path).unwrap();
+    assert_eq!(
+        reopened
+            .submit(|conn| conn
+                .query_row(
+                    "SELECT value FROM workspace_meta WHERE key='close_ack'",
+                    [],
+                    |row| row.get::<_, String>(0)
+                )
+                .unwrap())
+            .await
+            .unwrap(),
+        "kept"
+    );
+    assert!(matches!(
+        reopened.submit(|_| panic!("injected writer failure")).await,
+        Err(StoreError::Closed)
+    ));
+    assert!(
+        matches!(reopened.close().await, Err(StoreError::Closed)),
+        "caught writer panic must not become successful close"
+    );
+}
+
 fn poll_once<T>(future: Pin<&mut impl Future<Output = T>>) -> Poll<T> {
     future.poll(&mut Context::from_waker(Waker::noop()))
 }

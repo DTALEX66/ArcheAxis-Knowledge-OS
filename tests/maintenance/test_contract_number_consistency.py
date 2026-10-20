@@ -118,7 +118,13 @@ def test_the_launch_shape_split_adds_up():
     assert len(wrapper | base) == 82
     assert len(base) == 81
     assert len(runtime_set) == 52
-    assert len(base | runtime_set) == inventory
+    control = pairs((REPO / "crates/archeaxis-api/src/session_shutdown.rs").read_text(encoding="utf-8"))
+    assert control == {("POST", "/api/v1/system/shutdown")}
+    assert not control & (base | runtime_set | wrapper)
+    main = (REPO / "crates/archeaxis-api/src/main.rs").read_text(encoding="utf-8")
+    assert "session_shutdown::install" in main and "with_graceful_shutdown" in main
+    assert len(base | runtime_set | control) == inventory
+    assert len(base | wrapper | control) == 83
     contract = CONTRACT.read_text(encoding="utf-8")
     assert "82 projection method/path pairs" in contract
     assert "70 unconditional mounts" in contract
