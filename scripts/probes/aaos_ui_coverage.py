@@ -11,16 +11,14 @@ import json
 import os
 import re
 import socket
-import sys
 import time
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 from urllib.parse import urlsplit
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import a0_browser_smoke as a0  # noqa: E402
-from playwright.sync_api import sync_playwright  # noqa: E402
+from scripts import a0_browser_smoke as a0
+from playwright.sync_api import sync_playwright
 
 
 PARENTS = {"03": "02", "07": "06", "08": "06", "09": "06", "10": "06",
@@ -155,7 +153,7 @@ def main() -> int:
                         if parsed.netloc != urlsplit(a0.URL).netloc:
                             report["external_requests"].append(request.request.url)
                             request.abort()
-                        elif parsed.path.startswith(("/api/", "/workspace/api/")):
+                        elif parsed.path.startswith((a0.API_PREFIX + "/", a0.WORKSPACE_PREFIX + a0.API_PREFIX + "/")):
                             request.fulfill(status=200, content_type="application/json",
                                             body=json.dumps(a0.api_payload(request.request.url)))
                         else:

@@ -20,7 +20,10 @@ from urllib.request import urlopen
 
 from playwright.sync_api import Route, sync_playwright
 
-from browser_color import composite
+if __package__:
+    from .browser_color import composite
+else:
+    from browser_color import composite
 
 ROOT = Path(__file__).resolve().parents[1]
 
