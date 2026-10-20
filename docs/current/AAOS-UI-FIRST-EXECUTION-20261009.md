@@ -415,3 +415,9 @@ Owner后继明确要求“该合并的合并啊”。本轮完成已获授权的
 **验证和边界**：接手新增206d56da..2574b40d的diff检查通过；整个继承main差异有保全历史/不可变源文件的空白及EOF诊断，按cr-at-eol解读仍263条，明确保留PARTIAL而未为求绿规范化原件。CI正式lint/目录/架构/安全门禁通过，没有修改断言或豁免。自动审查曾拒绝强制移动本地main的命令；该命令未执行，随后核实main无独有提交，改用git switch及merge --ff-only安全快进成功，无权限阻断遗留。源码交付**MERGED_MAIN**；本轮CI Windows安装旅程为真实宿主/合成材料，不是日常Green、真实模型完整业务链或Owner验收。前端全阶段与UI-P14/21/22/23/24等原欠账继续PARTIAL；不据本次合并启动后端或激活冻结能力。
 
 记录及历史回执更新后的定向验证：`rc-merge-conventions2-20261020`工作树目录规范PASS、`rc-merge-authority-20261020`单一记录/链接/仓内hash PASS（外部私人4项仍UNVERIFIED）、`rc-merge-object-guards-20261020`原对象门禁15项PASS，dirty diff检查PASS。首个目录命令误用`--scope`而非现有`--source`导致usage/exit2，原运行保留；修正调用后通过，未改产品或规范。新文档提交及后继CI/PR以现场实际SHA读回，不重复产品全量本地测试。
+
+**清理后的fresh clone补查与修复**：按实际剩余3个远端heads计算可达对象，`rc-source-reachability-red-20261020`发现现行覆盖说明仍写退役4fc9006a的完整SHA，资源overlay仍绑定退役7897bbd3；本机对象门禁因对象尚未gc而通过，不能替代fresh clone可达性。完整历史身份已在原并行整合回执和上述分支收敛回执中保留。覆盖说明改用短名及原回执；资源绑定改为main已有的980f9796，两个布局提交的git patch-id --stable完全相同，并新增原身份JSON pointer及修复日期/限定说明。68项资源、115条原冲突、全部entries/selected_scope/资格/激活声明逐值不变；现有生成器同步只读resource-catalog的来源hash及metadata，没有改门禁或生成器。
+
+`rc-source-reachability-green-20261020`的当前声明缺失对象为0；`rc-resource-projection-green-20261020`16项原投影合同PASS，`rc-resource-ui-green-20261020`资源页/供体2文件20项PASS。生成步骤`rc-resource-regenerate-20261020`的child exit0，但因预期改写生成文件，被dev.py正确记SOURCE_INVALIDATED/exit3，**不称验证PASS**；后继只读投影/消费者门禁才是通过证据。Python退出时已有pyreadline3句柄析构警告仍保留，进程exit0。此补查修复纳入后继PR195重新资格，不凭82f420f3那次仅文档CI通过直接合入新源码。
+
+后继文档Authority与生成投影`--check`通过。`rc-source-conventions-final-20261020`另发现本轮Python生成的分支回执工作副本为CRLF；Git已提交blob为LF，数据没有差异。已逐字节核对后将本轮工作副本对齐原已提交LF blob，未修改历史记录数据、生成规则或云端blob；该FAIL保留，后继规范复验另记。
