@@ -1,64 +1,69 @@
-# 当前 Agent 完整交接提示词：后端全链路与完整业务闭环优先
+# AAOS 完整接手提示词：后端闭环优先，含已连接 Stitch 前端来源
 
-> **2026-10-21 后继Owner决定**：“前端界面可以缓缓，优先确保后端全链路的打通跑通，优先闭环”；实时并行智能体按任务难度适配模型/推理强度。此决定覆盖下文2026-10-19的前端先行顺序：现在优先BE-P01—15及同候选CL-01—07/J1—J6，前端已做成果保留，余项稍后。仍读完整交接与分片，不缩闭环，不激活冻结项，不改provider/凭据/全局设置；共享checkout单writer，实际进度只更新原唯一执行记录。下文旧顺序保留其日期作为历史背景，以活动指针当前选择为准。
+可整体复制本文件给新会话。工作区 `D:\All projects\ArcheAxis-Knowledge-OS`。这是一份接续导航与任务要求，不是第二份进度记录。实际进度唯一写入 `docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md`；本提示词内的观测均为2026-10-21历史快照，首次动作仍须核现场。完整交接及详细分片都要读，不能只读摘要。
 
-用户再提“闭环”时，首先按[唯一最快最短完整闭环定义](../truth/CLOSED_LOOP_DEFINITION.md)（AAOS-SHORTEST-COMPLETE-LOOP-V2）理解范围，再核活动指针和实际进度。新定义包含免费百科／社区／科研检索比较、全面非企业知识库特色、既有开源池和本地／云端双通道，不能缩成小演示；定义落地不代表产品已完成。
+## 1. 最新任务、授权与读取顺序
 
-> **最新接续决定（2026-10-19）**：Owner要求完整交接，并明确**全量UI界面优先，先前端再后端**。执行顺序及细分验收见[24个前端／15个后端分片](AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md)。本文可整体复制给其他Agent；本次整理不启动后台开发。新会话收到接手／继续指令后按此执行。旧收尾只代表其时点，不能据它否定后继决定；不承诺自动继续。
+Owner最后要求：完成本轮后端候选收尾，接收另一会话已经跑通的Stitch设计；在本会话实测只读连接，查看截图、完整读HTML、对照项目；统一归档本会话和设计交接，并给出本完整提示词。后端全链路优先于余下UI，保留TRAE与现有前端成果；节省TOKEN，不做非必要工作、不重复无意义全量测试。按难度进行实时并行，独立读审可共享，同一checkout一个writer，独立writer隔离worktree。
 
-状态 **RUNNING_BY_OWNER / PARTIAL**：Owner 明确要求今天停止额度监控并继续完成当前任务。今天不查询额度、不因额度阈值停工；已知监控id archeaxis的删除接口返回not_found；截图未命名卡片的身份仍未核实，详见收尾归档。本次准备完整交接，不新增产品修改；后续全量前端按分片接续，实际进度唯一来源为 [UI 执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)。
+先完整读取：`AGENTS.md`、`AUTHORITY.md`、`PROJECT_CONTRACT.yaml`、`docs/current/AAOS-ACTIVE-EXECUTION.json`、`docs/truth/CLOSED_LOOP_DEFINITION.md`、本文件、`docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md`、唯一执行记录。Task Grant以当前Owner原话、活动指针 `delivery_authorization` / `green_update_authorization`及冻结边界共同解析，未发现独立命名的Task Grant文件，不自行补造。
 
-1. 先读 [根权威](../../AUTHORITY.md)、[AGENTS](../../AGENTS.md)、[活动指针](AAOS-ACTIVE-EXECUTION.json) 与 [文档职责索引](../DOCUMENTATION_AUTHORITY_INDEX.md)。
-2. 读 [Owner 决定](AAOS-OSS-INTEGRATION-DECISION-20261019.md)、指针选择的任务来源与 [待办来源索引](AAOS-EXECUTION-BACKLOG-20261018.json)。既有实现先读源码及对应回执，避免重复实施。
-3. 查 [共享路径](../SHARED_RESOURCE_PATH_INDEX.md)、[运行依赖声明](../../config/environment/capability-requirements.yaml)、[本地模型入口](AAOS-LOCAL-LLM-20261018.md)。登记不替代现场版本、加载、推理与权限检查。
-4. 会话出处读 [项目会话索引](AAOS-CODEX-SESSION-INDEX-20261018.md)、[已授权资料整合](AAOS-SESSION-RECONCILIATION-20261018.md) 与 [Owner 原话映射](../history/owner-dialogue-20261019/README.md)，不猜私人路径或扫描原生会话。
+再读选中任务包 `docs/taskpacks/aaos-ui-first-20261009/` 的TASKPACK.md、TASKS.json、PAGE-PLAN.csv、FREEZE-REGISTER.md，补充前端/后端合同位于 `docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/`、`docs/authority/taskpack-20261013-backend-host/`；读 `docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md`、`docs/current/AAOS-EXECUTION-BACKLOG-20261018.json`。UI-P/BE-P/RC-P是原任务的实施分片，不替换原ID或另建产品真值。
 
-当前采用强核心底座与按需能力接入；模型调度、权限、持久化、多格式基本链属于底座，扩展在既有能力中心按插件、技能、MCP 或模板表达。专业 PSD／AI／CDR／CAD／3D 源格式已移出直接支持目标。小栖在 AAOS 内适配；ASTRYN 源仓仍未取得删除资格。
+所有路径先查 `AAOS-资料索引.md`、`docs/current/AAOS-AUTHORITY-ROUTES.json`、`docs/SHARED_RESOURCE_PATH_INDEX.md`、`config/environment/capability-requirements.yaml`、`config/environment/external-resources-index.json`及具体manifest。文件缺失先查归档/ZIP成员，不猜路径或扫描Home/整盘。缺权威报告AUTHORITY_REFERENCE_MISSING。登记不是实际可用证明。
 
-旧报告、旧 current、旧收据和旧目录统一见 [历史入口](../history/README.md) 及 [迁移清单](../history/repository-consolidation-20261019/MANIFEST.json)。[路径身份登记](AAOS-AUTHORITY-ROUTES.json) 可解析旧路径；不在旧位置重建副本。仍绑定的 M0/R6 约束继续有效，旧整包执行顺序不重新激活。
+正式栈Tauri2/React/TypeScript/Vite，Rust Core唯一SQLite/CAS业务writer，Python隔离worker；保留普通Document/Block直接保存、版本/幂等/草稿/人类知识接纳边界。沿用DockWorkspace、ConsoleWindow、图谱和人物renderer，先读已有实现只补差距。不再搭壳、替换渲染器、另建能力注册中心或另起ASTRYN。
 
-接续先完成全量前端审查、必要修复及前端阶段验收，再处理模型完整旅程、BE10外部投递、常用格式和业务全链路。前端阶段可读后端合同和核已有接口；缺失接口登记精确阻断，继续独立UI，不扩写后端、不假装成功。阶段进度只写唯一执行记录，UI-P／BE-P是原UF／CB／FE／BE任务的实施分片，不建立第二任务真值。
+现有授权涵盖当前公开源码/文档的普通commit/push/PR，以及审阅和required exact-head CI合格后的正常merge；push不等于merge。不得force/reset/clean/改写历史。公开发布、私有材料外发、付费云模型调用、真实用户数据覆盖、未知共享进程终止未由设计接收授权。Green程序更新仅限 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 且先满足资格/备份/停止/精确成员核验；本轮未更新Green。
 
-只运行变更相关检查，按 [验证策略](../VERIFICATION_POLICY.md) 决定必要门禁。Owner 后继已允许覆盖 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 的程序文件；按活动指针 `green_update_authorization` 先保全程序回退、核实候选与停止状态，再更新并读回身份。现有候选安装失败尚未闭环，此授权不是安装资格。V01 暂停、FT01–04 冻结；公开发布、真实数据覆盖及终止未知共享进程仍未授权。
+Stitch只读：get_project/list_screens/get_screen/download_file；禁止generate/edit/delete/upload/apply/publish，不修改全局配置，不回显密钥，不重启其他会话。读取设计不是原型、宿主或产品验收。E:/F:默认禁访；不读凭据、私人原生会话/账号memory、浏览器认证。V01暂停，FT01—04及六项增量冻结；不自行恢复额度监控、创建定时或承诺后台继续。
 
-## 一、接手职责与现场起点
+## 2. 已承接工作与证据边界
 
-你接手星环知识系统ArcheAxis Knowledge（AAOS）。Owner懂一点编程，描述可能不准确：理解意图、拆解依赖、独立判断，不机械顺从，不以工程术语掩盖缺口。沟通中文，普通实现细节自行推进；互斥范围、付费、私人资料外发和不可逆副作用才提出具体问题。
+本段由本会话可见指令、Git和项目回执梳理，不是私人原生会话逐字导出。完整旧交接已原字节保存在 `docs/history/product-loop-20261019/session-20261021-stitch/HANDOFF-BEFORE.md`，原位置见同目录MANIFEST；旧相对链接按原 `docs/current/` 解析，不据旧“前端先行”覆盖当前后端优先。
 
-工作区`D:\All projects\ArcheAxis-Knowledge-OS`，先核cwd、git status --short、分支、HEAD、remote、当前PR／CI；保护未知修改，不切分支、不清理产品worktree，不reset／clean／force-push。同checkout只有一个writer；并行按当时平台／项目规则执行，独立writer用已授权隔离worktree。不要擅改Agent模型／provider／推理等级。
+TRAE最后总结的 `206d56dafd00d0d3ccfd949ce6a4e424a324112a` 已在当前产品历史中；术语收敛、A0竞态、安装可见导航修复等保留。不要再盲合旧整包。PR194已于2026-10-20正常收敛，PR192/193重复内容已妥善关闭；19本地/4远端等价分支清理记录在 `docs/history/product-loop-20261019/branch-convergence-20261020.json`，六个有独有内容的分支继续保留。旧25分支待传说法是历史，后续仍动态核对远端/patch/占用。
 
-除上方入口外，读取[项目合同](../../PROJECT_CONTRACT.yaml)、[配置权威](../CONFIGURATION_AUTHORITY_INDEX.md)、[目录权威](../DIRECTORY_AUTHORITY_INDEX.md)、[运行交付导航](../RUNTIME_DELIVERY_AUTHORITY_INDEX.md)。当前任务来源`docs/taskpacks/aaos-ui-first-20261009/`内TASKPACK.md、TASKS.json、PAGE-PLAN.csv、FREEZE-REGISTER.md；补充合同`docs/authority/taskpack-20261013-frontend-ui/01-Frontend-UI/`和`docs/authority/taskpack-20261013-backend-host/`。规划时NOT_EXECUTED不是当前实现状态，原任务ID继续沿用。
+PR200产品head `a63cda6d1864b70e74f54240d1246fa0d0b2fe7e` 已merge为 `86a486719b0d7a88602ff03c5ce393d447dfd9bd`；PR CI39594971487与main CI39597792036均SUCCESS，条件skip不算安装通过。本批落实machine.answer撤销lease竞态修复、经Owner批准Pillow12.3→13（205锁记录仅1条变化，其余204不变，项目环境内验证）、Store生产tokio rt特性和有限Markdown原件标题/块精确映射。独立审阅报出的UTF-8 panic、遮罩/定义歧义及列表边界均已修复并原问题回归，不降低断言。旧FAIL及修复证据保留。
 
-引用缺失报告AUTHORITY_REFERENCE_MISSING，不从旧报告拼造权威。正式宿主是Tauri 2／React／TypeScript／Vite；Rust Core唯一SQLite/CAS业务写入者，Python workers隔离。frontend/、src-tauri/为正式宿主，旧Avalonia等仅供体。保留已有图谱renderer、DockWorkspace、普通保存原则和人工接纳正式知识流程。
+a63实际候选：Core `1a1d9b9bb892aba0dc7d940d2cce993b339c75783eb0fae5e549ce62862c837c`；正式host/portable成员资格通过，不是已安装或Green验收。真实公共检索156 HTTP步骤（Wiki/StackExchange/OpenAlex→CAS/定位/比较→工程人工知识/FSRS→恢复冷读），接同工作区常用资料/J3有限关系/明确fragment/OCR/英文WAV和MP4/导出恢复链1895步骤、3790 journal事件、严格replay与源候选一致通过。最终长链收据SHA `b0a927ecddcf9106062c31adb5e450e54ba8e8a7c954a45e270d6588cafe7e40`；汇总 `.project-local/artifacts/backend-followup-20261021/a63-full-chain-final-readback.json`。工程human是自造材料SYNTHETIC，公开网络/Core/worker实际执行REAL；speech仍PARTIAL，不称中文/视频视觉/全部识别质量合格。旧021中断1467步不能PASS或借给后继SHA。
 
-## 二、闭环含义和架构决定
+J5本轮产品head `8475af51f55f4df085467c48f71b22eb660f70f8`：复用同一能力中心、capability_settings和Tauri bridge，提供first-party inert data-only T3 v1/v2启停、更新、回退、卸载/重装，pin/hash/snapshot/epoch围栏；停用卸载只阻止新应用，原文、引用、旧字段、知识和学习保留可用。独立review发现新增字段没显示，已修为按已存pin/fields编辑，回归先RED后GREEN；66后端、33 bridge源码harness、58 UI及相关合同定向通过，模拟native不称真实GUI。
 
-闭环完整范围只维护在docs/truth/CLOSED_LOOP_DEFINITION.md，七项缺一不能报完整通过：完整核心、常用多格式、免费百科／社区／科研真实检索比较、全面非企业知识库特色、既有开源池轻量吸收、本地＋云端真实模型、同候选全链路可靠运行。最快约束复用和顺序，不是缩成“导入一文件后回答一次”。
+schema13→14只加同表三列。原31-Source、47旧表的schema13备份SHA `ee3e43d48f85001e22515b3db010098b878bd632d80589d09b101fce05a8fa8c`由新Core真实恢复升级14，原a63Core独立恢复原备份13，旧列/CAS逐一相等，原备份不变。旧Core不能开14，回退用原13备份；不降级原库。升级证据 `.project-local/runs/be268a2d33/j5-real-schema13-upgrade-8475af51-retry1/artifacts/upgrade-receipt.json`。
 
-模型调度、身份、权限、保存、索引、多格式基础沉入强核心；软件协议走适配器、专用视图算法走插件、流程走技能、结构走模板、外部工具走MCP。在**同一个能力中心**发现／配置／管理，未来能力可展示但标规划／未接入，没有真实接线不提供假执行入口。底层库不伪装可安装插件，不新增另一市场、注册器或业务真值。
+8475 measured Core SHA `223da0b89c1aa7f7a0212058d71ea7b06295fd11888e2de4f669b63a1ec91306`，18,092,544B；独立stage `.project-local/candidates/backend-8475af51-20261021`，19479成员，manifest `4b08e3b2dee34a7410884af38460c937c32cbe4af3ca59008fcc91ac7e125c73`。实际content-policy 65 HTTP普通保存/ACK/版本/检查/备份/恢复/重启通过；实际J5 54请求在原31来源恢复工作区完成生命周期、拒绝、旧对象编辑及冷重启保留：`.project-local/runs/be268a2d33/j5-real-lifecycle-8475/artifacts/lifecycle-receipt.json`。均非安装GUI/完整新候选CL/J。自有Core stop/wait回收，不是原生正常窗口退出资格。
 
-格式盘点包含TXT/Markdown/RTF、CSV/TSV/JSON/JSONL/YAML/XML、文本与扫描PDF、HTML/EPUB、常用Office新旧格式／开放文档、图片OCR、音视频转写／时间定位、知识库附件／双链／块／属性／Canvas。按实际矩阵列导入、阅读、编辑、检索、引用、导出、往返、依赖及损失；识别扩展名不等于内容可用。PSD／Illustrator AI／CDR／CAD／3D专业源文件直接支持已排除，用户外部导出图片或PDF后接入；不承诺源结构往返，AI这里指Illustrator文件。
+8475 CI39613573199失败于3个消费者仍精确断言schema13；保留原日志，不当新产品行为失败或放宽断言。后继 `2adf5724359d2d9ea03e59ae660dacb661f7e3ef`仅修两个验证文件的精确14期望及记录，本地4+1回归通过。该exact head CI39616983445于14:45:38Z SUCCESS（8 job成功/11条件skip，required语义gates全部满足，非full qualification）；独立审阅与现行规则核对后PR201已正常expected-head merge，main `fc75de866714d89e9d9605c60fba3240cba6246d`，tree `818f85ceea2d9be00c0219628c0ed958e7de8e1b`，parents86a48671/2adf5724。main自身CI及后续文档提交仍动态核对。8475实际构建不能改称2adf新构建，skip不算安装态PASS。
 
-全面兼容以软件／版本／非企业特色／接入方向矩阵验收，不把导入Markdown称全部特色；企业排除或延期，高难个人特色可具名延期但保留差距、降级损失、原因、恢复条件和蓝图位置。不得默默只剩几款或几个好测特色，也不承诺未枚举的全世界软件和未来版本。
+## 3. 当前未完成与下一轮真正切片
 
-最终同一候选完成J1多格式与批次恢复、J2外部研究、J3知识库特色、J4本地与云端模型、J5扩展生命周期、J6安装与可靠性。同一批对象／原件／版本连贯使用；不同分支／旧版本／样例的局部PASS不能拼成闭环。
+整体始终PARTIAL，不能用本轮归档、连接、构建、CI或局部通过宣称闭环。先动态核PR201是否已正常merge、main CI及工作树，再接必要业务缺口，不重做已完成定向回归。
 
-## 三、交接编写前的实际快照
+1. CL-06/J4：LM Studio既有aaos-deep-27b-mtp当前候选真实尝试一次119秒超时，一次86.3秒仅reasoning_content/finish=length，无最终答案；历史旧候选回答不能借用。模型thinking/输出策略Owner决定待答；不自行换模型、改provider或自动回Ollama，不重复相同失败调用。真实云端provider/材料/端点/费用授权仍缺，明确BLOCKED；不扫凭据、不试传私人库，不拿mock冒充真实接通。
+2. CL-04/J3：有限链接/块/图谱已有实际子链，全面“软件×版本×非企业特色×方向”矩阵仍欠；68项混合供体不是68款软件全兼容。Canvas几何/边保存不等于全canonical语义往返；复杂格式/引用写明损失，不静默删需求。
+3. CL-05/J5：本轮只证一项first-party T3模板生命周期，不代表任意第三方代码或插件/技能/MCP各形态全接通。按同能力中心及真实消费者逐项补，复杂项具名延期，写损失/恢复条件/蓝图落点。
+4. CL-02：中文自造TTS在SAPI Language804枚举HRESULT0x80045039、Speak前阻断，无中文音频/ASR资格；既有英文时间托管是有限PARTIAL，视频visual未启用。须可用正常TTS或明确批准的自造中文音频/truth/hash，不改注册表/ACL/共享环境。
+5. CL-07/J6：同一最终候选的完整J1—J6、原生安装/窗口/缩放/DPI/键盘/无障碍/性能与Owner独立验收未完成。历史installer grouped UI FAIL、GetExtendedTcpTable family2 Win5等负证据保留；conditional installer skip不是PASS。只在最终候选触发必要完整资格，Green更新资格未满足，保持真实数据/程序回退。
+6. BE10真实外部对端/OS URI完整资格，全面UI24分片与RC-P01—08剩余精确批次仍欠；不以治理代替产品修复。ASTRYN独有资料/Cowork全文/未命名定时身份继续UNVERIFIED，不擅自删库或扫描私人源。
 
-以下仅为2026-10-19编写前观察，接手必须动态核对：分支codex/sync-20261019，头5836b90687aaae3b9d6e8750f0793f0426c639ae，当时本地＝远端，PR194 Draft/Open，目标main；本文后继提交身份从Git读回。[PR194](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/194)；该头的[CI39271537141](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39271537141)当时queued，未取得完整资格。
+新接手的最小动作：读现场 → 对照唯一执行记录中最新失败/授权 → 按当前后端15片解决可独立推进的一项实际差距；若模型/云端等待Owner，继续独立矩阵/已授权消费者或安装失败定位，不造成功。无新变化不重建冻结/派重复审计/全测。
 
-- 产品总体PARTIAL。旧源码867d7c8a07d6e0e36895b84e3ad1490e0a58badb的[CI39264199340](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39264199340)整体CANCELLED，installer-lifecycle实际FAIL：`actual installed grouped UI engineering journey failed`，exit1。失败step为Verify the installed NSIS lifecycle；[失败job](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39264199340/job/118109895029)、[20文件证据包](https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/actions/runs/39264199340/artifacts/12192499506)。根因UNVERIFIED，先看日志／截图定位，不能猜测、减断言求绿。
-- 已有ConsoleWindow移动／调整／键盘取消、密度／玻璃／菜单定位修复、DockWorkspace及小栖窗口。存在组件不等于全UI合格；Owner玻璃视觉验收、完整拆分／DPI／辅助技术仍须核。
-- 正式A0浏览器曾PASS，13档视口／5主题，是真实Chromium＋合成host/Core，不能外推原生安装、真实业务或系统DPI。Rust workspace一次915通过、0失败、0忽略、194结果组；TS/Vite及相关合同曾通过，仅证明对应源码。历史156文件1492用例不是当前整仓资格，各轮重叠数字不能累加。
-- 冲突探针已按业务页可读预览／诊断中心严格比较JSON迁移，保留三份快照、明确保存、B独立草稿、版本与重启；49项Python合同和19项组件检查只是局部资格，不能覆盖后继安装FAIL。
-- DOCX/XLSX/PPTX/文本PDF有真实Core解析／保存／定位／重启证据，不等于全部格式、整批恢复、UI和往返。BE10本地human固定snapshot已有有限真实原生资格，外部对端／OS URI欠缺。
-- LM Studio 27B曾真实回答，MTP曾启用；没有基线不称加速收益或质量达标。真实云端全旅程、三类免费研究、HUB004生命周期及全面知识库特色仍须补齐。
+## 4. 已接收且本会话实测可读的 Stitch 来源与前端任务
 
-后继读回：5836b906的CI39271537141已实际出现test (3.12)两项FAIL，来自tests/test_project_contract_references.py：闭环登记新增closed_loop_definition但严格Schema未同步，additionalProperties拒绝该字段。云端5573 passed／2 failed／88 skipped仅为该作业，不是整轮通过。此处同步Schema及原失败回归，不放宽其他字段或保存／写入边界；本地修复不等于新exact-SHA CI已合格。原867d7c8a安装FAIL仍是独立未闭环证据。
+项目 `AAOS Desktop Replica`，`10243059433218383839`；页面 `AAOS 交互整合版`，`206611daf7a948edb97ea60c7a7d8654`。另一会话外部交接目录 `C:\Users\ALEX\Documents\Codex\2026-10-18\codex-codex-ui-ux-work-lab\outputs\stitch-connection-20261021`，HANDOFF-AAOS.md/REPORT.md及明确列出的HTML/PNG/三个只读脚本已按精确对象复制保全，原件不动。
 
-审计实际边界沿[审计覆盖说明](AAOS-AUDIT-TEST-COVERAGE-20261018.md)、[会话收尾](../history/product-loop-20261019/conversation-closeout.md)、[验证索引](../history/product-loop-20261019/verification-index.json)和唯一执行记录追踪。历史结论不能直接当当前PASS。
+本会话2026-10-21T14:35:32Z起真实initialize/tools-list，核readOnlyHint及schema后get_project/list_screens/get_screen/download_file；八个HTTP响应成功，远端写入0、模型turn0。HTML97,811B SHA `8c9fba60a636ab8f9fdf9d5c1bb70dbf9dd32cba4961ade66f5aa5feb6f2ba18`，PNG2,757,978B/2560×2048 SHA `46c09bc4bc9428ae716f1159a8d263a78fce15d8b7fa856d3367ded2243f9e46`，实时下载与另一会话一致。截图实际查看，HTML1683行完整只读审查；没有执行脚本/加载外链。
 
-## 四、先执行24个前端分片
+项目本地快照及连接收据：`.project-local/artifacts/stitch-intake-20261021/live-read/`；原交接与脚本保全：同父目录 `received/`。公开导航、hash和比较：`docs/history/product-loop-20261019/session-20261021-stitch/README.md`、`MANIFEST.json`、`STITCH-COMPARISON.md`、`DESIGN.md`。原始设计/外部交接/运行收据保持ignored，不随公开Git上传。原生Stitch MCP会话挂载仍UNVERIFIED，本会话已证明替代只读入口可用，无须重启其他会话或重复配置。
+
+必要刷新时先审查已保全的Read-Stitch.ps1/read_target.py/verify_stitch.py，再运行原交接或本地received中的Read-Stitch.ps1，`-OutputDirectory`给当前项目新审计目录，可`-MetadataOnly`避免下载。例：`& '.project-local\artifacts\stitch-intake-20261021\received\Read-Stitch.ps1' -OutputDirectory 'D:\All projects\ArcheAxis-Knowledge-OS\.project-local\artifacts\stitch-intake-next' -MetadataOnly`。密钥由入口仅传给自己的子进程，不打印/归档。不要直接执行verify_stitch.py主程序（其独立诊断入口会更新外部latest-verification）；Read-Stitch.ps1调用的是read_target.py，仅写给定目录。沿用既有Windows代理是客户端读取，非更改系统网络。
+
+设计可取：星际环境留白、内缩研究主窗、右侧辅助资料/助手层级、底部应用内导航、证据选中/原文定位/冲突并列。冲突/缺口：固定桌面几何及无窄屏适配；只有5路由3设置tab；没有大地图/图谱及虚拟人物renderer；小栖只是文字窗口；connected=true/同步/解析/数量/学术结论属于模拟。不得直接替换现有React壳或把硬编码状态当真实业务。
+
+后端优先不变，前端后续先将研究/证据比较与右侧资料联动映射已有Core对象/权限/版本和现有组件，再保留大地图、内缩主控台、独立虚拟人物窗、现有图谱/人物renderer；拆分/标签/恢复复用DockWorkspace。必要短词对齐“小栖”，工程ID/结构/JSON归运行诊断。完整UI24项全部保留，截图的五个页面不缩范围。设计技能通用禁蓝/单强调色/持续动画等建议不覆盖Owner既定五主题、cosmic和减少动画要求；DESIGN.md是项目定制参考，不建立新的权威。
+
+## 5. 保留的完整前端24片（后端优先后接续）
 
 **必须读取详细分片的逐项验收标准**，以下是执行目录。先核既有实现，按缺陷／缺失／待验收分类，只补必要差距：
 
@@ -89,7 +94,7 @@
 
 全量包含22业务语义角色及共用壳、状态栏、对象侧栏、命令菜单、Inspector、splitter、设置、人物浮层；详细分片列齐。角色合并在同页时按语义验，不制造新页凑数。前端阶段不得绕过Core写库；fixture只证明隔离UI，缺API明确登记并继续其他独立项。
 
-## 五、前端阶段交付后执行15个后端分片
+## 6. 当前优先后端15片
 
 1. BE-P01：核心对象／版本／保存／未知ACK／冲突／幂等／备份恢复，复用Rust单写者。
 2. BE-P02：常用格式矩阵、解析OCR转写位置损失、真实样例与对外承诺操作。
@@ -107,7 +112,8 @@
 14. BE-P14：合格候选Green更新、哈希读回、数据保全和程序回退。
 15. BE-P15：企业／复杂项蓝图、资料会话缺口／账号设置／未命名定时尾项单独标识，治理不反复阻塞产品。
 
-## 六、各类库、模型和工具路径
+
+## 7. 各类库、模型和工具路径
 
 路径唯一依据是docs/SHARED_RESOURCE_PATH_INDEX.md及config/environment/capability-requirements.yaml；config/environment/external-resources-index.json只代表时点观察。登记≠安装≠会话发现≠连接≠真实调用。
 
@@ -128,7 +134,7 @@
 
 按当前可用性调用visual-project-audit、ui-ux-pro-max、web-design-guidelines、Playwright、gh-fix-ci、workflow-assistance-github-delivery等。文件存在不代表会话加载，更不代表产品通过；不重复安装浏览器／升级依赖／改全局Skills、MCP、Hooks、PATH。样例browser.mjs只服务样例（41730—41739及profile／输出受限），不改限制接管产品。产品专用脚本、独立profile、空闲127.0.0.1端口、一浏览器一worker，记自建PID／命令／时间，只结束自己的实例。启动前核脚本不会安装／迁移／写真实业务或连正式服务；有副作用就用其他安全路径。
 
-## 七、开源池、会话和历史资料入口
+## 8. 开源池、会话和历史资料入口
 
 - docs/truth/CAPABILITY_ATLAS_V2.yaml、CAPABILITY_ABSORPTION_REGISTRY.yaml、SUPPLY_CHAIN_LEDGER.json；docs/current/OSS-ABSORPTION-SURFACE-CROSSWALK-20261008.json的68项是混合供体库存，不是已装插件数。
 - 历史369池、供体取舍、研究映射的精确链接见闭环定义第八节，不重复搜索／引入。先核许可，不能把源码可见当可商用或改名规避许可；付费能力取合法替代／独立实现或具名延期。
@@ -138,7 +144,7 @@
 - docs/history/README.md、repository-consolidation-20261019/MANIFEST.json：旧交接／提示词／摘要／目录按原路径和hash查档，不在原位重建副本；清理先查现有引用及唯一证据，更新活动引用后只处理确证冗余，不删未知文件。
 - docs/history/product-loop-20261019/下conversation-closeout.md/.json、conversation-review.md、follow-up.md、verification-index.json、tool-usage.json保留前轮实测与失败；后继决定走活动指针，不让旧“停止新增”覆盖当前指令。
 
-## 八、授权、冻结和未核实尾项
+## 9. 授权、冻结和未核实尾项
 
 commit／push／PR／merge按活动指针delivery_authorization与当前任务核对；merge须当前审阅及required CI合格，push不代表main已合并。仅上传授权公开源码／文档，不上传密钥、.env、私人会话／记忆、浏览器认证、运行数据库或真实材料。
 
@@ -148,7 +154,7 @@ V01暂停，FT01—04及活动指针六项增量冻结，展示蓝图不激活�
 
 E:/F:默认禁访，读到旧脚本不构成进入许可。不扫Home／磁盘，不改全局账号、模型、provider、认证、网络或服务配置；路径登记不授予跨项目或私人数据权限。
 
-## 九、验证、交付和首次动作
+## 10. 验证、交付和首次动作
 
 先读canonical gate及变更风险，不默认全仓pytest或npm test。已知入口：项目.venv/Scripts/python.exe、scripts/runtime/dev.py、Windows scripts/ci/run_tests.ps1、Rust scripts/ci/cargo_test.bat（裸cargo可能缺MSVC）；前端manifest的build／tauri走scripts/runtime/frontend.mjs。每次核实际版本／入口，不新装替代环境。
 
@@ -160,7 +166,7 @@ E:/F:默认禁访，读到旧脚本不构成进入许可。不扫Home／磁盘�
 
 **当前首次接手行动（Owner 2026-10-21改序）**：先核现场Git/CI与唯一执行记录中的失败证据，按后端15分片推进同候选J1—J6及完整闭环，保留既有前端与TRAE修改。前端视觉可以缓缓，只补业务消费者和阻断修复；前端24分片保留欠账，不因改序宣称已交付。不得拿新一轮长审计或重复全测代替产品修复。结束核diff／status、自建PID与端口，更新唯一执行记录，给下一步和阻断；不能用交接、归档、测试数量或模型加载宣布产品完成。
 
-## 十、补充必须交付：分支合并、体积清理与双端规范
+## 11. 补充必须交付：分支合并、体积清理与双端规范
 
 Owner后继明确要求把“分支合并”“体积清理、本地和云端仓库规范化、目录规范化”一并纳入。详细分片第五节RC-P01—08规定逐项验收，继承G01／UF13／交付范围；先只读盘点，UI相关供体按前端顺序吸收，不能用整理代替当前后端业务修复或陷入无止境审计。
 
@@ -172,5 +178,3 @@ Owner后继明确要求把“分支合并”“体积清理、本地和云端仓
 6. RC-P06 清理先列原路径／hash／大小／归档或替代／重建方法；保全独有原件、失败证据和有效回退，只处理核实项目所有且可再生／重复对象。压缩验成员和hash，普通删文件不等于Git历史减小，历史改写未授权。
 7. RC-P07 按DIRECTORY_AUTHORITY.yaml和职责索引规范源码／合同／current导航／历史／供体许可／忽略运行产物，更新活动引用、查孤儿旧入口、原位不留第二可变副本，不乱搬不可变TaskPack。
 8. RC-P08 分别读回本地／远端／main／PR／release身份和清理前后字节，公开源码文档才同步。云端artifact按证据价值、期限和精确授权处理，保留失败／待审候选；不改可见性、保护规则、付费存储或擅自发布。
-
-2026-10-19后继盘点：实际远端7个heads（含main及sync、character-memory-ui、layout-preferences、closure-integration、remaining-loop-stage1、ui-polish），开放PR192／193／194均Draft；当前checkout唯一登记worktree。大量本地供体不是当前头的祖先，**是否有独有有效改动仍UNVERIFIED**，需查patch，不能立即删除。远端remaining-loop-stage1没有出现在旧tracking列表，证明只看本地引用会漏项。具体头与观察见verification-index的branch_and_repository_normalization；下次接手仍动态核对。
