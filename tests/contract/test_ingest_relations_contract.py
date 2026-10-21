@@ -53,3 +53,20 @@ def test_operation_and_openapi_reuse_canonical_definitions():
     assert op["responses"]["200"]["content"]["application/json"]["schema"] == {"$ref": "./core-document.schema.json#/$defs/IngestRelationsDto"}
     assert {"400", "401", "403", "404", "409", "413", "422"} <= op["responses"].keys()
     Draft202012Validator.check_schema(copy.deepcopy(SCHEMA))
+
+
+def test_explicit_fragment_binding_remains_bounded_and_cannot_supply_other_claims():
+    check = validator("IngestRelationsApplyInput")
+    value = request()
+    binding = {"link_ordinal": 0, "target_ordinal": 2, "fragment": "Heading",
+               "fragment_is_block": False, "block_id": "block_a"}
+    value["fragment_bindings"] = [binding]
+    assert check.is_valid(value)
+    for key, bad in [("link_ordinal", 256), ("target_ordinal", 10000), ("fragment", ""),
+                     ("block_id", "../outside"), ("fragment_is_block", "false"),
+                     ("resolution", "automatic")]:
+        changed = copy.deepcopy(value)
+        changed["fragment_bindings"][0][key] = bad
+        assert not check.is_valid(changed), key
+    value["fragment_bindings"] = [binding] * 257
+    assert not check.is_valid(value)

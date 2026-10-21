@@ -232,6 +232,87 @@ fn mask_code(markdown: &str) -> String {
     chars.into_iter().collect()
 }
 
+/// Exact, unique definitions only. This is not slug generation, section parsing
+/// or a mapping to an editor block. Code, Setext/rich headings and duplicate
+/// definitions remain unsupported. Documents containing HTML or Markdown container
+/// syntax outside code are refused: their nesting/lazy continuations require a
+/// semantic adapter. The caller separately supplies a pinned block.
+pub fn unique_fragment_definition(markdown: &str, fragment: &str, is_block: bool) -> bool {
+    if fragment.is_empty() {
+        return false;
+    }
+    if is_block
+        && !fragment
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-')
+    {
+        return false;
+    }
+    let mut count = 0;
+    let masked = mask_code(markdown);
+    if masked.lines().any(|line| {
+        let line = line.trim_start();
+        let after_digits = line.trim_start_matches(|c: char| c.is_ascii_digit());
+        let marker_end =
+            |tail: &str| matches!(tail.as_bytes().first(), None | Some(b' ' | b'\t' | b'\r'));
+        let unordered =
+            matches!(line.as_bytes().first(), Some(b'-' | b'+' | b'*')) && marker_end(&line[1..]);
+        let ordered = (1..=9).contains(&(line.len() - after_digits.len()))
+            && matches!(after_digits.as_bytes().first(), Some(b'.' | b')'))
+            && marker_end(&after_digits[1..]);
+        line.contains('<') || line.starts_with('>') || unordered || ordered
+    }) {
+        return false;
+    }
+    for (line, masked_line) in markdown.lines().zip(masked.lines()) {
+        let trimmed = line.trim_start_matches(' ');
+        if line.len() - trimmed.len() > 3 || trimmed.starts_with('\t') {
+            continue;
+        }
+        // Derive every byte boundary from the original string. mask_code preserves
+        // character positions, not UTF-8 byte positions; it may only exclude a
+        // candidate, never create indentation, a heading prefix or a line ending.
+        let exposed = |start: usize, end: usize| {
+            let candidate = &line[start..end];
+            candidate.chars().eq(masked_line
+                .chars()
+                .skip(line[..start].chars().count())
+                .take(candidate.chars().count()))
+        };
+        let (definition, start, end) = if is_block {
+            let trimmed = trimmed.trim_end();
+            let definition = trimmed
+                .rsplit_once('^')
+                .filter(|(before, _)| before.is_empty() || before.ends_with(char::is_whitespace))
+                .map(|(_, id)| id);
+            let end = line.trim_end().len();
+            let start = definition.map_or(end, |id| end - id.len() - 1);
+            (definition, start, end)
+        } else {
+            let hashes = trimmed.bytes().take_while(|b| *b == b'#').count();
+            if (1..=6).contains(&hashes) && trimmed[hashes..].starts_with(' ') {
+                let title = trimmed[hashes..].trim();
+                // Rich heading markup requires a separate semantic adapter.
+                if trimmed[hashes..].contains(['*', '_', '`', '[', ']', '<', '>', '#', '\\']) {
+                    (None, 0, 0)
+                } else {
+                    (
+                        Some(title),
+                        line.len() - trimmed.len(),
+                        line.trim_end().len(),
+                    )
+                }
+            } else {
+                (None, 0, 0)
+            }
+        };
+        if definition == Some(fragment) && exposed(start, end) {
+            count += 1;
+        }
+    }
+    count == 1
+}
+
 /// A Markdown inline link starting at `index`, which points at `[`.
 fn markdown_link(bytes: &[char], index: usize) -> Option<(Link, usize)> {
     let mut cursor = index + 1;

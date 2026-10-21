@@ -86,6 +86,7 @@ impl Fixture {
             expected_version: 1,
             content_sha256: original["content_sha256"].as_str().unwrap().into(),
             targets,
+            fragment_bindings: vec![],
         };
         Self {
             _dir: dir,
@@ -583,5 +584,276 @@ fn markdown_delimiters_never_bind_a_truncated_or_label_target() {
             "{r}"
         );
         f.unchanged();
+    }
+}
+
+fn fragment_fixture() -> Fixture {
+    let mut f = Fixture::new(
+        "[[peer#Heading]] [[peer#^named]] [[peer#unknown]]",
+        &[("peer.md", "# Heading\nOriginal paragraph ^named")],
+    );
+    let target = f.request.targets[0].document.as_ref().unwrap();
+    let block =
+        document::read(&f.conn, &target.document_id, Some(1)).unwrap()["blocks"][0]["block_id"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+    f.request.fragment_bindings = vec![
+        links::FragmentBinding {
+            link_ordinal: 0,
+            target_ordinal: 1,
+            fragment: "Heading".into(),
+            fragment_is_block: false,
+            block_id: block.clone(),
+        },
+        links::FragmentBinding {
+            link_ordinal: 1,
+            target_ordinal: 1,
+            fragment: "named".into(),
+            fragment_is_block: true,
+            block_id: block,
+        },
+    ];
+    f
+}
+
+#[test]
+fn fragments_keep_pinned_blocks_backlinks_reopen_restore_and_portable_boundary() {
+    let mut f = fragment_fixture();
+    let peer = f.request.targets[0].document.clone().unwrap();
+    let receipt = f.apply().unwrap();
+    assert_eq!(receipt["added_relations"], 2);
+    assert_eq!(
+        receipt["links"][2]["reason"],
+        "fragment_resolution_not_supported"
+    );
+    let relations =
+        &receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"];
+    for r in relations.as_array().unwrap() {
+        assert_eq!(r["target"]["version"], 1);
+        assert_eq!(
+            r["target"]["block_id"],
+            f.request.fragment_bindings[0].block_id
+        );
+        assert!(
+            r["label"]
+                .as_str()
+                .unwrap()
+                .contains("human-selected block")
+        );
+    }
+    let projection = relation_projection::query(&f.conn, &peer.document_id, Some(1), None).unwrap();
+    assert_eq!(projection["edges"].as_array().unwrap().len(), 2);
+    let fixed = archeaxis_domain::object_reference::Reference::Document {
+        document_id: peer.document_id.clone(),
+        version: 1,
+        block_id: Some(f.request.fragment_bindings[0].block_id.clone()),
+    };
+    archeaxis_domain::object_reference::resolve(&f.conn, &fixed).unwrap();
+    document::save(
+        &mut f.conn,
+        &peer.document_id,
+        1,
+        json!({"type":"doc","content":[]}),
+    )
+    .unwrap();
+    assert!(
+        relation_projection::query(&f.conn, &peer.document_id, Some(2), None).unwrap()["edges"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(
+        relation_projection::query(&f.conn, &peer.document_id, Some(1), None).unwrap()["edges"],
+        projection["edges"]
+    );
+    assert!(matches!(f.apply(), Err(links::Error::Conflict(2))));
+    f.request.expected_version = 2;
+    f.request.content_sha256 = receipt["document"]["content_sha256"]
+        .as_str()
+        .unwrap()
+        .into();
+    assert_eq!(f.apply().unwrap()["added_relations"], 0);
+    let package =
+        archeaxis_domain::portable_document::export(&f.conn, &f.request.document_id).unwrap();
+    let destination = f._dir.path().join("portable.sqlite");
+    let mut destination = init_workspace(destination.to_str().unwrap()).unwrap();
+    assert!(
+        archeaxis_domain::portable_document::import(&mut destination, package, "fragment-import")
+            .is_err()
+    );
+    assert_eq!(
+        destination
+            .query_row("SELECT COUNT(*) FROM documents", [], |r| r.get::<_, i64>(0))
+            .unwrap(),
+        0
+    );
+    let backup = f._dir.path().join("fragment-backup.sqlite");
+    archeaxis_domain::backup::backup(&f.conn, backup.to_str().unwrap()).unwrap();
+    let restored_path = f._dir.path().join("restored.sqlite");
+    let mut restored = init_workspace(restored_path.to_str().unwrap()).unwrap();
+    archeaxis_domain::backup::restore(backup.to_str().unwrap(), &mut restored).unwrap();
+    archeaxis_domain::backup::finalize_restore_authorization(&f.conn, &mut restored).unwrap();
+    assert!(matches!(
+        links::apply(&mut restored, "batch", 0, f.request.clone()),
+        Err(links::Error::ScopeConflict)
+    ));
+    drop(restored);
+    let restored = init_workspace(restored_path.to_str().unwrap()).unwrap();
+    assert_eq!(
+        document::read(&restored, &f.request.document_id, None).unwrap(),
+        receipt["document"]
+    );
+    archeaxis_domain::object_reference::resolve(&restored, &fixed).unwrap();
+    assert_eq!(
+        relation_projection::query(&restored, &peer.document_id, Some(1), None).unwrap()["edges"],
+        projection["edges"]
+    );
+    drop(f.conn);
+    f.conn = init_workspace(f.path.to_str().unwrap()).unwrap();
+    assert_eq!(f.apply().unwrap()["document"], receipt["document"]);
+}
+
+#[test]
+fn explicit_fragments_never_bypass_original_or_pinned_identity() {
+    for case in 0..13 {
+        let mut f = fragment_fixture();
+        match case {
+            0 => f.request.fragment_bindings[0].link_ordinal = 99,
+            1 => f.request.fragment_bindings[0].target_ordinal = 0,
+            2 => f.request.fragment_bindings[0].fragment = "different".into(),
+            3 => f.request.fragment_bindings[0].fragment_is_block = true,
+            4 => f.request.fragment_bindings[0].block_id = "missing".into(),
+            5 => f.request.fragment_bindings[0].block_id = "../outside".into(),
+            6 => f
+                .request
+                .fragment_bindings
+                .push(f.request.fragment_bindings[0].clone()),
+            7 => f.request.targets[0].document.as_mut().unwrap().version = 99,
+            8 => {
+                f.request.targets[0]
+                    .document
+                    .as_mut()
+                    .unwrap()
+                    .content_sha256 = "0".repeat(64)
+            }
+            9 => f.request.targets[0].document = None,
+            10 => f.request.fragment_bindings[0].fragment = "".into(),
+            11 => {
+                f.request.fragment_bindings[0].link_ordinal = 2;
+                f.request.fragment_bindings[0].fragment = "unknown".into();
+            }
+            _ => f.request.fragment_bindings = vec![f.request.fragment_bindings[0].clone(); 257],
+        }
+        assert!(f.apply().is_err(), "case {case}");
+        f.unchanged();
+    }
+}
+
+#[test]
+fn fragment_definitions_are_exact_unique_and_never_code_or_slugs() {
+    use archeaxis_domain::vault::unique_fragment_definition as defined;
+    assert!(defined("# 中文标题\ncontent ^block-1", "中文标题", false));
+    assert!(defined("# 中文标题\ncontent ^block-1", "block-1", true));
+    for text in [
+        "# Heading\n# Heading",
+        "```md\n# Heading\n```",
+        "    # Heading",
+        "Heading\n===",
+        "# **Heading**",
+        "# Heading `code`",
+        "# heading",
+    ] {
+        assert!(!defined(text, "Heading", false), "{text}");
+    }
+    for text in [
+        "`^block`",
+        "```\ntext ^block\n```",
+        "text ^block\nother ^block",
+        "text^block",
+        "text ^block extra",
+    ] {
+        assert!(!defined(text, "block", true), "{text}");
+    }
+}
+
+#[test]
+fn fragment_review_unicode_code_cannot_move_heading_offsets() {
+    assert!(!archeaxis_domain::vault::unique_fragment_definition(
+        "`a\n中`# Heading",
+        "Heading",
+        false
+    ));
+}
+
+#[test]
+fn fragment_review_code_prefix_does_not_hide_duplicate_blocks() {
+    use archeaxis_domain::vault::unique_fragment_definition as defined;
+    assert!(defined("`abc` ^named", "named", true));
+    assert!(defined("`中文` ^named", "named", true));
+    assert!(defined("中文 `code` ^named  \r\n", "named", true));
+    assert!(!defined("text ^named\n`abc` ^named", "named", true));
+    assert!(!defined("`中文` ^named\nother ^named", "named", true));
+    assert!(!defined("`中文\ntext ^named\n`", "named", true));
+}
+
+#[test]
+fn fragment_review_block_marker_must_end_the_original_line() {
+    assert!(!archeaxis_domain::vault::unique_fragment_definition(
+        "text ^named `abc`",
+        "named",
+        true
+    ));
+}
+
+#[test]
+fn fragment_review_unsupported_html_and_quote_contexts_are_rejected() {
+    use archeaxis_domain::vault::unique_fragment_definition as defined;
+    for (text, fragment, block) in [
+        ("<!--\n# Heading\n-->", "Heading", false),
+        ("<!--\ntext ^named\n-->", "named", true),
+        ("> ~~~\n> text ^named\n> ~~~", "named", true),
+        ("> ```\n> text ^named\n> ```", "named", true),
+        ("<div>\n# Heading\n</div>", "Heading", false),
+        ("- item\n# Heading", "Heading", false),
+        ("1. item\ntext ^named", "named", true),
+    ] {
+        assert!(!defined(text, fragment, block), "{text}");
+    }
+    assert!(defined("`<html>`\n# Heading", "Heading", false));
+    assert!(defined(
+        "```\n> quote\n<!-- html -->\n```\n# Heading",
+        "Heading",
+        false
+    ));
+}
+
+#[test]
+fn fragment_review_list_markers_accept_space_tab_and_line_end_only() {
+    use archeaxis_domain::vault::unique_fragment_definition as defined;
+    let mut accepted = Vec::new();
+    for marker in ["-", "+", "*", "1.", "1)", "123456789."] {
+        for suffix in [" item", "\titem", "", "\r"] {
+            let prefix = format!("{marker}{suffix}");
+            for (target, fragment, block) in [
+                ("# Heading", "Heading", false),
+                ("text ^named", "named", true),
+            ] {
+                let text = format!("{prefix}\n{target}");
+                if defined(&text, fragment, block) {
+                    accepted.push(text);
+                }
+            }
+        }
+    }
+    assert!(
+        accepted.is_empty(),
+        "unsupported list contexts accepted: {accepted:?}"
+    );
+    for text in ["-text", "+text", "*text", "1.x", "1)x", "1234567890. item"] {
+        assert!(
+            defined(&format!("{text}\n# Heading"), "Heading", false),
+            "ordinary text rejected: {text}"
+        );
     }
 }

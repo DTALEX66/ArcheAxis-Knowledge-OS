@@ -1,7 +1,7 @@
 import {beforeEach,describe,expect,it,vi} from "vitest";
 import {act,fireEvent,render,screen,waitFor} from "@testing-library/react";
 import {IngestRelationsPanel} from "../components/IngestRelationsPanel";
-import {freezeRelations,readRelationBatch,verifiedSource,verifyRelationReceipt,type RelationRead} from "../presentation/ingestRelations";
+import {freezeRelations,readRelationBatch,selectedFragments,verifiedSource,verifyRelationReceipt,type RelationRead} from "../presentation/ingestRelations";
 import type {DocumentDto,IngestBatchDto,IngestRelationsDto} from "../api/generated/core-contract";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 const a="a".repeat(64),b="b".repeat(64),c="c".repeat(64);
@@ -60,6 +60,16 @@ describe("SYNTHETIC explicit folder relation consumer",()=>{
  });
 });
 describe("fixed identity guards",()=>{
+ it("explicit fragments bind only the chosen pinned document block and retain the original link identity",()=>{
+  const peer:DocumentDto={...doc,document_id:"peer",source_id:"src_b",source_revision:b,blocks:[{block_id:"selected",kind:"paragraph",ordinal:0,node_json:{},text_projection:"Target",codec_status:"known"}]};
+  const targets=[{ordinal:1,source_id:"src_b",source_revision:b,document:{document_id:"peer",version:1,content_sha256:c}}];
+  const r={...receipt,links:[{...receipt.links[0],fragment:"Heading",fragment_is_block:false,target_ordinal:1}]};
+  expect(selectedFragments(r,{0:"selected"},targets,{1:peer})).toEqual([{link_ordinal:0,target_ordinal:1,fragment:"Heading",fragment_is_block:false,block_id:"selected"}]);
+  expect(selectedFragments(r,{},targets,{1:peer})).toEqual([]);
+  for(const snapshot of [{...peer,version:2},{...peer,content_sha256:a},{...peer,document_id:"wrong"},{...peer,blocks:[]}])expect(()=>selectedFragments(r,{0:"selected"},targets,{1:snapshot})).toThrow();
+  expect(()=>selectedFragments(r,{99:"selected"},targets,{1:peer})).toThrow();
+  expect(()=>selectedFragments(r,{0:"selected"},[],{1:peer})).toThrow();
+ });
  it("refuses source substitution and stale or incomplete batch pagination",async()=>{
   expect(()=>verifiedSource({source_id:"other",source_revision:a,sha256:a,original_name:"same",imported_at:"now"},"src_a",a)).toThrow();
   for(const value of [{...batch,complete:false},{...batch,workspace_id:"other"},{...batch,members:[batch.members[0],batch.members[0]]},{...batch,members:[batch.members[0]],next_ordinal:null}])await expect(readRelationBatch((async()=>value) as RelationRead,selection)).rejects.toThrow();
@@ -70,4 +80,29 @@ describe("fixed identity guards",()=>{
   expect(()=>freezeRelations(selection,batch,doc,[{ordinal:0,source_id:"src_a",source_revision:a}],false)).toThrow();
   const f=freezeRelations(selection,batch,doc,[],false);expect(()=>verifyRelationReceipt(f,receipt,{...saved,version:3})).toThrow();
  });
+});
+
+it("offers fixed blocks after the real relation receipt and sends the explicit selection through the same operation",async()=>{
+ const peer:DocumentDto={...doc,document_id:"peer",source_id:"src_b",source_revision:b,title:"Peer",blocks:[{block_id:"chosen",kind:"paragraph",ordinal:0,node_json:{},text_projection:"Chosen content",codec_status:"known"}]};
+ const notes={...batch,members:[batch.members[0],{...batch.members[1],relative_path:"peer.md"}]};
+ const unresolved={...receipt,document:doc,added_relations:0,links:[{...receipt.links[0],target:"peer",embed:false,fragment:"Heading",fragment_is_block:false,status:"unresolved",reason:"fragment_resolution_not_supported",relation_id:null}]};
+ let applies=0;
+ bridge.call.mockImplementation(async(op,p)=>{
+  if(op==="ingest_batch_get")return notes;
+  if(op==="document_version")return p.document_id==="peer"?peer:p.version===2?saved:doc;
+  if(op==="ingest_member_relations_apply")return ++applies===1?unresolved:{...unresolved,document:saved,added_relations:1};
+  if(op==="document_graph")return {center:{document_id:"doc_a",version:p.version,content_sha256:p.version===1?c:b},edges:[]};
+  throw new Error(op);
+ });
+ render(<IngestRelationsPanel {...props()} documents={[doc,peer]}/>);
+ fireEvent.click(screen.getByRole("button",{name:"读取完整批次映射"}));await screen.findByLabelText("链接目标 peer.md");
+ fireEvent.change(screen.getByLabelText("链接目标 peer.md"),{target:{value:"peer"}});
+ fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));await screen.findByLabelText("固定块映射 0");
+ await waitFor(()=>expect(screen.getByLabelText("固定块映射 0")).toBeEnabled());
+ fireEvent.change(screen.getByLabelText("固定块映射 0"),{target:{value:"chosen"}});
+ fireEvent.click(screen.getByRole("button",{name:"确认映射并保存原件关系"}));await waitFor(()=>expect(applies).toBe(2));
+ const calls=bridge.call.mock.calls.filter(([op])=>op==="ingest_member_relations_apply");
+ expect(calls[0][1].body.fragment_bindings).toBeUndefined();
+ expect(calls[1][1].body.fragment_bindings).toEqual([{link_ordinal:0,target_ordinal:1,fragment:"Heading",fragment_is_block:false,block_id:"chosen"}]);
+ await waitFor(()=>expect(onApplied).toHaveBeenLastCalledWith(saved));
 });

@@ -50,6 +50,16 @@ pub struct Target {
     pub source_revision: String,
     pub document: Option<DocumentBinding>,
 }
+/// A human-selected block, never an inferred heading slug or imported block ID.
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct FragmentBinding {
+    pub link_ordinal: usize,
+    pub target_ordinal: i64,
+    pub fragment: String,
+    pub fragment_is_block: bool,
+    pub block_id: String,
+}
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Apply {
@@ -61,6 +71,8 @@ pub struct Apply {
     pub expected_version: i64,
     pub content_sha256: String,
     pub targets: Vec<Target>,
+    #[serde(default)]
+    pub fragment_bindings: Vec<FragmentBinding>,
 }
 fn digest(bytes: &[u8]) -> String {
     hex::encode(Sha256::digest(bytes))
@@ -256,7 +268,10 @@ pub fn apply(
     ordinal: i64,
     input: Apply,
 ) -> Result<Value, Error> {
-    if input.targets.len() > 200 || input.expected_version < 1 {
+    if input.targets.len() > 200
+        || input.fragment_bindings.len() > 256
+        || input.expected_version < 1
+    {
         return Err(Error::Invalid("invalid relation binding budget or version"));
     }
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
@@ -322,6 +337,66 @@ pub fn apply(
             "original link count exceeds relation budget",
         ));
     }
+    // Validate every explicit mapping before appending any relation. The source
+    // syntax and target definition remain original-CAS facts; the selected
+    // canonical block is a human mapping, not an automatic fidelity claim.
+    let mut fragments = BTreeMap::new();
+    for binding in &input.fragment_bindings {
+        let link = links
+            .get(binding.link_ordinal)
+            .ok_or(Error::Invalid("fragment link ordinal is absent"))?;
+        if binding.fragment.is_empty()
+            || binding.fragment.len() > 1024
+            || link.fragment.as_deref() != Some(binding.fragment.as_str())
+            || link.fragment_is_block != binding.fragment_is_block
+            || fragments.contains_key(&binding.link_ordinal)
+        {
+            return Err(Error::Invalid(
+                "fragment mapping differs from original link or is duplicated",
+            ));
+        }
+        let resolved = resolve(link, &member.path, &paths).map_err(Error::Invalid)?;
+        if resolved != binding.target_ordinal {
+            return Err(Error::Invalid(
+                "fragment mapping target differs from original link",
+            ));
+        }
+        let (target, target_member) = targets
+            .get(&resolved)
+            .ok_or(Error::Invalid("fragment target binding required"))?;
+        if !note(&target_member.path) || target_member.byte_length > 256 * 1024 {
+            return Err(Error::Invalid(
+                "fragment target requires bounded original Markdown",
+            ));
+        }
+        let document = target
+            .document
+            .as_ref()
+            .ok_or(Error::Invalid("fragment target document binding required"))?;
+        let original = archeaxis_store_sqlite::raw_objects::read_bounded(
+            &tx,
+            &target.source_revision,
+            256 * 1024,
+        )?;
+        let original = std::str::from_utf8(&original)
+            .map_err(|_| Error::Invalid("fragment target must be UTF-8"))?;
+        if !vault::unique_fragment_definition(
+            original,
+            &binding.fragment,
+            binding.fragment_is_block,
+        ) {
+            return Err(Error::Invalid(
+                "fragment definition is missing, ambiguous or unsupported in original Markdown",
+            ));
+        }
+        let reference = Reference::Document {
+            document_id: document.document_id.clone(),
+            version: document.version,
+            block_id: Some(binding.block_id.clone()),
+        };
+        object_reference::validate(&tx, &reference)?;
+        fragments.insert(binding.link_ordinal, reference);
+    }
     let mut editor = current["editor_json"].clone();
     research::validate_editor(&tx, &editor)?;
     let mut relations = editor["attrs"]["archeaxis_relations"]["relations"]
@@ -350,7 +425,7 @@ pub fn apply(
             }
         };
         report["target_ordinal"] = json!(target_ordinal);
-        if link.fragment.is_some() {
+        if link.fragment.is_some() && !fragments.contains_key(&index) {
             report["reason"] = json!("fragment_resolution_not_supported");
             reports.push(report);
             continue;
@@ -360,7 +435,9 @@ pub fn apply(
             reports.push(report);
             continue;
         };
-        let reference = if note(&target_member.path) {
+        let reference = if let Some(reference) = fragments.get(&index) {
+            reference.clone()
+        } else if note(&target_member.path) {
             let Some(binding) = &target.document else {
                 report["reason"] = json!("note_document_binding_required");
                 reports.push(report);
@@ -391,7 +468,7 @@ pub fn apply(
             return Err(Error::Invalid("duplicate generated relation identity"));
         }
         let label = format!(
-            "Original CAS {} · {}{}{}",
+            "Original CAS {} · {}{}{}{}",
             input.source_revision,
             if link.embed {
                 "embed reference (not rendered): "
@@ -399,6 +476,14 @@ pub fn apply(
                 "link: "
             },
             link.target,
+            link.fragment
+                .as_ref()
+                .map(|fragment| format!(
+                    "#{}{} (human-selected block)",
+                    if link.fragment_is_block { "^" } else { "" },
+                    fragment
+                ))
+                .unwrap_or_default(),
             link.label
                 .as_ref()
                 .map(|s| format!(" | {s}"))

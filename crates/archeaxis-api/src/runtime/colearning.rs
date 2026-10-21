@@ -27,6 +27,23 @@ pub(super) async fn machine_lease(
     fingerprint: &str,
     claim_id: &str,
 ) -> Result<super::MachineLease, Response> {
+    // Serialize only the settings check and registry insertion with withdrawal.
+    // The caller's capacity guard may span inference; this guard never does.
+    let _admission = runtime.admission.lock().await;
+    let enabled = runtime
+        .executor
+        .store()
+        .submit_wait(|conn| {
+            archeaxis_store_sqlite::capability_settings::is_enabled(conn, "machine.answer")
+        })
+        .await;
+    match enabled {
+        Ok(Ok(true)) => (),
+        Ok(Ok(false)) => return Err((StatusCode::CONFLICT,
+            Json(json!({"reason_code":"machine_answer_disabled","answer_published":false,"provider_stop_state":"UNKNOWN"}))).into_response()),
+        _ => return Err((StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({"reason_code":"machine_admission_unavailable","answer_published":false,"provider_stop_state":"UNKNOWN"}))).into_response()),
+    }
     let id = claim_id.to_owned();
     let attempt = runtime
         .executor
@@ -581,6 +598,8 @@ pub(super) async fn machine_answer(
                     .await
             }
         };
+    // Close and persist under the withdrawal boundary, after inference has ended.
+    let _publication = runtime.admission.lock().await;
     let cancelled = match lease.close() {
         Ok(cancelled) => cancelled,
         Err(_) => {
@@ -1055,6 +1074,7 @@ pub(super) async fn run_retest(
                     .await
             }
         };
+    let _publication = runtime.admission.lock().await;
     let cancelled = match lease.close() {
         Ok(cancelled) => cancelled,
         Err(_) => {

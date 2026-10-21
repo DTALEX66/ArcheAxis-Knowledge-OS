@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "841bddcc3d795591f7f0595929e572bf09d67d6f8ff2513ae3466d1734aed00e"
+      "sha256": "e17d3d9341535c0a37426636e31b8900489df35b0f1d08c04145ac9d8e373e82"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -220,7 +220,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "uv.lock",
-        "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
       },
       {
         "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
@@ -626,6 +626,24 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
           "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
         }
+      ]
+    },
+    "pillow13_security_lock_rebind_20261021": {
+      "source": "https://pillow.readthedocs.io/en/stable/releasenotes/13.0.0.html",
+      "change": "Owner-approved Pillow lock record 12.3.0 to 13.0.0; all locked artifact hashes matched official PyPI release.",
+      "unchanged_package_records": 204,
+      "boundary": "Current lock source binding only. Existing version/license values, runtime, activation and qualification states remain unchanged. Not installed runtime or Owner acceptance.",
+      "previous_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c",
+      "current_sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970",
+      "rebound_current_source_references": [
+        "/entries/18/evidence/version/source_refs/0",
+        "/entries/18/evidence/license/source_refs/1",
+        "/entries/25/evidence/version/source_refs/1",
+        "/entries/48/evidence/version/source_refs/0",
+        "/entries/48/evidence/license/source_refs/1",
+        "/entries/62/evidence/version/source_refs/0",
+        "/entries/62/evidence/license/source_refs/1",
+        "/sources/3"
       ]
     }
   },
@@ -1619,7 +1637,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "8e2720590400c97904b42aff49cff0707fdf3141388c30d4efaaa511fe4f96c1"
+                "sha256": "83dcb0cef15261e3558fbb0040a92edd4acfe6bd9607fa94b2bcbb8be359a7b2"
               }
             ]
           },
@@ -2046,7 +2064,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "8e2720590400c97904b42aff49cff0707fdf3141388c30d4efaaa511fe4f96c1"
+                "sha256": "83dcb0cef15261e3558fbb0040a92edd4acfe6bd9607fa94b2bcbb8be359a7b2"
               }
             ]
           },
@@ -5052,7 +5070,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               },
               {
                 "path": "pyproject.toml",
@@ -5078,7 +5096,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               }
             ]
           },
@@ -6571,7 +6589,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               }
             ]
           },
@@ -11908,7 +11926,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               },
               {
                 "path": "pyproject.toml",
@@ -11934,7 +11952,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               }
             ]
           },
@@ -15599,7 +15617,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               },
               {
                 "path": "pyproject.toml",
@@ -15625,7 +15643,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               }
             ]
           },

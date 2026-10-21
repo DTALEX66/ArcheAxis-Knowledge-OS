@@ -4524,6 +4524,13 @@
           "items": {
             "$ref": "#/$defs/IngestRelationTarget"
           }
+        },
+        "fragment_bindings": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/IngestRelationFragmentBinding"
+          }
         }
       }
     },
@@ -4719,6 +4726,43 @@
               "no_worker_conversion_or_knowledge_admission"
             ]
           }
+        }
+      }
+    },
+    "IngestRelationFragmentBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "link_ordinal",
+        "target_ordinal",
+        "fragment",
+        "fragment_is_block",
+        "block_id"
+      ],
+      "properties": {
+        "link_ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "target_ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "fragment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "fragment_is_block": {
+          "type": "boolean"
+        },
+        "block_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.-]+$"
         }
       }
     }

@@ -1,10 +1,23 @@
-import type {CoreOperation, DocumentDto, IngestBatchDto, IngestBatchMemberDto, IngestRelationsApplyInput, IngestRelationsDto, SourceDto} from "../api/generated/core-contract";
+import type {CoreOperation, DocumentDto, IngestBatchDto, IngestBatchMemberDto, IngestRelationsApplyInput, IngestRelationsDto, IngestRelationFragmentBinding, SourceDto} from "../api/generated/core-contract";
 import {sameValue} from "./exchangeProof";
 
 export type FolderMemberSelection = {batch_id:string; ordinal:number; workspace_id:string; restore_epoch:string; source_id:string; source_revision:string};
 export type RelationAttempt = {selection:FolderMemberSelection; body:IngestRelationsApplyInput; before:DocumentDto};
 export type RelationRead = <T>(operation:CoreOperation,payload:Record<string,unknown>)=>Promise<T>;
 export const markdownMember=(member:IngestBatchMemberDto)=>/\.(md|markdown)$/i.test(member.relative_path);
+
+export function selectedFragments(receipt:IngestRelationsDto|null,choices:Record<number,string>,targets:IngestRelationsApplyInput["targets"],snapshots:Record<number,DocumentDto>):IngestRelationFragmentBinding[] {
+ const result:IngestRelationFragmentBinding[]=[];
+ for(const [ordinal,value] of Object.entries(choices)) {
+  if(!value)continue;
+  const link=receipt?.links.find(l=>l.ordinal===Number(ordinal));
+  if(!link?.fragment||link.target_ordinal===null)throw new Error("原件定位尚未明确；未发送块映射");
+  const target=targets.find(t=>t.ordinal===link.target_ordinal),snapshot=snapshots[link.target_ordinal];
+  if(!target?.document||!snapshot||target.document.document_id!==snapshot.document_id||target.document.version!==snapshot.version||target.document.content_sha256!==snapshot.content_sha256||!snapshot.blocks.some(b=>b.block_id===value))throw new Error("选定块的固定版本已变化；请重新读取映射");
+  result.push({link_ordinal:link.ordinal,target_ordinal:link.target_ordinal,fragment:link.fragment,fragment_is_block:link.fragment_is_block,block_id:value});
+ }
+ return result;
+}
 
 export function verifiedSource(source:SourceDto,id:string,revision:string) {
  if(source.source_id!==id||source.source_revision!==revision||source.sha256!==revision)throw new Error("来源身份与文件夹成员不符");
@@ -26,7 +39,7 @@ export async function readRelationBatch(read:RelationRead,selection:FolderMember
  if(!member||member.source_id!==selection.source_id||member.source_revision!==selection.source_revision||!markdownMember(member))throw new Error("必须选择已导入的原始 Markdown 成员");
  return {...first,members,next_ordinal:null};
 }
-export function freezeRelations(selection:FolderMemberSelection,batch:IngestBatchDto,document:DocumentDto,targets:IngestRelationsApplyInput["targets"],dirty:boolean):RelationAttempt {
+export function freezeRelations(selection:FolderMemberSelection,batch:IngestBatchDto,document:DocumentDto,targets:IngestRelationsApplyInput["targets"],dirty:boolean,fragments:IngestRelationFragmentBinding[]=[]):RelationAttempt {
  if(dirty)throw new Error("当前文档有草稿或未确认写入，请先处理");
  if(batch.workspace_id!==selection.workspace_id||batch.restore_epoch!==selection.restore_epoch||batch.batch_id!==selection.batch_id||!batch.complete)throw new Error("批次身份不符");
  if(document.source_id!==selection.source_id||document.source_revision!==selection.source_revision)throw new Error("请显式打开此成员绑定的已保存文档");
@@ -37,7 +50,7 @@ export function freezeRelations(selection:FolderMemberSelection,batch:IngestBatc
  }
  const member=batch.members.find(m=>m.ordinal===selection.ordinal);
  if(!member||member.source_id!==selection.source_id||member.source_revision!==selection.source_revision||(member.job_id&&member.job_state!=="succeeded"))throw new Error("原始成员身份或转换状态未确认");
- return structuredClone({selection,before:document,body:{workspace_id:selection.workspace_id,restore_epoch:selection.restore_epoch,source_id:selection.source_id,source_revision:selection.source_revision,document_id:document.document_id,expected_version:document.version,content_sha256:document.content_sha256,targets}});
+ return structuredClone({selection,before:document,body:{workspace_id:selection.workspace_id,restore_epoch:selection.restore_epoch,source_id:selection.source_id,source_revision:selection.source_revision,document_id:document.document_id,expected_version:document.version,content_sha256:document.content_sha256,targets,...(fragments.length?{fragment_bindings:fragments}:{})}});
 }
 export function verifyRelationReceipt(attempt:RelationAttempt,receipt:IngestRelationsDto,readback:DocumentDto) {
  const s=attempt.selection,b=attempt.body,d=receipt.document;

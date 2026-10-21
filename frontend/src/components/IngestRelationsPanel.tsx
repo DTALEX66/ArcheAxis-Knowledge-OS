@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from "react";
 import {coreCommand} from "../api/core";
 import type {DocumentDto,DocumentSummaryDto,IngestBatchDto,IngestRelationsDto,IngestRelationsApplyInput,RelationProjectionDto} from "../api/generated/core-contract";
-import {freezeRelations,markdownMember,readRelationBatch,verifyRelationReceipt,type FolderMemberSelection,type RelationAttempt} from "../presentation/ingestRelations";
+import {freezeRelations,markdownMember,readRelationBatch,selectedFragments,verifyRelationReceipt,type FolderMemberSelection,type RelationAttempt} from "../presentation/ingestRelations";
 import {RawReceiptButton} from "./DiagnosticConsole";
 
 export function IngestRelationsPanel({selection,document,documents,dirty,canWrite,write,onApplied,onPendingChange,onOpenDocument,onMore,hasMore}:{
@@ -10,12 +10,13 @@ export function IngestRelationsPanel({selection,document,documents,dirty,canWrit
  onOpenDocument:(id:string)=>void;onMore:()=>void;hasMore:boolean;
 }) {
  const [batch,setBatch]=useState<IngestBatchDto|null>(null),[choices,setChoices]=useState<Record<number,string>>({});
+ const [targetDocs,setTargetDocs]=useState<Record<number,DocumentDto>>({}),[fragmentChoices,setFragmentChoices]=useState<Record<number,string>>({});
  const [attempt,setAttempt]=useState<RelationAttempt|null>(null),[receipt,setReceipt]=useState<IngestRelationsDto|null>(null),[observed,setObserved]=useState<DocumentDto|null>(null),[graph,setGraph]=useState<RelationProjectionDto|null>(null);
  const [busy,setBusy]=useState(false),[message,setMessage]=useState("请读取本批次，再显式选择已保存文档和链接目标。"),[page,setPage]=useState(0);
  const locked=useRef(false),alive=useRef(true),generation=useRef(0);const current=useRef({document,dirty,canWrite});current.current={document,dirty,canWrite};
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;++generation.current;};},[]);
  const key=JSON.stringify(selection);
- useEffect(()=>{++generation.current;setBatch(null);setChoices({});setReceipt(null);setObserved(null);setGraph(null);setPage(0);},[key]);
+ useEffect(()=>{++generation.current;setBatch(null);setChoices({});setReceipt(null);setObserved(null);setGraph(null);setPage(0);setTargetDocs({});setFragmentChoices({});},[key]);
  async function action(work:(epoch:number)=>Promise<void>){if(locked.current)return;locked.current=true;setBusy(true);const epoch=generation.current;try{await work(epoch);}catch(error){if(alive.current&&epoch===generation.current)setMessage(error instanceof Error?error.message:"操作未确认，原请求保留");}finally{locked.current=false;if(alive.current)setBusy(false);}}
  const valid=(epoch:number)=>alive.current&&epoch===generation.current;
  async function load(){await action(async e=>{const value=await readRelationBatch(coreCommand,selection);if(valid(e)){setBatch(value);setMessage("完整批次已读回。这里只解析不可变原件中的链接，不代表当前编辑正文或内容已经审核。");}});}
@@ -24,7 +25,7 @@ export function IngestRelationsPanel({selection,document,documents,dirty,canWrit
   if(attempt||!batch||!current.current.document||!current.current.canWrite||current.current.dirty)throw new Error("请先处理草稿、只读状态或未确认请求");
   const base=current.current.document;
   await write(async()=>{
-   const fresh=await readRelationBatch(coreCommand,selection);const targets:IngestRelationsApplyInput["targets"]=[];
+   const fresh=await readRelationBatch(coreCommand,selection);const targets:IngestRelationsApplyInput["targets"]=[];const snapshots:Record<number,DocumentDto>={};
    for(const member of fresh.members){const choice=choices[member.ordinal];if(!choice)continue;
     if(!member.source_id||!member.source_revision)throw new Error("目标原件尚未导入");
     const target:IngestRelationsApplyInput["targets"][number]={ordinal:member.ordinal,source_id:member.source_id,source_revision:member.source_revision};
@@ -34,18 +35,20 @@ export function IngestRelationsPanel({selection,document,documents,dirty,canWrit
      const pinned=await coreCommand<DocumentDto>("document_version",{document_id:summary.document_id,version:summary.version});
      if(pinned.document_id!==summary.document_id||pinned.version!==summary.version||pinned.content_sha256!==summary.content_sha256||pinned.source_id!==member.source_id||pinned.source_revision!==member.source_revision)throw new Error("目标文档版本身份不符");
      target.document={document_id:pinned.document_id,version:pinned.version,content_sha256:pinned.content_sha256};
+     snapshots[member.ordinal]=pinned;
     }else if(choice!=="source")throw new Error("附件选择无效");
     targets.push(target);
    }
    if(!valid(e)||current.current.document?.document_id!==base.document_id||current.current.document.version!==base.version||current.current.document.content_sha256!==base.content_sha256||current.current.dirty||!current.current.canWrite)throw new Error("准备期间文档或草稿改变；未发送");
-   const frozen=freezeRelations(selection,fresh,base,targets,current.current.dirty);setAttempt(frozen);onPendingChange(true);
+   const fragments=selectedFragments(receipt,fragmentChoices,targets,targetDocs);
+   const frozen=freezeRelations(selection,fresh,base,targets,current.current.dirty,fragments);setAttempt(frozen);onPendingChange(true);
    // Exactly one write. Errors and lost acknowledgements never rebase or resend.
    const result=await coreCommand<IngestRelationsDto>("ingest_member_relations_apply",{batch_id:selection.batch_id,ordinal:selection.ordinal,body:frozen.body});
    const readback=await coreCommand<DocumentDto>("document_version",{document_id:frozen.body.document_id,version:result.document.version});
    await readRelationBatch(coreCommand,frozen.selection);
    const saved=verifyRelationReceipt(frozen,result,readback);
    if(!valid(e))return;
-   setReceipt(result);setObserved(saved);setAttempt(null);onPendingChange(false);onApplied(saved);
+   setReceipt(result);setTargetDocs(snapshots);setObserved(saved);setAttempt(null);onPendingChange(false);onApplied(saved);
    setMessage(`已读回固定版本 v${saved.version}；新增 ${result.added_relations} 条关系。未解析项与原始文本仍保留。`);
    await projection(saved,e);
   });
@@ -64,11 +67,12 @@ export function IngestRelationsPanel({selection,document,documents,dirty,canWrit
   {!candidates.length?<p>已加载文档中没有匹配项；请先从原件创建已保存文档，或继续读取文档页。不会按同名建立关联。</p>:null}
   {hasMore?<button disabled={busy||!!attempt} onClick={onMore}>读取更多已保存文档</button>:null}
   {batch?<><p>批次 {batch.folder_label}；当前文档 {document?.document_id??"未选择"} v{document?.version??"—"}。目标最多显式选择 200 项。</p>
-   {batch.members.slice(page*200,(page+1)*200).map(m=><label key={m.ordinal}>{m.relative_path}<select aria-label={`链接目标 ${m.relative_path}`} disabled={busy||!!attempt||!m.source_id} value={choices[m.ordinal]??""} onChange={e=>setChoices(old=>({...old,[m.ordinal]:e.target.value}))}><option value="">不映射（保留未解析）</option>{markdownMember(m)?documents.filter(d=>d.source_id===m.source_id&&d.source_revision===m.source_revision).map(d=><option key={d.document_id} value={d.document_id}>{d.title} · v{d.version} · {d.document_id}</option>):<option value="source">固定原件 {m.source_revision}</option>}</select></label>)}
+   {batch.members.slice(page*200,(page+1)*200).map(m=><label key={m.ordinal}>{m.relative_path}<select aria-label={`链接目标 ${m.relative_path}`} disabled={busy||!!attempt||!m.source_id} value={choices[m.ordinal]??""} onChange={e=>{setChoices(old=>({...old,[m.ordinal]:e.target.value}));setFragmentChoices({});setTargetDocs({});setReceipt(null);}}><option value="">不映射（保留未解析）</option>{markdownMember(m)?documents.filter(d=>d.source_id===m.source_id&&d.source_revision===m.source_revision).map(d=><option key={d.document_id} value={d.document_id}>{d.title} · v{d.version} · {d.document_id}</option>):<option value="source">固定原件 {m.source_revision}</option>}</select></label>)}
    <button disabled={busy||page===0} onClick={()=>setPage(p=>p-1)}>上一页成员</button><button disabled={busy||(page+1)*200>=batch.members.length} onClick={()=>setPage(p=>p+1)}>下一页成员</button>
    <button disabled={busy||!!attempt||dirty||!canWrite||!document||document.source_id!==selection.source_id||document.source_revision!==selection.source_revision} onClick={()=>void apply()}>确认映射并保存原件关系</button></>:null}
   {attempt?<><p role="alert">结果 UNKNOWN：冻结请求保留，只能读取核对；不会自动重发。</p><RawReceiptButton label="未确认关系请求" payload={attempt}/><button disabled={busy} onClick={()=>void readUnknown()}>只读核对原关系请求</button></>:null}
   {receipt?<><RawReceiptButton label="原件链接接入回执" payload={receipt}/><ul>{receipt.links.map(l=><li key={l.ordinal}>{l.target}：{l.status} {l.reason??""}</li>)}</ul></>:null}
+  {receipt?.links.some(l=>l.fragment&&l.target_ordinal!==null&&targetDocs[l.target_ordinal])?<fieldset disabled={busy||!!attempt||dirty||!canWrite}><legend>人工映射标题或块引用</legend><p>先核对原件定位，再选择此固定版本中的块。这里保存你的明确映射，不自动推断标题或认定内容一致。未选择项仍保持未解析。</p>{receipt.links.filter(l=>l.fragment&&l.target_ordinal!==null&&targetDocs[l.target_ordinal]).map(l=>{const d=targetDocs[l.target_ordinal!];return <label key={l.ordinal}>{l.target}#{l.fragment_is_block?"^":""}{l.fragment}<select aria-label={`固定块映射 ${l.ordinal}`} value={fragmentChoices[l.ordinal]??""} onChange={e=>setFragmentChoices(old=>({...old,[l.ordinal]:e.target.value}))}><option value="">不映射</option>{d.blocks.map(b=><option key={b.block_id} value={b.block_id}>{d.title} · v{d.version} · {b.text_projection.slice(0,100)||b.kind} · {b.block_id}</option>)}</select></label>;})}</fieldset>:null}
   {observed?<RawReceiptButton label="关系文档实际读回" payload={observed}/>:null}
   {graph?<><p>现有 canonical 关系投影已读回：本页 {graph.edges.length} 条边；仅当前扫描范围。可在关系空间查看同一固定版本。</p><RawReceiptButton label="现有关系图投影" payload={graph}/></>:null}
   <p role="status">{message}</p>

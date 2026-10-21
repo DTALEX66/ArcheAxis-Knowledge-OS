@@ -391,6 +391,9 @@ async fn execute_owned(
             "material_execution_unknown_retain_request",
         );
     }
+    // Withdrawal must either cancel this live lease or follow its durable
+    // publication; re-enabling cannot revive a withdrawn token in between.
+    let _publication = runtime.admission.lock().await;
     let cancelled = lease.close().unwrap_or(true);
     let diagnostics = if cancelled {
         None
@@ -432,6 +435,13 @@ async fn execute_owned(
         .executor
         .store()
         .submit_wait(move |conn| {
+            if outcome == "succeeded"
+                && !archeaxis_store_sqlite::capability_settings::is_enabled(conn, "machine.answer")?
+            {
+                return Err(rusqlite::Error::InvalidParameterName(
+                    "machine_answer_disabled_before_publication".into(),
+                ));
+            }
             if let Some(config) = &body.model_configuration {
                 archeaxis_domain::model_configuration::assert_current(conn, config)?;
             }

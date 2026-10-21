@@ -346,10 +346,20 @@ async fn imported_text_extracts_and_answers_without_entering_accepted_knowledge(
     assert_eq!(status, 200, "{preview}");
     body["preview"] = json!(false);
     body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
+    let readable_material = body["material"].clone();
     let (status, receipt) = call(&router, "/api/v1/material/questions", body).await;
     assert_eq!(status, 200, "{receipt}");
     assert_eq!(receipt["outcome"], "succeeded");
     assert_eq!(receipt["answer"]["answer"], "SYNTHETIC imported answer");
+    machine_enabled(&router, false).await;
+    let (code, context) = call(
+        &router,
+        "/api/v1/material/context",
+        json!({"material":readable_material,"selection":null}),
+    )
+    .await;
+    assert_eq!(code, 200);
+    assert_eq!(context["text"], "新导入材料😀");
     assert_eq!(
         executor
             .store()
@@ -637,6 +647,116 @@ async fn confirmed_async(router: &Router, mut body: Value) -> Value {
     body["preview"] = json!(false);
     body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
     body
+}
+
+async fn machine_enabled(router: &Router, enabled: bool) {
+    let response = tokio::time::timeout(
+        std::time::Duration::from_secs(1),
+        router.clone().oneshot(
+            Request::builder()
+                .method("PUT")
+                .uri("/api/v1/capabilities/machine.answer/enabled")
+                .header("content-type", "application/json")
+                .header("x-archeaxis-actor", "human")
+                .body(Body::from(json!({"enabled":enabled}).to_string()))
+                .unwrap(),
+        ),
+    )
+    .await
+    .expect("withdrawal must not wait for inference")
+    .unwrap();
+    assert_eq!(response.status(), 200);
+}
+
+#[tokio::test]
+async fn machine_disable_withdraws_live_material_and_reenable_only_admits_new_requests() {
+    for asynchronous in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let (_executor, router, mut body) = async_fixture(dir.path()).await;
+        // User IDs cannot impersonate the Core-owned public-research registry prefix.
+        let request_id = if asynchronous {
+            "public_research_spoof"
+        } else {
+            "async_material"
+        };
+        body["request_id"] = json!(request_id);
+        let mut body = confirmed_async(&router, body).await;
+        if !asynchronous {
+            body.as_object_mut().unwrap().remove("execution_mode");
+            body["preview"] = json!(true);
+            let (code, preview) = call(&router, "/api/v1/material/questions", body.clone()).await;
+            assert_eq!(code, 200);
+            body["preview"] = json!(false);
+            body["confirmed_plan_sha256"] = preview["plan_sha256"].clone();
+        }
+        let client = router.clone();
+        let running_body = body.clone();
+        let request = tokio::spawn(async move {
+            call(
+                &client,
+                if asynchronous {
+                    "/api/v1/material/questions/submissions"
+                } else {
+                    "/api/v1/material/questions"
+                },
+                running_body,
+            )
+            .await
+        });
+        wait_started(dir.path()).await;
+        machine_enabled(&router, false).await;
+        // Capability withdrawal does not delete the underlying ordinary material.
+        let (code, context) = call(
+            &router,
+            "/api/v1/material/context",
+            json!({"material":body["material"],"selection":null}),
+        )
+        .await;
+        assert_eq!(code, 200);
+        assert_eq!(context["text"], "Bounded synthetic material");
+        machine_enabled(&router, true).await;
+        std::fs::write(dir.path().join("async-release"), b"release").unwrap();
+        let (code, response) = request.await.unwrap();
+        assert_eq!(code, if asynchronous { 202 } else { 200 }, "{response}");
+        let terminal = material_terminal(&router, request_id).await;
+        assert_eq!(terminal["outcome"], "failed", "{terminal}");
+        assert_eq!(terminal["reason_code"], "material_question_cancelled");
+        assert_eq!(terminal["provider_stop_state"], "UNKNOWN");
+        assert!(terminal["answer"].is_null());
+
+        let mut fresh = body.clone();
+        fresh["request_id"] = json!("new_after_enable");
+        let fresh = confirmed_async(&router, fresh).await;
+        assert_eq!(
+            call(&router, "/api/v1/material/questions/submissions", fresh)
+                .await
+                .0,
+            202
+        );
+        let successful = material_terminal(&router, "new_after_enable").await;
+        assert_eq!(successful["outcome"], "succeeded", "{successful}");
+        machine_enabled(&router, false).await;
+        assert_eq!(
+            call(
+                &router,
+                "/api/v1/material/questions/status",
+                json!({"request_id":"new_after_enable"})
+            )
+            .await
+            .1,
+            successful
+        );
+        assert_eq!(
+            call(
+                &router,
+                "/api/v1/material/questions/status",
+                json!({"request_id":request_id})
+            )
+            .await
+            .1,
+            terminal
+        );
+    }
 }
 #[tokio::test]
 async fn asynchronous_capacity_is_not_a_queue_and_explicit_cancel_keeps_provider_unknown() {

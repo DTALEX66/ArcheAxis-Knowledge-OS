@@ -7,6 +7,140 @@ use sha2::{Digest, Sha256};
 use tower::ServiceExt;
 
 #[tokio::test]
+async fn fragment_review_invalid_targets_leave_the_same_store_writer_usable() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("parser-review.sqlite");
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let (_, scope) = call(&app, "GET", "/api/v1/ingest-batches", Value::Null).await;
+    for (case, (text, fragment, block)) in [
+        ("`a\n中`# Heading", "Heading", false),
+        ("text ^named\n`abc` ^named", "named", true),
+        ("text ^named `abc`", "named", true),
+        ("<!--\n# Heading\n-->", "Heading", false),
+        ("<!--\ntext ^named\n-->", "named", true),
+        ("> ~~~\n> text ^named\n> ~~~", "named", true),
+    ]
+    .into_iter()
+    .enumerate()
+    {
+        let batch = format!("parser-review-{case}");
+        let link = format!("[[peer#{}{fragment}]]", if block { "^" } else { "" });
+        let files = [("index.md", link.as_str()), ("peer.md", text)];
+        let members: Vec<_> = files.iter().enumerate().map(|(i, (path, text))|json!({"ordinal":i,"relative_path":path,"byte_length":text.len(),"disposition":"pending"})).collect();
+        assert_eq!(call(&app,"POST","/api/v1/ingest-batches",json!({"workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],"batch_id":batch,"folder_label":"parser-review","expected_members":2,"members":members})).await.0, 200);
+        let mut sources = Vec::new();
+        let mut docs = Vec::new();
+        for (ordinal, (path, content)) in files.iter().enumerate() {
+            let (status, source) = call(&app,"POST",&format!("/api/v1/ingest-batches/{batch}/imports"),json!({"workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],"ordinal":ordinal,"expected_sha256":format!("{:x}",Sha256::digest(content.as_bytes())),"content_base64":base64::engine::general_purpose::STANDARD.encode(content)})).await;
+            assert_eq!(status, 202, "{source}");
+            let (status, doc) = call(&app,"POST","/api/v1/documents",json!({"source_id":source["source_id"],"source_revision":source["sha256"],"title":path,"editor_json":{"type":"doc","content":[{"type":"paragraph","attrs":{"block_id":"selected_block"},"content":[{"type":"text","text":content}]}]}})).await;
+            assert_eq!(status, 201, "{doc}");
+            sources.push(source);
+            docs.push(doc);
+        }
+        let request = json!({"workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],"source_id":sources[0]["source_id"],"source_revision":sources[0]["sha256"],"document_id":docs[0]["document_id"],"expected_version":1,"content_sha256":docs[0]["content_sha256"],"targets":[{"ordinal":1,"source_id":sources[1]["source_id"],"source_revision":sources[1]["sha256"],"document":{"document_id":docs[1]["document_id"],"version":1,"content_sha256":docs[1]["content_sha256"]}}],"fragment_bindings":[{"link_ordinal":0,"target_ordinal":1,"fragment":fragment,"fragment_is_block":block,"block_id":"selected_block"}]});
+        let (status, refused) = call(
+            &app,
+            "POST",
+            &format!("/api/v1/ingest-batches/{batch}/members/0/relations"),
+            request,
+        )
+        .await;
+        // Exercise the same Store after the potentially hostile parser input, before asserting
+        // rejection, so a writer-thread panic is visible as a second failed operation.
+        let (save_status, saved) = call(&app,"POST","/api/v1/documents",json!({"title":"After rejected fragment","editor_json":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Writer remains usable"}]}]}})).await;
+        assert_eq!(
+            save_status, 201,
+            "case {case}: rejected={status} {refused}; save={saved}"
+        );
+        assert_eq!(status, 400, "case {case}: {refused}");
+        let document_path = format!(
+            "/api/v1/documents/{}",
+            docs[0]["document_id"].as_str().unwrap()
+        );
+        assert_eq!(
+            call(&app, "GET", &document_path, Value::Null).await.1,
+            docs[0]
+        );
+        let graph_path = format!("{document_path}/relations");
+        assert_eq!(
+            call(&app, "GET", &graph_path, Value::Null).await.1["edges"],
+            json!([])
+        );
+    }
+}
+
+#[tokio::test]
+async fn explicit_fragment_mapping_pins_a_real_block_at_the_existing_http_boundary() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = dir.path().join("fragments.sqlite");
+    let app = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let (_, scope) = call(&app, "GET", "/api/v1/ingest-batches", Value::Null).await;
+    let files = [
+        (
+            "index.md",
+            "[[peer#Heading]] [[peer#^named]] [[peer#unmapped]]",
+        ),
+        ("peer.md", "# Heading\nContent ^named"),
+    ];
+    let members:Vec<_> = files.iter().enumerate().map(|(i,(path,text))|json!({"ordinal":i,"relative_path":path,"byte_length":text.len(),"disposition":"pending"})).collect();
+    let (status, _) = call(&app,"POST","/api/v1/ingest-batches",json!({"workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],"batch_id":"fragments","folder_label":"selected-copy","expected_members":2,"members":members})).await;
+    assert_eq!(status, 200);
+    let mut sources = Vec::new();
+    let mut docs = Vec::new();
+    for (ordinal, (path, text)) in files.iter().enumerate() {
+        let (status,source)=call(&app,"POST","/api/v1/ingest-batches/fragments/imports",json!({"workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],"ordinal":ordinal,"expected_sha256":format!("{:x}",Sha256::digest(text.as_bytes())),"content_base64":base64::engine::general_purpose::STANDARD.encode(text)})).await;
+        assert_eq!(status, 202, "{source}");
+        let (status,doc)=call(&app,"POST","/api/v1/documents",json!({"source_id":source["source_id"],"source_revision":source["sha256"],"title":path,"editor_json":{"type":"doc","content":[{"type":"paragraph","attrs":{"block_id":"selected_block"},"content":[{"type":"text","text":text}]}]}})).await;
+        assert_eq!(status, 201, "{doc}");
+        sources.push(source);
+        docs.push(doc);
+    }
+    let mut request = json!({"workspace_id":scope["workspace_id"],"restore_epoch":scope["restore_epoch"],"source_id":sources[0]["source_id"],"source_revision":sources[0]["sha256"],"document_id":docs[0]["document_id"],"expected_version":1,"content_sha256":docs[0]["content_sha256"],"targets":[{"ordinal":1,"source_id":sources[1]["source_id"],"source_revision":sources[1]["sha256"],"document":{"document_id":docs[1]["document_id"],"version":1,"content_sha256":docs[1]["content_sha256"]}}],"fragment_bindings":[{"link_ordinal":0,"target_ordinal":1,"fragment":"Heading","fragment_is_block":false,"block_id":"selected_block"},{"link_ordinal":1,"target_ordinal":1,"fragment":"named","fragment_is_block":true,"block_id":"selected_block"}]});
+    let path = "/api/v1/ingest-batches/fragments/members/0/relations";
+    let (status, receipt) = call(&app, "POST", path, request.clone()).await;
+    assert_eq!(
+        status, 200,
+        "explicit mapping must reach the existing writer: {receipt}"
+    );
+    assert_eq!(receipt["added_relations"], 2, "{receipt}");
+    assert_eq!(
+        receipt["links"][2]["reason"],
+        "fragment_resolution_not_supported"
+    );
+    let reference = json!({"kind":"document","document_id":docs[1]["document_id"],"version":1,"block_id":"selected_block"});
+    assert_eq!(
+        receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0]["target"],
+        reference
+    );
+    assert_eq!(call(&app, "POST", path, request.clone()).await.0, 409);
+    request["expected_version"] = receipt["document"]["version"].clone();
+    request["content_sha256"] = receipt["document"]["content_sha256"].clone();
+    let (status, repeated) = call(&app, "POST", path, request).await;
+    assert_eq!(status, 200);
+    assert_eq!(repeated["added_relations"], 0);
+    let graph_path = format!(
+        "/api/v1/documents/{}/relations",
+        docs[0]["document_id"].as_str().unwrap()
+    );
+    let graph = call(&app, "GET", &graph_path, Value::Null).await.1;
+    assert_eq!(graph["edges"].as_array().unwrap().len(), 2);
+    drop(app);
+    let reopened = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    assert_eq!(
+        call(&reopened, "GET", &graph_path, Value::Null).await.1["edges"],
+        graph["edges"]
+    );
+    let fixed_path = format!(
+        "/api/v1/documents/{}/versions/1",
+        docs[1]["document_id"].as_str().unwrap()
+    );
+    let (status, pinned) = call(&reopened, "GET", &fixed_path, Value::Null).await;
+    assert_eq!(status, 200, "{pinned}");
+    assert_eq!(pinned["blocks"][0]["block_id"], "selected_block");
+}
+
+#[tokio::test]
 async fn contained_parent_links_reach_existing_api_graph_without_rewriting_original_targets() {
     let dir = tempfile::tempdir().unwrap();
     let db = dir.path().join("workspace.sqlite");
