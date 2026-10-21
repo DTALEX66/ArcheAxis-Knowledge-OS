@@ -77,6 +77,34 @@
         "null"
       ],
       "description": "Null allows incomplete draft; a string must name an actual existing learning queue item, not a planned/guessed key."
+    },
+    "definition": {
+      "type": "object",
+      "description": "Optional immutable first-party T3 definition pin. Core checks bundled selected definition and application epoch on new application; historical and legacy ordinary saves remain readable.",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "sha256",
+        "snapshot",
+        "application_epoch"
+      ],
+      "properties": {
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "snapshot": {
+          "type": "object"
+        },
+        "application_epoch": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
     }
   },
   "$defs": {

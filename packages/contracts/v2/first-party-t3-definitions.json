@@ -1,0 +1,33 @@
+{
+  "schema": "archeaxis.first-party-template-definitions/v1",
+  "definitions": [
+    {
+      "schema": "archeaxis.template-definition/v1",
+      "template_id": "T3",
+      "version": 1,
+      "name": "学习与实践",
+      "kind": "first-party-data-only",
+      "license": "MIT",
+      "license_source": "LICENSE",
+      "required_dependencies": [],
+      "optional_dependencies": ["course.general"],
+      "permissions": ["canonical-document-write"],
+      "fields": {"学习目标": "", "实践记录": ""},
+      "paragraphs": ["记录学习目标、作答依据与实践过程；保存不代表已掌握。"]
+    },
+    {
+      "schema": "archeaxis.template-definition/v1",
+      "template_id": "T3",
+      "version": 2,
+      "name": "学习与实践",
+      "kind": "first-party-data-only",
+      "license": "MIT",
+      "license_source": "LICENSE",
+      "required_dependencies": [],
+      "optional_dependencies": ["course.general"],
+      "permissions": ["canonical-document-write"],
+      "fields": {"学习目标": "", "实践记录": "", "反思与下一步": ""},
+      "paragraphs": ["记录学习目标、作答依据与实践过程；保存不代表已掌握。", "回顾当前依据与不足，记录下一次练习；课程生成仍沿用 course.general 的独立权限。"]
+    }
+  ]
+}

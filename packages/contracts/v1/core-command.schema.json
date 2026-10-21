@@ -52,6 +52,8 @@
         "learning_review",
         "capabilities_list",
         "capability_set_enabled",
+        "capability_template_change",
+        "capability_template_read",
         "job_enqueue",
         "job_execute",
         "job_output",

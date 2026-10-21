@@ -222,7 +222,7 @@ fn schema_ten_nonempty_documents_migrate_without_losing_versions_blocks_or_forei
         .unwrap();
     drop(conn);
     let conn = archeaxis_store_sqlite::init_workspace(path.to_str().unwrap()).unwrap();
-    assert_eq!(archeaxis_store_sqlite::SCHEMA_VERSION, 13);
+    assert_eq!(archeaxis_store_sqlite::SCHEMA_VERSION, 14);
     assert_eq!(
         conn.query_row(
             "SELECT value FROM workspace_meta WHERE key='schema_version'",

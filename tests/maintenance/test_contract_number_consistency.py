@@ -88,7 +88,7 @@ def test_the_launch_shape_split_adds_up():
     inventory = tree_facts()["inventory_pairs"]
     assert projections == 70, f"unconditional projection mounts changed: {projections}"
     assert conditional == 1, f"conditional manual receipt mounts changed: {conditional}"
-    assert runtime == 49, f"runtime mounts changed: {runtime}"
+    assert runtime == 50, f"runtime mounts changed: {runtime}"
     lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
     runtime_source = (REPO / "crates/archeaxis-api/src/runtime/mod.rs").read_text(encoding="utf-8")
     runtime_builder = runtime_source[runtime_source.index("pub fn router("):runtime_source.index(".merge(projections)")]
@@ -117,7 +117,7 @@ def test_the_launch_shape_split_adds_up():
     assert "crate::projections_base(executor.store().clone(), false)" in runtime_source
     assert len(wrapper | base) == 82
     assert len(base) == 81
-    assert len(runtime_set) == 52
+    assert len(runtime_set) == 53
     control = pairs((REPO / "crates/archeaxis-api/src/session_shutdown.rs").read_text(encoding="utf-8"))
     assert control == {("POST", "/api/v1/system/shutdown")}
     assert not control & (base | runtime_set | wrapper)

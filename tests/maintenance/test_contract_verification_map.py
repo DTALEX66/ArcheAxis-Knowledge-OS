@@ -26,6 +26,7 @@ RUNBOOK = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-BA
 # Contract section number -> (artifact, what the artifact establishes). Keyed by number rather
 # than title, because the titles carry suffixes that change as the document is edited.
 COVERAGE: dict[str, tuple[str, str]] = {
+    "21": ("crates/archeaxis-api/tests/template_lifecycle.rs", "guarded bundled template lifecycle, old-object preservation and stale/tampered request refusal"),
     "20": ("crates/archeaxis-api/tests/session_shutdown_process.rs", "complete shutdown ACK, owned process exit0, accepted background conversion and saved object reopen"),
     "19": ("crates/archeaxis-api/tests/ingest_relations.rs",
            "single retained Source identity readback and missing-source refusal before relation consumption"),
@@ -67,6 +68,8 @@ COVERAGE: dict[str, tuple[str, str]] = {
 
 # A section can have more than one checker; each is listed so none can be dropped silently.
 ALSO_CHECKS: dict[str, list[str]] = {
+    "21": ["crates/archeaxis-domain/tests/template_lifecycle.rs",
+           "crates/archeaxis-archive/tests/template_lifecycle_archive.rs"],
     "16": ["crates/archeaxis-api/tests/project_handoff_preview_process.rs",
            "crates/archeaxis-api/tests/project_handoff_process.rs",
            "tests/maintenance/test_contract_route_inventory.py"],
@@ -89,6 +92,12 @@ ALSO_CHECKS: dict[str, list[str]] = {
 # reachable through the maintained contract's exact commands, never a rewritten
 # historical qualification receipt.
 CURRENT_CHECK_COMMANDS = {
+    "crates/archeaxis-api/tests/template_lifecycle.rs":
+        "cargo test -p archeaxis-api --test template_lifecycle --offline --locked",
+    "crates/archeaxis-domain/tests/template_lifecycle.rs":
+        "cargo test -p archeaxis-domain --test template_lifecycle --offline --locked",
+    "crates/archeaxis-archive/tests/template_lifecycle_archive.rs":
+        "cargo test -p archeaxis-archive --test template_lifecycle_archive --offline --locked",
     "crates/archeaxis-api/tests/session_shutdown_process.rs":
         "cargo test -p archeaxis-api --test session_shutdown_process --offline",
     "crates/archeaxis-api/tests/ingest_relations.rs":

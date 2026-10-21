@@ -21,6 +21,8 @@ struct Binding {
     fields: BTreeMap<String, String>,
     references: Vec<BoundReference>,
     learning_item_key: Option<String>,
+    #[serde(default)]
+    definition: Option<Value>,
 }
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -72,6 +74,9 @@ fn raw(editor: &Value) -> Option<&Value> {
 }
 /// Structural admission only. Unknown legacy values never become a new recognized template.
 fn shape(value: &Value) -> Result<Binding, Error> {
+    if value.get("definition").is_some_and(Value::is_null) {
+        return Err(bad("template definition must be a complete pin or absent"));
+    }
     if value.get("learning_item_key").is_none() {
         return Err(bad(
             "template learning_item_key must be present, null allows an incomplete draft",
@@ -195,6 +200,11 @@ fn validate(conn: &Connection, binding: &Binding) -> Result<(), Error> {
         }
     }
     let _ = &binding.fields; // Descriptive fields are carried unchanged, never evaluated.
+    if let Some(pin) = &binding.definition {
+        if binding.template_id != "T3" || !crate::template_definition::valid_historical_pin(pin) {
+            return Err(bad("invalid immutable template definition pin"));
+        }
+    }
     Ok(())
 }
 /// Called inside Document append's existing transaction, after expected_version check.
@@ -288,7 +298,19 @@ pub fn validate_transition(
                 "template document envelope exceeds existing codec budget",
             ));
         }
-        validate(conn, &shape(next)?)?;
+        let binding = shape(next)?;
+        if let Some(old_pin) = old.and_then(|old| old.get("definition")) {
+            if next.get("definition") != Some(old_pin) {
+                return Err(bad("existing template definition pin is immutable"));
+            }
+        } else if let Some(pin) = &binding.definition {
+            crate::template_definition::validate_new_pin(conn, pin)?;
+        } else if binding.template_id == "T3"
+            && !old.is_some_and(|old| old["schema"] == SCHEMA && old["template_id"] == "T3")
+        {
+            crate::template_definition::validate_legacy_application(conn)?;
+        }
+        validate(conn, &binding)?;
     }
     Ok(())
 }

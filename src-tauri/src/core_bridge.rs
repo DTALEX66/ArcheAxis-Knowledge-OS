@@ -90,6 +90,8 @@ pub enum Operation {
     LearningReview,
     CapabilitiesList,
     CapabilitySetEnabled,
+    CapabilityTemplateChange,
+    CapabilityTemplateRead,
     JobEnqueue,
     JobExecute,
     JobExecutionStatus,
@@ -985,6 +987,47 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(body()?),
         ),
         CapabilitiesList => ("GET", "/api/v1/capabilities".into(), None),
+        CapabilityTemplateRead => {
+            if request
+                .payload
+                .as_object()
+                .is_none_or(|object| !object.is_empty())
+            {
+                return Err("CORE_COMMAND_TEMPLATE_READ_EMPTY_PAYLOAD_REQUIRED".into());
+            }
+            ("GET", "/api/v1/capabilities/template.T3".into(), None)
+        }
+        CapabilityTemplateChange => {
+            let object = request
+                .payload
+                .as_object()
+                .ok_or("CORE_COMMAND_PAYLOAD_OBJECT_REQUIRED")?;
+            if object.len() != 4
+                || !["expected_epoch", "action", "version", "sha256"]
+                    .iter()
+                    .all(|key| object.contains_key(*key))
+                || !object["expected_epoch"].as_i64().is_some_and(|v| v >= 0)
+                || !object["version"].as_i64().is_some_and(|v| v > 0)
+                || !object["action"].as_str().is_some_and(|v| {
+                    matches!(
+                        v,
+                        "enable" | "disable" | "update" | "rollback" | "install" | "uninstall"
+                    )
+                })
+                || !object["sha256"].as_str().is_some_and(|v| {
+                    v.len() == 64
+                        && v.bytes()
+                            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+                })
+            {
+                return Err("CORE_COMMAND_TEMPLATE_CHANGE_INVALID".into());
+            }
+            (
+                "PUT",
+                "/api/v1/capabilities/template.T3/definition".into(),
+                Some(request.payload.clone()),
+            )
+        }
         CapabilitySetEnabled => {
             let object = request
                 .payload
@@ -1408,6 +1451,50 @@ mod tests {
             .unwrap();
             assert!(route(&request).is_err());
         }
+    }
+    #[test]
+    fn template_lifecycle_is_fixed_data_only_route_with_state_guard() {
+        let body = serde_json::json!({"expected_epoch":3,"action":"rollback","version":1,"sha256":"a".repeat(64)});
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"capability_template_change","payload":body}),
+        )
+        .unwrap();
+        let mapped = route(&request).unwrap();
+        assert_eq!(
+            mapped,
+            (
+                "PUT",
+                "/api/v1/capabilities/template.T3/definition".into(),
+                Some(body.clone())
+            )
+        );
+        for (key, value) in [
+            ("expected_epoch", serde_json::json!(-1)),
+            ("version", serde_json::json!(1.5)),
+            ("action", serde_json::json!("execute")),
+            ("sha256", serde_json::json!("unknown")),
+            ("url", serde_json::json!("https://example.invalid")),
+        ] {
+            let mut altered = body.clone();
+            altered[key] = value;
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":"capability_template_change","payload":altered}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
+        }
+        let request: Request =
+            serde_json::from_value(serde_json::json!({"operation":"capability_template_read"}))
+                .unwrap();
+        assert_eq!(
+            route(&request).unwrap(),
+            ("GET", "/api/v1/capabilities/template.T3".into(), None)
+        );
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"capability_template_read","payload":{"url":"x"}}),
+        )
+        .unwrap();
+        assert!(route(&request).is_err());
     }
     #[test]
     fn finite_execution_status_cancel_and_explicit_retry_identity() {

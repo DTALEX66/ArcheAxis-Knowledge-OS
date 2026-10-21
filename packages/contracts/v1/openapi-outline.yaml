@@ -717,6 +717,32 @@ paths:
       responses:
         "200":
           description: Restore package validation receipt
+  /api/v1/capabilities/template.T3/definition:
+    put:
+      operationId: changeBundledT3Definition
+      x-allowed-actor: human
+      description: First-party inert definitions only; workspace and restore epoch authentication apply. Existing documents survive disable/uninstall. No external package execution.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [expected_epoch, action, version, sha256]
+              properties:
+                expected_epoch: {type: integer, minimum: 0}
+                action: {enum: [install, enable, disable, update, rollback, uninstall]}
+                version: {type: integer, minimum: 1}
+                sha256: {type: string, pattern: '^[a-f0-9]{64}$'}
+      responses:
+        "200": {description: Persisted capability and selected bundled definition read back}
+        "400": {description: Unknown version/hash or invalid transition}
+        "401": {description: Invalid workspace credential}
+        "403": {description: Human actor required}
+        "409": {description: Stale restore or template state epoch}
+        "422": {description: Malformed strict request}
+        "503": {description: Core store unavailable}
 components:
   securitySchemes:
     launchToken:

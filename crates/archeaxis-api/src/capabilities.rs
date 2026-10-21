@@ -205,9 +205,27 @@ pub async fn list(executor: &Executor) -> Response {
             }
         }
     }
+    // First-party data is projected through this same center, without a worker
+    // handshake or qualification claims about any third-party package.
+    let builtin = executor
+        .store()
+        .submit_wait(|conn| archeaxis_domain::template_definition::record(conn))
+        .await;
+    match builtin {
+        Ok(Ok(record)) => capabilities.push(record),
+        _ => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "template capability state unavailable",
+            )
+                .into_response();
+        }
+    }
     let unhealthy = capabilities
         .iter()
-        .filter(|record| record["health"] != "handshake_ready")
+        .filter(|record| {
+            record["health"] != "handshake_ready" && record["health"] != "bundled_data"
+        })
         .count();
     let disabled_count = capabilities
         .iter()
@@ -234,6 +252,14 @@ pub async fn read(executor: &Executor, capability: &str) -> Response {
 }
 
 async fn read_record(executor: &Executor, capability: &str, observe_health: bool) -> Response {
+    if capability == archeaxis_domain::template_definition::CAPABILITY {
+        return template_result(
+            executor
+                .store()
+                .submit_wait(|conn| archeaxis_domain::template_definition::record(conn))
+                .await,
+        );
+    }
     // Registration is checked first: a capability that does not exist cannot be enabled, disabled or
     // reported, and saying "not found" is more useful than answering about its settings.
     let registered = executor
@@ -292,6 +318,16 @@ async fn read_record(executor: &Executor, capability: &str, observe_health: bool
 /// is re-read from the record rather than echoed from the request: a reply that repeated the request
 /// would not prove the write landed.
 pub async fn set_enabled(executor: &Executor, capability: &str, enabled: bool) -> Response {
+    if capability == archeaxis_domain::template_definition::CAPABILITY {
+        return template_result(
+            executor
+                .store()
+                .submit_wait(move |conn| {
+                    archeaxis_domain::template_definition::set_enabled(conn, enabled)
+                })
+                .await,
+        );
+    }
     let registered = executor
         .registered_routes()
         .iter()
@@ -337,4 +373,44 @@ pub async fn refusal(executor: &Executor, capability: &str) -> Option<Response> 
         );
     }
     None
+}
+
+fn template_result(
+    result: Result<
+        Result<serde_json::Value, archeaxis_domain::document::Error>,
+        impl std::fmt::Debug,
+    >,
+) -> Response {
+    match result {
+        Ok(Ok(record)) => {
+            Json(json!({"schema":"archeaxis.capability/v1","capability":record})).into_response()
+        }
+        Ok(Err(archeaxis_domain::document::Error::Conflict(epoch))) => (
+            StatusCode::CONFLICT,
+            Json(json!({"code":"TEMPLATE_STATE_CHANGED","current_epoch":epoch})),
+        )
+            .into_response(),
+        Ok(Err(archeaxis_domain::document::Error::Invalid(message))) => (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"code":"TEMPLATE_CHANGE_INVALID","message":message})),
+        )
+            .into_response(),
+        _ => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            "template capability state unavailable",
+        )
+            .into_response(),
+    }
+}
+
+pub async fn change_template(
+    executor: &Executor,
+    request: archeaxis_domain::template_definition::Change,
+) -> Response {
+    template_result(
+        executor
+            .store()
+            .submit_wait(move |conn| archeaxis_domain::template_definition::change(conn, &request))
+            .await,
+    )
 }

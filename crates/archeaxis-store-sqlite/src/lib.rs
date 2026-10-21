@@ -10,7 +10,7 @@ pub mod writer;
 // 7 adds the capability enable/disable record that R7/G1 needs; 8 adds the vault link graph that
 // G2 needs. Like the earlier additive steps both are applied on open rather than by rewriting
 // anything.
-pub const SCHEMA_VERSION: i64 = 13;
+pub const SCHEMA_VERSION: i64 = 14;
 
 const INGEST_BATCH_SCHEMA_SQL: &str = r#"
 CREATE TABLE IF NOT EXISTS ingest_batches (
@@ -501,6 +501,11 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
         // Versioned teaching metadata extends this same Core workspace. Read paths never create tables.
         tx.execute_batch(TEACHING_SCHEMA_SQL)?;
     }
+    if version < 14 {
+        // Add lifecycle decisions to the existing capability record. Definitions
+        // remain bundled first-party data; historical Documents are never rewritten.
+        upgrade_capability_settings_v14(&tx)?;
+    }
     let broken_fk: bool = tx.query_row(
         "SELECT EXISTS(SELECT 1 FROM pragma_foreign_key_check)",
         [],
@@ -516,6 +521,37 @@ pub fn init_workspace(db_path: &str) -> rusqlite::Result<Connection> {
     tx.commit()?;
     conn.execute_batch("PRAGMA foreign_keys=ON;")?;
     Ok(conn)
+}
+
+/// Same additive migration for initialization and verified schema-13 restore.
+/// Caller owns the transaction and the schema_version publication.
+pub fn upgrade_capability_settings_v14(conn: &Connection) -> rusqlite::Result<()> {
+    for (name, declaration) in [
+        (
+            "installed",
+            "INTEGER NOT NULL DEFAULT 1 CHECK(installed IN (0,1))",
+        ),
+        (
+            "definition_version",
+            "INTEGER NOT NULL DEFAULT 1 CHECK(definition_version > 0)",
+        ),
+        (
+            "state_epoch",
+            "INTEGER NOT NULL DEFAULT 0 CHECK(state_epoch >= 0)",
+        ),
+    ] {
+        let present: bool = conn.query_row(
+            "SELECT EXISTS(SELECT 1 FROM pragma_table_info('capability_settings') WHERE name=?1)",
+            [name],
+            |r| r.get(0),
+        )?;
+        if !present {
+            conn.execute_batch(&format!(
+                "ALTER TABLE capability_settings ADD COLUMN {name} {declaration};"
+            ))?;
+        }
+    }
+    Ok(())
 }
 
 /// Compact workspace info string: schema_version + object counts.

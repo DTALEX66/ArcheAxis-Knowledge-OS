@@ -36,6 +36,23 @@ async function host(operation:string,payload:Record<string,unknown>={}){
 beforeEach(()=>{docs=[];versions=new Map();remember(normalized("saved",1,{type:"doc",attrs:{archeaxis_template:metadata,other:{keep:true}},content:[{type:"paragraph",attrs:{block_id:"original"},content:[{type:"text",text:"original正文"}]}]}));api.call.mockReset();api.call.mockImplementation(host);});
 
 describe("SIMULATED template write lifecycle; real Core separately qualified",()=>{
+  it("edits persisted definition fields after uninstall without using the current global definition",async()=>{
+    const pin={version:2,sha256:"2".repeat(64),application_epoch:3,snapshot:{template_id:"T3",version:2,name:"学习与实践",kind:"first-party-data-only",fields:{学习目标:"",实践记录:"",反思与下一步:""},paragraphs:[]}};
+    docs=[];versions.clear();
+    const saved=remember(normalized("pinned-v2",1,{type:"doc",attrs:{archeaxis_template:{...metadata,template_id:"T3",definition:pin,fields:{status:"draft",学习目标:"已有目标",实践记录:"已有记录",反思与下一步:"旧反思",自定义补充:"保留"}}},content:[]}));
+    api.call.mockImplementation(async(op,payload)=>op==="capabilities_list"?{capabilities:[{capability:"template.T3",installed:false,enabled:false,definition:{version:1}}]}:host(op,payload));
+    render(<TemplateWorkspace onOpen={vi.fn()}/>);
+    fireEvent.click(await screen.findByRole("button",{name:"pinned-v2 · v1"}));
+    expect(screen.getByRole("textbox",{name:"学习目标"})).toHaveValue("已有目标");
+    expect(screen.getByRole("textbox",{name:"实践记录"})).toHaveValue("已有记录");
+    expect(screen.getByRole("textbox",{name:"自定义补充"})).toHaveValue("保留");
+    fireEvent.change(screen.getByRole("textbox",{name:"反思与下一步"}),{target:{value:"新的反思"}});
+    fireEvent.click(screen.getByRole("button",{name:"保存模板属性与关系"}));
+    await waitFor(()=>expect(docs[0].version).toBe(2));
+    expect(binding(docs[0])?.fields.反思与下一步).toBe("新的反思");
+    expect(binding(docs[0])?.definition).toEqual(pin);
+    expect(binding(saved)?.fields.反思与下一步).toBe("旧反思");
+  });
   it("accepts canonical newly assigned block IDs and retries one deterministic create identity",async()=>{
     const attempt=await prepareTemplateCreate("T2","physics","fixed_template");
     const first=await executeTemplateWrite(attempt);const second=await executeTemplateWrite(attempt);

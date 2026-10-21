@@ -180,6 +180,20 @@ pub fn finalize_restore_authorization(
     let source_view = source.unchecked_transaction()?;
     let transaction = target.transaction()?;
     archeaxis_store_sqlite::authorization_fence::install_after_restore(&transaction)?;
+    // The raw restore was compared exactly above. Upgrade only this verified
+    // owned destination; never open the original backup as a writer.
+    let version: String = source_view.query_row(
+        "SELECT value FROM workspace_meta WHERE key='schema_version'",
+        [],
+        |r| r.get(0),
+    )?;
+    if version == "13" {
+        archeaxis_store_sqlite::upgrade_capability_settings_v14(&transaction)?;
+        transaction.execute(
+            "UPDATE workspace_meta SET value=?1 WHERE key='schema_version'",
+            [archeaxis_store_sqlite::SCHEMA_VERSION.to_string()],
+        )?;
+    }
     if !verify_restored_authorization_views(&source_view, &transaction)? {
         return Ok(false); // Transaction drop rolls back the unverified fence.
     }
@@ -212,14 +226,34 @@ fn verify_restored_authorization_views(
     validate_workspace(target)?;
     verify_source_objects(source)?;
     verify_source_objects(target)?;
-    if schema_objects(source)? != schema_objects(target)?
-        || table_names(source)? != table_names(target)?
-    {
+    let source_version: String = source.query_row(
+        "SELECT value FROM workspace_meta WHERE key='schema_version'",
+        [],
+        |r| r.get(0),
+    )?;
+    let target_version: String = target.query_row(
+        "SELECT value FROM workspace_meta WHERE key='schema_version'",
+        [],
+        |r| r.get(0),
+    )?;
+    let upgrading = source_version == "13" && target_version == "14";
+    let schema = |conn: &Connection| -> rusqlite::Result<Vec<_>> {
+        Ok(schema_objects(conn)?
+            .into_iter()
+            .filter(|(kind, name, _, _)| {
+                !upgrading || kind != "table" || name != "capability_settings"
+            })
+            .collect())
+    };
+    if schema(source)? != schema(target)? || table_names(source)? != table_names(target)? {
         return Ok(false);
     }
     for table in table_names(source)? {
         let equal = if table == "workspace_meta" {
-            metadata_content_without_fence(source)? == metadata_content_without_fence(target)?
+            metadata_content_without_fence(source, upgrading)?
+                == metadata_content_without_fence(target, upgrading)?
+        } else if table == "capability_settings" && upgrading {
+            legacy_capability_upgrade_equal(source, target)?
         } else {
             table_content_digest(source, &table)? == table_content_digest(target, &table)?
         };
@@ -341,7 +375,10 @@ fn table_content_digest(conn: &Connection, table: &str) -> rusqlite::Result<(u64
     Ok((row_count, hex::encode(digest.finalize())))
 }
 
-fn metadata_content_without_fence(conn: &Connection) -> rusqlite::Result<(u64, String)> {
+fn metadata_content_without_fence(
+    conn: &Connection,
+    upgrading: bool,
+) -> rusqlite::Result<(u64, String)> {
     let table = "workspace_meta";
     let quoted = format!("\"{}\"", table.replace('"', "\"\""));
     let column_count = conn
@@ -352,9 +389,16 @@ fn metadata_content_without_fence(conn: &Connection) -> rusqlite::Result<(u64, S
         .collect::<Vec<_>>()
         .join(", ");
     let mut stmt = conn.prepare(&format!(
-        "SELECT * FROM {quoted} WHERE key != ?1 ORDER BY {order}"
+        "SELECT * FROM {quoted} WHERE key != ?1 AND key != ?2 ORDER BY {order}"
     ))?;
-    let mut rows = stmt.query([archeaxis_store_sqlite::authorization_fence::KEY])?;
+    let mut rows = stmt.query([
+        archeaxis_store_sqlite::authorization_fence::KEY,
+        if upgrading {
+            "schema_version"
+        } else {
+            archeaxis_store_sqlite::authorization_fence::KEY
+        },
+    ])?;
     let mut digest = Sha256::new();
     digest.update((column_count as u64).to_le_bytes());
     let mut row_count = 0u64;
@@ -423,12 +467,53 @@ fn validate_workspace(conn: &Connection) -> rusqlite::Result<()> {
         .query_map([], |row| row.get(0))?
         .collect::<rusqlite::Result<Vec<_>>>()?;
     if integrity.as_slice() != ["ok"]
-        || version != archeaxis_store_sqlite::SCHEMA_VERSION.to_string()
+        || !(version == "13" || version == archeaxis_store_sqlite::SCHEMA_VERSION.to_string())
         || conn.prepare("PRAGMA foreign_key_check")?.exists([])?
     {
         return Err(rusqlite::Error::InvalidQuery);
     }
     Ok(())
+}
+
+/// This is the only cross-version exception: every legacy capability value
+/// must match and every additive field must equal its migration default.
+fn legacy_capability_upgrade_equal(
+    source: &Connection,
+    target: &Connection,
+) -> rusqlite::Result<bool> {
+    // Compare the exact DDL produced by the same additive migration. Merely
+    // comparing column names would hide removed constraints or altered defaults.
+    let table_sql = |conn: &Connection| -> rusqlite::Result<String> {
+        conn.query_row(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='capability_settings'",
+            [],
+            |r| r.get(0),
+        )
+    };
+    let expected = Connection::open_in_memory()?;
+    expected.execute_batch(&table_sql(source)?)?;
+    archeaxis_store_sqlite::upgrade_capability_settings_v14(&expected)?;
+    if table_sql(&expected)? != table_sql(target)? {
+        return Ok(false);
+    }
+    let columns = |conn: &Connection| -> rusqlite::Result<Vec<String>> {
+        conn.prepare("SELECT name FROM pragma_table_info('capability_settings') ORDER BY cid")?
+            .query_map([], |r| r.get(0))?
+            .collect()
+    };
+    if columns(source)? != ["capability","enabled","changed_at"]
+        || columns(target)? != ["capability","enabled","changed_at","installed","definition_version","state_epoch"]
+        || target.query_row("SELECT EXISTS(SELECT 1 FROM capability_settings WHERE installed!=1 OR definition_version!=1 OR state_epoch!=0)",[],|r|r.get::<_,bool>(0))? {
+        return Ok(false);
+    }
+    let rows = |conn: &Connection| -> rusqlite::Result<Vec<(String, i64, String)>> {
+        conn.prepare(
+            "SELECT capability,enabled,changed_at FROM capability_settings ORDER BY capability",
+        )?
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))?
+        .collect()
+    };
+    Ok(rows(source)? == rows(target)?)
 }
 
 fn verify_source_objects(conn: &Connection) -> rusqlite::Result<()> {

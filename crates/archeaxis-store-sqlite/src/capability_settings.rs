@@ -52,3 +52,25 @@ pub fn set_enabled(conn: &Connection, capability: &str, enabled: bool) -> rusqli
     )?;
     Ok(())
 }
+
+/// Lifecycle decisions share the existing capability row and Core writer.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TemplateState {
+    pub enabled: bool,
+    pub installed: bool,
+    pub version: i64,
+    pub epoch: i64,
+}
+
+pub fn template_state(conn: &Connection) -> rusqlite::Result<TemplateState> {
+    conn.query_row("SELECT enabled,installed,definition_version,state_epoch FROM capability_settings WHERE capability='template.T3'", [], |row| Ok(TemplateState {
+        enabled: row.get(0)?, installed: row.get(1)?, version: row.get(2)?, epoch: row.get(3)?,
+    })).optional().map(|row| row.unwrap_or(TemplateState { enabled: true, installed: true, version: 1, epoch: 0 }))
+}
+
+pub fn write_template_state(conn: &Connection, state: &TemplateState) -> rusqlite::Result<()> {
+    conn.execute("INSERT INTO capability_settings(capability,enabled,installed,definition_version,state_epoch) VALUES('template.T3',?1,?2,?3,?4)
+        ON CONFLICT(capability) DO UPDATE SET enabled=excluded.enabled,installed=excluded.installed,definition_version=excluded.definition_version,state_epoch=excluded.state_epoch,changed_at=datetime('now')",
+        rusqlite::params![state.enabled,state.installed,state.version,state.epoch])?;
+    Ok(())
+}
