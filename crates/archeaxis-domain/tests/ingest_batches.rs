@@ -38,7 +38,7 @@ fn additive_upgrade_preserves_sources_and_batch_reopen() {
             |r| r.get(0)
         )
         .unwrap(),
-        "13"
+        "14"
     );
     assert_eq!(
         conn.query_row::<i64, _, _>("SELECT count(*) FROM sources", [], |r| r.get(0))

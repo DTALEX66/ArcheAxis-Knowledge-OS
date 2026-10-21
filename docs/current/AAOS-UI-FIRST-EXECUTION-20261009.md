@@ -812,3 +812,9 @@ root sh1实际Core进程2PASS（完整关闭ACK后原Source/Document重开；run
 上述是自造材料/进程内HTTP及模拟native commands（SYNTHETIC），不是已安装GUI或完整闭环。真实31-Source旧schema13备份升级、新统一候选长链、exact-SHA CI及Owner验收待执行；a63既有1895步不借给新候选。Green未动，模型/云端既有阻断未重试。仅继续闭环必需工作。
 
 根补充验证：模板/资源合同18项 PASS、root与Tauri rustfmt检查及git diff --check PASS。预检原路由/检查映射缺失与Windows文本CRLF失败保留；新增路由库存34项及修正后的conventions/catalog检查分别PASS，不将失败的整次预检改写成PASS。待exact-SHA CI统一验证。
+
+**J5 exact 候选及真实恢复补充**：产品候选8475af51f55f4df085467c48f71b22eb660f70f8已push并建立PR201 Draft（非merge），measured release Core223da0b89c1aa7f7a0212058d71ea7b06295fd11888e2de4f669b63a1ec91306/18092544字节，构建source_consistent=true。新backend stage单独保存在.project-local/candidates/backend-8475af51-20261021，19479成员、manifest4b08e3b2dee34a7410884af38460c937c32cbe4af3ca59008fcc91ac7e125c73；复用既有项目锁定Pillow13解释器，未覆盖旧stage或Green。入口严格字符串/PowerShell tree参数/解释器父目录选择失败分别保留，未放松边界。
+
+真实旧schema13备份ee3e43d48f85001e22515b3db010098b878bd632d80589d09b101fce05a8fa8c经新Core维护恢复为14、原a63 Core独立恢复为13，两次均exit0/verified=true/新授权fence；逐47张旧表原列精确相等，31个已注册Source两侧CAS hash相等，旧备份hash不变。证据j5-real-schema13-upgrade-8475af51-retry1/upgrade-receipt.json=PASS/source_consistent=true；首轮Core恢复已成功但独立Python读长CAS路径FileNotFound的失败保留，后继仅验证器使用Windows既有extended-path语法，不改系统长路径策略、不改产品断言。该证据是REAL Core维护恢复/回退子集，不是已安装GUI或新候选完整CL/J。
+
+8475的CI39613573199真实FAIL：desktop-fast内容策略探针仍断言schema13；Python关联防漂移测试[13]!=[14]；Rust ingest_batches旧schema13期望失败。源日志分别job119269244947/119269244396/119269244791；其余lint/contracts/browser已成功，skip不算PASS。仅把两处精确期望改为14，原保存/内容/备份断言全部保留；root ingest_batches4项、schema防漂移1项PASS，实际新backend候选完整content-policy探针3c4c4ffdbda94cdabb4b297985613fa1/receipt.json ok=true（独立Core普通保存/检查/备份恢复/重启），不是降低断言。下一exact-SHA CI仍待运行；未merge。
