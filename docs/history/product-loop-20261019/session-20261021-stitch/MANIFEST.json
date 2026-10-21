@@ -1,0 +1,85 @@
+{
+  "schema": "aaos.session-design-intake/v1",
+  "date": "2026-10-21",
+  "scope": "Owner-authorized exact external design output intake, read-only refresh and project closeout; no private native-session export",
+  "project_id": "10243059433218383839",
+  "screen_id": "206611daf7a948edb97ea60c7a7d8654",
+  "live_evidence": ".project-local/artifacts/stitch-intake-20261021/live-read",
+  "live_status": "PASS / REAL; get_project/list_screens/get_screen/download_file; no remote writes or model turn; native session MCP UNVERIFIED",
+  "objects": [
+    {
+      "source": "C:\\Users\\ALEX\\Documents\\Codex\\2026-10-18\\codex-codex-ui-ux-work-lab\\outputs\\stitch-connection-20261021\\HANDOFF-AAOS.md",
+      "archive": ".project-local/artifacts/stitch-intake-20261021/received/HANDOFF-AAOS.md",
+      "bytes": 2965,
+      "sha256": "8fe6a313734dbea697a80b0ae82984f75e173381ea3c6d49977ad6de26053fc4",
+      "owner": "Owner-design-intake / external source preserved",
+      "decision": "retain unchanged; original untouched; local only, no Git payload upload",
+      "rollback": "No source changed; verify hash and read original or archive"
+    },
+    {
+      "source": "C:\\Users\\ALEX\\Documents\\Codex\\2026-10-18\\codex-codex-ui-ux-work-lab\\outputs\\stitch-connection-20261021\\REPORT.md",
+      "archive": ".project-local/artifacts/stitch-intake-20261021/received/REPORT.md",
+      "bytes": 7576,
+      "sha256": "a0e18896039b7a4c48171a4444a01945b7bf4a029dd885ca3d451863371fd509",
+      "owner": "Owner-design-intake / external source preserved",
+      "decision": "retain unchanged; original untouched; local only, no Git payload upload",
+      "rollback": "No source changed; verify hash and read original or archive"
+    },
+    {
+      "source": "C:\\Users\\ALEX\\Documents\\Codex\\2026-10-18\\codex-codex-ui-ux-work-lab\\outputs\\stitch-connection-20261021\\Read-Stitch.ps1",
+      "archive": ".project-local/artifacts/stitch-intake-20261021/received/Read-Stitch.ps1",
+      "bytes": 1030,
+      "sha256": "9774665db701d17ee5515b10417fa35c1fe7d87d5a06bda65933724ec734c327",
+      "owner": "Owner-design-intake / external source preserved",
+      "decision": "retain unchanged; original untouched; local only, no Git payload upload",
+      "rollback": "No source changed; verify hash and read original or archive"
+    },
+    {
+      "source": "C:\\Users\\ALEX\\Documents\\Codex\\2026-10-18\\codex-codex-ui-ux-work-lab\\outputs\\stitch-connection-20261021\\read_target.py",
+      "archive": ".project-local/artifacts/stitch-intake-20261021/received/read_target.py",
+      "bytes": 4351,
+      "sha256": "ba2507f96692a0f375932c79f97259ac924da259dac53bdc88598375275c28a4",
+      "owner": "Owner-design-intake / external source preserved",
+      "decision": "retain unchanged; original untouched; local only, no Git payload upload",
+      "rollback": "No source changed; verify hash and read original or archive"
+    },
+    {
+      "source": "C:\\Users\\ALEX\\Documents\\Codex\\2026-10-18\\codex-codex-ui-ux-work-lab\\outputs\\stitch-connection-20261021\\verify_stitch.py",
+      "archive": ".project-local/artifacts/stitch-intake-20261021/received/verify_stitch.py",
+      "bytes": 8872,
+      "sha256": "02a89b8ca37295348442d06925d685030ae94084cde10f059f2cacdef8e4f116",
+      "owner": "Owner-design-intake / external source preserved",
+      "decision": "retain unchanged; original untouched; local only, no Git payload upload",
+      "rollback": "No source changed; verify hash and read original or archive"
+    },
+    {
+      "source": "C:\\Users\\ALEX\\Documents\\Codex\\2026-10-18\\codex-codex-ui-ux-work-lab\\outputs\\stitch-connection-20261021\\runs\\20261021T140008276040Z_33132\\AAOS-interactive-integrated.html",
+      "archive": ".project-local/artifacts/stitch-intake-20261021/received/runs/20261021T140008276040Z_33132/AAOS-interactive-integrated.html",
+      "bytes": 97811,
+      "sha256": "8c9fba60a636ab8f9fdf9d5c1bb70dbf9dd32cba4961ade66f5aa5feb6f2ba18",
+      "owner": "Owner-design-intake / external source preserved",
+      "decision": "retain unchanged; original untouched; local only, no Git payload upload",
+      "rollback": "No source changed; verify hash and read original or archive"
+    },
+    {
+      "source": "C:\\Users\\ALEX\\Documents\\Codex\\2026-10-18\\codex-codex-ui-ux-work-lab\\outputs\\stitch-connection-20261021\\runs\\20261021T140008276040Z_33132\\AAOS-interactive-integrated.png",
+      "archive": ".project-local/artifacts/stitch-intake-20261021/received/runs/20261021T140008276040Z_33132/AAOS-interactive-integrated.png",
+      "bytes": 2757978,
+      "sha256": "46c09bc4bc9428ae716f1159a8d263a78fce15d8b7fa856d3367ded2243f9e46",
+      "owner": "Owner-design-intake / external source preserved",
+      "decision": "retain unchanged; original untouched; local only, no Git payload upload",
+      "rollback": "No source changed; verify hash and read original or archive"
+    },
+    {
+      "source": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "archive": "docs/history/product-loop-20261019/session-20261021-stitch/HANDOFF-BEFORE.md",
+      "bytes": 29254,
+      "sha256": "9c7d82ebba20799701ed1c434480f04eed2897f7a10563c77b8219ae530dbc68",
+      "owner": "AAOS public handoff",
+      "decision": "immutable prior handoff; current entry updated in place",
+      "rollback": "Read archived original; do not recreate a second mutable current entry"
+    }
+  ],
+  "deletion": "NONE",
+  "private_originals_in_git": false
+}
