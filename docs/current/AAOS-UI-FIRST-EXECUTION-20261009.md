@@ -793,3 +793,13 @@ root sh1实际Core进程2PASS（完整关闭ACK后原Source/Document重开；run
 **当前聚合门禁**：J3最终独立复审5ef06570b802319467ef3c08ae5e9f7909cc3e8dbe367b4c18144693218ccf7f确认已报1P1/3P2全部关闭，12个独立断言样例通过，最终分层16源码/制品hash无漂移。backend-aggregate-fmt-20261021为最终Rust fmt PASS；backend-aggregate-preflight-20261021为完整canonical preflight PASS，包含33项route/number/verification库存及所有generated --check，联合Pillow/J3 catalog无漂移。最后本条只补写这些已经产生的验证事实；产品代码自最终22项回归后未改。新候选身份以本条所属Git提交与PR200实际head为准，仍需该head的required CI和新锁实际runtime，不能借用021真实链或旧平台资格。
 
 总体仍PARTIAL；本地LLM最终答案/Owner模型策略、真实云端授权接通、全面非企业兼容、能力中心真实扩展生命周期及真实窗口/安装/Owner验收仍缺。Green和真实用户库保持原样。后继按批准升级/产品修复的实际新SHA运行必要CI，review及required exact-SHA资格满足才合并；不能用本条文档或局部测试代替同候选闭环。
+
+### 2026-10-21 后端候选实际链与 PR200 主线交付
+
+**交付 PASS（非安装验收）**：产品 head `a63cda6d1864b70e74f54240d1246fa0d0b2fe7e` 保留 TRAE `206d56da` 祖先。PR200 exact-head CI39594971487 attempt1 SUCCESS，14个实际job成功、6个条件跳过不计PASS，required a0-gates成功；独立审阅及现行规则核对后正常expected-head合并。实际main为 `86a486719b0d7a88602ff03c5ce393d447dfd9bd`，parents为32291ad4/a63cda6d，tree `28990cfa0de9b49382b865f52b65b385da44e9fa` 与CI候选相同；main push CI39597792036 attempt1亦独立SUCCESS（14成功/6条件跳过）。未强合、未删除占用中的分支。
+
+**新候选 PASS（静态资格）**：a63 measured Core、Pillow13锁定Python、正式host和portable完整成员校验通过；`be-portable-a63cda6d-20261021` 含19482成员、694579598逻辑字节，Core `1a1d9b9bb892aba0dc7d940d2cce993b339c75783eb0fae5e549ce62862c837c`，host `31e0f83e748111879ab28f71c25c9d87ad26cc54788eb0b6d436aa7c0cbcba03`。首次host资格正确拒绝Tauri缓存中9个旧Pillow12.3元数据文件；全部匹配保留的021 manifest，逐hash归档到本项目 `tauri-old-pillow-cache-archive` 并保留回退/失败收据，再以 `be-host-qualified-a63cda6d-retry1-20261021` 通过。未删资料、未放宽校验或更改共享工具。
+
+**同候选后端子链 PASS／整体 PARTIAL**：`be-public-learning-a63cda6d-proxy-real-20261021` 156步、183.82秒，三类真实免费检索→六份原始/派生CAS→来源比较→三项工程人工知识接纳与FSRS→备份恢复/冷回读通过。首次遗漏已登记显式proxy导致Wiki直连超时，原FAIL保留；后继仅子进程选择已有127.0.0.1:7890，未改系统网络。继而同一候选/恢复工作区运行 `be-full-fragments-formats-speech-a63cda6d-real-20261021`：1895步、482.16秒，混合文件夹、常用格式及八类扩展、原件关系、明确标题/块绑定、OCR、英文WAV/MP4转写与定位、导出备份、一次实际restore后及冷重启后两次完整回读完成。backup/J3有限关系/fragment/extended-formats均PASS，speech仍PARTIAL。最终收据 `b0a927ecddcf9106062c31adb5e450e54ba8e8a7c954a45e270d6588cafe7e40`（201208273字节）；3790条journal事件严格replay/FINAL hash绑定通过，1895请求ALL_RETURNED，canonical exit0、source/candidate一致及恢复同对象均true。汇总在本地 `backend-followup-20261021/a63-full-chain-final-readback.json`，不提交运行数据库或大证据。
+
+**边界与续接**：上述为真实Core/worker/公开网络配合自造材料，工程human接纳不代表Owner事实质量验收；五个自有Core均terminate/wait/reap，非原生优雅退出证明。fragment新增探针freeze159a0d516d86ef78c2865126ad2db4a7b2594117d16934f06544c273b8ce4ab0经67项hash及独立17组合成合同审阅后原位运行，原53 HTTP/137断言保留，旧CAS断言只加强新增集合；未改主probes路由。完整CL-01—07/J1—J6仍PARTIAL：本地最终模型答案、真实云端授权/调用、全面特色矩阵、扩展生命周期、中文/全量语音质量及原生安装窗口/Owner验收尚缺；Green未覆盖。Owner后继要求节省TOKEN、非必要不做，停止额外扩展开发：隔离J5仅保留一份新增测试及预期404 RED，无产品实现、无活动子进程；当前不重跑无关全量门禁。
