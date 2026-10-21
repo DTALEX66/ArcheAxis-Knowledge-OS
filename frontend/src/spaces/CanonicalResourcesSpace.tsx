@@ -5,6 +5,8 @@ import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { AaosField, AaosTabs } from "../design-system/AaosPrimitives";
 import { SURFACE_CLASS_LABEL } from "../templates/capabilityRequirements";
 import { TemplateWorkspace } from "../templates/TemplateWorkspace";
+import { T3LifecycleControls } from "../templates/T3LifecycleControls";
+import { changeTemplate, type Definition, type TemplateAction, type TemplateState } from "../templates/templateLifecycle";
 import { coreFailureReason } from "../presentation/labels";
 import { readResourceHandshake, readCapabilityDecision, type CapabilityHandshake as Handshake } from "../api/capabilitySettings";
 import "./resources.css";
@@ -86,6 +88,20 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
       if (mounted.current) setChanging(null);
     }
   }
+  async function changeT3(state:TemplateState,action:TemplateAction,target=state.definition) {
+    if(writePending.current||templateDirty.current)return;
+    writePending.current=true;setChanging("template.T3");setDecisionNotice(null);
+    try {
+      const next=await changeTemplate(state,action,target);
+      if(!mounted.current)return;
+      setRead(old=>old.state==="read"?{state:"read",rows:old.rows.map(row=>row.capability==="template.T3"?next:row)}:old);
+      setDecisionNotice({failed:false,text:`学习与实践模板变更已保存并读回：v${next.definition.version}，${next.installed?(next.enabled?"已启用":"已停用"):"已卸载"}；已有对象保留。`});
+    } catch {
+      if(!mounted.current)return;
+      setDecisionNotice({failed:true,text:"模板变更未确认或状态已变化；不自动重发，请核对当前读回。"});
+      await refresh();
+    } finally {writePending.current=false;if(mounted.current)setChanging(null);}
+  }
   useEffect(() => {
     mounted.current = true;
     void refresh();
@@ -146,7 +162,7 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
       {decisionNotice ? <p role={decisionNotice.failed ? "alert" : "status"}>{decisionNotice.text}</p> : null}
       {read.state === "reading" ? <p role="status">正在读取宿主能力…</p> : read.state === "failed" ? <p role="alert">无法确认当前可用功能；资源目录仍可查看。请重试或查看运行诊断。</p> : read.state === "not_read" ? <p>本次尚未检查。</p> : <>
         <p>已读取 {read.rows.length} 项能力状态；不代表 {RESOURCE_CATALOG.entries.length} 项来源均已接入。</p>
-        {read.rows.length ? <ul>{read.rows.map(row => <li key={row.capability}>{row.capability} · 权限 {row.enabled === true ? "允许" : row.enabled === false ? "已禁用" : "UNKNOWN"} · 健康 {row.health ?? "UNKNOWN"} {typeof row.enabled === "boolean" && row.enabled_basis === "the workspace's capability record; an absent record means enabled" ? <button disabled={changing !== null} aria-label={`${row.enabled === false ? "启用" : "禁用"} ${row.capability}`} onClick={() => void changeEnabled(row)}>{row.enabled === false ? "启用" : "禁用"}</button> : <span> · 执行设置未确认，无法变更</span>}</li>)}</ul> : <p>宿主返回空能力列表；不填造运行项。</p>}
+        {read.rows.length ? <ul>{read.rows.map(row => <li key={row.capability}>{row.capability==="template.T3"?<T3LifecycleControls row={row} disabled={changing!==null||templateDirty.current} onChange={(state:TemplateState,action:TemplateAction,target?:Definition)=>void changeT3(state,action,target)}/>:<>{row.capability} · 权限 {row.enabled === true ? "允许" : row.enabled === false ? "已禁用" : "UNKNOWN"} · 健康 {row.health ?? "UNKNOWN"} {typeof row.enabled === "boolean" && row.enabled_basis === "the workspace's capability record; an absent record means enabled" ? <button disabled={changing !== null} aria-label={`${row.enabled === false ? "启用" : "禁用"} ${row.capability}`} onClick={() => void changeEnabled(row)}>{row.enabled === false ? "启用" : "禁用"}</button> : <span> · 执行设置未确认，无法变更</span>}</>}</li>)}</ul> : <p>宿主返回空能力列表；不填造运行项。</p>}
       </>}
       <RawReceiptButton label="能力运行详细信息" payload={read}/>
     </section>

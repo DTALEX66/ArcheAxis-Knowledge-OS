@@ -369,6 +369,10 @@ pub fn router(executor: Executor) -> Router {
         .route("/api/v1/capabilities", get(capabilities))
         .route("/api/v1/capabilities/:capability", get(capability))
         .route(
+            "/api/v1/capabilities/template.T3/definition",
+            put(change_template_definition),
+        )
+        .route(
             "/api/v1/capabilities/:capability/enabled",
             put(set_capability_enabled),
         )
@@ -462,6 +466,21 @@ async fn capabilities(State(runtime): State<Runtime>) -> Response {
 
 async fn capability(State(runtime): State<Runtime>, Path(name): Path<String>) -> Response {
     crate::capabilities::read(&runtime.executor, &name).await
+}
+
+async fn change_template_definition(
+    State(runtime): State<Runtime>,
+    headers: HeaderMap,
+    Json(body): Json<archeaxis_domain::template_definition::Change>,
+) -> Response {
+    if crate::request_actor(&headers) != Ok("human") {
+        return (
+            StatusCode::FORBIDDEN,
+            Json(json!({"code":"CAPABILITY_SETTINGS_HUMAN_REQUIRED"})),
+        )
+            .into_response();
+    }
+    crate::capabilities::change_template(&runtime.executor, body).await
 }
 
 async fn set_capability_enabled(

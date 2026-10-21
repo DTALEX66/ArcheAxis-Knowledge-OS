@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (134 pairs in a `text_worker` launch)
+## 3. Route inventory (135 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -219,7 +219,7 @@ All paths are relative to the loopback base URL.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
-| R5 | `GET /api/v1/capabilities` | any token | The routes the Core actually registered, one record each: `capability`, `provider` (kind, worker path, whether the worker and interpreter files exist, whether the route may import site packages), `enabled`, `health`, `is_default`, `fallback`. **Left with the executor rather than the projections because it reads the registered routes**, and it reads no database, so it answers even when the store will not open. |
+| R5 | `GET /api/v1/capabilities` | any token | The routes the Core actually registered, one record each: `capability`, `provider` (kind, worker path, whether the worker and interpreter files exist, whether the route may import site packages), `enabled`, `health`, `is_default`, `fallback`. **Left with the executor rather than the projections because it reads the registered routes**, and now also reads the Core capability row for bundled `template.T3`; unavailable template state makes the whole read fail with 503. |
 | R6 | `GET /api/v1/capabilities/{capability}` | any token | One capability by its **exact** dot-separated name. A near miss is `404` with a plain-text body rather than the nearest match, because a registry that guesses is worse than one that says it does not know. |
 | R7 | `PUT /api/v1/capabilities/{capability}/enabled` | any token | Body `{"enabled": true\|false}`. **`enabled` is a required boolean and unknown fields are `422`** — `{}` must not be read as "disable", which would make the most destructive action the default. Answers with the record re-read from the workspace, not echoed from the request. A capability that is not registered is `404`; a capability the workspace has turned off is refused by the execute path with `409 AAK-CAP-001` and by the claim transaction, so no attempt row is created. |
 | R14 | `POST /api/v1/vault/members` | any token | Body `{"members":[...]}` of relative paths. Classifies each member of a vault **without reading any of them**: `note` (`.md`/`.markdown`), `app_config` (anything under `.obsidian/` or `.trash/`), `attachment` (an extension this project has a route for), `canvas`, or `unknown`. Each member carries a `disposition`: `import_as_knowledge`, `import_as_source`, `exclude_application_state`, `needs_a_human_decision`, or `refuse`. **The reason this exists:** nothing previously distinguished a person's notes from the vault's own `.obsidian/`, and `workspace.json` records which notes a person had open **with absolute paths on their disk** - importing it would file a private path as a claim about the world. An **unsafe path is refused rather than classified**: an absolute path, a drive letter, a UNC path, a `..` segment or a NUL byte is reported with its reason and given no role, because deciding what an out-of-tree path *is* would suggest it might be read. An unrecognised file is `needs_a_human_decision` rather than guessed as an attachment. Every member is reported, including the refused ones, so a caller sees what it offered. The response carries `not_done_here`, stating that it does not read `.obsidian/app.json` and does not walk a directory. An empty `members` list is `422`, as is an unknown field: **there is no `vault_root`**. Asserted by `crates/archeaxis-api/tests/contract_vault_members.rs` and by the unit tests in `crates/archeaxis-domain/src/vault_members.rs`. |
@@ -609,9 +609,9 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
 | **no** `text_worker` | 83 addresses: 82 projection method/path pairs (70 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue is present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 134 addresses (81 base projection method/path pairs + 52 runtime method/path pairs on 49 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **with** `text_worker` | 135 addresses (81 base projection method/path pairs + 53 runtime method/path pairs on 50 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
-The runtime builder carries **49** route mounts, mounted there rather than with the projections because
+The runtime builder carries **50** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
 router's state while the projection builder holds only the store. In groups: the four
 job-execution routes; the three capability-registry paths; `POST /api/v1/ask` and the semantic
@@ -814,7 +814,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 81 base projection pairs plus 52 runtime pairs plus one native session-control pair total 134. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 81 base projection pairs plus 53 runtime pairs plus one native session-control pair total 135. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
@@ -918,7 +918,7 @@ The following 21 method/path pairs record the 2026-10-14 source reconciliation; 
 
 ## 16. 2026-10-19 local-human handoff reads
 
-Current-source inventory (2026-10-21 successor update): **134** unique production method/path pairs. Projection-only: **70** unconditional mounts / **82** pairs (twelve dual-method mounts); text-worker: **81** base projection pairs + **52** runtime pairs on **49** runtime mounts. One native session-control mount/pair is added to both launch shapes (83/134 pairs). The one conditional manual receipt remains excluded. Dated counts in §§10–15 and historical OBSERVED receipts retain their original measurement scope; §3 and §6 are current-source counts, not new runtime qualification.
+Current-source inventory (2026-10-21 successor update): **135** unique production method/path pairs. Projection-only: **70** unconditional mounts / **82** pairs (twelve dual-method mounts); text-worker: **81** base projection pairs + **53** runtime pairs on **50** runtime mounts. One native session-control mount/pair is added to both launch shapes (83/135 pairs). The one conditional manual receipt remains excluded. Dated counts in §§10–15 and historical OBSERVED receipts retain their original measurement scope; §3 and §6 are current-source counts, not new runtime qualification.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
@@ -959,7 +959,7 @@ Current successor checks: `cargo test -p archeaxis-api --test ingest_relations -
 | --- | --- | --- | --- |
 | 226 | `GET /api/v1/sources/{source_id}` | Existing read token | Returns the exact canonical `SourceDto` (source_id, source_revision=sha256, original_name, imported_at); missing identity is 404. No capped listing, title matching, source creation or write. Finite Core operation `source_get`. |
 
-The folder source opener binds this row to the selected member SHA before opening original bytes. It does not automatically choose a Document. The explicit relation consumer requires a current source-bound saved Document and selected same-batch targets; dirty state and an outstanding write block submission. Original Markdown CAS, current body, manual relations and unresolved loss remain distinct. One frozen apply is sent; an absent or inconsistent ACK remains UNKNOWN, with read-only reconciliation and no automatic resend/version rebase. This is source-contract wiring, not native-host or Owner acceptance. The current combined inventory has 134 method/path pairs.
+The folder source opener binds this row to the selected member SHA before opening original bytes. It does not automatically choose a Document. The explicit relation consumer requires a current source-bound saved Document and selected same-batch targets; dirty state and an outstanding write block submission. Original Markdown CAS, current body, manual relations and unresolved loss remain distinct. One frozen apply is sent; an absent or inconsistent ACK remains UNKNOWN, with read-only reconciliation and no automatic resend/version rebase. This is source-contract wiring, not native-host or Owner acceptance. The current combined inventory has 135 method/path pairs.
 
 ## 20. Native session shutdown and writer drain
 
@@ -972,3 +972,17 @@ This fixed native control route is installed in both launch shapes before launch
 The native host retains its 8-second graceful budget and 1-second forced-reap fallback. The explicit `exit_application` command stays responsive while waiting off-thread for the owned Core result. WM_CLOSE/OS exit retains the native fallback from 0b633a619bf47e3a2d00f7f174c563d1ce939224; that path is not graceful-qualified. When its write succeeds, `core-shutdown-result.json` contains PID, method, ACK, forced attempt, actual exit code and reap state, without credentials or content. `GRACEFUL` requires a complete matching ACK and observed exit0 without force; `FORCED`, `ERROR`, `ALREADY_EXITED`, and `UNKNOWN` are distinct. An unavailable operation owner is UNKNOWN, not graceful. No model service or unrelated process is stopped, no accepted job is silently cancelled, and 202 work is not declared successful without its durable terminal result. Native packaged/window qualification remains separate from source and controlled-process tests.
 
 Checks: `cargo test -p archeaxis-api --test session_shutdown_process --offline`; `cargo test -p archeaxis-api --lib session_shutdown --offline`; `cargo test -p archeaxis-store-sqlite --test writer --offline`. The native backend's explicit-Core-path test is opt-in and is not an installed-runtime claim.
+
+## 21. Bundled T3 definition lifecycle
+
+| # | Method + path | Auth | Notes |
+| --- | --- | --- | --- |
+| 228 | `PUT /api/v1/capabilities/template.T3/definition` | Current human actor, workspace credential and restore epoch | Strict `{expected_epoch, action, version, sha256}`; actions install/enable/disable/update/rollback/uninstall use only bundled MIT first-party inert definitions v1/v2. Stale state is 409; unknown version/hash/transition is 400; nonhuman actor is 403. No package download or external execution. |
+
+The existing capability list/detail includes `template.T3` with installed/enabled, selected definition/hash/snapshot and state_epoch. Generic enable/disable also advances this epoch and cannot enable an uninstalled template. New T3 applications must use the selected compiled definition and epoch; old unpinned clients may create only enabled installed v1. Disable/uninstall blocks new applications while existing versioned/unversioned documents, references, knowledge and learning remain readable and editable without new approval. Existing definition pins are immutable; their saved fields drive the editor independently of the current global definition. T1/T2 and ordinary saves retain existing behavior.
+
+Schema 14 adds installed (default 1), definition_version (default 1), and state_epoch (default 0) to the existing capability_settings row. Restoring schema 13 first verifies its original snapshot/CAS, then migrates only the owned destination transactionally with the authorization fence. All previous rows must remain exact; only these default columns, schema number and authorized fence differ. Original schema-13 backups stay unchanged; rollback requires the original backup/Core rather than a schema-14 downgrade. Logical archives enforce the shipped schema-13 inventory and reject injected new columns.
+
+Directed SQLite/archive/API tests use authored fixtures (SYNTHETIC); frontend commands are mocked and native bridge source is exercised in a harness. Actual 31-Source schema-13 upgrade, installed GUI, same-candidate full chain and exact-SHA CI remain separate qualification.
+
+Directed checks: `cargo test -p archeaxis-api --test template_lifecycle --offline --locked`; `cargo test -p archeaxis-domain --test template_lifecycle --offline --locked`; `cargo test -p archeaxis-archive --test template_lifecycle_archive --offline --locked`.

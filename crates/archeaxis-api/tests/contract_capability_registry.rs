@@ -663,5 +663,9 @@ async fn the_registry_answers_even_when_no_extra_worker_was_declared() {
         .iter()
         .map(|record| record["capability"].as_str().unwrap().to_string())
         .collect();
-    assert_eq!(names, vec!["text.extract".to_string()], "{names:?}");
+    assert_eq!(
+        names,
+        vec!["text.extract".to_string(), "template.T3".to_string()],
+        "{names:?}"
+    );
 }

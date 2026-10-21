@@ -18,7 +18,7 @@ fn eleven_to_current_adds_teaching_tables_without_changing_document_bytes() {
     c.execute_batch("DROP TABLE ingest_batch_members;DROP TABLE ingest_batches;DROP TABLE public_research_runs;DROP TABLE teaching_withdrawals;DROP TABLE teaching_records;UPDATE workspace_meta SET value='11' WHERE key='schema_version';").unwrap();
     drop(c);
     let c = init_workspace(db.to_str().unwrap()).unwrap();
-    assert_eq!(SCHEMA_VERSION, 13);
+    assert_eq!(SCHEMA_VERSION, 14);
     let row:(String,String,String)=c.query_row("SELECT editor_json,text_projection,revision_basis FROM document_versions WHERE document_id='legacy'",[],|r|Ok((r.get(0)?,r.get(1)?,r.get(2)?))).unwrap();
     assert_eq!(
         row,

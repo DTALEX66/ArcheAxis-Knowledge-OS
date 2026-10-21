@@ -374,6 +374,9 @@ fn archive_tables(manifest: &ArchiveManifest) -> Result<&'static [&'static str],
         9 if same_set(V9_LAYOUT) => Ok(V9_LAYOUT),
         10 | 11 if same_set(V10_V11_LAYOUT) => Ok(V10_V11_LAYOUT),
         12 if same_set(V12_LAYOUT) => Ok(V12_LAYOUT),
+        // Schema 14 only adds columns to capability_settings; the shipped v13
+        // table inventory is unchanged. Missing columns use v14 SQL defaults.
+        13 if same_set(EXPORT_TABLES) => Ok(EXPORT_TABLES),
         version if version == archeaxis_store_sqlite::SCHEMA_VERSION => CURRENT_LAYOUTS
             .iter()
             .find(|layout| same_set(layout))
@@ -641,9 +644,9 @@ pub fn restore_workspace(
             let obj = v
                 .as_object()
                 .ok_or_else(|| ArchiveError::Table("row not object".into()))?;
-            // ARCHIVE-01 upgrade path: columns added after an older archive was
-            // written are absent from its rows and are filled with NULL here
-            // (they are additive and nullable). An unknown extra column means the
+            // ARCHIVE-01 upgrade path: absent nullable columns use NULL; only
+            // the three explicitly introduced v14 capability columns use their
+            // declared defaults. An unknown extra column means the
             // row does not belong to a layout we understand, so reject it rather
             // than silently dropping or guessing data.
             if obj.keys().any(|c| !cols.contains(c)) {
@@ -651,11 +654,29 @@ pub fn restore_workspace(
                     "unknown column in archive row: {table}"
                 )));
             }
+            if *table == "capability_settings"
+                && manifest.schema_version < 14
+                && obj
+                    .keys()
+                    .any(|c| !["capability", "enabled", "changed_at"].contains(&c.as_str()))
+            {
+                return Err(ArchiveError::Table(
+                    "v14 capability column in legacy archive".into(),
+                ));
+            }
             let mut params: Vec<rusqlite::types::Value> = Vec::new();
             for c in &cols {
-                params.push(json_to_value(
-                    obj.get(c).cloned().unwrap_or(serde_json::Value::Null),
-                ));
+                let legacy_default =
+                    if *table == "capability_settings" && manifest.schema_version < 14 {
+                        match c.as_str() {
+                            "installed" | "definition_version" => serde_json::json!(1),
+                            "state_epoch" => serde_json::json!(0),
+                            _ => serde_json::Value::Null,
+                        }
+                    } else {
+                        serde_json::Value::Null
+                    };
+                params.push(json_to_value(obj.get(c).cloned().unwrap_or(legacy_default)));
             }
             stmt.execute(rusqlite::params_from_iter(params.iter()))?;
         }

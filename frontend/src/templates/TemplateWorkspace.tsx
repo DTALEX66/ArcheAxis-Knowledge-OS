@@ -182,7 +182,7 @@ export function TemplateWorkspace({onOpen,onDirtyChange,onOpenCapability}:{onOpe
     {selected&&draft?<>
       <h3 ref={editorHeadingRef} tabIndex={-1}>{selected.title}</h3><button disabled={busy||uncertain} onClick={()=>openDocument(selected.document_id)}>打开真实文档与正文</button>
       <p>{pack.activity}；评价：{pack.evaluation}。普通笔记与假设允许保存，复习间隔不证明实操掌握。</p>
-      {["status",...pack.fields].map(field=><label key={field}>{field}<input disabled={busy} value={draft.fields[field]??""} onChange={event=>change({...draft,fields:{...draft.fields,[field]:event.target.value}})}/></label>)}
+      {Array.from(new Set(["status",...pack.fields,...Object.keys(draft.definition?.snapshot.fields??{}),...Object.keys(draft.fields)])).map(field=><label key={field}>{field}<input disabled={busy} value={draft.fields[field]??""} onChange={event=>change({...draft,fields:{...draft.fields,[field]:event.target.value}})}/></label>)}
       <label>关联学习项<input disabled={busy} value={draft.learning_item_key??""} onChange={event=>change({...draft,learning_item_key:event.target.value||null})}/></label>
       <button disabled={busy||uncertain||!documentLease.canWrite||!dirty.current} onClick={()=>void action(save)}>保存模板属性与关系</button>
       {unreadable?<p>集合刷新未完成；保留此前文档，当前数量与关系未知。</p>:<p>当前学科集合 {currentCollection.members.length} 个对象，{currentCollection.relations} 条关系；{Object.entries(currentCollection.statuses).map(([state,count])=>`${state}：${count}`).join("；")}</p>}

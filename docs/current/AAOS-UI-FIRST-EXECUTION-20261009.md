@@ -803,3 +803,12 @@ root sh1实际Core进程2PASS（完整关闭ACK后原Source/Document重开；run
 **同候选后端子链 PASS／整体 PARTIAL**：`be-public-learning-a63cda6d-proxy-real-20261021` 156步、183.82秒，三类真实免费检索→六份原始/派生CAS→来源比较→三项工程人工知识接纳与FSRS→备份恢复/冷回读通过。首次遗漏已登记显式proxy导致Wiki直连超时，原FAIL保留；后继仅子进程选择已有127.0.0.1:7890，未改系统网络。继而同一候选/恢复工作区运行 `be-full-fragments-formats-speech-a63cda6d-real-20261021`：1895步、482.16秒，混合文件夹、常用格式及八类扩展、原件关系、明确标题/块绑定、OCR、英文WAV/MP4转写与定位、导出备份、一次实际restore后及冷重启后两次完整回读完成。backup/J3有限关系/fragment/extended-formats均PASS，speech仍PARTIAL。最终收据 `b0a927ecddcf9106062c31adb5e450e54ba8e8a7c954a45e270d6588cafe7e40`（201208273字节）；3790条journal事件严格replay/FINAL hash绑定通过，1895请求ALL_RETURNED，canonical exit0、source/candidate一致及恢复同对象均true。汇总在本地 `backend-followup-20261021/a63-full-chain-final-readback.json`，不提交运行数据库或大证据。
 
 **边界与续接**：上述为真实Core/worker/公开网络配合自造材料，工程human接纳不代表Owner事实质量验收；五个自有Core均terminate/wait/reap，非原生优雅退出证明。fragment新增探针freeze159a0d516d86ef78c2865126ad2db4a7b2594117d16934f06544c273b8ce4ab0经67项hash及独立17组合成合同审阅后原位运行，原53 HTTP/137断言保留，旧CAS断言只加强新增集合；未改主probes路由。完整CL-01—07/J1—J6仍PARTIAL：本地最终模型答案、真实云端授权/调用、全面特色矩阵、扩展生命周期、中文/全量语音质量及原生安装窗口/Owner验收尚缺；Green未覆盖。Owner后继要求节省TOKEN、非必要不做，停止额外扩展开发：隔离J5仅保留一份新增测试及预期404 RED，无产品实现、无活动子进程；当前不重跑无关全量门禁。
+
+
+**2026-10-21 J5 必需生命周期续接（PARTIAL）**：在既有能力中心、Core capability_settings 和正式 Tauri bridge 内补 first-party data-only T3 的安装、停用/启用、v1/v2 更新、回退、卸载/重装；不下载或执行外部插件。新应用由后端固定定义/hash/snapshot 与递增 epoch 控制，旧无 pin 文档继续普通保存；停用/卸载保留原文、引用、知识及学习。schema13→14 仅增加同表三列；SQLite 先验原快照/CAS 再事务迁移目标并恢复授权 fence，逻辑归档使用明确旧列默认，未知 schema/坏 CAS/注入新列拒绝。原 schema13 备份不动，旧 Core 回退须使用原备份。
+
+隔离供体25文件 freeze 14131696037cc9eed6f321c73a9b324367e0b294c5d9405b8452b7eb27e39a5a，根接收逐 baseline/final hash 核验；独立审阅指出“新增定义字段未显示”的 P2，根补已存 pin/fields 驱动编辑，卸载且全局版本改变后仍可修改原字段；二次只读增量审阅 PASS。供体后端定向66项（最终API4、旧registry16、domain34、archive4、store8）及bridge源码harness33项 PASS；旧失败保留。根新UI回归先复现缺字段 RED，修后4文件58项 PASS，tsc PASS；两次命令入口错误单独保留，不当作产品RED。路由新增1对后补合同、严格OpenAPI及库存/验证映射，当前135对/50 runtime mounts；34项库存检查 PASS，source qualification 仅刷新两个新增命令类型引用/hash，现有资格/许可值不变。
+
+上述是自造材料/进程内HTTP及模拟native commands（SYNTHETIC），不是已安装GUI或完整闭环。真实31-Source旧schema13备份升级、新统一候选长链、exact-SHA CI及Owner验收待执行；a63既有1895步不借给新候选。Green未动，模型/云端既有阻断未重试。仅继续闭环必需工作。
+
+根补充验证：模板/资源合同18项 PASS、root与Tauri rustfmt检查及git diff --check PASS。预检原路由/检查映射缺失与Windows文本CRLF失败保留；新增路由库存34项及修正后的conventions/catalog检查分别PASS，不将失败的整次预检改写成PASS。待exact-SHA CI统一验证。

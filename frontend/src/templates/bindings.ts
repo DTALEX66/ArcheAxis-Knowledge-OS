@@ -2,16 +2,19 @@ import { coreCommand } from "../api/core";
 import type { DocumentDto, DocumentSummaryDto, DocumentsListDto } from "../api/generated/core-contract";
 import { DISCIPLINES, TEMPLATES } from "./disciplines";
 import { documentRequestIdentity } from "../presentation/documentRequestIdentity";
+import { readableDefinition, readTemplateState, type DefinitionPin } from "./templateLifecycle";
 
 export type ObjectReference = { document_id:string; version:number; block_id:string|null; relation:string; x:number; y:number };
-export type TemplateBinding = { schema:"archeaxis.template/v1"; template_id:string; discipline_id:string; fields:Record<string,string>; references:ObjectReference[]; learning_item_key:string|null };
+export type TemplateBinding = { schema:"archeaxis.template/v1"; template_id:string; discipline_id:string; fields:Record<string,string>; references:ObjectReference[]; learning_item_key:string|null; definition?:DefinitionPin };
 type Editor = {type:string; attrs?:Record<string,unknown>; content?:unknown[]};
 export function binding(doc:DocumentDto):TemplateBinding|null {
   const editor = doc.editor_json as Editor;
   const raw = editor?.attrs?.archeaxis_template as TemplateBinding | undefined;
   if (!raw || raw.schema !== "archeaxis.template/v1") return null;
-  if (Object.keys(raw).some(key=>!["schema","template_id","discipline_id","fields","references","learning_item_key"].includes(key))
-    || !TEMPLATES.some(t=>t.id===raw.template_id) || !DISCIPLINES.some(d=>d.id===raw.discipline_id)
+  if (Object.keys(raw).some(key=>!["schema","template_id","discipline_id","fields","references","learning_item_key","definition"].includes(key))
+    // Historical identities remain readable if the current launcher removes a template.
+    || !["T1","T2","T3"].includes(raw.template_id) || !DISCIPLINES.some(d=>d.id===raw.discipline_id)
+    || (raw.definition!==undefined&&(!readableDefinition(raw.definition)||raw.template_id!=="T3"||!Number.isSafeInteger(raw.definition.application_epoch)||raw.definition.application_epoch<0))
     || !raw.fields || typeof raw.fields!=="object" || Array.isArray(raw.fields)
     || Object.values(raw.fields).some(v=>typeof v!=="string") || !Array.isArray(raw.references)
     || raw.references.length>100 || raw.references.some(r=>!r || Object.keys(r).some(key=>!["document_id","version","block_id","relation","x","y"].includes(key)) || typeof r.document_id!=="string" || !r.document_id
@@ -33,8 +36,17 @@ export async function prepareTemplateCreate(template_id:string,discipline_id:str
   const pack=DISCIPLINES.find(p=>p.id===discipline_id);const template=TEMPLATES.find(t=>t.id===template_id);
   if(!pack||!template)throw new Error("未知模板或学科");
   const metadata:TemplateBinding={schema:"archeaxis.template/v1",template_id,discipline_id,fields:{status:"unevaluated",...Object.fromEntries(pack.fields.map(k=>[k,""]))},references:[],learning_item_key:null};
+  let paragraphs=[pack.sample];
+  if(template_id==="T3"){
+    const result=await coreCommand<{capability:unknown}>("capability_template_read");
+    const state=readTemplateState(result.capability);
+    if(!state.installed||!state.enabled)throw new Error("学习与实践模板已停用或卸载；已有对象仍可阅读与保存。");
+    metadata.definition={...structuredClone(state.definition),application_epoch:state.state_epoch};
+    metadata.fields={...metadata.fields,...state.definition.snapshot.fields};
+    paragraphs=[pack.sample,...state.definition.snapshot.paragraphs];
+  }
   const title=`${pack.name} · ${template.name}`;
-  const editor:Editor={type:"doc",attrs:{archeaxis_template:metadata},content:[{type:"paragraph",content:[{type:"text",text:pack.sample}]}]};
+  const editor:Editor={type:"doc",attrs:{archeaxis_template:metadata},content:paragraphs.map(text=>({type:"paragraph",content:[{type:"text",text}]}))};
   return {operation:"document_create",payload:{body:{create_request_id:requestId,title,editor_json:editor}},editor,id:await documentRequestIdentity(requestId),version:1,title,source_id:null,source_revision:null};
 }
 export async function prepareTemplateSave(doc:DocumentDto,next:TemplateBinding):Promise<TemplateWriteAttempt> {
