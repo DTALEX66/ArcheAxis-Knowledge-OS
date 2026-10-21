@@ -26,6 +26,32 @@ x-freeze:
   date: 2026-09-05
   status: reference-not-implementation
 paths:
+  /api/v1/ingest-batches/{batch_id}/members/{ordinal}/relations:
+    post:
+      summary: Append original Markdown CAS links to an existing source-bound Document
+      x-allowed-actor: human
+      x-max-request-bytes: 262144
+      parameters:
+        - {name: batch_id, in: path, required: true, schema: {type: string}}
+        - {name: ordinal, in: path, required: true, schema: {type: integer, minimum: 0, maximum: 9999}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: './core-document.schema.json#/$defs/IngestRelationsApplyInput'}
+      responses:
+        '200':
+          description: Fixed source provenance, Document version and individual link losses; not conversion or full J3 qualification
+          content:
+            application/json:
+              schema: {$ref: './core-document.schema.json#/$defs/IngestRelationsDto'}
+        '400': {description: Invalid member/source/snapshot or unsupported input}
+        '401': {description: Invalid launch token}
+        '403': {description: Human principal required}
+        '404': {description: Missing batch/member/pinned object}
+        '409': {description: Stale workspace/epoch/Document version or conflicting stable relation identity}
+        '413': {description: Request byte limit exceeded}
+        '422': {description: Malformed JSON or extra fields}
   /api/v1/project-handoff/preview:
     post:
       operationId: previewProjectHandoff
@@ -195,6 +221,14 @@ paths:
               schema:
                 $ref: ./core-document.schema.json#/$defs/MachineConfigurationDto
   # AAOS-01 current-source slice; the older reference-only paths retain their status.
+  /api/v1/sources/{source_id}:
+    get:
+      summary: Read the exact retained source identity without listing or title matching
+      parameters:
+        - {in: path, name: source_id, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Canonical SourceDto with immutable source_revision and sha256}
+        '404': {description: Source identity does not exist}
   /api/v1/sources:
     get:
       operationId: listCanonicalSources

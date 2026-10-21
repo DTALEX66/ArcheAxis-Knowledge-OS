@@ -15,10 +15,10 @@ export function PortableDocumentExchange({ saved, onImported }: { saved: Documen
     if(!file||flight.current||pending)return;
     flight.current=true;setBusy(true);
     setSelected(null);setMessage("");
-    try {if(file.size>16*1024*1024)throw new Error("包超过 16 MiB 文本上限。");
+    try {if(file.size>40*1024*1024)throw new Error("包超过 40 MiB 文本上限。");
       const value=assertCoreDto<DocumentPackageDto>("DocumentPackageDto",JSON.parse(await file.text()));
       const bytes=value.objects.reduce((total,object)=>total+object.bytes.length,0);
-      if(bytes>2*1024*1024)throw new Error("媒体和原件总字节超过 2 MiB 上限。");
+      if(bytes>8*1024*1024)throw new Error("媒体和原件总字节超过 8 MiB 上限。");
       if(alive.current){setSelected(value);setMessage("已读取所选包；尚未保存。保存前会检查内容完整性；检查失败不会创建部分文档。");}
     }catch(error){if(alive.current)fail(error);}finally{flight.current=false;if(alive.current)setBusy(false);}
   }
@@ -45,7 +45,7 @@ export function PortableDocumentExchange({ saved, onImported }: { saved: Documen
     }catch(error){if(alive.current)fail(error);}finally{flight.current=false;if(alive.current)setBusy(false);}
   }
   return <section aria-label="有界文档便携包"><h3>有界文档便携包</h3>
-    <p>文档包包含已保存的内容、绑定的原件和媒体文件。原文件总量上限为 2 MiB；它只能恢复这份文档，不能恢复整个工作区。</p>
+    <p>文档包包含已保存的内容、绑定的原件和媒体文件。原文件总量上限为 8 MiB，JSON 包上限为 40 MiB；它只能恢复这份文档，不能恢复整个工作区。</p>
     <button disabled={!saved||busy||!!pending} onClick={()=>void exportPackage()}>下载文档与媒体便携包</button>
     <label>选择本地文档包<input type="file" accept=".json,application/json" disabled={busy||!!pending} onChange={event=>void choose(event.target.files?.[0])}/></label>
     {selected?<p>待保存：{selected.document.title}；{selected.objects.length} 个绑定原件／媒体。模型核验不是保存前置。</p>:null}

@@ -151,8 +151,7 @@ pub(crate) async fn create(
             staged.write_all(serde_json::to_string_pretty(&receipt).map_err(|_|rusqlite::Error::InvalidQuery)?.as_bytes()).map_err(io)?;
             staged.sync_all().map_err(io)?;
             drop(staged);
-            std::fs::hard_link(&staging,&manifest).map_err(io)?;
-            std::fs::remove_file(&staging).map_err(io)?;
+            archeaxis_domain::backup::publish_backup_file_noclobber(&staging,&manifest)?;
             Ok(receipt)
         })();
         match result {Ok(receipt)=>(StatusCode::CREATED,Json(receipt)).into_response(),Err(error)=>(StatusCode::INTERNAL_SERVER_ERROR,Json(json!({"code":"AAK-BACKUP-001","message":error.to_string()}))).into_response()}

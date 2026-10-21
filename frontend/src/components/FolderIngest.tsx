@@ -1,6 +1,8 @@
+import type { FolderMemberSelection } from "../presentation/ingestRelations";
 import { useJobJournal, JobJournalRecovery } from "../presentation/useJobJournal";
 import { useEffect, useId, useRef, useState } from "react";
 import { coreCommand } from "../api/core";
+import type { IngestBatchDto, IngestBatchesDto, IngestBatchSummaryDto } from "../api/generated/core-contract";
 import { ApiError, type JobAdmissionRefusal } from "../api/client";
 import { FrozenCapabilityRecovery } from "./FrozenCapabilityRecovery";
 import { recoverableJobRefusal } from "../api/jobAdmission";
@@ -81,7 +83,7 @@ function refuseBeforeUpload(relative: string, bytes: number): Refusal | null {
   return null;
 }
 
-export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: string, jobId?: string) => void }) {
+export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource?: (sourceId: string, jobId?: string, revision?:string) => void; onSelectRelations?:(selection:FolderMemberSelection)=>void }) {
   const journal=useJobJournal("folder");
   const [rows, setRows] = useState<Row[]>([]), [folder, setFolder] = useState<string | null>(null);
   const [batchId, setBatchId] = useState<string | null>(null), [message, setMessage] = useState("");
@@ -93,6 +95,106 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
   const mounted = useRef(true), epoch = useRef(0), active = useRef<{ key: string; attempt: FolderAttempt } | null>(null);
   const timers = useRef(new Map<number, () => void>()), callback = useRef(onOpenSource); callback.current = onOpenSource;
   const owner = `folder-ingest-${useId()}`;
+  const durable = useRef<IngestBatchDto | null>(null);
+  const ordinals = useRef(new Map<string, number>());
+  const [history,setHistory]=useState<IngestBatchSummaryDto[]>([]),[historyCursor,setHistoryCursor]=useState<string|null>(null);
+  const [needsFiles,setNeedsFiles]=useState(false),[manifestPending,setManifestPending]=useState(false);
+  const registration=useRef<Record<string,unknown>[]|null>(null);
+  async function historyPage(cursor?:string){
+    const generation=lock();if(generation===null)return;
+    try{
+      const page=await coreCommand<IngestBatchesDto>("ingest_batches_list",cursor?{cursor}:{});
+      if(!current(generation))return;
+      setHistory(old=>cursor?[...old,...page.batches]:page.batches);setHistoryCursor(page.next_cursor);
+    }catch(error){if(current(generation))setMessage(`历史批次未读回：${String(error)}`);}
+    finally{unlock(generation);}
+  }
+  async function restoreBatch(batch:string){
+    const generation=lock();if(generation===null)return;
+    try{
+      let page=await coreCommand<IngestBatchDto>("ingest_batch_get",{batch_id:batch});
+      const head=page, members=[...page.members];
+      while(page.next_ordinal!==null){
+        page=await coreCommand<IngestBatchDto>("ingest_batch_get",{batch_id:batch,after_ordinal:page.next_ordinal});
+        if(page.workspace_id!==head.workspace_id||page.restore_epoch!==head.restore_epoch||members.length>=10000)throw new Error("工作区恢复身份已变化，请重新读取。");
+        members.push(...page.members);
+      }
+      if(!current(generation))return;
+      durable.current={...head,members};registration.current=null;setManifestPending(false);
+      batchRef.current=batch;folderRef.current=head.folder_label;setBatchId(batch);setFolder(head.folder_label);
+      queue.current.clear();handled.current.clear();ordinals.current.clear();setRemaining(0);
+      for(const m of members){
+        ordinals.current.set(m.relative_path,m.ordinal);
+        const refusal=refuseBeforeUpload(m.relative_path,m.byte_length);
+        replace({key:`${batch}:${m.relative_path}`,batch_id:batch,relative:m.relative_path,bytes:m.byte_length,
+          source_id:m.source_id??undefined,sha256:m.source_revision??undefined,job_id:m.job_id??undefined,kind:m.kind??undefined,
+          state:refusal?.state??(m.job_id?jobState(m.job_state):m.source_id?"ORIGINAL_ONLY":"IMPORT_FAILED"),
+          detail:refusal?.detail??(m.source_id?"已读取耐久来源及作业状态；未自动执行。":"原文件内容未上传；需重新选择文件夹。")});
+        if(m.source_id||refusal)handled.current.add(m.relative_path);
+      }
+      setNeedsFiles(members.some(m=>!m.source_id&&m.disposition==="pending")||!head.complete);
+      setMessage("历史成员、来源与作业已读取；浏览器文件句柄不能重启恢复，未上传内容需重新选择。读取不会执行。");
+    }catch(error){if(current(generation))setMessage(`批次未完整读回：${String(error)}`);}
+    finally{unlock(generation);}
+  }
+  async function registerSelection(){
+    const generation=lock();if(generation===null)return;
+    let ready=false;
+    try{
+      if(!registration.current){
+        const identity=durable.current??await coreCommand<IngestBatchesDto>("ingest_batches_list",{});
+        if(!current(generation))return;
+        const files=[...queue.current.entries()].sort(([a],[b])=>a<b?-1:a>b?1:0);
+        const members=files.map(([relative,file],ordinal)=>{
+          ordinals.current.set(relative,ordinal);
+          const state=refuseBeforeUpload(relative,file.size)?.state;
+          return {ordinal,relative_path:relative,byte_length:file.size,disposition:state==="跳过：隐藏路径"?"excluded_hidden":state==="跳过：排除目录"?"excluded_directory":state?"too_large":"pending"};
+        });
+        registration.current=[];
+        for(let offset=0;offset<members.length;offset+=200)registration.current.push({
+          workspace_id:identity.workspace_id,restore_epoch:identity.restore_epoch,batch_id:batchRef.current,
+          folder_label:folderRef.current,expected_members:members.length,members:members.slice(offset,offset+200),
+        });
+      }
+      for(const body of registration.current){
+        if(stopAfter.current)throw new Error("已停止后续清单登记；原批次保留。");
+        const receipt=await coreCommand<IngestBatchDto>("ingest_batch_register",{body});
+        if(!current(generation))return;
+        if(receipt.batch_id!==batchRef.current||receipt.workspace_id!==body.workspace_id||receipt.restore_epoch!==body.restore_epoch)throw new Error("批次登记回执身份不匹配");
+        durable.current=receipt;
+      }
+      if(!durable.current?.complete)throw new Error("清单尚不完整；未上传或入队。");
+      registration.current=null;setManifestPending(false);setNeedsFiles(false);
+      if(stopAfter.current){
+        setRemaining([...queue.current.keys()].filter(relative=>!handled.current.has(relative)).length);
+        setMessage("清单已登记；已停止后续导入，需明确继续下一批。");
+      }else ready=true;
+    }catch(error){if(current(generation)){setManifestPending(true);setMessage(`清单登记未确认：${String(error)}；保留相同批次，可核对历史或重试登记。`);}}
+    finally{unlock(generation);}
+    if(ready&&current(generation))await runBatch();
+  }
+  async function retryImport(key:string){
+    const row=rowsRef.current.find(item=>item.key===key);
+    if(!row||row.batch_id!==batchRef.current)return;
+    const file=queue.current.get(row.relative);
+    if(!file){setNeedsFiles(true);setMessage("原文件句柄不可用，请重新选择此批次文件夹。");return;}
+    const generation=lock();if(generation===null)return;
+    try{const result=await processFile(file,row.relative,row.batch_id,generation);if(result&&current(generation))replace(result);}
+    finally{unlock(generation);}
+  }
+  async function enqueueRetained(key:string){
+    const row=rowsRef.current.find(item=>item.key===key),identity=durable.current;
+    if(!row?.source_id||!row.sha256||!identity||row.batch_id!==identity.batch_id)return;
+    const kind=conversionKindFor(row.relative);if(!kind)return;
+    const generation=lock();if(generation===null)return;
+    try{
+      const receipt=await coreCommand<{job_id:string;state:string}>("ingest_member_enqueue",{batch_id:row.batch_id,body:{
+        workspace_id:identity.workspace_id,restore_epoch:identity.restore_epoch,ordinal:ordinals.current.get(row.relative),
+        source_id:row.source_id,source_revision:row.sha256,kind}});
+      if(current(generation)&&receipt.job_id===`folder-${kind}-${row.sha256}`)patch(key,{job_id:receipt.job_id,kind,state:jobState(receipt.state),detail:"已核对成员并入队；尚未执行。"});
+    }catch(error){if(current(generation))setMessage(`入队未确认：${String(error)}；来源保留。`);}
+    finally{unlock(generation);}
+  }
   function current(generation: number) { return mounted.current && epoch.current === generation; }
   function publish() { if (mounted.current) window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner, dirty: running.current || rowsRef.current.some(row => !!row.attempt || row.cancelPending) } })); }
   function update(transform: (old: Row[]) => Row[]) {
@@ -122,7 +224,14 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
       const bytes = await file.arrayBuffer();
       const expectedSha256 = await contentSha256(new Uint8Array(bytes));
       const content_base64 = base64Of(bytes); if (!current(generation)) return null;
-      imported = confirmedImport(await coreCommand("source_import", { body: { name: relative, content_base64, origin_kind: "path", origin_ref: batch, origin_name: file.name } }), expectedSha256);
+      const identity=durable.current;
+      if(!identity?.complete||identity.batch_id!==batch)throw new Error("耐久清单身份未确认。");
+      const ordinal=ordinals.current.get(relative);
+      const receipt=await coreCommand<{batch_id:string;ordinal:number}>("ingest_member_import", { batch_id:batch,body: {
+        workspace_id:identity.workspace_id,restore_epoch:identity.restore_epoch,
+        ordinal,expected_sha256:expectedSha256,content_base64 } });
+      if(receipt.batch_id!==batch||receipt.ordinal!==ordinal)throw new Error("成员导入回执身份不匹配。");
+      imported=confirmedImport(receipt,expectedSha256);
       if (!current(generation)) return null;
       handled.current.add(relative);
     } catch (error) {
@@ -133,7 +242,10 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
     if (!kind) return { ...base, source_id, sha256, state: "ORIGINAL_ONLY", detail: "此扩展名没有映射到任何 Core 作业种类；原件独立保管，未入队。" };
     const job_id = `folder-${kind}-${sha256}`, original = { ...base, source_id, sha256, kind, job_id };
     try {
-      const receipt = await coreCommand<{ job_id?: unknown; state?: unknown }>("job_enqueue", { body: { job_id, kind, input_ref: source_id } });
+      const identity=durable.current!;
+      const receipt = await coreCommand<{ job_id?: unknown; state?: unknown }>("ingest_member_enqueue", { batch_id:batch,body: {
+        workspace_id:identity.workspace_id,restore_epoch:identity.restore_epoch,ordinal:ordinals.current.get(relative),
+        kind,source_id,source_revision:sha256 } });
       if (!current(generation)) return null;
       if (receipt.job_id !== job_id) return { ...original, state: "UNKNOWN", detail: "转换入队回执身份不匹配；未执行任何作业。" };
       const state = jobState(receipt.state);
@@ -263,7 +375,12 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
   }
   function open(row: Row) {
     if (capabilityFlight.current || running.current || rowsRef.current.some(item => item.attempt || item.cancelPending)) { setMessage("仍有运行或冻结请求，请先核对状态再打开来源；批次与原件保留。"); return; }
-    if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined);
+    if (row.source_id) callback.current?.(row.source_id, row.state === "succeeded" ? row.job_id : undefined, row.sha256);
+  }
+  function selectRelations(row:Row) {
+    const saved=durable.current,ordinal=ordinals.current.get(row.relative);
+    if(running.current||capabilityFlight.current||rowsRef.current.some(item=>item.attempt||item.cancelPending)||!saved||saved.batch_id!==row.batch_id||ordinal===undefined||!row.source_id||!row.sha256)return;
+    onSelectRelations?.({batch_id:row.batch_id,ordinal,workspace_id:saved.workspace_id,restore_epoch:saved.restore_epoch,source_id:row.source_id,source_revision:row.sha256});
   }
   const capabilityBusy = rows.some(row=>row.capabilityBusy);
   return <section aria-label="文件夹导入"><h4>文件夹导入</h4><JobJournalRecovery entries={journal.entries} disabled={busy||cancelBusy||capabilityFlight.current||journal.blocked} onRestore={entry=>{const key=`recovered:${entry.request_id}`;replace({key,batch_id:"recovered",relative:entry.relative??entry.source_id,bytes:0,source_id:entry.source_id,sha256:entry.source_revision,job_id:entry.job_id,kind:entry.kind,attempt:{job_id:entry.job_id,request_id:entry.request_id,body:entry.body},state:"UNKNOWN",detail:"待确认任务已找回；本地待处理文件列表未恢复。请先检查状态，不会自动再次执行。"});}} onAbandon={async entry=>{await journal.clear(entry.request_id,"abandon_unadmitted");update(old=>old.filter(row=>row.attempt?.request_id!==entry.request_id));}}/>
@@ -274,15 +391,34 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
       const root = folderOf(files); if (!root) { setMessage("所选内容不像是同一个文件夹，未开始导入。"); return; }
       const privates = files.map(privateVisibleSegment).filter((p): p is string => p !== null);
       if (privates.length) { setMessage(`整个文件夹被拒绝：${privates.length} 条路径落在私有状态目录里（如 ${privates[0]}），未导入任何文件。请重新选择或明确缩小范围。`); return; }
+      if(root.startsWith(".")||EXCLUDED_DIRS.has(root.toLowerCase())){setMessage("选中的根目录属于排除目录；未登记或导入，原批次保留。");return;}
       // A picker selection is a new provenance batch: identical root names do not
       // identify the same disk folder or the same content revision. Preserve rows
       // and frozen-request guards; Core job identity remains content-addressed.
-      epoch.current++; handled.current.clear(); queue.current.clear(); folderRef.current = root; batchRef.current = crypto.randomUUID(); setFolder(root); setBatchId(batchRef.current); setRemaining(0);
-      for (const file of files) queue.current.set(relativeOf(file), file); void runBatch();
+      if(files.length>10000||new Set(files.map(relativeOf)).size!==files.length){setMessage("清单超过 10000 项或相对路径重复；未登记或上传。");return;}
+      epoch.current++; handled.current.clear(); queue.current.clear();durable.current=null;registration.current=null;ordinals.current.clear();
+      setNeedsFiles(false);setManifestPending(false);folderRef.current = root; batchRef.current = crypto.randomUUID(); setFolder(root); setBatchId(batchRef.current); setRemaining(0);
+      for (const file of files) queue.current.set(relativeOf(file), file); void registerSelection();
     }}/></label>
-    {folder ? <p>当前批次「{folder}」；来源关系为该批次下的相对路径。每次选择建立新的更新批次，保留已处理记录并替换尚未处理的文件队列；续跑当前选择请用“下一批”。浏览器不把磁盘绝对路径交给产品，所以此处不声称绝对路径，父目录链无法核验；当前队列是本页面会话状态，不声称重启恢复。</p> : null}
+    <button disabled={busy||rows.some(row=>!!row.attempt)} onClick={()=>void historyPage()}>读取历史批次</button>
+    {history.map(item=><button key={item.batch_id} disabled={busy||rows.some(row=>!!row.attempt)} onClick={()=>void restoreBatch(item.batch_id)}>查看批次 {item.folder_label}</button>)}
+    {historyCursor?<button disabled={busy} onClick={()=>void historyPage(historyCursor)}>更多历史批次</button>:null}
+    {needsFiles?<label>继续未上传成员<input type="file" aria-label="重新选择此批次文件夹" disabled={busy} multiple {...({webkitdirectory:"",directory:""} as Record<string,string>)} onChange={event=>{
+      const files=Array.from(event.target.files??[]);event.target.value="";const saved=durable.current;
+      if(!saved||running.current)return;
+      if(saved.folder_label.startsWith(".")||EXCLUDED_DIRS.has(saved.folder_label.toLowerCase())){setMessage("选中的根目录属于排除目录；历史批次仍可读取，未继续登记或导入。");return;}
+      const sorted=files.sort((a,b)=>relativeOf(a)<relativeOf(b)?-1:relativeOf(a)>relativeOf(b)?1:0);
+      if(folderOf(files)!==saved.folder_label||files.length!==saved.expected_members||new Set(files.map(relativeOf)).size!==files.length
+        ||files.some(file=>privateVisibleSegment(file))||saved.members.some(member=>!sorted[member.ordinal]||relativeOf(sorted[member.ordinal])!==member.relative_path||sorted[member.ordinal].size!==member.byte_length)){
+        setMessage("所选文件夹与耐久清单的路径、数量或大小不符；未上传。");return;
+      }
+      queue.current.clear();for(const file of files)queue.current.set(relativeOf(file),file);
+      registration.current=null;void registerSelection();
+    }}/></label>:null}
+    {folder ? <p>当前批次「{folder}」；完整相对路径、原件与作业关系由 Core 耐久保存。每次新选择建立新批次；续跑当前选择请用“下一批”。浏览器不提供磁盘绝对路径，文件句柄不能重启恢复。未上传内容需重新选择；路径和大小核对后，所选字节作为本次明确提交的内容。</p> : null}
     <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。正在转换的文件需单独请求取消，最长等待 90 秒；失败或状态未知时不会自动重试。</p>
     <div>{remaining > 0 ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void runBatch()}>下一批（剩余 {remaining}）</button> : null}
+      {manifestPending?<button disabled={busy} onClick={()=>void registerSelection()}>同批次重试登记</button>:null}
       {rows.some(row => row.batch_id===batchId && ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
       <button disabled={!busy} onClick={() => { stopAfter.current = true; setMessage("已请求停止后续处理；当前受理项仍须读回真实状态。"); }}>停止</button>
     </div>{message ? <p role="status">{message}</p> : null}
@@ -290,9 +426,12 @@ export function FolderIngest({ onOpenSource }: { onOpenSource?: (sourceId: strin
       <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保存</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
       <td>{row.detail}{row.source_id || row.job_id || row.attempt || row.status ? <RawReceiptButton label="此文件导入与转换详细信息" category="data" payload={{source_id:row.source_id,sha256:row.sha256,job_id:row.job_id,attempt:row.attempt,status:row.status}}/> : null}</td>
       <td><div>{row.job_id ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "核对冻结请求状态" : "读取转换状态"}</button> : null}
+        {row.batch_id===batchId&&!row.source_id&&row.state==="IMPORT_FAILED"?<button disabled={busy||capabilityBusy} onClick={()=>void retryImport(row.key)}>同成员重试导入</button>:null}
+        {row.batch_id===batchId&&row.source_id&&(!row.job_id||row.state==="ENQUEUE_FAILED")&&conversionKindFor(row.relative)?<button disabled={busy||capabilityBusy} onClick={()=>void enqueueRetained(row.key)}>核对并入队此成员</button>:null}
         {row.attempt && row.state === "UNKNOWN" && !row.executionRefused ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"same")}>同请求重试</button> : null}
         {row.attempt&&row.admissionProof&&row.source_id?<FrozenCapabilityRecovery key={row.attempt.request_id} proof={row.admissionProof} attempt={row.attempt} source={row.source_id} kind={row.kind} disabled={busy||cancelBusy||capabilityBusy} current={()=>mounted.current&&!running.current&&!cancelFlight.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)} onBusyChange={value=>{if(mounted.current&&rowsRef.current.some(item=>item.key===row.key&&item.attempt?.request_id===row.attempt?.request_id)){capabilityFlight.current=value;patch(row.key,{capabilityBusy:value});}}}/>:null}{!row.attempt && row.status && freshAttemptEligible(row.status) ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"fresh")}>重试失败项（新请求）</button> : null}
         {row.attempt ? <button disabled={cancelBusy||capabilityBusy} onClick={() => void cancel(row.key)}>请求取消当前转换</button> : null}
+        {onSelectRelations&&row.source_id&&row.sha256&&row.batch_id===batchId&&/\.(md|markdown)$/i.test(row.relative)?<button disabled={busy||rows.some(item=>!!item.attempt)} onClick={()=>selectRelations(row)}>映射此原件中的链接</button>:null}
         {row.source_id && onOpenSource ? <button disabled={busy || rows.some(item => !!item.attempt)} onClick={() => open(row)}>{row.state === "succeeded" ? "打开成功产物与来源" : "打开保留原件"}</button> : null}</div></td>
     </tr>)}</tbody></table></div><p>任务完成后仍需核对识别内容和专业依据。成功结果可从对应文件的已保存记录中打开。</p></> : null}
   </section>;

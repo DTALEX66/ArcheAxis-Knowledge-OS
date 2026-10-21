@@ -325,12 +325,23 @@ pub fn save_with_basis(
     basis: Option<Value>,
 ) -> Result<Value, Error> {
     let tx = conn.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
-    if let Some(ref value) = basis {
-        validate_basis(&tx, id, expected, value)?;
-    }
-    append(&tx, id, expected, editor, basis)?;
+    save_tx(&tx, id, expected, editor, basis)?;
     tx.commit()?;
     read(conn, id, None)
+}
+
+/// Reuse the complete save validators inside a caller's single-writer transaction.
+pub(crate) fn save_tx(
+    tx: &rusqlite::Transaction<'_>,
+    id: &str,
+    expected: i64,
+    editor: Value,
+    basis: Option<Value>,
+) -> Result<(), Error> {
+    if let Some(ref value) = basis {
+        validate_basis(tx, id, expected, value)?;
+    }
+    append(tx, id, expected, editor, basis)
 }
 
 pub fn restore(

@@ -1,6 +1,77 @@
 use archeaxis_application::executor::{Cancellation, Executor};
 use archeaxis_domain::model_configuration::*;
 use std::{collections::BTreeMap, path::PathBuf, time::Duration};
+
+#[tokio::test]
+async fn dormant_material_cloud_is_refused_before_worker_or_local_discovery() {
+    let dir = tempfile::tempdir().unwrap();
+    let worker = dir.path().join("worker.py");
+    std::fs::write(&worker, "from pathlib import Path\nPath(__file__).with_suffix('.started').touch()\nraise SystemExit(1)\n").unwrap();
+    let executor = Executor::open_routes(
+        &dir.path().join("db"),
+        &dir.path().join("staging"),
+        &PathBuf::from(std::env::var_os("ARCHEAXIS_PYTHON").unwrap()),
+        &worker,
+        &[("machine.answer", worker.clone())],
+    )
+    .await
+    .unwrap();
+    let configuration = Resolved {
+        workspace_id: "a".repeat(32),
+        restore_epoch: "initial".into(),
+        schema: "archeaxis.resolved-model/v1".into(),
+        configuration_revision: 1,
+        configuration_sha256: "b".repeat(64),
+        purpose: Purpose::Material,
+        lane: Lane::Fast,
+        profile_id: "synthetic_cloud".into(),
+        profile: Profile {
+            endpoint: "https://synthetic.invalid/v1".into(),
+            protocol: "openai".into(),
+            model: "synthetic-model".into(),
+            credential_ref: Some(format!("aak_cred_{}", "c".repeat(32))),
+            max_tokens: 128,
+            timeout_s: 5,
+        },
+    };
+    let result = executor
+        .machine_answer_configured(
+            "Synthetic material".into(),
+            "Question".into(),
+            128,
+            Duration::from_secs(5),
+            Some("synthetic-model".into()),
+            Cancellation::new(),
+            Some(configuration.clone()),
+        )
+        .await;
+    assert_eq!(result.unwrap_err(), "MATERIAL_CLOUD_NOT_ACTIVATED");
+    for (purpose, endpoint) in [
+        (Purpose::Material, "http://127.0.0.1:1234/v1"),
+        (Purpose::Answer, "https://synthetic.invalid/v1"),
+    ] {
+        let mut legacy = configuration.clone();
+        legacy.purpose = purpose;
+        legacy.profile.endpoint = endpoint.into();
+        let error = executor
+            .machine_answer_configured(
+                "Synthetic material".into(),
+                "Question".into(),
+                128,
+                Duration::from_secs(5),
+                Some("synthetic-model".into()),
+                Cancellation::new(),
+                Some(legacy),
+            )
+            .await
+            .unwrap_err();
+        assert_eq!(
+            error, "LOCAL_CREDENTIAL_NOT_SUPPORTED",
+            "local/other-purpose error contract changed"
+        );
+    }
+    assert!(!worker.with_extension("started").exists());
+}
 #[tokio::test]
 async fn configured_deep_executes_exact_destination_and_rejects_changed_revision() {
     let dir = tempfile::tempdir().unwrap();

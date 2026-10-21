@@ -10,10 +10,11 @@ import sys
 from pathlib import Path
 
 if __package__:
-    from . import dev
+    from . import dev, runtime_resources
     from .build_timing import BuildTimings
 else:
     import dev
+    import runtime_resources
     from build_timing import BuildTimings
 
 ROOT = Path(__file__).absolute().parents[2]
@@ -124,7 +125,8 @@ def tauri_commands(node, cli, arguments, overlay, separate_bundle):
             ("nsis-bundle", [node, str(cli), "bundle", *shared, "--bundles", bundles])]
 
 
-def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path | None = None, separate_bundle: bool = False) -> int:
+def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path | None = None, separate_bundle: bool = False,
+          core_build_receipt: Path | None = None) -> int:
     root = dev.safe_path(root)
     validate_inherited(root)
     nested = os.environ.get("ARCHEAXIS_FRONTEND_BUILD_CONTEXT")
@@ -172,8 +174,21 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
         env["TAURI_CONFIG"] = paths["tauri_config"].read_text(encoding="utf-8")
     code = 1
     after = None
+    qualification = {}
     timings = BuildTimings(paths["artifacts"], env)
     try:
+        if core_build_receipt is not None:
+            if (mode != "tauri" or separate_bundle
+                    or arguments != ["build", "--no-bundle", "--", "--offline", "--locked"]
+                    or dev.safe_path(Path(env["CARGO_TARGET_DIR"])) != paths["tauri_build"]):
+                raise ValueError("portable qualification requires the canonical offline locked native release command")
+            core_input = dev.read_core_build(core_build_receipt, paths, env)
+            staged = root / ".project-local/rt"
+            staged_core = dev.build_file_identity(staged / "core/archeaxis-api.exe")
+            if any(staged_core[key] != core_input[key] for key in ("bytes", "sha256")):
+                raise ValueError("staged Core differs from qualified Core build")
+            staged_manifest = dev.build_file_identity(staged / "backend-runtime-manifest.json")
+            core_receipt_identity = dev.build_file_identity(core_build_receipt)
         if mode == "tauri":
             env = msvc_environment(env, paths, node)
         for name, command in commands:
@@ -189,7 +204,41 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
         if code == 0 and not dev.safe_path(paths["frontend_dist"] / "index.html").is_file():
             code = 2
             raise ValueError("frontend command returned success without this run's index.html")
+        if code == 0 and core_build_receipt is not None:
+            host = paths["tauri_build"] / "release/ArcheAxis.exe"
+            actual_core = dev.build_file_identity(host.parent / "core/archeaxis-api.exe")
+            actual_manifest = dev.build_file_identity(host.parent / "backend-runtime-manifest.json")
+            if (dev.read_core_build(core_build_receipt, paths, env) != core_input
+                    or dev.build_file_identity(core_build_receipt) != core_receipt_identity
+                    or dev.build_file_identity(staged / "core/archeaxis-api.exe") != staged_core
+                    or dev.build_file_identity(staged / "backend-runtime-manifest.json") != staged_manifest
+                    or any(actual_core[key] != core_input[key] for key in ("bytes", "sha256"))
+                    or actual_manifest["sha256"] != staged_manifest["sha256"]):
+                raise ValueError("runtime input changed or stale Tauri resources were copied")
+            configured_resources = set(json.loads((root / "src-tauri/tauri.conf.json").read_text(encoding="utf-8"))["bundle"]["resources"].values())
+            # Tauri may retain old resource files in its build cache. Matching the
+            # Core/manifest pair does not establish every copied member or closure.
+            # Use the assembler's exact read-only verifier before issuing PASS.
+            runtime_resources.verify_runtime_resources(host.parent, configured_resources)
+            runtime_resources.regular(host, cargo_host=True)
+            qualification = {
+                "status": "PASS", "host": str(host), "core": actual_core["path"],
+                "portable_build_arguments": arguments,
+                "host_sha256": dev.build_file_identity(host)["sha256"],
+                "core_sha256": actual_core["sha256"],
+                "backend_manifest_sha256": actual_manifest["sha256"],
+                "core_build_receipt": core_receipt_identity,
+                "build_timings": dev.build_file_identity(timings.path),
+            }
+            _, after = dev.worktree_identity(root)
+            if after != env["ARCHEAXIS_SOURCE_PATCH_SHA256"] or dev.git(root, "rev-parse", "HEAD") != env["ARCHEAXIS_SOURCE_COMMIT"]:
+                raise ValueError("source changed during output qualification")
         return code
+    except BaseException:
+        qualification = {}
+        if code == 0:
+            code = 2
+        raise
     finally:
         # The beforeBuild hook leaves the receipt to its parent Tauri invocation.
         if not nested:
@@ -199,9 +248,11 @@ def build(root: Path, node: str, mode: str, arguments: list[str], receipt: Path 
                            "worktree_root": str(root), "run_root": str(paths["run"]),
                            "frontend_dist": str(paths["frontend_dist"]), "tauri_config": str(paths["tauri_config"]),
                            "source_commit": env["ARCHEAXIS_SOURCE_COMMIT"],
+                           "source_tree": env["ARCHEAXIS_SOURCE_TREE"],
                            "source_patch_sha256": env["ARCHEAXIS_SOURCE_PATCH_SHA256"],
                            "source_patch_sha256_after": after,
-                           "source_consistent": None if after is None else after == env["ARCHEAXIS_SOURCE_PATCH_SHA256"]}, output, indent=2)
+                           "source_consistent": None if after is None else after == env["ARCHEAXIS_SOURCE_PATCH_SHA256"],
+                           **qualification}, output, indent=2)
                 output.write("\n")
             print(f"[frontend] receipt={destination}; dist={paths['frontend_dist']}", flush=True)
 
@@ -213,6 +264,8 @@ def main() -> int:
     parser.add_argument("mode", choices=("build", "tauri", "verify"))
     parser.add_argument("--receipt", type=Path)
     parser.add_argument("--separate-bundle", action="store_true")
+    parser.add_argument("--core-build-receipt", type=Path,
+                        help="dev.py --qualify-core-build execution.json; use tauri -- build --no-bundle -- --offline --locked")
     args, arguments = parser.parse_known_args()
     if arguments[:1] == ["--"]:
         arguments = arguments[1:]
@@ -226,7 +279,7 @@ def main() -> int:
             if overlay != dev.tauri_overlay(dev.layout(ROOT, Path(os.environ["ARCHEAXIS_RUN_ROOT"]).name)):
                 raise ValueError("frontend overlay mismatch")
             return 0
-        return build(ROOT, args.node, args.mode, arguments, args.receipt, args.separate_bundle)
+        return build(ROOT, args.node, args.mode, arguments, args.receipt, args.separate_bundle, args.core_build_receipt)
     except (ValueError, OSError, subprocess.SubprocessError) as error:
         print(f"[frontend] {error}", file=sys.stderr)
         return 2

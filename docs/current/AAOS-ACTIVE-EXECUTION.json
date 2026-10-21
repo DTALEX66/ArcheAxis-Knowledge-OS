@@ -90,7 +90,7 @@
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
     "automatic_continuation": false,
-    "continuation_scope": "Owner latest frontend-first priority: complete all current UI slices and frontend qualification before backend implementation, then full closed-loop qualification. Handoff preparation does not start background work. No allowance polling or threshold stopping on 2026-10-19.",
+    "continuation_scope": "Owner 2026-10-21 supersedes frontend-first order: prioritize backend full-chain execution and the complete CL-01..07/J1..J6 business loop; remaining UI polish is deferred. Preserve current UI commits and qualification boundaries. Handoff preparation does not start background work.",
     "previous_stop": {
       "state": "PAUSED_BY_OWNER",
       "stopped_after": "UF13 started local slice",
@@ -101,9 +101,9 @@
       "automatic_continuation": false
     },
     "parallel_lanes": [
-      "UI_SOURCE_AND_EVIDENCE_READ_REVIEW",
-      "UI_STANDARDS_AND_ACCESSIBILITY_READ_REVIEW",
-      "UI_IMPLEMENTATION_SINGLE_WRITER_OR_AUTHORIZED_ISOLATED_WRITERS"
+      "BACKEND_CORE_FORMATS_AND_RECOVERY_READ_REVIEW",
+      "FREE_RETRIEVAL_AND_MODEL_RUNTIME_READ_REVIEW",
+      "BACKEND_IMPLEMENTATION_SINGLE_WRITER_OR_AUTHORIZED_ISOLATED_WRITERS"
     ],
     "allowance_guard": {
       "owner_confirmed": "Stop and hand off when remaining account allowance is at or below 15 percent.",
@@ -488,20 +488,19 @@
     "supersession": "SUP-025"
   },
   "execution_priority_overlay": {
-    "id": "OWNER-FRONTEND-FIRST-20261019",
+    "id": "OWNER-BACKEND-CLOSED-LOOP-FIRST-20261021",
     "source": "docs/current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md",
-    "owner_decided_at": "2026-10-19",
-    "owner_instruction": "全量的UI界面相关的任务优先执行，先前端任务再执行后端任务，包括类似系统桌面的感觉、缩放适配、可拆分及本会话全部前端要求",
+    "owner_decided_at": "2026-10-21",
+    "owner_instruction": "前端界面可以缓缓，优先确保后端全链路的打通跑通，优先闭环；实时并行智能体，按任务难度适配模型等级与推理强度",
     "order": [
       "LIVE_BASELINE_AND_EXISTING_FAILURE_EVIDENCE",
-      "UI-P01..UI-P24",
-      "FRONTEND_STAGE_HANDOFF_WITH_BACKEND_GAPS",
       "BE-P01..BE-P15",
-      "SAME_CANDIDATE_J1..J6_AND_QUALIFIED_DELIVERY"
+      "SAME_CANDIDATE_CL-01..CL-07_AND_J1..J6_AND_QUALIFIED_DELIVERY",
+      "REMAINING_UI-P01..UI-P24_AND_FRONTEND_QUALIFICATION"
     ],
     "role": "Current execution order and acceptance slices; original task IDs retained; no second progress ledger",
     "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "boundary": "Read backend contracts during UI phase; record missing API blockers and continue independent UI; no broad backend implementation, fake success or frozen-scope activation"
+    "boundary": "Backend implementation and real integration are now prioritized by Owner. Preserve Rust sole SQLite/CAS writer, ordinary-save policy, LM Studio route and all freeze/data/paid-call/release boundaries. No fake success or scope reduction; prior UI-first order is historical."
   },
   "repository_convergence": {
     "owner_decided_at": "2026-10-19",
@@ -513,7 +512,7 @@
     "source_section": "5. 补充交付任务：分支合并、体积和双端目录规范",
     "slices": "RC-P01..RC-P08; inherited G01/UF13/delivery, not a separate product queue",
     "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-    "execution_order": "Read-only baseline and UI donor disposition during frontend; reviewed/qualified merges and exact-object cleanup by relevant stage. Do not override frontend-first or merge failing PRs.",
+    "execution_order": "Reviewed qualified merges and exact-object cleanup in bounded batches alongside backend closure; repository organization must not replace product repairs. Never merge failing PRs.",
     "boundary": "Preserve unknown dirty work, unique evidence, rollback and shared resources; no history rewrite, force push, real-data overwrite or release"
   }
 }

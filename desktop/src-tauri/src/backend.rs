@@ -351,12 +351,100 @@ impl CoreSpec {
 
 type LogBuffer = Arc<Mutex<VecDeque<String>>>;
 
+/// Process observations only; a reaped process alone is not a graceful shutdown.
+#[derive(Clone, Debug, serde::Serialize)]
+pub struct ShutdownReport {
+    pub pid: u32,
+    pub method: &'static str,
+    pub outcome: &'static str,
+    pub request_acknowledged: bool,
+    pub forced_attempted: bool,
+    pub return_code: Option<i32>,
+    pub wait_reaped: bool,
+    pub elapsed_ms: u64,
+}
+
+fn request_core_shutdown(
+    port: u16,
+    token: &str,
+    session: &str,
+    deadline: Instant,
+) -> Result<(), ()> {
+    let remaining = || {
+        deadline
+            .checked_duration_since(Instant::now())
+            .filter(|d| !d.is_zero())
+            .ok_or(())
+    };
+    let mut stream = TcpStream::connect_timeout(
+        &([127, 0, 0, 1], port).into(),
+        remaining()?.min(Duration::from_millis(300)),
+    )
+    .map_err(|_| ())?;
+    stream
+        .set_write_timeout(Some(remaining()?))
+        .map_err(|_| ())?;
+    let body = serde_json::json!({"session_id":session}).to_string();
+    write!(stream, "POST /api/v1/system/shutdown HTTP/1.0\r\nHost: 127.0.0.1:{port}\r\nX-ArcheAxis-Launch-Token: {token}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).map_err(|_| ())?;
+    let mut bytes = Vec::new();
+    loop {
+        stream
+            .set_read_timeout(Some(remaining()?))
+            .map_err(|_| ())?;
+        let mut chunk = [0u8; 1024];
+        let n = stream.read(&mut chunk).map_err(|_| ())?;
+        if n == 0 {
+            break;
+        }
+        bytes.extend_from_slice(&chunk[..n]);
+        if bytes.len() > 4096 {
+            return Err(());
+        }
+    }
+    shutdown_ack_valid(&bytes, session).then_some(()).ok_or(())
+}
+
+fn shutdown_ack_valid(bytes: &[u8], session: &str) -> bool {
+    let Ok(raw) = std::str::from_utf8(bytes) else {
+        return false;
+    };
+    let Some((headers, body)) = raw.split_once("\r\n\r\n") else {
+        return false;
+    };
+    if !matches!(
+        headers.lines().next(),
+        Some("HTTP/1.0 202 Accepted" | "HTTP/1.1 202 Accepted")
+    ) {
+        return false;
+    }
+    let sizes: Vec<_> = headers
+        .lines()
+        .filter_map(|line| {
+            line.to_ascii_lowercase()
+                .strip_prefix("content-length: ")
+                .map(str::to_owned)
+        })
+        .collect();
+    if sizes.len() != 1 || sizes[0].parse::<usize>().ok() != Some(body.len()) {
+        return false;
+    }
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(body) else {
+        return false;
+    };
+    value["schema"] == "archeaxis.session-shutdown/v1"
+        && value["session_id"] == session
+        && value["state"] == "draining"
+}
+
 pub struct BackendProcess {
     pub port: u16,
     pub token: String,
     child: Child,
     job: Option<Job>,
     logs: LogBuffer,
+    canonical_session: Option<String>,
+    shutdown_report: Option<ShutdownReport>,
+    shutdown_report_path: Option<std::path::PathBuf>,
 }
 
 impl BackendProcess {
@@ -408,6 +496,9 @@ impl BackendProcess {
             child,
             job: Some(job),
             logs,
+            canonical_session: None,
+            shutdown_report: None,
+            shutdown_report_path: None,
         })
     }
 
@@ -494,26 +585,81 @@ impl BackendProcess {
             child,
             job: Some(job),
             logs,
+            canonical_session: Some(session_id),
+            shutdown_report: None,
+            shutdown_report_path: Some(spec.data_dir.join("core-shutdown-result.json")),
         })
     }
 
-    pub fn shutdown(&mut self) {
-        if matches!(self.child.try_wait(), Ok(Some(_))) {
-            return;
+    pub fn shutdown(&mut self) -> ShutdownReport {
+        self.shutdown_with_timeout(SHUTDOWN_TIMEOUT)
+    }
+
+    pub fn shutdown_with_timeout(&mut self, graceful_timeout: Duration) -> ShutdownReport {
+        if let Some(report) = &self.shutdown_report {
+            return report.clone();
         }
-        if self.job.is_none() {
-            return;
+        let started = Instant::now();
+        let mut report = ShutdownReport {
+            pid: self.child.id(),
+            method: if self.canonical_session.is_some() {
+                "session_http"
+            } else {
+                "legacy_stdio"
+            },
+            outcome: "UNKNOWN",
+            request_acknowledged: false,
+            forced_attempted: false,
+            return_code: None,
+            wait_reaped: false,
+            elapsed_ms: 0,
+        };
+        if let Ok(Some(status)) = self.child.try_wait() {
+            report.return_code = status.code();
+            report.wait_reaped = true;
+            report.outcome = "ALREADY_EXITED";
+        } else if self.job.is_some() {
+            if let Some(session) = &self.canonical_session {
+                report.request_acknowledged = request_core_shutdown(
+                    self.port,
+                    &self.token,
+                    session,
+                    started + graceful_timeout,
+                )
+                .is_ok();
+            } else if let Some(mut stdin) = self.child.stdin.take() {
+                let _ = stdin.write_all(b"shutdown\n");
+                let _ = stdin.flush();
+            }
+            let (status, forced) = shutdown_job_owned_child(
+                &mut self.child,
+                &mut self.job,
+                graceful_timeout.saturating_sub(started.elapsed()),
+                FORCED_SHUTDOWN_TIMEOUT,
+            );
+            report.forced_attempted = forced;
+            if let Some(status) = status {
+                report.return_code = status.code();
+                report.wait_reaped = true;
+                report.outcome = if forced {
+                    "FORCED"
+                } else if report.request_acknowledged && status.code() == Some(0) {
+                    "GRACEFUL"
+                } else if status.code() != Some(0) {
+                    "ERROR"
+                } else {
+                    "UNKNOWN"
+                };
+            }
         }
-        if let Some(mut stdin) = self.child.stdin.take() {
-            let _ = stdin.write_all(b"shutdown\n");
-            let _ = stdin.flush();
+        report.elapsed_ms = started.elapsed().as_millis() as u64;
+        if let Some(path) = &self.shutdown_report_path {
+            if let Ok(bytes) = serde_json::to_vec_pretty(&report) {
+                let _ = std::fs::write(path, bytes);
+            }
         }
-        shutdown_job_owned_child(
-            &mut self.child,
-            &mut self.job,
-            SHUTDOWN_TIMEOUT,
-            FORCED_SHUTDOWN_TIMEOUT,
-        );
+        self.shutdown_report = Some(report.clone());
+        report
     }
 
     pub fn log_tail(&self) -> String {
@@ -543,14 +689,14 @@ fn shutdown_job_owned_child(
     job: &mut Option<Job>,
     graceful_timeout: Duration,
     forced_timeout: Duration,
-) {
-    if wait_for_exit(child, graceful_timeout).is_ok() {
-        return;
+) -> (Option<std::process::ExitStatus>, bool) {
+    if let Ok(status) = wait_for_exit(child, graceful_timeout) {
+        return (Some(status), false);
     }
     if job.take().is_none() {
         let _ = child.kill();
     }
-    let _ = wait_for_exit(child, forced_timeout);
+    (wait_for_exit(child, forced_timeout).ok(), true)
 }
 
 struct BoundedOutput {
@@ -1607,13 +1753,15 @@ mod tests {
         }
         let started = Instant::now();
 
-        shutdown_job_owned_child(
+        let (observed, forced) = shutdown_job_owned_child(
             &mut child,
             &mut job,
             Duration::from_millis(100),
             Duration::from_secs(1),
         );
 
+        assert!(forced, "forced fallback must be reported separately");
+        assert!(observed.is_some(), "forced exit must actually be reaped");
         assert!(job.is_none(), "forced shutdown retained the Job handle");
         assert!(
             started.elapsed() < Duration::from_secs(2),
@@ -1624,6 +1772,60 @@ mod tests {
             child.try_wait().expect("inspect stubborn Core").is_some(),
             "Job close did not terminate the stubborn Core"
         );
+    }
+
+    #[test]
+    fn shutdown_ack_requires_complete_response_and_exact_session() {
+        let body = serde_json::json!({"schema":"archeaxis.session-shutdown/v1","session_id":"session","state":"draining"}).to_string();
+        let response = format!(
+            "HTTP/1.1 202 Accepted\r\nContent-Length: {}\r\n\r\n{body}",
+            body.len()
+        );
+        assert!(super::shutdown_ack_valid(response.as_bytes(), "session"));
+        assert!(!super::shutdown_ack_valid(response.as_bytes(), "other"));
+        assert!(!super::shutdown_ack_valid(
+            &response.as_bytes()[..response.len() - 1],
+            "session"
+        ));
+        assert!(!super::shutdown_ack_valid(
+            response.replace("202 Accepted", "200 OK").as_bytes(),
+            "session"
+        ));
+        assert!(!super::shutdown_ack_valid(
+            response.replace("draining", "graceful").as_bytes(),
+            "session"
+        ));
+    }
+
+    #[test]
+    #[ignore = "requires an explicitly built Core path; no installed runtime is inferred"]
+    fn canonical_owned_core_shutdown_is_acknowledged_exit_zero_without_forcing() {
+        let executable = PathBuf::from(
+            std::env::var_os("ARCHEAXIS_TEST_CORE_EXE").expect("explicit built Core"),
+        );
+        assert!(executable.is_file());
+        let dir = tempdir().unwrap();
+        let spec = super::CoreSpec {
+            executable,
+            workspace_db: dir.path().join("workspace.sqlite"),
+            cwd: dir.path().to_owned(),
+            data_dir: dir.path().to_owned(),
+            text_worker: None,
+        };
+        for _ in 0..2 {
+            let mut core = super::BackendProcess::launch_core(&spec).unwrap();
+            let report = core.shutdown();
+            assert_eq!(report.outcome, "GRACEFUL", "{report:?}");
+            assert!(report.request_acknowledged && report.wait_reaped);
+            assert!(!report.forced_attempted);
+            assert_eq!(report.return_code, Some(0));
+            let persisted: serde_json::Value = serde_json::from_slice(
+                &fs::read(dir.path().join("core-shutdown-result.json")).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(persisted["pid"], report.pid);
+            assert_eq!(persisted["outcome"], "GRACEFUL");
+        }
     }
 
     #[test]
@@ -1643,6 +1845,9 @@ mod tests {
             child,
             job: Some(job),
             logs: super::new_log_buffer(),
+            canonical_session: None,
+            shutdown_report: None,
+            shutdown_report_path: None,
         };
         let deadline = Instant::now() + Duration::from_secs(2);
 

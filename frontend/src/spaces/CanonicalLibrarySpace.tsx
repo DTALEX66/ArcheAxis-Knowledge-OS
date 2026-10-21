@@ -23,6 +23,8 @@ import { BackupPanel } from "../components/BackupPanel";
 import { ContainerMemberChain } from "../components/ContainerMemberChain";
 import { ContentDetectionPanel } from "../components/ContentDetectionPanel";
 import { PdfPageRecognition } from "../components/PdfPageRecognition";
+import { IngestRelationsPanel } from "../components/IngestRelationsPanel";
+import {verifiedSource,type FolderMemberSelection} from "../presentation/ingestRelations";
 import { FolderIngest } from "../components/FolderIngest";
 import { TemplateLauncher } from "../templates/TemplateWorkspace";
 import "../components/content.css";
@@ -70,6 +72,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [listError,setListError] = useState<string|null>(null);
   const [listFailureReason,setListFailureReason] = useState<string|null>(null);
   const [openedDocuments, setOpenedDocuments] = useState<DocumentSummaryDto[]>([]);
+  const [relationSelection,setRelationSelection]=useState<FolderMemberSelection|null>(null);
+  const relationPending=useRef(false);
+  const [folderJob,setFolderJob]=useState<{source_id:string;job_id?:string}|null>(null);
   const [source, setSource] = useState<SourceDto | null>(null);
   const [original, setOriginal] = useState<OriginalDto | null>(null);
   const [bytes, setBytes] = useState<Uint8Array | null>(null);
@@ -116,7 +121,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const anchorNavigation = useRef<HTMLElement>(null);
   const versionNavigation = useRef<HTMLDivElement>(null);
   function publishDirtyState() {
-    dirty.current = dirtyDocumentIds.current.size > 0 || noteAttempt.current !== null;
+    dirty.current = dirtyDocumentIds.current.size > 0 || noteAttempt.current !== null || relationPending.current;
     onDirtyChange?.(dirty.current);
     window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: documentLease.ownerId?{owner:documentLease.ownerId,dirty:dirty.current}:dirty.current }));
   }
@@ -279,7 +284,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     } catch (error) { setImportReceipt({name:file.name,bytes:file.size,state:"导入未确认，请保留原件"}); setMessage(error instanceof Error ? error.message : "导入未完成，请保留原件并重试。"); setFailure(true); }
     finally { setImporting(false); }
   }
-  async function open(selected: SourceDto):Promise<"success"|"stale"|"failure"> {
+  async function open(selected: SourceDto, linkDocument=true):Promise<"success"|"stale"|"failure"> {
     revisionBasis.current = null;
     const epoch = ++generation.current;
     const editingEpoch=editGeneration.current;
@@ -297,7 +302,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       readStage="原件字节核验";
       const actualHash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", decoded))).map((value) => value.toString(16).padStart(2, "0")).join("");
       if (actualHash !== selected.sha256) throw new Error("source bytes mismatch");
-      const linked = documents.find((item) => item.source_id === selected.source_id && item.source_revision === selected.source_revision);
+      const linked = linkDocument ? documents.find((item) => item.source_id === selected.source_id && item.source_revision === selected.source_revision) : undefined;
       readStage="草稿版本读取";
       const active = linked ? await coreCommand<DocumentDto>("document_get", { document_id: linked.document_id }) : null;
       if (epoch !== generation.current || editingEpoch !== editGeneration.current) return "stale";
@@ -312,6 +317,28 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       if(epoch!==generation.current||editingEpoch!==editGeneration.current)return "stale";
       setFailure(true);setMessage(`${readStage}未完成；未替换当前内容，请保留原件重试。`);setFailureReason(coreFailureReason(error));return "failure";
     }
+  }
+  async function openFolderSource(id:string,jobId?:string,revision?:string) {
+    if(dirty.current||writeInFlight.current||!revision){setMessage("草稿、未确认写入或来源版本尚未处理；当前内容保留。");setFailure(true);return;}
+    // Reserve navigation at the click, before the first metadata await. An older
+    // selection must never enter open() and displace a newer pending selection.
+    let navigation=++generation.current;const editing=editGeneration.current;
+    try {
+      const selected=verifiedSource(await coreCommand<SourceDto>("source_get",{source_id:id}),id,revision);
+      if(!libraryMounted.current||navigation!==generation.current||editing!==editGeneration.current||dirty.current||writeInFlight.current)return;
+      const reading=open(selected,false);navigation=generation.current;
+      const result=await reading;
+      if(result==="success"&&libraryMounted.current&&navigation===generation.current&&editing===editGeneration.current&&!dirty.current&&!writeInFlight.current){setFolderJob({source_id:id,job_id:jobId});setSources(old=>[selected,...old.filter(s=>s.source_id!==id)]);}
+    }catch{if(libraryMounted.current&&navigation===generation.current&&editing===editGeneration.current){setMessage("所选来源身份未读回；未替换为同名来源或文档。");setFailure(true);}}
+  }
+  async function relationWrite<T>(action:()=>Promise<T>):Promise<T> {
+    if(writeInFlight.current||dirtyDocumentIds.current.size||noteAttempt.current)throw new Error("当前有草稿或写入，未提交关系");
+    writeInFlight.current=true;setBusy(true);
+    try{return await documentLease.write(action);}finally{writeInFlight.current=false;setBusy(false);}
+  }
+  function relationApplied(saved:DocumentDto){
+    if(currentDocument.current?.document_id!==saved.document_id||dirtyDocumentIds.current.has(saved.document_id)){setMessage("关系已保存；期间新增草稿保留，请读取冲突版本核对。");return;}
+    setDocument(saved);setDocuments(old=>old.map(d=>d.document_id===saved.document_id?saved:d));setOpenedDocuments(old=>old.map(d=>d.document_id===saved.document_id?saved:d));setEditorEpoch(v=>v+1);
   }
   async function openDocument(id: string) {
     if (currentDocument.current?.document_id === id) return;
@@ -674,7 +701,8 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     <p className="muted">原件保留其不可变版本；草稿自动保存到本地核心，引用绑定原件版本。</p>
     <label className="content-import" data-section="import" tabIndex={-1}>导入原件 <input type="file" aria-label="导入原件" disabled={importing} onChange={(event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; }} /></label>
     {importReceipt?<dl className="receipt-grid" aria-label="导入结果"><div><dt>来源文件</dt><dd>{importReceipt.name}</dd></div><div><dt>原件大小</dt><dd>{importReceipt.bytes} 字节</dd></div><div><dt>导入状态</dt><dd>{importReceipt.state}</dd></div><div><dt>下一步</dt><dd>选择原件阅读或执行转换，再从实际引文整理待审核知识。</dd></div></dl>:null}
-    <div className="space-section-region" data-section="folder" tabIndex={-1} aria-label="目录批量导入"><FolderIngest /></div>
+    <div className="space-section-region" data-section="folder" tabIndex={-1} aria-label="目录批量导入"><FolderIngest onOpenSource={(id,job,revision)=>void openFolderSource(id,job,revision)} onSelectRelations={selection=>{if(relationPending.current||writeInFlight.current){setMessage("原关系请求未确认，保留原映射；请先只读核对。");return;}setRelationSelection(selection);}} /></div>
+    {relationSelection?<IngestRelationsPanel key={JSON.stringify(relationSelection)} selection={relationSelection} document={document} documents={documents} dirty={dirtyDocumentIds.current.size>0||!!noteAttempt.current||!!sharedDraft} canWrite={documentLease.canWrite} write={relationWrite} onApplied={relationApplied} onPendingChange={pending=>{relationPending.current=pending;publishDirtyState();}} onOpenDocument={id=>{if(!dirty.current&&!writeInFlight.current)void openDocument(id);}} onMore={()=>void loadMoreDocuments()} hasMore={!!nextDocumentCursor}/>:null}
     <div className="canonical-library">
       <nav ref={sourceNavigation} tabIndex={-1} className="canonical-sources" data-section="sources" aria-label="保留原件">
         {sources.length === 0 ? <p>暂无原件。</p> : sources.slice(sourcePage*30,(sourcePage+1)*30).map((item) => <button type="button" key={item.source_id} aria-current={source?.source_id === item.source_id ? "true" : undefined} onClick={() => void open(item)}>{item.original_name}</button>)}
@@ -687,7 +715,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
           {isPdf ? <PdfReader bytes={bytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /> : original.media_type.startsWith("text/") ? <pre ref={textRegion} tabIndex={-1} aria-label="原件正文">{new TextDecoder().decode(bytes)}</pre> : null}
           {original.media_type.startsWith("audio/")||original.media_type.startsWith("video/")?<MediaReader key={`media:${source.source_id}`} bytes={bytes} mediaType={original.media_type} seek={mediaSeek?.sourceId===source.source_id?mediaSeek:undefined} onDuration={seconds=>setMediaDuration({sourceId:source.source_id,seconds})}/>:null}
           {originalTextCitation}
-          <JobContent key={`job:${source.source_id}`} sourceId={source.source_id} name={source.original_name} sourceRevision={source.source_revision} epubSeek={epubSeek?.sourceId===source.source_id?epubSeek.position:undefined} onEpubSeek={position=>setEpubSeek({sourceId:source.source_id,position})} onKnowledge={onKnowledge} onTimeSeek={seconds=>setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:seconds*1000,sequence:(previous?.sequence??0)+1}))} onAnchor={anchor=>setAnchors(previous=>previous.some(item=>item.anchor_id===anchor.anchor_id)?previous:[...previous,anchor])} mediaDurationSeconds={mediaDuration?.sourceId===source.source_id?mediaDuration.seconds:undefined}/>
+          <JobContent key={`job:${source.source_id}`} pinnedJobId={folderJob?.source_id===source.source_id?folderJob.job_id:undefined} sourceId={source.source_id} name={source.original_name} sourceRevision={source.source_revision} epubSeek={epubSeek?.sourceId===source.source_id?epubSeek.position:undefined} onEpubSeek={position=>setEpubSeek({sourceId:source.source_id,position})} onKnowledge={onKnowledge} onTimeSeek={seconds=>setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:seconds*1000,sequence:(previous?.sequence??0)+1}))} onAnchor={anchor=>setAnchors(previous=>previous.some(item=>item.anchor_id===anchor.anchor_id)?previous:[...previous,anchor])} mediaDurationSeconds={mediaDuration?.sourceId===source.source_id?mediaDuration.seconds:undefined}/>
           <ContainerMemberChain key={`members:${source.source_id}`} sourceId={source.source_id} />
           {original && original.media_type === "application/octet-stream" ? <ContentDetectionPanel key={`detect:${source.source_id}`} sourceId={source.source_id} name={source.original_name} /> : null}
           <PdfPageRecognition key={`pages:${source.source_id}`} sourceId={source.source_id} />

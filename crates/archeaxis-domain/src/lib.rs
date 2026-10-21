@@ -15,6 +15,8 @@ pub mod context_grant;
 pub mod course;
 pub mod document;
 pub mod expression;
+pub mod ingest_batches;
+pub mod ingest_relations;
 pub mod knowledge;
 pub mod layout;
 pub mod learning;
@@ -40,4 +42,5 @@ pub mod model_configuration;
 
 pub mod character_memory;
 
+pub mod public_research;
 pub mod readiness;

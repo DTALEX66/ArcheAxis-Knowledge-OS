@@ -54,6 +54,19 @@ async fn raw_call(
 
 const READY_PREAMBLE: &str = "import os,json\nfrom pathlib import Path\n_d=Path(os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_DIR'])\n(_d/'ready.tmp').write_text(json.dumps({'schema':'archeaxis.egress-dispatch/v1','egress_sha256':os.environ['ARCHEAXIS_DOCUMENT_CHECK_DISPATCH_HASH']}))\n(_d/'ready.tmp').replace(_d/'ready.json')\n";
 
+// Prepare real parser modules in the fixture worker itself, after main's
+// unchanged dispatch-ready handshake and before the original execute function.
+// Core's existing process deadline still covers preparation. These tests verify
+// protocol behavior, not cold dependency startup performance.
+const REAL_PARSER_PREPARATION: &str = r#"def prepare_real_retrieval_parsers():
+    from bs4 import BeautifulSoup
+    import trafilatura
+    html = '<html><body><article><h1>Synthetic parser preparation</h1><p>Synthetic public background sentence for protocol testing only. No factual qualification is asserted.</p></article></body></html>'
+    assert BeautifulSoup('<a class="result-link" href="https://source.invalid/public">source</a>', 'html.parser').select('a.result-link')[0]['href'] == 'https://source.invalid/public'
+    text = trafilatura.extract(html, include_links=False, include_images=False)
+    assert text and 'Synthetic public background sentence' in text
+"#;
+
 #[tokio::test]
 async fn actual_check_worker_dispatches_only_exact_confirmed_material_with_synthetic_transports() {
     for tamper in [false, true] {
@@ -75,6 +88,7 @@ faulthandler.dump_traceback_later(5,repeat=True,file=_trace)
 root=Path({root})
 sys.path.insert(0,str(root/'services/python-workers/machine'))
 import document_check as worker
+{parser_preparation}
 events=Path({events})
 def record(kind):
     values=json.loads(events.read_text()) if events.exists() else []
@@ -103,8 +117,15 @@ def completion(**kwargs):
     assert kwargs['model']=='fixture/explicit'
     return {{'model':'SIMULATED-model','choices':[{{'message':{{'content':json.dumps({{'status':'uncertain','basis':'SIMULATED transport only'}})}},'finish_reason':'stop'}}],'usage':{{'total_tokens':3}}}}
 sys.modules['litellm']=SimpleNamespace(completion=completion)
+original_execute=worker.execute
+
+def prepared_execute(request):
+    prepare_real_retrieval_parsers()
+    return original_execute(request)
+worker.execute=prepared_execute
 raise SystemExit(worker.main())
 "#,
+            parser_preparation = REAL_PARSER_PREPARATION,
             root = serde_json::to_string(&repo.to_string_lossy()).unwrap(),
             events = serde_json::to_string(&events.to_string_lossy()).unwrap(),
             tamper = if tamper { "True" } else { "False" }
@@ -189,6 +210,7 @@ faulthandler.dump_traceback_later(5,repeat=True,file=_trace)
 root=Path({root})
 sys.path.insert(0,str(root/'services/python-workers/machine'))
 import document_check as worker
+{parser_preparation}
 events=Path({events})
 def record(kind):
     values=json.loads(events.read_text()) if events.exists() else []
@@ -223,10 +245,12 @@ def delayed_execute(request):
     deadline=__import__('time').monotonic()+10
     while not release.exists() and __import__('time').monotonic()<deadline: __import__('time').sleep(.01)
     assert release.exists(), 'fixture timeout'
+    prepare_real_retrieval_parsers()
     return original_execute(request)
 worker.execute=delayed_execute
 raise SystemExit(worker.main())
 "#,
+        parser_preparation = REAL_PARSER_PREPARATION,
         root = serde_json::to_string(&repo.to_string_lossy()).unwrap(),
         events = serde_json::to_string(&dir.path().join("events.json").to_string_lossy()).unwrap(),
         ready = serde_json::to_string(&ready.to_string_lossy()).unwrap(),

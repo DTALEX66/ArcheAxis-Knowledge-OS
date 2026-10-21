@@ -36,7 +36,14 @@ pub enum Operation {
     ProjectHandoffPreview,
     ProjectHandoffSnapshot,
     SourceImport,
+    IngestBatchRegister,
+    IngestBatchesList,
+    IngestBatchGet,
+    IngestMemberImport,
+    IngestMemberEnqueue,
+    IngestMemberRelationsApply,
     SourcesList,
+    SourceGet,
     SourceJobs,
     SourceJobFormatQualification,
     SourceMembers,
@@ -93,9 +100,15 @@ pub enum Operation {
     LearningReference,
     MachineAnswer,
     MaterialQuestion,
+    MaterialQuestionSubmit,
     MaterialContextPrepare,
     MaterialQuestionCancel,
     MaterialQuestionStatus,
+    PublicResearchSearch,
+    PublicResearchRead,
+    PublicResearchList,
+    PublicResearchCancel,
+    PublicResearchMaterialize,
     OperationReadiness,
     CharacterMemoryGet,
     CharacterMemoryApply,
@@ -271,7 +284,104 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
             Some(body()?),
         ),
         SourceImport => ("POST", "/api/v1/imports".into(), Some(body()?)),
+        IngestMemberRelationsApply => {
+            if p.as_object().is_none_or(|fields| {
+                fields
+                    .keys()
+                    .any(|key| !["batch_id", "ordinal", "body"].contains(&key.as_str()))
+            }) || !p.get("body").is_some_and(Value::is_object)
+            {
+                return Err("CORE_COMMAND_RELATION_PAYLOAD_INVALID".into());
+            }
+            let ordinal = p
+                .get("ordinal")
+                .and_then(Value::as_u64)
+                .filter(|v| *v < 10000)
+                .ok_or("CORE_COMMAND_MEMBER_ORDINAL_INVALID")?;
+            (
+                "POST",
+                format!(
+                    "/api/v1/ingest-batches/{}/members/{ordinal}/relations",
+                    id(p, "batch_id")?
+                ),
+                Some(body()?),
+            )
+        }
+        IngestBatchRegister | IngestMemberImport | IngestMemberEnqueue => {
+            let register = matches!(request.operation, IngestBatchRegister);
+            let keys = if register {
+                vec!["body"]
+            } else {
+                vec!["batch_id", "body"]
+            };
+            if p.as_object()
+                .is_none_or(|fields| fields.keys().any(|key| !keys.contains(&key.as_str())))
+                || !p.get("body").is_some_and(Value::is_object)
+            {
+                return Err("CORE_COMMAND_BATCH_PAYLOAD_INVALID".into());
+            }
+            let path = if register {
+                "/api/v1/ingest-batches".into()
+            } else {
+                format!(
+                    "/api/v1/ingest-batches/{}/{}",
+                    id(p, "batch_id")?,
+                    if matches!(request.operation, IngestMemberImport) {
+                        "imports"
+                    } else {
+                        "jobs"
+                    }
+                )
+            };
+            ("POST", path, Some(body()?))
+        }
+        IngestBatchesList | IngestBatchGet => {
+            let listing = matches!(request.operation, IngestBatchesList);
+            let keys = if listing {
+                vec!["cursor", "limit"]
+            } else {
+                vec!["batch_id", "after_ordinal", "limit"]
+            };
+            if p.as_object()
+                .is_none_or(|fields| fields.keys().any(|key| !keys.contains(&key.as_str())))
+            {
+                return Err("CORE_COMMAND_BATCH_PAYLOAD_INVALID".into());
+            }
+            let limit = p
+                .get("limit")
+                .map(|v| {
+                    v.as_u64()
+                        .filter(|n| (1..=200).contains(n))
+                        .ok_or_else(|| "CORE_COMMAND_BATCH_LIMIT_INVALID".to_owned())
+                })
+                .transpose()?
+                .unwrap_or(200);
+            let mut path = if listing {
+                "/api/v1/ingest-batches".into()
+            } else {
+                format!("/api/v1/ingest-batches/{}", id(p, "batch_id")?)
+            };
+            path.push_str(&format!("?limit={limit}"));
+            if listing && p.get("cursor").is_some() {
+                path.push_str(&format!("&cursor={}", id(p, "cursor")?));
+            }
+            if !listing {
+                if let Some(value) = p.get("after_ordinal") {
+                    let after = value
+                        .as_u64()
+                        .filter(|n| *n < 10000)
+                        .ok_or("CORE_COMMAND_BATCH_CURSOR_INVALID")?;
+                    path.push_str(&format!("&after_ordinal={after}"));
+                }
+            }
+            ("GET", path, None)
+        }
         SourcesList => ("GET", "/api/v1/sources".into(), None),
+        SourceGet => (
+            "GET",
+            format!("/api/v1/sources/{}", id(p, "source_id")?),
+            None,
+        ),
         SourceJobs => (
             "GET",
             format!("/api/v1/sources/{}/jobs", id(p, "source_id")?),
@@ -603,6 +713,28 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
         ConversationStatus => ("POST", "/api/v1/conversation/status".into(), Some(body()?)),
         MachineAnswer => ("POST", "/api/v1/machine/answers".into(), Some(body()?)),
         MaterialQuestion => ("POST", "/api/v1/material/questions".into(), Some(body()?)),
+        MaterialQuestionSubmit => (
+            "POST",
+            "/api/v1/material/questions/submissions".into(),
+            Some(body()?),
+        ),
+        PublicResearchSearch => (
+            "POST",
+            "/api/v1/research/public/search".into(),
+            Some(body()?),
+        ),
+        PublicResearchRead => ("POST", "/api/v1/research/public/read".into(), Some(body()?)),
+        PublicResearchList => ("POST", "/api/v1/research/public/list".into(), Some(body()?)),
+        PublicResearchCancel => (
+            "POST",
+            "/api/v1/research/public/cancel".into(),
+            Some(body()?),
+        ),
+        PublicResearchMaterialize => (
+            "POST",
+            "/api/v1/research/public/materialize".into(),
+            Some(body()?),
+        ),
         MaterialContextPrepare => ("POST", "/api/v1/material/context".into(), Some(body()?)),
         MaterialQuestionCancel => (
             "POST",
@@ -919,6 +1051,74 @@ fn route(request: &Request) -> Result<(&'static str, String, Option<Value>), Str
     })
 }
 
+#[cfg(test)]
+mod ingest_batch_routes {
+    use super::*;
+    use serde_json::json;
+    fn request(operation: &str, payload: Value) -> Request {
+        serde_json::from_value(json!({"operation":operation,"payload":payload})).unwrap()
+    }
+    #[test]
+    fn original_relation_route_is_fixed_and_member_bounded() {
+        let good = json!({"batch_id":"selected-batch","ordinal":1,"body":{"expected_version":2}});
+        let routed = route(&request("ingest_member_relations_apply", good)).unwrap();
+        assert_eq!(routed.0, "POST");
+        assert_eq!(
+            routed.1,
+            "/api/v1/ingest-batches/selected-batch/members/1/relations"
+        );
+        for bad in [
+            json!({"batch_id":"../other","ordinal":1,"body":{}}),
+            json!({"batch_id":"ok","ordinal":10000,"body":{}}),
+            json!({"batch_id":"ok","ordinal":-1,"body":{}}),
+            json!({"batch_id":"ok","ordinal":1,"body":{},"url":"http://invalid"}),
+        ] {
+            assert!(route(&request("ingest_member_relations_apply", bad)).is_err());
+        }
+    }
+    #[test]
+    fn batch_routes_bind_members_and_reject_extra_or_unbounded_transport_inputs() {
+        assert_eq!(
+            route(&request(
+                "ingest_batch_get",
+                json!({"batch_id":"batch","after_ordinal":199,"limit":200})
+            ))
+            .unwrap(),
+            (
+                "GET",
+                "/api/v1/ingest-batches/batch?limit=200&after_ordinal=199".into(),
+                None
+            )
+        );
+        for operation in ["ingest_member_import", "ingest_member_enqueue"] {
+            let (_, path, body) = route(&request(
+                operation,
+                json!({"batch_id":"batch","body":{"ordinal":1}}),
+            ))
+            .unwrap();
+            assert!(path.starts_with("/api/v1/ingest-batches/batch/"));
+            assert_eq!(body.unwrap()["ordinal"], 1);
+            for payload in [
+                json!({"batch_id":"../other","body":{}}),
+                json!({"batch_id":"batch","body":{},"url":"https://invalid"}),
+            ] {
+                assert!(route(&request(operation, payload)).is_err());
+            }
+        }
+        for payload in [
+            json!({"limit":201}),
+            json!({"cursor":"a&limit=2"}),
+            json!({"url":"http://invalid"}),
+        ] {
+            assert!(route(&request("ingest_batches_list", payload)).is_err());
+        }
+        assert_eq!(
+            request_byte_limit(&Operation::IngestMemberImport),
+            90 * 1024 * 1024
+        );
+    }
+}
+
 pub fn save_export(root: &std::path::Path, reply: &Reply) -> Result<Value, String> {
     if reply.status != 200 {
         return Err("CORE_EXPORT_UNAVAILABLE".into());
@@ -1004,9 +1204,10 @@ fn transport_timeout(operation: &Operation) -> std::time::Duration {
         // The owned worker permits 120 seconds plus 20 seconds for bounded
         // transport cleanup; keep a finite margin for durable readback.
         Operation::DocumentCheckExecute => 160,
-        Operation::MachineAnswer | Operation::MaterialQuestion | Operation::ConversationRequest => {
-            135
-        }
+        Operation::MachineAnswer
+        | Operation::MaterialQuestion
+        | Operation::ConversationRequest
+        | Operation::PublicResearchSearch => 135,
         Operation::MachineRetest => 135,
         Operation::WorkspaceBackup => 120,
         Operation::ProjectHandoffPreview | Operation::ProjectHandoffSnapshot => 3,
@@ -1025,8 +1226,13 @@ fn request_byte_limit(operation: &Operation) -> usize {
     ) {
         65_536
     } else if matches!(operation, Operation::DocumentPackageImport) {
-        16 * 1024 * 1024
-    } else if matches!(operation, Operation::SourceImport) {
+        // 8 MiB originals can occupy 32 MiB as JSON byte arrays, plus bounded
+        // package metadata and the import request envelope.
+        40 * 1024 * 1024 + 65_536
+    } else if matches!(
+        operation,
+        Operation::SourceImport | Operation::IngestMemberImport
+    ) {
         90 * 1024 * 1024
     } else if matches!(
         operation,
@@ -1050,6 +1256,8 @@ fn response_byte_limit(operation: &Operation) -> usize {
         65_536
     } else if matches!(operation, Operation::SourceOriginal) {
         90 * 1024 * 1024
+    } else if matches!(operation, Operation::DocumentPackageExport) {
+        40 * 1024 * 1024
     } else {
         24 * 1024 * 1024
     }
@@ -1560,6 +1768,22 @@ mod media_bridge_budget_tests {
     fn enlarged_budgets_are_bound_to_original_transfer_operations() {
         use super::*;
         assert_eq!(
+            request_byte_limit(&Operation::DocumentPackageImport),
+            40 * 1024 * 1024 + 65_536
+        );
+        assert_eq!(
+            response_byte_limit(&Operation::DocumentPackageExport),
+            40 * 1024 * 1024
+        );
+        assert_eq!(
+            request_byte_limit(&Operation::DocumentPackageExport),
+            8 * 1024 * 1024
+        );
+        assert_eq!(
+            response_byte_limit(&Operation::DocumentPackageImport),
+            24 * 1024 * 1024
+        );
+        assert_eq!(
             request_byte_limit(&Operation::SourceImport),
             90 * 1024 * 1024
         );
@@ -1757,7 +1981,11 @@ mod folder_native_contract_regression {
                     }
                 }
                 let body=serde_json::json!({"job_id":"folder-text-safe","request_id":"folder-explicit-request","state":"running","replayed":replayed}).to_string();
-                let response=format!("HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",body.len(),body);
+                let response = format!(
+                    "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                    body.len(),
+                    body
+                );
                 socket.write_all(response.as_bytes()).unwrap();
             }
         });
@@ -1924,6 +2152,54 @@ mod folder_native_contract_regression {
             )
             .unwrap();
             assert!(route(&invalid).is_err());
+        }
+    }
+}
+
+#[cfg(test)]
+mod material_async_bridge_tests {
+    use super::*;
+    #[test]
+    fn material_async_submission_uses_a_fixed_route_without_extending_sync_budget() {
+        let body = serde_json::json!({"execution_mode":"async","timeout_s":120});
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"material_question_submit","payload":{"body":body}}),
+        )
+        .unwrap();
+        let (method, path, actual) = route(&request).unwrap();
+        assert_eq!(method, "POST");
+        assert_eq!(path, "/api/v1/material/questions/submissions");
+        assert_eq!(actual, Some(body));
+        assert_eq!(
+            transport_timeout(&Operation::MaterialQuestion),
+            std::time::Duration::from_secs(135)
+        );
+        assert_eq!(
+            transport_timeout(&Operation::MaterialQuestionSubmit),
+            std::time::Duration::from_secs(30)
+        );
+    }
+}
+
+#[cfg(test)]
+mod single_source_identity_route {
+    use super::*;
+    #[test]
+    fn source_identity_route_is_fixed_and_rejects_traversal() {
+        let request: Request = serde_json::from_value(
+            serde_json::json!({"operation":"source_get","payload":{"source_id":"src_exact"}}),
+        )
+        .unwrap();
+        let (method, path, body) = route(&request).unwrap();
+        assert_eq!(method, "GET");
+        assert_eq!(path, "/api/v1/sources/src_exact");
+        assert_eq!(body, None);
+        for value in ["../secret", "src/other", "https://example.invalid", ""] {
+            let request: Request = serde_json::from_value(
+                serde_json::json!({"operation":"source_get","payload":{"source_id":value}}),
+            )
+            .unwrap();
+            assert!(route(&request).is_err());
         }
     }
 }

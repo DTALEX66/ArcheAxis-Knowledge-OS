@@ -393,3 +393,75 @@ fn verify_counts_uses_a_stable_read_snapshot_during_concurrent_source_writes() {
 
     assert!(verify.join().unwrap().unwrap());
 }
+
+#[test]
+fn backup_staging_publication_is_complete_and_never_clobbers_existing_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let staged = dir.path().join("staged");
+    let target = dir.path().join("target");
+    std::fs::write(&staged, b"complete staged bytes").unwrap();
+    std::fs::write(&target, b"existing backup").unwrap();
+    assert!(backup::publish_backup_file_noclobber(&staged, &target).is_err());
+    assert_eq!(std::fs::read(&target).unwrap(), b"existing backup");
+    assert!(
+        !staged.exists(),
+        "failed owned staging file was not cleaned"
+    );
+    std::fs::write(&staged, b"complete staged bytes").unwrap();
+    let published = dir.path().join("published");
+    backup::publish_backup_file_noclobber(&staged, &published).unwrap();
+    assert!(!staged.exists());
+    assert_eq!(std::fs::read(&published).unwrap(), b"complete staged bytes");
+}
+
+#[test]
+fn failed_backup_publication_keeps_existing_directory_and_cleans_staging() {
+    let dir = tempfile::tempdir().unwrap();
+    let target = dir.path().join("directory-target");
+    std::fs::create_dir(&target).unwrap();
+    std::fs::write(target.join("keep"), b"existing directory member").unwrap();
+    let staged = dir.path().join("staged");
+    std::fs::write(&staged, b"candidate").unwrap();
+    assert!(backup::publish_backup_file_noclobber(&staged, &target).is_err());
+    assert_eq!(
+        std::fs::read(target.join("keep")).unwrap(),
+        b"existing directory member"
+    );
+    assert!(!staged.exists());
+    let missing = dir.path().join("missing/target");
+    std::fs::write(&staged, b"candidate").unwrap();
+    assert!(backup::publish_backup_file_noclobber(&staged, &missing).is_err());
+    assert!(!missing.exists());
+    assert!(!staged.exists());
+}
+
+#[test]
+fn backup_publication_same_path_is_rejected_without_removing_existing_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("existing.sqlite");
+    std::fs::write(&path, b"existing backup").unwrap();
+    assert!(backup::publish_backup_file_noclobber(&path, &path).is_err());
+    assert_eq!(std::fs::read(path).unwrap(), b"existing backup");
+}
+
+#[cfg(windows)]
+#[test]
+fn backup_publication_case_alias_is_rejected_without_removing_existing_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let staged = dir.path().join("existing.sqlite");
+    let target = dir.path().join("EXISTING.SQLITE");
+    std::fs::write(&staged, b"existing case-alias backup").unwrap();
+    assert_eq!(
+        std::fs::read(&target).unwrap(),
+        b"existing case-alias backup"
+    );
+    assert!(backup::publish_backup_file_noclobber(&staged, &target).is_err());
+    assert_eq!(
+        std::fs::read(&staged).unwrap(),
+        b"existing case-alias backup"
+    );
+    assert_eq!(
+        std::fs::read(&target).unwrap(),
+        b"existing case-alias backup"
+    );
+}

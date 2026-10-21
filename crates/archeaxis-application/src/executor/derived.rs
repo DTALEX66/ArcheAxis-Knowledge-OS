@@ -56,8 +56,28 @@ impl Executor {
             .ok_or("derived worker is not registered")?;
         let python = self.python.clone();
         let staging = self.staging.clone();
+        let store = self.store.clone();
+        let capability = capability.to_owned();
+        let runtime = tokio::runtime::Handle::current();
         tokio::task::spawn_blocking(move || {
             let _permit = permit;
+            // The blocking pool can queue after semaphore admission. Recheck
+            // through the same SQLite owner before creating any process.
+            let enabled = runtime.block_on(async {
+                tokio::time::timeout(
+                    deadline.saturating_duration_since(Instant::now()),
+                    store.submit_wait(move |conn| {
+                        capability_settings::is_enabled(conn, &capability)
+                    }),
+                )
+                .await
+                .map_err(|_| "derived worker timed out before spawn")?
+                .map_err(|_| "capability settings unavailable")?
+                .map_err(|_| "capability settings unavailable")
+            })?;
+            if !enabled {
+                return Err("derived capability was disabled before spawn".into());
+            }
             let timeout = deadline.saturating_duration_since(Instant::now());
             if timeout.is_zero() {
                 return Err("derived worker timed out before spawn".into());
@@ -340,6 +360,78 @@ fn run_mode(
         return Err("derived worker failed with unexpected exit code".into());
     }
     Ok(json!({"exit_code":exit_code,"document":document}))
+}
+
+#[cfg(test)]
+mod withdrawal_tests {
+    use super::*;
+    use std::{future::Future, task::Poll};
+
+    fn blocking_queue_withdrawal(capability: &'static str) {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .max_blocking_threads(1)
+            .build()
+            .unwrap()
+            .block_on(async {
+                let dir = tempfile::tempdir().unwrap();
+                let worker = dir.path().join("worker.py");
+                std::fs::write(&worker, "from pathlib import Path\nPath(__file__).with_suffix('.started').touch()\nprint('{}')\n").unwrap();
+                let python: PathBuf = std::env::var_os("ARCHEAXIS_PYTHON").unwrap().into();
+                let ex = Executor::open_routes(
+                    &dir.path().join("db"), &dir.path().join("staging"),
+                    &python, &worker, &[(capability, worker.clone())],
+                ).await.unwrap();
+                let (started_send, started_receive) = mpsc::channel();
+                let (release_send, release_receive) = mpsc::channel();
+                let blocker = tokio::task::spawn_blocking(move || {
+                    started_send.send(()).unwrap();
+                    release_receive.recv_timeout(Duration::from_secs(10)).unwrap();
+                });
+                started_receive.recv_timeout(Duration::from_secs(2)).unwrap();
+                let mut request = Box::pin(ex.derived_json(capability, json!({}), Duration::from_secs(5)));
+                let end = Instant::now() + Duration::from_secs(2);
+                loop {
+                    std::future::poll_fn(|cx| {
+                        assert!(request.as_mut().poll(cx).is_pending());
+                        Poll::Ready(())
+                    }).await;
+                    if ex.derived_slots.available_permits() == 3 {
+                        // The second settings read is already submitted. Drain it,
+                        // then poll once to reach the blocked spawn_blocking join.
+                        ex.store.submit_wait(|_| ()).await.unwrap();
+                        std::future::poll_fn(|cx| {
+                            assert!(request.as_mut().poll(cx).is_pending());
+                            Poll::Ready(())
+                        }).await;
+                        break;
+                    }
+                    assert!(Instant::now() < end, "request never reached slot admission");
+                    tokio::time::sleep(Duration::from_millis(5)).await;
+                }
+                ex.store.submit_wait(move |conn| capability_settings::set_enabled(conn, capability, false))
+                    .await.unwrap().unwrap();
+                release_send.send(()).unwrap();
+                blocker.await.unwrap();
+                let result = tokio::time::timeout(Duration::from_secs(3), request).await.unwrap();
+                assert!(!worker.with_extension("started").exists(), "withdrawn queued worker was spawned");
+                assert_eq!(result.unwrap_err(), "derived capability was disabled before spawn");
+                ex.store.submit_wait(move |conn| capability_settings::set_enabled(conn, capability, true))
+                    .await.unwrap().unwrap();
+                ex.derived_json(capability, json!({}), Duration::from_secs(3)).await.unwrap();
+                assert!(worker.with_extension("started").exists(), "enabled control worker did not execute");
+            });
+    }
+
+    #[test]
+    fn search_disabled_in_blocking_queue_never_spawns() {
+        blocking_queue_withdrawal("search.semantic");
+    }
+
+    #[test]
+    fn course_disabled_in_blocking_queue_never_spawns() {
+        blocking_queue_withdrawal("course.general");
+    }
 }
 
 #[cfg(all(test, windows))]

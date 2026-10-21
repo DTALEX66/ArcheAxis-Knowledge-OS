@@ -368,6 +368,7 @@ pub(super) async fn request(
             answer_policy(&body.purpose),
         )
         .await;
+    let _publication = runtime.admission.lock().await;
     let cancelled = match lease.close() {
         Ok(value) => value,
         Err(_) => {

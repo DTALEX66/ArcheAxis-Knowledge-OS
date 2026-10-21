@@ -20,12 +20,19 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parents[2]
-CONTRACT = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261001.md"
+CONTRACT = REPO / "docs/current/AAOS-PRODUCTION-HTTP-CONTRACT-20261021.md"
 RUNBOOK = REPO / "docs/history/repository-consolidation-20261019/current/AAOS-BACKEND-ACCEPTANCE-RUNBOOK-20261001.md"
 
 # Contract section number -> (artifact, what the artifact establishes). Keyed by number rather
 # than title, because the titles carry suffixes that change as the document is edited.
 COVERAGE: dict[str, tuple[str, str]] = {
+    "20": ("crates/archeaxis-api/tests/session_shutdown_process.rs", "complete shutdown ACK, owned process exit0, accepted background conversion and saved object reopen"),
+    "19": ("crates/archeaxis-api/tests/ingest_relations.rs",
+           "single retained Source identity readback and missing-source refusal before relation consumption"),
+    "18": ("crates/archeaxis-api/tests/material_question_api.rs",
+           "bounded async admission, disconnected submitter, terminal replay, cancellation and orphan/restore guards; controlled worker is not real model qualification"),
+    "17": ("crates/archeaxis-api/tests/ingest_relations.rs",
+           "explicit original-CAS batch relations reach the canonical graph with version and restore scope guards"),
     "16": ("crates/archeaxis-api/tests/project_handoff_snapshot_queue.rs",
            "human-only fixed snapshot, expiry and queue/transaction guards; no knowledge acceptance or execution grant"),
     "15": ("crates/archeaxis-api/tests/file_format_qualification.rs",
@@ -67,13 +74,31 @@ ALSO_CHECKS: dict[str, list[str]] = {
     "10": ["tests/maintenance/test_contract_number_consistency.py"],
     "11": ["tests/maintenance/test_contract_number_consistency.py"],
     "3": ["crates/archeaxis-api/tests/contract_job_outputs.rs",
-          "crates/archeaxis-api/tests/contract_schedule_authority.rs"],
+          "crates/archeaxis-api/tests/contract_schedule_authority.rs",
+          "crates/archeaxis-api/tests/ingest_batches_api.rs",
+          "crates/archeaxis-api/tests/public_research_api.rs"],
     "5": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs",
           "crates/archeaxis-api/tests/contract_review_cost.rs"],
     "7": ["tests/maintenance/test_m0_chain_claims.py",
           "tests/maintenance/test_build_toolchain_routing.py"],
     "8": ["crates/archeaxis-api/tests/contract_absent_surfaces.rs"],
     "4": ["tests/maintenance/test_request_body_fields.py"],
+}
+
+# The frozen acceptance runbook keeps its original bytes. Successor checks are
+# reachable through the maintained contract's exact commands, never a rewritten
+# historical qualification receipt.
+CURRENT_CHECK_COMMANDS = {
+    "crates/archeaxis-api/tests/session_shutdown_process.rs":
+        "cargo test -p archeaxis-api --test session_shutdown_process --offline",
+    "crates/archeaxis-api/tests/ingest_relations.rs":
+        "cargo test -p archeaxis-api --test ingest_relations --offline",
+    "crates/archeaxis-api/tests/material_question_api.rs":
+        "cargo test -p archeaxis-api --test material_question_api --offline",
+    "crates/archeaxis-api/tests/ingest_batches_api.rs":
+        "cargo test -p archeaxis-api --test ingest_batches_api --offline",
+    "crates/archeaxis-api/tests/public_research_api.rs":
+        "cargo test -p archeaxis-api --test public_research_api --offline",
 }
 
 # Sections whose evidence is not a single test file, with where it actually lives.
@@ -135,10 +160,15 @@ def test_every_recorded_checker_exists_and_asserts():
 
 @pytest.mark.parametrize("section", sorted(COVERAGE))
 def test_a_recorded_checker_is_reachable_by_one_command(section):
-    """The runbook must name the artifacts, or the UI branch cannot run them."""
+    """Historical runbook and explicit successor commands retain separate roles."""
     runbook = RUNBOOK.read_text(encoding="utf-8")
+    current_contract = CONTRACT.read_text(encoding="utf-8")
     recorded = [COVERAGE[section][0], *ALSO_CHECKS.get(section, [])]
     for relative in recorded:
+        if relative in CURRENT_CHECK_COMMANDS:
+            assert CURRENT_CHECK_COMMANDS[relative] in current_contract, (
+                f"section {section}'s successor checker lacks its current command: {relative}")
+            continue
         # The runbook shows `cargo test --test <stem>` without the extension, so accept either.
         stem = Path(relative).name
         bare = Path(relative).stem

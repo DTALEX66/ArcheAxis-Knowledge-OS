@@ -33,8 +33,10 @@
     },
     {
       "capability_id": "CAP-0030",
-      "state": "core_native",
-      "runtime_capabilities": []
+      "state": "worker_backed",
+      "runtime_capabilities": [
+        "research.public"
+      ]
     },
     {
       "capability_id": "CAP-0040",

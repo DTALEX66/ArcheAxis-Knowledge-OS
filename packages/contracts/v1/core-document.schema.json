@@ -3,6 +3,7 @@
   "$id": "archeaxis/core-document/v1",
   "$defs": {
     "DocumentPackageDto": {
+      "description": "Bounded document exchange: at most 8 MiB of original/media bytes in aggregate and 40 MiB serialized JSON. Source import has a separate budget.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -45,7 +46,7 @@
               },
               "bytes": {
                 "type": "array",
-                "maxItems": 2097152,
+                "maxItems": 8388608,
                 "items": {
                   "type": "integer",
                   "minimum": 0,
@@ -3371,6 +3372,1397 @@
         },
         "worker_started": {
           "const": false
+        }
+      }
+    },
+    "PublicResearchScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "PublicResearchTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "request_id"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "PublicResearchRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "request_id",
+        "query",
+        "families",
+        "limit"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "families": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "encyclopedia",
+              "community",
+              "research"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 3
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        }
+      }
+    },
+    "PublicResearchSelectionInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "request_id",
+        "family",
+        "hit_id"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "family": {
+          "enum": [
+            "encyclopedia",
+            "community",
+            "research"
+          ]
+        },
+        "hit_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "PublicResearchSourceDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "source_id",
+        "sha256"
+      ],
+      "properties": {
+        "kind": {
+          "const": "source"
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "PublicResearchHitDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "family",
+        "provider",
+        "title",
+        "url",
+        "retrieved_at",
+        "content",
+        "excerpt",
+        "locator",
+        "license",
+        "free_access",
+        "upstream_revision",
+        "representation",
+        "truncated"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "family": {
+          "enum": [
+            "encyclopedia",
+            "community",
+            "research"
+          ]
+        },
+        "provider": {
+          "enum": [
+            "wikipedia",
+            "stackexchange",
+            "openalex"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        },
+        "retrieved_at": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "content": {
+          "enum": [
+            "metadata",
+            "excerpt",
+            "full_text"
+          ]
+        },
+        "excerpt": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 16384
+        },
+        "locator": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 4096
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "license": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "free_access": {
+          "enum": [
+            "free",
+            "unknown"
+          ]
+        },
+        "upstream_revision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "representation": {
+          "enum": [
+            "wikitext",
+            "html_text",
+            "abstract",
+            "metadata"
+          ]
+        },
+        "truncated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "PublicResearchChannelDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family",
+        "provider",
+        "status",
+        "retrieved_at",
+        "request_url",
+        "retry_after_seconds",
+        "error_code",
+        "hits",
+        "raw_source",
+        "raw_representation"
+      ],
+      "properties": {
+        "family": {
+          "enum": [
+            "encyclopedia",
+            "community",
+            "research"
+          ]
+        },
+        "provider": {
+          "enum": [
+            "wikipedia",
+            "stackexchange",
+            "openalex"
+          ]
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "limited",
+            "failed",
+            "offline",
+            "unknown"
+          ]
+        },
+        "retrieved_at": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "request_url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 12288
+        },
+        "retry_after_seconds": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 86400
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hits": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PublicResearchHitDto"
+          },
+          "minItems": 0,
+          "maxItems": 3
+        },
+        "raw_source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PublicResearchSourceDto"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "raw_representation": {
+          "const": "http_entity_body_bytes"
+        }
+      }
+    },
+    "PublicResearchReceiptDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "request_id",
+        "query",
+        "families",
+        "limit",
+        "state",
+        "channels",
+        "reason_code",
+        "provider_stop_state",
+        "knowledge_admission"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.public-research-receipt/v1"
+        },
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "families": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "encyclopedia",
+              "community",
+              "research"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 3
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "state": {
+          "enum": [
+            "unknown",
+            "complete",
+            "partial",
+            "failed",
+            "cancelled"
+          ]
+        },
+        "channels": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/PublicResearchChannelDto"
+              },
+              "minItems": 1,
+              "maxItems": 3
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provider_stop_state": {
+          "const": "unknown"
+        },
+        "knowledge_admission": {
+          "const": "not_executed"
+        }
+      }
+    },
+    "PublicResearchJournalDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "receipts",
+        "limit",
+        "scope"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.public-research-journal/v1"
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PublicResearchReceiptDto"
+          },
+          "minItems": 0,
+          "maxItems": 16
+        },
+        "limit": {
+          "const": 16
+        },
+        "scope": {
+          "const": "latest_requests_only"
+        }
+      }
+    },
+    "PublicResearchCancelDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "request_id",
+        "cancel_requested",
+        "execution_state",
+        "provider_stop_state"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.public-research-cancel/v1"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "cancel_requested": {
+          "type": "boolean"
+        },
+        "execution_state": {
+          "const": "unknown"
+        },
+        "provider_stop_state": {
+          "const": "unknown"
+        }
+      }
+    },
+    "PublicResearchSelectionDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "request_id",
+        "family",
+        "hit_id",
+        "reference",
+        "raw_reference",
+        "title",
+        "representation",
+        "truncated",
+        "note",
+        "knowledge_admission"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.public-research-selection/v1"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "family": {
+          "enum": [
+            "encyclopedia",
+            "community",
+            "research"
+          ]
+        },
+        "hit_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "reference": {
+          "$ref": "#/$defs/PublicResearchSourceDto"
+        },
+        "raw_reference": {
+          "$ref": "#/$defs/PublicResearchSourceDto"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "representation": {
+          "enum": [
+            "wikitext",
+            "html_text",
+            "abstract",
+            "metadata"
+          ]
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 8192
+        },
+        "knowledge_admission": {
+          "const": "not_executed"
+        }
+      }
+    },
+    "IngestBatchSummaryDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "batch_id",
+        "folder_label",
+        "expected_members",
+        "registered_members",
+        "complete",
+        "created_at"
+      ],
+      "properties": {
+        "batch_id": {
+          "type": "string"
+        },
+        "folder_label": {
+          "type": "string"
+        },
+        "expected_members": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "registered_members": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "type": "string"
+        }
+      }
+    },
+    "IngestBatchMemberDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "relative_path",
+        "byte_length",
+        "disposition",
+        "source_id",
+        "source_revision",
+        "job_id",
+        "kind",
+        "job_state"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "relative_path": {
+          "type": "string"
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "disposition": {
+          "enum": [
+            "pending",
+            "excluded_hidden",
+            "excluded_directory",
+            "too_large"
+          ]
+        },
+        "source_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "job_state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "IngestBatchDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "batch_id",
+        "folder_label",
+        "expected_members",
+        "registered_members",
+        "complete",
+        "created_at",
+        "members",
+        "next_ordinal"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ingest-batch/v1"
+        },
+        "workspace_id": {
+          "type": "string"
+        },
+        "restore_epoch": {
+          "type": "string"
+        },
+        "batch_id": {
+          "type": "string"
+        },
+        "folder_label": {
+          "type": "string"
+        },
+        "expected_members": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "registered_members": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/IngestBatchMemberDto"
+          }
+        },
+        "next_ordinal": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "IngestBatchesDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "batches",
+        "next_cursor"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ingest-batches/v1"
+        },
+        "workspace_id": {
+          "type": "string"
+        },
+        "restore_epoch": {
+          "type": "string"
+        },
+        "batches": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/IngestBatchSummaryDto"
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "IngestMemberImportDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "batch_id",
+        "ordinal",
+        "source_id",
+        "sha256",
+        "duplicate"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ingest-member-import/v1"
+        },
+        "batch_id": {
+          "type": "string"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "duplicate": {
+          "type": "boolean"
+        }
+      }
+    },
+    "IngestMemberJobDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "batch_id",
+        "ordinal",
+        "job_id",
+        "state"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ingest-member-job/v1"
+        },
+        "batch_id": {
+          "type": "string"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "job_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        }
+      }
+    },
+    "IngestManifestMemberInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "relative_path",
+        "byte_length",
+        "disposition"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "relative_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "disposition": {
+          "enum": [
+            "pending",
+            "excluded_hidden",
+            "excluded_directory",
+            "too_large"
+          ]
+        }
+      }
+    },
+    "IngestBatchRegisterInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "batch_id",
+        "folder_label",
+        "expected_members",
+        "members"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "batch_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,128}$"
+        },
+        "folder_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "expected_members": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/IngestManifestMemberInput"
+          }
+        }
+      }
+    },
+    "IngestMemberImportInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "ordinal",
+        "expected_sha256",
+        "content_base64"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "expected_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "content_base64": {
+          "type": "string",
+          "maxLength": 89478488
+        }
+      }
+    },
+    "IngestMemberEnqueueInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "ordinal",
+        "source_id",
+        "source_revision",
+        "kind"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "kind": {
+          "enum": [
+            "text",
+            "text.extract",
+            "pdf",
+            "image",
+            "archive",
+            "media",
+            "office",
+            "canvas",
+            "subtitles",
+            "html",
+            "caption",
+            "transcribe",
+            "video",
+            "diarize",
+            "detect"
+          ]
+        }
+      }
+    },
+    "IngestRelationDocumentBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "document_id",
+        "version",
+        "content_sha256"
+      ],
+      "properties": {
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "IngestRelationTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "source_id",
+        "source_revision"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "document": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/IngestRelationDocumentBinding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "IngestRelationsApplyInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "restore_epoch",
+        "source_id",
+        "source_revision",
+        "document_id",
+        "expected_version",
+        "content_sha256",
+        "targets"
+      ],
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "restore_epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "document_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "expected_version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "targets": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/IngestRelationTarget"
+          }
+        },
+        "fragment_bindings": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/IngestRelationFragmentBinding"
+          }
+        }
+      }
+    },
+    "IngestRelationsLinkDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ordinal",
+        "target",
+        "label",
+        "syntax",
+        "embed",
+        "fragment",
+        "fragment_is_block",
+        "status",
+        "reason",
+        "relation_id",
+        "target_ordinal"
+      ],
+      "properties": {
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "target": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "syntax": {
+          "enum": [
+            "wiki",
+            "markdown"
+          ]
+        },
+        "embed": {
+          "type": "boolean"
+        },
+        "fragment": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 1024
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fragment_is_block": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "unresolved",
+            "resolved_reference"
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "external_reference_not_followed",
+                "unsafe_or_unsupported_target",
+                "ambiguous_target",
+                "missing_target",
+                "fragment_resolution_not_supported",
+                "target_binding_required",
+                "note_document_binding_required",
+                "embed_rendering_not_supported"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "relation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_ordinal": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9999
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "IngestRelationsDto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "workspace_id",
+        "restore_epoch",
+        "batch_id",
+        "ordinal",
+        "input_kind",
+        "source_id",
+        "source_revision",
+        "relative_path",
+        "document",
+        "added_relations",
+        "links",
+        "loss"
+      ],
+      "properties": {
+        "schema": {
+          "const": "archeaxis.ingest-relations/v1"
+        },
+        "workspace_id": {
+          "type": "string"
+        },
+        "restore_epoch": {
+          "type": "string"
+        },
+        "batch_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "input_kind": {
+          "const": "immutable_original_markdown"
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9_.-]+$"
+        },
+        "source_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "relative_path": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "document": {
+          "$ref": "#/$defs/DocumentDto"
+        },
+        "added_relations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 256
+        },
+        "links": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/IngestRelationsLinkDto"
+          }
+        },
+        "loss": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "original_source_links_not_current_document_body",
+              "markdown_subset_not_full_vault_compatibility",
+              "no_worker_conversion_or_knowledge_admission"
+            ]
+          }
+        }
+      }
+    },
+    "IngestRelationFragmentBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "link_ordinal",
+        "target_ordinal",
+        "fragment",
+        "fragment_is_block",
+        "block_id"
+      ],
+      "properties": {
+        "link_ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "target_ordinal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "fragment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "fragment_is_block": {
+          "type": "boolean"
+        },
+        "block_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.-]+$"
         }
       }
     }

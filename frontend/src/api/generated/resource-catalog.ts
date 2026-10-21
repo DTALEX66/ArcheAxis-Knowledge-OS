@@ -15,7 +15,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "5817663ef8f8f54591083f094eff115a31b2b8a3b1b2c9c3148e7ab20fb8d35a"
+      "sha256": "e17d3d9341535c0a37426636e31b8900489df35b0f1d08c04145ac9d8e373e82"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
@@ -220,7 +220,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "uv.lock",
-        "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+        "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
       },
       {
         "path": "docs/history/oss-absorption-evidence/20261018/original-references/frontend/package-lock.json",
@@ -228,7 +228,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
       },
       {
         "path": "Cargo.lock",
-        "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
+        "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
       },
       {
         "path": "src-tauri/Cargo.lock",
@@ -488,6 +488,162 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
           "previous_sha256": "4dc13f6db5258e30d827d8f143773d62a37042fd5026ad32c54919415bf3ddfc",
           "current_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
         }
+      ]
+    },
+    "source_contract_refresh_20261021": {
+      "scope": "SOURCE_DECLARATION_ONLY_NOT_RUNTIME_REQUALIFICATION",
+      "reason": "Existing canonical DTO definitions unchanged; additive ingest/public-research DTOs and operations. Cargo lock keeps every package/version/source unchanged and adds only the already locked base64 dependency to archeaxis-domain. Prior runtime/license/qualification states unchanged.",
+      "sources": [
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a",
+          "current_sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3"
+        },
+        {
+          "path": "Cargo.lock",
+          "previous_sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
+          "current_sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+        },
+        {
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a",
+          "current_sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3"
+        },
+        {
+          "path": "Cargo.lock",
+          "previous_sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
+          "current_sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+        },
+        {
+          "path": "Cargo.lock",
+          "previous_sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f",
+          "current_sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
+        }
+      ]
+    },
+    "ingest_relation_source_contract_rebind_20261021": {
+      "reason": "Reviewed Document save_tx extraction and generated additive relation DTO/finite operations; source-contract references only. Existing runtime/license/qualification/activation states are unchanged. This is not installed or OSS lifecycle qualification.",
+      "changed_sources": [
+        {
+          "stable_key": "archeaxiscoreknowledge",
+          "path": "crates/archeaxis-domain/src/document.rs",
+          "previous_sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e",
+          "current_sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
+        },
+        {
+          "stable_key": "archeaxiscoreknowledge",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3",
+          "current_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55"
+        },
+        {
+          "stable_key": "capcoreknowledge",
+          "path": "crates/archeaxis-domain/src/document.rs",
+          "previous_sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e",
+          "current_sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
+        },
+        {
+          "stable_key": "capcoreknowledge",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "9fc56ef22ca0a269170048fc8939db0bb97cb85890e9421811488da87614fee3",
+          "current_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55"
+        }
+      ]
+    },
+    "source_get_source_contract_rebind_20261021": {
+      "reason": "Additive finite source_get operation uses the existing SourceDto. Only current source-contract bindings change; no runtime, license, lifecycle or installation qualification.",
+      "changed_sources": [
+        {
+          "stable_key": "archeaxiscoreknowledge",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55",
+          "current_sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
+        },
+        {
+          "stable_key": "capcoreknowledge",
+          "path": "frontend/src/api/generated/core-contract.ts",
+          "previous_sha256": "5e8b170537dec903509133c2d0ec4d50187c6bc087e34a3eb4928333cd419f55",
+          "current_sha256": "4d5e8e0064274d4168fc21bbc4a23405df6da919eb4a7f857034dc42aca3dfee"
+        }
+      ]
+    },
+    "certifi_security_lock_rebind_20261021": {
+      "advisory": "https://github.com/advisories/GHSA-6q48-6c7w-9gw2",
+      "change": "Only certifi lock record 2026.6.17 to 2026.10.19; hashes matched official PyPI release.",
+      "unchanged_bound_package_records": [
+        "fsrs",
+        "jsonschema",
+        "pymupdf",
+        "trafilatura"
+      ],
+      "boundary": "Rebind current lock readback only. Version/license values and runtime, activation and qualification states unchanged; no installation or lifecycle qualification.",
+      "changed_sources": [
+        {
+          "stable_key": "fsrs",
+          "facet": "version",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "fsrs",
+          "facet": "license",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "jsonschemaspec",
+          "facet": "version",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "pymupdf",
+          "facet": "version",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "pymupdf",
+          "facet": "license",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "trafilatura",
+          "facet": "version",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "stable_key": "trafilatura",
+          "facet": "license",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        },
+        {
+          "scope": "current_top_level_source_index",
+          "path": "uv.lock",
+          "previous_sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3",
+          "current_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c"
+        }
+      ]
+    },
+    "pillow13_security_lock_rebind_20261021": {
+      "source": "https://pillow.readthedocs.io/en/stable/releasenotes/13.0.0.html",
+      "change": "Owner-approved Pillow lock record 12.3.0 to 13.0.0; all locked artifact hashes matched official PyPI release.",
+      "unchanged_package_records": 204,
+      "boundary": "Current lock source binding only. Existing version/license values, runtime, activation and qualification states remain unchanged. Not installed runtime or Owner acceptance.",
+      "previous_sha256": "e2d60ad6745453874182a3517175100e3a2f682432f300b64abbe85b96795d3c",
+      "current_sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970",
+      "rebound_current_source_references": [
+        "/entries/18/evidence/version/source_refs/0",
+        "/entries/18/evidence/license/source_refs/1",
+        "/entries/25/evidence/version/source_refs/1",
+        "/entries/48/evidence/version/source_refs/0",
+        "/entries/48/evidence/license/source_refs/1",
+        "/entries/62/evidence/version/source_refs/0",
+        "/entries/62/evidence/license/source_refs/1",
+        "/sources/3"
       ]
     }
   },
@@ -1477,11 +1633,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
+                "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+                "sha256": "83dcb0cef15261e3558fbb0040a92edd4acfe6bd9607fa94b2bcbb8be359a7b2"
               }
             ]
           },
@@ -1498,7 +1654,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "Cargo.lock",
-                "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
+                "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
               }
             ],
             "previous_state_before_source_relocation": "FIRST_PARTY_PROJECT_LICENSE"
@@ -1904,11 +2060,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "crates/archeaxis-domain/src/document.rs",
-                "sha256": "93148dd8ea6d69af988c786ddaee4027053c735bd9b137e3b6cf626d57e9429e"
+                "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
               },
               {
                 "path": "frontend/src/api/generated/core-contract.ts",
-                "sha256": "40d4bee057a8e73511ac8067c21dae3c629ace73f1e01e1e456bee8bf7dcd10a"
+                "sha256": "83dcb0cef15261e3558fbb0040a92edd4acfe6bd9607fa94b2bcbb8be359a7b2"
               }
             ]
           },
@@ -1925,7 +2081,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "Cargo.lock",
-                "sha256": "a5347918a0bf4acd8f7acabf8351228f2e72260f8ad29e7a08fd9b9943e39f3f"
+                "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
               }
             ],
             "previous_state_before_source_relocation": "FIRST_PARTY_PROJECT_LICENSE"
@@ -4914,7 +5070,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               },
               {
                 "path": "pyproject.toml",
@@ -4940,7 +5096,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               }
             ]
           },
@@ -6433,7 +6589,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               }
             ]
           },
@@ -11770,7 +11926,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               },
               {
                 "path": "pyproject.toml",
@@ -11796,7 +11952,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               }
             ]
           },
@@ -15461,7 +15617,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             "source_refs": [
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               },
               {
                 "path": "pyproject.toml",
@@ -15487,7 +15643,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
               },
               {
                 "path": "uv.lock",
-                "sha256": "0e3db03c3dcd71e24acc13022839591b575f10e42f1dbdfde8b86ec77fc8f2e3"
+                "sha256": "5a62ce267587fc50786510d5f959099d078f33128bd62aeb16cb11a2e1676970"
               }
             ]
           },

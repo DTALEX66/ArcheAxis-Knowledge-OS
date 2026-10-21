@@ -111,3 +111,54 @@ def test_modified_contract_bytes_are_rejected_even_when_schema_is_valid():
     assert Draft202012Validator(SCHEMA).is_valid(value)
     with pytest.raises(VALIDATE.ManifestValidationError, match="^MANIFEST_SOURCE_DRIFT$"):
         VALIDATE.validate_manifest(value, ROOT, SCHEMA)
+
+
+@pytest.mark.parametrize(
+    ("name", "reason", "section", "field"),
+    [
+        (
+            "reject-license-declaration-without-expression",
+            "MANIFEST_LICENSE_DECLARATION_INCOMPLETE",
+            "license",
+            "review",
+        ),
+        (
+            "reject-remote-permission-without-remote-boundary",
+            "MANIFEST_PERMISSION_DECLARATION_CONFLICT",
+            "permissions",
+            "requested",
+        ),
+        (
+            "reject-runtime-without-cancel",
+            "MANIFEST_RUNTIME_LIFECYCLE_REQUIRED",
+            "lifecycle",
+            "cancellation",
+        ),
+        (
+            "reject-runtime-without-bounded-exit",
+            "MANIFEST_RUNTIME_LIFECYCLE_REQUIRED",
+            "lifecycle",
+            "exit",
+        ),
+    ],
+    ids=lambda value: value if value.startswith("reject-") else None,
+)
+def test_late_semantic_rejections_are_not_masked_by_source_drift(name, reason, section, field):
+    value = copy.deepcopy(next(case["value"] for case in CASES if case["name"] == name))
+    current = CASES[0]["value"]["compatibility"]["contract_refs"][0]
+    known_path = "packages/contracts/v1/core-document.schema.json"
+    assert current["path"] == known_path
+    # Neutralize only inherited schema hashes, without following fixture paths or
+    # changing their intentional semantic defects (or the original fixture bytes).
+    for reference in (
+        value["compatibility"]["contract_refs"][0],
+        value["inputs"][0]["contract"],
+        value["outputs"][0]["contract"],
+    ):
+        assert reference["path"] == known_path
+        reference["sha256"] = current["sha256"]
+    with pytest.raises(VALIDATE.ManifestValidationError, match=f"^{reason}$"):
+        VALIDATE.validate_manifest(value, ROOT, SCHEMA)
+    # Fix just the defective field; the same declaration must then validate.
+    value[section][field] = copy.deepcopy(CASES[0]["value"][section][field])
+    assert VALIDATE.validate_manifest(value, ROOT, SCHEMA) is None

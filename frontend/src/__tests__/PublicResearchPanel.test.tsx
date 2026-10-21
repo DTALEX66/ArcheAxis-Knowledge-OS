@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { PublicResearchPanel, type PublicResearchHit, type PublicResearchSnapshot } from "../components/PublicResearchPanel";
 
 const hit=(id:string,url="https://example.test/same"):PublicResearchHit=>({id,url,family:"research",provider:"合成科研来源",title:`材料 ${id}`,retrievedAt:"2026-10-20T00:00:00Z",content:"excerpt",excerpt:`独立返回的摘录 ${id}\r\n保留`,locator:null,license:null,freeAccess:"unknown"});
@@ -98,4 +98,15 @@ it("does not carry old comparison choices into a newer response",()=>{
  fireEvent.click(screen.getByRole("checkbox",{name:"对照结果 1"}));expect(screen.getByRole("region",{name:"公开来源对照"})).toBeInTheDocument();
  view.rerender(<PublicResearchPanel snapshot={read([hit("new")])} onKeepNote={()=>true}/>);
  expect(screen.getByRole("checkbox",{name:"对照结果 1"})).not.toBeChecked();expect(screen.queryByRole("region",{name:"公开来源对照"})).not.toBeInTheDocument();
+});
+
+
+it("submits every exact same-address hit with the authored stance to the binding consumer, not the unbound note callback",async()=>{
+ const save=vi.fn(()=>true),compare=vi.fn(async()=>true),snapshot=read([hit("first"),hit("second")]);
+ render(<PublicResearchPanel snapshot={snapshot} onKeepNote={save} onCompare={compare}/>);query();
+ fireEvent.click(screen.getByRole("checkbox",{name:"对照结果 1"}));
+ fireEvent.change(screen.getByRole("combobox",{name:"对照 1 判断"}),{target:{value:"conflict"}});
+ fireEvent.click(screen.getByRole("button",{name:"把对照记录加入未决草稿"}));
+ await waitFor(()=>expect(compare).toHaveBeenCalledWith([{family:"research",id:"first",stance:"conflict"},{family:"research",id:"second",stance:"conflict"}]));
+ expect(save).not.toHaveBeenCalled();await waitFor(()=>expect(screen.getByRole("button",{name:"把对照记录加入未决草稿"})).toBeDisabled());
 });

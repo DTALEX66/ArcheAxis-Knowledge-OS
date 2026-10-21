@@ -330,6 +330,8 @@ async fn main() {
             }
         }
     };
+    let (router, mut shutdown) =
+        archeaxis_api::session_shutdown::install(router, launch.session_id().to_owned());
     let router = match archeaxis_api::launch::protect(router, &store, launch).await {
         Ok(router) => router,
         Err(_) => {
@@ -347,5 +349,22 @@ async fn main() {
     };
     let bound_addr = listener.local_addr().expect("bound listener address");
     println!("archeaxis-api ready on http://{bound_addr}");
-    axum::serve(listener, router).await.unwrap();
+    if axum::serve(listener, router)
+        .with_graceful_shutdown(async move {
+            while !*shutdown.borrow_and_update() {
+                if shutdown.changed().await.is_err() {
+                    return;
+                }
+            }
+        })
+        .await
+        .is_err()
+    {
+        eprintln!("Core HTTP drain failed");
+        std::process::exit(1);
+    }
+    if store.close().await.is_err() {
+        eprintln!("Core writer close failed");
+        std::process::exit(1);
+    }
 }

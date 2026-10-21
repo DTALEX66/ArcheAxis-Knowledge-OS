@@ -164,3 +164,65 @@ it.each(["execute","status","history"])("reports a failed material timeout after
  expect(screen.queryByText("回答已记录，仍是待判断的模型候选。")).toBeNull();
  expect(bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&!p.body.preview)).toHaveLength(mode==="history"?0:1);
 });
+
+async function asyncPreview(body:Record<string,unknown>){
+ const plan={schema:"archeaxis.material-question-plan/v1",request:{...body,preview:false,confirmed_plan_sha256:null},context:{material:body.material,selection:null,provenance:{source_id:null,source_revision:null},context_sha256:"c".repeat(64),bytes:8,authority:"unverified_material"},destination:"LOCAL_LOOPBACK_ONLY",destination_candidates:["http://127.0.0.1:1234/v1"],selection_policy:"existing_owned_local_worker_probe",network_scope:"fixed_owned_local_worker",workspace_id:"a".repeat(32),restore_epoch:"initial",usage:null,cost:null};
+ const plan_sha256=await digest(JSON.stringify(plan));return {schema:"archeaxis.material-question-preview/v1",plan,plan_sha256};
+}
+async function digest(text:string){return Array.from(new Uint8Array(await webcrypto.subtle.digest("SHA-256",new TextEncoder().encode(text)))).map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function asyncAck(body:Record<string,unknown>){return {schema:"archeaxis.material-question-admission/v1",request_id:body.request_id,task_id:"material_answer_"+await digest(String(body.request_id)),plan_sha256:body.confirmed_plan_sha256,workspace_id:"a".repeat(32),restore_epoch:"initial",admission_state:"ACCEPTED",execution_state:"RUNNING",answer_published:false,provider_stop_state:"UNKNOWN"};}
+function chooseAsync(){fireEvent.click(screen.getByLabelText("离开此页后继续提问"));fireEvent.change(screen.getByLabelText("材料问题"),{target:{value:"question"}});fireEvent.click(screen.getByText("预览材料提问"));}
+it("SYNTHETIC async submission freezes mode, polls running to terminal, and never submits a second inference",async()=>{
+ let preview:Awaited<ReturnType<typeof asyncPreview>>;let reads=0;
+ bridge.call.mockImplementation(async(op,p)=>{
+  if(op==="material_question")return preview=await asyncPreview(p.body);
+  if(op==="material_question_submit")return asyncAck(p.body);
+  if(op==="material_question_status")return ++reads===1?{request_id:p.body.request_id,plan:preview.plan,execution_state:"RUNNING",answer_published:false,provider_stop_state:"UNKNOWN"}:{schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"succeeded",answer:{answer:"SYNTHETIC async result"}};
+  throw Error(op);
+ });
+ render(<MaterialQuestionPanel material={material} text="material"/>);chooseAsync();fireEvent.click(await screen.findByText("确认提问或查询原请求"));
+ await screen.findByText("正在处理原材料请求；关闭页面只停止等待，不会自动取消。");await screen.findByText("SYNTHETIC async result");
+ const submitted=bridge.call.mock.calls.filter(([op])=>op==="material_question_submit");expect(submitted).toHaveLength(1);expect(submitted[0][1].body).toMatchObject({execution_mode:"async",timeout_s:120,preview:false});expect(reads).toBe(2);
+ expect(bridge.call.mock.calls.filter(([op])=>op==="material_question")).toHaveLength(1);
+});
+it.each(["wrong-id","wrong-plan","terminal-disguise","unknown-field","lost-ack"])("SYNTHETIC async %s retains the request and never retries inference",async mode=>{
+ bridge.call.mockImplementation(async(op,p)=>{
+  if(op==="material_question")return asyncPreview(p.body);
+  if(op==="material_question_submit"){
+   if(mode==="lost-ack")throw Error("lost ACK");const ack=await asyncAck(p.body);
+   return mode==="wrong-id"?{...ack,request_id:"other"}:mode==="wrong-plan"?{...ack,plan_sha256:"f".repeat(64)}:mode==="terminal-disguise"?{...ack,answer_published:true}:mode==="unknown-field"?{...ack,endpoint:"http://remote.invalid"}:ack;
+  }
+  if(op==="material_question_status")return {schema:"archeaxis.material-answer/v1",request_id:p.body.request_id,outcome:"failed",reason_code:"material_model_timeout",answer:null};
+  throw Error(op);
+ });
+ render(<MaterialQuestionPanel material={material} text="material"/>);chooseAsync();fireEvent.click(await screen.findByText("确认提问或查询原请求"));await screen.findByText("结果未确认；请查询原请求状态，不另发新请求。");
+ expect(bridge.call.mock.calls.some(([op])=>op==="material_question_status")).toBe(false);fireEvent.click(screen.getByText("查询未确认材料请求"));await screen.findByText("模型调用超时，未生成可用回答；原请求已保留，没有自动重试。");
+ expect(bridge.call.mock.calls.filter(([op])=>op==="material_question_submit")).toHaveLength(1);
+});
+it("SYNTHETIC async view exit ignores delayed status and does not cancel the Core-owned request",async()=>{
+ let finish!:(v:unknown)=>void;
+ bridge.call.mockImplementation(async(op,p)=>op==="material_question"?asyncPreview(p.body):op==="material_question_submit"?asyncAck(p.body):new Promise(r=>{finish=r;}));
+ const view=render(<MaterialQuestionPanel material={material} text="material"/>);chooseAsync();fireEvent.click(await screen.findByText("确认提问或查询原请求"));await waitFor(()=>expect(bridge.call.mock.calls.some(([op])=>op==="material_question_status")).toBe(true));
+ const request=bridge.call.mock.calls.find(([op])=>op==="material_question_submit")![1].body;view.rerender(<MaterialQuestionPanel material={{...material,document_id:"other"}} text="other"/>);
+ await act(async()=>finish({schema:"archeaxis.material-answer/v1",request_id:request.request_id,outcome:"succeeded",answer:{answer:"late old async result"}}));expect(screen.queryByText("late old async result")).toBeNull();expect(bridge.call.mock.calls.some(([op])=>op==="material_question_cancel")).toBe(false);
+});
+it("SYNTHETIC async UNKNOWN stops polling while keeping explicit status recovery",async()=>{
+ let preview:Awaited<ReturnType<typeof asyncPreview>>;
+ bridge.call.mockImplementation(async(op,p)=>op==="material_question"?(preview=await asyncPreview(p.body)):op==="material_question_submit"?asyncAck(p.body):{request_id:p.body.request_id,plan:preview.plan,execution_state:"UNKNOWN",answer_published:false,provider_stop_state:"UNKNOWN"});
+ render(<MaterialQuestionPanel material={material} text="material"/>);chooseAsync();fireEvent.click(await screen.findByText("确认提问或查询原请求"));await screen.findByText("执行状态未确认，保留原请求；可显式查询，没有自动重试。");
+ expect(screen.getByText("查询未确认材料请求")).toBeEnabled();expect(bridge.call.mock.calls.filter(([op])=>op==="material_question_status")).toHaveLength(1);expect(screen.getByLabelText("离开此页后继续提问")).toBeDisabled();
+});
+
+it("SYNTHETIC async cancel remains explicit and keeps the provider state unknown until terminal",async()=>{
+ let finish!:(v:unknown)=>void;let id="";
+ bridge.call.mockImplementation(async(op,p)=>{
+  if(op==="material_question")return asyncPreview(p.body);
+  if(op==="material_question_submit"){id=p.body.request_id;return asyncAck(p.body);}
+  if(op==="material_question_cancel")return {request_id:p.body.request_id,cancel_requested:true,execution_state:"UNKNOWN",provider_stop_state:"UNKNOWN"};
+  return new Promise(r=>{finish=r;});
+ });
+ render(<MaterialQuestionPanel material={material} text="material"/>);chooseAsync();fireEvent.click(await screen.findByText("确认提问或查询原请求"));await waitFor(()=>expect(bridge.call.mock.calls.some(([op])=>op==="material_question_status")).toBe(true));
+ fireEvent.click(screen.getByText("取消材料提问"));await screen.findByText("取消已请求，等待实际回执；提供者停止状态未确认。");
+ await act(async()=>finish({schema:"archeaxis.material-answer/v1",request_id:id,outcome:"failed",reason_code:"material_question_cancelled",answer:null}));await screen.findByText("执行失败或取消，原请求和材料保留。");
+ expect(bridge.call.mock.calls.filter(([op])=>op==="material_question_submit")).toHaveLength(1);expect(bridge.call.mock.calls.find(([op])=>op==="material_question_cancel")![1].body).toEqual({request_id:id});
+});

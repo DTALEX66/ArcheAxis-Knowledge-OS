@@ -89,6 +89,18 @@ pub fn enqueue(
     input_ref: &str,
 ) -> Result<(), JobError> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    enqueue_tx(&tx, job_id, kind, input_ref)?;
+    tx.commit()?;
+    Ok(())
+}
+
+/// Bind an existing domain record and its job in the same writer transaction.
+pub fn enqueue_tx(
+    tx: &rusqlite::Transaction<'_>,
+    job_id: &str,
+    kind: &str,
+    input_ref: &str,
+) -> Result<(), JobError> {
     let old: Option<(String, String)> = tx
         .query_row(
             "SELECT kind, input_ref FROM jobs WHERE job_id=?1",
@@ -115,7 +127,6 @@ pub fn enqueue(
         "INSERT INTO jobs(job_id,kind,state,input_ref) VALUES(?1,?2,?3,?4)",
         rusqlite::params![job_id, kind, STATE_QUEUED, input_ref],
     )?;
-    tx.commit()?;
     Ok(())
 }
 

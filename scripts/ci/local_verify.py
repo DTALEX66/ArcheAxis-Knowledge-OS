@@ -23,7 +23,7 @@ if __package__:
 else:
     import importlib.util
     # Direct CLI: load only these repository-owned modules without sys.path edits.
-    for module_name in ('dev', 'build_timing', 'frontend'):
+    for module_name in ('dev', 'build_timing', 'runtime_resources', 'frontend'):
         spec = importlib.util.spec_from_file_location(module_name, ROOT / "scripts/runtime" / (module_name + ".py"))
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module

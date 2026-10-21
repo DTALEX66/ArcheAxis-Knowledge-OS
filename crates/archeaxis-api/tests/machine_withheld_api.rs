@@ -88,6 +88,68 @@ async fn ready(dir: &Path) {
     .await
     .expect("owned worker did not signal admission");
 }
+
+#[tokio::test]
+async fn machine_capability_withdrawal_cancels_accepted_answer_without_reviving_old_lease() {
+    let dir = tempfile::tempdir().unwrap();
+    let (router, _, id) = fixture(dir.path()).await;
+    let (code, doc) = call(
+        &router,
+        "POST",
+        "/api/v1/documents",
+        json!({
+            "title":"capability withdrawal grant","editor_json":editor(&id,"granted")
+        }),
+    )
+    .await;
+    assert_eq!(code, 201);
+    let request = json!({"client_request_id":"withdraw-answer","knowledge_id":id,"question":"SYNTHETIC question","timeout_s":5,
+        "context_grant":{"document_id":doc["document_id"],"version":doc["version"],"content_sha256":doc["content_sha256"],"purpose":"owned withheld race fixture"}});
+    let client = router.clone();
+    let original = request.clone();
+    let task =
+        tokio::spawn(
+            async move { call(&client, "POST", "/api/v1/machine/answers", original).await },
+        );
+    ready(dir.path()).await;
+    for enabled in [false, true] {
+        let (code, response) = tokio::time::timeout(
+            std::time::Duration::from_secs(1),
+            call(
+                &router,
+                "PUT",
+                "/api/v1/capabilities/machine.answer/enabled",
+                json!({"enabled":enabled}),
+            ),
+        )
+        .await
+        .unwrap();
+        assert_eq!(code, 200, "{response}");
+    }
+    std::fs::write(dir.path().join("answer.release"), "release").unwrap();
+    let (code, failed) = task.await.unwrap();
+    assert_eq!(code, 503, "{failed}");
+    assert_eq!(failed["answer_published"], false);
+    assert!(!failed.to_string().contains("SECRET"));
+    let (_, tasks) = call(&router, "GET", "/api/v1/machine/tasks", Value::Null).await;
+    let records = tasks["items"].as_array().unwrap();
+    assert_eq!(records.len(), 1);
+    assert_eq!(records[0]["scope"], "runtime.execution.failed");
+    let stored: Value = serde_json::from_str(records[0]["conditions"].as_str().unwrap()).unwrap();
+    assert_eq!(stored["provider_stop_state"], "UNKNOWN");
+    let mut fresh = request;
+    fresh["client_request_id"] = json!("new-after-enable");
+    let (code, successful) = call(&router, "POST", "/api/v1/machine/answers", fresh).await;
+    assert_eq!(code, 200, "{successful}");
+    assert_eq!(
+        successful["answer"]["answer"],
+        "SECRET SYNTHETIC WITHHELD ANSWER"
+    );
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("answer.count")).unwrap(),
+        "2"
+    );
+}
 async fn revoke_race(dir: &Path, router: &Router, id: &str) -> (u16, Value, Value) {
     let (status,doc)=call(router,"POST","/api/v1/documents",json!({
         "title":"owned race grant","create_request_id":"withheld-race-grant","editor_json":editor(id,"granted")

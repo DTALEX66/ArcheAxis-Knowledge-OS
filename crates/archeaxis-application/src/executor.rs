@@ -6,6 +6,7 @@ mod dispatch;
 mod health;
 mod inventory;
 mod machine_failure;
+mod public_research;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
 };
@@ -59,6 +60,19 @@ impl Cancellation {
     pub fn is_cancelled(&self) -> bool {
         self.0.load(Ordering::Relaxed)
     }
+}
+
+/// A declaration is not an egress grant. Cloud Material execution is dormant;
+/// preserve every existing local path and all other purposes' validation.
+pub fn require_material_local_transport(
+    configuration: &archeaxis_domain::model_configuration::Resolved,
+) -> Result<(), &'static str> {
+    if configuration.purpose == archeaxis_domain::model_configuration::Purpose::Material
+        && configuration.profile.endpoint.starts_with("https://")
+    {
+        return Err("MATERIAL_CLOUD_NOT_ACTIVATED");
+    }
+    Ok(())
 }
 
 /// Whether a path exists as a regular file, used to decide if a registered route can actually run.
@@ -321,6 +335,7 @@ impl Executor {
         policy: AnswerPolicy,
     ) -> Result<serde_json::Value, MachineFailure> {
         if let Some(c) = &configuration {
+            require_material_local_transport(c)?;
             if c.profile.credential_ref.is_some() {
                 return Err("LOCAL_CREDENTIAL_NOT_SUPPORTED".into());
             }

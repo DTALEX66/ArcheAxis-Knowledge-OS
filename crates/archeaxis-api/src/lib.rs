@@ -10,6 +10,8 @@ pub mod ask;
 pub mod capabilities;
 mod documents;
 mod format_qualification;
+mod ingest_batches;
+mod ingest_relations;
 pub mod launch;
 mod layout;
 mod machine_governance;
@@ -19,6 +21,7 @@ pub mod project_handoff;
 mod project_handoff_preview;
 pub mod project_observer;
 pub mod runtime;
+pub mod session_shutdown;
 mod teaching;
 mod ui_state;
 mod workspace_backup;
@@ -106,6 +109,29 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024));
     let routes = Router::new()
         .route(
+            "/api/v1/ingest-batches",
+            get(ingest_batches::list)
+                .post(ingest_batches::register)
+                .layer(axum::extract::DefaultBodyLimit::max(1_100_000)),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id",
+            get(ingest_batches::read),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id/imports",
+            post(ingest_batches::import)
+                .layer(axum::extract::DefaultBodyLimit::max(MAX_IMPORT_JSON_BYTES)),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id/jobs",
+            post(ingest_batches::enqueue),
+        )
+        .route(
+            "/api/v1/ingest-batches/:batch_id/members/:ordinal/relations",
+            post(ingest_relations::apply).layer(axum::extract::DefaultBodyLimit::max(256 * 1024)),
+        )
+        .route(
             "/api/v1/project-handoff/preview",
             post(project_handoff_preview::preview)
                 .layer(axum::extract::DefaultBodyLimit::max(65_536)),
@@ -139,6 +165,7 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
             get(machine_governance::answer_snapshot),
         )
         .route("/api/v1/sources", get(documents::sources))
+        .route("/api/v1/sources/:source_id", get(documents::source))
         .route(
             "/api/v1/sources/:source_id/jobs/:job_id/format-qualification",
             get(format_qualification::read),
@@ -158,8 +185,9 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         )
         .route(
             "/api/v1/document-packages/import",
-            post(documents::package_import)
-                .layer(axum::extract::DefaultBodyLimit::max(16 * 1024 * 1024)),
+            post(documents::package_import).layer(axum::extract::DefaultBodyLimit::max(
+                archeaxis_domain::portable_document::MAX_IMPORT_JSON_BYTES,
+            )),
         )
         .route(
             "/api/v1/documents/:document_id/relations",

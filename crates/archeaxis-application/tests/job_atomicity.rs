@@ -20,6 +20,41 @@ fn full_receipt() -> serde_json::Value {
 }
 
 #[test]
+fn caller_owned_enqueue_transaction_rolls_back_binding_and_preserves_replay() {
+    let (_dir, mut conn, sid) = fixture();
+    {
+        let tx = conn.transaction().unwrap();
+        jobs::enqueue_tx(&tx, "member-job", "text", &sid).unwrap();
+        jobs::enqueue_tx(&tx, "member-job", "text", &sid).unwrap();
+        assert!(matches!(
+            jobs::enqueue_tx(&tx, "member-job", "pdf", &sid),
+            Err(jobs::JobError::Conflict)
+        ));
+        // Caller abandons the associated member update: no orphan job survives.
+    }
+    assert_eq!(
+        conn.query_row::<i64, _, _>(
+            "SELECT count(*) FROM jobs WHERE job_id='member-job'",
+            [],
+            |r| r.get(0)
+        )
+        .unwrap(),
+        0
+    );
+    jobs::enqueue(&mut conn, "member-job", "text", &sid).unwrap();
+    jobs::enqueue(&mut conn, "member-job", "text", &sid).unwrap();
+    assert_eq!(
+        conn.query_row::<i64, _, _>(
+            "SELECT count(*) FROM jobs WHERE job_id='member-job'",
+            [],
+            |r| r.get(0)
+        )
+        .unwrap(),
+        1
+    );
+}
+
+#[test]
 fn complete_retains_full_coverage_after_reopen_and_binds_it_to_replay() {
     let (dir, mut conn, _) = fixture();
     let receipt = full_receipt();

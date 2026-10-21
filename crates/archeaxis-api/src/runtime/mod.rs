@@ -25,6 +25,7 @@ mod job_journal;
 mod machine_journal;
 mod material_questions;
 mod model_configuration;
+mod public_research;
 pub mod readiness;
 mod semantic;
 mod withheld;
@@ -80,6 +81,159 @@ impl Drop for MachineLease {
 #[cfg(test)]
 mod machine_cancel_registry_tests {
     use super::*;
+    async fn fixture() -> (tempfile::TempDir, Runtime) {
+        let dir = tempfile::tempdir().unwrap();
+        let worker = dir.path().join("unused-worker");
+        // Registered routes only: these tests do not launch a worker or provider.
+        let executor = Executor::open_routes(
+            &dir.path().join("db"),
+            &dir.path().join("staging"),
+            std::path::Path::new("unused-python"),
+            &worker,
+            &[
+                ("machine.answer", worker.clone()),
+                ("research.public", worker.clone()),
+            ],
+        )
+        .await
+        .unwrap();
+        let runtime = Runtime {
+            executor,
+            active: Arc::new(Mutex::new(HashMap::new())),
+            admission: Arc::new(Mutex::new(())),
+            colearning_admission: Arc::new(Mutex::new(())),
+            machine_active: Arc::new(std::sync::Mutex::new(HashMap::new())),
+        };
+        (dir, runtime)
+    }
+    async fn enabled(runtime: Runtime, value: bool) -> Response {
+        let mut headers = HeaderMap::new();
+        headers.insert("x-archeaxis-actor", "human".parse().unwrap());
+        set_capability_enabled(
+            State(runtime),
+            Path("machine.answer".into()),
+            headers,
+            Json(CapabilityEnabledBody { enabled: value }),
+        )
+        .await
+    }
+    fn insert(runtime: &Runtime, key: &str) -> Cancellation {
+        let cancel = Cancellation::new();
+        runtime.machine_active.lock().unwrap().insert(
+            key.into(),
+            MachineActive {
+                attempt: 1,
+                restore_epoch: "initial".into(),
+                cancel: cancel.clone(),
+                accepting: true,
+            },
+        );
+        cancel
+    }
+    #[tokio::test]
+    async fn machine_withdrawal_is_monotonic_scoped_and_independent_of_inference_capacity() {
+        let (_dir, runtime) = fixture().await;
+        let _capacity = runtime.colearning_admission.lock().await;
+        let material = insert(&runtime, "material_answer_synthetic");
+        let answer = insert(&runtime, "synthetic_fingerprint");
+        let research = insert(&runtime, "public_research_synthetic");
+        let response = tokio::time::timeout(
+            std::time::Duration::from_millis(500),
+            enabled(runtime.clone(), false),
+        )
+        .await
+        .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert!(material.is_cancelled() && answer.is_cancelled());
+        assert!(!research.is_cancelled());
+        assert_eq!(
+            enabled(runtime.clone(), true).await.status(),
+            StatusCode::OK
+        );
+        assert!(material.is_cancelled() && answer.is_cancelled());
+        assert!(!research.is_cancelled());
+    }
+    #[tokio::test]
+    async fn machine_registration_and_publication_share_the_short_withdrawal_boundary() {
+        let (_dir, runtime) = fixture().await;
+        runtime
+            .executor
+            .store()
+            .submit_wait(|conn| execution_claim::admit(conn, "claim", &json!({})))
+            .await
+            .unwrap()
+            .unwrap();
+        let guard = runtime.admission.lock().await;
+        let lease = colearning::machine_lease(&runtime, "claim", "claim");
+        tokio::pin!(lease);
+        assert!(
+            tokio::time::timeout(std::time::Duration::from_millis(30), &mut lease)
+                .await
+                .is_err()
+        );
+        // Model the settings write inside the winning withdrawal boundary.
+        runtime
+            .executor
+            .store()
+            .submit_wait(|conn| {
+                archeaxis_store_sqlite::capability_settings::set_enabled(
+                    conn,
+                    "machine.answer",
+                    false,
+                )
+            })
+            .await
+            .unwrap()
+            .unwrap();
+        drop(guard);
+        let response = match lease.await {
+            Err(response) => response,
+            Ok(_) => panic!("withdrawn capability registered an old lease"),
+        };
+        assert_eq!(response.status(), StatusCode::CONFLICT);
+        assert!(runtime.machine_active.lock().unwrap().is_empty());
+        assert_eq!(
+            enabled(runtime.clone(), true).await.status(),
+            StatusCode::OK
+        );
+        let live = colearning::machine_lease(&runtime, "claim", "claim")
+            .await
+            .ok()
+            .unwrap();
+        assert!(!live.cancel.is_cancelled());
+        let publication = runtime.admission.lock().await;
+        assert!(!live.close().unwrap());
+        let withdrawal = enabled(runtime.clone(), false);
+        tokio::pin!(withdrawal);
+        assert!(
+            tokio::time::timeout(std::time::Duration::from_millis(30), &mut withdrawal)
+                .await
+                .is_err()
+        );
+        assert!(!live.cancel.is_cancelled());
+        // The publication owner drops its lease only after its durable write.
+        drop(live);
+        drop(publication);
+        assert_eq!(withdrawal.await.status(), StatusCode::OK);
+    }
+    #[tokio::test]
+    async fn machine_withdrawal_store_failure_is_not_success_and_does_not_revive_tokens() {
+        let (_dir, runtime) = fixture().await;
+        let token = insert(&runtime, "material_answer_synthetic");
+        runtime.executor.store().submit_wait(|conn| conn.execute_batch(
+            "CREATE TEMP TRIGGER synthetic_settings_failure BEFORE INSERT ON capability_settings BEGIN SELECT RAISE(FAIL,'synthetic settings failure'); END"
+        )).await.unwrap().unwrap();
+        assert_eq!(
+            enabled(runtime.clone(), false).await.status(),
+            StatusCode::SERVICE_UNAVAILABLE
+        );
+        assert!(token.is_cancelled());
+        assert_eq!(
+            enabled(runtime, true).await.status(),
+            StatusCode::SERVICE_UNAVAILABLE
+        );
+        assert!(token.is_cancelled());
+    }
     #[test]
     fn closing_publish_admission_and_cancellation_are_mutually_exclusive() {
         for _ in 0..32 {
@@ -159,6 +313,20 @@ struct Runtime {
 pub fn router(executor: Executor) -> Router {
     let projections = crate::projections_base(executor.store().clone(), false);
     Router::new()
+        .route(
+            "/api/v1/research/public/search",
+            post(public_research::search),
+        )
+        .route("/api/v1/research/public/read", post(public_research::read))
+        .route("/api/v1/research/public/list", post(public_research::list))
+        .route(
+            "/api/v1/research/public/cancel",
+            post(public_research::cancel),
+        )
+        .route(
+            "/api/v1/research/public/materialize",
+            post(public_research::materialize),
+        )
         .route("/api/v1/conversation/sessions", post(conversation::create))
         .route("/api/v1/conversation/history", post(conversation::history))
         .route("/api/v1/conversation/requests", post(conversation::request))
@@ -211,6 +379,10 @@ pub fn router(executor: Executor) -> Router {
         .route(
             "/api/v1/material/questions",
             post(material_questions::question),
+        )
+        .route(
+            "/api/v1/material/questions/submissions",
+            post(material_questions::submit),
         )
         .route(
             "/api/v1/material/context",
@@ -306,6 +478,33 @@ async fn set_capability_enabled(
             Json(json!({"code":"CAPABILITY_SETTINGS_HUMAN_REQUIRED"})),
         )
             .into_response();
+    }
+    // Machine/public admission and withdrawal share one short boundary: a request cannot
+    // register an old lease between withdrawal and the persisted disable.
+    // Never acquire colearning_admission here: it can be held throughout inference.
+    let _admission = if matches!(name.as_str(), "research.public" | "machine.answer") {
+        Some(runtime.admission.lock().await)
+    } else {
+        None
+    };
+    if matches!(name.as_str(), "research.public" | "machine.answer") && !body.enabled {
+        let Ok(entries) = runtime.machine_active.lock() else {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"code":if name == "research.public" {"PUBLIC_RESEARCH_WITHDRAWAL_UNKNOWN"} else {"MACHINE_WITHDRAWAL_UNKNOWN"}})),
+            )
+                .into_response();
+        };
+        for (key, entry) in entries.iter() {
+            // Only research leases use this reserved prefix; every other entry
+            // is registered by colearning::machine_lease for machine.answer.
+            let public = key.starts_with("public_research_");
+            if public == (name == "research.public") && entry.accepting {
+                entry.cancel.cancel();
+            }
+        }
+        // Tokens are monotonic, including if persisting/readback fails. A
+        // later enable authorizes new requests, never these withdrawn leases.
     }
     crate::capabilities::set_enabled(&runtime.executor, &name, body.enabled).await
 }
