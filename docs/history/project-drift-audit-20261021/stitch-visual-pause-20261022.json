@@ -170,9 +170,21 @@
     "verified": "tool update plus saved TOML readback"
   },
   "delivery": {
+    "observed_at": "2026-10-22T14:16:16.5306446Z",
     "branch": "codex/sync-20261019",
-    "status": "PENDING_NORMAL_COMMIT_PUSH_READBACK",
-    "merge_release": "NOT_EXECUTED"
+    "code_checkpoint_sha": "381d952d86f7f79c59cd4a5f49d9129da4c7d958",
+    "remote_branch_head_observed": "381d952d86f7f79c59cd4a5f49d9129da4c7d958",
+    "git_readback": "PASS",
+    "native_github_readback": "PASS",
+    "working_tree": "CLEAN_AT_CODE_READBACK",
+    "commit": "PASS",
+    "push": "PASS",
+    "monitor": "aaos PAUSED",
+    "state": "PAUSED_BY_OWNER",
+    "whole_scope": "PARTIAL",
+    "ci": "NOT_EXECUTED_FOR_THIS_SHA",
+    "merge_release_green": "NOT_EXECUTED",
+    "boundary": "This readback is saved in a follow-up documentation commit. Resolve its final SHA from Git/native ref; no self-referential SHA is invented."
   },
   "authority_gate": {
     "status": "PASS",
