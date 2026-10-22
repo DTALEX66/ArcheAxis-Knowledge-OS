@@ -100,7 +100,7 @@ def test_the_widest_component_is_measured_where_it_is_mounted() -> None:
     on the fallback sweep asks for a component that page never renders - and omitting it leaves
     the one component likely to stack outside the non-stacking check entirely."""
     gate = load_gate()
-    assert set(gate.CHROME_BANDS) == {"top_navigation", "status", "rail", "context", "center", "dock"}
+    assert set(gate.CHROME_BANDS) == {"application_menu", "application_dock", "top_navigation", "status", "rail", "context", "center", "dock"}
     assert gate.CHROME_BANDS["top_navigation"] == ".top-nav-bar"
     assert "<TopNavBar" in (ROOT / "frontend/src/app/App.tsx").read_text(encoding="utf-8")
     assert '<nav className="top-nav-bar">' in (ROOT / "frontend/src/components/TopNavBar.tsx").read_text(encoding="utf-8")
@@ -108,22 +108,33 @@ def test_the_widest_component_is_measured_where_it_is_mounted() -> None:
     assert gate.LIBRARY_BANDS["templates"] == "details.template-launcher"
     assert "read_library_geometry" in (ROOT / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")
     # Test the actual mounted-surface projection as well as the declared superset.
-    wide = SimpleNamespace(viewport_size={"width": 1920, "height": 1080},
-                           locator=lambda _selector: SimpleNamespace(get_attribute=lambda _name: "side",
-                               bounding_box=lambda: {"width": 1920, "height": 1080}))
-    assert gate.library_bands(wide) == gate.LIBRARY_BANDS
-    narrow = SimpleNamespace(viewport_size={"width": 640, "height": 480},
-                             locator=lambda _selector: SimpleNamespace(is_visible=lambda: False,
-                                 bounding_box=lambda: {"width": 640, "height": 480}),
-                             get_by_role=lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: True))
-    assert gate.library_bands(narrow) == {
+    def surface(width, height, appearance):
+        rail_visible = appearance == "sidebar" and not gate.compact_chrome(("console", width, height, 1))
+        def locator(selector):
+            if selector == ".cabin-shell":
+                return SimpleNamespace(get_attribute=lambda name: appearance if name == "data-navigation-appearance" else "false")
+            if selector == ".navigation-sidebar":
+                return SimpleNamespace(is_visible=lambda: rail_visible)
+            if selector == "#stitch-companion-window":
+                return SimpleNamespace(is_visible=lambda: False)
+            return SimpleNamespace(bounding_box=lambda: {"width": width, "height": height})
+        return SimpleNamespace(locator=locator,
+            get_by_role=lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: True))
+    wide = surface(1920, 1080, "sidebar")
+    assert gate.library_bands(wide) == {**gate.LIBRARY_BANDS, "navigation_trigger": ".ui-navigation-trigger"}
+    expected_without_rail = {
+        "application_menu": ".stitch-workspace-menu", "application_dock": ".stitch-workspace-dock",
         "top_navigation": ".top-nav-bar", "status": ".status-bar", "center": ".app-center",
         "dock": ".activity-dock", "navigation_trigger": ".ui-navigation-trigger",
         "templates": "details.template-launcher",
     }
-    # Hiding the sidebar without a usable replacement cannot silently shrink coverage.
+    narrow = surface(640, 480, "top")
+    assert gate.library_bands(narrow) == expected_without_rail
+    assert gate.library_bands(surface(1920, 1080, "top")) == expected_without_rail
+    assert gate.library_bands(surface(1920, 700, "sidebar")) == expected_without_rail
+    # An unavailable drawer must not silently shrink the declared bands.
     narrow.get_by_role = lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: False)
-    with pytest.raises(AssertionError, match="narrow navigation cannot be opened"):
+    with pytest.raises(AssertionError, match="Stitch navigation drawer trigger"):
         gate.library_bands(narrow)
 
 
@@ -146,12 +157,13 @@ def test_console_size_controls_navigation_even_inside_a_wide_viewport() -> None:
     gate = load_gate()
     page = SimpleNamespace(viewport_size={"width": 1920, "height": 1080},
         locator=lambda _selector: SimpleNamespace(is_visible=lambda: False,
+            get_attribute=lambda name: "sidebar" if name == "data-navigation-appearance" else "false",
             bounding_box=lambda: {"width": 1000, "height": 700}),
         get_by_role=lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: True))
     assert "navigation_trigger" in gate.library_bands(page)
     assert "rail" not in gate.library_bands(page)
     page.get_by_role = lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: False)
-    with pytest.raises(AssertionError, match="narrow navigation cannot be opened"):
+    with pytest.raises(AssertionError, match="Stitch navigation drawer trigger"):
         gate.library_bands(page)
     page.locator = lambda _selector: SimpleNamespace(bounding_box=lambda: None)
     with pytest.raises(AssertionError, match="missing console dimensions"):

@@ -6,10 +6,12 @@
 | --- | --- | --- |
 | 活跃范围、任务来源与接续顺序 | [活动指针](current/AAOS-ACTIVE-EXECUTION.json) | 由指针选择当前任务包及覆盖合同；不从文件日期或旧 COMPLETE 推断当前队列。 |
 | 闭环／最快最短完整闭环的含义 | [唯一闭环定义](truth/CLOSED_LOOP_DEFINITION.md) | 范围、兼容、免费检索、模型双通道及全链路验收的Owner规范；不另设进度，不缩成单次演示。 |
-| 当前前端优先顺序与细分验收 | [前端优先覆盖](current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md) | Owner后继明确先全量前端、再后端；UI-P/BE-P映射原任务，实际进度仍只有下一行入口。 |
+| 软件／版本／特色／方向验收矩阵 | [CL-04/J3现行矩阵](current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json) | 沿冻结35平台种子继续发现；官方文档、AAOS自造材料、本地消费者、外部往返分别记账，UNKNOWN不升级为支持；实际进度仍归唯一执行记录。 |
+| 当前Stitch全量界面与前后端并行接通 | [执行分片覆盖](current/AAOS-FRONTEND-FIRST-EXECUTION-OVERLAY-20261019.md) | Owner后继明确全部按新UI接通，UI-P/BE-P并行映射原任务，实际进度仍只有下一行入口。 |
 | 实际实施进度与验收证据 | [唯一 UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md) | 回执只证明其绑定源码、对象和环境；规划包中的 NOT_EXECUTED 不回填为运行结果。 |
 | 当前交接与未完成事项 | [接手入口](current/AAOS-AGENT-HANDOFF-CURRENT.md)、[来源待办索引](current/AAOS-EXECUTION-BACKLOG-20261018.json) | 交接与待办用于续接，实际进度仍归唯一执行记录。 |
 | Owner 决定、范围与替代关系 | [当前决定](current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[替代账本](../DECISION_SUPERSESSION_LEDGER.yaml)、[稳定真相](truth/README.md) | 决定出处与历史摘录由历史入口导航；实现证据不能取消已批准目标。 |
+| 冻结Owner对话来源 | [39主题摘录与映射](history/owner-dialogue-20261019/README.md) | 冻结原件不改写；迁移引用由现行manifest按字节身份解释，维护校验入口为`scripts/maintenance/verify_owner_dialogue.py`。 |
 | 产品原则与任务合同 | [项目合同](../PROJECT_CONTRACT.yaml)、[当前任务包](taskpacks/aaos-ui-first-20261009/TASKPACK.md)；继承／覆盖合同：[后端合同](authority/taskpack-20261013-backend-host/TASKS.json)、[前端合同](authority/taskpack-20261013-frontend-ui/01-Frontend-UI/TASKS.json) | 具体激活范围读活动指针；不可变任务包是合同来源，不是第二份实时进度。 |
 | 协议、生成物与源码验证入口 | [协议 Schema](../packages/contracts/)、[生成器](../scripts/contracts/)、[契约测试](../tests/)、[Rust Core](../crates/)、[正式前端](../frontend/)、[正式宿主](../src-tauri/) | Schema、实现与行为回归分别核对；仅有声明或生成 DTO 不代表真实消费者已接通。 |
 | 原始资料与来源 manifest | [资料索引](../AAOS-资料索引.md)、[输入来源登记](current/AAOS-INPUT-SOURCES-20261006.json)、[原始资料清单](history/record-archive-20261009/MANIFEST.json) | 按登记路径和 SHA 查原件；索引不是跨项目或私人资料访问授权。 |

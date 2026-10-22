@@ -343,3 +343,46 @@ def test_priority_cannot_expand_selected_scope(monkeypatch, tmp_path):
     pointer.update(selected_tasks=["G01"], priority_tasks=["FT01"])
     path.write_text(json.dumps(pointer), encoding="utf-8")
     assert any("owner-selected scope" in problem for problem in gate.check_single_current())
+
+
+def compatibility_fixture(monkeypatch, tmp_path):
+    gate = wire(monkeypatch, tmp_path)
+    name = "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json"
+    matrix = json.loads((REPO / name).read_text(encoding="utf-8"))
+    seed = matrix["source_seed"]["path"]
+    (tmp_path / seed).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / seed).write_bytes((REPO / seed).read_bytes())
+    (tmp_path / name).write_text(json.dumps(matrix), encoding="utf-8")
+    pointer_path = tmp_path / gate.ACTIVE_EXECUTION
+    pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+    pointer["continuation_context"] = {"resource_navigation": {"knowledge_compatibility_matrix": name}}
+    pointer_path.write_text(json.dumps(pointer), encoding="utf-8")
+    return gate, tmp_path / name, matrix
+
+
+def test_compatibility_missing_local_runs_never_become_external_parity(monkeypatch, tmp_path, capsys):
+    gate, _, _ = compatibility_fixture(monkeypatch, tmp_path)
+    assert gate.check_knowledge_compatibility() == []
+    assert "unavailable/UNVERIFIED 2; no external parity inferred" in capsys.readouterr().out
+
+
+def test_compatibility_rejects_silent_scope_loss_and_unproved_success(monkeypatch, tmp_path):
+    import copy
+    gate, path, original = compatibility_fixture(monkeypatch, tmp_path)
+    cases = []
+    value = copy.deepcopy(original); value["platforms"].pop(); cases.append((value, "platform omitted"))
+    value = copy.deepcopy(original); del value["axes"]["tags"]; cases.append((value, "axis omitted"))
+    value = copy.deepcopy(original); value["platforms"][0]["direction_results"]["import"] = {"state": "PASS", "evidence": ["https://spec.commonmark.org/0.31.2/"]}; cases.append((value, "version-bound consumer"))
+    value = copy.deepcopy(original); value["all_personal_features_compatible"] = True; cases.append((value, "full parity"))
+    value = copy.deepcopy(original); value["platforms"][1]["overall_parity"] = "PASS"; cases.append((value, "whole-platform parity"))
+    value = copy.deepcopy(original); value["aaos_observations"][0]["receipt"] = ".codex/sessions/private.json"; cases.append((value, "outside owned run"))
+    for value, expected in cases:
+        path.write_text(json.dumps(value), encoding="utf-8")
+        assert any(expected in p for p in gate.check_knowledge_compatibility()), expected
+
+
+def test_compatibility_detects_changed_frozen_seed(monkeypatch, tmp_path):
+    gate, _, matrix = compatibility_fixture(monkeypatch, tmp_path)
+    path = tmp_path / matrix["source_seed"]["path"]
+    path.write_bytes(path.read_bytes() + b"\n")
+    assert any("seed hash mismatch" in p for p in gate.check_knowledge_compatibility())

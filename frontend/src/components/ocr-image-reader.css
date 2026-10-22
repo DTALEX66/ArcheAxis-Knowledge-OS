@@ -1,0 +1,8 @@
+.ocr-image-reader { min-width:0; }
+.ocr-image-reader figure { margin:12px 0; }
+.ocr-image-frame { position:relative; width:fit-content; max-width:100%; margin:auto; }
+.ocr-image-frame .original-derived-image { margin:0; }
+.ocr-image-frame svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.ocr-image-frame rect { fill:var(--accent-soft, #23b5d333); stroke:var(--accent, #00d6ee); stroke-width:2; vector-effect:non-scaling-stroke; }
+.ocr-image-reader pre { white-space:pre-wrap; overflow-wrap:anywhere; }
+.ocr-image-reader [role="group"] { display:flex; flex-wrap:wrap; gap:8px; }

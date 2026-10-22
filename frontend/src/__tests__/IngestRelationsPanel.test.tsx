@@ -106,3 +106,10 @@ it("offers fixed blocks after the real relation receipt and sends the explicit s
  expect(calls[1][1].body.fragment_bindings).toEqual([{link_ordinal:0,target_ordinal:1,fragment:"Heading",fragment_is_block:false,block_id:"chosen"}]);
  await waitFor(()=>expect(onApplied).toHaveBeenLastCalledWith(saved));
 });
+
+it("accepts an embed-only upgrade version increment and rejects an unadvanced version", async()=>{
+ const attempt=freezeRelations(selection,batch,doc,[{ordinal:1,source_id:"src_b",source_revision:b}],false);
+ const upgrade={...receipt,added_relations:0,updated_relations:1};
+ expect(verifyRelationReceipt(attempt,upgrade,saved)).toEqual(saved);
+ expect(()=>verifyRelationReceipt(attempt,{...upgrade,document:doc},doc)).toThrow("关系回执");
+});

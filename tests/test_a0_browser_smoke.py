@@ -190,26 +190,37 @@ def test_windows_readiness_timeout_reclaims_the_started_vite_process(monkeypatch
     assert calls == []
 
 
-def test_browser_smoke_records_the_dirty_candidate_without_writing_the_worktree_index(monkeypatch):
+def test_browser_smoke_records_the_dirty_candidate_without_writing_the_worktree_index(monkeypatch, tmp_path):
     smoke = _load_smoke_module()
     captured: list[object] = []
+    monkeypatch.setattr(smoke, "ROOT", tmp_path)
+    source = tmp_path / "frontend/src"
+    source.mkdir(parents=True)
+    (source / "tracked.ts").write_text("staged candidate", encoding="utf-8")
+    untracked = source / "new.ts"
+    untracked.write_text("new candidate", encoding="utf-8")
 
     def fake_check_output(command, **kwargs):
         captured.append(command)
         if command == ["git", "rev-parse", "HEAD"]:
             return "abc123\n"
-        if command == ["git", "diff", "--no-ext-diff", "--binary"]:
+        if command == ["git", "diff", "HEAD", "--no-ext-diff", "--binary"]:
             return b"diff --git a/a b/a\n"
+        if command[:4] == ["git", "ls-files", "-z", "--cached"]:
+            return b"frontend/src/tracked.ts\0frontend/src/new.ts\0frontend/src/deleted.ts\0"
         raise AssertionError(command)
 
     monkeypatch.setattr(smoke.subprocess, "check_output", fake_check_output)
+    before = smoke.source_revision()
+    assert before["base_commit"] == "abc123"
+    assert before["worktree_dirty"] is True
+    assert before["worktree_diff_sha256"] == "9e3e63fac9c92100f0f15e616e1abf395028edc8912bebfc42044c65eb17e114"
+    assert set(before["files"]) == {"frontend/src/tracked.ts", "frontend/src/new.ts", "frontend/src/deleted.ts"}
+    assert before["files"]["frontend/src/deleted.ts"] is None
+    untracked.write_text("changed during run", encoding="utf-8")
+    assert smoke.source_revision()["source_tree_sha256"] != before["source_tree_sha256"]
+    assert all(command[1] in {"rev-parse", "diff", "ls-files"} for command in captured)
 
-    assert smoke.source_revision() == {
-        "base_commit": "abc123",
-        "worktree_dirty": True,
-        "worktree_diff_sha256": "9e3e63fac9c92100f0f15e616e1abf395028edc8912bebfc42044c65eb17e114",
-    }
-    assert ["git", "write-tree"] not in captured
 
 
 def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
@@ -246,16 +257,19 @@ def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
     assert all(branch > 600 for branch in branches), branches
 
     # Exercise the actual gate, including the independent short-window branch.
-    # Boundary cases catch OR -> AND, a lowered 280px floor, or a moved cutoff.
+    # Every declaration retains a 280px reading floor, including short and wide views.
     gate = _load_smoke_module()
     bands = {"navigation_trigger": ".ui-navigation-trigger"}
-    for width, height, required in ((1200, 761, True), (1201, 760, True),
+    for width, height, _historical_compact in ((1200, 761, True), (1201, 760, True),
                                     (640, 480, True), (1201, 761, False)):
         geometry = {
             "scrollWidth": width, "clientWidth": width,
-            "dock": {"y": 100, "bottom": 120}, "rail": {"width": 0},
-            "main": {"x": 0, "bottom": 100, "width": 280},
-            "body": {"x": 0, "width": 280}, "inspector": None,
+            "dock": {"y": 120, "bottom": 140}, "rail": {"width": 0},
+            "main": {"x": 0, "right": 280, "bottom": 120, "width": 280, "height": 120},
+            "body": {"x": 0, "right": 280, "width": 280}, "inspector": None,
+            "bodyPadding": {"left": 0, "right": 0, "top": 0, "bottom": 0, "gap": 0},
+            "applicationMenu": {"y": 0, "bottom": 42},
+            "applicationDock": {"y": 150, "bottom": 200},
             "devicePixelRatio": 1, "statusBarOverlaps": [], "missingBands": [],
             "landmarkCount": len(bands), "expectedBands": sorted(bands),
             "landmarkOverlaps": [], "clippedBands": [], "unreachableBands": [],
@@ -263,8 +277,48 @@ def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
         }
         assert gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands) is geometry
         geometry["main"]["width"] = geometry["body"]["width"] = 279
-        if required:
-            with pytest.raises(AssertionError):
-                gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands)
-        else:
+        geometry["main"]["right"] = geometry["body"]["right"] = 279
+        with pytest.raises(AssertionError):
             gate.check_geometry(geometry, width=width, height=height, scale=1, bands=bands)
+
+
+@pytest.mark.parametrize("containing_block", [False, True])
+def test_visible_fixed_menu_escapes_only_ordinary_clip_ancestors(containing_block):
+    smoke = _load_smoke_module()
+    with smoke.sync_playwright() as playwright:
+        options = {"headless": True}
+        if sys.platform == 'win32':
+            options['executable_path'] = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert options['executable_path']
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={"width": 800, "height": 600})
+            transform = "transform:translateZ(0);" if containing_block else ""
+            page.set_content(f"""<style>body{{margin:0}} nav{{height:42px;width:250px;overflow:auto;{transform}}}
+                .popup{{position:fixed;top:60px;left:20px}}button{{height:38px;width:180px}}</style>
+                <nav><section class="popup"><button>固定菜单操作</button></section></nav>""")
+            box = smoke.visible_control_box(page.get_by_role('button'))
+            assert box['reachable'] is not containing_block, box
+            assert (box['height'] >= 24) is not containing_block, box
+        finally:
+            browser.close()
+
+
+def test_visible_control_box_counts_paint_containment_even_with_visible_overflow():
+    smoke = _load_smoke_module()
+    with smoke.sync_playwright() as playwright:
+        options = {"headless": True}
+        if sys.platform == 'win32':
+            options['executable_path'] = smoke._declared_tool('ext.toolchains.playwright-chromium', 'playwright-chromium')
+            assert options['executable_path']
+        browser = playwright.chromium.launch(**options)
+        try:
+            page = browser.new_page(viewport={"width": 800, "height": 600})
+            page.set_content("""<style>body{margin:0}nav{height:42px;width:250px;contain:paint;overflow:visible}
+              .popup{position:fixed;top:20px;left:20px}button{height:38px;width:180px}</style>
+              <nav><section class="popup"><button>部分裁剪菜单</button></section></nav>""")
+            box = smoke.visible_control_box(page.get_by_role('button'))
+            assert box['rawHeight'] == 38 and box['height'] == 22, box
+            assert box['reachable'] is True, box  # Center hit alone must not qualify a 24px target.
+        finally:
+            browser.close()

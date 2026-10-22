@@ -1,4 +1,4 @@
-import {act,fireEvent,render,screen,waitFor} from "@testing-library/react";
+import {act,fireEvent,render,screen,waitFor,within} from "@testing-library/react";
 import {afterEach,beforeEach,expect,it,vi} from "vitest";
 import {useState} from "react";
 import {webcrypto} from "node:crypto";
@@ -7,6 +7,7 @@ import {getRecoveryStatus} from "../api/workspace";
 import {verifyCanonicalCore} from "../api/core";
 import type {WorkingRead,WorkingState} from "../presentation/coreWorkingState";
 import {layoutPresets} from "../workspace/WorkspaceController";
+import {uiEntryForPage} from "../presentation/uiPages";
 
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call,verifyCanonicalCore:vi.fn().mockResolvedValue(undefined)}));
@@ -20,6 +21,7 @@ let read:WorkingRead;
 let resolveLayout:(value:unknown)=>void;
 const layoutReply=()=>({status:200,body:{workspace_id:read.workspace_id,restore_epoch:"initial",device_id:"device_1",revision:0,layout:layoutPresets.default,recovery_reason:null}});
 beforeEach(()=>{
+ localStorage.removeItem("aaos.navigation-appearance.v1");
  vi.mocked(getRecoveryStatus).mockResolvedValue({state:"ready",safe_mode:false,backend_available:true,message:"SIMULATED ready",backups:[],external_dev:false});vi.mocked(verifyCanonicalCore).mockResolvedValue(undefined);
  vi.stubGlobal("ResizeObserver",ResizeObserverStub);vi.stubGlobal("crypto",webcrypto);
  window.history.replaceState(null,"","#page=01");
@@ -29,7 +31,7 @@ beforeEach(()=>{
 });
 afterEach(()=>{delete window.__TAURI__;vi.unstubAllGlobals();vi.restoreAllMocks();window.history.replaceState(null,"","#page=01");});
 async function start(hydrate=true){const view=render(<App/>);await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeVisible());if(hydrate){await act(async()=>resolveLayout(layoutReply()));await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeVisible());}return view;}
-async function page(id:string){fireEvent.click(document.querySelector(`.navigation-sidebar button[data-page-id="${id}"]`)??screen.getByRole("button",{name:`SIMULATED goto ${id}`}));await waitFor(()=>expect(document.querySelector(".app-shell")).toHaveAttribute("data-cabin-page",id));}
+async function page(id:string){fireEvent.click(screen.getByRole("button",{name:"打开产品导航"}));let dialog=screen.getByRole("dialog",{name:"产品导航"});let target=dialog.querySelector<HTMLButtonElement>(`button[data-page-id="${id}"]`);if(!target){const entry=uiEntryForPage(id);const parent=entry&&dialog.querySelector<HTMLButtonElement>(`button[data-page-id="${entry.pageId}"]`);if(!parent)throw Error("Missing page family "+id);fireEvent.click(parent);if(screen.queryByRole("dialog",{name:"产品导航"}))fireEvent.click(screen.getByRole("button",{name:"关闭导航"}));fireEvent.click(screen.getByRole("button",{name:"打开产品导航"}));dialog=screen.getByRole("dialog",{name:"产品导航"});target=dialog.querySelector<HTMLButtonElement>(`button[data-page-id="${id}"]`);}if(!target)throw Error("Missing page "+id);fireEvent.click(target);if(screen.queryByRole("dialog",{name:"产品导航"}))fireEvent.click(screen.getByRole("button",{name:"关闭导航"}));await waitFor(()=>expect(document.querySelector(".app-shell")).toHaveAttribute("data-cabin-page",id));}
 function tab(name:string){return screen.getByRole("tab",{name});}
 function select(name:string){tab(name).focus();fireEvent.keyDown(tab(name),{key:"Enter"});}
 function dirty(value:boolean){act(()=>window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:"dock-regression",dirty:value}})));}
@@ -109,4 +111,18 @@ it("explicit working recovery adopts its scene without overwriting a retained do
  fireEvent.click(await screen.findByRole("button",{name:"核对工作状态"}));await screen.findByRole("button",{name:"保留恢复候选"});await act(async()=>{await Promise.resolve();});fireEvent.click(screen.getByRole("button",{name:"保留恢复候选"}));
  await waitFor(()=>expect(bridge.call.mock.calls.filter(([op])=>op==="ui_state_recover")).toHaveLength(1));
  await waitFor(()=>expect(tab("全部能力与未来蓝图")).toHaveAttribute("aria-selected","true"));expect(window.location.hash).toBe("#page=17");expect(object).toHaveAttribute("aria-label","draft-03");expect(object).toHaveValue("object A is not page17");
+});
+
+it("uses only the Stitch navigation even when a retired sidebar preference is saved", async()=>{
+ localStorage.setItem("aaos.navigation-appearance.v1","sidebar");await start();
+ expect(screen.getByRole("navigation",{name:"应用菜单"})).toBeInTheDocument();
+ expect(document.querySelector(".navigation-sidebar")).toBeNull();expect(document.querySelector(".app-shell")).not.toHaveAttribute("data-navigation-appearance");
+ await page("17");expect(screen.getByLabelText("draft-17")).toBeVisible();
+ localStorage.removeItem("aaos.navigation-appearance.v1");
+});
+it("the new application dock uses the existing draft refusal guard without replacing the active view", async()=>{
+ await start();await page("17");const draft=screen.getByLabelText("draft-17");fireEvent.change(draft,{target:{value:"retained through new Dock"}});dirty(true);
+ const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+ fireEvent.click(within(screen.getByRole("navigation",{name:"工作空间快捷导航"})).getByRole("button",{name:"知识"}));
+ await waitFor(()=>expect(confirm).toHaveBeenCalledOnce());expect(window.location.hash).toBe("#page=17");expect(draft).toBeVisible();expect(draft).toHaveValue("retained through new Dock");dirty(false);
 });

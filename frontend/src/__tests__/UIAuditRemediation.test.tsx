@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../app/App";
 import type { InspectionHandler } from "../components/Inspector";
@@ -18,23 +18,29 @@ vi.mock("../spaces/SpaceView", async importOriginal => {
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); window.history.replaceState(null, "", "#page=01"); });
 
 describe("审计缺陷回归：实际 App 与 SIMULATED 业务子端口", () => {
-  it.each(["click", "keyboard"])("顶部设置通过统一导航打开设置：%s", async mode => {
+  it.each(["click", "keyboard"])("工具对话框通过统一导航打开设置：%s", async mode => {
     window.history.replaceState(null, "", "#page=01"); render(<App />);
-    const button = document.querySelector<HTMLButtonElement>('.top-nav-bar button[aria-label="设置"]')!;
-    if (mode === "keyboard") { button.focus(); await userEvent.keyboard("{Enter}"); } else fireEvent.click(button);
+    const user = userEvent.setup(), trigger = screen.getByRole("button", { name: "界面与工具设置" });
+    if (mode === "keyboard") { trigger.focus(); await user.keyboard("{Enter}"); } else await user.click(trigger);
+    const button = within(screen.getByRole("dialog", { name: "界面与工具" })).getByRole("button", { name: "打开设置" });
+    if (mode === "keyboard") { button.focus(); await user.keyboard("{Enter}"); } else await user.click(button);
     expect(screen.getByTestId("audit-page")).toHaveTextContent("19");
     expect(window.location.hash).toBe("#page=19");
+    expect(screen.queryByRole("dialog", { name: "界面与工具" })).not.toBeInTheDocument();
   });
-  it("顶部设置遵守未保存草稿、输入法与工作区恢复屏障", () => {
+  it("工具里的设置遵守未保存草稿、输入法与工作区恢复屏障", () => {
     window.history.replaceState(null, "", "#page=01"); render(<App />);
-    const button = document.querySelector<HTMLButtonElement>('.top-nav-bar button[aria-label="设置"]')!;
+    const openSettings = () => {
+      fireEvent.click(screen.getByRole("button", { name: "界面与工具设置" }));
+      fireEvent.click(within(screen.getByRole("dialog", { name: "界面与工具" })).getByRole("button", { name: "打开设置" }));
+    };
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
     act(() => window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "audit", dirty: true } })));
-    fireEvent.click(button); expect(confirm).toHaveBeenCalled(); expect(window.location.hash).toBe("#page=01");
+    openSettings(); expect(confirm).toHaveBeenCalled(); expect(window.location.hash).toBe("#page=01");
     act(() => window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty", { detail: { owner: "audit", dirty: false } })));
-    fireEvent.compositionStart(window); fireEvent.click(button); expect(window.location.hash).toBe("#page=01"); fireEvent.compositionEnd(window);
-    act(() => window.dispatchEvent(new Event("workspace-restore-start"))); fireEvent.click(button); expect(window.location.hash).toBe("#page=01");
-    act(() => window.dispatchEvent(new Event("workspace-restore-finish"))); fireEvent.click(button); expect(window.location.hash).toBe("#page=19");
+    fireEvent.compositionStart(window); openSettings(); expect(window.location.hash).toBe("#page=01"); fireEvent.compositionEnd(window);
+    act(() => window.dispatchEvent(new Event("workspace-restore-start"))); fireEvent.click(screen.getByRole("button",{name:"界面与工具设置"})); expect(screen.queryByRole("dialog",{name:"界面与工具"})).not.toBeInTheDocument(); expect(window.location.hash).toBe("#page=01");
+    act(() => window.dispatchEvent(new Event("workspace-restore-finish"))); openSettings(); expect(window.location.hash).toBe("#page=19");
   });
   it("窄窗口自动更新检查对象保留阅读区，显式打开与已打开检查器仍正常", () => {
     vi.stubGlobal("innerWidth", 640); render(<App />);
@@ -53,7 +59,8 @@ describe("审计缺陷回归：实际 App 与 SIMULATED 业务子端口", () => 
 it("平台快捷键文案一致且未知平台回退到 Ctrl", () => {
   expect(commandKeyLabel("Win32")).toBe("Ctrl"); expect(commandKeyLabel("MacIntel")).toBe("⌘"); expect(commandKeyLabel("")).toBe("Ctrl");
   render(<App />);
-  expect(document.querySelector(".search-trigger-shortcut")).toHaveTextContent(`${commandKeyLabel()}K`);
+  expect(screen.getAllByRole("button", { name: "打开全局命令" })).toHaveLength(1);
+  expect(screen.getByRole("button", { name: "打开全局命令" })).toHaveAttribute("aria-keyshortcuts", "Control+K");
   expect(screen.getByRole("button", { name: "打开全局命令" })).toHaveAttribute("title", `打开全局命令（${commandKeyLabel()} K）`);
 });
 

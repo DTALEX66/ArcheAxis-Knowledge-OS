@@ -49,7 +49,7 @@ export function IngestRelationsPanel({selection,document,documents,dirty,canWrit
    const saved=verifyRelationReceipt(frozen,result,readback);
    if(!valid(e))return;
    setReceipt(result);setTargetDocs(snapshots);setObserved(saved);setAttempt(null);onPendingChange(false);onApplied(saved);
-   setMessage(`已读回固定版本 v${saved.version}；新增 ${result.added_relations} 条关系。未解析项与原始文本仍保留。`);
+   setMessage(`已读回固定版本 v${saved.version}；新增 ${result.added_relations} 条关系，升级 ${result.updated_relations ?? 0} 条嵌入呈现。未解析项与原始文本仍保留。`);
    await projection(saved,e);
   });
  });}

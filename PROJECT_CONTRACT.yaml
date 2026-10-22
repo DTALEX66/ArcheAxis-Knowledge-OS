@@ -16,7 +16,7 @@ closed_loop_definition:
 scope:
   included:
     - new UI-first five-domain semantic layout and 22 page projections, qualified slice by slice
-    - default blueprint palette, blueprint-light and preserved legacy themes with consistent semantic colors
+    - default cosmic palette for new or invalid preferences, preserved valid saved preferences and five switchable themes with consistent semantic colors
     - bounded recovery contract and capability discoverability without promoting intent to qualification
     - local Windows desktop knowledge workflow
     - trustworthy import, anchor, review, retrieval, learning, restart, export and restore

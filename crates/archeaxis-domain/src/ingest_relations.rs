@@ -405,6 +405,7 @@ pub fn apply(
         .unwrap_or_default();
     let mut reports = Vec::new();
     let mut added = 0;
+    let mut updated = 0;
     let mut seen_ids = BTreeSet::new();
     for (index, link) in links.iter().enumerate() {
         if link.target.len() > 1024
@@ -471,7 +472,7 @@ pub fn apply(
             "Original CAS {} · {}{}{}{}",
             input.source_revision,
             if link.embed {
-                "embed reference (not rendered): "
+                "embed: "
             } else {
                 "link: "
             },
@@ -494,10 +495,24 @@ pub fn apply(
                 "original link label exceeds relation budget",
             ));
         }
-        let relation = json!({"id":id,"kind":"related","label":label,"target":reference});
-        if let Some(existing) = relations.iter().find(|r| r["id"] == id) {
+        // Exact legacy output is the only relation eligible for upgrade. Preserve
+        // original history/provenance and never overwrite an edited relation.
+        let mut relation = json!({"id":id,"kind":"related","label":label,"target":reference});
+        let mut legacy = relation.clone();
+        if link.embed {
+            legacy["label"] = json!(label.replacen("embed: ", "embed reference (not rendered): ", 1));
+        }
+        if link.embed {
+            relation["presentation"] = json!("embed");
+        }
+        if let Some(existing) = relations.iter_mut().find(|r| r["id"] == id) {
             if existing != &relation {
-                return Err(Error::Conflict(input.expected_version));
+                if link.embed && *existing == legacy {
+                    *existing = relation;
+                    updated += 1;
+                } else {
+                    return Err(Error::Conflict(input.expected_version));
+                }
             }
         } else {
             relations.push(relation);
@@ -506,14 +521,14 @@ pub fn apply(
         report["status"] = json!("resolved_reference");
         report["relation_id"] = json!(id);
         if link.embed {
-            report["reason"] = json!("embed_rendering_not_supported");
+            report["reason"] = json!("embed_presentation_requested");
         }
         reports.push(report);
     }
     if relations.len() > 256 {
         return Err(Error::Invalid("combined relation count exceeds budget"));
     }
-    if added > 0 {
+    if added > 0 || updated > 0 {
         let attrs = editor
             .as_object_mut()
             .ok_or(Error::Invalid("invalid editor"))?
@@ -536,7 +551,7 @@ pub fn apply(
     let saved = document::read(&tx, &input.document_id, None)?;
     let receipt = json!({"schema":"archeaxis.ingest-relations/v1","workspace_id":input.workspace_id,"restore_epoch":input.restore_epoch,"batch_id":batch,"ordinal":ordinal,
         "input_kind":"immutable_original_markdown","source_id":input.source_id,"source_revision":input.source_revision,"relative_path":member.path,
-        "document":saved,"added_relations":added,"links":reports,
+        "document":saved,"added_relations":added,"updated_relations":updated,"links":reports,
         "loss":["original_source_links_not_current_document_body","markdown_subset_not_full_vault_compatibility","no_worker_conversion_or_knowledge_admission"]});
     tx.commit()?;
     Ok(receipt)

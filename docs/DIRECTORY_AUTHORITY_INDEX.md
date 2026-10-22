@@ -1,9 +1,9 @@
 # Directory Authority Index
 
-> **2026-10-12 当前路由与状态**：产品实施 RUNNING_BY_OWNER / PARTIAL；源码已通过 PR #184 并入 main。当前任务与授权读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录；仓库收敛与接续读[接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。2026-10-10 暂停仅为历史快照；六项核心能力增量仍 FROZEN_BY_OWNER，V01 暂停、FT01–04 冻结。发布、Green 替换与真实用户数据覆盖未授权。 文件身份及旧路径按[路径身份路由](current/AAOS-AUTHORITY-ROUTES.json)分类。
+> **2026-10-12 当前路由与状态**：产品实施 RUNNING_BY_OWNER / PARTIAL；源码已通过 PR #184 并入 main。当前任务与授权读[活动指针](current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录；仓库收敛与接续读[接续记录](history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md)。2026-10-10 暂停仅为历史快照；六项核心能力增量仍 FROZEN_BY_OWNER，V01 暂停、FT01–04 冻结。公开发布和真实用户数据覆盖未授权；指定Green程序更新已授权，须先满足活动指针`green_update_authorization`的候选资格、备份及精确成员核验。 文件身份及旧路径按[路径身份路由](current/AAOS-AUTHORITY-ROUTES.json)分类。
 
 > **2026-10-09 当前执行覆盖**：用户已选择新 UI 优先任务及 G01；规范活动指针为 [AAOS-ACTIVE-EXECUTION](current/AAOS-ACTIVE-EXECUTION.json)，当前任务来源为 [UI 优先 TaskPack](taskpacks/aaos-ui-first-20261009/TASKPACK.md)，实际进度只读 [UI 执行记录](current/AAOS-UI-FIRST-EXECUTION-20261009.md)。规划原文的 PLANNING_READY / NOT_EXECUTED 是规划时状态，激活与实际结果由当前覆盖记录，不改写不可变原包。AAOS-01 Q00–Q15 台账仅记录该继承工作流，不代表新 UI 全队列；旧 R6/M0 整包顺序冻结，有效合同、单一 Rust Core writer、内容先保存及历史证据保留。V01 继续暂停。
-> 当前新布局、架构和其余产品界面按新任务执行；默认 `blueprint`，配套 `blueprint-light`，旧 `black` / `white` / `cosmic` 仅为额外配色主题。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
+> 当前新布局、架构和其余产品界面按新任务执行；新建或无效偏好默认 `cosmic`，保留有效已存偏好；`blueprint`、`blueprint-light`、`black`、`white` 均可切换。五主题共用新布局、组件状态及统一语义颜色；一个主题内部的按钮、菜单、侧栏与正文保持一致。主题不更改 Core 配置或知识数据。
 > 平台指令优先；平台范围内用户当前明确决定优先于项目旧描述。此文档同步不授予 commit、push、merge、发布、私人账户/会话访问或恢复暂停的云端任务权限；本机资源索引不是云端权限。
 
 

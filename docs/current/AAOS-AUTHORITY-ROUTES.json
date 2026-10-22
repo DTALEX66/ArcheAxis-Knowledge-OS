@@ -229,6 +229,10 @@
     {
       "path": "docs/history/repository-consolidation-20261019/current/R6-VERSION-RELEASE-FREEZE.md",
       "role": "INHERITED_CONSTRAINT_NOT_ACTIVE_QUEUE"
+    },
+    {
+      "path": "docs/current/AAOS-KNOWLEDGE-COMPATIBILITY-MATRIX.json",
+      "role": "SCOPED_ACCEPTANCE_INVENTORY_NOT_PRODUCT_QUALIFICATION"
     }
   ],
   "rules": [

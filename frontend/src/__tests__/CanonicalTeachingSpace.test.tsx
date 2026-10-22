@@ -154,3 +154,14 @@ it("exchange dialog Escape and cancel return to preview trigger without import",
 it.each(["{bad JSON",JSON.stringify({schema:"future.exchange/v99",extra:{unknown:"完整😀"}})])("downloads exact original rejected File without canonical import: %s",async(raw)=>{
  const make=vi.fn(()=>"blob:raw-file"),revoke=vi.fn(),click=vi.spyOn(HTMLAnchorElement.prototype,"click").mockImplementation(()=>{});Object.defineProperty(URL,"createObjectURL",{configurable:true,value:make});Object.defineProperty(URL,"revokeObjectURL",{configurable:true,value:revoke});const user=userEvent.setup();render(<Harness initial="16"/>);const f=new File([raw],"unknown-original.json",{type:"application/json"});Object.defineProperty(f,"text",{value:async()=>raw});await user.upload(screen.getByLabelText("选择人工交换 JSON"),f);await screen.findByText("交换JSON读取失败；未导入。");await user.click(screen.getByRole("button",{name:"下载所选原始交换文件"}));expect(make).toHaveBeenCalledWith(f);expect(click).toHaveBeenCalledTimes(1);expect(revoke).toHaveBeenCalledWith("blob:raw-file");expect(bridge.call.mock.calls.some(([op])=>["teaching_import","teaching_import_preview","document_create","source_import"].includes(op))).toBe(false);click.mockRestore();
 });
+
+
+it("Stitch history disclosure preserves the current editor node and unsaved text",async()=>{
+ const user=userEvent.setup();render(<Harness/>);
+ const input=screen.getByRole("textbox",{name:"内容"});await user.type(input,"当前教学草稿");
+ const disclosure=screen.getByText("教学历史与记录").closest("details")!;
+ expect(disclosure).toHaveAttribute("open");await user.click(screen.getByText("教学历史与记录"));
+ expect(disclosure).not.toHaveAttribute("open");expect(screen.getByRole("textbox",{name:"内容"})).toBe(input);expect(input).toHaveValue("当前教学草稿");
+ await user.click(screen.getByText("教学历史与记录"));expect(disclosure).toHaveAttribute("open");expect(screen.getByRole("textbox",{name:"内容"})).toBe(input);
+ expect(bridge.call.mock.calls.some(([op])=>["teaching_create","teaching_import","document_create","document_draft"].includes(op))).toBe(false);
+});

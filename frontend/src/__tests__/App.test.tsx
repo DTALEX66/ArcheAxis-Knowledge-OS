@@ -8,13 +8,44 @@ import { canNavigateToCapability, EFFECTIVE_NAVIGATION_ENTRIES, CAPABILITY_NAVIG
 import type { SpaceId } from "../spaces/spaces";
 
 // AXW-UI-804: App shell — product routes, default space, landmarks.
-// Rail buttons use the English product labels; space headings are Chinese.
+// Stitch menu and Dock delegate to the existing guarded page routes.
 describe("App shell", () => {
   afterEach(() => {
     vi.useRealTimers();
     resetRuntimeClient();
     delete window.__TAURI__;
     vi.unstubAllGlobals();
+  });
+  it("keeps the Stitch inspector outside the reader and switches the narrow auxiliary slot without replacing the main view", async () => {
+    vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000);
+    const user = userEvent.setup();
+    render(<App/>);
+    const main = screen.getByRole("main"), inspector = screen.getByRole("complementary", { name: "检查器" });
+    expect(inspector.closest(".console-window")).toBeNull();
+    expect(document.querySelector(".app-body .inspector")).toBeNull();
+    const toggle = within(screen.getByRole("navigation", { name: "工作空间快捷导航" })).getByRole("button", { name: "小栖" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    act(() => { vi.stubGlobal("innerWidth", 640); vi.stubGlobal("innerHeight", 480); window.dispatchEvent(new Event("resize")); });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(toggle);
+    expect(screen.queryByRole("complementary", { name: "检查器" })).not.toBeInTheDocument();
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("main")).toBe(main);
+    expect(screen.getByRole("complementary", { name: "小栖 · 陪伴会话" })).toHaveFocus();
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
+      expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
+      await user.click(toggle);
+      expect(screen.getByRole("complementary", { name: "小栖 · 陪伴会话" })).toHaveFocus();
+      expect(screen.getByRole("main")).toBe(main);
+    }
+    act(() => { vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000); window.dispatchEvent(new Event("resize")); });
+    await user.keyboard("{Control>}{Alt>}i{/Alt}{/Control}");
+    screen.getByRole("button", { name: "移动小栖窗口" }).focus();
+    act(() => { vi.stubGlobal("innerWidth", 640); vi.stubGlobal("innerHeight", 480); window.dispatchEvent(new Event("resize")); });
+    expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
+    act(() => { vi.stubGlobal("innerWidth", 1440); vi.stubGlobal("innerHeight", 1000); window.dispatchEvent(new Event("resize")); });
+    expect(screen.getByRole("button", { name: "关闭检查器" })).toHaveFocus();
   });
   it.each([
     ["workspace","今日工作台"], ["library","资料库"], ["intake","资料库"],
@@ -88,9 +119,10 @@ describe("App shell", () => {
     act(() => window.dispatchEvent(new KeyboardEvent("keydown", {key:"i",ctrlKey:true,altKey:true})));
     expect(screen.getByRole("complementary", {name:"检查器"})).toBeInTheDocument();
   });
-  it("opens the formal palette from the top search and returns focus on Escape", async () => {
+  it("opens the formal palette from the unique shell search and returns focus on Escape", async () => {
     const user = userEvent.setup(); render(<App />);
-    const trigger = document.querySelector<HTMLButtonElement>(".top-nav-search-trigger")!;
+    expect(screen.getAllByRole("button", { name: "打开全局命令" })).toHaveLength(1);
+    const trigger = screen.getByRole("button", { name: "打开全局命令" });
     await user.click(trigger);
     expect(screen.getAllByRole("dialog")).toHaveLength(1);
     expect(screen.getByRole("dialog", {name:"全局命令"})).toBeInTheDocument();
@@ -131,19 +163,19 @@ describe("App shell", () => {
     render(<App />);
     expect(screen.getByRole("banner")).toBeInTheDocument();
     expect(
-      screen.getByRole("navigation", { name: "主空间导航" }),
+      screen.getByRole("navigation", { name: "应用菜单" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("main", { name: "当前空间内容" }),
     ).toBeInTheDocument();
     const webMode = screen.getByText(/浏览器预览/);
-    expect(webMode).toHaveAttribute("data-status", "development");
+    expect(webMode).toHaveAttribute("data-state", "web");
   });
 
-  it("starts on the workspace space with aria-current on its rail button", () => {
+  it("starts on the workspace space with aria-current on its Dock button", () => {
     render(<App />);
     const main = screen.getByRole("main");
-    const rail = screen.getByRole("navigation", { name: "主空间导航" });
+    const rail = screen.getByRole("navigation", { name: "工作空间快捷导航" });
     expect(
       within(main).getByRole("heading", { name: /工作台/, level: 1 }),
     ).toBeInTheDocument();
@@ -202,30 +234,20 @@ describe("App shell", () => {
     emit("evaluation-form",false);expect(blocked()).toBe(false);
   });
 
-  it("switches to Library on rail click and moves aria-current", async () => {
+  it("opens the reader from the global menu and marks the Knowledge Dock destination active", async () => {
     const user = userEvent.setup();
     render(<App />);
     const main = screen.getByRole("main");
-    const rail = screen.getByRole("navigation", { name: "主空间导航" });
-    expect(
-      within(main).getByRole("heading", { name: /工作台/, level: 1 }),
-    ).toBeInTheDocument();
-
-    await user.click(within(rail).getByRole("button", { name: "知识" }));
-    await user.click(within(rail).getByRole("button", { name: /阅读与编辑/ }));
-
-    expect(
-      within(main).getByRole("heading", { name: /阅读与编辑/ }),
-    ).toBeInTheDocument();
-    expect(within(rail).getByRole("button", { name: /阅读与编辑/ })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    expect(within(rail).getByRole("button", { name: "工作台" })).not.toHaveAttribute(
-      "aria-current",
-    );
+    const dock = screen.getByRole("navigation", { name: "工作空间快捷导航" });
+    expect(within(dock).getByRole("button", { name: "工作台" })).toHaveAttribute("aria-current", "page");
+    const menu = screen.getByRole("navigation", { name: "应用菜单" });
+    const summary = within(menu).getByText("文件", { selector: "summary" });
+    await user.click(summary);
+    await user.click(within(summary.parentElement!).getByRole("button", { name: "阅读与编辑" }));
+    expect(within(main).getByRole("heading", { name: "阅读与编辑", level: 1 })).toBeInTheDocument();
+    expect(within(dock).getByRole("button", { name: "知识" })).toHaveAttribute("aria-current", "page");
+    expect(within(dock).getByRole("button", { name: "工作台" })).not.toHaveAttribute("aria-current");
   });
-
   it("moves from the Recovery Shell into the workspace when background startup becomes ready", async () => {
     let recoveryCalls = 0;
     window.__TAURI__ = { core: { invoke: vi.fn(async (command: string, _args?:Record<string,unknown>) => {
@@ -252,7 +274,7 @@ describe("App shell", () => {
 
     render(<App />);
     expect(await screen.findByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
-    expect(await screen.findByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
+    expect(await screen.findByRole("navigation", { name: "应用菜单" })).toBeInTheDocument();
   });
 
   it("leaves boot polling after the bounded desktop-core startup deadline", async () => {
@@ -305,7 +327,7 @@ describe("App shell", () => {
       await screen.findByRole("main", { name: "恢复工作台" }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("navigation", { name: "主空间导航" }),
+      screen.queryByRole("navigation", { name: "应用菜单" }),
     ).not.toBeInTheDocument();
   });
 
@@ -330,7 +352,7 @@ describe("App shell", () => {
     render(<App />);
 
     expect(await screen.findByRole("main", { name: "恢复工作台" })).toBeInTheDocument();
-    expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "应用菜单" })).not.toBeInTheDocument();
     expect(invoke).toHaveBeenNthCalledWith(1, "recovery_status");
     expect(invoke).toHaveBeenNthCalledWith(2, "core_command", { request: { operation: "system_version", payload: {} } });
     expect(invoke).toHaveBeenNthCalledWith(3, "recovery_status");
@@ -366,7 +388,7 @@ describe("App shell", () => {
     render(<App />);
 
     expect(await screen.findByText("本地核心与当前桌面版本不兼容。")).toBeInTheDocument();
-    expect(screen.queryByRole("navigation", { name: "主空间导航" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "应用菜单" })).not.toBeInTheDocument();
   });
 
   it("never renders a control-split raw credential from desktop recovery status", async () => {

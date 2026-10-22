@@ -39,14 +39,13 @@ def fixture(mode, suspended):
     toggle = "铺满主控台" if mode == "floating" else "还原主控台"
     nodes = {name: Node(name, disabled=(name == "运行诊断" and suspended)
                        or (name == toggle and mode == "compact"))
-             for name in ("通知", "设置", "运行诊断", "avatar", toggle, "复位主控台")}
+             for name in ("设置", "运行诊断", toggle, "复位主控台")}
     if suspended:
         nodes["重新检查诊断连接"] = Node("重新检查诊断连接")
     missing = SimpleNamespace(count=lambda: 0)
     actions = SimpleNamespace(
         get_by_role=lambda role, *, name, exact: nodes.get(name, missing),
-        locator=lambda selector: nodes["avatar"] if selector == "button.top-nav-user"
-        else SimpleNamespace(count=lambda: len(nodes)))
+        locator=lambda selector: SimpleNamespace(count=lambda: len(nodes)))
     page = SimpleNamespace(locator=lambda selector: actions if selector == ".top-nav-right"
                            else SimpleNamespace(get_attribute=lambda name: mode))
     return page, nodes, toggle
@@ -54,7 +53,7 @@ def fixture(mode, suspended):
 
 @pytest.mark.parametrize("mode", ["floating", "full", "compact"])
 @pytest.mark.parametrize("suspended", [False, True])
-def test_exact_window_actions_and_old_actions_in_each_mode(mode, suspended):
+def test_exact_working_window_actions_in_each_mode(mode, suspended):
     page, _nodes, _toggle = fixture(mode, suspended)
     check_actions()(page, diagnostics_suspended=suspended)
 

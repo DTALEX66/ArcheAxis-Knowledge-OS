@@ -1,0 +1,83 @@
+{
+  "schema": "aaos.stitch-permission-recovery/v1",
+  "observed_at": "2026-10-22T13:07:36.715Z",
+  "state": "PARTIAL_PRODUCT_WITH_APPROVED_EXECUTION_PATH_RESTORED",
+  "authorization": "Owner explicitly allowed the platform approval channel after the isolated Python/version and Git metadata probe were proposed. Existing public task commit/push grant remains; no ACL/global configuration changes.",
+  "permissions": {
+    "default_sandbox": "Still restricted; .git is read-only in default session profile",
+    "approved_channel": "VERIFIED",
+    "python_version": "3.13.14",
+    "git_metadata_probe": "PASS; unique file created, read back, deleted; index untouched",
+    "acl_modified": false,
+    "global_config_modified": false
+  },
+  "source_binding": {
+    "manifest": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/MANIFEST.json",
+    "manifest_sha256": "50bac4221f4c855ca65d7a06cec8b79babb51ac3b81f7cc4e9fd6889b9504f2f",
+    "historical_files": 3,
+    "corrected_reference_paths": 7,
+    "hashes_and_evidence_states": "UNCHANGED",
+    "current_source_runtime": "NOT_REQUALIFIED_BY_ARCHIVAL_REPAIR"
+  },
+  "validation": {
+    "resource_check": {
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/stitch-resource-rebind-check-01/artifacts/execution.json",
+      "sha256": "e15e977e96f5237e985ee6cda4d3266977ad7f9655796f9371acff7359ecdc55"
+    },
+    "resource_contract_tests": {
+      "status": "PASS",
+      "tests": 16,
+      "receipt": ".project-local/runs/be268a2d33/stitch-resource-rebind-tests-01/artifacts/execution.json",
+      "sha256": "5c2ff6b36907894c0bbf912a0ed8d85b6d259142fa1e25a98d2cc06e7ba9e7f9"
+    },
+    "resource_ui_tests": {
+      "status": "PASS",
+      "tests": 18,
+      "command": "node frontend/node_modules/vitest/vitest.mjs run src/__tests__/CanonicalResourcesSpace.test.tsx (cwd frontend)",
+      "evidence": "Observed tool output; no separate full-suite rerun"
+    },
+    "frontend_build": {
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/6ec6f795b63e/artifacts/frontend-build.json",
+      "sha256": "ccfb3d224ac82e19d7769482bf078872e134fd5b631aef9c5365eeae086b77db",
+      "source_patch_sha256": "3b14bd15e40087bc485782917eaa6ef0d1d9d1ee031c919f063d266c637522ee",
+      "source_consistent": true,
+      "warning": "Existing >500kB chunks; not a build failure"
+    },
+    "prior_ui_validation": {
+      "reference": "docs/history/project-drift-audit-20261021/stitch-ui-local-checkpoint-20261022.json",
+      "component_tests": 660,
+      "browser_scenes": 67,
+      "evidence_level": "SYNTHETIC",
+      "scope": "Prior UI source checkpoint. Only resource source metadata changed here; resource UI separately retested. No new claim of all-page actual Core/native acceptance."
+    },
+    "document_authority": {
+      "status": "PASS",
+      "receipt": ".project-local/runs/be268a2d33/stitch-permission-authority-check-01/artifacts/execution.json",
+      "sha256": "1bd68b52eecd3188d8ffaeb17fdc747565b1798e5c7f80c372d2946550864f52",
+      "scope": "Single current record and public routing; 7 input hashes verified, 4 outside/private inputs remain UNVERIFIED"
+    }
+  },
+  "negative_evidence": {
+    "default_python": "uv trampoline permission denied os error 5; persists in default sandbox",
+    "resource_check_before_repair": "FAIL: Qualification source drift: crates/archeaxis-domain/src/document.rs",
+    "generation_run": "Child exit 0, dev wrapper INVALIDATED/exit3 because generation intentionally changed tracked source; not counted as PASS",
+    "initial_archival_helper": "Hash transcription mismatch rejected before source writes; corrected by reading expected hashes from the original overlay"
+  },
+  "delivery": {
+    "phase": "PRE_COMMIT_PREFLIGHT",
+    "branch": "codex/sync-20261019",
+    "local_head": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "remote_branch_head": "8d367bac4a85bebfbb523503678ade0838faa73e",
+    "remote_readback": "Approved git ls-remote and native GitHub git/ref readback",
+    "commit_push": "Authorized after final review; final outcome must be read from Git/native remote ref, not inferred from this pre-commit snapshot",
+    "ci": "NOT_EXECUTED_FOR_DELIVERED_SHA",
+    "merge_release_install": "NOT_EXECUTED"
+  },
+  "next": [
+    "Qualify one current native host/Core candidate and connect existing Stitch consumers to actual Core",
+    "Finish scoped CL-01..07/J1..6 integration and installation/Owner acceptance under existing grants",
+    "Do not resume optional marketplace/API/software feature inventory development"
+  ]
+}

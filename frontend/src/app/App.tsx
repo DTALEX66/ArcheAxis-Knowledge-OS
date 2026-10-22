@@ -11,7 +11,7 @@ import { AaosDialog } from "../design-system/AaosPrimitives";
 import { PinnedReferencePanel } from "../components/PinnedReferencePanel";
 import type { ObjectReference } from "../api/generated/research-contract";
 import { findUiPage } from "../presentation/uiPages";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SpaceId, SPACES } from "../spaces/spaces";
 import { StatusBar } from "../components/StatusBar";
 import { SpaceRail } from "../components/SpaceRail";
@@ -24,6 +24,7 @@ import { ConsoleWindow } from "../components/ConsoleWindow";
 import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
 import { TopNavBar } from "../components/TopNavBar";
+import { StitchWorkspaceMenu, StitchWorkspaceDock, StitchCompanionWindow, StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
 import { focusSpaceSection, spaceSectionsFor, type SpaceSectionDef } from "../presentation/spaceSections";
 import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
 import {
@@ -79,14 +80,20 @@ function AppBody() {
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
   const [navigationOpen,setNavigationOpen] = useState(false);
+  const [wideWorkspace, setWideWorkspace] = useState(() => window.innerWidth >= 1280 && window.innerHeight >= 700);
+  const companionOwnsFocus = useRef(false);
+  useEffect(() => {
+    const resize = () => setWideWorkspace(window.innerWidth >= 1280 && window.innerHeight >= 700);
+    const focus = (event: FocusEvent) => { companionOwnsFocus.current = event.target instanceof Element && Boolean(event.target.closest("#stitch-companion-window")); };
+    window.addEventListener("resize", resize);
+    document.addEventListener("focusin", focus);
+    return () => { window.removeEventListener("resize", resize); document.removeEventListener("focusin", focus); };
+  }, []);
+  const [companionOpen,setCompanionOpen] = useState(() => window.innerWidth >= 1280 && window.innerHeight >= 700);
+  const companionFocusRequested = useRef(false);
+  useEffect(() => { companionFocusRequested.current = false; }, [companionOpen]);
   const drawerSection = useRef<SpaceSectionDef | null>(null);
-  const [navigationAppearance,setNavigationAppearance] = useState<"sidebar" | "top">(() => {
-    try { return localStorage.getItem("aaos.navigation-appearance.v1") === "top" ? "top" : "sidebar"; } catch { return "sidebar"; }
-  });
-  const changeNavigationAppearance = (value: "sidebar" | "top") => {
-    setNavigationAppearance(value);
-    try { localStorage.setItem("aaos.navigation-appearance.v1", value); } catch { /* Session preference remains usable when storage is unavailable. */ }
-  };
+  const drawerTrail = useRef<string | null>(null);
   const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));
   const [openedDocumentId,setOpenedDocumentId] = useState<string|undefined>();
   const [activeDockPanelId,setActiveDockPanelId] = useState<string>();
@@ -99,7 +106,7 @@ function AppBody() {
   const [objectTrail, setObjectTrail] = useState<readonly ObjectTrailLevel[]>([]);
   const [sectionNotice, setSectionNotice] = useState<string | null>(null);
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
-  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth >= 1280 && window.innerHeight >= 700);
   const [learningFocus, setLearningFocus] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
   const [verificationPending, setVerificationPending] = useState(desktop);
@@ -108,7 +115,6 @@ function AppBody() {
   );
   const operation = useRef({ epoch: 0, mounted: true });
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const [commandPaletteRequest, setCommandPaletteRequest] = useState(0);
   const [searchedObject,setSearchedObject]=useState<ObjectReference|null>(null);
   const [searchedContentSha,setSearchedContentSha]=useState<string>();
   const draftDirty = useRef(false);
@@ -118,6 +124,32 @@ function AppBody() {
   const restoringRef = useRef(false);
   const [restoreNotice, setRestoreNotice] = useState<{confirmed:boolean;message:string}|null>(null);
   const [workspaceEpoch, setWorkspaceEpoch] = useState(0);
+  const referenceVisible = inspectorOpen && !selectedCapabilityId && !learningFocus && !workspaceRestoring;
+  const [researchMaterialsHost, setResearchMaterialsHost] = useState<HTMLDivElement | null>(null);
+  const researchReference = uiPageId === "05" && (!desktop || workingEntered);
+  const closeResearchReference = useCallback(() => {
+    const ownsFocus = Boolean(document.activeElement?.closest(".stitch-reference-window"));
+    setInspectorOpen(false);
+    if (ownsFocus) document.querySelector<HTMLElement>("button.inspector-trigger")?.focus();
+  }, []);
+  useEffect(() => {
+    if (!referenceVisible || !researchReference) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented || event.isComposing || !document.activeElement?.closest(".stitch-reference-window") || document.querySelector('[role="dialog"][data-state="open"]')) return;
+      event.preventDefault(); closeResearchReference();
+    };
+    window.addEventListener("keydown", dismiss);
+    return () => window.removeEventListener("keydown", dismiss);
+  }, [referenceVisible, researchReference, closeResearchReference]);
+  const companionHiddenByReference = referenceVisible && !wideWorkspace;
+  useLayoutEffect(() => {
+    if (!companionHiddenByReference) return;
+    companionFocusRequested.current = false;
+    // Only transfer focus when the auxiliary slot would hide its current owner.
+    if (companionOwnsFocus.current || document.activeElement?.closest("#stitch-companion-window")) {
+      document.querySelector<HTMLElement>('.stitch-reference-window button[aria-label="关闭检查器"]')?.focus();
+    }
+  }, [companionHiddenByReference]);
   const navigationHash = useRef(window.location.hash);
   const liveness = useRef<{
     generation: number;
@@ -346,7 +378,7 @@ function AppBody() {
     if(restoringRef.current)return;
     setInspectionTarget(target);
     // 窄窗口自动同步条目不抢占阅读区；显式检查仍可打开，已打开的检查器继续更新。
-    if (options?.reveal !== false || (document.querySelector(".console-window")?.getBoundingClientRect().width || window.innerWidth) > 900) setInspectorOpen(true);
+    if (options?.reveal !== false || (window.innerWidth >= 1280 && window.innerHeight >= 700)) setInspectorOpen(true);
   }, []);
 
   const surface = canonicalSurface(activeSpace, desktop);
@@ -380,7 +412,11 @@ function AppBody() {
     if (section.region) focusRegion(section.region);
   }, [activeSpace, desktop, focusRegion, navigate]);
 
-  const toggleInspector = useCallback(() => {if(!restoringRef.current)setInspectorOpen((value) => !value);}, []);
+  const toggleInspector = useCallback(() => {
+    if (restoringRef.current) return;
+    if (document.activeElement?.closest(".stitch-reference-window")) document.querySelector<HTMLElement>("button.inspector-trigger")?.focus();
+    setInspectorOpen(value => !value);
+  }, []);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
       if (restoringRef.current || commandPaletteOpen || event.repeat || event.isComposing || event.getModifierState("AltGraph")) return;
@@ -754,27 +790,23 @@ function AppBody() {
     { id: `space:${activeSpace}`, label: currentSpaceLabel, ...(firstReadyRegion ? { region: firstReadyRegion } : {}) },
     ...objectTrail,
   ];
+  const toggleCompanion = () => {
+    companionFocusRequested.current = !companionOpen || companionHiddenByReference;
+    if (companionHiddenByReference) setInspectorOpen(false);
+    setCompanionOpen(companionHiddenByReference || !companionOpen);
+  };
 
   return (
-    <ConsoleWindow><div className="app-shell cabin-shell" data-cabin-page={uiPageId ?? ""} data-navigation-appearance={navigationAppearance}>
+    <StitchResearchOutlet.Provider value={researchReference ? { host: referenceVisible ? researchMaterialsHost : null, onLocate: () => { if (!wideWorkspace) { setInspectorOpen(false); companionFocusRequested.current = false; setCompanionOpen(false); } } } : null}>
+    {!learningFocus && <StitchWorkspaceMenu onPage={openPage} onNavigation={() => setNavigationOpen(true)} />}
+    <ConsoleWindow presentation="stitch"><div className="app-shell cabin-shell" data-stitch-workspace="true" data-companion-open={companionOpen && !learningFocus} data-cabin-page={uiPageId ?? ""}>
       <TopNavBar
         breadcrumbs={[
           { label: currentSpaceLabel },
           ...(uiPageId ? [{ label: findUiPage(uiPageId)?.label ?? '' }] : [])
         ]}
-        notificationCount={0}
-        onSettings={() => openPage("19")}
-        onSearch={() => { if (!restoringRef.current) setCommandPaletteRequest(value => value + 1); }}
-        userName="User"
-      />
-      {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
-      {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区，请等待读取完成…</div> : null}
-      {workingNotice}
+      >
       <StatusBar
-        navigationAppearance={navigationAppearance}
-        onNavigationAppearance={changeNavigationAppearance}
-        pageId={uiPageId}
-        learningFocus={learningFocus}
         activeSpace={activeSpace}
         backendState={!desktop
           ? "web"
@@ -784,28 +816,32 @@ function AppBody() {
         onOpenCapability={openCapability}
         selectedCapabilityId={selectedCapabilityId}
         onCommandPaletteOpenChange={setCommandPaletteOpen}
-        commandPaletteOpenRequest={commandPaletteRequest}
         onOpenObject={(reference,sha)=>{if(!restoringRef.current){setSearchedObject(reference);setSearchedContentSha(sha);}}}
         inspectorOpen={inspectorOpen}
         onToggleInspector={toggleInspector}
       />
-      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const section=drawerSection.current;drawerSection.current=null;if(section){event.preventDefault();activateSection(section);}}} trigger={<button className="ui-navigation-trigger" aria-label="打开产品导航">☰ 导航</button>} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;drawerSection.current=section;setNavigationOpen(false);}} />}</AaosDialog>}
+      </TopNavBar>
+      {restoreNotice?<p role={restoreNotice.confirmed?"status":"alert"} className="workspace-restore-notice">{restoreNotice.message}</p>:null}
+      {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区，请等待读取完成…</div> : null}
+      {workingNotice}
+
+      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const trail=drawerTrail.current;drawerTrail.current=null;if(trail){event.preventDefault();focusRegion(trail);return;}const section=drawerSection.current;drawerSection.current=null;if(section){event.preventDefault();activateSection(section);}}} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><NavTrail levels={trailLevels} onJump={region=>{drawerTrail.current=region;setNavigationOpen(false);}} /><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;drawerSection.current=section;setNavigationOpen(false);}} />}</AaosDialog>}
       <div className="app-body" key={`workspace:${workspaceEpoch}`} aria-busy={workspaceRestoring}>
-        {!learningFocus && <aside className="navigation-sidebar" aria-label="产品导航">
-          <SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage} />
-          {(!desktop||workingEntered)?<details className="companion-sidebar"><summary>小栖陪伴</summary><ConversationPanel slot="sidebar"/></details>:null}
-          {!navigationOpen && !selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={activateSection} />}
-        </aside>}
         <main className="app-center" role="main" aria-label="当前空间内容">
           {searchedObject?<PinnedReferencePanel reference={searchedObject} expectedDocumentSha={searchedContentSha} onClose={()=>setSearchedObject(null)} onOpenReference={reference=>{setSearchedObject(reference);setSearchedContentSha(undefined);}}/>:null}
-          <NavTrail levels={trailLevels} onJump={focusRegion} />
+
           {sectionNotice ? <p className="nav-trail-notice" role="status">{sectionNotice}</p> : null}
-          <div className="ui-page-heading" role="group" aria-label="当前页面" data-current-page-id={uiPageId ?? ""}><div><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1><p>个人空间 · 本地知识与 Human–AI 双向学习</p></div><small>{findUiPage(uiPageId ?? "")?.group ?? "个人工作区"}</small></div>
+          <div className="stitch-page-identity" data-current-page-id={uiPageId ?? ""}><h1>{findUiPage(uiPageId ?? "")?.label ?? currentSpaceLabel}</h1></div>
           {(!desktop||workingEntered)?(desktop?<DockWorkspace activePanelId={activeDockPanelId} navigationRevision={dockNavigationRevision} onActivateView={activateDockView} initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail}/>:<SpaceView initialLearningItemKey={initialLearningItemKey} onReviewItem={openReviewItem} onOpenPage={openPage} hasUnsavedDrafts={unsavedDrafts} uiPageId={uiPageId} initialDocumentId={openedDocumentId} onOpenDocument={openDocument} spaceId={activeSpace} onInspect={inspect} onNavigate={navigate} onOpenCapability={openCapability} navigation={sectionNavigation} selectedCapabilityId={selectedCapabilityId} onTrail={setObjectTrail} />):<p role="status">尚未确认草稿状态；请先重新读取或选择恢复方式。</p>}
         </main>
-        {inspectorOpen && !selectedCapabilityId && !learningFocus ? <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} /> : null}
       </div>
       {!learningFocus && <ActivityDock key={`activity:${workspaceEpoch}`} onInspect={inspect} commandPaletteOpen={commandPaletteOpen} />}
     </div></ConsoleWindow>
+    {referenceVisible ? <div className={`stitch-reference-window${researchReference ? " stitch-related-window" : ""}`}>
+      {researchReference ? <><button type="button" className="stitch-related-close" aria-label="关闭检查器" title="收起相关资料" onClick={closeResearchReference}>×</button><div ref={setResearchMaterialsHost} /></> : <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} />}
+    </div> : null}
+    {!learningFocus && <StitchWorkspaceDock pageId={uiPageId} onPage={openPage} companionOpen={companionOpen && !companionHiddenByReference} onCompanion={toggleCompanion} />}
+    {companionOpen && !learningFocus && (!desktop || workingEntered) ? <StitchCompanionWindow focusOnOpen={companionFocusRequested.current && !companionHiddenByReference} onClose={() => { companionFocusRequested.current = false; setCompanionOpen(false); }}><ConversationPanel slot="sidebar" /></StitchCompanionWindow> : null}
+    </StitchResearchOutlet.Provider>
   );
 }

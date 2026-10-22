@@ -110,3 +110,15 @@ it("submits every exact same-address hit with the authored stance to the binding
  await waitFor(()=>expect(compare).toHaveBeenCalledWith([{family:"research",id:"first",stance:"conflict"},{family:"research",id:"second",stance:"conflict"}]));
  expect(save).not.toHaveBeenCalled();await waitFor(()=>expect(screen.getByRole("button",{name:"把对照记录加入未决草稿"})).toBeDisabled());
 });
+
+
+it("focuses an evidence card without selecting comparison or materializing and clears focus for a new receipt",()=>{
+ const first=read([hit("a"),hit("b","https://example.test/other")]);const materialize=vi.fn(),keep=vi.fn(()=>true);
+ const view=render(<PublicResearchPanel snapshot={first} onKeepNote={keep} onMaterialize={materialize}/>);query();
+ fireEvent.click(screen.getByRole("button",{name:"聚焦结果 2"}));
+ expect(screen.getByRole("button",{name:"聚焦结果 2"})).toHaveAttribute("aria-pressed","true");
+ expect(screen.getByRole("checkbox",{name:"对照结果 2"})).not.toBeChecked();
+ expect(materialize).not.toHaveBeenCalled();expect(keep).not.toHaveBeenCalled();
+ view.rerender(<PublicResearchPanel snapshot={read([hit("new")])} onKeepNote={keep} onMaterialize={materialize}/>);
+ expect(screen.getByRole("button",{name:"聚焦结果 1"})).toHaveAttribute("aria-pressed","false");
+});

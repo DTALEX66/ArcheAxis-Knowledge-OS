@@ -1,9 +1,10 @@
-import { useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,useSyncExternalStore,type ComponentProps } from "react";
+import { useCallback,useContext,useEffect,useLayoutEffect,useMemo,useRef,useState,useSyncExternalStore,type ComponentProps } from "react";
 import { createPortal } from "react-dom";
 import { DockviewReact,DockviewDefaultTab,themeDark,type IDockviewPanelProps,type IDockviewPanelHeaderProps,type IDockviewHeaderActionsProps,type DockviewReadyEvent,type DockviewApi } from "dockview-react";
 import "dockview-react/dist/styles/dockview.css";
 import "./dock-workspace.css";
 import { SpaceView } from "../spaces/SpaceView";
+import { StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
 import { findUiPage,defaultUiPage } from "../presentation/uiPages";
 import { useOptionalCoreWorkingState } from "../presentation/useCoreWorkingState";
 import type {SourceJourneyTarget} from "../presentation/sourceJourney";
@@ -36,6 +37,7 @@ export function DockWorkspace(props:Props){
  return <WorkspaceDockSession key={`${workspaceId}:${epoch}`} {...props} workspaceId={workspaceId} epoch={epoch}/>;
 }
 function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
+ const researchOutlet=useContext(StitchResearchOutlet);
  const {workspaceId,epoch,activePanelId,navigationRevision=0,onActivateView,...view}=props;
  const page=view.uiPageId??defaultUiPage(view.spaceId),id=activePanelId??businessPanelId(view.selectedCapabilityId?"17":page);
  const registry=useMemo(()=>new PanelRegistry(workspaceId,epoch),[workspaceId,epoch]);
@@ -68,7 +70,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  useEffect(()=>{if(pendingSource){if(page==="03"&&pendingSource.documentId===view.initialDocumentId)setSourceTarget(pendingSource.target);setPendingSource(undefined);}},[pendingSource,page,view.initialDocumentId]);
  useLayoutEffect(()=>{setPendingSource(undefined);setSourceTarget(undefined);},[view.initialDocumentId]);
  useEffect(()=>{const clear=(event:Event)=>{if((event as CustomEvent<{confirmed?:boolean}>).detail?.confirmed)changeSource(undefined);};window.addEventListener("workspace-invalidated",clear);return()=>window.removeEventListener("workspace-invalidated",clear);},[changeSource]);
- const components=useMemo(()=>({business:function BusinessSlot(panel:IDockviewPanelProps){const slot=useRef<HTMLDivElement>(null);const panelId=presentationPanelId(panel.api.id);useLayoutEffect(()=>{const container=slot.current;if(container)container.appendChild(registry.host(panelId));const activate=()=>{activations.current.set(panelId,(activations.current.get(panelId)??0)+1);refresh(v=>v+1);};const visibility=panel.api.onDidVisibilityChange(event=>{if(event.isVisible)activate();});if(panel.api.isVisible)activate();return()=>{visibility.dispose();if(parking.current&&registry.host(panelId).parentElement===container)registry.park(panelId,parking.current);};},[panelId]);return <div className="dock-slot" ref={slot}/>;}}),[registry]);
+ const components=useMemo(()=>({business:function BusinessSlot(panel:IDockviewPanelProps){const slot=useRef<HTMLDivElement>(null);const panelId=presentationPanelId(panel.api.id);useLayoutEffect(()=>{const container=slot.current;if(container)container.appendChild(registry.host(panelId));const activate=()=>{activations.current.set(panelId,(activations.current.get(panelId)??0)+1);refresh(v=>v+1);};const visibility=panel.api.onDidVisibilityChange(event=>{if(event.isVisible)activate();else refresh(v=>v+1);});if(panel.api.isVisible)activate();return()=>{visibility.dispose();if(parking.current&&registry.host(panelId).parentElement===container)registry.park(panelId,parking.current);};},[panelId]);return <div className="dock-slot" ref={slot}/>;}}),[registry]);
  const ensure=(panelId:string)=>{if(!retained.current.has(panelId)){const objectId=documentObjectId(panelId),pageId=objectId?"03":panelId,definition=findUiPage(pageId);retained.current.set(panelId,{...current.current,uiPageId:pageId,spaceId:definition?.space??"workspace",selectedCapabilityId:null,initialDocumentId:objectId,navigation:undefined,onTrail:undefined});}registry.host(panelId);};
  // 宿主身份只决定保留的业务会话；标签使用该宿主最后获准展示的页面。
  const titleFor=(panelId:string)=>{const objectId=documentObjectId(panelId);if(objectId)return `文档 ${objectId}`;const saved=retained.current.get(panelId);return findUiPage(saved?.selectedCapabilityId?"17":saved?.uiPageId??panelId)?.label??panelId;};
@@ -127,7 +129,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;controller.invalidate();};},[controller]);
  useEffect(()=>{if(ready)open(id,undefined,false);},[id,ready,page,navigationRevision]);
  useEffect(()=>{if(!ready||workspaceId==="unverified")return;let alive=true;const started=interaction.current;void controller.read().then(result=>{if(!alive)return;if(result.workspace_id!==workspaceId||result.restore_epoch!==epoch)throw new Error("布局属于其他工作区；保留当前视图");if([...Object.values(result.layout.floating_bounds),...(result.layout.schema_version===2?result.layout.floating_groups??[]:[]).map(g=>g.bounds)].some(b=>b.x+b.width>window.innerWidth||b.y+b.height>window.innerHeight))throw new Error("屏幕范围已变化；请确认布局恢复以调整浮动面板");if(!result.recovery_reason){if(started!==interaction.current){setNotice("已读取已保存的布局；保留当前视图。需要时可选择“应用已保存布局”。");return;}apply(result.layout,false);const latest=current.current;open(businessPanelId(latest.selectedCapabilityId?"17":latest.uiPageId??defaultUiPage(latest.spaceId)),undefined,false);}}).catch(error=>{if(alive)setNotice(String(error.message??error));});return()=>{alive=false;};},[ready,workspaceId,epoch]);
- const onReady=(event:DockviewReadyEvent)=>{api.current=event.api;open(id,undefined,false);event.api.onDidActivePanelChange(()=>synchronize());event.api.onDidRemovePanel(()=>{if(!hydrating.current&&!controlled.current)interaction.current++;});event.api.onDidLayoutChange(()=>{if(hydrating.current||!mounted.current)return;try{
+ const onReady=(event:DockviewReadyEvent)=>{api.current=event.api;open(id,undefined,false);event.api.onDidActivePanelChange(()=>synchronize());event.api.onDidRemovePanel(()=>{if(!hydrating.current&&!controlled.current)interaction.current++;refresh(v=>v+1);});event.api.onDidLayoutChange(()=>{if(hydrating.current||!mounted.current)return;try{
   const layout=captureLayout(event.api,presetRef.current,{workspaceId,epoch,locked:lockedRef.current});
   // Tab selection is presentation only. A deliberate panel addition/close replaces
   // the temporary projection, so growing the window cannot resurrect closed tabs.
@@ -161,6 +163,6 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
   {controller.snapshot?.recovery_reason?<p role="alert">布局需要确认恢复。请展开“布局与面板”核对并确认恢复。</p>:null}
   <div className="dock-surface" ref={surface}><DockviewReact components={components} defaultTabComponent={AccessibleDockTab} rightHeaderActionsComponent={DockGroupActions} theme={themeDark} onReady={onReady} locked={locked} disableDnd={locked||compactFallback}/></div>
   <div hidden aria-hidden="true" ref={parking}/>
-  {[...retained.current].map(([panelId,saved])=>createPortal(<DocumentBusinessProvider sessions={documentSessions} viewId={registry.key(panelId)} revealOwner={owner=>{const ownerPanel=[...retained.current.keys()].find(candidate=>registry.key(candidate)===owner);if(ownerPanel)open(ownerPanel);}}><SpaceView {...saved} sourceJourney={{target:panelId==="03"?sourceTarget:undefined,onChange:changeSource}} activationRevision={activations.current.get(panelId)??0} onTrail={panelId===id?saved.onTrail:undefined}/></DocumentBusinessProvider>,registry.host(panelId),registry.key(panelId)))}
+  {[...retained.current].map(([panelId,saved])=>createPortal(<DocumentBusinessProvider sessions={documentSessions} viewId={registry.key(panelId)} revealOwner={owner=>{const ownerPanel=[...retained.current.keys()].find(candidate=>registry.key(candidate)===owner);if(ownerPanel)open(ownerPanel);}}><StitchResearchOutlet.Provider value={researchOutlet && !(panelId===id && api.current?.activePanel?.id===panelId && api.current.getPanel(panelId)?.api.isVisible) ? {...researchOutlet,host:null} : researchOutlet}><SpaceView {...saved} sourceJourney={{target:panelId==="03"?sourceTarget:undefined,onChange:changeSource}} activationRevision={activations.current.get(panelId)??0} onTrail={panelId===id?saved.onTrail:undefined}/></StitchResearchOutlet.Provider></DocumentBusinessProvider>,registry.host(panelId),registry.key(panelId)))}
  </section>;
 }

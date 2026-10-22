@@ -7,6 +7,7 @@
 | 根目录旧报告、旧 current 快照与收据、旧任务派发、旧设计稿、旧验证目录 | [仓库整理归档](repository-consolidation-20261019/README.md) |
 | 原始蓝图、压缩包及共享资料身份 | [原始资料索引](record-archive-20261009/INDEX.md) |
 | Owner 对话摘录与决定映射 | [决定出处](owner-dialogue-20261019/README.md) |
+| 2026-10-21 接手会话、最新权威与项目漂移审计（冻结快照） | [审计报告](project-drift-audit-20261021/REPORT.md)；[会话梳理](project-drift-audit-20261021/THREAD-MAP.md) |
 | 开源吸收、失败证据与限定运行快照 | `oss-absorption-evidence/`；由当前活动指针按任务导航 |
 | 已迁移的旧交接与摘要 | [交接归档](handoff-archive-20261018/README.md) |
 | 中断后本对话完整主题收尾、最新CI快照与遗留项 | [收尾汇总](product-loop-20261019/conversation-closeout.md)；[机器记录](product-loop-20261019/conversation-closeout.json) |

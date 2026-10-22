@@ -1,8 +1,14 @@
 # AGENTS.md - 星环知识系统（ArcheAxis Knowledge）Operating Guide
 
-> **2026-10-19 当前路由与状态**：Owner 明确恢复当前产品任务，并要求今天停止额度监控；状态 RUNNING_BY_OWNER / PARTIAL。今天不查询额度、不因额度阈值停工。活动指针及唯一 UI 执行记录保存范围与实测；旧暂停仅为历史时点。六项增量仍冻结，V01 暂停、FT01–04 冻结。Owner 后继明确允许覆盖 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 的程序安装，具体范围、备份与资格条件见活动指针 `green_update_authorization`；公开发布和真实用户数据覆盖仍未授权。文件身份及旧路径按 [路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json) 核对。
+> **2026-10-22 最新UI决定**：Owner明确“不要再维护旧版界面了，全面接入STITCH界面啊（这才是新版界面）”。Stitch为唯一新版，22页中心布局沿已接收设计语言接入，复用原业务合同和状态；不保留并行旧布局偏好，不以新壳代替中心页面迁移。当前本地验证与未完成资格见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)最新段，不能把源码覆盖当实际Core/原生/安装验收。
 
-> **2026-10-21 最新执行优先级**：Owner明确“前端界面可以缓缓，优先确保后端全链路的打通跑通，优先闭环”，并授权按难度适配模型与推理强度的实时并行智能体。后端与同候选CL-01—07/J1—J6优先，已有前端修改保留，其余UI稍后；2026-10-19前端先行顺序为历史。分片仍由[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_priority_overlay`选择，配合[完整接手提示词](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)读取；原任务ID及唯一执行记录不变，不据交接整理宣称产品完成。共享checkout单writer，独立writer隔离worktree，冻结/数据/发布边界不变。
+> **2026-10-22 最新范围收敛**：Owner明确开源池、第三方API和软件特色兼容等可选扩展“这些都是后期内置市场里的了”，要求“不要无限增加，无限扩展”。本期优先已接收Stitch UI与已有核心业务接通、必要修复和验收；仅沿现有合同保留专业扩展接口约定，不启动市场、扩展包、通用运行时或逐软件特色开发。库存与兼容矩阵不是自动执行队列，也不是本期必须清零的门槛。详细决定见[第十八节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#十八后期内置市场与本期范围收敛2026-10-22)；它覆盖下文旧分片中扩大本期扩展范围的解释，历史证据与未完成状态保留。
+
+> **2026-10-19 历史路由与决定**：Owner 明确恢复当前产品任务，并要求今天停止额度监控；状态 RUNNING_BY_OWNER / PARTIAL。今天不查询额度、不因额度阈值停工。活动指针及唯一 UI 执行记录保存范围与实测；旧暂停仅为历史时点。六项增量仍冻结，V01 暂停、FT01–04 冻结。Owner 后继明确允许覆盖 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 的程序安装，具体范围、备份与资格条件见活动指针 `green_update_authorization`；公开发布和真实用户数据覆盖仍未授权。文件身份及旧路径按 [路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json) 核对。
+
+> **2026-10-21 最新执行优先级**：Owner后继明确“全部按照新的UI进行打通”，要求结合审计修复漂移、更新任务与交接，按已接收Stitch界面前后端同步并行接通全部现有业务页面和共用壳。先前前端暂缓／后端优先及更早前端先行均为历史顺序；当前按UI-P01—24与BE-P01—15并行、同候选CL-01—07/J1—J6统一验收。分片仍由[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_priority_overlay`选择，配合[完整接手提示词](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)读取；原任务ID及唯一执行记录不变，不据交接整理宣称产品完成。共享checkout单writer，独立writer隔离worktree，冻结/数据/发布边界不变。
+
+> **2026-10-22 最新额度与交付规则**：Owner明确新增Codex订阅监控；剩余≤20%时完成已启动的当前任务/可验证单元，随后停止新任务，整理会话、后续任务和完整交接，上传本轮公开任务文件并核实本地/远端SHA一致。实际heartbeat为`aaos`，ACTIVE、每30分钟；额度读数及触发状态以活动指针中的最新观测为准。此决定覆盖旧15%及10/19停监控说明；未知额度不当0，私人原文/凭据/运行库不上传，Git/网络拒绝不得绕过。监控本身不授权新增产品开发、合并、发布或替换Green。详细规则见[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_control.allowance_guard`。
 
 > 全局执行标准（跨软件跨项目）：见 WORK-LAB `00-governance/global-execution-standard.md`（执行生命周期：理解→扫技能→分片→执行→验证→落地；全局边界：E盘禁访/数据不外溢/官方优先/全功率）。
 > 经验教训铁律（核实优先/治理最小化/官方优先）：见本项目 `LESSONS_LEARNED.md`。
@@ -85,8 +91,8 @@ The immutable package records its planning-time NOT_EXECUTED state; actual
 implementation and acceptance come from the separate execution record.
 Owner selected first batch UF00/01/02/03, CB01 -> UF04, UF06, S01.A/B/C, then G01.
 Remaining slices need selection; V01 remains paused, FT01-04 remain deferred.
-New layout/architecture follow the new task; blueprint is the default palette,
-blueprint-light and black/white/cosmic are switchable themes. All themes share
+New layout/architecture follow the new task; cosmic is the default for new or invalid preferences; preserve valid saved preferences.
+blueprint, blueprint-light, black and white remain switchable themes. All themes share
 the new layout; each theme uses consistent semantic colors throughout the UI.
 The inherited AAOS-01 package is `docs/authority/taskpack-1004-aaos01/`;
 its Q00-Q15 progress alone remains in

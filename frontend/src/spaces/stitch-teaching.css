@@ -1,0 +1,57 @@
+/* Stitch family composition; no generic ui-content-panel overrides. */
+.stitch-teaching { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; color: var(--ax-fg); font-size: var(--ax-text-ui); line-height: 1.5; overflow-wrap: anywhere; }
+.stitch-teaching :is(h2,h3,p) { margin: 0; }
+.stitch-teaching-topic { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stitch-teaching-topic h2 { font-size: 1.05rem; font-weight: 650; line-height: 1.5; }
+.stitch-teaching .stitch-teaching-eyebrow { margin-bottom: 2px; font-size: var(--ax-text-caption); color: var(--ax-accent); }
+.stitch-teaching-topic > span { color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.stitch-teaching-stages { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--ax-border-strong); }
+.stitch-teaching :is(button,input,select,textarea,summary) { font: inherit; max-width: 100%; min-width: 0; box-sizing: border-box; }
+.stitch-teaching button { min-height: 34px; padding: 5px 9px; border: 1px solid var(--ax-border); border-radius: 5px; background: var(--ax-raised); color: var(--ax-fg-secondary); white-space: normal; overflow-wrap: anywhere; cursor: pointer; }
+.stitch-teaching button:not(:disabled):hover { color: var(--ax-accent); border-color: var(--ax-accent); background: var(--ax-accent-soft); }
+.stitch-teaching button:disabled { cursor: default; opacity: .6; }
+.stitch-teaching-stages > button { border-radius: 999px; padding-inline: 12px; }
+.stitch-teaching-stages > button[aria-pressed="true"] { color: var(--ax-accent); background: var(--ax-accent-soft); border-color: var(--ax-accent); }
+.stitch-teaching :is(button,input,select,textarea,summary):focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+.stitch-teaching-message, .stitch-teaching-failure { padding: 10px 12px; border: 1px solid var(--ax-border-strong); border-radius: 6px; background: var(--ax-raised); }
+.stitch-teaching-failure { color: var(--ax-danger); border-color: var(--ax-danger); }
+.stitch-teaching-rules { border: 1px solid var(--ax-border); padding: 8px 12px; border-radius: 6px; color: var(--ax-fg-secondary); }
+.stitch-teaching summary { cursor: pointer; min-height: 28px; line-height: 28px; }
+.stitch-teaching-rules[open] > p { margin-top: 8px; }
+.stitch-teaching-layout { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(220px,1fr); gap: 12px; align-items: start; min-width: 0; }
+.stitch-teaching-current, .stitch-teaching-support, .stitch-teaching-learning { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.stitch-teaching-selected:empty, .stitch-teaching-learning:empty { display: none; }
+.stitch-teaching-card, .stitch-teaching-selected > article, .stitch-teaching-learning > section { min-width: 0; padding: 12px; border: 1px solid var(--ax-border-strong); border-radius: 8px; background: var(--ax-panel); backdrop-filter: blur(16px); }
+.stitch-teaching-card > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px solid var(--ax-border); }
+.stitch-teaching-card h3, .stitch-teaching-selected h3, .stitch-teaching-learning > section > h3 { font-size: var(--ax-text-ui); font-weight: 600; line-height: 1.5; }
+.stitch-teaching-card > header > span { color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.stitch-teaching-card > summary { color: var(--ax-fg); font-weight: 600; }
+.stitch-teaching-card[open] > summary { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--ax-border); }
+.stitch-teaching-card p, .stitch-teaching-selected p, .stitch-teaching-learning > section > p { margin-block: 8px; color: var(--ax-fg-secondary); }
+.stitch-teaching label { display: flex; flex-direction: column; gap: 6px; min-width: 0; color: var(--ax-fg-secondary); }
+.stitch-teaching :is(input:not([type="checkbox"]),select,textarea) { width: 100%; min-height: 36px; padding: 6px 8px; border: 1px solid var(--ax-border); border-radius: 5px; color: var(--ax-fg); background: var(--ax-raised); }
+.stitch-teaching input[type="file"] { white-space: normal; }
+.stitch-teaching textarea { min-height: 160px; resize: vertical; line-height: 1.65; }
+.stitch-teaching-editor fieldset { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; min-width: 0; border: 0; padding: 0; margin: 0; }
+.stitch-teaching-editor legend { padding: 0; margin-bottom: 12px; color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.stitch-teaching-editor .stitch-teaching-purpose, .stitch-teaching-editor .stitch-teaching-body, .stitch-teaching-editor .stitch-teaching-checkbox { grid-column: 1 / -1; }
+.stitch-teaching .stitch-teaching-checkbox { flex-direction: row; align-items: center; }
+.stitch-teaching-checkbox input { flex: 0 0 auto; width: 16px; height: 16px; margin: 0; }
+.stitch-teaching-editor form > button { margin-top: 6px; margin-right: 6px; }
+.stitch-teaching-editor button[type="submit"] { color: var(--ax-accent); border-color: var(--ax-accent); background: var(--ax-accent-soft); }
+.stitch-teaching-source form { display: flex; flex-direction: column; align-items: stretch; gap: 8px; margin-top: 10px; }
+.stitch-teaching-source > label { margin-top: 10px; }
+.stitch-teaching-source > button { margin-top: 8px; }
+.stitch-teaching ul { display: grid; gap: 8px; list-style: none; padding: 0; margin: 10px 0; }
+.stitch-teaching li { min-width: 0; }
+.stitch-teaching li > button { width: 100%; text-align: left; }
+.stitch-teaching li > small { display: block; margin-top: 4px; color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.stitch-teaching-preparations p, .stitch-teaching-history p { font-size: var(--ax-text-caption); }
+.stitch-teaching-preparations section > h3 { margin-bottom: 8px; }
+.stitch-teaching-selected > article > button { margin-top: 6px; margin-right: 6px; }
+.stitch-teaching [hidden] { display: none !important; }
+@container content (max-width: 760px) { .stitch-teaching-layout { grid-template-columns: minmax(0,1fr); } }
+@container content (max-width: 540px) { .stitch-teaching-editor fieldset { grid-template-columns: minmax(0,1fr); } .stitch-teaching-topic { align-items: flex-start; flex-direction: column; gap: 4px; } }
+@media (max-width: 760px) { .stitch-teaching-layout { grid-template-columns: minmax(0,1fr); } }
+@media (max-width: 540px) { .stitch-teaching-editor fieldset { grid-template-columns: minmax(0,1fr); } .stitch-teaching-topic { align-items: flex-start; flex-direction: column; gap: 4px; } }
+@media (forced-colors: active) { .stitch-teaching :is(section,article,details,button,input,select,textarea) { border-color: CanvasText; } .stitch-teaching-card, .stitch-teaching-selected > article { background: Canvas; color: CanvasText; } .stitch-teaching-stages > button[aria-pressed="true"] { color: Highlight; border-color: Highlight; } }

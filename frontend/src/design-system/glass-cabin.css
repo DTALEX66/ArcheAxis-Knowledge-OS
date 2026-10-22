@@ -48,8 +48,8 @@ body:has(.cabin-shell) {
 .cabin-shell .status-bar-brand .brand-mark { width: 38px; height: auto; }
 .cabin-shell .brand-name { line-height: 25px; white-space: nowrap; }
 .cabin-shell .brand-name small { display: block; line-height: 16px; font-size: var(--ax-text-ui); color: var(--ax-fg-secondary); }
-.cabin-shell .command-trigger { display: flex; justify-content: flex-start; gap: 12px; flex: 1; width: auto; max-width: 746px; min-height: 42px; height: 42px; font-size: 16px; border-radius: 9px; background: #18325040; border-color: #82b3e2a3; box-shadow: inset 0 1px 4px #a5d6ff4d; }
-.cabin-shell .command-trigger kbd { font-size: 14px; margin-left: auto; }
+.cabin-shell:not([data-stitch-workspace]) .command-trigger { display: flex; justify-content: flex-start; gap: 12px; flex: 1; width: auto; max-width: 746px; min-height: 42px; height: 42px; font-size: 16px; border-radius: 9px; background: #18325040; border-color: #82b3e2a3; box-shadow: inset 0 1px 4px #a5d6ff4d; }
+.cabin-shell:not([data-stitch-workspace]) .command-trigger kbd { font-size: 14px; margin-left: auto; }
 .cabin-shell .status-bar-center { flex: 0 0 auto; margin-left: auto; }
 .cabin-shell .status-pill { font-size: 14px; color: var(--ax-fg-secondary); border: 0; padding: 0; background: transparent; }
 .cabin-shell .status-pill::before { width: 12px; height: 12px; margin-right: 10px; }
@@ -201,8 +201,8 @@ body:has(.cabin-shell) {
 :root:is([data-aaos-theme="white"],[data-aaos-theme="blueprint-light"]) { --cabin-shadow: 0 10px 26px #142e4910,inset 0 1px 0 #ffffff66; }
 @container console (max-width: 1400px) { .cabin-shell .status-bar { gap: 14px; padding-inline: 14px; } .cabin-shell .status-bar-brand { min-width: 195px; font-size: 16px; gap: 10px; } .workspace-start { margin-left: 4%; max-width: 92%; } .workspace-entry-card { padding: 26px; } .workspace-start h2 { font-size: 40px; } }
 @container console (max-width: 1100px) { .cabin-shell .status-bar-brand { min-width: 0; } .cabin-shell .status-pill { font-size: var(--ax-text-caption); } .workspace-start { margin-top: 8cqh; } .workspace-entry-card { padding: 22px; } .workspace-entry-card p { font-size: 16px; } .cabin-shell .workspace-entry-card button { font-size: 16px; } .cabin-shell .status-bar-brand .brand-mark { width: 30px; height: auto; } .cabin-shell .brand-name small { display: none; } }
-@container console (max-width: 900px) { .app-shell.cabin-shell { margin: 2.5cqh 2cqw 0; height: 95cqh; border-radius: 28px; padding-inline: 7px; } .cabin-shell .app-center { padding: 16px 20px; } .workspace-start { margin: 6cqh auto 26px; max-width: 100%; } .cabin-shell .status-bar { gap: 10px; } .cabin-shell .cabin-settings { padding-left: 10px; } .cabin-shell .command-trigger { min-width: 80px; } .workspace-start h2 { font-size: 36px; } .workspace-start-copy p { font-size: 18px; } }
-@container console (max-width: 640px) { .app-shell.cabin-shell { margin: 10px; height: calc(100cqh - 20px); border-radius: 20px; padding-inline: 4px; } .cabin-shell .app-center { padding: 16px; border-radius: 12px; } .workspace-entry-cards { grid-template-columns: 1fr; gap: 16px; } .workspace-entry-card { min-height: 260px; padding: 24px; } .workspace-start { margin-top: 34px; } .workspace-start-copy { margin-bottom: 22px; } .workspace-start h2 { font-size: 30px; } .workspace-start-copy p { font-size: 16px; } .cabin-shell .status-bar { padding: 8px; min-height: 60px; } .cabin-shell .status-bar-brand { font-size: 14px; } .cabin-shell .status-bar-brand .brand-mark { width: 24px; height: auto; } .cabin-shell .activity-dock { padding: 10px; } .cabin-shell .activity-dock-item { font-size: var(--ax-text-caption); } .cabin-shell[data-cabin-page="01"] .dock-layout-options { top: 14px; right: 16px; } .cabin-shell .ui-page-heading h1 { font-size: 22px; } .cabin-shell .command-trigger { min-width: 36px; flex: 0 0 36px; } }
+@container console (max-width: 900px) { .app-shell.cabin-shell { margin: 2.5cqh 2cqw 0; height: 95cqh; border-radius: 28px; padding-inline: 7px; } .cabin-shell .app-center { padding: 16px 20px; } .workspace-start { margin: 6cqh auto 26px; max-width: 100%; } .cabin-shell .status-bar { gap: 10px; } .cabin-shell .cabin-settings { padding-left: 10px; } .cabin-shell:not([data-stitch-workspace]) .command-trigger { min-width: 80px; } .workspace-start h2 { font-size: 36px; } .workspace-start-copy p { font-size: 18px; } }
+@container console (max-width: 640px) { .app-shell.cabin-shell { margin: 10px; height: calc(100cqh - 20px); border-radius: 20px; padding-inline: 4px; } .cabin-shell .app-center { padding: 16px; border-radius: 12px; } .workspace-entry-cards { grid-template-columns: 1fr; gap: 16px; } .workspace-entry-card { min-height: 260px; padding: 24px; } .workspace-start { margin-top: 34px; } .workspace-start-copy { margin-bottom: 22px; } .workspace-start h2 { font-size: 30px; } .workspace-start-copy p { font-size: 16px; } .cabin-shell .status-bar { padding: 8px; min-height: 60px; } .cabin-shell .status-bar-brand { font-size: 14px; } .cabin-shell .status-bar-brand .brand-mark { width: 24px; height: auto; } .cabin-shell .activity-dock { padding: 10px; } .cabin-shell .activity-dock-item { font-size: var(--ax-text-caption); } .cabin-shell[data-cabin-page="01"] .dock-layout-options { top: 14px; right: 16px; } .cabin-shell .ui-page-heading h1 { font-size: 22px; } .cabin-shell:not([data-stitch-workspace]) .command-trigger { min-width: 36px; flex: 0 0 36px; } }
 @container console (max-width: 900px) { .cabin-shell[data-cabin-page="03"] > section[data-working-state="ready"][role="status"] { position: static; order: 1; margin: 0 0 4px; } .cabin-shell[data-cabin-page="03"] .status-bar { order: 0; } .cabin-shell[data-cabin-page="03"] :is(.ui-navigation-trigger,.app-body,.activity-dock) { order: 2; } .cabin-shell[data-cabin-page="03"]:has(> [data-working-state="ready"]) .app-center { margin-top: 0; } .cabin-shell[data-cabin-page="03"] .app-center { padding: 16px; } .cabin-shell[data-cabin-page="03"] .dock-layout-options { right: 16px; } .cabin-shell[data-cabin-page="03"] .ui-page-heading { gap: 8px; } .cabin-shell[data-cabin-page="03"] .ui-reader-document { padding: 18px; } .cabin-shell[data-cabin-page="03"] .ui-reader-document h2 { font-size: 28px; line-height: 38px; } .cabin-shell[data-cabin-page="03"] .ui-reader-document .tiptap { font-size: 17px; } }
 @container console (max-width: 640px) { .cabin-shell[data-cabin-page="03"] .ui-page-heading h1 { font-size: 24px; line-height: 32px; } .cabin-shell[data-cabin-page="03"] .ui-page-heading p { font-size: 14px; line-height: 21px; } .cabin-shell[data-cabin-page="03"] .ui-page-heading > small { display: none; } .cabin-shell[data-cabin-page="03"] .nav-trail { padding-right: 70px; } .cabin-shell[data-cabin-page="03"] .ui-reader-toolbar .ui-content-tabs { flex: 1; } .cabin-shell[data-cabin-page="03"] .ui-content-tabs button { min-width: 0; flex: 1; padding-inline: 14px; } .cabin-shell[data-cabin-page="03"] .library-list-controls { margin-left: 0; } }
 /* Wrapped controls need a growing header so the working-state notice starts below it. */
@@ -214,7 +214,7 @@ body:has(.cabin-shell) {
     height: auto;
   }
   .cabin-shell .status-bar-brand { grid-column: 1 / 3; grid-row: 1; }
-  .cabin-shell .command-trigger {
+  .cabin-shell:not([data-stitch-workspace]) .command-trigger {
     grid-column: 3;
     grid-row: 1;
     width: 36px;
@@ -223,8 +223,8 @@ body:has(.cabin-shell) {
     justify-content: center;
     padding: 0;
   }
-  .cabin-shell .command-trigger > span:not([aria-hidden]),
-  .cabin-shell .command-trigger kbd { display: none; }
+  .cabin-shell:not([data-stitch-workspace]) .command-trigger > span:not([aria-hidden]),
+  .cabin-shell:not([data-stitch-workspace]) .command-trigger kbd { display: none; }
   .cabin-shell .cabin-settings { grid-column: 4; grid-row: 1; padding-left: 0; border-left: 0; }
   .cabin-shell .cabin-settings > summary { min-height: 36px; }
   .cabin-shell .status-bar > .theme-picker { grid-column: 1; grid-row: 2; }
@@ -339,8 +339,8 @@ body:has(.cabin-shell) {
   .cabin-shell .top-nav-center { display: none; }
   .app-shell.cabin-shell .status-bar { order: -1; display: flex; flex-wrap: nowrap; height: 44px; min-height: 44px; padding: 4px 8px 4px 92px; gap: 8px; }
   .cabin-shell .status-bar-brand, .cabin-shell .status-bar-space, .cabin-shell .space-top-navigation { display: none; }
-  .cabin-shell .command-trigger { flex: 0 0 36px; width: 36px; min-width: 36px; height: 36px; padding: 0; }
-  .cabin-shell .command-trigger :is(span,kbd) { display: none; }
+  .cabin-shell:not([data-stitch-workspace]) .command-trigger { flex: 0 0 36px; width: 36px; min-width: 36px; height: 36px; padding: 0; }
+  .cabin-shell:not([data-stitch-workspace]) .command-trigger :is(span,kbd) { display: none; }
   .cabin-shell .status-bar-center { flex: 1; min-width: 0; margin: 0; overflow: hidden; }
   .cabin-shell .status-pill { display: block; font-size: var(--ax-text-ui); line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cabin-shell .theme-picker { flex: 0 0 auto; }
@@ -382,7 +382,7 @@ body:has(.cabin-shell) {
   .cabin-shell[data-cabin-page="03"] .nav-trail { margin: 0 0 2px; padding-right: 0; max-width: calc(100% - 110px); }
   .cabin-shell[data-cabin-page="03"] .ui-page-heading { margin: 0 0 4px; padding: 0 0 4px; margin-bottom: 2px; padding-bottom: 0; }
   .cabin-shell[data-cabin-page="03"] .ui-content-tabs button { min-width: 64px; min-height: 32px; padding: 4px 12px; font-size: 14px; }
-  .cabin-shell .command-trigger > span:first-child { display: inline-flex; }
+  .cabin-shell:not([data-stitch-workspace]) .command-trigger > span:first-child { display: inline-flex; }
   .cabin-shell .nav-trail-list { flex-wrap: nowrap; width: max-content; min-width: 100%; }
   .ui-navigation-drawer > button { position: sticky; top: 0; z-index: 2; background: var(--ax-panel); }
 }

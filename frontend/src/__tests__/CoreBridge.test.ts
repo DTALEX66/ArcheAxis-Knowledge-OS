@@ -110,3 +110,15 @@ it.each([null,"","🛰".repeat(81),42])("SIMULATED rejects a supplied malformed 
   window.__TAURI__={core:{invoke:vi.fn().mockResolvedValue({status:200,body})}};
   await expect(coreCommand("learning_items")).rejects.toMatchObject({status:502,code:"incompatible"});
 });
+
+it("accepts a real-shaped embedded relation receipt through the finite runtime validator", async () => {
+ const body={schema:"archeaxis.ingest-relations/v1",workspace_id:"workspace",restore_epoch:"initial",batch_id:"batch",ordinal:0,input_kind:"immutable_original_markdown",source_id:"source",source_revision:"a".repeat(64),relative_path:"note.md",
+  document:{document_id:"doc",source_id:"source",source_revision:"a".repeat(64),title:"Note",version:2,editor_json:{type:"doc",content:[]},text_projection:"",content_sha256:"b".repeat(64),blocks:[]},
+  added_relations:0,updated_relations:1,loss:["original_source_links_not_current_document_body"],links:[{ordinal:0,target:"peer",label:null,syntax:"wiki",embed:true,fragment:null,fragment_is_block:false,status:"resolved_reference",reason:"embed_presentation_requested",relation_id:"ingest_fixed",target_ordinal:1}]};
+ const invoke=vi.fn().mockResolvedValue({status:200,body}); window.__TAURI__={core:{invoke}};
+ await expect(coreCommand("ingest_member_relations_apply",{batch_id:"batch",ordinal:0})).resolves.toEqual(body);
+ invoke.mockResolvedValue({status:200,body:{...body,updated_relations:-1}});
+ await expect(coreCommand("ingest_member_relations_apply",{})).rejects.toMatchObject({status:502,code:"incompatible"});
+ invoke.mockResolvedValue({status:200,body:{...body,links:[{...body.links[0],reason:"invented_render_success"}]}});
+ await expect(coreCommand("ingest_member_relations_apply",{})).rejects.toMatchObject({status:502,code:"incompatible"});
+});

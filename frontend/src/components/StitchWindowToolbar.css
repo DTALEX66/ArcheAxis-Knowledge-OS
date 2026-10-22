@@ -1,0 +1,32 @@
+.stitch-window-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; flex: 0 0 auto;
+  min-height: 46px; padding: 6px 10px; color: var(--ax-fg); background: var(--ax-raised);
+  border-bottom: 1px solid var(--ax-border); border-radius: 12px 12px 0 0;
+}
+.stitch-window-title { display: flex; align-items: center; gap: 8px; flex: 1 1 12rem; min-width: 0; touch-action: none; }
+.stitch-window-title nav { min-width: 0; }
+.stitch-window-title ol { display: flex; flex-wrap: wrap; gap: 4px 8px; list-style: none; padding: 0; margin: 0; }
+.stitch-window-title li { min-width: 0; overflow-wrap: anywhere; font-size: var(--ax-text-ui); color: var(--ax-fg-secondary); }
+.stitch-window-title li[aria-current] { color: var(--ax-fg); }
+.stitch-window-title li + li::before { content: "/"; margin-right: 8px; color: var(--ax-fg-tertiary); }
+.stitch-window-title li button { font: inherit; color: inherit; background: transparent; border: 0; min-height: 32px; cursor: pointer; }
+.stitch-window-tools { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-end; gap: 8px; flex: 1 1 22rem; min-width: 0; }
+.stitch-window-controls { display: flex; align-items: center; gap: 4px; }
+.stitch-window-icon { display: inline-flex; justify-content: center; align-items: center; flex: 0 0 auto; min-width: 34px; min-height: 34px; padding: 5px; font: inherit; color: var(--ax-fg-secondary); background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer; }
+.stitch-window-icon:disabled { opacity: .5; cursor: default; }
+.stitch-window-toolbar :is(button,summary):hover { background: var(--ax-hover); }
+.stitch-window-toolbar :focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
+.stitch-window-toolbar .command-trigger { display: inline-flex; align-items: center; gap: 8px; flex: 1 1 8rem; width: auto; min-width: 8rem; min-height: 34px; height: auto; padding: 6px 10px; border: 1px solid var(--ax-border); border-radius: 7px; background: var(--ax-bg-inset); color: var(--ax-fg-secondary); }
+.stitch-connection-state { font-size: var(--ax-text-caption); color: var(--ax-fg-secondary); white-space: normal; }
+.stitch-connection-state::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-inline-end: 6px; border-radius: 50%; background: var(--ax-fg-tertiary); }
+.stitch-connection-state[data-state="available"]::before { background: var(--ax-success); }
+.stitch-connection-state[data-state="unavailable"]::before { background: var(--ax-danger); }
+.stitch-window-tool-settings,.stitch-window-tools .diagnostic-center-trigger { min-height: 34px; padding: 5px 10px; font: inherit; font-size: var(--ax-text-ui); border: 1px solid var(--ax-border); color: var(--ax-fg-secondary); background: transparent; border-radius: 6px; cursor: pointer; }
+.stitch-window-settings-dialog { display: grid; gap: 12px; min-width: 0; max-width: min(380px,calc(100vw - 32px)); }
+.stitch-window-settings-dialog :is(select,button) { width: 100%; min-height: 36px; font: inherit; white-space: normal; color: var(--ax-fg); background: var(--ax-raised); }
+@container console (max-width: 640px) {
+  .stitch-window-title { flex-basis: calc(100% - 100px); }
+  .stitch-window-tools { order: 1; flex-basis: 100%; justify-content: flex-start; flex-wrap:wrap; }
+  .stitch-window-toolbar .command-trigger { flex-basis: 12rem; }
+}
+@media (forced-colors: active) { .stitch-window-toolbar,.stitch-window-settings-dialog { background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none; } .stitch-connection-state::before { background: CanvasText; } }

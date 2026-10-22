@@ -5,6 +5,37 @@ use serde_json::{Value, json};
 use tower::ServiceExt;
 
 #[tokio::test]
+async fn markdown_tags_and_properties_survive_obsidian_export_and_portable_import() {
+    let directory = tempfile::tempdir().unwrap();
+    let db = directory.path().join("metadata.sqlite");
+    let router = archeaxis_api::app(db.to_str().unwrap()).unwrap();
+    let text = "---\ntags: [Reading/中文]\ndone: false\nscore: 3\n---\n#inline `#code`";
+    let editor = json!({"type":"doc","attrs":{"archeaxis_markup":"markdown"},"content":[{"type":"paragraph","content":[{"type":"text","text":text}]}]});
+    let (status, document) = call(&router,"POST","/api/v1/documents",json!({"title":"Tags","editor_json":editor}),"human").await;
+    assert_eq!(status,201,"{document}");
+    let route = format!("/api/v1/documents/{}",document["document_id"].as_str().unwrap());
+    for format in ["markdown","obsidian"] {
+        let (status, exported) = call(&router,"GET",&format!("{route}/export?format={format}"),Value::Null,"human").await;
+        assert_eq!(status,200,"{exported}");
+        let markdown = exported["files"][0]["content"].as_str().unwrap();
+        assert!(markdown.starts_with(text),"Original frontmatter must remain first: {markdown}");
+        let envelope:Value = serde_json::from_str(exported["files"][1]["content"].as_str().unwrap()).unwrap();
+        assert_eq!(envelope["document"]["tags"],document["tags"]);
+        assert_eq!(envelope["document"]["properties"],document["properties"]);
+        assert!(envelope["loss"].as_array().unwrap().iter().any(|loss|loss["code"]=="metadata_projection_limits"));
+    }
+    let (status,package)=call(&router,"GET",&format!("{route}/package"),Value::Null,"human").await;
+    assert_eq!(status,200,"{package}");
+    let target_db = directory.path().join("target.sqlite");
+    let target = archeaxis_api::app(target_db.to_str().unwrap()).unwrap();
+    let (status,imported)=call(&target,"POST","/api/v1/document-packages/import",json!({"request_id":"metadata-roundtrip","package":package}),"human").await;
+    assert_eq!(status,201,"{imported}");
+    assert_eq!(imported["document"]["tags"],document["tags"]);
+    assert_eq!(imported["document"]["properties"],document["properties"]);
+    assert_eq!(imported["document"]["editor_json"],document["editor_json"]);
+}
+
+#[tokio::test]
 async fn imported_course_original_and_typed_candidate_survive_restart_and_same_request_replay() {
     use base64::{Engine, engine::general_purpose::STANDARD};
     let directory = tempfile::tempdir().unwrap();
@@ -266,7 +297,10 @@ async fn large_document_library_lists_bounded_metadata_and_reads_one_full_snapsh
         "25 megabyte drafts must list only bounded metadata"
     );
     for row in rows {
-        assert_eq!(row.as_object().unwrap().len(), 6);
+        assert_eq!(row.as_object().unwrap().len(), 9);
+        assert_eq!(row["tags"], json!([]));
+        assert_eq!(row["metadata_status"], "COMPLETE");
+        assert!(row.get("properties").is_none());
         for field in [
             "document_id",
             "source_id",

@@ -1,8 +1,11 @@
+import {createHash,webcrypto} from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PdfPageRecognition } from "../components/PdfPageRecognition";
 vi.mock("../components/JobContent", () => ({ JobContent: (props: {sourceId:string;sourceRevision:string;name:string}) => <div aria-label="页面识别执行身份">{JSON.stringify(props)}</div> }));
+
+vi.mock("../components/OcrImageReader",()=>({OcrImageReader:(props:unknown)=><div aria-label="已核对页图参数">{JSON.stringify(props)}</div>}));
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
 vi.mock("../api/core", () => ({ coreCommand: bridge.call }));
@@ -118,4 +121,83 @@ describe("PDF page recognition write-back", () => {
     await userEvent.click(screen.getByRole("button", { name: /第 3 页/ }));
     expect(await screen.findByRole("textbox", { name: /第 3 页的识别文本/ })).toHaveValue("半径 6371 千米");
   });
+});
+
+
+describe("SYNTHETIC PDF page original and fixed citation consumer",()=>{
+  const bytes=Buffer.from("authored page image"),sha=createHash("sha256").update(bytes).digest("hex");
+  const page={...readPage,sha256:sha};
+  const original={source_id:page.source_id,sha256:sha,name:page.original_name,media_type:"image/png",content_base64:bytes.toString("base64")};
+  const anchor={source_id:page.source_id,source_revision:sha,anchor_id:"page-anchor",position:"{}"};
+  async function select(){
+    await userEvent.click(screen.getByRole("button",{name:"读取页面与识别文本"}));
+    await userEvent.click(screen.getByRole("button",{name:/第 3 页/}));
+  }
+  beforeEach(()=>{
+    bridge.call.mockReset();
+    vi.stubGlobal("crypto",webcrypto);
+    bridge.call.mockImplementation(async(op:string)=>{
+      if(op==="source_pages")return {...pages,pages:[page,blindPage]};
+      if(op==="source_original")return original;
+      if(op==="anchors_list")return {anchors:[anchor]};
+      throw new Error("Unexpected "+op);
+    });
+  });
+  it("opens verified page bytes and its anchors without executing OCR, and clears on changing pages",async()=>{
+    const onPageSelect=vi.fn();render(<PdfPageRecognition sourceId="src-pdf" onPageSelect={onPageSelect}/>);
+    await select();expect(onPageSelect).toHaveBeenLastCalledWith(3);
+    expect(screen.queryByLabelText("已核对页图参数")).toBeNull();
+    await userEvent.click(screen.getByRole("button",{name:"查看此页原图与引用"}));
+    const value=JSON.parse((await screen.findByLabelText("已核对页图参数")).textContent!);
+    expect(value).toMatchObject({sourceId:page.source_id,revision:sha,original,anchors:[anchor]});
+    expect(bridge.call.mock.calls.every(([op])=>["source_pages","source_original","anchors_list"].includes(op))).toBe(true);
+    await userEvent.click(screen.getByRole("button",{name:/第 4 页/}));
+    expect(screen.queryByLabelText("已核对页图参数")).toBeNull();expect(onPageSelect).toHaveBeenLastCalledWith(4);
+  });
+  it.each(["wrong-source","wrong-bytes","foreign-anchor"])("refuses %s rather than exposing another page as verified",async kind=>{
+    const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation(async(op:string)=>{
+      if(op==="source_original")return {...original,...(kind==="wrong-source"?{source_id:"foreign"}:kind==="wrong-bytes"?{content_base64:Buffer.from("other").toString("base64")}: {})};
+      if(op==="anchors_list"&&kind==="foreign-anchor")return {anchors:[{...anchor,source_id:"foreign"}]};
+      return previous(op);
+    });
+    render(<PdfPageRecognition sourceId="src-pdf"/>);await select();
+    await userEvent.click(screen.getByRole("button",{name:"查看此页原图与引用"}));
+    expect(await screen.findByRole("alert")).toHaveTextContent("此页原图与引用未核对");
+    expect(screen.queryByLabelText("已核对页图参数")).toBeNull();
+  });
+  it("discards an old page read that resolves after another page is selected",async()=>{
+    let resolve!:(v:unknown)=>void;const previous=bridge.call.getMockImplementation()!;
+    bridge.call.mockImplementation((op:string)=>op==="source_original"?new Promise(r=>{resolve=r;}):previous(op));
+    render(<PdfPageRecognition sourceId="src-pdf"/>);await select();
+    fireEvent.click(screen.getByRole("button",{name:"查看此页原图与引用"}));
+    await waitFor(()=>expect(resolve).toBeTypeOf("function"));
+    fireEvent.click(screen.getByRole("button",{name:/第 4 页/}));
+    await act(async()=>{resolve(original);});
+    expect(screen.queryByLabelText("已核对页图参数")).toBeNull();
+    expect(bridge.call.mock.calls.filter(([op])=>op==="anchors_list")).toHaveLength(0);
+    expect(screen.getByRole("status")).toHaveTextContent("第 4 页没有识别文本");
+  });
+  it("clears the old image when the parent PDF control changes its page",async()=>{
+    const view=render(<PdfPageRecognition sourceId="src-pdf" currentPage={3}/>);await select();
+    await userEvent.click(screen.getByRole("button",{name:"查看此页原图与引用"}));
+    await screen.findByLabelText("已核对页图参数");
+    view.rerender(<PdfPageRecognition sourceId="src-pdf" currentPage={4}/>);
+    expect(screen.queryByLabelText("已核对页图参数")).toBeNull();
+    expect(screen.getByRole("status")).toHaveTextContent("第 4 页没有识别文本");
+  });
+
+  it("releases refresh admission when parent paging cancels an in-flight read",async()=>{
+    let resolve!:(v:unknown)=>void;const view=render(<PdfPageRecognition sourceId="src-pdf" currentPage={3}/>);await select();
+    bridge.call.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));
+    fireEvent.click(screen.getByRole("button",{name:"读取页面与识别文本"}));
+    expect(screen.getByRole("button",{name:"读取页面与识别文本"})).toBeDisabled();
+    view.rerender(<PdfPageRecognition sourceId="src-pdf" currentPage={4}/>);
+    await act(async()=>{resolve({...pages,pages:[page,blindPage]});});
+    expect(screen.getByRole("button",{name:"读取页面与识别文本"})).toBeEnabled();
+    expect(screen.getByRole("status")).toHaveTextContent("第 4 页没有识别文本");
+    await userEvent.click(screen.getByRole("button",{name:"读取页面与识别文本"}));
+    expect(screen.getByRole("status")).toHaveTextContent("已读取 2 个页面");
+  });
+
 });

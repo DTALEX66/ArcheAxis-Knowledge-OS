@@ -11,6 +11,9 @@ import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from 
 import type { JSONContent } from "@tiptap/core";
 import { coreCommand } from "../api/core";
 import { RawReceiptButton } from "../components/DiagnosticConsole";
+import {TagNavigation,SavedDocumentMetadata,matchesTag} from "../components/DocumentTags";
+import { DocumentEmbeds } from "../components/DocumentEmbeds";
+import { CollectionPanel } from "../components/CollectionPanel";
 import { DocumentSnapshot } from "../components/DocumentSnapshot";
 import type { SourceDto, DocumentDto, DocumentSummaryDto, DocumentsListDto, OriginalDto, AnchorDto, DocumentExportDto, RevisionBasisDto } from "../api/generated/core-contract";
 import { Section } from "../components/RealData";
@@ -18,6 +21,7 @@ import { MediaReader } from "../components/MediaReader";
 import type { EpubPosition } from "../components/EpubParagraphs";
 import { JobContent } from "../components/JobContent";
 import { OriginalTextCitation } from "../components/OriginalTextCitation";
+import {OcrImageReader,type OcrImageSeek} from "../components/OcrImageReader";
 import { CheckPanel } from "../components/CheckPanel";
 import { BackupPanel } from "../components/BackupPanel";
 import { ContainerMemberChain } from "../components/ContainerMemberChain";
@@ -28,6 +32,7 @@ import {verifiedSource,type FolderMemberSelection} from "../presentation/ingestR
 import { FolderIngest } from "../components/FolderIngest";
 import { TemplateLauncher } from "../templates/TemplateWorkspace";
 import "../components/content.css";
+import "./stitch-library.css";
 import type { InspectionHandler } from "../components/Inspector";
 import type { ObjectTrailLevel } from "../components/NavTrail";
 import { coreFailureReason } from "../presentation/labels";
@@ -42,14 +47,15 @@ const DocumentEditor = lazy(() => import("../components/DocumentEditor").then(mo
 
 import type { SourceJourneyTarget, CandidateJourneyTarget } from "../presentation/sourceJourney";
 
-export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail}:{activationRevision?:number;initialSourceTarget?:SourceJourneyTarget;purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:(target?:CandidateJourneyTarget)=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:InspectionHandler;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void}) {
+export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,purpose,onOpenDocument,onOpenImport,onKnowledge,initialDocumentId,onDirtyChange,onInspect,onOpenCapability,navigation,onTrail,onOpenReference}:{activationRevision?:number;initialSourceTarget?:SourceJourneyTarget;purpose?:"library"|"reader"|"history";onOpenDocument?:(id:string)=>void;onOpenImport?:()=>void;onKnowledge?:(target?:CandidateJourneyTarget)=>void;initialDocumentId?:string;onDirtyChange?:(dirty:boolean)=>void;onInspect?:InspectionHandler;onOpenCapability?:(id:string)=>void;navigation?:{section:string;sequence:number};onTrail?:(levels:readonly ObjectTrailLevel[])=>void;onOpenReference?:(reference:import("../api/generated/core-contract").ObjectReferenceDto)=>void}) {
   const workingContext=useOptionalCoreWorkingState();
   // Core working-state persistence belongs to the verified formal desktop host.
   // Browser presentation fixtures do not obtain a native persistence receipt.
   const working=window.__TAURI__?.core?.invoke?workingContext:null;
   const savedJournalPending=useRef(new Map<string,{sent:WorkingDraft;version:number}>());
   const [documentSearch,setDocumentSearch] = useState("");
-  const [contentFilter,setContentFilter] = useState<"all"|"original"|"linked">("all");
+  const [selectedTag,setSelectedTag] = useState("");
+  const [contentFilter,setContentFilter] = useState<"all"|"original"|"linked"|"collection">("all");
   const [showSource,setShowSource] = useState(false);
   const [candidateEditing,setCandidateEditing]=useState(false);
   const [showVersions,setShowVersions] = useState(purpose === "history");
@@ -94,6 +100,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const [anchors, setAnchors] = useState<AnchorDto[]>([]);
   const [page, setPage] = useState(1);
   const [focusRequest, setFocusRequest] = useState(0);
+  const [ocrSeek,setOcrSeek]=useState<OcrImageSeek>();
   const [epubSeek,setEpubSeek]=useState<{sourceId:string;position:EpubPosition}|undefined>();
   const [mediaSeek,setMediaSeek]=useState<{sourceId:string;milliseconds:number;sequence:number}|undefined>();
   const [mediaDuration,setMediaDuration]=useState<{sourceId:string;seconds:number}|undefined>();
@@ -116,6 +123,20 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
   const editGeneration = useRef(0);
   const generation = useRef(0);
   const textRegion = useRef<HTMLPreElement>(null);
+  const [pendingTextLocation,setPendingTextLocation]=useState<{epoch:number;start?:number;end?:number}|null>(null);
+  useEffect(()=>{
+    if(!pendingTextLocation)return;
+    if(pendingTextLocation.epoch!==generation.current){setPendingTextLocation(null);return;}
+    const region=textRegion.current;
+    if(!region)return;
+    region.focus();
+    const {start,end}=pendingTextLocation,node=region.firstChild;
+    if(node&&start!==undefined&&end!==undefined&&start>=0&&start<=end&&end<=(node.textContent?.length??0)){
+      const range=window.document.createRange();range.setStart(node,start);range.setEnd(node,end);
+      const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
+    }
+    setPendingTextLocation(null);
+  },[pendingTextLocation,showSource,bytes]);
   const sourceNavigation = useRef<HTMLElement>(null);
   const documentNavigation = useRef<HTMLElement>(null);
   const anchorNavigation = useRef<HTMLElement>(null);
@@ -253,7 +274,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       if (libraryMounted.current && current===listGeneration.current) {documentPageInFlight.current = false;setLoadingDocuments(false);}
     }
   }
-  useEffect(()=>{if(initialDocumentId && !initialSourceTarget && libraryBootSettled)void openDocument(initialDocumentId);},[initialDocumentId,initialSourceTarget,libraryBootSettled]);
+  useEffect(()=>{if(initialDocumentId && !initialSourceTarget && libraryBootSettled && purpose!=="library")void openDocument(initialDocumentId);},[initialDocumentId,initialSourceTarget,libraryBootSettled,activationRevision,purpose]);
   useEffect(()=>{
     const attempt=sourceTargetAttempt.current;
     if(!initialSourceTarget||!attempt||attempt.key!==sourceTargetKey||attempt.pending||attempt.consumed||listSnapshot!==listGeneration.current)return;
@@ -341,7 +362,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
     setDocument(saved);setDocuments(old=>old.map(d=>d.document_id===saved.document_id?saved:d));setOpenedDocuments(old=>old.map(d=>d.document_id===saved.document_id?saved:d));setEditorEpoch(v=>v+1);
   }
   async function openDocument(id: string) {
-    if (currentDocument.current?.document_id === id) return;
+    // Retained readers must re-read a clean document on explicit reactivation.
+    // Reopening never replaces an independent draft or interrupts an in-flight write.
+    if (currentDocument.current?.document_id === id && (dirty.current || writeInFlight.current || working?.state.drafts[id])) return;
     revisionBasis.current = null;
     const epoch = ++generation.current;
     const editingEpoch=editGeneration.current;
@@ -424,6 +447,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       attempt.body.source_id=source.source_id;attempt.body.source_revision=source.source_revision;
       attempt.body.title=source.original_name;
       if(plain)attempt.body.editor_json.content![0].content=[{type:"text",text:plain}];
+      if(/\.(md|markdown)$/i.test(source.original_name))attempt.body.editor_json.attrs={...attempt.body.editor_json.attrs,archeaxis_markup:"markdown"};
       noteAttempt.current=attempt;
     }
     await createOriginal();
@@ -576,10 +600,12 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
       if (!stored || typeof stored !== "object" || Array.isArray(stored)) throw new Error("invalid locator");
       location = stored as Record<string,unknown>;
     } catch { if (epoch === generation.current) setMessage("引用核验未完成，请保留来源记录后重试。"); return; }
+    setShowSource(true);
+    if(location.type==="ocr_line"){setOcrSeek(previous=>({sourceId:source.source_id,revision:source.source_revision,anchorId:String(attributes.anchor_id),position:String(attributes.position),sequence:(previous?.sequence??0)+1}));return;}
     const pdfPage = location.type === "pdf_line" && Array.isArray(location.path) && typeof location.path[0] === "string" && /^page-[1-9][0-9]*$/.test(location.path[0]) ? Number(location.path[0].slice(5)) : location.page;
     if (Number.isSafeInteger(pdfPage) && (pdfPage as number) > 0) { setPage(pdfPage as number); setFocusRequest((value) => value + 1); }
     else {
-      textRegion.current?.focus();
+      setPendingTextLocation({epoch});
       if(location.type==="epub"){setEpubSeek({sourceId:source.source_id,position:location as EpubPosition});return;}
       if(location.type==="time"&&typeof location.start_ms==="number"&&Number.isFinite(location.start_ms)&&location.start_ms>=0){setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:Number(location.start_ms),sequence:(previous?.sequence??0)+1}));return;}
       if (bytes && location.type === "text" && Number.isInteger(location.start) && Number.isInteger(location.end)) {
@@ -587,8 +613,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
           const decoder=new TextDecoder("utf-8",{fatal:true});
           const start=decoder.decode(bytes.slice(0,Number(location.start))).length;
           const end=decoder.decode(bytes.slice(0,Number(location.end))).length;
-          const node=textRegion.current?.firstChild;
-          if(node && start<=end && end<=(node.textContent?.length??0)) {const range=window.document.createRange();range.setStart(node,start);range.setEnd(node,end);const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);}
+          setPendingTextLocation({epoch,start,end});
         } catch {setMessage("此引用的文本边界无法读取，保留引用并待重新定位。");}
       }
     }
@@ -635,66 +660,107 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
               <header><h4>不可变原件</h4><p>{linkedOriginal ? "原件身份、版本与字节指纹已核对。" : "关联原件尚未核对或当前未提供，不以其他原件替代。"}</p></header>
               {linkedOriginal && documentBytes && documentOriginal && documentSource ? <>
                 <p>来源：{documentSource.original_name} · 文档第 {document.version} 版</p><RawReceiptButton label="关联原件身份" category="data" payload={{source_id:documentSource.source_id,source_revision:documentSource.source_revision,sha256:documentOriginal.sha256}}/>
-                 {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre ref={purpose === "reader" ? textRegion : undefined} tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <img className="original-derived-image" src={`data:${documentOriginal.media_type};base64,${documentOriginal.content_base64}`} alt={`原件 ${documentSource.original_name}`} /> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
+                 {linkedPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><><PdfReader bytes={documentBytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /><PdfPageRecognition key={`pages:${documentSource.source_id}:${documentSource.source_revision}`} sourceId={documentSource.source_id} onPageSelect={setPage} currentPage={page}/></></Suspense> : documentOriginal.media_type.startsWith("text/") ? <pre ref={purpose === "reader" ? textRegion : undefined} tabIndex={0} aria-label="并排原件正文">{new TextDecoder().decode(documentBytes)}</pre> : documentOriginal.media_type.startsWith("image/") ? <OcrImageReader key={`${documentSource.source_id}:${documentSource.source_revision}`} sourceId={documentSource.source_id} revision={documentSource.source_revision} name={documentSource.original_name} original={documentOriginal} anchors={anchors} seek={ocrSeek}/> : documentOriginal.media_type.startsWith("audio/") || documentOriginal.media_type.startsWith("video/") ? <MediaReader key={`derived-media:${documentSource.source_id}`} bytes={documentBytes} mediaType={documentOriginal.media_type} seek={mediaSeek?.sourceId===documentSource.source_id?mediaSeek:undefined}/> : <p>此格式没有原生并排查看器；原件仍保存在 CAS，可从原件列表使用现有 Reader。</p>}
               </> : <p>原件读取失败、身份不匹配或未绑定到此文档版本。正文指纹与原件指纹保持分开显示。</p>}
             </article> : null;
+  const savedCollection = (saved: DocumentDto) => {
+    const editor = saved.editor_json;
+    if (!editor || typeof editor !== "object" || Array.isArray(editor)) return null;
+    const attrs = (editor as Record<string, unknown>).attrs;
+    if (!attrs || typeof attrs !== "object" || Array.isArray(attrs) || !Object.hasOwn(attrs, "archeaxis_collection")) return null;
+    return <CollectionPanel key={`collection:${saved.document_id}:${saved.version}:${saved.content_sha256}`} document={saved} value={(attrs as Record<string, unknown>).archeaxis_collection} presentation="reader" onChange={()=>{}} onOpenReference={onOpenReference}/>;
+  };
   const versionControls = document ? <><div ref={versionNavigation} tabIndex={-1} data-section="versions" aria-label="文档版本导航" className="draft-restore"><label>恢复历史版本 <input type="number" min="1" max={document.version} value={restoreVersion} onChange={(event) => setRestoreVersion(event.target.value)} /></label><button type="button" onClick={() => void readHistory()}>只读查看历史版本</button><button type="button" disabled={busy||!documentLease.canWrite} onClick={() => void singleWrite(restore)}>读取并恢复版本</button></div>
-          {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><pre>{historicalDocument.text_projection}</pre>{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
+          {historicalDocument?.document_id===document.document_id?<section aria-label="历史版本详情"><h4>历史版本 {historicalDocument.version}</h4><SavedDocumentMetadata document={historicalDocument} onTag={setSelectedTag}/><pre>{historicalDocument.text_projection}</pre><DocumentEmbeds key={`${historicalDocument.document_id}:${historicalDocument.version}:${historicalDocument.content_sha256}`} editor={historicalDocument.editor_json} onOpenReference={onOpenReference}/>{savedCollection(historicalDocument)}{historicalDocument.revision_basis?<RawReceiptButton label="历史修订依据" payload={historicalDocument.revision_basis} />:<p>此版本没有记录修订依据。</p>}<button type="button" onClick={()=>{historyGeneration.current+=1;setHistoricalDocument(null);}}>关闭历史详情</button></section>:null}</> : null;
   const feedback = <>{noteUncertain?<div aria-label="待确认的笔记创建"><p>笔记创建结果尚未确认；先检查结果，再重试同一次操作。</p><button disabled={busy} onClick={()=>void singleWrite(createOriginal)}>重试同一次笔记创建</button><button disabled={busy} onClick={()=>void singleWrite(()=>createOriginal(true))}>检查笔记创建结果</button></div>:null}{message ? <p role={failure ? "alert" : "status"}>{message}</p> : null}{failureReason ? <p className="state-reason">{failureReason}</p> : null}</>;
   // List reads own one announcement; content/write outcomes remain independent.
   const listControls=<section className="library-list-controls" aria-label="资料列表刷新"><button type="button" disabled={refreshingLists} onClick={()=>void refreshLists()}>刷新资料列表</button>{refreshingLists?<p role="status">{libraryBootSettled?"正在刷新资料列表…":"正在读取资料…"}</p>:null}{listError?<p role="alert">{listError}</p>:null}{listFailureReason?<p className="state-reason">{listFailureReason}</p>:null}</section>;
   const filteredDocuments = documents.filter(item => {
     if(contentFilter === "original" && item.source_id) return false;
     if(contentFilter === "linked" && !item.source_id) return false;
+    if(contentFilter === "collection" && item.has_collection !== true) return false;
+    if(!matchesTag(item,selectedTag))return false;
     const sourceName=sources.find(value=>value.source_id === item.source_id)?.original_name ?? "";
     return `${item.title} ${sourceName}`.toLocaleLowerCase().includes(documentSearch.trim().toLocaleLowerCase());
   });
+  const collectionPresenceUnknown = documents.some(item=>typeof item.has_collection!=="boolean");
   function selectForReading(id:string) {
     if(onOpenDocument) onOpenDocument(id); else void openDocument(id);
   }
+  const tagInformationIncomplete=documents.some(item=>item.metadata_status!=="COMPLETE"||!Array.isArray(item.tags));
+  const tagControls=<TagNavigation documents={documents} value={selectedTag} onChange={setSelectedTag}/>;
   const documentList = <>
-    <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档" className="ui-document-list">
-      <table><thead><tr><th>名称</th><th>内容身份</th><th>版本</th><th>操作</th></tr></thead><tbody>
-        {filteredDocuments.map(item=><tr key={item.document_id}><td><strong>{item.title}</strong>{item.source_id ? <small>{sources.find(value=>value.source_id===item.source_id)?.original_name ?? "已绑定来源"}</small> : null}</td><td>{item.source_id ? "关联原件文档" : "原创笔记"}</td><td>v{item.version}</td><td><button type="button" onClick={()=>selectForReading(item.document_id)} aria-label={`打开文档 ${item.title}`}>打开</button></td></tr>)}
-      </tbody></table>
-      {!failure && !message && filteredDocuments.length===0 ? <p>{documents.length ? "已加载内容中没有匹配文档。" : "暂无已保存文档，可以新建原创笔记。"}</p> : null}
+    <nav ref={documentNavigation} tabIndex={-1} data-section="documents" aria-label="已保存文档" className="stitch-document-list">
+      <ul className="stitch-document-cards">
+        {filteredDocuments.map(item => <li key={item.document_id}>
+          <article className="stitch-document-card">
+            <span className="stitch-document-kind" aria-hidden="true">{item.has_collection === true ? "集合" : item.source_id ? "文档" : "笔记"}</span>
+            <div className="stitch-document-card-copy"><h4>{item.title}</h4><p>{item.source_id ? "关联原件文档" : "原创笔记"}{item.source_id ? <> · {sources.find(value=>value.source_id===item.source_id)?.original_name ?? "已绑定来源"}</> : null}</p>{item.has_collection===true?<small>含保存版集合</small>:null}</div>
+            <span className="stitch-document-version">v{item.version}</span>
+            <button type="button" onClick={()=>selectForReading(item.document_id)} aria-label={`打开文档 ${item.title}`}>打开阅读</button>
+          </article>
+        </li>)}
+      </ul>
+      {contentFilter==="collection"&&collectionPresenceUnknown?<p role="status">部分已加载文档未提供集合信息，无法据此判断没有集合。可刷新列表或从全部内容打开文档查看。</p>:null}
+      {!failure && !message && filteredDocuments.length===0 && !(contentFilter==="collection"&&collectionPresenceUnknown) && !(selectedTag&&tagInformationIncomplete) ? <p>{selectedTag ? documentSearch.trim()||contentFilter!=="all" ? "已加载文档中没有同时匹配当前筛选的内容。" : nextDocumentCursor ? "已加载文档中没有匹配标签；可继续加载更多文档。" : "已加载文档中没有匹配标签。" : contentFilter==="collection" ? documentSearch.trim()&&documents.some(item=>item.has_collection===true) ? "已加载集合中没有匹配文档。" : nextDocumentCursor ? "已加载文档中没有集合；可继续加载更多文档。" : "当前列表没有集合文档。" : documents.length ? "已加载内容中没有匹配文档。" : "暂无已保存文档，可以新建原创笔记。"}</p> : null}
     </nav>
     {nextDocumentCursor ? <button type="button" disabled={loadingDocuments} onClick={()=>void loadMoreDocuments()}>{loadingDocuments ? "正在加载文档…" : "加载更多文档"}</button> : null}
   </>;
   const originalTextCitation=source&&bytes&&/\.(txt|md)$/i.test(source.original_name)?<OriginalTextCitation sourceId={source.source_id} revision={source.source_revision} bytes={bytes} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(item=>item.anchor_id!==anchor.anchor_id),anchor])}/>:null;
-  if(purpose === "library") return <section className="ui-library-page" aria-label="知识库文档视图">
-    <h2>知识库</h2>
-    {listControls}
-    <div className="ui-content-tabs" role="group" aria-label="内容筛选">
-      <button type="button" aria-pressed={contentFilter==="all"} onClick={()=>setContentFilter("all")}>全部内容</button>
-      <button type="button" aria-pressed={contentFilter==="original"} onClick={()=>setContentFilter("original")}>原创笔记</button>
-      <button type="button" aria-pressed={contentFilter==="linked"} onClick={()=>setContentFilter("linked")}>关联原件</button>
+  if(purpose === "library") return <section className="stitch-library-page" aria-label="知识库文档视图" data-stitch-library="library">
+    <header className="stitch-library-heading"><div><span className="stitch-library-eyebrow">知识与原件</span><h2>知识库</h2></div><div className="stitch-library-actions"><button type="button" onClick={onOpenImport} disabled={!onOpenImport}>导入原件</button><button className="stitch-library-primary" type="button" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建笔记</button></div></header>
+    {feedback}
+    <div className="stitch-library-search"><label><span className="sr-only">筛选已加载文档标题与来源</span><input type="search" aria-label="筛选已加载文档标题与来源" placeholder="筛选标题、来源…" value={documentSearch} onChange={event=>setDocumentSearch(event.target.value)}/></label>{listControls}</div>
+    <div className="stitch-library-browser">
+      <aside className="stitch-library-facets" aria-label="内容与视图"><h3>快速视图</h3>
+        <div className="stitch-library-quick-views" role="group" aria-label="内容筛选">
+          <button type="button" aria-pressed={contentFilter==="all"} onClick={()=>setContentFilter("all")}>全部内容</button>
+          <button type="button" aria-pressed={contentFilter==="original"} onClick={()=>setContentFilter("original")}>原创笔记</button>
+          <button type="button" aria-pressed={contentFilter==="linked"} onClick={()=>setContentFilter("linked")}>关联原件</button>
+          <button type="button" aria-pressed={contentFilter==="collection"} onClick={()=>setContentFilter("collection")}>集合文档</button>
+        </div>
+        <details open className="stitch-library-tags"><summary>保存版标签</summary>{tagControls}</details>
+        <details className="stitch-library-guide"><summary>集合与视图</summary><p>从集合文档进入保存版表格、列表、看板、日历和画廊；筛选覆盖已加载文档，可继续分页。</p><button type="button" onClick={()=>setContentFilter("collection")}>查看集合文档</button><button type="button" onClick={()=>onOpenCapability?.("CAP-0020")} disabled={!onOpenCapability}>查看集合能力详情</button></details>
+      </aside>
+      <section className="stitch-library-results" aria-label="已保存内容列表"><header><div><h3>已保存内容</h3><p>标题与来源筛选覆盖已加载文档；可继续加载同一快照。</p></div><span className="stitch-library-loaded-count">已加载 {documents.length} 篇</span></header>{documentList}</section>
     </div>
-    <div className="ui-library-toolbar"><input type="search" aria-label="筛选已加载文档标题与来源" placeholder="搜索标题、来源…" value={documentSearch} onChange={event=>setDocumentSearch(event.target.value)}/><button type="button" onClick={onOpenImport} disabled={!onOpenImport}>导入原件</button><button className="ui-primary-action" type="button" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建笔记</button></div>
-    <div className="ui-content-main-side"><section className="ui-content-panel"><header><h3>已保存内容</h3><p>标题与来源筛选覆盖已加载文档；可继续加载同一快照。</p></header>{documentList}</section>
-      <aside className="ui-content-panel" aria-label="内容与视图"><h3>内容与视图</h3><p>笔记与关联原件共用文档版本。打开实际文档后阅读与编辑。</p><p>普通笔记无需依据即可保存；依据分析与用户采用分别记录。</p><h4>集合与视图</h4><p>集合、标签和其他视图尚未接通。</p><button type="button" onClick={()=>onOpenCapability?.("CAP-0020")} disabled={!onOpenCapability}>查看集合能力详情</button></aside>
-    </div>{feedback}
   </section>;
-  const readerSourceTools=purpose==="reader"&&source&&original&&bytes?<section aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<RawReceiptButton label="原件编号与版本详细信息" category="data" payload={{source_id:source.source_id,source_revision:source.source_revision}}/>{!document?<><pre ref={textRegion} tabIndex={0} aria-label="并排原件正文">{original.media_type.startsWith("text/")?new TextDecoder().decode(bytes):"原字节已核对；派生正文从真实转换作业读取。"}</pre><button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null;
-  if(purpose === "reader" || purpose === "history") return <section className="ui-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"}>
+  // open() publishes these bytes only after checking the selected source identity and SHA.
+  // An original can be read before it has any editable Document.
+  const sourcePreview=source&&original&&bytes ? isPdf ? <Suspense fallback={<p>正在载入 PDF 阅读器…</p>}><><PdfReader bytes={bytes} page={page} onPageChange={setPage} focusRequest={focusRequest}/><PdfPageRecognition key={`pages:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} onPageSelect={setPage} currentPage={page}/></></Suspense>
+    : original.media_type.startsWith("image/") ? <OcrImageReader key={`${source.source_id}:${source.source_revision}`} sourceId={source.source_id} revision={source.source_revision} name={source.original_name} original={original} anchors={anchors} seek={ocrSeek}/>
+    : original.media_type.startsWith("text/") ? <pre ref={textRegion} tabIndex={purpose==="reader"?0:-1} aria-label={purpose==="reader"?"并排原件正文":"原件正文"}>{new TextDecoder().decode(bytes)}</pre>
+    : original.media_type.startsWith("audio/")||original.media_type.startsWith("video/") ? <MediaReader key={`media:${source.source_id}`} bytes={bytes} mediaType={original.media_type} seek={mediaSeek?.sourceId===source.source_id?mediaSeek:undefined} onDuration={seconds=>setMediaDuration({sourceId:source.source_id,seconds})}/>
+    : <p>原字节已核对；此格式暂无内嵌原件阅读器，派生正文从真实转换作业读取。</p> : null;
+  const readerSourceTools=purpose==="reader"&&source&&original&&bytes?<section className="stitch-reader-source-tools" aria-label="同源知识整理"><h3>来源 {source.original_name}</h3>{originalTextCitation}<RawReceiptButton label="原件编号与版本详细信息" category="data" payload={{source_id:source.source_id,source_revision:source.source_revision}}/>{!document?<>{sourcePreview}<button disabled={busy} onClick={()=>void singleWrite(create)}>建立版本化草稿</button></>:null}<button aria-pressed={candidateEditing} onClick={()=>setCandidateEditing(true)}>整理此来源为知识候选</button>{candidateEditing?<JobContent key={`journey:${source.source_id}:${source.source_revision}`} sourceId={source.source_id} sourceRevision={source.source_revision} name={source.original_name} pinnedJobId={initialSourceTarget?.job_id} onKnowledge={onKnowledge} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("source-candidate");else dirtyDocumentIds.current.delete("source-candidate");publishDirtyState();}} onAnchor={anchor=>setAnchors(previous=>[...previous.filter(a=>a.anchor_id!==anchor.anchor_id),anchor])}/>:null}</section>:null;
+  if(purpose === "reader" || purpose === "history") return <section className="stitch-reader-page" aria-label={purpose==="history" ? "文档版本视图" : "阅读与编辑文档视图"} data-stitch-library={purpose}>
+    {feedback}
+    {!document?<header className="stitch-reader-heading"><div><span className="stitch-library-eyebrow">知识与原件</span><h2>{purpose === "history" ? "文档历史" : "阅读与编辑"}</h2></div></header>:null}
     {!document?listControls:null}
     {!document||initialSourceTarget?readerSourceTools:null}
     {document ? <>
-      <div className="ui-reader-toolbar"><div className="ui-content-tabs" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div>{listControls}</div>
-      <div className="ui-reader-layout"><article className="ui-reader-document" aria-label="文档正文与编辑"><header><p className="ui-document-meta">{document.source_id ? "关联原件文档" : "原创笔记"} · v{document.version} · 无需依据即可保存</p><h2>{document.title}</h2></header>{purpose!=="history" ? documentEditor : <p>{document.text_projection}</p>}
-        {showSource ? <section className="ui-reader-original" aria-label="关联原件阅读">{document.source_id ? originalPane : <p>此原创笔记没有绑定来源原件。</p>}</section> : null}
-      </article><aside className="ui-content-panel ui-reader-details" aria-label="内容详情"><h3>内容详情</h3><dl><div><dt>内容身份</dt><dd>{document.source_id ? "关联原件文档" : "原创笔记"}</dd></div><div><dt>文档版本</dt><dd>v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存更改" : ""}</dd></div><div><dt>来源版本</dt><dd>{document.source_id ? linkedOriginal ? "原件身份、版本与字节已核对" : "已绑定；原件读取尚未核对" : "未绑定；保存不要求来源"}</dd></div></dl>
+      <header className="stitch-reader-heading"><div><span className="stitch-library-eyebrow">{purpose === "history" ? "历史与版本" : "阅读与编辑"}</span><h2>{document.title}</h2></div><p><span>{document.source_id ? "关联原件文档" : "原创笔记"}</span><span className="stitch-document-version">v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存" : ""}</span></p></header>
+      <div className="stitch-reader-toolbar"><div className="stitch-reader-modes" role="group" aria-label="阅读辅助视图"><button type="button" aria-pressed={!showSource&&!showVersions&&purpose!=="history"} onClick={()=>{setShowSource(false);setShowVersions(false);}}>正文</button><button type="button" aria-pressed={showSource} onClick={()=>setShowSource(value=>!value)}>原件</button><button type="button" aria-pressed={showVersions||purpose==="history"} onClick={()=>setShowVersions(value=>!value)}>版本</button></div>{listControls}</div>
+      <div className="stitch-reader-workspace"><div className="stitch-reader-spread" data-original-open={showSource}>
+        <article className="stitch-reader-document" aria-label="文档正文与编辑"><header><h3>{purpose === "history" ? "当前保存正文" : "文档正文"}</h3><small>{purpose === "history" ? "只读显示；历史版本从版本工具单独读取。" : "草稿保存为文档版本；内容依据单独记录。"}</small></header>
+          {purpose!=="history" ? documentEditor : <pre className="stitch-history-text">{document.text_projection}</pre>}
+          <DocumentEmbeds key={`${document.document_id}:${document.version}:${document.content_sha256}`} editor={document.editor_json} onOpenReference={onOpenReference}/>{savedCollection(document)}
+        </article>
+        {showSource ? <section className="stitch-reader-original" aria-label="关联原件阅读">{document.source_id ? originalPane : <p>此原创笔记没有绑定来源原件。</p>}</section> : null}
+      </div>
+<aside className="stitch-reader-details" aria-label="内容详情"><h3>内容详情</h3><dl><div><dt>内容身份</dt><dd>{document.source_id ? "关联原件文档" : "原创笔记"}</dd></div><div><dt>文档版本</dt><dd>v{document.version}{dirtyDocumentIds.current.has(document.document_id) ? " · 未保存更改" : ""}</dd></div><div><dt>来源版本</dt><dd>{document.source_id ? linkedOriginal ? "原件身份、版本与字节已核对" : "已绑定；原件读取尚未核对" : "未绑定；保存不要求来源"}</dd></div></dl>
+        <SavedDocumentMetadata document={document} onTag={setSelectedTag}/>
+        {selectedTag?<section aria-label="标签关联文档"><h4>含此标签的文档</h4>{tagControls}{filteredDocuments.map(item=><button key={item.document_id} type="button" onClick={()=>selectForReading(item.document_id)}>{item.title} · v{item.version}</button>)}{nextDocumentCursor?<button type="button" disabled={loadingDocuments} onClick={()=>void loadMoreDocuments()}>加载更多文档</button>:null}</section>:null}
         <RawReceiptButton label="文档与来源详细信息" visibleLabel="文档与来源详细信息" payload={{document_id:document.document_id,source_id:document.source_id,source_revision:document.source_revision,content_sha256:document.content_sha256}}/>
         <details><summary>依据与修订记录</summary><CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}}/></details>
         {showVersions||purpose==="history" ? <section aria-label="版本与影响">{versionControls}</section> : <button type="button" onClick={()=>setShowVersions(true)}>查看历史版本</button>}
         <details><summary>导出已保存文档</summary><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button>{exportProof?<RawReceiptButton label="导出详情与内容损失" payload={exportProof}/>:null}</details>
         <details className="reader-material-tools"><summary>围绕此文档提问</summary><MaterialQuestionPanel key={`material:${document.document_id}:${document.version}`} material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}} text={document.text_projection} materialTitle={document.title}/><ConversationPanel materialTitle={document.title} slot="reader" material={{kind:"document",document_id:document.document_id,version:document.version,content_sha256:document.content_sha256,block_id:null}}/></details>
         {readerSourceTools&&!initialSourceTarget?<details className="reader-source-tools"><summary>整理关联来源</summary>{readerSourceTools}</details>:null}
-      </aside></div>
-    </> : <section className="ui-content-panel"><h2>选择已保存文档</h2><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
-    {feedback}
+      </aside>
+      </div>
+    </> : <section className="stitch-reader-empty"><h2>选择已保存文档</h2><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
   </section>;
-
   return <Section title="资料库">
     {listControls}
     <TemplateLauncher onOpen={id=>void openDocument(id)} onOpenCapability={onOpenCapability} onDirtyChange={value=>{if(value)dirtyDocumentIds.current.add("template-properties");else dirtyDocumentIds.current.delete("template-properties");publishDirtyState();}} />
@@ -712,13 +778,11 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
         <h4>{source.original_name}</h4>
         <div className="canonical-reading">
           <div>
-          {isPdf ? <PdfReader bytes={bytes} page={page} onPageChange={setPage} focusRequest={focusRequest} /> : original.media_type.startsWith("text/") ? <pre ref={textRegion} tabIndex={-1} aria-label="原件正文">{new TextDecoder().decode(bytes)}</pre> : null}
-          {original.media_type.startsWith("audio/")||original.media_type.startsWith("video/")?<MediaReader key={`media:${source.source_id}`} bytes={bytes} mediaType={original.media_type} seek={mediaSeek?.sourceId===source.source_id?mediaSeek:undefined} onDuration={seconds=>setMediaDuration({sourceId:source.source_id,seconds})}/>:null}
+          {sourcePreview}
           {originalTextCitation}
           <JobContent key={`job:${source.source_id}`} pinnedJobId={folderJob?.source_id===source.source_id?folderJob.job_id:undefined} sourceId={source.source_id} name={source.original_name} sourceRevision={source.source_revision} epubSeek={epubSeek?.sourceId===source.source_id?epubSeek.position:undefined} onEpubSeek={position=>setEpubSeek({sourceId:source.source_id,position})} onKnowledge={onKnowledge} onTimeSeek={seconds=>setMediaSeek(previous=>({sourceId:source.source_id,milliseconds:seconds*1000,sequence:(previous?.sequence??0)+1}))} onAnchor={anchor=>setAnchors(previous=>previous.some(item=>item.anchor_id===anchor.anchor_id)?previous:[...previous,anchor])} mediaDurationSeconds={mediaDuration?.sourceId===source.source_id?mediaDuration.seconds:undefined}/>
           <ContainerMemberChain key={`members:${source.source_id}`} sourceId={source.source_id} />
           {original && original.media_type === "application/octet-stream" ? <ContentDetectionPanel key={`detect:${source.source_id}`} sourceId={source.source_id} name={source.original_name} /> : null}
-          <PdfPageRecognition key={`pages:${source.source_id}`} sourceId={source.source_id} />
           </div>
           <aside ref={anchorNavigation} tabIndex={-1} data-section="anchors" aria-label="来源版本证据">
             <h4>来源与引用</h4>
@@ -759,6 +823,7 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
            {documentEditor}
           <CheckPanel key={`checks:${document.document_id}:${document.version}`} document={document} onRevisionBasis={value=>{revisionBasis.current=value;}} />
           </>}
+          <DocumentEmbeds key={`${document.document_id}:${document.version}:${document.content_sha256}`} editor={document.editor_json} onOpenReference={onOpenReference}/>{savedCollection(document)}
           {versionControls}
           <div className="space-section-region" data-section="export" tabIndex={-1} aria-label="文档导出"><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("markdown"))}>Markdown 导出到产品资料目录</button><button type="button" disabled={busy} onClick={()=>void singleWrite(()=>exportDocument("obsidian"))}>Obsidian 包导出到产品资料目录</button></div>
           {exportProof?<RawReceiptButton label="导出详情与内容损失" payload={exportProof} />:null}

@@ -2,7 +2,7 @@
   "schema_version": 2,
   "ledger_name": "ArcheAxis Knowledge — Open Source Absorption Decision Ledger",
   "created": "2026-08-11",
-  "updated": "2026-10-08",
+  "updated": "2026-10-22",
   "source": "ArcheAxis_Workspace_Project_History_and_OSS_Absorption_Master_Atlas_v1.md",
   "product_boundary": "Local-first, evidence-driven Human–AI Learning & Knowledge Workspace. NOT an Agent OS, Cognitive OS, RAG platform, or Agent runtime.",
   "disposition_labels": {
@@ -875,11 +875,80 @@
       "evidence": "Placed under the declared external tool root as `10-toolchains/java/zulu-jre-21.0.12.1/` (50624-byte launcher, sha256 `3dd3b8ca1b9402119060e1085a5aec44b00e600e61944ead36057c4f7f4da29f`) after verifying the download against Azul's own metadata API - package `zulu21.52.203-ca-jre21.0.12.1-win_x64.zip`, 49,264,410 bytes, sha256 `37ad372b04da388c326f0507abec38b8e1d11e3bddf6128b215c8f0a06ff8177`, fetched 2026-10-07. `java -version` exits 0 and self-reports `openjdk version \"21.0.12.1\" 2026-08-18 LTS`; the worker asks that question before handing over a document, so a file that exists but cannot state what it is is refused. Temurin was the first choice and its API publishes the same checksum field, but its download host is unreachable from this machine, so the runtime came from a second publisher whose CDN answers; the record names which, because 'a JVM' is not a supply-chain statement.",
       "decision": "Removable local runtime for the `.ppt` sidecar only. Not bundled, not a system install, not registered anywhere outside the external tool root, and never substituted for another JVM by the product. If Tika is ever dropped, this row goes with it.",
       "upstream_note": "Azul states Zulu Community builds are GPLv2 with the Classpath Exception; the text in this distribution (legal/java.base/LICENSE and ASSEMBLY_EXCEPTION) is what the row relies on rather than that statement alone. The distribution also carries a DISCLAIMER from Azul."
+    },
+    {
+      "id": "A051",
+      "name": "pulldown-cmark",
+      "version": "0.13.4 (Cargo.lock exact checksum)",
+      "canonical_url": "https://crates.io/crates/pulldown-cmark/0.13.4",
+      "capability": "saved-markdown-tag-syntax",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "crates/archeaxis-domain/src/document_tags.rs",
+      "evidence": {
+        "crate_sha256": "e9f068eba8e7071c5f9511831b44f32c740d5adf574e990f946ddb53db2f314e",
+        "license_file": "LICENSE",
+        "license_sha256": "c4f10f55904bdb9f27d3fbf94c354926d6cfe8b982276e556238c258941b243b",
+        "observed": "2026-10-22",
+        "scope": "Pinned project dependency; source/targeted checks only, candidate/runtime qualification is recorded separately in the sole execution ledger"
+      },
+      "decision": "Read-only projection from immutable saved editor snapshots; no second store, migration, execution of embedded metadata, remote fetch or knowledge approval. Keep original bytes and report partial parsing.",
+      "upstream_note": "Published crate/license checked; package checksum bound to Cargo.lock. No global tool installation."
+    },
+    {
+      "id": "A052",
+      "name": "serde_yaml_ng",
+      "version": "0.10.0 (Cargo.lock exact checksum)",
+      "canonical_url": "https://crates.io/crates/serde_yaml_ng/0.10.0",
+      "capability": "saved-frontmatter-json-compatible-properties",
+      "code_license": "MIT",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "crates/archeaxis-domain/src/document_tags.rs",
+      "evidence": {
+        "crate_sha256": "7b4db627b98b36d4203a7b458cf3573730f2bb591b28871d916dfa9efabfd41f",
+        "license_file": "LICENSE",
+        "license_sha256": "4cb6f99bc6158a9feba329a21ac24020c3b2cc6b6597645023adb8ae1371bd74",
+        "observed": "2026-10-22",
+        "scope": "Pinned project dependency; source/targeted checks only, candidate/runtime qualification is recorded separately in the sole execution ledger"
+      },
+      "decision": "Read-only projection from immutable saved editor snapshots; no second store, migration, execution of embedded metadata, remote fetch or knowledge approval. Keep original bytes and report partial parsing.",
+      "upstream_note": "YAML library declares YAML 1.1 support; JSON-compatible mapping only, no general YAML roundtrip claim."
+    },
+    {
+      "id": "A053",
+      "name": "unicode-general-category",
+      "version": "1.1.0 (Cargo.lock exact checksum)",
+      "canonical_url": "https://crates.io/crates/unicode-general-category/1.1.0",
+      "capability": "unicode-tag-classification",
+      "code_license": "Apache-2.0",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": [
+        "source"
+      ],
+      "product_path": "crates/archeaxis-domain/src/document_tags.rs",
+      "evidence": {
+        "crate_sha256": "0b993bddc193ae5bd0d623b49ec06ac3e9312875fdae725a975c51db1cc1677f",
+        "license_file": "LICENSE",
+        "license_sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+        "observed": "2026-10-22",
+        "scope": "Pinned project dependency; source/targeted checks only, candidate/runtime qualification is recorded separately in the sole execution ledger"
+      },
+      "decision": "Read-only projection from immutable saved editor snapshots; no second store, migration, execution of embedded metadata, remote fetch or knowledge approval. Keep original bytes and report partial parsing.",
+      "upstream_note": "Published crate/license checked; package checksum bound to Cargo.lock. No global tool installation."
     }
   ],
-  "component_count": 51,
+  "component_count": 54,
   "disposition_summary": {
-    "CURRENT": 13,
+    "CURRENT": 16,
     "ADOPT_PRODUCT_BASE": 0,
     "ADOPT": 13,
     "EVALUATE": 9,

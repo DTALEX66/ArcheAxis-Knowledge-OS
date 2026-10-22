@@ -1,0 +1,49 @@
+/* Stitch glass workspace composition. Existing ConstellationGraph owns rendering. */
+.stitch-relations-page { display:flex; flex-direction:column; gap:12px; min-width:0; color:var(--ax-fg); font-size:var(--ax-text-ui); line-height:1.5; }
+.stitch-relations-page :is(h2,h3,p) { margin:0; }
+.stitch-relations-page :is(button,input,select,summary) { font:inherit; }
+.stitch-relations-page :is(button,input,select,summary):focus-visible { outline:2px solid var(--ax-focus-ring); outline-offset:2px; }
+.stitch-relations-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--ax-border-strong); border-radius:8px; background:var(--ax-panel); }
+.stitch-relations-heading>div>span { font-size:var(--ax-text-caption); color:var(--ax-accent); }
+.stitch-relations-heading h2 { font-size:1.1rem; line-height:1.5; font-weight:650; }
+.stitch-relations-actions,.stitch-relations-view-tools { display:flex; flex-wrap:wrap; gap:6px; }
+.stitch-relations-page button { min-height:34px; max-width:100%; padding:5px 9px; border:1px solid var(--ax-border); border-radius:5px; color:var(--ax-fg-secondary); background:var(--ax-raised); white-space:normal; overflow-wrap:anywhere; cursor:pointer; }
+.stitch-relations-page button:disabled { cursor:default; opacity:.6; }
+.stitch-relations-page button:not(:disabled):hover { color:var(--ax-accent); border-color:var(--ax-accent); }
+.stitch-relations-actions>button:nth-child(3) { color:var(--ax-accent); border-color:var(--ax-accent); background:var(--ax-accent-soft); }
+.stitch-relations-feedback,.stitch-relations-session { color:var(--ax-fg-secondary); overflow-wrap:anywhere; }
+.stitch-relations-session { font-size:var(--ax-text-caption); }
+.stitch-relations-workspace { display:grid; grid-template-columns:minmax(0,1fr) minmax(240px,280px); gap:12px; align-items:start; min-width:0; }
+.stitch-relations-stage,.stitch-relations-card,.stitch-relations-collection { min-width:0; padding:12px; border:1px solid var(--ax-border); border-radius:8px; background:var(--ax-panel); }
+.stitch-relations-stage>header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid var(--ax-border); }
+.stitch-relations-page h3 { font-size:var(--ax-text-ui); line-height:1.5; font-weight:600; }
+.stitch-relations-stage>p { margin:8px 0; overflow-wrap:anywhere; color:var(--ax-fg-secondary); font-size:var(--ax-text-caption); }
+.stitch-relations-stage>.stitch-relations-empty { min-height:200px; display:grid; place-content:center; padding:18px; text-align:center; font-size:var(--ax-text-ui); }
+.stitch-relations-stage>.constellation-graph { margin-top:10px; border-radius:7px; }
+.stitch-relations-filters { display:flex; flex-wrap:wrap; align-items:end; gap:8px; min-width:0; padding:10px; margin:10px 0; border:1px solid var(--ax-border); border-radius:6px; background:var(--ax-bg-inset); }
+.stitch-relations-filters label { flex:1 1 140px; }
+.stitch-relations-filters p { flex-basis:100%; font-size:var(--ax-text-caption); color:var(--ax-fg-secondary); }
+.stitch-relations-page label { display:grid; gap:4px; min-width:0; color:var(--ax-fg-secondary); }
+.stitch-relations-page :is(input:not([type="checkbox"]),select) { min-height:34px; min-width:0; max-width:100%; width:100%; box-sizing:border-box; padding:5px 8px; border:1px solid var(--ax-border); border-radius:4px; color:var(--ax-fg); background:var(--ax-bg-inset); }
+.stitch-relations-tools { min-width:0; display:grid; gap:12px; }
+.stitch-relations-card>header { margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--ax-border); }
+.stitch-relations-card>ul[aria-label="已保存文档"] { max-height:220px; overflow:auto; list-style:none; padding:0; margin:0 0 8px; display:grid; gap:5px; }
+.stitch-relations-card>ul[aria-label="已保存文档"] button { width:100%; text-align:left; }
+.stitch-relations-card>fieldset { min-width:0; margin:0; padding:0; border:0; display:grid; gap:8px; }
+.stitch-relations-card legend { padding:0 0 8px; color:var(--ax-fg); font-weight:600; }
+.stitch-relations-card ul[aria-label="关系草稿"] { list-style:none; margin:4px 0 0; padding:0; display:grid; gap:10px; }
+.stitch-relations-card ul[aria-label="关系草稿"]>li { display:grid; gap:6px; padding-top:8px; border-top:1px solid var(--ax-border); overflow-wrap:anywhere; }
+.stitch-relations-card input[type="checkbox"] { width:18px; height:18px; }
+.stitch-relations-history { display:grid; gap:8px; justify-items:start; }
+.stitch-relations-history label { width:100%; }
+.stitch-relations-stage>ul { list-style:none; margin:12px 0 0; padding:0; display:grid; gap:8px; }
+.stitch-relations-stage>ul>li { min-width:0; padding:9px; border:1px solid var(--ax-border); border-radius:5px; background:var(--ax-bg-inset); overflow-wrap:anywhere; }
+.stitch-relations-stage>ul button { margin:5px 5px 0 0; }
+.stitch-relations-page details { min-width:0; overflow-wrap:anywhere; }
+.stitch-relations-page summary { min-height:30px; cursor:pointer; }
+.stitch-relations-page details[open]>summary { margin-bottom:8px; color:var(--ax-accent); }
+.stitch-relations-page pre { white-space:pre-wrap; overflow-wrap:anywhere; overflow:auto; }
+.stitch-relations-collection>.collection-panel { margin:0; }
+@container content (max-width:960px) { .stitch-relations-workspace { grid-template-columns:minmax(0,1fr); } .stitch-relations-tools { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; } }
+@container content (max-width:680px) { .stitch-relations-tools { grid-template-columns:minmax(0,1fr); } .stitch-relations-heading,.stitch-relations-stage,.stitch-relations-card { padding:10px; } .stitch-relations-stage>.stitch-relations-empty { min-height:100px; } }
+@media (forced-colors:active) { .stitch-relations-actions>button:nth-child(3) { border-color:Highlight; } }

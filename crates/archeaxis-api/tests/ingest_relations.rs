@@ -79,7 +79,7 @@ async fn explicit_fragment_mapping_pins_a_real_block_at_the_existing_http_bounda
     let files = [
         (
             "index.md",
-            "[[peer#Heading]] [[peer#^named]] [[peer#unmapped]]",
+            "[[peer#Heading]] ![[peer#^named]] [[peer#unmapped]]",
         ),
         ("peer.md", "# Heading\nContent ^named"),
     ];
@@ -104,6 +104,9 @@ async fn explicit_fragment_mapping_pins_a_real_block_at_the_existing_http_bounda
         "explicit mapping must reach the existing writer: {receipt}"
     );
     assert_eq!(receipt["added_relations"], 2, "{receipt}");
+    assert_eq!(receipt["updated_relations"], 0);
+    assert_eq!(receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][1]["presentation"], "embed");
+    assert!(receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0].get("presentation").is_none());
     assert_eq!(
         receipt["links"][2]["reason"],
         "fragment_resolution_not_supported"
@@ -195,7 +198,7 @@ async fn contained_parent_links_reach_existing_api_graph_without_rewriting_origi
     assert_eq!(receipt["links"][1]["status"], "resolved_reference");
     assert_eq!(
         receipt["links"][1]["reason"],
-        "embed_rendering_not_supported"
+        "embed_presentation_requested"
     );
     let asset =
         json!({"kind":"source","source_id":sources[3]["source_id"],"sha256":sources[3]["sha256"]});

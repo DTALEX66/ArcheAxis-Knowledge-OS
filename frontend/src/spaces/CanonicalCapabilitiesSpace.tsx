@@ -5,7 +5,6 @@ import { RawReceiptButton } from "../components/DiagnosticConsole";
 import { CAPABILITY_CATALOG, type CapabilityCatalogEntry } from "../api/generated/capability-catalog";
 import { absorptionClassification, SURFACE_CLASS_LABEL, templatesRequiring } from "../templates/capabilityRequirements";
 import { canNavigateToCapability, CAPABILITY_NAVIGATION_ENTRIES, CAPABILITY_PAGES, getCapabilityDestination, getCapabilityNextStep, navigationEntryMatches } from "../presentation/navigation";
-import { Section } from "../components/RealData";
 import { coreFailureReason, stateLabel } from "../presentation/labels";
 import type { SpaceId } from "./spaces";
 import type { ObjectTrailLevel } from "../components/NavTrail";
@@ -87,6 +86,7 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
   const requiring = selected ? templatesRequiring(selected.atlas.capability_id) : [];
   const absorption = selected ? absorptionClassification(selected.atlas.capability_id) : null;
   const catalog = <div className="space-section-region" data-section="catalog" tabIndex={-1} aria-label="能力目录与搜索">
+    <div className="stitch-capability-browser"><aside className="stitch-capability-controls" aria-label="能力筛选与状态">
     <p>从这里发现内置工作流、可选扩展和未来能力。选择用途查看入口与条件；尚未接入的条目也保留说明。</p>
     <p>插件、技能与 MCP 是接入形式；当前目录不提供未经实现的安装或执行操作。</p>
     <AaosField label="查找能力" value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder="名称、用途、对象或依赖" />
@@ -95,13 +95,14 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     ] as const).map(([id,label])=><AaosButton key={id} aria-pressed={category===id} onClick={()=>setCategory(id)}>{label}</AaosButton>)}</div>
     <div className="capability-actions"><AaosButton variant="secondary" onClick={() => void refresh()}>刷新当前健康与权限</AaosButton>
       <span>目录收录 {CAPABILITY_CATALOG.entries.length} 项能力；筛选结果 {visible.length} 项。条目数量不是能力上限。</span></div>
+    </aside><section className="stitch-capability-results" aria-label="能力列表">
     {!visible.length ? <p role="status">没有符合条件的能力；可以清空搜索或切换分类。</p> : null}
     <ul className="capability-directory capability-center-list">{visible.map((navigationEntry) => {const view=capabilityPresentation(navigationEntry.capability);return <li key={navigationEntry.entry_id}>
       <button data-entry-id={navigationEntry.entry_id} onClick={() => { focusDetails.current=true;setSelected(navigationEntry.capability); setActiveTab("details"); }}>
         <b>{navigationEntry.label}</b><span>{view.purpose}</span><small>{view.form}</small>
       </button>
       <span>{view.status}</span>
-    </li>;})}</ul>
+    </li>;})}</ul></section></div>
   </div>;
 
   const details = <div className="space-section-region" data-section="details" tabIndex={-1} aria-label="能力详情">{selected ? <article aria-label="能力详情">
@@ -162,7 +163,8 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     </AaosButton>
   </article> : <p>从目录选择能力，查看用途、前提、依赖、状态、降级和下一步。</p>}</div>;
 
-  return <Section title="能力中心">
+  return <section className="stitch-capability-space" aria-label="能力中心">
+    <div className="stitch-capability-topic"><div><p>能力与使用入口</p><h2>能力中心</h2></div><span>已有能力 · 扩展登记 · 后期规划</span></div>
     <AaosTabs label="能力目录视图" value={activeTab} onValueChange={setActiveTab} tabs={[
       { id: "catalog", label: "目录与搜索", content: catalog },
       { id: "details", label: "能力详情", content: details },
@@ -171,5 +173,5 @@ export function CanonicalCapabilitiesSpace({ onNavigate, onOpenPage, selectedCap
     {failureReason ? <p className="state-reason">{failureReason}</p> : null}
     <p>此目录与应用内的能力登记保持一致；具体执行结果以相应任务为准。</p>
     <RawReceiptButton label="目录投影来源与哈希" payload={CAPABILITY_CATALOG.sources} />
-  </Section>;
+  </section>;
 }

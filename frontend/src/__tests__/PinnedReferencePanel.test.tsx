@@ -35,3 +35,15 @@ it("late reads cannot replace a newly selected pinned object",async()=>{
  let resolve:(value:unknown)=>void=()=>{};bridge.call.mockImplementation((_:string,p:{document_id?:string;knowledge_id?:string})=>p.document_id?new Promise(r=>{resolve=r}):Promise.resolve({knowledge_id:"knowledge_now",body:"当前知识",version:"v1",status:"candidate",source_id:null,anchor_id:null}));
  const rendered=render(<PinnedReferencePanel reference={{kind:"document",document_id:"doc_original",version:1}} onClose={()=>{}}/>);rendered.rerender(<PinnedReferencePanel reference={{kind:"knowledge",knowledge_id:"knowledge_now"}} onClose={()=>{}}/>);await screen.findByText("当前知识");await act(async()=>{resolve(doc);});await waitFor(()=>expect(screen.queryByText("原文 v1 · v1")).not.toBeInTheDocument());
 });
+
+it("uses the finite bridge id payload to open a pinned knowledge reference",async()=>{
+ bridge.call.mockImplementation((operation:string,payload:Record<string,unknown>)=>{
+  if(operation!=="knowledge_get"||Object.keys(payload).length!==1||payload.id!=="knowledge_fixed")throw new Error("CORE_COMMAND_ID_REQUIRED");
+  return Promise.resolve({knowledge_id:"knowledge_fixed",body:"固定知识正文",version:"revision_1",status:"candidate",source_id:null,anchor_id:null});
+ });
+ render(<PinnedReferencePanel reference={{kind:"knowledge",knowledge_id:"knowledge_fixed"}} onClose={()=>{}}/>);
+ expect(await screen.findByText("固定知识正文")).toBeInTheDocument();
+ expect(bridge.call).toHaveBeenCalledTimes(1);
+ expect(bridge.call).toHaveBeenCalledWith("knowledge_get",{id:"knowledge_fixed"});
+ expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});

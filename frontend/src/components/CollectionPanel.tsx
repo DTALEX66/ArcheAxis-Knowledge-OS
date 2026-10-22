@@ -8,6 +8,7 @@ export type CollectionPanelProps = {
   document: DocumentDto | null; value: unknown | undefined; onChange: (value: Collection) => void;
   readOnly?: boolean; disabled?: boolean; onPendingEditChange?: (pending: boolean) => void;
   onOpenReference?: (ref: ObjectReferenceDto) => void;
+  presentation?: 'editor' | 'reader';
 };
 type RawDraft = { raw: string; error?: string };
 const engine = 'archeaxis.bounded-formula/v1';
@@ -47,9 +48,10 @@ function validateFormula(f: FormulaDefinition) {
 }
 
 /** Controlled metadata editor. No Document create/draft commands or client formula evaluator. */
-export function CollectionPanel({ document, value, onChange, readOnly = false, disabled = false, onPendingEditChange, onOpenReference }: CollectionPanelProps) {
+export function CollectionPanel({ document, value, onChange, readOnly = false, disabled = false, onPendingEditChange, onOpenReference, presentation = 'editor' }: CollectionPanelProps) {
   const collection = parseCollection(value);
-  const locked = readOnly || disabled || (value !== undefined && !collection);
+  const readerMode = presentation === 'reader';
+  const locked = readerMode || readOnly || disabled || (value !== undefined && !collection);
   const objectKey = document?.document_id ?? 'unsaved';
   const [drafts, setDrafts] = useState<Record<string, RawDraft>>({});
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -94,13 +96,13 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
     } catch (e) { if (sequence.current === request && liveIdentity.current === identity) setError(`读取失败：${e instanceof Error ? e.message : String(e)}。未显示空列表作为成功。`); }
     finally { if (sequence.current === request) { pendingRequest.current = false; setBusy(false); } }
   }
-  const reference = (r: ObjectReferenceDto) => <button type="button" disabled={!onOpenReference || disabled} onClick={() => onOpenReference?.(r)}>{r.kind === 'document' ? `${r.document_id} · v${r.version}${r.block_id ? ' · ' + r.block_id : ''}` : r.kind === 'source' ? `${r.source_id} · ${r.sha256}` : r.knowledge_id}</button>;
+  const reference = (r: ObjectReferenceDto) => <button type="button" disabled={!onOpenReference || disabled} onClick={() => onOpenReference?.(r)}>{readerMode ? r.kind === 'document' ? `查看${r.block_id ? '段落' : '文档'} v${r.version}` : r.kind === 'source' ? '查看来源原件' : '查看知识' : r.kind === 'document' ? `${r.document_id} · v${r.version}${r.block_id ? ' · ' + r.block_id : ''}` : r.kind === 'source' ? `${r.source_id} · ${r.sha256}` : r.knowledge_id}</button>;
   const cell = (r: CollectionRow, p: CollectionProperty) => {
     const value = r.values[p.property_id];
     return r.formula_errors[p.property_id] ? <span role="status">错误：{r.formulas.find(f => f.property_id === p.property_id)?.error_code ?? 'FORMULA_ERROR'} · {r.formula_errors[p.property_id]}</span>
       : p.kind === 'relation' && Array.isArray(value) ? value.map((x, i) => <span key={i}>{reference(x as ObjectReferenceDto)}</span>) : format(value);
   };
-  const card = (r: CollectionRow) => <article key={r.record_id} className="collection-card"><h4>{r.record_id}</h4>{reference(r.reference)}<dl>{query?.definition.properties.map(p => <div key={p.property_id}><dt>{p.name}</dt><dd>{cell(r, p)}</dd></div>)}</dl></article>;
+  const card = (r: CollectionRow) => <article key={r.record_id} className="collection-card"><h4>{readerMode ? '集合记录' : r.record_id}</h4>{reference(r.reference)}<dl>{query?.definition.properties.map(p => <div key={p.property_id}><dt>{p.name}</dt><dd>{cell(r, p)}</dd></div>)}</dl></article>;
   const projection = () => {
     if (!query) return null;
     const rows = query.items, kind = query.view.kind;
@@ -114,8 +116,9 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
     return <div className={`collection-${kind}`}>{rows.map(card)}</div>;
   };
   return <section className="collection-panel" aria-label="集合属性与视图">
-    <h3>集合属性与视图</h3><p>编辑定义交给父级文档保存；计算、过滤和分页由 Core 读取已保存版本。公式使用有限 IEEE754 f64，不声明外部方言、精确大整数、单位或时区等价。</p>
-    {value === undefined ? <button disabled={locked} onClick={() => change(empty())}>添加集合定义</button> : !collection ? <><p role="alert">未知或不支持的集合形状，只读保留原文；不会移除字段重新保存。</p><details><summary>保全原始内容</summary><pre>{encode(value)}</pre></details></> : <>
+    <h3>集合属性与视图</h3><p>{readerMode ? '读取此文档已保存版本的集合。筛选、排序和计算使用保存时的定义；引用打开记录绑定的固定版本。' : '编辑定义交给父级文档保存；计算、过滤和分页由 Core 读取已保存版本。公式使用有限 IEEE754 f64，不声明外部方言、精确大整数、单位或时区等价。'}</p>
+    {value === undefined ? readerMode ? <p>此版本没有保存集合定义。</p> : <button disabled={locked} onClick={() => change(empty())}>添加集合定义</button> : !collection ? <><p role="alert">未知或不支持的集合形状，只读保留原文；不会移除字段重新保存。</p><details><summary>保全原始内容</summary><pre>{encode(value)}</pre></details></> : <>
+      {!readerMode && <>
       {collection.source_payload !== undefined && <details><summary>来源原文（只读保全）</summary><pre>{encode(collection.source_payload)}</pre></details>}
       <details open><summary>属性</summary><button disabled={locked || collection.properties.length >= 64} onClick={() => change({ ...collection, properties: [...collection.properties, { property_id: id('property'), name: '新属性', kind: 'text' }] })}>添加属性</button>
         {collection.properties.map(p => { const unsupported = !!p.formula && (p.formula.dialect !== engine || p.formula.engine_version !== engine); return <fieldset key={p.property_id} disabled={locked}><legend>{p.property_id}</legend>
@@ -146,12 +149,13 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
           {jsonEditor(`排序 ${v.view_id}`, `view:${v.view_id}:sort`, v.sort ?? [], x => { if (!Array.isArray(x) || x.length > 8) throw new Error('排序最多8项'); x.forEach(s => assertCollectionDto('CollectionSort', s)); updateView({ ...v, sort: x as CollectionView['sort'] }); })}
           <button onClick={() => change({ ...collection, views: collection.views.filter(x => x.view_id !== v.view_id) })}>删除视图 {v.view_id}</button>
         </fieldset>)}</details>
-      <div className="collection-query-controls"><label>读取保存版视图<select aria-label="读取保存版视图" value={viewId} disabled={busy} onChange={e => setSelected(old => ({ ...old, [objectKey]: e.target.value }))}>{collection.views.map(v => <option key={v.view_id} value={v.view_id}>{v.name}</option>)}</select></label><button disabled={disabled || busy || !document || !viewId} onClick={() => void load()}>读取已保存投影</button></div>
+      </>}
+      <div className="collection-query-controls"><label>读取保存版视图<select aria-label="读取保存版视图" value={viewId} disabled={busy} onChange={e => setSelected(old => ({ ...old, [objectKey]: e.target.value }))}>{collection.views.map(v => <option key={v.view_id} value={v.view_id}>{v.name}</option>)}</select></label><button disabled={disabled || busy || !document || !viewId} onClick={() => void load()}>{readerMode ? '读取已保存视图' : '读取已保存投影'}</button></div>
       {!document && <p>新文档尚未保存，暂不能查询。定义与记录草稿可继续编辑。</p>}
       {busy && <p role="status">读取 Core 保存版投影…</p>}{error && <p role="alert">{error}</p>}
-      {query && <><p role="status">保存版 v{query.version} · {query.content_sha256}。{canonical(query.definition) !== canonical(collection) ? '当前缓冲定义尚未保存；以下不代表草稿计算结果。' : '与当前定义相符。'}</p><p>共 {query.total} 条匹配记录，当前页 {query.items.length} 条。看板／日期布局仅展示当前页；分组总数来自完整过滤结果。</p>{Object.keys(query.group_counts).length > 0 && <dl aria-label="分组总数">{Object.entries(query.group_counts).map(([key, count]) => <div key={key}><dt>{groupLabel(key)}</dt><dd>{count}</dd></div>)}</dl>}
+      {query && <><p role="status">保存版 v{query.version}{readerMode ? '' : ` · ${query.content_sha256}`}。{canonical(query.definition) !== canonical(collection) ? '当前缓冲定义尚未保存；以下不代表草稿计算结果。' : '与当前定义相符。'}</p><p>共 {query.total} 条匹配记录，当前页 {query.items.length} 条。看板／日期布局仅展示当前页；分组总数来自完整过滤结果。</p>{Object.keys(query.group_counts).length > 0 && <dl aria-label="分组总数">{Object.entries(query.group_counts).map(([key, count]) => <div key={key}><dt>{groupLabel(key)}</dt><dd>{count}</dd></div>)}</dl>}
         {query.total === 0 ? <p>Core 查询成功：没有匹配记录。</p> : projection()}
-        {query.items.flatMap(r => r.formulas.map(f => <p key={`${r.record_id}:${f.property_id}`}>{r.record_id}/{f.property_id} · {f.status} · {f.qualification} · {f.numeric_semantics}{f.error ? ` · ${f.error_code}: ${f.error}` : ''}</p>))}
+        <details><summary>计算与损失详情</summary>{query.items.flatMap(r => r.formulas.map(f => <p key={`${r.record_id}:${f.property_id}`}>{r.record_id}/{f.property_id} · {f.status} · {f.qualification} · {f.numeric_semantics}{f.error ? ` · ${f.error_code}: ${f.error}` : ''}</p>))}<p>公式使用有限 IEEE754 f64；外部方言、大整数、单位或时区等价尚未取得资格。</p></details>
         {query.next_offset !== null && <button disabled={busy || disabled} onClick={() => void load(query.next_offset!)}>下一页</button>}</>}
     </>}
     {Object.keys(drafts).length > 0 && <details open><summary>有未应用的 JSON 编辑；先应用或取消再保存文档。切换对象不会自动清除输入。</summary>{Object.entries(drafts).map(([key, draft]) => <div key={key}><p>{key}</p><pre>{draft.raw}</pre><button disabled={disabled} onClick={() => clear(key)}>取消保留输入 {key}</button></div>)}</details>}

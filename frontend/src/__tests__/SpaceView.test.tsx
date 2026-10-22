@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { SpaceView } from "../spaces/SpaceView";
 
 // AXW-UI-802: SpaceView is the routing contract between the desktop shell and
@@ -165,6 +165,7 @@ describe("current settings plan route",()=>{
  it("mounts configuration and plans on page19 alongside existing recovery",()=>{
   render(<SpaceView spaceId="settings" uiPageId="19" {...props}/>);
   expect(screen.getByRole("button",{name:"读取模型配置"})).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab",{name:"配置计划"}));
   expect(screen.getByRole("button",{name:"读取配置与部署计划"})).toBeInTheDocument();
  });
  it("keeps capability detail and catalogs free of settings configuration forms",()=>{

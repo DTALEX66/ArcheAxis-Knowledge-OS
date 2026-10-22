@@ -126,11 +126,11 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
       <div><label htmlFor={`${owner}-resource-class`}>来源类别</label><select id={`${owner}-resource-class`} value={category} onChange={event => setCategory(event.currentTarget.value as ResourceClass | "all")}><option value="all">全部来源</option>{Object.entries(SURFACE_CLASS_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></div>
     </div>
     <p>筛选结果 {visible.length} 项；不自动安装、升级、授权或启动供体。</p>
-    <div className="ui-content-main-side resources-directory">
+    <div className="stitch-resource-browser resources-directory">
       <ul className="resources-list">{visible.map(entry => <li key={entry.stable_key}><button aria-pressed={selected?.stable_key === entry.stable_key} onClick={() => setSelected(entry)}>
         <strong>{entry.display_names[0] || entry.stable_key}</strong><span>{SURFACE_CLASS_LABEL[entry.surface_class]} · {entry.absorption_mode}</span>
       </button></li>)}</ul>
-      <aside aria-label="资源来源详情" className="semantic-panel">{selected ? <>
+      <aside aria-label="资源来源详情" className="stitch-resource-details">{selected ? <>
         <h3>{selected.display_names[0]}</h3>
         <p>来源类别：{SURFACE_CLASS_LABEL[selected.surface_class]}；接入方式：{absorptionLabel[selected.absorption_mode] ?? "待确认"}</p>
         <RawReceiptButton label="资源分类与选择依据详细信息" category="data" payload={{stable_key:selected.stable_key,absorption_mode:selected.absorption_mode,classification_reason:selected.classification_reason,qualification:selected.qualification}}/>
@@ -168,7 +168,7 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
     </section>
     <RawReceiptButton label="资源来源与启用规则详情" payload={{ sources: RESOURCE_CATALOG.sources, original: RESOURCE_CATALOG.crosswalk_metadata, overlay: RESOURCE_CATALOG.qualification_metadata, freeze: RESOURCE_CATALOG.freeze_register }}/>
   </section>;
-  return <section aria-label="资源与扩展内容" className="ui-resources"><h2>资源与扩展</h2>
+  return <section aria-label="资源与扩展内容" className="stitch-resources"><div className="stitch-resource-topic"><div><p>资源与已接入模板</p><h2>资源与扩展</h2></div><span>已有登记 · 本地运行状态</span></div>
     <AaosTabs label="资源与模板工作区" value={tab} onValueChange={changeTab} tabs={[
       { id: "resources", label: "吸收来源与供体", content: directory },
       { id: "templates", label: "学科模板", content: <div className="template-launcher"><TemplateWorkspace onOpen={id => {

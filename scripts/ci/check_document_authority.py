@@ -372,9 +372,127 @@ def check_public_routing() -> list[str]:
     return routes.check_routes(REPO)
 
 
+def check_owner_dialogue_archive() -> list[str]:
+    """Check the selected frozen source through maintained migration routing."""
+    pointer, problems = load_active_execution()
+    if pointer is None:
+        return problems
+    navigation = pointer.get("continuation_context", {}).get("resource_navigation", {})
+    if "owner_dialogue_archive" not in navigation:
+        return []  # A minimal fixture/other queue does not select this archive.
+    import importlib.util
+    script = Path(__file__).resolve().parents[2] / "scripts/maintenance/verify_owner_dialogue.py"
+    spec = importlib.util.spec_from_file_location("maintained_owner_dialogue", script)
+    assert spec and spec.loader
+    verifier = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(verifier)
+        verifier.verify(root=REPO)
+    except (ValueError, OSError, KeyError, TypeError) as error:
+        return ["owner dialogue archive: " + str(error)]
+    return []
+
+
+def check_knowledge_compatibility() -> list[str]:
+    """Keep the inherited inventory and prevent documentation/fixtures becoming parity.
+
+    This is a document gate. Missing ignored receipts remain UNVERIFIED, as on CI;
+    their presence is never an external-software acceptance certificate.
+    """
+    pointer, problems = load_active_execution()
+    if pointer is None:
+        return problems
+    name = pointer.get("continuation_context", {}).get("resource_navigation", {}).get("knowledge_compatibility_matrix")
+    if name is None:
+        return []  # Other selected queues and minimal fixtures need not select it.
+    try:
+        matrix = json.loads(_project_path(name).read_text(encoding="utf-8"))
+        if matrix["schema"] != "archeaxis.knowledge-compatibility-matrix/v1" or matrix["progress_ref"] != pointer["active_progress"]:
+            raise ValueError("compatibility matrix changed its schema or sole progress authority")
+        seed = matrix["source_seed"]
+        original = _project_path(seed["path"]).read_bytes()
+        if hashlib.sha256(original).hexdigest() != seed["sha256"]:
+            raise ValueError("compatibility seed hash mismatch")
+        inherited = json.loads(original)["platforms"]
+        platforms = matrix["platforms"]
+        if (len({p["platform_key"] for p in platforms}) != len(platforms)
+                or not {p["platform_key"] for p in inherited}.issubset({p["platform_key"] for p in platforms})):
+            raise ValueError("compatibility platform omitted or duplicated")
+        lookup = {p["platform_key"]: p for p in inherited}
+        directions = {"import", "export", "external_aaos_external", "aaos_external_aaos", "incremental_sync"}
+        if set(matrix["directions"]) != directions:
+            raise ValueError("compatibility direction omitted")
+        axes = {"content", "files", "tags", "links", "collections", "canvas", "search", "capture",
+                "templates", "learning", "history", "exchange", "sync", "ai"}
+        if set(matrix["axes"]) != axes:
+            raise ValueError("compatibility personal feature axis omitted")
+        sources = matrix["official_sources"]
+        for p in platforms:
+            old = lookup.get(p["platform_key"])
+            if old is not None and (p["name"] != old["name"] or p["inherited_feature_families"] != old["feature_families_to_discover"]
+                    or p["inherited_source_refs"] != old["source_refs"]):
+                raise ValueError("compatibility inherited identity or feature scope changed")
+            if old is None and (not p.get("discovery_sources") or any(s not in sources for s in p["discovery_sources"])):
+                raise ValueError("additional compatibility platform lacks discovery sources")
+            if set(p["direction_results"]) != directions:
+                raise ValueError("compatibility platform direction omitted")
+            features = p["documented_features"]
+            if len({f["feature_key"] for f in features}) != len(features):
+                raise ValueError("compatibility feature duplicated")
+            for f in features:
+                if f["axis"] not in matrix["axes"] or not f["official_sources"] or any(s not in sources for s in f["official_sources"]):
+                    raise ValueError("compatibility feature lacks a documented source or axis")
+            # Acceptance promotion needs actual version-bound journeys, never just a URL,
+            # build, test count, or the authored AAOS observations listed alongside them.
+            claims = [(r["state"], r["evidence"]) for r in p["direction_results"].values()]
+            claims += [(f["aaos_parity"], f["acceptance_evidence"]) for f in features]
+            for state, evidence in claims:
+                if state in {"NOT_EXECUTED", "UNVERIFIED"}:
+                    continue
+                if state == "NOT_APPLICABLE" and evidence and all(isinstance(e, dict) and e.get("reason")
+                        and e.get("official_source") in sources for e in evidence):
+                    continue
+                if state not in {"PARTIAL", "PASS"} or not evidence:
+                    raise ValueError("compatibility claim lacks acceptance evidence")
+                required = {"source_version", "target_source_patch_sha256", "candidate_manifest_sha256", "consumer", "restart", "export", "loss_report"}
+                if any(not isinstance(e, dict) or not required.issubset(e) or not all(e[k] for k in required) for e in evidence):
+                    raise ValueError("compatibility claim is not a version-bound consumer journey")
+            if p["overall_parity"] not in {"UNVERIFIED", "PARTIAL", "PASS"}:
+                raise ValueError("compatibility platform status is invalid")
+            if p["overall_parity"] == "PASS" and (p["feature_inventory_status"] != "COMPLETE"
+                    or p["remaining_discovery_axes"] or not features
+                    or not p["source_version"]["application_version"]
+                    or any(f["aaos_parity"] not in {"PASS", "NOT_APPLICABLE"} for f in features)
+                    or any(r["state"] not in {"PASS", "NOT_APPLICABLE"} for r in p["direction_results"].values())):
+                raise ValueError("whole-platform parity is missing version, feature, or direction coverage")
+        if matrix["inventory_complete"] and any(p["feature_inventory_status"] != "COMPLETE" or p["remaining_discovery_axes"] for p in platforms):
+            raise ValueError("unfinished compatibility inventory cannot claim completion")
+        if matrix["all_personal_features_compatible"] and any(p["overall_parity"] != "PASS" for p in platforms):
+            raise ValueError("unqualified compatibility platform cannot claim full parity")
+        verified = unavailable = 0
+        for observation in matrix["aaos_observations"]:
+            relative = observation["receipt"]
+            if not relative.startswith(".project-local/runs/"):
+                raise ValueError("local compatibility observation is outside owned run evidence")
+            receipt = _project_path(relative)
+            if not receipt.is_file():
+                unavailable += 1
+            elif hashlib.sha256(receipt.read_bytes()).hexdigest() != observation["sha256"]:
+                raise ValueError("local compatibility observation hash mismatch")
+            else:
+                verified += 1
+        print(f"compatibility inventory: {len(platforms)} inherited platforms retained; "
+              f"local authored receipts verified {verified}, unavailable/UNVERIFIED {unavailable}; no external parity inferred")
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        return [f"knowledge compatibility: {error}"]
+    return []
+
+
 def main() -> int:
     problems: list[str] = []
     problems += check_public_routing()
+    problems += check_owner_dialogue_archive()
+    problems += check_knowledge_compatibility()
     problems += check_single_current()
     problems += check_authority_references()
     problems += check_input_hashes()

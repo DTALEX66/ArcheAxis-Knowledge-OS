@@ -226,6 +226,7 @@ describe("course return through the real learning components (simulated Core)", 
     function Host() { const [page, setPage] = useState("07"); return <CanonicalLearningJourneySpace pageId={page} onOpenPage={setPage} />; }
     render(<Host />); const user = userEvent.setup();
     if (mode === "generated") {
+      await user.click(screen.getByRole("button",{name:"课程来源"}));
       await user.click(screen.getByRole("button", { name: "搜索知识" }));
       await user.click(await screen.findByRole("button", { name: "来源知识" }));
       await user.click(screen.getByRole("button", { name: "从当前知识生成课程与课时" }));
@@ -239,14 +240,14 @@ describe("course return through the real learning components (simulated Core)", 
     if (changedKnowledge) {
       await screen.findByText(/课程未能读取/);
       expect(screen.queryByLabelText("课程候选课时")).not.toBeInTheDocument();
-      expect(screen.getByLabelText("本次答案")).toHaveValue("独立答案");
+      await user.click(screen.getByRole("button",{name:"学习路径"}));expect(screen.getByRole("textbox",{name:"本次答案"})).toHaveValue("独立答案");await user.click(screen.getByRole("button",{name:"课程与课时"}));
       expect(bridge.call.mock.calls.slice(beforeReturn)).toEqual([["course_get", { course_id: courseId }]]);
       expect(bridge.call.mock.calls.some(([op]) => op === "course_from_knowledge")).toBe(false);
       return;
     }
     const article = await screen.findByLabelText("课程候选课时");
     expect(article).toHaveTextContent("sha-source"); expect(article).toHaveTextContent("绑定知识版本：k1");
-    expect(screen.getByLabelText("本次答案")).toHaveValue("独立答案");
+    await user.click(screen.getByRole("button",{name:"学习路径"}));expect(screen.getByRole("textbox",{name:"本次答案"})).toHaveValue("独立答案");await user.click(screen.getByRole("button",{name:"课程与课时"}));
     await waitFor(() => expect(bridge.call.mock.calls.slice(beforeReturn).map(([op]) => op)).toEqual(stale ? ["course_get"] : ["course_get", "course_render"]));
     expect(bridge.call.mock.calls.slice(beforeReturn)[0]).toEqual(["course_get", { course_id: courseId }]);
     if (!stale) expect(bridge.call.mock.calls.slice(beforeReturn)[1]).toEqual(["course_render", { course_id: courseId, body: { artifact_id: artifactId } }]);

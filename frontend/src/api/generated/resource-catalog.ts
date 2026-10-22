@@ -15,11 +15,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
     },
     {
       "path": "docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json",
-      "sha256": "63ee826548fabe60534486f90f655a4e95071e3993f4bedee7f41798c5b264e3"
+      "sha256": "3143f43495f1c738b3377b1eb3eb4110f0910507d02b3a8e171a5532ee48148a"
     },
     {
       "path": "docs/truth/SUPPLY_CHAIN_LEDGER.json",
-      "sha256": "cf1652fd75e1d588aa9a545cd2437193c59dbe05886d2d9040f8fc16faca893d"
+      "sha256": "fca8a8b927d429d415283fb619e066b6d3ee6514e312f1849552e9c7937da6fb"
     },
     {
       "path": "docs/taskpacks/aaos-ui-first-20261009/FREEZE-REGISTER.json",
@@ -227,7 +227,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
       },
       {
-        "path": "Cargo.lock",
+        "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
         "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
       },
       {
@@ -644,6 +644,18 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
         "/entries/62/evidence/version/source_refs/0",
         "/entries/62/evidence/license/source_refs/1",
         "/sources/3"
+      ]
+    },
+    "historical_source_binding_20261022": {
+      "observed_at": "2026-10-22T13:01:18.263Z",
+      "baseline_commit": "8d367bac4a85bebfbb523503678ade0838faa73e",
+      "scope": "Seven paths now resolve to exact historical bytes; no hash refresh or evidence-state promotion",
+      "current_source_qualification": "NOT_REQUALIFIED_BY_ARCHIVAL_REPAIR",
+      "source_refs": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/MANIFEST.json",
+          "sha256": "50bac4221f4c855ca65d7a06cec8b79babb51ac3b81f7cc4e9fd6889b9504f2f"
+        }
       ]
     }
   },
@@ -1632,11 +1644,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "crates/archeaxis-domain/src/document.rs",
+                "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/crates/archeaxis-domain/src/document.rs",
                 "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
               },
               {
-                "path": "frontend/src/api/generated/core-contract.ts",
+                "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/frontend/src/api/generated/core-contract.ts",
                 "sha256": "0bad015a0c571accffca27bef8e7058a89695127fc811e4653a0c96b98df1143"
               }
             ]
@@ -1653,7 +1665,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "b247e647f770f10e281cd662a1b1626461469d056c8b5c65e0c94c87a724f334"
               },
               {
-                "path": "Cargo.lock",
+                "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
                 "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
               }
             ],
@@ -2059,11 +2071,11 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
             },
             "source_refs": [
               {
-                "path": "crates/archeaxis-domain/src/document.rs",
+                "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/crates/archeaxis-domain/src/document.rs",
                 "sha256": "78cc18e5eab4e2cd1824ec6e87d7583b931e05f723e64c38d62017679c382755"
               },
               {
-                "path": "frontend/src/api/generated/core-contract.ts",
+                "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/frontend/src/api/generated/core-contract.ts",
                 "sha256": "0bad015a0c571accffca27bef8e7058a89695127fc811e4653a0c96b98df1143"
               }
             ]
@@ -2080,7 +2092,7 @@ export const RESOURCE_CATALOG: ResourceCatalog = {
                 "sha256": "b247e647f770f10e281cd662a1b1626461469d056c8b5c65e0c94c87a724f334"
               },
               {
-                "path": "Cargo.lock",
+                "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/source/Cargo.lock",
                 "sha256": "3de3d153c61e8b32e125da535af186f43d04bac757194f2727b01b2b2c368c5c"
               }
             ],

@@ -69,7 +69,7 @@ export function Inspector({ target, onClose }: { target: InspectionTarget | null
   }
   return (
     <aside className="inspector" aria-label="检查器">
-      {onClose ? <button type="button" className="inspector-empty-close" aria-label="关闭检查器" onClick={onClose}>×</button> : null}
+      <div className="inspector-heading"><h2 className="inspector-title">来源、证据与版本</h2>{onClose ? <button type="button" className="inspector-empty-close" aria-label="关闭检查器" onClick={onClose}>×</button> : null}</div>
       <div className="inspector-empty">选择条目以查看来源、证据与版本</div>
     </aside>
   );

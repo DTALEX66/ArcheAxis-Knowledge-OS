@@ -32,6 +32,7 @@ pub mod template_binding;
 pub mod template_definition;
 pub mod ui_state;
 pub mod vault;
+mod document_tags;
 pub mod vault_members;
 
 pub use source::ImportOutcome;

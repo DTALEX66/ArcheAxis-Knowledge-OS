@@ -1,12 +1,14 @@
 import { afterEach,beforeEach,describe,expect,it,vi } from "vitest";
 import { act,fireEvent,render,screen,waitFor } from "@testing-library/react";
-import { useState } from "react";
+import { useContext,useState } from "react";
+import { createPortal } from "react-dom";
+import { StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
 import { DockWorkspace } from "../workspace/DockWorkspace";
 import {useDocumentWriteLease} from "../workspace/documentSessions";
 import {layoutPresets} from "../workspace/WorkspaceController";
 const counters=vi.hoisted(()=>({mounts:0,closes:0,working:null as null|{server:{workspace_id:string;restore_epoch:string};state:{active_document:null}}}));
 vi.mock("../presentation/useCoreWorkingState",()=>({useOptionalCoreWorkingState:()=>counters.working}));
-vi.mock("../spaces/SpaceView",()=>({SpaceView:({uiPageId,initialDocumentId}:{uiPageId:string;initialDocumentId?:string})=>{const [draft,setDraft]=useState(()=>{counters.mounts++;return "";});const lease=useDocumentWriteLease(initialDocumentId);return <label>文档草稿 {uiPageId}<input aria-label={`draft-${uiPageId}${initialDocumentId?":"+initialDocumentId:""}`} disabled={!lease.canWrite} value={draft} onChange={e=>setDraft(e.target.value)}/></label>;}}));
+vi.mock("../spaces/SpaceView",()=>({SpaceView:({uiPageId,initialDocumentId}:{uiPageId:string;initialDocumentId?:string})=>{const [draft,setDraft]=useState(()=>{counters.mounts++;return "";});const outlet=useContext(StitchResearchOutlet);const lease=useDocumentWriteLease(initialDocumentId);return <><label>文档草稿 {uiPageId}<input aria-label={`draft-${uiPageId}${initialDocumentId?":"+initialDocumentId:""}`} disabled={!lease.canWrite} value={draft} onChange={e=>setDraft(e.target.value)}/></label>{uiPageId==="05"&&outlet?.host?createPortal(<span>SIMULATED related 05</span>,outlet.host):null}</>;}}));
 const observers=new Set<ResizeObserverStub>();
 class ResizeObserverStub{
  targets=new Set<Element>();
@@ -18,6 +20,21 @@ beforeEach(()=>{observers.clear();vi.stubGlobal("ResizeObserver",ResizeObserverS
 afterEach(()=>{vi.unstubAllGlobals();delete window.__TAURI__;});
 const props={spaceId:"library" as const,uiPageId:"03",onInspect:vi.fn(),onNavigate:vi.fn(),onOpenPage:vi.fn()};
 describe("actual Dockview retained business consumer",()=>{
+ it("removes the closed last research tab's portal and reopens its exact retained draft",async()=>{
+  const host=document.createElement("div");document.body.append(host);
+  const outlet={host,onLocate:vi.fn()};
+  const tree=(revision:number)=><StitchResearchOutlet.Provider value={outlet}><DockWorkspace {...props} uiPageId="05" spaceId="vault" navigationRevision={revision}/></StitchResearchOutlet.Provider>;
+  const view=render(tree(0));
+  try{
+   const draft=await screen.findByLabelText("draft-05");fireEvent.change(draft,{target:{value:"保留研究草稿"}});
+   await waitFor(()=>expect(host).toHaveTextContent("SIMULATED related 05"));
+   fireEvent.click(screen.getByRole("button",{name:"关闭视图 研究空间"}));
+   await waitFor(()=>expect(host).toBeEmptyDOMElement());expect(screen.queryByRole("tab",{name:"研究空间"})).not.toBeInTheDocument();
+   expect(draft).toBeInTheDocument();expect(draft).not.toBeVisible();
+   view.rerender(tree(1));await waitFor(()=>expect(host).toHaveTextContent("SIMULATED related 05"));
+   expect(screen.getByLabelText("draft-05")).toBe(draft);expect(draft).toBeVisible();expect(draft).toHaveValue("保留研究草稿");expect(counters.mounts).toBe(1);
+  }finally{view.unmount();host.remove();}
+ });
  it("SIMULATED rejected saved layout keeps the mounted draft visible",async()=>{
   counters.working={server:{workspace_id:"a".repeat(32),restore_epoch:"initial"},state:{active_document:null}};
   let resolve!:(value:unknown)=>void;const reply=new Promise(done=>{resolve=done;});window.__TAURI__={core:{invoke:vi.fn().mockReturnValue(reply)}};
@@ -76,6 +93,7 @@ describe("actual Dockview retained business consumer",()=>{
  it.each([
   {spaceId:"ai-assets" as const,pages:[["13","项目记忆与上下文"],["14","纠正、评测与复测"],["22","任务与记录"]]},
   {spaceId:"library" as const,pages:[["02","知识库"],["03","阅读与编辑"],["20","版本、来源与历史"]]},
+  {spaceId:"learning" as const,pages:[["06","学习路径"],["07","课程与视觉教学"]]},
  ])("labels accepted semantic pages in a single retained $spaceId business host",async({spaceId,pages})=>{
   const activate=vi.fn(()=>true);
   const view=render(<DockWorkspace {...props} spaceId={spaceId} uiPageId={pages[0][0]} onActivateView={activate}/>);

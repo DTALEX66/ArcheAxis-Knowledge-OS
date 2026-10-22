@@ -111,6 +111,7 @@ fn collection_edges(editor: &Value) -> Option<Result<Vec<DerivedEdge>, ()>> {
                         edges.push(DerivedEdge {
                             from: record.reference.clone(),
                             relation: Relation {
+                                presentation: None,
                                 id: format!(
                                     "collection:{}:{}:{}",
                                     record.record_id, p.property_id, index

@@ -70,6 +70,8 @@
 .ui-course-list li { border:1px solid var(--ax-border); border-radius:8px; padding:16px; background:var(--ax-panel); }
 .ui-course-list small { display:block; margin-top:8px; color:var(--ax-fg-secondary); }
 .ui-learning-review { margin-top:24px; }
+.ui-learning-review fieldset label:has(input[type="radio"]) { display:flex; align-items:center; gap:8px; min-height:44px; }
+.ui-learning-review input[type="radio"] { flex:none; width:1rem; height:1rem; min-height:0; margin:0; }
 /* Review titles follow the available pane width, including narrow desktop docks. */
 .app-shell [data-section="review"] button[data-learning-item-key] {
   min-inline-size: 0;
@@ -265,4 +267,22 @@
 .diagnostic-center-trigger { flex-shrink: 0; white-space: nowrap; }
 .document-snapshot-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .frozen-request-summary { overflow-wrap: anywhere; }
+.document-tag-navigation,.saved-document-metadata { min-width:0; margin-block:12px; }
+.document-tag-navigation label { display:grid; gap:6px; }
+.document-tag-navigation input { width:100%; min-width:0; box-sizing:border-box; }
+.document-tag-chips { display:flex; flex-wrap:wrap; gap:6px; margin-block:8px; }
+.document-tag-chips button { min-height:32px; max-width:100%; white-space:normal; overflow-wrap:anywhere; text-align:left; }
+.document-tag-chips button[aria-pressed="true"] { border-color:var(--ax-accent); }
+.document-tag-controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr)); gap:8px; }
+.document-tag-controls select { min-width:0; max-width:100%; width:100%; }
+.document-tag-tree ul { list-style:none; margin:0; padding-inline-start:12px; }
+.document-tag-tree > ul,.document-tag-tree ul ul ul ul ul ul ul { padding-inline-start:0; }
+.document-tag-tree li { min-width:0; margin-block:4px; }
+.document-tag-branch { display:flex; gap:4px; align-items:flex-start; min-width:0; }
+.document-tag-branch button { min-height:32px; max-width:100%; white-space:normal; overflow-wrap:anywhere; text-align:left; }
+.document-tag-branch button[aria-expanded] { flex:0 0 32px; text-align:center; }
+.document-tag-branch button[aria-pressed="true"] { border-color:var(--ax-accent); }
+.saved-document-metadata dd,.saved-document-metadata dt { overflow-wrap:anywhere; white-space:pre-wrap; }
+.saved-document-metadata dd { margin-inline-start:0; }
+.saved-document-metadata dl > div { margin-block:8px; }
 @container console (max-width:640px) {.app-shell[data-cabin-page="03"] .ui-page-heading{margin-bottom:12px;padding-bottom:10px;gap:8px}.app-shell[data-cabin-page="03"] .ui-page-heading h1{font-size:22px}.app-shell .ui-reader-document{padding:16px}.app-shell .ui-reader-document h2{font-size:24px;line-height:1.4;margin:8px 0 16px;overflow-wrap:anywhere}.app-shell .ui-reader-toolbar{gap:8px;margin-bottom:12px}.app-shell .ui-reader-layout{gap:16px}}

@@ -93,7 +93,7 @@ export function CanonicalExchangeSpace({initialDocumentId,onOpenDocument,onOpenP
   useEffect(()=>{mounted.current=true;void refreshSources();void loadDocuments();return()=>{mounted.current=false;sourceEpoch.current++;sourceListEpoch.current++;documentEpoch.current++;docListEpoch.current++;docListLock.current=false;};},[]);
   useEffect(()=>{if(initialDocumentId){setTab("documents");void openDocument(initialDocumentId);}},[initialDocumentId]);
   useEffect(()=>{if(tab==="teaching")return;onTrail?.(tab==="originals"&&original?[{id:`source:${original.source.source_id}`,label:original.original.name,region:"exchange-original",detail:original.jobId??"原件"}]:tab==="documents"&&saved?[{id:`document:${saved.document_id}`,label:saved.title,region:"exchange-export",detail:`已保存 v${saved.version}`}]:[]);},[tab,original,saved,onTrail]);
-  return <section className="ui-exchange-page" aria-label="导入、导出与互通">
+  return <section className="stitch-exchange-page" aria-label="导入、导出与互通">
     <header className="exchange-header"><div><h2>导入、导出与互通</h2><p>原件、转换产物、已保存文档与人工交换分别核对。</p></div><span>本地工作区 · 人工选择</span></header>
     <nav className="exchange-tabs" aria-label="导入导出区域">{tabs.map(([id,label])=><button key={id} aria-pressed={tab===id} onClick={()=>setTab(id)}>{label}</button>)}</nav>
     {/* Keep sessions mounted across tabs; theme updates never key or recreate an editor. */}

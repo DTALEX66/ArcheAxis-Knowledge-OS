@@ -36,7 +36,7 @@ function Journey({initial="07"}:{initial?:string}){const[page,setPage]=useState(
 beforeEach(()=>{bridge.call.mockReset();events.length=0;vi.stubGlobal("crypto",webcrypto);});
 it("SIMULATED mounted accepted knowledge→actual course/assessment→page11 practice→page12 review keeps one immutable object",async()=>{
  setup();render(<Journey/>);
- fireEvent.click(screen.getByRole("button",{name:"搜索知识"}));fireEvent.click(await screen.findByRole("button",{name:"已接受的同源知识"}));
+ fireEvent.click(screen.getByRole("button",{name:"课程来源"}));fireEvent.click(screen.getByRole("button",{name:"搜索知识"}));fireEvent.click(await screen.findByRole("button",{name:"已接受的同源知识"}));
  fireEvent.click(await screen.findByRole("button",{name:"从当前知识生成课程与课时"}));fireEvent.click(await screen.findByRole("button",{name:"由课程课时建立学习问题"}));
  fireEvent.click(await screen.findByRole("button",{name:"练习此学习项目"}));
  await waitFor(()=>expect(within(screen.getByLabelText("同对象练习与复习")).getByText("同源课程")).toBeInTheDocument());
