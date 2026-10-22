@@ -1191,3 +1191,5 @@ Owner报告普通PowerShell返回Python 3.13.14；同命令在默认Codex环境�
 本段为公开任务提交前快照；分支codex/sync-20261019、local/remote baseline 8d367bac4a85bebfbb523503678ade0838faa73e经正常Git和native GitHub读取。固定白名单原155项加本轮资格overlay、3历史文件、历史清单及检查点，共161项；逐路径检查后按已有授权commit/push，最终SHA和同步结果从Git/native ref独立回读，不在提交内伪造自指SHA。155文件恢复ZIP保持历史，不重复封存。当前额度剩55%、secondary UNKNOWN，未触发20%；无模型调用、新业务/扩展、安装、合并或发布。
 
 提交前原document authority门禁PASS：唯一当前记录/公开路由与项目内hash核验通过，4个外部/私人输入仍UNVERIFIED。固定161路径审阅无未知文件、常见高可信凭据模式未检出；不将该扫描称为全面安全审计。diff检查发现末尾多余空行，已仅修正文档末尾换行。
+
+交付回读（2026-10-22T13:11:38Z）：161项公开任务文件已形成代码检查点d388801b96f851a20e68d796db276c49f4aae586，并正常push到codex/sync-20261019；git ls-remote与native GitHub git/ref均返回同SHA，工作树当时干净。main仍8d367bac4a85bebfbb523503678ade0838faa73e，未合并/发布/安装。native actions/runs按代码SHA查询返回0项，exact-SHA CI保持NOT_EXECUTED。此实际交付回读保存于后续文档提交，最终文档SHA从Git/native ref及ignored交付receipt核对，不继续为了自指SHA循环提交。

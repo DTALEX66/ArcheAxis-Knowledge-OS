@@ -10,7 +10,7 @@
 
 > **历史共用UI局部修复（2026-10-22；已由顶部本轮证据接续）**：Owner明确要求加速并行，三组并行只读核对设计、消费者/焦点与工具环境，主线程唯一writer接收。已将主窗内伪留白及内嵌检查器改为Stitch主窗＋右上小栖＋右下来源检查独立窗，窄屏辅助窗按需互斥，保留DockWorkspace、草稿和现有Core接线；修复重复切换、缩窗隐藏焦点与放宽窗口抢焦点。最终组件57/57、TypeScript及15项隔离浏览器自动布局/焦点检查PASS；浏览器是SYNTHETIC，不能代表真实消费者、全22页视觉、原生或安装验收。回执`.project-local/runs/stitch-shell-node-20261022/artifacts/receipt.json`，SHA256 `0936283cbc4129d9e9dcd09b8b8f35d2a695882df479ba1bc7266493ab90c4b7`。本轮没有新增业务/扩展或后端功能。
 
-> **最新权限修复与验证（2026-10-22）**：Owner明确允许平台正式审批通道。Python 3.13.14与Git元数据唯一临时文件写入/删除均PASS；默认沙箱仍受限，未修改ACL、全局配置或索引。原canonical前端生产构建、原资源投影--check、16项合同及18项资源UI回归PASS。7处历史引用现指向HEAD中3份精确原始字节，原hash/资格状态不变，不能当作当前运行资格。详见[本轮检查点](../history/project-drift-audit-20261021/stitch-permission-recovery-20261022.json)。本段为提交前观测；最终commit/push及远端一致须现场读Git/native GitHub，不能沿用旧BLOCKED或预判成功。原生宿主、安装和同候选CL/J仍待验收。
+> **最新权限修复与验证（2026-10-22）**：Owner明确允许平台正式审批通道。Python 3.13.14与Git元数据唯一临时文件写入/删除均PASS；默认沙箱仍受限，未修改ACL、全局配置或索引。原canonical前端生产构建、原资源投影--check、16项合同及18项资源UI回归PASS。7处历史引用现指向HEAD中3份精确原始字节，原hash/资格状态不变，不能当作当前运行资格。详见[本轮检查点](../history/project-drift-audit-20261021/stitch-permission-recovery-20261022.json)。161项公开任务成果已提交并推送，代码检查点d388801b96f851a20e68d796db276c49f4aae586经Git与native GitHub双重核对一致，工作树在回读时干净。此交付回读另存后续文档提交；当前最终SHA现场读Git/native GitHub，不伪造提交自指SHA。该代码SHA未取得CI证据。原生宿主、安装和同候选CL/J仍待验收。
 
 > **本轮本地恢复路由（2026-10-22）**：固定155个公开任务文件，来源为原113文件交付白名单加经本轮审阅的42个UI/范围文件。当前包 .project-local/artifacts/stitch-ui-recovery-20261022-final/public-task-files.zip，manifest .project-local/artifacts/stitch-ui-recovery-20261022-final/MANIFEST.json，逐成员回读验证 .project-local/artifacts/stitch-ui-recovery-20261022-final/verification.json。仅在verification.json为PASS且manifest/ZIP/成员hash均相符时确认本地快照可用；它不表示上传、Git同步、构建或产品闭环。包不含凭据、私人会话、运行数据库、缓存或大回执，旧快照保留。
 
@@ -19,7 +19,7 @@
 1. 保持当前新UI和已有业务状态；不要回到旧布局维护或重新按兼容库存派生功能。
 2. 已通过Owner批准的正式审批通道完成canonical前端生产构建和资源投影检查；7处引用通过精确历史字节归档修复，未改hash/资格。后续沿原流程资格化当前原生host/Core，不把本地前端构建当安装验收。
 3. 对同一合格新候选，接真实既有Core消费者、CL-01—07/J1—J6、原生/安装与Owner验收；当前67项只是SYNTHETIC浏览器布局/状态检查。
-4. 正式审批通道的Git元数据探针已PASS，按已有授权逐路径提交公开任务文件并核远端exact SHA；本文件记录提交前状态，最终读现场Git/native GitHub。155文件ZIP为修复前已验证历史快照，不覆盖后续文档/历史来源引用修复，不重复打包。
+4. 公开任务代码检查点d388801b96f851a20e68d796db276c49f4aae586已commit/push，Git及native GitHub回读PASS。此回读随后保存到文档提交，当前最终branch SHA现场核对。main未合并，CI/安装不由push推断；155文件ZIP为修复前历史快照，保留但不重复打包。
 5. 本轮正式额度used45%、剩55%，secondary UNKNOWN，未触发20%；准确观测边界读活动指针，监控aaos沿用原规则，无新功能授权。
 
 ## 1. 最新任务、授权与读取顺序

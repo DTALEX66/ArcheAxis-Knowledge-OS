@@ -66,13 +66,21 @@
     "initial_archival_helper": "Hash transcription mismatch rejected before source writes; corrected by reading expected hashes from the original overlay"
   },
   "delivery": {
-    "phase": "PRE_COMMIT_PREFLIGHT",
+    "observed_at": "2026-10-22T13:11:38Z",
+    "phase": "PUBLISHED_CODE_CHECKPOINT_BEFORE_THIS_HANDOFF_COMMIT",
     "branch": "codex/sync-20261019",
-    "local_head": "8d367bac4a85bebfbb523503678ade0838faa73e",
-    "remote_branch_head": "8d367bac4a85bebfbb523503678ade0838faa73e",
-    "remote_readback": "Approved git ls-remote and native GitHub git/ref readback",
-    "commit_push": "Authorized after final review; final outcome must be read from Git/native remote ref, not inferred from this pre-commit snapshot",
-    "ci": "NOT_EXECUTED_FOR_DELIVERED_SHA",
+    "code_checkpoint_sha": "d388801b96f851a20e68d796db276c49f4aae586",
+    "local_head_observed": "d388801b96f851a20e68d796db276c49f4aae586",
+    "remote_branch_head_observed": "d388801b96f851a20e68d796db276c49f4aae586",
+    "git_ls_remote": "PASS",
+    "native_github_ref_readback": "PASS",
+    "working_tree_at_readback": "CLEAN",
+    "public_task_files": 161,
+    "commit": "PASS",
+    "push": "PASS",
+    "exact_sha_consistency": "PASS_FOR_CODE_CHECKPOINT",
+    "ci": "NOT_EXECUTED; native actions/runs head_sha query returned zero runs at observation",
+    "final_handoff_commit": "This delivery readback is now saved in a follow-up documentation commit; read current Git/native branch ref for that final SHA",
     "merge_release_install": "NOT_EXECUTED"
   },
   "next": [
