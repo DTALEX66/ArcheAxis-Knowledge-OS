@@ -25,11 +25,11 @@ function ConversationView({material,materialTitle,selection,slot="full",session}
  const visibleState:XiaoqiState=busy&&active?"thinking":terminal==="cancelled"?"interrupted":terminal==="failed"?"failed":terminal==="completed"?"completed":uncertain?"idle":preview?"awaiting_approval":lastKind==="cancelled"?"interrupted":lastKind==="failed"?"failed":lastKind==="completed"?"completed":"idle";
  const requestState = (state: string) => ({completed: "已完成", failed: "未完成", cancelled: "已取消", EXECUTING: "结果待确认"}[state] ?? "待核对");
  return <section aria-label={slot==="full"?"正式陪伴会话":`${{home:"首页",reader:"阅读区",sidebar:"侧栏"}[slot]}小栖会话`} data-companion-slot={slot}>
-  <XiaoqiAvatar state={visibleState}/><h3>{material?"材料学习会话":"本地陪伴会话"}</h3>
-  <p>回答完成后会显示在这里，内容仍需你判断。</p>
+  <div className="companion-context-header"><XiaoqiAvatar state={visibleState} size={slot==="sidebar"?"sm":"md"}/><div><h3>{material?"材料学习会话":"本地陪伴会话"}</h3>
+  <p>回答完成后会显示在这里，内容仍需你判断。</p></div></div>
   {paused&&verifyIdentity?<button onClick={()=>void verifyIdentity()}>核对陪伴工作区</button>:null}
-  <button disabled={busy||paused} onClick={()=>void session.refreshCatalog()}>重读会话目录</button>
-  <button disabled={busy||paused} onClick={()=>void session.create()}>新建陪伴会话</button>
+  <div className="companion-session-actions"><button disabled={busy||paused} onClick={()=>void session.refreshCatalog()}>重读会话目录</button>
+  <button disabled={busy||paused} onClick={()=>void session.create()}>新建陪伴会话</button></div>
   <label>已保存会话<select disabled={busy||paused} value={current?.session_id??""} onChange={e=>void session.load(e.target.value)}><option value="">选择会话</option>{sessions.map((s,index)=><option key={s.session_id} value={s.session_id}>{s.title} · {index+1}</option>)}</select></label>
   {current?<>
    <p>当前会话：{current.title}</p><RawReceiptButton label="会话运行记录" payload={current} visibleLabel="查看会话诊断"/>

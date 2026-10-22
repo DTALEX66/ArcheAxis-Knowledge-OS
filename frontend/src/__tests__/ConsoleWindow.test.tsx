@@ -20,19 +20,20 @@ describe("single console geometry (SIMULATED, no layout qualification)", () => {
   it("keeps Stitch's main window clear of its auxiliary column and reflows without replacing drafts", async () => {
     for (const [width, height] of [[1280, 700], [1440, 1000], [1600, 1000], [2560, 1440]]) {
       const rect = stitchConsoleRect({ width, height, topInset: 48, bottomInset: 64 });
-      const sideLeft = width - rect.x - 380;
+      const sideLeft = width - rect.x - width * .29;
       expect(sideLeft - (rect.x + rect.width)).toBeCloseTo(20);
       expect(rect.y).toBeGreaterThanOrEqual(48);
       expect(rect.y + rect.height).toBeLessThanOrEqual(height - 64);
+      expect(rect.width / width).toBeCloseTo(.64);
     }
     viewport(1600, 1000);
     render(<ConsoleWindow presentation="stitch"><div className="app-shell cabin-shell"><TopNavBar breadcrumbs={[]}/><input aria-label="Stitch 草稿" defaultValue="保存原文"/></div></ConsoleWindow>);
     const input = screen.getByLabelText("Stitch 草稿"), user = userEvent.setup();
-    expect(geometry().width).toBe("900px"); expect(geometry().left).toBe("150px");
+    expect(geometry().width).toBe("1024px"); expect(parseFloat(geometry().left)).toBeCloseTo(46);
     await user.click(screen.getByRole("button", { name: "铺满主控台" }));
-    expect(geometry().width).toBe("1184px");
+    expect(geometry().width).toBe("1100px");
     await user.click(screen.getByRole("button", { name: "还原主控台" }));
-    expect(geometry().width).toBe("900px");
+    expect(geometry().width).toBe("1024px");
     viewport(640, 480); expect(geometry().width).toBe("640px");
     viewport(1280, 800); expect(geometry().width).toBe("819.2px");
     expect(screen.getByLabelText("Stitch 草稿")).toBe(input); expect(input).toHaveValue("保存原文");

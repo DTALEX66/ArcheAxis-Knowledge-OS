@@ -414,7 +414,7 @@ class GroupedUI:
 const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
  const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
-const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
 const page=pages.length===1?pages[0].getAttribute('data-current-page-id'):null;
 const nodes=[...document.querySelectorAll('details')].filter(n=>n.getAttribute('aria-label')===label&&visible(n));
 const queues=[...document.querySelectorAll('ul[aria-label="复习队列"]')].filter(visible);
@@ -852,7 +852,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
             ui.accept_navigation_alert()
             wait(script)
     trusted_wait("return location.hash==='#page=06'")
-    trusted_wait("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value?.startsWith('assessment_')&&!!document.querySelector('.ui-learning-review article')")
+    trusted_wait("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value?.startsWith('assessment_')&&!!document.querySelector('.stitch-learning-review article')")
     second_key=js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value")
     assert isinstance(second_key,str) and second_key.startswith('assessment_') and second_key!=key
     second_assessment=read('assessment_get',{'item_key':second_key})
@@ -869,7 +869,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
     try:
         for entry in (first,second,first):
             ui.click('恢复复习请求 '+entry['item_key'])
-            trusted_wait("return !!document.querySelector('.ui-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(entry['item_key'])+"&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.value==="+json.dumps(entry['body']['answer']))
+            trusted_wait("return !!document.querySelector('.stitch-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(entry['item_key'])+"&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.value==="+json.dumps(entry['body']['answer']))
             ui.accept_navigation_alert()
             assert js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('本次答案'))?.querySelector('textarea')?.disabled") is True
             assert js("return [...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习者自评'))?.querySelector('select')?.value") == str(entry['body']['rating'])
@@ -886,7 +886,7 @@ if(window.__TAURI__.core.invoke!==observed)throw new Error('Observer installatio
             # The single remaining request has a normal queue button, and still
             # retains its frozen body when explicitly selected.
             ui.click(second_key,"//ul[@aria-label='复习队列']")
-            trusted_wait("return !!document.querySelector('.ui-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(second_key))
+            trusted_wait("return !!document.querySelector('.stitch-learning-review article')&&[...document.querySelectorAll('label')].find(l=>l.textContent.startsWith('学习项目键'))?.querySelector('input')?.value==="+json.dumps(second_key))
             ui.accept_navigation_alert()
         install(entry['item_key'])
         try:
@@ -1257,6 +1257,7 @@ def run_grouped_loop(
         if material_companion_loop:
             mc.reopen(ui, read, js, wait, screenshot, document, result["material_companion"], "cold_reopen")
     ui.page("19")
+    ui.click("工作区与恢复")
     backup_ids={row['backup_id'] for row in read('workspace_backups')['backups']}
     ui.click("创建一致备份")
     backups = poll(read, "workspace_backups", {}, lambda value: len(value["backups"]) == len(backup_ids)+1)["backups"]
@@ -2160,8 +2161,8 @@ LEARNING_RESTORE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().lengt
  !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
   const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
-const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
-const articles=[...document.querySelectorAll('.ui-learning-review article')].filter(n=>visible(n)&&
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
+const articles=[...document.querySelectorAll('.stitch-learning-review article')].filter(n=>visible(n)&&
  [...n.children].some(c=>c.tagName==='H3'&&c.textContent==='复习题'&&visible(c)));
 return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
  count:articles.length,paragraphs:articles.length===1?[...articles[0].children].filter(c=>c.tagName==='P'&&visible(c)).map(c=>c.innerText):[]};"""
@@ -2210,7 +2211,7 @@ READER_RESTORE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().length>
  !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
  Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
   const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
-const pages=[...document.querySelectorAll('[aria-label="当前页面"]')].filter(visible);
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
 const readers=[...document.querySelectorAll('[aria-label="阅读与编辑文档视图"]')].filter(visible);
 const reader=readers.length===1?readers[0]:null;
 const titles=reader?[...reader.querySelectorAll('article[aria-label="文档正文与编辑"]>header>h2')].filter(visible):[];

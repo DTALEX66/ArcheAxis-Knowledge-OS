@@ -1,8 +1,33 @@
 /* One chrome for all existing AAOS pages. Semantic tokens keep all five themes. */
+:root:has(.app-shell[data-stitch-workspace]) {
+  --ax-text-ui: .8125rem;
+  --ax-text-caption: .75rem;
+  --stitch-glass-panel: color-mix(in srgb, var(--ax-panel) 88%, transparent);
+  --stitch-glass-card: color-mix(in srgb, var(--ax-raised) 75%, transparent);
+  --stitch-glass-edge: color-mix(in srgb, var(--ax-accent) 18%, transparent);
+}
+:root[data-aaos-theme="cosmic"]:has(.app-shell[data-stitch-workspace]) {
+  /* Measured from the received HTML's glass-panel and glass-card, not the old cabin. */
+  --stitch-glass-panel: rgb(14 20 29 / 88%);
+  --stitch-glass-card: rgb(22 28 37 / 75%);
+  --stitch-glass-edge: rgb(56 189 248 / 18%);
+  --ax-panel: #0e141d;
+  --ax-raised: #161c25;
+  --ax-bg-inset: #080f1c;
+  --ax-fg-secondary: #b9c4d4;
+  --ax-fg-tertiary: #94a3b8;
+  --ax-border: rgb(56 189 248 / 12%);
+  --ax-border-strong: rgb(56 189 248 / 20%);
+}
+body:has(.app-shell[data-stitch-workspace]) {
+  /* The received scene keeps the wallpaper behind multiply and vertical shade layers. */
+  background-image: linear-gradient(0deg, #020617cc, transparent 48%, #02061799), linear-gradient(#02061766, #02061766), url("../assets/cabin/deep-space-background-20261015.png") !important;
+}
 .stitch-workspace-menu {
   position: fixed; inset: 0 0 auto; z-index: 80; height: 42px; display: flex;
   align-items: center; gap: 18px; padding: 0 18px; color: var(--ax-fg-secondary);
-  border-bottom: 1px solid var(--ax-border); background: var(--ax-panel);
+  border-bottom: 1px solid var(--ax-border); background: color-mix(in srgb, var(--ax-canvas) 80%, transparent);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   font-size: var(--ax-text-ui); line-height: 1.4;
 }
 .stitch-workspace-menu button, .stitch-workspace-menu summary {
@@ -27,7 +52,8 @@
   position: fixed; z-index: 70; bottom: max(10px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
   display: flex; align-items: center; gap: 3px; max-width: calc(100vw - 24px); padding: 5px 8px;
   overflow-x: auto; scrollbar-width: thin; border: 1px solid var(--ax-border); border-radius: 28px;
-  background: var(--ax-panel); color: var(--ax-fg-secondary); box-shadow: 0 8px 26px #0004;
+  background: var(--stitch-glass-panel); color: var(--ax-fg-secondary); box-shadow: 0 12px 32px -12px #0009;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
 }
 .stitch-workspace-dock button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; min-height: 38px; padding: 7px 12px; font: inherit; font-size: var(--ax-text-ui); color: inherit; background: transparent; border: 1px solid transparent; border-radius: 22px; white-space: nowrap; cursor: pointer; }
 .stitch-workspace-dock button:is(:hover, [aria-current="page"], [aria-expanded="true"]) { color: var(--ax-accent); background: var(--ax-accent-soft); border-color: var(--ax-accent); }
@@ -35,17 +61,24 @@
 .stitch-workspace-menu :focus-visible, .stitch-workspace-dock :focus-visible, .stitch-companion-window :focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }
 
 .app-shell.cabin-shell[data-stitch-workspace] {
-  --stitch-surface: color-mix(in srgb, var(--ax-panel) 94%, transparent);
-  --stitch-edge: color-mix(in srgb, var(--ax-accent) 35%, var(--ax-border));
+  --stitch-surface: var(--stitch-glass-panel);
+  --stitch-edge: var(--stitch-glass-edge);
   border-radius: 14px; padding: 0; border-color: var(--stitch-edge);
-  background: var(--stitch-surface) !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  background: var(--stitch-surface) !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 20px 40px -15px #000b, inset 0 1px 0 #ffffff14;
+  font-weight: 400;
 }
+.app-shell[data-stitch-workspace] :is(button, input, textarea, select) { font-weight: 400; text-shadow: none; }
+.app-shell[data-stitch-workspace] :is(button, input, textarea, select):focus-visible {
+  outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; box-shadow: none;
+}
+.app-shell[data-stitch-workspace] :is(input, textarea, select):focus:not(:focus-visible) { box-shadow: none; }
 .app-shell.cabin-shell[data-stitch-workspace] > .ui-navigation-trigger { display: block; position: absolute; z-index: 50; top: 47px; left: 12px; height: 32px; min-height: 32px; margin: 0; padding: 4px 10px; font-size: var(--ax-text-ui); border-radius: 6px; }
 .app-shell.cabin-shell[data-stitch-workspace] .app-body { flex: 1 1 0; min-height: 0; padding: 12px; gap: 12px; }
 .app-shell.cabin-shell[data-stitch-workspace] .navigation-sidebar { flex: 0 0 184px; min-width: 184px; width: 184px; padding: 8px 0; border-right: 1px solid var(--ax-border); }
 .app-shell.cabin-shell[data-stitch-workspace] .space-rail { width: 100%; padding-inline: 6px; }
 .app-shell.cabin-shell[data-stitch-workspace] .space-rail-item { min-height: 36px; padding: 7px 10px; border-radius: 7px; font-size: var(--ax-text-ui); }
-.app-shell.cabin-shell[data-stitch-workspace] .app-center { min-width: 0; min-height: 0; flex: 1 1 0; padding: 14px 16px; margin: 0; border: 1px solid var(--ax-border); border-radius: 10px; background: var(--ax-canvas); overflow: auto; }
+.app-shell.cabin-shell[data-stitch-workspace] .app-center { min-width: 0; min-height: 0; flex: 1 1 0; padding: 4px; margin: 0; border: 0; border-radius: 0; background: transparent; overflow: auto; }
 .stitch-page-identity { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .app-shell[data-stitch-workspace] .dock-workspace { height:100%; min-height:0; }
 .app-shell[data-stitch-workspace] .app-center { display:flex; flex-direction:column; }
@@ -100,16 +133,36 @@
 .stitch-related-window .research-related-materials :is(p,h4) { margin: 0; overflow-wrap: anywhere; }
 .stitch-related-close { position: sticky; float: right; top: 6px; z-index: 2; min-width: 32px; min-height: 32px; margin: 6px 10px -38px 0; padding: 4px; border: 0; border-radius: 5px; background: var(--ax-raised); color: var(--ax-fg); font: inherit; cursor: pointer; }
 
+.stitch-companion-window, .stitch-reference-window {
+  background: var(--stitch-glass-panel); border-color: var(--stitch-glass-edge);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 20px 40px -15px #000b, inset 0 1px 0 #ffffff14;
+}
+.stitch-companion-window:focus-within { z-index: 62; }
+.stitch-companion-content, .stitch-reference-window { font-weight: 400; }
+.stitch-companion-content .xiaoqi-avatar { max-height: 64px; }
+.stitch-companion-content .companion-context-header { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--ax-border); }
+.stitch-companion-content .companion-context-header .xiaoqi-avatar { flex: none; }
+.stitch-companion-content .companion-context-header h3 { font-size: var(--ax-text-ui); font-weight: 500; }
+.stitch-companion-content .companion-context-header p { color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.stitch-companion-content .companion-session-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.stitch-companion-content .companion-session-actions button { flex: 1 1 8rem; padding: 4px 8px; border-color: var(--ax-border); background: transparent; font-weight: 400; }
+.app-shell[data-stitch-workspace] :is(.stitch-learning-topic, .stitch-learning-glass, .stitch-learning-review-heading, .research-topic-header) { background: var(--stitch-glass-card); }
+.app-shell[data-stitch-workspace] .dock-layout-options > summary { padding: 4px 0; color: var(--ax-fg-tertiary); font-size: var(--ax-text-caption); }
+.app-shell[data-stitch-workspace] .dock-workspace > .dock-layout-options { position: static; width: auto; margin: 0; padding: 0; }
+.app-shell[data-stitch-workspace] .dock-surface .dockview-theme-dark { --dv-background-color: transparent; }
+
 /* Reserve the global chrome when ConsoleWindow uses its existing full/compact mode. */
 .console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] { padding-top: 42px; padding-bottom: 64px; border-radius: 0; }
 .console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 89px; }
 @media (min-width: 1280px) and (min-height: 700px) {
   .stitch-companion-window, .stitch-reference-window {
-    --stitch-main-width: min(900px, 64vw);
-    --stitch-stage-height: min(600px, calc(100dvh - 112px));
+    --stitch-main-width: 64vw;
+    --stitch-aux-width: 29vw;
+    --stitch-stage-height: min(max(480px, 60vh), calc(100dvh - 112px));
     --stitch-stage-top: calc((100dvh - var(--stitch-stage-height)) / 2 - 8px);
-    right: calc((100vw - var(--stitch-main-width) - 400px) / 2);
-    width: 380px; height: calc((var(--stitch-stage-height) - 20px) / 2); max-height: none; min-height: 0;
+    right: calc((100vw - var(--stitch-main-width) - var(--stitch-aux-width) - 20px) / 2);
+    width: var(--stitch-aux-width); height: calc((var(--stitch-stage-height) - 20px) / 2); max-height: none; min-height: 0;
   }
   .stitch-companion-window { top: var(--stitch-stage-top); }
   .stitch-reference-window { top: calc(var(--stitch-stage-top) + (var(--stitch-stage-height) + 20px) / 2); }
@@ -134,6 +187,13 @@
   .app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading { margin-bottom: 6px; padding-bottom: 6px; }
   .app-shell.cabin-shell[data-stitch-workspace] .ui-page-heading :is(p, small) { display: none; }
 }
+@container console (max-height: 700px) {
+  /* Let short main windows scroll the research page instead of crushing its evidence viewport. */
+  .app-shell[data-stitch-workspace] .dock-business-host:has(.stitch-research-space) { overflow: auto; }
+  .app-shell[data-stitch-workspace] .dock-business-host > .space-view:has(> .stitch-research-space) { height: auto; min-height: 100%; }
+  .stitch-research-space .research-editor { height: auto; min-height: 100%; }
+  .stitch-research-space .research-stage-content { flex: none; overflow: visible; }
+}
 @media (max-width: 900px) {
   .stitch-workspace-menu { padding-inline: 10px; gap: 8px; }
   .stitch-brand span { display: none; }
@@ -155,8 +215,10 @@
 }
 @media (prefers-reduced-transparency: reduce) {
   .app-shell.cabin-shell[data-stitch-workspace] { background: var(--ax-panel) !important; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .stitch-workspace-menu, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window { background: var(--ax-panel); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 @media (forced-colors: active) {
+  body:has(.app-shell[data-stitch-workspace]) { background-image: none !important; }
   .stitch-workspace-menu, .stitch-menu-popover, .stitch-workspace-dock, .stitch-companion-window, .stitch-reference-window, .app-shell.cabin-shell[data-stitch-workspace], .app-shell.cabin-shell[data-stitch-workspace] .app-center { background: Canvas !important; color: CanvasText; border-color: CanvasText; box-shadow: none; backdrop-filter: none; }
   .stitch-workspace-dock button:is([aria-current="page"], [aria-expanded="true"]) { color: Highlight; border-color: Highlight; }
 }

@@ -1193,3 +1193,35 @@ Owner报告普通PowerShell返回Python 3.13.14；同命令在默认Codex环境�
 提交前原document authority门禁PASS：唯一当前记录/公开路由与项目内hash核验通过，4个外部/私人输入仍UNVERIFIED。固定161路径审阅无未知文件、常见高可信凭据模式未检出；不将该扫描称为全面安全审计。diff检查发现末尾多余空行，已仅修正文档末尾换行。
 
 交付回读（2026-10-22T13:11:38Z）：161项公开任务文件已形成代码检查点d388801b96f851a20e68d796db276c49f4aae586，并正常push到codex/sync-20261019；git ls-remote与native GitHub git/ref均返回同SHA，工作树当时干净。main仍8d367bac4a85bebfbb523503678ade0838faa73e，未合并/发布/安装。native actions/runs按代码SHA查询返回0项，exact-SHA CI保持NOT_EXECUTED。此实际交付回读保存于后续文档提交，最终文档SHA从Git/native ref及ignored交付receipt核对，不继续为了自指SHA循环提交。
+
+## 2026-10-22 Stitch质感纠偏、实际子链与Owner暂停
+
+Owner查看界面后指出质感未达到Stitch原图；后继明确“完成本次后暂停”，并要求列出核心能力（闭环/框架/多格式）、扩展单列。状态切换为PAUSED_BY_OWNER / PARTIAL；监控aaos正式工具更新PAUSED并回读文件，目标状态paused。未触发额度阈值，不按额度未知推导停工。只有Owner明确恢复才继续开发或长链验收。
+
+本片唯一公开检查点为 `docs/history/project-drift-audit-20261021/stitch-visual-pause-20261022.json`。主线程单writer；并行仅只读核对。实际查看接收原图与候选截图，定位背景明暗、玻璃材质、过重控件/焦点与重复框，以及主窗900px固定上限导致大屏比例偏小。已沿现有Stitch壳修正：cosmic玻璃底材/透明度/blur16、阴影与背景遮罩；主/辅宽按64%/29%随桌面变化、间隔20px；小栖上下文与操作紧凑；移动后聚焦的辅助窗提层；短主窗研究正文改为可滚动；布局工具旧绝对定位不再盖Dock关闭按钮。未新增业务、市场、模型provider或软件特色。原图只有5页专用设计，其他页面不宣称像素级还原；Owner视觉验收仍未执行。
+
+当前冻结源码的32项组件回归、86项原生探针保护回归PASS；正式TypeScript/Vite/Tauri/Core与便携装配PASS，构建base 9eaa2080293e3c064e8e63bf633f3b7c4573ba6b + patch 4fe287c79cfe905f647199bd8afb2b274e13b22092dfe0c09878486d4bd8402d，source_consistent=true。host SHA256 6a8c4e6ef7739b08a8071e527c412d8c2a864bd718757e4855e32365c84f3a1b；Core 23a27c151d1c5332564e8d077fcbfce5ef2abee2984c38dcb7990faa97dcee3c。最终候选 `.project-local/runs/be268a2d33/stitch-visual-portable-final-03/artifacts/星环便携候选`，19482成员、695188878逻辑字节。只生成隔离候选，未替换Green或公开安装发布。
+
+浏览器子报告167/167 PASS：22页×5主题110，22页×两组窄屏44，研究13尺寸/缩放组。子报告与当前478个UI源文件逐个hash回读一致、无console/pageerror/外部请求、自有浏览器/Vite及端口回收。外层dev记录为INVALIDATED：矩阵期间另一原生探针文件改变；这项负例保留，不写成整个run PASS，也不把SYNTHETIC桥当真实Core。实际查看研究宽/窄、白色设置等代表图片，不称全部画面逐张人工签收。
+
+最终正式原生宿主分组回归 `.project-local/runs/be268a2d33/webdriver-65b88076c711/tmp/journey/receipt.json` 为FAIL，compiled_source_binding=PASS、source_consistent=true：备份/恢复后的学习对象身份、原文定位与练习到复习子项通过；能力停用重启回读通过，继续验证拒绝恢复时阅读页来源工具无法滚动到达（open_reader_source_tools/reveal_selector，No reachable scroll container）。原生关闭/自有进程与监听端口回收完成。该FAIL不能因167场景或构建通过而覆盖；暂停后留为首个待修问题，当前不再追长链。
+
+早期原生失败分别为旧space-rail/品牌图定位、错误aria标签、设置页遗漏“工作区与恢复”分组、旧学习类名及隐藏页面身份；探针现改走新版真实入口，未降低Core或保存断言。旧浏览器13 BLOCKED、13 FAIL、4 PASS/9 FAIL、153 PASS/14 FAIL全部保留；最后菜单遮挡与窄高研究区修复后为167子报告PASS。旧回执路径见检查点，不改写历史。
+
+同本轮候选02上的实际Core子链：DOCX/XLSX/PPTX/文本PDF内容、结构位置、独立重解析及重启回读通过；百科/社区/科研真实检索三通道完成、整体PARTIAL；接同研究工作区的知识/学习/冷读/独立备份恢复109请求为PASS_DECLARED_INTEGRATED_SUBSET。这些属于候选02，不能借给最终03或组成全CL/J通过。当前4B本地模型真实调用一次，失败material_no_final_answer；无最终回答，不自动重试或换provider。云端未执行。Owner已明确最终用户自行绑定订阅/API，必要测试允许GPT订阅、材料公开且节省token；不再索要自备API服务作为产品前提，不读取/复用Codex认证。产品自有订阅登录尚未实现，不能把当前Codex会话当产品接入。
+
+核心能力盘点（能力存在与当前同候选完成分开）：
+
+| 核心层 | 已有内容 | 当前验收边界 |
+| --- | --- | --- |
+| 框架 | Tauri2/React正式宿主、Rust Core唯一SQLite/CAS写者、隔离Python worker、有限bridge、对象/原件/版本、任务与恢复 | 当前正式构建PASS；完整安装/升级/正常退出与数据保全链未整体通过 |
+| 内容工作区 | 文档/块保存编辑、草稿/lease/冲突、全文检索、标签/属性、来源定位、固定版本引用/有限嵌入、图谱/画布与布局 | 已有实现与局部实际子链；不宣称所有软件语义往返或当前全22页真实业务验收 |
+| 研究与可信知识 | 百科/社区/科研检索、来源/定位、研究材料/笔记/结论、冲突与依据、人类选择/知识接纳 | 实际Core三通道与知识/学习子链通过；模型结论不自动转正式知识 |
+| 学习教学 | 课程/练习/Teach-back、答案与自评、复习队列/历史、纠错修订 | 实际子链与原生部分通过；完整J链仍有上述失败 |
+| 模型 | 统一用途/配置、材料预览/授权、固定版本请求、状态/取消/恢复、本地LM Studio路线 | 当前真实本地调用FAIL；产品云端绑定NOT_EXECUTED，CL-06未完成 |
+| 多格式 | TXT/Markdown、CSV/TSV、JSON/JSONL/YAML/XML/TOML、HTML、PDF、Office、ODF、RTF/EPUB、图片OCR、音视频处理路径 | 本轮4种格式实际Core子集通过；OCR/英文音视频有历史局部证据，不能借给当前候选；旧Office/复杂排版/中文转写/视频视觉/原格式往返非全面资格 |
+| 可靠性 | 错误/未知/取消、重试/续做、导出/备份恢复、版本与数据保全 | 当前有实际恢复子项；同候选CL-01—07/J1—6与安装/Owner/CI总体PARTIAL |
+
+扩展另列：具体软件特色/双向适配、额外第三方API/检索provider、可选专业算法/renderer、插件/技能/模板/MCP包，均归后期内置市场；通用运行时/分发/支付、复杂多Agent及企业协作不在本期开发。3D/VR/AR/空间记忆等保留长期蓝图。已有声明式T3模板生命周期仅是一项局部实测，不冒充任意可执行插件/MCP均可安装。当前只维护既有Core合同与版本/schema、权限、凭据引用、超时/取消、错误/未知、幂等及卸载数据保全接口边界，不开新队列。
+
+后续仅在Owner恢复后：先修原生阅读工具可达性；再处理本地最终回答与产品自有云绑定；同候选补齐必要CL/J、安装与Owner视觉验收。暂停前仅做当前公开代码/脱敏检查点/指针/交接的正常commit/push及exact-SHA回读；不merge/release、不上传运行库/原始会话/凭据/大回执。最终SHA从Git与远端读取，提交内不伪造自指SHA。

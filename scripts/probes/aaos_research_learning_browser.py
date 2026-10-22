@@ -406,14 +406,16 @@ def main():
                 page.get_by_role("button", name="研究与个人学习贯穿 · 版本 1", exact=True).click()
                 evidence = page.get_by_role("navigation", name="研究内容导航")
                 evidence.get_by_role(
-                    "button", name=f"证据与材料 ({material_count})", exact=True
+                    "button", name=f"证据对比 ({material_count})", exact=True
                 ).click()
                 page.locator('[data-research-material="community"]').wait_for()
                 page.get_by_role("complementary", name="相关资料", exact=True).get_by_role(
                     "heading", name=f"相关资料 ({material_count})", exact=True
                 ).wait_for()
                 for family in ("encyclopedia", "community", "research"):
-                    page.locator('[data-research-material="' + family + '"]').get_by_role(
+                    card = page.locator('[data-research-material="' + family + '"]')
+                    card.get_by_role("button", name="材料 ", exact=False).first.click()
+                    card.get_by_role(
                         "button", name="读取校验原件", exact=True
                     ).click()
                     original_view = page.get_by_role(

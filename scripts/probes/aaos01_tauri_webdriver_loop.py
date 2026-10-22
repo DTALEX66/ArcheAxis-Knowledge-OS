@@ -1596,9 +1596,9 @@ def main():
         session = result["sessionId"]
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
-        wait("return !!document.querySelector('.space-rail [data-page-id=\"02\"]')")
-        wait("const images=[...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length);return images.length>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
-        receipt.setdefault("brand_images", []).append(js("return [...document.querySelectorAll('.top-nav-logo,.brand-logo')].filter(n=>n.getClientRects().length).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))"))
+        wait("return !!document.querySelector('.app-shell[data-stitch-workspace] .stitch-page-identity[data-current-page-id]')&&!!document.querySelector('.stitch-workspace-menu button[aria-label=\"打开产品导航\"]')")
+        wait("const brand=document.querySelector('.stitch-brand svg'),r=brand?.getBoundingClientRect();const images=[...document.images].filter(n=>n.getClientRects().length);return !!r&&r.width>0&&r.height>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
+        receipt.setdefault("brand_images", []).append(js("const brand=document.querySelector('.stitch-brand svg'),r=brand.getBoundingClientRect();return {brand:{kind:'inline-svg',width:r.width,height:r.height},visibleImages:[...document.images].filter(n=>n.getClientRects().length).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))}"))
         if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or args.be10_handoff_reader_loop or material_mode:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:

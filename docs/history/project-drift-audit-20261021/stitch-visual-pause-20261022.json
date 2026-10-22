@@ -1,0 +1,182 @@
+{
+  "schema": "aaos.stitch-visual-pause/v1",
+  "observed_at": "2026-10-22T14:11:33.95Z",
+  "owner_stop": "完成本次后暂停",
+  "state": "PAUSED_BY_OWNER",
+  "whole_scope": "PARTIAL",
+  "authoritative_progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "source_base": "9eaa2080293e3c064e8e63bf633f3b7c4573ba6b",
+  "source_patch_at_build": "4fe287c79cfe905f647199bd8afb2b274e13b22092dfe0c09878486d4bd8402d",
+  "source_files": {
+    "frontend/src/__tests__/ConsoleWindow.test.tsx": "91319eec7615a795a1fe67416e073f657d373e435a521b7e6a6e2c45e5d0f1f3",
+    "frontend/src/components/ConsoleWindow.tsx": "d12acedf876ce7ed1511f9a440fba2e54028d13cecfb9165dfd596ed7de8071b",
+    "frontend/src/components/ConversationPanel.tsx": "efa931d69cde59d0784411d0e37d9589ea28c8e8eae3fba821bc001bb4d0e854",
+    "frontend/src/components/StitchWorkspaceChrome.css": "e8ed25fc793b873a6c2d476250ebb33c344110c121cbc4f261b3d9c0ed8c8c26",
+    "scripts/probes/aaos01_grouped_owner_loop.py": "69a708fd01bfae9e7a3e720d826885f3b164e28611658695bb90ffc9f1265d7e",
+    "scripts/probes/aaos01_tauri_webdriver_loop.py": "2ce06ece705daa47889a1a0341d3739e7868bb2dc5ba081c213f5b73c5f3e418",
+    "scripts/probes/aaos_research_learning_browser.py": "4d11296f5d2454906b229e5ca9208c672c1748934912027038bcf7972acf2823",
+    "scripts/probes/stitch_ui_browser.py": "fea4c7965a21ea0886178c650de1519419bf56da194922faa98bc394e21e38af"
+  },
+  "visual_changes": [
+    "Received glass colours, opacity and blur; darker wallpaper shading",
+    "Main/auxiliary widths scale at .64/.29 of desktop, preserving 20px gap and keyboard resize",
+    "Compact companion context/actions; single surface border; lighter controls and focus ring",
+    "Focused moved companion stays above inspector",
+    "Short research windows scroll without crushing evidence area",
+    "Layout options no longer overlap Dock close controls"
+  ],
+  "component_tests": {
+    "status": "PASS",
+    "files": 3,
+    "tests": 32,
+    "run": ".project-local/runs/be268a2d33/stitch-final-components-03"
+  },
+  "probe_guard_tests": {
+    "status": "PASS",
+    "tests": 86,
+    "run": ".project-local/runs/be268a2d33/stitch-final-unit-04"
+  },
+  "browser": {
+    "status": "PASS",
+    "cases": {
+      "PASS": 167,
+      "FAIL": 0,
+      "BLOCKED": 0
+    },
+    "evidence_level": "SYNTHETIC",
+    "receipt": ".project-local/runs/be268a2d33/stitch-visual-matrix-07/artifacts/stitch-browser/stitch-browser.json",
+    "receipt_sha256": "4ff109fe9993dd54d0fb8556c4585a1412a543414eb5d70faef30e3d3b26f3d6",
+    "ui_sha256_before": "ebdfd88fd20a3fee15aa36fc2cd8aabb8d127affed6688cf0dd3e7a414ee6e26",
+    "ui_sha256_after": "ebdfd88fd20a3fee15aa36fc2cd8aabb8d127affed6688cf0dd3e7a414ee6e26",
+    "changed_ui_since_report": [],
+    "outer_execution": "INVALIDATED: a separate native probe file changed during the matrix; not an overall run PASS",
+    "errors": 0,
+    "blocked_external": 0,
+    "cleanup": {
+      "vite": {
+        "pid": 38176,
+        "exited": true
+      },
+      "chromium": [
+        {
+          "pid": 6616,
+          "exited": true
+        }
+      ],
+      "port": {
+        "port": 50267,
+        "closed": true
+      }
+    },
+    "visual_fidelity": "PARTIAL; representative images viewed, no Owner signoff or pixel equivalence claim"
+  },
+  "build": {
+    "status": "PASS",
+    "receipt": ".project-local/runs/be268a2d33/dba88fd07713/artifacts/frontend-build.json",
+    "sha256": "5d88eaf4ef4da5cdfb56f1b1b13a033a1639ab5c9fc66b3c4a8497ea96f79eb4",
+    "source_consistent": true,
+    "host_sha256": "6a8c4e6ef7739b08a8071e527c412d8c2a864bd718757e4855e32365c84f3a1b",
+    "core_sha256": "23a27c151d1c5332564e8d077fcbfce5ef2abee2984c38dcb7990faa97dcee3c",
+    "core_receipt": ".project-local/runs/be268a2d33/stitch-closure-core-qualified-04/artifacts/execution.json"
+  },
+  "portable": {
+    "status": "PASS",
+    "receipt": ".project-local/runs/be268a2d33/stitch-visual-portable-final-03/artifacts/portable-receipt.json",
+    "candidate": ".project-local/runs/be268a2d33/stitch-visual-portable-final-03/artifacts/星环便携候选",
+    "members": 19482,
+    "logical_bytes": 695188878
+  },
+  "native": {
+    "status": "FAIL",
+    "receipt": ".project-local/runs/be268a2d33/webdriver-65b88076c711/tmp/journey/receipt.json",
+    "sha256": "d294a860a0f946b5b6dff33ba6863cc148d9c1fb7a9e569819abbaf31e708096",
+    "compiled_source_binding": "PASS",
+    "source_consistent": true,
+    "error": "AssertionError: {'clip': {'bottom': 582.7999877929688, 'left': 53.60000228881836, 'right': 827.6000022888184, 'top': 300.20001220703125}, 'hit': 'svg', 'ready': False, 'reason': 'No reachable scroll container', 'target': {'x': 274.03751373291016, 'y': 761.7500133514404}}",
+    "failure_location": "capability_refusal_recovery -> open_reader_source_tools -> reveal_selector",
+    "restored_learning": "PASS",
+    "practice_to_review": "PASS",
+    "capability_restart": "PASS",
+    "ports_released": true,
+    "remaining_owned": [],
+    "scope": "Actual native/Core journey on final candidate; required failure means whole journey FAIL"
+  },
+  "earlier_current_turn_core": {
+    "candidate": ".project-local/runs/be268a2d33/stitch-closure-portable-02/artifacts/星环便携候选",
+    "common_formats": {
+      "status": "PASS_SELECTED_SUBSET",
+      "formats": [
+        "DOCX",
+        "XLSX",
+        "PPTX",
+        "text PDF"
+      ],
+      "receipt": ".project-local/runs/be268a2d33/d1effb3bc106/artifacts/common-formats.json"
+    },
+    "public_research": {
+      "status": "PARTIAL",
+      "channels": [
+        "encyclopedia",
+        "community",
+        "research"
+      ],
+      "receipt": ".project-local/runs/be268a2d33/stitch-j2-public-02/artifacts/public-research-receipt.json"
+    },
+    "knowledge_learning": {
+      "status": "PASS_DECLARED_INTEGRATED_SUBSET",
+      "requests": 109,
+      "receipt": ".project-local/runs/be268a2d33/stitch-j12-learning-02/artifacts/research-learning-runtime.json"
+    },
+    "evidence_boundary": "These receipts bind candidate02, not final03. No cross-candidate whole-loop claim."
+  },
+  "model": {
+    "local": "FAIL: material_no_final_answer; one real local model attempt",
+    "cloud": "NOT_EXECUTED",
+    "receipt": ".project-local/runs/be268a2d33/stitch-j4-local-material-02/artifacts/local-material-model-runtime.json",
+    "owner_decision": "End user binds subscription/API in product; optional GPT subscription test, minimal public material/tokens; no existing Codex auth reuse"
+  },
+  "future_extensions": [
+    "Optional software-specific adapters and bidirectional compatibility",
+    "Additional third-party APIs and search providers",
+    "Optional plugins, skills, templates and MCP integrations",
+    "Built-in marketplace, distribution and general extension runtime"
+  ],
+  "not_executed": [
+    "Final candidate full CL/J qualification",
+    "Installed lifecycle",
+    "Green replacement",
+    "Owner visual acceptance",
+    "Exact-SHA CI"
+  ],
+  "retained_failures": [
+    "stitch-visual-research-02",
+    "stitch-visual-research-03",
+    "stitch-visual-research-04",
+    "stitch-visual-matrix-06",
+    "webdriver-591162a31657",
+    "webdriver-7e115f0199d8",
+    "webdriver-d91289beb17e",
+    "webdriver-a36cd7529172"
+  ],
+  "next_only_after_owner_resume": [
+    "Fix and regress reader source-tool scroll reachability in actual native host",
+    "Qualify actual local final answer/correction/retest without repeating same failed call",
+    "Implement user-owned cloud binding and test authorized public material with small budget",
+    "Finish same-candidate CL/J, installer and Owner visual acceptance"
+  ],
+  "monitor": {
+    "id": "aaos",
+    "status": "PAUSED",
+    "verified": "tool update plus saved TOML readback"
+  },
+  "delivery": {
+    "branch": "codex/sync-20261019",
+    "status": "PENDING_NORMAL_COMMIT_PUSH_READBACK",
+    "merge_release": "NOT_EXECUTED"
+  },
+  "authority_gate": {
+    "status": "PASS",
+    "run": ".project-local/runs/be268a2d33/stitch-pause-authority-01",
+    "external_private_inputs": "4 UNVERIFIED; no new access"
+  }
+}

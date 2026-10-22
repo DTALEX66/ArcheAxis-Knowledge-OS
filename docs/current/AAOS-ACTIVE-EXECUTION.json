@@ -84,8 +84,8 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
-    "state": "RUNNING_BY_OWNER",
-    "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标",
+    "state": "PAUSED_BY_OWNER",
+    "instruction": "Owner: 完成本次后暂停；当前单元收尾后停止开发和长链，明确恢复后才继续。",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
@@ -111,7 +111,7 @@
       "metric": "Prefer rateLimitsByLimitId; minimum remaining 100-usedPercent across applicable non-null subscription windows. Unknown is not zero; credit balance is not subscription allowance.",
       "automation_id": "aaos",
       "automation_kind": "heartbeat",
-      "automation_state_at_observation": "ACTIVE",
+      "automation_state_at_observation": "PAUSED",
       "interval_minutes": 30,
       "on_threshold": "Finish the already-started verifiable work unit and owned-process cleanup; start no next development slice. Update the sole execution record, current pointer and complete handoff with conversation decisions, evidence, failures and ordered remaining tasks. Explicitly commit/push only authorized public task files and read back branch SHA. Then stop execution and pause the monitor pending explicit Owner resume.",
       "publication_boundary": "Never upload credentials, private session or agent memory, ignored runtime/database/cache/archive payloads or unrelated dirty files; no forced history, automatic merge/release/Green replacement. If Git or network permissions block delivery, retain local files and report the blocker without bypass.",
@@ -156,16 +156,22 @@
         "remaining_percent": 64,
         "state": "NOT_TRIGGERED",
         "time_precision": "Clock after official tool measurement; measured between 23:30:25Z and 23:32:35Z"
+      },
+      "owner_pause": {
+        "instruction": "完成本次后暂停",
+        "observed_at": "2026-10-22T14:11:33.950Z",
+        "state": "PAUSED_BY_OWNER",
+        "threshold_triggered": false
       }
     },
     "last_pause": {
       "state": "PAUSED_BY_OWNER",
-      "reason": "New allowance observation after explicit resume: used86%, remaining14%; Owner threshold applies again",
-      "observed_at": "2026-10-19T12:48:05Z",
-      "receipt": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
-      "goal": "ALREADY_PAUSED_FROM_PRIOR_CHECKPOINT",
-      "monitor": "UNVERIFIED; no unknown automation configuration overwritten",
-      "resumption": "Explicit Owner instruction; quota reset alone does not resume."
+      "observed_at": "2026-10-22T14:11:33.950Z",
+      "reason": "完成本次后暂停",
+      "whole_scope": "PARTIAL",
+      "checkpoint_ref": "docs/history/project-drift-audit-20261021/stitch-visual-pause-20261022.json",
+      "monitor": "aaos PAUSED; tool and file readback verified",
+      "resumption": "Explicit Owner instruction required"
     },
     "last_resume": {
       "date": "2026-10-19",
@@ -180,6 +186,10 @@
       "python": "3.13.14; canonical frontend build PASS",
       "git": "Unique metadata probe PASS; index untouched; normal approved delivery path available",
       "boundary": "Owner-approved platform approval channel only; no ACL/global/provider/settings changes"
+    },
+    "previous_before_visual_pause": {
+      "state": "RUNNING_BY_OWNER",
+      "instruction": "执行完整框架/多格式（常见常用格式）/最短闭环的目标"
     }
   },
   "delivery_authorization": {
@@ -593,6 +603,14 @@
       "next": "Canonical qualification and actual existing consumers under the new Stitch UI; no old UI maintenance",
       "latest_validation_ref": "docs/history/project-drift-audit-20261021/stitch-permission-recovery-20261022.json",
       "resource_source_gate": "PASS_AFTER_EXACT_HISTORICAL_SOURCE_RELOCATION; NO_RUNTIME_PROMOTION"
+    },
+    "stitch_visual_pause_checkpoint": {
+      "state": "PAUSED_BY_OWNER",
+      "receipt_ref": "docs/history/project-drift-audit-20261021/stitch-visual-pause-20261022.json",
+      "whole_scope": "PARTIAL",
+      "native": "FAIL",
+      "visual": "PARTIAL",
+      "green": "NOT_UPDATED"
     }
   },
   "repository_convergence": {

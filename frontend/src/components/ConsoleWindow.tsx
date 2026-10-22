@@ -25,13 +25,14 @@ export function defaultConsoleRect(viewport: ConsoleViewport): ConsoleRect {
   const size = constrainConsole({ x: 0, y: 0, width: Math.round(viewport.width * .9), height: Math.min(Math.round(viewport.height * .84), viewport.height - 128) }, viewport);
   return { ...size, x: Math.round((viewport.width - size.width) / 2), y: Math.max(0, Math.min(viewport.height - size.height, Math.max(48, Math.round((viewport.height - size.height) / 2) - 8))) };
 }
-/** The received Stitch composition: one main window beside a 380px auxiliary column. */
+/** Preserve the received main/auxiliary proportions as the desktop grows. */
 export function stitchConsoleRect(viewport: ConsoleViewport): ConsoleRect {
   if (viewport.width < 1280 || viewport.height < 700) return defaultConsoleRect(viewport);
-  const width = Math.min(900, viewport.width * .64);
+  const width = viewport.width * .64;
+  const auxiliaryWidth = viewport.width * .29;
   const top = viewport.topInset ?? 48, bottom = viewport.bottomInset ?? 64;
-  const height = Math.min(600, viewport.height - top - bottom);
-  return { x: (viewport.width - width - 400) / 2, y: top + (viewport.height - top - bottom - height) / 2, width, height };
+  const height = Math.min(Math.max(480, viewport.height * .6), viewport.height - top - bottom);
+  return { x: (viewport.width - width - auxiliaryWidth - 20) / 2, y: top + (viewport.height - top - bottom - height) / 2, width, height };
 }
 const readViewport = (): ConsoleViewport => ({ width: window.innerWidth, height: window.innerHeight, ...(window.innerWidth > 900 && window.innerHeight > 600 ? { topInset: 48, bottomInset: 64 } : {}) });
 type ConsoleControls = {
@@ -57,7 +58,7 @@ export function ConsoleWindow({ children, presentation = "default" }: { children
   const gesture = useRef<{ id: number; x: number; y: number; rect: ConsoleRect; customized: boolean; kind: "move" | "resize"; edge: ResizeEdge } | null>(null);
   const compact = viewport.width <= 900 || viewport.height <= 600;
   const mode = compact ? "compact" : full ? "full" : "floating";
-  const expandedWidth = presentation === "stitch" && viewport.width >= 1280 && viewport.height >= 700 ? viewport.width - 416 : viewport.width;
+  const expandedWidth = presentation === "stitch" && viewport.width >= 1280 && viewport.height >= 700 ? viewport.width * .71 - 36 : viewport.width;
   const shown = mode === "floating" ? constrainConsole(rect, viewport) : { x: 0, y: 0, width: expandedWidth, height: viewport.height };
   useEffect(() => {
     const resize = () => {

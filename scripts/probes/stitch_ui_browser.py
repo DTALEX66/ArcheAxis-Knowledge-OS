@@ -236,7 +236,10 @@ def navigate_menu(page, page_id: str, labels: dict) -> None:
 
 
 def theme_select(page, theme: str, a0) -> None:
-    a0.select_ui_theme(page, theme)
+    page.get_by_role("button", name="界面与工具设置", exact=True).click()
+    dialog = page.get_by_role("dialog", name="界面与工具", exact=True)
+    dialog.get_by_role("combobox", name="界面主题", exact=True).select_option(theme)
+    dialog.get_by_role("button", name="关闭工具", exact=True).click()
     assert page.evaluate("document.documentElement.dataset.aaosTheme") == theme
 
 
@@ -332,7 +335,11 @@ def companion_probe(page, probe: Probe) -> dict:
 
 
 def research_focus(page) -> dict:
+    page.locator("details.research-document-tools > summary").click(timeout=4000)
     page.get_by_role("button", name="SYNTHETIC · Stitch 研究导航样本 · 版本 1", exact=True).click(timeout=4000)
+    expand = page.get_by_role("button", name="展开检查器", exact=True)
+    if expand.is_visible():
+        expand.click(timeout=4000)
     sidebar = page.get_by_role("complementary", name="相关资料", exact=True)
     sidebar.get_by_role("heading", name="相关资料 (2)", exact=True).wait_for()
     writes = lambda: page.evaluate("ops=>window.__STITCH_PROBE_CALLS__.filter(c=>ops.includes(c.operation))", list(WRITE_OPERATIONS))
@@ -349,8 +356,12 @@ def research_focus(page) -> dict:
 def research_original_no_focus_steal(page) -> dict:
     page.evaluate("window.__STITCH_DELAY_ORIGINAL__=true")
     try:
+        nav = page.get_by_role("navigation", name="研究内容导航")
+        nav.get_by_role("button", name="证据对比 (2)", exact=True).click(timeout=4000)
+        page.locator('[data-research-material="probe_material_a"]').get_by_role("button", name="材料 1", exact=False).first.click(timeout=4000)
         page.get_by_role("button", name="摘录材料 1原文", exact=True).click(timeout=4000)
         page.wait_for_function("()=>typeof window.__STITCH_RELEASE_ORIGINAL__==='function'")
+        nav.get_by_role("button", name="概览", exact=True).click(timeout=4000)
         question = page.get_by_role("textbox", name="研究问题", exact=True)
         question.focus();question.press("ArrowRight")
         before = page.locator(".app-center").evaluate("n=>({top:n.scrollTop,left:n.scrollLeft})")
@@ -538,6 +549,10 @@ def main() -> int:
                             if page_id == "05":
                                 case["research_focus"] = probe.step("research-focus-no-save", lambda: research_focus(page))
                                 case["research_original_focus"] = probe.step("research-original-no-focus-steal", lambda: research_original_no_focus_steal(page))
+                                if case["research_focus"] and case["research_original_focus"]:
+                                    page.get_by_role("navigation", name="研究内容导航").get_by_role("button", name="证据对比 (2)", exact=True).click(timeout=4000)
+                                    if width >= 1280 and height >= 700 and not page.locator("#stitch-companion-window").is_visible():
+                                        page.get_by_role("button", name="小栖", exact=True).click(timeout=4000)
                             case["geometry"] = probe.step("geometry-and-hit-targets", lambda: measure(page))
                             if case["geometry"] is not None:
                                 audit_measurement(probe, case["geometry"])
