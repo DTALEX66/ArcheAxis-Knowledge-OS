@@ -848,15 +848,15 @@
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "post_build_delta": "POST_QUALIFICATION_RESULT_DOCS_AND_PAGE_SELECTOR_PROBE_ONLY; PRODUCT_BINARIES_UNCHANGED",
-    "native_additional": "HISTORICAL3407_NATIVE_HUMAN_PASS; CURRENT5822_NATIVE_AI_SEPARATELY_RECORDED; OWNER_NOT_EXECUTED",
+    "native_additional": "CURRENT5822_NATIVE_RUN04_HUMAN_IMPORT_READ_ANCHOR_KNOWLEDGE_LEARN_PRACTICE_REVIEW_RECOVERY_AND_AI_ENGINEERING_STAGES_PASS; GROUPED_PRODUCT_PARTIAL; INDEPENDENT_SEMANTIC_QUALITY_AND_OWNER_NOT_EXECUTED",
     "cloud": "IMPLEMENTED_LOCAL_MOCK_PASS_REAL_PROVIDER_NOT_EXECUTED",
-    "installer": "CURRENT5822_BUNDLE_PASS_INSTALL_UNINSTALL_IDENTITY_PASS_NATIVE_BUSINESS_FAIL; FULL_INSTALLED_LOOP_UNVERIFIED",
+    "installer": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
     "local_model_latest": "CURRENT5822_NATIVE_AI_PARENT_PASS; existing fast-local alias explicitly loaded and effective configuration read back; see actual answer/retest stages",
     "public_research": "HISTORICAL_REAL_THREE_SOURCE_ACQUISITION; CURRENT5822_ACTUAL_RESTORE_AND_COLD_READBACK_PASS; research draft remains unverified/not admitted",
     "native_ai_latest": "CURRENT5822_PARENT_PASS; exact native evidence in native_ai_current5822; authored engineering fixture, not Owner acceptance",
     "ai_governance_latest": "PASS8_ACTUAL_CORE_NEGATIVE_SYNTHETIC_REVIEW; SEMANTIC_TRUTH_AND_OWNER_NOT_PROVEN",
     "common_formats_latest": "PASS8_FIXED_CORE_LIGHT_FORMATS_WITH4_NEGATIVES_AND_COLD_READ; NOT_NATIVE_FORMAT_ROUNDTRIP",
-    "installed_business_latest": "CURRENT5822_NATIVE_BUSINESS_FAIL_PAGE_IDENTITY_PROBE_MISMATCH; INSTALL_UNINSTALL_AND_IDENTITY_PASS; OLD3407_VM_DISAPPEARANCE_PRESERVED_SEPARATELY",
+    "installed_business_latest": "CURRENT5822_INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; ORIGINAL_RUN01_FAIL_AND_OLD3407_VM_DISAPPEARANCE_PRESERVED",
     "historical_code_delivery_observation_at": "2026-10-23T20:21:20.557382+00:00",
     "delivery_receipt": ".project-local/artifacts/dual-loop-resume-20261023/delivery-latest-20261024.json",
     "ci": "NOT_EXECUTED_AT_THIS_CHECKPOINT",
@@ -934,7 +934,7 @@
           "bytes": 567252574
         }
       ],
-      "installed_qualification": "NATIVE_DOCUMENT_CONFLICT_JOURNEY_FAIL; INSTALL_UNINSTALL_AND_IDENTITY_ONLY_PASS",
+      "installed_qualification": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
       "ci_qualification": "NOT_EXECUTED",
       "owner_acceptance": "NOT_EXECUTED",
       "binding_receipt": {
@@ -1050,8 +1050,8 @@
           "bytes": 567252574
         }
       ],
-      "installed": "ATTEMPTED_NATIVE_BUSINESS_FAIL; INSTALL_AND_UNINSTALL_PASS",
-      "scope": "BUNDLE_ONLY_NO_COMPILE_NO_INSTALL_NO_SIGN; not installed qualification",
+      "installed": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
+      "scope": "Original receipt remains BUNDLE_ONLY_NO_COMPILE_NO_INSTALL_NO_SIGN; later installed qualification is carried by separate business/lifecycle receipts",
       "followup_status": {
         "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/installer-followup-status.json",
         "bytes": 4077,
@@ -1068,9 +1068,9 @@
         "sha256": "9d76473da9c555fa899db91f6e949780a1b7e6b468c19bf6a27a1c6ef6269ed8"
       },
       "business_qualification": {
-        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json",
-        "bytes": 6805,
-        "sha256": "5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6"
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/installed-business-execution.json",
+        "bytes": 9264,
+        "sha256": "17f33a3b5f5b35fc270199864d3ab2f22c39677ff0a32277bd299f0cdb330db6"
       }
     },
     "schema13_maintenance_current5822": {
@@ -1116,6 +1116,104 @@
     },
     "schema_migration_latest": "PASS_CURRENT5822_REAL_CORE_SYNTHETIC_SCHEMA13_TO14_AND_BUSINESS_DATA_RESTORE; NOT_OLD_INSTALLER_QUALIFICATION",
     "installed_business_current5822": {
+      "status": "PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/installed-business-execution.json",
+        "bytes": 9264,
+        "sha256": "17f33a3b5f5b35fc270199864d3ab2f22c39677ff0a32277bd299f0cdb330db6"
+      },
+      "native_receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/guest-output/business01/.project-local/runs/webdriver-67ca8906d707/tmp/journey/receipt.json",
+        "bytes": 55617,
+        "sha256": "f603267537ac80b66628f303e2cc137f04f45460596965d298b1014b92ede372"
+      },
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "compiled_product_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_source_commit": "2b3f138794c0cb208c668524698f7d621d1957af",
+      "source_snapshot_sha256": "c0ba14b42dd286f4c8405135123cf3f3d439d11ea010499427589cdcfe75a8de",
+      "inner_compiled_source_binding": {
+        "status": "UNVERIFIED",
+        "reason": "Candidate build binding not supplied; installation is qualified only by its parent verifier"
+      },
+      "parent_exact_candidate_pins": {
+        "ArcheAxis.exe": "4f56908b1b19b883dd537963c1f1a518baf5d61420d58f1c213560ce0f8b4269",
+        "core/archeaxis-api.exe": "f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a",
+        "backend-runtime-manifest.json": "f6759ff41e1210fd4e02ae1c4bf6d4cbabfa199a3300060e6e583e2ca3b56789"
+      },
+      "parent_candidate_binding": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/candidate-binding.json",
+        "bytes": 5303,
+        "sha256": "ae1271bab2f26e28b84932d7ca6397d2fa624e31c46322db684cc2201c60125f"
+      },
+      "business": "REAL_INSTALLED_UI_SYNTHETIC_OWNED_FIXTURE; restore consent, version conflict, exact three-way comparison, A_v3, independent_B_draft, normal_host_restart_readback PASS",
+      "installation": "SILENT_INSTALL0_SINGLE_REGISTRY_AND_UNINSTALL0",
+      "cleanup": "TWO_NORMAL_HOST_EXIT0; OWNED_PROCESS_AND_PORT_CLEAN; OFFICIAL_EXACT_VM_STOP0; VM0_CLIENT0",
+      "input_verification_at_execution_end": {
+        "status": "PASS",
+        "files": 672,
+        "logical_bytes": 849908300,
+        "unknown_files": 0,
+        "changed_files": 0,
+        "roots": {
+          "install-input": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current5822-installed-business-20261024-01\\install-input",
+          "guest-input": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current5822-installed-business-20261024-02\\guest-input"
+        },
+        "shared_immutable_install_members": 658
+      },
+      "historical_run01_failure": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json",
+        "bytes": 6805,
+        "sha256": "5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6"
+      },
+      "model_calls": 0,
+      "network": "WSB_DISABLED",
+      "owner_acceptance": "NOT_EXECUTED",
+      "boundary": "Same b999 installer real installed document-conflict/restore/restart business component PASS; not complete install lifecycle repetition, physical IME, Owner nine-step or Owner acceptance"
+    },
+    "green_current5822_preflight": {
+      "status": "NOT_DEPLOYED",
+      "preflight": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-green-preflight.json",
+        "bytes": 3912,
+        "sha256": "c7e78435f1b114dcd8345f4afbe3df40905f5228826f4b184c6176db5c6dfbd0"
+      },
+      "entry_review": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/green-deployment-entry-review-20261024.json",
+        "bytes": 7332,
+        "sha256": "dc600f8dd4a48d71f41767c8f44c67a404cf8ba1dc37387423a3b7cb84d1b883"
+      },
+      "reason": "Installed document-conflict/restore/restart component now PASS on current5822. Safe in-place ownership/collision/hash rollback executor remains missing; NOT_DEPLOYED. Existing destructive assemblers must not target daily Green."
+    },
+    "installed_page_probe_regression_current5822": {
+      "status": "LOCAL_PASS_51_TESTS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-page-regression-20261024-01/artifacts/execution.json",
+        "bytes": 1484,
+        "sha256": "a446f966be606c3ed5aaeb31bc7c89c63b765514109ee9c38e980a87b619ad14"
+      },
+      "dom_readiness": "Actual captured wait JS evaluated with current App.tsx identity marker: page03+editor true; wrong page false; missing editor false",
+      "scope": "HISTORICAL_SIMULATED_DOM_AND_GUARD_ONLY; actual installed selector correction is separately qualified by current5822 business run02 PASS",
+      "preparation_import_failure": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-page-dom-regression-check-20261024-01/artifacts/execution.json",
+        "bytes": 1568,
+        "sha256": "760cf48a8ea5f55674e86f5c34707fba613138a1a86d24d6f8d7e3eb4dced703"
+      }
+    },
+    "current5822_vm_input_cleanup_blocked": {
+      "status": "POLICY_REJECTED_BEFORE_EXECUTION",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/input-current-state/blocked-cleanup-receipt.json",
+        "bytes": 5252,
+        "sha256": "9c3484637d2590db6f9d9e80cf1f06e4b1eb6b309a8304c3cca502220a7f0439"
+      },
+      "deleted_duplicate_regular_files": 0,
+      "logical_bytes_removed": 0,
+      "target": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/install-input/candidate-setup.exe",
+      "target_retained": true,
+      "input_files_retained": 672,
+      "scope": "One verified duplicate installer unlink rejected before execution; no retry/bypass. Frozen probe sources and all input/failure receipts retained."
+    },
+    "installed_business_current5822_run01_historical": {
       "status": "FAIL",
       "cause": "PROBE_PAGE_IDENTITY_SELECTOR_MISMATCH",
       "receipt": {
@@ -1149,50 +1247,104 @@
       "network": "WSB_DISABLED",
       "owner_acceptance": "NOT_EXECUTED",
       "probe_source_fix": "PAGE_SELECTOR_ONLY_CORRECTED; 51_LOCAL_GUARD_AND_DOM_TESTS_PASS; strict EDITOR/conflict/version assertions retained; installed runtime effect NOT_EXECUTED",
-      "runtime_retry": "NOT_EXECUTED"
+      "runtime_retry": "NOT_EXECUTED",
+      "historical_scope": "CURRENT5822_RUN01_FAIL_PRESERVED; selector correction qualified separately by run02"
     },
-    "green_current5822_preflight": {
-      "status": "NOT_DEPLOYED",
-      "preflight": {
-        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-green-preflight.json",
-        "bytes": 3912,
-        "sha256": "c7e78435f1b114dcd8345f4afbe3df40905f5228826f4b184c6176db5c6dfbd0"
-      },
-      "entry_review": {
-        "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/green-deployment-entry-review-20261024.json",
-        "bytes": 7332,
-        "sha256": "dc600f8dd4a48d71f41767c8f44c67a404cf8ba1dc37387423a3b7cb84d1b883"
-      },
-      "reason": "Current installed business qualification FAIL; reviewed tools have no safe in-place whitelist/collision/hash rollback executor. Existing destructive distribution assemblers must not target daily Green."
-    },
-    "installed_page_probe_regression_current5822": {
-      "status": "LOCAL_PASS_51_TESTS",
+    "installed_lifecycle_current5822": {
+      "status": "PASS_LOCAL_INSTALLER_LIFECYCLE",
       "receipt": {
-        "path": ".project-local/runs/be268a2d33/current5822-installed-page-regression-20261024-01/artifacts/execution.json",
-        "bytes": 1484,
-        "sha256": "a446f966be606c3ed5aaeb31bc7c89c63b765514109ee9c38e980a87b619ad14"
+        "path": ".project-local/runs/be268a2d33/current5822-local-install-lifecycle-20261024-02/lifecycle-terminal-receipt-corrected.json",
+        "bytes": 14380,
+        "sha256": "613369f51d9fc46cbb6f549d5c10034f720efcf1b5ba29192f110a30d1a53ecc"
       },
-      "dom_readiness": "Actual captured wait JS evaluated with current App.tsx identity marker: page03+editor true; wrong page false; missing editor false",
-      "scope": "SIMULATED_DOM_AND_GUARD_ONLY; installed runtime correction NOT_EXECUTED",
-      "preparation_import_failure": {
-        "path": ".project-local/runs/be268a2d33/current5822-installed-page-dom-regression-check-20261024-01/artifacts/execution.json",
-        "bytes": 1568,
-        "sha256": "760cf48a8ea5f55674e86f5c34707fba613138a1a86d24d6f8d7e3eb4dced703"
-      }
+      "scope": "Current5822 b999 same-installer initial install, same-version in-place upgrade, forced-tree recovery, uninstall retaining data and reinstall readback PASS. Backend runtime manifest initial/upgrade/reinstall each19742/19742 PASS; four Fixed WebView consumption phases PASS. Exact VM stop0 and VM/client0. Before-cleanup snapshot unavailable after final uninstall; no cross-build, Owner or CI inference. Corrected receipt preserves original terminal936640 and fixes evidence path; root independently verified16 file refs.",
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "owner_acceptance": "NOT_EXECUTED",
+      "ci_qualification": "NOT_INFERRED"
     },
-    "current5822_vm_input_cleanup_blocked": {
-      "status": "POLICY_REJECTED_BEFORE_EXECUTION",
+    "installed_lifecycle_current5822_run01_preparation_failure_historical": {
+      "status": "FAIL_BEFORE_INSTALL",
+      "cause": "PRE_INSTALL_RUNNER_MANIFEST_FIELD_PATH",
       "receipt": {
-        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/input-current-state/blocked-cleanup-receipt.json",
-        "bytes": 5252,
-        "sha256": "9c3484637d2590db6f9d9e80cf1f06e4b1eb6b309a8304c3cca502220a7f0439"
+        "path": ".project-local/runs/be268a2d33/current5822-local-install-lifecycle-20261024-01/lifecycle-terminal-receipt.json",
+        "bytes": 2779,
+        "sha256": "73a7002618a592aa7a083330ba56db5f79442be13fc516e024d125a7ecfe5541"
       },
-      "deleted_duplicate_regular_files": 0,
-      "logical_bytes_removed": 0,
-      "target": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/install-input/candidate-setup.exe",
-      "target_retained": true,
-      "input_files_retained": 672,
-      "scope": "One verified duplicate installer unlink rejected before execution; no retry/bypass. Frozen probe sources and all input/failure receipts retained."
+      "historical": true,
+      "product_verdict": "NOT_EXECUTED_NOT_PRODUCT_FAILURE",
+      "installer_started": false,
+      "installer_bytes": 567252574,
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "installer_unchanged": true,
+      "boundary": "Runner read wrong manifest field path; no verifier/install/product execution. Original failure and historical clock preserved."
+    },
+    "first_release_platform_scope": {
+      "first_release": "windows-11-x64",
+      "windows10": "COMPATIBILITY_NOT_QUALIFIED_NOT_FIRST_RELEASE_HARD_GATE",
+      "boundary": "No Windows10 execution or ACL/global change is implied; current actual native/Sandbox evidence keeps its observed OS boundary"
+    },
+    "program_rollback_current5822": {
+      "status": "PASS_SAME_VERSION_CROSS_BUILD_PROGRAM_ROLLBACK_COMPONENT",
+      "task_ids": [
+        "J6",
+        "CL-07",
+        "M01"
+      ],
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/same-version-cross-build-rollback-20261024-02/cross-build-terminal-receipt.json",
+        "bytes": 19021,
+        "sha256": "bb9c7303e3448710b0ded3f9759129e684db8fba8657313eacaaf7762841fbd7"
+      },
+      "scope": "DISPOSABLE_GUEST_ONLY_SAME_VERSION_0.6.14_SCHEMA14_CROSS_BUILD_PROGRAM_ROLLBACK",
+      "execution_source": {
+        "before_commit": "2b3f138794c0cb208c668524698f7d621d1957af",
+        "before_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "after_commit": "2b3f138794c0cb208c668524698f7d621d1957af",
+        "after_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "source_consistent": true
+      },
+      "old_installer_sha256": "4661ce30ab3787cf0afd8f1194c6a6cbd70d16af5ac2f5716471b6aab240c3b3",
+      "current_installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "phases": [
+        "old-seed",
+        "new-upgrade",
+        "old-rollback",
+        "new-recover"
+      ],
+      "same_document_id": "doc_f6630324011013eeef069d3fb7eb0e9e",
+      "same_source_sha256": "c969a9cb0f4290e68bd3c30872c8b97b40545e6a540b4ae777ac388329610c89",
+      "versions": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "installed_members_checked_each_phase": 19744,
+      "http_requests": 44,
+      "installation_and_business_exit_codes": "FOUR_INSTALL0_FOUR_BUSINESS0",
+      "host_shutdown": "FOUR_NORMAL_WM_CLOSE_EXIT0",
+      "business_core_cleanup": "FOUR_OWNED_TERMINATE_REAP_EXIT1_AND_PORT_CLOSED; NOT_GRACEFUL_CORE_EXIT",
+      "data_and_backups": "EXACT_DATA_BYTES_ACROSS_INSTALLER_SWITCHES_AND_PRIOR_BACKUPS_PRESERVED",
+      "uninstall": "PASS_RETAIN_SYNTHETIC_DATA_AND_BACKUPS",
+      "sandbox_cleanup": "EXACT_OWNED_STOP0_VM0_CLIENT0",
+      "model_calls": 0,
+      "external_calls": 0,
+      "owner_acceptance": "NOT_EXECUTED",
+      "hosted_ci": "NOT_EXECUTED",
+      "closed_loop_verified": false,
+      "boundary": "Only exact old3407/current5822 builds, both0.6.14/schema14; installed Core HTTP business plus actual Host window/normal closure. No schema downgrade, arbitrary release compatibility or native UI document-edit claim."
+    },
+    "program_rollback_run01_historical": {
+      "status": "FAIL_PROBE_REGISTRY_LOCATION_COMPARISON_BEFORE_BUSINESS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/same-version-cross-build-rollback-20261024-01/cross-build-terminal-receipt.json",
+        "bytes": 6282,
+        "sha256": "19267eda8ab5a9ded933a47304cb47f68b80aefeddde4566a444a8e25a9ed9de"
+      },
+      "cause": "Official NSIS quoted InstallLocation was compared to an unquoted path; package identity/member checks had passed; original actual registry payload was not captured. Separate run02 records raw quoted fields and exact normalized path.",
+      "product_failure": "NOT_ESTABLISHED",
+      "originals": "PRESERVED_UNCHANGED"
     }
   }
 }

@@ -1469,3 +1469,24 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 - Green只读检查核实旧程序身份且当时未运行，未读取真实数据库／配置内容。当前安装业务FAIL仍未满足替换条件；现有候选校验工具不含安全的原位碰撞归属／哈希回退执行器，旧distribution assembler会删输出目录，不能用于覆盖日常Green。未部署、未修改真实数据或全局设置；后续沿原任务ID补齐，不新增扩展队列。
 - 定向修复后51项probe／wiring检查PASS，其中直接执行实际捕获的wait JS，并从当前App.tsx提取页面标记构造DOM：正确03＋编辑器为true、错误页面为false、缺编辑器为false。属于DOM模拟与guard，未证明安装态修复运行通过；准备测试首次导入路径错误FAIL保留。两文件CI范围Ruff检查PASS。
 - 本轮仅尝试清理一个与保留b999原安装包逐SHA／bytes相同的567,252,574bytes临时副本；确认普通文件／无额外硬链接／精确VM已停后，删除命令被执行平台策略在执行前拒绝（blocked by policy），未重试或换机制。目标与全部672输入仍保留，新增清理数0／逻辑bytes0，累计清理统计不变；旁置blocked-cleanup-receipt.json记录最新状态，原准备／输入／FAIL收据未改。
+
+### 2026-10-24 同 b999 安装包业务修复复验与生命周期结果（PARTIAL）
+
+- 本节替代前节“当前安装业务未验／FAIL”的当前结论，不改历史收据。编译产品仍为 `582267f3`，执行探针来自 `2b3f1387`，六源快照 `c0ba14b42dd286f4c8405135123cf3f3d439d11ea010499427589cdcfe75a8de`；只修探针页面标识，EDITOR、冲突、版本和三方比较断言完整保留。断网 Sandbox 单次 run02 真实安装态业务 PASS：恢复确认、旧版本冲突、三方正文与结构比较、A 保存为 v3、独立 B 草稿、正常整个 Host 重启后 B 回读均通过。合成初始资料不等于 Owner 操作或验收。
+- 本轮 parent 收据 `.project-local/runs/be268a2d33/current5822-installed-business-20261024-02/installed-business-execution.json`，SHA `17f33a3b5f5b35fc270199864d3ab2f22c39677ff0a32277bd299f0cdb330db6`；原 run01 FAIL `.project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json`，SHA `5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6`，截图和输入全部保留，不改判。内层 `compiled_source_binding.status=UNVERIFIED` 保持，父层精确绑定 b999 安装器、Host `4f56908b…4269`、Core `f91515b4…b6a`、runtime manifest `f6759ff4…6789` 及原构建收据；未把后继源码 HEAD 说成重新编译产品。
+- 672 输入／849,908,300 逻辑 bytes 前后逐 SHA 与清单不变（658 个共享只读安装输入）；2 次 Host 正常退出0，原生自有进程和端口无残留，安装／卸载0，官方精确 VM stop0、VM与客户端0。零模型调用、网络禁用，旧3407失踪原因仍未定，未据本轮倒推历史根因。
+- 当前同包生命周期：`PASS_LOCAL_INSTALLER_LIFECYCLE`。Current5822 b999 same-installer initial install, same-version in-place upgrade, forced-tree recovery, uninstall retaining data and reinstall readback PASS. Backend runtime manifest initial/upgrade/reinstall each19742/19742 PASS; four Fixed WebView consumption phases PASS. Exact VM stop0 and VM/client0. Before-cleanup snapshot unavailable after final uninstall; no cross-build, Owner or CI inference. Corrected receipt preserves original terminal936640 and fixes evidence path; root independently verified16 file refs. 收据 `.project-local/runs/be268a2d33/current5822-local-install-lifecycle-20261024-02/lifecycle-terminal-receipt-corrected.json`，SHA `613369f51d9fc46cbb6f549d5c10034f720efcf1b5ba29192f110a30d1a53ecc`。
+
+- 生命周期历史 run01 为安装前准备失败 `PRE_INSTALL_RUNNER_MANIFEST_FIELD_PATH`：runner误读manifest字段，installer／verifier未启动，567,252,574bytes／b999完整SHA与原输入／打包证据相同，不判产品FAIL。终态收据 `.project-local/runs/be268a2d33/current5822-local-install-lifecycle-20261024-01/lifecycle-terminal-receipt.json`，SHA `73a7002618a592aa7a083330ba56db5f79442be13fc516e024d125a7ecfe5541`；原失败与历史时间原样保留。
+
+- 已有模型答案的只读审阅导航：`.project-local/artifacts/dual-loop-resume-20261023/current5822-existing-answer-review/READ-ME.txt`，证据 `review-evidence.json`（SHA `dc06ff23b409c59319a7c3077e18fb84679cf5c3126690e85c28dced6b46f913`）。仅从既有收据摘录，无新增推理或语义评判；语义评判仍 NOT_EXECUTED。Core 的 `runtime.evaluation.failed` 是工程干预存储标签，不独立证明原答案错误。
+- 首版平台为 `windows-11-x64`；Windows10 明确列为兼容待验，非首版硬门槛。Green 仍 NOT_DEPLOYED：安装业务组件已通过，但安全原位归属／碰撞检查／哈希回退执行器仍缺，禁止用会删除目标的旧 assembler 覆盖日常程序。整体仍 PARTIAL；真实云及逐请求材料／费用授权、独立语义质量与 Owner和托管 CI分别保留边界；同版本跨构建程序回退读下节，其他旧release兼容不自动新增为首版任务，外部原始上下文 NOT_CONNECTED，监控仍暂停。
+
+
+### 2026-10-24 同 0.6.14/schema14 跨构建程序回退组件（J6／CL-07／M01，PASS；整体仍 PARTIAL）
+
+- 两个精确构建按 old3407 → current5822 → old3407 → current5822 在独立断网 Sandbox 实际安装切换；四次 NSIS退出0、每阶段 Host/Core/runtime manifest 三SHA及19,744安装成员均通过，原注册表带引号路径留原字段并精确规范化校验。四次窗口启动与 WM_CLOSE 正常退出0；随后业务由安装目录内真实 Core HTTP执行，四次自有 Core terminate/reap退出1并释放端口，不能写成优雅 Core 退出。
+- 同一 Document `doc_f6630324011013eeef069d3fb7eb0e9e`、CAS原件SHA `c969a9cb0f4290e68bd3c30872c8b97b40545e6a540b4ae777ac388329610c89` 贯穿44次HTTP：当前版本2→3→4→5、全部历史1—5、未知节点、旧备份和每次程序切换前后资料字节均保全；冲突409与最终卸载保留数据通过。两个只读安装包仅开始／最终各校验一次，共4次SHA，减少重复大包读取；实际 guest201.50秒，无模型或外网调用。
+- 终态 `.project-local/runs/be268a2d33/same-version-cross-build-rollback-20261024-02/cross-build-terminal-receipt.json`，SHA `bb9c7303e3448710b0ded3f9759129e684db8fba8657313eacaaf7762841fbd7`。root独立核对10个证据文件SHA及4阶段业务lineage；官方精确VM stop0、VM及自有客户端0，执行源始终2b3f／canonical空patch。
+- 原run01安装／三SHA／19,744成员先通过，后因脚本未去除官方NSIS注册表InstallLocation外引号，在Host及业务前中止；未捕获原registry payload，不判产品注册表故障。原终态 `.project-local/runs/be268a2d33/same-version-cross-build-rollback-20261024-01/cross-build-terminal-receipt.json`，SHA `19267eda8ab5a9ded933a47304cb47f68b80aefeddde4566a444a8e25a9ed9de`，原件不变；独立run02只修规范化与诊断并在主机预检正确／错误／空／不成对引号后复验一次。
+- 本结论仅覆盖这两个0.6.14/schema14构建的程序回退与安装Core业务，不推导任意旧release兼容、schema降级、该旅程原生UI文档编辑、真实用户库、Owner或托管CI资格。当前b999安装业务、同包生命周期、跨构建回退分别有独立收据；完整双侧产品仍PARTIAL。Windows10为额外兼容待验，未新增首版平台门槛。Green保持NOT_DEPLOYED；真实云、独立质量及Owner验收仍须真实证据，监控暂停。
