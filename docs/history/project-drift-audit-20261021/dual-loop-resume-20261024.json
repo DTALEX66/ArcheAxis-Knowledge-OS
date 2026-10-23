@@ -415,6 +415,29 @@
       },
       "custody_tests_passed": 89,
       "boundary": "Index/source local preflight; no hosted CI, real cloud or installed business qualification inferred. preflight03 CRLF pin-registry placement failure retained; root moved twelve exact archive pins to existing byte-custody registry."
+    },
+    "current_committed_source_qualification": {
+      "source_commit": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
+      "backend_tests": 24,
+      "frontend_tests": 79,
+      "frontend_production_build": "PASS",
+      "source_consistent": true,
+      "backend_receipt": {
+        "path": ".project-local/runs/be268a2d33/backend-d8b49aa0-focused-20261024-01/artifacts/execution.json",
+        "bytes": 1597,
+        "sha256": "ddeed01bcf7eb9bbbafe9490681fb79ae8eda390646751c3861624afcca3ad56"
+      },
+      "frontend_execution": {
+        "path": ".project-local/runs/be268a2d33/committed-frontend-targeted-d8b49aa0-20261024-01/artifacts/execution.json",
+        "bytes": 1420,
+        "sha256": "08be85c860158739312bf379d86e547daae5dab1f228ad07c3a3b40424961370"
+      },
+      "frontend_qualification": {
+        "path": ".project-local/runs/be268a2d33/committed-frontend-targeted-d8b49aa0-20261024-01/artifacts/frontend-targeted-qualification.json",
+        "bytes": 15979,
+        "sha256": "7413c60681fec056329ce59a8f29c5b548706c901d79ed8b9dcfe6bc80601eb6"
+      },
+      "boundary": "Current source compiled in focused backend tests and frontend build. No new full Host/Core installer was assembled or installed; frozen3407 candidate identity unchanged."
     }
   },
   "cleanup": {
@@ -1268,5 +1291,18 @@
     "explanation": "Required closure-machine and reader-inspector behavior already exists; glass changes equivalent, Avalonia superseded, ASTRYN optional scope frozen. Decision is usefulness-based, not missing merge authorization.",
     "boundary": "Committed branch HEAD95b matches readback; dirty source/evidence NOT_PUBLISHED. No new commit/push/merge/CI inferred."
   },
-  "source_after_current_candidate": "Frozen compiled3407 installer/Host/Core bytes remain unchanged. Generated resource catalog/UI-host digest and Rust formatting later changed current source; this source is not asserted to have been rebuilt into that old candidate."
+  "source_after_current_candidate": "Frozen compiled3407 installer/Host/Core bytes remain unchanged. Generated resource catalog/UI-host digest and Rust formatting later changed current source; this source is not asserted to have been rebuilt into that old candidate.",
+  "delivery_readback_20261024": {
+    "code_checkpoint_sha": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
+    "remote_branch_sha": "95b463c12dbd40744b43039add69c48ceaeba94e",
+    "status": "LOCAL_COMMITTED_REMOTE_PUSH_POLICY_BLOCKED",
+    "receipt": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/delivery-code-checkpoint-20261024.json",
+      "bytes": 2369,
+      "sha256": "588afcfbc3eec8c86ffce7499871abc78866c7d9248712a5b8b69e5e34165e9e"
+    },
+    "ci": "NOT_EXECUTED_FOR_THIS_HEAD",
+    "error": "approval required by policy, but AskForApproval is set to Never",
+    "boundary": "Remote push rejected before execution; no alternate channel or bypass. PR/merge/release/Green not executed."
+  }
 }

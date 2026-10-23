@@ -843,8 +843,8 @@
     "execution": "Parallel bounded write sets; task/model/reasoning matched; avoid repeated full audits and unnecessary branch merges",
     "routing": "COMPLETE targeted7 current route/index files,41 reference targets; historical status explicitly not current authority",
     "monitor": "PAUSED_UNCHANGED",
-    "commit_push": "PREPARED_PENDING_PUBLIC_COMMIT_PUSH_AS_AT_THIS_CHECKPOINT",
-    "remote_exact_sha": "BASE95b_AND_MAIN8d_VERIFIED_GIT_AND_API_BEFORE_NEW_COMMIT; CURRENT_DELIVERY_REQUIRES_FRESH_READBACK",
+    "commit_push": "CODE_COMMITTED_LOCAL_D8B49AA0; PUSH_REJECTED_BY_PLATFORM_APPROVAL_POLICY_BEFORE_EXECUTION",
+    "remote_exact_sha": "VERIFIED_API_REMOTE95B_LOCALD8B_DIFFER; NOT_PUBLISHED",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/fixedwv-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "3407e8083f261bc563df06f24398cfa08338a47fd4136df344b08741461c4dfc",
     "post_build_delta": "FROZEN3407_BINARY_UNCHANGED; CURRENT_GENERATED_UI_HOST_RESOURCE_AND_RUST_FORMAT_SOURCE_DELTA_NOT_REBUILT",
@@ -869,6 +869,40 @@
       },
       "archive_custody": "12_EXACT_RAW_INDEX_CHECKOUT_HASHES_PASS; 89_REGRESSION_TESTS_PASS",
       "ci": "NOT_EXECUTED_AT_THIS_CHECKPOINT; EFFECTIVE_MAIN_RULESET20849492_REQUIRES_A0_GATES"
+    },
+    "delivery_readback_20261024": {
+      "code_checkpoint_sha": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
+      "remote_branch_sha": "95b463c12dbd40744b43039add69c48ceaeba94e",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/delivery-code-checkpoint-20261024.json",
+        "bytes": 2369,
+        "sha256": "588afcfbc3eec8c86ffce7499871abc78866c7d9248712a5b8b69e5e34165e9e"
+      },
+      "ci": "NOT_EXECUTED_FOR_CODE_CHECKPOINT",
+      "metadata_followup": "Read current Git HEAD and ignored delivery receipt for later documentation commit; no self-referential SHA invented."
+    },
+    "current_committed_source_qualification": {
+      "source_commit": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
+      "backend_tests": 24,
+      "frontend_tests": 79,
+      "frontend_production_build": "PASS",
+      "source_consistent": true,
+      "backend_receipt": {
+        "path": ".project-local/runs/be268a2d33/backend-d8b49aa0-focused-20261024-01/artifacts/execution.json",
+        "bytes": 1597,
+        "sha256": "ddeed01bcf7eb9bbbafe9490681fb79ae8eda390646751c3861624afcca3ad56"
+      },
+      "frontend_execution": {
+        "path": ".project-local/runs/be268a2d33/committed-frontend-targeted-d8b49aa0-20261024-01/artifacts/execution.json",
+        "bytes": 1420,
+        "sha256": "08be85c860158739312bf379d86e547daae5dab1f228ad07c3a3b40424961370"
+      },
+      "frontend_qualification": {
+        "path": ".project-local/runs/be268a2d33/committed-frontend-targeted-d8b49aa0-20261024-01/artifacts/frontend-targeted-qualification.json",
+        "bytes": 15979,
+        "sha256": "7413c60681fec056329ce59a8f29c5b548706c901d79ed8b9dcfe6bc80601eb6"
+      },
+      "boundary": "Current source compiled in focused backend tests and frontend build. No new full Host/Core installer was assembled or installed; frozen3407 candidate identity unchanged."
     }
   }
 }
