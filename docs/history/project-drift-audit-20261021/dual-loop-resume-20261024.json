@@ -727,7 +727,7 @@
       "boundary": "Same b999 installer real installed document-conflict/restore/restart business component PASS; not complete install lifecycle repetition, physical IME, Owner nine-step or Owner acceptance"
     },
     "green_current5822_preflight": {
-      "status": "NOT_DEPLOYED",
+      "status": "HISTORICAL_NOT_DEPLOYED_PREFLIGHT_SUPERSEDED",
       "preflight": {
         "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-green-preflight.json",
         "bytes": 3912,
@@ -738,7 +738,7 @@
         "bytes": 7332,
         "sha256": "dc600f8dd4a48d71f41767c8f44c67a404cf8ba1dc37387423a3b7cb84d1b883"
       },
-      "reason": "Installed document-conflict/restore/restart component now PASS on current5822. Safe in-place ownership/collision/hash rollback executor remains missing; NOT_DEPLOYED. Existing destructive assemblers must not target daily Green."
+      "reason": "Historical read-only preflight and entry review retained; current result is green_deployment_current5822. Their original receipt bytes and failure states are unchanged."
     },
     "installed_page_probe_regression_current5822": {
       "status": "LOCAL_PASS_51_TESTS",
@@ -1027,6 +1027,80 @@
       "external_calls": 0,
       "boundary": "API component chain, explicitly saved projection Documents. No automatic binary job-to-Document filling, native four-format UI, source-format reconstruction, full fidelity, Owner or complete J1 qualification.",
       "preparation_failure": "First outer dev invocation reused allocated run directory and failed WinError183 before product launch. Separate fresh execution run succeeded; evidence index preserves original preparation failure."
+    },
+    "green_deployment_current5822": {
+      "status": "DEPLOYED_PROGRAM_FILES_AND_ISOLATED_NATIVE_STARTUP_PASS",
+      "observed_at": "2026-10-23T22:39:13.933371+00:00",
+      "task_ids": [
+        "M01",
+        "CL-07",
+        "J6"
+      ],
+      "target": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64",
+      "compiled_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "deployment": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822-02/root-deployment-result.json",
+        "bytes": 887,
+        "sha256": "3ca7b74b26f714ed4f0a32ba79da20e754e1997a738a3717af138acb27c672a1"
+      },
+      "program_result": {
+        "path": ".project-local/runs/be268a2d33/green-deploy-current5822-20261024-02/deployment-result.json",
+        "bytes": 1492049,
+        "sha256": "a6d5b2a5b99c498d192b64a9790d00acc010f73e7f90b99f7b74f77d84797d73"
+      },
+      "root_identity_readback": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822-02/root-independent-readback.json",
+        "bytes": 3848,
+        "sha256": "6e78ad81c8f2a48bf72a255126f2788cf0ae21dd6a666cb69ef348b3f0e05fae"
+      },
+      "startup_parent": {
+        "path": ".project-local/runs/be268a2d33/green-current5822-isolated-startup-20261024-02/artifacts/parent-startup.json",
+        "bytes": 1769,
+        "sha256": "344d5d1858e095bd05aeb4a7c80b3c95c1aed90bd1faa1e88c36251cf6fbb4bf"
+      },
+      "startup_native": {
+        "path": ".project-local/runs/be268a2d33/webdriver-4ad13c626026/tmp/journey/receipt.json",
+        "bytes": 11023,
+        "sha256": "b98798141ef891283dfbbfb97164292ff3071028d82879b06f0538e096292c37"
+      },
+      "guard_synthetic_tests": {
+        "path": ".project-local/runs/be268a2d33/green-inplace-safety-20261024-02/review-receipt.json",
+        "bytes": 2389,
+        "sha256": "a5e342efef77e8d06a6b5559b36c139f0aeae91a41c16da5c69a3d7cdeddab1f"
+      },
+      "guard": {
+        "path": ".project-local/runs/be268a2d33/green-inplace-safety-20261024-02/green_inplace_guard.py",
+        "bytes": 37702,
+        "sha256": "c4dd7f41f36237e69f7a90af0e87227525db592443e9d99f950bd038aecea353"
+      },
+      "entry": {
+        "path": ".project-local/runs/be268a2d33/green-inplace-safety-20261024-02/root_current5822_entry.py",
+        "bytes": 8465,
+        "sha256": "23d1019996829d77746b4e52d7141ac694d93c10ad7164d3a1e37576adac8957"
+      },
+      "historical_program_prewrite_failure": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822/prewrite-failure-readback.json",
+        "bytes": 1151,
+        "sha256": "db9d6df05c3ebc54982316b39fd2ddf0db747003422863187f83b8753b8bd6b9"
+      },
+      "historical_startup_assertion_failure": {
+        "path": ".project-local/runs/be268a2d33/green-current5822-isolated-startup-20261024-01/artifacts/parent-startup.json",
+        "bytes": 1773,
+        "sha256": "e99bdfe71ff616c6debb106e982da4806a7c2e8703a160e4e743f3a8f159cb6f"
+      },
+      "verified_members": 19745,
+      "owned_members": 19744,
+      "new_members": 19743,
+      "replaced_program_members": [
+        "ArcheAxis.exe"
+      ],
+      "verify_only_not_owned": [
+        "portable.flag"
+      ],
+      "real_user_data": "NOT_OPENED_OR_OVERWRITTEN",
+      "legacy_release_identity": "PRESERVED_OLD_METADATA_NOT_CURRENT_DEPLOYMENT_IDENTITY",
+      "new_source_ui_correction_label_fix": "COMMITTED_F258_NOT_INCLUDED_IN_COMPILED5822",
+      "qualification_boundary": "Exact current5822 program deployment and fresh isolated native startup only; earlier installed business/lifecycle receipts remain separate. No default real-user-data launch, data migration, representative quality, real cloud, hosted CI, release or Owner acceptance inferred."
     }
   },
   "cleanup": {
@@ -1127,13 +1201,13 @@
     "real_user_data": "NOT_OVERWRITTEN",
     "commit_push": "PUBLIC_CODE_D8B_AND_DOCUMENTATION5822_COMMITTED_LOCAL; PUSH_POLICY_REJECTED_BEFORE_EXECUTION",
     "remote_exact_sha": "LAST_API_REMOTE95B_DIFFERS_FROM_LOCAL5822; no current remote publication or CI",
-    "green": "NOT_UPDATED"
+    "green": "DEPLOYED_PROGRAM_FILES_AND_ISOLATED_NATIVE_STARTUP_PASS; REAL_USER_DATA_NOT_OPENED"
   },
   "remaining": [
     "Current5822 installed document-conflict/restore/restart business component PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE. Old run01 selector FAIL and historical3407 VM disappearance remain preserved. Owner and hosted CI are separate.",
     "Current5822 native engineering chain PASS. One existing answer pair independently reviewed by another agent: original faithful, model improvement unproven. Representative semantic quality, dedup/conflict/applicability truth and Owner acceptance remain open.",
     "No real cloud provider call: fixed provider/model, product credential and request-specific material/unknown-cost authorization still absent; no Codex credentials or paid calls.",
-    "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green NOT_DEPLOYED; no public release.",
+    "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green current5822 program deployment and isolated native startup PASS; real-user-data launch and Owner acceptance not executed; no public release.",
     "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
     "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass.",
     "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Native four-format UI, automatic binary projection filling and wider semantic/visual fidelity not qualified; OCR/media/light-format integration receipts retain older Core identities."
@@ -2117,7 +2191,7 @@
     },
     "ci": "NOT_EXECUTED_FOR_THIS_HEAD",
     "error": "approval required by policy, but AskForApproval is set to Never",
-    "boundary": "Remote push rejected before execution; no alternate channel or bypass. PR/merge/release/Green not executed."
+    "boundary": "Remote push rejected before execution; no alternate channel or bypass. PR/merge/release not executed. Later local Green program deployment and isolated startup are qualified only by verification.green_deployment_current5822."
   },
   "historical_fixed3407_candidate": {
     "path": ".project-local/runs/be268a2d33/fixedwv-portable-20261024-01/artifacts/星环便携候选",

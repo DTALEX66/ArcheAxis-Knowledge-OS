@@ -1502,3 +1502,11 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 
 - 后继四格式API接续已实际完成：原工作区只读克隆，4份原件／8组job含loss与结构／16锚点保持；按既有reader的真实source_id＋immutable SHA合同建4草稿，再明确合成编辑填入既有解析投影，保存、Markdown／manifest／package导出、冷启、正式备份、备份后独有marker及实际恢复均通过。marker恢复后404、workspace_id相同、restore_epoch改变，原工作区全部文件及收据SHA未变。不是自动job→Document，也不是原生四格式UI或完整J1。
 - 接续终态 `.project-local/runs/be268a2d33/current5822-common-formats-export-restore-20261024-01/artifacts/suffix-receipt.json`，SHA `ba07c49711ed21e03ffc3224d0302245e1bdd0c0a62a5efe01f11b6c2bc0b9b0`；outer24.36秒／inner22.89秒，source consistent，仍为固定5822产品。root实核主收据及10个文件引用，4次自有Core terminate/wait退出1、reaped且端口关闭，不写成优雅UI退出。备份4个objects与原4份CAS的SHA集合相同。原外层准备WinError183发生在产品启动前，独立fresh outer执行成功，原准备错误在final-evidence-index保留。无重导入、模型、网络或安装；整体PARTIAL。
+
+
+### 2026-10-24 日常 Green 程序替换与隔离原生启动（M01／CL-07／J6，局部 PASS；整体 PARTIAL）
+
+- 本节明确接续并替代前文 Green NOT_DEPLOYED／缺安全原位执行器的当前结论，旧失败和暂停时点不改。15项合成安全回归通过后，root按原Owner精确路径授权仅替换程序：旧EXE逐SHA备份，新建19,743成员、替换1个EXE、原portable.flag仅校验，19,745候选成员逐SHA通过，发布19,744成员归属清单。依赖先写、EXE最后原子替换；旧release-identity.json保留为历史元数据，当前身份读新归属／部署清单。未知文件、用户库／备份／配置未读取或覆盖。
+- run01在任何目标写入前被Windows恰好260字符路径的Path.stat误报缺失中止；原FAIL、旧EXE哈希和备份读回保留。run02只将I/O转到现有native长路径接口，不改canonical路径校验、全局设置或ACL，新增精确候选RED→GREEN和深路径完整apply／rollback，15/15 PASS。root独立读回部署结果、程序三SHA、新归属、旧EXE备份及保留legacy身份；candidate-manifest本身不是部署成员，其SHA绑定候选原文件，首次root读回误取target路径的准备错误已旁置记录。
+- 实际部署根收据 `.project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822-02/root-deployment-result.json`，SHA `3ca7b74b26f714ed4f0a32ba79da20e754e1997a738a3717af138acb27c672a1`。随后同一Green EXE在fresh ignored工作区原生启动一次，backend ready、数据库实体路径、空sources／documents／snapshots、owned WebView截图及正常整个Host退出0通过，自有后代与端口无残留。第一次startup仅因扩展路径与普通路径文本比较失败，ready及退出已通过；原FAIL保留，后继改用严格samefile实体校验，错误文件反例不通过，其余断言未放宽。精确新父层／内层收据和SHA见统一检查点 `verification.green_deployment_current5822`；内层compiled binding UNVERIFIED保持，父层绑定真实部署收据和程序三SHA，非借用后继HEAD编译身份。
+- 编译产品仍582267f3，后继f258纠正归因UI源码修复尚未重建进入Green。该结果仅是程序部署与隔离空库启动，非默认真实用户库迁移、此次完整业务重跑或Owner验收。已有安装业务、生命周期与同版本跨构建回退保持各自证据；真实云、代表性可靠性及托管CI仍未完成，公开发布未执行，监控暂停，整体PARTIAL。

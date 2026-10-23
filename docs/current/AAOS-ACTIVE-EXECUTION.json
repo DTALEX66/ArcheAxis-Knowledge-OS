@@ -548,7 +548,7 @@
     "target": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64",
     "target_role": "Owner daily Green/portable deployment directory; distinct from CI isolated NSIS test installation",
     "operation": "Replace project-owned application program files with the qualified current candidate; preserve user data and a rollback copy",
-    "status": "GRANTED_NOT_EXECUTED",
+    "status": "EXECUTED_PROGRAM_ONLY_ISOLATED_STARTUP_PASS",
     "observed_identity_label": "release-identity.json reports v0.6.14; metadata is not proof of current complete executable/member consistency",
     "observed_executable_sha256": "132f1c8ccc5344cd8b709826b79c59ba01cf59b919073fd36a67ec249c5a0538",
     "conditions": [
@@ -558,13 +558,27 @@
       "Read back candidate/target hashes and deployment identity; use isolated data for validation",
       "Preserve data, databases including root archeaxis.sqlite, backups, user assets, preferences and unknown directories; no bulk deletion or incompatible real-data migration"
     ],
-    "qualification": "Current5822 isolated installed business, local installer lifecycle and same-version cross-build program rollback components PASS in separate exact receipts. Daily Green not deployed; safe in-place ownership/backup/write/rollback qualification remains separate. No hosted CI or Owner acceptance inferred.",
+    "qualification": "Exact current5822 program deployment and fresh isolated native startup only; earlier installed business/lifecycle receipts remain separate. No default real-user-data launch, data migration, representative quality, real cloud, hosted CI, release or Owner acceptance inferred.",
     "not_granted": [
       "Public release",
       "Real user data overwrite",
       "Unknown shared process termination",
       "Other deployment paths"
-    ]
+    ],
+    "latest_execution": {
+      "checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
+      "key": "verification.green_deployment_current5822",
+      "deployment": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822-02/root-deployment-result.json",
+        "bytes": 887,
+        "sha256": "3ca7b74b26f714ed4f0a32ba79da20e754e1997a738a3717af138acb27c672a1"
+      },
+      "startup": {
+        "path": ".project-local/runs/be268a2d33/green-current5822-isolated-startup-20261024-02/artifacts/parent-startup.json",
+        "bytes": 1769,
+        "sha256": "344d5d1858e095bd05aeb4a7c80b3c95c1aed90bd1faa1e88c36251cf6fbb4bf"
+      }
+    }
   },
   "conversation_closeout": {
     "date": "2026-10-19",
@@ -1171,7 +1185,7 @@
       "boundary": "Same b999 installer real installed document-conflict/restore/restart business component PASS; not complete install lifecycle repetition, physical IME, Owner nine-step or Owner acceptance"
     },
     "green_current5822_preflight": {
-      "status": "NOT_DEPLOYED",
+      "status": "HISTORICAL_NOT_DEPLOYED_PREFLIGHT_SUPERSEDED",
       "preflight": {
         "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-green-preflight.json",
         "bytes": 3912,
@@ -1182,7 +1196,7 @@
         "bytes": 7332,
         "sha256": "dc600f8dd4a48d71f41767c8f44c67a404cf8ba1dc37387423a3b7cb84d1b883"
       },
-      "reason": "Installed document-conflict/restore/restart component now PASS on current5822. Safe in-place ownership/collision/hash rollback executor remains missing; NOT_DEPLOYED. Existing destructive assemblers must not target daily Green."
+      "reason": "Historical read-only preflight and entry review retained; current result is green_deployment_current5822. Their original receipt bytes and failure states are unchanged."
     },
     "installed_page_probe_regression_current5822": {
       "status": "LOCAL_PASS_51_TESTS",
@@ -1485,6 +1499,22 @@
       "external_calls": 0,
       "boundary": "API component chain, explicitly saved projection Documents. No automatic binary job-to-Document filling, native four-format UI, source-format reconstruction, full fidelity, Owner or complete J1 qualification.",
       "preparation_failure": "First outer dev invocation reused allocated run directory and failed WinError183 before product launch. Separate fresh execution run succeeded; evidence index preserves original preparation failure."
+    },
+    "green_deployment_current5822": {
+      "status": "DEPLOYED_PROGRAM_FILES_AND_ISOLATED_NATIVE_STARTUP_PASS",
+      "compiled_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "checkpoint_key": "verification.green_deployment_current5822",
+      "deployment": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822-02/root-deployment-result.json",
+        "bytes": 887,
+        "sha256": "3ca7b74b26f714ed4f0a32ba79da20e754e1997a738a3717af138acb27c672a1"
+      },
+      "startup": {
+        "path": ".project-local/runs/be268a2d33/green-current5822-isolated-startup-20261024-02/artifacts/parent-startup.json",
+        "bytes": 1769,
+        "sha256": "344d5d1858e095bd05aeb4a7c80b3c95c1aed90bd1faa1e88c36251cf6fbb4bf"
+      },
+      "real_user_data": "NOT_OPENED_OR_OVERWRITTEN"
     }
   }
 }
