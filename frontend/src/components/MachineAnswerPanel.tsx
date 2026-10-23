@@ -558,7 +558,7 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         setQuestion(entry.body.question);setSelectedModel(entry.body.model??"");setMaxTokens(entry.body.max_tokens===4096?4096:2048);setRestoredPending(true);setUncertain(true);
       }}><option value="">选择一条请求核对</option>{Object.values(working.state.pending_machine??{}).filter(entry=>entry.owner_knowledge_id===knowledgeId).map(entry=><option key={entry.journal_id} value={entry.journal_id}>{entry.operation==="answer"?"回答":"复测"} · {entry.body.question.slice(0,80)}</option>)}</select></label>:null}
     <button disabled={busy} onClick={() => void readHistory()}>读取机器学习历史</button>
-    <ul aria-label="既有机器学习任务">{history.filter(row => ["runtime.answer","runtime.evaluation.failed","runtime.retest","runtime.execution.withheld"].includes(row.scope)).map(row => <li key={row.task_id} data-task-id={row.task_id}><span>{row.scope === "runtime.execution.withheld" ? "已执行但未发布" : row.scope === "runtime.evaluation.failed" ? "评测失败" : row.scope === "runtime.retest" ? "复测" : "回答"} · {row.outcome === "succeeded" ? "已完成" : row.outcome === "failed" ? "失败" : "未测评"} · {row.recorded_at}</span><button disabled={busy} onClick={() => void restoreHistory(row)}>查看这次任务</button></li>)}</ul>
+    <ul aria-label="既有机器学习任务">{history.filter(row => ["runtime.answer","runtime.evaluation.failed","runtime.retest","runtime.execution.withheld"].includes(row.scope)).map(row => <li key={row.task_id} data-task-id={row.task_id}><span>{row.scope === "runtime.execution.withheld" ? "已执行但未发布" : row.scope === "runtime.evaluation.failed" ? "使用者纠正" : row.scope === "runtime.retest" ? "复测" : "回答"} · {row.scope === "runtime.evaluation.failed" ? "已记录" : row.outcome === "succeeded" ? "已完成" : row.outcome === "failed" ? "失败" : "未测评"} · {row.recorded_at}</span><button disabled={busy} onClick={() => void restoreHistory(row)}>查看这次任务</button></li>)}</ul>
     {cursor ? <button disabled={busy} onClick={() => void readHistory(true)}>读取更多任务</button> : null}
     {uncertain ? <p>{withheldAudit?.failed ? "本地调用失败已核对；服务停止状态仍未知。结束请求前保留冻结输入。" : "运行结果尚未确认；请先检查已保存记录，避免重复运行。"}</p> : null}
     <h4>基于当前知识的本地回答</h4>
@@ -596,13 +596,15 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
       <button disabled={busy || !corrected.trim() || !note.trim() || !correctionAuthor.trim()} onClick={() => void correct()}>记录使用者纠正候选</button>
       {correction ? <>
         <h4>纠正对照与范围</h4>
+        <p>纠正记录本身不证明原回答错误，请结合提交者与依据核验。</p>
         <dl><div><dt>纠正候选</dt><dd>已保存并关联原知识</dd></div>
           <div><dt>纠正候选修订</dt><dd>{candidate ? String(candidate.version) : "纠正候选尚未核实"}</dd></div>
           <div><dt>本题</dt><dd>{String(correction.question)}</dd></div>
           <div><dt>原机器回答</dt><dd>{String(correction.machine_answer)}</dd></div>
           <div><dt>使用者纠正</dt><dd>{String(correction.corrected_answer)}</dd></div>
           <div><dt>已保存的纠正正文</dt><dd>{candidate ? String(candidate.body) : "未确认；审核操作不可用"}</dd></div>
-          <div><dt>错误依据</dt><dd>{String(correction.error_note)}</dd></div>
+          <div><dt>纠正记录提交者</dt><dd>{String(correction.reviewer)}</dd></div>
+          <div><dt>提交的纠正依据</dt><dd>{String(correction.error_note)}</dd></div>
           <div><dt>状态</dt><dd>{candidate ? candidate.status === "accepted" ? "已接受" : candidate.status === "rejected" ? "已拒绝" : candidate.status === "deprecated" ? "已撤回" : "待审核" : "纠正候选尚未核实"}</dd></div>
         </dl>
         <RawReceiptButton label="机器纠正候选回执" payload={correction} />
@@ -617,16 +619,16 @@ export function MachineAnswerPanel({ knowledgeId, contextGrant, retestContextGra
         <button disabled={busy} onClick={() => void reloadCandidate()}>重新读取审核版本</button>
         <button disabled={busy || candidate.status !== "accepted" || !reviewer.trim() || !reviewNote.trim()} onClick={() => void reviewCorrection("deprecated")}>撤回已接受纠正（标记为弃用）</button>
         {candidate.status === "accepted" ? <>
-          <p>已审核知识可用于重答原问题。复测会再次核对先前失败任务和知识版本；接受纠正知识本身不代表复测通过。</p>
+          <p>已审核知识可用于重答原问题。复测会再次核对原纠正记录和知识版本；接受纠正知识本身不代表复测通过。</p>
           {scoped && !retestContextGrant ? <p>请先为已接受的纠正知识保存并选择独立复测授权。</p> : null}
           <button disabled={restoredPending || busy || uncertain || withheld || Boolean(retest) || ((scoped||retestAssetScoped||!!retestAssetContextGrant||record(answer.request??{}).asset_context!==undefined) && !retestContextGrant && !frozenRetest.current) || ((retestAssetScoped || record(answer.request??{}).asset_context!==undefined) && !retestAssetContextGrant && !frozenRetest.current)} onClick={() => void runIndependentRetest()}>{retest ? "独立复测已记录" : frozenRetest.current ? "重试同一冻结复测请求" : "以已接受纠正知识运行独立复测"}</button>
         </> : null}
           {retest ? <section aria-label="独立复测结果对照">
             <h4>独立复测结果对照</h4>
-            <p>这次复测关联先前失败的任务，使用已审核知识第 {String(candidate.version)} 版。结果尚未由真人比较。</p>
-            <h5>原机器回答（失败样本）</h5><pre>{String(record(answer.answer).answer)}</pre>
+            <p>这次复测关联原纠正记录，使用已审核知识第 {String(candidate.version)} 版。结果尚未由真人比较。</p>
+            <h5>原机器回答（纠正前）</h5><pre>{String(record(answer.answer).answer)}</pre>
             <h5>纠正后复测回答（候选）</h5><pre aria-label="独立复测机器回答">{String(record(retest.answer).answer)}</pre>
-            <p>系统仅记录独立复测及其与失败任务的关联，不自动推断纠正有效；真人比较结果尚未记录。</p>
+            <p>系统仅记录独立复测及其与纠正记录的关联，不自动推断纠正有效；真人比较结果尚未记录。</p>
             <RawReceiptButton label="复测任务持久化回执" payload={retestTask} />
             <RawReceiptButton label="机器复测回执" payload={retest} />
           </section> : null}

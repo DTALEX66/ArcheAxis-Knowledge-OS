@@ -99,6 +99,25 @@ describe("persisted correction and withdrawal history",()=>{
  const evaluation={...answer,correction};
  const savedRetest={...retestReceipt,prior:{conditions:evaluation}};
  const failed={...task(answer),task_id:"evaluation_answer1",conditions:JSON.stringify(evaluation),scope:"runtime.evaluation.failed",outcome:"failed"};
+ it("presents a recorded correction without treating its storage outcome as independent model failure",async()=>{
+  const row={...failed,principal:"machine",recorded_at:"2026-10-10",method_version:null,tool_version:null,failure:"依据"};
+  bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{
+   if(op==="machine_tasks_list")return {items:[row,{...row,task_id:"actual_failure",scope:"runtime.answer"}],next_cursor:null};
+   if(op==="machine_task_get")return payload.task_id==="evaluation_answer1"?row:task(answer);
+   if(op==="knowledge_get")return {knowledge_id:"correction1",body:"使用者纠正",version:"review-v1",status:"candidate"};
+   throw new Error("unexpected write");
+  });
+  render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();await user.click(screen.getByRole("button",{name:"读取机器学习历史"}));
+  const history=await screen.findByRole("list",{name:"既有机器学习任务"});
+  expect(history).toHaveTextContent("使用者纠正 · 已记录");expect(history).not.toHaveTextContent("评测失败");
+  expect(history.querySelector('[data-task-id="actual_failure"]')).toHaveTextContent("回答 · 失败");
+  await user.click(await savedTaskButton("evaluation_answer1"));
+  expect(await screen.findByLabelText("真实机器回答")).toHaveTextContent("实际机器回答");
+  expect(screen.getByText("纠正记录本身不证明原回答错误，请结合提交者与依据核验。")).toBeInTheDocument();
+  expect(screen.getByText("纠正记录提交者").parentElement).toHaveTextContent("human");
+  expect(screen.getByText("提交的纠正依据").parentElement).toHaveTextContent("依据");
+  expect(bridge.call.mock.calls.every(([op])=>["machine_tasks_list","machine_task_get","knowledge_get"].includes(op))).toBe(true);
+ });
  it("recovers the whole withdrawn chain with original answer and retest visible",async()=>{
   const row={...task(savedRetest,"runtime.retest"),principal:"machine",recorded_at:"2026-10-10",method_version:null,tool_version:null,failure:null};
   bridge.call.mockImplementation(async(op:string,payload:Record<string,unknown>={})=>{

@@ -1490,3 +1490,15 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 - 终态 `.project-local/runs/be268a2d33/same-version-cross-build-rollback-20261024-02/cross-build-terminal-receipt.json`，SHA `bb9c7303e3448710b0ded3f9759129e684db8fba8657313eacaaf7762841fbd7`。root独立核对10个证据文件SHA及4阶段业务lineage；官方精确VM stop0、VM及自有客户端0，执行源始终2b3f／canonical空patch。
 - 原run01安装／三SHA／19,744成员先通过，后因脚本未去除官方NSIS注册表InstallLocation外引号，在Host及业务前中止；未捕获原registry payload，不判产品注册表故障。原终态 `.project-local/runs/be268a2d33/same-version-cross-build-rollback-20261024-01/cross-build-terminal-receipt.json`，SHA `19267eda8ab5a9ded933a47304cb47f68b80aefeddde4566a444a8e25a9ed9de`，原件不变；独立run02只修规范化与诊断并在主机预检正确／错误／空／不成对引号后复验一次。
 - 本结论仅覆盖这两个0.6.14/schema14构建的程序回退与安装Core业务，不推导任意旧release兼容、schema降级、该旅程原生UI文档编辑、真实用户库、Owner或托管CI资格。当前b999安装业务、同包生命周期、跨构建回退分别有独立收据；完整双侧产品仍PARTIAL。Windows10为额外兼容待验，未新增首版平台门槛。Green保持NOT_DEPLOYED；真实云、独立质量及Owner验收仍须真实证据，监控暂停。
+
+
+### 2026-10-24 四格式当前候选补验与纠正归因修复（CL-02／J1／UF09／BE-P08／BE-P10，整体 PARTIAL）
+
+- 当前5822固定候选 DOCX／XLSX／PPTX／文本PDF实际 Core 组件集成通过：中文内容与结构、明确损失、来源定位、原件CAS、独立重解析及冷启一致。run02约13.67秒，执行源a586加稳定前端dirty patch，候选Host4f569／Coref915／manifestf675未变。终态 `.project-local/runs/be268a2d33/current5822-common-formats-20261024-02/artifacts/final-readback.json`，SHA `6ef60995930a8a98b8be6ce850b37363aa685e6d6a9a4b8ae884fcac21a0e144`。run01因执行中源码变化 INVALIDATED，原业务断言虽通过也不改判PASS，原记录保留。无模型、外网或安装调用。
+- 此探针仅有4 RawAsset、8 job outputs及anchors，原合成工作区 documents=0；不能写成四文档闭环。原OCR、音视频、轻格式收据仍属旧Core，worker字节相同只支持组件复用，不能当本轮当前候选整链验收。四格式产品文档承接、同对象导出和实际恢复及原生格式界面仍待验，J1保持PARTIAL。
+- 另一Agent对既有一组回答独立内容审阅完成：原答案忠实于有限上下文，未发现已证错误；复测使用新增工程说明，上下文已变化、说明缺独立来源，不能据此称模型提升。审阅 `.project-local/artifacts/dual-loop-resume-20261023/current5822-existing-answer-review/independent-agent-review-20261024/review.json`，SHA `d9e4ba99c2ab5420e6256fb5213f80b74a8884464d0f4cc5d4e1f532e0c3c540`。仅单样本Agent审阅，非盲评、代表性质量或Owner验收；零新模型调用。
+- 修正真实产品呈现缺陷：历史人工纠正不再自动显示“评测失败·失败”，改为“使用者纠正·已记录”，展示提交者和提交依据；原回答不再自动称失败样本。原Core任务scope／outcome／复测合同与历史记录保留，真正非纠正的失败仍显示失败。定向RED复现，46项桥接fixture UI测试与类型检查PASS，最后10项测试新增真失败保留断言PASS。源码尚未重建进5822候选，不能把该源码修复说成原生或安装态已修。
+- Green状态仍按独立更新器实证记录；本节没有部署或用户数据修改。整体PARTIAL，真实云、代表性知识可靠性、Owner和托管CI分别保留，监控仍暂停。
+
+- 后继四格式API接续已实际完成：原工作区只读克隆，4份原件／8组job含loss与结构／16锚点保持；按既有reader的真实source_id＋immutable SHA合同建4草稿，再明确合成编辑填入既有解析投影，保存、Markdown／manifest／package导出、冷启、正式备份、备份后独有marker及实际恢复均通过。marker恢复后404、workspace_id相同、restore_epoch改变，原工作区全部文件及收据SHA未变。不是自动job→Document，也不是原生四格式UI或完整J1。
+- 接续终态 `.project-local/runs/be268a2d33/current5822-common-formats-export-restore-20261024-01/artifacts/suffix-receipt.json`，SHA `ba07c49711ed21e03ffc3224d0302245e1bdd0c0a62a5efe01f11b6c2bc0b9b0`；outer24.36秒／inner22.89秒，source consistent，仍为固定5822产品。root实核主收据及10个文件引用，4次自有Core terminate/wait退出1、reaped且端口关闭，不写成优雅UI退出。备份4个objects与原4份CAS的SHA集合相同。原外层准备WinError183发生在产品启动前，独立fresh outer执行成功，原准备错误在final-evidence-index保留。无重导入、模型、网络或安装；整体PARTIAL。

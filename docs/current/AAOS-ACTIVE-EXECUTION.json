@@ -558,7 +558,7 @@
       "Read back candidate/target hashes and deployment identity; use isolated data for validation",
       "Preserve data, databases including root archeaxis.sqlite, backups, user assets, preferences and unknown directories; no bulk deletion or incompatible real-data migration"
     ],
-    "qualification": "UNVERIFIED; prior installed journey failure remains open; this grant does not turn failed CI into PASS",
+    "qualification": "Current5822 isolated installed business, local installer lifecycle and same-version cross-build program rollback components PASS in separate exact receipts. Daily Green not deployed; safe in-place ownership/backup/write/rollback qualification remains separate. No hosted CI or Owner acceptance inferred.",
     "not_granted": [
       "Public release",
       "Real user data overwrite",
@@ -847,15 +847,15 @@
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "post_build_delta": "POST_QUALIFICATION_RESULT_DOCS_AND_PAGE_SELECTOR_PROBE_ONLY; PRODUCT_BINARIES_UNCHANGED",
-    "native_additional": "CURRENT5822_NATIVE_RUN04_HUMAN_IMPORT_READ_ANCHOR_KNOWLEDGE_LEARN_PRACTICE_REVIEW_RECOVERY_AND_AI_ENGINEERING_STAGES_PASS; GROUPED_PRODUCT_PARTIAL; INDEPENDENT_SEMANTIC_QUALITY_AND_OWNER_NOT_EXECUTED",
+    "post_build_delta": "SOURCE_UI_CORRECTION_ATTRIBUTION_FIX_AFTER5822; tests PASS; product candidate/installer unchanged, no new native or installed qualification inferred",
+    "native_additional": "CURRENT5822_NATIVE_HUMAN_AND_AI_ENGINEERING_CHAIN_PASS; ONE_SAMPLE_INDEPENDENT_AGENT_REVIEW_COMPLETE; REPRESENTATIVE_SEMANTIC_QUALITY_AND_OWNER_UNPROVEN; GROUPED_PRODUCT_PARTIAL",
     "cloud": "IMPLEMENTED_LOCAL_MOCK_PASS_REAL_PROVIDER_NOT_EXECUTED",
     "installer": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
     "local_model_latest": "CURRENT5822_NATIVE_AI_PARENT_PASS; existing fast-local alias explicitly loaded and effective configuration read back; see actual answer/retest stages",
     "public_research": "HISTORICAL_REAL_THREE_SOURCE_ACQUISITION; CURRENT5822_ACTUAL_RESTORE_AND_COLD_READBACK_PASS; research draft remains unverified/not admitted",
     "native_ai_latest": "CURRENT5822_PARENT_PASS; exact native evidence in native_ai_current5822; authored engineering fixture, not Owner acceptance",
     "ai_governance_latest": "PASS8_ACTUAL_CORE_NEGATIVE_SYNTHETIC_REVIEW; SEMANTIC_TRUTH_AND_OWNER_NOT_PROVEN",
-    "common_formats_latest": "PASS8_FIXED_CORE_LIGHT_FORMATS_WITH4_NEGATIVES_AND_COLD_READ; NOT_NATIVE_FORMAT_ROUNDTRIP",
+    "common_formats_latest": "CURRENT5822_FOUR_FORMAT_RAW_JOB_ANCHOR_INTEGRATION_AND_EXPLICIT_SOURCE_BOUND_DOCUMENT_SAVE_EXPORT_RESTART_ACTUAL_RESTORE_COMPONENT_PASS; NATIVE_FORMAT_UI_AND_AUTO_PROJECTION_NOT_QUALIFIED; J1_PARTIAL",
     "installed_business_latest": "CURRENT5822_INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; ORIGINAL_RUN01_FAIL_AND_OLD3407_VM_DISAPPEARANCE_PRESERVED",
     "historical_code_delivery_observation_at": "2026-10-23T20:21:20.557382+00:00",
     "delivery_receipt": ".project-local/artifacts/dual-loop-resume-20261023/delivery-latest-20261024.json",
@@ -1345,6 +1345,146 @@
       "cause": "Official NSIS quoted InstallLocation was compared to an unquoted path; package identity/member checks had passed; original actual registry payload was not captured. Separate run02 records raw quoted fields and exact normalized path.",
       "product_failure": "NOT_ESTABLISHED",
       "originals": "PRESERVED_UNCHANGED"
+    },
+    "independent_answer_review_current5822": {
+      "status": "SINGLE_SAMPLE_INDEPENDENT_AGENT_REVIEW_COMPLETED",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-existing-answer-review/independent-agent-review-20261024/review.json",
+        "bytes": 17253,
+        "sha256": "d9e4ba99c2ab5420e6256fb5213f80b74a8884464d0f4cc5d4e1f532e0c3c540"
+      },
+      "samples": 1,
+      "model_calls": 0,
+      "conclusion": "Original answer faithful to limited source; no proven factual error found. Retest uses added engineering clarification; changed context and unsourced clarification do not prove model improvement or external factual validity.",
+      "boundary": "Independent of original answer and intervention authorship; not blinded, Owner, representative quality, or semantic duplicate/conflict/applicability acceptance."
+    },
+    "correction_presentation_fix": {
+      "status": "SOURCE_FIXED_LOCAL_SIMULATED_UI_TESTS_PASS_NOT_REBUILT",
+      "task_ids": [
+        "UF09",
+        "BE-P08",
+        "BE-P10"
+      ],
+      "change": "Attribute runtime.evaluation.failed history to recorded user correction, expose submitter and submitted basis, remove automatic failed-sample labels; genuine non-correction failed outcomes remain visible. Core persisted scopes, outcomes and retest compatibility unchanged.",
+      "checks": {
+        "red": {
+          "path": ".project-local/runs/be268a2d33/correction-history-label-red-20261024-01/artifacts/execution.json",
+          "bytes": 1402,
+          "sha256": "e041eab637163e4808cbc2c68e68cbf5de7a616d1c3d924bdeda5a619dcab890"
+        },
+        "green46": {
+          "path": ".project-local/runs/be268a2d33/correction-history-label-green-20261024-01/artifacts/execution.json",
+          "bytes": 1474,
+          "sha256": "b82e64cd205a7d5a973b9b1e1b5cb36410f336fe84db1d58981a0e6783ca0254"
+        },
+        "final10": {
+          "path": ".project-local/runs/be268a2d33/correction-history-label-final-20261024-01/artifacts/execution.json",
+          "bytes": 1362,
+          "sha256": "27d75bb25dec4c0a05d5dd640210c8456e02c5388450354150e72f8c62d836fa"
+        },
+        "types": {
+          "path": ".project-local/runs/be268a2d33/correction-history-types-20261024-01/artifacts/execution.json",
+          "bytes": 1323,
+          "sha256": "c462ab1103b2bd05b08f664c9b0ebbf48a6a11c43c1b93a8b738f9e82ce62fcb"
+        }
+      },
+      "verification": "RED reproduced incorrect failure label; GREEN46 panel tests and typecheck PASS; final10 tests additionally preserve genuine answer-failure presentation.",
+      "boundary": "Bridge-fixture UI tests, not native UI, candidate rebuild, installed qualification or Owner acceptance. Existing compiled5822 candidate retains original text."
+    },
+    "common_formats_current5822": {
+      "status": "PASS_CURRENT5822_COMPONENT_INTEGRATION_ONLY",
+      "task_ids": [
+        "BE-P02",
+        "BE-P03",
+        "BE-P12",
+        "CL-02",
+        "J1"
+      ],
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-common-formats-20261024-02/artifacts/final-readback.json",
+        "bytes": 8940,
+        "sha256": "6ef60995930a8a98b8be6ce850b37363aa685e6d6a9a4b8ae884fcac21a0e144"
+      },
+      "inner": {
+        "path": ".project-local/runs/be268a2d33/325b3badd07a/artifacts/common-formats.json",
+        "bytes": 90122,
+        "sha256": "2deee4c0e14f09f5a9253acc6731cbb1462edab433f1a34ebb1849b014ad1b1c"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/current5822-common-formats-20261024-02/artifacts/execution.json",
+        "bytes": 1519,
+        "sha256": "5cb57e7ed895a5428ae781e6f2df90814d1c4e8d4319420d6fb28da3313950e2"
+      },
+      "formats": [
+        "DOCX",
+        "XLSX",
+        "PPTX",
+        "text PDF"
+      ],
+      "checks": [
+        "Chinese content and structure",
+        "explicit conversion loss",
+        "source location",
+        "original CAS bytes",
+        "independent reparse",
+        "cold restart equality"
+      ],
+      "compiled_candidate": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_source": "a58627e941dd754fd98c0c87d197bd627804e02e",
+      "execution_dirty_patch": "8cfd88d2aaeb68f4978dff610e7f719549b806a1c6f3fd16b901e4e5d69579b5",
+      "source_consistent": true,
+      "historical_run01": "INVALIDATED_SOURCE_CHANGED_DURING_RUN; business assertions passed, but no qualified PASS; original retained.",
+      "limits": "RawAsset/job-output/anchor integration only; original workspace has no Document rows. Does not prove same-object product document export/restore or native format UI. OCR, media and light-format receipts still bind earlier Core builds; unchanged worker bytes support component reuse only.",
+      "model_calls": 0,
+      "external_calls": 0
+    },
+    "common_formats_export_restore_current5822": {
+      "status": "PASS_COMPONENT_EXPORT_RESTART_ACTUAL_RESTORE",
+      "task_ids": [
+        "BE-P02",
+        "BE-P03",
+        "BE-P12",
+        "CL-02",
+        "J1"
+      ],
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-common-formats-export-restore-20261024-01/artifacts/suffix-receipt.json",
+        "bytes": 12570,
+        "sha256": "ba07c49711ed21e03ffc3224d0302245e1bdd0c0a62a5efe01f11b6c2bc0b9b0"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/current5822-format-suffix-exec-20261024-01/artifacts/execution.json",
+        "bytes": 1413,
+        "sha256": "0c8563124d8716aaf245c250929e8875306ea9a01bbe2c746c448aeb23528f77"
+      },
+      "evidence_index": {
+        "path": ".project-local/runs/be268a2d33/current5822-common-formats-export-restore-20261024-01/artifacts/final-evidence-index.json",
+        "bytes": 4945,
+        "sha256": "a5f9f6469cee440e7d9275d827445f214158fa981f92eed9d81902bac7fef13d"
+      },
+      "compiled_candidate": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_source": {
+        "commit": "a58627e941dd754fd98c0c87d197bd627804e02e",
+        "dirty": true,
+        "patch_sha256": "c2d1a465848ba14a79bf471f69881ab9467d71cc65e1060da4c6c402136273fa"
+      },
+      "actual_scope": "Clone of prior four-format workspace; 4 actual RawAssets, 8 conversion jobs with loss/structure and 16 anchors retained. Explicit synthetic editing creates 4 Documents with real immutable source binding, then Markdown/manifest/package export, cold restart, backup, positive postbackup marker, actual restore and cold equality.",
+      "checks": {
+        "four_originals_eight_jobs_loss_structure_anchors_equal": true,
+        "four_new_source_bound_documents_exports_equal": true,
+        "cold_restart_equal": true,
+        "actual_restore": true,
+        "postbackup_marker_http": 404,
+        "same_clone_workspace_id": true,
+        "restore_epoch_changed": true
+      },
+      "source_workspace_unchanged": true,
+      "root_verification": "Root read and verified exact main receipt plus10 SHA/byte file references and four reaped processes with closed ports.",
+      "cleanup": "4 owned Core processes terminate/wait exit1, reaped and ports closed; not normal UI graceful shutdown.",
+      "model_calls": 0,
+      "external_calls": 0,
+      "boundary": "API component chain, explicitly saved projection Documents. No automatic binary job-to-Document filling, native four-format UI, source-format reconstruction, full fidelity, Owner or complete J1 qualification.",
+      "preparation_failure": "First outer dev invocation reused allocated run directory and failed WinError183 before product launch. Separate fresh execution run succeeded; evidence index preserves original preparation failure."
     }
   }
 }
