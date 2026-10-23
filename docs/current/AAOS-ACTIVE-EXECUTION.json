@@ -843,17 +843,17 @@
     "execution": "Parallel bounded write sets; task/model/reasoning matched; avoid repeated full audits and unnecessary branch merges",
     "routing": "COMPLETE targeted7 current route/index files,41 reference targets; historical status explicitly not current authority",
     "monitor": "PAUSED_UNCHANGED",
-    "commit_push": "CODE_COMMITTED_LOCAL_D8B49AA0; PUSH_REJECTED_BY_PLATFORM_APPROVAL_POLICY_BEFORE_EXECUTION",
-    "remote_exact_sha": "VERIFIED_API_REMOTE95B_LOCALD8B_DIFFER; NOT_PUBLISHED",
-    "latest_qualified_candidate": ".project-local/runs/be268a2d33/fixedwv-portable-20261024-01/artifacts/星环便携候选",
-    "qualified_source_patch": "3407e8083f261bc563df06f24398cfa08338a47fd4136df344b08741461c4dfc",
-    "post_build_delta": "FROZEN3407_BINARY_UNCHANGED; CURRENT_GENERATED_UI_HOST_RESOURCE_AND_RUST_FORMAT_SOURCE_DELTA_NOT_REBUILT",
-    "native_additional": "PASS_FIXED_HUMAN_CLOSURE_AND_ACTUAL_FIXED_BROWSER; AI_SEPARATELY_NATIVE_AI_LATEST; OWNER_NOT_EXECUTED",
+    "commit_push": "LOCAL_COMMITTED; REMOTE_PUSH_POLICY_BLOCKED_BEFORE_EXECUTION; no retry or alternate channel",
+    "remote_exact_sha": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
+    "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
+    "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "post_build_delta": "POST_QUALIFICATION_RESULT_DOCUMENTATION_ONLY; historical3407 frozen unchanged",
+    "native_additional": "HISTORICAL3407_NATIVE_HUMAN_PASS; CURRENT5822_NATIVE_AI_SEPARATELY_RECORDED; OWNER_NOT_EXECUTED",
     "cloud": "IMPLEMENTED_LOCAL_MOCK_PASS_REAL_PROVIDER_NOT_EXECUTED",
-    "installer": "LOCAL_INSTALL_LIFECYCLE_PASS; CI_CANDIDATE_AND_PUBLIC_RELEASE_NOT_QUALIFIED",
-    "local_model_latest": "PASS_ACTUAL_CURRENT_FIXED_ASSET_CONSUMPTION_CACHE_REVOKE_COLD; HISTORICAL_TIMEOUT_ROOT_CAUSE_UNDETERMINED",
-    "public_research": "REAL_THREE_SOURCES_PASS_PROCESS_PROXY; cloned synthetic governance component PASS, not Owner approval",
-    "native_ai_latest": "RUN03_REAL_ANSWER_RETEST_CONFIG_COMPONENTS_PASS_PARENT_FAIL; CLONED_SUFFIX_ONLY_PASS; WHOLE_LOOP_PARTIAL_NOT_OWNER",
+    "installer": "CURRENT5822_BUNDLE_ONLY_PASS_NOT_INSTALLED; HISTORICAL3407_LOCAL_INSTALL_LIFECYCLE_PASS_REMAINS_SEPARATE",
+    "local_model_latest": "CURRENT5822_NATIVE_AI_PARENT_PASS; existing fast-local alias explicitly loaded and effective configuration read back; see actual answer/retest stages",
+    "public_research": "HISTORICAL_REAL_THREE_SOURCE_ACQUISITION; CURRENT5822_ACTUAL_RESTORE_AND_COLD_READBACK_PASS; research draft remains unverified/not admitted",
+    "native_ai_latest": "CURRENT5822_PARENT_PASS; exact native evidence in native_ai_current5822; authored engineering fixture, not Owner acceptance",
     "ai_governance_latest": "PASS8_ACTUAL_CORE_NEGATIVE_SYNTHETIC_REVIEW; SEMANTIC_TRUTH_AND_OWNER_NOT_PROVEN",
     "common_formats_latest": "PASS8_FIXED_CORE_LIGHT_FORMATS_WITH4_NEGATIVES_AND_COLD_READ; NOT_NATIVE_FORMAT_ROUNDTRIP",
     "installed_business_latest": "VM_DISAPPEARED_BEFORE_RESULT_CAUSE_UNDETERMINED; DRIVER_DLL_DIAGNOSED; SETTINGS_SOURCE_UNIT_FIX_RUNTIME_UNVERIFIED",
@@ -903,6 +903,170 @@
         "sha256": "7413c60681fec056329ce59a8f29c5b548706c901d79ed8b9dcfe6bc80601eb6"
       },
       "boundary": "Current source compiled in focused backend tests and frontend build. No new full Host/Core installer was assembled or installed; frozen3407 candidate identity unchanged."
+    },
+    "qualified_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+    "current_candidate_build": {
+      "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
+      "source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_tree": "f57ed952c734eb096057270dc1b3d81593a4091a",
+      "source_consistent": true,
+      "host_sha256": "4f56908b1b19b883dd537963c1f1a518baf5d61420d58f1c213560ce0f8b4269",
+      "core_sha256": "f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a",
+      "runtime_manifest_sha256": "f6759ff41e1210fd4e02ae1c4bf6d4cbabfa199a3300060e6e583e2ca3b56789",
+      "candidate_manifest_sha256": "a066eb2e747266cebc24ddcf5eb4038650a995f9e745b143ae1229de5e83fddd",
+      "members": 19745,
+      "logical_bytes": 1402028542,
+      "build_qualification": "LOCAL_CORE_FRONTEND_HOST_STAGE_PORTABLE_PASS",
+      "native_ai_qualification": "ENGINEERING_CHAIN_PASS",
+      "grouped_product_status": "PARTIAL",
+      "public_research_restore": "LOCAL_CURRENT_CORE_ACTUAL_RESTORE_AND_COLD_READBACK_PASS",
+      "installer_build": "BUNDLE_ONLY_PASS",
+      "installer_receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/bundle-receipt.json",
+        "bytes": 3963113,
+        "sha256": "39a0b6390a2bb0d793edc282d62eb6ad1ba2f436ac625eb011968850ddb0291a"
+      },
+      "installer_outputs": [
+        {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current582267f3-installer-20261024-01\\target\\release\\bundle\\nsis\\ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+          "sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+          "bytes": 567252574
+        }
+      ],
+      "installed_qualification": "NOT_EXECUTED_FOR_THIS_CANDIDATE",
+      "ci_qualification": "NOT_EXECUTED",
+      "owner_acceptance": "NOT_EXECUTED",
+      "binding_receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/candidate-binding.json",
+        "bytes": 5303,
+        "sha256": "ae1271bab2f26e28b84932d7ca6397d2fa624e31c46322db684cc2201c60125f"
+      }
+    },
+    "public_research_restore_latest": {
+      "status": "PASS_ACTUAL_RESTORE_WITH_POST_BACKUP_DELTA",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-public-research-restore-20261024-01/artifacts/restore-execution.json",
+        "bytes": 2879,
+        "sha256": "45f28ab14a730ccc11166e4f3bd0f4c87c096b491f6515184ff54648d49f4fb0"
+      },
+      "correction": {
+        "path": ".project-local/runs/be268a2d33/current5822-public-research-restore-20261024-01/artifacts/evidence-correction.json",
+        "bytes": 2100,
+        "sha256": "61b8525085507ec5b0fe7888f45736fe57221f1fafefd3fad1ab5dc2ddad4b88"
+      },
+      "scope": "Cloned real three-source workspace, positive post-backup marker then actual maintenance restore and cold readback; six CAS objects, three anchors, draft/package/Markdown/backup integrity; zero new external/model calls; terminate/reap exit1, not graceful exit."
+    },
+    "native_ai_current5822": {
+      "status": "PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/native-ai-parent-execution-20261024-04/artifacts/parent-native-ai.json",
+        "bytes": 31075,
+        "sha256": "daa59aca81dc3c4393751945fbb27dd22a34e47243640d6efb8753b32d90082b"
+      },
+      "owner_acceptance": "NOT_EXECUTED",
+      "boundary": "Actual inner binding and whole journey only as recorded; historical failures and suffix-only evidence unchanged. Authored review is engineering fixture, not independent semantic adjudication.",
+      "actual_inner_binding": {
+        "status": "PASS",
+        "build_receipt": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\93493815166c\\artifacts\\frontend-build.json",
+          "sha256": "ed3aca7cdb87b2daa22722124f672f22f3a8af92b0b3c1d500ac6f6d2c7527e7",
+          "bytes": 2306
+        },
+        "core_sha256": "f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a"
+      },
+      "actual_ai_requirement": "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN",
+      "grouped_product_status": "PARTIAL",
+      "whole_product_closed_loop_verified": false,
+      "normal_host_shutdowns": [
+        {
+          "pid": 23964,
+          "created": 134372626437140105,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 42020,
+          "created": 134372627870528702,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 39128,
+          "created": 134372628054773264,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 17520,
+          "created": 134372628156507459,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 42792,
+          "created": 134372628246559690,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 23264,
+          "created": 134372628379574718,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        }
+      ]
+    },
+    "native_ai_historical3407": "RUN03_REAL_ANSWER_RETEST_CONFIG_COMPONENTS_PASS_PARENT_FAIL; CLONED_SUFFIX_ONLY_PASS; WHOLE_LOOP_PARTIAL_NOT_OWNER",
+    "local_model_historical3407": "PASS_ACTUAL_CURRENT_FIXED_ASSET_CONSUMPTION_CACHE_REVOKE_COLD; HISTORICAL_TIMEOUT_ROOT_CAUSE_UNDETERMINED",
+    "current5822_model_load": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/native-ai-run04-prep/run04-load-readback-20261024.json",
+      "bytes": 4919,
+      "sha256": "94cfbaa6883586c6f99dc146b3419535f6e07e7c46d0dce01df8c6270b71e2f2"
+    },
+    "installer_current5822": {
+      "status": "BUNDLE_ONLY_PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/bundle-receipt.json",
+        "bytes": 3963113,
+        "sha256": "39a0b6390a2bb0d793edc282d62eb6ad1ba2f436ac625eb011968850ddb0291a"
+      },
+      "outputs": [
+        {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current582267f3-installer-20261024-01\\target\\release\\bundle\\nsis\\ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+          "sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+          "bytes": 567252574
+        }
+      ],
+      "installed": "NOT_EXECUTED",
+      "scope": "BUNDLE_ONLY_NO_COMPILE_NO_INSTALL_NO_SIGN; not installed qualification",
+      "followup_status": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/installer-followup-status.json",
+        "bytes": 4077,
+        "sha256": "5bbe02810ef74734c40acda1c81cab78b90ea195062d2977b784076bb9b0c4c3"
+      },
+      "source_map": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/source-map-check.json",
+        "bytes": 229,
+        "sha256": "0dfd22982cba4e2734837f9e40a1abe04f95a18b42775897e76844628701d774"
+      },
+      "outer_execution": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-envelope-20261024-01/artifacts/execution.json",
+        "bytes": 2091,
+        "sha256": "9d76473da9c555fa899db91f6e949780a1b7e6b468c19bf6a27a1c6ef6269ed8"
+      }
     }
   }
 }

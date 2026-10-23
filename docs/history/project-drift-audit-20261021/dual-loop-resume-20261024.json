@@ -1,6 +1,6 @@
 {
   "schema": "aaos.dual-loop-resume-checkpoint/v1",
-  "observed_at": "2026-10-23T20:21:20.557382+00:00",
+  "observed_at": "2026-10-23T21:04:48.758242+00:00",
   "state": "RUNNING_BY_OWNER",
   "overall": "PARTIAL",
   "scope": "Existing finite human and AI learning/knowledge chains and their permissioned connection, under CL-01..07/J1..6; no optional expansion queue",
@@ -16,10 +16,10 @@
   "sole_execution_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
   "loop_definition": "docs/truth/CLOSED_LOOP_DEFINITION.md",
   "frozen_handoff": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
-  "head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "head": "582267f3a09a0e3c372147b1a54e28b895c44595",
   "branch": "codex/sync-20261019",
-  "tested_dirty_patch": "3407e8083f261bc563df06f24398cfa08338a47fd4136df344b08741461c4dfc",
-  "snapshot_boundary": "Fixed WebView2 candidate built from patch3407, real fresh native human loop PASS and actual app-local browser consumption PASS. Core/Python/UI/worker component evidence reused only after full actual byte identity comparison. Post-build changes: NSIS zlib policy, lifecycle probe diagnostics/tests and result documents; Host/Core/UI bytes unchanged. First Fixed installed initial readiness/consumption PASS but seed FAIL without original stderr; not full installed qualification. Latest same-installer LOCAL_INSTALL_LIFECYCLE PASS; see precise receipt, not CI or Owner qualification. This AI successor preserves compiled3407 Host/Core/UI bytes; post-build changes additionally include selected budget, native panel/option/restore-readiness probe and simulated fixture tests. Fixed asset1 and governance8 are separate runs. Native run03 answer/retest/configuration components PASS with parent final FAIL retained; separate SUFFIX_ONLY cloned restored workspace status=PASS with0 new inference, not a single complete journey or Owner acceptance.",
+  "tested_dirty_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "snapshot_boundary": "Current5822 Core/frontend/Host/stage/portable rebuilt from exact committed source; current Core actual public-research restore PASS; native AI parent PASS. Historical3407 human/installed/format/model qualifications retain their own candidate identity. New candidate has no installed, hosted CI or Owner qualification. Later result documentation is a metadata-only delta.",
   "implemented": [
     "Stage runtime version before member inventory using bounded subprocess -I -B; late startup bytecode no longer breaks exact runtime qualification. RED preserved, GREEN25.",
     "Native probes use real Tab focus and trusted wheel/hit-tested pointer input; current Stitch reader title/version and positive-area display-image readiness, preserving exact Core identity assertions.",
@@ -28,16 +28,16 @@
     "Installer verifier now accepts exact evidence root and host/Core/runtime hashes, rejects pre-existing or unowned AppData, and cleans only its marked synthetic data. Sandbox qualification is separate from packaging."
   ],
   "verification": {
-    "release_build": "PASS Fixed current Core/Tauri/stage/portable source-consistent3407; exact pinned Microsoft156.0.4314.42/x64 files.103 targeted tests PASS. Host/Core/UI unchanged after build; packaging/probe/docs delta explicit.",
-    "native_human": "PASS current Fixed fresh full finite native journey,7 normal exits and confirmed cleanup. Actual owned browser paths all candidate/runtime/webview2/msedgewebview2.exe. Historical CRT first review failure/focused diagnostic/full rerun retained.",
-    "native_additional_features": "PASS current Fixed full human closure/features/real WebView downloads/trusted reimport/cold restart/idempotence. This human probe did not execute AI; current AI evidence is separately native_ai_latest/native_ai_restore_suffix. Owner NOT_EXECUTED.",
+    "release_build": "PASS current5822 offline Core/frontend/Host/stage/portable, exact source commit and empty canonical patch; bundle-only PASS, not installed or CI qualified.",
+    "native_human": "HISTORICAL3407: PASS current Fixed fresh full finite native journey,7 normal exits and confirmed cleanup. Actual owned browser paths all candidate/runtime/webview2/msedgewebview2.exe. Historical CRT first review failure/focused diagnostic/full rerun retained.",
+    "native_additional_features": "HISTORICAL3407: PASS current Fixed full human closure/features/real WebView downloads/trusted reimport/cold restart/idempotence. This human probe did not execute AI; current AI evidence is separately native_ai_latest/native_ai_restore_suffix. Owner NOT_EXECUTED.",
     "ai_governance": "PASS37 actual new Core synthetic HTTP steps, dual-side permissions/revision fences/cold restart/independent restore; no model",
-    "local_model": "LATEST_REAL_PASS1 current Fixed Core: final content BLUEHERON-317/stop/not truncated,42.14s,832 input+1206 output tokens under3072/120; preserved old119.02s timeout root cause still UNDETERMINED. No shared prediction policy change; actual base thinking enabled.",
-    "ai_asset_to_model": "PASS current Fixed candidate actual model consumption of adopted source-backed synthetic asset; exact context+packet hashes, cached replay without new inference, revoked grant403 before/after cold restart, exact task readback and owned cleanup. Engineering review fixture, not Owner or professional truth.",
+    "local_model": "HISTORICAL3407: LATEST_REAL_PASS1 current Fixed Core: final content BLUEHERON-317/stop/not truncated,42.14s,832 input+1206 output tokens under3072/120; preserved old119.02s timeout root cause still UNDETERMINED. No shared prediction policy change; actual base thinking enabled.",
+    "ai_asset_to_model": "HISTORICAL3407: PASS current Fixed candidate actual model consumption of adopted source-backed synthetic asset; exact context+packet hashes, cached replay without new inference, revoked grant403 before/after cold restart, exact task readback and owned cleanup. Engineering review fixture, not Owner or professional truth.",
     "common_formats": "Prior DOCX/XLSX/PPTX/text-PDF actual tests reused only at exact unchanged component bytes. New CRT real Chinese PNG/JPEG/two-page pure-image scanned PDF OCR PASS content/location/reparse/cold read.",
-    "public_research": "PASS_REAL_THREE_SOURCES_WITH_PROCESS_PROXY: Wikipedia, StackExchange and OpenAlex real bodies, CAS/anchors/comparison draft, package/Markdown export, cold restart and backup/restore preview PASS. Direct-route Wikipedia timeout FAIL preserved. Explicit process-only existing proxy required in this run; no global configuration change. Actual restore and Owner NOT_EXECUTED in this probe.",
+    "public_research": "Historical three-source real acquisition; CURRENT5822 actual maintenance restore/cold readback PASS, see public_research_restore_current5822. Draft remains unverified/not admitted; original source files preserved.",
     "cloud": "IMPLEMENTED_LOCAL_MOCK_PASS_NOT_REAL_PROVIDER: material-only public HTTPS openai-buffered; write-only product credential storage, exact-target owned worker, request upload/unknown-cost grants and Core fences. API16/domain7/Python58/UI52 PASS; typecheck and 3 generated contracts PASS. No real credential access, network or cloud charge in these tests.",
-    "installed_runtime": "Latest LOCAL_INSTALL_LIFECYCLE PASS; exact same installer4661, all original non-CI business/lifecycle checks retained. Original CI-identity failure preserved separately; no real CI/release qualification.",
+    "installed_runtime": "HISTORICAL3407: Latest LOCAL_INSTALL_LIFECYCLE PASS; exact same installer4661, all original non-CI business/lifecycle checks retained. Original CI-identity failure preserved separately; no real CI/release qualification.",
     "ci": "NOT_EXECUTED_THIS_RESUME",
     "owner_acceptance": "NOT_EXECUTED",
     "post_build_probe_tests": "PASS72 tests +151 subtests; local direct canonical Python, no CI claim",
@@ -53,7 +53,7 @@
     "webview_historical_failure": "Original and offline-only installed Host failed WebView discovery. PREINSTALL signed official prerequisite returned0x80040902/child11 unable to create temporary directory; guest owned process-TEMP diagnostic also failed with same code despite write/read probe PASS. Exact failing path/Win32 cause unproven; hooks not promoted. Replaced product dependency approach with app-local Fixed; original negative evidence preserved.",
     "lifecycle_probe_diagnostics": "PASS9 including real Python exit0/17, independent UTF8 stdout/stderr persisted with unique GUID paths and original exit. First two test-only failures(long path read, universal newline comparison) retained and corrected; no product failure claim from fixtures.",
     "installed_mode_diagnosis": "Fresh same-installer diagnostic VM actual Python exit1/stdout empty/stderr AssertionError line17: RequireCandidateIdentity demands CI-qualified identity. Local candidate actual own Python summary is unreleased/development/version0.6.14/publicfalse, with no release-identity.json; candidate identity requires real CI run metadata. LOCAL_INSTALL_LIFECYCLE uses existing no-release-switch mode, retaining exact three SHA/full manifest/version/Core seed/readback/upgrade/reinstall/cleanup assertions. Original CI assertions unchanged; no fabricated identity. Diagnostic VM stopped/662 input hashes unchanged. This diagnoses the captured diagnostic failure; original no-stderr receipt remains unchanged.",
-    "installed_runtime_latest": "LOCAL_INSTALL_LIFECYCLE_PASS; CI_CANDIDATE_AND_PUBLIC_RELEASE_NOT_QUALIFIED",
+    "installed_runtime_latest": "HISTORICAL3407: LOCAL_INSTALL_LIFECYCLE_PASS; CI_CANDIDATE_AND_PUBLIC_RELEASE_NOT_QUALIFIED",
     "local_install_lifecycle": {
       "status": "PASS",
       "scope": "LOCAL_INSTALL_LIFECYCLE_ONLY; CI_CANDIDATE_AND_RELEASE_QUALIFICATION_NOT_EXECUTED",
@@ -70,7 +70,7 @@
     "historical_fixed_first_install": "First Fixed exact same installer4661ce30 initial full manifest19742/19742, Host/Core readiness and actual installed app-local browser consumption PASS. Original seed probe FAIL lacked raw stderr/exit, upgrade/reinstall NOT_EXECUTED. Owned VM stopped, input SHA unchanged. Exact extracted seed body local component PASS, not VM reproduction. Diagnostic helper preserves separate UTF8 streams/original exit;9 tests PASS. Fresh same-installer disconnected VM qualification running, no rebundle.",
     "historical_offline_packaging_policy_tests": "PASS35 portable identity/manifest/resource/CRT refusal tests under current offlineInstaller/silent/currentUser/useLocalToolsDir policy; no installer hook yet, not actual installation qualification",
     "ai_negative_governance": "PASS8 actual Fixed Core negative checks, synthetic source/review/no model: unfit admission400, unadopted packet403, declared conflict packet403, cleared conflict stale review400, changed version stale review400, machine promotion403, cold unfit403 and old grant403; exact historical documents retained. First collector JSON parsing failure preserved.",
-    "native_ai_latest": "RUN03_PARENT_FAIL: native real local answer31.62s and authored-correction/retest46.36s completed with content/stop/not truncated, saved DEEP2048/120 configuration cold reopen/restore readback PASS. Final restored original-knowledge selection failed: TimeoutError: Window assertion deadline: return !!document.querySelector('[aria-label=\"原知识当前正文\"]'); original parent/inner failure and cleanup retained. Inner compiled binding remains UNVERIFIED; parent pre/post full candidate verification separately binds compiled3407. Synthetic engineering adjudication, not independent error adjudication or Owner acceptance.",
+    "native_ai_latest": "CURRENT5822_PARENT_PASS; see native_ai_current5822; historical3407 run03 FAIL and suffix-only PASS preserved separately.",
     "native_ai_restore_suffix": "PASS_SUFFIX_ONLY_CLONED_RESTORED_WORKSPACE: restored original selection/old-grant refusal and prior-task readback on distinct clone;0 new inference, prior data/receipts unchanged, exact candidate pre/post and cleanup PASS. Separate suffix evidence does not rewrite run03 FAIL or constitute one complete journey.",
     "native_ai_saved_configuration": "PASS_COMPONENT_ONLY native saved DEEP answer/retest2048/120 bindings, cold reopen same configuration, restore new epoch/readback; configuration checks0 inference. Native run03 parent FAIL retained.",
     "native_ai_probe_regression": "PASS63 local simulated guard/DOM tests, readiness-regression03/sourceconsistent true. Selected budget propagates into saved DEEP; exact h2 parent div, standard WebDriver option selection and restored knowledge readiness/selection. Readiness01 fixture lacked click_revealed_selector (AttributeError),02 fixture lacked knowledge_id (KeyError); both FAIL receipts/logs preserved,03 corrected fixture PASS. Earlier62 option tests and59/60 retained; initial dev CLI WinError2 preserved. Product Host/Core/UI unchanged/not rebuilt; simulated readiness tests are not native suffix qualification.",
@@ -438,7 +438,138 @@
         "sha256": "7413c60681fec056329ce59a8f29c5b548706c901d79ed8b9dcfe6bc80601eb6"
       },
       "boundary": "Current source compiled in focused backend tests and frontend build. No new full Host/Core installer was assembled or installed; frozen3407 candidate identity unchanged."
-    }
+    },
+    "installer_current5822": {
+      "status": "BUNDLE_ONLY_PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/bundle-receipt.json",
+        "bytes": 3963113,
+        "sha256": "39a0b6390a2bb0d793edc282d62eb6ad1ba2f436ac625eb011968850ddb0291a"
+      },
+      "outputs": [
+        {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current582267f3-installer-20261024-01\\target\\release\\bundle\\nsis\\ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+          "sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+          "bytes": 567252574
+        }
+      ],
+      "installed": "NOT_EXECUTED",
+      "scope": "BUNDLE_ONLY_NO_COMPILE_NO_INSTALL_NO_SIGN; not installed qualification",
+      "followup_status": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/installer-followup-status.json",
+        "bytes": 4077,
+        "sha256": "5bbe02810ef74734c40acda1c81cab78b90ea195062d2977b784076bb9b0c4c3"
+      },
+      "source_map": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/source-map-check.json",
+        "bytes": 229,
+        "sha256": "0dfd22982cba4e2734837f9e40a1abe04f95a18b42775897e76844628701d774"
+      },
+      "outer_execution": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-envelope-20261024-01/artifacts/execution.json",
+        "bytes": 2091,
+        "sha256": "9d76473da9c555fa899db91f6e949780a1b7e6b468c19bf6a27a1c6ef6269ed8"
+      }
+    },
+    "public_research_restore_current5822": {
+      "status": "PASS_ACTUAL_RESTORE_WITH_POST_BACKUP_DELTA",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-public-research-restore-20261024-01/artifacts/restore-execution.json",
+        "bytes": 2879,
+        "sha256": "45f28ab14a730ccc11166e4f3bd0f4c87c096b491f6515184ff54648d49f4fb0"
+      },
+      "correction": {
+        "path": ".project-local/runs/be268a2d33/current5822-public-research-restore-20261024-01/artifacts/evidence-correction.json",
+        "bytes": 2100,
+        "sha256": "61b8525085507ec5b0fe7888f45736fe57221f1fafefd3fad1ab5dc2ddad4b88"
+      },
+      "scope": "Cloned real three-source workspace, positive post-backup marker then actual maintenance restore and cold readback; six CAS objects, three anchors, draft/package/Markdown/backup integrity; zero new external/model calls; terminate/reap exit1, not graceful exit."
+    },
+    "native_ai_current5822": {
+      "status": "PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/native-ai-parent-execution-20261024-04/artifacts/parent-native-ai.json",
+        "bytes": 31075,
+        "sha256": "daa59aca81dc3c4393751945fbb27dd22a34e47243640d6efb8753b32d90082b"
+      },
+      "owner_acceptance": "NOT_EXECUTED",
+      "boundary": "Actual inner binding and whole journey only as recorded; historical failures and suffix-only evidence unchanged. Authored review is engineering fixture, not independent semantic adjudication.",
+      "actual_inner_binding": {
+        "status": "PASS",
+        "build_receipt": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\93493815166c\\artifacts\\frontend-build.json",
+          "sha256": "ed3aca7cdb87b2daa22722124f672f22f3a8af92b0b3c1d500ac6f6d2c7527e7",
+          "bytes": 2306
+        },
+        "core_sha256": "f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a"
+      },
+      "actual_ai_requirement": "ENGINEERING_AUTHORED_ACTUAL_AI_CHAIN",
+      "grouped_product_status": "PARTIAL",
+      "whole_product_closed_loop_verified": false,
+      "normal_host_shutdowns": [
+        {
+          "pid": 23964,
+          "created": 134372626437140105,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 42020,
+          "created": 134372627870528702,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 39128,
+          "created": 134372628054773264,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 17520,
+          "created": 134372628156507459,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 42792,
+          "created": 134372628246559690,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        },
+        {
+          "pid": 23264,
+          "created": 134372628379574718,
+          "ack": "CONFIRMED",
+          "exited": true,
+          "exit_code": 0,
+          "method": "product_exit_application_attached_observer"
+        }
+      ]
+    },
+    "current5822_model_load": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/native-ai-run04-prep/run04-load-readback-20261024.json",
+      "bytes": 4919,
+      "sha256": "94cfbaa6883586c6f99dc146b3419535f6e07e7c46d0dce01df8c6270b71e2f2"
+    },
+    "current5822_model_load_boundary": "One existing fast-local temporary load with effective-config readback; no shared default/provider changes or smoke prediction. Initial collector gpu-object comparison failed, corrected collector uses unchanged registered matching logic; no repeated load. Alias unload cause/physical-weight byte equality not proved.",
+    "current5822_candidate_followup": {
+      "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/candidate-followup-status.json",
+      "bytes": 3901,
+      "sha256": "0ae6366d093e0405cb0620fb52284b717e229850edac6aef88f2a61584f9ab83"
+    },
+    "public_research_fixed3407_historical": "PASS_REAL_THREE_SOURCES_WITH_PROCESS_PROXY: Wikipedia, StackExchange and OpenAlex real bodies, CAS/anchors/comparison draft, package/Markdown export, cold restart and backup/restore preview PASS. Direct-route Wikipedia timeout FAIL preserved. Explicit process-only existing proxy required in this run; no global configuration change. Actual restore and Owner NOT_EXECUTED in this probe.",
+    "native_ai_fixed3407_historical": "HISTORICAL3407: RUN03_PARENT_FAIL: native real local answer31.62s and authored-correction/retest46.36s completed with content/stop/not truncated, saved DEEP2048/120 configuration cold reopen/restore readback PASS. Final restored original-knowledge selection failed: TimeoutError: Window assertion deadline: return !!document.querySelector('[aria-label=\"原知识当前正文\"]'); original parent/inner failure and cleanup retained. Inner compiled binding remains UNVERIFIED; parent pre/post full candidate verification separately binds compiled3407. Synthetic engineering adjudication, not independent error adjudication or Owner acceptance."
   },
   "cleanup": {
     "status": "PASS",
@@ -456,8 +587,8 @@
       "final_replacement_tree": ".project-local/runs/be268a2d33/dual-loop-portable-20261024-final/artifacts/星环便携候选",
       "rebuild_policy": "Exact per-file replacement maps plus preserved historical original manifests; never run the sparse old directories as complete candidates"
     },
-    "total_deleted_duplicate_regular_files": 136336,
-    "total_logical_bytes_removed": 4474026444,
+    "total_deleted_duplicate_regular_files": 175515,
+    "total_logical_bytes_removed": 6504770283,
     "cloud_runtime_sparse_evidence": {
       "status": "PASS",
       "deleted_duplicate_regular_files": 19477,
@@ -481,6 +612,36 @@
       "state": "SPARSE_EVIDENCE_NOT_RUNNABLE",
       "unique_manifest_preserved": 1,
       "replacement": "full stable CRT candidate; all19484 replacement actual hashes reverified; exact map and failure logs retained"
+    },
+    "current5822_temporary_donor": {
+      "status": "PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-inputs-20261024-01/artifacts/donor-verified-cleanup.json",
+        "bytes": 833,
+        "sha256": "44f0feed2a3ea81ecf311e87b7d1feefd8a7dedb43d855dee8bae411fd08ebe8"
+      },
+      "deleted_duplicate_regular_files": 19433,
+      "logical_bytes_removed": 625050064,
+      "replacement": ".project-local/runs/be268a2d33/current582267f3-stage-20261024-01/artifacts/runtime-before582267f3/runtime",
+      "scope": "Exact temporary Python donor only; both copies verified by member bytes/SHA before removal; old runtime and all receipts/failures retained."
+    },
+    "physical_net_space_freed": "NOT_MEASURED; retained new candidates/build artifacts consume additional space",
+    "current5822_bundle_short_input": {
+      "status": "PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/short-input-cleanup-result.json",
+        "bytes": 826,
+        "sha256": "3d784fd06c7763608f2f992d7b8c3750437f004e876988a1feac1520801de5de"
+      },
+      "verification": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/short-input-cleanup-verification.json",
+        "bytes": 928,
+        "sha256": "c26892353fde78335fef53cc669986cfad9539e15e2c12e742d718793d0c62a9"
+      },
+      "removed_files": 19746,
+      "removed_logical_bytes": 1405693775,
+      "scope": "Exact packaging temporary duplicate only; full current5822 candidate remains replacement. 19746 ordinary files includes candidate-manifest.json, excluded from the 19745 manifest member count.",
+      "physical_space_freed": "NOT_MEASURED"
     }
   },
   "parallel_policy": "Shared checkout has one tracked writer lease; other agents use ignored outputs or read-only checks. Cloud writers frozen before successor source qualification; f894 packaging/Sandbox uses immutable prior candidate independently.",
@@ -492,28 +653,28 @@
     "frozen_six_V01_FT01_04": "UNCHANGED",
     "global_provider_or_credentials": "UNCHANGED_NOT_READ",
     "real_user_data": "NOT_OVERWRITTEN",
-    "commit_push": "NOT_EXECUTED",
-    "remote_exact_sha": "UNVERIFIED",
+    "commit_push": "PUBLIC_CODE_D8B_AND_DOCUMENTATION5822_COMMITTED_LOCAL; PUSH_POLICY_REJECTED_BEFORE_EXECUTION",
+    "remote_exact_sha": "LAST_API_REMOTE95B_DIFFERS_FROM_LOCAL5822; no current remote publication or CI",
     "green": "NOT_UPDATED"
   },
   "remaining": [
-    "Same-installer LOCAL_INSTALL_LIFECYCLE PASS; cross-version migration/rollback and Windows10 qualification remain incomplete.",
-    "Latest Fixed Core real local model asset consumption PASS; old timeout cause remains undetermined, not erased by later success.",
+    "Current5822 bundle-only outcome is recorded separately; current candidate installed business journey not executed. Historical3407 local lifecycle PASS cannot transfer to this candidate; previous VM disappearance remains cause undetermined.",
+    "Current5822 native engineering chain PASS with actual model answer/authored correction/retest, cold readback and restore fencing; independent semantic adjudication, semantic duplicate/applicability/conflict truth and Owner acceptance remain unproven.",
     "No real cloud provider call: fixed provider/model, product credential and request-specific material/unknown-cost authorization still absent; no Codex credentials or paid calls.",
-    "Native run03 answer/authored correction/retest and saved DEEP cold/restore config passed; parent final selection FAIL retained. Separate cloned suffix old-grant refusal PASS with0 inference; cross-receipt engineering evidence is not one completed journey. Independent semantic quality and Owner acceptance remain.",
-    "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
-    "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
+    "Cross-version migration/rollback and Windows10 qualification remain incomplete; no Green replacement or public release.",
+    "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
+    "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass."
   ],
   "receipts": {
     "qualified_build": {
-      "path": ".project-local/runs/be268a2d33/6fec2ca9894d/artifacts/frontend-build.json",
-      "sha256": "14f692f12c66794452f1b951957802f481ff14c826c21ee17764502cd006090b",
-      "bytes": 2035
+      "path": ".project-local/runs/be268a2d33/93493815166c/artifacts/frontend-build.json",
+      "bytes": 2306,
+      "sha256": "ed3aca7cdb87b2daa22722124f672f22f3a8af92b0b3c1d500ac6f6d2c7527e7"
     },
     "portable": {
-      "path": ".project-local/runs/be268a2d33/dual-loop-portable-20261024-02/artifacts/portable-receipt.json",
-      "sha256": "45c99e236970444e179edc805148aac62103b430c13e8bd146ef1fc4bc165c8f",
-      "bytes": 3776378
+      "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/portable-receipt.json",
+      "bytes": 3823512,
+      "sha256": "81bce9c0a8be3d942a43886998400b1cfb303e415188f541405f37c6efacb84f"
     },
     "ai_governance": {
       "path": ".project-local/runs/be268a2d33/dual-ai-governance-20261023-02/artifacts/ai-governance-receipt.json",
@@ -1224,6 +1385,51 @@
       "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-03/installed-business-execution.json",
       "bytes": 8952,
       "sha256": "717e4c63433b791ddd617130c17245a829015560b9a3eabda4dac90b71c4a773"
+    },
+    "current5822_candidate_binding": {
+      "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/candidate-binding.json",
+      "bytes": 5303,
+      "sha256": "ae1271bab2f26e28b84932d7ca6397d2fa624e31c46322db684cc2201c60125f"
+    },
+    "qualified_build_historical_before5822": {
+      "path": ".project-local/runs/be268a2d33/6fec2ca9894d/artifacts/frontend-build.json",
+      "sha256": "14f692f12c66794452f1b951957802f481ff14c826c21ee17764502cd006090b",
+      "bytes": 2035
+    },
+    "portable_historical_before5822": {
+      "path": ".project-local/runs/be268a2d33/dual-loop-portable-20261024-02/artifacts/portable-receipt.json",
+      "sha256": "45c99e236970444e179edc805148aac62103b430c13e8bd146ef1fc4bc165c8f",
+      "bytes": 3776378
+    },
+    "current5822_native_ai": {
+      "path": ".project-local/runs/be268a2d33/native-ai-parent-execution-20261024-04/artifacts/parent-native-ai.json",
+      "bytes": 31075,
+      "sha256": "daa59aca81dc3c4393751945fbb27dd22a34e47243640d6efb8753b32d90082b"
+    },
+    "current5822_native_ai_final_readback": {
+      "path": ".project-local/runs/be268a2d33/native-ai-parent-execution-20261024-04/artifacts/final-readback-receipt.json",
+      "bytes": 15383,
+      "sha256": "834fe9ebb5c9f28d6652014e784a5852f6cb94c522e1ab42c4ddf457385fa12f"
+    },
+    "current5822_public_restore": {
+      "path": ".project-local/runs/be268a2d33/current5822-public-research-restore-20261024-01/artifacts/restore-execution.json",
+      "bytes": 2879,
+      "sha256": "45f28ab14a730ccc11166e4f3bd0f4c87c096b491f6515184ff54648d49f4fb0"
+    },
+    "current5822_evidence_correction": {
+      "path": ".project-local/runs/be268a2d33/current5822-public-research-restore-20261024-01/artifacts/evidence-correction.json",
+      "bytes": 2100,
+      "sha256": "61b8525085507ec5b0fe7888f45736fe57221f1fafefd3fad1ab5dc2ddad4b88"
+    },
+    "current5822_installer_followup": {
+      "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/installer-followup-status.json",
+      "bytes": 4077,
+      "sha256": "5bbe02810ef74734c40acda1c81cab78b90ea195062d2977b784076bb9b0c4c3"
+    },
+    "current5822_short_input_cleanup": {
+      "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/short-input-cleanup-result.json",
+      "bytes": 826,
+      "sha256": "3d784fd06c7763608f2f992d7b8c3750437f004e876988a1feac1520801de5de"
     }
   },
   "previous_tested_dirty_patch": "80e99a242ee6e62b2463123c1f0139422bb1ae8e0733ff9e4cf2ae9a0922c1e8",
@@ -1242,17 +1448,42 @@
     "qualification": "PORTABLE_STATIC_PASS_AND_NATIVE_CLOSURE_ONLY_PASS_NOT_INSTALLED_OR_RELEASED"
   },
   "latest_qualified_candidate": {
-    "path": ".project-local/runs/be268a2d33/fixedwv-portable-20261024-01/artifacts/星环便携候选",
-    "dirty_patch": "3407e8083f261bc563df06f24398cfa08338a47fd4136df344b08741461c4dfc",
-    "host_sha256": "68e82a0a9d74dc0534b35eeb47fa034298c3bfd931853b217a069037cb29f224",
-    "core_sha256": "d1bac23344f471ab6124534d413ecefefff9cac61c25728248755e1040747bc5",
-    "runtime_manifest_sha256": "95e4ded04f44c76ff32175f5b9e9b6c338d90658f72cfefcd4f9bbdd3f041b04",
-    "candidate_manifest_sha256": "1c4d59953cc482da8bdeb1c1b81df7f6ebbebbaafc8dfb9945bbf8bc566f4301",
+    "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
+    "source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+    "source_patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source_tree": "f57ed952c734eb096057270dc1b3d81593a4091a",
+    "source_consistent": true,
+    "host_sha256": "4f56908b1b19b883dd537963c1f1a518baf5d61420d58f1c213560ce0f8b4269",
+    "core_sha256": "f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a",
+    "runtime_manifest_sha256": "f6759ff41e1210fd4e02ae1c4bf6d4cbabfa199a3300060e6e583e2ca3b56789",
+    "candidate_manifest_sha256": "a066eb2e747266cebc24ddcf5eb4038650a995f9e745b143ae1229de5e83fddd",
     "members": 19745,
-    "logical_bytes": 1402028858,
-    "qualification": "PORTABLE_NATIVE_HUMAN_PASS; LOCAL_INSTALL_LIFECYCLE_PASS; DUAL_SIDE_OVERALL_PARTIAL",
-    "installed_qualification": "LOCAL_INSTALL_LIFECYCLE_PASS; CI_CANDIDATE_AND_PUBLIC_RELEASE_NOT_QUALIFIED",
-    "native_ai_qualification": "RUN03_STAGE_COMPONENTS_PASS_PARENT_FAIL; SUFFIX_ONLY_PASS; WHOLE_LOOP_PARTIAL_NOT_OWNER"
+    "logical_bytes": 1402028542,
+    "build_qualification": "LOCAL_CORE_FRONTEND_HOST_STAGE_PORTABLE_PASS",
+    "native_ai_qualification": "ENGINEERING_CHAIN_PASS",
+    "grouped_product_status": "PARTIAL",
+    "public_research_restore": "LOCAL_CURRENT_CORE_ACTUAL_RESTORE_AND_COLD_READBACK_PASS",
+    "installer_build": "BUNDLE_ONLY_PASS",
+    "installer_receipt": {
+      "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/bundle-receipt.json",
+      "bytes": 3963113,
+      "sha256": "39a0b6390a2bb0d793edc282d62eb6ad1ba2f436ac625eb011968850ddb0291a"
+    },
+    "installer_outputs": [
+      {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\current582267f3-installer-20261024-01\\target\\release\\bundle\\nsis\\ArcheAxis Knowledge_0.6.14_x64-setup.exe",
+        "sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+        "bytes": 567252574
+      }
+    ],
+    "installed_qualification": "NOT_EXECUTED_FOR_THIS_CANDIDATE",
+    "ci_qualification": "NOT_EXECUTED",
+    "owner_acceptance": "NOT_EXECUTED",
+    "binding_receipt": {
+      "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/candidate-binding.json",
+      "bytes": 5303,
+      "sha256": "ae1271bab2f26e28b84932d7ca6397d2fa624e31c46322db684cc2201c60125f"
+    }
   },
   "inflight_packaging_policy": "Fixed app-local runtime, skip online installer/no PREINSTALL hook/currentUser/useLocalToolsDir/zlib; frozen same installer SHA4661ce30ab3787cf0afd8f1194c6a6cbd70d16af5ac2f5716471b6aab240c3b3. Host/Core/UI not rebuilt for diagnostics.",
   "historical_crt_candidate": {
@@ -1291,7 +1522,7 @@
     "explanation": "Required closure-machine and reader-inspector behavior already exists; glass changes equivalent, Avalonia superseded, ASTRYN optional scope frozen. Decision is usefulness-based, not missing merge authorization.",
     "boundary": "Committed branch HEAD95b matches readback; dirty source/evidence NOT_PUBLISHED. No new commit/push/merge/CI inferred."
   },
-  "source_after_current_candidate": "Frozen compiled3407 installer/Host/Core bytes remain unchanged. Generated resource catalog/UI-host digest and Rust formatting later changed current source; this source is not asserted to have been rebuilt into that old candidate.",
+  "source_after_current_candidate": "Current5822 source now rebuilt into its own new candidate; old3407 candidate unchanged. This result documentation follows the source-frozen run and does not alter product binaries.",
   "delivery_readback_20261024": {
     "code_checkpoint_sha": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
     "remote_branch_sha": "95b463c12dbd40744b43039add69c48ceaeba94e",
@@ -1304,5 +1535,26 @@
     "ci": "NOT_EXECUTED_FOR_THIS_HEAD",
     "error": "approval required by policy, but AskForApproval is set to Never",
     "boundary": "Remote push rejected before execution; no alternate channel or bypass. PR/merge/release/Green not executed."
-  }
+  },
+  "historical_fixed3407_candidate": {
+    "path": ".project-local/runs/be268a2d33/fixedwv-portable-20261024-01/artifacts/星环便携候选",
+    "dirty_patch": "3407e8083f261bc563df06f24398cfa08338a47fd4136df344b08741461c4dfc",
+    "host_sha256": "68e82a0a9d74dc0534b35eeb47fa034298c3bfd931853b217a069037cb29f224",
+    "core_sha256": "d1bac23344f471ab6124534d413ecefefff9cac61c25728248755e1040747bc5",
+    "runtime_manifest_sha256": "95e4ded04f44c76ff32175f5b9e9b6c338d90658f72cfefcd4f9bbdd3f041b04",
+    "candidate_manifest_sha256": "1c4d59953cc482da8bdeb1c1b81df7f6ebbebbaafc8dfb9945bbf8bc566f4301",
+    "members": 19745,
+    "logical_bytes": 1402028858,
+    "qualification": "PORTABLE_NATIVE_HUMAN_PASS; LOCAL_INSTALL_LIFECYCLE_PASS; DUAL_SIDE_OVERALL_PARTIAL",
+    "installed_qualification": "LOCAL_INSTALL_LIFECYCLE_PASS; CI_CANDIDATE_AND_PUBLIC_RELEASE_NOT_QUALIFIED",
+    "native_ai_qualification": "RUN03_STAGE_COMPONENTS_PASS_PARENT_FAIL; SUFFIX_ONLY_PASS; WHOLE_LOOP_PARTIAL_NOT_OWNER"
+  },
+  "remaining_before_current5822": [
+    "Same-installer LOCAL_INSTALL_LIFECYCLE PASS; cross-version migration/rollback and Windows10 qualification remain incomplete.",
+    "Latest Fixed Core real local model asset consumption PASS; old timeout cause remains undetermined, not erased by later success.",
+    "No real cloud provider call: fixed provider/model, product credential and request-specific material/unknown-cost authorization still absent; no Codex credentials or paid calls.",
+    "Native run03 answer/authored correction/retest and saved DEEP cold/restore config passed; parent final selection FAIL retained. Separate cloned suffix old-grant refusal PASS with0 inference; cross-receipt engineering evidence is not one completed journey. Independent semantic quality and Owner acceptance remain.",
+    "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
+    "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
+  ]
 }
