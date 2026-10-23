@@ -19,7 +19,7 @@
   "head": "582267f3a09a0e3c372147b1a54e28b895c44595",
   "branch": "codex/sync-20261019",
   "tested_dirty_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "snapshot_boundary": "Current5822 Core/frontend/Host/stage/portable rebuilt from exact committed source; current Core actual public-research restore PASS; native AI parent PASS. Historical3407 human/installed/format/model qualifications retain their own candidate identity. New candidate has no installed, hosted CI or Owner qualification. Later result documentation is a metadata-only delta.",
+  "snapshot_boundary": "Current5822 exact committed product candidate: native AI engineering chain and actual public research restore PASS; installed native business FAIL at stale probe page selector, install/uninstall and exact identities PASS. Later probe selector/docs delta is not a product rebuild, installed business PASS, CI or Owner acceptance.",
   "implemented": [
     "Stage runtime version before member inventory using bounded subprocess -I -B; late startup bytecode no longer breaks exact runtime qualification. RED preserved, GREEN25.",
     "Native probes use real Tab focus and trusted wheel/hit-tested pointer input; current Stitch reader title/version and positive-area display-image readiness, preserving exact Core identity assertions.",
@@ -352,28 +352,40 @@
       }
     },
     "installed_business_latest": {
-      "status": "VM_DISAPPEARED_BEFORE_RESULT",
-      "cause": "UNDETERMINED",
+      "status": "FAIL",
+      "cause": "PROBE_PAGE_IDENTITY_SELECTOR_MISMATCH",
       "receipt": {
-        "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-03/installed-business-execution.json",
-        "bytes": 8952,
-        "sha256": "717e4c63433b791ddd617130c17245a829015560b9a3eabda4dac90b71c4a773"
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json",
+        "bytes": 6805,
+        "sha256": "5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6"
       },
-      "installer_sha256": "4661ce30ab3787cf0afd8f1194c6a6cbd70d16af5ac2f5716471b6aab240c3b3",
-      "six_source_snapshot": "2675ed4913ae0728b4093ea77d606c6b6fae048ccd7a06b947b6249fa52cf845",
-      "input_files_verified": 677,
-      "input_sha_unchanged": true,
-      "driver_root_cause": "CONFIRMED_MISSING_VCRUNTIME140_TOOL_DEPENDENCY_BY_SAME_PATH_AB",
-      "settings_group_fix": "SOURCE_AND51_UNIT_CHECKS_PASS; RUNTIME_EFFECT_UNVERIFIED_UI_NOT_REACHED",
-      "installed_preflight": "PASS_EXACT_HOST_CORE_MANIFEST",
-      "installed_postflight": "UNVERIFIED_NO_TERMINAL_RECEIPT",
-      "business": "UNVERIFIED_NO_TERMINAL_RECEIPT",
-      "guest_uninstall": "UNVERIFIED_NO_TERMINAL_RECEIPT",
-      "guest_normal_shutdown": "UNVERIFIED",
-      "cleanup": "PASS_CLIENT_RECLAMATION_ONLY; VM not listed; no official stop success inferred",
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "installed_preflight": "PASS_EXACT_HOST_CORE_RUNTIME_MANIFEST",
+      "installed_postflight": "PASS_EXACT_HOST_CORE_RUNTIME_MANIFEST",
+      "installation": "SILENT_INSTALL0_SINGLE_REGISTRY_AND_UNINSTALL0",
+      "business": "FAIL_BEFORE_SAVE_CONFLICT_COMPARISON",
+      "completed_prefix": "Real UI backup preflight/restore/retain-recovery-candidates and opening owned A observed; not complete conflict journey",
+      "cause_evidence": {
+        "failing_probe": "scripts/probes/aaos01_installed_draft_conflict_loop.py:195",
+        "compiled_app": "582267f3:frontend/src/app/App.tsx:838",
+        "requested": "[aria-label=\"当前页面\"][data-current-page-id=\"03\"]",
+        "actual": ".stitch-page-identity[data-current-page-id=\"03\"]",
+        "screenshot": "Reading/editing page shows correct owned A and version2; document loaded"
+      },
+      "editor_dom_runtime": "NOT_INDEPENDENTLY_OBSERVED; screenshot alone does not prove textbox mounted",
+      "cleanup": "OFFICIAL_EXACT_OWNED_VM_STOP0; VM0_CLIENT0; one normal Host exit0; no owned process or port residue",
+      "input_verification_at_execution_end": {
+        "status": "PASS",
+        "files": 672,
+        "logical_bytes": 849907756,
+        "unknown_files": 0,
+        "changed_files": 0
+      },
       "model_calls": 0,
-      "historical_run01_02": "FAIL_PRESERVED_SEPARATE_FROM_VM_DISAPPEARANCE",
-      "next_existing_task_action": "Resolve isolated Windows Sandbox visibility/termination failure before next installed conflict run; no product cause or settings runtime success inferred."
+      "network": "WSB_DISABLED",
+      "owner_acceptance": "NOT_EXECUTED",
+      "probe_source_fix": "PAGE_SELECTOR_ONLY_CORRECTED; 51_LOCAL_GUARD_AND_DOM_TESTS_PASS; strict EDITOR/conflict/version assertions retained; installed runtime effect NOT_EXECUTED",
+      "runtime_retry": "NOT_EXECUTED"
     },
     "installed_business_tool_diagnostic": {
       "status": "CONFIRMED_APP_LOCAL_TOOL_DLL_DEPENDENCY",
@@ -416,7 +428,7 @@
       "custody_tests_passed": 89,
       "boundary": "Index/source local preflight; no hosted CI, real cloud or installed business qualification inferred. preflight03 CRLF pin-registry placement failure retained; root moved twelve exact archive pins to existing byte-custody registry."
     },
-    "current_committed_source_qualification": {
+    "historical_d8_focused_source_qualification": {
       "source_commit": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
       "backend_tests": 24,
       "frontend_tests": 79,
@@ -453,7 +465,7 @@
           "bytes": 567252574
         }
       ],
-      "installed": "NOT_EXECUTED",
+      "installed": "ATTEMPTED_NATIVE_BUSINESS_FAIL; INSTALL_AND_UNINSTALL_PASS",
       "scope": "BUNDLE_ONLY_NO_COMPILE_NO_INSTALL_NO_SIGN; not installed qualification",
       "followup_status": {
         "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/installer-followup-status.json",
@@ -469,6 +481,11 @@
         "path": ".project-local/runs/be268a2d33/current582267f3-installer-envelope-20261024-01/artifacts/execution.json",
         "bytes": 2091,
         "sha256": "9d76473da9c555fa899db91f6e949780a1b7e6b468c19bf6a27a1c6ef6269ed8"
+      },
+      "business_qualification": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json",
+        "bytes": 6805,
+        "sha256": "5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6"
       }
     },
     "public_research_restore_current5822": {
@@ -569,7 +586,137 @@
       "sha256": "0ae6366d093e0405cb0620fb52284b717e229850edac6aef88f2a61584f9ab83"
     },
     "public_research_fixed3407_historical": "PASS_REAL_THREE_SOURCES_WITH_PROCESS_PROXY: Wikipedia, StackExchange and OpenAlex real bodies, CAS/anchors/comparison draft, package/Markdown export, cold restart and backup/restore preview PASS. Direct-route Wikipedia timeout FAIL preserved. Explicit process-only existing proxy required in this run; no global configuration change. Actual restore and Owner NOT_EXECUTED in this probe.",
-    "native_ai_fixed3407_historical": "HISTORICAL3407: RUN03_PARENT_FAIL: native real local answer31.62s and authored-correction/retest46.36s completed with content/stop/not truncated, saved DEEP2048/120 configuration cold reopen/restore readback PASS. Final restored original-knowledge selection failed: TimeoutError: Window assertion deadline: return !!document.querySelector('[aria-label=\"原知识当前正文\"]'); original parent/inner failure and cleanup retained. Inner compiled binding remains UNVERIFIED; parent pre/post full candidate verification separately binds compiled3407. Synthetic engineering adjudication, not independent error adjudication or Owner acceptance."
+    "native_ai_fixed3407_historical": "HISTORICAL3407: RUN03_PARENT_FAIL: native real local answer31.62s and authored-correction/retest46.36s completed with content/stop/not truncated, saved DEEP2048/120 configuration cold reopen/restore readback PASS. Final restored original-knowledge selection failed: TimeoutError: Window assertion deadline: return !!document.querySelector('[aria-label=\"原知识当前正文\"]'); original parent/inner failure and cleanup retained. Inner compiled binding remains UNVERIFIED; parent pre/post full candidate verification separately binds compiled3407. Synthetic engineering adjudication, not independent error adjudication or Owner acceptance.",
+    "schema13_maintenance_current5822": {
+      "status": "PASS_COMPONENT_ONLY",
+      "task_ids": [
+        "J6",
+        "CL-07",
+        "CB04",
+        "UF11"
+      ],
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-schema13-maintenance-20261024-01/artifacts/schema13-maintenance-journey.json",
+        "bytes": 63273,
+        "sha256": "3e0991527624239d20fb81054569526b5df3cb830e3955f947920e2ac374997d"
+      },
+      "readback": {
+        "path": ".project-local/runs/be268a2d33/current5822-schema13-maintenance-20261024-01/artifacts/readback-summary.json",
+        "bytes": 2309,
+        "sha256": "0f39d97eba72f39adb5fb8d43b80d82d0aaf5e771c711c728169f79db55c1a86"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/current5822-schema13-maintenance-20261024-01/artifacts/execution.json",
+        "bytes": 1409,
+        "sha256": "320c0399a73eac05aee9ca0ce8eb052fa27c5a30876ef1c8238a97d5d85d0181"
+      },
+      "compiled_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_origin_commit": "52c308cf2f9f4994bc1cb9bd82cf10e88c33b7e1",
+      "execution_patch_sha256": "22739e88407290cbba8e209fccfc426b8f69205752934e015d7dcb2ed51f2fcd",
+      "fixture": "Existing supported authored schema13 shape, reproduced in disposable synthetic workspace; not an old shipped runtime database",
+      "migration": "REAL_CURRENT5822_CORE_SCHEMA13_TO14; 34 old tables checked; document history/unknown nodes/CAS/capability decision preserved",
+      "business": "Save v3, conflict409 and cold readback PASS; restore schema13 backup returns business v3 to v2 with new authorization fence; resulting schema stays14",
+      "backup_restore": "Formal maintenance backup, schema13 restore/migration and independent schema14 backup recovery PASS",
+      "cleanup": "5 owned Core processes terminated and reaped with exit1; no remaining listeners; not graceful product shutdown",
+      "not_proven": [
+        "Cross-version installer rollback",
+        "Old Core opening new schema",
+        "Real user old-library migration",
+        "Hosted CI",
+        "Owner acceptance"
+      ],
+      "model_calls": 0,
+      "external_calls": 0
+    },
+    "installed_business_historical3407": {
+      "status": "VM_DISAPPEARED_BEFORE_RESULT",
+      "cause": "UNDETERMINED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-03/installed-business-execution.json",
+        "bytes": 8952,
+        "sha256": "717e4c63433b791ddd617130c17245a829015560b9a3eabda4dac90b71c4a773"
+      },
+      "installer_sha256": "4661ce30ab3787cf0afd8f1194c6a6cbd70d16af5ac2f5716471b6aab240c3b3",
+      "six_source_snapshot": "2675ed4913ae0728b4093ea77d606c6b6fae048ccd7a06b947b6249fa52cf845",
+      "input_files_verified": 677,
+      "input_sha_unchanged": true,
+      "driver_root_cause": "CONFIRMED_MISSING_VCRUNTIME140_TOOL_DEPENDENCY_BY_SAME_PATH_AB",
+      "settings_group_fix": "SOURCE_AND51_UNIT_CHECKS_PASS; RUNTIME_EFFECT_UNVERIFIED_UI_NOT_REACHED",
+      "installed_preflight": "PASS_EXACT_HOST_CORE_MANIFEST",
+      "installed_postflight": "UNVERIFIED_NO_TERMINAL_RECEIPT",
+      "business": "UNVERIFIED_NO_TERMINAL_RECEIPT",
+      "guest_uninstall": "UNVERIFIED_NO_TERMINAL_RECEIPT",
+      "guest_normal_shutdown": "UNVERIFIED",
+      "cleanup": "PASS_CLIENT_RECLAMATION_ONLY; VM not listed; no official stop success inferred",
+      "model_calls": 0,
+      "historical_run01_02": "FAIL_PRESERVED_SEPARATE_FROM_VM_DISAPPEARANCE",
+      "next_existing_task_action": "Resolve isolated Windows Sandbox visibility/termination failure before next installed conflict run; no product cause or settings runtime success inferred."
+    },
+    "installed_business_current5822": {
+      "status": "FAIL",
+      "cause": "PROBE_PAGE_IDENTITY_SELECTOR_MISMATCH",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json",
+        "bytes": 6805,
+        "sha256": "5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6"
+      },
+      "installer_sha256": "b999050d56c23bafdf530bf09c9fed35711197a0aa46ec1cfc087e439becd55d",
+      "installed_preflight": "PASS_EXACT_HOST_CORE_RUNTIME_MANIFEST",
+      "installed_postflight": "PASS_EXACT_HOST_CORE_RUNTIME_MANIFEST",
+      "installation": "SILENT_INSTALL0_SINGLE_REGISTRY_AND_UNINSTALL0",
+      "business": "FAIL_BEFORE_SAVE_CONFLICT_COMPARISON",
+      "completed_prefix": "Real UI backup preflight/restore/retain-recovery-candidates and opening owned A observed; not complete conflict journey",
+      "cause_evidence": {
+        "failing_probe": "scripts/probes/aaos01_installed_draft_conflict_loop.py:195",
+        "compiled_app": "582267f3:frontend/src/app/App.tsx:838",
+        "requested": "[aria-label=\"当前页面\"][data-current-page-id=\"03\"]",
+        "actual": ".stitch-page-identity[data-current-page-id=\"03\"]",
+        "screenshot": "Reading/editing page shows correct owned A and version2; document loaded"
+      },
+      "editor_dom_runtime": "NOT_INDEPENDENTLY_OBSERVED; screenshot alone does not prove textbox mounted",
+      "cleanup": "OFFICIAL_EXACT_OWNED_VM_STOP0; VM0_CLIENT0; one normal Host exit0; no owned process or port residue",
+      "input_verification_at_execution_end": {
+        "status": "PASS",
+        "files": 672,
+        "logical_bytes": 849907756,
+        "unknown_files": 0,
+        "changed_files": 0
+      },
+      "model_calls": 0,
+      "network": "WSB_DISABLED",
+      "owner_acceptance": "NOT_EXECUTED",
+      "probe_source_fix": "PAGE_SELECTOR_ONLY_CORRECTED; 51_LOCAL_GUARD_AND_DOM_TESTS_PASS; strict EDITOR/conflict/version assertions retained; installed runtime effect NOT_EXECUTED",
+      "runtime_retry": "NOT_EXECUTED"
+    },
+    "green_current5822_preflight": {
+      "status": "NOT_DEPLOYED",
+      "preflight": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-green-preflight.json",
+        "bytes": 3912,
+        "sha256": "c7e78435f1b114dcd8345f4afbe3df40905f5228826f4b184c6176db5c6dfbd0"
+      },
+      "entry_review": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/green-deployment-entry-review-20261024.json",
+        "bytes": 7332,
+        "sha256": "dc600f8dd4a48d71f41767c8f44c67a404cf8ba1dc37387423a3b7cb84d1b883"
+      },
+      "reason": "Current installed business qualification FAIL; reviewed tools have no safe in-place whitelist/collision/hash rollback executor. Existing destructive distribution assemblers must not target daily Green."
+    },
+    "installed_page_probe_regression_current5822": {
+      "status": "LOCAL_PASS_51_TESTS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-page-regression-20261024-01/artifacts/execution.json",
+        "bytes": 1484,
+        "sha256": "a446f966be606c3ed5aaeb31bc7c89c63b765514109ee9c38e980a87b619ad14"
+      },
+      "dom_readiness": "Actual captured wait JS evaluated with current App.tsx identity marker: page03+editor true; wrong page false; missing editor false",
+      "scope": "SIMULATED_DOM_AND_GUARD_ONLY; installed runtime correction NOT_EXECUTED",
+      "preparation_import_failure": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-page-dom-regression-check-20261024-01/artifacts/execution.json",
+        "bytes": 1568,
+        "sha256": "760cf48a8ea5f55674e86f5c34707fba613138a1a86d24d6f8d7e3eb4dced703"
+      }
+    }
   },
   "cleanup": {
     "status": "PASS",
@@ -642,6 +789,20 @@
       "removed_logical_bytes": 1405693775,
       "scope": "Exact packaging temporary duplicate only; full current5822 candidate remains replacement. 19746 ordinary files includes candidate-manifest.json, excluded from the 19745 manifest member count.",
       "physical_space_freed": "NOT_MEASURED"
+    },
+    "current5822_vm_input_cleanup_blocked": {
+      "status": "POLICY_REJECTED_BEFORE_EXECUTION",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/input-current-state/blocked-cleanup-receipt.json",
+        "bytes": 5252,
+        "sha256": "9c3484637d2590db6f9d9e80cf1f06e4b1eb6b309a8304c3cca502220a7f0439"
+      },
+      "deleted_duplicate_regular_files": 0,
+      "logical_bytes_removed": 0,
+      "target": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/install-input/candidate-setup.exe",
+      "target_retained": true,
+      "input_files_retained": 672,
+      "scope": "One verified duplicate installer unlink rejected before execution; no retry/bypass. Frozen probe sources and all input/failure receipts retained."
     }
   },
   "parallel_policy": "Shared checkout has one tracked writer lease; other agents use ignored outputs or read-only checks. Cloud writers frozen before successor source qualification; f894 packaging/Sandbox uses immutable prior candidate independently.",
@@ -658,10 +819,10 @@
     "green": "NOT_UPDATED"
   },
   "remaining": [
-    "Current5822 bundle-only outcome is recorded separately; current candidate installed business journey not executed. Historical3407 local lifecycle PASS cannot transfer to this candidate; previous VM disappearance remains cause undetermined.",
+    "Current5822 installed conflict journey FAIL at obsolete probe page identity selector; source selector corrected with strict editor assertion retained, runtime fix not yet verified. Silent install/uninstall and exact identity PASS only. Historical3407 lifecycle and VM disappearance remain separate.",
     "Current5822 native engineering chain PASS with actual model answer/authored correction/retest, cold readback and restore fencing; independent semantic adjudication, semantic duplicate/applicability/conflict truth and Owner acceptance remain unproven.",
     "No real cloud provider call: fixed provider/model, product credential and request-specific material/unknown-cost authorization still absent; no Codex credentials or paid calls.",
-    "Cross-version migration/rollback and Windows10 qualification remain incomplete; no Green replacement or public release.",
+    "Supported schema13→14 synthetic component migration/business-data rollback PASS; old installer/runtime cross-version rollback and Windows10 qualification remain incomplete; no Green replacement or public release.",
     "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
     "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass."
   ],
@@ -1430,6 +1591,31 @@
       "path": ".project-local/runs/be268a2d33/current582267f3-installer-20261024-01/short-input-cleanup-result.json",
       "bytes": 826,
       "sha256": "3d784fd06c7763608f2f992d7b8c3750437f004e876988a1feac1520801de5de"
+    },
+    "current5822_schema13_maintenance": {
+      "path": ".project-local/runs/be268a2d33/current5822-schema13-maintenance-20261024-01/artifacts/schema13-maintenance-journey.json",
+      "bytes": 63273,
+      "sha256": "3e0991527624239d20fb81054569526b5df3cb830e3955f947920e2ac374997d"
+    },
+    "current5822_schema13_readback": {
+      "path": ".project-local/runs/be268a2d33/current5822-schema13-maintenance-20261024-01/artifacts/readback-summary.json",
+      "bytes": 2309,
+      "sha256": "0f39d97eba72f39adb5fb8d43b80d82d0aaf5e771c711c728169f79db55c1a86"
+    },
+    "current5822_installed_business": {
+      "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/installed-business-execution.json",
+      "bytes": 6805,
+      "sha256": "5af0b0f60eede44bbfa6a1dcfc780b923bdea53311fe3e16444ddb418ec3a7b6"
+    },
+    "current5822_installed_page_regression": {
+      "path": ".project-local/runs/be268a2d33/current5822-installed-page-regression-20261024-01/artifacts/execution.json",
+      "bytes": 1484,
+      "sha256": "a446f966be606c3ed5aaeb31bc7c89c63b765514109ee9c38e980a87b619ad14"
+    },
+    "current5822_vm_input_cleanup_blocked": {
+      "path": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-01/input-current-state/blocked-cleanup-receipt.json",
+      "bytes": 5252,
+      "sha256": "9c3484637d2590db6f9d9e80cf1f06e4b1eb6b309a8304c3cca502220a7f0439"
     }
   },
   "previous_tested_dirty_patch": "80e99a242ee6e62b2463123c1f0139422bb1ae8e0733ff9e4cf2ae9a0922c1e8",
@@ -1476,7 +1662,7 @@
         "bytes": 567252574
       }
     ],
-    "installed_qualification": "NOT_EXECUTED_FOR_THIS_CANDIDATE",
+    "installed_qualification": "NATIVE_DOCUMENT_CONFLICT_JOURNEY_FAIL; INSTALL_UNINSTALL_AND_IDENTITY_ONLY_PASS",
     "ci_qualification": "NOT_EXECUTED",
     "owner_acceptance": "NOT_EXECUTED",
     "binding_receipt": {
@@ -1522,7 +1708,7 @@
     "explanation": "Required closure-machine and reader-inspector behavior already exists; glass changes equivalent, Avalonia superseded, ASTRYN optional scope frozen. Decision is usefulness-based, not missing merge authorization.",
     "boundary": "Committed branch HEAD95b matches readback; dirty source/evidence NOT_PUBLISHED. No new commit/push/merge/CI inferred."
   },
-  "source_after_current_candidate": "Current5822 source now rebuilt into its own new candidate; old3407 candidate unchanged. This result documentation follows the source-frozen run and does not alter product binaries.",
+  "source_after_current_candidate": "Product binaries remain compiled5822. Later result documentation and one page-identity probe correction are not rebuilt product source or runtime qualification.",
   "delivery_readback_20261024": {
     "code_checkpoint_sha": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
     "remote_branch_sha": "95b463c12dbd40744b43039add69c48ceaeba94e",

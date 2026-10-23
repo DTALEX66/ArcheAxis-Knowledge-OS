@@ -220,6 +220,24 @@ def test_simulated_ui_adapter_preserves_B_and_separates_fixture_from_real_UI_evi
     assert all(action[1] in probe.READS for action in actions if action[0]=='readonly_bridge')
     assert docs[b['document_id']]==b
 
+    # Execute the actual captured wait against the current App marker, not a
+    # parallel hard-coded page fixture. This is DOM simulation, not native UI.
+    import json
+    import re
+    from tests.dom_harness import evaluate
+    waits = {action[1] for action in actions if action[0] == 'observation_only_wait'
+             and 'data-current-page-id' in action[1]}
+    assert len(waits) == 1
+    readiness = waits.pop()
+    app = (PATH.parents[2] / 'frontend/src/app/App.tsx').read_text(encoding='utf-8')
+    marker = re.search(r'<div\b[^>]*\bdata-current-page-id=\{uiPageId \?\? ""\}[^>]*>', app)
+    assert marker, 'Current App page identity contract changed; update this DOM fixture explicitly'
+    opening = marker.group(0).replace('className=', 'class=')
+    editor = '<section aria-label="版本化草稿编辑器"><div role="textbox" aria-label="文档草稿"></div></section>'
+    for page, body, expected in [('03', editor, True), ('02', editor, False), ('03', '', False)]:
+        markup = opening.replace('{uiPageId ?? ""}', json.dumps(page)) + '</div>' + body
+        assert evaluate(readiness, markup) is expected, (page, bool(body))
+
 
 @pytest.mark.parametrize('fault', ['preview', 'content', 'missing', 'duplicate', 'invalid_json'])
 def test_comparison_diagnostics_refuses_wrong_or_ambiguous_payload(fault):
