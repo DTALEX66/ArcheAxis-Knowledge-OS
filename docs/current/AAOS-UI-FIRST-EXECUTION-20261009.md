@@ -1531,3 +1531,12 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 - 当前导航仍沿唯一闭环定义、活动指针及本执行记录；没有另立自动job到Document填充门槛，也不把独立格式/API样例拼成同工作区完整J1。真实云、代表性质量、同候选未验项、Owner和托管CI仍未完成；外部原始上下文NOT_CONNECTED，监控暂停，未推送、发布或覆盖真实数据。
 
 - 本段证据补充：API两项测试的原运行未落盘stdout／stderr或canonical execution.json；补件仅为实际工具结果摘录，不能冒充完整原始日志。两份测试EXE已按原SHA另存，测试源码／归档／失败与通过回执均保留。本轮新建target为2,537文件、2,788,554,766逻辑字节；精确路径递归删除命令在执行前被自动策略拒绝，目录仍在，未换渠道绕过，也不宣称回收空间。索引见verification.ai_conflict_consumer_source_controls的tool_output_supplement及cleanup。Core pending状态／结束条件另经静态核对：无匹配完成任务时默认UNKNOWN且不可清除；本轮没有实际清除或证明可结束。
+
+
+### 2026-10-24 桌面组件构建、纠正详情原生DOM与同库人类侧恢复续段（UF09／BE-P08／BE-P10／CL-02／CL-07／J1／J4，整体PARTIAL）
+
+- 7525ccb2阅读材料身份修复的Host已离线locked/no-bundle构建并独立保全；22个已验证frontend文件逐成员哈希复用，没有重复tsc／Vite／组件测试或重编Core。编译一次，01—03包装／hook准备失败保留；新Host a9692a78…462db494，Core/runtime仍5822，旧候选和Green原样。收据及root独立读回见verification.reader_material_pin_host_7525；不当成新完整候选或安装验收。
+- 纠正详情run06真实原生DOM关联通过：从既有正式历史backup的无pending快照按原字节克隆（非本轮恢复功能执行），可信点击后纠正／提交者／依据／原回答值均精确匹配，3完整任务行不变、0模型调用、Host正常exit0且自有资源清理通过。保留原工作区的未知pending及01—05失败；原parent旧LABEL_ONLY标签不改，新terminal陈述具体详情结果。截图只证明历史标签，详情在视口下方，滚动布局视觉可用性未另验。Host7d953/Core5822的组件资格及inner binding UNVERIFIED边界如verification.correction_history_native_detail_backup06，不代表事实质量或Owner。
+- 新合成工作区贯穿四格式batch清单／导入／真实转换／锚点检索／显式保存版本文档／人工知识接纳／学习review，再在同一DB重启核对、离线backup、创建唯一postbackup marker、停Core后实际restore、重启回读。4来源与CAS／文档v2／package／export／接纳知识／学习事件保全，workspaceID同一、restoreEpoch改变、marker404。02／04误将知识接纳前后PDF包视为全等的FAIL保留：root独立证实Office三格式全等，PDF只有与已接受候选精确绑定的一条新增锚点，正文／版本／原字节无变，不以动态时间解释。06在线writer占用时maintenance backup拒绝是保护证据；07离线序列PASS。helper停止Core的Windows exit1如实记录，非正常产品退出。见verification.same_workspace_human_api_subchain_5822；这是固定5822Core同库API＋离线维护子链，目录实际遍历／故障续做、完整native J1／安装／Owner仍未验，无模型／外网。
+- 阅读材料修复的真实原生run02已在page16选择XLSX，正文匹配旧成功输出，真实输入／点击预览返回200；捕获的请求及plan.context.material／plan.request.material全部绑定旧成功job与transform2，没有误用较新的cancelled job，root独立核对响应与三表完整行一致。01旧导航失败和02采集器错误读取plan.material产生的KeyError原FAIL均保留；最后取消状态页面可见断言未执行，故仍PARTIAL，不能提升完整旅程PASS。7525Host／5822Core、0新增转换／取消／模型、自有Host正常exit0和清理通过，见verification.reader_material_pin_native_7525。
+- 本段未推送、发布或更新Green，外部原始上下文NOT_CONNECTED，额度监控保持暂停。真实云、代表性质量、同候选余项、托管CI与Owner仍未完成；原失败、备份和证据不覆盖。

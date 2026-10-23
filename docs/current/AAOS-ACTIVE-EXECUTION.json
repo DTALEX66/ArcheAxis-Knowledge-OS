@@ -1545,7 +1545,8 @@
         "sha256": "68f97107dcc4f88c0c8438156d64330a290ed4b1b10de2289721e6b44cf5f801"
       },
       "checkpoint_key": "verification.correction_history_native_followup",
-      "current_cause_followup": "verification.correction_history_pending_diagnosis; old FAIL unchanged, old UNDETERMINED/geometry next-step are historical"
+      "current_cause_followup": "verification.correction_history_pending_diagnosis; old FAIL unchanged, old UNDETERMINED/geometry next-step are historical",
+      "current_detail_followup": "verification.correction_history_native_detail_backup06"
     },
     "reader_material_success_pin_fix": {
       "status": "PASS_LOCAL_COMPONENTS_TYPECHECK_FRONTEND_BUILD_STATIC_REVIEW",
@@ -1563,7 +1564,8 @@
         "bytes": 2891,
         "sha256": "71ab4e744c876041f2a5d25e4a3f90a61225ff582fa9902da3075e8bbd73580b"
       },
-      "checkpoint_key": "verification.correction_history_pending_diagnosis"
+      "checkpoint_key": "verification.correction_history_pending_diagnosis",
+      "current_detail_followup": "verification.correction_history_native_detail_backup06"
     },
     "ai_conflict_consumer_source_controls": {
       "status": "PASS_REPORTED_ISOLATED_5822_SOURCE_ROUTER_STORE_POSITIVE_NEGATIVE_CONTROLS",
@@ -1588,6 +1590,42 @@
         "bytes": 2045,
         "sha256": "fee6cc70f32c5da88da63672408ea3c4dea0ae2e6662b6d06955735daae1ab97"
       }
+    },
+    "reader_material_pin_host_7525": {
+      "status": "PASS_LOCAL_HOST_BUILD_EXACT_REUSED_FRONTEND_AND_OLD_CORE_PINS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-host-7525-20261024-04/artifacts/host-component-binding.json",
+        "bytes": 10936,
+        "sha256": "fc882e97c722e5ffb12161c158300d3cbd97b2e6c5c8f8d437c03fd428042eec"
+      },
+      "checkpoint_key": "verification.reader_material_pin_host_7525"
+    },
+    "correction_history_native_detail_backup06": {
+      "status": "PASS_REAL_NATIVE_CORRECTION_HISTORY_DETAILS_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-06/artifacts/terminal-readback.json",
+        "bytes": 5231,
+        "sha256": "fe85728c3cd85172c4736201cea95d6e13618d6e28d5d2ea2b058d06c7d75377"
+      },
+      "checkpoint_key": "verification.correction_history_native_detail_backup06"
+    },
+    "same_workspace_human_api_subchain_5822": {
+      "status": "PASS_SAME_DB_RESTART_AND_ACTUAL_RESTORE_API_SUBCHAIN",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-j1-same-db-continuation-20261024-07/artifacts/j1-same-db-continuation.json",
+        "bytes": 14584,
+        "sha256": "1ec36ce200392151c0f7479fc4e472c30336cb342a2ba0e6f94d024e37441926"
+      },
+      "checkpoint_key": "verification.same_workspace_human_api_subchain_5822"
+    },
+    "reader_material_pin_native_7525": {
+      "status": "PARTIAL_NATIVE_PREVIEW_BINDING_READBACK_PASS_ORIGINAL_RUN_FAIL",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-02/artifacts/terminal-readback.json",
+        "bytes": 4149,
+        "sha256": "9aef603ffa809cc639a692c8cc312ec9b4ce29af16b52751d0f90953c7b4d169"
+      },
+      "checkpoint_key": "verification.reader_material_pin_native_7525"
     }
   }
 }

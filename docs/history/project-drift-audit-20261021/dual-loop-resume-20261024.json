@@ -1230,7 +1230,8 @@
       "source_workspace_and_component_pins_unchanged": true,
       "next_task": "UF09/BE-P10: establish stable target geometry and actual detail activation before attributing failure to product state or Core; retain native FAIL, no automatic rerun.",
       "boundary": "New label rendering passed; full correction detail presentation did not. No model-quality, current-HEAD Core, portable/installed, Green or Owner acceptance inferred.",
-      "current_cause_followup": "verification.correction_history_pending_diagnosis; old FAIL unchanged, old UNDETERMINED/geometry next-step are historical"
+      "current_cause_followup": "verification.correction_history_pending_diagnosis; old FAIL unchanged, old UNDETERMINED/geometry next-step are historical",
+      "current_detail_followup": "verification.correction_history_native_detail_backup06; historical pending guard and FAIL remain unchanged"
     },
     "reader_material_success_pin_fix": {
       "status": "PASS_LOCAL_COMPONENTS_TYPECHECK_FRONTEND_BUILD_STATIC_REVIEW",
@@ -1244,7 +1245,9 @@
       "regression": "Displayed successful transform was paired with latest unsuccessful conversion job; later failures remounted material questions and erased draft/preview.",
       "change": "Material job and React key derive from the verified successful transform. Latest attempt status stays separate; new success invalidates old preview.",
       "tests": "4 expected RED failures; final86 PASS in5 files including5 new regressions; overlapping85 batch not added. Typecheck and frontend production build PASS.",
-      "boundary": "SYNTHETIC bridge fixtures; frontend artifacts only, Host/candidate/Green not rebuilt for this fix; no model, hosted CI, installed or Owner qualification."
+      "boundary": "SYNTHETIC bridge fixtures; frontend artifacts only, Host/candidate/Green not rebuilt for this fix; no model, hosted CI, installed or Owner qualification.",
+      "host_followup": "verification.reader_material_pin_host_7525",
+      "native_followup": "verification.reader_material_pin_native_7525"
     },
     "correction_history_pending_diagnosis": {
       "status": "CORRECT_PENDING_REQUEST_GUARD_CONFIRMED_DETAILS_STILL_NOT_VERIFIED",
@@ -1270,7 +1273,8 @@
       "not_a_product_defect_claim": "A correction-linkage or hit-target defect is not established. Screenshot CSS/pixel coordinates differ by scaling; old displacement speculation is withdrawn.",
       "next": "UF09/BE-P10: verify the existing explicit pending-status/end workflow if Core permits, or qualify details using a traceable completed synthetic snapshot without unrelated pending input. Never delete pending DB rows or relax the guard.",
       "boundary": "Host7d953 + Core5822; native label and guard behavior only; submitter/basis/original-answer detail still NOT_VERIFIED; Green unchanged.",
-      "static_pending_status_constraint": "Core machine_status defaults UNKNOWN/can_clear=false; only exact matching terminal failed task/failure receipt authorizes clear_machine. The unrelated pending request has no matching completed task. Static finding only; pending status/end not executed or cleared in this unit."
+      "static_pending_status_constraint": "Core machine_status defaults UNKNOWN/can_clear=false; only exact matching terminal failed task/failure receipt authorizes clear_machine. The unrelated pending request has no matching completed task. Static finding only; pending status/end not executed or cleared in this unit.",
+      "current_detail_followup": "verification.correction_history_native_detail_backup06; historical pending guard and FAIL remain unchanged"
     },
     "ai_conflict_consumer_source_controls": {
       "status": "PASS_REPORTED_ISOLATED_5822_SOURCE_ROUTER_STORE_POSITIVE_NEGATIVE_CONTROLS",
@@ -1299,6 +1303,105 @@
         "bytes": 2045,
         "sha256": "fee6cc70f32c5da88da63672408ea3c4dea0ae2e6662b6d06955735daae1ab97"
       }
+    },
+    "reader_material_pin_host_7525": {
+      "status": "PASS_LOCAL_HOST_BUILD_EXACT_REUSED_FRONTEND_AND_OLD_CORE_PINS",
+      "binding": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-host-7525-20261024-04/artifacts/host-component-binding.json",
+        "bytes": 10936,
+        "sha256": "fc882e97c722e5ffb12161c158300d3cbd97b2e6c5c8f8d437c03fd428042eec"
+      },
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-host-7525-20261024-04/artifacts/root-independent-readback.json",
+        "bytes": 975,
+        "sha256": "3bc61ab7323f6adbebef4385f8333a6677109b8249236d51821121a432e37642"
+      },
+      "compiled_source_commit": "7525ccb28c57d57a1ef579a95a71e105396ce607",
+      "host_sha256": "a9692a7830c16b4c0cf102f05d2c4f8156e51dce233d836745734048462db494",
+      "frontend": "Exact22 qualified files reused without tsc/Vite repetition; actual Host compilation once, offline/locked/no-bundle. 01-03 precompile wrapper/hook failures retained.",
+      "boundary": "Host component build only, reused5822 Core/runtime. No new candidate package, installed or Green update, full runtime closure or Owner qualification."
+    },
+    "correction_history_native_detail_backup06": {
+      "status": "PASS_REAL_NATIVE_CORRECTION_HISTORY_DETAILS_COMPONENT",
+      "terminal": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-06/artifacts/terminal-readback.json",
+        "bytes": 5231,
+        "sha256": "fe85728c3cd85172c4736201cea95d6e13618d6e28d5d2ea2b058d06c7d75377"
+      },
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-06/artifacts/root-independent-readback.json",
+        "bytes": 772,
+        "sha256": "f9538dce6742ee51eacbb6f8170abfe3d04b5fb9397ea4347e9aaa2d1f374110"
+      },
+      "fixture": {
+        "path": ".project-local/runs/be268a2d33/correction-native-prep-7d953-20261024-06/artifacts/fixture-provenance.json",
+        "bytes": 2383,
+        "sha256": "d554dc48f4191033766cf3ba22531ba12a2e8feb9662ffb7767274b7c2f6e3eb"
+      },
+      "compiled_host_commit": "7d953cc98a0bce31baab12dd985aebfbb2aebb94",
+      "compiled_core_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "scope": "Trusted native UI click and live DOM values confirm correction, submitter, basis and original-answer linkage;3full task rows unchanged;0model calls; owned Host normal exit0 and cleanup PASS.",
+      "boundary": "Clone of traceable prior official backup with0pending, not a new restore API test; current original pending workspace and01-05 FAIL preserved. Screenshot proves history label; details below viewport, scrolling/visual usability not separately qualified. Parent old LABEL_ONLY status remains unchanged; terminal records exact DOM detail outcome. Inner native source-binding UNVERIFIED; parent explicitly pins component identities. Not semantic truth, Owner, installed or whole-product acceptance."
+    },
+    "same_workspace_human_api_subchain_5822": {
+      "status": "PASS_SAME_DB_RESTART_AND_ACTUAL_RESTORE_API_SUBCHAIN",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-j1-same-db-continuation-20261024-07/artifacts/j1-same-db-continuation.json",
+        "bytes": 14584,
+        "sha256": "1ec36ce200392151c0f7479fc4e472c30336cb342a2ba0e6f94d024e37441926"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/current5822-j1-same-db-continuation-20261024-07/artifacts/execution.json",
+        "bytes": 1364,
+        "sha256": "5852db4ec818e4427be2e7e7b3f3d137aeaf77437adcd53b853663ab363feccd"
+      },
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/current5822-j1-same-db-continuation-20261024-07/artifacts/root-independent-readback.json",
+        "bytes": 850,
+        "sha256": "42fd5947a20902f72c9e131b6ad70b27c054e707a332bca12d79d422b8bcfad3"
+      },
+      "initial_run02": {
+        "path": ".project-local/runs/be268a2d33/current5822-j1-human-loop-api-20261024-02/artifacts/j1-human-loop-receipt.json",
+        "bytes": 1142778,
+        "sha256": "3497c00134e28fba32e149d5f525b8dfd5c2c8784e4218f8b877327ed089b4f9"
+      },
+      "restart_diff": {
+        "path": ".project-local/runs/be268a2d33/current5822-j1-restart-readonly-diagnostic-20261024-05/artifacts/restart-semantic-diff-review.json",
+        "bytes": 14168,
+        "sha256": "d0fa06b660274a5c09923ff3f724d5c9902ff87a88e5ceacce44b9311647f27f"
+      },
+      "root_diff_readback": {
+        "path": ".project-local/runs/be268a2d33/current5822-j1-restart-readonly-diagnostic-20261024-05/artifacts/root-independent-diff-readback.json",
+        "bytes": 1201,
+        "sha256": "8047fe7047968fefcae0aaa8636a6edf8c2f17b83f20fb1d4594b7377ccd9e32"
+      },
+      "compiled_core_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "scope": "Single new synthetic workspace: authored four-format batch manifest/import/realconversion/anchors/search/savedDocument versions/acceptedKnowledge/learning review; sameDB restart/readback; offline maintenance backup; explicit synthetic postbackup marker; actual offline restore and cold API readback.4sources/CAS/package/export/knowledge/learning retained; workspaceID same, restoreEpoch changed, marker404.",
+      "failure_interpretation": "Initial02/04 equality FAIL retained. DOCX/XLSX/PPTX exact unchanged; PDF only adds source-bound acceptedKnowledge anchor across package/manifest/Markdown, all other fields and version2 unchanged. No timestamp assumption. Run06 live-writer backup refusal retained; run07 correctly performs maintenance offline. Import/preflight failures also retained.",
+      "core_stop": "Owned launcher.stop terminated process with Windows exit1; stopped does not mean normal product exit. Offline backup and restore processes exit0, verified=true.",
+      "boundary": "Fixed5822 Core API/offline-maintenance component subchain; no filesystem FolderIngest traversal/multifile discovery/failed batch resume, native UI or fullJ1/Owner acceptance. No model/external requests. Human/review inputs synthetic, not Owner mastery/quality judgments."
+    },
+    "reader_material_pin_native_7525": {
+      "status": "PARTIAL_NATIVE_PREVIEW_BINDING_READBACK_PASS_ORIGINAL_RUN_FAIL",
+      "terminal": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-02/artifacts/terminal-readback.json",
+        "bytes": 4149,
+        "sha256": "9aef603ffa809cc639a692c8cc312ec9b4ce29af16b52751d0f90953c7b4d169"
+      },
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-02/artifacts/root-independent-readback.json",
+        "bytes": 2470,
+        "sha256": "604f99dfcdd8c0e43733c5e18ed94c7044a8c1a3157ee99b2a57da1e87a54087"
+      },
+      "original_attempt01": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 4759,
+        "sha256": "1c02f3e86eb2074c7582a1adb6eceed168abb4da60fcace8021936a14ef539a4"
+      },
+      "compiled_host_commit": "7525ccb28c57d57a1ef579a95a71e105396ce607",
+      "compiled_core_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "scope": "Real page16 selected XLSX, displayed old-success text matched, trusted question input and preview click returned200; saved request/context/plan material all pin successful job and transform2 instead of newer cancelled job. Root independently checked captured payload equality and unchanged jobs/job_outputs/machine_tasks rows. No new conversion/cancel/model call.",
+      "boundary": "Original01 route failure and02 collector KeyError remain FAIL. Collector assumed plan.material but actual plan.context.material/plan.request.material; latest-cancelled-status visibility assertion was not reached. Native component evidence is PARTIAL, not full journey PASS. Inner binding UNVERIFIED; parent explicitly pins7525Host and5822Core. No installed/Green/Owner acceptance."
     }
   },
   "cleanup": {
@@ -1408,9 +1511,9 @@
     "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green current5822 program deployment and isolated native startup PASS; real-user-data launch and Owner acceptance not executed; no public release.",
     "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
     "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass.",
-    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; wider semantic/visual fidelity and same-workspace full J1 still unqualified; no separate automatic binary-to-Document filling requirement is inferred; OCR/media/light-format integration receipts retain older Core identities.",
-    "UF09/BE-P10: correction label renders; details remain NOT_VERIFIED because an unrelated restored pending answer correctly blocks overwrite. Resolve through existing explicit Core status/end workflow if permitted or use a traceable completed synthetic fixture. No matching completed task currently exists; no guard bypass.",
-    "Reader material job pin/draft preservation source fix:86component tests/typecheck/frontend production build PASS; current Host/Green still predates this change. Native and installed qualification of this fix remain open."
+    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; filesystem folder discovery/batch loss-resume and full native J1 plus wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; OCR/media/light-format integration receipts retain older Core identities.",
+    "UF09/BE-P10: traceable no-pending historical backup clone now passes correction/original-answer/submitter/basis native DOM equality on7dHost/Core5822. Old unrelated pending guard and FAIL stay correct and preserved. Full scrolling/visual and installed/current-candidate acceptance remain separate.",
+    "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native outcome is exactly verification.reader_material_pin_native_7525; installed/Green remain5822 and have not received this source fix."
   ],
   "receipts": {
     "qualified_build": {
@@ -2414,5 +2517,5 @@
     "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
     "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
   ],
-  "latest_observed_at": "2026-10-23T23:23:59.510406+00:00"
+  "latest_observed_at": "2026-10-23T23:47:31.216129+00:00"
 }
