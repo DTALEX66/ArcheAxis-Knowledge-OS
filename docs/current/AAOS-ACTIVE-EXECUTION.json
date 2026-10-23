@@ -1373,7 +1373,7 @@
       "boundary": "Independent of original answer and intervention authorship; not blinded, Owner, representative quality, or semantic duplicate/conflict/applicability acceptance."
     },
     "correction_presentation_fix": {
-      "status": "SOURCE_FIXED_LOCAL_SIMULATED_UI_TESTS_PASS_NOT_REBUILT",
+      "status": "SOURCE_FIXED_LOCAL_UI_TESTS_AND_NEW_HOST_BUILD_PASS_GREEN5822_UNCHANGED",
       "task_ids": [
         "UF09",
         "BE-P08",
@@ -1403,7 +1403,8 @@
         }
       },
       "verification": "RED reproduced incorrect failure label; GREEN46 panel tests and typecheck PASS; final10 tests additionally preserve genuine answer-failure presentation.",
-      "boundary": "Bridge-fixture UI tests, not native UI, candidate rebuild, installed qualification or Owner acceptance. Existing compiled5822 candidate retains original text."
+      "boundary": "Original bridge-fixture tests retain their scope; later 7d953 frontend/Host component build is separately qualified by correction_ui_host_build_7d953. Existing Green/candidate compiled5822 retain original label; no current-HEAD Core, portable/installed or Owner qualification inferred.",
+      "historical_source_only_status": "SOURCE_FIXED_LOCAL_SIMULATED_UI_TESTS_PASS_NOT_REBUILT"
     },
     "common_formats_current5822": {
       "status": "PASS_CURRENT5822_COMPONENT_INTEGRATION_ONLY",
@@ -1515,6 +1516,35 @@
         "sha256": "344d5d1858e095bd05aeb4a7c80b3c95c1aed90bd1faa1e88c36251cf6fbb4bf"
       },
       "real_user_data": "NOT_OPENED_OR_OVERWRITTEN"
+    },
+    "native_four_format_reader_current5822": {
+      "status": "PASS_REAL_NATIVE_IMPORT_CONVERSION_SOURCE_READER_REOPEN",
+      "checkpoint_key": "verification.native_four_format_reader_current5822",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-native-four-reader-prep-20261024-02/artifacts/root-independent-readback.json",
+        "bytes": 2973,
+        "sha256": "0a0bf33faea168a5c570b78896a911e3a18060007bfafb16889852ae690b657a"
+      },
+      "source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595"
+    },
+    "correction_ui_host_build_7d953": {
+      "status": "PASS_LOCAL_FRONTEND_HOST_BUILD_REUSED_CORE",
+      "checkpoint_key": "verification.correction_ui_host_build_7d953",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-ui-host-7d953-20261024-01/artifacts/ui-host-component-binding.json",
+        "bytes": 13202,
+        "sha256": "7a95719302b70595c135dd58122142bfb336e159e168e095130c1af89b71b5b4"
+      },
+      "source_commit": "7d953cc98a0bce31baab12dd985aebfbb2aebb94"
+    },
+    "correction_history_native_followup": {
+      "status": "FAIL",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-03/artifacts/parent-display.json",
+        "bytes": 2406,
+        "sha256": "68f97107dcc4f88c0c8438156d64330a290ed4b1b10de2289721e6b44cf5f801"
+      },
+      "checkpoint_key": "verification.correction_history_native_followup"
     }
   }
 }

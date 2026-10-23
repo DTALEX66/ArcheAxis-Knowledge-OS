@@ -901,7 +901,7 @@
       "boundary": "Independent of original answer and intervention authorship; not blinded, Owner, representative quality, or semantic duplicate/conflict/applicability acceptance."
     },
     "correction_presentation_fix": {
-      "status": "SOURCE_FIXED_LOCAL_SIMULATED_UI_TESTS_PASS_NOT_REBUILT",
+      "status": "SOURCE_FIXED_LOCAL_UI_TESTS_AND_NEW_HOST_BUILD_PASS_GREEN5822_UNCHANGED",
       "task_ids": [
         "UF09",
         "BE-P08",
@@ -931,7 +931,8 @@
         }
       },
       "verification": "RED reproduced incorrect failure label; GREEN46 panel tests and typecheck PASS; final10 tests additionally preserve genuine answer-failure presentation.",
-      "boundary": "Bridge-fixture UI tests, not native UI, candidate rebuild, installed qualification or Owner acceptance. Existing compiled5822 candidate retains original text."
+      "boundary": "Original bridge-fixture tests retain their scope; later 7d953 frontend/Host component build is separately qualified by correction_ui_host_build_7d953. Existing Green/candidate compiled5822 retain original label; no current-HEAD Core, portable/installed or Owner qualification inferred.",
+      "historical_source_only_status": "SOURCE_FIXED_LOCAL_SIMULATED_UI_TESTS_PASS_NOT_REBUILT"
     },
     "common_formats_current5822": {
       "status": "PASS_CURRENT5822_COMPONENT_INTEGRATION_ONLY",
@@ -1101,6 +1102,134 @@
       "legacy_release_identity": "PRESERVED_OLD_METADATA_NOT_CURRENT_DEPLOYMENT_IDENTITY",
       "new_source_ui_correction_label_fix": "COMMITTED_F258_NOT_INCLUDED_IN_COMPILED5822",
       "qualification_boundary": "Exact current5822 program deployment and fresh isolated native startup only; earlier installed business/lifecycle receipts remain separate. No default real-user-data launch, data migration, representative quality, real cloud, hosted CI, release or Owner acceptance inferred."
+    },
+    "native_four_format_reader_current5822": {
+      "status": "PASS_REAL_NATIVE_IMPORT_CONVERSION_SOURCE_READER_REOPEN",
+      "task_ids": [
+        "CL-02",
+        "J1"
+      ],
+      "compiled_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "probe_source_head": "7d953cc98a0bce31baab12dd985aebfbb2aebb94",
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/current5822-native-four-reader-prep-20261024-02/artifacts/root-independent-readback.json",
+        "bytes": 2973,
+        "sha256": "0a0bf33faea168a5c570b78896a911e3a18060007bfafb16889852ae690b657a"
+      },
+      "terminal_summary": {
+        "path": ".project-local/runs/be268a2d33/current5822-native-four-reader-prep-20261024-02/artifacts/four-format-native-reader-terminal-summary.json",
+        "bytes": 8695,
+        "sha256": "468cba7293069395f7fd5929436f95e5314a6bda15036dd09c1d67e879c837a7"
+      },
+      "native_receipt": {
+        "path": ".project-local/runs/be268a2d33/webdriver-c4ecb9d18948/tmp/journey/receipt.json",
+        "bytes": 18147,
+        "sha256": "205e261d044182e99924217a4dbcc23c8565f086bcadf471a8ad1d014378ec65"
+      },
+      "candidate_binding": {
+        "path": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/candidate-binding.json",
+        "bytes": 5303,
+        "sha256": "ae1271bab2f26e28b84932d7ca6397d2fa624e31c46322db684cc2201c60125f"
+      },
+      "backend_runtime_manifest_sha256": "f6759ff41e1210fd4e02ae1c4bf6d4cbabfa199a3300060e6e583e2ca3b56789",
+      "fixed_webview_runtime_manifest_sha256": "d465623969d3ba9ac271deb6fb81865007261e20c93dd723ff65c38144bc89f7",
+      "manifest_label_clarification": "Summary candidate.runtime_manifest_sha256=d465... is the Fixed WebView runtime manifest. Backend runtime manifest is the distinct f675... file pinned explicitly here. Original summary retained unchanged.",
+      "formats": [
+        "docx",
+        "pdf",
+        "pptx",
+        "xlsx"
+      ],
+      "inner_binding": "UNVERIFIED_PARENT_EXACT_CANDIDATE_BOUND",
+      "real_ui_scope": "FILE_INPUT_CONVERSION_SOURCE_REOPEN",
+      "boundary": "Synthetic authored inputs, actual candidate native UI and Core output binding. No FolderIngest, auto Document filling, same-session full export/restore, full fidelity, installed replay or Owner acceptance.",
+      "preparation_failure": {
+        "path": ".project-local/runs/be268a2d33/current5822-native-four-reader-prep-20261024-02/artifacts/preparatory-argv-failure.json",
+        "bytes": 885,
+        "sha256": "93fdb4eec338df3fbc969e10fb72711790d07b3031c562e6c26b26a54807a18a"
+      },
+      "observed_at": "2026-10-23T22:58:00.302293+00:00"
+    },
+    "correction_ui_host_build_7d953": {
+      "status": "PASS_LOCAL_FRONTEND_HOST_BUILD_REUSED_CORE",
+      "task_ids": [
+        "UF09",
+        "BE-P08",
+        "BE-P10"
+      ],
+      "source_commit": "7d953cc98a0bce31baab12dd985aebfbb2aebb94",
+      "source_tree": "cb2023ab9e91576a821bc42764bcb253dece41d8",
+      "source_consistent": true,
+      "component_binding": {
+        "path": ".project-local/runs/be268a2d33/correction-ui-host-7d953-20261024-01/artifacts/ui-host-component-binding.json",
+        "bytes": 13202,
+        "sha256": "7a95719302b70595c135dd58122142bfb336e159e168e095130c1af89b71b5b4"
+      },
+      "frontend_build_receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-ui-host-7d953-20261024-01/artifacts/frontend-build.json",
+        "bytes": 867,
+        "sha256": "fba194532e65a6a68cbd417307349790424e55f98aff1ef10cb14d5522f4c258"
+      },
+      "execution_receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-ui-host-7d953-20261024-01/artifacts/execution.json",
+        "bytes": 1757,
+        "sha256": "c73cd6807d0b34314657b33250dd27603a83d17b01d380e55a96a113e3ede3b3"
+      },
+      "preserved_host": {
+        "path": ".project-local/runs/be268a2d33/correction-ui-host-7d953-20261024-01/artifacts/ArcheAxis.exe",
+        "bytes": 47363072,
+        "sha256": "43f00e85e62519d2994c8721d4ee9a3a21aaf342797ca15a74567b650ad3a90d"
+      },
+      "compiled_markers": {
+        "使用者纠正": true,
+        "已记录": true,
+        "提交的纠正依据": true
+      },
+      "frontend_members": 22,
+      "core_provenance": "REUSED_COMPILED5822_F915_NOT_CURRENT_HEAD_CORE_BUILD",
+      "boundary": "Official frontend/Host build passed for exact recorded current source. Core/runtime retain original 5822 provenance; no new current-HEAD Core or portable candidate qualification claimed. Full runtime closure not reaudited; exact Core/manifest pins read back. Compiled text marker presence is not native rendering acceptance.",
+      "installed_green": "UNCHANGED_COMPILED5822_WITH_OLD_LABEL",
+      "core_build_bundle_deploy": "NOT_EXECUTED",
+      "postbinding_failures": [
+        {
+          "path": ".project-local/runs/be268a2d33/correction-ui-host-7d953-20261024-01/artifacts/postbinding-attempt01-failure.json",
+          "bytes": 369,
+          "sha256": "0eba8f01006ac3a18dd81e86b86158775e18d4df83f59e52e66ec9570a1f46d6"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/correction-ui-host-7d953-20261024-01/artifacts/postbinding-attempt02-failure.json",
+          "bytes": 348,
+          "sha256": "5c3bc0d267f7bdac2be81b48ec0b0198565badffce9b3a6adc27d7d5ab01d15b"
+        }
+      ]
+    },
+    "correction_history_native_followup": {
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-03/artifacts/parent-display.json",
+        "bytes": 2406,
+        "sha256": "68f97107dcc4f88c0c8438156d64330a290ed4b1b10de2289721e6b44cf5f801"
+      },
+      "terminal_readback": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-03/artifacts/terminal-readback.json",
+        "bytes": 3093,
+        "sha256": "b058548df3bccf2cf2326e101efca283af4bf1596fde1196f9a38e08c5126dd1"
+      },
+      "native_receipt": {
+        "path": ".project-local/runs/be268a2d33/webdriver-9fecec61e835/tmp/journey/receipt.json",
+        "bytes": 19042,
+        "sha256": "ea9b4924bdb908ec42bf1f1bf81356a8048df0884c647f5f56fd50344b9cd2ed"
+      },
+      "reported_status": "FAIL",
+      "scope": "NEW_7D_HOST_OLD5822_CORE_CLONED_SYNTHETIC_HISTORY_NATIVE_LABEL_ONLY",
+      "history_label": "PASS_REAL_NATIVE_DOM",
+      "detail_recovery": "FAIL_TIMEOUT_BEFORE_RESTORED_RECEIPT_MESSAGE",
+      "author_basis_original_answer_detail": "NOT_VERIFIED",
+      "root_cause": "UNDETERMINED; no machine_task_get dispatch observed after trusted pointer click",
+      "no_new_inference": true,
+      "source_and_clone_three_tasks_unchanged": true,
+      "source_workspace_and_component_pins_unchanged": true,
+      "next_task": "UF09/BE-P10: establish stable target geometry and actual detail activation before attributing failure to product state or Core; retain native FAIL, no automatic rerun.",
+      "boundary": "New label rendering passed; full correction detail presentation did not. No model-quality, current-HEAD Core, portable/installed, Green or Owner acceptance inferred."
     }
   },
   "cleanup": {
@@ -1210,7 +1339,8 @@
     "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green current5822 program deployment and isolated native startup PASS; real-user-data launch and Owner acceptance not executed; no public release.",
     "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
     "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass.",
-    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Native four-format UI, automatic binary projection filling and wider semantic/visual fidelity not qualified; OCR/media/light-format integration receipts retain older Core identities."
+    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; automatic binary projection filling and wider semantic/visual fidelity not qualified; OCR/media/light-format integration receipts retain older Core identities.",
+    "UF09/BE-P10: new7d Host history label renders correctly, but native correction detail recovery timed out without machine_task_get dispatch; submitter/basis/original-answer detail NOT_VERIFIED, cause UNDETERMINED. Preserve exact FAIL and diagnose activation/state before any promotion to native or installed PASS."
   ],
   "receipts": {
     "qualified_build": {

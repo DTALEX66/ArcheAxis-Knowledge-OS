@@ -1510,3 +1510,14 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 - run01在任何目标写入前被Windows恰好260字符路径的Path.stat误报缺失中止；原FAIL、旧EXE哈希和备份读回保留。run02只将I/O转到现有native长路径接口，不改canonical路径校验、全局设置或ACL，新增精确候选RED→GREEN和深路径完整apply／rollback，15/15 PASS。root独立读回部署结果、程序三SHA、新归属、旧EXE备份及保留legacy身份；candidate-manifest本身不是部署成员，其SHA绑定候选原文件，首次root读回误取target路径的准备错误已旁置记录。
 - 实际部署根收据 `.project-local/artifacts/dual-loop-resume-20261023/green-root-entry-current5822-02/root-deployment-result.json`，SHA `3ca7b74b26f714ed4f0a32ba79da20e754e1997a738a3717af138acb27c672a1`。随后同一Green EXE在fresh ignored工作区原生启动一次，backend ready、数据库实体路径、空sources／documents／snapshots、owned WebView截图及正常整个Host退出0通过，自有后代与端口无残留。第一次startup仅因扩展路径与普通路径文本比较失败，ready及退出已通过；原FAIL保留，后继改用严格samefile实体校验，错误文件反例不通过，其余断言未放宽。精确新父层／内层收据和SHA见统一检查点 `verification.green_deployment_current5822`；内层compiled binding UNVERIFIED保持，父层绑定真实部署收据和程序三SHA，非借用后继HEAD编译身份。
 - 编译产品仍582267f3，后继f258纠正归因UI源码修复尚未重建进入Green。该结果仅是程序部署与隔离空库启动，非默认真实用户库迁移、此次完整业务重跑或Owner验收。已有安装业务、生命周期与同版本跨构建回退保持各自证据；真实云、代表性可靠性及托管CI仍未完成，公开发布未执行，监控暂停，整体PARTIAL。
+
+
+### 2026-10-24 四格式真实原生阅读与纠正标签 Host 构建（CL-02／J1／UF09／BE-P08／BE-P10，局部 PASS；整体 PARTIAL）
+
+- 固定5822候选的 DOCX／XLSX／PPTX／文本PDF通过实际原生文件输入导入、UI点击真实转换、导航重开来源阅读器：原件字节／SHA、中文语义片段、正文／结构／损失／quality／输出哈希和每个成功Core任务读回均通过，重开显示正文与各自精确Core job逐字一致。只复用原probe helpers，未重跑18格式、模型或完整旅程；不是FolderIngest、自动job→Document或本轮同工作区完整导出恢复。首次PowerShell只读$Host变量碰撞发生在任何Host／WebDriver启动前，独立准备错误保留；实际旅程只有一次，正常Host退出0、owned进程及端口无残留。
+- native收据 `.project-local/runs/be268a2d33/webdriver-c4ecb9d18948/tmp/journey/receipt.json`，SHA `205e261d044182e99924217a4dbcc23c8565f086bcadf471a8ad1d014378ec65`；root独立核4种格式／4来源／job正文绑定、原候选四pins与原binding，内层UNVERIFIED保持，父层绑定compiled5822。汇总中通用runtime_manifest字段d465指Fixed WebView；backend-runtime-manifest是独立f675，原汇总不改，root读回明确两者，避免混用。
+- 纠正归因UI修复已离线编译为7d953源码的frontend＋Host，本次只构建一次约56秒，sourceconsistent、22个frontend成员和新标签marker通过；新Host SHA `43f00e85e62519d2994c8721d4ee9a3a21aaf342797ca15a74567b650ad3a90d` 已在自有run独立保存。Core/runtime仍是原5822来源，未用--core-build-receipt，不能称当前HEAD Core／整包资格；旧候选与Green均不变，未复制runtime或打新NSIS。正式buildreceipt与component binding、两次采证准备错误沿统一检查点 `verification.correction_ui_host_build_7d953` 导航，构建没有因采证错误重跑。编译marker本身不证明原生呈现。
+
+- 新Host既有纠正历史原生核验终态FAIL：真实DOM“使用者纠正·已记录”断言通过，随后可信pointer点击“查看这次任务”，等待恢复回执提示30秒超时；未观察到machine_task_get dispatch，提交者／依据／原回答详情断言未到达，根因仍UNDETERMINED，不能直接归咎模型、Core或丢失资料。原run04合成工作区12文件、输入pins和3条machine_tasks完全不变，无新推理；正常Host退出0、后代／端口0。准备01导入dev和02导航回调接线错误各自保留，03真实详情FAIL后停止，未放宽断言。仅7d Host＋旧5822 Core＋合成历史副本，父层稳定终态和内层收据见 `verification.correction_history_native_followup`；本次不改Green身份，不冒充完整原生呈现、模型质量或Owner验收。后继仍沿UF09／BE-P10定位真实点击激活／状态，不重开全量审计。
+
+- 本节明确接续前文“四格式原生UI待验／UI尚未编译”的当前结论，旧收据原状保留。四格式其他导出恢复API组件仍按各自独立工作区和对象记录，不拼成单次全原生闭环。真实云、代表性知识可靠性、Owner和托管CI仍待完成，外部原始上下文NOT_CONNECTED，监控暂停，整体PARTIAL。
