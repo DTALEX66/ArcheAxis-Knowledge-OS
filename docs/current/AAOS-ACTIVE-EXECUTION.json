@@ -1,5 +1,35 @@
 {
+  "ai_context_separation": {
+    "authority": "docs/current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md",
+    "decision": "Only AI raw cross-project/agent context belongs to EXTERNAL_CONTEXT_PROVIDER; human learning unchanged",
+    "state": "LOCAL_BOUNDARY_TESTED",
+    "external_connection": "NOT_CONNECTED",
+    "receipt": "docs/history/project-drift-audit-20261021/ai-context-separation-20261023.json",
+    "other_development": "NOT_STARTED",
+    "overall": "PARTIAL",
+    "observation_scope": "LOCAL_BOUNDARY_TESTED and other_development=NOT_STARTED describe the earlier AI-only unit. They do not freeze subsequent human development or qualify the complete AI loop. Owner latest scope is owner_scope_current."
+  },
   "schema": "archeaxis.active-execution/v1",
+  "usable_release_and_launcher_decision": {
+    "id": "OWNER-USABLE-KNOWLEDGE-LAUNCHPAD-20261022",
+    "decided_at": "2026-10-22",
+    "normative_ref": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
+    "normative_sections": [
+      19,
+      20
+    ],
+    "archive_ref": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+    "design_ref": "docs/history/owner-dialogue-20261022-desktop-launcher/DESIGN.md",
+    "scope": "First usable common-format capture/import-to-knowledge-to-display/learning loop; finite selected personal knowledge-software features; other OSS and complex capabilities deferred",
+    "ui": "Add an icon launchpad within existing Stitch UI; reuse existing business views and Core, converge Dock and duplicate navigation; standard icon library selection, visible glass material rather than opaque cards",
+    "concept_state": "LAYOUT_REFERENCE_ONLY_ICONS_REJECTED_BY_OWNER_NOT_IMPLEMENTED_NOT_VISUALLY_ACCEPTED",
+    "authorization": "Owner subsequently resumed: 根据新的规划和闭环开始执行. Implement the selected usable-release loop and Stitch launchpad/material/icon corrections; optional expansion stays frozen; monitor remains paused",
+    "development_state": "IN_PROGRESS_SOURCE_IMPLEMENTATION; qualification in sole execution record",
+    "latest_visual_checkpoint": "docs/history/project-drift-audit-20261021/stitch-material-review-20261023.json",
+    "latest_closed_loop_checkpoint": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json",
+    "automatic_backlog_expansion": false,
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+  },
   "selected_at": "2026-10-09",
   "authorization": "Owner explicitly requested parallel handoff execution, new layout/architecture, palette preservation/uniformity, then G01 authority/index/description alignment; Owner explicitly prioritized G01; Owner requested comprehensive execution prioritizing governance and UI; Owner 2026-10-11 explicitly resumed complete core framework, common formats and shortest closed loop",
   "active_taskpack": "docs/taskpacks/aaos-ui-first-20261009",
@@ -84,13 +114,32 @@
     "docs/current/AAOS-UI-REFERENCE-DIRECTION-20261015.json"
   ],
   "execution_control": {
-    "state": "PAUSED_BY_OWNER",
-    "instruction": "Owner: 完成本次后暂停；当前单元收尾后停止开发和长链，明确恢复后才继续。",
+    "state": "RUNNING_BY_OWNER",
+    "permission_recovery_current": {
+      "observed_at": "2026-10-23T00:10:02Z",
+      "state": "PERMISSIONS_RECOVERED",
+      "record": "docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json",
+      "supersedes": "permission_blocker_previous is historical; previous cloud-execution-blocker checkpoint is retained",
+      "python": "Canonical Python3.13.14 and canonical subprocess startup PASS",
+      "git": "Official Git temporary ref create/readback/delete PASS; HEAD, branch and staging unchanged",
+      "whole_scope": "PARTIAL; formal build, runtime, cloud production and delivery not qualified by permission checks",
+      "monitor": "PAUSED_UNCHANGED"
+    },
+    "permission_blocker_previous": {
+      "observed_date": "2026-10-23",
+      "record": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json",
+      "python": "canonical -V denied: uv child os error5",
+      "git": "current .git read-only",
+      "whole_goal": "PARTIAL_NOT_COMPLETE",
+      "owner_authorization": "RETAINED; not an Owner pause",
+      "monitor": "PAUSED_UNCHANGED"
+    },
+    "instruction": "Owner resumed finite human AND AI knowledge/learning closed loops and their permissioned connection in this successor session. Continue under existing CL-01..07/J1..6 and original task IDs; monitor and future extensions remain paused/deferred.",
     "whole_scope": "PARTIAL",
     "owner_resume_record": "docs/current/AAOS-OWNER-RESUME-20261018.json",
     "previous_resume_record": "docs/current/AAOS-CLOSED-LOOP-OWNER-RESUME-20261011.json",
     "automatic_continuation": false,
-    "continuation_scope": "Owner latest: audit/fix drift and connect all existing pages/shared shell to received Stitch UI; frontend UI-P01..24 and backend BE-P01..15 proceed in parallel, one writer per checkout. Same-candidate CL-01..07/J1..6 remains the full acceptance boundary. The active quota guard only checks allowance; it does not start unrelated development.",
+    "continuation_scope": "Human ingestion/research/knowledge/learning/recovery plus AI candidate governance/authorized use/correction/retest/revision/recovery and their permissioned connection, under existing CL-01..07/J1..6. Preserve finite first-release scope, Stitch-only UI and existing freeze/data/deployment boundaries; no automatic monitoring resumption.",
     "previous_stop": {
       "state": "PAUSED_BY_OWNER",
       "stopped_after": "UF13 started local slice",
@@ -422,6 +471,8 @@
     "history": "Inherited F16 and frozen evidence retained; current decision supersedes professional native-format scope"
   },
   "continuation_context": {
+    "latest_owner_discussion_archive": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+    "latest_design_correction_ref": "docs/history/owner-dialogue-20261022-desktop-launcher/DESIGN.md",
     "purpose": "换 Agent / 换会话先沿固定入口读回，不从旧摘要、私人记忆或默认安装位置推导当前事实",
     "read_order": [
       "AUTHORITY.md",
@@ -434,6 +485,8 @@
       "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     ],
     "resource_navigation": {
+      "owner_dialogue_20261022_launcher": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+      "owner_dialogue_20261022_manifest": "docs/history/owner-dialogue-20261022-desktop-launcher/MANIFEST.json",
       "source_archive": "AAOS-资料索引.md",
       "path_identity": "docs/current/AAOS-AUTHORITY-ROUTES.json",
       "shared_roots_and_developer_tools": "docs/SHARED_RESOURCE_PATH_INDEX.md",
@@ -552,6 +605,8 @@
     "boundary": "All existing business pages and shared UI follow received Stitch design and connect real consumers in parallel. Preserve Rust sole SQLite/CAS writer, existing renderers, ordinary-save policy, five themes and valid preferences, LM Studio route, freeze/data/paid-call/release boundaries. Historical frontend-only and backend-first orders are superseded; no completion claim.",
     "design_ref": "docs/current/AAOS-STITCH-UI-INTEGRATION-20261021.md",
     "scope_control": {
+      "subsequent_decision_ref": "#/usable_release_and_launcher_decision",
+      "subsequent_scope": "Owner restated finite first-usable knowledge transformation, selected existing personal knowledge features and common formats; launcher/design research does not activate new product development or inventory-wide compatibility work",
       "id": "OWNER-FUTURE-MARKET-BOUNDED-SCOPE-20261022",
       "owner_decided_at": "2026-10-22",
       "source": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md",
@@ -702,6 +757,32 @@
       "ci": "NOT_EXECUTED; native actions/runs head_sha query returned zero runs at observation",
       "final_handoff_commit": "This delivery readback is now saved in a follow-up documentation commit; read current Git/native branch ref for that final SHA",
       "merge_release_install": "NOT_EXECUTED"
+    },
+    "latest_branch_observation_20261024": {
+      "operation": "READ_ONLY",
+      "refs": {
+        "codex/sync-20261019": "95b463c12dbd40744b43039add69c48ceaeba94e",
+        "main": "8d367bac4a85bebfbb523503678ade0838faa73e",
+        "codex/ui-polish-20261013": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e"
+      },
+      "git_and_api_agree": [
+        "codex/sync-20261019",
+        "main"
+      ],
+      "remote_receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/branch-remote-readback-20261024.json",
+        "sha256": "bad083a1e1c56a4154dd7daa2d3ea2a2d13484a2031e26898c14c87e9e74e529",
+        "bytes": 1175
+      },
+      "semantic_review_receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/branch-local-delta-check-20261024.json",
+        "sha256": "2ff8e2a138c103df7e0098ff68e32156dd0367d3d581826a7b648f21d90c91b3",
+        "bytes": 7784
+      },
+      "merge_authorization": "GRANTED_CURRENT_DELIVERY_SCOPE",
+      "merge_decision": "NO_NECESSARY_MERGE_IDENTIFIED_AFTER_SEMANTIC_REVIEW",
+      "explanation": "Required closure-machine and reader-inspector behavior already exists; glass changes equivalent, Avalonia superseded, ASTRYN optional scope frozen. Decision is usefulness-based, not missing merge authorization.",
+      "boundary": "Committed branch HEAD95b matches readback; dirty source/evidence NOT_PUBLISHED. No new commit/push/merge/CI inferred."
     }
   },
   "visual_pause_delivery_readback": {
@@ -720,5 +801,74 @@
     "ci": "NOT_EXECUTED_FOR_THIS_SHA",
     "merge_release_green": "NOT_EXECUTED",
     "boundary": "This readback is saved in a follow-up documentation commit. Resolve its final SHA from Git/native ref; no self-referential SHA is invented."
+  },
+  "owner_scope_current": {
+    "date": "2026-10-23",
+    "id": "OWNER-HUMAN-AI-DUAL-LOOP-20261023",
+    "owner_statements": [
+      "人类侧不冻结，还是按照闭环执行",
+      "最新讨论的都是人类侧 闭环应该还要包括AI侧啊"
+    ],
+    "state": "RUNNING_BY_OWNER",
+    "overall": "PARTIAL",
+    "human_learning": "CONTINUE_EXISTING_CLOSED_LOOP",
+    "ai_learning": "CONTINUE_EXISTING_CANDIDATE_GOVERNANCE_KNOWLEDGE_USE_CORRECTION_RETEST_LOOP",
+    "bidirectional_connection": "PERMISSIONED_SHARED_KNOWLEDGE_EVIDENCE_VERSION_AND_RECOVERY",
+    "external_raw_context": "EXTERNAL_CONTEXT_PROVIDER_NOT_CONNECTED",
+    "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十二人类与ai双侧闭环继续交接时的最新范围2026-10-23",
+    "loop_definition": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+    "supersession": "SUP-028",
+    "monitor": "PAUSED_UNCHANGED",
+    "future_extensions": "DEFERRED_UNCHANGED",
+    "this_turn": "ACTIVE_SUCCESSOR_EXECUTION_RESUMED_BY_OWNER"
+  },
+  "thread_handoff": {
+    "date": "2026-10-23",
+    "snapshot": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
+    "manifest": "docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json",
+    "coverage": "Visible owner dialogue, effective decisions, implementation units, original evidence/failures and remaining human/AI/bidirectional qualifications; not a raw native-session export",
+    "sole_execution_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "this_turn": "DOCUMENTATION_ONLY",
+    "commit_push": "NOT_EXECUTED",
+    "remote_exact_sha": "UNVERIFIED",
+    "role": "FROZEN_PREDECESSOR_SNAPSHOT_NOT_CURRENT_EXECUTION_STATE"
+  },
+  "current_execution": {
+    "date": "2026-10-24",
+    "state": "RUNNING_BY_OWNER",
+    "overall": "PARTIAL",
+    "checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
+    "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "scope": "Finite human + AI + permissioned connection; preserve latest closed-loop definition, Stitch-only UI and existing frozen/deferred boundaries",
+    "execution": "Parallel bounded write sets; task/model/reasoning matched; avoid repeated full audits and unnecessary branch merges",
+    "routing": "COMPLETE targeted7 current route/index files,41 reference targets; historical status explicitly not current authority",
+    "monitor": "PAUSED_UNCHANGED",
+    "commit_push": "PREPARED_PENDING_PUBLIC_COMMIT_PUSH_AS_AT_THIS_CHECKPOINT",
+    "remote_exact_sha": "BASE95b_AND_MAIN8d_VERIFIED_GIT_AND_API_BEFORE_NEW_COMMIT; CURRENT_DELIVERY_REQUIRES_FRESH_READBACK",
+    "latest_qualified_candidate": ".project-local/runs/be268a2d33/fixedwv-portable-20261024-01/artifacts/星环便携候选",
+    "qualified_source_patch": "3407e8083f261bc563df06f24398cfa08338a47fd4136df344b08741461c4dfc",
+    "post_build_delta": "FROZEN3407_BINARY_UNCHANGED; CURRENT_GENERATED_UI_HOST_RESOURCE_AND_RUST_FORMAT_SOURCE_DELTA_NOT_REBUILT",
+    "native_additional": "PASS_FIXED_HUMAN_CLOSURE_AND_ACTUAL_FIXED_BROWSER; AI_SEPARATELY_NATIVE_AI_LATEST; OWNER_NOT_EXECUTED",
+    "cloud": "IMPLEMENTED_LOCAL_MOCK_PASS_REAL_PROVIDER_NOT_EXECUTED",
+    "installer": "LOCAL_INSTALL_LIFECYCLE_PASS; CI_CANDIDATE_AND_PUBLIC_RELEASE_NOT_QUALIFIED",
+    "local_model_latest": "PASS_ACTUAL_CURRENT_FIXED_ASSET_CONSUMPTION_CACHE_REVOKE_COLD; HISTORICAL_TIMEOUT_ROOT_CAUSE_UNDETERMINED",
+    "public_research": "REAL_THREE_SOURCES_PASS_PROCESS_PROXY; cloned synthetic governance component PASS, not Owner approval",
+    "native_ai_latest": "RUN03_REAL_ANSWER_RETEST_CONFIG_COMPONENTS_PASS_PARENT_FAIL; CLONED_SUFFIX_ONLY_PASS; WHOLE_LOOP_PARTIAL_NOT_OWNER",
+    "ai_governance_latest": "PASS8_ACTUAL_CORE_NEGATIVE_SYNTHETIC_REVIEW; SEMANTIC_TRUTH_AND_OWNER_NOT_PROVEN",
+    "common_formats_latest": "PASS8_FIXED_CORE_LIGHT_FORMATS_WITH4_NEGATIVES_AND_COLD_READ; NOT_NATIVE_FORMAT_ROUNDTRIP",
+    "installed_business_latest": "VM_DISAPPEARED_BEFORE_RESULT_CAUSE_UNDETERMINED; DRIVER_DLL_DIAGNOSED; SETTINGS_SOURCE_UNIT_FIX_RUNTIME_UNVERIFIED",
+    "delivery_observation_at": "2026-10-23T20:21:20.557382+00:00",
+    "delivery_receipt": ".project-local/artifacts/dual-loop-resume-20261023/delivery-latest-20261024.json",
+    "ci": "NOT_EXECUTED_AT_THIS_CHECKPOINT",
+    "final_public_preflight_20261024": {
+      "status": "LOCAL_PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/dual-loop-delivery-preflight-20261024-04/artifacts/local-ci.json",
+        "bytes": 1009726,
+        "sha256": "711600dbaa52d30af89836738480a3326f96807e99c4e021c57e7963c818ffb9"
+      },
+      "archive_custody": "12_EXACT_RAW_INDEX_CHECKOUT_HASHES_PASS; 89_REGRESSION_TESTS_PASS",
+      "ci": "NOT_EXECUTED_AT_THIS_CHECKPOINT; EFFECTIVE_MAIN_RULESET20849492_REQUIRES_A0_GATES"
+    }
   }
 }

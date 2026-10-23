@@ -200,14 +200,30 @@ _PRESERVED_PACKAGE_MEMBER_HASHES.update({
         'f1b0d6ff2659d4f1dead214049978c20f310426f782ac910840d65055125d835',
 })
 
+_PRESERVED_PACKAGE_MEMBER_HASHES.update({
+    # Exact frozen archive members and receipt manifests; no directory exemption.
+    "docs/history/rules-entry-repair-20261023/MANIFEST.json": "d5eedd9bb4bb09adaf24e07dfc99e0944aaa98cce65ddbba56ae02610ac34a03",
+    "docs/history/rules-entry-repair-20261023/before/AGENTS.md": "2c7a6dcc48e311b341b211a89622aafe84781601045b9a52316c55d53f59561c",
+    "docs/history/rules-entry-repair-20261023/before/AUTHORITY.md": "b699320b799befed10a271a67d10cc0a2c68f7c396e345eb8936f9d1cc578d24",
+    "docs/history/rules-entry-repair-20261023/before/CLAUDE.md": "1c3d976d6c650a81a610ecd7dff1d93fe2bab39b183f530a1a6f608814217fd3",
+    "docs/history/rules-entry-repair-20261023/before/GEMINI.md": "7f3471aa7de94eda27e7dd6293ef32b2b292dbc881b7854a914b5213087a5f7f",
+    "docs/history/rules-entry-repair-20261023/before/docs/DOCUMENTATION_AUTHORITY_INDEX.md": "0daa0139a28257ce9758baa6263ad66f23ce352b81e9555f85ca33d9b9ef59e0",
+    "docs/history/owner-dialogue-20261022-desktop-launcher/MANIFEST.json": "a16b5bab777b7c20d9d522c0960984afc59adfa2486ca93db72b859e3cb5ae2e",
+    "docs/history/owner-dialogue-20261022-desktop-launcher/verify_archive.ps1": "bde22bd870ba5252c2d2eb60fe91d1bb2ec716d5196bde4725579f859dcad007",
+    "docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json": "96164bc842302770632ff7c145f51a8c47c492277364aa5d17eba40693d5f970",
+    "docs/history/oss-absorption-evidence/20261024-resource-source-binding/MANIFEST.json": "077a866c85d9c65eb378245c5a1ada154d2fb270d91c3a8d89f47924fd77a00a",
+    "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a",
+    "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09",
+})
+
 # This DP audit intentionally quotes a superseded product name as branch
 # evidence. Pin the exact report bytes so it remains evidence, not a wildcard
 # naming exemption.
 _PRESERVED_HISTORICAL_REPORT_HASHES = {
     "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.md": "def1136dd39c48db9a04cf149fccee2a6744d64a5053ef3ffb498b50eeb1d959",
     "docs/history/repository-consolidation-20261019/current/dsh-review/branch-batch-03.json": "1d3d6ba80319d4445c771f54802cb46c4c6ed74bdcd662338e74324078d6ff53",
-}
 
+}
 # Generated branch/lineage audit receipts quote historical commit subjects and
 # paths verbatim, so retired product names appear inside them by design. They
 # are evidence, not present-day naming surfaces: rewriting them would falsify

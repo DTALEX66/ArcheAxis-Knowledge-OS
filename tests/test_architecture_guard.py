@@ -200,6 +200,24 @@ def test_architecture_guard_covers_each_lower_runtime_boundary(
     ]
 
 
+def test_architecture_guard_distinguishes_url_route_prefix_from_workspace_path(
+    tmp_path: Path,
+):
+    from scripts.check_architecture import scan_architecture
+
+    _write(
+        tmp_path,
+        "scripts/local_browser.py",
+        "from urllib.parse import urlsplit\n"
+        "url = urlsplit('http://127.0.0.1:8080/')\n"
+        "matches_route = url.path.startswith('/workspace/api')\n"
+        "WORKSPACE_FILE = '/workspace/api'\n",
+    )
+    assert [(issue.line, issue.code) for issue in scan_architecture(tmp_path)] == [
+        (4, "forbidden-absolute-path")
+    ]
+
+
 def test_architecture_guard_accepts_current_grandfathered_tree():
     from scripts.check_architecture import scan_architecture
 

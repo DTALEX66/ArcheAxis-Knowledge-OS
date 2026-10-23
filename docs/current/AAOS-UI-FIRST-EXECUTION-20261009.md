@@ -1227,3 +1227,220 @@ Owner查看界面后指出质感未达到Stitch原图；后继明确“完成本
 后续仅在Owner恢复后：先修原生阅读工具可达性；再处理本地最终回答与产品自有云绑定；同候选补齐必要CL/J、安装与Owner视觉验收。暂停前仅做当前公开代码/脱敏检查点/指针/交接的正常commit/push及exact-SHA回读；不merge/release、不上传运行库/原始会话/凭据/大回执。最终SHA从Git与远端读取，提交内不伪造自指SHA。
 
 暂停交付回读：本片14个公开任务文件已正常commit/push，代码检查点381d952d86f7f79c59cd4a5f49d9129da4c7d958，本地Git、git ls-remote及native GitHub ref三者一致，工作树当时干净。aaos PAUSED已核验。此回读保存为后续文档提交，最终文档SHA动态读Git/ref，不循环自指；未启动后续开发/CI/模型调用，未merge、安装或替换Green。
+
+## 2026-10-22 暂停后的首版／能力启动台／玻璃图标决定归档
+
+Owner本轮确认将讨论纳入项目权威，并后继要求玻璃材质和标准图标核查。仅完成文档、来源保全及定向只读设计研究，产品继续 `PAUSED_BY_OWNER / PARTIAL`，监控未恢复。规范在决定十九／二十节，替代记录SUP-026/027；唯一闭环定义、活动指针、根入口、交接、分片和来源索引已增加接续路由，不创建新TaskPack或第二进度表。
+
+统一归档：`docs/history/owner-dialogue-20261022-desktop-launcher/README.md`。五份Markdown与两张用户参考图原字节复制到项目ignored本地档案，逐份长度／SHA-256核对PASS；生成PNG作为项目设计参考保全，图标Owner否定状态明确。对话为当前可见讨论的脱敏摘录，未访问私人native sessions。冻结公开成员5项和本地来源7项由 `verify_archive.ps1 -IncludeLocalSources` 校验PASS，证据级别仅STRUCTURAL_ARCHIVE_ONLY；JSON／链接／diff检查另按本轮实际结果读回，不升级为产品测试或视觉PASS。
+
+设计研究：现有外窗已声明blur16px／88%不透明度，与原HTML一致；内部多类卡片使用不透明panel、标题栏使用raised底色，背景有叠加遮罩，说明仅核外窗参数不足。实际合成、性能、原生呈现及Owner视觉确认均NOT_EXECUTED。本轮原生Stitch get_screen读取登记screen元数据成功；未生成／编辑／应用新设计。官方Lucide React、Phosphor React、Material Symbols与MDN资料已只读核对，选型建议和候选参数写入归档DESIGN.md；未安装或锁定图标库，未改CSS／TSX。
+
+首版目标为有限的常用资料→识别定位→比较→知识→特色展示／学习→重启恢复；核心共享语义保留，专用能力逐步模块化。启动台只在现有Stitch增加菜单窗口，复用已有消费者；具体格式／兼容清单、Dock排列和图标版本仍待核定，六项冻结增量和其他OSS不激活。当前原生阅读工具可达性FAIL、本地模型无最终答案、云端NOT_EXECUTED及同候选／安装／Owner验收缺口全部保留。文档归档不替代修复，不启动产品／模型长链。Git提交／推送与最终SHA以当次实际工具回读为准，不在正文伪造自指SHA。
+
+本轮额外检查读回：JSON解析、暂停／监控不变、归档路由、SUP-026/027唯一ID及git diff --check PASS。新增归档链接目标已检查存在。尝试用项目.venv Python进行完整YAML解析时，uv trampoline被沙箱拒绝创建Python子进程（os error 5），该项BLOCKED，未提权、改ACL、换解释器或绕过；不能把结构ID检查当YAML完整解析PASS。产品测试仍NOT_EXECUTED。
+
+本轮交付边界：本地HEAD读回为 `95b463c12dbd40744b43039add69c48ceaeba94e`，分支 `codex/sync-20261019`。本轮 `git ls-remote --heads origin refs/heads/codex/sync-20261019` 因读取SSH known_hosts权限被拒绝、Host key verification failed而退出128；当前远端SHA为UNVERIFIED。当前沙箱对本仓库.git仅开放读取，未尝试写入、提权或绕过。上述新增归档及权威修订保留在工作树，尚未commit/push，不能宣称本轮双端一致；历史已发布SHA不替代本轮交付证据。
+
+## 2026-10-22 Owner恢复后：Stitch启动台、标准SVG及玻璃分层
+
+Owner最新要求“根据新的规划和闭环开始执行”，覆盖此前暂停，当前 `RUNNING_BY_OWNER / PARTIAL`。原计划／CL／J编号与范围不变，监控仍暂停，其他OSS／市场／通用运行时与六项增量不启动。本轮开始前确认工作树中上轮14份权威修订和未跟踪归档均保留，没有未知产品源码改动；主checkout唯一writer。根入口、活动指针、闭环定义与交接已写明恢复，不把历史暂停段删除或当成本轮事实。
+
+本轮实现（原UF01/UF06，映射UI-P02/08/09/18）：新增 `StitchLaunchpad` 菜单窗口，以原EFFECTIVE_NAVIGATION_ENTRIES／UI_PAGES／能力目录为唯一来源，支持常用／全部页面／扩展与未来、用途搜索、空结果、键盘关闭及焦点返回。点击原页面走App原导航／恢复／输入法／草稿守卫；拒绝离开时菜单保留。未来图标只进原能力说明，不启用或安装引擎。Dock收敛为工作台、知识、学习、研究、全部能力、小栖六入口，设置／AI／资源仍由启动台和原菜单可达；共享小栖会话、DockWorkspace和Rust Core语义保留，无新增后端真值或任务队列。
+
+图标从历史手写路径切到官方 `lucide-react@1.61.0` 统一SVG。安装仅frontend项目范围，官方npm registry、固定版本／integrity、禁lifecycle脚本，无其他lock条目升级；完整ISC及继承Feather MIT许可原字节保全并引用为Vite URL资产。供应链A054与THIRD_PARTY_NOTICES登记，命名导出、React18兼容、许可字节及登记数量检查PASS。未安装其他候选库，不更换已有Radix控件。玻璃按外窗／内部卡片／标题栏分层，减轻背景遮罩，修正知识、工作台、学习、研究相关公共表面的实色覆盖；减少透明、不支持backdrop及高对比保留回退。源码材质改动不等于视觉还原通过。
+
+验证：TypeScript检查最终exit0；5份定向回归36/36 PASS（启动台4、共用壳6、草稿与工作状态12、App/Dock11、日常导航3），证据SYNTHETIC。首轮33项中19FAIL／14PASS保留：新焦点断言未等Radix关闭回调、旧测试仍寻找Stitch已撤下的侧栏或旧导航窗口；改为真实当前控件并保留草稿／恢复／对象身份原断言后通过，未降低业务断言。项目 `npm run build` 仍exit1：uv trampoline创建Python子进程被拒绝os error5，正式构建BLOCKED；未换解释器、提权、改ACL或绕过。
+
+浏览器仅实际前端开发预览（Vite5.4.21、IAB、cosmic、362×686）：查看实际SVG、搜索“导入”进入原#page=16、未来CAP-0070进入原说明且无执行入口。启动台范围x16—346.4／y50—636.4、无页面横向溢出；结果区clientHeight316／scrollHeight939、overflowY auto。截图实际查看，路径与参数见检查点；未做末端触摸滚动、宽桌面、五主题全量、性能、减少透明的浏览器模拟或Owner视觉验收。无Core连接，数据不可用与桌面专属限制原样显示，未上传材料、调用模型或把预览当真实业务通过。最终回退选择器specificity修正仅源码审阅，截图不冒充该媒体模式实测。
+
+检查点：`docs/history/project-drift-audit-20261021/stitch-launchpad-checkpoint-20261022.json`，逐产品文件SHA绑定dirty工作树，不冒充已构建或已提交SHA。原始讨论归档冻结成员5／本地来源7再次校验PASS，git diff --check PASS；本轮自建IAB标签页关闭，Vite会话95274通过自身stdin终止并读回终态，未终止共享进程。
+
+### 2026-10-22 Owner玻璃材质与标准图标要求：桌面预览续修
+
+范围仅为已有Stitch窗口材质、启动台图标呈现与可见布局；无新增能力、无后端／模型执行。对照现有Stitch屏幕 `10243059433218383839 / 206611daf7a948edb97ea60c7a7d8654` 只读get_screen成功，未生成或覆盖原稿。标准图标沿用已锁定Lucide React 1.61.0，28px SVG、stroke 1.7；不沿用被否定的生成图大号彩色发光图标。
+
+实际1280×720浏览器预览发现新缺陷：`.space-view`设inline-size containment，继承auto inline margins，在flex列中收缩为0宽，工作台内容因此不可见；不能把空窗当材质问题全部用blur修复。当前Stitch作用域补充width:100%及border-box，读回业务宽781.6px，工作台内容可见，无页面横向溢出。保留此前0宽失败读数于本轮公开检查点。
+
+cosmic窗口／卡片／标题栏不透明度由72%／42%／32%调至62%／28%／20%，保留外窗20px、启动台24px backdrop blur及饱和度125%；启动台遮罩24%降至12%，添加克制内侧反光。浏览器实际截图已查看，可见背景明暗透过窗口和卡片，文字不随背景模糊。未修改其他主题材质参数；减少透明／无backdrop／强制色回退保留，但这些模式本轮未实测。
+
+验证：`node node_modules/vitest/vitest.mjs run src/__tests__/StitchLaunchpad.test.tsx src/__tests__/StitchWorkspaceChrome.test.tsx --reporter=dot` exit0、2文件10项PASS（SYNTHETIC）；浏览器INTEGRATED_FRONTEND_ONLY_NO_CORE，IAB1280×720、DPR1.25、cosmic、Segoe UI，工作台及启动台截图在 `.project-local/artifacts/stitch-glass-correction-20261022/`。这是实际前端呈现，不是正式构建、原生宿主、Green、Owner视觉验收或全链闭环PASS。上轮Python子进程os error5正式构建阻塞保留，当前无环境变化未重试；Git只读边界下未commit/push。此前原生来源工具不可达FAIL、本地模型无最终答案与云端NOT_EXECUTED保留，不由本轮UI修正推断消失。
+
+本轮检查点 `docs/history/project-drift-audit-20261021/stitch-glass-correction-20261022.json` 绑定当前两份CSS与截图SHA，不改写上一轮冻结检查点。自建IAB标签已关闭，Vite会话92924通过自身stdin停止并读回退出；未停止共享进程。仍PARTIAL，额度监控保持暂停。
+
+### 2026-10-22 阅读来源折叠区与Stitch验收消费者续修
+
+上轮目标回合归类PROGRESS：实际材质与零宽业务视图修正、浏览器读数及组件检查均有证据。本轮继续原CL/J缺口，无新增扩展。原生回执 `webdriver-65b88076c711/tmp/journey/receipt.json` 的最后动作表明：文档打开后探针对“整理此来源为知识候选”持续滚轮，再因No reachable scroll container失败；没有展开“整理关联来源”的动作。源码直接原因是 `open_reader_source_tools` 仍查询已移除的 `.ui-reader-page`，因此把新版可见details误判为不存在。不能将该FAIL直接解释成产品没有滚动容器，也不能凭源码修复改写原生FAIL。
+
+当前修正：按“阅读与编辑文档视图”语义region读取来源details，排除hidden／aria-hidden／inert，唯一summary存在才展开，展开后独立读取open状态，随后保留原可见性、真实滚轮及命中检查进入知识整理。新增Python防护覆盖初始闭合／已展开、隐藏保留实例、歧义、summary缺失与展开失败；Python测试本轮NOT_EXECUTED，不能从Ruff推出其PASS。
+
+同一消费者漂移检查发现分组探针仍导航旧侧栏／旧抽屉，浏览器矩阵仍期待旧八入口Dock。当前Stitch菜单及四个页面Dock按钮增加其既有data-page-id标识；分组探针沿当前菜单的实际button/summary与Enter导航，指针观测沿实际Dock，不恢复旧界面。浏览器矩阵将页面Dock限定工作台／知识／学习／研究，单独保留小栖及新增启动台搜索→16、Esc保留页面和焦点回归检查；其他页面仍由原菜单矩阵覆盖，未删除全22页范围。
+
+验证：Vitest `SourceCandidateJourney.test.tsx`／`StitchWorkspaceChrome.test.tsx`／`StitchLaunchpad.test.tsx` 共3文件21项PASS，新增来源测试直接执行生产探针READER_SOURCE_TOOLS_OBSERVATION并在当前CanonicalLibrarySpace/DockView语义DOM上验证闭合→展开→进入真实转换产物区域，证据SYNTHETIC；无Core执行。首次TypeScript失败于新增矩形stub缺DOMRectList.item，修正为完整DOMRectList结构后tsc --noEmit exit0，来源11项重跑PASS（不与21项重复累计）。现有`.venv/Scripts/ruff.exe check --no-cache --select E9,F63,F7,F82` 对本轮3份Python文件exit0，证明语法／所选错误规则，不是Python运行或完整lint。
+
+浏览器IAB/Vite实际前端复验：菜单文件→阅读（可信Enter）hash与渲染03一致、菜单闭合；Dock学习（可信点击）hash／渲染／活动Dock均06；启动台搜索导入→既有16页面并关闭，重新打开Esc后仍16且焦点回stitch-launchpad-toggle。1280×720/DPR1.25/cosmic，无横向溢出；Core未连接，原失败提示保留。截图与读数 `.project-local/artifacts/stitch-reader-probe-repair-20261022/`，实际查看截图。完整Python测试套件、完整浏览器矩阵、当前源码正式构建及原生候选均NOT_EXECUTED；已知Python子进程权限条件无变化，本轮不重复、提权或绕过。此前native/model FAIL仍保留；CL/J仍PARTIAL，不替换Green、不恢复监控。
+
+检查点 `docs/history/project-drift-audit-20261021/stitch-reader-probe-repair-20261022.json` 绑定5份当前源码／测试SHA及原生失败回执SHA。最终diff检查通过；自建IAB标签关闭，Vite会话25808经自身stdin停止并读回退出，无共享进程终止。Git写权限未改变，未commit/push。后续仍按原缺口推进：本地模型最终答案原因与产品自有云绑定；环境允许后对当前同候选重做原生／安装必要CL/J，而非使用旧构建证明当前UI。
+
+整体闭环仍PARTIAL：当前正式构建／原生来源工具可达性／本地最终答案／产品云端绑定／同候选常用格式与特色／安装恢复／Owner视觉缺口尚在，未以36项回归或菜单实现消除。下一步沿原顺序修阅读工具可达性、模型与同候选链；权限限制阻断正式构建和Git交付，已授权范围内可继续源码修复，不能绕过或据旧SHA宣称双端一致。本轮未commit/push、CI、merge、发布、安装或替换Green。
+
+### 2026-10-23 Owner玻璃与标准图标要求复核
+
+本轮只处理Owner再次提出的现有界面材质与图标问题，不启动模型、后端或可选扩展。核对当前CSS的SHA与上一玻璃检查点相符：不能将既有修正重复表述为本轮新改。主窗／卡片／标题栏保持62%／28%／20%底色，主窗20px、启动台24px backdrop blur，文字层filter none。早期实色内部卡片／标题栏遮挡、深色遮罩过重是质感偏差原因；当前预览已有透光层次，但不据此宣称与Stitch完全一致或已获Owner接受。
+
+标准图标沿已有lucide-react1.61.0与现有Radix控件，官方React文档及stroke-width文档重新核对，无新依赖。本轮将学习路径从日历改为Route、画布从仪表盘改为PanelsTopLeft、上下文从机器人改为BrainCircuit，Dock学习使用GraduationCap；语义别名仅属于AaosIcon展示，不增加能力或路由。Stitch原屏get_screen只读成功，未生成／覆盖原稿，未上传项目资料。
+
+验证：两份定向组件文件10项PASS（SYNTHETIC），修订后tsc --noEmit exit0。IAB/Vite5.4.21实际前端cosmic1280×720、DPR1.25；全新标签页截图实际查看，图标尺寸／线宽一致，无横向溢出，Esc保持page01且焦点回stitch-launchpad-toggle。Core未启动，离线提示保留。已有标签由窄视口切桌面后截图整体模糊，reload仍未消除；保全原截图并在固定桌面尺寸新建标签得到清晰截图，未通过改CSS掩盖采样问题，也不推导为原生故障或原生PASS。实际截图和DOM读数在.project-local/artifacts/stitch-material-review-20261023/。
+
+检查点docs/history/project-drift-audit-20261021/stitch-material-review-20261023.json绑定5份源码及3份有效产物SHA，活动指针与交接已更新。正式构建、原生／安装、Owner视觉、其他主题／减少透明均本轮NOT_EXECUTED；既有Python权限、native/model失败和Git只读边界保留，未commit/push或替换Green。自建标签4/5关闭、临时视口复位；Vite会话18696经自身stdin停止并读回退出。监控仍暂停，项目总体PARTIAL。
+
+### 2026-10-23 材料模型上限耗尽与预算恢复修复
+
+前一目标回合为PROGRESS（图标语义与浏览器材质核查），本轮继续原CL-06/J4，无新增扩展。旧候选stitch-closure-portable-02真实回执local-material-model-runtime.json显示：material_no_final_answer，finish_reason length，input491/output2048/total2539，75.61秒，仅reasoning_content、无最终content。连接已取得响应，不能称连接失败；完整候选与回执SHA见本轮检查点，原REAL FAIL保留。该旧请求保存配置本身也是2048，因此不能把它的失败归因于本轮发现的前端预算裁剪。
+
+当前源码另有恢复缺口：MaterialQuestionPanel将解析后已保存预算与2048取min，即使用户在模型设置提高上限，材料请求仍不能采用。现改为使用解析后profile.max_tokens，revision0兼容默认2048不变；不改模型、provider、endpoint、timeout、全局设置或用户保存配置。预览明确展示本次预算，确认与状态恢复仍冻结同一请求，不隐式增加旧请求预算或自动重试。新增有限失败说明经白名单诊断读取，仅对material_no_final_answer加以解释；finish_reason length才提示输出上限及设置调整，其他情况不猜预算耗尽。执行、显式状态与历史恢复三处统一使用，仍不将推理内容作为最终答案或正式知识。
+
+先写回归后复现：37项中3FAIL/34PASS，分别为两个缺失最终答案提示和保存3072却发2048。首轮修复后47项中1FAIL/46PASS，tsc报TS2304：遗漏历史恢复中的旧formatter引用；修正该真实遗漏，未改变既有超时断言。最终MaterialQuestionPanel37／MachineFailureDiagnostics4／ModelBinding6共47项PASS；tsc --noEmit exit0，证据SYNTHETIC。1024与3072预算均验证预览／确认一致，未知／非法诊断不被当成输出耗尽，失败只执行一次且可重新预览。
+
+当前未重跑真实模型，未证明更大预算必然生成正确答案，未完成CL/J。正式构建、Python套件、原生阅读修正／安装／CI均本轮NOT_EXECUTED；既有Python子进程权限与Git只读无环境变化，未重复或绕过。不得借旧候选03历史本地PASS证明当前源码闭环。活动指针与交接指向docs/history/project-drift-audit-20261021/material-budget-recovery-20261023.json；上一材质和阅读检查点保留。无新进程、无模型调用、无用户配置更改、未commit/push，监控保持暂停。下一步仍是当前同候选的本地最终答案、产品云绑定、常用格式／特色与重启导出恢复及安装Owner资格；不另建扩展任务队列。
+
+### 2026-10-23 云端生产接线核查与当前权限阻塞
+
+本轮未写新产品代码。直接核对当前Domain／Core API测试／worker／原生Vault：model_configuration::validate仅接受数值loopback的http配置；material_cloud.py execute无条件MATERIAL_CLOUD_NOT_ACTIVATED，preflight也声明未激活；现有API负例要求cloud preview／execute／async全部422且worker不启动。原生产品Credential Manager适配和main窗口create/remove入口存在，但不能据此宣称云端凭据至Core/worker调用链已通。以上为SOURCE_REVIEW，测试本轮NOT_EXECUTED，无凭据或私人会话访问，无网络／模型调用。用户“最终用户自行绑定”仍是产品要求，不能改称仅缺用户提供endpoint/key，亦不能使用本线程Codex登录态冒充产品云绑定。
+
+当前阻塞复核：canonical uv Python metadata存在，随后仅执行一次.venv/Scripts/python.exe -V，exit1，uv trampoline failed to spawn Python child process／permission denied os error5；未盲重跑整套构建、换解释器、提权或改ACL。.git由当前任务permission profile明确只读，未试写；20261022曾获正常批准通道的历史PASS不能覆盖本会话限制。该同一条件连续出现在stitch-material-review、material-budget-recovery和本次三个目标回合；前两回合完成可验证源码进展，本次后续正式云安全通道、同候选Core／原生／安装／Git交付均需当前不具备的执行权限。继续增加模拟或未运行的安全敏感接线不能兑现本期闭环，现进入真正执行阻塞，不因目标困难或仅缺偏好而停止。
+
+检查点docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json绑定七份源码SHA及三个回合证据，活动指针、根入口和完整交接已更新为BLOCKED_EXECUTION_PERMISSIONS／PARTIAL，Owner执行授权保留、非Owner暂停。目标完整范围不变；原玻璃／图标、阅读probe及47项预算修复证据与全部失败保留。恢复要求是正常授权会话允许项目canonical Python子进程与Git写入，先核Python／status／remote，继而canonical build、所需定向Python/Rust、原生来源工具、产品自有云凭据／材料确认／worker通道、真实local/cloud及有限常用格式／特色、重启导出恢复／安装Owner资格，再按授权显式提交推送核双端SHA。未执行项不算PASS；不改全局provider、ACL、解释器或私有会话，不另建扩展队列，不merge/release/替换Green。无自有活进程，监控仍暂停。
+
+
+### 2026-10-23 权限恢复复验（仅解除执行阻塞，闭环仍PARTIAL）
+
+Owner先切换当前会话完全访问并要求复验，再明确要求解决。canonical .venv/Scripts/python.exe -V返回Python3.13.14，使用同一sys.executable经subprocess.run启动子进程得到PYTHON_CHILD_OK，均exit0。直接创建／删除.git临时文件的旧探针在启动前遭blocked by policy，具体规则UNKNOWN；本次保留该拒绝，不再把它等同Git写入失败。只读核对正式Git路径、ACL和临时引用不存在后，正式Git update-ref以全零预期旧SHA创建refs/codex/permission-check-20261023；show-ref读回95b463c12dbd40744b43039add69c48ceaeba94e；再按该预期SHA删除临时引用，三个步骤exit0，删除后查询exit1确认不存在。真实Git元数据写入与清理PASS。
+
+测试前后业务变更均44条、暂存区为空，原HEAD与codex/sync-20261019分支未改变；随后仅补充本恢复检查点和当前权威交接，历史阻塞／失败证据不改写。活动指针改为PERMISSIONS_RECOVERED／PARTIAL，旧permission_blocker移为previous。未改ACL／全局配置／解释器／provider／auth，未启动新功能或模型，未commit／push／merge／release／替换Green，监控仍暂停。此次证明Python与Git执行权限恢复，不代表正式构建、同候选原生闭环、真实云模型、安装／Owner或远端一致性已通过；后续沿原首版范围完成这些资格，不新增扩展。证据：docs/history/project-drift-audit-20261021/execution-permission-recovery-20261023.json。
+
+
+### 2026-10-23 AI 外部上下文边界定向实施
+
+本轮范围只含 AI 上下文职责，不接续其他 UI／模型／安装开发。外部原始会话不进入新入口；复用现有 Rust Document/AiAsset 候选、版本和人工审查，新增 provider-neutral 严格 DTO／Admission、命名空间、幂等保存／受限读回，以及人工授权 HTTP 导入和 NOT_CONNECTED 状态。无新表／迁移／双写／外部 transport／后台任务。历史 app/ ContextPack 与 Trace-to-Lesson 不作正式 Tauri 路径；有限请求上下文、AI 检索／纠正／复测保留。
+
+最终 domain 31 项、API 45 项、人类业务 API 23 项、前端 67 项均 PASS／exit0，各套件原始命令与工作树身份见检查点；这些是 SYNTHETIC 材料通过真实 Core/Store 与组件回归，不是外部 provider REAL 接通。初次 API 测试 Store::open 少借用产生 E0308／exit101，修复后重验通过，失败日志保留。640 个受保护现有源码哈希比较无变化；包括前端、人类 domain/store、Tauri 与 workers。两个 lib.rs 仅追加 AI 模块／路由，不改人类原路由。
+
+规范与影响面：docs/current/AAOS-AI-CONTEXT-BOUNDARY-20261023.md；证据：docs/history/project-drift-audit-20261021/ai-context-separation-20261023.json；本地原始日志、变更前副本与 task-only diff：.project-local/artifacts/ai-context-separation-20261023/。当前有限适配边界 TESTED，真实连接 NOT_CONNECTED，产品整体仍 PARTIAL。未实现 provider 自动证据核验、语义去重或远程撤权同步，未提交上传／安装／付费调用，监控仍暂停。回滚只撤本轮明确文件／增量，不 reset 或删除数据库。
+
+
+### 2026-10-23 本线程换会话交接与Owner双侧闭环纠正
+
+Owner要求整理本对话全部内容、生成完整交接提示词，随后明确“人类侧不冻结，还是按照闭环执行”，再明确“闭环应该还要包括AI侧”。据此当前范围为有限首版人类链＋AI知识链＋按权限共享知识证据的双向连接。原AI上下文专项未改人类侧的事实保留，但不能再解释为后续开发禁令；外部原始上下文归属、NOT_CONNECTED状态、Stitch唯一新版、未来扩展冻结与monitor PAUSED不变。决定二十二及SUP-028覆盖旧解释，唯一闭环定义补充双侧验收，不增加任务包或第二进度表。
+
+本轮仅整理固定交接和当前权威导航，未改产品源码、运行构建／业务测试／模型／安装、重启监控或commit/push。交接开始HEAD为95b463c12dbd40744b43039add69c48ceaeba94e、branch codex/sync-20261019、54条dirty、暂存为空，远端exactSHA未核。最新AI专项Domain31/API45/人类API23/前端67 exit0是已有本地证据，不是本轮重跑或全产品完成；历史API编译失败、原生阅读失败、本地最终答案缺失、云生产缺口及外部未连接全部保留。
+
+完整快照与可复制提示词：docs/history/owner-dialogue-20261023-thread-handoff/README.md；交接文件/源码身份与证据读回见同目录MANIFEST.json。本次修改前副本与收尾验证在.project-local/artifacts/thread-handoff-20261023/；后继交接修改使旧AI专项rollback脚本的部分文件hash预期不再匹配，必须保留新决定人工合并反向增量，不直接--apply或reset/clean。最终验证只做文档／JSON／引用与既有证据hash读回及diff检查，结果见本地verification.json；不借此宣称人类链、AI链、双向链或安装全闭环PASS。
+
+
+### 2026-10-23 项目规则入口修复（仅文档维护）
+
+Owner明确按规则修复交接执行，并要求判断实际帮助。核实后保留原活动指针与权威顺序，精简根AGENTS／AUTHORITY的日期状态堆叠和历史整包叙述，Claude／Gemini保持原生导入，移除失效WORK-LAB激活依赖；文档索引清除状态副本。五份原入口完整字节及26条段落映射归档在docs/history/rules-entry-repair-20261023/，不改写原失败或Owner来源，不新增任务账本。
+
+现有文档门禁扩充定向检查；10项新回归先RED后GREEN，合并现有文档／替代合同测试27项PASS，Ruff最终PASS。首轮门禁发现精简误移除显式文件身份路由和既有Owner冻结对话导航，补回后聚合门禁PASS；初次Ruff循环变量问题已修，失败日志保留。JSON／YAML、关键路由、归档SHA与未认领文件保全核对见.project-local/artifacts/rules-entry-repair-20261023/verification.json；各实际命令和退出码在对应rules-entry-*20261023 run中。仅追加本维护结果后再核最终文档结构，不把维护文案变化当产品源码测试。
+
+当前双侧闭环范围、权限／监控维度和产品PARTIAL资格未改变；未运行产品开发／构建／模型／原生／安装／Owner验收或云CI，未提交／推送／合并／发布／替换Green。终端未发现claude／gemini命令，原生加载与行为保持UNVERIFIED，报告提供新会话诊断步骤。回退须对照任务增量patch及修改后摘要，只撤本次差异，保留已有脏工作。
+
+
+## 2026-10-24 — 接手双侧闭环、同候选续验与定向去重（RUNNING_BY_OWNER / PARTIAL）
+
+Owner在完整20261023交接后明确继续有限首版，并要求按任务难度匹配模型／推理、实时并行、减少重复劳动与全量审计，按需合并分支与清理体积；路径和索引须服从最近双侧闭环定义，不能由历史暂停／专项状态再次冻结人类侧或AI侧。沿UF03、UF04/CB01、BE-P08/10/12与G01、CL-01—07/J1—6，不建立第二任务队列。监控保持暂停。
+
+- **现场与保护**：完整交接与MANIFEST已读，原checkpoint／测试日志hash核实；branch `codex/sync-20261019`，HEAD `95b463c12dbd40744b43039add69c48ceaeba94e`，既有大量dirty保留。Python3.13.14与正式Git权限恢复事实有效。本轮未commit/push，remote exact SHA未核。
+- **正式构建阻断修复**：stage脚本在清单hash之后调用解释器版本，生成7个未清单pyc，造成实际资源资格失败；改为清单前有界 `subprocess -I -B`，原RED和两次原生资格FAIL保留；25项回归PASS。新的Core、Tauri及19,482成员便携装配PASS，精确绑定见检查点与原receipt。
+- **真实原生主链**：以新Stitch进行TXT/MD目录导入、阅读编辑、定位引用、人类候选接纳、课程／练习／复习、备份恢复及冷重启；能力禁用、NOT_ADMITTED冻结意图、重启、只启用不执行、同request重试与再次冷回读已PASS。整run仍FAIL于后续能力目录的旧“模型与工具职责”定位，不能把子项拼成全链PASS。正定向修复并续验该附加场景。
+- **AI与两侧连接**：37步真实Core治理检查PASS（合成材料／审查），资产接纳不自动接纳人类知识，修订令旧审查／授权失效，重启和隔离恢复核对通过。4次真实本地推理覆盖材料、陪伴、授权知识回答和合成工程纠正后的复测；另1次真实模型实际消费source-backed adopted AI资产，输入context字节／SHA、packet与asset／grant／member快照绑定、缓存重放、撤销403及冷读均PASS。全部`aaos-fast-4b`、3072上限、stop最终内容且未截断；不改判旧不同材料2048 no-final失败，不宣称独立纠错质量或Owner签字。
+- **常用格式／免费研究**：DOCX/XLSX/PPTX/文本PDF实际Core-worker解析、位置、独立重解析、原件保全与冷读PASS，OCR／音视频及全格式覆盖不由此推断。当前公开检索中StackExchange/OpenAlex实际complete，Wikipedia传输超时offline，整研究probe FAIL保留；单次同URL诊断未收到HTTP响应，没有证据指向parser。云生产仍NOT_ACTIVATED，55项synthetic协议PASS不等于云接通；不借Codex凭据、不付费试传。
+- **分支与体积**：3个backend分支及main已包含于当前HEAD，无需重复merge；分叉旧UI／ASTRYN不自动纳入本期。精确双边SHA后删除38,935个重复普通文件，逻辑1,270,022,376字节；旧Core、失败manifest和7个异常pyc等10份独有证据全保留，当前rt/build/candidate未删除。
+- **检验边界**：66项grouped/焦点/DOM和12项相邻探针测试PASS；新增代码lint无新增诊断，既有grouped紧凑写法诊断保留不全局format。当前checkpoint统一登记精确hash、旧失败、真实／合成和未验范围：[双侧续验检查点](../history/project-drift-audit-20261021/dual-loop-resume-20261024.json)。当前入口／路径修订仅导航，不改冻结任务包和20261023冻结交接原字节。
+
+待完成：附加原生能力检查、云生产与明确授权接线、百科通道网络、同候选安装／升级回退、剩余承诺格式与本期特色矩阵、独立质量和Owner验收。外部原始上下文NOT_CONNECTED；CI、安装、Green、发布及远端一致性均未由以上局部PASS取得资格。
+
+
+### 2026-10-24 定向原生续验通过与最终候选边界
+
+最终Core／Tauri构建和19,482成员便携装配PASS，绑定dirty patch `f89410d084f36aac2be4b3da8c0b4074a295a17b6e408b50d99ec35e1827ba71`。原生 `webdriver-0f0a2552e9db` 的 CLOSURE_ONLY 续验PASS：实际能力详情职责、可信文件导入、媒体CAS原字节／SHA、未知编辑节点和来源原件保全、真实WebView磁盘下载、下载文件重新导入、冷重启及重复导入幂等均通过。12份旧合成workspace种子原件前后SHA不变，复制前后完整相等；所有本次owned进程与端口清理通过。未重跑人类主链、未调用模型、未做知识接纳或Owner验收；不能把两轮候选子项拼成单候选完整闭环PASS。原整run失败与第一轮续验label XPath失败均保留。
+
+此次续验使用独立hash的ignored wrapper，只把“查找能力”定位改为当前AaosField真实 `label for → input id`，实际输入、Core只读观察和正式导出桥约束保留。随后将此关联规则最小修复纳入tracked探针，同时兼容旧wrapped label、作用域和隐藏边界；72项tests／151项subtests PASS。这一探针＋测试以及本结果文档属于构建后的维护增量，候选仍只绑定原f894源码，未冒充构建后全工作树已重新资格。真实模型5次的原Core／worker证据继续引用原回执，未因文档变更重复推理。
+
+路径与入口7文件、41个新增目标核验及文档权威门禁PASS；原固定交接正文83,052字节完整保留，CL/J验收定义未改变。第二轮精确清理38,960个旧portable重复普通文件，逻辑1,288,924,478字节，六份独有宿主／manifest保留且SHA不变；最终候选替代成员逐项SHA复核。两轮合计77,895个重复文件／2,558,946,854逻辑字节（约2.38GiB），不等于精确物理释放；日志新增占用另计。两旧候选仅作SPARSE_EVIDENCE，不可直接运行，可沿精确replacement map与原manifest重建；历史PASS不改写。
+
+安装缺口已定向确认：当前构建为--no-bundle，无同候选NSIS。既有verify_nsis_install.ps1硬编码真实LocalAppData路径且触及HKCU，不能靠改环境变量冒充隔离；本轮未安装、覆盖Green或触碰真实数据。云端仍须配置／Core准入／Vault受限凭据通道／owned worker传输／发布取消恢复／UI确认的完整生产接线，55项模拟协议不等于接通；真实provider、材料上传和成本授权亦未取得。Wikipedia超时及同候选全链、安装升级回退、剩余首版矩阵和Owner资格仍为PARTIAL。全部精确身份与证据沿同一双侧续验检查点读取。
+
+### 2026-10-24 云端垂直实现与隔离安装并行续接（PARTIAL）
+
+- 沿既有 BE-P08/10/12、CB01、G01 补齐 material-only `openai-buffered` 公网 HTTPS 路径：产品安全存储写入引用、逐请求材料上传及未知费用确认、Core 配置／journal／材料／恢复栅栏、owned worker 精确 Vault target、单次有界 HTTP、取消／复用／重启结果接纳。FAST/DEEP 仍是用途通道；无默认云服务商或新增市场范围。API16、domain7、Python58、UI52及类型／三份生成合同检查 PASS；均为本地 mock，未读取真实密钥、上传真实材料或发起付费调用。
+- 原 f894 冻结便携候选完成独立 NSIS bundle-only：资源19,480项精确一致，安装器188,665,141 bytes，SHA256 `1fc2f09cd07f57e7b95225d94124653b5afdb23872b0d8df68f2edd453f14105`。这不包含后继云端源码，也不等于安装运行通过。Windows Sandbox 精确 input 只读／output 可写、禁网及禁重定向准备完成，实际生命周期结果待写入。
+- 安装验证脚本新增候选三项哈希绑定、独立证据根、初始 AppData 拒绝与本次合成数据所有权标记；7项安全测试和源码一致性 PASS。旧41项组合运行子测试通过但因并行源码变化使外层 INVALIDATED，原证据保留，不当全树资格。
+- 首次 Tauri 打包自动清掉旧 `%LOCALAPPDATA%/tauri/NSIS` 工具缓存后下载失败，已向 Owner 披露；未找到原缓存备份，不能称已恢复。后继均改用任务内 `.tauri` 缓存及官方摘要校验依赖；候选与用户数据未变。
+- 当前云实现／安装验证／探针维护是 f894 之后的源码差异，接下来冻结统一构建。真实云端、同候选完整双侧／安装升级回滚、CI与Owner验收仍分别待验；监控暂停、外部原始上下文 NOT_CONNECTED，不提交推送或替换 Green。
+
+### 2026-10-24 新云接线候选回归与干净安装根因修复（PARTIAL）
+
+- 源码patch `80e99a24…c1e8` 的新Core／Tauri／便携组装和全部成员核验 PASS，host `65ff58a8…7fb8`、Core `d1bac233…7bc5`、runtime manifest `eb92a6af…f527`。该同候选一次完整原生人类链＋closure实际下载重导入通过，AI治理37步及DOCX／XLSX／PPTX／文本PDF8次解析冷启回读通过，均源码一致且自有进程／端口清理通过。它们不包含原生AI／Owner验收。
+- staged worker实际Windows Vault组件验证通过：只创建、精确读取、删除本次随机合成产品target，最小环境下字节一致且删除后不存在；未枚举或读取私人凭据、无云端调用。
+- 最新唯一一次新Core真实本地推理超时：`MODEL_CALL_TIMEOUT`／119.02秒／3072 tokens／120秒，未发布答案，未自动重试；后续缓存／撤权／冷启检查未执行。加载有效参数与本地worker字节均等于旧成功记录，根因未定；旧5次实际成功保留，不能替代最新失败或推断模型端已停止。
+- f894实际干净Sandbox安装失败保留；仪器化同包复验在清理前核得三项安装SHA精确匹配，Core独立launcher返回`0xC0000135`，PE明确依赖`VCRUNTIME140.dll`／`VCRUNTIME140_1.dll`，guest系统及安装root/core无相应文件，而runtime子目录已有。WebView2实际存在；未把长路径假设当根因，也未把安装器返回0当安装运行PASS。
+- 已最小修复app-local部署：从当前已随Python runtime的两份固定bytes/SHA复制到host root和core，manifest和Tauri资源合同同步，资格检查要求三处共六成员同名bytes/SHA一致。81项定向测试、实际donor四副本核验通过，再补12项合同拒绝场景（portable35项）通过；新候选仍须重建、打包和隔离安装。Microsoft条款与更新责任见THIRD_PARTY_NOTICES，未安装全局redist／改System32。
+- 又薄化19,477重复文件625,698,244逻辑bytes，保留旧manifest／Core／worker三项；累计清理97,372重复文件3,184,645,098逻辑bytes（约2.97GiB）。此前可变.rt的3个旧映射已补后继恢复路由，原日志和稳定f894候选不变。
+- 当前按既有任务继续新CRT候选资格与安装；图片／扫描PDF／音视频现有引擎已做库存和导入核对，实际内容验收待跑。真实云、Wiki、完整同候选及质量／Owner仍未闭环；监控暂停、外部原始上下文NOT_CONNECTED、未提交推送／替换Green。
+
+### 2026-10-24 CRT同候选原生与多格式回归／离线安装后继阻断（PARTIAL）
+- 新CRT候选patch 4d6e1e22…122d8：Core／Tauri／stage／portable PASS/source_consistent；host09e3bb87…4807、Core d1bac233…7bc5、manifest e579142d…059a；19,487成员695,773,210逻辑bytes。此后仅结果文档POST_BUILD_DOCUMENTATION_DELTA，不为结果记录反复重建。
+- 原生首次完整链复习保存超时FAIL保留。克隆数据定向一次可信原生点击、唯一learning_review201、历史/DB0→1通过，仅DIAGNOSTIC_NOT_FULL_JOURNEY。ASR结束后以原tracked探针/fresh数据有限完整复验一次：导入／阅读／定位／接纳／学习练习复习／恢复及closure真实下载重导入、冷启、幂等工程PASS，7次host正常exit0，自有进程端口清空。首次失败根因未证实；distill未执行、closed_loop_verified=false、Owner未验收。
+- 同候选实际中文PNG／JPEG及两页纯图扫描PDF OCR PASS，原字节/内容/定位/独立重解析/冷启通过。WAV／MP3／MP4六次真实CPU/int8 ASR PASS，11,735ms/4段时间位置，模型前后hash一致；两核affinity、无GPU或LLM。MP4仅音轨/抽帧，视觉推理禁用，multimedia仍PARTIAL。旧19,480运行时成员全同，仅新增4份CRT；治理37步／Office及文本PDF／Vault仅按相同组件bytes复用，不虚构重跑。
+- 新包NSIS BUNDLE_ONLY PASS；干净Sandbox初装完整manifest19,484/19,484与三主SHA PASS，Core独立smoke exit0/接口200/schema14 PASS；宿主仍readiness FAIL。owned Error原文为Could not find the WebView2 Runtime且当前用户不可用，新受支持隔离profile同payload复现。此前文件/注册表库存不等于实际WebView可用；旧CRT和新WebView失败分别保留，升级/重装未执行，owned VM已stop/list为空。
+- 后继只验证官方offlineInstaller内含WebView2的安装包，不改app/Core/UI或安装宿主全局运行库。依据 https://v2.tauri.app/distribute/windows-installer/#offline-installer 与 https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution 。
+- 最新真实本地模型超时未恢复。丢失context/hash已定位为ignored探针异常路径赋值跳过；新collector清理前原子持久化，无网络/无模型503 fixture PASS。旧缺失不可恢复、未补造、无真实重试；119秒是剩余预算as_secs向下取整，非固定reserve，provider停止UNVERIFIED。
+- 再清理19,480重复文件644,516,337逻辑bytes，稳定80e99完整候选逐成员hash恢复源；累计116,852文件3,829,161,435逻辑bytes约3.57GiB，不代表净仓库缩小或物理释放。pre-CRT backup仅保留manifest，SPARSE_EVIDENCE_NOT_RUNNABLE。
+- 整体PARTIAL；真实云/Wiki/安装生命周期及跨版回退/原生AI/质量与Owner仍未完成。监控暂停、外部原始上下文NOT_CONNECTED，未提交推送/CI/发布/替换Green。精确收据见检查点。
+
+### 2026-10-24 三源公共研究与知识治理补验／离线依赖定向修复（PARTIAL）
+- CL／J既有闭环范围内，4d6e CRT同候选真实Core三源公共研究42步通过：Wikipedia、学术问答与OpenAlex正文、CAS/引文锚点、比较草稿保存、package/Markdown导出、冷启回读与备份/恢复预览PASS。原Wikipedia直连超时FAIL保留；本次仅进程级显式既有代理127.0.0.1:7890，无全局配置变更。实际恢复不是本探针执行项；自有Core terminate/wait回收，不称正常关闭。
+- 公共工作区完整克隆后34步知识治理组件PASS：既有Wikipedia派生来源→本地text转换→知识候选，真实独立machine session审核403、human错版/旧版409、明确SYNTHETIC审核者accepted200。accepted仍support_level=none、requires_human_review=true，非verified；冷启知识/锚点/研究文档及六份原件逐值/逐SHA一致，原工作区和候选字节不变。未新增联网/模型调用，不等于Owner审批或公开事实核验。三次准备阶段长路径克隆失败保留，完整hash确认后才启动Core。
+- 官方签名有效的WebView2离线依赖已内含，但offlineInstaller-only新包干净断网VM仍初次readiness FAIL：初装完整manifest/主SHA通过，初次owned宿主直接报当前用户WebView2不可用，升级/重装未执行。官方NSIS以非空HKLM EdgeUpdate pv判断已安装并跳过依赖；该注册表库存不等于实际运行时可用。
+- 正在隔离验证最小PREINSTALL hook：无条件调用同一官方离线安装器，非零原码Abort，不改注册表或虚构最低版本。编译正例PASS/错误模式拒绝PASS只是fixture，不能代替运行安装资格。正式默认配置已改offlineInstaller/silent/currentUser/useLocalToolsDir，属于POST_BUILD_PACKAGING_POLICY_DELTA；冻结host/Core/UI字节不变，hook尚未因fixture被视为实际通过。
+- 整体仍PARTIAL；真实云、本地模型最新超时、原生AI、同候选完整安装生命周期/跨版回退及Owner未完成。监控保持暂停；未提交推送/CI/发布/替换Green。精确回执统一登记检查点。
+
+### 2026-10-24 Fixed WebView2同候选／原生通过与安装诊断（PARTIAL）
+- 既有CL／J任务内修复安装依赖：改为完整Microsoft Fixed WebView2 156.0.4314.42/x64。官方CAB、原始257文件逐SHA、签名、许可和精确目录验证后，落入既有runtime/webview2资源；release在Tauri创建WebView前用官方config_mut设置FixedRuntime。无全局安装、注册表或ACL修改，无通用运行时扩展。103项定向检查PASS。
+- 当前候选compiled patch3407；Host68e82a0a、Core d1bac233、runtime manifest95e4ded0。新鲜数据真实原生人类闭环与特色导出/回读/重导/冷启/幂等PASS；7次正常退出及清理确认。独立观察到46个owned WebView2均使用候选内固定版本，不以注册表库存冒充实际消费。AI与Owner验收未执行。
+- 新旧候选全部实际成员hash比对：19485成员不变，仅Host及manifest变化，新增257官方文件与1份来源manifest。22份UI、Python、workers、shared、CRT均不变；Office/OCR/CPU-ASR/公共研究/治理仅按精确组件复用，不称新候选整体验收全部通过。
+- zlib同候选安装包SHA4661ce30，断网VM初装完整19742成员、Host/Core readiness及实际安装目录Fixed消费PASS；随后seed探针FAIL。旧verifier未留原始错误码与stderr，原因未证实，升级/重装未执行。旧VM停止且输入SHA不变。原样seed body在本地同组件新数据上exit0，只作诊断，不能代替VM资格。
+- 已补正式verifier的原始ExitCode与独立UTF8 stdout/stderr持久化；9项检查PASS，两个测试自身的长路径读取/换行比较失败原样保留。当前同一安装包在新断网VM定向验收，不重压缩、不改Host/Core/UI或成功条件。后置变化仅zlib打包策略、验收探针与结果文档。
+- 历史Evergreen失败保留：普通/离线-only发现失败；PREINSTALL官方安装器0x80040902/child11临时目录失败；独立guest process-TEMP可写仍同码，具体底层原因未证实，hook未晋升。当前Windows实际Fixed消费通过不代表Windows10或所有提权环境资格。
+- 清理累计136336份已逐SHA确认替代的重复文件，4474026444逻辑字节约4.17GiB；保留唯一失败材料与映射，稀疏历史目录不得作为可运行候选。该数不是磁盘实际释放量或仓库净缩减。
+- 整体PARTIAL：完整安装生命周期、最新本地模型超时、真实云、原生AI和Owner仍未完成；外部原始上下文NOT_CONNECTED、监控暂停，未提交推送/CI/发布/替换Green。精确证据只登记统一检查点。
+
+### 2026-10-24 安装身份模式诊断与本地生命周期（PARTIAL）
+- 同包诊断VM保存真实Python exit1/空stdout/stderr：seed line17要求summary.status=qualified的CI候选身份断言失败，业务种子尚未执行。安装目录初装19742/19742、Host/Core及Fixed实际消费仍PASS。VM已精确关闭，662输入SHA不变；原失败不改判。
+- 本地候选自带Python只读summary证实unreleased/development/version0.6.14/public=false，无release-identity.json。RequireCandidateIdentity对应真实CI run身份合同，不适用于未跑CI的本地包；不得伪造CI identity或放宽正式断言。后继采用现有无发布身份开关的LOCAL_INSTALL_LIFECYCLE模式，保留精确三SHA、完整manifest、版本、Core数据种子/读回、升级/重装与清理全部检查。
+- 正式verifier嵌入Python body与原版逐字一致，仅新增独立双流与原始退出捕获；9tests与独立源码复核通过。98份收据快照实际存在/bytes/SHA全部匹配；文档权威检查通过，仅证明文档结构。
+
+### 2026-10-24 同候选本地安装生命周期最终回读（PARTIAL）
+- 最新 LOCAL_INSTALL_LIFECYCLE 状态：PASS；精确结果见[统一检查点](../history/project-drift-audit-20261021/dual-loop-resume-20261024.json)所引原始收据。相同安装包SHA4661ce30，未重构Host/Core/UI，原CI身份断言保持，未伪造CI资格。
+- 本地安装与跨版本迁移/回退、真实云、最新本地模型回答、原生AI、CI及Owner分别记录；整体仍PARTIAL。原有失败与本次模式诊断保留；监控暂停，未提交推送、发布或覆盖Green。
+
+### 2026-10-24 并行AI资产／治理／原生接续（PARTIAL）
+- 当前Fixed同候选真实Core+本地模型资产消费PASS：最终content/stop、不截断，42.14秒，单次3072/120；精确context/packet、缓存回放、撤权403、冷启任务回读与自有清理均通过。材料及审查为工程合成fixture，不是Owner或专业真值。旧119.02秒超时原始证据保留，根因未定，后续成功不能倒推旧失败原因。
+- 并行新增8项真实Core负向检查PASS：不适用、冲突、清空冲突/改版本复用旧审查、machine晋升越权及冷启旧grant均按合同拒绝。精确身份幂等去重与语义去重区分；后者及真实人工适用性/质量未证明。首轮取证脚本plain-text错误解析失败保留。
+- 修正验收探针：CLI预算传入已保存DEEP profile，且保存/resolve/执行请求严格同值；按实际h2父div定位模型面板；原生option采用标准WebDriver选择及严格selected/value读回，普通按钮仍可信pointer。最终readiness-regression03共63项本地guard/DOM检查通过；readiness01模拟UI缺click_revealed_selector、02模拟fixture缺knowledge_id的两次失败及日志保留。前两次原生分别因旧section和option滚动定位失败且未推理，原始失败保留。Host/Core/UI字节未变化，不重建产品。
+- 原生run03已实际完成本地回答31.62秒、工程纠正候选/接纳及复测46.36秒，均content/stop且未截断；DEEP2048/120配置的冷启及恢复后新epoch读回通过，配置检查无推理。最终在恢复后选择原知识面板超时，parent FAIL及清理保留；工程干预和审查不是独立真实错误裁定、质量改善或Owner验收。 内层compiled binding原样UNVERIFIED；父层以原buildreceipt及前后完整manifest/Host/Core校验独立绑定compiled3407，不冒充当前dirty源码已重建。显式自动复测重试已禁，正常两次推理路径；没有硬dispatch计数门禁。
+- 独立SUFFIX_ONLY在run03已恢复工作区的精确克隆中补验原知识选择、旧grant拒绝与原任务回读通过；0次新增推理、原数据/收据不变、同候选前后核验及清理通过。 该尾段不是全旅程重跑，不改判run03原FAIL，也不把跨收据组件合成一次完整原生闭环。
+- 整体仍PARTIAL：真实云、独立质量、Owner、跨版本迁移/回退、Windows10及CI资格分别待验；外部原始上下文NOT_CONNECTED、监控暂停，未提交推送/发布/覆盖Green。新证据与历史失败统一登记[检查点](../history/project-drift-audit-20261021/dual-loop-resume-20261024.json)。
+
+### 2026-10-24 轻格式／安装业务接续与交付契约修复（PARTIAL）
+- 同Fixed候选实际Core补验CSV/TSV/JSON/JSONL/YAML/TOML/XML/EPUB八格式、四种坏输入、五种EPUB无效定位、来源锚点/原件SHA、全文检索、Markdown/manifest导出和冷启回读PASS。合成fixture，无模型/联网；自有Core回收码1，不称正常exit0。首轮取证脚本误读hits而非documents的FAIL保留。
+- 安装业务run01工具驱动退出，未进入业务；run02同路径对比证实缺VCRUNTIME140.dll（0xC0000135），仅加入候选自带工具侧DLL后help exit0/393bytes，未改产品/全局。随后真实安装态初始化通过，原探针漏选设置中的“工作区与恢复”而失败；补真实可信点击并保留全部业务断言，51项模拟/guard检查PASS。
+- run03精确677输入不变，但Windows Sandbox实例从官方列表消失且exec报告ID不存在，无guest终态收据；未证明settings修复运行效果或恢复/409比较/冷启业务。原因UNDETERMINED，不归咎产品；精确owned客户端正常CloseMainWindow后无残留、VM列表0，仅CLIENT_RECLAMATION，不称guest正常关闭/卸载或official stop PASS；未追加第四轮。
+- Git与独立GitHub API读回已提交基线95b/main8d一致；新dirty源码尚未由该读回证明上传。分支功能比较未发现需合并的缺口，既有合并授权保留，其他dirty工作树不动。
+- 正式HTTP/OpenAPI补齐两条离线外部候选接口及字段/权限/UTF8字节限制；真实清单137路由、projection-only85，36项维护检查PASS。三条历史引用迁移至HEAD原字节归档，原SHA/资格状态不变，不冒充当前资源重新合格；严格资源生成器通过。UI-host双端生成digest已同步。29项文本规范与12文件Rust排版问题定向修复，原失败保留。
+- 本轮195项受影响Python、24项资源/UI合同、24项架构guard、51项安装探针检查，以及TypeScript/CI范围Ruff/两套Rust格式检查PASS，均按各自收据与source snapshot，不拼成一次完整CI。定向cloud/candidate源码review无明确bug，不是全审计或真实云端验收。
+- 整体PARTIAL；3407旧候选字节不变，后续生成源码/排版差异未重建进旧候选。公开交付及精确SHA CI在该检查点尚未完成，须读实际Git和交付回执。真实云、独立质量、跨版本/Win10及Owner资格仍分列待验；外部原始上下文NOT_CONNECTED、监控暂停，未发布或覆盖Green。精确结果统一登记既有检查点，不新增执行队列。
+
+- 交付前最终预检04全项PASS，归档／命名89测试PASS；12项冻结归档以原字节同时核对worktree/index/checkout。预检03因pin登记在命名而非字节保全表导致的CRLF失败原样保留，已按精确哈希接入既有字节表。main有效ruleset20849492要求a0-gates；本地PASS尚不是托管CI或安装业务PASS。收据：`.project-local/runs/be268a2d33/dual-loop-delivery-preflight-20261024-04/artifacts/local-ci.json`。

@@ -25,6 +25,7 @@ import { ContextNav } from "../components/ContextNav";
 import { NavTrail, type ObjectTrailLevel } from "../components/NavTrail";
 import { TopNavBar } from "../components/TopNavBar";
 import { StitchWorkspaceMenu, StitchWorkspaceDock, StitchCompanionWindow, StitchResearchOutlet } from "../components/StitchWorkspaceChrome";
+import { StitchLaunchpad } from "../components/StitchLaunchpad";
 import { focusSpaceSection, spaceSectionsFor, type SpaceSectionDef } from "../presentation/spaceSections";
 import { EFFECTIVE_NAVIGATION_ENTRIES, resolveNavigationHash } from "../presentation/navigation";
 import {
@@ -80,6 +81,7 @@ function AppBody() {
   const [initialNavigation] = useState(() => resolveNavigationHash(window.location.hash));
   const [activeSpace, setActiveSpace] = useState<SpaceId>(initialNavigation?.spaceId ?? "workspace");
   const [navigationOpen,setNavigationOpen] = useState(false);
+  const [launchpadOpen,setLaunchpadOpen] = useState(false);
   const [wideWorkspace, setWideWorkspace] = useState(() => window.innerWidth >= 1280 && window.innerHeight >= 700);
   const companionOwnsFocus = useRef(false);
   useEffect(() => {
@@ -276,14 +278,14 @@ function AppBody() {
 
   const openPage = useCallback((id:string) => {
     const page=findUiPage(id);
-    if (!page || restoringRef.current || composing.current) return;
+    if (!page || restoringRef.current || composing.current) return false;
     if (uiPageId === id && activeSpace === page.space && !selectedCapabilityId) {
       requestDockNavigation();
       setNavigationOpen(false);
       const hash=`#page=${encodeURIComponent(id)}`;
       if(window.location.hash!==hash) window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
       navigationHash.current=hash;
-      return;
+      return true;
     }
     // These pages share one mounted journey; changing its visible panel retains
     // frozen requests and dirty owners. Leaving the family still uses navigate.
@@ -291,11 +293,12 @@ function AppBody() {
       ["13", "14", "22"].includes(uiPageId) && ["13", "14", "22"].includes(id) &&
       activeSpace === "ai-assets" && page.space === "ai-assets" && !selectedCapabilityId;
     if (retainedAiJourney) {setNavigationOpen(false);requestDockNavigation();}
-    else if (!navigate(page.space)) return;
+    else if (!navigate(page.space)) return false;
     setUiPageId(id);
     const hash=`#page=${encodeURIComponent(id)}`;
     window.history.replaceState(null,"",`${window.location.pathname}${window.location.search}${hash}`);
     navigationHash.current=hash;
+    return true;
   },[navigate, uiPageId, activeSpace, selectedCapabilityId]);
   const activateDockView = useCallback((target:DockNavigationTarget) => {
     if(restoringRef.current||composing.current)return false;
@@ -330,10 +333,10 @@ function AppBody() {
     navigationHash.current = hash;
   }, [navigate]);
   const openCapability = useCallback((id: string) => {
-    if(restoringRef.current || composing.current)return;
+    if(restoringRef.current || composing.current)return false;
     const entry = EFFECTIVE_NAVIGATION_ENTRIES.find((item) => item.entry_id === id && item.capability);
-    if (!entry?.capability) return;
-    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return;
+    if (!entry?.capability) return false;
+    if (draftDirty.current && !window.confirm("草稿尚未保存，请先保留文字。仍要离开吗？")) return false;
     requestDockNavigation();
     setNavigationOpen(false);
     setUiPageId("18");
@@ -346,6 +349,7 @@ function AppBody() {
     const nextHash = `#capability/${encodeURIComponent(id)}`;
     if (window.location.hash !== nextHash) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
     navigationHash.current = nextHash;
+    return true;
   }, [learningFocus]);
 
   useEffect(() => {
@@ -798,7 +802,7 @@ function AppBody() {
 
   return (
     <StitchResearchOutlet.Provider value={researchReference ? { host: referenceVisible ? researchMaterialsHost : null, onLocate: () => { if (!wideWorkspace) { setInspectorOpen(false); companionFocusRequested.current = false; setCompanionOpen(false); } } } : null}>
-    {!learningFocus && <StitchWorkspaceMenu onPage={openPage} onNavigation={() => setNavigationOpen(true)} />}
+    {!learningFocus && <StitchWorkspaceMenu onPage={openPage} onNavigation={() => setLaunchpadOpen(true)} />}
     <ConsoleWindow presentation="stitch"><div className="app-shell cabin-shell" data-stitch-workspace="true" data-companion-open={companionOpen && !learningFocus} data-cabin-page={uiPageId ?? ""}>
       <TopNavBar
         breadcrumbs={[
@@ -840,7 +844,8 @@ function AppBody() {
     {referenceVisible ? <div className={`stitch-reference-window${researchReference ? " stitch-related-window" : ""}`}>
       {researchReference ? <><button type="button" className="stitch-related-close" aria-label="关闭检查器" title="收起相关资料" onClick={closeResearchReference}>×</button><div ref={setResearchMaterialsHost} /></> : <Inspector target={inspectionTarget} onClose={() => setInspectorOpen(false)} />}
     </div> : null}
-    {!learningFocus && <StitchWorkspaceDock pageId={uiPageId} onPage={openPage} companionOpen={companionOpen && !companionHiddenByReference} onCompanion={toggleCompanion} />}
+    {!learningFocus && <StitchWorkspaceDock pageId={uiPageId} onPage={openPage} companionOpen={companionOpen && !companionHiddenByReference} onCompanion={toggleCompanion} launchpadOpen={launchpadOpen} onLaunchpad={() => setLaunchpadOpen(value => !value)} />}
+    {!learningFocus && <StitchLaunchpad open={launchpadOpen} onOpenChange={setLaunchpadOpen} onPage={openPage} onCapability={openCapability}/>}
     {companionOpen && !learningFocus && (!desktop || workingEntered) ? <StitchCompanionWindow focusOnOpen={companionFocusRequested.current && !companionHiddenByReference} onClose={() => { companionFocusRequested.current = false; setCompanionOpen(false); }}><ConversationPanel slot="sidebar" /></StitchCompanionWindow> : null}
     </StitchResearchOutlet.Provider>
   );

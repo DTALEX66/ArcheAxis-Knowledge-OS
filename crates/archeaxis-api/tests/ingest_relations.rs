@@ -105,8 +105,15 @@ async fn explicit_fragment_mapping_pins_a_real_block_at_the_existing_http_bounda
     );
     assert_eq!(receipt["added_relations"], 2, "{receipt}");
     assert_eq!(receipt["updated_relations"], 0);
-    assert_eq!(receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][1]["presentation"], "embed");
-    assert!(receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0].get("presentation").is_none());
+    assert_eq!(
+        receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][1]["presentation"],
+        "embed"
+    );
+    assert!(
+        receipt["document"]["editor_json"]["attrs"]["archeaxis_relations"]["relations"][0]
+            .get("presentation")
+            .is_none()
+    );
     assert_eq!(
         receipt["links"][2]["reason"],
         "fragment_resolution_not_supported"

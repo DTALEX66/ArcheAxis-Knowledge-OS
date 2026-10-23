@@ -25,12 +25,13 @@
         "endpoint": {
           "type": "string",
           "maxLength": 256,
-          "pattern": "^http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?$"
+          "pattern": "^(http://(127\\.0\\.0\\.1|\\[::1\\]):[0-9]{1,5}(/v1)?|https://[A-Za-z0-9][A-Za-z0-9.-]*\\.[A-Za-z]{2,}(:443)?(/[A-Za-z0-9_-]+)*)$"
         },
         "protocol": {
           "enum": [
             "ollama",
-            "openai"
+            "openai",
+            "openai-buffered"
           ]
         },
         "model": {

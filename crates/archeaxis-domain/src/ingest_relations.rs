@@ -471,11 +471,7 @@ pub fn apply(
         let label = format!(
             "Original CAS {} · {}{}{}{}",
             input.source_revision,
-            if link.embed {
-                "embed: "
-            } else {
-                "link: "
-            },
+            if link.embed { "embed: " } else { "link: " },
             link.target,
             link.fragment
                 .as_ref()
@@ -500,7 +496,8 @@ pub fn apply(
         let mut relation = json!({"id":id,"kind":"related","label":label,"target":reference});
         let mut legacy = relation.clone();
         if link.embed {
-            legacy["label"] = json!(label.replacen("embed: ", "embed reference (not rendered): ", 1));
+            legacy["label"] =
+                json!(label.replacen("embed: ", "embed reference (not rendered): ", 1));
         }
         if link.embed {
             relation["presentation"] = json!("embed");

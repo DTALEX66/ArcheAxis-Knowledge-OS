@@ -1,0 +1,1272 @@
+{
+  "schema": "aaos.dual-loop-resume-checkpoint/v1",
+  "observed_at": "2026-10-23T20:21:20.557382+00:00",
+  "state": "RUNNING_BY_OWNER",
+  "overall": "PARTIAL",
+  "scope": "Existing finite human and AI learning/knowledge chains and their permissioned connection, under CL-01..07/J1..6; no optional expansion queue",
+  "task_ids": [
+    "UF03",
+    "UF04",
+    "CB01",
+    "BE-P08",
+    "BE-P10",
+    "BE-P12",
+    "G01"
+  ],
+  "sole_execution_record": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+  "loop_definition": "docs/truth/CLOSED_LOOP_DEFINITION.md",
+  "frozen_handoff": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
+  "head": "95b463c12dbd40744b43039add69c48ceaeba94e",
+  "branch": "codex/sync-20261019",
+  "tested_dirty_patch": "3407e8083f261bc563df06f24398cfa08338a47fd4136df344b08741461c4dfc",
+  "snapshot_boundary": "Fixed WebView2 candidate built from patch3407, real fresh native human loop PASS and actual app-local browser consumption PASS. Core/Python/UI/worker component evidence reused only after full actual byte identity comparison. Post-build changes: NSIS zlib policy, lifecycle probe diagnostics/tests and result documents; Host/Core/UI bytes unchanged. First Fixed installed initial readiness/consumption PASS but seed FAIL without original stderr; not full installed qualification. Latest same-installer LOCAL_INSTALL_LIFECYCLE PASS; see precise receipt, not CI or Owner qualification. This AI successor preserves compiled3407 Host/Core/UI bytes; post-build changes additionally include selected budget, native panel/option/restore-readiness probe and simulated fixture tests. Fixed asset1 and governance8 are separate runs. Native run03 answer/retest/configuration components PASS with parent final FAIL retained; separate SUFFIX_ONLY cloned restored workspace status=PASS with0 new inference, not a single complete journey or Owner acceptance.",
+  "implemented": [
+    "Stage runtime version before member inventory using bounded subprocess -I -B; late startup bytecode no longer breaks exact runtime qualification. RED preserved, GREEN25.",
+    "Native probes use real Tab focus and trusted wheel/hit-tested pointer input; current Stitch reader title/version and positive-area display-image readiness, preserving exact Core identity assertions.",
+    "Post-build native probe label association now resolves exact label for/id and wrapped controls; scope/hidden boundaries preserved. 72 tests and 151 subtests PASS; native success used separately hashed wrapper adaptation, not retroactively the later tracked fix.",
+    "Material-only cloud vertical source implemented: purpose/profile/restore and journal/context fences, owned stdin worker, exact product Vault target, bounded single HTTPS request, cancellation/replay/restart publication controls; no real provider qualification.",
+    "Installer verifier now accepts exact evidence root and host/Core/runtime hashes, rejects pre-existing or unowned AppData, and cleans only its marked synthetic data. Sandbox qualification is separate from packaging."
+  ],
+  "verification": {
+    "release_build": "PASS Fixed current Core/Tauri/stage/portable source-consistent3407; exact pinned Microsoft156.0.4314.42/x64 files.103 targeted tests PASS. Host/Core/UI unchanged after build; packaging/probe/docs delta explicit.",
+    "native_human": "PASS current Fixed fresh full finite native journey,7 normal exits and confirmed cleanup. Actual owned browser paths all candidate/runtime/webview2/msedgewebview2.exe. Historical CRT first review failure/focused diagnostic/full rerun retained.",
+    "native_additional_features": "PASS current Fixed full human closure/features/real WebView downloads/trusted reimport/cold restart/idempotence. This human probe did not execute AI; current AI evidence is separately native_ai_latest/native_ai_restore_suffix. Owner NOT_EXECUTED.",
+    "ai_governance": "PASS37 actual new Core synthetic HTTP steps, dual-side permissions/revision fences/cold restart/independent restore; no model",
+    "local_model": "LATEST_REAL_PASS1 current Fixed Core: final content BLUEHERON-317/stop/not truncated,42.14s,832 input+1206 output tokens under3072/120; preserved old119.02s timeout root cause still UNDETERMINED. No shared prediction policy change; actual base thinking enabled.",
+    "ai_asset_to_model": "PASS current Fixed candidate actual model consumption of adopted source-backed synthetic asset; exact context+packet hashes, cached replay without new inference, revoked grant403 before/after cold restart, exact task readback and owned cleanup. Engineering review fixture, not Owner or professional truth.",
+    "common_formats": "Prior DOCX/XLSX/PPTX/text-PDF actual tests reused only at exact unchanged component bytes. New CRT real Chinese PNG/JPEG/two-page pure-image scanned PDF OCR PASS content/location/reparse/cold read.",
+    "public_research": "PASS_REAL_THREE_SOURCES_WITH_PROCESS_PROXY: Wikipedia, StackExchange and OpenAlex real bodies, CAS/anchors/comparison draft, package/Markdown export, cold restart and backup/restore preview PASS. Direct-route Wikipedia timeout FAIL preserved. Explicit process-only existing proxy required in this run; no global configuration change. Actual restore and Owner NOT_EXECUTED in this probe.",
+    "cloud": "IMPLEMENTED_LOCAL_MOCK_PASS_NOT_REAL_PROVIDER: material-only public HTTPS openai-buffered; write-only product credential storage, exact-target owned worker, request upload/unknown-cost grants and Core fences. API16/domain7/Python58/UI52 PASS; typecheck and 3 generated contracts PASS. No real credential access, network or cloud charge in these tests.",
+    "installed_runtime": "Latest LOCAL_INSTALL_LIFECYCLE PASS; exact same installer4661, all original non-CI business/lifecycle checks retained. Original CI-identity failure preserved separately; no real CI/release qualification.",
+    "ci": "NOT_EXECUTED_THIS_RESUME",
+    "owner_acceptance": "NOT_EXECUTED",
+    "post_build_probe_tests": "PASS72 tests +151 subtests; local direct canonical Python, no CI claim",
+    "current_routes": "PASS7 files and41 added reference targets; old handoff bytes preserved, document authority gate PASS",
+    "native_vault_component": "PASS actual staged Python worker exact fresh synthetic Windows product credential target read, minimal environment; owned entry deleted and absence verified. No private credential enumeration/read, no Tauri UI or real cloud claim.",
+    "app_local_crt_source": "IMPLEMENTED root/core copies of pinned existing runtime140/_1; source donor+copies real hash PASS;81 targeted tests PASS then12 additional contract refusal cases within35 portable tests PASS. No global runtime install.",
+    "common_media": "PASS current CRT REAL_CPU_INT8_ASR_SYNTHETIC WAV/MP3/MP4 six jobs, originals/transcript/time/reparse/cold read; two CPU affinity/model hashes unchanged. Video sampled frames only; visual inference disabled, multimedia PARTIAL.",
+    "local_model_diagnostic": "SOURCE_ONLY lost context/hash caused ignored probe assignments after finally skipped on503. New ignored collector persists before cleanup, no-network/no-model503 fixture PASS. Old missing context not recovered.119s is remaining budget as_secs floor, not fixed reserve. Provider stop/timeout root cause UNVERIFIED.",
+    "public_material_governance": "PASS_COMPONENT_GOVERNANCE_TEST: clone of real public-research workspace, existing Wikipedia derived source to local text transform/candidate; genuine machine session 403, human wrong/stale versions409, explicitly SYNTHETIC human fixture accepted200; support_level none, requires_human_review true, not verified. Cold restart and six originals/document/anchors equal; original workspace and candidate bytes unchanged. No new network/model call or real Owner approval.",
+    "packaging_policy_regression": "PASS103 pre-zlib Fixed stage/portable source checks; final zlib skip/currentUser/useLocalToolsDir same-installer full LOCAL_INSTALL_LIFECYCLE PASS. CI/release NOT_EXECUTED.",
+    "fixed_component_reuse": "Actual hash comparison of old19487/new19745 members:19485 unchanged, only Host/backend manifest differ,258 added(257 vendor files plus provenance). UI22/Python19433/workers40/shared3/profile/launcher/CRT unchanged. Office/OCR/ASR/public research/governance are component reuse, not current installed or whole-loop qualification.",
+    "fixed_runtime_platform_scope": "Current observed Windows native and Sandbox actual consumption PASS. Microsoft elevated-host override restriction remains a platform risk, not observed cause. Windows10 Fixed120+ AppContainer ACL requirements not qualified; no ACL/global change.",
+    "webview_historical_failure": "Original and offline-only installed Host failed WebView discovery. PREINSTALL signed official prerequisite returned0x80040902/child11 unable to create temporary directory; guest owned process-TEMP diagnostic also failed with same code despite write/read probe PASS. Exact failing path/Win32 cause unproven; hooks not promoted. Replaced product dependency approach with app-local Fixed; original negative evidence preserved.",
+    "lifecycle_probe_diagnostics": "PASS9 including real Python exit0/17, independent UTF8 stdout/stderr persisted with unique GUID paths and original exit. First two test-only failures(long path read, universal newline comparison) retained and corrected; no product failure claim from fixtures.",
+    "installed_mode_diagnosis": "Fresh same-installer diagnostic VM actual Python exit1/stdout empty/stderr AssertionError line17: RequireCandidateIdentity demands CI-qualified identity. Local candidate actual own Python summary is unreleased/development/version0.6.14/publicfalse, with no release-identity.json; candidate identity requires real CI run metadata. LOCAL_INSTALL_LIFECYCLE uses existing no-release-switch mode, retaining exact three SHA/full manifest/version/Core seed/readback/upgrade/reinstall/cleanup assertions. Original CI assertions unchanged; no fabricated identity. Diagnostic VM stopped/662 input hashes unchanged. This diagnoses the captured diagnostic failure; original no-stderr receipt remains unchanged.",
+    "installed_runtime_latest": "LOCAL_INSTALL_LIFECYCLE_PASS; CI_CANDIDATE_AND_PUBLIC_RELEASE_NOT_QUALIFIED",
+    "local_install_lifecycle": {
+      "status": "PASS",
+      "scope": "LOCAL_INSTALL_LIFECYCLE_ONLY; CI_CANDIDATE_AND_RELEASE_QUALIFICATION_NOT_EXECUTED",
+      "cleanup": {
+        "stop_output": "",
+        "stop_exit": 0,
+        "ownership_binding": "PID_PARENT_CREATION_TICKS_EXACT_CONFIG",
+        "remaining_sandboxes": 0,
+        "utc": "2026-10-23T19:01:56.4878803Z",
+        "status": "PASS",
+        "owned_id": "0256164d-04f6-4603-85c8-cef618bbe96a"
+      }
+    },
+    "historical_fixed_first_install": "First Fixed exact same installer4661ce30 initial full manifest19742/19742, Host/Core readiness and actual installed app-local browser consumption PASS. Original seed probe FAIL lacked raw stderr/exit, upgrade/reinstall NOT_EXECUTED. Owned VM stopped, input SHA unchanged. Exact extracted seed body local component PASS, not VM reproduction. Diagnostic helper preserves separate UTF8 streams/original exit;9 tests PASS. Fresh same-installer disconnected VM qualification running, no rebundle.",
+    "historical_offline_packaging_policy_tests": "PASS35 portable identity/manifest/resource/CRT refusal tests under current offlineInstaller/silent/currentUser/useLocalToolsDir policy; no installer hook yet, not actual installation qualification",
+    "ai_negative_governance": "PASS8 actual Fixed Core negative checks, synthetic source/review/no model: unfit admission400, unadopted packet403, declared conflict packet403, cleared conflict stale review400, changed version stale review400, machine promotion403, cold unfit403 and old grant403; exact historical documents retained. First collector JSON parsing failure preserved.",
+    "native_ai_latest": "RUN03_PARENT_FAIL: native real local answer31.62s and authored-correction/retest46.36s completed with content/stop/not truncated, saved DEEP2048/120 configuration cold reopen/restore readback PASS. Final restored original-knowledge selection failed: TimeoutError: Window assertion deadline: return !!document.querySelector('[aria-label=\"原知识当前正文\"]'); original parent/inner failure and cleanup retained. Inner compiled binding remains UNVERIFIED; parent pre/post full candidate verification separately binds compiled3407. Synthetic engineering adjudication, not independent error adjudication or Owner acceptance.",
+    "native_ai_restore_suffix": "PASS_SUFFIX_ONLY_CLONED_RESTORED_WORKSPACE: restored original selection/old-grant refusal and prior-task readback on distinct clone;0 new inference, prior data/receipts unchanged, exact candidate pre/post and cleanup PASS. Separate suffix evidence does not rewrite run03 FAIL or constitute one complete journey.",
+    "native_ai_saved_configuration": "PASS_COMPONENT_ONLY native saved DEEP answer/retest2048/120 bindings, cold reopen same configuration, restore new epoch/readback; configuration checks0 inference. Native run03 parent FAIL retained.",
+    "native_ai_probe_regression": "PASS63 local simulated guard/DOM tests, readiness-regression03/sourceconsistent true. Selected budget propagates into saved DEEP; exact h2 parent div, standard WebDriver option selection and restored knowledge readiness/selection. Readiness01 fixture lacked click_revealed_selector (AttributeError),02 fixture lacked knowledge_id (KeyError); both FAIL receipts/logs preserved,03 corrected fixture PASS. Earlier62 option tests and59/60 retained; initial dev CLI WinError2 preserved. Product Host/Core/UI unchanged/not rebuilt; simulated readiness tests are not native suffix qualification.",
+    "fixed_light_formats_latest": {
+      "status": "LOCAL_PASS",
+      "run": "fixed-light-formats-20261024-02",
+      "candidate": "fixedwv-portable-20261024-01",
+      "actual_scope": "Fresh isolated data, actual candidate Core and existing workers; authored synthetic fixtures; no LLM/network/native UI/installer.",
+      "formats_pass": [
+        "CSV",
+        "TSV",
+        "JSON",
+        "JSONL",
+        "YAML",
+        "TOML",
+        "XML",
+        "EPUB"
+      ],
+      "checks": [
+        "format structure and Golden42 content",
+        "source-bound CURRENT anchors",
+        "document search and original CAS hash readback",
+        "restart persistence",
+        "Markdown/manifest export readback"
+      ],
+      "negative_pass": [
+        "corrupt EPUB",
+        "unsafe YAML tag",
+        "XML external DOCTYPE",
+        "malformed JSONL"
+      ],
+      "negative_outcome": "AAK-WORKER-003; no published text; failed job snapshot and CAS survive restart.",
+      "epub_invalid_locator_rejections": 5,
+      "source_consistent": true,
+      "candidate_consistent": true,
+      "cleanup": "Own two Core processes stopped/reaped (returncode 1); no remaining owned port listeners.",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/fixed-light-formats-20261024-02/artifacts/light-formats.json",
+        "sha256": "ff9825e34fdd17f1d89c660908139ae33a06626561c9eefd04b515d9f7ea0086",
+        "bytes": 190565
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/fixed-light-formats-20261024-02/artifacts/execution.json",
+        "sha256": "216954ee6f1c06980f68c0f320a3cfc421d85e00313e8df0ad1b45271c25da85",
+        "bytes": 1494
+      },
+      "historical_run01": {
+        "status": "FAIL_PRESERVED",
+        "reason": "New collector incorrectly read hits instead of documents; product search already returned correct document; run02 fixes collector only.",
+        "receipt": {
+          "path": ".project-local/runs/be268a2d33/fixed-light-formats-20261024-01/artifacts/light-formats.json",
+          "sha256": "38a18554a820f0c28b045008a714722964d785f2cf564f9908ebaed52817806e",
+          "bytes": 99821
+        }
+      },
+      "boundary": "Not all format versions/encodings, native-format roundtrip, installed business journey, full same-object Human-AI journey or Owner acceptance."
+    },
+    "resource_historical_source_binding_20261024": {
+      "status": "ARCHIVAL_SOURCE_BINDING_REPAIRED_NOT_REQUALIFIED",
+      "migrated_refs": [
+        "/entries/47/evidence/version/source_refs/1",
+        "/entries/60/evidence/version/source_refs/1",
+        "/sources/7"
+      ],
+      "archive_manifest": {
+        "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/MANIFEST.json",
+        "sha256": "077a866c85d9c65eb378245c5a1ada154d2fb270d91c3a8d89f47924fd77a00a",
+        "bytes": 2509
+      },
+      "original_head_sources": [
+        {
+          "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json",
+          "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a",
+          "bytes": 1209
+        },
+        {
+          "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md",
+          "sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09",
+          "bytes": 10713
+        }
+      ],
+      "qualification_promotion": false,
+      "preserved": "Original source SHA and every qualification state/value/activation; ProseMirror/Tiptap historical version state remains HISTORICAL_SOURCE_NOT_CURRENT.",
+      "prep_receipt": {
+        "path": ".project-local/rsb24/receipt.json",
+        "sha256": "8652eb90e11706ba3c5df2bec9807724d6673708ceca521aadb0fd4d39b10cc4",
+        "bytes": 3943
+      },
+      "root_applied_validation": {
+        "status": "PASS_REPORTED_BY_ROOT",
+        "check": "strict generate_resource_catalog.py --check on actual repo",
+        "boundary": "Parent confirmed applied five files and check; no new check was executed by this drafting agent."
+      }
+    },
+    "generated_and_formatting_delta_20261024": {
+      "ui_host_generated_digest": "SYNCHRONIZED_BY_ROOT",
+      "generated_files": [
+        {
+          "path": "frontend/src/api/generated/ui-host-contract.ts",
+          "sha256": "fb283f1694e15854bbf6e22c9b6f71cf4d5dfbca0728586422b51344dc0f476b",
+          "bytes": 5271
+        },
+        {
+          "path": "crates/archeaxis-contracts/src/generated/ui_host.rs",
+          "sha256": "601c1ceb3b4b34cde9a3be52dd5ba3fa6980d5d7c426a905583cb224b1010d28",
+          "bytes": 15169
+        }
+      ],
+      "formatting_findings_addressed": 29,
+      "normalization_receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/preflight-conventions-normalization-20261024.json",
+        "sha256": "598e11ea4d35bfaf3d15bdf2b716adf8bfbc0ab118196146772acf7f70c8348b",
+        "bytes": 8502
+      },
+      "semantic_boundary": "CRLF to LF/final LF only, except equivalent Rust Unicode escape preserving the emoji test value. No product behavior or authority scope change intended; no inference that old frozen Host was rebuilt from these later source bytes."
+    },
+    "public_delivery_targeted_review": {
+      "status": "NO_CONFIRMED_BUG_IN_NARROW_SOURCE_REVIEW",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/targeted-cloud-external-context-review-20261024.json",
+        "sha256": "b0b5068b3fff55756a179c4f0c1c42863a0ab57b7fe3c89d2d642d60a8e69c98",
+        "bytes": 8519
+      },
+      "scope": "Material-cloud owned-worker cancellation, credential isolation, fail-closed publication; external-context candidate authorization and acceptance boundary.",
+      "boundary": "No real cloud/model/Vault/network execution or complete security audit. Generic middleware already covers forged human headers. Specialized cloud mock midflight interleaving remains UNVERIFIED; does not establish a confirmed bug or cloud PASS."
+    },
+    "current_delivery_checks_20261024": {
+      "status": "AFFECTED_COMPONENT_CHECKS_PASS",
+      "checks": {
+        "delivery-guard-regression-20261024-02": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": 24,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/delivery-guard-regression-20261024-02/artifacts/execution.json",
+            "bytes": 1339,
+            "sha256": "10ac0bf12a84eaa1cef8632f73fff7bf366c8571cbc43e1619dcfb42f35a6b03"
+          }
+        },
+        "delivery-contract-regression-20261024-01": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": 24,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/delivery-contract-regression-20261024-01/artifacts/execution.json",
+            "bytes": 1447,
+            "sha256": "17ba391a72c23570e23f05421d76d15880e9f84cb2bffc0e06227b778680cb90"
+          }
+        },
+        "delivery-python-affected-20261024-01": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": 195,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/delivery-python-affected-20261024-01/artifacts/execution.json",
+            "bytes": 1711,
+            "sha256": "27a5db83927a59c3e9607bbb2e3eece6f0d66ebd8ab04d0c3adac5e5cf90fba9"
+          }
+        },
+        "delivery-route-regression-20261024-01": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": 36,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/delivery-route-regression-20261024-01/artifacts/execution.json",
+            "bytes": 1501,
+            "sha256": "abd5bf41924d40a0d60438e7acecc12c5726aa85d7a4ab6df91312fe94fda32e"
+          }
+        },
+        "installed-settings-group-regression-20261024-01": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": 51,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/installed-settings-group-regression-20261024-01/artifacts/execution.json",
+            "bytes": 1419,
+            "sha256": "4c10a06eba3c401164d85727973864bd94fd9f28c59b587709f212c73a30ea5f"
+          }
+        },
+        "delivery-types-20261024-01": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": null,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/delivery-types-20261024-01/artifacts/execution.json",
+            "bytes": 1390,
+            "sha256": "f5cb07987b67e9b35df5ed915dde261c60e51b4d6a9ac6853422120c3ffd2912"
+          }
+        },
+        "delivery-rust-format-20261024-02": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": null,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/delivery-rust-format-20261024-02/artifacts/execution.json",
+            "bytes": 1394,
+            "sha256": "ea481c85177c693f72f4529a6066e1b4c28a434b4a58f3db0029a87b693bde89"
+          }
+        },
+        "delivery-tauri-format-20261024-02": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": null,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/delivery-tauri-format-20261024-02/artifacts/execution.json",
+            "bytes": 1436,
+            "sha256": "9d2a05c1644023b226dc2cd39167f56753ebd3c8a54509a6b4b52ee2a8d0a50f"
+          }
+        },
+        "delivery-ci-ruff-20261024-01": {
+          "status": "LOCAL_PASS",
+          "source_consistent": true,
+          "tests_passed": null,
+          "receipt": {
+            "path": ".project-local/runs/be268a2d33/delivery-ci-ruff-20261024-01/artifacts/execution.json",
+            "bytes": 1526,
+            "sha256": "a00cbd8de8d264fc004c0b40b09d73df9a3ab0507631fe999a3cdc0489a36a91"
+          }
+        }
+      },
+      "single_full_preflight": "NOT_YET_REQUALIFIED_AFTER_FINAL_DOC_UPDATE",
+      "ci": "NOT_EXECUTED",
+      "boundaries": "Unit/fixture/format/type checks only; none qualifies a real provider, compiled candidate or Owner acceptance. Original preflight01/02, guard01 and format01 failures retained."
+    },
+    "route_contract_repair_20261024": {
+      "status": "SOURCE_CONTRACT_RECONCILED",
+      "unique_pairs": 137,
+      "projection_only_pairs_with_control": 85,
+      "projection_unconditional_mounts": 72,
+      "runtime_mounts": 50,
+      "routes": [
+        "GET /api/v1/machine/external-context/status",
+        "POST /api/v1/machine/external-context/candidates"
+      ],
+      "strict_schema": "Human-only offline candidate; nullable Option fields may be omitted; UTF8 byte bounds/i32/Axum syntax-vs-data errors documented. No provider connection.",
+      "coverage_map": "tests/maintenance/test_contract_verification_map.py section22 with explicit commands; 36 maintenance checks PASS"
+    },
+    "rust_format_repair_20261024": {
+      "status": "PASS_FORMAT_ONLY",
+      "scope": "11 workspace files reported by fmt check plus src-tauri main.rs FixedRuntime block, including pre-existing HEAD layout issues. No intentional semantics change.",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/rustfmt-preflight-repair-20261024.json",
+        "bytes": 2824,
+        "sha256": "08eba47505c5fab741b41c52e606ccdd795cadf26c85925827a7f68ab9a79d88"
+      }
+    },
+    "installed_business_run01_historical": {
+      "status": "FAIL_PRESERVED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-01/installed-business-execution.json",
+        "bytes": 7520,
+        "sha256": "4d47cf79edd5345af62f55fb8a6ab466edb183bfca9724b69a195732f25fd056"
+      },
+      "scope": "Exact offline installer; run01 tool DLL failure before business, run02 fixed tool startup then settings subgroup navigation missing. Failures not reclassified."
+    },
+    "installed_business_run02_historical": {
+      "status": "FAIL_PRESERVED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-02/installed-business-execution.json",
+        "bytes": 9390,
+        "sha256": "88746ea6aa8202150ac4b4af08c03fc10200856a8a9b5b1ff73325e1ddbfcd5f"
+      },
+      "scope": "Exact offline installer; run01 tool DLL failure before business, run02 fixed tool startup then settings subgroup navigation missing. Failures not reclassified."
+    },
+    "dual-loop-delivery-preflight-20261024-01": {
+      "status": "FAIL_PRESERVED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/dual-loop-delivery-preflight-20261024-01/artifacts/local-ci.json",
+        "bytes": 1003513,
+        "sha256": "35b77ad57dc6be47de74c578fdd202979cc80fb4393a574c62147c4456777a94"
+      }
+    },
+    "dual-loop-delivery-preflight-20261024-02": {
+      "status": "FAIL_PRESERVED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/dual-loop-delivery-preflight-20261024-02/artifacts/local-ci.json",
+        "bytes": 1006273,
+        "sha256": "9a1b561aae7c9df4351ba062adae39f7d0c7fb100badec77c30f8e7ac28427ec"
+      }
+    },
+    "installed_business_latest": {
+      "status": "VM_DISAPPEARED_BEFORE_RESULT",
+      "cause": "UNDETERMINED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-03/installed-business-execution.json",
+        "bytes": 8952,
+        "sha256": "717e4c63433b791ddd617130c17245a829015560b9a3eabda4dac90b71c4a773"
+      },
+      "installer_sha256": "4661ce30ab3787cf0afd8f1194c6a6cbd70d16af5ac2f5716471b6aab240c3b3",
+      "six_source_snapshot": "2675ed4913ae0728b4093ea77d606c6b6fae048ccd7a06b947b6249fa52cf845",
+      "input_files_verified": 677,
+      "input_sha_unchanged": true,
+      "driver_root_cause": "CONFIRMED_MISSING_VCRUNTIME140_TOOL_DEPENDENCY_BY_SAME_PATH_AB",
+      "settings_group_fix": "SOURCE_AND51_UNIT_CHECKS_PASS; RUNTIME_EFFECT_UNVERIFIED_UI_NOT_REACHED",
+      "installed_preflight": "PASS_EXACT_HOST_CORE_MANIFEST",
+      "installed_postflight": "UNVERIFIED_NO_TERMINAL_RECEIPT",
+      "business": "UNVERIFIED_NO_TERMINAL_RECEIPT",
+      "guest_uninstall": "UNVERIFIED_NO_TERMINAL_RECEIPT",
+      "guest_normal_shutdown": "UNVERIFIED",
+      "cleanup": "PASS_CLIENT_RECLAMATION_ONLY; VM not listed; no official stop success inferred",
+      "model_calls": 0,
+      "historical_run01_02": "FAIL_PRESERVED_SEPARATE_FROM_VM_DISAPPEARANCE",
+      "next_existing_task_action": "Resolve isolated Windows Sandbox visibility/termination failure before next installed conflict run; no product cause or settings runtime success inferred."
+    },
+    "installed_business_tool_diagnostic": {
+      "status": "CONFIRMED_APP_LOCAL_TOOL_DLL_DEPENDENCY",
+      "original_exit": "0xC0000135",
+      "only_added": "candidate-distributed vcruntime140.dll",
+      "recovered_exit": 0,
+      "help_bytes": 393,
+      "product_changed": false,
+      "global_environment_changed": false,
+      "diagnostic": {
+        "path": ".project-local/runs/be268a2d33/installed-business-suffix-prep-20261024-02/artifacts/guest-output/business02/driver-dependency-diagnostic.json",
+        "bytes": 2680,
+        "sha256": "d3f34f1efa70a5e0f5fddc601034d6cf97e740e19bbbec0e7f8d1eab29699e09"
+      }
+    },
+    "final_public_preflight_20261024": {
+      "status": "LOCAL_PASS",
+      "checks": {
+        "preflight": {
+          "path": ".project-local/runs/be268a2d33/dual-loop-delivery-preflight-20261024-04/artifacts/local-ci.json",
+          "bytes": 1009726,
+          "sha256": "711600dbaa52d30af89836738480a3326f96807e99c4e021c57e7963c818ffb9"
+        },
+        "custody_regression": {
+          "path": ".project-local/runs/be268a2d33/delivery-custody-regression-20261024-01/artifacts/execution.json",
+          "bytes": 1393,
+          "sha256": "71d69f2f693ccb7ee1d1c1cedf1d033244ca73e3566975564324e3c4706f4a2d"
+        },
+        "archive_bytes": {
+          "path": ".project-local/artifacts/dual-loop-resume-20261023/archive-custody-staged-20261024.json",
+          "bytes": 2867,
+          "sha256": "c1acee5c5830b48fc1b7d2425900d46c56ecf907e568ede77eb4f08dd8107279"
+        },
+        "ci_rules": {
+          "path": ".project-local/artifacts/dual-loop-resume-20261023/ci-required-review-20261024.json",
+          "bytes": 25138,
+          "sha256": "46b9f5963bad3a8e3bcf1969915461300f665f4a8bff410649258b812b1c29dc"
+        }
+      },
+      "custody_tests_passed": 89,
+      "boundary": "Index/source local preflight; no hosted CI, real cloud or installed business qualification inferred. preflight03 CRLF pin-registry placement failure retained; root moved twelve exact archive pins to existing byte-custody registry."
+    }
+  },
+  "cleanup": {
+    "status": "PASS",
+    "deleted_duplicate_regular_files": 38935,
+    "logical_bytes_removed": 1270022376,
+    "unique_failure_files_preserved": 10,
+    "replacement_tree": ".project-local/rt",
+    "no_branch_or_worktree_deleted": true,
+    "portable_sparse_evidence": {
+      "status": "PASS",
+      "deleted_duplicate_regular_files": 38960,
+      "logical_bytes_removed": 1288924478,
+      "old_candidate_state": "SPARSE_EVIDENCE_NOT_RUNNABLE",
+      "unique_files_preserved": 6,
+      "final_replacement_tree": ".project-local/runs/be268a2d33/dual-loop-portable-20261024-final/artifacts/星环便携候选",
+      "rebuild_policy": "Exact per-file replacement maps plus preserved historical original manifests; never run the sparse old directories as complete candidates"
+    },
+    "total_deleted_duplicate_regular_files": 136336,
+    "total_logical_bytes_removed": 4474026444,
+    "cloud_runtime_sparse_evidence": {
+      "status": "PASS",
+      "deleted_duplicate_regular_files": 19477,
+      "logical_bytes_removed": 625698244,
+      "state": "SPARSE_EVIDENCE_NOT_RUNNABLE",
+      "unique_files_preserved": 3,
+      "successor_recovery_routes": "3 stale historical .rt map entries rerouted to retained unique old files and stable f894 fallback; historical logs unchanged"
+    },
+    "crt_runtime_sparse_evidence": {
+      "status": "PASS",
+      "deleted_duplicate_regular_files": 19480,
+      "logical_bytes_removed": 644516337,
+      "state": "SPARSE_EVIDENCE_NOT_RUNNABLE",
+      "unique_manifest_preserved": 1,
+      "replacement": "stable full80e99 candidate;19480 actual replacement hashes reverified"
+    },
+    "fixed_runtime_sparse_evidence": {
+      "status": "PASS",
+      "deleted_duplicate_regular_files": 19484,
+      "logical_bytes_removed": 644865009,
+      "state": "SPARSE_EVIDENCE_NOT_RUNNABLE",
+      "unique_manifest_preserved": 1,
+      "replacement": "full stable CRT candidate; all19484 replacement actual hashes reverified; exact map and failure logs retained"
+    }
+  },
+  "parallel_policy": "Shared checkout has one tracked writer lease; other agents use ignored outputs or read-only checks. Cloud writers frozen before successor source qualification; f894 packaging/Sandbox uses immutable prior candidate independently.",
+  "branch_readback": "Git SSH ls-remote and independent GitHub API verified committed HEAD95b and main8d at pre-delivery readback; new staged source is not yet published by this checkpoint. No useful branch merge identified; grant exists.",
+  "boundaries": {
+    "external_raw_context": "NOT_CONNECTED",
+    "monitor": "PAUSED_UNCHANGED",
+    "optional_market_api_software": "DEFERRED_UNCHANGED",
+    "frozen_six_V01_FT01_04": "UNCHANGED",
+    "global_provider_or_credentials": "UNCHANGED_NOT_READ",
+    "real_user_data": "NOT_OVERWRITTEN",
+    "commit_push": "NOT_EXECUTED",
+    "remote_exact_sha": "UNVERIFIED",
+    "green": "NOT_UPDATED"
+  },
+  "remaining": [
+    "Same-installer LOCAL_INSTALL_LIFECYCLE PASS; cross-version migration/rollback and Windows10 qualification remain incomplete.",
+    "Latest Fixed Core real local model asset consumption PASS; old timeout cause remains undetermined, not erased by later success.",
+    "No real cloud provider call: fixed provider/model, product credential and request-specific material/unknown-cost authorization still absent; no Codex credentials or paid calls.",
+    "Native run03 answer/authored correction/retest and saved DEEP cold/restore config passed; parent final selection FAIL retained. Separate cloned suffix old-grant refusal PASS with0 inference; cross-receipt engineering evidence is not one completed journey. Independent semantic quality and Owner acceptance remain.",
+    "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
+    "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
+  ],
+  "receipts": {
+    "qualified_build": {
+      "path": ".project-local/runs/be268a2d33/6fec2ca9894d/artifacts/frontend-build.json",
+      "sha256": "14f692f12c66794452f1b951957802f481ff14c826c21ee17764502cd006090b",
+      "bytes": 2035
+    },
+    "portable": {
+      "path": ".project-local/runs/be268a2d33/dual-loop-portable-20261024-02/artifacts/portable-receipt.json",
+      "sha256": "45c99e236970444e179edc805148aac62103b430c13e8bd146ef1fc4bc165c8f",
+      "bytes": 3776378
+    },
+    "ai_governance": {
+      "path": ".project-local/runs/be268a2d33/dual-ai-governance-20261023-02/artifacts/ai-governance-receipt.json",
+      "sha256": "bb20a91cfe337295477222d768f83e773af839de6d16e988b84bf59dbba82ca8",
+      "bytes": 7963
+    },
+    "local_material_companion": {
+      "path": ".project-local/runs/be268a2d33/dual-local-model-agent-20261024-01/artifacts/real-local-model.json",
+      "sha256": "9c7d1767534810453f3ba8c7702dd993d8c7d3081fa481cb1fd8afe3727ce1f8",
+      "bytes": 23080
+    },
+    "local_answer_correction_retest": {
+      "path": ".project-local/runs/be268a2d33/dual-local-ai-correction-agent-20261024-01/artifacts/real-ai-correction-model.json",
+      "sha256": "c2a44da7eedbe0e5ec6ac829a7a5bb0957a4574926536d5d3f859f73cdbbc0be",
+      "bytes": 55943
+    },
+    "local_asset_consumer": {
+      "path": ".project-local/runs/be268a2d33/dual-local-ai-asset-agent-20261024-01/artifacts/real-ai-asset-model.json",
+      "sha256": "616813e966e8b22c2a85bd3cea2dc7a48102c06767b68df633965f5fb4921d4e",
+      "bytes": 31174
+    },
+    "native_human_plus_additional_failure": {
+      "path": ".project-local/runs/be268a2d33/webdriver-2a00edc83531/tmp/journey/receipt.json",
+      "sha256": "595835074816da931ffb1b86d74fb7cdb72c6573304e71b216fd3bdcab1543f9",
+      "bytes": 193163
+    },
+    "common_formats": {
+      "path": ".project-local/runs/be268a2d33/7f2c6bd1bc84/artifacts/common-formats.json",
+      "sha256": "6ed38af64c0ed709b4c7fe3a94767dc8fcc6b583a13c13a2b8ef4e98b5a64612",
+      "bytes": 111560
+    },
+    "public_research": {
+      "path": ".project-local/runs/be268a2d33/dual-public-research-20261024-01/artifacts/public-research-receipt.json",
+      "sha256": "f92131e8ab9ae50e9076bcdc09eb9a1e79f5b60a588bcfed0ad71cce93e3fad3",
+      "bytes": 86007
+    },
+    "network_diagnosis": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/public-network-agent/diagnostic.json",
+      "sha256": "f2af8adc58c0288b9b539a1a138a8f6e546ed795701677e27733680cfdf98ed7",
+      "bytes": 3073
+    },
+    "cloud_gap": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/cloud-gap-agent/receipt.json",
+      "sha256": "76a7ea43c67036c3c0fc5bb3e2f99f49cbaa6a77cff95c0175b4b3d1f5862da4",
+      "bytes": 1984
+    },
+    "cleanup": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/cloud-gap-agent/cleanup-receipt.json",
+      "sha256": "0559b08fb45882932fd0b0e54f8e88bf20fef993ff67fd23aae6873ba5b6006b",
+      "bytes": 5995
+    },
+    "probe_contracts": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/probe-fix-prepared/applied-receipt.json",
+      "sha256": "72aa6349255eed896b3fb5cd117ea0cce543783fa2d93de20ab1a00182d1bec4",
+      "bytes": 1130
+    },
+    "final_qualified_build": {
+      "path": ".project-local/runs/be268a2d33/061e9d91377c/artifacts/frontend-build.json",
+      "sha256": "5cdb1dcef3e0ff792eb93759385ebf8314b2911181fb7f0245f40423839d2078",
+      "bytes": 2038
+    },
+    "final_portable": {
+      "path": ".project-local/runs/be268a2d33/dual-loop-portable-20261024-final/artifacts/portable-receipt.json",
+      "sha256": "b07f2485d630792a31b71a48bc87e175f0be4f3da4d617a49df05ae333738e28",
+      "bytes": 3776381
+    },
+    "native_additional_locator_failure": {
+      "path": ".project-local/runs/be268a2d33/webdriver-845db34b4a38/tmp/journey/receipt.json",
+      "sha256": "b1d01fa1e03529a0d40eed3904d488bd7e84f3e5011c9927803deb80e5f5fd9e",
+      "bytes": 17705
+    },
+    "native_closure_only": {
+      "path": ".project-local/runs/be268a2d33/webdriver-0f0a2552e9db/tmp/journey/receipt.json",
+      "sha256": "a9ba84d2ef49adca2e57510d5782439ba3a9bc568c58e5419777f7f37edbb550",
+      "bytes": 39068
+    },
+    "native_closure_wrapper_and_seed": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/webdriver-0f0a2552e9db-closure-only.json",
+      "sha256": "91648da75ba87131c0bc6f32d74c2b7da081a75b7605c78d354e5e7cfd261003",
+      "bytes": 14673
+    },
+    "portable_sparse_cleanup": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/cloud-gap-agent/portable-cleanup-receipt.json",
+      "sha256": "1a18532f9734b2a1eff253f799e53bf5831bc97e0ad19a47f4555236c2e0d25e",
+      "bytes": 4649
+    },
+    "final_local_checks": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/final-qualified-local-checks.json",
+      "sha256": "1ac97f0d83f2537cd364a5d95c3d61219e3c42ca803efaffe21522af4c491bec",
+      "bytes": 1140
+    },
+    "post_build_probe_delta": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/post-native-label-fix/BOUNDARY.json",
+      "sha256": "f3b0c94c1cf723b8cc4847750d661549b9d6bf0aed9a1f6980925e7e0f2775ad",
+      "bytes": 410
+    },
+    "cloud_api_final": {
+      "path": ".project-local/runs/be268a2d33/cloud-vertical-api-final/artifacts/execution.json",
+      "sha256": "9df7ce3bfb928305955faf48b5385950661b11064c3204516ea1e9e64cf96e2f",
+      "bytes": 1441
+    },
+    "cloud_domain": {
+      "path": ".project-local/runs/be268a2d33/cloud-vertical-domain-01/artifacts/execution.json",
+      "sha256": "972b7641fdd784255ec3e7f7046a9320cc61af3e0ba7f5acca33e1f554ec9768",
+      "bytes": 1442
+    },
+    "cloud_python_frozen": {
+      "path": ".project-local/runs/be268a2d33/cloud-vertical-python-frozen/artifacts/execution.json",
+      "sha256": "a127e2161e08b92f6c6b33db57be1ddaadb0861b3507d3e9c1b4980c60671cf1",
+      "bytes": 1679
+    },
+    "cloud_ui_final": {
+      "path": ".project-local/runs/be268a2d33/cloud-vertical-ui-final/artifacts/execution.json",
+      "sha256": "27f714054ce8f385c94d7727a8b9f3f2b609e4a41f07bf601222e344c3ba6877",
+      "bytes": 1377
+    },
+    "installer_safety": {
+      "path": ".project-local/runs/be268a2d33/installer-safety-20261024-03/artifacts/execution.json",
+      "sha256": "285d15351e54dc4d83b1ef9313aeb49c09abe300f8ed1989d4cc628879041c9e",
+      "bytes": 1691
+    },
+    "f894_nsis_bundle": {
+      "path": ".project-local/runs/be268a2d33/nsis-f894-keyclear-20261024/bundle-receipt.json",
+      "sha256": "65c226b9369892ac3688ac61552cb2ecd77e015df40c6d71f256e266e5b27e3b",
+      "bytes": 3913736
+    },
+    "f894_sandbox_prepared": {
+      "path": ".project-local/runs/be268a2d33/sandbox-f894-20261024/preparation-receipt.json",
+      "sha256": "7fa5d532f011f60aedf4ea868520a129db6541003b022880df378d6f4a033593",
+      "bytes": 909
+    },
+    "successor_core": {
+      "path": ".project-local/runs/be268a2d33/dual-cloud-core-qualified-20261024-01/artifacts/execution.json",
+      "bytes": 1760,
+      "sha256": "ba4924ca139687bd9c94e6a3c0aa396ebdcbb34c2493cbc5717e8b25a1ae201d"
+    },
+    "successor_tauri": {
+      "path": ".project-local/runs/be268a2d33/21c36bd7af0c/artifacts/frontend-build.json",
+      "bytes": 2036,
+      "sha256": "6b3ddbc7e4d47f19b1797bde0ba59288f868ab318047bd573171f98e929fa147"
+    },
+    "successor_portable": {
+      "path": ".project-local/runs/be268a2d33/dual-cloud-portable-20261024-01/artifacts/portable-receipt.json",
+      "bytes": 3776552,
+      "sha256": "f57d9b11d8bebc53f4acd9aa5a46875cb0b119d52625610011fd7a84b4c84be9"
+    },
+    "successor_native": {
+      "path": ".project-local/runs/be268a2d33/webdriver-005e95ba14e1/tmp/journey/receipt.json",
+      "bytes": 217203,
+      "sha256": "335a9abe9c46f3ea7d29ba1e1dbf9d0355d6230b4a8dea0c1679774957c55828"
+    },
+    "successor_ai37": {
+      "path": ".project-local/runs/be268a2d33/dual-governance-cloud-regression-20261024-01/artifacts/ai-governance-receipt.json",
+      "bytes": 8005,
+      "sha256": "18d826d3013a255ab75e778093ac3620422c1225ec3e3f8e22939f3b3582231d"
+    },
+    "successor_common_formats": {
+      "path": ".project-local/runs/be268a2d33/71267803c48b/artifacts/common-formats.json",
+      "bytes": 119105,
+      "sha256": "5c6b0d91df30ee5d8316edb68c90214012f111929821cbec9063b2ba5d1d8cda"
+    },
+    "successor_vault": {
+      "path": ".project-local/runs/be268a2d33/dual-cloud-vault-component-20261024-01/artifacts/synthetic-vault-component.json",
+      "bytes": 449,
+      "sha256": "32db9b7074d65f3834af7b24928fe8a5250f4192da65ac2e29bb4d3ebe2274e6"
+    },
+    "successor_model_failure": {
+      "path": ".project-local/runs/be268a2d33/dual-cloud-core-asset-model-20261024-01/artifacts/failure-diagnostic.json",
+      "bytes": 4186,
+      "sha256": "48e4bd8844509737dbdeabe89b34cf799bbbb4ba6d218fe66d66a26b43aa6acb"
+    },
+    "sandbox_initial_failure": {
+      "path": ".project-local/runs/be268a2d33/sandbox-f894-20261024/sandbox-execution.json",
+      "bytes": 2844,
+      "sha256": "f1452e08e98752735e7681c8dbf508368e403f9242adb2f1c5fabfebf63bddac"
+    },
+    "sandbox_dll_diagnosis": {
+      "path": ".project-local/runs/be268a2d33/sandbox-f894-diag1-20261024/sandbox-execution.json",
+      "bytes": 4584,
+      "sha256": "682ca5b1284a05412ea91bd665929004aedba5f9734cb928761c95b34160de78"
+    },
+    "crt_tests": {
+      "path": ".project-local/runs/be268a2d33/app-local-vc-tests-final/artifacts/execution.json",
+      "bytes": 1769,
+      "sha256": "91590e223471f9e123360bd626aca8bda9608d447898a7ddd36df9fb85e223e4"
+    },
+    "crt_real_donor": {
+      "path": ".project-local/runs/be268a2d33/app-local-vc-real-donor-01/artifacts/execution.json",
+      "bytes": 1546,
+      "sha256": "b04b49441385d8a74afa5beeec1a8d8e36690bf152dba13c517e14ee03753852"
+    },
+    "crt_contract_tests": {
+      "path": ".project-local/runs/be268a2d33/app-local-vc-contract-final/artifacts/execution.json",
+      "bytes": 1686,
+      "sha256": "094a18728bb81020f7282033d6ffe41dbc4a7a35fb31b79a900597ee07a855f5"
+    },
+    "cloud_runtime_cleanup": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/cloud-gap-agent/cloud-runtime-cleanup-receipt.json",
+      "bytes": 3132,
+      "sha256": "5425310dcf7569cb722c448f2cbddb9ff814c3e1a99fd1eb9303071e6f913752"
+    },
+    "runtime_replacement_successor": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/cloud-gap-agent/runtime-replacement-successor-receipt.json",
+      "bytes": 6708,
+      "sha256": "ff179eb4897686b680576b23a715b8241975a6ba5cef32ca80dad569530f04f2"
+    },
+    "crt_core": {
+      "path": ".project-local/runs/be268a2d33/dual-crt-core-qualified-20261024-02/artifacts/execution.json",
+      "bytes": 1757,
+      "sha256": "03fd2535b09044adeecfcf470b5c0a14ceca93c5a7f9098fc69e30eff14e9b2f"
+    },
+    "crt_stage": {
+      "path": ".project-local/runs/be268a2d33/dual-crt-stage-20261024-01/artifacts/execution.json",
+      "bytes": 1863,
+      "sha256": "8a9d93c7124983a5359ffc0deb610fe1db37ba7d6734ff2ea8d93f9016f25de4"
+    },
+    "crt_tauri": {
+      "path": ".project-local/runs/be268a2d33/2a2e6151a9c4/artifacts/frontend-build.json",
+      "bytes": 2034,
+      "sha256": "6c818c1fddcac1dc174430a9030819a9e9901a4169a83cd71f682b91dd8e8b16"
+    },
+    "crt_portable": {
+      "path": ".project-local/runs/be268a2d33/dual-crt-portable-20261024-01/artifacts/portable-receipt.json",
+      "bytes": 3777166,
+      "sha256": "0c12fdadf1295a88ad716c6421e07ba81be7e16546cc8f50b36f6d72843edc8d"
+    },
+    "crt_native_first_failure": {
+      "path": ".project-local/runs/be268a2d33/webdriver-0c83eac1bc6f/tmp/journey/receipt.json",
+      "bytes": 41190,
+      "sha256": "d3c19b1b6446893ebb940400613795ed34ad7cc7f138c12420b4cb263281c2d3"
+    },
+    "crt_native_focused_review": {
+      "path": ".project-local/runs/be268a2d33/webdriver-c2849dfa8896/tmp/journey/receipt.json",
+      "bytes": 22915,
+      "sha256": "ff95a87070140695c2c9f59fdb72fd044fb5d477ae00bf578aee5f5a13d2c189"
+    },
+    "crt_native_full_rerun": {
+      "path": ".project-local/runs/be268a2d33/webdriver-2d165616aff1/tmp/journey/receipt.json",
+      "bytes": 216903,
+      "sha256": "e4a46ae3e8b82c47f21e3145c78d661a29d19abfc0a806c96d5c56dd3567e5ca"
+    },
+    "crt_chinese_ocr": {
+      "path": ".project-local/runs/be268a2d33/e97259651aa9/artifacts/common-chinese-ocr.json",
+      "bytes": 6372339,
+      "sha256": "fb88ca911ce65e6ffcfd7a930c0681bd695fe8aa07cee0f70f2723b78fd67619"
+    },
+    "crt_speech": {
+      "path": ".project-local/runs/be268a2d33/4e0a3c812a7f/artifacts/common-speech.json",
+      "bytes": 807552,
+      "sha256": "c2b143a0687accdf9a078b973cae6f3a6ed1005fcfe973eb2df79422c10aca7e"
+    },
+    "crt_bundle": {
+      "path": ".project-local/runs/be268a2d33/nsis-crt-20261024-01/bundle-receipt.json",
+      "bytes": 3914849,
+      "sha256": "82ac1b1a04b832927e8f39b946f7b42bcb87affa1d3ad2a727b0eb281fb87af0"
+    },
+    "crt_sandbox": {
+      "path": ".project-local/runs/be268a2d33/sandbox-crt-20261024-01/sandbox-execution.json",
+      "bytes": 5302,
+      "sha256": "82a59f11636c6f86e6319ff6634186eb641f3ea01581b76b2109ba7a40c71f07"
+    },
+    "crt_owned_host_error": {
+      "path": ".project-local/runs/be268a2d33/sandbox-crt-20261024-01/output/diagnostic-launch/owned-host-window-text.json",
+      "bytes": 3423,
+      "sha256": "6590006a1dfad7c5edfc40118bc13262923f6df2d1b9714e7285622c78f91ad7"
+    },
+    "crt_component_binding": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/crt-component-evidence-binding.json",
+      "bytes": 3509,
+      "sha256": "a08a1b502a3d0c5f1c9726539fbb2604104442a8b4da34889892c525be3716d1"
+    },
+    "crt_runtime_cleanup": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/cloud-gap-agent/crt-runtime-cleanup-receipt.json",
+      "bytes": 2514,
+      "sha256": "d582b1ce024e3a610d2741c19032c89bcf266fc421de82a2f2da26f990558c6c"
+    },
+    "model_timeout_source_diagnostic": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/timeout-source-diagnostic.json",
+      "bytes": 3638,
+      "sha256": "3841db911c39cdcf53d0b378578ec307c03d113a92ae211c503cdc8958691e84"
+    },
+    "model_diagnostic_503_fixture": {
+      "path": ".project-local/runs/be268a2d33/dual-asset-diagnostic-503-20261024-02/artifacts/real-ai-asset-model.json",
+      "bytes": 2224,
+      "sha256": "b11ef3ef96b5d48870d06178740813e93f028def09c4a75154d31bd4835a67be"
+    },
+    "model_diagnostic_repair": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/diagnostic-repair-summary.json",
+      "bytes": 1899,
+      "sha256": "f8ce97914ae024d22c0a07ad7ee1da22bce4c448982e53883315bda27db69230"
+    },
+    "crt_public_research_proxy": {
+      "path": ".project-local/runs/be268a2d33/dual-crt-public-research-proxy-20261024-01/artifacts/public-research-receipt.json",
+      "bytes": 1599025,
+      "sha256": "02de2b9f8bf8d0d9c8081503038863042dc0f6edde0d4069801df7a413de8765"
+    },
+    "crt_public_research_binding": {
+      "path": ".project-local/runs/be268a2d33/dual-crt-public-research-proxy-20261024-01/artifacts/candidate-network-binding.json",
+      "bytes": 1057,
+      "sha256": "a922176db0f47e20127fea00d107a6a3f90dfc03f54e520f1c3bfdacb27bfdc4"
+    },
+    "public_material_governance": {
+      "path": ".project-local/runs/be268a2d33/pub-gov-20261024-04/artifacts/public-material-governance.json",
+      "bytes": 15308,
+      "sha256": "66f56ef752835a8e60edbf4dc0256f12c61ccfee76c7e7adc3caa3d22d2aee1d"
+    },
+    "crt_offline_webview_bundle": {
+      "path": ".project-local/runs/be268a2d33/nsis-crt-offlinewv-20261024-01/bundle-receipt.json",
+      "bytes": 3915642,
+      "sha256": "3d84a8a73abbace0f59367bacfec161d977d3362c1bc9269465cec6fcd791757"
+    },
+    "crt_offline_webview_sandbox_failure": {
+      "path": ".project-local/runs/be268a2d33/sandbox-crt-offlinewv-20261024-01/sandbox-execution.json",
+      "bytes": 3677,
+      "sha256": "070447a529e0581ecef608e58075f3153342f54c306e41b6adf1aa7a848a0999"
+    },
+    "crt_offline_webview_initial_error": {
+      "path": ".project-local/runs/be268a2d33/sandbox-crt-offlinewv-20261024-01/output/installed-owned-host-window-text.json",
+      "bytes": 3472,
+      "sha256": "c8a24aa0bc587137ae79cd0a13846711953e99dc5b35ed1de691825796fbc1b7"
+    },
+    "webview_official_dependency": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/webview2-official-dependency/download-receipt.json",
+      "bytes": 760,
+      "sha256": "bf65617e4a010bb7c7ae727bf942ddbfbf1034e5f9dac0b4f53cd666c4d9ca31"
+    },
+    "webview_cli_source_audit": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/webview-offline-cli-2.12.3-audit.json",
+      "bytes": 3892,
+      "sha256": "79d4f27b460bf4f7bee2fa0601e95f7b8f3a262195a3e7b49d5c8f21d706c338"
+    },
+    "webview_preinstall_compile_fixture": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/webview-hook-compile-fixture-20261024-02/compile-receipt.json",
+      "bytes": 3748,
+      "sha256": "861403144e3b7ba109b62170dc1e50bb1139a47b0ddd9f87b251764edbae1ce9"
+    },
+    "offline_packaging_portable_tests": {
+      "path": ".project-local/runs/be268a2d33/tauri-offline-config-regression-20261024-01/artifacts/execution.json",
+      "bytes": 1750,
+      "sha256": "282097f2344cc0493ff42f74e6cb4b1c87bbc6464d365983c6d32acb30ab04b7"
+    },
+    "offline_packaging_policy_review": {
+      "path": ".project-local/runs/be268a2d33/tauri-offline-config-regression-20261024-01/artifacts/config-review.json",
+      "bytes": 2015,
+      "sha256": "ae0169f000e41356e8c40676962cf0880949662632224f8162b9a1479cd4d487"
+    },
+    "public_evidence_scope_summary": {
+      "path": ".project-local/runs/be268a2d33/public-evidence-summary-20261024-01/artifacts/public-research-governance-summary.json",
+      "bytes": 7297,
+      "sha256": "fb2da56472af9862367ec9c39610fedbfe622565bd1a6ca4adf27bc0f94851bd"
+    },
+    "current_checkpoint_document_authority": {
+      "path": ".project-local/runs/be268a2d33/dual-checkpoint-authority-20261024-05/artifacts/execution.json",
+      "bytes": 1331,
+      "sha256": "847852c3de11ea456364b51e91bee4ae87b782279a8b86d45b3eda353a8d2dfb"
+    },
+    "crt_offline_preinstall_hook_bundle": {
+      "path": ".project-local/runs/be268a2d33/nsis-crt-offlinewv-hook-20261024-01/bundle-receipt.json",
+      "bytes": 3916082,
+      "sha256": "837683a3a02edc28168a349de18e0632c2ccad5f2281aa1fe85f1ced48b9af85"
+    },
+    "crt_offline_preinstall_hook_sandbox_failure": {
+      "path": ".project-local/runs/be268a2d33/sandbox-crt-offlinewv-hook-20261024-01/sandbox-execution.json",
+      "bytes": 5193,
+      "sha256": "c9188180dea74257ddef3b8678c73b418b72d786497e087e735821ab85ab540c"
+    },
+    "crt_offline_preinstall_official_log": {
+      "path": ".project-local/runs/be268a2d33/sandbox-crt-offlinewv-hook-20261024-01/output/official-prerequisite-logs/MicrosoftEdgeUpdate.log",
+      "bytes": 291132,
+      "sha256": "a1dfae9ad6a32f58d47db44fe1c278f8cc9418e43c3f7bc42dacbe443a7da74e"
+    },
+    "fixed_core_build": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-core-qualified-20261024-01/artifacts/execution.json",
+      "bytes": 1755,
+      "sha256": "f1adc627d6fbabc569637805b507b1ee76a410674c377d8d62a9254729164a1b"
+    },
+    "fixed_frontend_build": {
+      "path": ".project-local/runs/be268a2d33/15490ef73fab/artifacts/frontend-build.json",
+      "bytes": 2308,
+      "sha256": "6cd1d0a52288a43c21749230c67914114d88f6d26914ef5e8934dd8e2daebd26"
+    },
+    "fixed_portable": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-portable-20261024-01/artifacts/portable-receipt.json",
+      "bytes": 3823504,
+      "sha256": "6286d6e00def6aca3c5f0dce48c7d2dd1c32f3d6d020b389f5dc15530e4bfb7d"
+    },
+    "fixed_ui_binding": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-ui-binding-20261024-02/artifacts/ui-build-binding.json",
+      "bytes": 4417,
+      "sha256": "512ffe6da3eaa4fad9a324da2ea46c27aa41b25907c161fe051358f9a3d931c7"
+    },
+    "fixed_native": {
+      "path": ".project-local/runs/be268a2d33/webdriver-e72ea7fb268e/tmp/journey/receipt.json",
+      "bytes": 217413,
+      "sha256": "45b85a76803ce54e3b358ae52817df401007b8da3a107c830d8e90b49d002729"
+    },
+    "fixed_webview_observer": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-native-observer-20261024-02/artifacts/owned-fixed-webview.json",
+      "bytes": 88777,
+      "sha256": "13c0767826711f1aaa5c1776914656fd256d769dbcaf452316cd29dc07ea15ab"
+    },
+    "fixed_driver": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-edgedriver-verify-20261024-01/artifacts/download-receipt.json",
+      "bytes": 1028,
+      "sha256": "fc788b68b2d8b657950c29ee3199c3685f6b7447e8b5469d9b866f3efaf2154b"
+    },
+    "seed_component": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-seed-component-diagnostic-20261024-01/artifacts/diagnostic.json",
+      "bytes": 1424,
+      "sha256": "bf819b2a3c507b7940552e00078b90042d8e57ae595549118225c05e14dcba25"
+    },
+    "seed_exact_body": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-seed-component-diagnostic-20261024-01/artifacts/exact-probe.py",
+      "bytes": 4724,
+      "sha256": "f3e5d6d03ac3246ee4bfdac3b63caad1d2ec063bce6e4ccb3ca6e0cce36a41f5"
+    },
+    "seed_stdout": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-seed-component-diagnostic-20261024-01/artifacts/stdout.txt",
+      "bytes": 927,
+      "sha256": "8f9ba72e38f66540b61cdbdf266ce55f1daf6c62aa3c7f096ca013f4b4f6f6b9"
+    },
+    "seed_stderr": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-seed-component-diagnostic-20261024-01/artifacts/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "fixed_stage": {
+      "path": ".project-local/runs/be268a2d33/fixedwv-stage-20261024-01/artifacts/execution.json",
+      "bytes": 2177,
+      "sha256": "b5e9a89f06b68791a8798a28af51d2be3b181bd2ca2226de01fe9a6764cb2ab6"
+    },
+    "fixed_source_tests": {
+      "path": ".project-local/runs/be268a2d33/fixed-webview-source-tests-20261024-01/artifacts/execution.json",
+      "bytes": 1467,
+      "sha256": "b0e37dd2da77bd108c34160f6eb18240be3aa01aab2979e0714be32648d6f3a5"
+    },
+    "fixed_component_reuse": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/fixed-runtime-component-reuse.json",
+      "bytes": 15333,
+      "sha256": "b6f22a7e1891d5eb8b9f970c5bc77d7af99a9861827c2ff4be7bb6aef5e549d1"
+    },
+    "fixed_elevated_review": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/fixed-runtime-elevated-override-review.json",
+      "bytes": 3091,
+      "sha256": "9cca2decd5f2d860eb3102e5dc078f4b2c2fe15813c86be371c7c1618e48feb1"
+    },
+    "fixed_dependency": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/webview2-fixed-official-dependency/prepared-receipt.json",
+      "bytes": 2328,
+      "sha256": "c953ebf0b90cd42e335f7097f413d9888b5b381b012579ec6492cab16bef6ec8"
+    },
+    "fixed_bundle": {
+      "path": ".project-local/runs/be268a2d33/nsis-fixedwv-zlib-20261024-01/bundle-receipt.json",
+      "bytes": 3963530,
+      "sha256": "17f8d1679f86590d79281914cb107fe03b052ffd56c80260255d2bbd69ff97a5"
+    },
+    "fixed_first_vm": {
+      "path": ".project-local/runs/be268a2d33/sandbox-fixedwv-zlib-20261024-01/sandbox-execution.json",
+      "bytes": 3264,
+      "sha256": "0dd9754cc555da014930bb9fe99ec4d2120b51c90fec567ac7a076eab1fd5e49"
+    },
+    "webview_guest_temp_failure": {
+      "path": ".project-local/runs/be268a2d33/sandbox-webview-prereq-temp-20261024-01/sandbox-execution.json",
+      "bytes": 3810,
+      "sha256": "a390c0ba7c2934ee77a8c392d827343b2c330db78a0a2d442abf2ae09214b8d0"
+    },
+    "fixed_runtime_cleanup": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/cloud-gap-agent/fixedwv-runtime-cleanup-receipt.json",
+      "bytes": 2512,
+      "sha256": "766b20387b082de642d3a60dbb8b15919bafc07106b4988d80c6f173d793d991"
+    },
+    "fixed_cleanup_map": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/cloud-gap-agent/fixedwv-runtime-replacement-map.json",
+      "bytes": 12969484,
+      "sha256": "b7f20db190dea43a6110073e469cb3aa2e6374081c031f8b48816c43162293bf"
+    },
+    "probe_diagnostics_tests": {
+      "path": ".project-local/runs/be268a2d33/installer-probe-diagnostics-20261024-03/artifacts/execution.json",
+      "bytes": 1375,
+      "sha256": "39e6bddc54b1608a89f97e1b181fa46789faec2236248d09e154a01afe1116c1"
+    },
+    "fixed_diagnostic_vm_identity_failure": {
+      "path": ".project-local/runs/be268a2d33/sandbox-fixedwv-zlib-diagnostics-20261024-01/sandbox-execution.json",
+      "bytes": 4363,
+      "sha256": "adb57b70a517f89561be6e59dc64896096ed10fe98f28c1ff2dcd6f55233e3a8"
+    },
+    "lifecycle_probe_source_review": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/lifecycle-python-probe-source-review.json",
+      "bytes": 2853,
+      "sha256": "dc98ed5010e0b02d76079d3ef05c91ee60ef2243301220d8be46073a51c9fb9d"
+    },
+    "local_install_identity_mode_review": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/local-install-identity-mode-review.json",
+      "bytes": 4192,
+      "sha256": "05ab98caa1794219fb73e2f33ac338c1c5ee76d2d16a1bc67b82f36ca9bba6bd"
+    },
+    "checkpoint_98_receipts_snapshot_validation": {
+      "path": ".project-local/runs/be268a2d33/checkpoint-receipts-validation-20261024-01/artifacts/receipt-validation.json",
+      "bytes": 52052,
+      "sha256": "9d57b68dbdff612d38ac4b1bc54e6a09ec367abbe59f44748428ed889b65bfb9"
+    },
+    "fixed_document_authority_gate": {
+      "path": ".project-local/runs/be268a2d33/fixed-current-document-authority-20261024-01/artifacts/execution.json",
+      "bytes": 1347,
+      "sha256": "56cf4c30b0e1bcddbe1be64f1ce03f9d75b3686652b1625db6c258cb6cdb3522"
+    },
+    "fixed_local_install_lifecycle": {
+      "path": ".project-local/runs/be268a2d33/sandbox-fixedwv-local-lifecycle-20261024-02/sandbox-execution.json",
+      "bytes": 8169,
+      "sha256": "02a13baadd0ae89d6cf3b3e65a84148ef08acae18c7bba8cd27a647d1b16cde7"
+    },
+    "fixed_final_document_authority_gate": {
+      "path": ".project-local/runs/be268a2d33/fixed-final-document-authority-20261024-01/artifacts/execution.json",
+      "bytes": 1343,
+      "sha256": "5eaa01ec7567e19bd482b3afbaf558aa820669bd25bfffbc85ac3862a011474b"
+    },
+    "fixed_asset_model_latest": {
+      "path": ".project-local/runs/be268a2d33/fixed-asset-model-20261024-01/artifacts/real-ai-asset-model.json",
+      "bytes": 38171,
+      "sha256": "a54224925022ba82e6c841c24715a6bbcaedb806261f0746d1e4753e8f6b5f83"
+    },
+    "fixed_asset_execution_latest": {
+      "path": ".project-local/runs/be268a2d33/fixed-asset-model-20261024-01/artifacts/execution.json",
+      "bytes": 1504,
+      "sha256": "bba3aa2c6ff829389ae1f3894c846507abdb98eb66d7dd23febd4a2f0f142cd6"
+    },
+    "fixed_asset_final_readback": {
+      "path": ".project-local/runs/be268a2d33/fixed-asset-model-20261024-01/artifacts/final-readback-receipt.json",
+      "bytes": 1604,
+      "sha256": "83cfb0217514ba887c5297f27210e2ff6e8ae0fd6e6c48a85ec5d4aadbdf146a"
+    },
+    "model_readonly_comparison": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/owned-model-comparison.json",
+      "bytes": 10628,
+      "sha256": "741e7c6a1c2b84c2014a19506f6cc4ef7e1859ef8dd301e3b3f2e01ec0b5dc65"
+    },
+    "fixed_governance_negative_first_failure": {
+      "path": ".project-local/runs/be268a2d33/ai-governance-negative-fixed-20261024-01/artifacts/ai-governance-negative.json",
+      "bytes": 8917,
+      "sha256": "b453ae0543d50baeceeaecdaf99a3afe1174c6dbce2930dc6eb5f5e939d1802a"
+    },
+    "fixed_governance_negative": {
+      "path": ".project-local/runs/be268a2d33/ai-governance-negative-fixed-20261024-02/artifacts/ai-governance-negative.json",
+      "bytes": 31241,
+      "sha256": "551ea7e2492db9e5ee8d4068287554f88aed6e7881870153576bb8800fd40ac7"
+    },
+    "fixed_governance_negative_execution": {
+      "path": ".project-local/runs/be268a2d33/ai-governance-negative-fixed-20261024-02/artifacts/execution.json",
+      "bytes": 1368,
+      "sha256": "f3d1818bae5278a65fd5e3fababd476e03937747841f0bf1eb62d8b5ed924e8f"
+    },
+    "ai_candidate_coverage_latest": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/ai-candidate-coverage-summary.json",
+      "bytes": 12627,
+      "sha256": "dda71b649bbbe40670712d2cf258e10de13708077890c09920a1a4db728a680b"
+    },
+    "native_ai_budget_regression": {
+      "path": ".project-local/runs/be268a2d33/native-ai-budget-regression-20261024-02/artifacts/execution.json",
+      "bytes": 1340,
+      "sha256": "09e3dc912e1956d477144697da44cae947125c2594cc60fe322d90d7c17322a8"
+    },
+    "native_ai_panel_regression": {
+      "path": ".project-local/runs/be268a2d33/native-ai-panel-regression-20261024-01/artifacts/execution.json",
+      "bytes": 1338,
+      "sha256": "e1f3979a38fd8c30c4fea5929fd85bd2f06aa4cb954fdeb771352ae41c2807ed"
+    },
+    "native_ai_option_regression": {
+      "path": ".project-local/runs/be268a2d33/native-ai-option-regression-20261024-01/artifacts/execution.json",
+      "bytes": 1340,
+      "sha256": "6eb3400a65f312a7865f40801be4079b63951a3e969e7b448b696074443caf6e"
+    },
+    "native_ai_dev_cli_invocation_failure": {
+      "path": ".project-local/runs/be268a2d33/4ff5e69b2545/artifacts/execution.json",
+      "bytes": 1347,
+      "sha256": "3bceb843378fe06b48107f6954677738506ef07b8d99b9bd969624277691c35c"
+    },
+    "native_ai_parent_first_failure": {
+      "path": ".project-local/runs/be268a2d33/native-ai-parent-execution-20261024-01/artifacts/parent-native-ai.json",
+      "bytes": 10902,
+      "sha256": "5f3624842683fde09f99384fcae54f818c9f696df530b8022da3263d23f70d41"
+    },
+    "native_ai_parent_option_failure": {
+      "path": ".project-local/runs/be268a2d33/native-ai-parent-execution-20261024-02/artifacts/parent-native-ai.json",
+      "bytes": 11088,
+      "sha256": "a8531ee3fd40d0da0164e8f6de7d024abfe6f142d32a565cf0cbda70c213c701"
+    },
+    "native_ai_parent_latest": {
+      "path": ".project-local/runs/be268a2d33/native-ai-parent-execution-20261024-03/artifacts/parent-native-ai.json",
+      "bytes": 12571,
+      "sha256": "b50af9a50567d0a7ba1e4cd2b93bd1f7d1ba7c2df270423cdb7271194e64c6e6"
+    },
+    "native_ai_inner_latest": {
+      "path": ".project-local/runs/be268a2d33/webdriver-0b3509d8fb33/tmp/journey/receipt.json",
+      "bytes": 363986,
+      "sha256": "f5465b43686b37029057ae54df145d6b2e3c375febf87b508bfcb3ed4713659f"
+    },
+    "native_ai_actual_stage_readback": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/native-run03-actual-stage-readback.json",
+      "bytes": 2152,
+      "sha256": "c254c13dd69e9c7b71cd7b61e6dc1be8939b3bafc7296fd368cbff9f3cbdec22"
+    },
+    "native_ai_checkpoint_suggestion": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/fixed-ai-checkpoint-suggestion.json",
+      "bytes": 13330,
+      "sha256": "2332bb29a0e22c896ee60606c276f073ec9ac3b93a6c737a08e04383e24a72d0"
+    },
+    "native_ai_restore_readiness_first_fixture_failure": {
+      "path": ".project-local/runs/be268a2d33/native-ai-restore-readiness-regression-20261024-01/artifacts/execution.json",
+      "bytes": 1356,
+      "sha256": "664fbf24b3a397ea6213a70dbcab75661730c7210f365eae44e36dee9b0f319b"
+    },
+    "native_ai_restore_readiness_second_fixture_failure": {
+      "path": ".project-local/runs/be268a2d33/native-ai-restore-readiness-regression-20261024-02/artifacts/execution.json",
+      "bytes": 1355,
+      "sha256": "29f182fa6e76d7eb2514af3e99ed18082787c96cd3ac1c4abbd754045d803430"
+    },
+    "native_ai_restore_readiness_regression": {
+      "path": ".project-local/runs/be268a2d33/native-ai-restore-readiness-regression-20261024-03/artifacts/execution.json",
+      "bytes": 1361,
+      "sha256": "332b8e148723a1635609c38d4150719284f0af6c44e34198d88c17e34ee2fd51"
+    },
+    "native_ai_restore_readiness_first_fixture_log": {
+      "path": ".project-local/runs/be268a2d33/native-ai-restore-readiness-regression-20261024-01/logs/execution.log",
+      "bytes": 1395,
+      "sha256": "24a3e4dade2c8f32c832b5d0a19b045d3b641f3d741ceccebd4eb28a7d938ab8"
+    },
+    "native_ai_restore_readiness_second_fixture_log": {
+      "path": ".project-local/runs/be268a2d33/native-ai-restore-readiness-regression-20261024-02/logs/execution.log",
+      "bytes": 1685,
+      "sha256": "aa827f32c88cfb2baef617c2e34f14cdf38afd037aec9689df666d98d9d97517"
+    },
+    "native_ai_restore_readiness_regression_log": {
+      "path": ".project-local/runs/be268a2d33/native-ai-restore-readiness-regression-20261024-03/logs/execution.log",
+      "bytes": 168,
+      "sha256": "d023a498eac1356d5ca010854bc8185645b4e8d4bef9020dc7f36bf36c6ba1c9"
+    },
+    "native_ai_restore_suffix_parent": {
+      "path": ".project-local/runs/be268a2d33/native-ai-restored-suffix-20261024-01/artifacts/suffix-parent.json",
+      "bytes": 82768,
+      "sha256": "976cbd466a236e00b3dfc6ee1e57527a29d93483f73c66b5c6d66784a7176b09"
+    },
+    "native_ai_restore_suffix_inner": {
+      "path": ".project-local/runs/be268a2d33/webdriver-8c6ac2911dbb/tmp/journey/receipt.json",
+      "bytes": 79871,
+      "sha256": "cbdbefc3dd6aba38cccb6a25c57f8f47558742d0a0b24a6cdcd88badfa1af704"
+    },
+    "native_ai_restore_suffix_runner": {
+      "path": ".project-local/runs/be268a2d33/native-ai-restore-suffix-prep-20261024-01/artifacts/suffix_runner.py",
+      "bytes": 12047,
+      "sha256": "d3c70687bd2ed4e7d9ba442bdd4d1c0e8a8bf13f66abbbeb687018810bb6d85a"
+    },
+    "delivery-guard-regression-20261024-02": {
+      "path": ".project-local/runs/be268a2d33/delivery-guard-regression-20261024-02/artifacts/execution.json",
+      "bytes": 1339,
+      "sha256": "10ac0bf12a84eaa1cef8632f73fff7bf366c8571cbc43e1619dcfb42f35a6b03"
+    },
+    "delivery-contract-regression-20261024-01": {
+      "path": ".project-local/runs/be268a2d33/delivery-contract-regression-20261024-01/artifacts/execution.json",
+      "bytes": 1447,
+      "sha256": "17ba391a72c23570e23f05421d76d15880e9f84cb2bffc0e06227b778680cb90"
+    },
+    "delivery-python-affected-20261024-01": {
+      "path": ".project-local/runs/be268a2d33/delivery-python-affected-20261024-01/artifacts/execution.json",
+      "bytes": 1711,
+      "sha256": "27a5db83927a59c3e9607bbb2e3eece6f0d66ebd8ab04d0c3adac5e5cf90fba9"
+    },
+    "delivery-route-regression-20261024-01": {
+      "path": ".project-local/runs/be268a2d33/delivery-route-regression-20261024-01/artifacts/execution.json",
+      "bytes": 1501,
+      "sha256": "abd5bf41924d40a0d60438e7acecc12c5726aa85d7a4ab6df91312fe94fda32e"
+    },
+    "installed-settings-group-regression-20261024-01": {
+      "path": ".project-local/runs/be268a2d33/installed-settings-group-regression-20261024-01/artifacts/execution.json",
+      "bytes": 1419,
+      "sha256": "4c10a06eba3c401164d85727973864bd94fd9f28c59b587709f212c73a30ea5f"
+    },
+    "delivery-types-20261024-01": {
+      "path": ".project-local/runs/be268a2d33/delivery-types-20261024-01/artifacts/execution.json",
+      "bytes": 1390,
+      "sha256": "f5cb07987b67e9b35df5ed915dde261c60e51b4d6a9ac6853422120c3ffd2912"
+    },
+    "delivery-rust-format-20261024-02": {
+      "path": ".project-local/runs/be268a2d33/delivery-rust-format-20261024-02/artifacts/execution.json",
+      "bytes": 1394,
+      "sha256": "ea481c85177c693f72f4529a6066e1b4c28a434b4a58f3db0029a87b693bde89"
+    },
+    "delivery-tauri-format-20261024-02": {
+      "path": ".project-local/runs/be268a2d33/delivery-tauri-format-20261024-02/artifacts/execution.json",
+      "bytes": 1436,
+      "sha256": "9d2a05c1644023b226dc2cd39167f56753ebd3c8a54509a6b4b52ee2a8d0a50f"
+    },
+    "delivery-ci-ruff-20261024-01": {
+      "path": ".project-local/runs/be268a2d33/delivery-ci-ruff-20261024-01/artifacts/execution.json",
+      "bytes": 1526,
+      "sha256": "a00cbd8de8d264fc004c0b40b09d73df9a3ab0507631fe999a3cdc0489a36a91"
+    },
+    "installed_business_run01": {
+      "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-01/installed-business-execution.json",
+      "bytes": 7520,
+      "sha256": "4d47cf79edd5345af62f55fb8a6ab466edb183bfca9724b69a195732f25fd056"
+    },
+    "installed_business_run02": {
+      "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-02/installed-business-execution.json",
+      "bytes": 9390,
+      "sha256": "88746ea6aa8202150ac4b4af08c03fc10200856a8a9b5b1ff73325e1ddbfcd5f"
+    },
+    "installed_business_run03": {
+      "path": ".project-local/runs/be268a2d33/installed-business-sandbox-execution-20261024-03/installed-business-execution.json",
+      "bytes": 8952,
+      "sha256": "717e4c63433b791ddd617130c17245a829015560b9a3eabda4dac90b71c4a773"
+    }
+  },
+  "previous_tested_dirty_patch": "80e99a242ee6e62b2463123c1f0139422bb1ae8e0733ff9e4cf2ae9a0922c1e8",
+  "tool_cache_incident": {
+    "status": "DISCLOSED_NOT_RESTORED",
+    "path": "%LOCALAPPDATA%/tauri/NSIS",
+    "event": "First Tauri bundle attempt automatically removed its older shared NSIS tool cache before a failed download. No backup bytes were found in the scoped cache lookup; exact restoration is unverified.",
+    "mitigation": "All subsequent packaging uses task-local CARGO_TARGET_DIR/.tauri via bundle.useLocalToolsDir and digest-verified official NSIS dependencies. Product candidate and user data unchanged."
+  },
+  "historical_f894_candidate": {
+    "path": ".project-local/runs/be268a2d33/dual-loop-portable-20261024-final/artifacts/星环便携候选",
+    "dirty_patch": "f89410d084f36aac2be4b3da8c0b4074a295a17b6e408b50d99ec35e1827ba71",
+    "host_sha256": "597efcf9ee7c0a4e6974f76312532055f81e5f42c3a479387137e1bb24e47874",
+    "core_sha256": "339453d8d48b26d50e82779d7da9b96803ad3e7df04cbced1c7e9c7343af6a5a",
+    "runtime_manifest_sha256": "c47cb2d13a6671fbcb236a0b749136f72031ec5b6ed1b97d6b4ea74e5a94e99d",
+    "qualification": "PORTABLE_STATIC_PASS_AND_NATIVE_CLOSURE_ONLY_PASS_NOT_INSTALLED_OR_RELEASED"
+  },
+  "latest_qualified_candidate": {
+    "path": ".project-local/runs/be268a2d33/fixedwv-portable-20261024-01/artifacts/星环便携候选",
+    "dirty_patch": "3407e8083f261bc563df06f24398cfa08338a47fd4136df344b08741461c4dfc",
+    "host_sha256": "68e82a0a9d74dc0534b35eeb47fa034298c3bfd931853b217a069037cb29f224",
+    "core_sha256": "d1bac23344f471ab6124534d413ecefefff9cac61c25728248755e1040747bc5",
+    "runtime_manifest_sha256": "95e4ded04f44c76ff32175f5b9e9b6c338d90658f72cfefcd4f9bbdd3f041b04",
+    "candidate_manifest_sha256": "1c4d59953cc482da8bdeb1c1b81df7f6ebbebbaafc8dfb9945bbf8bc566f4301",
+    "members": 19745,
+    "logical_bytes": 1402028858,
+    "qualification": "PORTABLE_NATIVE_HUMAN_PASS; LOCAL_INSTALL_LIFECYCLE_PASS; DUAL_SIDE_OVERALL_PARTIAL",
+    "installed_qualification": "LOCAL_INSTALL_LIFECYCLE_PASS; CI_CANDIDATE_AND_PUBLIC_RELEASE_NOT_QUALIFIED",
+    "native_ai_qualification": "RUN03_STAGE_COMPONENTS_PASS_PARENT_FAIL; SUFFIX_ONLY_PASS; WHOLE_LOOP_PARTIAL_NOT_OWNER"
+  },
+  "inflight_packaging_policy": "Fixed app-local runtime, skip online installer/no PREINSTALL hook/currentUser/useLocalToolsDir/zlib; frozen same installer SHA4661ce30ab3787cf0afd8f1194c6a6cbd70d16af5ac2f5716471b6aab240c3b3. Host/Core/UI not rebuilt for diagnostics.",
+  "historical_crt_candidate": {
+    "path": ".project-local/runs/be268a2d33/dual-crt-portable-20261024-01/artifacts/星环便携候选",
+    "dirty_patch": "4d6e1e22443610e431d033565d5767fed9a0dd07ce22cb96005ba020135122d8",
+    "host_sha256": "09e3bb87d44b31ba077d24dacb1e4def398047caf020547b9d3de0218c014807",
+    "core_sha256": "d1bac23344f471ab6124534d413ecefefff9cac61c25728248755e1040747bc5",
+    "runtime_manifest_sha256": "e579142dfc4eb6307ca0eae44d918073009d9a95799cb672af89ffcf8be0059a",
+    "members": 19487,
+    "logical_bytes": 695773210,
+    "qualification": "PORTABLE_NATIVE_HUMAN_CLOSURE_OCR_AUDIO_ASR_PASS_INSTALLED_HOST_WEBVIEW_BLOCKED"
+  },
+  "branch_readback_latest": {
+    "operation": "READ_ONLY",
+    "refs": {
+      "codex/sync-20261019": "95b463c12dbd40744b43039add69c48ceaeba94e",
+      "main": "8d367bac4a85bebfbb523503678ade0838faa73e",
+      "codex/ui-polish-20261013": "a69a55f75dd2ab1866e6e8afa051c67dfa5b0e2e"
+    },
+    "git_and_api_agree": [
+      "codex/sync-20261019",
+      "main"
+    ],
+    "remote_receipt": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/branch-remote-readback-20261024.json",
+      "sha256": "bad083a1e1c56a4154dd7daa2d3ea2a2d13484a2031e26898c14c87e9e74e529",
+      "bytes": 1175
+    },
+    "semantic_review_receipt": {
+      "path": ".project-local/artifacts/dual-loop-resume-20261023/branch-local-delta-check-20261024.json",
+      "sha256": "2ff8e2a138c103df7e0098ff68e32156dd0367d3d581826a7b648f21d90c91b3",
+      "bytes": 7784
+    },
+    "merge_authorization": "GRANTED_CURRENT_DELIVERY_SCOPE",
+    "merge_decision": "NO_NECESSARY_MERGE_IDENTIFIED_AFTER_SEMANTIC_REVIEW",
+    "explanation": "Required closure-machine and reader-inspector behavior already exists; glass changes equivalent, Avalonia superseded, ASTRYN optional scope frozen. Decision is usefulness-based, not missing merge authorization.",
+    "boundary": "Committed branch HEAD95b matches readback; dirty source/evidence NOT_PUBLISHED. No new commit/push/merge/CI inferred."
+  },
+  "source_after_current_candidate": "Frozen compiled3407 installer/Host/Core bytes remain unchanged. Generated resource catalog/UI-host digest and Rust formatting later changed current source; this source is not asserted to have been rebuilt into that old candidate."
+}

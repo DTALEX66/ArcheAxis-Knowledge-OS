@@ -163,3 +163,22 @@ def test_git_source_identity_is_not_repaired_by_worktree(tmp_path: Path, monkeyp
     git("rm", "--cached", "-f", MEMBER)
     assert any(issue.code == "preserved-manifest-mismatch"
                for issue in scanner.scan_git_repository(tmp_path, source="index"))
+
+
+@pytest.mark.parametrize("path", [
+    path for path in scanner._PRESERVED_PACKAGE_MEMBER_HASHES
+    if any(part in path for part in (
+        "rules-entry-repair-20261023/", "owner-dialogue-20261022-desktop-launcher/",
+        "owner-dialogue-20261023-thread-handoff/", "20261024-resource-source-binding/",
+    ))
+])
+def test_october_delivery_archives_preserve_exact_bytes_and_reject_changes(path):
+    content = (Path(__file__).resolve().parents[1] / path).read_bytes()
+    assert scanner.scan_text_bytes(path, content) == []
+    assert [issue.code for issue in scanner.scan_text_bytes(path, content + b"x")] == [
+        "preserved-fixture-mismatch"
+    ]
+    if b"\r\n" in content:
+        normalized = content.replace(b"\r\n", b"\n")
+        assert scanner.scan_text_bytes(path, normalized)
+        assert "crlf" in {issue.code for issue in scanner.scan_text_bytes("docs/copy/evidence.txt", content)}

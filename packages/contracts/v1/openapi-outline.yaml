@@ -208,6 +208,109 @@ paths:
           description: Nonempty payload rejected before worker launch
         "503":
           description: Shared model admission busy; inventory not executed
+  /api/v1/machine/external-context/status:
+    get:
+      operationId: readExternalContextStatus
+      description: >
+        Local status only. Provider state is NOT_CONNECTED and provider_id is null;
+        raw context capture, network fetch and automatic recall are always false.
+        No provider discovery, network request, session access or inference occurs.
+      x-contract-status: implemented-source-slice-not-provider-or-owner-acceptance
+      responses:
+        "200":
+          description: Fixed local external-context boundary status
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [schema_version, owner, fetch_status, provider_id, capabilities, raw_context_capture, network_fetch, automatic_recall]
+                properties:
+                  schema_version: {const: 1}
+                  owner: {const: EXTERNAL_CONTEXT_PROVIDER}
+                  fetch_status: {const: NOT_CONNECTED}
+                  provider_id: {type: "null"}
+                  capabilities:
+                    const: [receive_knowledge_candidate, query_candidate_metadata, read_evidence_reference_status]
+                  raw_context_capture: {const: false}
+                  network_fetch: {const: false}
+                  automatic_recall: {const: false}
+  /api/v1/machine/external-context/candidates:
+    post:
+      operationId: receiveExternalContextCandidate
+      description: >
+        Human-only offline import of a bounded, already-redacted knowledge candidate.
+        Does not fetch or connect to a provider, capture sessions/raw context, follow
+        external URLs, recall or adopt knowledge. Candidate evidence remains
+        UNVERIFIED_EXTERNAL, even when its submitted verification claim is PASS.
+      x-contract-status: implemented-source-slice-not-provider-or-owner-acceptance
+      x-allowed-actor: human
+      x-max-request-bytes: 65536
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [candidate, material_authorized, redaction_confirmed]
+              properties:
+                material_authorized: {const: true}
+                redaction_confirmed: {const: true}
+                candidate:
+                  type: object
+                  additionalProperties: false
+                  required: [schema_version, candidate_id, knowledge_kind, title, summary, problem, root_cause, failed_attempts, resolution, applicability, contraindications, evidence_refs, verification, source]
+                  x-max-serialized-bytes: 48000
+                  x-semantic-constraints: Candidate/provider/project/source_app identifiers are ASCII alphanumeric, underscore, dot or hyphen; references additionally reject leading slash/tilde, file URIs, drive-root paths, whitespace, controls, backslash, query and userinfo; nested strings reject NUL; nonempty semantic fields must contain non-whitespace text.
+                  properties:
+                    schema_version: {const: 1}
+                    candidate_id: {type: string, minLength: 1, maxLength: 128, x-max-utf8-bytes: 128, pattern: '^[A-Za-z0-9_.-]+$'}
+                    knowledge_kind: {type: string, enum: [coding_pitfall, root_cause, verified_fix, decision_rule, reusable_procedure, other]}
+                    title: {type: string, minLength: 1, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    summary: {type: string, minLength: 1, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    problem: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    root_cause: {type: string, minLength: 1, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    failed_attempts: {type: array, maxItems: 16, items: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}}
+                    resolution: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    applicability: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    contraindications: {type: string, maxLength: 4096, x-max-utf8-bytes: 4096}
+                    evidence_refs: {type: array, maxItems: 32, items: {type: string, minLength: 1, maxLength: 1024, x-max-utf8-bytes: 1024, pattern: '^[^\s\\?@]+$'}}
+                    verification:
+                      type: object
+                      additionalProperties: false
+                      required: [status]
+                      properties:
+                        status: {type: string, enum: [PASS, FAIL, PARTIAL, UNKNOWN, NOT_RUN]}
+                        command: {type: [string, "null"], maxLength: 4096, x-max-utf8-bytes: 4096}
+                        exit_code: {type: [integer, "null"], minimum: -2147483648, maximum: 2147483647}
+                        artifact_hash: {type: [string, "null"], pattern: '^[A-Fa-f0-9]{64}$'}
+                        diff_ref: {type: [string, "null"], maxLength: 1024, x-max-utf8-bytes: 1024, pattern: '^[^\s\\?@]+$'}
+                    source:
+                      type: object
+                      additionalProperties: false
+                      required: [provider_id, project_id, source_app, source_ref, auth_scope, fetch_status, provenance, updated_at]
+                      properties:
+                        provider_id: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.-]+$'}
+                        project_id: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.-]+$'}
+                        source_app: {type: string, minLength: 1, maxLength: 128, pattern: '^[A-Za-z0-9_.-]+$'}
+                        source_ref: {type: string, minLength: 1, maxLength: 1024, x-max-utf8-bytes: 1024, pattern: '^[^\s\\?@]+$'}
+                        auth_scope: {const: 'knowledge_candidate:import'}
+                        fetch_status: {const: AVAILABLE}
+                        provenance: {type: array, maxItems: 32, items: {type: string, minLength: 1, maxLength: 1024, x-max-utf8-bytes: 1024, pattern: '^[^\s\\?@]+$'}}
+                        updated_at: {type: string, minLength: 1, maxLength: 4096, x-max-utf8-bytes: 4096}
+      responses:
+        "201":
+          description: Existing versioned AI-asset Document candidate; external evidence remains unverified
+          content:
+            application/json:
+              schema: {$ref: ./core-document.schema.json#/$defs/DocumentDto}
+        "401": {description: Invalid launch credential}
+        "403": {description: Human actor required}
+        "413": {description: Request exceeds 65,536 bytes}
+        "400": {description: Malformed JSON syntax or semantic candidate/scope/bound rejection}
+        "422": {description: Valid JSON with invalid typed data or unknown fields}
+        "500": {description: Candidate persistence failed}
   /api/v1/machine/configuration:
     get:
       operationId: readMachineConfiguration

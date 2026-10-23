@@ -14,7 +14,9 @@ pub mod collection;
 pub mod context_grant;
 pub mod course;
 pub mod document;
+mod document_tags;
 pub mod expression;
+pub mod external_context;
 pub mod ingest_batches;
 pub mod ingest_relations;
 pub mod knowledge;
@@ -32,7 +34,6 @@ pub mod template_binding;
 pub mod template_definition;
 pub mod ui_state;
 pub mod vault;
-mod document_tags;
 pub mod vault_members;
 
 pub use source::ImportOutcome;

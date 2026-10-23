@@ -48,6 +48,9 @@ def plan(host: Path, build: dict, configured_resources: set[str]) -> dict:
         raise ValueError("Host is not bound to a qualified build")
     root = host.parent
     backend = verify_runtime_resources(root, configured_resources)
+    if build.get("webview_runtime") is not None:
+        if runtime_resources.verify_fixed_webview2(root) != build["webview_runtime"]:
+            raise ValueError("Fixed WebView2 differs from qualified build")
     members = backend["files"]
     runtime_manifest = regular(root / "backend-runtime-manifest.json")
     if digest(regular(root / "core/archeaxis-api.exe")) != build.get("core_sha256"):
@@ -59,6 +62,7 @@ def plan(host: Path, build: dict, configured_resources: set[str]) -> dict:
     return {"schema": SCHEMA, "status": "PLAN", "installed": False, "published": False,
             "source_patch_sha256": build["source_patch_sha256"],
             "host_sha256": build["host_sha256"], "core_sha256": build["core_sha256"],
+            "webview_runtime": build.get("webview_runtime"),
             "runtime_provenance": backend.get("runtime_source"),
             "runtime_provenance_note": "Original staging provenance retained; member hashes are verified here",
             "files": all_members, "logical_bytes": sum(row["bytes"] for row in all_members.values()),
@@ -95,6 +99,9 @@ def verify(root: Path) -> dict:
         raise ValueError("Not an unreleased formal candidate")
     verify_members(root, manifest["files"])
     verify_worker_contract(root, manifest["files"])
+    if manifest.get("webview_runtime") is not None:
+        if runtime_resources.verify_fixed_webview2(root) != manifest["webview_runtime"]:
+            raise ValueError("Candidate fixed WebView2 binding mismatch")
     if inventory(root) != set(manifest["files"]) | {"candidate-manifest.json"}:
         raise ValueError("Unexpected or missing candidate files (runtime data is verified separately)")
     required = RESOURCES | {"ArcheAxis.exe", "portable.flag"}

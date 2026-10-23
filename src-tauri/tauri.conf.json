@@ -26,6 +26,16 @@
   },
   "bundle": {
     "active": true,
+    "useLocalToolsDir": true,
+    "windows": {
+      "webviewInstallMode": {
+        "type": "skip"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "compression": "zlib"
+      }
+    },
     "targets": [
       "msi",
       "nsis"
@@ -35,6 +45,8 @@
       "icons/icon.png"
     ],
     "resources": {
+      "../.project-local/rt/vcruntime140.dll": "vcruntime140.dll",
+      "../.project-local/rt/vcruntime140_1.dll": "vcruntime140_1.dll",
       "../.project-local/rt/runtime": "runtime",
       "../.project-local/rt/core": "core",
       "../.project-local/rt/workers": "workers",

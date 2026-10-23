@@ -103,6 +103,18 @@ def validate_conflict_branch(args):
                         args.grouped_authored_intervention)), "Conflict branch cannot mix other fixtures"
 
 
+def trusted_grouped_element_command(request, session, element_id, action, body):
+    if action == "pointer_click":
+        return request("POST", f"/session/{session}/actions", {"actions":[{
+            "type":"pointer", "id":"grouped-owned-pointer", "parameters":{"pointerType":"mouse"},
+            "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
+                       {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
+    if action == "wheel":
+        return request("POST", f"/session/{session}/actions", {"actions":[{
+            "type":"wheel", "id":"grouped-owned-scroll", "actions":[{
+                "type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
+    return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+
 def navigate_rendered_product_page(ui, js, wait, page, accept_navigation_alert):
     """Restored routes may have no hash; observe the page and use visible navigation."""
     assert re.fullmatch(r"\d{2}", page), "Invalid product page"
@@ -1597,8 +1609,8 @@ def main():
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
         wait("return !!document.querySelector('.app-shell[data-stitch-workspace] .stitch-page-identity[data-current-page-id]')&&!!document.querySelector('.stitch-workspace-menu button[aria-label=\"打开产品导航\"]')")
-        wait("const brand=document.querySelector('.stitch-brand svg'),r=brand?.getBoundingClientRect();const images=[...document.images].filter(n=>n.getClientRects().length);return !!r&&r.width>0&&r.height>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
-        receipt.setdefault("brand_images", []).append(js("const brand=document.querySelector('.stitch-brand svg'),r=brand.getBoundingClientRect();return {brand:{kind:'inline-svg',width:r.width,height:r.height},visibleImages:[...document.images].filter(n=>n.getClientRects().length).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))}"))
+        wait("const brand=document.querySelector('.stitch-brand svg'),r=brand?.getBoundingClientRect();const images=[...document.images].filter(n=>[...n.getClientRects()].some(r=>r.width>0&&r.height>0)&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';}));return !!r&&r.width>0&&r.height>0&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
+        receipt.setdefault("brand_images", []).append(js("const brand=document.querySelector('.stitch-brand svg'),r=brand.getBoundingClientRect();return {brand:{kind:'inline-svg',width:r.width,height:r.height},visibleImages:[...document.images].filter(n=>[...n.getClientRects()].some(r=>r.width>0&&r.height>0)&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';})).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))}"))
         if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or args.be10_handoff_reader_loop or material_mode:
             receipt["navigation_scope"] = {"launch": "CURRENT_GROUPED_PAGE_ENTRY", "persisted_behavior": "CURRENT_GROUPED_NATIVE_UI", "compatibility": "NOT_EXECUTED"}
         else:
@@ -1697,12 +1709,13 @@ def main():
             grouped = load("conflict_trusted_controls", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
             evidence = initialization.setdefault("ui_actions", [])
             def conflict_command(element_id, action, body):
-                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+                return trusted_grouped_element_command(request, session, element_id, action, body)
             controls = grouped.GroupedUI(js, wait, ui_element, conflict_command, evidence)
             def accept_conflict_alert():
                 accept_native_alert(request, session, evidence)
+            controls.accept_navigation_alert = accept_conflict_alert
             def conflict_navigate(page):
-                navigate_rendered_product_page(controls, js, wait, page, accept_conflict_alert)
+                controls.page(page, confirm_navigation=True)
             def conflict_restart():
                 old_pid, old_session = owned_host.pid, session
                 close_session()
@@ -1807,16 +1820,7 @@ def main():
         if args.grouped_common_owner_loop:
             grouped = load("grouped_native_owner_journey", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
             def grouped_element_command(element_id, action, body):
-                if action == "pointer_click":
-                    return request("POST", f"/session/{session}/actions", {"actions":[{
-                        "type":"pointer", "id":"grouped-owned-pointer", "parameters":{"pointerType":"mouse"},
-                        "actions":[{"type":"pointerMove", "origin":"viewport", "duration":0, **body},
-                                   {"type":"pointerDown", "button":0}, {"type":"pointerUp", "button":0}]}]})
-                if action == "wheel":
-                    return request("POST", f"/session/{session}/actions", {"actions":[{
-                        "type":"wheel", "id":"grouped-owned-scroll", "actions":[{
-                            "type":"scroll", "origin":"viewport", "duration":100, **body}]}]})
-                return request("POST", f"/session/{session}/element/{element_id}/{action}", body)
+                return trusted_grouped_element_command(request, session, element_id, action, body)
             def grouped_restart():
                 close_session()
                 launch()

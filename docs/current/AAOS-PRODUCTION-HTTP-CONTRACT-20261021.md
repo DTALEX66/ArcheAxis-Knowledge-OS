@@ -203,7 +203,7 @@ against what it launched; a mismatch means it is talking to a different Core.
 `runtime` and `contract` are hard-coded string literals, not derived from the crate
 version. Do not use them to infer a build.
 
-## 3. Route inventory (135 pairs in a `text_worker` launch)
+## 3. Route inventory (137 pairs in a `text_worker` launch)
 
 `PROD` = reachable in a production launch. `PROD` marks the routes the UI may rely on.
 All paths are relative to the loopback base URL.
@@ -608,8 +608,8 @@ Before the fix this endpoint answered `500` with a raw FTS5 parser message for
 
 | Launch | Routes served | Consequence for the UI |
 | --- | --- | --- |
-| **no** `text_worker` | 83 addresses: 82 projection method/path pairs (70 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue is present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
-| **with** `text_worker` | 135 addresses (81 base projection method/path pairs + 53 runtime method/path pairs on 50 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
+| **no** `text_worker` | 85 addresses: 84 projection method/path pairs (72 unconditional mounts, twelve dual-method mounts) + one session-control pair; manual legacy `/jobs/{id}/receipts` remains absent from production | Batch registration/read/import/enqueue is present; public research and `/jobs/{id}`, `/executions`, `/outputs`, `/cancel`, `/capabilities` and its enable/disable write are **absent** (`404`). |
+| **with** `text_worker` | 137 addresses (83 base projection method/path pairs + 53 runtime method/path pairs on 50 runtime mounts + one session-control pair) | All routes above are served, subject to launch registration and the individual authorization/availability guards; route presence alone is not worker qualification. |
 
 The runtime builder carries **50** route mounts, mounted there rather than with the projections because
 the capability surface reads the executor's registered routes, and the executor is the runtime
@@ -814,7 +814,7 @@ UI must show machine answering as not connected rather than calling anything.
    revision and the correction appears to vanish. The request-body table in §4 names every field
    for this reason.
 
-The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 81 base projection pairs plus 53 runtime pairs plus one native session-control pair total 135. This does not add a second endpoint or imply cloud configuration.
+The projection-only launch retains its explicit unconfigured document-check execution handler. A text-worker launch instead mounts that same method/path once in the runtime builder; its 83 base projection pairs plus 53 runtime pairs plus one native session-control pair total 137. This does not add a second endpoint or imply cloud configuration.
 
 ## 10. 2026-10-10 current-source inventory refresh
 
@@ -918,7 +918,7 @@ The following 21 method/path pairs record the 2026-10-14 source reconciliation; 
 
 ## 16. 2026-10-19 local-human handoff reads
 
-Current-source inventory (2026-10-21 successor update): **135** unique production method/path pairs. Projection-only: **70** unconditional mounts / **82** pairs (twelve dual-method mounts); text-worker: **81** base projection pairs + **53** runtime pairs on **50** runtime mounts. One native session-control mount/pair is added to both launch shapes (83/135 pairs). The one conditional manual receipt remains excluded. Dated counts in §§10–15 and historical OBSERVED receipts retain their original measurement scope; §3 and §6 are current-source counts, not new runtime qualification.
+Current-source inventory (2026-10-21 successor update): **137** unique production method/path pairs. Projection-only: **72** unconditional mounts / **84** pairs (twelve dual-method mounts); text-worker: **83** base projection pairs + **53** runtime pairs on **50** runtime mounts. One native session-control mount/pair is added to both launch shapes (85/137 pairs). The one conditional manual receipt remains excluded. Dated counts in §§10–15 and historical OBSERVED receipts retain their original measurement scope; §3 and §6 are current-source counts, not new runtime qualification.
 
 | # | Method + path | Auth | Notes |
 | --- | --- | --- | --- |
@@ -959,7 +959,7 @@ Current successor checks: `cargo test -p archeaxis-api --test ingest_relations -
 | --- | --- | --- | --- |
 | 226 | `GET /api/v1/sources/{source_id}` | Existing read token | Returns the exact canonical `SourceDto` (source_id, source_revision=sha256, original_name, imported_at); missing identity is 404. No capped listing, title matching, source creation or write. Finite Core operation `source_get`. |
 
-The folder source opener binds this row to the selected member SHA before opening original bytes. It does not automatically choose a Document. The explicit relation consumer requires a current source-bound saved Document and selected same-batch targets; dirty state and an outstanding write block submission. Original Markdown CAS, current body, manual relations and unresolved loss remain distinct. One frozen apply is sent; an absent or inconsistent ACK remains UNKNOWN, with read-only reconciliation and no automatic resend/version rebase. This is source-contract wiring, not native-host or Owner acceptance. The current combined inventory has 135 method/path pairs.
+The folder source opener binds this row to the selected member SHA before opening original bytes. It does not automatically choose a Document. The explicit relation consumer requires a current source-bound saved Document and selected same-batch targets; dirty state and an outstanding write block submission. Original Markdown CAS, current body, manual relations and unresolved loss remain distinct. One frozen apply is sent; an absent or inconsistent ACK remains UNKNOWN, with read-only reconciliation and no automatic resend/version rebase. This is source-contract wiring, not native-host or Owner acceptance. The current combined inventory has 137 method/path pairs.
 
 ## 20. Native session shutdown and writer drain
 
@@ -986,3 +986,15 @@ Schema 14 adds installed (default 1), definition_version (default 1), and state_
 Directed SQLite/archive/API tests use authored fixtures (SYNTHETIC); frontend commands are mocked and native bridge source is exercised in a harness. Actual 31-Source schema-13 upgrade, installed GUI, same-candidate full chain and exact-SHA CI remain separate qualification.
 
 Directed checks: `cargo test -p archeaxis-api --test template_lifecycle --offline --locked`; `cargo test -p archeaxis-domain --test template_lifecycle --offline --locked`; `cargo test -p archeaxis-archive --test template_lifecycle_archive --offline --locked`.
+
+
+## 22. Offline external-context candidate intake (2026-10-24)
+
+| # | Method + path | Authorization | Contract |
+| --- | --- | --- | --- |
+| 229 | `GET /api/v1/machine/external-context/status` | Existing launch token; no actor-specific gate | Fixed status shape: provider `NOT_CONNECTED`, `provider_id: null`, and `raw_context_capture`, `network_fetch`, and `automatic_recall` all false. This is local configuration evidence, not provider connectivity. |
+| 230 | `POST /api/v1/machine/external-context/candidates` | Human actor only; machine/Observer denied | Strict candidate-import JSON, at most 65,536 request bytes. Both `material_authorized` and `redaction_confirmed` must be true; provider/project namespace and `knowledge_candidate:import` scope must match the candidate. Only `AVAILABLE` source status is accepted. Returns 201 with the existing `DocumentDto`, containing a versioned AI-asset candidate with `UNVERIFIED_EXTERNAL` evidence assessment and no source payload. Repeated candidate identity is idempotent. Invalid semantic bounds return 400; wrong actor 403; oversized body 413; malformed JSON syntax 400; invalid typed data or unknown fields 422. No provider fetch, session/context capture, external URL follow, automatic recall, or knowledge adoption. |
+
+Request bounds: candidate and nested UTF-8 byte limits, enums, and strict field sets are specified in `packages/contracts/v1/openapi-outline.yaml`; the serialized candidate is capped at 48,000 bytes inside the 65,536-byte HTTP envelope. The response reuses `packages/contracts/v1/core-document.schema.json#/$defs/DocumentDto`. Source: `crates/archeaxis-api/src/external_context.rs` and `crates/archeaxis-domain/src/external_context.rs`; directed API tests: `crates/archeaxis-api/tests/external_context_api.rs`. Source contract only; provider integration, installed runtime and Owner acceptance remain unqualified.
+
+Directed offline checks: `cargo test -p archeaxis-api --test external_context_api --offline --locked`; `cargo test -p archeaxis-domain --test external_context_candidates --offline --locked`. Route/schema inventory: `python -m pytest tests/maintenance/test_contract_route_inventory.py -q`. These commands identify evidence artifacts; listing them is not a new execution claim.

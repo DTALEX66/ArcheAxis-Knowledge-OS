@@ -86,9 +86,8 @@ def test_the_launch_shape_split_adds_up():
     """Production method/path pairs differ from route mounts and omit manual receipts."""
     projections, conditional, runtime = router_mounts()
     inventory = tree_facts()["inventory_pairs"]
-    assert projections == 70, f"unconditional projection mounts changed: {projections}"
-    assert conditional == 1, f"conditional manual receipt mounts changed: {conditional}"
-    assert runtime == 50, f"runtime mounts changed: {runtime}"
+    parser = load("route_parser_for_shapes", REPO / "tests/maintenance/test_contract_route_inventory.py")
+    assert conditional == len(parser.KNOWN_CONDITIONAL)
     lib = (REPO / "crates/archeaxis-api/src/lib.rs").read_text(encoding="utf-8")
     runtime_source = (REPO / "crates/archeaxis-api/src/runtime/mod.rs").read_text(encoding="utf-8")
     runtime_builder = runtime_source[runtime_source.index("pub fn router("):runtime_source.index(".merge(projections)")]
@@ -115,19 +114,18 @@ def test_the_launch_shape_split_adds_up():
     assert base & runtime_set == set(), "runtime duplicate mount"
     assert runtime_set & wrapper == execute, "only the execution handler is replaced"
     assert "crate::projections_base(executor.store().clone(), false)" in runtime_source
-    assert len(wrapper | base) == 82
-    assert len(base) == 81
-    assert len(runtime_set) == 53
     control = pairs((REPO / "crates/archeaxis-api/src/session_shutdown.rs").read_text(encoding="utf-8"))
     assert control == {("POST", "/api/v1/system/shutdown")}
     assert not control & (base | runtime_set | wrapper)
     main = (REPO / "crates/archeaxis-api/src/main.rs").read_text(encoding="utf-8")
     assert "session_shutdown::install" in main and "with_graceful_shutdown" in main
     assert len(base | runtime_set | control) == inventory
-    assert len(base | wrapper | control) == 83
     contract = CONTRACT.read_text(encoding="utf-8")
-    assert "82 projection method/path pairs" in contract
-    assert "70 unconditional mounts" in contract
+    projection_row = re.search(r"\| \*\*no\*\* `text_worker` \| (\d+) addresses: (\d+) projection method/path pairs \((\d+) unconditional mounts", contract)
+    worker_row = re.search(r"\| \*\*with\*\* `text_worker` \| (\d+) addresses \((\d+) base projection method/path pairs \+ (\d+) runtime method/path pairs on (\d+) runtime mounts \+ one session-control pair", contract)
+    assert projection_row and worker_row, "§6 launch-shape counts must remain explicit"
+    assert tuple(map(int, projection_row.groups())) == (len(base | wrapper | control), len(base | wrapper), projections)
+    assert tuple(map(int, worker_row.groups())) == (len(base | runtime_set | control), len(base), len(runtime_set), runtime)
     assert "manual legacy `/jobs/{id}/receipts` remains absent" in contract
 
 

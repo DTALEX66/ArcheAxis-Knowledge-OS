@@ -26,6 +26,9 @@ def fixture_bundle(tmp_path: Path):
             "staging": "data/worker-staging", "routes": [{"capability": "document.detect",
                 "script": "workers/document/worker.py"}]}).encode(),
     }
+    for name in ("vcruntime140.dll", "vcruntime140_1.dll"):
+        for directory in ("", "core/", "runtime/"):
+            rows[directory + name] = ("synthetic " + name).encode()
     files = {}
     for name, payload in rows.items():
         path = root / name
@@ -41,6 +44,56 @@ def fixture_bundle(tmp_path: Path):
              "core_sha256": portable.digest(root / "core/archeaxis-api.exe"),
              "source_patch_sha256": "a" * 64}
     return host, build
+
+
+def fixture_fixed_webview(host, build, monkeypatch):
+    runtime = host.parent / "runtime/webview2"
+    runtime.mkdir()
+    rows = []
+    for name in ("msedgewebview2.exe", "msedge.dll"):
+        path = runtime / name
+        path.write_bytes(("synthetic " + name).encode())
+        rows.append({"path": name, "bytes": path.stat().st_size, "sha256": portable.digest(path)})
+    manifest = runtime / "aaos-fixed-runtime-manifest.json"
+    manifest.write_text(json.dumps({"schema": "archeaxis.official-fixed-runtime-files/v1",
+        "version": "synthetic", "files": rows}), encoding="utf-8")
+    monkeypatch.setattr(portable.runtime_resources, "FIXED_WEBVIEW2_MANIFEST_SHA256", portable.digest(manifest))
+    backend_file = host.parent / "backend-runtime-manifest.json"
+    backend = json.loads(backend_file.read_text(encoding="utf-8"))
+    for path in runtime.iterdir():
+        backend["files"][path.relative_to(host.parent).as_posix()] = {
+            "bytes": path.stat().st_size, "sha256": portable.digest(path)}
+    backend_file.write_text(json.dumps(backend), encoding="utf-8")
+    build["webview_runtime"] = portable.runtime_resources.verify_fixed_webview2(host.parent)
+
+
+def test_fixed_webview_remains_bound_after_assembly(tmp_path, monkeypatch):
+    host, build = fixture_bundle(tmp_path)
+    fixture_fixed_webview(host, build, monkeypatch)
+    destination = tmp_path / "fixed-candidate"
+    portable.assemble(host, destination, portable.plan(host, build, portable.RESOURCES))
+    assert portable.verify(destination)["webview_runtime"] == build["webview_runtime"]
+
+
+@pytest.mark.parametrize("mutation", ["resealed_executable", "unapproved_manifest", "missing"])
+def test_fixed_webview_cannot_hide_tampering_by_resealing_backend(tmp_path, monkeypatch, mutation):
+    host, build = fixture_bundle(tmp_path)
+    fixture_fixed_webview(host, build, monkeypatch)
+    member = "runtime/webview2/msedgewebview2.exe"
+    if mutation == "unapproved_manifest":
+        member = "runtime/webview2/aaos-fixed-runtime-manifest.json"
+    path = host.parent / member
+    backend_path = host.parent / "backend-runtime-manifest.json"
+    backend = json.loads(backend_path.read_text(encoding="utf-8"))
+    if mutation == "missing":
+        path.unlink()
+        del backend["files"][member]
+    else:
+        path.write_bytes(b"changed and resealed")
+        backend["files"][member] = {"bytes": path.stat().st_size, "sha256": portable.digest(path)}
+    backend_path.write_text(json.dumps(backend), encoding="utf-8")
+    with pytest.raises((ValueError, FileNotFoundError)):
+        portable.plan(host, build, portable.RESOURCES)
 
 
 def test_complete_copy_keeps_provenance_and_exact_members(tmp_path):
@@ -167,3 +220,44 @@ def test_long_windows_member_is_copied_and_verified(tmp_path):
     destination = tmp_path / "long-path-candidate"
     portable.assemble(host, destination, portable.plan(host, build, portable.RESOURCES))
     assert portable.verify(destination)["files"][relative]["sha256"] == portable.digest(source)
+
+
+@pytest.mark.parametrize("member", ["vcruntime140.dll", "vcruntime140_1.dll", "core/vcruntime140.dll", "core/vcruntime140_1.dll"])
+def test_app_local_runtime_missing_or_changed_is_not_portable_pass(tmp_path, member):
+    host, build = fixture_bundle(tmp_path)
+    (host.parent / member).write_bytes(b"tampered")
+    with pytest.raises(ValueError, match="identity mismatch"):
+        portable.plan(host, build, portable.RESOURCES)
+    (host.parent / member).unlink()
+    with pytest.raises((ValueError, FileNotFoundError)):
+        portable.plan(host, build, portable.RESOURCES)
+
+
+@pytest.mark.parametrize("prefix", ["", "core/", "runtime/"])
+@pytest.mark.parametrize("name", ["vcruntime140.dll", "vcruntime140_1.dll"])
+def test_omitted_crt_copy_cannot_hide_by_omitting_manifest_entry(tmp_path, prefix, name):
+    host, build = fixture_bundle(tmp_path)
+    member = prefix + name
+    (host.parent / member).unlink()
+    manifest_path = host.parent / "backend-runtime-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    del manifest["files"][member]
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError, match="VC runtime copy absent"):
+        portable.plan(host, build, portable.RESOURCES)
+
+
+@pytest.mark.parametrize("prefix", ["", "core/", "runtime/"])
+@pytest.mark.parametrize("name", ["vcruntime140.dll", "vcruntime140_1.dll"])
+def test_self_consistent_manifest_still_rejects_different_crt_copy(tmp_path, prefix, name):
+    host, build = fixture_bundle(tmp_path)
+    member = prefix + name
+    target = host.parent / member
+    payload = b"different but individually inventoried runtime"
+    target.write_bytes(payload)
+    manifest_path = host.parent / "backend-runtime-manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["files"][member] = {"bytes": len(payload), "sha256": portable.digest(target)}
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(ValueError, match="copies differ"):
+        portable.plan(host, build, portable.RESOURCES)

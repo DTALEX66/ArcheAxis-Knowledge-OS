@@ -168,6 +168,7 @@ def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, 
     before = read("ui_state_read")
     assert_journal(before, {}, fixture["workspace_id"], fixture["initial_epoch"])
     navigate("19")
+    ui.click("工作区与恢复")
     ui.click("刷新备份产物")
     backups = read("workspace_backups")["backups"]
     assert [item for item in backups if item["backup_id"] == fixture["backup"]["backup_id"]] == [fixture["backup"]]

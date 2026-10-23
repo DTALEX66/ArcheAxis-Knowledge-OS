@@ -5271,7 +5271,7 @@
               "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
             },
             {
-              "path": "frontend/package.json",
+              "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json",
               "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
             }
           ],
@@ -6901,7 +6901,7 @@
               "sha256": "a2e6a6977e93a719d895a530ff09e8f8730c04efefaf12ada6df778238cadb89"
             },
             {
-              "path": "frontend/package.json",
+              "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json",
               "sha256": "cacc76eff5a154b1319111e0e292243e78a494f1eb4cd09ac7328b30e49d477a"
             }
           ],
@@ -7798,7 +7798,7 @@
       "sha256": "370731e01e29db9b97448ed872d131dec0abd288a2f779dcfe9d8f3273e3bfc4"
     },
     {
-      "path": "THIRD_PARTY_NOTICES.md",
+      "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md",
       "sha256": "cbec6ff7bfd24fee26aa8c5c1380145bfa27dd53659eff1911fb4b7e0e99ab09"
     },
     {
@@ -8218,6 +8218,18 @@
       {
         "path": "docs/history/oss-absorption-evidence/20261022-resource-source-binding/MANIFEST.json",
         "sha256": "50bac4221f4c855ca65d7a06cec8b79babb51ac3b81f7cc4e9fd6889b9504f2f"
+      }
+    ]
+  },
+  "historical_source_binding_20261024": {
+    "observed_at": "2026-10-23T19:55:02.155806+00:00",
+    "baseline_commit": "95b463c12dbd40744b43039add69c48ceaeba94e",
+    "scope": "Three paths now resolve to exact historical HEAD bytes; no hash refresh or evidence-state promotion",
+    "current_source_qualification": "NOT_REQUALIFIED_BY_ARCHIVAL_REPAIR",
+    "source_refs": [
+      {
+        "path": "docs/history/oss-absorption-evidence/20261024-resource-source-binding/MANIFEST.json",
+        "sha256": "077a866c85d9c65eb378245c5a1ada154d2fb270d91c3a8d89f47924fd77a00a"
       }
     ]
   }

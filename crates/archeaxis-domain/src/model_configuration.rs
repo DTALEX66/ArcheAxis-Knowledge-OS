@@ -71,6 +71,69 @@ fn token(s: &str) -> bool {
         && s.bytes()
             .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'-'))
 }
+/// Configuration syntax only; the execution adapter must additionally reject non-public DNS results.
+fn public_https_endpoint(endpoint: &str) -> bool {
+    let Some(rest) = endpoint.strip_prefix("https://") else {
+        return false;
+    };
+    if !rest.is_ascii()
+        || rest.bytes().any(|b| {
+            b.is_ascii_control()
+                || b.is_ascii_whitespace()
+                || matches!(b, b'@' | b'?' | b'#' | b'\\' | b'%')
+        })
+    {
+        return false;
+    }
+    let (authority, path) = rest.split_once('/').unwrap_or((rest, ""));
+    let (host, port) = authority
+        .split_once(':')
+        .map_or((authority, None), |(h, p)| (h, Some(p)));
+    if port.is_some_and(|p| p != "443") {
+        return false;
+    }
+    let host = host.to_ascii_lowercase();
+    let labels: Vec<_> = host.split('.').collect();
+    if labels.len() < 2
+        || host.len() > 253
+        || labels.iter().any(|s| {
+            s.is_empty()
+                || s.len() > 63
+                || s.starts_with('-')
+                || s.ends_with('-')
+                || !s.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+        })
+    {
+        return false;
+    }
+    let suffix = labels[labels.len() - 1];
+    if suffix.len() < 2
+        || !suffix.bytes().all(|b| b.is_ascii_alphabetic())
+        || matches!(
+            suffix,
+            "localhost"
+                | "local"
+                | "internal"
+                | "lan"
+                | "home"
+                | "arpa"
+                | "test"
+                | "invalid"
+                | "example"
+                | "onion"
+        )
+        || matches!(host.as_str(), "example.com" | "example.net" | "example.org")
+    {
+        return false;
+    }
+    path.is_empty()
+        || path.split('/').all(|segment| {
+            !segment.is_empty()
+                && segment
+                    .bytes()
+                    .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_'))
+        })
+}
 pub fn validate(c: &Configuration) -> rusqlite::Result<()> {
     if c.schema != "archeaxis.model-configuration/v1"
         || c.workspace_id.len() != 32
@@ -90,25 +153,30 @@ pub fn validate(c: &Configuration) -> rusqlite::Result<()> {
         return Err(invalid());
     }
     for (id, p) in &c.profiles {
-        // First release executes numeric loopback only. Cloud credentials do not authorize egress.
-        let endpoint = p.endpoint.strip_prefix("http://").ok_or_else(invalid)?;
-        let (authority, path) = endpoint.split_once('/').unwrap_or((endpoint, ""));
-        let port = authority
-            .strip_prefix("127.0.0.1:")
-            .or_else(|| authority.strip_prefix("[::1]:"))
-            .ok_or_else(invalid)?;
+        let cloud = p.protocol == "openai-buffered";
+        let endpoint_valid = if cloud {
+            public_https_endpoint(&p.endpoint) && p.credential_ref.is_some()
+        } else {
+            p.endpoint.strip_prefix("http://").is_some_and(|endpoint| {
+                let (authority, path) = endpoint.split_once('/').unwrap_or((endpoint, ""));
+                let port = authority
+                    .strip_prefix("127.0.0.1:")
+                    .or_else(|| authority.strip_prefix("[::1]:"));
+                port.is_some_and(|p| p.parse::<u16>().ok().is_some_and(|v| v > 0))
+                    && matches!(path, "" | "v1")
+                    && matches!(p.protocol.as_str(), "ollama" | "openai")
+            })
+        };
         if !token(id)
             || p.endpoint.len() > 256
             || p.endpoint.ends_with('/')
-            || port.parse::<u16>().ok().filter(|v| *v > 0).is_none()
-            || !matches!(path, "" | "v1")
-            || !matches!(p.protocol.as_str(), "ollama" | "openai")
+            || !endpoint_valid
             || p.model.trim() != p.model
             || p.model.is_empty()
             || p.model.len() > 256
             || p.model.chars().any(char::is_control)
             || !(128..=4096).contains(&p.max_tokens)
-            || !(1..=120).contains(&p.timeout_s)
+            || !(1..=if cloud { 60 } else { 120 }).contains(&p.timeout_s)
             || p.credential_ref.as_ref().is_some_and(|r| {
                 !r.strip_prefix("aak_cred_").is_some_and(|s| {
                     s.len() == 32
@@ -121,7 +189,10 @@ pub fn validate(c: &Configuration) -> rusqlite::Result<()> {
         }
     }
     for (i, b) in c.bindings.iter().enumerate() {
-        if !c.profiles.contains_key(&b.profile_id)
+        if c.profiles
+            .get(&b.profile_id)
+            .is_some_and(|p| p.protocol == "openai-buffered" && b.purpose != Purpose::Material)
+            || !c.profiles.contains_key(&b.profile_id)
             || c.bindings[..i]
                 .iter()
                 .any(|v| v.purpose == b.purpose && v.lane == b.lane)

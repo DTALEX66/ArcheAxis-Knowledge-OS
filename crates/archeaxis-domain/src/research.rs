@@ -113,7 +113,11 @@ pub struct Relation {
     pub kind: RelationKind,
     pub label: String,
     pub target: Reference,
-    #[serde(default, skip_serializing_if = "Option::is_none", deserialize_with = "deserialize_relation_presentation")]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_relation_presentation"
+    )]
     pub presentation: Option<RelationPresentation>,
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -121,7 +125,9 @@ pub struct Relation {
 pub enum RelationPresentation {
     Embed,
 }
-fn deserialize_relation_presentation<'de, D>(deserializer: D) -> Result<Option<RelationPresentation>, D::Error>
+fn deserialize_relation_presentation<'de, D>(
+    deserializer: D,
+) -> Result<Option<RelationPresentation>, D::Error>
 where
     D: serde::Deserializer<'de>,
 {

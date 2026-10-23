@@ -1,4 +1,40 @@
+# AAOS 当前接续导航：人类＋AI＋双侧连接
+
+本入口按 Owner 后继接手继续要求接续有限首版：人类知识／学习链、AI知识／学习链和两侧按权限复用同一来源／版本的知识与证据同时推进。先读[唯一闭环定义](../truth/CLOSED_LOOP_DEFINITION.md)，再读[活动指针](AAOS-ACTIVE-EXECUTION.json)的 `owner_scope_current`、`execution_control`、`continuation_context` 与 `active_progress`。不另建任务包、业务真值或进度账本，不重复已无变化的全审计。
+
+当前实施、同候选资格、实际失败与下一步只读[唯一执行记录末段](AAOS-UI-FIRST-EXECUTION-20261009.md)及[本轮检查点](../history/project-drift-audit-20261021/dual-loop-resume-20261024.json)。检查点和局部 PASS 均不等于完整产品、安装或 Owner 验收；原始失败保留其源码与候选身份，后继复验另记，不改判旧回执。
+
+继续沿现有 Stitch 唯一 UI、Rust Core 单写者及有限首版范围。可选市场扩展、六项冻结增量、V01／FT01—04及暂停监控依现行指针处理。跨软件／Agent 原始会话归外部系统，外部 provider 仍为 NOT_CONNECTED；离线候选接收和产品内部双侧知识使用不能冒充跨软件连接。付费／云材料外发、全局配置、发布和真实数据覆盖没有由闭环目标自动授权；Green 精确目标与候选、备份、保全条件只读活动指针 `green_update_authorization`。
+
+[2026-10-23 完整交接](../history/owner-dialogue-20261023-thread-handoff/README.md)与[MANIFEST](../history/owner-dialogue-20261023-thread-handoff/MANIFEST.json)必须完整读取，用于原话、范围及证据追溯。其中“本次只整理交接／未启动后继任务”描述归档回合，不能覆盖 Owner 后继继续执行。冻结原文不回填；主路最新证据按上方入口核实。
+
+## 历史接续与各轮证据（以下整段保留原时点措辞）
+
+以下“当前／最新／下一步”、暂停、监控 ACTIVE、权限拒绝、分支或 SHA 均仅指各历史单元；不作为当前授权、执行顺序或运行状态。当前只由上方活动指针和唯一执行记录导航；下文保留精确失败、来源与继承合同，不据旧标题恢复监控或覆盖新范围。
+
+> **2026-10-23 换会话最新完整交接：人类＋AI双侧闭环／PARTIAL**：Owner最新明确“人类侧不冻结，还是按照闭环执行”，并进一步确认“闭环应该还要包括AI侧”。当前范围为人类知识／学习链＋AI知识／学习链＋两侧按权限共享知识与证据的双向连接。AI专项未改人类侧是历史实施事实，不是后续冻结禁令；原始跨项目会话仍归外部系统，未来扩展与暂停监控不因此恢复。 请完整读取[本线程交接提示词、全部决定与证据导航](../history/owner-dialogue-20261023-thread-handoff/README.md)及其MANIFEST，再核活动指针`owner_scope_current`和唯一执行记录末段。权限已恢复；完整双侧业务链、当前原生／安装与远端一致性仍未完成。本次只整理交接，未构建、调用模型、提交推送或恢复监控。
+
+> 以下前缀与段落保留各历史单元及当时观测；“最新AI侧任务”不能覆盖上方Owner后继双侧决定，“Git只读／Python拒绝”不能覆盖已恢复事实。
+
+> **2026-10-23 最新 AI 侧任务**：仅调整外部上下文职责，保留人类侧与有限请求上下文。已新增 Rust 候选接收／状态边界并复用 Document/AiAsset；真实外部 provider NOT_CONNECTED，未采集会话或调用模型。读[规范与影响面](AAOS-AI-CONTEXT-BOUNDARY-20261023.md)和[本轮检查点](../history/project-drift-audit-20261021/ai-context-separation-20261023.json)。本次不恢复其他产品开发或监控，完整产品仍 PARTIAL。
+
+> **2026-10-23 当前恢复：PERMISSIONS_RECOVERED／PARTIAL**：Owner切换完全访问并要求解决后，canonical Python -V返回3.13.14，使用sys.executable启动Python子进程PASS；正式Git临时引用创建、读回、按预期SHA删除均exit0，删除后查询exit1确认不存在。原分支、HEAD和暂存区不变。此前直接.git文件探针的策略拒绝保留，但已不能作为Git只读结论；下方同日旧BLOCKED段为历史。当前仅完成权限恢复，未运行正式构建、模型、原生／安装、commit／push／CI；完整闭环仍未完成，云生产缺口不变，监控仍暂停。证据见[恢复检查点](../history/project-drift-audit-20261021/execution-permission-recovery-20261023.json)。
+
+> **2026-10-23 当前执行权限阻塞／未完成**：正式Python最小复核`.venv/Scripts/python.exe -V`仍exit1，uv子进程permission denied os error5；当前平台明确.git只读。该条件已连续出现在材质、预算修复及本次三个目标回合，安全源码单元已完成；不能继续用新模拟代替同候选运行资格。当前产品模型配置只接受loopback，云材料adapter生产execute始终NOT_ACTIVATED，现有Vault和协议模拟不等于用户云绑定已完成。目标应BLOCKED／PARTIAL，非Owner暂停；监控仍暂停。完整证据与恢复顺序见[权限与云端缺口检查点](../history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json)。在允许项目Python子进程和Git写入的正常授权会话中恢复，先核canonical运行／工作树，完成当前构建与原生、产品自有云通道及CL/J，再按已授权范围提交推送核SHA。不提权、换解释器、改ACL、借Codex凭据或覆盖Green。
+
+> **2026-10-23 材料问答预算与失败恢复**：本轮从旧候选02真实回执确认finish_reason=length、output_tokens=2048、最终答案缺失，保留原FAIL。另修复当前前端将已保存较大预算压回2048的缺口，新请求采用解析后配置并沿原预览确认冻结；不修改用户设置或旧请求，不自动重试。执行／状态／历史均解释未返回最终答案及达到上限情形，不使用推理内容。47项定向回归与tsc PASS（SYNTHETIC）；真实模型／正式构建／原生／安装本轮NOT_EXECUTED，不能说原失败已修复。详情及失败保留见[检查点](../history/project-drift-audit-20261021/material-budget-recovery-20261023.json)。后续需当前同候选真实模型及CL/J验收；原生阅读消费者修正仍未重验，Git只读／Python权限及监控暂停保持。
+
+> **2026-10-23 材质与图标复核**：Owner再次要求玻璃质感与标准库图标。当前CSS与上一轮玻璃检查点hash一致，本轮不重复调参数；实际浏览器确认主窗62%底色／20px backdrop、内部卡片28%底色、启动台24px backdrop，正文无filter。继续使用已锁定Lucide React 1.61.0，修正学习路径Route／画布PanelsTopLeft／上下文BrainCircuit及Dock学习GraduationCap语义。10项组件回归与tsc通过；1280×720、DPR1.25的全新标签页截图已查看，Esc保留页面并返回入口焦点。截图不代表原生或Owner视觉验收，正式构建／安装与Git交付未执行，旧失败保留。详见[本次视觉检查点](../history/project-drift-audit-20261021/stitch-material-review-20261023.json)。
+
 # AAOS 完整接手提示词：Stitch全量界面与前后端并行接通
+
+> **2026-10-22 阅读来源工具与验收消费者续修**：定位此前原生FAIL的一处直接原因：分组探针仍查询旧`.ui-reader-page`，跳过新版“整理关联来源”折叠区而尝试点击隐藏按钮。已改为当前语义region定位并核验展开；保留真实滚轮／命中检查，不强制点击。原生菜单与指针探针改用当前Stitch菜单／Dock，浏览器矩阵同步四个页面Dock入口并另验启动台搜索和Esc。21项组件检查PASS（含执行探针实际JS观察器的来源流程回归），TypeScript及Ruff语法检查PASS；浏览器菜单Enter→03、Dock→06、启动台搜索→16和Esc焦点回归实测通过。完整Python测试、浏览器矩阵及新候选原生链未运行，原生FAIL仍有效。见[续修检查点](../history/project-drift-audit-20261021/stitch-reader-probe-repair-20261022.json)及唯一执行记录末段；下一步处理本地最终答案／产品自有云绑定与同候选资格，不重复未经变化的失败模型调用。
+
+> **2026-10-22 玻璃与桌面预览续修**：本轮仅处理Owner指出的材质与图标问题；发现并修复Stitch业务视图在1280×720下因inline-size containment与auto margin组合导致宽度为0的缺陷。cosmic窗口／卡片／标题栏改为62%／28%／20%不透明度，启动台遮罩降为12%，保留真实backdrop模糊；沿用标准Lucide SVG。浏览器前端实际查看宽度恢复781.6px、无横向溢出，菜单／启动台10项组件回归PASS。未运行Core／模型／安装验收；此前Python正式构建权限阻塞保留，本轮未重试或绕过。截图与source hash见[本轮检查点](../history/project-drift-audit-20261021/stitch-glass-correction-20261022.json)，实际进度仍只写原唯一执行记录；不覆盖上一检查点及历史失败，监控仍暂停。
+
+> **2026-10-22 最新恢复**：Owner后继明确“根据新的规划和闭环开始执行”。当前 `RUNNING_BY_OWNER / PARTIAL`；以下暂停／仅归档段为历史。已开始同一Stitch内能力启动台、标准SVG图标及玻璃分层实施，复用原页面、目录、草稿保护和Core；不启动未来扩展。正式构建的Python子进程权限阻塞与此前原生／模型失败保留，组件／浏览器不替代构建及同候选闭环。额度监控未恢复，实际结果与下一步仍只读原唯一执行记录末段。
+
+> **2026-10-22 暂停后的方案与视觉纠偏归档**：Owner确认在现有Stitch中增加能力启动台菜单窗，点击图标进入已有业务，收敛Dock及重复导航，不重做全套UI、不为菜单先重构后端。首版围绕常用多格式→研究比较→知识形成→特色展示与学习→重启导出恢复；核心也可收敛，专用能力逐步扩展化。后继Owner否定生成图的大号彩色发光图标，要求标准库选型并修正纯色卡片／毛玻璃不足，必要时Stitch辅助。规范见[十九／二十节](AAOS-OSS-INTEGRATION-DECISION-20261019.md#十九首个可用版本核心收敛与能力启动台2026-10-22)，对话／附件／图及设计核查见[统一归档](../history/owner-dialogue-20261022-desktop-launcher/README.md)。生成图仅说明布局，图标不再作为视觉标准；具体格式、兼容功能、Dock排列与参数待实测确认。本轮仅文档及定向设计核查，继续PAUSED_BY_OWNER / PARTIAL，不启动产品开发、模型、安装验收或监控。原生可达性FAIL、本地无最终答案、云端NOT_EXECUTED和Owner验收缺口全部保留。
 
 > **最新状态：PAUSED_BY_OWNER / PARTIAL（2026-10-22）**。Owner要求“完成本次后暂停”，并要求核心能力（闭环/框架/多格式）与扩展单列。本次只收尾既有单元：调整Stitch玻璃/明暗/字号/窗口比例、移动辅助窗层级、研究短窗滚动及布局菜单遮挡；修复旧UI探针消费者。32项组件与86项探针保护回归PASS；167场景浏览器子报告PASS、UI源码前后hash一致，但其外层dev记录因期间另一探针文件改变为INVALIDATED，不能写成整个run PASS。当前正式Core/原生构建及便携装配PASS；最终原生分组链FAIL于阅读页来源工具入口不可滚动到达，已通过的子项不能拼成全链通过。Green未替换、安装和Owner视觉验收未执行。详情与准确hash见[暂停检查点](../history/project-drift-audit-20261021/stitch-visual-pause-20261022.json)及唯一执行记录最新段。
 

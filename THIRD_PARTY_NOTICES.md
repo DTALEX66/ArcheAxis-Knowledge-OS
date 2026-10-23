@@ -143,3 +143,76 @@ the upstream shell, importer, localStorage, sample content or astronomical table
 
 中文说明：本次吸收星团布局、聚焦展开、曲线与光点的呈现算法；保留完整版权许可，
 不新增知识推断或业务存储。GlassBoard 仅为文档设计参考，未复制其程序或资源。
+
+## Lucide React — standard interface icons (2026-10-22)
+
+Pinned `lucide-react@1.61.0`, official source https://github.com/lucide-icons/lucide,
+registry https://registry.npmjs.org/lucide-react/-/lucide-react-1.61.0.tgz.
+ISC, Copyright (c) 2026 Lucide Icons and Contributors; inherited Feather icons
+also retain their MIT notice, Copyright (c) 2013-present Cole Bemis.
+The complete upstream LICENSE is preserved byte-for-byte in
+`frontend/src/components/lucide-NOTICE.txt` and emitted as a Vite URL asset
+referenced by `AaosIcon`. Named imports preserve one standard SVG family.
+This adds no runtime service, execution plugin, cloud request or paid dependency.
+
+
+## Microsoft Visual C++ x64 app-local runtime (2026-10-24)
+
+The selected Python runtime already contains Microsoft's `vcruntime140.dll` and
+`vcruntime140_1.dll`, version 14.44.35211. Packaging copies these two approved
+files unchanged next to both `ArcheAxis.exe` and `core/archeaxis-api.exe`; it does
+not download a runtime or install a system-wide redistributable. Exact donor
+sizes and SHA-256 pins are in `APP_LOCAL_VC_RUNTIME` in
+`scripts/release/stage_backend_runtime.py`; every packaged copy is inventoried
+in `backend-runtime-manifest.json`.
+
+| File (x64, version 14.44.35211) | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `vcruntime140.dll` | 124544 | `d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066` |
+| `vcruntime140_1.dll` | 49792 | `1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f` |
+
+These Microsoft binaries remain subject to the applicable Microsoft Software
+License Terms and redistribution entitlement; this project does not relicense
+them. See [Microsoft redistribution guidance](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files?view=msvc-170).
+App-local deployment does not receive the independent servicing benefits of a
+centrally installed redistributable. The application publisher must track runtime
+security updates, review replacement provenance/version compatibility, update
+both approved pins, and requalify and redistribute the application. The current
+qualification is for these two x64 files, not a general DLL-discovery mechanism.
+
+## Microsoft Edge WebView2 Evergreen offline prerequisite — historical attempt (2026-10-24)
+
+Earlier isolated installer candidates included Microsoft's x64 Evergreen Standalone
+Installer through Tauri's official `offlineInstaller` mode. This is proprietary
+Microsoft software, subject to its applicable Microsoft Software License Terms;
+the project does not relicense it. It was executed only in disposable Sandbox
+qualification; Microsoft selected a machine installation under the elevated guest.
+It was not executed on the build host. Those attempts failed; current packaging
+uses the application-local Fixed Version below.
+
+The build receipt records the official redirect URL, Authenticode verification,
+installer version, byte count and SHA-256. Installer version is distinct from
+the installed Runtime version. Tauri CLI 2.12.3 still resolves the official URL
+during bundling even when the payload is cached; installation uses the embedded
+payload without requiring a network connection. Existing registry entries alone
+do not prove that the Runtime is usable by the current user. Runtime availability
+and the full installed lifecycle require separate qualification.
+
+See [Microsoft distribution guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution)
+and [Tauri offline installer guidance](https://v2.tauri.app/distribute/windows-installer/#offline-installer).
+Project-local bundler tools avoid modifying a shared Tauri tool cache.
+
+## Microsoft WebView2 Fixed Version (application-local desktop runtime)
+
+The offline desktop candidate uses the complete Microsoft WebView2 Fixed Version
+156.0.4314.42 x64 package under `runtime/webview2`. Microsoft terms apply separately
+from this repository's license. The original CAB, Microsoft EULA response and
+third-party license files are preserved in the local dependency receipt; the
+package's third-party notices remain unmodified in the distributed files.
+
+The publisher must distribute security updates for this fixed runtime. It does
+not run the Evergreen system installer or depend on an existing Runtime registry
+entry. The stager verifies the pinned complete extracted inventory before copying,
+and desktop build/candidate qualification binds every runtime member. Availability
+and installation lifecycle still require actual target execution; preparation and
+signature checks alone do not establish those results.

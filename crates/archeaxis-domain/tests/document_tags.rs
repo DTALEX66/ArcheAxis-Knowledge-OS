@@ -98,7 +98,7 @@ fn empty_properties_unicode_sequences_and_projection_limits_are_explicit() {
         None,
         None,
         "unicode",
-        markdown("\u{feff}---\r\n---\r\n#👩‍💻 #e\u{301}"),
+        markdown("\u{feff}---\r\n---\r\n#👩\u{200d}💻 #e\u{301}"),
     )
     .unwrap();
     assert_eq!(saved["metadata_status"], "COMPLETE");
@@ -134,12 +134,19 @@ fn empty_properties_unicode_sequences_and_projection_limits_are_explicit() {
 fn list_metadata_stays_below_the_host_response_budget_without_discarding_saved_tags() {
     let dir = tempfile::tempdir().unwrap();
     let mut conn = init_workspace(dir.path().join("list-budget.sqlite").to_str().unwrap()).unwrap();
-    let text = (0..40).map(|i| format!("#tag{i}{}", "x".repeat(490))).collect::<Vec<_>>().join(" ");
-    let saved = document::create_optional(&mut conn,None,None,"long-tags",markdown(&text)).unwrap();
-    assert_eq!(saved["tags"].as_array().unwrap().len(),40);
-    let rows = document::list_page(&mut conn,None).unwrap().0;
-    assert!(serde_json::to_vec(&rows[0]["tags"]).unwrap().len() <= 16*1024);
-    assert_eq!(rows[0]["metadata_status"],"PARTIAL");
-    assert_eq!(saved["metadata_status"],"COMPLETE");
-    assert_eq!(document::read(&conn,saved["document_id"].as_str().unwrap(),None).unwrap(),saved);
+    let text = (0..40)
+        .map(|i| format!("#tag{i}{}", "x".repeat(490)))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let saved =
+        document::create_optional(&mut conn, None, None, "long-tags", markdown(&text)).unwrap();
+    assert_eq!(saved["tags"].as_array().unwrap().len(), 40);
+    let rows = document::list_page(&mut conn, None).unwrap().0;
+    assert!(serde_json::to_vec(&rows[0]["tags"]).unwrap().len() <= 16 * 1024);
+    assert_eq!(rows[0]["metadata_status"], "PARTIAL");
+    assert_eq!(saved["metadata_status"], "COMPLETE");
+    assert_eq!(
+        document::read(&conn, saved["document_id"].as_str().unwrap(), None).unwrap(),
+        saved
+    );
 }

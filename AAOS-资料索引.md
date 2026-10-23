@@ -1,14 +1,15 @@
 # AAOS / ArcheAxis 资料查找入口
 
-> 当前可见对话已保全为[39项主题来源与决定路由](docs/history/owner-dialogue-20261019/README.md)，附冻结SHA清单与可重复核验命令；归档不替代现行决定/进度，也不宣称Cowork逐字全文齐备。
+先读[唯一闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)，再按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context`、[当前接续入口](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录核现行人类＋AI＋双侧连接范围。当前决定和替代关系见[Owner决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)及[替代账本](DECISION_SUPERSESSION_LEDGER.yaml)。本索引只定位材料，不维护产品、监控、Git或Green状态。
 
-> **2026-10-19 接续必读**：[最新对话决定与任务映射](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)保存强底座、内置能力市场、模型分层、开源择优及归档要求，并注明替代关系。换 Agent / 换会话先按[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `continuation_context` 读回；共享库、开发工具和模型入口统一查[共享资源索引](docs/SHARED_RESOURCE_PATH_INDEX.md)，不从旧交接猜路径。
+- [2026-10-23 完整交接与来源导航](docs/history/owner-dialogue-20261023-thread-handoff/README.md)及[MANIFEST](docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json)：必须完整读取；“本次只交接”是冻结回合身份，不阻止后继已授权继续，旧失败保留原证据。
+- [2026-10-22 首版收敛与Stitch启动台／材质／图标材料](docs/history/owner-dialogue-20261022-desktop-launcher/README.md)：五份文档和两张图按来源清单查找，归档时暂停不代表现行产品暂停。
+- [2026-10-19 39项主题来源及决定映射](docs/history/owner-dialogue-20261019/README.md)：冻结SHA与核验入口；不是私人原始会话全集或新授权。
+- [路径身份路由](docs/current/AAOS-AUTHORITY-ROUTES.json)与[共享资源索引](docs/SHARED_RESOURCE_PATH_INDEX.md)：先按登记精确定位，再核可用性，不从旧交接猜路径；索引不授予私人会话、跨项目或全局配置操作权限。
 
-> **2026-10-12 当前路由与状态**：Owner 已于 2026-10-11 恢复完整框架、常见常用格式与最短闭环实施，RUNNING_BY_OWNER / PARTIAL；当前范围读 [活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)，实际进度读其指定的执行记录。2026-10-10 暂停及 [修复回读](docs/history/repository-consolidation-20261019/current/AAOS-AUTHORITY-REPAIR-20261010.md) 是历史时点。读取旧路径前先按 [路径身份路由](docs/current/AAOS-AUTHORITY-ROUTES.json) 分类，不从文件名 CURRENT、旧 COMPLETE 或旧 grant 推导授权。六项核心能力增量 FROZEN_BY_OWNER；V01 暂停、FT01–04 冻结；发布、Green 替换及真实用户数据覆盖未授权。
+[完整索引、原始文件与补交材料登记](docs/history/record-archive-20261009/INDEX.md).
 
-[完整索引、原始文件与补交材料登记](<D:/All projects/ArcheAxis-Knowledge-OS/docs/history/record-archive-20261009/INDEX.md>).
-
-[JSON 路径映射与 SHA-256](<D:/All projects/ArcheAxis-Knowledge-OS/docs/history/record-archive-20261009/MANIFEST.json>).
+[JSON 路径映射与 SHA-256](docs/history/record-archive-20261009/MANIFEST.json).
 
 查资料先查本入口。原件已保全到本项目 `.project-local/archives/record-20261009/`；历史 TaskPack 仅为来源资料，不授予执行权限。
 

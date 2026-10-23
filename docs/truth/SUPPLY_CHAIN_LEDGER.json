@@ -944,11 +944,33 @@
       },
       "decision": "Read-only projection from immutable saved editor snapshots; no second store, migration, execution of embedded metadata, remote fetch or knowledge approval. Keep original bytes and report partial parsing.",
       "upstream_note": "Published crate/license checked; package checksum bound to Cargo.lock. No global tool installation."
+    },
+    {
+      "id": "A054",
+      "name": "Lucide React",
+      "version": "1.61.0 (frontend/package-lock.json exact integrity)",
+      "canonical_url": "https://github.com/lucide-icons/lucide",
+      "capability": "standard-svg-interface-icons",
+      "code_license": "ISC AND MIT (inherited Feather icons)",
+      "model_license": null,
+      "disposition": "CURRENT",
+      "qualification": ["source"],
+      "product_path": "frontend/src/components/AaosIcon.tsx; frontend/src/components/StitchLaunchpad.tsx",
+      "evidence": {
+        "registry": "https://registry.npmjs.org/lucide-react/-/lucide-react-1.61.0.tgz",
+        "integrity": "sha512-v2SQPPPNjnr+BlhL9Spuzmo5yR+hLkftfuE4E3jaxdNPgSH0hJKPcLJBP7yAta87jQNPsSERS59PJjCJ/CorBA==",
+        "license_file": "frontend/src/components/lucide-NOTICE.txt",
+        "license_sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+        "observed": "2026-10-22",
+        "scope": "Owner requested standard library icons; pinned one project dependency with lifecycle scripts disabled. Named exports and TypeScript verified; build/native/Owner qualification separate."
+      },
+      "decision": "Reuse a single standard SVG family through the existing AaosIcon contract; keep Radix controls, no new component framework, executable extension or remote icon/font request. Phosphor and Material Symbols remain research-only alternatives. Revert the scoped source/package/lock change together if rejected.",
+      "upstream_note": "Full published LICENSE preserved byte-for-byte and referenced as a Vite URL asset; no global install or unrelated lock upgrade."
     }
   ],
-  "component_count": 54,
+  "component_count": 55,
   "disposition_summary": {
-    "CURRENT": 16,
+    "CURRENT": 17,
     "ADOPT_PRODUCT_BASE": 0,
     "ADOPT": 13,
     "EVALUATE": 9,

@@ -7,7 +7,7 @@ import {getRecoveryStatus} from "../api/workspace";
 import {verifyCanonicalCore} from "../api/core";
 import type {WorkingRead,WorkingState} from "../presentation/coreWorkingState";
 import {layoutPresets} from "../workspace/WorkspaceController";
-import {uiEntryForPage} from "../presentation/uiPages";
+import {findUiPage} from "../presentation/uiPages";
 
 const bridge=vi.hoisted(()=>({call:vi.fn()}));
 vi.mock("../api/core",()=>({coreCommand:bridge.call,verifyCanonicalCore:vi.fn().mockResolvedValue(undefined)}));
@@ -31,7 +31,7 @@ beforeEach(()=>{
 });
 afterEach(()=>{delete window.__TAURI__;vi.unstubAllGlobals();vi.restoreAllMocks();window.history.replaceState(null,"","#page=01");});
 async function start(hydrate=true){const view=render(<App/>);await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeVisible());if(hydrate){await act(async()=>resolveLayout(layoutReply()));await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeVisible());}return view;}
-async function page(id:string){fireEvent.click(screen.getByRole("button",{name:"打开产品导航"}));let dialog=screen.getByRole("dialog",{name:"产品导航"});let target=dialog.querySelector<HTMLButtonElement>(`button[data-page-id="${id}"]`);if(!target){const entry=uiEntryForPage(id);const parent=entry&&dialog.querySelector<HTMLButtonElement>(`button[data-page-id="${entry.pageId}"]`);if(!parent)throw Error("Missing page family "+id);fireEvent.click(parent);if(screen.queryByRole("dialog",{name:"产品导航"}))fireEvent.click(screen.getByRole("button",{name:"关闭导航"}));fireEvent.click(screen.getByRole("button",{name:"打开产品导航"}));dialog=screen.getByRole("dialog",{name:"产品导航"});target=dialog.querySelector<HTMLButtonElement>(`button[data-page-id="${id}"]`);}if(!target)throw Error("Missing page "+id);fireEvent.click(target);if(screen.queryByRole("dialog",{name:"产品导航"}))fireEvent.click(screen.getByRole("button",{name:"关闭导航"}));await waitFor(()=>expect(document.querySelector(".app-shell")).toHaveAttribute("data-cabin-page",id));}
+async function page(id:string){fireEvent.click(screen.getByRole("button",{name:"打开产品导航"}));const dialog=screen.getByRole("dialog",{name:"全部能力"});fireEvent.click(within(dialog).getByRole("button",{name:"全部页面"}));fireEvent.click(within(dialog).getByRole("button",{name:new RegExp(`^${findUiPage(id)!.label.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")} `)}));await waitFor(()=>expect(document.querySelector(".app-shell")).toHaveAttribute("data-cabin-page",id));}
 function tab(name:string){return screen.getByRole("tab",{name});}
 function select(name:string){tab(name).focus();fireEvent.keyDown(tab(name),{key:"Enter"});}
 function dirty(value:boolean){act(()=>window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:"dock-regression",dirty:value}})));}

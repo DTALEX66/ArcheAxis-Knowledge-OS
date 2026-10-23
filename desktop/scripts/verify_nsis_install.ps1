@@ -4,6 +4,10 @@ param(
     [switch]$RequireReleaseIdentity,
     [switch]$RequireCandidateIdentity,
     [string]$NativeToolsReceipt,
+    [string]$EvidenceRoot,
+    [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$ExpectedHostSha256,
+    [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$ExpectedCoreSha256,
+    [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$ExpectedRuntimeManifestSha256,
     [switch]$GroupedOwnerLoop,
     [switch]$GroupedRunAi,
     [switch]$GroupedAuthoredIntervention,
@@ -25,8 +29,70 @@ $appData = Join-Path $env:LOCALAPPDATA 'com.archeaxis.workspace'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
 $appDataExisted = Test-Path $appData
 $ownsInstall = $false
+$ownsAppData = $false
+$dataOwnerId = [Guid]::NewGuid().ToString('N')
+$dataOwnerMarker = Join-Path $appData '.aaos-lifecycle-owner'
 $activeShell = $null
 $evidenceDirectory = $null
+
+function New-LifecycleEvidenceDirectory {
+    param([string]$Root)
+    if (-not [IO.Path]::IsPathFullyQualified($Root)) {
+        throw 'lifecycle evidence root must be an absolute directory'
+    }
+    $directory = [IO.Path]::GetFullPath($Root)
+    $ancestor = $directory
+    while ($ancestor) {
+        if (Test-Path -LiteralPath $ancestor) {
+            $item = Get-Item -LiteralPath $ancestor -Force
+            if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                throw 'lifecycle evidence root must not traverse a file or reparse point'
+            }
+        }
+        $ancestor = [IO.Path]::GetDirectoryName($ancestor)
+    }
+    # Never overwrite prior evidence. The supplied root may be a mapped output
+    # folder in a disposable Windows Sandbox; it does not imply host isolation.
+    $owned = Join-Path $directory ([Guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $owned -ErrorAction Stop | Out-Null
+    return $owned
+}
+
+function Assert-LifecycleOwnedData {
+    $expected = [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'com.archeaxis.workspace'))
+    $resolved = (Resolve-Path -LiteralPath $appData -ErrorAction Stop).ProviderPath
+    if ($appDataExisted -or -not $ownsAppData -or
+        -not [string]::Equals($resolved, $expected, [StringComparison]::OrdinalIgnoreCase) -or
+        -not (Test-Path -LiteralPath $dataOwnerMarker -PathType Leaf) -or
+        (Get-Content -LiteralPath $dataOwnerMarker -Raw) -ne $dataOwnerId) {
+        throw 'refusing to remove data not created by this lifecycle run'
+    }
+    foreach ($item in @((Get-Item -LiteralPath $appData -Force)) + @(Get-ChildItem -LiteralPath $appData -Force -Recurse)) {
+        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            throw 'refusing lifecycle cleanup through a reparse point'
+        }
+    }
+}
+
+function Read-InstalledCandidateIdentity {
+    $identity = [ordered]@{}
+    foreach ($binding in @(
+        @('host_sha256', 'ArcheAxis.exe', $ExpectedHostSha256),
+        @('core_sha256', 'core\archeaxis-api.exe', $ExpectedCoreSha256),
+        @('runtime_manifest_sha256', 'backend-runtime-manifest.json', $ExpectedRuntimeManifestSha256)
+    )) {
+        $actual = (Get-FileHash -LiteralPath (Join-Path $installRoot $binding[1]) -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($binding[2] -and $actual -ne $binding[2].ToLowerInvariant()) {
+            throw "installed candidate identity mismatch: $($binding[0])"
+        }
+        $identity[$binding[0]] = $actual
+    }
+    return [pscustomobject]$identity
+}
+
+if ($EvidenceRoot) {
+    $evidenceDirectory = New-LifecycleEvidenceDirectory -Root $EvidenceRoot
+}
 
 if ($GroupedOwnerLoop -and -not $NativeToolsReceipt) {
     throw 'grouped native qualification requires a verified NativeToolsReceipt'
@@ -171,6 +237,45 @@ function Wait-ArcheAxisBackend {
     throw 'installed desktop backend did not become ready'
 }
 
+function Invoke-LifecyclePythonProbe {
+    param([string]$Executable, [string]$Code, [string[]]$Arguments,
+          [ValidateSet('seed', 'readback')][string]$Mode)
+    $start = [Diagnostics.ProcessStartInfo]::new()
+    $start.FileName = $Executable
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    $start.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+    $start.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+    foreach ($argument in (@('-B', '-I', '-X', 'utf8', '-c', $Code) + $Arguments)) {
+        $start.ArgumentList.Add($argument)
+    }
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $start
+    try {
+        if (-not $process.Start()) { throw 'installed Python probe did not start' }
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+        $result = [ordered]@{ exit_code=$process.ExitCode; stdout=$stdout; stderr=$stderr }
+        if ($evidenceDirectory) {
+            $prefix = Join-Path $evidenceDirectory ("core-$Mode-" + [Guid]::NewGuid().ToString('N'))
+            $result.stdout_path = "$prefix.stdout.txt"
+            $result.stderr_path = "$prefix.stderr.txt"
+            [IO.File]::WriteAllText($result.stdout_path, $stdout, [Text.UTF8Encoding]::new($false))
+            [IO.File]::WriteAllText($result.stderr_path, $stderr, [Text.UTF8Encoding]::new($false))
+            @{ mode=$Mode; exit_code=$result.exit_code; stdout_path=$result.stdout_path; stderr_path=$result.stderr_path } |
+                ConvertTo-Json | Set-Content -LiteralPath "$prefix.exit.json" -Encoding utf8
+        }
+        return [pscustomobject]$result
+    } finally {
+        $process.Dispose()
+    }
+}
+
 function Read-CoreCandidateProof {
     param([ValidateSet('seed', 'readback')][string]$Mode)
 
@@ -251,9 +356,11 @@ finally:
 print(json.dumps(result, ensure_ascii=False))
 '@
     $requirement = if ($RequireCandidateIdentity) { 'candidate' } elseif ($RequireReleaseIdentity) { 'release' } else { 'none' }
-    $proof = & $python -B -I -c $probe $installRoot $appData $Mode $requirement
-    if ($LASTEXITCODE -ne 0) { throw "installed canonical Core $Mode probe failed" }
-    return ($proof | ConvertFrom-Json)
+    $proof = Invoke-LifecyclePythonProbe -Executable $python -Code $probe -Arguments @($installRoot, $appData, $Mode, $requirement) -Mode $Mode
+    if ($proof.exit_code -ne 0) {
+        throw "installed canonical Core $Mode probe failed; exit=$($proof.exit_code); stderr=$($proof.stderr_path)"
+    }
+    return ($proof.stdout | ConvertFrom-Json)
 }
 
 function Wait-ArcheAxisWindow {
@@ -307,6 +414,9 @@ if (-not (Test-Path -LiteralPath $Installer -PathType Leaf)) {
 if ((Test-Path $installRoot) -or (Get-ArcheAxisRegistryEntries).Count -ne 0) {
     throw 'refusing to overwrite an existing ArcheAxis Knowledge installation'
 }
+if ($appDataExisted) {
+    throw 'refusing to use existing ArcheAxis workspace data; run in a fresh isolated Windows profile'
+}
 if ($RequireReleaseIdentity -and $RequireCandidateIdentity) {
     throw 'release and candidate identity requirements are mutually exclusive'
 }
@@ -342,6 +452,7 @@ try {
     if (Test-Path $doubleNestedPython) {
         throw 'installed Runtime contains an invalid double runtime directory'
     }
+    $initialIdentity = Read-InstalledCandidateIdentity
 
     $pycBefore = @(Get-ChildItem (Join-Path $installRoot 'runtime') -Filter '*.pyc' -File -Recurse).Count
     $activeShell = Start-Process -FilePath $executable -PassThru
@@ -355,12 +466,14 @@ try {
     if (-not (Test-Path -LiteralPath $persistedDatabase -PathType Leaf)) {
         throw 'installed host did not create its canonical user database'
     }
+    Set-Content -LiteralPath $dataOwnerMarker -Value $dataOwnerId -Encoding utf8 -NoNewline
+    $ownsAppData = $true
     if ($NativeToolsReceipt) {
         $nativeTools = Get-Content -LiteralPath $NativeToolsReceipt -Raw | ConvertFrom-Json
         if ($nativeTools.ok -ne $true) { throw 'native driver preparation did not succeed' }
         # Persist completed preflight facts before the independent WebDriver session.
         # A failed session must not erase which installed lifecycle assertions ran.
-        $preflightDirectory = Join-Path ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-webdriver')) ([Guid]::NewGuid().ToString('N'))
+        $preflightDirectory = if ($evidenceDirectory) { $evidenceDirectory } else { Join-Path ([IO.Path]::GetFullPath('.project-local/task-runtime/aaos01-webdriver')) ([Guid]::NewGuid().ToString('N')) }
         New-Item -ItemType Directory -Path $preflightDirectory -Force | Out-Null
         $evidenceDirectory = $preflightDirectory
         [ordered]@{
@@ -427,6 +540,10 @@ try {
     if (-not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
         throw 'NSIS in-place upgrade removed user state'
     }
+    $upgradeIdentity = Read-InstalledCandidateIdentity
+    if (($upgradeIdentity | ConvertTo-Json -Compress) -ne ($initialIdentity | ConvertTo-Json -Compress)) {
+        throw 'in-place upgrade changed the qualified candidate identity'
+    }
     $activeShell = Start-Process -FilePath $executable -PassThru
     $upgraded = Wait-ArcheAxisBackend -Shell $activeShell
     $upgradeWindowHandle = Wait-ArcheAxisWindow -Shell $activeShell
@@ -474,6 +591,10 @@ try {
     if ($reinstallProcess.ExitCode -ne 0) {
         throw "NSIS reinstall exited with $($reinstallProcess.ExitCode)"
     }
+    $reinstallIdentity = Read-InstalledCandidateIdentity
+    if (($reinstallIdentity | ConvertTo-Json -Compress) -ne ($initialIdentity | ConvertTo-Json -Compress)) {
+        throw 'reinstall changed the qualified candidate identity'
+    }
     $activeShell = Start-Process -FilePath $executable -PassThru
     $reinstalled = Wait-ArcheAxisBackend -Shell $activeShell
     if (-not (Test-Path -LiteralPath $persistenceSentinel -PathType Leaf)) {
@@ -515,6 +636,9 @@ try {
         run_id = $env:GITHUB_RUN_ID
         run_attempt = $env:GITHUB_RUN_ATTEMPT
         installer_sha256 = (Get-FileHash -LiteralPath $Installer -Algorithm SHA256).Hash.ToLowerInvariant()
+        host_sha256 = $initialIdentity.host_sha256
+        core_sha256 = $initialIdentity.core_sha256
+        runtime_manifest_sha256 = $initialIdentity.runtime_manifest_sha256
         product_version = $initialProof.product_version
         core_schema_version = $initialProof.schema_version
         persisted_job = $initialProof.job_id
@@ -553,7 +677,8 @@ finally {
     if ($ownsInstall) {
         Stop-ArcheAxisInstallation
     }
-    if (-not $appDataExisted -and (Test-Path $appData)) {
+    if ($ownsAppData -and (Test-Path -LiteralPath $appData)) {
+        Assert-LifecycleOwnedData
         Remove-Item -LiteralPath $appData -Recurse -Force
     }
 }

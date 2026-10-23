@@ -18,11 +18,18 @@ pub(super) struct Body {
         skip_serializing_if = "Option::is_none"
     )]
     execution_mode: Option<ExecutionMode>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    cloud_upload_confirmed: bool,
+    #[serde(default, skip_serializing_if = "is_false")]
+    cloud_unknown_cost_confirmed: bool,
     max_tokens: u64,
     timeout_s: u64,
     #[serde(default)]
     preview: bool,
     confirmed_plan_sha256: Option<String>,
+}
+fn is_false(value: &bool) -> bool {
+    !*value
 }
 #[derive(Clone, Copy, PartialEq, Deserialize, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -262,9 +269,7 @@ async fn question_inner(
     }
     let b = body.clone();
     let prepared=runtime.executor.store().submit_wait(move |conn|{
-        if let Some(config)=&b.model_configuration {
-            archeaxis_application::executor::require_material_local_transport(config)?;
-        }
+
         let configured=archeaxis_domain::model_configuration::read(conn).map_err(|_|"MODEL_CONFIGURATION_UNAVAILABLE")?;
         if configured.revision>0 || b.model_configuration.is_some() {
             let config=b.model_configuration.as_ref().ok_or("MODEL_PURPOSE_BINDING_REQUIRED")?;
@@ -282,6 +287,13 @@ async fn question_inner(
             plan["destination_candidates"]=json!([config.profile.endpoint]);
             plan["selection_policy"]=json!("frozen_material_purpose_profile");
             plan["network_scope"]=json!("configured_numeric_loopback_endpoint");
+            if config.profile.protocol == "openai-buffered" {
+                if b.execution_mode != Some(ExecutionMode::Async) { return Err("material_cloud_requires_async".into()); }
+                if !b.cloud_upload_confirmed || !b.cloud_unknown_cost_confirmed { return Err("material_cloud_upload_and_unknown_cost_consent_required".into()); }
+                plan["destination"]=json!("PUBLIC_HTTPS");
+                plan["network_scope"]=json!("single_confirmed_material_upload");
+                plan["cost_status"]=json!("UNKNOWN_EXPLICITLY_ACCEPTED");
+            }
         }
         Ok::<_,String>((text,plan))
     }).await;
@@ -371,18 +383,29 @@ async fn execute_owned(
     lease: super::MachineLease,
     _guard: tokio::sync::OwnedMutexGuard<()>,
 ) -> Response {
-    let execution = runtime
-        .executor
-        .machine_answer_configured_detailed(
-            text,
-            body.question.clone(),
-            body.max_tokens,
-            std::time::Duration::from_secs(body.timeout_s),
-            body.model.clone(),
-            lease.cancel.clone(),
-            body.model_configuration.clone(),
-        )
-        .await;
+    let execution = if body
+        .model_configuration
+        .as_ref()
+        .is_some_and(|c| c.profile.protocol == "openai-buffered")
+    {
+        runtime
+            .executor
+            .material_cloud_answer(text, plan.clone(), lease.cancel.clone())
+            .await
+    } else {
+        runtime
+            .executor
+            .machine_answer_configured_detailed(
+                text,
+                body.question.clone(),
+                body.max_tokens,
+                std::time::Duration::from_secs(body.timeout_s),
+                body.model.clone(),
+                lease.cancel.clone(),
+                body.model_configuration.clone(),
+            )
+            .await
+    };
     if execution.as_ref().err().is_some_and(|e| {
         e.message().contains("cleanup incomplete") || e.message().contains("cleanup_incomplete")
     }) {

@@ -96,3 +96,17 @@ docs/history/repository-consolidation-20261019/** -text
 
 # 小栖来源清单由 PROVENANCE 绑定原始 CRLF 字节，不能随 checkout 改写。
 docs/history/xiaoqi-source-20261018/STATE-ASSET-INDEX.json -text whitespace=cr-at-eol,-blank-at-eol
+
+# Exact archived sources and receipts retain their manifest-pinned bytes across checkout.
+docs/history/rules-entry-repair-20261023/MANIFEST.json -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/rules-entry-repair-20261023/before/AGENTS.md -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/rules-entry-repair-20261023/before/AUTHORITY.md -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/rules-entry-repair-20261023/before/CLAUDE.md -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/rules-entry-repair-20261023/before/GEMINI.md -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/rules-entry-repair-20261023/before/docs/DOCUMENTATION_AUTHORITY_INDEX.md -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/owner-dialogue-20261022-desktop-launcher/MANIFEST.json -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/owner-dialogue-20261022-desktop-launcher/verify_archive.ps1 -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/owner-dialogue-20261023-thread-handoff/MANIFEST.json -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/oss-absorption-evidence/20261024-resource-source-binding/MANIFEST.json -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/frontend/package.json -text whitespace=cr-at-eol,-blank-at-eol
+docs/history/oss-absorption-evidence/20261024-resource-source-binding/source/THIRD_PARTY_NOTICES.md -text whitespace=cr-at-eol,-blank-at-eol

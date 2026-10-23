@@ -36,7 +36,7 @@ import shutil
 import stat
 import subprocess
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 _worker_routes_spec = importlib.util.spec_from_file_location(
     "stage_worker_routes", Path(__file__).with_name("worker_routes.py")
@@ -95,6 +95,106 @@ def sha256(path: Path) -> str:
         for block in iter(lambda: handle.read(1 << 20), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+# Approved x64 runtime donors already included in the selected Python runtime.
+# Updating these pins is a reviewed release maintenance action, never discovery.
+APP_LOCAL_VC_RUNTIME = {
+    "vcruntime140.dll": {"bytes": 124544, "sha256": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"},
+    "vcruntime140_1.dll": {"bytes": 49792, "sha256": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"},
+}
+
+# Public Microsoft Fixed Version package selected for offline desktop packaging.
+# This is separate from the Python donor; updating it requires reviewing the
+# original CAB, complete extracted inventory, signatures and Microsoft terms.
+FIXED_WEBVIEW2 = {
+    "version": "156.0.4314.42", "architecture": "x64",
+    "cab_sha256": "cb4612ce79a62a0be094301a72f73cf91bb250f5e83dc51886f66a083fc0694f",
+    "manifest_sha256": "d465623969d3ba9ac271deb6fb81865007261e20c93dd723ff65c38144bc89f7",
+}
+
+
+def validate_fixed_webview2(source: Path, manifest: Path) -> dict:
+    validate_tree(source)
+    reject_reparse(manifest)
+    info = filesystem_path(manifest).lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or sha256(manifest) != FIXED_WEBVIEW2["manifest_sha256"]:
+        raise ValueError("fixed WebView2 manifest identity mismatch")
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    if (data.get("schema") != "archeaxis.official-fixed-runtime-files/v1"
+            or data.get("version") != FIXED_WEBVIEW2["version"]
+            or data.get("architecture") != FIXED_WEBVIEW2["architecture"]):
+        raise ValueError("fixed WebView2 package identity mismatch")
+    files = {}
+    for row in data["files"]:
+        name = row["path"]
+        parsed = PurePosixPath(name)
+        if (not name or "\\" in name or ":" in name or parsed.is_absolute()
+                or parsed.as_posix() != name or any(p in {".", ".."} for p in parsed.parts)
+                or name.casefold() in {p.casefold() for p in files}):
+            raise ValueError("unsafe fixed WebView2 member")
+        path = source / name
+        reject_reparse(path)
+        info = filesystem_path(path).lstat()
+        if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+                or info.st_size != row["bytes"] or sha256(path) != row["sha256"]):
+            raise ValueError("fixed WebView2 member identity mismatch")
+        files[name] = {"bytes": row["bytes"], "sha256": row["sha256"]}
+    actual = {ordinary_path(p).relative_to(source).as_posix()
+              for p in filesystem_path(source).rglob("*") if p.is_file()}
+    if actual != set(files) or not {"msedgewebview2.exe", "msedge.dll"}.issubset(files):
+        raise ValueError("fixed WebView2 inventory mismatch")
+    return files
+
+
+def stage_fixed_webview2(source: Path, manifest: Path, root: Path) -> dict:
+    files = validate_fixed_webview2(source, manifest)
+    target = root / "runtime" / "webview2"
+    reject_reparse(target)
+    if target.exists():
+        raise ValueError("refusing fixed WebView2 overwrite")
+    target.mkdir()
+    for name, row in files.items():
+        destination = target / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(filesystem_path(source / name), filesystem_path(destination))
+        if destination.stat().st_size != row["bytes"] or sha256(destination) != row["sha256"]:
+            raise ValueError("fixed WebView2 copy identity mismatch")
+    shutil.copy2(manifest, target / "aaos-fixed-runtime-manifest.json")
+    if sha256(target / "aaos-fixed-runtime-manifest.json") != FIXED_WEBVIEW2["manifest_sha256"]:
+        raise ValueError("fixed WebView2 copied manifest identity mismatch")
+    return {**FIXED_WEBVIEW2, "path": "runtime/webview2", "files": len(files),
+            "distribution": "Microsoft Fixed Version; application publisher maintains security updates"}
+
+
+def validate_app_local_vc_runtime(runtime: Path) -> None:
+    for name, expected in APP_LOCAL_VC_RUNTIME.items():
+        donor = runtime / name
+        reject_reparse(donor)
+        try:
+            info = filesystem_path(donor).lstat()
+        except FileNotFoundError as error:
+            raise ValueError(f"required app-local VC runtime missing: {name}") from error
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise ValueError(f"app-local VC runtime is not an independent regular file: {name}")
+        if info.st_size != expected["bytes"] or sha256(donor) != expected["sha256"]:
+            raise ValueError(f"app-local VC runtime identity mismatch: {name}")
+
+
+def stage_app_local_vc_runtime(runtime: Path, root: Path) -> dict:
+    validate_app_local_vc_runtime(runtime)
+    for name, expected in APP_LOCAL_VC_RUNTIME.items():
+        for directory in (root, root / "core"):
+            target = directory / name
+            reject_reparse(target)
+            if target.exists():
+                raise ValueError(f"refusing app-local VC runtime overwrite: {name}")
+            shutil.copy2(runtime / name, target)
+            if target.stat().st_size != expected["bytes"] or sha256(target) != expected["sha256"]:
+                raise ValueError(f"app-local VC runtime copy mismatch: {name}")
+    return {"version": "14.44.35211", "architecture": "x64", "source": "selected Python runtime",
+            "members": APP_LOCAL_VC_RUNTIME, "install_locations": [".", "core/"],
+            "maintenance": "Application publisher must update and redistribute these app-local files."}
 
 
 def packager_identity() -> str:
@@ -488,6 +588,10 @@ def main() -> int:
     parser.add_argument("--core", required=True, type=Path)
     parser.add_argument("--runtime", required=True, type=Path,
                         help="portable interpreter directory containing python.exe")
+    parser.add_argument("--webview2-runtime", type=Path,
+                        help="explicit approved Microsoft Fixed Version directory; desktop packaging only")
+    parser.add_argument("--webview2-manifest", type=Path,
+                        help="complete pinned extracted inventory for --webview2-runtime")
     parser.add_argument("--workers", required=True, type=Path)
     parser.add_argument("--external-root", type=Path,
                         help="explicit existing local shared tool root; referenced, never bundled")
@@ -508,6 +612,10 @@ def main() -> int:
                         help="asserted tooling commit (recorded separately from detected Git identity)")
     parser.add_argument("--archive", type=Path, help="also write a zip beside the root")
     args = parser.parse_args()
+    if bool(args.webview2_runtime) != bool(args.webview2_manifest):
+        raise ValueError("fixed WebView2 requires both runtime and manifest")
+    if args.webview2_runtime:
+        validate_fixed_webview2(args.webview2_runtime.absolute(), args.webview2_manifest.absolute())
 
     detected_packager_commit = packager_identity()
     packager_commit = detected_packager_commit or args.packager_commit
@@ -530,6 +638,7 @@ def main() -> int:
     # copied are inspected, each at copy time, where its own tree is known to be the
     # thing being staged. The source root itself still faces the full rule above.
     validate_runtime_tree(args.runtime)
+    validate_app_local_vc_runtime(args.runtime)
     validate_tree(args.workers)
     if not shared_donor.is_file():
         raise ValueError(f"scheduler donor is missing: {shared_donor}")
@@ -551,6 +660,9 @@ def main() -> int:
     shutil.copy2(args.core, root / "core" / "archeaxis-api.exe")
     shutil.copytree(filesystem_path(args.runtime), filesystem_path(root / "runtime"),
                     ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+    app_local_vc = stage_app_local_vc_runtime(args.runtime, root)
+    app_local_webview2 = (stage_fixed_webview2(args.webview2_runtime.absolute(),
+                         args.webview2_manifest.absolute(), root) if args.webview2_runtime else None)
     copy_tree(args.workers, root / "workers")
     capability_manifest = stage_capability_manifest(root, args.external_root)
     (root / "data").mkdir()
@@ -597,10 +709,16 @@ def main() -> int:
     shutil.copy2(Path(__file__).resolve().parent / "backend_launcher.py",
                  root / "start-backend.py")
 
-    def interpreter_version() -> str:
-        result = os.popen(f'"{root / "runtime" / "python.exe"}" -c '
-                          f'"import sys;print(sys.version.split()[0])"').read().strip()
-        return result or "unknown"
+    # Inspect before inventory, without writing startup bytecode into the runtime.
+    # A late probe used to add files after their hashes had already been recorded.
+    inspected = subprocess.run(
+        [str(root / "runtime" / "python.exe"), "-I", "-B", "-c",
+         "import sys;print(sys.version.split()[0])"],
+        cwd=root, capture_output=True, text=True, encoding="utf-8", check=True, timeout=30,
+    )
+    runtime_version = inspected.stdout.strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", runtime_version):
+        raise ValueError("staged interpreter did not report a valid Python version")
 
     files: dict[str, dict[str, object]] = {}
     for path in sorted(ordinary_path(p) for p in filesystem_path(root).rglob("*") if p.is_file()):
@@ -639,7 +757,7 @@ def main() -> int:
              "version": args.version},
             {"component": "python-runtime", "path": "runtime/python.exe",
              "sha256": files["runtime/python.exe"]["sha256"], "install_location": "runtime/",
-             "protocol": "subprocess", "version": interpreter_version()},
+             "protocol": "subprocess", "version": runtime_version},
             {"component": "python-workers", "path": "workers/",
              "files": sum(1 for name in files if name.startswith("workers/")),
              "install_location": "workers/", "protocol": "archeaxis.sidecar-protocol over NDJSON",
@@ -650,6 +768,8 @@ def main() -> int:
         ],
         "dependencies": dependencies,
         "capability_manifest": capability_manifest,
+        "app_local_vc_runtime": app_local_vc,
+        "app_local_webview2": app_local_webview2,
         "startup_order": [
             "1. set ARCHEAXIS_WORKER_PROFILE to <root>/worker-profile.json",
             "2. launch core/archeaxis-api.exe with the workspace db and port",

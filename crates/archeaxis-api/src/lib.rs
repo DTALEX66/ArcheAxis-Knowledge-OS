@@ -9,6 +9,7 @@ mod anchor_resolution;
 pub mod ask;
 pub mod capabilities;
 mod documents;
+mod external_context;
 mod format_qualification;
 mod ingest_batches;
 mod ingest_relations;
@@ -77,6 +78,16 @@ pub fn projections(state: Store, manual_receipts: bool) -> Router {
     )
 }
 pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
+    let external_context_routes = Router::new()
+        .route(
+            "/api/v1/machine/external-context/status",
+            get(external_context::status),
+        )
+        .route(
+            "/api/v1/machine/external-context/candidates",
+            post(external_context::receive),
+        )
+        .layer(axum::extract::DefaultBodyLimit::max(65536));
     let ui_routes = Router::new()
         .route(
             "/api/v1/workspace/layout",
@@ -108,6 +119,7 @@ pub(crate) fn projections_base(state: Store, manual_receipts: bool) -> Router {
         .route("/api/v2/teaching/imports", post(teaching::import))
         .layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024));
     let routes = Router::new()
+        .merge(external_context_routes)
         .route(
             "/api/v1/ingest-batches",
             get(ingest_batches::list)

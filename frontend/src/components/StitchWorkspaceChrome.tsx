@@ -11,12 +11,8 @@ export const StitchResearchOutlet = createContext<{ host: HTMLElement | null; on
 const entries: readonly { page: string; label: string; icon: AaosIconName; pages: readonly string[] }[] = [
   { page: "01", label: "工作台", icon: "Workspace", pages: ["01"] },
   { page: "02", label: "知识", icon: "Knowledge", pages: ["02", "03", "04", "20"] },
-  { page: "06", label: "学习", icon: "Review", pages: ["06", "07", "08", "09", "10", "11", "12", "21"] },
-  { page: "05", label: "研究专题", icon: "Evidence", pages: ["05"] },
-  { page: "13", label: "AI", icon: "HumanAi", pages: ["13", "14", "22"] },
-  { page: "15", label: "资源", icon: "Source", pages: ["15", "16"] },
-  { page: "17", label: "全部能力", icon: "Connection", pages: ["17", "18"] },
-  { page: "19", label: "设置", icon: "Settings", pages: ["19"] },
+  { page: "06", label: "学习", icon: "Learning", pages: ["06", "07", "08", "09", "10", "11", "12", "21"] },
+  { page: "05", label: "研究专题", icon: "Research", pages: ["05"] },
 ];
 const menus = [
   { label: "文件", pages: ["02", "03", "16", "20"] },
@@ -49,17 +45,19 @@ export function StitchWorkspaceMenu({ onPage, onNavigation }: { onPage: (page: s
     <div className="stitch-menus">
       {menus.map(menu => <details key={menu.label} onToggle={event => {
         if (event.currentTarget.open) root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(other => { if (other !== event.currentTarget) other.open = false; });
-      }}><summary>{menu.label}</summary><div className="stitch-menu-popover">{menu.pages.map(page => <button type="button" key={page} onClick={() => { dismiss(true); onPage(page); }}>{UI_PAGES.find(entry => entry.id === page)?.label}</button>)}</div></details>)}
+      }}><summary>{menu.label}</summary><div className="stitch-menu-popover">{menu.pages.map(page => <button type="button" key={page} data-page-id={page} onClick={() => { dismiss(true); onPage(page); }}>{UI_PAGES.find(entry => entry.id === page)?.label}</button>)}</div></details>)}
       <button type="button" aria-label="打开产品导航" onClick={onNavigation}>全部页面</button>
     </div>
   </nav>;
 }
 
-export function StitchWorkspaceDock({ pageId, onPage, companionOpen, onCompanion }: {
+export function StitchWorkspaceDock({ pageId, onPage, companionOpen, onCompanion, onLaunchpad, launchpadOpen = false }: {
   pageId?: string; onPage: (page: string) => void; companionOpen: boolean; onCompanion: () => void;
+  onLaunchpad?: () => void; launchpadOpen?: boolean;
 }) {
   return <nav className="stitch-workspace-dock" aria-label="工作空间快捷导航">
-    {entries.map(entry => <button key={entry.page} type="button" aria-current={entry.pages.includes(pageId ?? "") ? "page" : undefined} onClick={() => onPage(entry.page)}><AaosIcon name={entry.icon} size={18}/><span>{entry.label}</span></button>)}
+    {entries.map(entry => <button key={entry.page} type="button" data-page-id={entry.page} aria-current={entry.pages.includes(pageId ?? "") ? "page" : undefined} onClick={() => onPage(entry.page)}><AaosIcon name={entry.icon} size={18}/><span>{entry.label}</span></button>)}
+    <button id="stitch-launchpad-toggle" type="button" aria-expanded={launchpadOpen} aria-haspopup="dialog" aria-current={pageId && !entries.some(entry => entry.pages.includes(pageId)) ? "page" : undefined} onClick={() => onLaunchpad ? onLaunchpad() : onPage("17")}><AaosIcon name="Apps" size={18}/><span>全部能力</span></button>
     <button id="stitch-companion-toggle" type="button" className="stitch-companion-toggle" aria-expanded={companionOpen} aria-controls={companionOpen ? "stitch-companion-window" : undefined} onClick={onCompanion}><AaosIcon name="HumanAi" size={18}/><span>小栖</span></button>
   </nav>;
 }

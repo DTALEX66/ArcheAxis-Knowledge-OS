@@ -6,6 +6,7 @@ mod dispatch;
 mod health;
 mod inventory;
 mod machine_failure;
+mod material_cloud;
 mod public_research;
 use archeaxis_sidecar_protocol::worker::{
     MAX_FRAME_BYTES, Request, Response, decode_hello, decode_response,
@@ -62,8 +63,8 @@ impl Cancellation {
     }
 }
 
-/// A declaration is not an egress grant. Cloud Material execution is dormant;
-/// preserve every existing local path and all other purposes' validation.
+/// Generic model execution remains local. Cloud Material requires the separate
+/// journal-bound owned bridge, never a profile passed to this local executor.
 pub fn require_material_local_transport(
     configuration: &archeaxis_domain::model_configuration::Resolved,
 ) -> Result<(), &'static str> {

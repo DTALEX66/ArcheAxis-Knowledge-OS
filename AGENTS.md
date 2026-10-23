@@ -1,19 +1,12 @@
 # AGENTS.md - 星环知识系统（ArcheAxis Knowledge）Operating Guide
 
-> **2026-10-22 最新暂停决定**：Owner明确“完成本次后暂停”。本次界面修正完成必要构建、验证与公开交接同步后，状态为 `PAUSED_BY_OWNER / PARTIAL`，额度监控 `aaos` 已暂停；后续不得自动启动开发、模型调用或长链验收，须Owner明确恢复。最新能力分层、真实失败及恢复入口见唯一执行记录末段与活动指针。暂停不等于闭环完成，历史RUNNING说明不覆盖此决定。
+## 当前状态读取方式
 
-> **2026-10-22 最新UI决定**：Owner明确“不要再维护旧版界面了，全面接入STITCH界面啊（这才是新版界面）”。Stitch为唯一新版，22页中心布局沿已接收设计语言接入，复用原业务合同和状态；不保留并行旧布局偏好，不以新壳代替中心页面迁移。当前本地验证与未完成资格见[唯一执行记录](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)最新段，不能把源码覆盖当实际Core/原生/安装验收。
+当前授权范围、执行控制、权限检查、监控状态和实际进度，读取[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)及其指向的[Owner决定](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)、[当前交接](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)和唯一执行记录。分别核对 `owner_scope_current`、`execution_control`、`execution_control.permission_recovery_current`、`execution_control.allowance_guard` 与 `active_progress`，入口不维护第二份可变状态。
 
-> **2026-10-22 最新范围收敛**：Owner明确开源池、第三方API和软件特色兼容等可选扩展“这些都是后期内置市场里的了”，要求“不要无限增加，无限扩展”。本期优先已接收Stitch UI与已有核心业务接通、必要修复和验收；仅沿现有合同保留专业扩展接口约定，不启动市场、扩展包、通用运行时或逐软件特色开发。库存与兼容矩阵不是自动执行队列，也不是本期必须清零的门槛。详细决定见[第十八节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#十八后期内置市场与本期范围收敛2026-10-22)；它覆盖下文旧分片中扩大本期扩展范围的解释，历史证据与未完成状态保留。
+历史恢复、暂停和权限事件只说明对应时点，不自行产生当前授权或完成结论；权限恢复不等于产品完成，监控暂停不等于产品暂停，归档完成不等于后继开发已执行。冲突按既有替代账本解析，证据不足标为未确认。Markdown链接只是导航，Agent须按任务实际读取目标；客户端全文加载由其原生导入机制负责。
 
-> **2026-10-19 历史路由与决定**：Owner 明确恢复当前产品任务，并要求今天停止额度监控；状态 RUNNING_BY_OWNER / PARTIAL。今天不查询额度、不因额度阈值停工。活动指针及唯一 UI 执行记录保存范围与实测；旧暂停仅为历史时点。六项增量仍冻结，V01 暂停、FT01–04 冻结。Owner 后继明确允许覆盖 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 的程序安装，具体范围、备份与资格条件见活动指针 `green_update_authorization`；公开发布和真实用户数据覆盖仍未授权。文件身份及旧路径按 [路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json) 核对。
-
-> **2026-10-21 最新执行优先级**：Owner后继明确“全部按照新的UI进行打通”，要求结合审计修复漂移、更新任务与交接，按已接收Stitch界面前后端同步并行接通全部现有业务页面和共用壳。先前前端暂缓／后端优先及更早前端先行均为历史顺序；当前按UI-P01—24与BE-P01—15并行、同候选CL-01—07/J1—J6统一验收。分片仍由[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_priority_overlay`选择，配合[完整接手提示词](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)读取；原任务ID及唯一执行记录不变，不据交接整理宣称产品完成。共享checkout单writer，独立writer隔离worktree，冻结/数据/发布边界不变。
-
-> **2026-10-22 最新额度与交付规则**：Owner明确新增Codex订阅监控；剩余≤20%时完成已启动的当前任务/可验证单元，随后停止新任务，整理会话、后续任务和完整交接，上传本轮公开任务文件并核实本地/远端SHA一致。实际heartbeat为`aaos`，ACTIVE、每30分钟；额度读数及触发状态以活动指针中的最新观测为准。此决定覆盖旧15%及10/19停监控说明；未知额度不当0，私人原文/凭据/运行库不上传，Git/网络拒绝不得绕过。监控本身不授权新增产品开发、合并、发布或替换Green。详细规则见[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的`execution_control.allowance_guard`。
-
-> 全局执行标准（跨软件跨项目）：见 WORK-LAB `00-governance/global-execution-standard.md`（执行生命周期：理解→扫技能→分片→执行→验证→落地；全局边界：E盘禁访/数据不外溢/官方优先/全功率）。
-> 经验教训铁律（核实优先/治理最小化/官方优先）：见本项目 `LESSONS_LEARNED.md`。
+旧文件身份先查[项目路由登记](docs/current/AAOS-AUTHORITY-ROUTES.json)；Owner历史来源查[冻结对话摘录与映射](docs/history/owner-dialogue-20261019/README.md)。登记与摘录用于核实来源，不另授权执行。
 
 This file is the public, sanitized operating configuration for agent work inside
 this repository. It describes how to work on ArcheAxis Knowledge — a local-first,
@@ -26,8 +19,9 @@ personal files. Config authority is indexed in `docs/CONFIGURATION_AUTHORITY_IND
 用户提到“闭环／最短闭环／最快闭环／完整闭环／全链路跑通”时，必须先读唯一规范 [最快最短完整闭环定义](docs/truth/CLOSED_LOOP_DEFINITION.md)（`AAOS-SHORTEST-COMPLETE-LOOP-V2`），再读活动指针与实际进度。不得缩成单文件导入加一次模型回答；全面非企业知识库特色、免费外部检索、本地与云端模型均按该定义验收。该定义是目标，不是已完成声明。
 
 ArcheAxis Knowledge is a local-first, evidence-driven, bidirectional Human–AI
-Learning & Trusted-Knowledge Workspace. The current minimum closed loop is broad
-compatibility: absorbing mature capabilities from comparable software. The owner-selected current execution queue is `docs/taskpacks/aaos-ui-first-20261009/`,
+Learning & Trusted-Knowledge Workspace. Scope and acceptance follow the unique
+closed-loop definition and the Owner decisions selected by the active pointer.
+The owner-selected current execution queue is `docs/taskpacks/aaos-ui-first-20261009/`,
 routed by `docs/current/AAOS-ACTIVE-EXECUTION.json`. The inherited AAOS-01 2026-10-04
 contracts (SUP-022) and PROJECT_CONTRACT.yaml content saving principles remain binding.
 R6 and M0 retain inherited constraints and historical receipts.
@@ -45,7 +39,7 @@ Legacy systems (Knowledge-Base, Inspiration-Research, Cognitive-OS, Obsidian)
 exist as compatibility surfaces only; current routing, capability truth and
 migration history are documented under `docs/truth/` and `workspace/intake/`.
 
-> 后继 Owner 决定的接续路由（2026-10-19）：上文及继承 M0 中 Marketplace 延期是原规划时点。Owner 已明确选中内置能力目录、管理及分期接入，现读[决定第九节](docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md)与活动指针；这不整体激活通用 Agent Runtime、公开分发/支付或其他冻结项。关键对话出处见[冻结摘录与映射](docs/history/owner-dialogue-20261019/README.md)，共享路径仍只由原索引/manifest解析。
+能力目录、扩展及本期范围以活动指针所选Owner决定与替代关系为准；历史Marketplace延期或阶段接入描述不自动激活扩展。人类与AI双向学习、原始上下文归属和两侧授权连接，按唯一闭环定义及已选规范验收。
 
 ## 2. Configuration Categories
 
@@ -91,8 +85,8 @@ then TASKPACK.md, TASKS.json, PAGE-PLAN.csv, FREEZE-REGISTER.md and the current
 UI execution record `docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md`.
 The immutable package records its planning-time NOT_EXECUTED state; actual
 implementation and acceptance come from the separate execution record.
-Owner selected first batch UF00/01/02/03, CB01 -> UF04, UF06, S01.A/B/C, then G01.
-Remaining slices need selection; V01 remains paused, FT01-04 remain deferred.
+Read selected tasks, execution-priority overlays and freeze records from the active pointer.
+Historical batch ordering does not select the next task or unfreeze paused work.
 New layout/architecture follow the new task; cosmic is the default for new or invalid preferences; preserve valid saved preferences.
 blueprint, blueprint-light, black and white remain switchable themes. All themes share
 the new layout; each theme uses consistent semantic colors throughout the UI.
@@ -109,47 +103,19 @@ special human knowledge approval workflow. Local tests, exact-SHA cloud CI,
 installed runtime and Owner acceptance are distinct. No automatic commit,
 push, merge, release, Green replacement or bulk deletion follows from a PASS.
 
-The preceding R6 Local Green absorb-first pack is installed at
-`docs/authority/taskpack-0919-r6/` (plan_id `AAK-LOCAL-GREEN-ABSORB-FIRST-20260919-R6`,
-package_revision `R6`). Read its `EXECUTOR-START.md`, `TASKS.json` and
-`TASKPACK.md`. Its historical progress is maintained outside the immutable package
-in historical `docs/history/repository-consolidation-20261019/current/R6-EXECUTION.md` and `docs/history/repository-consolidation-20261019/current/R6-STATE.json`. R5 remains
-historical source material and its receipts retain their own SHAs. R6 preserves
-the Rust canonical writer, fixed shared-resource paths, and the no-release boundary;
-Local Green qualification is separate from publication. Preserve unknown private
-state and user assets; destructive cleanup needs an exact reviewed path list.
-At low remaining account-wide Codex allowance, prepare the handoff and publish only
-verified, task-owned changes under the owner's current authorization.
-
-The inherited priority overlay is `docs/history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md`
-(`M0-SHORTEST-COMPLETE-LOOP`, ledger `SUP-020`). It does not replace the immutable
-R6 TaskPack; it serializes execution around one real core loop (P0–P6) and defers
-second providers, extra domains/renderers, marketplaces, and advanced capabilities
-until M0 has a real Local Green result. Keep R6 contracts, evidence rules, external
-resource boundaries, and the no-release rule unchanged.
-
-The preceding plan is the AAK 2026-09-10 follow-up pack
-(ARCHEAXIS-NEXT-TASKPACK-2026-09-10, revision R3.1); live execution state is
-`docs/authority/taskpack-0910-r3/EXECUTION.md` with slice progress in
-`docs/authority/taskpack-0910-r3/STATE.json`; its 17 slices R00-R16 map back to
-the original 23 tasks and to C01-C10, inherit the R3 work/acceptance text, and
-historically ran in the order R00 -> R16 (R12 could start once R01 was done). The package was
-installed single-level with its `reference-r2/` snapshot and
-`verify_package.py` exits 0. The preceding plan AAK-FOLLOWUP-20260908-R3
-(`docs/authority/taskpack-0908-r3/EXECUTION.md`) remains the source of the
-inherited task text and its own receipts; AAK-REUSE-FIRST-20260907-R2 stays the
-source of the inherited task text with its audit board
-`docs/authority/taskpack-0907/Q00-Q01-AUDIT-2026-09-07.md`
-(Q00 fail / Q01 not eligible), and its receipts keep their own SHAs
-(`docs/authority/taskpack-0907/EXECUTION.md`). The earlier 2026-09-06-r1 Full
-Loop TaskPack is superseded in the parts recorded in
-DECISION_SUPERSESSION_LEDGER.yaml SUP-012..SUP-018; its receipts keep their own
-SHAs (`docs/authority/taskpack-0906/EXECUTION.md`). The preceding formal desktop `apps/ArcheAxis.Desktop/` (C#/Avalonia) is now
-a behavior/component donor under SUP-022. The formal Tauri host reuses the
-existing `desktop/` lifecycle implementation; Green v0.6.14 remains a preserved
-recovery/behavior reference until its distinct Owner qualification. Do not dual-write
-legacy and vNext databases. The older G0/shadow-cutover route is superseded by
-`DECISION_SUPERSESSION_LEDGER.yaml`; historical receipts retain their tested SHA.
+Inherited contracts and receipts are dated sources, resolved through
+`AUTHORITY.md`, `DECISION_SUPERSESSION_LEDGER.yaml` and the history indexes.
+R6/M0/AAOS-01 preserve applicable core, ordinary-save, shared-resource and
+evidence boundaries; their old whole-package order is not the active queue.
+Do not dual-write legacy and current databases. Avalonia is a behavior/component
+donor under SUP-022; preserved Green versions are recovery references, not proof
+that the current candidate is qualified. Green program replacement requires the
+active pointer's exact-path grant, candidate qualification, data preservation and
+rollback conditions. Release and real-data overwrite require separate authority.
+Execution controls and allowance handling come from the active pointer; a dated
+threshold or delivery note does not resume monitoring or authorize publication.
+Project lessons: `LESSONS_LEARNED.md` (verify facts, keep governance small, prefer
+official capabilities). No external workflow repository is required for execution.
 
 1. Confirm repository status.
 2. Read the relevant files first.

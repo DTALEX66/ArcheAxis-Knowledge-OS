@@ -13,15 +13,34 @@ import time
 import uuid
 from pathlib import Path
 
+ROLE_OBSERVATION = """const visible=n=>!!n&&n.getClientRects().length>0&&
+ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+  const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const roles=[...document.querySelectorAll('[aria-label="模型与工具职责"]')].filter(visible);
+return roles.length===1?roles[0].innerText:null;"""
+
+IMPORT_SAVED_OBSERVATION = """const panel=document.querySelector('[aria-label="有界文档便携包"]');
+return [...(panel?.querySelectorAll('[role="status"]')??[])].some(n=>
+ n.innerText.includes('已保存为新文档；尚未加入知识库'));"""
+
+
+def qualify_task_roles(ui, js, wait):
+    # The current catalog presents roles in the selected capability's details.
+    ui.page("17", confirm_navigation=True)
+    ui.click("目录与搜索", "//*[@role='tablist' and @aria-label='能力目录视图']")
+    ui.type("查找能力", "")
+    ui.click("全部", "//*[@aria-label='能力分类']")
+    ui.click_selector("(//section[@aria-label='能力列表']//button[@data-entry-id])[1]")
+    wait("return (function(){" + ROLE_OBSERVATION + "})()!==null")
+    roles = js(ROLE_OBSERVATION)
+    for text in ("本地资料转换", "日常对话与学习", "联网研究与核验", "最终采用由用户决定"):
+        assert text in roles, "Missing current task-role presentation"
+
 
 def run(*, ui, read, bridge, js, wait, restart, work, report, download_control=None):
     evidence = report.setdefault("closure_features", {"status": "IN_PROGRESS"})
-    ui.page("17", confirm_navigation=True)
-    ui.click("目录与搜索", "//*[@role='tablist' and @aria-label='能力目录视图']")
-    wait("return !!document.querySelector('[aria-label=\"模型与工具职责\"]')")
-    roles = js("return document.querySelector('[aria-label=\"模型与工具职责\"]').innerText")
-    for text in ("本地资料转换", "日常对话与学习", "联网研究与核验", "最终采用由用户决定"):
-        assert text in roles, "Missing current task-role presentation"
+    qualify_task_roles(ui, js, wait)
     evidence["roles"] = "REAL_RENDERED_CURRENT_NATIVE_UI"
 
     before = read("documents_list")
@@ -68,7 +87,7 @@ def run(*, ui, read, bridge, js, wait, restart, work, report, download_control=N
         wait("return document.querySelector('[aria-label=\"有界文档便携包\"]')?.innerText.includes('待保存：')")
         wait("return [...document.querySelector('[aria-label=\"有界文档便携包\"]').querySelectorAll('button')].some(b => b.textContent === '确认保存为新普通文档' && !b.disabled)")
         ui.click("确认保存为新普通文档", "//section[@aria-label='有界文档便携包']")
-        wait("return document.querySelector('[aria-label=\"有界文档便携包\"]')?.innerText.includes('知识入库未执行')")
+        wait(IMPORT_SAVED_OBSERVATION)
 
     import_file()
     rows = read("documents_list")

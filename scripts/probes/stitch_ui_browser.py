@@ -96,8 +96,7 @@ MENU_FOR_PAGE = {
     "15": "工具", "16": "工具", "17": "工具", "18": "工具", "19": "AI 与模型",
     "20": "知识", "21": "视图", "22": "AI 与模型",
 }
-DOCK_PAGES = {"工作台": "01", "知识": "02", "学习": "06", "研究专题": "05",
-              "AI": "13", "资源": "15", "全部能力": "17", "设置": "19"}
+DOCK_PAGES = {"工作台": "01", "知识": "02", "学习": "06", "研究专题": "05"}
 WRITE_OPERATIONS = {"document_create", "document_draft"}
 
 
@@ -233,6 +232,24 @@ def navigate_menu(page, page_id: str, labels: dict) -> None:
     menu.locator(".stitch-menu-popover").get_by_role("button", name=labels[page_id], exact=True).click(timeout=4000)
     assert_page(page, page_id)
     assert not menu.evaluate("n=>n.open"), "application menu remained open after navigation"
+
+
+def launchpad_navigation(page) -> dict:
+    before = page.evaluate("location.hash")
+    trigger = page.locator("#stitch-launchpad-toggle")
+    trigger.click(timeout=4000)
+    dialog = page.get_by_role("dialog", name="全部能力", exact=True)
+    dialog.get_by_role("textbox", name="搜索能力", exact=True).fill("导入")
+    dialog.get_by_role("button", name=re.compile("^导入导出与互通 ")).click(timeout=4000)
+    assert_page(page, "16")
+    dialog.wait_for(state="hidden", timeout=4000)
+    trigger.click(timeout=4000)
+    dialog.wait_for(state="visible", timeout=4000)
+    page.keyboard.press("Escape")
+    dialog.wait_for(state="hidden", timeout=4000)
+    assert trigger.evaluate("n=>n===document.activeElement"), "launchpad Esc lost opener focus"
+    assert_page(page, "16")
+    return {"status": "PASS", "from": before, "search_page": "16", "escape_kept_route": True, "focus_returned": True}
 
 
 def theme_select(page, theme: str, a0) -> None:
@@ -536,6 +553,7 @@ def main() -> int:
                             page.get_by_role("navigation", name="工作空间快捷导航").get_by_role("button", name=label, exact=True).click(timeout=4000)
                             assert_page(page, target)
                         probe.step("dock-" + target, click_dock)
+                    probe.step("launchpad-search-and-escape", lambda: launchpad_navigation(page))
                     for page_id in ids:
                         probe.case = group + "-page-" + page_id
                         case = {"id": probe.case, "page_id": page_id, "label": labels[page_id], "theme": theme,

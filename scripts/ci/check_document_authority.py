@@ -488,12 +488,71 @@ def check_knowledge_compatibility() -> list[str]:
     return []
 
 
+def check_rule_entries() -> list[str]:
+    """Keep mutable state out of rule entries; check native imports, not runtime loading."""
+    entries = ("AGENTS.md", "AUTHORITY.md", "CLAUDE.md", "GEMINI.md",
+               "docs/DOCUMENTATION_AUTHORITY_INDEX.md")
+    problems: list[str] = []
+    state = re.compile(r"\b(?:RUNNING_BY_OWNER|PAUSED_BY_OWNER|BLOCKED_EXECUTION_PERMISSIONS|PERMISSIONS_RECOVERED)\b")
+    native = re.compile(r"^@([^\s`]+)\s*$", re.MULTILINE)
+    for relative in entries:
+        path = _project_path(relative)
+        if not path.is_file():
+            problems.append(f"{relative}: missing rule entry")
+            continue
+        content = path.read_text(encoding="utf-8")
+        if "AAOS-ACTIVE-EXECUTION.json" not in content:
+            problems.append(f"{relative}: missing active pointer navigation")
+        if "00-governance/global-execution-standard.md" in content:
+            problems.append(f"{relative}: retired cross-project execution dependency")
+        for number, line in enumerate(content.splitlines(), 1):
+            for clause in re.split(r"[;；。]", line):
+                if (state.search(clause) and (CURRENTNESS.search(clause) or "最新" in clause)
+                        and not re.search(r"历史|historical|不得|禁止", clause, re.IGNORECASE)):
+                    problems.append(f"{relative}:{number}: copied live state; route to the active pointer")
+
+    # Check each client's expansion independently. Never follow Markdown links as imports.
+    for adapter in ("CLAUDE.md", "GEMINI.md"):
+        seen: set[str] = set()
+
+        def visit(relative: str, stack: tuple[str, ...], adapter: str, seen: set[str]) -> None:
+            if relative in stack:
+                problems.append(f"{adapter}: import cycle at {relative}")
+                return
+            if relative in seen:
+                problems.append(f"{adapter}: duplicate import {relative}")
+                return
+            seen.add(relative)
+            try:
+                path = _project_path(relative)
+                if not path.is_file():
+                    problems.append(f"{adapter}: missing import {relative}")
+                    return
+                content = path.read_text(encoding="utf-8")
+                # A fenced example must not be mistaken for a native directive.
+                content = re.sub(r"(?ms)^```[^\n]*\n.*?^```[^\n]*$", "", content)
+                for target in native.findall(content):
+                    if target.startswith("/") or ":" in target or "\\" in target or ".." in PurePosixPath(target).parts:
+                        problems.append(f"{adapter}: unsafe import {target}")
+                        continue
+                    joined = str(PurePosixPath(relative).parent / target)
+                    visit(joined, (*stack, relative), adapter, seen)
+            except (OSError, ValueError) as error:
+                problems.append(f"{adapter}: unsafe import {relative}: {error}")
+
+        visit(adapter, (), adapter, seen)
+        if not {"AGENTS.md", "AUTHORITY.md"}.issubset(seen):
+            problems.append(f"{adapter}: native imports must include AGENTS.md and AUTHORITY.md")
+    return problems
+
+
 def main() -> int:
     problems: list[str] = []
     problems += check_public_routing()
     problems += check_owner_dialogue_archive()
     problems += check_knowledge_compatibility()
     problems += check_single_current()
+    problems += check_rule_entries()
     problems += check_authority_references()
     problems += check_input_hashes()
     problems += check_coverage_matrix()

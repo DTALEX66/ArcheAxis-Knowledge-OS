@@ -38,7 +38,7 @@ def reader_dom(document, *, diagnostic=False, identity=None, hidden="", page="03
     text = document["text_projection"] if text is None else text
     version = document["version"] if version is None else version
     markup = '<main aria-label="当前页面" data-current-page-id="' + page + '"></main>'
-    markup += '<section aria-label="阅读与编辑文档视图" ' + hidden + '><article aria-label="文档正文与编辑"><header><p class="ui-document-meta">关联原件文档 · v' + str(version) + ' · 无需依据即可保存</p><h2>' + html.escape(title) + '</h2></header><section aria-label="版本化草稿编辑器"><div class="ProseMirror">' + html.escape(text) + '</div></section></article></section>'
+    markup += '<section aria-label="阅读与编辑文档视图" ' + hidden + '><header class="stitch-reader-heading"><p><span class="stitch-document-version">v' + str(version) + '</span></p><h2>' + html.escape(title) + '</h2></header><article aria-label="文档正文与编辑"><section aria-label="版本化草稿编辑器"><div class="ProseMirror">' + html.escape(text) + '</div></section></article></section>'
     if diagnostic:
         identity = identity if identity is not None else {k:document[k] for k in ("document_id", "source_id", "source_revision", "content_sha256")}
         markup += '<div role="dialog"><section aria-label="诊断控制台"><details open><summary>文档与来源详细信息 · 操作与回执 · synthetic</summary><pre>' + html.escape(json.dumps(identity)) + '</pre></details></section></div>'

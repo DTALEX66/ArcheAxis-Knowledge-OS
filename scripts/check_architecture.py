@@ -289,6 +289,31 @@ def _non_runtime_string_nodes(tree: ast.AST) -> set[int]:
     return result
 
 
+def _url_path_prefix_literals(tree: ast.AST) -> set[int]:
+    """Identify the OS-root-looking HTTP route prefix, excluding file paths."""
+    result: set[int] = set()
+    for node in ast.walk(tree):
+        if not (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "startswith"
+            and isinstance(node.func.value, ast.Attribute)
+            and node.func.value.attr == "path"
+            and isinstance(node.func.value.value, ast.Name)
+            and node.func.value.value.id == "url"
+            and len(node.args) == 1
+        ):
+            continue
+        argument = node.args[0]
+        if (
+            isinstance(argument, ast.Constant)
+            and isinstance(argument.value, str)
+            and re.fullmatch(r"/workspace[/]api", argument.value)
+        ):
+            result.add(id(argument))
+    return result
+
+
 def _is_contract_or_platform(path: str) -> bool:
     return path.startswith(("app/contracts/", "shared-contracts/", "platform/"))
 
@@ -362,6 +387,7 @@ def scan_architecture(root: Path) -> list[ArchitectureIssue]:
         aliases = _path_aliases(tree, sys_modules)
         importlib_modules, importlib_functions = _importlib_aliases(tree)
         non_runtime_strings = _non_runtime_string_nodes(tree)
+        url_path_prefixes = _url_path_prefix_literals(tree)
         for node in ast.walk(tree):
             mutation = _sys_path_mutation(node, aliases, sys_modules)
             if mutation is not None:
@@ -396,6 +422,7 @@ def scan_architecture(root: Path) -> list[ArchitectureIssue]:
                 isinstance(node, ast.Constant)
                 and isinstance(node.value, str)
                 and id(node) not in non_runtime_strings
+                and id(node) not in url_path_prefixes
                 and _ABSOLUTE_PATH.search(node.value)
             ):
                 issues.append(

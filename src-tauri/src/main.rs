@@ -1318,7 +1318,21 @@ fn main() {
                 dispatch_exit_immediately(|code| window.app_handle().exit(code));
             }
         })
-        .build(tauri::generate_context!())
+        // Select the application-local runtime through Tauri's public Context
+        // API. The bundle policy is `skip`: no Evergreen system installer is
+        // needed. The existing runtime resource carries the complete pinned
+        // Fixed Version package; build qualification checks every member.
+        .build({
+            let mut context = tauri::generate_context!();
+            #[cfg(not(debug_assertions))]
+            {
+                context.config_mut().bundle.windows.webview_install_mode =
+                    tauri::utils::config::WebviewInstallMode::FixedRuntime {
+                        path: std::path::PathBuf::from("runtime/webview2"),
+                    };
+            }
+            context
+        })
         .expect("ArcheAxis desktop shell startup failed");
 
     app.run(move |_handle, event| {
