@@ -1544,7 +1544,50 @@
         "bytes": 2406,
         "sha256": "68f97107dcc4f88c0c8438156d64330a290ed4b1b10de2289721e6b44cf5f801"
       },
-      "checkpoint_key": "verification.correction_history_native_followup"
+      "checkpoint_key": "verification.correction_history_native_followup",
+      "current_cause_followup": "verification.correction_history_pending_diagnosis; old FAIL unchanged, old UNDETERMINED/geometry next-step are historical"
+    },
+    "reader_material_success_pin_fix": {
+      "status": "PASS_LOCAL_COMPONENTS_TYPECHECK_FRONTEND_BUILD_STATIC_REVIEW",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/reader-material-job-pin-qualification-20261024.json",
+        "bytes": 9451,
+        "sha256": "8fa86bec600a5410f36498597e42fb54289a285f40228e37a437cefb7a990605"
+      },
+      "checkpoint_key": "verification.reader_material_success_pin_fix"
+    },
+    "correction_history_pending_diagnosis": {
+      "status": "CORRECT_PENDING_REQUEST_GUARD_CONFIRMED_DETAILS_STILL_NOT_VERIFIED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/correction-native-display-7d953-20261024-05/artifacts/pending-identity-diagnosis.json",
+        "bytes": 2891,
+        "sha256": "71ab4e744c876041f2a5d25e4a3f90a61225ff582fa9902da3075e8bbd73580b"
+      },
+      "checkpoint_key": "verification.correction_history_pending_diagnosis"
+    },
+    "ai_conflict_consumer_source_controls": {
+      "status": "PASS_REPORTED_ISOLATED_5822_SOURCE_ROUTER_STORE_POSITIVE_NEGATIVE_CONTROLS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-02/execution-receipt.json",
+        "bytes": 2835,
+        "sha256": "4c14ec911431ca6785fb8b96866aba79e84305f03a5d06ff622dbfd25d120b4b"
+      },
+      "positive_control": {
+        "path": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-03/execution-receipt.json",
+        "bytes": 2797,
+        "sha256": "03cfb9dcbd72a374e653ebd7aabd6ee0969de0df2eecd0ac9b2f20218ce534ec"
+      },
+      "checkpoint_key": "verification.ai_conflict_consumer_source_controls",
+      "tool_output_supplement": {
+        "path": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-03/execution-tool-output-supplement.json",
+        "bytes": 8567,
+        "sha256": "fa9884870f364d6030692ebb2feea9e0c6148cf66f8d6d9220aa7027dc409315"
+      },
+      "cleanup": {
+        "path": ".project-local/runs/be268a2d33/current5822-conflict-consumer-20261024-03/artifacts/preserved-test-binaries/cleanup-receipt.json",
+        "bytes": 2045,
+        "sha256": "fee6cc70f32c5da88da63672408ea3c4dea0ae2e6662b6d06955735daae1ab97"
+      }
     }
   }
 }

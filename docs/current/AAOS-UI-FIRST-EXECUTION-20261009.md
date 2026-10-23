@@ -1521,3 +1521,13 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 - 新Host既有纠正历史原生核验终态FAIL：真实DOM“使用者纠正·已记录”断言通过，随后可信pointer点击“查看这次任务”，等待恢复回执提示30秒超时；未观察到machine_task_get dispatch，提交者／依据／原回答详情断言未到达，根因仍UNDETERMINED，不能直接归咎模型、Core或丢失资料。原run04合成工作区12文件、输入pins和3条machine_tasks完全不变，无新推理；正常Host退出0、后代／端口0。准备01导入dev和02导航回调接线错误各自保留，03真实详情FAIL后停止，未放宽断言。仅7d Host＋旧5822 Core＋合成历史副本，父层稳定终态和内层收据见 `verification.correction_history_native_followup`；本次不改Green身份，不冒充完整原生呈现、模型质量或Owner验收。后继仍沿UF09／BE-P10定位真实点击激活／状态，不重开全量审计。
 
 - 本节明确接续前文“四格式原生UI待验／UI尚未编译”的当前结论，旧收据原状保留。四格式其他导出恢复API组件仍按各自独立工作区和对象记录，不拼成单次全原生闭环。真实云、代表性知识可靠性、Owner和托管CI仍待完成，外部原始上下文NOT_CONNECTED，监控暂停，整体PARTIAL。
+
+
+### 2026-10-24 成功产物问答身份修复、待核对请求保护定位及冲突消费对照（UF09／BE-P08／BE-P10／CL-02／CL-06／J1／J4，整体 PARTIAL）
+
+- 修复实际阅读到AI提问的身份错接：最新转换失败／取消／运行中时，仍显示已成功正文，却将材料请求绑定到最新失败任务，Core按成功job与transform精确绑定拒绝；新失败还会因key变化清空问题和预览。现在材料job与key均取已验证成功transform的job／id／原件SHA，最新尝试状态独立展示；新成功会切换材料并撤销旧预览，未放宽Core校验。4例RED真实复现；最终5文件86项组件PASS（含5新回归），类型检查、正式frontend生产构建及另一Agent静态窄审通过。85项中间批次不重复累加。资格收据见统一检查点verification.reader_material_success_pin_fix；bridge输入为SYNTHETIC，未为此修复重建Host／候选／Green，不能说原生或安装态已修。
+- 纠正详情旧03／新04／05的FAIL保持原状；04以稳定几何及可信pointerdown/up/click证明点击命中，05新增异常／状态观测证明处理命中未保存／冻结输入保护，而非JS异常。只读诊断证实原合成工作区留有恢复旧授权拒绝测试的另一pending answer：同知识与问题、不同client_request_id，三个已完成任务均不匹配。结合源码重构为问题／冻结请求身份保护，不能为PASS清库或放宽防覆盖逻辑。旧截图与CSS点坐标差属于缩放，不能当移动证据；关闭后的windows文本不能反推点击时面板消失。没有证据说明纠正关联源码坏了，提交者／依据／原回答详情仍未验证。最新根因／下一正规核对路径读verification.correction_history_pending_diagnosis，替代旧UNDETERMINED／优先怀疑坐标的当前解释；旧失败和原数据保留。
+- 补一负一正的冲突消费对照：有声明冲突的adopted资产请求手工包403，删除冲突却沿用旧review更新400，拒绝后资产及冲突源DTO逐字段保持并可读200；无冲突正对照手工包200，asset／consumer／purpose／item快照匹配，明确PREPARED_NOT_SENT_TO_PEER。仅5822归档源码＋新增synthetic测试的进程内Axum Router／Store集成，非固定f915程序／原生UI／安装候选，也非语义去重、冲突真伪或Owner评审。无模型路由调用。两次准备编译错误和执行输出保全边界按verification.ai_conflict_consumer_source_controls读取；root核源码和回执，额外原始输出索引另记，不升格证据。
+- 当前导航仍沿唯一闭环定义、活动指针及本执行记录；没有另立自动job到Document填充门槛，也不把独立格式/API样例拼成同工作区完整J1。真实云、代表性质量、同候选未验项、Owner和托管CI仍未完成；外部原始上下文NOT_CONNECTED，监控暂停，未推送、发布或覆盖真实数据。
+
+- 本段证据补充：API两项测试的原运行未落盘stdout／stderr或canonical execution.json；补件仅为实际工具结果摘录，不能冒充完整原始日志。两份测试EXE已按原SHA另存，测试源码／归档／失败与通过回执均保留。本轮新建target为2,537文件、2,788,554,766逻辑字节；精确路径递归删除命令在执行前被自动策略拒绝，目录仍在，未换渠道绕过，也不宣称回收空间。索引见verification.ai_conflict_consumer_source_controls的tool_output_supplement及cleanup。Core pending状态／结束条件另经静态核对：无匹配完成任务时默认UNKNOWN且不可清除；本轮没有实际清除或证明可结束。
