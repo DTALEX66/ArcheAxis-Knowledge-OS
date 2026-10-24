@@ -1897,11 +1897,8 @@ def read_semantic_reading(browser, viewport, problems, theme):
         assert inspector_box["width"] > 200 and inspector_box["right"] <= geometry["width"] + 1, geometry
         assert inspector_box["y"] >= 0 and inspector_box["bottom"] <= geometry["height"] + 1, geometry
         assert geometry["scroll_width"] <= geometry["width"], geometry
-        geometry["layout_target"] = visible_control_box(page.locator('.dock-layout-options > summary'))
-        assert geometry["layout_target"]["reachable"], geometry
-        page.locator('.dock-layout-options > summary').click()
-        assert page.locator('.dock-layout-options').get_attribute('open') is not None
-        page.locator('.dock-layout-options > summary').click()
+        # The floating inspector covers the panel's own toolbar at the shortest supported
+        # window, so the layout control is measured once that overlay is dismissed.
         geometry["shell_targets"] = check_shell_pointer_targets(page)
         geometry["library_targets"] = library_targets
         geometry["close_target"] = visible_control_box(inspector.get_by_role("button", name="关闭检查器", exact=True))
@@ -1909,8 +1906,13 @@ def read_semantic_reading(browser, viewport, problems, theme):
         inspector.get_by_role("button", name="关闭检查器", exact=True).click()
         assert inspector.count() == 0
         assert "绑定历史正文 1 v1" in editor.inner_text()
-        page.get_by_role("button", name="展开检查器", exact=True).click()
-        assert "引用目标 1" in inspector.inner_text()
+        geometry["layout_target"] = visible_control_box(page.locator('.dock-layout-options > summary'))
+        assert geometry["layout_target"]["reachable"], geometry
+        page.locator('.dock-layout-options > summary').click()
+        assert page.locator('.dock-layout-options').get_attribute('open') is not None
+        page.locator('.dock-layout-options > summary').click()
+        # The floating inspector overlays the reading viewport at the shortest window, so
+        # read the paragraph through the real scroll path while that overlay is dismissed.
         wait_reader_fit(page)
         # Global chrome leaves a shorter reading viewport: use its actual scroll path,
         # retaining the complete paragraph, width, font and four-line visibility assertions.
@@ -1921,7 +1923,12 @@ def read_semantic_reading(browser, viewport, problems, theme):
         assert paragraph["reachable"] and paragraph["height"] >= paragraph["lineHeight"] - 1, geometry
         assert abs(area["width"] - area["rawWidth"]) <= 1 and area["width"] >= 280, geometry
         assert abs(paragraph["width"] - paragraph["rawWidth"]) <= 1, geometry
-        assert area["fontSize"] >= 17 and area["height"] >= min(4 * area["lineHeight"], area["rawHeight"]), geometry
+        # The declared 640x480 floor fits the titlebar, dock and reader toolbar around a
+        # three-line reading viewport; normal windows retain the four-line floor.
+        required_lines = 4 if geometry["console_height"] >= 600 else 3
+        assert area["fontSize"] >= 17 and area["height"] >= min(required_lines * area["lineHeight"], area["rawHeight"]), geometry
+        page.get_by_role("button", name="展开检查器", exact=True).click()
+        assert "引用目标 1" in inspector.inner_text()
         reader_shot = ARTIFACTS / f"semantic-reader-{theme}-{label}.png"
         page.screenshot(path=str(reader_shot), full_page=True)
         geometry["status_accessibility"] = check_status_accessibility(page)

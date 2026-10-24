@@ -86,6 +86,14 @@
   .stitch-document-card>button { grid-column:3; grid-row:1/3; max-width:76px; }
   .stitch-reader-document { padding:12px; }
 }
+/* At the declared minimum window height the reading viewport must still show its floor.
+   The duplicated page heading and the toolbar gaps are the least costly trims there. */
+@container console (max-height:520px) {
+  .stitch-reader-heading { display:none; }
+  .stitch-reader-page { gap:4px; }
+  .stitch-reader-toolbar { gap:4px; }
+  .stitch-reader-modes button { min-height:30px; padding:3px 8px; }
+}
 @media (forced-colors:active) { .stitch-document-kind,.stitch-library-primary,.stitch-reader-modes button[aria-pressed="true"],.stitch-library-quick-views button[aria-pressed="true"] { border-color:Highlight; } }
 
 .stitch-history-page { display:grid; gap:12px; min-width:0; }
