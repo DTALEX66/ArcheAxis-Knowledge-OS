@@ -977,6 +977,50 @@
       "not_covered": ["directory batch import", "failure retry and resume", "search hit and citation from search", "document export and package recovery"],
       "boundary": "Authored synthetic materials; OCR/ASR engine readback not accuracy; no installed UI, Green, exact-SHA CI or Owner acceptance"
     },
+    "latest_cl02_residuals_20261024": {
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "status": "PASS_SUBGAPS",
+      "batch": {
+        "receipt": ".project-local/format-matrix-20261024/batch/run/receipt.json",
+        "receipt_sha256": "d8b25b1211651af13be235f94433a0406913f6dabae244a24dddc7fdcdf6470c",
+        "result": "5 members selected; 2 excluded; gamma.csv read-deny forced IMPORT_FAILED then retry succeeded; 3 conversions succeeded"
+      },
+      "resume": {
+        "result": "2 unuploaded members registered, Host restarted, UI restored batch and continued upload; 2/2 succeeded; restore_epoch unchanged"
+      },
+      "search_export": {
+        "receipt": ".project-local/format-matrix-20261024/batch/search-export/receipt.json",
+        "receipt_sha256": "099c68decd82aaae186397a66c3fcd132e1b6d8bb64cb70f472b73b5ccdc26be",
+        "result": "search hit on source transform; text-range anchor CURRENT; markdown export persisted byte-identical; package imported into fresh workspace with identical document content hash and source bytes"
+      },
+      "not_claimed": ["conversion failure auto-retry/cancel", "OCR/ASR accuracy", "installed-state UI"]
+    },
+    "latest_public_research_20261024": {
+      "source_commit": "ec30b2246bc4fbfd0e56046bd8c3b1c3a5349305",
+      "status": "PARTIAL_CHANNELS_PASS",
+      "query": "quantum computing",
+      "channels": ["wikipedia", "stackexchange", "openalex"],
+      "all_channels_complete": true,
+      "raw_and_selected_sources": 6,
+      "anchors": 3,
+      "draft": "support_draft and opposition_draft reference all six sources; conclusions/experiments empty; not verified conclusions",
+      "restart_readback": "sources, anchors, document, package and export equal",
+      "backup_verified": true,
+      "restore_preview": 200,
+      "knowledge_admission": "NOT_EXECUTED_HUMAN_SELECTION",
+      "receipt": ".project-local/runs/be268a2d33/public-research-current-20261024-07/artifacts/public-research-receipt.json",
+      "receipt_sha256": "0c95ce3689f0c6d6808cef891e2bdf760ef7eba7334e96f09ce0b32ea82e0adb",
+      "network_adapter": "local per-host routing proxy: system proxy for wikipedia only; direct for stackexchange/openalex; no product change"
+    },
+    "installed_candidate_current5822_20261024": {
+      "status": "INSTALLED_PASS_NOT_CURRENT_REBUILD",
+      "guest_result": ".project-local/runs/be268a2d33/current5822-installed-business-20261024-02/guest-output/guest-business-result.json",
+      "guest_result_sha256": "d9a3d7adbba583285f2246b9436551c0586311bedc74c9e932aac26ab182f774",
+      "installer_exit": 0, "native_exit": 0, "uninstaller_exit": 0,
+      "scope": "install, native document conflict/restore/restart, uninstall with synthetic data",
+      "current_rebuild": "b645c658 has no matching installer; not packaged or installed",
+      "not_authorized": ["public release", "real user data overwrite"]
+    },
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

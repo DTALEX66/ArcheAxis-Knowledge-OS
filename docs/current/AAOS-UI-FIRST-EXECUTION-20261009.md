@@ -1767,22 +1767,42 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 长路径缺陷（CL-07 类，本轮未修复）：首次在深隔离根 `.project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-import/data` 运行时，mp4 视频产物路径 261/263 字符，超过本机 `LongPathsEnabled=0` 的传统 MAX_PATH；ffmpeg 实际写出 WAV 与 3 帧，但 Python `Path.is_file()` 对既有文件返回 False，视频路由把 audio/frames 记为解码失败，job 仍 `succeeded` 而正文为空、`stages.asr=failed`。同一路由经暂存 transport（产物路径 187 字符）完整成功（135 字符、4 cues、3 帧、3 段视觉）；同一 Host 换短根 `.project-local/format-matrix-20261024`（产物路径约 237 字符）后 18/18 PASS。结论：格式能力非缺陷，长路径存在性检查是真实健壮性缺口；未改产品代码、未重建 Host。
 - 边界：合成材料；OCR/ASR 为引擎读回，不是识别准确率；未覆盖批量目录、失败重试／断点续做、检索命中、导出与文档包恢复；不构成安装态、Green、exact-SHA CI 或 Owner 验收。未推送、未发布。
 
+### 2026-10-24 CL-02 批量、失败重试、重启续做与检索导出（CL-02，子缺口 PASS）
+
+- 批量目录：在当前 Host 上用真实文件夹选择器导入 `batch-input-20261024` 的 5 个成员；`.hidden.txt` 与 `node_modules/inside.txt` 分别记为排除；对 `gamma.csv` 施加读取拒绝 ACE 制造真实 `IMPORT_FAILED`，UI 出现“同成员重试导入”，恢复权限后重试成功。随后“执行本批次转换”让 3 个成员全部 `succeeded`，原件逐字节、来源哈希与转换正文回算一致。回执 `.project-local/format-matrix-20261024/batch/run/receipt.json`（4,731B，SHA-256 `d8b25b1211651af13be235f94433a0406913f6dabae244a24dddc7fdcdf6470c`）。
+- 断点续做：另注册 2 个未上传成员的耐久批次，关闭并重开同一数据根；UI“读取历史批次→查看批次”显示 `IMPORT_FAILED/未上传`，`继续未上传成员` 重新选择同一文件夹后完成导入、转换与回读，`restore_epoch` 不变。4 张截图（选择后、转换后、续做前、续做后）哈希见回执。
+- 检索与引用：`search("批量正文甲")` 命中来源提取文本（`transform_id=1`, `source_id=src_a14a…`），知识页渲染同一命中；对同一来源建立文本范围引用并 `anchor_resolve=CURRENT`。
+- 导出与恢复：从来源建立版本化草稿，`document_export(markdown)` 的 `projection_sha256` 由 `document.md` 内容回算确认；`document_export_save` 落盘 `exports/<doc>/markdown/v1-…/document.md|manifest.json` 与导出内容逐字节一致。`document_package_export` 生成 1,714B 包（含绑定原件 34B、1 个历史锚点），在**全新数据根**导入后正文 `content_sha256` 与包内文档一致，绑定原件逐字节一致，重新导出哈希不变；`anchor_registration` 与 `knowledge_admission` 按设计 `NOT_EXECUTED`。回执 `.project-local/format-matrix-20261024/batch/search-export/receipt.json`（3,434B，SHA-256 `099c68decd82aaae186397a66c3fcd132e1b6d8bb64cb70f472b73b5ccdc26be`）。
+- 边界：合成材料；批量续做只覆盖导入未上传成员，不覆盖转换失败后的自动重试与取消；OCR/ASR 仍为引擎读回而非准确率。CL-02 的批量、重试、续做、检索、引用、导出与恢复子缺口在本 Host 上均有实际回执；长路径视频产物存在性缺口归 CL-07，仍未修复。
+
+### 2026-10-24 CL-03 当前候选真实三通道检索与比较草稿（CL-03／J2，PARTIAL）
+
+- 在当前源码提交 `ec30b224` 与当前 release Core 上，通过 `dev.py` 启动隔离工作区，真实访问三个免费通道：维基百科、StackExchange（Academia）、OpenAlex；查询 `quantum computing`。三通道均 `complete`，各返回 1 条真实命中与可引用摘要。回执 `.../public-research-current-20261024-07/artifacts/public-research-receipt.json`（2,023,013B，SHA-256 `0c95ce3689f0c6d6808cef891e2bdf760ef7eba7334e96f09ce0b32ea82e0adb`）。
+- 每通道均保存原始响应、选定来源、`source_original` 逐字节、锚点 `201` 与 `CURRENT` 解析、原文跳转；研究草稿保存包含 6 个来源的“支持方向草稿”和“反对方向草稿”（明确待人工查找限制与反证），不把它冒充已证实结论。重启后原始/选定来源、3 个锚点、文档、包与导出均读回一致；Core backup 201 并 `verified=true`，restore preview 200。
+- 环境适配：本机系统代理是维基唯一可用路径，而 OpenAlex 免费日额度按代理出口 IP 计并已耗尽；测试用本地逐主机路由代理（维基走系统代理，其余直连），未改产品代码。该代理是网络环境适配，不是产品能力。
+- 未执行：由人类选择把研究草稿接纳为知识或学习（`knowledge_admission=NOT_EXECUTED`）；本回执的工作区实际 restore 未执行（同一能力已在 `current5822-public-research-restore-20261024-01` 上 PASS）。CL-03 仍为 PARTIAL，缺口是人的接纳决定，不是检索通道。
+
+### 2026-10-24 人类↔AI 授权连接与 J6 已安装候选复核（CL-07／J6，边界修正）
+
+- 复核既有 grouped AI 回执：同一来源 `src_a06d4e7c…`／锚点 `anc_4b32…`→知识 `k_73923990…`→人工接受→课程/学习→本地 `qwen3.5-4b` 在显式 `context-grant` 下真实回答→工程纠正→独立复测→重开恢复；恢复后的旧授权以 `RESTORED_GRANT_FENCED` 请求绑定拒绝，`NOT_EXECUTED`/`UNVERIFIED` 分开记录。该链条是**同一对象与版本的连接**，不是多个收据拼接；仍无 Owner 签署与独立语义评测。
+- J6 复核：`current5822-installed-business-20261024-02` 的客体内回执为 `PASS`（installer exit 0、native exit 0、uninstaller exit 0、文档冲突/恢复/重启），sandbox 父进程记录停在 IN_PROGRESS，但客体结果与 SHA 已落盘；当前重建 Host `b645c658` 没有对应安装包，公共发布与真实用户数据覆盖仍未授权。因此 J6 从“BLOCKED”修正为 **PARTIAL：已安装候选 PASS，当前重建候选未打包/未安装**，不再把客体 PASS 冒充当前候选安装态。
+
 ### 2026-10-24 闭环验收矩阵（当前 Host b645c658，目标非完成声明）
 
 | 维度 | 当前状态 | 依据／缺口 |
 | --- | --- | --- |
 | CL-01 核心架构 | PASS | Tauri/React + Rust Core 唯一写入 + 隔离 workers；本 Host 两轮原生链均通过 |
-| CL-02 常见多格式 | PARTIAL（格式矩阵 PASS） | 当前 Host 18/18 导入＋转换＋预览＋结构／引用＋损失＋重启回读 PASS；批量目录、失败重试／断点续做、检索命中、导出与文档包恢复未纳入本矩阵；长路径视频产物存在性检查缺口已具名 |
-| CL-03 免费外部检索／比较 | PARTIAL | 历史真实三来源获取保留；当前外部检索通道未重新接通，研究草稿未接纳 |
+| CL-02 常见多格式 | PASS（当前 Host，合成材料） | 18/18 导入／转换／预览／结构引用／损失／重启回读；批量、导入失败重试、重启续做、检索命中、文本引用、Markdown 导出与文档包跨工作区恢复均有实际回执；OCR/ASR 准确率与转换失败自动重试不在此声明，长路径视频缺口归 CL-07 |
+| CL-03 免费外部检索／比较 | PARTIAL（通道 PASS） | 当前候选真实三通道（维基／StackExchange／OpenAlex）complete，原始与选定来源、锚点、支持/反对草稿、包、重启与备份读回均 PASS；仅“人类选择接纳为知识/学习”未执行 |
 | CL-04 成熟知识库特色 | PARTIAL／延期 | 矩阵与延期清单保留，未宣称全面兼容 |
 | CL-05 开源池与轻量扩展 | PARTIAL | 能力中心启停 PASS；插件／技能／模板／MCP 全形态消费者未全验 |
 | CL-06 本地／云端模型 | LOCAL PASS；CLOUD PARTIAL | qwen3.5-4b 真实回答／纠正／复测 PASS；云端专业接口有边界，真实云推理延后未执行 |
-| CL-07 同产品全链路可靠 | PARTIAL | 当前 Host 人类 J1 14/14 + AI 工程链 PASS；无安装态、exact-SHA CI、Owner 验收 |
-| J1 多格式资料链 | PASS（TXT 段＋18 格式矩阵） | journey-17；CL-02 十八格式矩阵；批量目录与整文件夹失败定位仍按 CL-02 缺口 |
-| J2 外部研究链 | PARTIAL | 历史三来源与当前研究 UI 分段；真实检索→比较→接纳未在当前 Host 重跑 |
+| CL-07 同产品全链路可靠 | PARTIAL | 当前 Host 人类 J1 14/14、18 格式矩阵、批量/检索/导出与 AI 工程链 PASS；无 exact-SHA CI、Owner 验收；长路径视频缺口未修复；当前重建 Host 未打包安装 |
+| J1 多格式资料链 | PASS（TXT 段＋18 格式矩阵＋批量） | journey-17、CL-02 十八格式矩阵与批量/续做；整文件夹失败定位仍按 CL-02 边界 |
+| J2 外部研究链 | PARTIAL（通道＋草稿 PASS） | 当前候选真实三通道检索、比较草稿、包与重启读回；人类接纳未执行；5822 工作区实际 restore PASS |
 | J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
-| J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | ai-loop-20261024；质量未独立评测，纠正为 authored intervention |
+| J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | ai-loop-20261024；同一来源/锚点/知识在显式授权下完成回答、纠正、复测与恢复后拒绝；质量未独立评测 |
 | J5 扩展链 | PARTIAL | capability_toggle PASS；多形态真实消费者未全验 |
-| J6 安装与可靠性 | BLOCKED | 当前 Host 无对应安装包；沙盒残留受保护；未重装、未做安装态业务链 |
+| J6 安装与可靠性 | PARTIAL | 5822 已安装候选：installer/native/uninstaller exit 0，文档冲突/恢复/重启 PASS；当前重建 Host 无对应安装包，未安装；公共发布与真实数据覆盖未授权 |
 
-结论：当前候选已在同一 Host 上打通“人类 J1 14/14 + 18 格式矩阵 18/18 + AI 本地模型工程链”，但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环；CL-02 的批量／重试续做／检索／导出、CL-03／CL-04／CL-05、J2／J3／J5／J6 与 Owner 验收分别记账。
+结论：当前候选已在同一 Host 上打通“人类 J1 14/14 + 18 格式矩阵 + 批量/检索/导出 + AI 本地模型同源授权链”，CL-03 当前候选真实三通道检索也已通过；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收与长路径修复、J5 多形态扩展、J6 当前重建 Host 的打包安装。
