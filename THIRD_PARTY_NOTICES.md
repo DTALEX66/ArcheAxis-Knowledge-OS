@@ -169,10 +169,17 @@ unrecognised byte sequence fails the build with its observed bytes and SHA-256. 
 packaged copy and its recorded identity is inventoried in
 `backend-runtime-manifest.json`.
 
-| File (x64, version 14.44.35211) | Bytes | SHA-256 |
-| --- | ---: | --- |
-| `vcruntime140.dll` | 124544 | `d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066` |
-| `vcruntime140_1.dll` | 49792 | `1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f` |
+| File (x64) | Approved donor version | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| `vcruntime140.dll` | 14.44.35211 | 124544 | `d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066` |
+| `vcruntime140.dll` | 14.42.34438 | 120400 | `052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4` |
+| `vcruntime140_1.dll` | 14.44.35211 | 49792 | `1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f` |
+| `vcruntime140_1.dll` | 14.42.34438 | 49776 | `6a99bc0128e0c7d6cbbf615fcc26909565e17d4ca3451b97f8987f9c6acbc6c8` |
+
+Both approved donor versions come from Microsoft's redistributable VC runtime as
+shipped inside a CPython Windows build: 14.44.35211 from the uv-managed local
+interpreter and 14.42.34438 from the 3.12.10 installer used by cloud CI. The
+selected files are copied unchanged; no other donor byte pattern is accepted.
 
 These Microsoft binaries remain subject to the applicable Microsoft Software
 License Terms and redistribution entitlement; this project does not relicense

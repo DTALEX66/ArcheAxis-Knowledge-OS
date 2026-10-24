@@ -35,35 +35,61 @@ class Node:
         return not self.disabled
 
 
+MISSING = SimpleNamespace(count=lambda: 0)
+
+
 def fixture(mode, suspended):
+    """The Stitch titlebar: settings by label, diagnostics in the status tools,
+    and the two window controls in their own group."""
     toggle = "铺满主控台" if mode == "floating" else "还原主控台"
-    nodes = {name: Node(name, disabled=(name == "运行诊断" and suspended)
-                       or (name == toggle and mode == "compact"))
-             for name in ("设置", "运行诊断", toggle, "复位主控台")}
+    nodes = {
+        "运行诊断": Node("运行诊断", disabled=suspended),
+        toggle: Node(toggle, disabled=mode == "compact"),
+        "复位主控台": Node("复位主控台"),
+    }
     if suspended:
         nodes["重新检查诊断连接"] = Node("重新检查诊断连接")
-    missing = SimpleNamespace(count=lambda: 0)
-    actions = SimpleNamespace(
-        get_by_role=lambda role, *, name, exact: nodes.get(name, missing),
-        locator=lambda selector: SimpleNamespace(count=lambda: len(nodes)))
-    page = SimpleNamespace(locator=lambda selector: actions if selector == ".top-nav-right"
-                           else SimpleNamespace(get_attribute=lambda name: mode))
-    return page, nodes, toggle
+    settings = Node("界面与工具设置")
+    controls = [nodes[toggle], nodes["复位主控台"]]
+
+    def by_name(_role, *, name, exact):
+        if name == "界面与工具设置":
+            return settings if exact else settings
+        return nodes.get(name, MISSING)
+
+    tools = SimpleNamespace(get_by_role=by_name)
+    control_group = SimpleNamespace(
+        get_by_role=by_name,
+        locator=lambda selector: SimpleNamespace(count=lambda: len(controls)) if selector == "button" else MISSING,
+    )
+
+    def locator(selector):
+        if selector == ".stitch-window-tools":
+            return tools
+        if selector == ".stitch-window-controls":
+            return control_group
+        if selector == ".console-window":
+            return SimpleNamespace(get_attribute=lambda name: mode)
+        raise AssertionError(selector)
+
+    page = SimpleNamespace(locator=locator, get_by_label=lambda label, exact: settings)
+    return page, nodes, controls, toggle
 
 
 @pytest.mark.parametrize("mode", ["floating", "full", "compact"])
 @pytest.mark.parametrize("suspended", [False, True])
 def test_exact_working_window_actions_in_each_mode(mode, suspended):
-    page, _nodes, _toggle = fixture(mode, suspended)
+    page, _nodes, _controls, _toggle = fixture(mode, suspended)
     check_actions()(page, diagnostics_suspended=suspended)
 
 
 @pytest.mark.parametrize("tamper", ["missing_toggle", "hidden_reset", "disabled_reset",
     "disabled_full_toggle", "enabled_compact_toggle", "diagnostics_enabled", "missing_recheck",
-    "hidden_recheck", "extra_action", "small_target", "clipped_target", "covered_target"])
+    "hidden_recheck", "extra_action", "small_target", "clipped_target", "covered_target",
+    "unlabelled_settings"])
 def test_window_controls_do_not_weaken_existing_or_pointer_contracts(tamper):
     mode = "compact" if tamper == "enabled_compact_toggle" else "full"
-    page, nodes, toggle = fixture(mode, True)
+    page, nodes, controls, toggle = fixture(mode, True)
     if tamper == "missing_toggle":
         nodes.pop(toggle)
     elif tamper == "hidden_reset":
@@ -81,12 +107,14 @@ def test_window_controls_do_not_weaken_existing_or_pointer_contracts(tamper):
     elif tamper == "hidden_recheck":
         nodes["重新检查诊断连接"].visible = False
     elif tamper == "extra_action":
-        nodes["unexpected"] = Node("unexpected")
+        controls.append(Node("unexpected"))
     elif tamper == "small_target":
         nodes[toggle].box["width"] = 23
     elif tamper == "clipped_target":
         nodes[toggle].box["rawHeight"] = 50
     elif tamper == "covered_target":
         nodes[toggle].box["reachable"] = False
+    elif tamper == "unlabelled_settings":
+        page.get_by_label = lambda label, exact: MISSING
     with pytest.raises(AssertionError):
         check_actions()(page, diagnostics_suspended=True)

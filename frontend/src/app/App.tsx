@@ -94,8 +94,6 @@ function AppBody() {
   const [companionOpen,setCompanionOpen] = useState(() => window.innerWidth >= 1280 && window.innerHeight >= 700);
   const companionFocusRequested = useRef(false);
   useEffect(() => { companionFocusRequested.current = false; }, [companionOpen]);
-  const drawerSection = useRef<SpaceSectionDef | null>(null);
-  const drawerTrail = useRef<string | null>(null);
   const [uiPageId,setUiPageId] = useState<string|undefined>(initialNavigation?.capabilityId ? "18" : initialNavigation?.pageId ?? (initialNavigation ? undefined : "01"));
   const [openedDocumentId,setOpenedDocumentId] = useState<string|undefined>();
   const [activeDockPanelId,setActiveDockPanelId] = useState<string>();
@@ -103,6 +101,10 @@ function AppBody() {
   const requestDockNavigation = useCallback(() => {setActiveDockPanelId(undefined);setDockNavigationRevision(value=>value+1);},[]);
   const [initialLearningItemKey, setInitialLearningItemKey] = useState<string|undefined>();
   const composing = useRef(false);
+  // A section chosen inside the drawer runs after the modal has released focus. Radix's
+  // close callback is the fast path; the timer is the fallback when it does not fire, so
+  // the section either opens and receives focus or the drawer's return-to-trigger wins.
+  const pendingSection = useRef<SpaceSectionDef | null>(null);
   const [selectedCapabilityId, setSelectedCapabilityId] = useState<string | null>(initialNavigation?.capabilityId ?? null);
   const [sectionNavigation, setSectionNavigation] = useState<{ spaceId: SpaceId; section: string; sequence: number }>({ spaceId: "library", section: "sources", sequence: 0 });
   const [objectTrail, setObjectTrail] = useState<readonly ObjectTrailLevel[]>([]);
@@ -835,7 +837,7 @@ function AppBody() {
       {workspaceRestoring ? <div role="status" className="workspace-restore-overlay">正在恢复工作区，请等待读取完成…</div> : null}
       {workingNotice}
 
-      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const trail=drawerTrail.current;drawerTrail.current=null;if(trail){event.preventDefault();focusRegion(trail);return;}const section=drawerSection.current;drawerSection.current=null;if(section){event.preventDefault();activateSection(section);return;}event.preventDefault();document.querySelector<HTMLButtonElement>('button[aria-label="打开产品导航"]')?.focus();}} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><NavTrail levels={trailLevels} onJump={region=>{drawerTrail.current=region;setNavigationOpen(false);}} /><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;drawerSection.current=section;setNavigationOpen(false);}} />}</AaosDialog>}
+      {!learningFocus && <AaosDialog title="产品导航" description="选择页面；Esc关闭并返回导航按钮。" open={navigationOpen} onOpenChange={setNavigationOpen} onCloseAutoFocus={event=>{const pending=pendingSection.current;pendingSection.current=null;event.preventDefault();if(pending){activateSection(pending);return;}document.querySelector<HTMLButtonElement>('button[aria-label="打开产品导航"]')?.focus();}} contentClassName="ui-navigation-drawer"><button onClick={()=>setNavigationOpen(false)}>关闭导航</button><NavTrail levels={trailLevels} onJump={region=>{setNavigationOpen(false);globalThis.setTimeout(()=>focusRegion(region),120);}} /><SpaceRail active={activeSpace} onNavigate={navigate} onOpenCapability={openCapability} activeCapabilityId={selectedCapabilityId} spaces={SPACES} pageId={uiPageId} onPage={openPage}/>{!selectedCapabilityId && ["02","03","16","17","19","20"].includes(uiPageId ?? "03") && <ContextNav active={activeSpace} onNavigate={navigate} sections={sections} activeSection={activeSection} onSection={section=>{if(restoringRef.current||section.state!=="ready")return;pendingSection.current=section;setNavigationOpen(false);globalThis.setTimeout(()=>{if(pendingSection.current!==section)return;pendingSection.current=null;activateSection(section);},120);}} />}</AaosDialog>}
       <div className="app-body" key={`workspace:${workspaceEpoch}`} aria-busy={workspaceRestoring}>
         <main className="app-center" role="main" aria-label="当前空间内容">
           {searchedObject?<PinnedReferencePanel reference={searchedObject} expectedDocumentSha={searchedContentSha} onClose={()=>setSearchedObject(null)} onOpenReference={reference=>{setSearchedObject(reference);setSearchedContentSha(undefined);}}/>:null}

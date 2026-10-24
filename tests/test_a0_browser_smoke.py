@@ -259,14 +259,14 @@ def test_the_viewport_matrix_covers_the_stylesheets_own_breakpoints():
     # Exercise the actual gate, including the independent short-window branch.
     # Every declaration retains a 280px reading floor, including short and wide views.
     gate = _load_smoke_module()
-    bands = {"navigation_trigger": ".ui-navigation-trigger"}
+    bands = {"navigation_trigger": 'button[aria-label="打开产品导航"]'}
     for width, height, _historical_compact in ((1200, 761, True), (1201, 760, True),
                                     (640, 480, True), (1201, 761, False)):
         geometry = {
             "scrollWidth": width, "clientWidth": width,
-            "dock": {"y": 120, "bottom": 140}, "rail": {"width": 0},
+            "dock": {"y": 120, "bottom": 140}, "rail": None,
             "main": {"x": 0, "right": 280, "bottom": 120, "width": 280, "height": 120},
-            "body": {"x": 0, "right": 280, "width": 280}, "inspector": None,
+            "body": {"x": 0, "right": 280, "width": 280}, "inspector": 0,
             "bodyPadding": {"left": 0, "right": 0, "top": 0, "bottom": 0, "gap": 0},
             "applicationMenu": {"y": 0, "bottom": 42},
             "applicationDock": {"y": 150, "bottom": 200},

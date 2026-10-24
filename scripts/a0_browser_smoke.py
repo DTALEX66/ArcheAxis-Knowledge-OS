@@ -764,6 +764,7 @@ def read_navigation_levels(page) -> dict[str, object]:
     assert all(width > 60 for width in widths), widths
 
     sections.filter(has_text="来源锚点").first.click()
+    page.wait_for_function("() => document.activeElement?.dataset?.section === 'anchors'", timeout=5000)
     focused = page.evaluate("() => document.activeElement?.dataset?.section ?? null")
     assert focused == "anchors", focused
 
@@ -807,7 +808,7 @@ def read_navigation_levels(page) -> dict[str, object]:
     page.get_by_role("button", name="打开产品导航").click()
     learning_drawer = page.get_by_role("dialog", name="产品导航")
     learning_drawer.wait_for()
-    assert learning_drawer.get_by_role("button", name="学习").count() == 1, "learning primary entry missing"
+    assert learning_drawer.get_by_role("button", name="学习", exact=True).count() == 1, "learning primary entry missing"
     page.keyboard.press("Escape")
     learning_drawer.wait_for(state="detached")
     return {
@@ -1814,7 +1815,7 @@ def wait_reader_fit(page) -> None:
     # Dockview's ResizeObserver must finish reflowing after the explicit rail toggle.
     # A timeout is a failure: a permanently clipped document never becomes acceptable.
     page.wait_for_function("""() => {
-      const card=document.querySelector('.ui-reader-document')?.getBoundingClientRect();
+      const card=document.querySelector('.stitch-reader-document')?.getBoundingClientRect();
       const center=document.querySelector('.app-center')?.getBoundingClientRect();
       return card && center && card.left >= center.left && card.right <= center.right;
     }""")
@@ -1872,7 +1873,7 @@ def read_semantic_reading(browser, viewport, problems, theme):
           const center = document.querySelector('.app-center'), style = getComputedStyle(center);
           const containerWidth = center.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
           const console=document.querySelector(".console-window")||document.querySelector(".app-shell"), size=console.getBoundingClientRect();
-          return {width:innerWidth,height:innerHeight,console_width:size.width,console_height:size.height,container_width:containerWidth,document:rect('.ui-reader-document'),details:rect('.ui-reader-details'),
+          return {width:innerWidth,height:innerHeight,console_width:size.width,console_height:size.height,container_width:containerWidth,document:rect('.stitch-reader-document'),details:rect('.stitch-reader-details'),
             center:rect('.app-center'),body:rect('.app-body'),inspector:rect('.inspector'),
             body_padding:(()=>{const s=getComputedStyle(document.querySelector('.app-body'));
               return {left:parseFloat(s.paddingLeft),right:parseFloat(s.paddingRight),top:parseFloat(s.paddingTop),bottom:parseFloat(s.paddingBottom)};})(),
@@ -1888,16 +1889,13 @@ def read_semantic_reading(browser, viewport, problems, theme):
         else:
             assert doc["bottom"] <= details["y"], geometry
         compact = geometry["console_width"] <= 1100 or geometry["console_height"] <= 760
-        short_side = geometry["console_width"] >= 600 and geometry["console_height"] <= 600
-        if short_side:
-            assert geometry["center"]["right"] <= geometry["inspector"]["x"] + 1, geometry
-            assert geometry["center"]["width"] >= 280 and geometry["inspector"]["width"] == 220, geometry
-            assert abs(geometry["center"]["height"] - (geometry["body"]["height"] - geometry["body_padding"]["top"] - geometry["body_padding"]["bottom"])) <= 1, geometry
-        elif compact:
+        if compact:
             assert abs(geometry["center"]["width"] - (geometry["body"]["width"] - geometry["body_padding"]["left"] - geometry["body_padding"]["right"])) <= 1, geometry
-            assert geometry["center"]["bottom"] <= geometry["inspector"]["y"] + 1, geometry
-            assert geometry["inspector"]["height"] == 96, geometry
-        assert geometry["inspector"]["bottom"] <= geometry["body"]["bottom"] + 1, geometry
+        # The Stitch inspector floats above the reading column, so the contract is that it
+        # stays inside the window and does not widen the page rather than an inline rail.
+        inspector_box = geometry["inspector"]
+        assert inspector_box["width"] > 200 and inspector_box["right"] <= geometry["width"] + 1, geometry
+        assert inspector_box["y"] >= 0 and inspector_box["bottom"] <= geometry["height"] + 1, geometry
         assert geometry["scroll_width"] <= geometry["width"], geometry
         geometry["layout_target"] = visible_control_box(page.locator('.dock-layout-options > summary'))
         assert geometry["layout_target"]["reachable"], geometry

@@ -107,10 +107,14 @@ APP_LOCAL_VC_RUNTIME: dict[str, tuple[dict[str, object], ...]] = {
     "vcruntime140.dll": (
         {"version": "14.44.35211", "bytes": 124544,
          "sha256": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"},
+        {"version": "14.42.34438", "bytes": 120400,
+         "sha256": "052ad6a20d375957e82aa6a3c441ea548d89be0981516ca7eb306e063d5027f4"},
     ),
     "vcruntime140_1.dll": (
         {"version": "14.44.35211", "bytes": 49792,
          "sha256": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"},
+        {"version": "14.42.34438", "bytes": 49776,
+         "sha256": "6a99bc0128e0c7d6cbbf615fcc26909565e17d4ca3451b97f8987f9c6acbc6c8"},
     ),
 }
 
