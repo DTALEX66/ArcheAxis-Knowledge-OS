@@ -1795,12 +1795,14 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 深路径复跑：在原先失败的 `.project-local/runs/…/native-03-import/data` 上执行真实视频转换，新 job `read_22868ba7…` 成功，正文 135 字符、4 个定位片段、3 帧、3 段视觉描述，`decode_errors=[]`、`frame_errors=[]`，正文哈希与浅路径一致 `c7836433…`。回执 `.project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-video-fix/receipt.json`（1,126B，SHA-256 `fde7cfdb983916531f3194ae16aaf334c78ae3276bafc39619274db879a516eb`），截图 `00a3a3d1…`。
 - 边界：修复的是 worker 路径健壮性，不是识别准确率；旧的两条失败 job 与深根失败证据保留。当前 release 为增量组件，未重新打包安装器；exact-SHA CI 与 Owner 验收仍未执行。
 
-### 2026-10-24 J6 当前重建安装器隔离生命周期（J6，安装/启动/卸载 PASS）
+### 2026-10-24 J6 当前重建安装器隔离生命周期与安装态业务（J6，安装/业务 PASS）
 
-- 由当前源码本地构建 NSIS 安装器 `ArcheAxis Knowledge_0.6.14_x64-setup.exe`（567,215,430B，SHA-256 `3b0bccd65cc9742cd270d1aeb0b0b8dc5bc10e43dbb84dcee65fabf53c681ada`），包含重建 Host `ca5fbfda7ab38625e6f910c2c4264d98b05aef4bcdb238c06340fb3885c2b4f9` 与修复后的视频 worker `9af897703a0b3fe1ddb7331086359705b6948678698a86f0506b05131210759d`；属本地构建，不是公共发布。
-- 在 Windows Sandbox（无网络、8GB、安装器只读映射）执行最小真实生命周期：`/S` 安装 exit 0 → 安装根存在 `ArcheAxis.exe`、`core/archeaxis-api.exe`、`runtime/python.exe` → 启动后 Host 存活并创建 `com.archeaxis.workspace/archeaxis.sqlite` → 关闭 → `uninstall.exe /S` exit 0 → 安装根已移除。结果 `PASS`。回执 `.project-local/runs/be268a2d33/j6-current-installer-20261024/evidence/minimal-result.json`（780B，SHA-256 `03d912936325683b6875ad799100605457824ea5db0780e2fbd9a6a549af1cb4`），启动记录 `minimal-launch.json`。
-- 失败的完整生命周期尝试保留：`desktop/scripts/verify_nsis_install.ps1` 在 20 分钟沙盒窗口内未完成（脚本含安装/同包升级/重装/卸载四轮），无回执，标 `TIMEOUT`，不冒充 PASS。
-- 边界：本回执只证明当前安装器的安装、启动、数据库创建与卸载；当前重建未重跑 5822 的完整安装态文档冲突/恢复/重启业务链，也未做跨版本升级回滚、exact-SHA CI 或 Owner 验收。5822 的完整安装态业务回执仍单独有效。
+- 由当前源码本地构建 NSIS 安装器 `ArcheAxis Knowledge_0.6.14_x64-setup.exe`（567,215,430B，SHA-256 `3b0bccd65cc9742cd270d1aeb0b0b8dc5bc10e43dbb84dcee65fabf53c681ada`）；安装后实际 Host 为 `eb268f2900c139f8e325f31cb818d1b3da031903d238310c13a850225779d484`（47,376,384B），Core `fd620735…`，运行清单 `13d11c65…`，视频 worker `9af89770…`。属本地构建，不是公共发布。
+- 最小生命周期：在无网络 Windows Sandbox 中 `/S` 安装 exit 0 → `ArcheAxis.exe`／`core`／`runtime` 存在 → 启动后 Host 存活并创建 `com.archeaxis.workspace/archeaxis.sqlite` → 关闭 → `/S` 卸载 exit 0 → 安装根移除，结果 `PASS`。回执 `.../j6-current-installer-20261024/evidence/minimal-result.json`（780B，SHA-256 `03d91293…1cb4`）。
+- 当前安装态业务：复用已验证的安装态原生驱动脚本，仅重绑安装器与安装身份，在 Sandbox 执行真实安装→原生文档三路冲突/保存/恢复/Host 重启→卸载：客体内 `status=PASS`，installer/native/uninstaller 均 exit 0，`installed_draft_conflict_loop.status=PASS`；3 张截图（已保存独立版本、重启后恢复、三路冲突）与 55,457B 原生回执。客体内结果 `guest-business-result.json`（522B，SHA-256 `266de2bf1ea0934eb16cd4b0d2abb5d8fe7240d50587d79ecd0d1ece8d96eba8`），父回执 `installed-business-parent.json`（47,061B，SHA-256 `bf592b84ee86843b507cc2c6666c8678ad8869437092d0ee51b75dda2b47ed1d`），原生回执 `7265b96a909d2c9f9891bbe790df93375a158d1ec1be707bede3946eab8fe2f1`。
+- 首次安装态业务尝试因把 release exe `ca5fbfda…` 误当作安装后 Host 而失败；实际安装 Host 为 `eb268f29…`，重绑后 PASS。失败回执保留在 `guest-output-fail-01`。
+- 失败的完整多轮生命周期脚本尝试保留：`verify_nsis_install.ps1` 在 20 分钟沙盒窗口内未完成（含安装/同包升级/重装/卸载四轮），标 `TIMEOUT`，不冒充 PASS。
+- 边界：安装态业务使用合成数据；未做跨版本升级/回滚，未做 exact-SHA CI 或 Owner 验收；公共发布与真实数据覆盖未授权。
 
 ### 2026-10-24 闭环验收矩阵（当前 Host b645c658，目标非完成声明）
 
@@ -1818,6 +1820,6 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 | J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
 | J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | ai-loop-20261024；同一来源/锚点/知识在显式授权下完成回答、纠正、复测与恢复后拒绝；质量未独立评测 |
 | J5 扩展链 | PARTIAL | capability_toggle PASS；多形态真实消费者未全验 |
-| J6 安装与可靠性 | PARTIAL（安装生命周期 PASS） | 当前重建安装器在无网络 Sandbox 完成安装→启动→数据库创建→卸载 PASS；5822 完整安装态文档冲突/恢复/重启 PASS；当前重建未重跑完整业务链、未做跨版本升级回滚、无 exact-SHA CI／Owner 验收；公共发布与真实数据覆盖未授权 |
+| J6 安装与可靠性 | PARTIAL（安装与当前安装态业务 PASS） | 当前重建安装器在无网络 Sandbox 完成安装→启动→数据库→卸载，并完成原生文档三路冲突/保存/恢复/Host 重启→卸载，installer/native/uninstaller 均 exit 0；未做跨版本升级/回滚、exact-SHA CI／Owner 验收；公共发布与真实数据覆盖未授权 |
 
-结论：当前候选已在同一 Host 上打通“人类 J1 14/14 + 18 格式矩阵 + 批量/检索/导出 + AI 本地模型同源授权链”，CL-03 当前候选真实三通道检索也已通过，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器完成隔离安装/启动/卸载；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、J5 多形态扩展、J6 当前重建的完整安装态业务链与跨版本升级回滚。
+结论：当前候选已在同一 Host 上打通“人类 J1 14/14 + 18 格式矩阵 + 批量/检索/导出 + AI 本地模型同源授权链”，CL-03 当前候选真实三通道检索也已通过，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器完成隔离安装、当前安装态业务与卸载；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、J5 多形态扩展、J6 的跨版本升级/回滚。
