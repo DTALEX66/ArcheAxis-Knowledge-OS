@@ -1320,16 +1320,31 @@ fn main() {
         })
         // Select the application-local runtime through Tauri's public Context
         // API. The bundle policy is `skip`: no Evergreen system installer is
-        // needed. The existing runtime resource carries the complete pinned
-        // Fixed Version package; build qualification checks every member.
+        // needed. A release candidate carries the complete pinned Fixed Version
+        // package and build qualification checks every member; a qualification
+        // artifact built without it keeps the system Evergreen runtime.
         .build({
             let mut context = tauri::generate_context!();
             #[cfg(not(debug_assertions))]
             {
-                context.config_mut().bundle.windows.webview_install_mode =
-                    tauri::utils::config::WebviewInstallMode::FixedRuntime {
-                        path: std::path::PathBuf::from("runtime/webview2"),
-                    };
+                // A candidate that ships the pinned Fixed Version package must use it.
+                // An installer built without that package uses the machine's Evergreen
+                // runtime instead of failing to create a window with no explanation -
+                // the packaged CI qualification artifact has no fixed runtime folder.
+                let packaged_fixed_runtime = std::env::current_exe()
+                    .ok()
+                    .and_then(|executable| {
+                        executable
+                            .parent()
+                            .map(|root| root.join("runtime/webview2/msedgewebview2.exe"))
+                    })
+                    .is_some_and(|marker| marker.is_file());
+                if packaged_fixed_runtime {
+                    context.config_mut().bundle.windows.webview_install_mode =
+                        tauri::utils::config::WebviewInstallMode::FixedRuntime {
+                            path: std::path::PathBuf::from("runtime/webview2"),
+                        };
+                }
             }
             context
         })

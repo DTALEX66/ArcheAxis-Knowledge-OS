@@ -164,8 +164,14 @@ def check_settings_menu(page) -> list[dict[str, object]]:
     """Require the settings dialog to paint above content, rather than only fit its bounds."""
     popup = page.get_by_role("dialog", name="界面与工具")
     popup.wait_for(state='visible')
+    # Let the open transition settle; a control measured mid-animation can report a
+    # box the hit test no longer agrees with.
+    page.wait_for_timeout(250)
     controls = popup.locator('select,button').all()
     assert controls, 'settings dialog lacks controls'
+    for node in controls:
+        if node.is_visible():
+            node.scroll_into_view_if_needed()
     boxes = [visible_control_box(node) for node in controls]
     assert all(box['reachable'] and box['width'] >= 24 and box['height'] >= 24
                and box['fontSize'] >= 14 for box in boxes), boxes
@@ -1591,9 +1597,14 @@ def visible_control_box(locator) -> dict[str, object]:
         if(/auto|scroll|hidden|clip/.test(s.overflowY)||/paint|strict|content/.test(s.contain)){top=Math.max(top,y);bottom=Math.min(bottom,y+a.clientHeight)}
         if(s.position==='fixed')fixedEscapes=true;}
       const hit=document.elementFromPoint((left+right)/2,(top+bottom)/2);
+      // A native control can receive the hit inside its user-agent shadow tree, which
+      // Node.contains() does not traverse; the host element is still the same target.
+      const root=hit&&hit.getRootNode?hit.getRootNode():null;
+      const owner=root&&root.host?root.host:null;
       return {width:Math.max(0,right-left),height:Math.max(0,bottom-top),rawWidth:r.width,rawHeight:r.height,
         lineHeight:parseFloat(style.lineHeight),fontSize:parseFloat(style.fontSize),
-        reachable:!!hit&&(hit===node||node.contains(hit)),label:node.getAttribute('aria-label')||node.textContent};
+        reachable:!!hit&&(hit===node||node.contains(hit)||(!!owner&&(owner===node||node.contains(owner)))),
+        label:node.getAttribute('aria-label')||node.textContent};
     }""")
 
 
