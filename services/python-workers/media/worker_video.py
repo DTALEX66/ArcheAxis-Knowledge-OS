@@ -100,9 +100,23 @@ def probe() -> dict:
     }
 
 
+def _long(path: Path) -> Path:
+    """A path Python I/O can stat beyond the legacy 260-character limit.
+
+    ffmpeg writes long artifacts successfully, but pathlib on a host without
+    `LongPathsEnabled` refuses to see them unless the extended-length prefix is
+    present. The Core strips that prefix before handing paths to a worker, so the
+    worker has to add it back for its own existence and digest checks.
+    """
+    text = str(path)
+    if os.name == "nt" and len(text) >= 240 and not text.startswith("\\\\?\\"):
+        return Path("\\\\?\\" + text)
+    return path
+
+
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
+    with _long(path).open("rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
@@ -164,13 +178,32 @@ def _run_asr(audio_path: str, model_path: str | None, language: str, device: str
     return value
 
 
+def _asr_audio_path(path: Path) -> tuple[Path, Path | None]:
+    """A short copy for ASR when the decoded WAV sits beyond the legacy path limit.
+
+    The video worker can read the long artifact itself, but the ASR engine is a
+    separate process whose own file handling may still stop at MAX_PATH. The
+    durable WAV stays in the artifact root; only the transcript reads this copy.
+    """
+    if os.name != "nt" or len(str(path)) < 240:
+        return path, None
+    import shutil
+    import tempfile
+    handle, name = tempfile.mkstemp(prefix="aaos-asr-", suffix=".wav")
+    os.close(handle)
+    temporary = Path(name)
+    with _long(path).open("rb") as source, temporary.open("wb") as target:
+        shutil.copyfileobj(source, target)
+    return temporary, temporary
+
+
 def extract(input_path: Path, out_dir: Path, frame_interval_ms: int, max_frames: int, *, deadline: float | None = None, known_duration_ms: int | None = None) -> dict:
     binary = _ffmpeg()
-    if not input_path.is_file():
+    if not _long(input_path).is_file():
         raise ValueError(f"input video file not found: {input_path}")
     if input_path.suffix.lower() not in SUPPORTED:
         raise ValueError(f"unsupported video extension: {input_path.suffix}")
-    out_dir.mkdir(parents=True, exist_ok=True)
+    _long(out_dir).mkdir(parents=True, exist_ok=True)
 
     audio_wav = out_dir / "audio-16k-mono.wav"
     decode_errors = []
@@ -186,7 +219,7 @@ def extract(input_path: Path, out_dir: Path, frame_interval_ms: int, max_frames:
             errors="replace",
             timeout=_remaining(deadline, 600),
         )
-        audio_available = audio_proc.returncode == 0 and audio_wav.is_file()
+        audio_available = audio_proc.returncode == 0 and _long(audio_wav).is_file()
         if not audio_available:
             decode_errors.append({"stage": "audio", "reason": "audio_track_unavailable_or_decode_failed"})
     except (subprocess.TimeoutExpired, TimeoutError):
@@ -222,7 +255,7 @@ def extract(input_path: Path, out_dir: Path, frame_interval_ms: int, max_frames:
         except (subprocess.TimeoutExpired, TimeoutError):
             frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_timeout"})
             continue
-        if frame_proc.returncode != 0 or not frame_path.is_file():
+        if frame_proc.returncode != 0 or not _long(frame_path).is_file():
             frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_failed"})
             continue
         frames.append({"offset_ms": offset_ms, "sampling_seek_requested_ms": offset_ms, "actual_pts_ms": None, "timing_precision": "approximate", "path": str(frame_path), "sha256": _sha256(frame_path)})
@@ -276,11 +309,15 @@ def extract_job(path: Path, out_dir: Path, model_path: str | None, language: str
     stages = {"decode": {"state": "partial" if decoded["frame_errors"] or decoded.get("decode_errors") or not decoded["frames"] else "succeeded"}}
     transcript = {"text": "", "cues": [], "raw_cues": [], "alignment_issues": [], "alignment_status": "unlocated", "loss_receipt": None}
     if decoded["audio_wav"]:
+        asr_path, temporary_audio = _asr_audio_path(Path(decoded["audio_wav"]["path"]))
         try:
-            transcript = _run_asr(decoded["audio_wav"]["path"], model_path, language, device, _remaining(deadline, 240))
+            transcript = _run_asr(str(asr_path), model_path, language, device, _remaining(deadline, 240))
             stages["asr"] = {"state": "partial" if transcript.get("processing_status") == "partial" or transcript.get("alignment_issues") or not transcript["text"] else "succeeded", "reason": "asr_processing_interrupted" if transcript.get("processing_status") == "partial" else "empty_transcript" if not transcript["text"] else None, "processing_error": transcript.get("processing_error")}
         except Exception as exc:
             stages["asr"] = {"state": "failed", "reason": "asr_failed", "error_type": type(exc).__name__}
+        finally:
+            if temporary_audio is not None:
+                temporary_audio.unlink(missing_ok=True)
     else:
         stages["asr"] = {"state": "failed", "reason": "audio_track_unavailable_or_decode_failed"}
     valid_cues = []
@@ -311,7 +348,7 @@ def extract_job(path: Path, out_dir: Path, model_path: str | None, language: str
                 image = Path(frame["path"])
                 if _sha256(image) != frame["sha256"]:
                     raise ValueError("frame identity mismatch")
-                result = caption.describe(image, model=model, timeout_s=min(30, int(remaining)), require_identity=True,
+                result = caption.describe(_long(image), model=model, timeout_s=min(30, int(remaining)), require_identity=True,
                     endpoint_override={"base": endpoint.rstrip("/"), "protocol": protocol, "model": model, "discovered": False})
                 if _sha256(image) != frame["sha256"] or _sha256(path) != source_sha:
                     raise ValueError("input identity changed")

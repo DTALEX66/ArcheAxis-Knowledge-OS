@@ -971,10 +971,16 @@
         "scope": "VIDEO_ARTIFACT_EXISTENCE_CHECK_NOT_LONG_PATH_AWARE",
         "evidence": "deep root produced 261/263-char artifact paths with LongPathsEnabled=0; ffmpeg wrote WAV/3 frames but Python Path.is_file() returned False, so stages.asr=failed and empty text",
         "control": "same route through staged transport at 187 chars succeeded; same Host at ~237 chars passed 18/18",
-        "fixed": false,
-        "host_rebuilt": false
+        "fixed": true,
+        "fix": "worker_video extended-length path checks plus short ASR copy; unit tests 8 PASS; deep-root MP4 rerun 135 chars, 4 positions, 3 frames, 3 visual descriptions, decode/frame errors empty",
+        "worker_sha256": "9af897703a0b3fe1ddb7331086359705b6948678698a86f0506b05131210759d",
+        "worker_previous_sha256": "cbcb49fad707cf0ea0ceabe57b8b6afc5e9c55a9027af7c2fbbe810783ad3d03",
+        "fix_receipt": ".project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-video-fix/receipt.json",
+        "fix_receipt_sha256": "fde7cfdb983916531f3194ae16aaf334c78ae3276bafc39619274db879a516eb",
+        "host_rebuilt": false,
+        "component_update": "incremental worker update in .project-local/rt/workers and release bundle; Host exe remains b645c658"
       },
-      "not_covered": ["directory batch import", "failure retry and resume", "search hit and citation from search", "document export and package recovery"],
+      "not_covered": ["conversion failure auto-retry and cancel", "OCR/ASR accuracy"],
       "boundary": "Authored synthetic materials; OCR/ASR engine readback not accuracy; no installed UI, Green, exact-SHA CI or Owner acceptance"
     },
     "latest_cl02_residuals_20261024": {
@@ -1024,7 +1030,7 @@
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "post_build_delta": "POST5822_COMPONENTS: correction7d953 native-detail-DOM PASS; reader7525 native03 successful-material binding and actual folder-picker/batch-restart PASS; folder failure summary0410865 Host/native PASS. Exact component identities retained; full candidate/installer/Green remain5822, no new whole-package/Owner qualification.",
+    "post_build_delta": "POST5822_COMPONENTS: correction7d953 native-detail-DOM PASS; reader7525 native03 successful-material binding and actual folder-picker/batch-restart PASS; folder failure summary0410865 Host/native PASS; video-longpath-9af897 worker long-path fix PASS with deep-root MP4 135 chars/4 positions/3 frames/3 visual. Exact component identities retained; full candidate/installer/Green remain5822, no new whole-package/Owner qualification.",
     "native_additional": "CURRENT5822_NATIVE_HUMAN_AND_AI_ENGINEERING_CHAIN_PASS; ONE_SAMPLE_INDEPENDENT_AGENT_REVIEW_COMPLETE; REPRESENTATIVE_SEMANTIC_QUALITY_AND_OWNER_UNPROVEN; GROUPED_PRODUCT_PARTIAL",
     "cloud": "PROFESSIONAL_INTERFACE_IMPLEMENTED_LOCAL_MOCK_PASS; REAL_PROVIDER_DEFERRED_BY_OWNER_NOT_FIRST_RELEASE_BLOCKER",
     "installer": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",

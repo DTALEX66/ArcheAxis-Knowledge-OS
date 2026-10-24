@@ -12,7 +12,9 @@ them) with a synthetic external registry, so they do not depend on this machine.
 
 from __future__ import annotations
 
+import hashlib
 import importlib.util
+import os
 from pathlib import Path
 
 import pytest
@@ -127,3 +129,36 @@ def test_transcribe_derives_the_model_from_the_declared_root(external, monkeypat
     module = load("worker_transcribe_t4", TRANSCRIBE)
     monkeypatch.setattr(module, "DEFAULT_MODEL_DIR", external["root"] / "absent-sibling")
     assert module._model_dir(None).resolve() == external["model"].resolve()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="extended-length prefix is Windows-specific")
+def test_video_reads_artifacts_beyond_the_legacy_path_limit(tmp_path):
+    """ffmpeg can write a long artifact the worker's own pathlib cannot stat.
+
+    The Core strips the extended-length prefix before launching a worker, so a
+    worker that only checks the ordinary path records a successful decode as
+    `audio_track_unavailable_or_decode_failed`/`frame_decode_failed`. The worker
+    must add the prefix back for its own existence and digest checks.
+    """
+    module = load("worker_video_long", VIDEO)
+    deep = tmp_path
+    while len(str(deep / "frame-000-0ms.jpg")) < 262:
+        deep = deep / ("d" * 20)
+    module._long(deep).mkdir(parents=True)
+    artifact = deep / "frame-000-0ms.jpg"
+    module._long(artifact).write_bytes(b"frame")
+    assert len(str(artifact)) > 260
+    assert module._long(artifact).is_file()
+    assert module._sha256(artifact) == hashlib.sha256(b"frame").hexdigest()
+    assert module._long(tmp_path / "short.txt") == tmp_path / "short.txt"
+    audio = deep / "audio-16k-mono.wav"
+    module._long(audio).write_bytes(b"wav")
+    short, temporary = module._asr_audio_path(audio)
+    try:
+        assert temporary is not None and len(str(short)) < 240
+        assert short.read_bytes() == b"wav"
+    finally:
+        if temporary is not None:
+            temporary.unlink()
+    same, none = module._asr_audio_path(tmp_path / "short.wav")
+    assert none is None and same == tmp_path / "short.wav"

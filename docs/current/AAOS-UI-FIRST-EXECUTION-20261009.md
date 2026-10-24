@@ -1787,17 +1787,25 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 复核既有 grouped AI 回执：同一来源 `src_a06d4e7c…`／锚点 `anc_4b32…`→知识 `k_73923990…`→人工接受→课程/学习→本地 `qwen3.5-4b` 在显式 `context-grant` 下真实回答→工程纠正→独立复测→重开恢复；恢复后的旧授权以 `RESTORED_GRANT_FENCED` 请求绑定拒绝，`NOT_EXECUTED`/`UNVERIFIED` 分开记录。该链条是**同一对象与版本的连接**，不是多个收据拼接；仍无 Owner 签署与独立语义评测。
 - J6 复核：`current5822-installed-business-20261024-02` 的客体内回执为 `PASS`（installer exit 0、native exit 0、uninstaller exit 0、文档冲突/恢复/重启），sandbox 父进程记录停在 IN_PROGRESS，但客体结果与 SHA 已落盘；当前重建 Host `b645c658` 没有对应安装包，公共发布与真实用户数据覆盖仍未授权。因此 J6 从“BLOCKED”修正为 **PARTIAL：已安装候选 PASS，当前重建候选未打包/未安装**，不再把客体 PASS 冒充当前候选安装态。
 
+### 2026-10-24 视频产物长路径修复（CL-07，修复后深路径 PASS）
+
+- 根因：传统 MAX_PATH 下 ffmpeg 能写出 WAV/帧，但 Python `Path.is_file()` 与 ASR 子进程读不到 261/263 字符的产物路径；视频路由因此把成功解码记为 `audio_track_unavailable_or_decode_failed`/`frame_decode_failed`。
+- 修复：`services/python-workers/media/worker_video.py` 增加扩展长度路径辅助函数，用于输入/产物存在性、摘要计算、输出目录创建与视觉说明读取；当解码后的 WAV 超过 240 字符时复制到短临时路径再交给 ASR，完成后删除。未改 ffmpeg 参数、Core、前端或协议。
+- 验证：`tests/workflow/test_media_worker_engine_paths.py` 8 项 PASS（含 >260 字符产物读取与 ASR 短路径副本）。worker 由 `cbcb49fa…` 更新为 `9af897703a0b3fe1ddb7331086359705b6948678698a86f0506b05131210759d`，同时更新 `.project-local/rt/workers` 与当前 release bundle；Host 可执行文件仍为 `b645c658…`（增量 worker 组件更新，未重建 exe）。
+- 深路径复跑：在原先失败的 `.project-local/runs/…/native-03-import/data` 上执行真实视频转换，新 job `read_22868ba7…` 成功，正文 135 字符、4 个定位片段、3 帧、3 段视觉描述，`decode_errors=[]`、`frame_errors=[]`，正文哈希与浅路径一致 `c7836433…`。回执 `.project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-video-fix/receipt.json`（1,126B，SHA-256 `fde7cfdb983916531f3194ae16aaf334c78ae3276bafc39619274db879a516eb`），截图 `00a3a3d1…`。
+- 边界：修复的是 worker 路径健壮性，不是识别准确率；旧的两条失败 job 与深根失败证据保留。当前 release 为增量组件，未重新打包安装器；exact-SHA CI 与 Owner 验收仍未执行。
+
 ### 2026-10-24 闭环验收矩阵（当前 Host b645c658，目标非完成声明）
 
 | 维度 | 当前状态 | 依据／缺口 |
 | --- | --- | --- |
 | CL-01 核心架构 | PASS | Tauri/React + Rust Core 唯一写入 + 隔离 workers；本 Host 两轮原生链均通过 |
-| CL-02 常见多格式 | PASS（当前 Host，合成材料） | 18/18 导入／转换／预览／结构引用／损失／重启回读；批量、导入失败重试、重启续做、检索命中、文本引用、Markdown 导出与文档包跨工作区恢复均有实际回执；OCR/ASR 准确率与转换失败自动重试不在此声明，长路径视频缺口归 CL-07 |
+| CL-02 常见多格式 | PASS（当前 Host，合成材料） | 18/18 导入／转换／预览／结构引用／损失／重启回读；批量、导入失败重试、重启续做、检索命中、文本引用、Markdown 导出与文档包跨工作区恢复均有实际回执；长路径视频产物修复后深路径 MP4 也通过；OCR/ASR 准确率与转换失败自动重试不在此声明 |
 | CL-03 免费外部检索／比较 | PARTIAL（通道 PASS） | 当前候选真实三通道（维基／StackExchange／OpenAlex）complete，原始与选定来源、锚点、支持/反对草稿、包、重启与备份读回均 PASS；仅“人类选择接纳为知识/学习”未执行 |
 | CL-04 成熟知识库特色 | PARTIAL／延期 | 矩阵与延期清单保留，未宣称全面兼容 |
 | CL-05 开源池与轻量扩展 | PARTIAL | 能力中心启停 PASS；插件／技能／模板／MCP 全形态消费者未全验 |
 | CL-06 本地／云端模型 | LOCAL PASS；CLOUD PARTIAL | qwen3.5-4b 真实回答／纠正／复测 PASS；云端专业接口有边界，真实云推理延后未执行 |
-| CL-07 同产品全链路可靠 | PARTIAL | 当前 Host 人类 J1 14/14、18 格式矩阵、批量/检索/导出与 AI 工程链 PASS；无 exact-SHA CI、Owner 验收；长路径视频缺口未修复；当前重建 Host 未打包安装 |
+| CL-07 同产品全链路可靠 | PARTIAL | 当前 Host 人类 J1 14/14、18 格式矩阵、批量/检索/导出与 AI 工程链 PASS；视频长路径产物已修复并在原失败深根复跑 PASS；无 exact-SHA CI、Owner 验收；当前重建 Host 未打包安装 |
 | J1 多格式资料链 | PASS（TXT 段＋18 格式矩阵＋批量） | journey-17、CL-02 十八格式矩阵与批量/续做；整文件夹失败定位仍按 CL-02 边界 |
 | J2 外部研究链 | PARTIAL（通道＋草稿 PASS） | 当前候选真实三通道检索、比较草稿、包与重启读回；人类接纳未执行；5822 工作区实际 restore PASS |
 | J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
@@ -1805,4 +1813,4 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 | J5 扩展链 | PARTIAL | capability_toggle PASS；多形态真实消费者未全验 |
 | J6 安装与可靠性 | PARTIAL | 5822 已安装候选：installer/native/uninstaller exit 0，文档冲突/恢复/重启 PASS；当前重建 Host 无对应安装包，未安装；公共发布与真实数据覆盖未授权 |
 
-结论：当前候选已在同一 Host 上打通“人类 J1 14/14 + 18 格式矩阵 + 批量/检索/导出 + AI 本地模型同源授权链”，CL-03 当前候选真实三通道检索也已通过；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收与长路径修复、J5 多形态扩展、J6 当前重建 Host 的打包安装。
+结论：当前候选已在同一 Host 上打通“人类 J1 14/14 + 18 格式矩阵 + 批量/检索/导出 + AI 本地模型同源授权链”，CL-03 当前候选真实三通道检索也已通过，视频长路径产物缺陷已修复并在原失败深根复跑；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、J5 多形态扩展、J6 当前重建 Host 的打包安装。
