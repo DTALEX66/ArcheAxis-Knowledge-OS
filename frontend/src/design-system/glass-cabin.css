@@ -85,6 +85,7 @@ body:has(.cabin-shell) {
 .cabin-shell .ui-page-navigation [aria-label="固定入口"] .space-rail-item { padding-inline: 6px; }
 .cabin-shell .capability-rail { margin: 12px 18px; font-size: var(--ax-text-ui); }
 .cabin-shell .app-center { padding: 20px 24px; position: relative; border: 1px solid var(--cabin-edge); border-radius: 18px; background: #07132177; }
+:root[data-aaos-theme="cosmic"] .cabin-shell .app-center { background: color-mix(in srgb, var(--ax-panel) 14%, transparent); }
 .cabin-shell .ui-page-heading { margin-bottom: 16px; padding-bottom: 12px; border-color: #b2d3ef44; }
 .cabin-shell .ui-page-heading h1 { font-size: 26px; line-height: 34px; letter-spacing: 0; }
 .cabin-shell .ui-page-heading p { font-size: 15px; margin-top: 4px; }
@@ -119,8 +120,8 @@ body:has(.cabin-shell) {
 .workspace-search-options > summary { text-align: right; }
 .workspace-search-options > .ui-local-search { position: absolute; right: 0; width: min(640px,70cqw); max-height: 65cqh; overflow: auto; padding: 20px; border: 1px solid var(--cabin-edge); border-radius: 12px; background: var(--ax-panel); box-shadow: var(--cabin-shadow); }
 @container console (max-width:640px) { .workspace-search-options { position: relative; top: auto; right: auto; margin-top: 16px; } .workspace-search-options > summary { text-align: left; } .workspace-search-options > .ui-local-search { position: static; width: auto; padding: 12px; } }
-.cabin-shell .ui-reader-document { border-radius: 16px; border-color: var(--cabin-edge); box-shadow: var(--cabin-shadow); background: var(--cabin-surface); }
-.cabin-shell .ui-reader-details { border-radius: 16px; background: var(--cabin-surface); border-color: var(--cabin-edge); }
+.cabin-shell .ui-reader-document { border-radius: 16px; border-color: var(--cabin-edge); box-shadow: var(--cabin-shadow); background: var(--stitch-glass-card, var(--cabin-surface)); backdrop-filter: blur(14px) saturate(125%); -webkit-backdrop-filter: blur(14px) saturate(125%); }
+.cabin-shell .ui-reader-details { border-radius: 16px; background: var(--stitch-glass-card, var(--cabin-surface)); border-color: var(--cabin-edge); backdrop-filter: blur(14px) saturate(125%); -webkit-backdrop-filter: blur(14px) saturate(125%); }
 .cabin-shell .dock-toolbar { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
 .cabin-shell .dock-toolbar > * { flex: 0 0 auto; white-space: nowrap; }
 .cabin-shell .dock-toolbar select { width: 150px; min-width: 100px; }
@@ -128,7 +129,7 @@ body:has(.cabin-shell) {
 .dock-layout-options > summary { cursor: pointer; color: var(--ax-fg-secondary); padding: 8px 0; font-size: var(--ax-text-ui); }
 .cabin-shell .dock-workspace > [role="status"], .cabin-shell .dock-layout-options p { font-size: var(--ax-text-caption); color: var(--ax-fg-tertiary); }
 .cabin-shell[data-cabin-page="01"] .dock-workspace[data-panel-count="1"] .dv-tabs-and-actions-container { display: none; }
-.cabin-shell .dockview-theme-dark { --dv-group-view-background-color: transparent; --dv-background-color: transparent; --dv-tabs-and-actions-container-background-color: var(--cabin-surface); --dv-activegroup-visiblepanel-tab-background-color: var(--ax-accent-soft); }
+.cabin-shell .dockview-theme-dark { --dv-group-view-background-color: transparent; --dv-background-color: transparent; --dv-tabs-and-actions-container-background-color: var(--stitch-glass-card, var(--cabin-surface)); --dv-activegroup-visiblepanel-tab-background-color: var(--ax-accent-soft); }
 .cabin-shell .activity-dock { min-height: 50px; padding: 12px 24px; background: color-mix(in srgb,var(--ax-panel) 58%,transparent); backdrop-filter: none; border-top: 1px solid var(--cabin-edge); }
 .cabin-shell .status-bar { background: color-mix(in srgb,var(--ax-panel) 50%,transparent); backdrop-filter: none; }
 .cabin-shell[data-cabin-page="03"] .navigation-sidebar { flex-basis: 230px; width: 230px; min-width: 230px; }
@@ -165,7 +166,7 @@ body:has(.cabin-shell) {
 .cabin-shell[data-cabin-page="03"] .library-list-controls p { margin: 0; }
 .cabin-shell[data-cabin-page="03"] .ui-reader-layout { gap: 16px; align-items: stretch; }
 .cabin-shell[data-cabin-page="03"] .ui-reader-document,
-.cabin-shell[data-cabin-page="03"] .ui-reader-details { min-height: 518px; background: radial-gradient(ellipse at 100% 0, #effaff59, transparent 16%), linear-gradient(125deg, #b6d8ff1f, #13223625 45%, #a1c3e31a), #0b192b75; backdrop-filter: blur(7px) saturate(115%); box-shadow: var(--cabin-shadow); }
+.cabin-shell[data-cabin-page="03"] .ui-reader-details { min-height: 518px; background: radial-gradient(ellipse at 100% 0, #effaff59, transparent 16%), linear-gradient(125deg, #b6d8ff1f, #13223625 45%, #a1c3e31a), #0b192b5c; backdrop-filter: blur(14px) saturate(125%); box-shadow: var(--cabin-shadow); }
 .cabin-shell[data-cabin-page="03"] .ui-reader-document { padding: 18px 26px 10px; display: flex; flex-direction: column; }
 .cabin-shell[data-cabin-page="03"] .ui-document-meta { font-size: 14px; line-height: 22px; margin: 0; color: var(--ax-fg-secondary); }
 .cabin-shell[data-cabin-page="03"] .ui-reader-document h2 { font-size: 34px; line-height: 44px; margin: 3px 0 10px; }

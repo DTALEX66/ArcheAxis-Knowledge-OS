@@ -443,7 +443,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       registration.current=null;void registerSelection();
     }}/></label>:null}
     {folder ? <p>当前批次「{folder}」；完整相对路径、原件与作业关系由 Core 耐久保存。每次新选择建立新批次；续跑当前选择请用“下一批”。浏览器不提供磁盘绝对路径，文件句柄不能重启恢复。未上传内容需重新选择；路径和大小核对后，所选字节作为本次明确提交的内容。</p> : null}
-    <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。正在转换的文件需单独请求取消，最长等待 90 秒；失败或状态未知时不会自动重试。</p>
+    <p>原件导入与转换分别记录。停止仅停止后续导入或转换；已受理原件仍读回真实结果。正在转换的文件需单独请求取消，最长等待 90 秒；失败或状态未知时不会自动重试。没有正在处理的批次时，“停止”不可用。</p>
     <div>{remaining > 0 ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void runBatch()}>下一批（剩余 {remaining}）</button> : null}
       {manifestPending?<button disabled={busy} onClick={()=>void registerSelection()}>同批次重试登记</button>:null}
       {rows.some(row => row.batch_id===batchId && ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>执行本批次转换</button> : null}

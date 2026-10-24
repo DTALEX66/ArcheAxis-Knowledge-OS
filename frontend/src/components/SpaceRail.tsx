@@ -86,10 +86,12 @@ export function SpaceRail({
         {(() => {
           const entry = uiEntryForPage(pageId ?? defaultUiPage(active));
           const children = UI_PAGES.filter(page => entry?.pageIds.includes(page.id) && page.id !== entry.pageId && page.id !== "18");
-          return children.length > 0 && <div><h2 className="ui-page-group">{entry?.label}页面</h2><ul className="space-rail-list" aria-label={`${entry?.label}页面`}>
+          if (children.length === 0) return null;
+          const childActive = children.some(page => page.id === pageId);
+          return <details className="space-rail-group" open={childActive}><summary className="ui-page-group">{entry?.label}页面</summary><ul className="space-rail-list" aria-label={`${entry?.label}页面`}>
             {children.map(page => <li key={page.id}><button type="button" data-page-id={page.id} className="space-rail-item" aria-current={page.id === pageId && !activeCapabilityId ? "page" : undefined}
               onKeyDown={onNavigationItemKeyDown} onClick={() => onPage(page.id)}>{page.label}</button></li>)}
-          </ul></div>;
+          </ul></details>;
         })()}
         <ul className="space-rail-list" aria-label="固定入口">
           {UI_FIXED_ENTRY_POINTS.map(entry => <li key={entry.pageId}><button type="button" data-page-id={entry.pageId} className="space-rail-item"

@@ -10,8 +10,8 @@
   --dv-inactivegroup-visiblepanel-tab-color: var(--ax-fg-secondary);
   --dv-inactivegroup-hiddenpanel-tab-color: var(--ax-fg-secondary);
   --dv-activegroup-visiblepanel-tab-background-color: var(--ax-accent-soft);
-  --dv-activegroup-hiddenpanel-tab-background-color: var(--cabin-surface);
-  --dv-inactivegroup-visiblepanel-tab-background-color: var(--cabin-surface);
-  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--cabin-surface);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--stitch-glass-card, var(--cabin-surface));
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--stitch-glass-card, var(--cabin-surface));
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--stitch-glass-card, var(--cabin-surface));
   --dv-separator-border: var(--ax-border);
 }

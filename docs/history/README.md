@@ -4,6 +4,7 @@
 
 | 历史资料 | 归档入口 |
 | --- | --- |
+| 2026-10-24 换TRAE Agent完整汇总 | [交接、未完成任务与体积／分支审计](trae-agent-handoff-20261024/README.md)、[MANIFEST](trae-agent-handoff-20261024/MANIFEST.json)；冻结快照，后继仍核活动指针与唯一执行记录 |
 | 2026-10-23 人类＋AI＋双侧连接完整交接 | [冻结交接](owner-dialogue-20261023-thread-handoff/README.md)、[MANIFEST](owner-dialogue-20261023-thread-handoff/MANIFEST.json)；完整读取追溯范围和证据，“本次只交接”不限制后继已授权继续 |
 | 2026-10-23 规则入口去重、状态导航收敛 | [修复报告、原文副本与映射](rules-entry-repair-20261023/README.md)；冻结副本不作为当前规则 |
 | 根目录旧报告、旧 current 快照与收据、旧任务派发、旧设计稿、旧验证目录 | [仓库整理归档](repository-consolidation-20261019/README.md) |

@@ -144,6 +144,7 @@ export function CanonicalLearningJourneySpace({ pageId = "06", onOpenPage, onTra
       </section>
       <section tabIndex={-1} hidden={learningPane !== "review"} className="stitch-learning-stage" aria-label="练习内容槽">
         <div className="stitch-learning-item-actions"><button disabled={!itemKey} onClick={()=>{if(itemKey){onLearningItem?.(itemKey);onOpenPage?.("11");}}}>练习此学习项目</button><button disabled={!itemKey} onClick={()=>{if(itemKey){onLearningItem?.(itemKey);onOpenPage?.("12");}}}>复习此学习项目</button></div>
+        {!itemKey?<p className="stitch-learning-caption">先在上方课程或学习队列选择一个学习项目，练习与复习按钮才可用。</p>:null}
         {pageId === "06" || itemKey ? <CanonicalLearningSpace active={learningPane === "review"} onReturnCourse={returnCourse} onTrail={onTrail} initialItemKey={itemKey} onItemSelected={key=>{setItemKey(key);onLearningItem?.(key);}} /> : <section className="stitch-learning-glass stitch-learning-empty"><h3>选择本次学习项目</h3><p>从课程中的实际课时建立学习问题后，再继续作答和复习。</p><button type="button" onClick={() => showLearningPane("courses")}>查看已保存课程</button></section>}
       </section>
       <section tabIndex={-1} hidden={learningPane !== "sources"} className="stitch-learning-stage stitch-learning-glass" aria-label="课程来源选择"><h3>从真实知识继续</h3>

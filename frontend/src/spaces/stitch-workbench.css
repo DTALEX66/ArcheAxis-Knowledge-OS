@@ -1,5 +1,5 @@
 /* Received Stitch workbench: compact topic summary and two independent glass cards. */
-.stitch-workbench { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; font-size: var(--ax-text-ui); line-height: 1.5; }
+.stitch-workbench { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 100%; font-size: var(--ax-text-ui); line-height: 1.5; }
 .stitch-workbench :is(h2,p) { margin: 0; }
 .stitch-workbench :is(button,summary) { font: inherit; }
 .stitch-workbench button { min-height: 34px; padding: 5px 9px; border: 1px solid var(--ax-border); border-radius: 5px; color: var(--ax-fg-secondary); background: var(--ax-raised); cursor: pointer; white-space: normal; overflow-wrap: anywhere; }
@@ -20,7 +20,7 @@
 .stitch-workbench-search > summary { color: var(--ax-fg-secondary); cursor: pointer; min-height: 28px; }
 .stitch-workbench-search[open] > summary { margin-bottom: 8px; color: var(--ax-accent); }
 .stitch-workbench-status { display: grid; gap: 8px; justify-items: start; padding: 12px; border: 1px solid var(--ax-border); border-radius: 8px; background: var(--ax-panel); }
-.stitch-workbench-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; min-width: 0; align-items: stretch; }
+.stitch-workbench-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; min-width: 0; align-items: stretch; flex: 1 1 auto; }
 .stitch-workbench-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px; border: 1px solid var(--ax-border-strong); border-radius: 8px; background: var(--ax-panel); }
 .stitch-workbench-card > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1px solid var(--ax-border); padding-bottom: 8px; }
 .stitch-workbench-card h2 { display: inline-flex; align-items: center; gap: 6px; font-size: var(--ax-text-ui); line-height: 1.5; font-weight: 600; color: var(--ax-fg); }

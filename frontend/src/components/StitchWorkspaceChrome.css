@@ -9,8 +9,8 @@
 }
 :root[data-aaos-theme="cosmic"]:has(.app-shell[data-stitch-workspace]) {
   /* Separate material layers; opaque nested cards previously hid the scene. */
-  --stitch-glass-panel: rgb(14 20 29 / 62%);
-  --stitch-glass-card: rgb(22 28 37 / 28%);
+  --stitch-glass-panel: rgb(14 20 29 / 36%);
+  --stitch-glass-card: rgb(22 28 37 / 24%);
   --stitch-glass-header: rgb(22 28 37 / 20%);
   --stitch-glass-edge: rgb(56 189 248 / 18%);
   --ax-panel: #0e141d;
@@ -31,6 +31,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   font-size: var(--ax-text-ui); line-height: 1.4;
 }
+:root[data-aaos-theme="cosmic"] .stitch-workspace-menu { background: color-mix(in srgb, var(--ax-canvas) 55%, transparent); }
 .stitch-workspace-menu button, .stitch-workspace-menu summary {
   font: inherit; color: inherit; background: transparent; border: 0; border-radius: 5px;
   min-height: 32px; padding: 5px 9px; cursor: pointer; white-space: nowrap;
@@ -44,7 +45,8 @@ body:has(.app-shell[data-stitch-workspace]) {
 .stitch-menu-popover {
   position: fixed; top: 43px; left: min(250px, 4vw); width: min(340px, calc(100vw - 24px));
   max-height: calc(100dvh - 110px); overflow: auto; padding: 6px; display: grid; gap: 2px;
-  background: var(--ax-panel); border: 1px solid var(--ax-border); border-radius: 9px;
+  background: var(--stitch-glass-panel); border: 1px solid var(--ax-border); border-radius: 9px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 12px 30px #0005;
 }
 .stitch-menu-popover button { text-align: left; min-height: 38px; white-space: normal; overflow-wrap: anywhere; }
@@ -70,6 +72,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   font-weight: 400;
 }
 .app-shell[data-stitch-workspace] :is(button, input, textarea, select) { font-weight: 400; text-shadow: none; }
+.stitch-companion-window, .stitch-reference-window { background: var(--stitch-glass-card); }
 .app-shell[data-stitch-workspace] :is(button, input, textarea, select):focus-visible {
   outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; box-shadow: none;
 }
@@ -100,12 +103,13 @@ body:has(.app-shell[data-stitch-workspace]) {
 .app-shell.cabin-shell[data-stitch-workspace] .inspector { border: 1px solid var(--ax-border); border-radius: 10px; background: var(--stitch-glass-card); }
 .app-shell.cabin-shell[data-stitch-workspace] :is(.space-view, .dock-workspace) { min-width: 0; }
 /* Inline-size containment cannot supply an intrinsic width when auto margins
-   stop flex stretching. Give the actual business view its available width. */
-.app-shell.cabin-shell[data-stitch-workspace] .space-view { width: 100%; box-sizing: border-box; }
-.app-shell.cabin-shell[data-stitch-workspace] :is(.ui-card, .capability-card, .ui-asset-card, .ui-learning-card) { border-radius: 10px; background: var(--stitch-glass-card); border-color: var(--ax-border); box-shadow: inset 0 1px 0 #ffffff0a; }
-.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-library-facets, .stitch-library-results, .stitch-reader-details, .stitch-reader-empty, .stitch-reader-document, .stitch-reader-original, .stitch-reader-source-tools, .stitch-runtime-details, .stitch-document-card, .stitch-reader-toolbar) { background: var(--stitch-glass-card); }
+   stop flex stretching. Give the actual business view its available width and
+   let its own layout consume the remaining stage height before scrolling. */
+.app-shell.cabin-shell[data-stitch-workspace] .space-view { width: 100%; min-height: 100%; box-sizing: border-box; }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.ui-card, .capability-card, .ui-asset-card, .ui-learning-card) { border-radius: 10px; background: var(--stitch-glass-card); background-image: linear-gradient(160deg, #ffffff0d, transparent 38%); border-color: var(--ax-border); box-shadow: inset 0 1px 0 #ffffff0a; }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-library-facets, .stitch-library-results, .stitch-reader-details, .stitch-reader-empty, .stitch-reader-document, .stitch-reader-original, .stitch-reader-source-tools, .stitch-runtime-details, .stitch-document-card, .stitch-reader-toolbar) { background: var(--stitch-glass-card); background-image: linear-gradient(160deg, #ffffff0d, transparent 38%); backdrop-filter: blur(14px) saturate(125%); -webkit-backdrop-filter: blur(14px) saturate(125%); }
 .app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-workbench-summary, .stitch-workbench-search, .stitch-workbench-status, .stitch-workbench-card, .stitch-teaching-card, .stitch-settings-pane, .stitch-ai-card, .stitch-expression-stage, .stitch-expression-card, .stitch-relations-stage, .stitch-relations-card, .stitch-relations-collection, .stitch-library-heading, .stitch-reader-heading),
-.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-teaching-selected, .stitch-teaching-learning, .stitch-learning-course-detail, .stitch-ai-context-layout) > :is(section, article) { background: var(--stitch-glass-card); }
+.app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-teaching-selected, .stitch-teaching-learning, .stitch-learning-course-detail, .stitch-ai-context-layout) > :is(section, article) { background: var(--stitch-glass-card); background-image: linear-gradient(160deg, #ffffff0d, transparent 38%); }
 .app-shell.cabin-shell[data-stitch-workspace] :is(.stitch-workbench-local, .stitch-settings-intro, .stitch-ai-topic, .stitch-expression-heading, .stitch-relations-heading) { background: var(--stitch-glass-header); }
 .app-shell.cabin-shell[data-stitch-workspace][data-navigation-appearance="top"] .navigation-sidebar { display: none; }
 
@@ -184,6 +188,9 @@ body:has(.app-shell[data-stitch-workspace]) {
 @media (max-width: 1279px), (max-height: 699px) {
   /* The shared companion stays mounted; the explicit inspector takes the single auxiliary slot. */
   body:has(.stitch-reference-window) .stitch-companion-window { display: none; }
+  /* Dock the auxiliary window above the bottom bar so it cannot cover the reader
+     header, tabs or refresh controls in narrow or short windows. */
+  .stitch-reference-window { top: auto; right: 8px; bottom: max(76px, calc(env(safe-area-inset-bottom) + 70px)); width: min(360px, calc(100vw - 16px)); max-height: min(45dvh, 420px); }
   .app-shell[data-stitch-workspace] .dock-business-host:has(.stitch-research-space) { overflow:auto; }
   .app-shell[data-stitch-workspace] .dock-business-host > .space-view:has(> .stitch-research-space) { height:auto; min-height:100%; }
   .stitch-research-space .research-editor { height:auto; min-height:100%; }
@@ -210,10 +217,11 @@ body:has(.app-shell[data-stitch-workspace]) {
   .stitch-workspace-dock button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .stitch-workspace-dock button svg { width: 20px; height: 20px; }
   .stitch-companion-window { top: 132px; right: 12px; width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 196px); }
+  .stitch-reference-window { right: 8px; bottom: max(70px, calc(env(safe-area-inset-bottom) + 64px)); width: calc(100vw - 16px); max-height: min(50dvh, 420px); }
 }
 @media (max-height: 600px) {
   .stitch-companion-window { top: 124px; max-height: calc(100dvh - 188px); }
-  .stitch-reference-window { top: 124px; max-height: calc(100dvh - 200px); }
+  .stitch-reference-window { top: auto; bottom: max(64px, calc(env(safe-area-inset-bottom) + 58px)); max-height: min(55dvh, 360px); }
   .app-shell.cabin-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 41px; }
   .console-window:is([data-console-mode="full"], [data-console-mode="compact"]) > .app-shell[data-stitch-workspace] > .ui-navigation-trigger { top: 83px; }
   .app-shell.cabin-shell[data-stitch-workspace] .activity-dock { min-height: 28px; padding-block: 2px; }

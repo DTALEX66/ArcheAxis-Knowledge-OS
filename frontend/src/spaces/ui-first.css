@@ -286,3 +286,9 @@
 .saved-document-metadata dd { margin-inline-start:0; }
 .saved-document-metadata dl > div { margin-block:8px; }
 @container console (max-width:640px) {.app-shell[data-cabin-page="03"] .ui-page-heading{margin-bottom:12px;padding-bottom:10px;gap:8px}.app-shell[data-cabin-page="03"] .ui-page-heading h1{font-size:22px}.app-shell .ui-reader-document{padding:16px}.app-shell .ui-reader-document h2{font-size:24px;line-height:1.4;margin:8px 0 16px;overflow-wrap:anywhere}.app-shell .ui-reader-toolbar{gap:8px;margin-bottom:12px}.app-shell .ui-reader-layout{gap:16px}}
+/* 折叠当前分组下的其余页面：目标仍可达，但不再平铺成站点地图。 */
+.app-shell .space-rail-group > summary.ui-page-group { cursor:pointer; list-style:none; margin:8px 0 4px; padding:0 12px; }
+.app-shell .space-rail-group > summary.ui-page-group::-webkit-details-marker { display:none; }
+.app-shell .space-rail-group > summary.ui-page-group::after { content:" ▸"; }
+.app-shell .space-rail-group[open] > summary.ui-page-group::after { content:" ▾"; }
+.app-shell .space-rail-group[open] > summary.ui-page-group { margin-bottom:6px; }

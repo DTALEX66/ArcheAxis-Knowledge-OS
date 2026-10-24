@@ -759,7 +759,9 @@ export function CanonicalLibrarySpace({activationRevision,initialSourceTarget,pu
         {readerSourceTools&&!initialSourceTarget?<details className="reader-source-tools"><summary>整理关联来源</summary>{readerSourceTools}</details>:null}
       </aside>
       </div>
-    </> : <section className="stitch-reader-empty"><h2>选择已保存文档</h2><p>从实际文档进入阅读，保留其来源与版本。</p>{documentList}</section>}
+    </> : <section className="stitch-reader-empty"><h2>选择已保存文档</h2><p>从实际文档进入阅读，保留其来源与版本。</p>
+      {documents.length===0 ? <div className="stitch-reader-empty-actions"><button type="button" className="stitch-library-primary" disabled={busy||noteUncertain} onClick={()=>void singleWrite(createOriginal)}>新建原创笔记</button><button type="button" onClick={()=>{window.location.hash="#page=02";}}>去知识库选择资料</button></div> : null}
+      {documentList}</section>}
   </section>;
   return <Section title="资料库">
     {listControls}

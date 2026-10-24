@@ -116,7 +116,7 @@ export function CollectionPanel({ document, value, onChange, readOnly = false, d
     return <div className={`collection-${kind}`}>{rows.map(card)}</div>;
   };
   return <section className="collection-panel" aria-label="集合属性与视图">
-    <h3>集合属性与视图</h3><p>{readerMode ? '读取此文档已保存版本的集合。筛选、排序和计算使用保存时的定义；引用打开记录绑定的固定版本。' : '编辑定义交给父级文档保存；计算、过滤和分页由 Core 读取已保存版本。公式使用有限 IEEE754 f64，不声明外部方言、精确大整数、单位或时区等价。'}</p>
+    <h3>集合属性与视图</h3><p>{readerMode ? '读取此文档已保存版本的集合。筛选、排序和计算使用保存时的定义；引用打开记录绑定的固定版本。' : '编辑定义交给父级文档保存；筛选、排序和计算都以已保存版本为准。公式只处理普通小数，不保证与外部软件公式、超大整数、单位或时区完全等价。'}</p>
     {value === undefined ? readerMode ? <p>此版本没有保存集合定义。</p> : <button disabled={locked} onClick={() => change(empty())}>添加集合定义</button> : !collection ? <><p role="alert">未知或不支持的集合形状，只读保留原文；不会移除字段重新保存。</p><details><summary>保全原始内容</summary><pre>{encode(value)}</pre></details></> : <>
       {!readerMode && <>
       {collection.source_payload !== undefined && <details><summary>来源原文（只读保全）</summary><pre>{encode(collection.source_payload)}</pre></details>}

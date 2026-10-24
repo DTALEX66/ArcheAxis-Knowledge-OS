@@ -262,4 +262,20 @@ describe("actual Dockview retained business consumer",()=>{
   fireEvent.click(screen.getByRole("button",{name:"并排打开当前文档"}));await waitFor(()=>expect(screen.getAllByLabelText("draft-03:doc-b")).toHaveLength(2));expect(counters.mounts).toBe(3);
   fireEvent.click(screen.getByRole("button",{name:"保存布局"}));expect(await screen.findByText(/对象布局需真实工作区身份/)).toBeInTheDocument();
  });
+ it("closes other views from the layout toolbar and keeps the active draft, asking first when drafts exist",async()=>{
+  const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);
+  try{
+   const view=render(<DockWorkspace {...props} hasUnsavedDrafts/>);await waitFor(()=>expect(screen.getByLabelText("draft-03")).toBeInTheDocument());
+   fireEvent.change(screen.getByLabelText("draft-03"),{target:{value:"keep active draft"}});
+   fireEvent.click(screen.getByText("布局与面板"));fireEvent.click(screen.getByRole("button",{name:"左右分栏"}));await screen.findByLabelText("draft-17");
+   fireEvent.click(screen.getByRole("tab",{name:"阅读与编辑"}));
+   await waitFor(()=>expect(screen.getByRole("tab",{name:"阅读与编辑"})).toHaveAttribute("aria-selected","true"));
+   fireEvent.click(screen.getByRole("button",{name:"关闭其他视图"}));
+   expect(confirm).toHaveBeenCalledTimes(1);expect(view.container.querySelectorAll(".dv-groupview")).toHaveLength(2);
+   confirm.mockReturnValue(true);fireEvent.click(screen.getByRole("button",{name:"关闭其他视图"}));
+   await waitFor(()=>expect(view.container.querySelectorAll(".dv-groupview")).toHaveLength(1));
+   expect(screen.getAllByRole("tab").map(tab=>tab.getAttribute("aria-label"))).toEqual(["阅读与编辑"]);
+   expect(screen.getByLabelText("draft-03")).toHaveValue("keep active draft");
+  }finally{confirm.mockRestore();}
+ });
 });

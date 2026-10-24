@@ -758,7 +758,13 @@ function AppBody() {
     }catch{/* Explicit choice may still be refused; no candidate replaces local input. */}
     finally{adoptingWorkingScene.current=false;}
   }
-  const workingNotice=desktop?<section aria-label="工作草稿状态" data-working-state={working.status} role={working.error?"alert":"status"}>
+  // First-run scene bookkeeping may report "unsaved" without any real content
+  // draft; keep that engineering state out of the main surface. Show the notice
+  // only when a user-owned draft, a blocked/recovery state or an error exists.
+  const workingNoticeVisible = Boolean(
+    unsavedDrafts || working.error || working.server?.recovery_requires_confirmation
+    || working.status === "blocked" || working.status === "saving");
+  const workingNotice=desktop&&workingNoticeVisible?<section aria-label="工作草稿状态" data-working-state={working.status} role={working.error?"alert":"status"}>
     <p>{working.status==="ready"?"工作进度已保存；正文保存状态请查看文档版本。":working.status==="saving"?"正在保存工作草稿…":working.status==="loading"?"正在读取工作草稿，请稍候…":"草稿仍在当前页面中，尚未确认全部保存。"}</p>
     {working.error?<><p>{userErrorMessage(working.error)}</p><RawReceiptButton label="工作草稿保存错误" payload={{status:working.status,error:working.error}} category="runtime"/></>:null}
     {["blocked","loading","unsaved"].includes(working.status)?<><button onClick={()=>void rereadWorkingState()}>核对工作状态</button><button disabled={working.status!=="unsaved"} onClick={()=>void working.session.flush().catch(()=>{})}>重试保存工作草稿</button></>:null}

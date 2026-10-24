@@ -10,9 +10,13 @@ import { useDiagnosticState, clearDiagnostics, publishDiagnostic, diagnosticCate
 export function RawReceiptButton({ label, payload, visibleLabel, category = "operation" }: { label: string; payload: unknown; visibleLabel?: string; category?: DiagnosticCategory }) {
   const {suspended}=useDiagnosticState();
   const text = suspended ? "请先核对工作状态" : visibleLabel ?? "查看诊断详情";
+  // Keep the stable accessible name used by existing pages/tests, but present the
+  // common entries as one user-facing "状态与诊断" action instead of repeating
+  // the engineering wording "查看诊断详情" on every business page.
+  const display = suspended ? text : visibleLabel ?? "状态与诊断";
   return (
-    <button type="button" className="raw-receipt" data-diagnostic-label={label} aria-label={`${text}：${label}`} disabled={suspended} title={suspended?"正在恢复或工作状态尚未确认，请先核对工作状态。":undefined} onClick={event => publishDiagnostic(label, payload, category, event.currentTarget)}>
-        {text}
+    <button type="button" className="raw-receipt" data-diagnostic-label={label} aria-label={`${text}：${label}`} disabled={suspended} title={suspended?"正在恢复或工作状态尚未确认，请先核对工作状态。":"查看状态与原始回执"} onClick={event => publishDiagnostic(label, payload, category, event.currentTarget)}>
+        {display}
     </button>
   );
 }

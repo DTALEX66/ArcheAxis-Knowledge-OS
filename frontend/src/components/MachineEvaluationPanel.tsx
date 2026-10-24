@@ -121,7 +121,7 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
   const historyValue=historical?metadata(historical,"archeaxis_machine_evaluation") as MachineEvaluationDto:null;
   return <section aria-label="人工机器评测" className="semantic-panel">
     <h2>人工机器评测</h2><p role="status" aria-live="polite">{message}</p>
-    <p>署名是人工声明；Core 根据可信调用身份拒绝机器冒充人。记录不会自动提升知识，也不授予真人掌握度或专业真值。</p>
+    <p>署名是人工声明；系统会核对提交者身份，机器不能冒充人工。记录不会自动提升为知识，也不代表真人已经掌握或专业结论为真。</p>
     {taskId&&<p>新任务提示：{taskId} <button disabled={busy} onClick={applyHint}>使用新任务提示</button></p>}
     <fieldset disabled={busy||!!evaluationAttempt.current}><legend>持久化原答案</legend>
       <label>机器任务 ID<input value={taskInput} onChange={e=>setTaskInput(e.target.value)}/></label><button onClick={()=>void loadTask()}>读取原答案快照</button>

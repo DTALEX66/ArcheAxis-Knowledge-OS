@@ -128,7 +128,7 @@ export function CanonicalResourcesSpace({ onOpenDocument, onOpenCapability, onDi
     <p>筛选结果 {visible.length} 项；不自动安装、升级、授权或启动供体。</p>
     <div className="stitch-resource-browser resources-directory">
       <ul className="resources-list">{visible.map(entry => <li key={entry.stable_key}><button aria-pressed={selected?.stable_key === entry.stable_key} onClick={() => setSelected(entry)}>
-        <strong>{entry.display_names[0] || entry.stable_key}</strong><span>{SURFACE_CLASS_LABEL[entry.surface_class]} · {entry.absorption_mode}</span>
+        <strong>{entry.display_names[0] || entry.stable_key}</strong><span>{SURFACE_CLASS_LABEL[entry.surface_class]} · {absorptionLabel[entry.absorption_mode] ?? "待确认"}</span>
       </button></li>)}</ul>
       <aside aria-label="资源来源详情" className="stitch-resource-details">{selected ? <>
         <h3>{selected.display_names[0]}</h3>

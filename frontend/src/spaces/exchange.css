@@ -29,3 +29,4 @@
 @media (max-width: 760px) { .exchange-columns,.exchange-qualification { grid-template-columns: minmax(0,1fr); } .exchange-card { padding: var(--ax-space-3); } }
 
 .stitch-exchange-page [aria-label="Core 提取正文"] { min-width: 0; max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; }
+.exchange-action-reason { font-size: var(--ax-text-caption); color: var(--ax-fg-secondary); margin: 6px 0 0; }
