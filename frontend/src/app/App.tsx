@@ -110,7 +110,9 @@ function AppBody() {
   const [objectTrail, setObjectTrail] = useState<readonly ObjectTrailLevel[]>([]);
   const [sectionNotice, setSectionNotice] = useState<string | null>(null);
   const [inspectionTarget, setInspectionTarget] = useState<InspectionTarget | null>(null);
-  const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth >= 1280 && window.innerHeight >= 700);
+  // Only a genuinely wide desktop opens the auxiliary inspector on load; scaled 1280x720
+  // windows leave the reading area unobstructed until the user asks for it.
+  const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth >= 1440 && window.innerHeight >= 800);
   const [learningFocus, setLearningFocus] = useState(false);
   const [desktopReady, setDesktopReady] = useState(!desktop);
   const [verificationPending, setVerificationPending] = useState(desktop);
@@ -383,8 +385,10 @@ function AppBody() {
   const inspect = useCallback((target: InspectionTarget, options?: { reveal?: boolean }) => {
     if(restoringRef.current)return;
     setInspectionTarget(target);
-    // 窄窗口自动同步条目不抢占阅读区；显式检查仍可打开，已打开的检查器继续更新。
-    if (options?.reveal !== false || (window.innerWidth >= 1280 && window.innerHeight >= 700)) setInspectorOpen(true);
+    // Synchronising the current object never takes the reading area; an explicit
+    // inspection reveals the auxiliary window at any size, and an open one keeps updating.
+    if (options?.reveal === false) return;
+    setInspectorOpen(true);
   }, []);
 
   const surface = canonicalSurface(activeSpace, desktop);
