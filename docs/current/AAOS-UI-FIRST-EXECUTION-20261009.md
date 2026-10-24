@@ -1756,24 +1756,24 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 回执 `.project-local/runs/be268a2d33/webdriver-69aef55d72a4/tmp/journey/receipt.json`（327,440B，SHA-256 `5e06d37f123b114fb9000fe5fe777982221911db175da1e341ff78b050ccbecd`）。限制：候选可执行文件未安装、程序化中文输入非物理 IME、单次工程运行、无人工签署。
 - 边界：真实本地模型工程链 PASS，不等于语义质量、独立评测、安装态、Green、CI 或 Owner 验收；真实云推理仍按 Owner 决定延后未执行。
 
-### 2026-10-24 当前 Host CL-02 十八格式矩阵（CL-02／J1，格式矩阵 PASS／维度 PARTIAL）
+### 2026-10-24 当前候选 CL-02 十八格式矩阵（CL-02／J1，格式矩阵 PASS／维度 PARTIAL）
 
-- 在当前 Host `b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb`（47,376,384B）上，以真实 Tauri 窗口、真实文件输入与渲染控件完成 18 类格式矩阵：txt、md、csv、json、html、pdf-text、pdf-scanned、png、jpeg、docx、xlsx、pptx、srt、vtt、wav、mp3、mp4、canvas。材料为项目自撰写合成件（`SYNTHETIC_AUTHORED`）。
-- 导入：18/18 经 UI `导入原件` 真实文件输入，UI 回执“原件已保留；转换尚未执行”；Core `sources_list` 的 original_name/sha256 与 `source_original` 逐字节一致（含 4.5MB 扫描 PDF）。回执 `.project-local/format-matrix-20261024/import/receipt.json`（47,257B，SHA-256 `93c9cbbf966f0cfe7769dbcdc44c707699154f7d762ab170944c90da5318894f`），截图 1,090,329B（`7860449211b8bd5629bc95b31955eecdea9b8e706c2e850fd9870f0b20473e26`）。
+- 在当前源码的打包候选 Host `ca5fbfda7ab38625e6f910c2c4264d98b05aef4bcdb238c06340fb3885c2b4f9`（47,376,384B，由当前源码 NSIS 构建产出；此前后端行为证据仍对应 `b645c658`）上，以真实 Tauri 窗口、真实文件输入与渲染控件完成 18 类格式矩阵：txt、md、csv、json、html、pdf-text、pdf-scanned、png、jpeg、docx、xlsx、pptx、srt、vtt、wav、mp3、mp4、canvas。材料为项目自撰写合成件（`SYNTHETIC_AUTHORED`）。
+- 导入：18/18 经 UI `导入原件` 真实文件输入，UI 回执“原件已保留；转换尚未执行”；Core `sources_list` 的 original_name/sha256 与 `source_original` 逐字节一致（含 4.5MB 扫描 PDF）。回执 `.project-local/runs/be268a2d33/format-matrix-final-20261024/import/receipt.json`（47,305B，SHA-256 `1a63b035fc0c18eabab3616958e3566e12e177b32c8238b17a055b92370ee696`），截图 1,090,329B（`7860449211b8bd5629bc95b31955eecdea9b8e706c2e850fd9870f0b20473e26`）。
 - 转换：18/18 经渲染控件执行；全部 job `succeeded`，text/document_structure/loss_report 的 content SHA-256 与 UTF-8 字节长度回算一致，`job_quality` 的 engine/version 与损失回执一致，结构位置满足 `0<=start<end<=len(text)`。引擎覆盖 python-worker-text/html/office/subtitles/canvas/ocr/transcribe/video 与 pymupdf-native-pdf。
 - 内容：text/md/csv/json/html/pdf-text/docx/xlsx/pptx/srt/vtt/canvas 的合成中文标记全部命中；VTT `NOTE` 与 HTML `script` 的禁止文本未混入投影正文；扫描 PDF 文字层为空并按页 OCR 2/2（26/27 字符）、回写 `recognised 2`；png/jpeg OCR 26/29 字符；wav/mp3/mp4 同一语音的正文哈希一致 `c783643334d65a61aa1342599332949efb4a1cae06482536e6a90db2d9c80013`（135 字符、4 个定位片段），mp4 另含 3 帧与 3 段视觉描述（`qwen2.5-vl-7b-instruct` 实际返回）。
 - 预览／结构／引用／损失：UI `Core 提取正文` 与持久化 text 逐字相等；12 格式（csv/json/html/pdf-text/png/jpeg/docx/xlsx/pptx/srt/vtt/canvas）经“预览所选引用→引用所选结构位置”生成锚点并 `anchor_resolve=CURRENT`；canvas 边标签按设计保留在损失 `params.worker_output.edges`，不作为投影正文。
-- 重启回读：关闭并以同一数据根重开 Host 后，18/18 原件逐字节一致、全部 job 仍 `succeeded`、text/structure/loss 的 SHA-256 与 quality engine 不变。回执 `.project-local/format-matrix-20261024/convert/receipt.json`（40,928B，SHA-256 `c194e7782a1abc98360b2a3038c8d399d4cf2ea673e93c47634e2182d6e3eaae`），截图 1,112,937B（`6b60d66be3988f09c9e3918581cd2b58bfd5213fdeba1ef16da676b86d3d255e`）。
-- 长路径缺陷（CL-07 类，本轮未修复）：首次在深隔离根 `.project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-import/data` 运行时，mp4 视频产物路径 261/263 字符，超过本机 `LongPathsEnabled=0` 的传统 MAX_PATH；ffmpeg 实际写出 WAV 与 3 帧，但 Python `Path.is_file()` 对既有文件返回 False，视频路由把 audio/frames 记为解码失败，job 仍 `succeeded` 而正文为空、`stages.asr=failed`。同一路由经暂存 transport（产物路径 187 字符）完整成功（135 字符、4 cues、3 帧、3 段视觉）；同一 Host 换短根 `.project-local/format-matrix-20261024`（产物路径约 237 字符）后 18/18 PASS。结论：格式能力非缺陷，长路径存在性检查是真实健壮性缺口；未改产品代码、未重建 Host。
-- 边界：合成材料；OCR/ASR 为引擎读回，不是识别准确率；未覆盖批量目录、失败重试／断点续做、检索命中、导出与文档包恢复；不构成安装态、Green、exact-SHA CI 或 Owner 验收。未推送、未发布。
+- 重启回读：关闭并以同一数据根重开 Host 后，18/18 原件逐字节一致、全部 job 仍 `succeeded`、text/structure/loss 的 SHA-256 与 quality engine 不变。回执 `.project-local/runs/be268a2d33/format-matrix-final-20261024/convert/receipt.json`（40,882B，SHA-256 `818211cd0d042c399efa24b7ca80f378bbec72cd7338e2f1816c9e42fe79d75b`），截图 1,112,937B（`6b60d66be3988f09c9e3918581cd2b58bfd5213fdeba1ef16da676b86d3d255e`）。
+- 长路径缺陷（已修复）：首次在深隔离根运行时，mp4 视频产物路径 261/263 字符，超过本机 `LongPathsEnabled=0` 的传统 MAX_PATH；ffmpeg 实际写出 WAV 与 3 帧，但 Python `Path.is_file()` 对既有文件返回 False，视频路由把 audio/frames 记为解码失败。修复 worker 路径检查与 ASR 短副本后，在原失败深根和本矩阵的深根均 18/18 PASS；详见下节。
+- 边界：合成材料；OCR/ASR 为引擎读回，不是识别准确率；批量、导入失败重试、重启续做、检索命中、文本引用、Markdown 导出与文档包跨工作区恢复见下节回执；不构成安装态、Green、exact-SHA CI 或 Owner 验收。未推送、未发布。
 
 ### 2026-10-24 CL-02 批量、失败重试、重启续做与检索导出（CL-02，子缺口 PASS）
 
-- 批量目录：在当前 Host 上用真实文件夹选择器导入 `batch-input-20261024` 的 5 个成员；`.hidden.txt` 与 `node_modules/inside.txt` 分别记为排除；对 `gamma.csv` 施加读取拒绝 ACE 制造真实 `IMPORT_FAILED`，UI 出现“同成员重试导入”，恢复权限后重试成功。随后“执行本批次转换”让 3 个成员全部 `succeeded`，原件逐字节、来源哈希与转换正文回算一致。回执 `.project-local/format-matrix-20261024/batch/run/receipt.json`（4,731B，SHA-256 `d8b25b1211651af13be235f94433a0406913f6dabae244a24dddc7fdcdf6470c`）。
+- 批量目录：在候选 Host `b645c658` 上用真实文件夹选择器导入 `batch-input-20261024` 的 5 个成员；`.hidden.txt` 与 `node_modules/inside.txt` 分别记为排除；对 `gamma.csv` 施加读取拒绝 ACE 制造真实 `IMPORT_FAILED`，UI 出现“同成员重试导入”，恢复权限后重试成功。随后“执行本批次转换”让 3 个成员全部 `succeeded`，原件逐字节、来源哈希与转换正文回算一致。回执 `.project-local/runs/be268a2d33/format-matrix-final-20261024/batch/run/receipt.json`（4,731B，SHA-256 `d8b25b1211651af13be235f94433a0406913f6dabae244a24dddc7fdcdf6470c`）。
 - 断点续做：另注册 2 个未上传成员的耐久批次，关闭并重开同一数据根；UI“读取历史批次→查看批次”显示 `IMPORT_FAILED/未上传`，`继续未上传成员` 重新选择同一文件夹后完成导入、转换与回读，`restore_epoch` 不变。4 张截图（选择后、转换后、续做前、续做后）哈希见回执。
 - 检索与引用：`search("批量正文甲")` 命中来源提取文本（`transform_id=1`, `source_id=src_a14a…`），知识页渲染同一命中；对同一来源建立文本范围引用并 `anchor_resolve=CURRENT`。
-- 导出与恢复：从来源建立版本化草稿，`document_export(markdown)` 的 `projection_sha256` 由 `document.md` 内容回算确认；`document_export_save` 落盘 `exports/<doc>/markdown/v1-…/document.md|manifest.json` 与导出内容逐字节一致。`document_package_export` 生成 1,714B 包（含绑定原件 34B、1 个历史锚点），在**全新数据根**导入后正文 `content_sha256` 与包内文档一致，绑定原件逐字节一致，重新导出哈希不变；`anchor_registration` 与 `knowledge_admission` 按设计 `NOT_EXECUTED`。回执 `.project-local/format-matrix-20261024/batch/search-export/receipt.json`（3,434B，SHA-256 `099c68decd82aaae186397a66c3fcd132e1b6d8bb64cb70f472b73b5ccdc26be`）。
-- 边界：合成材料；批量续做只覆盖导入未上传成员，不覆盖转换失败后的自动重试与取消；OCR/ASR 仍为引擎读回而非准确率。CL-02 的批量、重试、续做、检索、引用、导出与恢复子缺口在本 Host 上均有实际回执；长路径视频产物存在性缺口归 CL-07，仍未修复。
+- 导出与恢复：从来源建立版本化草稿，`document_export(markdown)` 的 `projection_sha256` 由 `document.md` 内容回算确认；`document_export_save` 落盘 `exports/<doc>/markdown/v1-…/document.md|manifest.json` 与导出内容逐字节一致。`document_package_export` 生成 1,714B 包（含绑定原件 34B、1 个历史锚点），在**全新数据根**导入后正文 `content_sha256` 与包内文档一致，绑定原件逐字节一致，重新导出哈希不变；`anchor_registration` 与 `knowledge_admission` 按设计 `NOT_EXECUTED`。回执 `.project-local/runs/be268a2d33/format-matrix-final-20261024/batch/search-export/receipt.json`（3,434B，SHA-256 `099c68decd82aaae186397a66c3fcd132e1b6d8bb64cb70f472b73b5ccdc26be`）。
+- 边界：合成材料；批量续做只覆盖导入未上传成员，不覆盖转换失败后的自动重试与取消；OCR/ASR 仍为引擎读回而非准确率。CL-02 的批量、重试、续做、检索、引用、导出与恢复子缺口在候选 Host 上均有实际回执；长路径视频产物缺口已修复（见长路径修复节）。
 
 ### 2026-10-24 CL-03 当前候选真实三通道检索与比较草稿（CL-03／J2，PARTIAL）
 
@@ -1791,9 +1791,9 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 
 - 根因：传统 MAX_PATH 下 ffmpeg 能写出 WAV/帧，但 Python `Path.is_file()` 与 ASR 子进程读不到 261/263 字符的产物路径；视频路由因此把成功解码记为 `audio_track_unavailable_or_decode_failed`/`frame_decode_failed`。
 - 修复：`services/python-workers/media/worker_video.py` 增加扩展长度路径辅助函数，用于输入/产物存在性、摘要计算、输出目录创建与视觉说明读取；当解码后的 WAV 超过 240 字符时复制到短临时路径再交给 ASR，完成后删除。未改 ffmpeg 参数、Core、前端或协议。
-- 验证：`tests/workflow/test_media_worker_engine_paths.py` 8 项 PASS（含 >260 字符产物读取与 ASR 短路径副本）。worker 由 `cbcb49fa…` 更新为 `9af897703a0b3fe1ddb7331086359705b6948678698a86f0506b05131210759d`，同时更新 `.project-local/rt/workers` 与当前 release bundle；Host 可执行文件仍为 `b645c658…`（增量 worker 组件更新，未重建 exe）。
-- 深路径复跑：在原先失败的 `.project-local/runs/…/native-03-import/data` 上执行真实视频转换，新 job `read_22868ba7…` 成功，正文 135 字符、4 个定位片段、3 帧、3 段视觉描述，`decode_errors=[]`、`frame_errors=[]`，正文哈希与浅路径一致 `c7836433…`。回执 `.project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-video-fix/receipt.json`（1,126B，SHA-256 `fde7cfdb983916531f3194ae16aaf334c78ae3276bafc39619274db879a516eb`），截图 `00a3a3d1…`。
-- 边界：修复的是 worker 路径健壮性，不是识别准确率；旧的两条失败 job 与深根失败证据保留。当前 release 为增量组件，未重新打包安装器；exact-SHA CI 与 Owner 验收仍未执行。
+- 验证：`tests/workflow/test_media_worker_engine_paths.py` 8 项 PASS（含 >260 字符产物读取与 ASR 短路径副本）。worker 由 `cbcb49fa…` 更新为 `9af897703a0b3fe1ddb7331086359705b6948678698a86f0506b05131210759d`，同时更新 `.project-local/rt/workers` 与 release bundle；随后由当前源码重建 NSIS，候选 Host `ca5fbfda…` 包含该 worker。
+- 深路径复跑：在原先失败的 `.project-local/runs/…/native-03-import/data` 上执行真实视频转换，新 job `read_22868ba7…` 成功，正文 135 字符、4 个定位片段、3 帧、3 段视觉描述，`decode_errors=[]`、`frame_errors=[]`，正文哈希与浅路径一致 `c7836433…`；随后同一修复后的 Host 在深根 `format-matrix-final-20261024` 完成 18/18 全矩阵（含 mp4）。回执 `.project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-video-fix/receipt.json`（1,126B，SHA-256 `fde7cfdb983916531f3194ae16aaf334c78ae3276bafc39619274db879a516eb`），截图 `00a3a3d1…`。
+- 边界：修复的是 worker 路径健壮性，不是识别准确率；旧的两条失败 job 与深根失败证据保留。当前安装器已包含该 worker；安装态回执见下节，exact-SHA CI 与 Owner 验收仍未执行。
 
 ### 2026-10-24 J6 当前重建安装器隔离生命周期与安装态业务（J6，安装/业务 PASS）
 
@@ -1804,17 +1804,17 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 失败的完整多轮生命周期脚本尝试保留：`verify_nsis_install.ps1` 在 20 分钟沙盒窗口内未完成（含安装/同包升级/重装/卸载四轮），标 `TIMEOUT`，不冒充 PASS。
 - 边界：安装态业务使用合成数据；未做跨版本升级/回滚，未做 exact-SHA CI 或 Owner 验收；公共发布与真实数据覆盖未授权。
 
-### 2026-10-24 闭环验收矩阵（当前 Host b645c658，目标非完成声明）
+### 2026-10-24 闭环验收矩阵（重建候选 Host ca5fbfda；前端行为证据 Host b645c658；目标非完成声明）
 
 | 维度 | 当前状态 | 依据／缺口 |
 | --- | --- | --- |
 | CL-01 核心架构 | PASS | Tauri/React + Rust Core 唯一写入 + 隔离 workers；本 Host 两轮原生链均通过 |
-| CL-02 常见多格式 | PASS（当前 Host，合成材料） | 18/18 导入／转换／预览／结构引用／损失／重启回读；批量、导入失败重试、重启续做、检索命中、文本引用、Markdown 导出与文档包跨工作区恢复均有实际回执；长路径视频产物修复后深路径 MP4 也通过；OCR/ASR 准确率与转换失败自动重试不在此声明 |
+| CL-02 常见多格式 | PASS（重建候选 Host ca5fbfda，合成材料） | 18/18 导入／转换／预览／结构引用／损失／重启回读；批量、导入失败重试、重启续做、检索命中、文本引用、Markdown 导出与文档包跨工作区恢复均有实际回执；长路径视频产物修复后深路径 MP4 也通过；OCR/ASR 准确率与转换失败自动重试不在此声明 |
 | CL-03 免费外部检索／比较 | PARTIAL（通道 PASS） | 当前候选真实三通道（维基／StackExchange／OpenAlex）complete，原始与选定来源、锚点、支持/反对草稿、包、重启与备份读回均 PASS；仅“人类选择接纳为知识/学习”未执行 |
 | CL-04 成熟知识库特色 | PARTIAL／延期 | 矩阵与延期清单保留，未宣称全面兼容 |
 | CL-05 开源池与轻量扩展 | PARTIAL | 能力中心启停 PASS；插件／技能／模板／MCP 全形态消费者未全验 |
 | CL-06 本地／云端模型 | LOCAL PASS；CLOUD PARTIAL | qwen3.5-4b 真实回答／纠正／复测 PASS；云端专业接口有边界，真实云推理延后未执行 |
-| CL-07 同产品全链路可靠 | PARTIAL | 当前 Host 人类 J1 14/14、18 格式矩阵、批量/检索/导出与 AI 工程链 PASS；视频长路径产物已修复并在原失败深根复跑 PASS；无 exact-SHA CI、Owner 验收；当前重建 Host 未打包安装 |
+| CL-07 同产品全链路可靠 | PARTIAL | 重建候选 Host 18 格式矩阵、前端行为 Host 人类 J1 14/14、批量/检索/导出与 AI 工程链 PASS；视频长路径产物已修复并在原失败深根复跑 PASS；重建 Host 已由同一 NSIS 构建打包并经隔离安装，但无 exact-SHA CI、Owner 验收 |
 | J1 多格式资料链 | PASS（TXT 段＋18 格式矩阵＋批量） | journey-17、CL-02 十八格式矩阵与批量/续做；整文件夹失败定位仍按 CL-02 边界 |
 | J2 外部研究链 | PARTIAL（通道＋草稿 PASS） | 当前候选真实三通道检索、比较草稿、包与重启读回；人类接纳未执行；5822 工作区实际 restore PASS |
 | J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
@@ -1822,4 +1822,4 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 | J5 扩展链 | PARTIAL | capability_toggle PASS；多形态真实消费者未全验 |
 | J6 安装与可靠性 | PARTIAL（安装与当前安装态业务 PASS） | 当前重建安装器在无网络 Sandbox 完成安装→启动→数据库→卸载，并完成原生文档三路冲突/保存/恢复/Host 重启→卸载，installer/native/uninstaller 均 exit 0；未做跨版本升级/回滚、exact-SHA CI／Owner 验收；公共发布与真实数据覆盖未授权 |
 
-结论：当前候选已在同一 Host 上打通“人类 J1 14/14 + 18 格式矩阵 + 批量/检索/导出 + AI 本地模型同源授权链”，CL-03 当前候选真实三通道检索也已通过，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器完成隔离安装、当前安装态业务与卸载；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、J5 多形态扩展、J6 的跨版本升级/回滚。
+结论：当前源码族已在重建候选 Host `ca5fbfda` 上通过 18 格式矩阵，前端行为证据 Host `b645c658` 上通过人类 J1 14/14 与 AI 本地模型同源授权链，批量/检索/导出通过，CL-03 当前候选真实三通道检索也已通过，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器（安装后 Host `eb268f29`）完成隔离安装、当前安装态业务与卸载；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、J5 多形态扩展、J6 的跨版本升级/回滚。

@@ -947,22 +947,22 @@
       "receipt_sha256": "5e06d37f123b114fb9000fe5fe777982221911db175da1e341ff78b050ccbecd"
     },
     "latest_format_matrix_20261024": {
-      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "host_sha256": "ca5fbfda7ab38625e6f910c2c4264d98b05aef4bcdb238c06340fb3885c2b4f9",
       "host_bytes": 47376384,
       "status": "PASS_18_OF_18",
       "execution": "REAL_TAURI_HOST_REAL_FILE_INPUT_RENDERED_CONTROLS_ISOLATED_PORTABLE_ROOT",
-      "data_root": ".project-local/format-matrix-20261024/import/data",
+      "data_root": ".project-local/runs/be268a2d33/format-matrix-final-20261024/import/data",
       "categories": ["txt", "md", "csv", "json", "html", "pdf-text", "pdf-scanned", "png", "jpeg", "docx", "xlsx", "pptx", "srt", "vtt", "wav", "mp3", "mp4", "canvas"],
       "import": {
-        "receipt": ".project-local/format-matrix-20261024/import/receipt.json",
-        "receipt_sha256": "93c9cbbf966f0cfe7769dbcdc44c707699154f7d762ab170944c90da5318894f",
-        "bytes": 47257,
-        "result": "18/18 real file input, UI receipt 原件已保留；转换尚未执行, source_original byte identity"
+        "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/import/receipt.json",
+        "receipt_sha256": "1a63b035fc0c18eabab3616958e3566e12e177b32c8238b17a055b92370ee696",
+        "bytes": 47305,
+        "result": "18/18 real file input; import-time UI receipt text 原件已保留；转换尚未执行 (conversion recorded below); source_original byte identity"
       },
       "conversion": {
-        "receipt": ".project-local/format-matrix-20261024/convert/receipt.json",
-        "receipt_sha256": "c194e7782a1abc98360b2a3038c8d399d4cf2ea673e93c47634e2182d6e3eaae",
-        "bytes": 40928,
+        "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/convert/receipt.json",
+        "receipt_sha256": "818211cd0d042c399efa24b7ca80f378bbec72cd7338e2f1816c9e42fe79d75b",
+        "bytes": 40882,
         "result": "18/18 succeeded jobs, output SHA/byte-length recomputed, loss+quality engine identity, structure positions, preview equality, 12 structure citations CURRENT, restart readback equal",
         "ocr_pages": "scanned PDF 2/2; png/jpeg OCR 26/29 chars",
         "media": "wav/mp3/mp4 identical text sha c7836433... 135 chars 4 located cues; mp4 3 frames + 3 visual descriptions"
@@ -977,8 +977,8 @@
         "worker_previous_sha256": "cbcb49fad707cf0ea0ceabe57b8b6afc5e9c55a9027af7c2fbbe810783ad3d03",
         "fix_receipt": ".project-local/runs/be268a2d33/format-matrix-20261024-01/native-03-video-fix/receipt.json",
         "fix_receipt_sha256": "fde7cfdb983916531f3194ae16aaf334c78ae3276bafc39619274db879a516eb",
-        "host_rebuilt": false,
-        "component_update": "incremental worker update in .project-local/rt/workers and release bundle; Host exe remains b645c658"
+        "host_rebuilt": true,
+        "component_update": "Host rebuilt from current source with worker 9af8977 bundled; candidate Host ca5fbfda used for the deep-root 18/18 matrix"
       },
       "not_covered": ["conversion failure auto-retry and cancel", "OCR/ASR accuracy"],
       "boundary": "Authored synthetic materials; OCR/ASR engine readback not accuracy; no installed UI, Green, exact-SHA CI or Owner acceptance"
@@ -987,7 +987,7 @@
       "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
       "status": "PASS_SUBGAPS",
       "batch": {
-        "receipt": ".project-local/format-matrix-20261024/batch/run/receipt.json",
+        "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/batch/run/receipt.json",
         "receipt_sha256": "d8b25b1211651af13be235f94433a0406913f6dabae244a24dddc7fdcdf6470c",
         "result": "5 members selected; 2 excluded; gamma.csv read-deny forced IMPORT_FAILED then retry succeeded; 3 conversions succeeded"
       },
@@ -995,7 +995,7 @@
         "result": "2 unuploaded members registered, Host restarted, UI restored batch and continued upload; 2/2 succeeded; restore_epoch unchanged"
       },
       "search_export": {
-        "receipt": ".project-local/format-matrix-20261024/batch/search-export/receipt.json",
+        "receipt": ".project-local/runs/be268a2d33/format-matrix-final-20261024/batch/search-export/receipt.json",
         "receipt_sha256": "099c68decd82aaae186397a66c3fcd132e1b6d8bb64cb70f472b73b5ccdc26be",
         "result": "search hit on source transform; text-range anchor CURRENT; markdown export persisted byte-identical; package imported into fresh workspace with identical document content hash and source bytes"
       },
@@ -1055,7 +1055,7 @@
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "post_build_delta": "POST5822_COMPONENTS: correction7d953 native-detail-DOM PASS; reader7525 native03 successful-material binding and actual folder-picker/batch-restart PASS; folder failure summary0410865 Host/native PASS; video-longpath-9af897 worker long-path fix PASS with deep-root MP4 135 chars/4 positions/3 frames/3 visual; current-installer-3b0bccd6 installed host eb268f29 minimal lifecycle and installed conflict/restore/restart PASS. Exact component identities retained; full candidate/installer/Green remain5822, no new whole-package/Owner qualification.",
+    "post_build_delta": "POST5822_COMPONENTS: correction7d953 native-detail-DOM PASS; reader7525 native03 successful-material binding and actual folder-picker/batch-restart PASS; folder failure summary0410865 Host/native PASS; video-longpath-9af897 worker long-path fix PASS with deep-root MP4 135 chars/4 positions/3 frames/3 visual and deep-root 18/18 matrix PASS on rebuilt candidate Host ca5fbfda; current-installer-3b0bccd6 installed host eb268f29 minimal lifecycle and installed conflict/restore/restart PASS. Exact component identities retained; full candidate/installer/Green remain5822, no new whole-package/Owner qualification.",
     "native_additional": "CURRENT5822_NATIVE_HUMAN_AND_AI_ENGINEERING_CHAIN_PASS; ONE_SAMPLE_INDEPENDENT_AGENT_REVIEW_COMPLETE; REPRESENTATIVE_SEMANTIC_QUALITY_AND_OWNER_UNPROVEN; GROUPED_PRODUCT_PARTIAL",
     "cloud": "PROFESSIONAL_INTERFACE_IMPLEMENTED_LOCAL_MOCK_PASS; REAL_PROVIDER_DEFERRED_BY_OWNER_NOT_FIRST_RELEASE_BLOCKER",
     "installer": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
