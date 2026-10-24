@@ -43,5 +43,11 @@
          "terminology_native": "22/22 pages PASS incl. page 16 qualification tab; engineering tokens 0; unexplained disabled 0; page errors 0",
          "terminology_receipt": ".project-local/runs/be268a2d33/ui-token-scan-20261024-07/receipt.json",
          "terminology_full_suite": "2108 tests: 2090 PASS / 18 FAIL matched b4588d76 baseline"},
+  "ai_engineering_loop": {"host": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+                          "engineering_status": "PASS", "status": "PARTIAL", "model": "qwen3.5-4b",
+                          "endpoint": "http://127.0.0.1:1234/v1",
+                          "stages": "actual answer 176/1893 tokens; authored correction; independent retest; restart/restored learning; grant refusal",
+                          "owner_acceptance": "NOT_EXECUTED", "quality_evaluation": "CANDIDATE_NOT_EVALUATED",
+                          "receipt": ".project-local/runs/be268a2d33/webdriver-69aef55d72a4/tmp/journey/receipt.json"},
   "boundary": "Frontend slice audit only; not Owner acceptance, installation qualification, Green replacement, CI or cloud inference."
 }

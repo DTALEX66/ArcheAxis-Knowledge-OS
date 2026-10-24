@@ -1685,7 +1685,7 @@ def run_ai_stage(ui, read, js, wait, pin, result, run_ai, authored_intervention=
         before_tasks=machine_tasks(read)
         ui.click("执行本地机器回答")
     wait(
-        "return !!document.querySelector('[aria-label=\"真实机器回答\"]') || document.body.innerText.includes('回答未完成') || document.body.innerText.includes('Core 明确拒绝此回答请求') || document.body.innerText.includes('推理已执行，答案未发布')",
+        "return !!document.querySelector('[aria-label=\"真实机器回答\"]') || document.body.innerText.includes('回答未完成') || document.body.innerText.includes('本地知识库明确拒绝此回答请求') || document.body.innerText.includes('推理已执行，答案未发布')",
         seconds=150,
     )
     tasks = machine_tasks(read)
@@ -1876,8 +1876,8 @@ def machine_ui_diagnostic(ui):
 const text=root?.innerText??'';
 return {panel_present:!!root,answer_visible:!!root?.querySelector('[aria-label="真实机器回答"]'),
 retest_visible:!!root?.querySelector('[aria-label="独立复测机器回答"]'),
-unknown:text.includes('执行状态 UNKNOWN'),retest_incomplete:text.includes('复测未完成'),
-retest_refused:text.includes('Core 明确拒绝复测请求'),
+unknown:text.includes('执行状态尚未确认'),retest_incomplete:text.includes('复测未完成'),
+retest_refused:text.includes('本地知识库明确拒绝复测请求'),
 retest_withheld:text.includes('复测推理已执行，答案未发布'),
 same_request_retry:[...(root?.querySelectorAll('button')??[])].some(b=>b.textContent?.includes('重试同一冻结复测请求'))};""")
         keys = ("panel_present", "answer_visible", "retest_visible", "unknown",
@@ -1945,7 +1945,7 @@ def run_authored_intervention(ui, read, wait, stage, result):
         scope,
     )
     ui.click("接受纠正知识", scope)
-    wait("return document.body.innerText.includes('Core 已接受此纠正知识')")
+    wait("return document.body.innerText.includes('本地知识库已接受此纠正知识')")
     accepted = read("knowledge_get", {"id": candidate["knowledge_id"]})
     assert (
         accepted["knowledge_id"] == candidate["knowledge_id"] and accepted["status"] == "accepted"
@@ -1968,7 +1968,7 @@ def run_authored_intervention(ui, read, wait, stage, result):
         select_saved_deep_lane(ui, wait)
     ui.click("以已接受纠正知识运行独立复测", scope)
     wait(
-        "return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('Core 明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')",
+        "return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('本地知识库明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')",
         seconds=150,
     )
     stage["retest_ui_diagnostic"] = machine_ui_diagnostic(ui)
@@ -1987,7 +1987,7 @@ def run_authored_intervention(ui, read, wait, stage, result):
         # request, replace its grant, or turn an unknown response into success.
         stage["retest_retry"] = {"limit": 1, "first_failure": stage["retest_ui_diagnostic"], "first_inventory": stage["retest_task_inventory"]}
         ui.click("重试同一冻结复测请求", scope)
-        wait("return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('Core 明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')", seconds=150)
+        wait("return !!document.querySelector('[aria-label=\"独立复测机器回答\"]') || document.body.innerText.includes('复测未完成') || document.body.innerText.includes('本地知识库明确拒绝复测请求') || document.body.innerText.includes('复测推理已执行，答案未发布')", seconds=150)
         stage["retest_retry"]["final_observation"] = machine_ui_diagnostic(ui)
         inventory = machine_tasks(read)
         matches = [task for task in inventory if task["scope"] == "runtime.retest" and task["retest_of"] == failed["task_id"]]
@@ -2128,7 +2128,7 @@ def restored_grant_refusal(ui, read, wait, stage):
     ui.type("实际问题", stage["original_answer"]["question"], "textarea")
     # New UI client request; it cannot succeed through cached old-answer replay.
     ui.click("执行本地机器回答")
-    wait("return document.body.innerText.includes('Core 明确拒绝此回答请求')", seconds=150)
+    wait("return document.body.innerText.includes('本地知识库明确拒绝此回答请求')", seconds=150)
     receipt = restored_admission_receipt(ui.js("""const n=document.querySelector('[aria-label="恢复授权拒绝"]');
       return n?JSON.parse(n.dataset.contextAdmissionRefusal):null;"""), document,
       stage["original_answer"]["knowledge_id"], stage["original_answer"]["question"], current_binding)

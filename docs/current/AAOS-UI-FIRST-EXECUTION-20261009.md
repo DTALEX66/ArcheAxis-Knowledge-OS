@@ -1748,3 +1748,10 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 在最终 Host `b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb` 上用隔离数据根、合成 157B TXT、真实原生点击复跑新手连续流程：首次打开→进入导入→导入→打开阅读→建立版本化草稿→编辑保存→真实内容转换→形成知识候选→人工审核接受→建立学习问题→学习队列→作答/核对/难度→记录复习→正常退出（exit 0）→同一数据目录重开读回 v2 知识与学习项目→再次正常退出（exit 0）。
 - 结果 **14/14 PASS**，11 张截图，模型调用 0；回执 `.project-local/runs/be268a2d33/ui-novice-journey-20261024-17/artifacts/journey-receipt.json`（4,231B，SHA-256 `3d2fb4975950c173dcda89aa043950b2974b1afe72ad2180469d0951e52d6f83`）。该回执取代 journey-12 的旧 Host 行为身份，成为当前 Host 的人类 J1 证据。
 - 边界：这是人类侧 J1 当前候选行为证据，不是 AI 侧全链、安装态、Green、exact-SHA CI 或 Owner 验收；CL-03／CL-04／CL-05、J2／J3／J5／J6 仍按既有延期与阻塞分别记账。未推送、未发布。
+
+### 2026-10-24 当前 Host AI 侧 J4 工程链（CL-06／J4，engineering PASS／status PARTIAL）
+
+- 在最终 Host `b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb` 的当前 grouped 原生 UI 上，使用既有本地 LM Studio `qwen3.5-4b`（`http://127.0.0.1:1234/v1`）执行真实 AI 链：实际回答（input 176／output 1893 tokens，22.79s，grounded）→人工 authored 纠正干预→独立复测→重开恢复学习；另有恢复授权拒绝负路径、能力启停与学习复习读回。
+- 工程结果 `engineering_status=PASS`；链状态 `PARTIAL`：`owner_acceptance=NOT_EXECUTED`、`human_signoff=false`、回答/复测为 `EXECUTED_CANDIDATE_NOT_EVALUATED`，纠正为 authored intervention 而非独立错误；`compiled_source_binding=UNVERIFIED`（未提供 candidate build receipt）。
+- 回执 `.project-local/runs/be268a2d33/webdriver-69aef55d72a4/tmp/journey/receipt.json`（327,440B，SHA-256 `5e06d37f123b114fb9000fe5fe777982221911db175da1e341ff78b050ccbecd`）。限制：候选可执行文件未安装、程序化中文输入非物理 IME、单次工程运行、无人工签署。
+- 边界：真实本地模型工程链 PASS，不等于语义质量、独立评测、安装态、Green、CI 或 Owner 验收；真实云推理仍按 Owner 决定延后未执行。

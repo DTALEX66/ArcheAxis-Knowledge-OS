@@ -203,9 +203,11 @@
       <tr><td>工程术语外露</td><td>04/14/15/21 出现 Core、CAS、IEEE754、NOT_EXECUTED</td><td><span class="tag ok">已修</span> 04/14/21/13 已改写为业务语言；22 页原生扫描工程词命中 0（页 15 的 ArcheAxis Core Knowledge 为资源专名）</td><td class="mono">ui-token-scan-06</td></tr>
       <tr><td>窄窗遮挡</td><td>来源/证据面板浮在正文右上</td><td><span class="tag ok">已修</span> 改为底部停靠，不再遮挡头部</td><td class="mono">页面 03 窄窗截图</td></tr>
       <tr><td>连续业务闭环</td><td>只证明页面可渲染</td><td><span class="tag ok">已补</span> 14/14 步：导入→阅读→保存→知识→学习→复习→退出→重开读回；已在当前 Host 复跑</td><td class="mono">journey-receipt 3d2fb497</td></tr>
+      <tr><td>AI 侧真实模型链</td><td>仅有历史分段回执</td><td><span class="tag ok">工程 PASS</span> 本地 qwen3.5-4b 实际回答→人工纠正→独立复测→重开恢复；<span class="tag mid">PARTIAL</span> 质量未独立评测、无 Owner 签署</td><td class="mono">ai-loop 5e06d37f</td></tr>
     </tbody>
   </table>
 </div>
+<div class="callout"><b>2026-10-24 当前 Host AI 侧工程链：</b>本地 LM Studio <span class="mono">qwen3.5-4b</span> 完成实际回答（176→1893 tokens，22.79s）→人工 authored 纠正→独立复测→重开恢复学习；恢复授权拒绝与能力启停也通过。工程状态 <span class="mono">PASS</span>，链状态 <span class="mono">PARTIAL</span>：质量未独立评测、无 Owner 签署、候选构建绑定未提供。回执 <span class="mono">ai-engineering-loop-20261024.json</span>（SHA-256 <span class="mono">5e06d37f…becd</span>）。</div>
 <div class="callout"><b>2026-10-24 当前 Host 人类闭环：</b>Host <span class="mono">b645c658</span> 以隔离数据根完成 14／14 原生点击：导入→阅读→保存→转换→知识候选→人工接受→学习问答→复习→退出→同目录重开读回→再次退出；两次 exit 0、11 张截图、模型调用 0。回执 <span class="mono">journey-17/receipt.json</span>（SHA-256 <span class="mono">3d2fb497…6f83</span>）。</div>
 <div class="callout"><b>2026-10-24 全页文案与禁用原因复核：</b>最终 Host <span class="mono">b645c658</span> 以隔离数据根原生启动，逐页读取 22／22（含页 16“互通资格”页签）；工程词命中 0、未解释禁用项 0、页面错误 0。回执 <span class="mono">ui-token-scan-20261024-07/receipt.json</span>。全量前端 2108 项：2090 PASS／18 FAIL，与改动前基线一致。</div>
 
@@ -257,7 +259,7 @@
 <div class="callout risk"><b>边界：</b>本次是前端切片与仓库治理审计，不是 Owner 验收，也不构成安装态资格、Green 程序替换、exact-SHA CI 或真实云推理结论。Windows Sandbox 当前无活动环境（<span class="mono">wsb list</span> 0），但 <span class="mono">vmwp</span> PID 13912 与 <span class="mono">vmmemWindowsSandbox</span> PID 37160 仍存活且非重启不可终止；本轮未新建 VM、未重装，安装态、Green、CI 与 Owner 验收均未重跑。</div>
 
 <div class="foot">
-  数据来源：现场 git 测量、文件系统测量、<span class="mono">reports/full-audit-20261024/reference-resolution.json</span>、<span class="mono">metrics.json</span>、retention/green/audit 回执、归档核验回执 <span class="mono">reference-recovery-20261024/receipt.json</span>、全页文案/禁用原因扫描 <span class="mono">ui-token-scan-20261024-07/receipt.json</span>、当前 Host 人类闭环 <span class="mono">journey 3d2fb497</span>、原生走查 <span class="mono">walk b1736f4e</span>、<span class="mono">closeout 14956c20</span>、<span class="mono">visual acc83b0d</span>。历史数字来自唯一执行记录，不重复计入本次验证。
+  数据来源：现场 git 测量、文件系统测量、<span class="mono">reports/full-audit-20261024/reference-resolution.json</span>、<span class="mono">metrics.json</span>、retention/green/audit 回执、归档核验回执 <span class="mono">reference-recovery-20261024/receipt.json</span>、全页文案/禁用原因扫描 <span class="mono">ui-token-scan-20261024-07/receipt.json</span>、当前 Host 人类闭环 <span class="mono">journey 3d2fb497</span>、当前 Host AI 工程链 <span class="mono">ai-loop 5e06d37f</span>、原生走查 <span class="mono">walk b1736f4e</span>、<span class="mono">closeout 14956c20</span>、<span class="mono">visual acc83b0d</span>。历史数字来自唯一执行记录，不重复计入本次验证。
 </div>
 </div>
 </body>

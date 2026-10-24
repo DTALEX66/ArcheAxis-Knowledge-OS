@@ -933,6 +933,19 @@
       "model_calls": 0,
       "scope": "HUMAN_J1_CURRENT_HOST_NOT_INSTALLED_NOT_OWNER_ACCEPTANCE"
     },
+    "latest_ai_engineering_loop_20261024": {
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "engineering_status": "PASS",
+      "status": "PARTIAL",
+      "model": "qwen3.5-4b",
+      "endpoint": "http://127.0.0.1:1234/v1",
+      "stages": "answer 176/1893 tokens 22.79s; authored correction; independent retest; restart/restored learning; restored grant refusal",
+      "owner_acceptance": "NOT_EXECUTED",
+      "quality_evaluation": "CANDIDATE_NOT_EVALUATED",
+      "compiled_source_binding": "UNVERIFIED_NO_CANDIDATE_BUILD_RECEIPT",
+      "receipt": ".project-local/runs/be268a2d33/webdriver-69aef55d72a4/tmp/journey/receipt.json",
+      "receipt_sha256": "5e06d37f123b114fb9000fe5fe777982221911db175da1e341ff78b050ccbecd"
+    },
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
