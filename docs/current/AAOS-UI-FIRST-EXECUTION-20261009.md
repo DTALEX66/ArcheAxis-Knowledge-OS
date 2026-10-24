@@ -1731,6 +1731,6 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 
 - 在 04／14／21 术语收敛后补齐余下页面：13 的“评审 rubric”改为“评审准则”；15 唯一命中是资源数据中的专名 `ArcheAxis Core Knowledge`，保留并在扫描中按专名白名单处理；其余 20 页无禁用工程词。
 - 禁用原因：补统一布局提示（锁定／需先打开文档）、学习项目提示、AI 资产按钮说明、量规与评测的待确认/翻页说明、导入停止、受限任务重试/刷新/取消、画布历史/导出/连线取消等；22 页原生扫描 `unexplained_disabled=0`。
-- 全量前端回归：2108 项，**2090 PASS／18 FAIL**，与改动前 `b4588d76` 基线逐文件一致（含 `StyleRuleCoverage` 的 `.stitch-learning-queue-card` 既有缺口），无新增失败。
+- 全量前端回归：2108 项，**2090 PASS／18 FAIL**，与改动前 `b4588d76` 基线逐文件一致（含 `StyleRuleCoverage` 的 `.stitch-learning-queue-card` 既有缺口），无新增失败。另一次全量复跑出现 19 FAIL，多出的 `SemanticReadingLayout` 单项在独立运行时 15/15 PASS，按并行负载下的既有波动记录，不新增代码失败。
 - 原生扫描：最终 Host `b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb`（47,376,384B），隔离数据根启动，22／22 页面读取（页 16 额外打开“互通资格”页签）；工程词命中 0、未解释禁用项 0、页面错误 0；页 16 状态已显示“部分完成／尚未执行”。回执 `.project-local/runs/be268a2d33/ui-token-scan-20261024-07/receipt.json`（69,311B，SHA-256 `871646a24b4a670237622da3db2a3c1c9d707d97bc12c60a61200d025bc0d9eb`）。
 - 边界：只做文案与禁用说明，不改业务规则、权限、API 或布局；不安装、不替换 Green、不做 exact-SHA CI 或 Owner 验收。未推送、未发布。
