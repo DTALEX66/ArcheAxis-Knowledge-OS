@@ -1612,3 +1612,10 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 安装04是单次官方CLI exact-ID环境，已进入实际Host/driver session；发现独立reader缺ExecuteScript args并修副本，但随后guest调度／exec／重连停滞，不能完成安装业务，停止请求及最终残留只按recovery-terminal.json记账，不假称正常Host退出或卸载。未开后继VM／重装／杀系统服务。b2 Green五成员入口只读准备与pending拒绝检查完成，未更新日常Green，旧5822保留；原03与所有失败保留。见verification.installed_component_recovery04_tooling及green_five_member_preparation_b2。
 
 - 04清理最后观测：STOP_REQUESTED_NOT_CONFIRMED；exact Sandbox ID `25d4901b-a537-4907-b32b-69ece22e8d85` 仍在（1个），官方stop client PID25004请求已发、未确认结束。8项CAS/config hash保全，DB/SHM/WAL因锁UNVERIFIED；初始11文件克隆已核。不得宣称0VM、正常Host退出或卸载完成；不自动开新VM、重装或改服务。
+
+
+### 2026-10-24 当前Core任务中断与不完整导入边界（CL-07／J1，整体PARTIAL）
+
+- 复用当前fd620735 Core与同一隔离合成库，实际text worker按PID／creation／exe／父Core／workspace精确证明后暂停并终止37，Core运行中attempt1明确failed；受控重开仍保留失败，同job明确新request的attempt2成功。原件、sentinel完整Document、CAS原对象保持，成功文本SHA与原件一致。root核真实receipt及执行runner保存断言；两次Core helper exit1明确为受控停止，不冒充正常产品退出，已核自有进程0。仅此worker启动后、Core持久running且尚无已提交输出的故障点，不是部分checkpoint／自动resume／native或安装资格。见verification.actual_text_worker_interrupt_core2e。
+- 同一库实际HTTP imports声明720955字节，仅发360477后断开，Core400；断开及重开后Source／Document／sentinel／原job／CAS完整快照等于before。明确完整540672字节重试202、SHA一致；同body replay202 duplicate=true、同source、未重复对象，新增仅1CAS。正式Host／Core采用整JSON，无offset/chunk接口；本项只验证后端截断请求拒绝与完整重试，不声称字节续传或native UI取消。旧worker回执原SHA保持，Core pin不变，自有进程0。见verification.incomplete_import_http_boundary_core2e。
+- 安装仅观察原exact stop句柄15秒，PID25004／creation／exe／argv仍相符，原ID仍1个、停止未确认；04旧终态不改，无新start/connect/exec/stop或VM。交接入口新增决定二十三和当前组件／安装／Green证据键导航，提醒先核同一句柄。按实际新证据收敛当前remaining，旧清单另存remaining_before_reliability_boundary_followup；分支已判无需合并、清理策略拒绝不重试，未重开全量审计。见verification.installed_stop_same_handle_followup01。

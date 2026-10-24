@@ -1983,6 +1983,67 @@
       },
       "scope": "Readonly exact5-member preview for b2 Host plus retained2e Core/launcher/worker/manifest;19739 owned members unchanged. Pending gate refuses apply, rollback/startup reuse prepared.",
       "boundary": "Daily Green remains historical5822; no program replacement, real data opening or Owner acceptance."
+    },
+    "actual_text_worker_interrupt_core2e": {
+      "status": "PASS_REAL_WORKER_FAILED_RESTART_EXPLICIT_NEW_ATTEMPT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reliability-worker-data-20261024-01/receipt.json",
+        "bytes": 2642412,
+        "sha256": "10060c55d703aaf8eb4f89792d3dff03ee4b2c64da7ce119b654c568d9eb63f9"
+      },
+      "summary": {
+        "path": ".project-local/runs/be268a2d33/reliability-prep-20261024-01/artifacts/final-summary.json",
+        "bytes": 14603,
+        "sha256": "f489838145af54c2ffc17b5e0786acdbd93e9ada0260a5d0e42ca1948406b556"
+      },
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/reliability-prep-20261024-01/artifacts/root-independent-readback.json",
+        "bytes": 1392,
+        "sha256": "537345e3b7cde9f7118239590c7e7509e3063a086df2abd6fa8980ce978179d6"
+      },
+      "cleanup": {
+        "path": ".project-local/runs/be268a2d33/reliability-prep-20261024-01/artifacts/post-cleanup.json",
+        "bytes": 626,
+        "sha256": "d673faf94062f3ba43c9709b306105b1b6fea48aab3aad6e1fca6542afece791"
+      },
+      "core": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\tauri\\release\\core\\archeaxis-api.exe",
+        "bytes": 18789888,
+        "sha256": "fd620735e1931741b79e88c5cae7e6d63708e687c473047ce1f41bdb7d874f9a"
+      },
+      "source_commit": "9e0e7cad81ddd4acad69b52b432167c17f7e08f4",
+      "scope": "Actual staged text worker with exact PID/creation/exe/parent Core/isolated workspace proof, suspended then terminated37 while durable execution running. Attempt1 failed, persisted across Core restart; same-job explicit new request attempt2 succeeded. Sentinel full DTO, original and baseline CAS preserved; successful text equals original SHA.",
+      "boundary": "Synthetic fixture, one text worker. No committed outputs at interruption, no partial-checkpoint recovery proof, no automatic resume/native UI/installed/Owner claim. Two owned launcher Core stops exit1 are controlled stops, not normal product exits."
+    },
+    "incomplete_import_http_boundary_core2e": {
+      "status": "PASS_REAL_BACKEND_INCOMPLETE_HTTP_BODY_REJECT_FULL_RETRY_CONTENT_DEDUP",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reliability-partial-import-20261024-01/artifacts/receipt.json",
+        "bytes": 20278,
+        "sha256": "092b3e8eb3ff3103b765fbe0d88b77c7ba30f3df1f357baef726a6a466bf1705"
+      },
+      "summary": {
+        "path": ".project-local/runs/be268a2d33/reliability-prep-20261024-02/artifacts/final-summary.json",
+        "bytes": 4264,
+        "sha256": "3dc1f07df70cb30e4a23c6573b0c1b8580552c78cbbe1e91f9a100af91d9aed9"
+      },
+      "core": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\tauri\\release\\core\\archeaxis-api.exe",
+        "bytes": 18789888,
+        "sha256": "fd620735e1931741b79e88c5cae7e6d63708e687c473047ce1f41bdb7d874f9a"
+      },
+      "scope": "Same synthetic workspace, HTTP body declares720955bytes and sends360477 then disconnects; Core400 and exact Source/Document/sentinel/job/CAS snapshots unchanged across restart. Explicit complete540672-byte import202 adds one exact-hash source/CAS; identical replay202 duplicate=true, no extra object. Prior worker evidence unchanged, no owned processes remain.",
+      "boundary": "Host/Core contract is full JSON, not chunked/offset upload. This is real backend integration; no byte resume, automatic retry, native UI cancellation or whole-J1 claim. Controlled Core stops remain exit1."
+    },
+    "installed_stop_same_handle_followup01": {
+      "status": "VERIFIED_WAIT_STOP_REQUESTED_NOT_CONFIRMED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-stop-followup-20261024-01/verified-wait-receipt.json",
+        "bytes": 2698,
+        "sha256": "bb425b645e13caf240f548c25cd037fd23645fab5e392cf297f4fac3d8c70d39"
+      },
+      "scope": "Single15second bounded wait on the live official stop PID25004, creation/executable/exactID stop argv reverified; Sandbox exact25d4901b-a537-4907-b32b-69ece22e8d85 remains1. No new lifecycle request or VM;04 original terminal unchanged.",
+      "boundary": "Observation is not completed shutdown, normal Host exit, uninstall or installed business qualification. No service/unknown process control."
     }
   },
   "cleanup": {
@@ -2086,19 +2147,13 @@
     "green": "DEPLOYED_PROGRAM_FILES_AND_ISOLATED_NATIVE_STARTUP_PASS; REAL_USER_DATA_NOT_OPENED"
   },
   "remaining": [
-    "Current5822 installed document-conflict/restore/restart business component PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE. Old run01 selector FAIL and historical3407 VM disappearance remain preserved. Owner and hosted CI are separate.",
-    "Current5822 native engineering chain PASS. One existing answer pair independently reviewed by another agent: original faithful, model improvement unproven. Representative semantic quality, dedup/conflict/applicability truth and Owner acceptance remain open.",
-    "Owner20261024: real cloud provider/model/credential and actual inference are deferred, not a first-release blocker. Qualify local real-model usage and professional cloud interface; no real-cloud PASS inferred.",
-    "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green current5822 program deployment and isolated native startup PASS; real-user-data launch and Owner acceptance not executed; no public release.",
-    "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
-    "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass.",
-    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; three-member native folder picker/queued-batch normal restart and separate API same-batch partial-work continuation now PASS; same-lineage native mixed-folder/read/cite/learn/export/actual-restore path now covered by original-prefix plus saved-review diagnostic and suffix02, with original run FAIL retained; midupload/active-worker crash, new installed dual-side same-candidate and wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; Current5822 OCR component now PASS separately; media/light-format receipts retain their original older Core identities.",
-    "UF09/BE-P10: traceable no-pending historical backup clone now passes correction/original-answer/submitter/basis native DOM equality on7dHost/Core5822. Old unrelated pending guard and FAIL stay correct and preserved. Full scrolling/visual and installed/current-candidate acceptance remain separate.",
-    "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native03 exact XLSX material-binding component PASS separately in verification.reader_material_pin_native_7525_run03; installed/Green remain5822 and have not received this source fix.",
-    "0410865 readable-failure Host/native component PASS; full candidate/installer/Green remain5822. Real-provider inference deferred by Owner; representative quality/Owner acceptance remain unproven; no whole-loop completion inferred.",
-    "Cloud product credential-ref source and refreshed2e705fe4 Core/Host/worker/launcher runtime components PASS. Native, installed and Green qualification is recorded separately; real provider inference remains deferred by Owner, not a finite-first-release blocker.",
-    "Current2e installed run02 actual b999 install,5-member overlay and19742 full-manifest PASS; installed Host/readback NOT_EXECUTED due driver tooling.03 Sandbox bootstrap CANCELLED/ownership helper failed; exact orphan stopped,0VM. Green5update PENDING_NOT_APPLIED; old5822 remains. Do not repeat full installation or infer product failure/root cause from tooling failures; restore reliable same-owned-guest tool channel before next bounded installed Host readback.",
-    "AI manual-review persistence sourceb2/20components/typecheck/actual frontend+Host build/native3outcomes+coldreopen PASS. Installed04 guest tooling stalled after session initialization; exact stop/cleanup state is in verification.installed_component_recovery04_tooling receipt. No new VM or reinstallation automatically started. Green remains5822; real cloud deferred by Owner, representative quality/Owner/hosted CI remain separate."
+    "J6 installed04 is tooling-stalled. Official stop same live handle remains unconfirmed/exactSandbox1 as of followup01; resolve this existing environment before any new lifecycle action. No installedb2 Host overlay/business/cold reopen or guest uninstall qualification. Green stays historical5822, exact5-member update pending installed qualification.",
+    "CL-01..07/J1..6 finite dual-side same-candidate installed closure is not complete. Retain existing mixed-folder/read/cite/knowledge/learning/export/actual-restore native segmented proofs and UF09 correction/retest proofs at their exact component identities; no new mandatory uninterrupted rerun is inferred. Wider current installed/visual/semantic fidelity and Owner acceptance remain unproven.",
+    "J1 backend interrupted-upload-body rejection/full explicit retry and actual text-worker interruption/restart/explicit new attempt now PASS separately. Native UI cancellation and partial processing-checkpoint recovery are not qualified by them. Full-JSON imports and NOT_SUPPORTED byte/automatic resume must not be presented as resumable-byte support; no such new feature is silently introduced.",
+    "Common-format/source-reader/OCR and media/light-format evidence retains its original member/Core identities. Same-candidate claims require accurate component linkage and the selected installed qualification; MP4 ASR/frames are not visual understanding. Do not repeat all-format tests without a changed component or uncovered requirement.",
+    "Independent representative semantic quality, dedup/conflict/applicability truth and Owner acceptance remain open. One already reviewed real answer supports only that original, not model improvement. Engineering fixture outcomes are not independent truth.",
+    "Owner local-first decision remains: real cloud provider/model/credential and inference deferred, not a first-release blocker; professional interface evidence is separate. External raw-context system remains NOT_CONNECTED. Optional extensions and allowance monitoring remain deferred/paused.",
+    "Remote push and duplicate-installer cleanup were policy-rejected before execution; no retry/bypass. Hosted CI/current remote equality not proved. Existing selected schema13-to14 and same0.6.14 rollback proofs remain; broader historical-release/schema downgrade and Windows10 compatibility were not selected finite-first-release hard gates."
   ],
   "receipts": {
     "qualified_build": {
@@ -3102,7 +3157,7 @@
     "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
     "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
   ],
-  "latest_observed_at": "2026-10-24T01:42:05.170800+00:00",
+  "latest_observed_at": "2026-10-24T01:52:50.463605+00:00",
   "owner_model_delivery_override": {
     "id": "OWNER-LOCAL-FIRST-USABLE-RELEASE-20261024",
     "date": "2026-10-24",
@@ -3113,5 +3168,20 @@
     "existing_local_configuration": "PRESERVE_EXISTING_TESTED_ROUTE_NO_GLOBAL_CHANGE",
     "product_scope": "Human+AI+permissioned shared knowledge and same-candidate reliability remain required; optional expansions/monitor unchanged",
     "credential_cost_material_boundary": "No borrowed credentials, external material or paid calls by this decision"
-  }
+  },
+  "remaining_before_reliability_boundary_followup": [
+    "Current5822 installed document-conflict/restore/restart business component PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE. Old run01 selector FAIL and historical3407 VM disappearance remain preserved. Owner and hosted CI are separate.",
+    "Current5822 native engineering chain PASS. One existing answer pair independently reviewed by another agent: original faithful, model improvement unproven. Representative semantic quality, dedup/conflict/applicability truth and Owner acceptance remain open.",
+    "Owner20261024: real cloud provider/model/credential and actual inference are deferred, not a first-release blocker. Qualify local real-model usage and professional cloud interface; no real-cloud PASS inferred.",
+    "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green current5822 program deployment and isolated native startup PASS; real-user-data launch and Owner acceptance not executed; no public release.",
+    "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
+    "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass.",
+    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; three-member native folder picker/queued-batch normal restart and separate API same-batch partial-work continuation now PASS; same-lineage native mixed-folder/read/cite/learn/export/actual-restore path now covered by original-prefix plus saved-review diagnostic and suffix02, with original run FAIL retained; midupload/active-worker crash, new installed dual-side same-candidate and wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; Current5822 OCR component now PASS separately; media/light-format receipts retain their original older Core identities.",
+    "UF09/BE-P10: traceable no-pending historical backup clone now passes correction/original-answer/submitter/basis native DOM equality on7dHost/Core5822. Old unrelated pending guard and FAIL stay correct and preserved. Full scrolling/visual and installed/current-candidate acceptance remain separate.",
+    "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native03 exact XLSX material-binding component PASS separately in verification.reader_material_pin_native_7525_run03; installed/Green remain5822 and have not received this source fix.",
+    "0410865 readable-failure Host/native component PASS; full candidate/installer/Green remain5822. Real-provider inference deferred by Owner; representative quality/Owner acceptance remain unproven; no whole-loop completion inferred.",
+    "Cloud product credential-ref source and refreshed2e705fe4 Core/Host/worker/launcher runtime components PASS. Native, installed and Green qualification is recorded separately; real provider inference remains deferred by Owner, not a finite-first-release blocker.",
+    "Current2e installed run02 actual b999 install,5-member overlay and19742 full-manifest PASS; installed Host/readback NOT_EXECUTED due driver tooling.03 Sandbox bootstrap CANCELLED/ownership helper failed; exact orphan stopped,0VM. Green5update PENDING_NOT_APPLIED; old5822 remains. Do not repeat full installation or infer product failure/root cause from tooling failures; restore reliable same-owned-guest tool channel before next bounded installed Host readback.",
+    "AI manual-review persistence sourceb2/20components/typecheck/actual frontend+Host build/native3outcomes+coldreopen PASS. Installed04 guest tooling stalled after session initialization; exact stop/cleanup state is in verification.installed_component_recovery04_tooling receipt. No new VM or reinstallation automatically started. Green remains5822; real cloud deferred by Owner, representative quality/Owner/hosted CI remain separate."
+  ]
 }

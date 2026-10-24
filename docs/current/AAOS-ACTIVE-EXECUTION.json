@@ -1871,6 +1871,33 @@
         "sha256": "461f4e138283b89a177b4a16eb3a7232251b13572caaefebc0f81e8f8b5e0f8e"
       },
       "checkpoint_key": "verification.green_five_member_preparation_b2"
+    },
+    "actual_text_worker_interrupt_core2e": {
+      "status": "PASS_REAL_WORKER_FAILED_RESTART_EXPLICIT_NEW_ATTEMPT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reliability-worker-data-20261024-01/receipt.json",
+        "bytes": 2642412,
+        "sha256": "10060c55d703aaf8eb4f89792d3dff03ee4b2c64da7ce119b654c568d9eb63f9"
+      },
+      "checkpoint_key": "verification.actual_text_worker_interrupt_core2e"
+    },
+    "incomplete_import_http_boundary_core2e": {
+      "status": "PASS_REAL_BACKEND_INCOMPLETE_HTTP_BODY_REJECT_FULL_RETRY_CONTENT_DEDUP",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reliability-partial-import-20261024-01/artifacts/receipt.json",
+        "bytes": 20278,
+        "sha256": "092b3e8eb3ff3103b765fbe0d88b77c7ba30f3df1f357baef726a6a466bf1705"
+      },
+      "checkpoint_key": "verification.incomplete_import_http_boundary_core2e"
+    },
+    "installed_stop_same_handle_followup01": {
+      "status": "VERIFIED_WAIT_STOP_REQUESTED_NOT_CONFIRMED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-stop-followup-20261024-01/verified-wait-receipt.json",
+        "bytes": 2698,
+        "sha256": "bb425b645e13caf240f548c25cd037fd23645fab5e392cf297f4fac3d8c70d39"
+      },
+      "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     }
   }
 }

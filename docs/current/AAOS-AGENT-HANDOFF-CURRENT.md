@@ -4,6 +4,10 @@
 
 当前实施、同候选资格、实际失败与下一步只读[唯一执行记录末段](AAOS-UI-FIRST-EXECUTION-20261009.md)及[本轮检查点](../history/project-drift-audit-20261021/dual-loop-resume-20261024.json)。检查点和局部 PASS 均不等于完整产品、安装或 Owner 验收；原始失败保留其源码与候选身份，后继复验另记，不改判旧回执。
 
+模型执行先应用[决定二十三：本地优先、云端专业接口](AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十三先落地可用产品本地模型优先云端专业接口2026-10-24)：沿已测试的本地路线推进有限首版，真实云推理延期，不再次等待服务商／模型选择；人类、AI与双侧连接的范围不缩减。
+
+本次后继证据定位：检查点 `verification.ai_review_frontend_host_build_b2` 与 `ai_review_native_three_outcomes_b2` 对应新前端／Host组件，Core来源另列；`installed_component_recovery04_tooling` 对应安装工具与确切残留的读回，`green_five_member_preparation_b2` 对应待资格入口。处理安装前先核该回执中的 Sandbox ID、原停止请求句柄和现场状态，观察同一仍存活句柄；观察超时不代表已经结束，不能据此重装或再建环境。新进展继续只记唯一执行记录及活动指针，不回填这些历史回执。
+
 继续沿现有 Stitch 唯一 UI、Rust Core 单写者及有限首版范围。可选市场扩展、六项冻结增量、V01／FT01—04及暂停监控依现行指针处理。跨软件／Agent 原始会话归外部系统，外部 provider 仍为 NOT_CONNECTED；离线候选接收和产品内部双侧知识使用不能冒充跨软件连接。付费／云材料外发、全局配置、发布和真实数据覆盖没有由闭环目标自动授权；Green 精确目标与候选、备份、保全条件只读活动指针 `green_update_authorization`。
 
 [2026-10-23 完整交接](../history/owner-dialogue-20261023-thread-handoff/README.md)与[MANIFEST](../history/owner-dialogue-20261023-thread-handoff/MANIFEST.json)必须完整读取，用于原话、范围及证据追溯。其中“本次只整理交接／未启动后继任务”描述归档回合，不能覆盖 Owner 后继继续执行。冻结原文不回填；主路最新证据按上方入口核实。
