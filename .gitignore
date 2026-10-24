@@ -69,3 +69,7 @@ knowledge_base/data/
 /build/
 __pycache__/
 *.egg-info/
+
+# Agent-private planning files and generated report share packages.
+/.trae/
+/.trae-html-share-packages/
