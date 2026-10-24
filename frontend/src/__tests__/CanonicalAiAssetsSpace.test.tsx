@@ -36,3 +36,129 @@ it("adoption requires review of exact saved candidate and actual rubric criteria
  render(<CanonicalAiAssetsSpace {...props}/>);await open();fireEvent.click(screen.getByRole("button",{name:"选择实际评审 rubric"}));fireEvent.click(screen.getByRole("button",{name:"读取文档对象"}));await screen.findByRole("option",{name:"实际评审 · 列表 v3"});fireEvent.change(screen.getByLabelText("选择文档"),{target:{value:"rubric"}});await screen.findByRole("button",{name:"加入此对象版本"});fireEvent.click(screen.getByRole("button",{name:"加入此对象版本"}));
  fireEvent.change(screen.getByLabelText("评审人"),{target:{value:"本人"}});fireEvent.change(screen.getByLabelText("评审依据"),{target:{value:"逐项核对实际来源"}});fireEvent.change(screen.getByLabelText("判定 保真"),{target:{value:"passed"}});fireEvent.change(screen.getByLabelText("依据 保真"),{target:{value:"实际来源固定版本"}});fireEvent.click(screen.getByRole("button",{name:"确认全部人工评审通过"}));fireEvent.click(screen.getByRole("button",{name:"明确采用此评审版本"}));await screen.findByText("资产版本已保存并读回；保存及采用均不授予 AI 资格。");const v=writes[0].body.editor_json.attrs.archeaxis_ai_asset;expect(v.state).toBe("adopted");expect(v.review.asset).toEqual({document_id:"asset_saved",version:1,content_sha256:"a".repeat(64)});expect(v.review.rubric).toEqual({document_id:"rubric",version:3,content_sha256:"a".repeat(64)});fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"变更后需重审"}});expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeDisabled();fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await waitFor(()=>expect(writes).toHaveLength(2));expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.state).toBe("candidate");expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.review).toBeNull();
 });
+
+
+// Review outcomes are authored observations, never model or professional truth.
+function reviewRubric(version=3):DocumentDto{return {...dto("rubric"),version,content_sha256:String(version).repeat(64),editor_json:{type:"doc",attrs:{archeaxis_machine_rubric:{schema:"archeaxis.machine-rubric/v1",request_id:`rubric_${version}`,title:"实际评审",purpose:"资产评审",criteria:[{criterion_id:"fit",label:"适用性",expectation:"限所评审的来源与版本"},{criterion_id:"conflict",label:"冲突",expectation:"记录实际比较依据"}],sources:[]}},content:[]}};}
+function installReviewPicker(current=reviewRubric()){
+ const state={rubric:current};
+ bridge.call.mockImplementation(async(op,p)=>{
+  if(op==="documents_list")return {documents:[{document_id:"rubric",title:"实际评审",version:state.rubric.version}],next_cursor:null,snapshot_count:1};
+  if(op==="document_get"&&p.document_id==="rubric")return structuredClone(state.rubric);
+  return original(op,p);
+ });
+ return state;
+}
+async function pickReview(){
+ fireEvent.click(screen.getByRole("button",{name:"选择实际评审 rubric"}));
+ fireEvent.click(screen.getByRole("button",{name:"读取文档对象"}));
+ const option=await screen.findByRole("option",{name:/实际评审 · 列表 v/});
+ fireEvent.change(screen.getByLabelText("选择文档"),{target:{value:(option as HTMLOptionElement).value}});
+ fireEvent.click(await screen.findByRole("button",{name:"加入此对象版本"}));
+ await screen.findByLabelText("评审人");
+}
+function fillReview(first:"failed"|"unmeasured"|"passed",second:"failed"|"unmeasured"|"passed"="passed"){
+ fireEvent.change(screen.getByLabelText("评审人"),{target:{value:"独立审查者"}});
+ fireEvent.change(screen.getByLabelText("评审依据"),{target:{value:"比较所选来源的固定版本"}});
+ for(const [label,outcome] of [["适用性",first],["冲突",second]]){
+  fireEvent.change(screen.getByLabelText(`判定 ${label}`),{target:{value:outcome}});
+  fireEvent.change(screen.getByLabelText(`依据 ${label}`),{target:{value:`${label}：固定版本的独立观察`}});
+ }
+}
+const savedMessage="资产版本已保存并读回；保存及采用均不授予 AI 资格。";
+it.each(["failed","unmeasured","passed"] as const)("explicitly persists %s review as a candidate and retains snapshots on reopen",async(outcome)=>{
+ installReviewPicker();render(<CanonicalAiAssetsSpace {...props}/>);await open();await pickReview();fillReview(outcome);
+ fireEvent.click(screen.getByRole("button",{name:"保存人工评审（保留候选）"}));await screen.findByText(savedMessage);
+ const stored=(docs.get("asset_saved")!.editor_json as J).attrs.archeaxis_ai_asset;
+ expect(stored.state).toBe("candidate");expect(stored.review.outcome).toBe(outcome);
+ expect(stored.review.asset).toEqual({document_id:"asset_saved",version:1,content_sha256:"a".repeat(64)});
+ expect(stored.review.rubric).toEqual({document_id:"rubric",version:3,content_sha256:"3".repeat(64)});
+ expect(stored.review.reviewer).toBe("独立审查者");expect(stored.review.judgments).toHaveLength(2);
+ fireEvent.click(screen.getByRole("button",{name:"新建资产候选"}));
+ fireEvent.click(await screen.findByRole("button",{name:"asset_saved · v2"}));
+ await screen.findByRole("button",{name:"查看诊断详情：已保存资产评审"});
+ expect(screen.getByRole("button",{name:"明确采用此评审版本"}))[outcome==="passed"?"toBeEnabled":"toBeDisabled"]();
+ if(outcome==="passed"){
+  fireEvent.click(screen.getByRole("button",{name:"明确采用此评审版本"}));
+  await waitFor(()=>expect(writes).toHaveLength(2));await screen.findByText(savedMessage);
+  expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.state).toBe("adopted");
+  expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.review).toEqual(stored.review);
+ }
+});
+it("does not silently discard a pending negative review through ordinary candidate saving",async()=>{
+ installReviewPicker();render(<CanonicalAiAssetsSpace {...props}/>);await open();await pickReview();fillReview("failed");
+ fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));
+ await screen.findByText("人工评审尚未提交，请先保存人工评审或取消未提交评审。");
+ expect(writes).toHaveLength(0);expect(screen.getByLabelText("评审人")).toHaveValue("独立审查者");
+ expect(screen.getByLabelText("判定 适用性")).toHaveValue("failed");
+ fireEvent.click(screen.getByRole("button",{name:"取消未提交评审"}));
+ fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await screen.findByText(savedMessage);
+ expect(writes[0].body.editor_json.attrs.archeaxis_ai_asset.review).toBeNull();
+});
+it("aggregates failed before unmeasured and retains every per-criterion observation",async()=>{
+ installReviewPicker();render(<CanonicalAiAssetsSpace {...props}/>);await open();await pickReview();fillReview("failed","unmeasured");
+ fireEvent.click(screen.getByRole("button",{name:"保存人工评审（保留候选）"}));await screen.findByText(savedMessage);
+ const review=writes[0].body.editor_json.attrs.archeaxis_ai_asset.review;
+ expect(review.outcome).toBe("failed");expect(review.judgments.map((j:J)=>j.outcome)).toEqual(["failed","unmeasured"]);
+});
+it("replacing rubric snapshot starts an unmeasured review instead of copying old judgments",async()=>{
+ const picker=installReviewPicker();render(<CanonicalAiAssetsSpace {...props}/>);await open();await pickReview();fillReview("passed");
+ fireEvent.click(screen.getByRole("button",{name:"确认全部人工评审通过"}));
+ fireEvent.click(screen.getByRole("button",{name:"取消未提交评审"}));picker.rubric=reviewRubric(4);
+ await pickReview();expect(screen.getByLabelText("判定 适用性")).toHaveValue("unmeasured");
+ expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeDisabled();fillReview("unmeasured");
+ fireEvent.click(screen.getByRole("button",{name:"保存人工评审（保留候选）"}));await screen.findByText(savedMessage);
+ expect(writes[0].body.editor_json.attrs.archeaxis_ai_asset.review.rubric).toEqual({document_id:"rubric",version:4,content_sha256:"4".repeat(64)});
+});
+it("semantic asset edits invalidate a persisted passing review before any later adoption",async()=>{
+ installReviewPicker();render(<CanonicalAiAssetsSpace {...props}/>);await open();await pickReview();fillReview("passed");
+ fireEvent.click(screen.getByRole("button",{name:"保存人工评审（保留候选）"}));await screen.findByText(savedMessage);
+ fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"不同适用版本的内容"}});
+ expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeDisabled();
+ fireEvent.click(screen.getByRole("button",{name:"保存资产候选"}));await waitFor(()=>expect(writes).toHaveLength(2));await screen.findByText(savedMessage);
+ expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.review).toBeNull();
+ expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.state).toBe("candidate");
+ expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeDisabled();
+});
+it("retries a frozen negative review exactly after a lost ACK while preserving later asset draft",async()=>{
+ installReviewPicker();const pickerBridge=bridge.call.getMockImplementation()!;let first=true;let ack:unknown;
+ bridge.call.mockImplementation(async(op,p)=>{
+  if(op==="document_draft"){
+   if(first){first=false;ack=await original(op,p);throw new Error("lost review ACK");}
+   writes.push(structuredClone(p));return structuredClone(ack);
+  }
+  return pickerBridge(op,p);
+ });
+ render(<CanonicalAiAssetsSpace {...props}/>);await open();await pickReview();fillReview("failed");
+ fireEvent.click(screen.getByRole("button",{name:"保存人工评审（保留候选）"}));await screen.findByRole("alert");
+ expect(screen.getByLabelText("评审人")).toHaveValue("独立审查者");
+ expect(screen.getByLabelText("判定 适用性")).toBeDisabled();
+ fireEvent.change(screen.getByLabelText("资产内容"),{target:{value:"冻结后继续编辑的候选"}});
+ fireEvent.click(screen.getByRole("button",{name:"重试冻结资产请求"}));
+ await screen.findByText("发送版本已确认；后续草稿仍保留。");
+ expect(writes).toHaveLength(2);expect(writes[0]).toEqual(writes[1]);
+ expect(writes[0].body.editor_json.attrs.archeaxis_ai_asset.review.outcome).toBe("failed");
+ expect(screen.getByLabelText("资产内容")).toHaveValue("冻结后继续编辑的候选");
+ expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeDisabled();
+});
+
+it("reconciles a saved passing review after lost ACK, closes transient inputs and permits later adoption",async()=>{
+ installReviewPicker();const pickerBridge=bridge.call.getMockImplementation()!;let first=true;
+ bridge.call.mockImplementation(async(op,p)=>{const result=await pickerBridge(op,p);if(op==="document_draft"&&first){first=false;throw new Error("lost review ACK");}return result;});
+ render(<CanonicalAiAssetsSpace {...props}/>);await open();await pickReview();fillReview("passed");
+ fireEvent.click(screen.getByRole("button",{name:"保存人工评审（保留候选）"}));await screen.findByRole("alert");
+ const persisted=(docs.get("asset_saved")!.editor_json as J).attrs.archeaxis_ai_asset.review;
+ fireEvent.click(screen.getByRole("button",{name:"核对冻结资产请求"}));
+ await screen.findByText("冻结请求已确认；后续草稿保留。");
+ expect(screen.queryByLabelText("评审人")).not.toBeInTheDocument();
+ expect(screen.queryByRole("button",{name:"核对冻结资产请求"})).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button",{name:"新建资产候选"}));
+ await waitFor(()=>expect(screen.getByLabelText("资产内容")).toHaveValue(""));
+ fireEvent.click(await screen.findByRole("button",{name:"asset_saved · v2"}));
+ await screen.findByRole("button",{name:"查看诊断详情：已保存资产评审"});
+ expect(screen.getByRole("button",{name:"明确采用此评审版本"})).toBeEnabled();
+ fireEvent.click(screen.getByRole("button",{name:"明确采用此评审版本"}));
+ await screen.findByText(savedMessage);expect(writes).toHaveLength(2);
+ expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.state).toBe("adopted");
+ expect(writes[1].body.editor_json.attrs.archeaxis_ai_asset.review).toEqual(persisted);
+});
