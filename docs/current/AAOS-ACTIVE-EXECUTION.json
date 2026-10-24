@@ -1171,17 +1171,25 @@
       "metadata_followup": "Read current Git HEAD and ignored delivery receipt for later documentation commit; no self-referential SHA invented."
     },
     "delivery_pr_203_20261024": {
-      "status": "CI_RUNNING",
+      "status": "CI_PASS",
       "branch": "trae/20261024",
-      "head_sha": "6cb173ce4056a559f132d9fd381103a833f6a199",
-      "remote_branch_sha_readback": "6cb173ce4056a559f132d9fd381103a833f6a199",
+      "head_sha": "ad2d13540fbccd51874bb776dcd19fbce5c99634",
+      "remote_branch_sha_readback": "ad2d13540fbccd51874bb776dcd19fbce5c99634",
       "pr_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/203",
       "pr_state": "OPEN",
-      "ci_run_id": 40107115234,
+      "ci_run_id": 40134459916,
       "ci_workflow": "CI",
       "ci_event": "pull_request",
-      "ci_state_at_observation": "in_progress",
-      "ci_conclusion": "PENDING",
+      "ci_head_sha_observed": "ad2d13540fbccd51874bb776dcd19fbce5c99634",
+      "ci_state_at_observation": "completed",
+      "ci_conclusion": "SUCCESS",
+      "installer_lifecycle": "SUCCESS",
+      "a0_gates": "SUCCESS",
+      "ci_observed_jobs": "lint, test (3.12), browser-smoke, desktop-build, desktop-fast, rust-vnext, installer-lifecycle, a0-gates and the GatePlan-required set passed; skipped non-required jobs stay skipped",
+      "preceding_failures": [
+        {"run_id": 40131599415, "head_sha": "4853a3f73d4155852913cfc11d6308f68c0ed79e", "conclusion": "FAILURE", "gate": "installer-lifecycle", "cause": "GroupedUI.keys clicked the review select through a native element click that landed under the fixed Stitch task strip; plain and conflict journeys already passed"}
+      ],
+      "local_evidence": ".project-local/task-runtime/browser-smoke/canonical-browser-smoke.json PASS (13 viewports, 5 themes); grouped rerun completed all stages with review/recover PASS but source_consistent=false because a commit landed during that run, so it is not cited as qualification",
       "merge": "NOT_GRANTED_BY_THIS_POINTER",
       "release": "NOT_GRANTED",
       "scope": "Exact-SHA cloud qualification for the current public task delivery; no merge, release or Green replacement follows from this PR"
