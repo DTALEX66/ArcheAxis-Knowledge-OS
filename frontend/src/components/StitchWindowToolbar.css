@@ -24,6 +24,10 @@
 .stitch-window-tool-settings,.stitch-window-tools .diagnostic-center-trigger { min-height: 34px; padding: 5px 10px; font: inherit; font-size: var(--ax-text-ui); border: 1px solid var(--ax-border); color: var(--ax-fg-secondary); background: transparent; border-radius: 6px; cursor: pointer; }
 .stitch-window-settings-dialog { display: grid; gap: 12px; min-width: 0; max-width: min(380px,calc(100vw - 32px)); font-size: 14px; }
 .stitch-window-settings-dialog :is(select,button) { width: 100%; min-height: 36px; font: inherit; white-space: normal; color: var(--ax-fg); background: var(--ax-raised); }
+/* The global form font is the 13px UI scale; settings controls keep the 14px floor.
+   The dialog is portaled to body, so these rules cannot rely on the toolbar ancestor. */
+.stitch-window-settings-dialog .theme-picker select,
+.stitch-window-settings-dialog button { font-size: 14px; }
 @container console (max-width: 640px) {
   .stitch-window-title { flex-basis: calc(100% - 100px); }
   .stitch-window-tools { order: 1; flex-basis: 100%; justify-content: flex-start; flex-wrap:wrap; }

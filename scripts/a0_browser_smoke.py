@@ -1946,7 +1946,9 @@ def read_top_navigation(browser, viewport, problems, theme):
         settings.click()
         check_settings_menu(page)
         page.keyboard.press("Escape")
-        page.locator('[data-working-state="ready"]').wait_for(state="attached")
+        # The draft-state banner only exists while a draft or recovery state does; the
+        # workspace's own busy flag is what proves the page has settled before reading it.
+        page.wait_for_function("() => document.querySelector('.app-body')?.getAttribute('aria-busy') === 'false'")
         assert "读取未完成" not in page.get_by_role("contentinfo", name="活动坞", exact=True).inner_text()
         check_business_controls(page)
         geometry = check_stitch_application_menus(page)
@@ -2000,15 +2002,16 @@ def read_narrow_dock_library(browser, problems, theme, viewport=("1600x1000@100"
           const box = el => { const r=el.getBoundingClientRect();
             return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width}; };
           return {window_width:innerWidth,library:box(node),
-            content:box(node.querySelector('.ui-content-main-side > section')),
-            details:box(node.querySelector('.ui-content-main-side > aside'))};
+            results:box(node.querySelector('.stitch-library-results')),
+            facets:box(node.querySelector('.stitch-library-facets'))};
         }""")
         library_shot = ARTIFACTS / f"narrow-dock-library-{theme}-{viewport[0]}.png"
         page.screenshot(path=str(library_shot), full_page=True)
         assert geometry["window_width"] == viewport[1], geometry
         assert 220 <= geometry["library"]["width"] < 700, geometry
-        assert geometry["content"]["width"] >= geometry["library"]["width"] - 2, geometry
-        assert geometry["details"]["y"] >= geometry["content"]["bottom"], geometry
+        # A narrow panel stacks the facets above the results instead of clipping them.
+        assert geometry["results"]["width"] >= geometry["library"]["width"] - 2, geometry
+        assert geometry["facets"]["bottom"] <= geometry["results"]["y"] + 1, geometry
         if __package__:
             from .probes.aaos01_grouped_owner_loop import GroupedUI
         else:
@@ -2039,8 +2042,8 @@ def read_narrow_dock_library(browser, problems, theme, viewport=("1600x1000@100"
         reader_geometry = reader.evaluate("""node => {
           const box = el => { const r=el.getBoundingClientRect();
             return {width:r.width,bottom:r.bottom,y:r.y}; };
-          return {reader:box(node),document:box(node.querySelector('.ui-reader-document')),
-            details:box(node.querySelector('.ui-reader-details'))};
+          return {reader:box(node),document:box(node.querySelector('.stitch-reader-document')),
+            details:box(node.querySelector('.stitch-reader-details'))};
         }""")
         assert reader_geometry["document"]["width"] >= reader_geometry["reader"]["width"] - 2, reader_geometry
         assert reader_geometry["details"]["y"] >= reader_geometry["document"]["bottom"], reader_geometry
