@@ -946,6 +946,37 @@
       "receipt": ".project-local/runs/be268a2d33/webdriver-69aef55d72a4/tmp/journey/receipt.json",
       "receipt_sha256": "5e06d37f123b114fb9000fe5fe777982221911db175da1e341ff78b050ccbecd"
     },
+    "latest_format_matrix_20261024": {
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "host_bytes": 47376384,
+      "status": "PASS_18_OF_18",
+      "execution": "REAL_TAURI_HOST_REAL_FILE_INPUT_RENDERED_CONTROLS_ISOLATED_PORTABLE_ROOT",
+      "data_root": ".project-local/format-matrix-20261024/import/data",
+      "categories": ["txt", "md", "csv", "json", "html", "pdf-text", "pdf-scanned", "png", "jpeg", "docx", "xlsx", "pptx", "srt", "vtt", "wav", "mp3", "mp4", "canvas"],
+      "import": {
+        "receipt": ".project-local/format-matrix-20261024/import/receipt.json",
+        "receipt_sha256": "93c9cbbf966f0cfe7769dbcdc44c707699154f7d762ab170944c90da5318894f",
+        "bytes": 47257,
+        "result": "18/18 real file input, UI receipt 原件已保留；转换尚未执行, source_original byte identity"
+      },
+      "conversion": {
+        "receipt": ".project-local/format-matrix-20261024/convert/receipt.json",
+        "receipt_sha256": "c194e7782a1abc98360b2a3038c8d399d4cf2ea673e93c47634e2182d6e3eaae",
+        "bytes": 40928,
+        "result": "18/18 succeeded jobs, output SHA/byte-length recomputed, loss+quality engine identity, structure positions, preview equality, 12 structure citations CURRENT, restart readback equal",
+        "ocr_pages": "scanned PDF 2/2; png/jpeg OCR 26/29 chars",
+        "media": "wav/mp3/mp4 identical text sha c7836433... 135 chars 4 located cues; mp4 3 frames + 3 visual descriptions"
+      },
+      "long_path_gap": {
+        "scope": "VIDEO_ARTIFACT_EXISTENCE_CHECK_NOT_LONG_PATH_AWARE",
+        "evidence": "deep root produced 261/263-char artifact paths with LongPathsEnabled=0; ffmpeg wrote WAV/3 frames but Python Path.is_file() returned False, so stages.asr=failed and empty text",
+        "control": "same route through staged transport at 187 chars succeeded; same Host at ~237 chars passed 18/18",
+        "fixed": false,
+        "host_rebuilt": false
+      },
+      "not_covered": ["directory batch import", "failure retry and resume", "search hit and citation from search", "document export and package recovery"],
+      "boundary": "Authored synthetic materials; OCR/ASR engine readback not accuracy; no installed UI, Green, exact-SHA CI or Owner acceptance"
+    },
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
