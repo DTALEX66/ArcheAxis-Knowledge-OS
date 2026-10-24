@@ -1804,19 +1804,26 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 失败的完整多轮生命周期脚本尝试保留：`verify_nsis_install.ps1` 在 20 分钟沙盒窗口内未完成（含安装/同包升级/重装/卸载四轮），标 `TIMEOUT`，不冒充 PASS。
 - 边界：安装态业务使用合成数据；未做跨版本升级/回滚，未做 exact-SHA CI 或 Owner 验收；公共发布与真实数据覆盖未授权。
 
+### 2026-10-24 重建候选的公开研究→知识候选→学习整合链（CL-03／J2／J3，同候选 PASS；人类接纳仍分账）
+
+- 候选：将当前 NSIS 构建的 release 目录按便携结构暂存为 `.../runs/be268a2d33/j2-current-portable-20261024-01/artifacts/星环便携候选`，Host `ca5fbfda…`、Core `fd620735…`、运行清单 `13d11c65…` 与构建产物逐字节一致；暂存只复制成员，不改字节。
+- 公开检索：在该暂存候选上重新执行真实三通道检索（查询 `quantum computing`），百科／社区／科研均 `complete`（各 1 条命中、共 6 个原始/选定来源），选定来源 `source_original` 逐字节、锚点 `201`/`CURRENT`、支持/反对草稿、重启读回一致，Core backup `verified=true`。回执 `.../j2-current-public-20261024-01/artifacts/public-research-receipt.json`（2,029,031B，SHA-256 `a3cfdfc503e1890ae527d27d6fbaac5a9b3fdd325e19d50b75b8253518d8e388`）。
+- 整合链：同一候选、同一工作区完成 109 次 Core 请求——10 个原件（6 个公开来源＋4 个自编 Office/PDF 样本）、公开来源转写为文本 job、公开知识候选 `k_cb46c64a4021b424e06b1efb`（保持 `candidate`）、合成个人 DOCX 知识候选经模拟人工审核 `accepted`、FSRS 学习评估/复习（含重复重试与冲突 409）、统一研究文档与关系、关闭重开后文档/知识/学习/导出/原件全部读回一致、backup 校验、独立工作区 restore 后再次一致；候选成员 `candidate_files_unchanged=true`。回执 `.../j2-current-learning-20261024-04/artifacts/research-learning-runtime.json`（26,006B，SHA-256 `58d50fa2b75683331079c133b1b294265356a1db2e1ac5e374e7f650a1294446`）。
+- 结论边界：公开摘录**保留未核实**为知识候选，符合 J2“人工接纳或保留未核实”；个人知识的 `accepted` 由合成夹具模拟，不是 Owner 签署或内容真值。人类对公开候选的接纳、独立质量评测与 Owner 验收仍 `NOT_EXECUTED`，因此 CL-03 仍为 PARTIAL，但缺口只剩人的决定，不再是“当前候选未跑通整合链”。
+
 ### 2026-10-24 闭环验收矩阵（重建候选 Host ca5fbfda；前端行为证据 Host b645c658；目标非完成声明）
 
 | 维度 | 当前状态 | 依据／缺口 |
 | --- | --- | --- |
 | CL-01 核心架构 | PASS | Tauri/React + Rust Core 唯一写入 + 隔离 workers；本 Host 两轮原生链均通过 |
 | CL-02 常见多格式 | PASS（重建候选 Host ca5fbfda，合成材料） | 18/18 导入／转换／预览／结构引用／损失／重启回读；批量、导入失败重试、重启续做、检索命中、文本引用、Markdown 导出与文档包跨工作区恢复均有实际回执；长路径视频产物修复后深路径 MP4 也通过；OCR/ASR 准确率与转换失败自动重试不在此声明 |
-| CL-03 免费外部检索／比较 | PARTIAL（通道 PASS） | 当前候选真实三通道（维基／StackExchange／OpenAlex）complete，原始与选定来源、锚点、支持/反对草稿、包、重启与备份读回均 PASS；仅“人类选择接纳为知识/学习”未执行 |
+| CL-03 免费外部检索／比较 | PARTIAL（通道＋整合链 PASS） | 同一重建候选真实三通道 complete、6 来源、锚点、比较草稿、公开知识候选、重启/备份/恢复读回均 PASS；公开摘录按 J2 保留未核实，人类接纳仍 `NOT_EXECUTED` |
 | CL-04 成熟知识库特色 | PARTIAL／延期 | 矩阵与延期清单保留，未宣称全面兼容 |
 | CL-05 开源池与轻量扩展 | PARTIAL | 能力中心启停 PASS；插件／技能／模板／MCP 全形态消费者未全验 |
 | CL-06 本地／云端模型 | LOCAL PASS；CLOUD PARTIAL | qwen3.5-4b 真实回答／纠正／复测 PASS；云端专业接口有边界，真实云推理延后未执行 |
 | CL-07 同产品全链路可靠 | PARTIAL | 重建候选 Host 18 格式矩阵、前端行为 Host 人类 J1 14/14、批量/检索/导出与 AI 工程链 PASS；视频长路径产物已修复并在原失败深根复跑 PASS；重建 Host 已由同一 NSIS 构建打包并经隔离安装，但无 exact-SHA CI、Owner 验收 |
 | J1 多格式资料链 | PASS（TXT 段＋18 格式矩阵＋批量） | journey-17、CL-02 十八格式矩阵与批量/续做；整文件夹失败定位仍按 CL-02 边界 |
-| J2 外部研究链 | PARTIAL（通道＋草稿 PASS） | 当前候选真实三通道检索、比较草稿、包与重启读回；人类接纳未执行；5822 工作区实际 restore PASS |
+| J2 外部研究链 | PARTIAL（通道＋候选 PASS） | 重建候选真实三通道检索、比较草稿、公开知识候选、关联个人资料、统一研究文档、重启/导出/恢复均 PASS；人类接纳未执行；公开内容保持未核实 |
 | J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
 | J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | ai-loop-20261024；同一来源/锚点/知识在显式授权下完成回答、纠正、复测与恢复后拒绝；质量未独立评测 |
 | J5 扩展链 | PARTIAL | capability_toggle PASS；多形态真实消费者未全验 |
