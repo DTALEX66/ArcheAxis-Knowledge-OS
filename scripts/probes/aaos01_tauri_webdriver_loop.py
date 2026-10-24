@@ -171,7 +171,9 @@ def confirm_restored_working_state(bridge, ui_click, wait, js):
     js("const original=window.__TAURI__,invoke=original.core.invoke;window.__aaosRecoveryReplies=[];window.__aaosRecoveryOriginal=original;const observed=async function(command,args){const value=await invoke(command,args);if(command==='core_command'&&['ui_state_recover','ui_state_write'].includes(args?.request?.operation))window.__aaosRecoveryReplies.push({operation:args.request.operation,value});return value;};window.__TAURI__={...original,core:{...original.core,invoke:observed}};if(window.__TAURI__.core.invoke!==observed)throw new Error('Recovery observer installation refused');")
     try:
         ui_click("保留恢复候选")
-        wait("return !!document.querySelector('[aria-label=\"工作草稿状态\"][data-working-state=\"ready\"]')")
+        # The draft-state banner only exists while a draft or recovery state does; the
+        # workspace busy flag and identity are the real hydration barrier.
+        wait("return document.querySelector('.app-body')?.getAttribute('aria-busy')==='false'&&!!document.querySelector('[data-current-page-id]')")
         after = bridge("ui_state_read")
         observed = js("return window.__aaosRecoveryReplies")
     finally:
@@ -212,7 +214,7 @@ def navigate_compatibility_space(js, wait, space: str) -> None:
     # otherwise replace a hash written immediately after reopening the window.
     # The reference home hides the verbose ready-only notice, while recovery and
     # errors stay visible. Await the real hydrated state, not decorative copy.
-    wait("return !!document.querySelector('[aria-label=\"工作草稿状态\"][data-working-state=\"ready\"]')")
+    wait("return document.querySelector('.app-body')?.getAttribute('aria-busy')==='false'&&!!document.querySelector('[data-current-page-id]')")
     headings = {"library": "资料库", "vault": "知识库", "workspace": "工作台"}
     heading = headings[space]
     js("window.location.hash=arguments[0]", ["space=" + space])
@@ -228,14 +230,13 @@ def xpath_literal(value: str) -> str:
 
 
 def library_object_navigation_scope(js, wait, ui_click):
-    """Open the real compact navigation; DOM reads never activate hidden controls."""
-    observed = js("""const sidebar=document.querySelector('.navigation-sidebar');
-const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[inert]');
-return {sidebar:visible(sidebar),trigger:visible(document.querySelector('.ui-navigation-trigger'))};""")
-    if observed["sidebar"]:
-        return "//aside[contains(@class,'navigation-sidebar')]//ul[@aria-label='资料库对象导航']"
+    """Open the real product navigation drawer; DOM reads never activate hidden controls."""
+    observed = js("""const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[inert]');
+return {trigger:visible(document.querySelector('button[aria-label="打开产品导航"]'))};""")
     assert observed["trigger"], "Compact object navigation has no visible product navigation trigger"
-    ui_click("☰ 导航")
+    # Radix unmounts the previous drawer; never dispatch the trigger under a closing overlay.
+    wait("return !document.querySelector('.ui-navigation-drawer')")
+    ui_click("全部页面")
     wait("""const drawer=document.querySelector('.ui-navigation-drawer');
 return !!drawer&&drawer.getClientRects().length>0&&
 drawer.querySelectorAll('ul[aria-label="资料库对象导航"] button').length===4;""")
@@ -1871,7 +1872,6 @@ def main():
             raise _GroupedJourneyCompleteError
         # Same-space navigation must reach real object regions without writes
         # or a workspace remount, even before any source/document exists.
-        wait("return document.querySelectorAll('ul[aria-label=\"资料库对象导航\"] button').length===4")
         empty_sources = bridge("sources_list")
         empty_documents = bridge("documents_list")
         for label, region in [("来源锚点", "来源版本证据"), ("文档版本", "文档版本导航"), ("已保存文档", "已保存文档"), ("来源原件", "保留原件")]:

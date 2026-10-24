@@ -170,19 +170,20 @@ def test_review_queue_identity_survives_same_titles_and_quotes(monkeypatch):
     assert "@data-learning-item-key" in selector
 
 
-@pytest.mark.parametrize("sidebar", [True, False])
-def test_object_navigation_uses_only_the_visible_product_surface(monkeypatch, sidebar):
+def test_object_navigation_uses_only_the_visible_product_surface(monkeypatch):
     from lxml import etree
     probe = load_probe(monkeypatch)
     clicks, waits = [], []
     scope = probe.library_object_navigation_scope(
-        lambda _script: {"sidebar": sidebar, "trigger": not sidebar}, waits.append, clicks.append)
-    assert clicks == ([] if sidebar else ["☰ 导航"])
-    assert len(waits) == (0 if sidebar else 1)
-    tree = etree.HTML("<aside class='navigation-sidebar'><ul aria-label='资料库对象导航'><button><b>来源锚点</b><small>原件引用</small></button></ul></aside><div role='dialog' class='ui-navigation-drawer'><ul aria-label='资料库对象导航'><button><b>来源锚点</b><small>原件引用</small></button></ul></div>")
+        lambda _script: {"trigger": True}, waits.append, clicks.append)
+    assert clicks == ["全部页面"]
+    assert len(waits) == 2
+    assert waits[0] == "return !document.querySelector('.ui-navigation-drawer')"
+    assert "button').length===4" in waits[1]
+    tree = etree.HTML("<div role='dialog' class='ui-navigation-drawer'><ul aria-label='资料库对象导航'><button><b>来源锚点</b><small>原件引用</small></button></ul></div><ul aria-label='资料库对象导航'><button><b>来源锚点</b><small>隐藏副本</small></button></ul>")
     selected = tree.xpath(probe.navigation_button_selector("来源锚点", scope))
     assert len(selected) == 1
-    assert selected[0].getparent().getparent().tag == ("aside" if sidebar else "div")
+    assert selected[0].getparent().getparent().tag == "div"
 
 
 def test_object_navigation_refuses_missing_visible_trigger_without_click(monkeypatch):
@@ -190,7 +191,7 @@ def test_object_navigation_refuses_missing_visible_trigger_without_click(monkeyp
     clicks = []
     with pytest.raises(AssertionError, match="no visible product navigation trigger"):
         probe.library_object_navigation_scope(
-            lambda _script: {"sidebar": False, "trigger": False},
+            lambda _script: {"trigger": False},
             lambda _script: pytest.fail("Unexpected wait"), clicks.append)
     assert clicks == []
 
@@ -199,17 +200,20 @@ def test_object_navigation_refuses_missing_visible_trigger_without_click(monkeyp
 def test_object_navigation_preserves_native_refusal_and_missing_drawer(monkeypatch, failure_at):
     probe = load_probe(monkeypatch)
     clicks = []
+    waits = []
     error = probe.WebDriverProtocolError({"error": "element not interactable"})
     def click(label):
         clicks.append(label)
         if failure_at == "click":
             raise error
     def wait(_script):
-        raise TimeoutError("visible drawer does not contain four object controls")
+        waits.append(_script)
+        if failure_at == "wait" and len(waits) == 2:
+            raise TimeoutError("visible drawer does not contain four object controls")
     expected = probe.WebDriverProtocolError if failure_at == "click" else TimeoutError
     with pytest.raises(expected) as raised:
         probe.library_object_navigation_scope(
-            lambda _script: {"sidebar": False, "trigger": True}, wait, click)
-    assert clicks == ["☰ 导航"]  # No retry, script click, fallback or swallowed refusal.
+            lambda _script: {"trigger": True}, wait, click)
+    assert clicks == ["全部页面"]  # No retry, script click, fallback or swallowed refusal.
     if failure_at == "click":
         assert raised.value is error
