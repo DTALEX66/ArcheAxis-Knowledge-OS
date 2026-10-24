@@ -1859,3 +1859,11 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - exact-SHA：run 40134459916（head ad2d1354）全部 required 作业 success：lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates；非 required 作业 skipped 保持 skipped。安装态 plain 旅程含 18 格式矩阵、EPUB 阅读与重启回读，conflict 旅程 PASS，grouped 旅程 `engineering_status=PASS`（`distill` 因未提供模型仍 `NOT_EXECUTED`）；证据为该次运行的 installed-native-journey 产物内三份原生回执。
 - 本地证据：`canonical-browser-smoke.json` 为 PASS（13 视口×5 主题）；本地 grouped 复跑完成全部阶段且 review/recover PASS，但运行期间有提交使 `source_consistent=false`，因此只作诊断，不冒充 exact-SHA 资格。
 - 边界：这次全绿是 PR 203 交付的云端 exact-SHA 门禁资格，不等于 Owner 验收、Owner 机器安装运行、合并、发布或 Green 替换；CL-02 增加了安装态覆盖，但闭环矩阵其余缺口（人类接纳、CL-04/CL-05 延期、云端真实推理、J5、J6 升级/回滚）不变，总体仍为 **PARTIAL**。
+
+### 2026-10-25 安装态点击稳定性复跑（最终代码检查点全绿）
+
+- 文档提交 222bad6b 的 CI 在 `test (3.12)` 失败：AXR060 当前表面审计把运行产物名称里的构建标记误读为仓库提交对象；改为不引用该标记后通过。该失败保留。
+- 文档提交 8c18ba73 的 CI 中 plain 安装态旅程 PASS，但 conflict 旅程在“保存草稿”后等待 `文档版本冲突恢复` 超时。回执与截图显示编辑器已载入草稿（`原创笔记 v2 · 未保存`），而记录点击坐标 (278,571) 已落在编辑器正文而非按钮（按钮在截图约 y≈535）；即命中测试后布局继续上移，指针点击打到旧坐标。该失败保留。
+- 修复：`GroupedUI.click_revealed_selector` 在派发指针前对同一坐标复检目标命中，失配则重新执行受控滚动与命中测试（最多 3 次）；冲突旅程在点击前等待真实“保存草稿”按钮 enabled 且包围盒连续稳定。仍未使用 JS 点击、事件注入或放宽断言。
+- run 40139923313（head 1d81aa90）全部 required 作业 success：lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates；安装态 plain、conflict、grouped 三份旅程均通过（grouped `distill` 仍 `NOT_EXECUTED`）。
+- 边界：这是最终代码检查点的云端工程与门禁资格，不是 Owner 验收、合并、发布或 Green 替换；后续文档提交只作 metadata follow-up，单独读取其 CI，不改变本结论。
