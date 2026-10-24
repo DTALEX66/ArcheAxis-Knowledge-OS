@@ -1638,14 +1638,14 @@
   "remaining": [
     "Current5822 installed document-conflict/restore/restart business component PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE. Old run01 selector FAIL and historical3407 VM disappearance remain preserved. Owner and hosted CI are separate.",
     "Current5822 native engineering chain PASS. One existing answer pair independently reviewed by another agent: original faithful, model improvement unproven. Representative semantic quality, dedup/conflict/applicability truth and Owner acceptance remain open.",
-    "No real cloud provider call: fixed provider/model, product credential and request-specific material/unknown-cost authorization still absent; no Codex credentials or paid calls.",
+    "Owner20261024: real cloud provider/model/credential and actual inference are deferred, not a first-release blocker. Qualify local real-model usage and professional cloud interface; no real-cloud PASS inferred.",
     "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green current5822 program deployment and isolated native startup PASS; real-user-data launch and Owner acceptance not executed; no public release.",
     "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
     "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass.",
     "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; three-member native folder picker/queued-batch normal restart and separate API same-batch partial-work continuation now PASS; midupload/active-worker crash, full same-workspace native J1 and wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; OCR/media/light-format integration receipts retain older Core identities.",
     "UF09/BE-P10: traceable no-pending historical backup clone now passes correction/original-answer/submitter/basis native DOM equality on7dHost/Core5822. Old unrelated pending guard and FAIL stay correct and preserved. Full scrolling/visual and installed/current-candidate acceptance remain separate.",
     "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native03 exact XLSX material-binding component PASS separately in verification.reader_material_pin_native_7525_run03; installed/Green remain5822 and have not received this source fix.",
-    "0410865 readable-failure Host/native component PASS; full candidate/installer/Green remain5822. Real-provider/cloud and representative quality/Owner acceptance remain unproven; no whole-loop completion inferred."
+    "0410865 readable-failure Host/native component PASS; full candidate/installer/Green remain5822. Real-provider inference deferred by Owner; representative quality/Owner acceptance remain unproven; no whole-loop completion inferred."
   ],
   "receipts": {
     "qualified_build": {
@@ -2649,5 +2649,16 @@
     "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
     "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
   ],
-  "latest_observed_at": "2026-10-23T23:57:06.740639+00:00"
+  "latest_observed_at": "2026-10-23T23:57:06.740639+00:00",
+  "owner_model_delivery_override": {
+    "id": "OWNER-LOCAL-FIRST-USABLE-RELEASE-20261024",
+    "date": "2026-10-24",
+    "owner_statement": "你先把产品能落地，用户使用上产品再说模型的事，本地模型不是都测试了吗，先用本地模型，云端做好专业接口",
+    "authority": "docs/current/AAOS-OSS-INTEGRATION-DECISION-20261019.md#二十三先落地可用产品本地模型优先云端专业接口2026-10-24",
+    "first_release_gate": "LOCAL_REAL_MODEL_AND_PROFESSIONAL_CLOUD_INTERFACE",
+    "real_cloud_inference": "DEFERRED_UNEXECUTED_NOT_FIRST_RELEASE_BLOCKER",
+    "existing_local_configuration": "PRESERVE_EXISTING_TESTED_ROUTE_NO_GLOBAL_CHANGE",
+    "product_scope": "Human+AI+permissioned shared knowledge and same-candidate reliability remain required; optional expansions/monitor unchanged",
+    "credential_cost_material_boundary": "No borrowed credentials, external material or paid calls by this decision"
+  }
 }
