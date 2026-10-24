@@ -1508,7 +1508,31 @@
       ],
       "scope": "Actual native invalidDOCX failure exposed full worker JSON and misleading failed-pending-retry label. Minimal FolderIngest presentation fix: neutral failure label; protocol+job/request/attempt-bound readable error summary, complete untouched error stays in RawReceiptButton. Core continuation/retry grants unchanged.",
       "tests": "57FolderIngest component tests PASS including8new actual-error-shape and embedded-identity negative cases; tsc PASS. Root read source/test diff and checked both source hashes and canonical execution receipts.",
-      "boundary": "Synthetic component tests with real failure shape; source cc0b14e9+recordedpatch. New source has not yet built or native/installed qualified; previous7525Host native directory/material proofs remain historical exact component qualifications."
+      "boundary": "Synthetic component tests with real failure shape; source cc0b14e9+recordedpatch. New source has not yet built or native/installed qualified; previous7525Host native directory/material proofs remain historical exact component qualifications.",
+      "current_followup": "verification.folder_failure_summary_native_0410865"
+    },
+    "folder_failure_summary_native_0410865": {
+      "status": "PASS_REAL_NATIVE_FOLDER_READABLE_FAILURE_AND_EXACT_DIAGNOSTIC_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/folder-error-summary-native-0410865-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 6326,
+        "sha256": "39a2e5c02594d01115450cb7bcb43122200452dfa4b7023a6b3bb4bfea33ec32"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/folder-error-summary-native-0410865-20261024-01/artifacts/root-independent-readback.json",
+        "bytes": 3944,
+        "sha256": "e0cb8e9882c5e378a30904514aa7780a9b4c6c8f4730a850dde24b55d08aea43"
+      },
+      "host_binding": {
+        "path": ".project-local/runs/be268a2d33/folder-error-summary-host-20261024-01/artifacts/host-component-binding.json",
+        "bytes": 5273,
+        "sha256": "3b4b60a8e49d631c3d7bcb123c879d21325d51f3102e76d97d9c1bfcf01ac6d6"
+      },
+      "host_source_commit": "0410865bebd5a46bfddb94a2d0bd41f6aa86adcc",
+      "core_source_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "host_sha256": "f49fe4702e7913bde6d4e3150d5ea5cb491b5147c457ef6258fe044c21615ae1",
+      "scope": "One fresh frontend build and one incremental Host build; exact22dist members reused. Native real batch-history restore and status/diagnostic clicks: readable neutral summary, complete original error retained; SQL rows unchanged,0conversion/retry/model, normal exit0 and cleanup PASS.",
+      "boundary": "0410865 Host + unchanged5822 Core component; synthetic preserved failure, no new conversion/retry/model; no installer/Green/whole-candidate/CI/Owner qualification."
     }
   },
   "cleanup": {
@@ -1621,7 +1645,7 @@
     "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; three-member native folder picker/queued-batch normal restart and separate API same-batch partial-work continuation now PASS; midupload/active-worker crash, full same-workspace native J1 and wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; OCR/media/light-format integration receipts retain older Core identities.",
     "UF09/BE-P10: traceable no-pending historical backup clone now passes correction/original-answer/submitter/basis native DOM equality on7dHost/Core5822. Old unrelated pending guard and FAIL stay correct and preserved. Full scrolling/visual and installed/current-candidate acceptance remain separate.",
     "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native03 exact XLSX material-binding component PASS separately in verification.reader_material_pin_native_7525_run03; installed/Green remain5822 and have not received this source fix.",
-    "Folder failure summary source fix:57component tests and tsc PASS; build/native/installed followup pending. Original7525Host folder/material qualifications do not prove this later display change."
+    "0410865 readable-failure Host/native component PASS; full candidate/installer/Green remain5822. Real-provider/cloud and representative quality/Owner acceptance remain unproven; no whole-loop completion inferred."
   ],
   "receipts": {
     "qualified_build": {

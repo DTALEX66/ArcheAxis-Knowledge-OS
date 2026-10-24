@@ -1558,3 +1558,9 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 ### 2026-10-24 目录失败原因可读化（UF02／BE-P02／CL-02／J1，整体PARTIAL）
 
 - 实际原生坏DOCX回执暴露的完整worker JSON此前被拼进普通行，且所有失败写“失败待重试”；现改为中性“失败待处理”和可读简短原因。仅协议／job／request／attempt全部与已核本行相同才提取原因，未知或不匹配技术内容提示查看诊断；完整原status.error仍由已有RawReceiptButton保存，不改Core继续／重试准入。57项FolderIngest组件PASS（新增8项，含实际错误形状、6类身份错配和原始诊断逐字保全）及tsc PASS，root核源码／测试及执行hash。见verification.folder_failure_summary_source_fix；这是后继源码资格，尚未构建或原生／安装复验，不能借此前7525Host旅程当此改动PASS。
+
+
+### 2026-10-24 目录失败提示原生复验通过（UF02／BE-P02／CL-02／J1，整体PARTIAL）
+
+- 0410865源码前端正式构建及一次增量Host构建PASS；22个新dist成员按hash复用，Core5822及runtime未重建。真实原生窗口读取原合成批次历史和坏DOCX状态，整行可见“失败待处理／文档结构无法读取，请检查文件格式或文件是否损坏。”，普通行无协议JSON；真实诊断按钮保留完整原错误。root核22成员、Host/Core及执行hash、截图、原数据库job_attempts.error逐字一致，jobs3／outputs6／machine0及批次行未变，零转换／重试／模型，正常退出0及资源清理PASS。见verification.folder_failure_summary_native_0410865。
+- 57项定向测试与tsc、Host／原生为分层证据；旧失败与7525、5822候选资格保留。没有新安装／Green、CI、真实云端或Owner验收；本次组件PASS不等于整个双侧闭环完成。
