@@ -1726,3 +1726,11 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 验证：定向测试 122 项 PASS（97 + 25）；`tsc --noEmit` PASS；Vite build PASS；Tauri 增量构建 PASS，最终 Host `9b6c3597c017271c44c8a0233ad7e5cd041a46175b787538a7c6ea07e16088b8`（47,375,872B）。
 - 原生复核：以隔离数据根启动最终 Host，真实 WebView2 CDP 逐页读取 04／14／21；可见文本命中禁用工程词 0，预期中文文案全部出现，控制台错误 0，生成 3 张页面截图。回执 `.project-local/runs/be268a2d33/term-convergence-20261024-05/receipt.json`（12,313B，SHA-256 `9772c9677fd02db27c6bceffbba176aabff57a08003232374ad7bc8599931951`）。失败尝试 -01～-04 保留（选择器、相对 URL、陈旧文案），不覆盖旧回执。
 - 边界：最终 Host 是源码一致的前端增量构建，不安装、不替换 Green、不做 exact-SHA CI 或 Owner 验收；行为回执 14/14、22/22 仍对应旧 Host `97baf29c`。未推送、未发布。
+
+### 2026-10-24 全页可见文案与禁用原因收口（UI-P／G01，PARTIAL）
+
+- 在 04／14／21 术语收敛后补齐余下页面：13 的“评审 rubric”改为“评审准则”；15 唯一命中是资源数据中的专名 `ArcheAxis Core Knowledge`，保留并在扫描中按专名白名单处理；其余 20 页无禁用工程词。
+- 禁用原因：补统一布局提示（锁定／需先打开文档）、学习项目提示、AI 资产按钮说明、量规与评测的待确认/翻页说明、导入停止、受限任务重试/刷新/取消、画布历史/导出/连线取消等；22 页原生扫描 `unexplained_disabled=0`。
+- 全量前端回归：2108 项，**2090 PASS／18 FAIL**，与改动前 `b4588d76` 基线逐文件一致（含 `StyleRuleCoverage` 的 `.stitch-learning-queue-card` 既有缺口），无新增失败。
+- 原生扫描：最终 Host `5193968ed9673154cc0aefe1acfa9d08f13dadd4697857a6286b693e2efc61e8`（47,376,384B），隔离数据根启动，22／22 页面读取；工程词命中 0、未解释禁用项 0、页面错误 0。回执 `.project-local/runs/be268a2d33/ui-token-scan-20261024-06/receipt.json`（69,265B，SHA-256 `bafa557b1693e22b2531bd035188ae73adfbc54825919112f6a931d37f0b9163`）。
+- 边界：只做文案与禁用说明，不改业务规则、权限、API 或布局；不安装、不替换 Green、不做 exact-SHA CI 或 Owner 验收。未推送、未发布。

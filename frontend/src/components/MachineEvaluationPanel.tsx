@@ -132,8 +132,8 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
       {criteria.map((c,i)=><div key={c.criterion_id}><label>准则名称 {i+1}<input value={c.label} onChange={e=>setCriteria(old=>old.map((x,n)=>n===i?{...x,label:e.target.value}:x))}/></label><label>准则预期 {i+1}<textarea value={c.expectation} onChange={e=>setCriteria(old=>old.map((x,n)=>n===i?{...x,expectation:e.target.value}:x))}/></label></div>)}
       <button disabled={criteria.length>=64} onClick={()=>setCriteria(old=>[...old,{criterion_id:crypto.randomUUID(),label:"",expectation:""}])}>增加准则</button>
     </fieldset><button disabled={busy} onClick={()=>void execute("rubric")}>{rubricAttempt.current?"重试同一次准则保存":"登记新量规"}</button>
-      <button disabled={busy||!rubricAttempt.current} onClick={()=>void execute("rubric",true)}>检查待确认的准则保存</button>
-      <button disabled={busy} onClick={()=>void list("rubric")}>读取量规列表</button><button disabled={busy||!rubricCursor} onClick={()=>void list("rubric",true)}>下一页量规</button>
+      <button disabled={busy||!rubricAttempt.current} title={!rubricAttempt.current?"当前没有待确认的准则保存请求":undefined} onClick={()=>void execute("rubric",true)}>检查待确认的准则保存</button>
+      <button disabled={busy} onClick={()=>void list("rubric")}>读取量规列表</button><button disabled={busy||!rubricCursor} title={!rubricCursor?"没有更多量规":undefined} onClick={()=>void list("rubric",true)}>下一页量规</button>
       {rubricRows.map(row=><HistoryRow key={row.document_id} row={row} busy={busy} verb="固定量规" onOpen={v=>void openRubric(row,v)}/>)}
     </section>
     {rubric&&<><p>已选评测准则：{rubric.doc.title} · 第 {rubric.doc.version} 版。</p><RawReceiptButton label="评测准则版本详细信息" category="data" payload={rubric.doc}/></>}
@@ -144,10 +144,10 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
         <label>人工依据 {i+1}<textarea value={judgments[i]?.basis??""} onChange={e=>setJudgments(old=>old.map((j,n)=>n===i?{...j,basis:e.target.value}:j))}/></label></div>)}
     </fieldset>
     <p>整体观察：{judgments.length ? overall(judgments) === "passed" ? "通过" : overall(judgments) === "failed" ? "未通过" : "未测评" : "未测评"}；按固定准则推导，不替人宣称能力。</p>
-    <button disabled={busy||!snapshot||!rubric} onClick={()=>void execute("evaluation")}>{evaluationAttempt.current?"重试同一次评测":"登记人工评测"}</button>
-    <button disabled={busy||!evaluationAttempt.current} onClick={()=>void execute("evaluation",true)}>检查待确认的评测</button>
+    <button disabled={busy||!snapshot||!rubric} title={!snapshot||!rubric?"需要先读取原答案并固定量规":undefined} onClick={()=>void execute("evaluation")}>{evaluationAttempt.current?"重试同一次评测":"登记人工评测"}</button>
+    <button disabled={busy||!evaluationAttempt.current} title={!evaluationAttempt.current?"当前没有待确认的评测请求":undefined} onClick={()=>void execute("evaluation",true)}>检查待确认的评测</button>
     <button disabled={busy||!!evaluationAttempt.current} onClick={()=>{setReviewer("");setBasis("");setJudgments(old=>old.map(j=>({...j,outcome:"unmeasured",basis:""})));setSavedEvaluation("");setMessage("仅清空本地判断；已登记历史不变。");}}>清空本地评测</button>
-    <button disabled={busy} onClick={()=>void list("evaluation")}>读取评测历史</button><button disabled={busy||!evaluationCursor} onClick={()=>void list("evaluation",true)}>下一页评测</button>
+    <button disabled={busy} onClick={()=>void list("evaluation")}>读取评测历史</button><button disabled={busy||!evaluationCursor} title={!evaluationCursor?"没有更多评测":undefined} onClick={()=>void list("evaluation",true)}>下一页评测</button>
     {evaluationRows.map(row=><HistoryRow key={row.document_id} row={row} busy={busy} verb="查看评测" onOpen={v=>void openHistory(row,v)}/>)}
     {historical&&historyValue&&<section aria-label="固定历史评测"><p>历史评测第 {historical.version} 版 · 人工署名：{historyValue.reviewer}</p><p>{historyValue.basis}</p><p>整体结果：{historyValue.outcome === "passed" ? "通过" : historyValue.outcome === "failed" ? "未通过" : "未测评"}</p><ul>{historyValue.judgments.map((j,index)=><li key={j.criterion_id}>准则 {index+1} · {j.outcome === "passed" ? "通过" : j.outcome === "failed" ? "未通过" : "未测评"} · {j.basis}</li>)}</ul><RawReceiptButton label="历史人工评测" payload={historical}/></section>}
   </section>;

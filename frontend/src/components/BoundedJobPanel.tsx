@@ -174,11 +174,11 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     <label>最长等待时间（毫秒）<input type="number" min={1} max={300000} step={1} value={deadline} disabled={locked} onChange={event => setDeadline(event.target.value)} /></label>
     <label><input type="checkbox" checked={split} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setSplit(event.target.checked)} />分段处理媒体</label>
     <label><input type="checkbox" checked={words} disabled={locked || selectedJob?.kind !== "transcribe"} onChange={event => setWords(event.target.checked)} />词级时间</label>
-    <button disabled={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)} onClick={() => void execute(false)}>执行已保存任务</button>
-    <button disabled={!attempt || !uncertain || busy} onClick={() => void execute(true)}>同请求重试</button>
-    <button disabled={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true} onClick={() => void execute(false)}>新请求重试（不等于检查点恢复）</button>
-    <button disabled={!jobId || busy} onClick={() => void refresh()}>刷新实际状态</button>
-    <button disabled={busy || !(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)} onClick={() => void cancel()}>请求取消</button>
+    <button disabled={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)} title={!status || locked || journal.blocked || !!persistedOwner || !["queued", "pending"].includes(status.state)?"需要先选择已保存来源和任务，且没有正在运行的请求":undefined} onClick={() => void execute(false)}>执行已保存任务</button>
+    <button disabled={!attempt || !uncertain || busy} title={!attempt || !uncertain?"当前没有需要同请求重试的任务":undefined} onClick={() => void execute(true)}>同请求重试</button>
+    <button disabled={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true} title={locked || journal.blocked || !!persistedOwner || !status || !["failed", "cancelled"].includes(status.state) || continuation?.new_attempt_eligible_state !== true?"当前状态不允许新请求重试":undefined} onClick={() => void execute(false)}>新请求重试（不等于检查点恢复）</button>
+    <button disabled={!jobId || busy} title={!jobId?"需要先执行或选择一项任务":undefined} onClick={() => void refresh()}>刷新实际状态</button>
+    <button disabled={busy || !(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)} title={!(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)?"当前没有可取消的请求":undefined} onClick={() => void cancel()}>请求取消</button>
     {cancelPending ? <p>取消待确认：继续轮询实际状态。</p> : null}
     {status && status.job_id === jobId && status.input_ref === sourceId ? <FormatQualificationPanel
       key={JSON.stringify([sourceId, sources.find(row => row.source_id === sourceId)?.source_revision, jobId, status.attempt, status.state])}

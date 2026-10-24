@@ -49,7 +49,7 @@ export function LocalDocumentSearch({ onOpenDocument }: { onOpenDocument?: (id: 
         onChange={event => {
           epoch.current++; setQuery(event.target.value); setBusy(false); setResults([]); setSearchedQuery(null); setFailure("");
         }} /></label>
-      <button disabled={busy || !query.trim()}>搜索文档</button>
+      <button disabled={busy || !query.trim()} title={!query.trim()?"请先输入关键词":busy?"搜索进行中":undefined}>搜索文档</button>
     </form>
     {busy ? <p role="status">正在搜索本地文档…</p> : null}
     {failure ? <p role="alert">{failure}</p> : null}

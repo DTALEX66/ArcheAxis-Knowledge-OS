@@ -34,8 +34,9 @@
   "ui": {"host": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf",
          "host_bytes": 47375872, "full_suite_pass": 2090, "full_suite_fail": 18,
          "journey_steps": "14/14", "walk_pages": "22/22",
-         "terminology_host": "9b6c3597c017271c44c8a0233ad7e5cd041a46175b787538a7c6ea07e16088b8",
-         "terminology_native": "04/14/21 PASS; forbidden visible tokens 0; page errors 0",
-         "terminology_receipt": ".project-local/runs/be268a2d33/term-convergence-20261024-05/receipt.json"},
+         "terminology_host": "5193968ed9673154cc0aefe1acfa9d08f13dadd4697857a6286b693e2efc61e8",
+         "terminology_native": "22/22 pages PASS; engineering tokens 0; unexplained disabled 0; page errors 0",
+         "terminology_receipt": ".project-local/runs/be268a2d33/ui-token-scan-20261024-06/receipt.json",
+         "terminology_full_suite": "2108 tests: 2090 PASS / 18 FAIL matched b4588d76 baseline"},
   "boundary": "Frontend slice audit only; not Owner acceptance, installation qualification, Green replacement, CI or cloud inference."
 }

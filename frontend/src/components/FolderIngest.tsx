@@ -447,7 +447,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
     <div>{remaining > 0 ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void runBatch()}>下一批（剩余 {remaining}）</button> : null}
       {manifestPending?<button disabled={busy} onClick={()=>void registerSelection()}>同批次重试登记</button>:null}
       {rows.some(row => row.batch_id===batchId && ["queued", "pending"].includes(row.state)) ? <button disabled={busy || rows.some(row => !!row.attempt)} onClick={() => void executeBatch()}>执行本批次转换</button> : null}
-      <button disabled={!busy} onClick={() => { stopAfter.current = true; setMessage("已请求停止后续处理；当前受理项仍须读回真实状态。"); }}>停止</button>
+      <button disabled={!busy} title={!busy?"当前没有正在处理的导入任务":undefined} onClick={() => { stopAfter.current = true; setMessage("已请求停止后续处理；当前受理项仍须读回真实状态。"); }}>停止</button>
     </div>{message ? <p role="status">{message}</p> : null}
     {rows.length ? <><p aria-label="批次真实统计">{tally(rows)}</p><p>表格可横向滚动查看操作列。</p><div className="folder-ingest-table-scroll" role="region" aria-label="批次明细与操作，可横向滚动" tabIndex={0}><table className="data-table"><thead><tr>{["文件夹内路径","字节","原件","转换结果","说明","操作"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>
       <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保存</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>

@@ -158,7 +158,7 @@ function WorkspaceDockSession(props:Props&{workspaceId:string;epoch:string}){
    <button onClick={()=>action(async()=>{await controller.read();setNotice("已读取已保存的布局；当前视图保留。请确认是否应用。");})}>读取已保存布局</button>
    <button disabled={locked} onClick={()=>action(()=>{if(controller.snapshot){apply(controller.snapshot.layout);setNotice("已应用保存的布局；草稿和任务保留。");}})}>应用已保存布局</button>
    <button disabled={locked} onClick={()=>action(async()=>{const recovered=await controller.recover(Math.max(320,window.innerWidth),Math.max(240,window.innerHeight));apply(recovered.layout);})}>确认布局恢复</button>
-  </div><p role="status">{controller.status} · 关闭面板仅关闭视图；草稿与已提交任务保留。</p></details>
+  </div>{locked?<p className="muted">布局已锁定；解锁后可调整面板。</p>:!(view.initialDocumentId??working?.state.active_document)?<p className="muted">并排打开需要先打开一份文档。</p>:null}<p role="status">{controller.status} · 关闭面板仅关闭视图；草稿与已提交任务保留。</p></details>
   {notice?<p role="alert">{notice}</p>:null}
   {compactFallback?<p role="status">当前面板空间不足，已改为标签视图；空间足够时恢复分栏，已保存布局与草稿保留。</p>:null}
   {controller.snapshot?.recovery_reason?<p role="alert">布局需要确认恢复。请展开“布局与面板”核对并确认恢复。</p>:null}
