@@ -1603,3 +1603,12 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 01真实b999安装0、五旧件备份通过，首件替换前因File.Replace空backup参数失败，0overlay、Host未启，原FAIL保留。02只修same-directory明确backup参数，实际五件overlay及19,742manifest全PASS；driver readiness前退出、Host未启，业务NOT_EXECUTED，未执行uninstall，随后精确stop0残留。旧成功guest使用app-local VCRUNTIME140 sidecar；02未记录driver退出码，缺依赖仍不能当本轮已证实根因。
 - 03复用成熟dependency.prepare同路径A/B及wrapper的输入已准备，但Sandbox ownership bootstrap出现Cancelled／null array，安装器／overlay未证，Host未启。PID37672按creation／exe／精确本run配置命令行二次确认后只停止此PID，identity消失、wsb0。原错误与精确停止证据保留；不再启动第四个VM。root核三终态引用、五旧preimage独立备份、五新hash记录与cleanup；见verification.installed_component_delta_2e705。
 - Green精确五件事务及独立ownership备份／回退已准备，原4和10合成测试／2项label窄检各保留，最终schema-only对齐未重复测试。root审阅bounded gate／写入／回退；实际gate保持PENDING，Green未更新、未启动、未读写真实数据／配置。旧5822稳定程序保留，最新2e源码／构建／原生负路径与安装态Host资格分列；真实云由Owner延后，不以选择模型阻塞首版，整体仍PARTIAL。见verification.green_five_member_preparation_2e705。
+
+
+### 2026-10-24 AI人工评审保存闭环修复与安装工具停滞（CL-01／CL-07／J4／J6，整体PARTIAL）
+
+- 按Owner本地模型优先、云端专业接口决定继续落地，不新增provider选择或真实云调用门槛。修复AI评审failed／unmeasured不能明确保存、普通保存丢临时评审的问题；保留人工依据及固定asset/rubric快照，已保存passed重开可明确采用，内容修改失效，ACK核对清临时状态。仅2源码文件提交b2fdb4b3；20组件／类型检查PASS，原选择器FAIL保留。见verification.ai_asset_manual_review_persistence_b2。
+- 真实前端typecheck/Vite＋Host增量构建PASS，新Host12b1cd09；沿用Core2e fd620735／manifest13d11c65，不重编Core、不重拷整runtime。root核30引用及旧Host备份。新Host实际桌面通过三态评审UI保存、正常重启完整DTO及诊断读回、负向不能采用、passed明确采用保留原快照；2次Host exit0、端口释放。合成内容的真实Core工程验收，不代表模型／语义质量或安装／Owner；3次runner fixture／XPath FAIL保留。见verification.ai_review_frontend_host_build_b2及ai_review_native_three_outcomes_b2。
+- 安装04是单次官方CLI exact-ID环境，已进入实际Host/driver session；发现独立reader缺ExecuteScript args并修副本，但随后guest调度／exec／重连停滞，不能完成安装业务，停止请求及最终残留只按recovery-terminal.json记账，不假称正常Host退出或卸载。未开后继VM／重装／杀系统服务。b2 Green五成员入口只读准备与pending拒绝检查完成，未更新日常Green，旧5822保留；原03与所有失败保留。见verification.installed_component_recovery04_tooling及green_five_member_preparation_b2。
+
+- 04清理最后观测：STOP_REQUESTED_NOT_CONFIRMED；exact Sandbox ID `25d4901b-a537-4907-b32b-69ece22e8d85` 仍在（1个），官方stop client PID25004请求已发、未确认结束。8项CAS/config hash保全，DB/SHM/WAL因锁UNVERIFIED；初始11文件克隆已核。不得宣称0VM、正常Host退出或卸载完成；不自动开新VM、重装或改服务。

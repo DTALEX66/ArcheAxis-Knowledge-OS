@@ -1896,6 +1896,93 @@
       },
       "scope": "Exact5 Green program transaction plus ownership, original4 and10 synthetic cases and2label checks separately preserved; latest schema-only alignment NOT_RETESTED. Root reviewed bounded write/rollback design; no Green program/data/config writes or startup.",
       "boundary": "PENDING gate intentionally rejects current installed FAIL. Historical Green5822 unchanged; prep is not deployed product."
+    },
+    "ai_asset_manual_review_persistence_b2": {
+      "status": "PASS_COMPONENT20_TYPECHECK_AND_COMMITTED_SOURCE",
+      "source_commit": "b2fdb4b30307eb88197f22313e95bb2503f475b8",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ai-review-patch-20261024/artifacts/final-verification.json",
+        "bytes": 2199,
+        "sha256": "1b362189ff645c94a247a70ff9bb87459e95f78e0d68a473d1ae0b9583df353a"
+      },
+      "scope": "Explicit failed/unmeasured/passed manual-review save retains candidate and exact asset/rubric snapshots; ordinary save cannot silently discard transient review. Reopened saved passing review can be explicitly adopted; semantic edits invalidate it; frozen ACK reconciliation clears transient review.",
+      "boundary": "20 component cases (11 prior plus9 new) and typecheck; original selector failures preserved. No model-quality truth or automatic AI authorization."
+    },
+    "ai_review_frontend_host_build_b2": {
+      "status": "PASS_ACTUAL_FRONTEND_AND_HOST_INCREMENTAL_COMPONENT_BUILD",
+      "source_commit": "b2fdb4b30307eb88197f22313e95bb2503f475b8",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ai-review-host-20261024-01/artifacts/host-component-binding.json",
+        "bytes": 14051,
+        "sha256": "efef24e5462d572032a7d7147f37ce63cdd939c4b0d5caa817a39fb125f6aa70"
+      },
+      "pins": {
+        "path": ".project-local/runs/be268a2d33/ai-review-host-20261024-01/artifacts/candidate-pins.json",
+        "bytes": 10765,
+        "sha256": "b725ba240e917862c71a007c85be5b75d88e931458fa4f2645249cebf665d691"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/ai-review-host-20261024-01/artifacts/root-independent-readback.json",
+        "bytes": 912,
+        "sha256": "dbd6a1ab9e16078ba6969e36ba62e9387d7756344bb7ebaa6245baa6ed65c2c5"
+      },
+      "scope": "Actual typecheck/Vite and incremental Host build, Host12b1cd09. Core2e705fe4 fd620735 and manifest13d11c65 unchanged; no Core rebuild/runtime stage or full-runtime recopy. Independent old2e Host archive retained.",
+      "boundary": "Component lineage; original whole5822 installer/portable identities remain fixed, no new whole candidate or installation qualification inferred."
+    },
+    "ai_review_native_three_outcomes_b2": {
+      "status": "PASS_REAL_NATIVE_THREE_OUTCOMES_COLD_REOPEN_AND_EXPLICIT_ADOPTION",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/ai-review-native-20261024-04/artifacts/parent-review.json",
+        "bytes": 957,
+        "sha256": "a64e19b992e6e21265adba650753517351b232c257bf706e68b19bc1edf1eaf5"
+      },
+      "native_receipt": {
+        "path": ".project-local/runs/be268a2d33/ai-review-native-6b177cdda63d/tmp/journey/receipt.json",
+        "bytes": 97922,
+        "sha256": "9eb866082bd4bfc5eb953559a2e0e72575a9c1162c93bc43fc0e8e17a5c90876"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/ai-review-native-20261024-04/artifacts/root-independent-readback.json",
+        "bytes": 668,
+        "sha256": "bae282f6e8788dc286882284b09b49ee93d6a8744a8830571b9da26707983bff"
+      },
+      "failure_and_runner_index": {
+        "path": ".project-local/runs/be268a2d33/ai-review-native-prep-20261024-01/artifacts/final-summary.json",
+        "bytes": 6048,
+        "sha256": "3a77569bd9538eca2fef3ca32dd05cd65f543ca28329b87bd75a8d6d0cb2e5fa"
+      },
+      "scope": "Real Tauri/Core with three synthetic authored assets: save every outcome through UI, ordinary save preserves pending review, normal cold reopen reads exact DTOs/diagnostic snapshots; negative outcomes cannot adopt; passing review explicitly adopted without rebinding old snapshot. Two normal Host exits0 and owned ports released.",
+      "boundary": "Synthetic authored fixtures verify engineering, not independent semantic quality, model inference, installed or Owner acceptance. First3 runner fixture/XPath failures retained."
+    },
+    "installed_component_recovery04_tooling": {
+      "status": "PARTIAL_TOOLING_STALLED_NOT_INSTALLED_BUSINESS_PASS",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-component-recovery-20261024-04/recovery-terminal.json",
+        "bytes": 3878,
+        "sha256": "fd5850e864b88df7994a981b611cfed5a376a2f502267ffa7a35ea56d364ee84"
+      },
+      "scope": "One official CLI explicit-ID Sandbox startup/connect, actual single installation and driver/Host session initialization. Reader omitted required ExecuteScript args; corrected separate reader retained. Subsequent guest/exec/remote reconnect stalled; stop/cleanup status must be read from exact terminal.",
+      "boundary": "No completed installed Host business readback, no b2 installed overlay qualification, no normal guest Host exit/uninstall inferred. Never reuse original03 evidence as04 or treat environment stall as established product root cause.",
+      "cleanup_observation": {
+        "status": "STOP_REQUESTED_NOT_CONFIRMED",
+        "sandbox_id": "25d4901b-a537-4907-b32b-69ece22e8d85",
+        "remaining_count": 1,
+        "stop_client_pid": 25004,
+        "sqlite_snapshot": "UNVERIFIED_LOCKED",
+        "host_normal_exit": "UNKNOWN_NOT_OBSERVED",
+        "uninstall": "NOT_EXECUTED",
+        "no_automatic_retry_or_new_vm": true
+      }
+    },
+    "green_five_member_preparation_b2": {
+      "status": "PREPARED_NOT_APPLIED_INSTALLED_QUALIFICATION_PENDING",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/ai-review-green-prep-20261024-01/preparation.json",
+        "bytes": 6849,
+        "sha256": "461f4e138283b89a177b4a16eb3a7232251b13572caaefebc0f81e8f8b5e0f8e"
+      },
+      "scope": "Readonly exact5-member preview for b2 Host plus retained2e Core/launcher/worker/manifest;19739 owned members unchanged. Pending gate refuses apply, rollback/startup reuse prepared.",
+      "boundary": "Daily Green remains historical5822; no program replacement, real data opening or Owner acceptance."
     }
   },
   "cleanup": {
@@ -2010,7 +2097,8 @@
     "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native03 exact XLSX material-binding component PASS separately in verification.reader_material_pin_native_7525_run03; installed/Green remain5822 and have not received this source fix.",
     "0410865 readable-failure Host/native component PASS; full candidate/installer/Green remain5822. Real-provider inference deferred by Owner; representative quality/Owner acceptance remain unproven; no whole-loop completion inferred.",
     "Cloud product credential-ref source and refreshed2e705fe4 Core/Host/worker/launcher runtime components PASS. Native, installed and Green qualification is recorded separately; real provider inference remains deferred by Owner, not a finite-first-release blocker.",
-    "Current2e installed run02 actual b999 install,5-member overlay and19742 full-manifest PASS; installed Host/readback NOT_EXECUTED due driver tooling.03 Sandbox bootstrap CANCELLED/ownership helper failed; exact orphan stopped,0VM. Green5update PENDING_NOT_APPLIED; old5822 remains. Do not repeat full installation or infer product failure/root cause from tooling failures; restore reliable same-owned-guest tool channel before next bounded installed Host readback."
+    "Current2e installed run02 actual b999 install,5-member overlay and19742 full-manifest PASS; installed Host/readback NOT_EXECUTED due driver tooling.03 Sandbox bootstrap CANCELLED/ownership helper failed; exact orphan stopped,0VM. Green5update PENDING_NOT_APPLIED; old5822 remains. Do not repeat full installation or infer product failure/root cause from tooling failures; restore reliable same-owned-guest tool channel before next bounded installed Host readback.",
+    "AI manual-review persistence sourceb2/20components/typecheck/actual frontend+Host build/native3outcomes+coldreopen PASS. Installed04 guest tooling stalled after session initialization; exact stop/cleanup state is in verification.installed_component_recovery04_tooling receipt. No new VM or reinstallation automatically started. Green remains5822; real cloud deferred by Owner, representative quality/Owner/hosted CI remain separate."
   ],
   "receipts": {
     "qualified_build": {
@@ -2979,7 +3067,7 @@
     "explanation": "Required closure-machine and reader-inspector behavior already exists; glass changes equivalent, Avalonia superseded, ASTRYN optional scope frozen. Decision is usefulness-based, not missing merge authorization.",
     "boundary": "Committed branch HEAD95b matches readback; dirty source/evidence NOT_PUBLISHED. No new commit/push/merge/CI inferred."
   },
-  "source_after_current_candidate": "Current2e705fe4 Core/Host and worker/launcher/runtime component closure built and pinned separately. Historical whole5822 portable/installer identities remain fixed; native/installed/Green qualifications are recorded by their own verification entries, not inferred from source or build.",
+  "source_after_current_candidate": "Currentb2fdb4b3 frontend/Host component built and real native manual-review save/reopen qualified; Core/runtime retained exact2e705fe4. Whole5822 installer/Green identities remain historical fixed. New installed attempt04 is tooling-stalled, not business PASS; Green update stays pending.",
   "delivery_readback_20261024": {
     "code_checkpoint_sha": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
     "remote_branch_sha": "95b463c12dbd40744b43039add69c48ceaeba94e",
@@ -3014,7 +3102,7 @@
     "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
     "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
   ],
-  "latest_observed_at": "2026-10-24T01:15:24.511907+00:00",
+  "latest_observed_at": "2026-10-24T01:42:05.170800+00:00",
   "owner_model_delivery_override": {
     "id": "OWNER-LOCAL-FIRST-USABLE-RELEASE-20261024",
     "date": "2026-10-24",
