@@ -16,11 +16,6 @@
   "evidence_retention_20261024": {
     "authority": "reports/full-audit-20261024/reference-resolution.json",
     "finding": "The three governance-assessment entries under .project-local/runs/f714401b40/ are historical 2026-10-09 outputs whose run root is no longer retained. The recorded SHA-256 values remain as trace metadata; no current execution, receipt or acceptance path depends on their bytes.",
-    "paths": [
-      ".project-local/runs/f714401b40/ui-learning-stage-20261009/governance-assessment/H01-ASSESSMENT.md",
-      ".project-local/runs/f714401b40/ui-learning-stage-20261009/governance-assessment/assessment.json",
-      ".project-local/runs/f714401b40/ui-learning-stage-20261009/governance-assessment/file-evidence.json"
-    ],
     "status": "HISTORICAL_NOT_RETAINED_NO_CURRENT_DEPENDENCY"
   },
   "input_bindings": {

@@ -1715,7 +1715,7 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 ### 2026-10-24 引用解析、归档核验与目录权威修订（G01／CL-08 补正）
 
 - 目录权威：`DIRECTORY_AUTHORITY.yaml` 已按 SUP-022 将 `frontend/**` 归入 `frontend-host`、`src-tauri/**` 归入 `tauri-host`，并从 legacy 强制规则移除；`scripts/check_path_conventions.py --measure` 显示 5,702 条跟踪路径 100% 有归属、0 unowned/ambiguous（提交本轮索引后 5,703）。
-- 引用解析：4,953 条可解析 `.project-local` 引用中 2,378 条存在、2,575 条历史缺失。历史缺失已全部分类：授权清理的临时运行目录 1,897、归档 ZIP 478、授权删除根 67、归档目录 56、共享压缩 recipe 39、Record 登记 10、历史日志/草稿未保留 28。current 文档仅 7 条历史切片（6 条已清理运行目录、1 条归档 ZIP），均已就地标注；**当前证据断点 0**，6/6 当前关键回执哈希通过。
+- 引用解析：4,959 条可解析 `.project-local` 引用中 2,384 条存在、2,575 条历史缺失。历史缺失已全部分类：授权清理的临时运行目录 1,781、归档 ZIP 478、授权删除根 67、归档目录 173、共享压缩 recipe 39、Record 登记 10、历史日志/草稿未保留 27。current 文档仅 7 条历史切片（6 条已清理运行目录、1 条归档 ZIP），均已就地标注；**当前证据断点 0**，6/6 当前关键回执哈希通过。
 - 归档核验：实际打开 52 个 ZIP / 1,907 个成员、745 个归档目录文件、20 份 MANIFEST；恢复并逐哈希校验 `conversation-summary-20261010`（原 ZIP + 3 成员）、`dot-cloud-audit-20261011`（162 成员）、`installers-0.5.0-20261015`（2 安装包，Git blob `8fc22a40`），并实测 1 个共享压缩 recipe 重建（390,210,198B，SHA-256 匹配）。回执：`.project-local/runs/be268a2d33/reference-recovery-20261024/receipt.json`。截断容器 `AAOS_UI_前端更新任务包_20261009.zip` 沿用既有废弃标记，不计为新增断链。
 - 修正上一节表述：“39.8% 历史引用失效”是路径分类结果，不是当前证据链断裂；`DIRECTORY_AUTHORITY.yaml` 冲突已修订。报告与 `metrics.json` 已同步为“当前断点 0”，并新增 `reference-resolution.json` 逐条索引；`docs/history/record-archive-20261009/INDEX.md` 增加简短说明。
 - 未推送、未发布、未替换 Green；安装态仍被沙盒 VM 阻塞。
@@ -1732,5 +1732,5 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 在 04／14／21 术语收敛后补齐余下页面：13 的“评审 rubric”改为“评审准则”；15 唯一命中是资源数据中的专名 `ArcheAxis Core Knowledge`，保留并在扫描中按专名白名单处理；其余 20 页无禁用工程词。
 - 禁用原因：补统一布局提示（锁定／需先打开文档）、学习项目提示、AI 资产按钮说明、量规与评测的待确认/翻页说明、导入停止、受限任务重试/刷新/取消、画布历史/导出/连线取消等；22 页原生扫描 `unexplained_disabled=0`。
 - 全量前端回归：2108 项，**2090 PASS／18 FAIL**，与改动前 `b4588d76` 基线逐文件一致（含 `StyleRuleCoverage` 的 `.stitch-learning-queue-card` 既有缺口），无新增失败。
-- 原生扫描：最终 Host `5193968ed9673154cc0aefe1acfa9d08f13dadd4697857a6286b693e2efc61e8`（47,376,384B），隔离数据根启动，22／22 页面读取；工程词命中 0、未解释禁用项 0、页面错误 0。回执 `.project-local/runs/be268a2d33/ui-token-scan-20261024-06/receipt.json`（69,265B，SHA-256 `bafa557b1693e22b2531bd035188ae73adfbc54825919112f6a931d37f0b9163`）。
+- 原生扫描：最终 Host `b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb`（47,376,384B），隔离数据根启动，22／22 页面读取（页 16 额外打开“互通资格”页签）；工程词命中 0、未解释禁用项 0、页面错误 0；页 16 状态已显示“部分完成／尚未执行”。回执 `.project-local/runs/be268a2d33/ui-token-scan-20261024-07/receipt.json`（69,311B，SHA-256 `871646a24b4a670237622da3db2a3c1c9d707d97bc12c60a61200d025bc0d9eb`）。
 - 边界：只做文案与禁用说明，不改业务规则、权限、API 或布局；不安装、不替换 Green、不做 exact-SHA CI 或 Owner 验收。未推送、未发布。

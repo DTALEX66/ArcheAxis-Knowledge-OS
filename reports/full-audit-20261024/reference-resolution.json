@@ -3,29 +3,29 @@
   "verdict": {
     "current_operational_break": 0,
     "historical_explained": 2575,
-    "historical_unretained": 28,
+    "historical_unretained": 27,
     "conclusion": "No current receipt or runnable path depends on a missing reference; historical references resolve to archives, recipes, docs mirrors, restorations or authorized cleanups."
   },
   "archives_checked": {
     "zip_files": 52,
     "zip_bytes": 1655202687,
     "zip_members": 1907,
-    "archive_files": 745,
+    "archive_files": 752,
     "manifests_parsed": 20,
     "broken_zip": "record-20261009/originals/Record/AAOS_UI_前端更新任务包_20261009.zip (documented truncated container, superseded)"
   },
-  "real_refs": 4953,
-  "existing": 2378,
+  "real_refs": 4959,
+  "existing": 2384,
   "missing_total": 2575,
   "class_counts": {
-    "CLEANED_TRANSIENT": 1897,
+    "CLEANED_TRANSIENT": 1781,
     "ARCHIVED_ZIP_ARTIFACT": 276,
+    "ARCHIVED_DIRECTORY": 173,
     "ARCHIVED_ZIP_BASENAME_ONLY": 102,
     "ARCHIVED_ZIP_MEMBER": 100,
     "CLEANED_AUTHORIZED": 67,
-    "ARCHIVED_DIRECTORY": 56,
     "COMPACT_RECIPE_RESTORABLE": 39,
-    "HISTORICAL_NOT_RETAINED": 28,
+    "HISTORICAL_NOT_RETAINED": 27,
     "MANIFEST_RECORD": 10
   },
   "class_by_era": {
@@ -40,14 +40,14 @@
       "ARCHIVED_ZIP_ARTIFACT": 1
     },
     "history": {
-      "CLEANED_TRANSIENT": 1756,
+      "CLEANED_TRANSIENT": 1640,
       "ARCHIVED_ZIP_ARTIFACT": 275,
+      "ARCHIVED_DIRECTORY": 172,
       "ARCHIVED_ZIP_MEMBER": 100,
       "ARCHIVED_ZIP_BASENAME_ONLY": 81,
       "CLEANED_AUTHORIZED": 67,
-      "ARCHIVED_DIRECTORY": 55,
       "COMPACT_RECIPE_RESTORABLE": 39,
-      "HISTORICAL_NOT_RETAINED": 26,
+      "HISTORICAL_NOT_RETAINED": 25,
       "MANIFEST_RECORD": 10
     }
   },
@@ -309,8 +309,8 @@
     },
     {
       "ref": ".project-local/runs/7d522a2a69/webdriver-426c16909fb6/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/handoff-20261016/AAOS-AGENT-HANDOFF-before-surface-checkpoint.md"
     },
@@ -1128,8 +1128,8 @@
     },
     {
       "ref": ".project-local/mig/green-candidate-expanded-dedupe-20260929/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "migration scratch output",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/storage-cleanup/2026-09-29/green-candidate-expanded-dedupe-20260929.md"
     },
@@ -2304,8 +2304,8 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/npm-path-probe/8e3371726cd3/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2388,8 +2388,8 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/real-webview-relative6-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2402,22 +2402,22 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/real-template-roundtrip4-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/real-template-restart-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/codex-ui-governance-20261009/artifacts/aq27-runtime-proof/retry-native-prefix/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2444,15 +2444,15 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/native-matrix-ui-final-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/webdriver-445c713e3f75/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2486,29 +2486,29 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/native-matrix-ui-repaired-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/real-template-ui-final-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/real-template-ui-final-restart-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/webdriver-e6e1b654d9e2/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2521,15 +2521,15 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/ui-performance-current-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/native-ui-recovery-motion2-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2563,15 +2563,15 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/webdriver-f2bad433ad4a/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/formal-portable-marker2-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2591,29 +2591,29 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/webdriver-141213df9e21/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/course-worker-overlay-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/webdriver-17c249cc0b90/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/webdriver-8a1ae8a5660c/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2633,15 +2633,15 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/template-pagination-core3-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
     {
       "ref": ".project-local/runs/f714401b40/template-pagination-bridge2-20261009/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-UI-HANDOFF-20261008.md"
     },
@@ -2696,15 +2696,15 @@
     },
     {
       "ref": ".project-local/runs/2611ed9ca1/5b636d35150b/artifacts/same-source-course-search/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-INDEPENDENT-AUDIT-20261003.md"
     },
     {
       "ref": ".project-local/runs/2611ed9ca1/485a2c015f37/artifacts/same-source-course-search/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-INDEPENDENT-AUDIT-20261003.md"
     },
@@ -2759,8 +2759,8 @@
     },
     {
       "ref": ".project-local/runs/7d522a2a69/webdriver-426c16909fb6/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS-REPOSITORY-CONTINUITY-20261012.md"
     },
@@ -4397,8 +4397,8 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-ui-performance/8920b7e9657f4c5bb834377df2ac3dd4/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     },
@@ -4453,15 +4453,15 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-webdriver/5d1c04b6eb9a426d8b724e1af1d05869/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     },
     {
       "ref": ".project-local/task-runtime/aaos01-webdriver/b58a82686e0a4a7a83e43b23b1662e26/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     },
@@ -4502,29 +4502,29 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-light/76c8d51443054987a0d0d1de45a5b42d/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     },
     {
       "ref": ".project-local/task-runtime/aaos01-webdriver/ef6f08dfe874489fb0ed3eb734deaa1d/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     },
     {
       "ref": ".project-local/task-runtime/aaos01-office/93fd87f7648840e1940021ca99f1db95/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     },
     {
       "ref": ".project-local/task-runtime/aaos01-ci/37277234733-1/office/38bc0fb8b7554b82b132075d2c37abc1/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     },
@@ -4537,8 +4537,8 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-cim-auth-local/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/AAOS01-Q00-Q15-LEDGER-FINAL-20261005.md"
     },
@@ -5041,8 +5041,8 @@
     },
     {
       "ref": ".project-local/wi/.project-local/task-runtime/aaos01-webdriver/b58a82686e0a4a7a83e43b23b1662e26/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "one-off working dir",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/M0-DIRECTION-OVERRIDE-20260920.md"
     },
@@ -5706,8 +5706,8 @@
     },
     {
       "ref": ".project-local/runs/green-candidate-audit-20260916/artifacts/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/R5-EXECUTION.md"
     },
@@ -5825,8 +5825,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/deeptutor-live-custody-20260918/artifacts/deeptutor-notebook/bbe13f0d405e42b8a2c8272038df5299/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/R5-EXECUTION.md"
     },
@@ -6791,8 +6791,8 @@
     },
     {
       "ref": ".project-local/artifacts/evidence/ui-branch-rust-all-gates-20261008/receipt.json",
-      "kind": "HISTORICAL_NOT_RETAINED",
-      "evidence": "historical-only path no longer retained; no current dependency",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/R6-EXECUTION.md"
     },
@@ -6966,8 +6966,8 @@
     },
     {
       "ref": ".project-local/runs/7d522a2a69/webdriver-426c16909fb6/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/navigation-before/docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
@@ -7155,8 +7155,8 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/ui-ai-stage-20261010/asset-model-probe/attempt-20261009T210941Z-093d5c/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-AI-STAGE-20261010.json"
     },
@@ -7169,15 +7169,15 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/closedloop-integration-20261011/speech-a2/task-runtime/common-asr-assets/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-ASR-ASSET-ACTUAL-PROGRESS-20261011.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/closedloop-integration-20261011/speech-a2/task-runtime/ci-ffmpeg/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-ASR-ASSET-ACTUAL-PROGRESS-20261011.json"
     },
@@ -7344,8 +7344,8 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/ui-canvas-stage-20261010/core-process-probe/attempt-20261009T180026Z-d67000/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CANVAS-STAGE-20261010.json"
     },
@@ -7414,8 +7414,8 @@
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-381a50a8b98f/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json"
     },
@@ -7477,15 +7477,15 @@
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-e448c9e18a98/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json"
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-528d93811169/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CHARACTER-MEMORY-NATIVE-20261015.json"
     },
@@ -7694,8 +7694,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/closedloop-integration-20261011/qualification-282/content-policy/f97df0b398914e1f8cfa9dbe3d027313/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CLOSED-LOOP-CONTINUATION-20261011.json"
     },
@@ -8156,8 +8156,8 @@
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-464e0216755c/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json"
     },
@@ -8170,8 +8170,8 @@
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-3b66db27e99a/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONFIGURATION-PLANS-20261015.json"
     },
@@ -8198,22 +8198,22 @@
     },
     {
       "ref": ".project-local/runs/7d522a2a69/webdriver-acef40d9fe43/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json"
     },
     {
       "ref": ".project-local/runs/7d522a2a69/webdriver-ea9a6798b397/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json"
     },
     {
       "ref": ".project-local/runs/7d522a2a69/webdriver-426c16909fb6/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-CONVERSATION-CLOSURE-20261013.json"
     },
@@ -8618,8 +8618,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/closedloop-integration-20261011/installed-fc/runs/fd2a08c715/webdriver-e04b39d646ef/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-FC-CI-INSTALLED-QUALIFICATION-20261011.json"
     },
@@ -8681,15 +8681,15 @@
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/installed-ci-diagnosis-1016/artifacts/runs/fd2a08c715/webdriver-1fabc57d9118/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-GLASS-CI-REPAIR-20261016.json"
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-731f4f97178f/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-GLASS-INTEGRATED-NATIVE-20261015.json"
     },
@@ -8905,8 +8905,8 @@
     },
     {
       "ref": ".project-local/tmp/ci-38798080182-installed/runs/fd2a08c715/webdriver-06144174dbf2/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "temporary working directory",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-INSTALLED-EXIT-TRANSPORT-20261016.json"
     },
@@ -8975,8 +8975,8 @@
     },
     {
       "ref": ".project-local/tmp/ci-38790450859-installed/runs/fd2a08c715/webdriver-93f20499ffe5/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "temporary working directory",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-INTEGRATION-CI-REPAIR-20261016.json"
     },
@@ -9031,8 +9031,8 @@
     },
     {
       "ref": ".project-local/runs/4e215f9ac8/webdriver-04f3cf05f768/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json"
     },
@@ -9052,22 +9052,22 @@
     },
     {
       "ref": ".project-local/runs/4e215f9ac8/webdriver-5dc65b2eddcb/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json"
     },
     {
       "ref": ".project-local/runs/4e215f9ac8/webdriver-46d605dc45fb/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json"
     },
     {
       "ref": ".project-local/runs/4e215f9ac8/webdriver-a3fd6179fab0/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-LEARNING-DRAFT-NATIVE-20261015.json"
     },
@@ -9297,8 +9297,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-1dcc0980bce0/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-MACHINE-ACK-RECOVERY-20261012.json"
     },
@@ -9346,8 +9346,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-e53abf84cbf8/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-MACHINE-RESTORE-NATIVE-20261012.json"
     },
@@ -9423,15 +9423,15 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-ffdf9a654f76/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-MULTI-MACHINE-RECOVERY-20261012.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-7cae664a1b80/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-MULTI-REVIEW-NATIVE-20261012.json"
     },
@@ -9451,15 +9451,15 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-473ddd0813ca/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-27B-APPLICATION-20261012.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-d48fb2b8b572/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-ACTUAL-AI-CHAIN-20261011.json"
     },
@@ -9472,8 +9472,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-54e3ba06952e/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-ACTUAL-AI-DIAGNOSTICS-20261012.json"
     },
@@ -9486,8 +9486,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-25003f3fe9e7/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-ACTUAL-AI-REFRESH-20261012.json"
     },
@@ -9500,8 +9500,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-df5a0dbac94d/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-COMPATIBILITY-LOOP-20261011.json"
     },
@@ -9514,8 +9514,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-f98d79eeb815/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-COMPATIBILITY-REFRESH-20261011.json"
     },
@@ -9535,8 +9535,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-dfef7e767487/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-INVENTORY-CLEANUP-20261012.json"
     },
@@ -9549,8 +9549,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-9058ca0c19e2/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-LOCAL-TRANSPORT-20261012.json"
     },
@@ -9563,8 +9563,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-1d247c4c47d6/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-MACHINE-JOURNAL-20261012.json"
     },
@@ -9584,8 +9584,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-7971a9cc0626/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-MODEL-CONFIGURATION-20261012.json"
     },
@@ -9598,8 +9598,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-93238de29428/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-MODEL-INVENTORY-20261012.json"
     },
@@ -9612,8 +9612,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-aac952b5b2db/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-MODEL-METERING-20261012.json"
     },
@@ -9626,8 +9626,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-97c2bb10f140/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-MODEL-RESPONSE-BOUNDARY-20261012.json"
     },
@@ -9640,8 +9640,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-92f32dd16f1a/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-MODEL-SELECTION-20261012.json"
     },
@@ -9661,8 +9661,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-1ae2b4e65355/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-POINTER-NAVIGATION-20261012.json"
     },
@@ -9675,15 +9675,15 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-59b324851a0e/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-REVIEW-ACK-FULL-LOOP-20261012.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-132cc461ee71/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-NATIVE-REVIEW-ACK-RECOVERY-20261012.json"
     },
@@ -10123,8 +10123,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-7ac9dc0fa967/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-PRIOR-EPOCH-REVIEW-NATIVE-20261012.json"
     },
@@ -10151,8 +10151,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-efd5156ed68c/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REASONING-ONLY-ANSWER-REFUSAL-20261011.json"
     },
@@ -10186,8 +10186,8 @@
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-e7c8da00e492/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-RECOVERY-AND-DOCK-20261016.json"
     },
@@ -10256,8 +10256,8 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/ui-research-stage-20261010/core-process-probe/attempt-20261009T191118Z-6aec43/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-RESEARCH-STAGE-20261010.json"
     },
@@ -10417,8 +10417,8 @@
     },
     {
       "ref": ".project-local/runs/f714401b40/ui-resources-stage-20261010/candidate-supply/attempt-20261009T224512Z-e7a6a1/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-RESOURCES-STAGE-20261010.json"
     },
@@ -10480,8 +10480,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-48350ebe84f6/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-REVIEW-SUCCESS-READBACK-NATIVE-20261012.json"
     },
@@ -10564,8 +10564,8 @@
     },
     {
       "ref": ".project-local/tmp/ci-38798080182-installed/runs/fd2a08c715/webdriver-06144174dbf2/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "temporary working directory",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-SURFACE-INTEGRATION-20261016.json"
     },
@@ -10669,8 +10669,8 @@
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-ef90fff8e571/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-TEACHING-DRAFT-NATIVE-PROBE-20261016.json"
     },
@@ -10858,8 +10858,8 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-e0b5ee03c424/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-CITATION-PREVIEW-20261011.json"
     },
@@ -10991,50 +10991,50 @@
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-141327070bdb/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-FORMAT-CONVERSION-20261011.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-46d33e2e1136/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-FORMAT-REPARSE-20261011.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-8e727bfb461b/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-ORIGINAL-IMPORT-20261011.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-f93e00fd1eb9/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-ORIGINAL-PARTIAL-CITATIONS-20261011.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-986a5967da0b/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-ORIGINAL-TEXT-CITATIONS-20261011.json"
     },
     {
       "ref": ".project-local/runs/be268a2d33/webdriver-61282dd344f9/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-UI-STRUCTURE-CITATIONS-20261011.json"
     },
     {
       "ref": ".project-local/runs/ba8e5e5614/webdriver-e7c8da00e492/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-VIDEO-HEALTH-CONTRACT-20261016.json"
     },
@@ -11082,22 +11082,22 @@
     },
     {
       "ref": ".project-local/tmp/ci-38804704425-installed/runs/fd2a08c715/webdriver-694b22d5f07f/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "temporary working directory",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
     },
     {
       "ref": ".project-local/tmp/ci-38804704425-installed/runs/fd2a08c715/webdriver-8b60d46a1b2b/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "temporary working directory",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
     },
     {
       "ref": ".project-local/tmp/ci-38804704425-installed/runs/fd2a08c715/webdriver-c9c273197af1/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "temporary working directory",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/repository-consolidation-20261019/current/receipts/AAOS-WORKBENCH-READY-CHECKPOINT-20261016.json"
     },
@@ -15268,8 +15268,8 @@
     },
     {
       "ref": ".project-local/runs/7d522a2a69/webdriver-426c16909fb6/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/navigation-before/docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
@@ -15296,8 +15296,8 @@
     },
     {
       "ref": ".project-local/runs/7d522a2a69/webdriver-426c16909fb6/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-handoff-snapshot-reader/navigation-at-observation/docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
     },
@@ -16108,8 +16108,8 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-office/**/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -16150,8 +16150,8 @@
     },
     {
       "ref": ".project-local/task-runtime/ci-ffmpeg/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -16164,8 +16164,8 @@
     },
     {
       "ref": ".project-local/task-runtime/ci-ffmpeg/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -16213,8 +16213,8 @@
     },
     {
       "ref": ".project-local/task-runtime/common-asr-assets/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -16234,8 +16234,8 @@
     },
     {
       "ref": ".project-local/task-runtime/ci-ffmpeg/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -16248,36 +16248,36 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-content-policy/**/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
     {
       "ref": ".project-local/task-runtime/aaos01-document-backup/**/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
     {
       "ref": ".project-local/task-runtime/aaos01-light/**/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
     {
       "ref": ".project-local/task-runtime/aaos01-exchange/**/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
     {
       "ref": ".project-local/task-runtime/aaos01-fault/**/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -16339,15 +16339,15 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-native-tools/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
     {
       "ref": ".project-local/runs/*/webdriver-*/tmp/journey/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-run evidence root removed by authorized retention",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -16374,8 +16374,8 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-webdriver/**/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -16416,8 +16416,8 @@
     },
     {
       "ref": ".project-local/task-runtime/aaos01-native-tools/receipt.json",
-      "kind": "CLEANED_TRANSIENT",
-      "evidence": "per-task runtime state, regenerated per run",
+      "kind": "ARCHIVED_DIRECTORY",
+      "evidence": ".project-local/archives/audit-evidence-20261024/term-convergence/receipt.json",
       "era": "history",
       "doc": "docs/history/oss-absorption-evidence/20261019-continuity-native-pdf/source/.github/workflows/ci.yml"
     },
@@ -18082,7 +18082,7 @@
     }
   ],
   "index": {
-    "archive_basenames": 641,
+    "archive_basenames": 648,
     "zip_members": 1907,
     "manifest_paths": 260,
     "cleaned_roots": 2189,

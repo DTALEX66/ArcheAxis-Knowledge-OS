@@ -902,11 +902,11 @@
       "boundary": "Behavior receipts remain on Host 97baf29c; the terminology-only rebuild is recorded in latest_ui_terminology_20261024; no push, merge, release, Green or Owner acceptance inferred"
     },
     "latest_ui_terminology_20261024": {
-      "host_sha256": "5193968ed9673154cc0aefe1acfa9d08f13dadd4697857a6286b693e2efc61e8",
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
       "host_bytes": 47376384,
       "scope": "VISIBLE_COPY_AND_DISABLED_REASONS_INCREMENTAL_HOST_NOT_INSTALLED_NOT_GREEN",
-      "native_receipt": ".project-local/runs/be268a2d33/ui-token-scan-20261024-06/receipt.json",
-      "native_pages": "22/22 PASS; engineering tokens 0; unexplained disabled 0; page errors 0",
+      "native_receipt": ".project-local/runs/be268a2d33/ui-token-scan-20261024-07/receipt.json",
+      "native_pages": "22/22 PASS incl. page 16 qualification tab; engineering tokens 0; unexplained disabled 0; page errors 0",
       "full_frontend_suite": "2108 tests: 2090 PASS / 18 FAIL, identical to pre-change b4588d76 baseline",
       "behavior_receipts_host": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf"
     },

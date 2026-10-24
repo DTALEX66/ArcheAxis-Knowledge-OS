@@ -14,10 +14,11 @@ type Tab="originals"|"documents"|"teaching"|"qualification";
 const tabs:readonly [Tab,string][]=[["originals","原件与转换"],["documents","文档导出"],["teaching","人工教学交换"],["qualification","互通资格"]];
 type OriginalSelection={source:SourceDto; original:OriginalDto; bytes:Uint8Array; jobId?:string};
 const reason=(error:unknown)=>error instanceof Error?error.message:"结果尚未确认；请保留原文件并检查处理记录。";
+const qualificationLabel = { PARTIAL: "部分完成", NOT_EXECUTED: "尚未执行" } as const;
 const interoperability=[
   ["功能等价","PARTIAL","当前页可定位原件、读取转换产物与导出快照；各格式正文、结构、定位、损失和引擎仍需分别验收。"],
-  ["数据兼容","PARTIAL","原件经身份与字节 SHA256 核验后下载；完整文档快照保留在 manifest.json。全格式、全平台、正式旧库未知字段无损资格未在本页证明。"],
-  ["双向往返","PARTIAL","教学记录具备人工 JSON 预检与导入闭环；文档 Markdown / Obsidian 导出不代表外部软件往返无损。没有自动发送 peer。"],
+  ["数据兼容","PARTIAL","原件经身份与字节指纹核验后下载；完整文档快照保留在 manifest.json。全格式、全平台、正式旧库未知字段无损资格未在本页证明。"],
+  ["双向往返","PARTIAL","教学记录具备人工 JSON 预检与导入闭环；文档 Markdown / Obsidian 导出不代表外部软件往返无损。没有自动发送给另一客户端。"],
   ["增量同步","NOT_EXECUTED","本页未接入外部双向增量同步。不会将导出、重复导入回执或人工交换包装为同步成功。"],
 ] as const;
 
@@ -111,6 +112,6 @@ export function CanonicalExchangeSpace({initialDocumentId,onOpenDocument,onOpenP
       {proof?<section aria-label="核验导出结果"><p>已核对第 {proof.version} 版的 {proof.format} 导出内容。</p><RawReceiptButton label="导出核对详细信息" category="data" payload={proof}/><button onClick={()=>downloadFile("document.md")}>下载 document.md</button><button onClick={()=>downloadFile("manifest.json")}>下载完整 manifest.json</button><h4>导出可能丢失的内容</h4><ul>{(object(JSON.parse(proof.files.find(f=>f.path==="manifest.json")!.content)).loss as unknown[]).map((v,i)=><li key={i}>{String(object(v).code)}：{String(object(v).message)}</li>)}</ul></section>:null}<p>完整快照包含结构、未知节点及属性、证据位置与损失。Markdown 是派生投影；媒体只保留引用，不包含原文件。不是完整恢复或外部双向同步。</p></>:!documentBusy?<p>先读取真实文档及当前版本，再核验导出；未保存草稿须回文档保存。</p>:null}</section></div></section>
     <div hidden={tab!=="documents"}><PortableDocumentExchange saved={saved} onImported={id=>{void loadDocuments();void openDocument(id);}}/></div>
     <section hidden={tab!=="teaching"} aria-label="人工教学交换"><h3>人工教学交换</h3><p>选择文件后先检查内容，再由你确认导入。授权记录可导出 JSON；不会自动与其他设备同步。</p><CanonicalTeachingSpace pageId="16" onOpenPage={onOpenPage} onTrail={teachingTrail}/></section>
-    <section hidden={tab!=="qualification"} aria-label="四类互通资格"><h3>分别核验四类互通目标</h3><div className="exchange-qualification">{interoperability.map(([name,status,detail])=><article className="exchange-card" key={name}><h4>{name}</h4><strong>{status}</strong><p>{detail}</p></article>)}</div><p>原始格式矩阵、当前 profile、适配器许可、实际安装、正式旧库迁移及回滚证据须分别提供。本页不读取正式旧库或私人来源，也不根据扩展名或模拟截图宣称资格达成。</p></section>
+    <section hidden={tab!=="qualification"} aria-label="四类互通资格"><h3>分别核验四类互通目标</h3><div className="exchange-qualification">{interoperability.map(([name,status,detail])=><article className="exchange-card" key={name}><h4>{name}</h4><strong>{qualificationLabel[status]}</strong><p>{detail}</p></article>)}</div><p>原始格式矩阵、当前配置、适配器许可、实际安装、正式旧库迁移及回滚证据须分别提供。本页不读取正式旧库或私人来源，也不根据扩展名或模拟截图宣称资格达成。</p></section>
   </section>;
 }
