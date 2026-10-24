@@ -31,7 +31,7 @@ beforeEach(()=>{
 });
 afterEach(()=>{delete window.__TAURI__;vi.unstubAllGlobals();vi.restoreAllMocks();window.history.replaceState(null,"","#page=01");});
 async function start(hydrate=true){const view=render(<App/>);await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeVisible());if(hydrate){await act(async()=>resolveLayout(layoutReply()));await waitFor(()=>expect(screen.getByLabelText("draft-01")).toBeVisible());}return view;}
-async function page(id:string){fireEvent.click(screen.getByRole("button",{name:"打开产品导航"}));const dialog=screen.getByRole("dialog",{name:"全部能力"});fireEvent.click(within(dialog).getByRole("button",{name:"全部页面"}));fireEvent.click(within(dialog).getByRole("button",{name:new RegExp(`^${findUiPage(id)!.label.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")} `)}));await waitFor(()=>expect(document.querySelector(".app-shell")).toHaveAttribute("data-cabin-page",id));}
+async function page(id:string){fireEvent.click(document.querySelector<HTMLButtonElement>("#stitch-launchpad-toggle")!);const dialog=screen.getByRole("dialog",{name:"全部能力"});fireEvent.click(within(dialog).getByRole("button",{name:"全部页面"}));fireEvent.click(within(dialog).getByRole("button",{name:new RegExp(`^${findUiPage(id)!.label.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")} `)}));await waitFor(()=>expect(document.querySelector(".app-shell")).toHaveAttribute("data-cabin-page",id));}
 function tab(name:string){return screen.getByRole("tab",{name});}
 function select(name:string){tab(name).focus();fireEvent.keyDown(tab(name),{key:"Enter"});}
 function dirty(value:boolean){act(()=>window.dispatchEvent(new CustomEvent("archeaxis-draft-dirty",{detail:{owner:"dock-regression",dirty:value}})));}

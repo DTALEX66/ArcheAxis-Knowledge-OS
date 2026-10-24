@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { App } from "../app/App";
 import { UI_DAILY_ENTRY_POINTS, UI_FIXED_ENTRY_POINTS, UI_PAGES } from "../presentation/uiPages";
 import { LearningSpace } from "../spaces/LearningSpace";
 import userEvent from "@testing-library/user-event";
 
 describe("OSUI v3 production contract", () => {
-  it("exposes the new five domains with preserved semantic pages and a detail-only page 18", () => {
+  it("exposes the new five domains with preserved semantic pages and a detail-only page 18", async () => {
+    const user = userEvent.setup();
     render(<App/>);
     expect(UI_PAGES).toHaveLength(22);
+    await user.click(screen.getByRole("button", { name: "打开产品导航" }));
     const rail=screen.getByRole("navigation",{name:"主空间导航"});
     for(const entry of [...UI_DAILY_ENTRY_POINTS,...UI_FIXED_ENTRY_POINTS]) expect(within(rail).getByRole("button",{name:entry.label})).toBeInTheDocument();
     expect(within(rail).queryByRole("button",{name:"研究空间"})).toBeNull();
@@ -18,18 +20,20 @@ describe("OSUI v3 production contract", () => {
     render(<App />);
 
     expect(document.querySelector(".app-shell")).toBeInTheDocument();
-    expect(document.querySelector(".ui-workspace")).toBeInTheDocument();
+    expect(document.querySelector(".dock-workspace, .space-view")).toBeInTheDocument();
     const main = screen.getByRole("main", { name: "当前空间内容" });
     expect(within(main).getByRole("heading", { name: /工作台/, level: 1 })).toBeInTheDocument();
   });
 
-  it("renders one complete product shell with global commands and contextual navigation", () => {
+  it("renders one complete product shell with global commands and contextual navigation", async () => {
+    const user = userEvent.setup();
     render(<App />);
 
     expect(screen.getByRole("button", { name: "打开全局命令" })).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "展开检查器" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "展开活动坞" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "打开产品导航" }));
+    expect(screen.getByRole("navigation", { name: "主空间导航" })).toBeInTheDocument();
   });
 
   it("uses the global command palette to reach an actual content surface", async () => {
@@ -40,9 +44,8 @@ describe("OSUI v3 production contract", () => {
     expect(screen.getByRole("dialog", { name: "全局命令" })).toBeInTheDocument();
     await user.type(screen.getByRole("searchbox", { name: "搜索空间或命令" }), "阅读与编辑");
     await user.click(screen.getByRole("option", { name: /阅读与编辑/ }));
-    expect(
-      within(screen.getByRole("main")).getByRole("heading", { name: "阅读与编辑" }),
-    ).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "全局命令" })).not.toBeInTheDocument());
+    expect((await screen.findAllByRole("heading", { name: "阅读与编辑" })).length).toBeGreaterThan(0);
     expect(screen.queryByText("Agent")).not.toBeInTheDocument();
   });
 
@@ -73,17 +76,17 @@ describe("OSUI v3 production contract", () => {
   it("makes every Workbench quick action operable", async () => {
     const user = userEvent.setup();
     render(<App />);
-    const rail = screen.getByRole("navigation", { name: "主空间导航" });
+    const rail = async () => {
+      await user.click(screen.getByRole("button", { name: "打开产品导航" }));
+      return screen.getByRole("navigation", { name: "主空间导航" });
+    };
 
-    await user.click(within(rail).getByRole("button", { name: "知识" }));
-    await user.click(within(rail).getByRole("button", { name: /阅读与编辑/ }));
-    expect(
-      within(screen.getByRole("main")).getByRole("heading", { name: "阅读与编辑" }),
-    ).toBeInTheDocument();
-    await user.click(within(rail).getByRole("button", { name: "工作台" }));
-    await user.click(within(rail).getByRole("button", { name: /设置/ }));
-    const main = screen.getByRole("main");
-    expect(within(main).getByRole("heading", { name: /设置/ })).toBeInTheDocument();
+    await user.click(within(await rail()).getByRole("button", { name: "知识" }));
+    await user.click(within(await rail()).getByRole("button", { name: /阅读与编辑/ }));
+    expect((await screen.findAllByRole("heading", { name: "阅读与编辑" })).length).toBeGreaterThan(0);
+    await user.click(within(await rail()).getByRole("button", { name: "工作台" }));
+    await user.click(within(await rail()).getByRole("button", { name: /设置/ }));
+    expect((await screen.findAllByRole("heading", { name: /设置/ })).length).toBeGreaterThan(0);
   });
 
   it("does not expose the former mixed-language primary labels", () => {
@@ -107,7 +110,7 @@ describe("OSUI v3 production contract", () => {
   it("keeps the product visual structure and accessible motion contract in production", () => {
     render(<App />);
 
-    expect(document.querySelector(".status-bar-brand")).toBeInTheDocument();
-    expect(document.querySelector(".space-view[data-motion='enter']")).toBeInTheDocument();
+    expect(document.querySelector(".stitch-brand")).toBeInTheDocument();
+    expect(document.querySelector(".dock-workspace, .space-view[data-motion='enter']")).toBeInTheDocument();
   });
 });

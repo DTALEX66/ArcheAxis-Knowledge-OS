@@ -48,7 +48,10 @@ it("SIMULATED mounted App source candidate readback clears only saved draft and 
  mockCore();const confirm=vi.spyOn(window,"confirm").mockReturnValue(false);render(<App/>);await createCandidate();
  fireEvent.change(await screen.findByRole("textbox",{name:"审核者"}),{target:{value:"SYNTHETIC reviewer"}});
  fireEvent.click(await screen.findByRole("button",{name:"接受当前候选"}));
- fireEvent.click(await screen.findByRole("button",{name:"由当前知识建立学习问题"}));
+ await screen.findByText("审核决定已由本地核心记录。");
+ const study=await screen.findByRole("button",{name:"由当前知识建立学习问题"});
+ await waitFor(()=>expect(study).toBeEnabled());
+ fireEvent.click(study);
  await waitFor(()=>expect(window.location.hash).toBe("#page=06"));expect(confirm).not.toHaveBeenCalled();confirm.mockRestore();
 });
 it.each(["lost ack","wrong provenance","wrong body"])("SIMULATED mounted candidate %s keeps its draft dirty",async(mode)=>{

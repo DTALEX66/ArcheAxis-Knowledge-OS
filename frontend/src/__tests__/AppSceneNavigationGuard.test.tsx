@@ -86,7 +86,7 @@ it.each([false,true])("SIMULATED hydrated same-page click normalizes an empty UR
   const writes=bridge.call.mock.calls.filter(([op])=>op==="ui_state_write").length;
   const retained=structuredClone(read.state.drafts);
   confirm.mockClear();
-  fireEvent.click(screen.getByRole("button",{name:"打开产品导航"}));fireEvent.click(screen.getByRole("button",{name:/^设置、权限与恢复 管理偏好/}));
+  fireEvent.click(document.querySelector<HTMLButtonElement>("#stitch-launchpad-toggle")!);fireEvent.click(screen.getByRole("button",{name:/^设置、权限与恢复 管理偏好/}));
   expect(window.location.hash).toBe("#page=19");
   expect(confirm).not.toHaveBeenCalled();
   expect(read.state.drafts).toEqual(retained);
