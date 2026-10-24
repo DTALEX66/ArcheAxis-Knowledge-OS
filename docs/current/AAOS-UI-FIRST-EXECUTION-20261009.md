@@ -1811,7 +1811,20 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 整合链：同一候选、同一工作区完成 109 次 Core 请求——10 个原件（6 个公开来源＋4 个自编 Office/PDF 样本）、公开来源转写为文本 job、公开知识候选 `k_cb46c64a4021b424e06b1efb`（保持 `candidate`）、合成个人 DOCX 知识候选经模拟人工审核 `accepted`、FSRS 学习评估/复习（含重复重试与冲突 409）、统一研究文档与关系、关闭重开后文档/知识/学习/导出/原件全部读回一致、backup 校验、独立工作区 restore 后再次一致；候选成员 `candidate_files_unchanged=true`。回执 `.../j2-current-learning-20261024-04/artifacts/research-learning-runtime.json`（26,006B，SHA-256 `58d50fa2b75683331079c133b1b294265356a1db2e1ac5e374e7f650a1294446`）。
 - 结论边界：公开摘录**保留未核实**为知识候选，符合 J2“人工接纳或保留未核实”；个人知识的 `accepted` 由合成夹具模拟，不是 Owner 签署或内容真值。人类对公开候选的接纳、独立质量评测与 Owner 验收仍 `NOT_EXECUTED`，因此 CL-03 仍为 PARTIAL，但缺口只剩人的决定，不再是“当前候选未跑通整合链”。
 
-### 2026-10-24 闭环验收矩阵（重建候选 Host ca5fbfda；前端行为证据 Host b645c658；目标非完成声明）
+### 2026-10-24 重建候选原生的新手 14 步旅程（CL-07／J1，同候选原生 PASS）
+
+- 在同一暂存候选的 `ArcheAxis.exe`（Host `ca5fbfda…`，47,376,384B）上，以真实可见窗口、隔离数据根和原生点击完成 14/14：首次打开工作台→进入导入→导入测试资料→打开阅读→建立可编辑文档→编辑保存→转换原件并阅读→形成知识候选→审核接受→进入学习练习→完成复习记录→退出→同一数据根重开读回→再次退出。两次 exit 0、11 张截图、模型调用 0。
+- 回执 `.../ui-novice-journey-current-20261024-02/artifacts/journey-receipt.json`（4,308B，SHA-256 `3dffdc01eb4357613f2cf3edaadd8c0fc166396dfe42c0e1780512188c5aa75f`）。此前 `-01` 因驱动路径为相对路径被拒（exit 1）作为失败证据保留，不冒充 PASS。
+- 意义：18 格式矩阵、公开研究整合链与人类新手旅程现在都落在同一重建候选 Host `ca5fbfda` 上；仍不是安装态、Owner 验收或 exact-SHA CI。
+
+### 2026-10-24 重建候选的 AI 本地模型原生工程链（CL-06／J4，同候选工程 PASS；质量 PARTIAL）
+
+- 在同一暂存候选上，通过当前 grouped 原生 UI 使用既有本地 LM Studio `qwen3.5-4b`（`http://127.0.0.1:1234/v1`）完成真实回答：`grounded`、156 输入／1646 输出 tokens、22.52s，模型与端点由既有配置选中，未改 provider 或全局参数。九个阶段 import→read→anchor→claim→learn→practice→review→distill→recover 全部执行。
+- 工程纠正与复测：`EXECUTED_AUTHORED_INTERVENTION_NOT_INDEPENDENT_ERROR`／`EXECUTED_CANDIDATE_NOT_EVALUATED`，即纠正为自编工程干预，不是独立错误样本；重开恢复学习 `PASS`，恢复后的旧授权以 Core 精确原因 `RESTORED_GRANT_FENCED` 拒绝且执行 `NOT_EXECUTED`；能力停用后的执行拒绝 `PASS`。5 次产品退出均 confirmed、exit 0。
+- 回执 `.../webdriver-14c04460806a/tmp/journey/receipt.json`（329,741B，SHA-256 `e04bef7b6afd9028b83999d64e4166b6b767c1aaf565119f12959e7627325d8a`）。`closed_loop_verified=false`、`owner_acceptance=NOT_EXECUTED`；工程链 PASS 不等于语义质量或 Owner 验收。
+- 意义：J4 的真实模型工程链现在也落在同一重建候选 `ca5fbfda` 上，而不是只在 `b645c658` 或独立样例上。
+
+### 2026-10-24 闭环验收矩阵（重建候选 Host ca5fbfda；早期行为证据 Host b645c658 留档；目标非完成声明）
 
 | 维度 | 当前状态 | 依据／缺口 |
 | --- | --- | --- |
@@ -1820,13 +1833,13 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 | CL-03 免费外部检索／比较 | PARTIAL（通道＋整合链 PASS） | 同一重建候选真实三通道 complete、6 来源、锚点、比较草稿、公开知识候选、重启/备份/恢复读回均 PASS；公开摘录按 J2 保留未核实，人类接纳仍 `NOT_EXECUTED` |
 | CL-04 成熟知识库特色 | PARTIAL／延期 | 矩阵与延期清单保留，未宣称全面兼容 |
 | CL-05 开源池与轻量扩展 | PARTIAL | 能力中心启停 PASS；插件／技能／模板／MCP 全形态消费者未全验 |
-| CL-06 本地／云端模型 | LOCAL PASS；CLOUD PARTIAL | qwen3.5-4b 真实回答／纠正／复测 PASS；云端专业接口有边界，真实云推理延后未执行 |
-| CL-07 同产品全链路可靠 | PARTIAL | 重建候选 Host 18 格式矩阵、前端行为 Host 人类 J1 14/14、批量/检索/导出与 AI 工程链 PASS；视频长路径产物已修复并在原失败深根复跑 PASS；重建 Host 已由同一 NSIS 构建打包并经隔离安装，但无 exact-SHA CI、Owner 验收 |
-| J1 多格式资料链 | PASS（TXT 段＋18 格式矩阵＋批量） | journey-17、CL-02 十八格式矩阵与批量/续做；整文件夹失败定位仍按 CL-02 边界 |
+| CL-06 本地／云端模型 | LOCAL PASS；CLOUD PARTIAL | 同一重建候选 `qwen3.5-4b` 真实回答／工程纠正／复测／恢复拒绝 PASS；云端专业接口有边界，真实云推理延后未执行 |
+| CL-07 同产品全链路可靠 | PARTIAL | 同一重建候选 Host `ca5fbfda` 完成 18 格式矩阵、人类 J1 14/14、公开研究整合链与批量/检索/导出；视频长路径产物已修复并在原失败深根复跑 PASS；重建 Host 已由同一 NSIS 构建打包并经隔离安装，但无 exact-SHA CI、Owner 验收 |
+| J1 多格式资料链 | PASS（重建候选原生 14/14＋18 格式矩阵＋批量） | `ui-novice-journey-current-20261024-02`、CL-02 十八格式矩阵与批量/续做；整文件夹失败定位仍按 CL-02 边界 |
 | J2 外部研究链 | PARTIAL（通道＋候选 PASS） | 重建候选真实三通道检索、比较草稿、公开知识候选、关联个人资料、统一研究文档、重启/导出/恢复均 PASS；人类接纳未执行；公开内容保持未核实 |
 | J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
-| J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | ai-loop-20261024；同一来源/锚点/知识在显式授权下完成回答、纠正、复测与恢复后拒绝；质量未独立评测 |
+| J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | `webdriver-14c04460806a`；同一重建候选上完成回答、工程纠正、复测、恢复学习与恢复后授权拒绝；质量未独立评测 |
 | J5 扩展链 | PARTIAL | capability_toggle PASS；多形态真实消费者未全验 |
 | J6 安装与可靠性 | PARTIAL（安装与当前安装态业务 PASS） | 当前重建安装器在无网络 Sandbox 完成安装→启动→数据库→卸载，并完成原生文档三路冲突/保存/恢复/Host 重启→卸载，installer/native/uninstaller 均 exit 0；未做跨版本升级/回滚、exact-SHA CI／Owner 验收；公共发布与真实数据覆盖未授权 |
 
-结论：当前源码族已在重建候选 Host `ca5fbfda` 上通过 18 格式矩阵，前端行为证据 Host `b645c658` 上通过人类 J1 14/14 与 AI 本地模型同源授权链，批量/检索/导出通过，CL-03 当前候选真实三通道检索也已通过，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器（安装后 Host `eb268f29`）完成隔离安装、当前安装态业务与卸载；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、J5 多形态扩展、J6 的跨版本升级/回滚。
+结论：当前源码族已在重建候选 Host `ca5fbfda` 上完成同一候选的 18 格式矩阵、原生人类 J1 14/14、公开研究→知识候选→学习整合链、AI 本地模型工程链与批量/检索/导出，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器（安装后 Host `eb268f29`）完成隔离安装、当前安装态业务与卸载；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、J5 多形态扩展、J6 的跨版本升级/回滚。
