@@ -15,7 +15,7 @@
               "green_files": 4331, "green_bytes": 1021650549},
   "git": {"commits": 3101, "worktrees": 1, "branches_local": 3, "ahead_main": 29, "behind_main": 0,
           "ahead_codex": 7, "behind_codex": 0, "dirty_files_preexisting": 4},
-  "references": {"real": 4953, "existing": 2378, "missing": 2575, "missing_pct": 52.0,
+  "references": {"real": 4953, "existing": 2378, "historical_missing": 2575, "historical_missing_pct": 52.0,
                  "missing_history": 2409, "missing_current": 7, "missing_other": 159,
                  "filtered_prose": 2391,
                  "current_operational_break": 0,
