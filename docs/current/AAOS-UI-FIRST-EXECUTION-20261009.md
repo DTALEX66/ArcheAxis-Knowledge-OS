@@ -1698,3 +1698,8 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - Green 精确路径 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 只清理工具生成物，不动程序、数据与回滚：删除 `.ui-task-tree`（旧仓库任务树副本 3,336 文件/697,304,371B）、`AAOS-Frontend-Acceptance-v4`（已被 SUP-022 取代的 Avalonia 验收二进制 366 文件/245,747,591B）、`EBWebView` 与 `data\EBWebView`（WebView2 缓存 631 文件/78,598,587B），合计 4,331 文件/1,021,650,549B；Green 由约 3.9GB 降至 2.97GB。保留 `AAOS-Tauri-f151f4c7998a` 程序回滚、`backups`、`runtime`、`data`；`ArcheAxis.exe` 4f56908b 与 manifest f6759ff4 未变。`.ui-task-tree` 仍有 2 个只读/锁定文件（0.7MB）未删，状态 PARTIAL，未提权绕过。回执 `runs/be268a2d33/green-cleanup-20261024-01/green-cleanup.json`（`0531bdef…002a`）。
 - 仓库规范化：`.gitignore` 增加 `/.trae/` 与 `/.trae-html-share-packages/`；删除生成的 `.trae-html-share-packages/`（11,589,012B）。路径规范检查 5,699 条跟踪路径 100% 有归属、0 歧义/越权。`frontend/` 与 `src-tauri/` 在 `DIRECTORY_AUTHORITY.yaml` 仍登记为 legacy 类，与 `DIRECTORY_AUTHORITY_INDEX` 的 SUP-022 正式 SOURCE 不一致，本轮未改受保护治理文件，保留为待决项。
 - 未提交、未推送、未发布、未替换 Green 程序；安装态仍被沙盒阻塞。
+### 2026-10-24 资产去重尝试（已回滚，零净变更）与分支/目录复核
+
+- 尝试对 `assets/astryn-full` 中与 `assets/astryn` 同相对路径、同大小同哈希的文件去重，干跑识别 137 文件/463,824,930B。执行后发现这些文件全部是 Git 跟踪文件：`git ls-files` 默认 `core.quotepath` 把中文路径转义，跟踪集合未匹配，导致误删。已用 `git checkout -- assets/astryn-full` 全部恢复，`git status` 无资产删除，**净删除 0**；`assets` 回到 987MB/354 文件。脚本未再执行；回执保留在 `runs/be268a2d33/asset-dedup-20261024-02/asset-dedup-applied.json` 并标注误删/恢复。
+- 复核：工作树仅 1 个；本地分支 3 个（`main` 8d367ba、`codex/sync-20261019` b4588d76、`trae/20261024` 当前）；无待合并的独有分支内容，未执行合并。跟踪路径 5,699 条 100% 有归属。
+- 当前体积：`.project-local` 约 34.2GB；Green 2.97GB；`assets` 987MB；`.venv` 906MB、`frontend` 290MB 为开发必需依赖，未删。未推送、未发布、未更新 Green。
