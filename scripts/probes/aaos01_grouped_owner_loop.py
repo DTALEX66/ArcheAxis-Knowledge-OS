@@ -568,9 +568,14 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         self.evidence.append({"action": "trusted_type", "selector": selector})
 
     def keys(self, selector, keys, using="xpath"):
-        element = self.find(selector, using)
-        self.command(element, "click", {})
-        self.command(element, "value", {"text": keys})
+        # The Stitch console keeps a fixed task strip over the panel's lower edge.
+        # Native element-click scrolls the control under it and is refused as
+        # non-interactable; use the trusted in-container wheel plus pointer focus.
+        if using == "xpath":
+            self.click_revealed_selector(selector)
+        else:
+            self.command(self.find(selector, using), "click", {})
+        self.command(self.find(selector, using), "value", {"text": keys})
         self.evidence.append({"action": "trusted_keys", "using": using, "selector": selector})
 
     def upload_directory(self, folder):

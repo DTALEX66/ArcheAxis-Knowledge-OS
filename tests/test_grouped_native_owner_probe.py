@@ -757,10 +757,14 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         folder = ROOT / ".project-local" / "artifacts" / "unittest-fixture-no-files-written"
         ui.upload_directory(folder)
         self.assertEqual(
-            [row[1] for row in commands], ["pointer_click", "click", "value", "value", "click", "value", "value"]
+            [row[1] for row in commands],
+            ["pointer_click", "click", "value", "value", "pointer_click", "value", "value"],
         )
         self.assertIsNone(commands[0][0])
-        self.assertTrue(all(row[0] == "actual-element" for row in commands[1:]))
+        self.assertTrue(
+            all(row[0] == "actual-element" for row in commands if row[1] not in {"pointer_click", "wheel"})
+        )
+        self.assertTrue(all(row[0] is None for row in commands if row[1] in {"pointer_click", "wheel"}))
         self.assertEqual(commands[-1][2]["text"], str(folder.resolve()))
         self.assertFalse(
             any(
@@ -817,7 +821,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
                 self.probe.assert_quote_selection({**proof, field: wrong}, text)
         commands, scripts, result = [], [], {}
         ui = self.probe.GroupedUI(
-            lambda _: proof,
+            lambda script: {"ready": True, "point": {"x": 3, "y": 4}} if "elementFromPoint" in script else proof,
             lambda script: scripts.append(script),
             lambda *_: "quote",
             lambda element, action, body: commands.append((action, body)),
@@ -826,7 +830,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         self.probe.select_full_quote(
             ui, lambda _: proof, lambda script: scripts.append(script), text, result
         )
-        self.assertEqual(commands, [("click", {}), ("value", {"text": "\ue009a\ue000"})])
+        self.assertEqual(commands, [("pointer_click", {"x": 3, "y": 4}), ("value", {"text": "\ue009a\ue000"})])
         self.assertEqual(result["quote_selection"]["status"], "PASS")
         self.assertFalse(
             any(

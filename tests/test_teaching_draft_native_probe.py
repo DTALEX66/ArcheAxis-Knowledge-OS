@@ -73,12 +73,13 @@ class TeachingDraftProbeTests(unittest.TestCase):
     def test_input_and_keys_scope_pin_current_dock_page(self):
         grouped = load('aaos01_grouped_owner_loop')
         calls = []
-        ui = grouped.GroupedUI(None, lambda script: True,
+        ui = grouped.GroupedUI(lambda script: {'ready': True, 'point': {'x': 1, 'y': 1}},
+                               lambda script: True,
                                lambda using, selector: calls.append(selector) or 'visible-current-page',
                                lambda *args: None, [])
         ui.type('用途', 'raw', scope=self.probe.form_scope('12'))
         ui.keys(self.probe.form_scope('12') + "//label[normalize-space(text())='反馈分类']/select", '\ue015\ue007')
-        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(calls), 3)
         for selector in calls:
             self.assertIn("contains(@data-session-key,':12:workspace')", selector)
             self.assertIn("not(ancestor-or-self::*[@hidden or @aria-hidden='true'])", selector)
