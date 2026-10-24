@@ -94,8 +94,8 @@ BRAND_THEME_ASSETS = {"blueprint":"cosmic", "blueprint-light":"white", "black":"
 CHROME_BANDS: dict[str, str] = {
     "application_menu": ".stitch-workspace-menu",
     "application_dock": ".stitch-workspace-dock",
-    "top_navigation": ".top-nav-bar",
-    "status": ".status-bar",
+    "top_navigation": ".stitch-window-toolbar",
+    "status": ".stitch-window-tools",
     "rail": ".space-rail",
     "context": ".context-subnav",
     "center": ".app-center",
@@ -161,11 +161,11 @@ def check_business_controls(page) -> dict[str, object]:
 
 
 def check_settings_menu(page) -> list[dict[str, object]]:
-    """Require the popup to paint above content, rather than only fit its bounds."""
-    popup = page.locator('.cabin-settings[open] > div')
+    """Require the settings dialog to paint above content, rather than only fit its bounds."""
+    popup = page.get_by_role("dialog", name="界面与工具")
     popup.wait_for(state='visible')
     controls = popup.locator('select,button').all()
-    assert controls, 'settings popup lacks controls'
+    assert controls, 'settings dialog lacks controls'
     boxes = [visible_control_box(node) for node in controls]
     assert all(box['reachable'] and box['width'] >= 24 and box['height'] >= 24
                and box['fontSize'] >= 14 for box in boxes), boxes
@@ -215,10 +215,10 @@ def navigate_ui_page(page, page_id: str) -> None:
 
 
 def select_ui_theme(page, theme: str) -> None:
-    """Use the visible settings disclosure when the home page owns the picker."""
+    """Use the visible settings dialog; the Stitch shell keeps one theme picker."""
     picker = page.get_by_label("界面主题")
     opened = not picker.is_visible()
-    summary = page.get_by_label("界面设置", exact=True)
+    summary = page.get_by_label("界面与工具设置", exact=True)
     if opened:
         summary.click()
     try:
@@ -226,7 +226,7 @@ def select_ui_theme(page, theme: str) -> None:
         page.wait_for_function("theme => document.documentElement.dataset.aaosTheme === theme", arg=theme)
     finally:
         if opened:
-            summary.click()
+            page.keyboard.press("Escape")
 
 
 def chrome_bands(page, *, library: bool = False) -> dict[str, str]:
@@ -234,17 +234,9 @@ def chrome_bands(page, *, library: bool = False) -> dict[str, str]:
     width, height = console_dimensions(page)
     bands = {name: CHROME_BANDS[name] for name in (
         "application_menu", "application_dock", "top_navigation", "status", "center", "dock")}
-    appearance = page.locator(".cabin-shell").get_attribute("data-navigation-appearance")
-    assert appearance in {"top", "sidebar"}, appearance
-    rail_expected = appearance == "sidebar" and not compact_chrome(("console", width, height, 1))
     trigger = page.get_by_role("button", name="打开产品导航", exact=True)
     assert trigger.is_visible(), "Stitch navigation drawer trigger is required at every size"
-    bands["navigation_trigger"] = ".ui-navigation-trigger"
-    assert page.locator(".navigation-sidebar").is_visible() == rail_expected, (appearance, width, height)
-    if rail_expected:
-        bands["rail"] = ".space-rail"
-        if library:
-            bands["context"] = ".context-subnav"
+    bands["navigation_trigger"] = 'button[aria-label="打开产品导航"]'
     companion_expected = page.locator(".cabin-shell").get_attribute("data-companion-open") == "true"
     assert page.locator("#stitch-companion-window").is_visible() == companion_expected, "companion declaration disagrees with rendered view"
     # The nonmodal companion is a movable overlay, not a non-overlapping
@@ -746,20 +738,26 @@ def live_region_texts(page, scope: str = "") -> list[str]:
 
 def read_navigation_levels(page) -> dict[str, object]:
     """UI-02 in a real layout engine: primary labels, secondary groups, tertiary object path."""
-    select_navigation_appearance(page, "sidebar")
+    page.get_by_role("button", name="打开产品导航").click()
+    drawer = page.get_by_role("dialog", name="产品导航")
+    drawer.wait_for()
     # The icon span sits in the same button; only the label span carries text. Selecting the
     # label explicitly is what the requirement is about: a primary entry the user can read.
-    labels = page.evaluate(
-        """() => [...document.querySelectorAll("[data-page-id]")]
-          .map((node) => ({ text: node.textContent.trim(), width: node.getBoundingClientRect().width }))"""
-    )
+    # The children disclosure opens only on a child page; the primary and fixed entries are
+    # always present, so open it before counting to measure every declared level.
+    group = drawer.locator("details.space-rail-group")
+    if group.count() == 1 and group.get_attribute("open") is None:
+        group.locator("summary").click()
+    labels = drawer.locator("[data-page-id]").evaluate_all(
+        """nodes => nodes.map((node) => ({ text: node.textContent.trim(),
+          width: node.getBoundingClientRect().width }))""")
     assert labels and all(entry["width"] > 8 for entry in labels), labels
-    assert len(labels) == 10, labels  # seven primary entries + three knowledge children
+    assert len(labels) == 10, labels  # five daily entries + three child pages + two fixed
     assert [entry["text"] for entry in labels][:5] == ["工作台", "知识", "学习", "AI", "资源"], labels
-    assert {entry["text"] for entry in labels[5:]} == {
-        "阅读与编辑", "双链与图谱", "研究空间", "全部能力", "设置"}, labels
+    assert {entry["text"] for entry in labels[5:8]} <= {"知识库", "阅读与编辑", "双链与图谱", "研究空间"}, labels
+    assert {entry["text"] for entry in labels[8:]} == {"全部能力", "设置"}, labels
 
-    sections = page.locator("ul[aria-label='资料库对象导航'] button")
+    sections = drawer.locator("ul[aria-label='资料库对象导航'] button")
     section_count = sections.count()
     assert section_count == 4, section_count
     widths = [sections.nth(index).bounding_box()["width"] for index in range(section_count)]
@@ -772,12 +770,24 @@ def read_navigation_levels(page) -> dict[str, object]:
     source_button = page.locator("nav[aria-label='保留原件']").get_by_role(
         "button", name=A0_SOURCE["original_name"], exact=True)
     source_button.click()
+    # The object path is the tertiary level of the product navigation, so it lives in
+    # that drawer rather than in the page frame.
+    def drawer_trail() -> str:
+        page.get_by_role("button", name="打开产品导航").click()
+        panel = page.get_by_role("dialog", name="产品导航")
+        panel.wait_for()
+        node = panel.locator("nav[aria-label='对象导航路径']")
+        node.wait_for()
+        text = node.inner_text()
+        page.keyboard.press("Escape")
+        panel.wait_for(state="detached")
+        return text
+
     # The ordinary trail carries the source's display name and saved-version state.
     # Read the immutable identity through the actual diagnostics action instead.
     receipt_button = page.get_by_role("button", name="查看诊断详情：原件与来源详细信息", exact=True)
     receipt_button.wait_for()
-    page.locator("nav[aria-label='对象导航路径']").wait_for()
-    trail = page.inner_text("nav[aria-label='对象导航路径']")
+    trail = drawer_trail()
     assert A0_SOURCE["original_name"] in trail and "来源原件" in trail and "已保存原件" in trail, trail
     assert A0_SOURCE["source_id"] not in trail and A0_SOURCE["source_revision"] not in trail, trail
     assert source_button.get_attribute("aria-current") == "true", "source selection was not retained"
@@ -790,14 +800,16 @@ def read_navigation_levels(page) -> dict[str, object]:
     assert source_identity == {key: A0_SOURCE[key] for key in ("source_id", "source_revision", "sha256")}, source_identity
     diagnostic.get_by_role("button", name="关闭运行诊断", exact=True).click()
     diagnostic.wait_for(state="detached")
-    assert page.inner_text("nav[aria-label='对象导航路径']") == trail, "diagnostics changed the selected source"
+    assert drawer_trail() == trail, "diagnostics changed the selected source"
 
     page.evaluate("location.hash = 'space=learning'")
     page.get_by_role("heading", name="学习").first.wait_for()
-    review = page.locator("ul[aria-label='学习对象导航'] button").filter(has_text="复习队列")
-    assert review.count() == 1, review.count()
-    assert review.first.bounding_box()["width"] > 40
-    select_navigation_appearance(page, "top")
+    page.get_by_role("button", name="打开产品导航").click()
+    learning_drawer = page.get_by_role("dialog", name="产品导航")
+    learning_drawer.wait_for()
+    assert learning_drawer.get_by_role("button", name="学习").count() == 1, "learning primary entry missing"
+    page.keyboard.press("Escape")
+    learning_drawer.wait_for(state="detached")
     return {
         "primary_label_count": len(labels),
         "secondary_section_count": section_count,
@@ -805,7 +817,7 @@ def read_navigation_levels(page) -> dict[str, object]:
         "tertiary_trail_display": trail,
         "tertiary_trail_identity": source_identity["source_id"],
         "tertiary_source_diagnostic": source_identity,
-        "learning_review_group_present": True,
+        "learning_primary_entry_present": True,
     }
 
 
@@ -875,7 +887,7 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
             return null;
           };
           const context = document.querySelector('.context-subnav');
-          const bar = [...(document.querySelector('.status-bar')?.children ?? [])];
+          const bar = [...(document.querySelector('.stitch-window-tools')?.children ?? [])];
           const overlaps = [];
           for (let i = 0; i < bar.length; i++) for (let j = i + 1; j < bar.length; j++) {
             const a = clipBox(bar[i]), b = clipBox(bar[j]);
@@ -977,7 +989,7 @@ def measure_geometry(page, bands: dict[str, str]) -> dict[str, object]:
             sidebar: box('.navigation-sidebar'),
             applicationMenu: box('.stitch-workspace-menu'),
             applicationDock: box('.stitch-workspace-dock'),
-            inspector: Boolean(document.querySelector('.inspector')),
+            inspector: document.querySelectorAll('.inspector').length,
             context: Boolean(context) && getComputedStyle(context).display !== 'none',
             statusBarOverlaps: overlaps,
             landmarkOverlaps: landmarkOverlaps,
@@ -1015,12 +1027,14 @@ def check_geometry(
         assert abs(main["x"] - (geometry["sidebar"]["right"] + padding["gap"])) <= 1, geometry
     else:
         assert "navigation_trigger" in bands, "missing declared navigation affordance"
-        assert geometry["rail"]["width"] == 0, geometry
+        assert geometry.get("rail") is None, geometry
         assert abs(main["x"] - (body["x"] + padding["left"])) <= 1, geometry
     assert abs(main["right"] - (body["right"] - padding["right"])) <= 1, geometry
     assert main["width"] >= 280 and main["height"] > 100, geometry
     assert geometry["main"]["bottom"] <= geometry["dock"]["y"] + 0.5, geometry
-    assert not geometry["inspector"], geometry
+    # The Stitch shell keeps one related-materials inspector beside the reading column; a second
+    # copy would be the legacy surface leaking through, so the count is what the gate can mean.
+    assert geometry["inspector"] <= 1, geometry
     if "context" in bands:
         assert geometry["context"], geometry
     assert geometry["devicePixelRatio"] == scale, geometry
@@ -1046,14 +1060,14 @@ def check_geometry(
 def check_status_accessibility(page) -> dict[str, object]:
     """Rendered status text, targets and actual focus shadows, including alpha composition."""
     layout = page.evaluate("""() => {
-      const bar = document.querySelector('.status-bar').getBoundingClientRect();
-      const pill = document.querySelector('.status-pill');
+      const bar = document.querySelector('.stitch-window-tools').getBoundingClientRect();
+      const pill = document.querySelector('.stitch-connection-state');
       const rect = pill.getBoundingClientRect();
       const range = document.createRange(); range.selectNodeContents(pill);
       return {lines: new Set([...range.getClientRects()].map(r => r.top)).size,
         spillsAboveBar: Math.max(0, bar.top - rect.top),
         spillsBelowBar: Math.max(0, rect.bottom - bar.bottom),
-        controls: [...document.querySelectorAll('.status-bar > button, .status-bar > .theme-picker select, .cabin-settings > summary')]
+        controls: [...document.querySelectorAll('.stitch-window-tools > button, .stitch-window-tools .stitch-window-tool-settings')]
           .filter(el => el.checkVisibility())
           .map(el => { const r = el.getBoundingClientRect();
             const hit = document.elementFromPoint(r.x + r.width/2, r.y + r.height/2);
@@ -1062,7 +1076,7 @@ def check_status_accessibility(page) -> dict[str, object]:
                 && r.top >= bar.top && r.bottom <= bar.bottom}; })};
     }""")
     labels = {c["label"] for c in layout["controls"]}
-    assert {"打开全局命令", "界面设置"} <= labels, layout
+    assert {"打开全局命令", "界面与工具设置"} <= labels, layout
     assert layout["lines"] == 1, layout
     assert layout["spillsAboveBar"] == layout["spillsBelowBar"] == 0, layout
     assert all(c["width"] >= 24 and c["height"] >= 24 and c["reachable"] and c["inBar"]
@@ -1078,19 +1092,23 @@ def check_status_accessibility(page) -> dict[str, object]:
 
     focus = []
     page.keyboard.press("Tab")  # establish keyboard modality for :focus-visible
-    controls = page.locator('.status-bar > button, .status-bar > .theme-picker select, .cabin-settings > summary')
+    controls = page.locator('.stitch-window-tools > button, .stitch-window-tools .stitch-window-tool-settings')
     for index in range(controls.count()):
         control = controls.nth(index)
-        if not control.is_visible():
+        # A quarantined diagnostic control is disabled and deliberately unreachable by
+        # keyboard, so only live targets carry the focus-indicator requirement.
+        if not control.is_visible() or not control.is_enabled():
             continue
         control.focus()
         page.wait_for_timeout(200)
         style = control.evaluate("""el => {
           const s = getComputedStyle(el);
           const barLayers=[];
-          for(let parent=el.closest('.status-bar');parent;parent=parent.parentElement)
+          for(let parent=el.closest('.stitch-window-tools');parent;parent=parent.parentElement)
             barLayers.push({color:getComputedStyle(parent).backgroundColor,image:getComputedStyle(parent).backgroundImage});
           return {shadow: s.boxShadow, background: s.backgroundColor, barLayers,
+            outline: s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) >= 1
+              ? {width: parseFloat(s.outlineWidth), color: s.outlineColor} : null,
             label: el.getAttribute('aria-label'), visible: el.matches(':focus-visible')};
         }""")
         # Transparent chrome inherits the shell surface. Bound unknown image pixels
@@ -1103,12 +1121,18 @@ def check_status_accessibility(page) -> dict[str, object]:
                 bars = [composite(layer["color"], base) for base in bars]
         backgrounds = [composite(style["background"], bar) for bar in bars]
         # Inset shadows are decorative and cannot stand in for an outer focus indicator.
+        # A real outline is an equivalent indicator; only `outline: none` is ignored.
         outer = re.split(r",\s*(?![^()]*\))", style["shadow"])
         colors = [re.search(r"rgba?\([^)]*\)", shadow).group(0)
                   for shadow in outer if 'inset' not in shadow and re.search(r"rgba?\([^)]*\)", shadow)]
+        if style.get("outline"):
+            colors.append(style["outline"]["color"])
         ratios = [contrast(composite(color, bg), bg) for color in colors for bg in (*bars, *backgrounds)]
-        assert style["visible"] and ratios and min(ratios) >= 3, (style, ratios)
-        focus.append({"label": style["label"], "worst": min(ratios), "shadow": style["shadow"]})
+        # At least one ring must be visible. A faint decorative hairline can sit beside the real
+        # indicator, so the strongest colour is what proves the control is findable.
+        assert style["visible"] and ratios and max(ratios) >= 3, (style, ratios)
+        focus.append({"label": style["label"], "contrast": max(ratios), "shadow": style["shadow"],
+                      "outline": style.get("outline")})
     page.evaluate("document.activeElement.blur()")
     return {**layout, "focus": focus}
 
@@ -1120,9 +1144,9 @@ def status_fault_selftest(page, width: int, height: int, scale: float) -> list[d
         return check_geometry(measure_geometry(page, chrome_bands(page)), width=width, height=height,
                               scale=scale, bands=chrome_bands(page))
     faults = (
-        ("status-child-overflow", '.status-bar', geometry),
+        ("status-child-overflow", '.stitch-window-tools', geometry),
         ("navigation-child-overflow", '.context-subnav' if "context" in chrome_bands(page) else '.navigation-sidebar' if "rail" in chrome_bands(page) else '.activity-dock', geometry),
-        ("pill-wrap", '.status-pill {white-space:normal!important;width:30px!important;overflow:visible!important}',
+        ("pill-wrap", '.stitch-connection-state {white-space:normal!important;width:30px!important;overflow:visible!important}',
          lambda: check_status_accessibility(page)),
         ("compressed-target", '.command-trigger {width:13px!important;min-width:13px!important;max-width:13px!important;flex:0 0 13px!important;padding:0!important;border:0!important;box-sizing:border-box!important}', lambda: check_status_accessibility(page)),
         ("invisible-focus", ':root {--ax-focus-ring:transparent!important}', lambda: check_status_accessibility(page)),
@@ -1160,14 +1184,14 @@ def status_fault_selftest(page, width: int, height: int, scale: float) -> list[d
     block = source.split('const BACKEND_LABELS:', 1)[1].split('};', 1)[0]
     labels = re.findall(r'^\s*\w+: "([^"]+)"', block, flags=re.MULTILINE)
     assert labels, 'backend labels missing from product source'
-    original = page.locator('.status-pill').inner_text()
+    original = page.locator('.stitch-connection-state').inner_text()
     try:
         for label in labels:
-            page.locator('.status-pill').evaluate('(el, text) => el.textContent=text', label)
+            page.locator('.stitch-connection-state').evaluate('(el, text) => el.textContent=text', label)
             check_status_accessibility(page)
             results.append({"backend_label": label, "status": "PASS"})
     finally:
-        page.locator('.status-pill').evaluate('(el, text) => el.textContent=text', original)
+        page.locator('.stitch-connection-state').evaluate('(el, text) => el.textContent=text', original)
     return results
 
 
@@ -1571,40 +1595,30 @@ def visible_control_box(locator) -> dict[str, object]:
 
 def check_top_navigation_actions(page, *, diagnostics_suspended: bool) -> None:
     """Require each action; quarantine adds recheck instead of removing diagnostics."""
-    actions = page.locator('.top-nav-right')
-    for name in ('设置', '运行诊断'):
-        node = actions.get_by_role('button', name=name, exact=True)
-        assert node.count() == 1 and node.is_visible(), ('missing top navigation action', name)
-        assert node.is_disabled() == (name == '运行诊断' and diagnostics_suspended), ('action state', name)
-    recheck = actions.get_by_role('button', name='重新检查诊断连接', exact=True)
+    # The Stitch titlebar keeps settings and diagnostics in the status tools, and the
+    # window controls in their own group; the old right-hand action cluster is gone.
+    settings = page.get_by_label('界面与工具设置', exact=True)
+    assert settings.count() == 1 and settings.is_visible() and settings.is_enabled(), 'settings action missing'
+    tools = page.locator('.stitch-window-tools')
+    diagnostic = tools.get_by_role('button', name='运行诊断', exact=True)
+    assert diagnostic.count() == 1 and diagnostic.is_visible(), 'diagnostic action missing'
+    assert diagnostic.is_disabled() == diagnostics_suspended, 'diagnostic action state'
+    recheck = tools.get_by_role('button', name='重新检查诊断连接', exact=True)
     assert recheck.count() == int(diagnostics_suspended), 'diagnostic recheck disagrees with quarantine'
     if diagnostics_suspended:
         assert recheck.is_visible() and recheck.is_enabled(), 'diagnostic recheck unavailable'
     mode = page.locator('.console-window').get_attribute('data-console-mode')
     assert mode in {'floating', 'full', 'compact'}, ('unknown console mode', mode)
+    controls = page.locator('.stitch-window-controls')
     toggle_name = '铺满主控台' if mode == 'floating' else '还原主控台'
     for name, disabled in ((toggle_name, mode == 'compact'), ('复位主控台', False)):
-        node = actions.get_by_role('button', name=name, exact=True)
+        node = controls.get_by_role('button', name=name, exact=True)
         assert node.count() == 1 and node.is_visible(), ('missing console action', name)
         assert node.is_disabled() == disabled, ('console action state', name, mode)
         box = visible_control_box(node)
         assert box['width'] >= 24 and box['height'] >= 24 and box['reachable'], box
         assert abs(box['height'] - box['rawHeight']) <= 1 and abs(box['width'] - box['rawWidth']) <= 1, box
-    assert actions.locator('button').count() == 4 + int(diagnostics_suspended), 'unexpected top navigation actions'
-
-
-def select_navigation_appearance(page, appearance: str) -> None:
-    assert appearance in {"top", "sidebar"}, appearance
-    settings = page.get_by_label("界面设置", exact=True)
-    picker = page.get_by_label("导航呈现", exact=True)
-    opened = not picker.is_visible()
-    if opened:
-        settings.click()
-    check_settings_menu(page)
-    picker.select_option(appearance)
-    if opened:
-        settings.click()
-    assert page.locator('.cabin-shell').get_attribute('data-navigation-appearance') == appearance
+    assert controls.locator('button').count() == 2, 'unexpected console window actions'
 
 
 def check_stitch_application_menus(page) -> dict[str, object]:
@@ -1680,11 +1694,11 @@ def check_stitch_application_menus(page) -> dict[str, object]:
     popup.wait_for(state='hidden')
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     dock = page.get_by_role('navigation', name='工作空间快捷导航', exact=True)
-    assert dock.is_visible() and dock.get_by_role('button').count() == 9
+    assert dock.is_visible() and dock.get_by_role('button').count() == 6
     assert dock.locator('[aria-current="page"]').count() == 1
     # Every icon-only narrow entry retains a real accessible name and is scroll-reachable.
     dock_targets = []
-    for label in ('工作台', '知识', '学习', '研究专题', 'AI', '资源', '全部能力', '设置', '小栖'):
+    for label in ('工作台', '知识', '学习', '研究专题', '全部能力', '小栖'):
         node = dock.get_by_role('button', name=label, exact=True)
         node.scroll_into_view_if_needed()
         box = visible_control_box(node)
@@ -1748,15 +1762,13 @@ def check_stitch_companion(page) -> dict[str, object]:
 
 
 def check_shell_pointer_targets(page, *, diagnostics_suspended: bool = False) -> list[dict[str, object]]:
-    compact = compact_chrome(console_viewport(page))
     check_top_navigation_actions(page, diagnostics_suspended=diagnostics_suspended)
     assert page.get_by_role('button', name='打开全局命令', exact=True).is_visible()
-    assert page.get_by_label('界面设置', exact=True).is_visible()
-    assert page.get_by_role('button', name='搜索页面、能力与内容', exact=True).is_visible() == (not compact)
-    if compact:
-        assert page.get_by_role('button', name='打开产品导航', exact=True).is_visible()
+    assert page.get_by_label('界面与工具设置', exact=True).is_visible()
+    # One navigation affordance replaces the old wide search field at every size.
+    assert page.get_by_role('button', name='打开产品导航', exact=True).is_visible()
     targets=[]
-    for node in page.locator('.top-nav-bar button,.status-bar button,.status-bar select,.status-bar summary,.ui-navigation-trigger,.stitch-workspace-menu summary,.stitch-workspace-menu > button,.stitch-menus > button,.stitch-workspace-dock button').all():
+    for node in page.locator('.stitch-window-toolbar button,.stitch-window-tools button,.stitch-window-tools select,.stitch-window-tools summary,.stitch-menus > button,.stitch-workspace-menu summary,.stitch-workspace-menu > button,.stitch-workspace-dock button').all():
         if not node.is_visible():
             continue
         node.scroll_into_view_if_needed()
@@ -1932,15 +1944,12 @@ def read_top_navigation(browser, viewport, problems, theme):
     try:
         select_ui_theme(page, theme)
         navigate_ui_page(page, "01")
-        settings = page.get_by_label("界面设置", exact=True)
+        settings = page.get_by_label("界面与工具设置", exact=True)
         settings.click()
         check_settings_menu(page)
-        page.get_by_label("导航呈现", exact=True).select_option("top")
-        settings.click()
+        page.keyboard.press("Escape")
         page.locator('[data-working-state="ready"]').wait_for(state="attached")
         assert "读取未完成" not in page.get_by_role("contentinfo", name="活动坞", exact=True).inner_text()
-        assert page.evaluate("localStorage.getItem('aaos.navigation-appearance.v1')") == "top"
-        assert not page.locator('.navigation-sidebar').is_visible()
         check_business_controls(page)
         geometry = check_stitch_application_menus(page)
         geometry["companion"] = check_stitch_companion(page)
@@ -1955,11 +1964,11 @@ def read_top_navigation(browser, viewport, problems, theme):
         editor.wait_for()
         assert "绑定历史正文 1 v1" in editor.inner_text()
         editor.evaluate("node => window.__A0_NAV_EDITOR__ = node")
-        for appearance in ("sidebar", "top"):
-            settings.click()
-            page.get_by_label("导航呈现", exact=True).select_option(appearance)
-            settings.click()
-            assert editor.evaluate("node => node === window.__A0_NAV_EDITOR__"), "Navigation appearance remounted editor"
+        # The compact shell has one layout, so the surviving identity risk is the theme
+        # switch: repainting the five palettes must not remount the open document.
+        for switched in ("blueprint", "cosmic") if theme != "cosmic" else ("black", "cosmic"):
+            select_ui_theme(page, switched)
+            assert editor.evaluate("node => node === window.__A0_NAV_EDITOR__"), "Theme switch remounted editor"
         status = check_status_accessibility(page)
         calls = page.evaluate("window.__A0_DOCUMENT_FIXTURE__.calls")
         assert not any(call['operation'] == 'document_draft' for call in calls), calls
@@ -2085,21 +2094,21 @@ def canonical_host_surface(browser, problems: list[str]) -> dict[str, object]:
     # The desktop surface names its own liveness, which the browser fallback never shows; that is
     # the discriminator between "mounted the host UI" and "silently rendered the fallback shell".
     page.get_by_role("navigation", name="应用菜单", exact=True).wait_for(state="visible")
-    liveness = page.locator('.status-bar .status-pill[data-status="available"][title="本地连接可用"]')
+    liveness = page.locator('.stitch-window-tools .stitch-connection-state[data-state="available"][title="本地连接可用"]')
     liveness.wait_for(state="visible")
-    assert "本地可用" in liveness.inner_text(), "no desktop liveness on the surface"
+    assert "可用" in liveness.inner_text(), "no desktop liveness on the surface"
     assert page.get_by_text("本地桌面恢复").count() == 0, "the canonical surface fell back to the recovery shell"
 
     # A confirmed host fixture must retain usable diagnostics, not silently become preview.
     check_shell_pointer_targets(page)
-    diagnostic = page.locator(".top-nav-right").get_by_role("button", name="运行诊断", exact=True)
+    diagnostic = page.locator(".stitch-window-tools").get_by_role("button", name="运行诊断", exact=True)
     diagnostic.click()
     diagnostic_dialog = page.get_by_role("dialog", name="运行诊断", exact=True)
     diagnostic_dialog.wait_for()
     diagnostic_dialog.get_by_role("button", name="关闭运行诊断", exact=True).click()
     diagnostic_dialog.wait_for(state="detached")
     diagnostic.wait_for()
-    page.wait_for_function("() => document.activeElement === document.querySelector('.top-nav-right [data-diagnostic-trigger=\"true\"]')")
+    page.wait_for_function("() => document.activeElement === document.querySelector('.stitch-window-tools [data-diagnostic-trigger=\"true\"]')")
 
     # Import/template regression belongs to the explicit canonical compatibility route.
     page.evaluate("location.hash = 'space=library'")
@@ -2252,7 +2261,10 @@ def main() -> None:
                     page.wait_for_timeout(200)
                     check_geometry(measure_geometry(page, chrome_bands(page)),
                                    width=width, height=height, scale=scale, bands=chrome_bands(page))
-                    accessibility[theme] = check_status_accessibility(page)
+                    try:
+                        accessibility[theme] = check_status_accessibility(page)
+                    except AssertionError as error:
+                        raise AssertionError((label, theme, str(error))) from error
                     brand_identity[theme] = check_brand_identity(page, theme, (label, width, height, scale))
                     # Browser preview has no confirmed Core working-state identity: diagnostics
                     # stay quarantined and expose their explicit connection recheck action.

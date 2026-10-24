@@ -5,6 +5,7 @@ import os
 import subprocess
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -243,6 +244,14 @@ def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypa
     spec = importlib.util.spec_from_file_location("candidate_stager_test", script)
     authority = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(authority)
+    monkeypatch.setattr(authority, "validate_app_local_vc_runtime", lambda runtime: None)
+    def synthetic_vc(runtime, root):
+        for name in ("vcruntime140.dll", "vcruntime140_1.dll"):
+            for directory in (root, root / "core"):
+                directory.mkdir(parents=True, exist_ok=True)
+                (directory / name).write_bytes(b"synthetic " + name.encode())
+        return {"files": 2}
+    monkeypatch.setattr(authority, "stage_app_local_vc_runtime", synthetic_vc)
     destination = tmp_path / "candidate"
     core = tmp_path / "archeaxis-api.exe"
     core.write_bytes(b"synthetic Core fixture")
@@ -261,7 +270,9 @@ def test_backend_candidate_delegates_layout_to_the_authoritative_stager(monkeypa
         (info / "RECORD").write_text("fastapi/.agents/upstream.md,,\n")
         return python
 
-    def stage(command, *, cwd, check):
+    def stage(command, *, cwd=None, check=None, **kwargs):
+        if command and str(command[0]).endswith("python.exe") and str(script) not in {str(item) for item in command}:
+            return SimpleNamespace(stdout="3.13.0\n", stderr="", returncode=0)
         observed.append(command)
         assert command[:3] == [sys.executable, "-B", str(script)]
         assert cwd == repository and check is True

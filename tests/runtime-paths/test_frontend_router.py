@@ -35,7 +35,8 @@ def project(tmp_path, monkeypatch):
     subprocess.run(["git", "init", "-q", str(root)], check=True)
     (root / ".gitignore").write_text(".project-local/\n", encoding="utf-8")
     resources = ("runtime", "core", "workers", "shared", "worker-profile.json",
-                 "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json")
+                 "start-backend.py", "start-backend.cmd", "backend-runtime-manifest.json",
+                 "vcruntime140.dll", "vcruntime140_1.dll")
     (root / "src-tauri").mkdir()
     (root / "src-tauri/tauri.conf.json").write_text(json.dumps({"bundle": {"resources": {
         "../.project-local/rt/" + name: name for name in resources}}}), encoding="utf-8")
@@ -166,6 +167,12 @@ def staged_runtime(project):
         "shared/learning_scheduler.py": b"synthetic scheduler",
         "start-backend.py": b"synthetic launcher",
         "start-backend.cmd": b"synthetic launcher cmd",
+        "vcruntime140.dll": b"synthetic vcruntime",
+        "core/vcruntime140.dll": b"synthetic vcruntime",
+        "runtime/vcruntime140.dll": b"synthetic vcruntime",
+        "vcruntime140_1.dll": b"synthetic vcruntime one",
+        "core/vcruntime140_1.dll": b"synthetic vcruntime one",
+        "runtime/vcruntime140_1.dll": b"synthetic vcruntime one",
         "workers/routes.json": json.dumps({"schema": "archeaxis.worker-routes/v1", "routes": {
             "document.detect": ["document/worker.py"]}}).encode(),
         "worker-profile.json": json.dumps({"schema": "archeaxis.worker-profile/v1",
@@ -187,10 +194,16 @@ def staged_runtime(project):
 
 def test_canonical_builder_receipt_connects_actual_tauri_target_to_portable(project, monkeypatch):
     from scripts.release import tauri_portable_candidate as portable
+    monkeypatch.setattr(portable.runtime_resources, "verify_fixed_webview2",
+                        lambda root: {"version": "synthetic", "path": "runtime/webview2",
+                                      "manifest_sha256": "0" * 64, "executable_sha256": "0" * 64})
     core_receipt = qualified_core(project, monkeypatch)
     core = json.loads(core_receipt.read_text(encoding="utf-8"))
     assert core["core_build"]["artifact"]["sha256"] == __import__("hashlib").sha256(b"synthetic-core").hexdigest()
     staged = staged_runtime(project)
+    monkeypatch.setattr(router.runtime_resources, "verify_fixed_webview2",
+                        lambda root: {"version": "synthetic", "path": "runtime/webview2",
+                                      "manifest_sha256": "0" * 64, "executable_sha256": "0" * 64})
     def compiler(*args, **kwargs):
         successful_compiler(*args, **kwargs)
         target = Path(kwargs["env"]["CARGO_TARGET_DIR"]) / "release"
@@ -234,8 +247,14 @@ def test_canonical_builder_receipt_connects_actual_tauri_target_to_portable(proj
 @pytest.mark.parametrize("change", ["extra", "missing", "corrupt", "worker_contract"])
 def test_qualified_builder_rejects_incomplete_resource_namespace(project, monkeypatch, change):
     from scripts.release import tauri_portable_candidate as portable
+    monkeypatch.setattr(portable.runtime_resources, "verify_fixed_webview2",
+                        lambda root: {"version": "synthetic", "path": "runtime/webview2",
+                                      "manifest_sha256": "0" * 64, "executable_sha256": "0" * 64})
     core_receipt = qualified_core(project, monkeypatch)
     staged = staged_runtime(project)
+    monkeypatch.setattr(router.runtime_resources, "verify_fixed_webview2",
+                        lambda root: {"version": "synthetic", "path": "runtime/webview2",
+                                      "manifest_sha256": "0" * 64, "executable_sha256": "0" * 64})
     if change == "worker_contract":
         path = staged / "worker-profile.json"
         profile = json.loads(path.read_text())

@@ -22,4 +22,6 @@
 /* The existing navigation portal lives outside the size container. */
 .ui-navigation-drawer { padding: 12px; }
 .ui-navigation-drawer .space-rail-item { min-height: 36px; padding: 6px 10px; font-size: 14px; }
+.ui-navigation-drawer .space-section-button { font-size: 14px; }
+.ui-navigation-drawer .space-section-button small { font-size: 13px; }
 .ui-navigation-drawer > button { position: sticky; top: 0; z-index: 2; background: var(--ax-panel); }

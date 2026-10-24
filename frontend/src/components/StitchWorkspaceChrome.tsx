@@ -1,6 +1,8 @@
 import { createContext, useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AaosIcon, type AaosIconName } from "./AaosIcon";
+import { AAOS_THEME_REGISTRY } from "../design-system/theme";
+import { useAaosTheme } from "../design-system/ThemeProvider";
 import { UI_PAGES } from "../presentation/uiPages";
 import "./StitchWorkspaceChrome.css";
 
@@ -26,6 +28,7 @@ const menus = [
 
 /** All entries resolve through the existing guarded App navigation. No new page registry. */
 export function StitchWorkspaceMenu({ onPage, onNavigation }: { onPage: (page: string) => void; onNavigation: () => void }) {
+  const { theme } = useAaosTheme();
   const root = useRef<HTMLElement>(null);
   const dismiss = (returnFocus = false) => {
     root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(menu => {
@@ -41,7 +44,7 @@ export function StitchWorkspaceMenu({ onPage, onNavigation }: { onPage: (page: s
   return <nav ref={root} className="stitch-workspace-menu" aria-label="应用菜单" onKeyDown={event => {
     if (event.key === "Escape" && !event.defaultPrevented) { dismiss(true); event.preventDefault(); }
   }} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) dismiss(); }}>
-    <button type="button" className="stitch-brand" onClick={() => onPage("01")} aria-label="ArcheAxis Knowledge 今日工作台"><AaosIcon name="Workspace" size={18}/><span>ArcheAxis Knowledge</span></button>
+    <button type="button" className="stitch-brand" onClick={() => onPage("01")} aria-label="ArcheAxis Knowledge 今日工作台"><img className="top-nav-logo brand-mark" src={AAOS_THEME_REGISTRY[theme].brandMark} alt="" width={22} height={22} style={{objectFit:"contain"}}/><span>ArcheAxis Knowledge</span></button>
     <div className="stitch-menus">
       {menus.map(menu => <details key={menu.label} onToggle={event => {
         if (event.currentTarget.open) root.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach(other => { if (other !== event.currentTarget) other.open = false; });

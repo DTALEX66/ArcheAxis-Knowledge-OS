@@ -9,7 +9,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PWSH = shutil.which("pwsh")
-pytestmark = pytest.mark.skipif(not PWSH, reason="PowerShell 7 unavailable")
+pytestmark = pytest.mark.skipif(not PWSH or sys.platform != "win32",
+                                reason="Windows PowerShell 7 lifecycle guards require Windows")
 DRIVER = r"""
 param([string]$Source, [string]$Mode, [string]$Root, [string]$Python)
 $ErrorActionPreference = 'Stop'

@@ -28,7 +28,8 @@ def synthetic_vc(runtime, monkeypatch):
     for name in stager.APP_LOCAL_VC_RUNTIME:
         payload = ("synthetic " + name).encode()
         (runtime / name).write_bytes(payload)
-        identities[name] = {"bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+        identities[name] = ({"version": "synthetic", "bytes": len(payload),
+                             "sha256": hashlib.sha256(payload).hexdigest()},)
     monkeypatch.setattr(stager, "APP_LOCAL_VC_RUNTIME", identities)
 
 

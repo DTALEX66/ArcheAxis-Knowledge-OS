@@ -33,7 +33,7 @@ body:has(.app-shell[data-stitch-workspace]) {
 }
 :root[data-aaos-theme="cosmic"] .stitch-workspace-menu { background: color-mix(in srgb, var(--ax-canvas) 55%, transparent); }
 .stitch-workspace-menu button, .stitch-workspace-menu summary {
-  font: inherit; color: inherit; background: transparent; border: 0; border-radius: 5px;
+  font: inherit; font-size: 14px; color: inherit; background: transparent; border: 0; border-radius: 5px;
   min-height: 32px; padding: 5px 9px; cursor: pointer; white-space: nowrap;
 }
 .stitch-workspace-menu .stitch-brand { display: flex; align-items: center; gap: 8px; min-width: 32px; color: var(--ax-accent); font-weight: 600; padding-inline: 0; }
@@ -58,7 +58,7 @@ body:has(.app-shell[data-stitch-workspace]) {
   background: var(--stitch-glass-panel); color: var(--ax-fg-secondary); box-shadow: 0 12px 32px -12px #0009;
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
 }
-.stitch-workspace-dock button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; min-height: 38px; padding: 7px 12px; font: inherit; font-size: var(--ax-text-ui); color: inherit; background: transparent; border: 1px solid transparent; border-radius: 22px; white-space: nowrap; cursor: pointer; }
+.stitch-workspace-dock button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; min-height: 38px; padding: 7px 12px; font: inherit; font-size: 14px; color: inherit; background: transparent; border: 1px solid transparent; border-radius: 22px; white-space: nowrap; cursor: pointer; }
 .stitch-workspace-dock button:is(:hover, [aria-current="page"], [aria-expanded="true"]) { color: var(--ax-accent); background: var(--ax-accent-soft); border-color: var(--ax-accent); }
 .stitch-workspace-dock .stitch-companion-toggle { border-left-color: var(--ax-border); }
 .stitch-workspace-menu :focus-visible, .stitch-workspace-dock :focus-visible, .stitch-companion-window :focus-visible { outline: 2px solid var(--ax-focus-ring); outline-offset: 2px; }

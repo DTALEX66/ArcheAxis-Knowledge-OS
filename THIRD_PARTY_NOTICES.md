@@ -161,10 +161,13 @@ This adds no runtime service, execution plugin, cloud request or paid dependency
 The selected Python runtime already contains Microsoft's `vcruntime140.dll` and
 `vcruntime140_1.dll`, version 14.44.35211. Packaging copies these two approved
 files unchanged next to both `ArcheAxis.exe` and `core/archeaxis-api.exe`; it does
-not download a runtime or install a system-wide redistributable. Exact donor
-sizes and SHA-256 pins are in `APP_LOCAL_VC_RUNTIME` in
-`scripts/release/stage_backend_runtime.py`; every packaged copy is inventoried
-in `backend-runtime-manifest.json`.
+not download a runtime or install a system-wide redistributable. The desktop runtime
+is staged from the interpreter that builds it, so a CI tool-cache donor may carry a
+different-but-official VC redist build; `APP_LOCAL_VC_RUNTIME` in
+`scripts/release/stage_backend_runtime.py` lists the reviewed donor identities and an
+unrecognised byte sequence fails the build with its observed bytes and SHA-256. Every
+packaged copy and its recorded identity is inventoried in
+`backend-runtime-manifest.json`.
 
 | File (x64, version 14.44.35211) | Bytes | SHA-256 |
 | --- | ---: | --- |

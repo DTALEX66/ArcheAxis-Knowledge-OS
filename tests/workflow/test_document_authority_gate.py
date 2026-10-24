@@ -35,11 +35,13 @@ def build_repo(root: Path, *, ledger=PROGRESS, pack=PACK, authority_extra="") ->
     (root / "docs" / "current").mkdir(parents=True, exist_ok=True)
     (root / "docs" / "truth").mkdir(parents=True, exist_ok=True)
     (root / "docs" / "taskpacks").mkdir(parents=True, exist_ok=True)
-    (root / "docs" / "DOCUMENTATION_AUTHORITY_INDEX.md").write_text("index\n", encoding="utf-8")
-    (root / "AGENTS.md").write_text("agents\n", encoding="utf-8")
+    (root / "docs" / "DOCUMENTATION_AUTHORITY_INDEX.md").write_text("index\nAAOS-ACTIVE-EXECUTION.json\n", encoding="utf-8")
+    (root / "AGENTS.md").write_text("agents\nAAOS-ACTIVE-EXECUTION.json\n", encoding="utf-8")
+    (root / "CLAUDE.md").write_text("@AGENTS.md\n@AUTHORITY.md\nAAOS-ACTIVE-EXECUTION.json\n", encoding="utf-8")
+    (root / "GEMINI.md").write_text("@AGENTS.md\n@AUTHORITY.md\nAAOS-ACTIVE-EXECUTION.json\n", encoding="utf-8")
     (root / "README.md").write_text(f"current ledger {ledger}\ncurrent pack {pack}\n", encoding="utf-8")
     (root / "AUTHORITY.md").write_text(
-        f"# root\ncurrent: {ledger} and {pack}\n{authority_extra}", encoding="utf-8")
+        f"# root\ncurrent: {ledger} and {pack}\nAAOS-ACTIVE-EXECUTION.json\n{authority_extra}", encoding="utf-8")
     (root / "docs" / "truth" / "README.md").write_text("truth\n", encoding="utf-8")
     (root / "docs" / "taskpacks" / "README.md").write_text("packs\n", encoding="utf-8")
     (root / "docs" / "current" / Path(ledger).name).write_text("ledger\n", encoding="utf-8")
@@ -363,7 +365,7 @@ def compatibility_fixture(monkeypatch, tmp_path):
 def test_compatibility_missing_local_runs_never_become_external_parity(monkeypatch, tmp_path, capsys):
     gate, _, _ = compatibility_fixture(monkeypatch, tmp_path)
     assert gate.check_knowledge_compatibility() == []
-    assert "unavailable/UNVERIFIED 2; no external parity inferred" in capsys.readouterr().out
+    assert "unavailable/UNVERIFIED 3; no external parity inferred" in capsys.readouterr().out
 
 
 def test_compatibility_rejects_silent_scope_loss_and_unproved_success(monkeypatch, tmp_path):

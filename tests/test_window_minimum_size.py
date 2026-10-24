@@ -101,37 +101,35 @@ def test_the_widest_component_is_measured_where_it_is_mounted() -> None:
     the one component likely to stack outside the non-stacking check entirely."""
     gate = load_gate()
     assert set(gate.CHROME_BANDS) == {"application_menu", "application_dock", "top_navigation", "status", "rail", "context", "center", "dock"}
-    assert gate.CHROME_BANDS["top_navigation"] == ".top-nav-bar"
+    assert gate.CHROME_BANDS["top_navigation"] == ".stitch-window-toolbar"
     assert "<TopNavBar" in (ROOT / "frontend/src/app/App.tsx").read_text(encoding="utf-8")
-    assert '<nav className="top-nav-bar">' in (ROOT / "frontend/src/components/TopNavBar.tsx").read_text(encoding="utf-8")
+    assert 'className="stitch-window-toolbar"' in (ROOT / "frontend/src/components/TopNavBar.tsx").read_text(encoding="utf-8")
     assert set(gate.LIBRARY_BANDS) == set(gate.CHROME_BANDS) | {"templates"}
     assert gate.LIBRARY_BANDS["templates"] == "details.template-launcher"
     assert "read_library_geometry" in (ROOT / "scripts" / "a0_browser_smoke.py").read_text(encoding="utf-8")
     # Test the actual mounted-surface projection as well as the declared superset.
     def surface(width, height, appearance):
-        rail_visible = appearance == "sidebar" and not gate.compact_chrome(("console", width, height, 1))
         def locator(selector):
             if selector == ".cabin-shell":
                 return SimpleNamespace(get_attribute=lambda name: appearance if name == "data-navigation-appearance" else "false")
-            if selector == ".navigation-sidebar":
-                return SimpleNamespace(is_visible=lambda: rail_visible)
             if selector == "#stitch-companion-window":
                 return SimpleNamespace(is_visible=lambda: False)
             return SimpleNamespace(bounding_box=lambda: {"width": width, "height": height})
         return SimpleNamespace(locator=locator,
             get_by_role=lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: True))
-    wide = surface(1920, 1080, "sidebar")
-    assert gate.library_bands(wide) == {**gate.LIBRARY_BANDS, "navigation_trigger": ".ui-navigation-trigger"}
-    expected_without_rail = {
+    trigger = 'button[aria-label="打开产品导航"]'
+    expected = {
         "application_menu": ".stitch-workspace-menu", "application_dock": ".stitch-workspace-dock",
-        "top_navigation": ".top-nav-bar", "status": ".status-bar", "center": ".app-center",
-        "dock": ".activity-dock", "navigation_trigger": ".ui-navigation-trigger",
+        "top_navigation": ".stitch-window-toolbar", "status": ".stitch-window-tools", "center": ".app-center",
+        "dock": ".activity-dock", "navigation_trigger": trigger,
         "templates": "details.template-launcher",
     }
+    wide = surface(1920, 1080, "sidebar")
+    assert gate.library_bands(wide) == expected
     narrow = surface(640, 480, "top")
-    assert gate.library_bands(narrow) == expected_without_rail
-    assert gate.library_bands(surface(1920, 1080, "top")) == expected_without_rail
-    assert gate.library_bands(surface(1920, 700, "sidebar")) == expected_without_rail
+    assert gate.library_bands(narrow) == expected
+    assert gate.library_bands(surface(1920, 1080, "top")) == expected
+    assert gate.library_bands(surface(1920, 700, "sidebar")) == expected
     # An unavailable drawer must not silently shrink the declared bands.
     narrow.get_by_role = lambda *_args, **_kwargs: SimpleNamespace(is_visible=lambda: False)
     with pytest.raises(AssertionError, match="Stitch navigation drawer trigger"):

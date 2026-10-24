@@ -98,10 +98,20 @@ def sha256(path: Path) -> str:
 
 
 # Approved x64 runtime donors already included in the selected Python runtime.
-# Updating these pins is a reviewed release maintenance action, never discovery.
-APP_LOCAL_VC_RUNTIME = {
-    "vcruntime140.dll": {"bytes": 124544, "sha256": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"},
-    "vcruntime140_1.dll": {"bytes": 49792, "sha256": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"},
+# The desktop runtime comes from the build interpreter, so a developer donor and the
+# CI tool-cache donor carry different-but-official Microsoft VC redist builds. Approval
+# is therefore a reviewed set of exact identities per file: an unrecognised byte
+# sequence still fails closed and prints the observed identity for review, so accepting
+# a new donor stays a release maintenance action rather than discovery at build time.
+APP_LOCAL_VC_RUNTIME: dict[str, tuple[dict[str, object], ...]] = {
+    "vcruntime140.dll": (
+        {"version": "14.44.35211", "bytes": 124544,
+         "sha256": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"},
+    ),
+    "vcruntime140_1.dll": (
+        {"version": "14.44.35211", "bytes": 49792,
+         "sha256": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f"},
+    ),
 }
 
 # Public Microsoft Fixed Version package selected for offline desktop packaging.
@@ -167,8 +177,10 @@ def stage_fixed_webview2(source: Path, manifest: Path, root: Path) -> dict:
             "distribution": "Microsoft Fixed Version; application publisher maintains security updates"}
 
 
-def validate_app_local_vc_runtime(runtime: Path) -> None:
-    for name, expected in APP_LOCAL_VC_RUNTIME.items():
+def validate_app_local_vc_runtime(runtime: Path) -> dict[str, dict[str, object]]:
+    """Return the observed identity of each approved donor file, or fail closed."""
+    observed: dict[str, dict[str, object]] = {}
+    for name, approved in APP_LOCAL_VC_RUNTIME.items():
         donor = runtime / name
         reject_reparse(donor)
         try:
@@ -177,23 +189,30 @@ def validate_app_local_vc_runtime(runtime: Path) -> None:
             raise ValueError(f"required app-local VC runtime missing: {name}") from error
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
             raise ValueError(f"app-local VC runtime is not an independent regular file: {name}")
-        if info.st_size != expected["bytes"] or sha256(donor) != expected["sha256"]:
-            raise ValueError(f"app-local VC runtime identity mismatch: {name}")
+        identity = {"bytes": info.st_size, "sha256": sha256(donor)}
+        match = next((row for row in approved
+                      if identity == {"bytes": row["bytes"], "sha256": row["sha256"]}), None)
+        if match is None:
+            raise ValueError(f"app-local VC runtime identity mismatch: {name} observed {identity}")
+        observed[name] = {**identity, "version": match["version"]}
+    return observed
 
 
 def stage_app_local_vc_runtime(runtime: Path, root: Path) -> dict:
-    validate_app_local_vc_runtime(runtime)
-    for name, expected in APP_LOCAL_VC_RUNTIME.items():
+    observed = validate_app_local_vc_runtime(runtime)
+    for name, identity in observed.items():
         for directory in (root, root / "core"):
             target = directory / name
             reject_reparse(target)
             if target.exists():
                 raise ValueError(f"refusing app-local VC runtime overwrite: {name}")
             shutil.copy2(runtime / name, target)
-            if target.stat().st_size != expected["bytes"] or sha256(target) != expected["sha256"]:
+            if target.stat().st_size != identity["bytes"] or sha256(target) != identity["sha256"]:
                 raise ValueError(f"app-local VC runtime copy mismatch: {name}")
-    return {"version": "14.44.35211", "architecture": "x64", "source": "selected Python runtime",
-            "members": APP_LOCAL_VC_RUNTIME, "install_locations": [".", "core/"],
+    versions = sorted({str(row["version"]) for row in observed.values()})
+    return {"version": versions[0] if len(versions) == 1 else "+".join(versions),
+            "architecture": "x64", "source": "selected Python runtime",
+            "members": observed, "install_locations": [".", "core/"],
             "maintenance": "Application publisher must update and redistribute these app-local files."}
 
 

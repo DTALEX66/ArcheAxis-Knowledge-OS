@@ -1178,7 +1178,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             self.probe.restored_admission_receipt(None, document, "original-knowledge", "question")
         self.assertIn(("type", "实际问题", "question", "textarea"), actions)
         self.assertIn(("click", "执行本地机器回答"), actions)
-        self.assertTrue(any("Core 明确拒绝此回答请求" in script for script in waits))
+        self.assertTrue(any("本地知识库明确拒绝此回答请求" in script for script in waits))
         self.assertTrue(all(op in self.probe.READ_OPERATIONS for op, _ in reads))
         self.assertEqual(
             self.probe.restored_grant_refusal(None, None, None, {})["status"], "NOT_EXECUTED"
