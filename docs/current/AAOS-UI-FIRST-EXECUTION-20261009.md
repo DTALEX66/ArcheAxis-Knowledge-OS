@@ -1677,3 +1677,7 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - Owner 要求不重启 Windows，直接结束残留沙盒后重开。按顺序尝试：①普通权限 `Stop-Process -Id 13912`：拒绝访问；②UAC 提升后 `Stop-Process`：返回 OK，但 `vmwp.exe` PID13912 与 `vmmemWindowsSandbox` PID37160 仍存活（受保护进程，普通管理员不能终止）；③UAC 提升 `Restart-Service vmcompute -Force`：超时，服务仍 Running，VM 未退出；④UAC 提升 `hcsdiag kill 1a843c0d-7a89-45e8-93a0-2fead08de060`：挂起后失败（exit -1），VM 仍存活。`hcsdiag list` 显示运行中的 VM 处于 Unknown 状态，第二个 `411b16ff…` 为 SavedAsTemplate 基础模板，未动。
 - 结果：不重启 Windows 的前提下无法终止该受保护/卡住的沙盒 VM；未新建第二个沙盒（避免叠加 VM），未停止 vmcompute 服务，未终止系统服务或其它进程；自有挂起 hcsdiag/PowerShell 已清理。安装态资格继续阻塞。证据：`.project-local/runs/be268a2d33/sandbox-kill-audit-20261024-01/`（`kill.txt`=OK、`vmcompute.txt`=超时、`hcsdiag.txt`/`hcsdiag-kill.txt`）。
 - 可行路径只剩：重启 Windows（Owner 暂不愿）；或等待 Windows 自行清理；或从 Windows Sandbox 界面重新打开并关闭（当前无 client 进程）。未提交、未推送、未安装、未更新 Green。
+### 2026-10-24 安全缓存清理与本地提交（G01／CL-07）
+
+- 体积：删除 `.project-local/cache/npm`、`pip`、`pytest` 可重建缓存，446 文件／166,418,076B；`uv` 与 `cargo` 缓存保留（uv 曾有锁定文件，cargo 供离线构建）。回执 `volume-cleanup-20261024-09/cache-cleanup.json`（SHA-256 `37a55044…92e4`）。`.project-local` 实测约 56.7GB，其余 runs/candidates/build/archives 等证据与回滚产物未删。
+- 本地提交：`c0c50bee`（37 文件）提交前端 P0/P1、诊断入口与关闭其他视图、报告与 2026-10-24 TRAE 交接；显式排除 `scripts/probes/*` 既有脏文件、stat-only 的 project-drift 文档、`.trae-html-share-packages/` 与 `.trae/`。未推送、未合并、未发布、未更新 Green。
