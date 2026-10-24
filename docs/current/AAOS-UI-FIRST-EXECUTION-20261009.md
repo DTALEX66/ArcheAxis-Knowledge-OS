@@ -1824,6 +1824,13 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 回执 `.../webdriver-14c04460806a/tmp/journey/receipt.json`（329,741B，SHA-256 `e04bef7b6afd9028b83999d64e4166b6b767c1aaf565119f12959e7627325d8a`）。`closed_loop_verified=false`、`owner_acceptance=NOT_EXECUTED`；工程链 PASS 不等于语义质量或 Owner 验收。
 - 意义：J4 的真实模型工程链现在也落在同一重建候选 `ca5fbfda` 上，而不是只在 `b645c658` 或独立样例上。
 
+### 2026-10-24 开发根布局复核（治理，未关闭；不冒充功能 PASS）
+
+- `scripts/runtime/storage_report.py` 当前测量为 `PARTIAL`：已知不可读路径包括 ACL 拒绝的 pytest 缓存与 `runs/ssot-*`、`security-boundary-*`，以及一个超过传统路径上限的测试夹具；这些是不可强行越过的保留项，不是新删除授权。
+- 布局漂移实测 164 项：`.project-local` 顶层散件 133 项、仓库根 `.screenshots/` 与 `.trae/`、`runs/` 下 29 个非身份摘要目录（含 6 个未登记的新目录）与 19 个已无对应 checkout 的旧身份目录。`runs/` 为 20.18GB，超过 2.0GB 复核预算。
+- 既有 `realign_dev_layout.py` 因测量 `PARTIAL` 拒绝执行；本次没有绕过它做批量移动或删除。基线文件只登记 ACL/junction 例外，不把新目录写成永久豁免。
+- 结论：这是仓库治理与保留决策的未关闭项；不影响上述同候选功能证据，但也不能把布局测试写成绿色。
+
 ### 2026-10-24 闭环验收矩阵（重建候选 Host ca5fbfda；早期行为证据 Host b645c658 留档；目标非完成声明）
 
 | 维度 | 当前状态 | 依据／缺口 |

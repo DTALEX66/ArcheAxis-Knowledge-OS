@@ -202,13 +202,13 @@
       <tr><td>禁用操作无原因</td><td>研究/学习/导入按钮不可用且无解释</td><td><span class="tag ok">已修</span> 三页就地说明；全页补充布局、学习、资产、评测、导入、受限任务与画布动作的原因；22 页扫描未解释禁用项 0</td><td class="mono">ui-token-scan-06</td></tr>
       <tr><td>工程术语外露</td><td>04/14/15/21 出现 Core、CAS、IEEE754、NOT_EXECUTED</td><td><span class="tag ok">已修</span> 04/14/21/13 已改写为业务语言；22 页原生扫描工程词命中 0（页 15 的 ArcheAxis Core Knowledge 为资源专名）</td><td class="mono">ui-token-scan-06</td></tr>
       <tr><td>窄窗遮挡</td><td>来源/证据面板浮在正文右上</td><td><span class="tag ok">已修</span> 改为底部停靠，不再遮挡头部</td><td class="mono">页面 03 窄窗截图</td></tr>
-      <tr><td>连续业务闭环</td><td>只证明页面可渲染</td><td><span class="tag ok">已补</span> 14/14 步：导入→阅读→保存→知识→学习→复习→退出→重开读回；已在当前 Host 复跑</td><td class="mono">journey-receipt 3d2fb497</td></tr>
-      <tr><td>AI 侧真实模型链</td><td>仅有历史分段回执</td><td><span class="tag ok">工程 PASS</span> 本地 qwen3.5-4b 实际回答→人工纠正→独立复测→重开恢复；<span class="tag mid">PARTIAL</span> 质量未独立评测、无 Owner 签署</td><td class="mono">ai-loop 5e06d37f</td></tr>
+      <tr><td>连续业务闭环</td><td>只证明页面可渲染</td><td><span class="tag ok">已补</span> 14/14 步：导入→阅读→保存→转换→知识候选→审核接受→学习→复习→退出→重开读回；已在同一重建候选复跑</td><td class="mono">journey-current 3dffdc01</td></tr>
+      <tr><td>AI 侧真实模型链</td><td>同一重建候选原生 UI</td><td><span class="tag ok">工程 PASS</span> 本地 qwen3.5-4b 实际回答→自编工程纠正→复测→重开恢复学习→恢复后授权拒绝；<span class="tag mid">PARTIAL</span> 质量未独立评测、无 Owner 签署</td><td class="mono">ai-current e04bef7b</td></tr>
     </tbody>
   </table>
 </div>
-<div class="callout"><b>2026-10-24 当前 Host AI 侧工程链：</b>本地 LM Studio <span class="mono">qwen3.5-4b</span> 完成实际回答（176→1893 tokens，22.79s）→人工 authored 纠正→独立复测→重开恢复学习；恢复授权拒绝与能力启停也通过。工程状态 <span class="mono">PASS</span>，链状态 <span class="mono">PARTIAL</span>：质量未独立评测、无 Owner 签署、候选构建绑定未提供。回执 <span class="mono">ai-engineering-loop-20261024.json</span>（SHA-256 <span class="mono">5e06d37f…becd</span>）。</div>
-<div class="callout"><b>2026-10-24 当前 Host 人类闭环：</b>Host <span class="mono">b645c658</span> 以隔离数据根完成 14／14 原生点击：导入→阅读→保存→转换→知识候选→人工接受→学习问答→复习→退出→同目录重开读回→再次退出；两次 exit 0、11 张截图、模型调用 0。回执 <span class="mono">journey-17/receipt.json</span>（SHA-256 <span class="mono">3d2fb497…6f83</span>）。</div>
+<div class="callout"><b>2026-10-24 同一重建候选 AI 侧工程链：</b>Host <span class="mono">ca5fbfda</span> 的 grouped 原生 UI 使用本地 LM Studio <span class="mono">qwen3.5-4b</span> 完成实际 grounded 回答（156→1646 tokens，22.52s）→自编工程纠正→复测→重开恢复学习→恢复后旧授权 <span class="mono">RESTORED_GRANT_FENCED</span> 拒绝；能力停用执行拒绝与 5 次产品退出均 PASS。工程状态 <span class="mono">PASS</span>，链状态 <span class="mono">PARTIAL</span>：语义质量未独立评测、无 Owner 签署。回执 <span class="mono">webdriver-14c04460806a</span>（SHA-256 <span class="mono">e04bef7b…5d8a</span>）。</div>
+<div class="callout"><b>2026-10-24 同一重建候选人类闭环：</b>Host <span class="mono">ca5fbfda</span> 以隔离数据根完成 14／14 原生点击：导入→阅读→保存→转换→知识候选→审核接受→学习问答→复习→退出→同目录重开读回→再次退出；两次 exit 0、11 张截图、模型调用 0。回执 <span class="mono">ui-novice-journey-current-20261024-02</span>（SHA-256 <span class="mono">3dffdc01…a75f</span>）。早期 Host <span class="mono">b645c658</span> 的 journey-17 仅作历史留档。</div>
 <div class="callout"><b>2026-10-24 全页文案与禁用原因复核：</b>最终 Host <span class="mono">b645c658</span> 以隔离数据根原生启动，逐页读取 22／22（含页 16“互通资格”页签）；工程词命中 0、未解释禁用项 0、页面错误 0。回执 <span class="mono">ui-token-scan-20261024-07/receipt.json</span>。全量前端 2108 项：2090 PASS／18 FAIL，与改动前基线一致。</div>
 
 <h2><span class="n">06</span>外部库与绿色库对比</h2>
@@ -275,7 +275,7 @@
       <li>分支与 worktree 收敛到 1 个工作树、3 个分支，无独有工作待合并。</li>
       <li>证据链当前断点 0：6/6 当前回执可验证；2,575 条历史引用全部有分类，其中 700 条在归档中、1,848 条属授权清理、27 条为历史未保留。</li>
       <li>目录权威与 SUP-022 对齐：frontend/src-tauri 归入正式宿主演进线，100% 路径有归属。</li>
-      <li>新手流程从“页面能打开”推进到“能连续完成业务并重开读回”。</li>
+      <li>同一重建候选 Host <span class="mono">ca5fbfda</span> 同时承载 18 格式矩阵、原生人类 14/14、公开研究整合链、AI 本地模型工程链与批量/检索/导出，不再是多分支局部 PASS 拼接。</li>
       <li>重建候选 Host <span class="mono">ca5fbfda</span> 的 18 类格式矩阵 18/18 通过：真实导入与字节身份、真实转换、预览、结构位置、损失、12 个结构引用与重启回读。</li>
       <li>批量目录、导入失败重试、重启续做、检索命中与文本引用、Markdown 导出、文档包跨工作区恢复全部有实际回执。</li>
       <li>重建候选上真实三通道外部检索（维基／社区／科研）完整返回，并打通“公开来源→比较锚点→公开知识候选→关联个人资料→学习→统一研究文档→重启/导出/恢复”，公开摘录保留未核实。</li>

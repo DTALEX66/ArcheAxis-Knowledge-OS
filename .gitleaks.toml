@@ -193,3 +193,57 @@ paths = [
   '''^docs/history/oss\-absorption\-evidence/20261019\-machine\-deadline/MANIFEST\.json$''',
 ]
 regexes = ['''^18662aaea3db5e1fcd3fe97c18121db33d27023a4c62e66a9c98e78940091692$''']
+
+# Exact file digests recorded in the current closure evidence. Each value is a
+# SHA-256 of a committed source/executable member, not a credential; the path and
+# value are both named so a different high-entropy value in the same document
+# still fails.
+[[allowlists]]
+description = "verified current candidate Core digest in the active pointer"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = [
+  '''^docs/current/AAOS\-ACTIVE\-EXECUTION\.json$''',
+]
+regexes = ['''^f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a$''']
+
+[[allowlists]]
+description = "verified candidate Core digest in the dual-loop resume receipt"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = [
+  '''^docs/history/project\-drift\-audit\-20261021/dual\-loop\-resume\-20261024\.json$''',
+]
+regexes = ['''^f91515b42c18c96de1c4b5973206f21106b0fa8ff9f8bac74e1c61916c537b6a$''']
+
+[[allowlists]]
+description = "verified external-context test source digest in the AI context boundary receipt"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = [
+  '''^docs/history/project\-drift\-audit\-20261021/ai\-context\-separation\-20261023\.json$''',
+]
+regexes = ['''^386e54884561c14bcb03a81133239b2380946427a5e0ab468d691cbabd1cce25$''']
+
+[[allowlists]]
+description = "verified credential test source digest in the cloud blocker receipt"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = [
+  '''^docs/history/project\-drift\-audit\-20261021/cloud\-execution\-blocker\-20261023\.json$''',
+]
+regexes = ['''^ba22326220a51c7e8347c047454592e3198bf22051abe0172d7b5191da9b4212$''']
+
+[[allowlists]]
+description = "verified material-question test source digest in the cloud blocker receipt"
+condition = "AND"
+targetRules = ["generic-api-key"]
+regexTarget = "secret"
+paths = [
+  '''^docs/history/project\-drift\-audit\-20261021/cloud\-execution\-blocker\-20261023\.json$''',
+]
+regexes = ['''^b5d56b1fe3470687fa6a0047c1471cb1a14da761feca0119d082af269582bc14$''']
