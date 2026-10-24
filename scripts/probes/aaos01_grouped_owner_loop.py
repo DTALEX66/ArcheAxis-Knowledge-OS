@@ -492,11 +492,26 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         raise TimeoutError("Target remains clipped after bounded trusted scrolling")
 
     def click_revealed_selector(self, selector):
-        observed = self.reveal_selector(selector)
-        # Element-click may scroll the nested layout again. Pointer input uses
-        # the already visible, unobscured target without changing that scroll.
-        self.command(None, "pointer_click", observed["point"])
-        self.evidence.append({"action":"trusted_visible_pointer_click", "selector":selector, **observed["point"]})
+        for _ in range(3):
+            observed = self.reveal_selector(selector)
+            point = observed["point"]
+            # A late async repaint can move the control after the first hit test.
+            # Re-check the exact point against the same target immediately before
+            # dispatching pointer input; never click a stale coordinate.
+            still_there = self.js(
+                "const n=document.evaluate(" + json.dumps(selector) + ",document,null,"
+                "XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;"
+                "const hit=document.elementFromPoint(" + str(int(point["x"])) + "," + str(int(point["y"])) + ");"
+                "return !!n&&!!hit&&n.contains(hit);"
+            )
+            if still_there:
+                # Element-click may scroll the nested layout again. Pointer input uses
+                # the already visible, unobscured target without changing that scroll.
+                self.command(None, "pointer_click", point)
+                self.evidence.append({"action":"trusted_visible_pointer_click", "selector":selector, **point})
+                return
+            time.sleep(0.15)
+        raise TimeoutError("Target moved before the trusted pointer click")
 
     def click_revealed(self, label, scope=""):
         self.click_revealed_selector(button_selector(label, scope))

@@ -194,6 +194,14 @@ def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, 
         accept_navigation_alert()
         wait("return !!document.querySelector('.stitch-page-identity[data-current-page-id=\"03\"]') && !!document.querySelector(" + json.dumps(EDITOR) + ")")
     open_doc(a)
+    # The restored draft and its reader banner settle after hydration. Require the
+    # real save control to be enabled and its box stable before pointer input, so
+    # a click cannot land beside it or on a temporarily disabled button.
+    wait("const b=[...document.querySelectorAll('button')].find(x=>x.textContent.trim()==='保存草稿');"
+         "if(!b||b.disabled||!b.getClientRects().length||b.closest('[hidden],[inert]'))return false;"
+         "const r=b.getBoundingClientRect();const p=window.__conflictSaveBox;"
+         "window.__conflictSaveBox=[r.x,r.y,r.width,r.height];"
+         "return !!p&&p[0]===r.x&&p[1]===r.y&&p[2]===r.width&&p[3]===r.height")
     ui.click("保存草稿")
     wait("return !!document.querySelector('[aria-label=\"文档版本冲突恢复\"]')")
     assert read("document_get", {"document_id": a["document_id"]}) == fixture["current_a"]

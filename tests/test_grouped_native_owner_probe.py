@@ -305,6 +305,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
         values = iter([
             {"ready": False, "reason": "No reachable scroll container", "target": {"x": 1043, "y": 679}},
             {"ready": True, "point": {"x": 770, "y": 679}},
+            True,
         ])
         ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
             lambda *args: commands.append(args), evidence)
@@ -312,6 +313,19 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             ui.click_revealed_selector("//button[@id='restored-document']")
         self.assertEqual(commands, [(None, "pointer_click", {"x": 770, "y": 679})])
         self.assertTrue(any(row["action"] == "wait_for_target_layout" for row in evidence))
+
+    def test_click_rechecks_the_point_instead_of_using_a_stale_coordinate(self):
+        probe = load_probe()
+        commands = []
+        values = iter([
+            {"ready": True, "point": {"x": 10, "y": 20}}, False,
+            {"ready": True, "point": {"x": 30, "y": 40}}, True,
+        ])
+        ui = probe.GroupedUI(lambda _: next(values), lambda _: None, lambda *_: "node",
+            lambda *args: commands.append(args), [])
+        with patch.object(probe.time, "sleep", lambda _: None):
+            ui.click_revealed_selector("//button[@id='moving']")
+        self.assertEqual(commands, [(None, "pointer_click", {"x": 30, "y": 40})])
 
     def test_reader_source_tools_opens_current_stitch_disclosure_before_candidate(self):
         probe = load_probe()
