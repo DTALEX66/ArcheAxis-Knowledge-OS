@@ -237,7 +237,7 @@ function Wait-ArcheAxisBackend {
             return [pscustomobject]@{ Child = $child; Listener = $listener }
         }
     }
-    throw 'installed desktop backend did not become ready'
+    throw "installed desktop backend did not become ready; shell children: [$(@(Get-CimInstance Win32_Process -Filter "ParentProcessId=$($Shell.Id)" -ErrorAction SilentlyContinue | ForEach-Object { "$($_.Name)=$($_.ExecutablePath)" }) -join '; ')]; app data: [$(@(Get-ChildItem -LiteralPath $appData -ErrorAction SilentlyContinue | Select-Object -First 12 -ExpandProperty Name) -join ', ')]"
 }
 
 function Invoke-LifecyclePythonProbe {

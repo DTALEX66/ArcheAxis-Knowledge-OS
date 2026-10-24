@@ -1100,6 +1100,9 @@ def check_status_accessibility(page) -> dict[str, object]:
         # keyboard, so only live targets carry the focus-indicator requirement.
         if not control.is_visible() or not control.is_enabled():
             continue
+        # Re-establish keyboard modality: earlier pointer activity can leave a
+        # programmatic focus without a :focus-visible ring on some engines.
+        page.keyboard.press("Tab")
         control.focus()
         page.wait_for_timeout(200)
         style = control.evaluate("""el => {
