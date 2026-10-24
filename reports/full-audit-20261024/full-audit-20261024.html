@@ -82,29 +82,29 @@
 <h2><span class="n">01</span>结论摘要</h2>
 <p class="lead">四项结论：体积治理已从“失控”回到“可解释”；仓库与分支已收敛；证据链当前断点为 0，历史引用已逐条分类到归档、recipe、授权清理或历史未保留；前端新手流程可完整走通，工程内容收敛只完成了一部分。</p>
 <div class="grid g4">
-  <div class="card"><h3>项目运行区体积</h3><div class="big good">31.26 GB</div><div class="small">会话初 165.78GB，下降 <b>81.1%</b></div></div>
-  <div class="card"><h3>文件数量</h3><div class="big good">205,032</div><div class="small">会话初 1,556,415，下降 <b>86.8%</b></div></div>
+  <div class="card"><h3>项目运行区体积</h3><div class="big good">30.75 GB</div><div class="small">会话初 165.78GB，下降 <b>81.4%</b></div></div>
+  <div class="card"><h3>文件数量</h3><div class="big good">159,516</div><div class="small">会话初 1,556,415，下降 <b>89.7%</b></div></div>
   <div class="card"><h3>当前证据断点</h3><div class="big good">0</div><div class="small">历史引用 2,575 条已分类，见 §04</div></div>
   <div class="card"><h3>新手主流程</h3><div class="big good">14/14</div><div class="small">真实原生点击，含退出与同目录重开</div></div>
 </div>
 
-<h2><span class="n">02</span>体积对比：从 165.78GB 到 31.26GB</h2>
+<h2><span class="n">02</span>体积对比：从 165.78GB 到 30.75GB</h2>
 <p class="lead">删除只针对“无引用、可重建或已归档”的内容；源码、当前候选、安装输入、回滚副本与原始档案保留。以下为实测对比。</p>
 <div class="card">
   <div class="row"><b>会话初</b><div class="bar"><i style="width:100%"></i></div><span>165.78 GB</span></div>
-  <div class="row"><b>当前</b><div class="bar g"><i style="width:18.9%"></i></div><span>31.26 GB</span></div>
+  <div class="row"><b>当前</b><div class="bar g"><i style="width:18.5%"></i></div><span>30.75 GB</span></div>
   <div class="row"><b>绿色库初</b><div class="bar"><i style="width:23.5%"></i></div><span>3.90 GB</span></div>
   <div class="row"><b>绿色库现</b><div class="bar g"><i style="width:17.9%"></i></div><span>2.97 GB</span></div>
 </div>
 <div class="grid g2" style="margin-top:16px">
   <div class="card">
     <h3>当前运行区构成</h3>
-    <div class="row"><b>runs</b><div class="bar"><i style="width:100%"></i></div><span>16.65 GB</span></div>
-    <div class="row"><b>build</b><div class="bar"><i style="width:31.4%"></i></div><span>5.22 GB</span></div>
-    <div class="row"><b>archives</b><div class="bar"><i style="width:21.1%"></i></div><span>3.51 GB</span></div>
-    <div class="row"><b>artifacts</b><div class="bar"><i style="width:11.7%"></i></div><span>1.95 GB</span></div>
-    <div class="row"><b>cache</b><div class="bar"><i style="width:9.8%"></i></div><span>1.63 GB</span></div>
-    <div class="row"><b>rt</b><div class="bar"><i style="width:7.6%"></i></div><span>1.26 GB</span></div>
+    <div class="row"><b>runs</b><div class="bar"><i style="width:100%"></i></div><span>17.73 GB</span></div>
+    <div class="row"><b>build</b><div class="bar"><i style="width:29.5%"></i></div><span>5.23 GB</span></div>
+    <div class="row"><b>archives</b><div class="bar"><i style="width:19.9%"></i></div><span>3.53 GB</span></div>
+    <div class="row"><b>artifacts</b><div class="bar"><i style="width:11.0%"></i></div><span>1.95 GB</span></div>
+    <div class="row"><b>cache</b><div class="bar"><i style="width:0.01%"></i></div><span>0.04 MB</span></div>
+    <div class="row"><b>rt</b><div class="bar"><i style="width:7.1%"></i></div><span>1.26 GB</span></div>
   </div>
   <div class="card">
     <h3>其余体积</h3>
@@ -117,7 +117,7 @@
     </table>
   </div>
 </div>
-<div class="callout">本轮新增删除：无引用审计目录 20,699 文件 / 3,177,839,763B（含旧 Green UI 压缩包 299MB），并把 `.project-local` 从 35.49GB 降到 31.26GB。更早的引用感知保留删除了 2,189 个根 / 317,174 文件 / 24,127,415,574B；Green 清理删除 4,331 文件 / 1,021,650,549B。</div>
+<div class="callout">本轮新增删除：无引用审计目录 20,699 文件 / 3,177,839,763B（含旧 Green UI 压缩包 299MB），并把 `.project-local` 从 35.49GB 降到 31.26GB；随后可再生包缓存清理再删约 1.63GB，当前 30.75GB。更早的引用感知保留删除了 2,189 个根 / 317,174 文件 / 24,127,415,574B；Green 清理删除 4,331 文件 / 1,021,650,549B。</div>
 
 <h2><span class="n">03</span>仓库与目录规范化</h2>
 <div class="grid g3">
@@ -225,7 +225,7 @@
     <table>
       <tr><td><span class="mono">.venv</span></td><td class="num">约 0.91 GB</td><td>开发/测试必需，保留</td></tr>
       <tr><td><span class="mono">frontend/node_modules</span></td><td class="num">含于 290MB</td><td>构建必需，保留</td></tr>
-      <tr><td><span class="mono">.project-local/cache</span></td><td class="num">1.63 GB</td><td>uv/cargo 缓存，可离线重建</td></tr>
+      <tr><td><span class="mono">.project-local/cache</span></td><td class="num">0.04 MB</td><td>已清理 1.63GB 可再生包缓存；17 个受保护 uv 文件保留</td></tr>
       <tr><td><span class="mono">.project-local/rt</span></td><td class="num">1.26 GB</td><td>当前运行时，保留</td></tr>
     </table>
   </div>
@@ -249,7 +249,7 @@
       <li><span class="tag ok">已关闭 P0</span> 历史引用索引已建立（<span class="mono">reference-resolution.json</span>）；不再把历史路径计为证据链断裂。</li>
       <li><span class="tag ok">已关闭 P1</span> 诊断入口统一为 App 级“状态与诊断”中心；22 页工程词命中 0；禁用动作未解释项 0。</li>
       <li><span class="tag mid">P2</span> 28 条历史日志/草稿未保留，仅存在于历史文档；建议保持标注，不重建临时日志。</li>
-      <li><span class="tag mid">P2</span> <span class="mono">cache</span> 1.63GB 可在接受离线重建成本后清理；<span class="mono">runs/archives/build</span> 不建议再动。</li>
+      <li><span class="tag ok">已关闭 P2</span> <span class="mono">cache</span> 1.63GB 已清理到 0.04MB；17 个受 ACL 保护文件保留，Rust/uv 离线增量需重新下载依赖。<span class="mono">runs/archives/build</span> 不建议再动。</li>
     </ul>
   </div>
 </div>

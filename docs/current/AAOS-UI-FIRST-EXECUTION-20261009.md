@@ -1734,3 +1734,11 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 全量前端回归：2108 项，**2090 PASS／18 FAIL**，与改动前 `b4588d76` 基线逐文件一致（含 `StyleRuleCoverage` 的 `.stitch-learning-queue-card` 既有缺口），无新增失败。另一次全量复跑出现 19 FAIL，多出的 `SemanticReadingLayout` 单项在独立运行时 15/15 PASS，按并行负载下的既有波动记录，不新增代码失败。
 - 原生扫描：最终 Host `b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb`（47,376,384B），隔离数据根启动，22／22 页面读取（页 16 额外打开“互通资格”页签）；工程词命中 0、未解释禁用项 0、页面错误 0；页 16 状态已显示“部分完成／尚未执行”。回执 `.project-local/runs/be268a2d33/ui-token-scan-20261024-07/receipt.json`（69,311B，SHA-256 `871646a24b4a670237622da3db2a3c1c9d707d97bc12c60a61200d025bc0d9eb`）。
 - 边界：只做文案与禁用说明，不改业务规则、权限、API 或布局；不安装、不替换 Green、不做 exact-SHA CI 或 Owner 验收。未推送、未发布。
+
+### 2026-10-24 可再生包缓存清理（CL-08／G01）
+
+- Owner 确认“执行吧”后清理 `.project-local/cache` 中可再生包缓存：cargo 894,462,548B／28,144 文件、uv 850,972,948B／24,345 文件；最终 17 文件／38,141B，删除约 1,745,397,355B（1.63GB → 0.04MB）。`.project-local` 当前 30.75GB／159,516 文件。
+- 保留：`.venv`、构建产物、外部 `CARGO_HOME`、证据、归档与源码；只删包缓存，不动运行数据。
+- 残留：`uv/sdists-v9/editable` 下 17 个受 ACL 保护的文件（含 1 个 editable wheel 拒绝删除）；未提权绕过，标为受保护残留。
+- 验证：Vite build PASS；`tests/test_path_conventions.py` 25 PASS。Rust／uv 增量依赖若离线需重新下载，属于已接受的重建成本。
+- 回执：`.project-local/runs/be268a2d33/cache-cleanup-20261024-01/cache-cleanup.json`（3,021B，SHA-256 `de53b84dd3f3bd6e712ef3bb2fa1635c2f0317b15f1fc8c6a32366261c8e4398`）。未提交缓存本体（`.project-local` 忽略），未推送、未发布。

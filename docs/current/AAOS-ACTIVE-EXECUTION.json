@@ -910,6 +910,17 @@
       "full_frontend_suite": "2108 tests: 2090 PASS / 18 FAIL, identical to pre-change b4588d76 baseline",
       "behavior_receipts_host": "97baf29ca5b5714407db2e251e4dc9e357b40b708567799e144023f5b8e779cf"
     },
+    "latest_cache_cleanup_20261024": {
+      "scope": "REGENERABLE_PACKAGE_CACHES_ONLY",
+      "before_bytes": 1745435496,
+      "remaining_bytes": 38141,
+      "deleted_bytes": 1745397355,
+      "project_local_gb_after": 30.75,
+      "project_local_files_after": 159516,
+      "receipt": ".project-local/runs/be268a2d33/cache-cleanup-20261024-01/cache-cleanup.json",
+      "residue": "17 ACL-protected uv editable cache files; no elevation bypass",
+      "offline_rebuild_cost": "Rust/uv dependency sync requires re-download"
+    },
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
