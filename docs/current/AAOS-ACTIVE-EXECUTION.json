@@ -1696,6 +1696,126 @@
         "sha256": "39a2e5c02594d01115450cb7bcb43122200452dfa4b7023a6b3bb4bfea33ec32"
       },
       "checkpoint_key": "verification.folder_failure_summary_native_0410865"
+    },
+    "exact_0410_host_5822_core_component_binding": {
+      "status": "PASS_EXACT_COMPOSITE_COMPONENT_BINDING_NOT_INSTALLER",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current0410-component-candidate-20261024-01/artifacts/exact-component-candidate-binding.json",
+        "bytes": 3666158,
+        "sha256": "6941773c36c6ef117e0c8c3ab6dd3665d95b22ef8b9aaec00aa120ed1cc40b93"
+      },
+      "checkpoint_key": "verification.exact_0410_host_5822_core_component_binding"
+    },
+    "scanned_pdf_ocr_current5822": {
+      "status": "PASS_CURRENT5822_SCANNED_PDF_OCR_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-scanned-pdf-ocr-20261024-01/artifacts/final-readback.json",
+        "bytes": 4277,
+        "sha256": "b29371f35a4f9381d4467e7f279e7f045d1024f982370510537e946b1fdd467a"
+      },
+      "checkpoint_key": "verification.scanned_pdf_ocr_current5822"
+    },
+    "mixed_native_j1_prefix_0410": {
+      "status": "FAIL_NATIVE_REVIEW_SAVE_NO_DISPATCH_OBSERVED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-j1-native-0410-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 14516,
+        "sha256": "f5e5aa00aee93afddd9df651ffd7abc5271cb0d8196fce18bfdd2934a6d90428"
+      },
+      "checkpoint_key": "verification.mixed_native_j1_prefix_0410"
+    },
+    "mixed_native_review_single_click_diagnostic03": {
+      "status": "PASS_SINGLE_REVIEW_DIAGNOSTIC_NOT_FULL_JOURNEY",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-review-diagnostic-0410-20261024-03/artifacts/terminal-readback.json",
+        "bytes": 5294,
+        "sha256": "ec60e7e3e8f2e1f567d05b7f53f0b2b54521e988497376e40ab0527c9abfb0a5"
+      },
+      "checkpoint_key": "verification.mixed_native_review_single_click_diagnostic03"
+    },
+    "mixed_native_j1_export_restore_suffix02": {
+      "status": "PASS_NATIVE_MIXED_J1_SUFFIX_SEGMENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-j1-suffix-0410-20261024-02/artifacts/terminal-readback.json",
+        "bytes": 8986,
+        "sha256": "d4821711f2dc256b73607a2544b7c66f984ed8871303048354b6641140b56598"
+      },
+      "checkpoint_key": "verification.mixed_native_j1_export_restore_suffix02"
+    },
+    "independent_answer_inventory_current5822": {
+      "status": "ONE_EXISTING_UNIQUE_ANSWER_NO_ADDITIONAL_INDEPENDENT_SAMPLES",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-independent-answer-inventory-review-20261024.json",
+        "bytes": 6542,
+        "sha256": "e612feb9e65f79583f1027a6084afd0c2bb3086250c86984c613931e11f1a809"
+      },
+      "checkpoint_key": "verification.independent_answer_inventory_current5822"
+    },
+    "installed_overlay_preparation_0410": {
+      "status": "NO_SURVIVING_INSTALLED_ROOT_PREPARATION_ONLY",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/installed-host-overlay-preparation-20261024.json",
+        "bytes": 4194,
+        "sha256": "599971a932b81e55ad67d3341ae72c8ee917337cd4ca2e59bdf5fc0aaddea884"
+      },
+      "checkpoint_key": "verification.installed_overlay_preparation_0410"
+    },
+    "document_cloud_product_credential_reference_source": {
+      "status": "SOURCE_COMMITTED_PYTHON49_API8_DISPATCH6_LOCAL_PASS_HOST_UNIT_NOT_EXECUTED",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/document-check-credential-ref-qualification-20261024-corrected.json",
+        "bytes": 8356,
+        "sha256": "bdc483e2635ab2886a4a59b5cc0235ce64591eb8557475fdc17d577ed084351f"
+      },
+      "checkpoint_key": "verification.document_cloud_product_credential_reference_source"
+    },
+    "credential_reference_core_build_2e705": {
+      "status": "PASS_CANONICAL_CORE_RELEASE_BUILD_LOCAL_MSVC",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-core-20261024-01/artifacts/execution.json",
+        "bytes": 1750,
+        "sha256": "778da0bcc6320dd70ca6fac898dde67d204286e6045e15931b80c20ff3319396"
+      },
+      "checkpoint_key": "verification.credential_reference_core_build_2e705"
+    },
+    "credential_reference_runtime_host_component_2e705": {
+      "status": "PASS_INCREMENTAL_RUNTIME_CLOSURE_AND_HOST_COMPONENT_BUILD",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-host-20261024-01/artifacts/host-component-binding.json",
+        "bytes": 8292,
+        "sha256": "eb38ca27ff3293ff1d05b74acb8fd364ae0127f2e2231a42badd1fed2b826649"
+      },
+      "checkpoint_key": "verification.credential_reference_runtime_host_component_2e705"
+    },
+    "document_check_missing_credential_native_2e705": {
+      "status": "PASS_SEGMENTED_NATIVE_MISSING_CREDENTIAL_SAVE_AND_REOPEN",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/document-check-missing-credential-reopen-2e705-20261024-02/artifacts/terminal-readback.json",
+        "bytes": 16458,
+        "sha256": "e77cb873e9bffc58e3f13b8d71a3ab0007464017fca385290e6031a2195b9c63"
+      },
+      "checkpoint_key": "verification.document_check_missing_credential_native_2e705",
+      "scope": "原生分段负路径组件资格；整体仍 PARTIAL。不是真实云供应商、安装态、Green、CI或Owner验收。",
+      "original_failures_preserved": true,
+      "inner_compiled_binding": "UNVERIFIED"
+    },
+    "installed_component_delta_2e705": {
+      "status": "PARTIAL_INSTALLED_OVERLAY_PASS_HOST_NOT_EXECUTED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-component-delta-20261024-03/artifacts/installed-component-delta-terminal.json",
+        "bytes": 2416,
+        "sha256": "d5c756f5060f95085bb43835b3e43fa7b1dbfe5bd2a3a9751df960709f1c8769"
+      },
+      "checkpoint_key": "verification.installed_component_delta_2e705"
+    },
+    "green_five_member_preparation_2e705": {
+      "status": "PREPARED_NOT_APPLIED_INSTALLED_BUSINESS_BLOCKED",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/credential-ref-build-prep-20261024-01/green-real-entry-final-preparation.json",
+        "bytes": 3656,
+        "sha256": "f392935cba2a257e44160ad5840d1642c2842533977526ade21a244a3375e3b9"
+      },
+      "checkpoint_key": "verification.green_five_member_preparation_2e705"
     }
   }
 }

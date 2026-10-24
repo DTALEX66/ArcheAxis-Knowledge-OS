@@ -1570,3 +1570,36 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 
 - Owner直接要求“你先把产品能落地，用户使用上产品再说模型的事，本地模型不是都测试了吗，先用本地模型，云端做好专业接口”。当前使用既有本地模型；不再追问云provider选择或把真实云缺配置列为首版阻断。云端按专业接口及隔离协议资格验收，真实云推理明确后续未执行，不伪报接通。决定二十三、唯一闭环定义与活动指针已同步。
 - 人类／AI及共享Core双侧业务、同候选原生／安装可靠性和质量仍须补齐；本次范围纠正不是产品完成，未改模型／凭据／全局配置，未付费或外发资料，监控保持暂停。
+
+
+### 2026-10-24 当前OCR、混合原生批次与复习定向接续（CL-02／J1／J4，整体PARTIAL）
+
+- 0410Host＋5822Core/runtime已就地逐成员绑定19,744件，未复制runtime或新建安装器；后继云凭据源码未编入此组件。当前5822实际扫描PDF两页OCR、中文哨兵／4CURRENT锚点／原件／重解析／冷启组件PASS，root核收据及引用。仅合成印刷页，不推广OCR准确率或原生／安装资格；Core停止为terminate/reap exit1。见verification.exact_0410_host_5822_core_component_binding与scanned_pdf_ocr_current5822。
+- 原生混合7件同库批次正常重启续做6成功1失败，四格式阅读／定位引用及文本知识／学习前半通过；原完整run在复习保存无dispatch超时，FAIL原样保留。03短诊断只读克隆相同草稿，以一次标准WebDriver可信点击保存，Core201且同assessment／answer／knowledge／rating的事件0→1，正常Host退出0。root核8引用、SQL和截图／DOM；01Unicode XPath与02导航确认runner错误保留，原失败点击根因仍未定，不把诊断当完整J1。见verification.mixed_native_j1_prefix_0410与mixed_native_review_single_click_diagnostic03。
+- 既有真实模型收据只发现一条独立答案，已审阅，不虚增样本或声称模型改善；两个历史安装guest均已卸载／停止，没有可复用的真实安装根，不把portable当安装。相关准备／质量边界见verification.independent_answer_inventory_current5822与installed_overlay_preparation_0410。Owner本地模型优先、真实云延后决定保持；未更新Green、未外发或付费、监控暂停。
+- 后继suffix02实际原生重开、两文件导出、7来源backup／实际UI恢复／再重开PASS；root核8引用、导出原字节、7CAS、backupSHA与SQL计数，3次正常Host退出0。原docv3含前半真实引用保存，知识／课程／题目／review1和4格式正文／loss／quality／anchor保持。01误用早期v2基线的runner失败保留，未重新保存或补造postbackup marker404。见verification.mixed_native_j1_export_restore_suffix02；这是同源clone分段证明，原整链FAIL不改成一次不中断J1或安装／OwnerPASS。
+- 按原对象／版本／工作区身份与精确组件连续性评价，上述分段现已覆盖该人类资料链的实际步骤；不因runner修正而新增“必须单次不中断重跑全部”的硬门槛。新候选双侧安装与未测可靠性仍按原定义分别验收，不将分段覆盖自动升格整体完成。
+
+
+### 2026-10-24 云专业接口产品凭据绑定补齐（CL-06／J4，整体PARTIAL）
+
+- 在既有DocumentCheck接口补齐credential_ref，统一Python launcher／桌面Host／Core／worker配置消费者；复用产品Windows vault，Core严格验证派发材料中的引用hash，授权后临时给SDK，缺失凭据在SDK前失败，清除bytearray且不记录secret。不选择provider／model、不借Codex或环境凭据，普通保存保持独立。8文件已提交2e705fe4；49Python／8API／6dispatch定向PASS，重复API不累计。root核源码diff和真实execution／hash；旧环境／协议／fixture FAIL保留，Host内嵌配置单测未执行，不能声称Host测试通过。见verification.document_cloud_product_credential_reference_source。
+- 同2e705fe4空patch的Core canonical offline/locked release构建26.97秒PASS，新Core fd620735…874f9a；旧f915独立备份，局部MSVC子进程环境，无全局修改、无新target。随后仅9文件小备份，rt/release各3成员＋manifest更新、保留19,739成员；官方Host编译28.268秒PASS，新Host6bb7de50…96f5d8，manifest13d11c65…550cd，22前端字节复用、resources空数组避免整套runtime重拷，两根19,744程序闭包通过。root核9引用、manifest逐项delta与6个已更新成员hash；原0410/5822资格与旧portable不改。见verification.credential_reference_core_build_2e705与credential_reference_runtime_host_component_2e705；构建不等于新原生／安装／Green／Owner验收，真实云按Owner决定延后，未付费、未外发。
+
+<!-- document_check_missing_credential_native_2e705 -->
+### 2026-10-24 文档云核验缺凭据可恢复原生分段资格（BE-P08／BE-P10／CL-06／J4，整体PARTIAL）
+
+使用 compiled `2e705fe4a57a1845416b94e806e8be3279262bf6` 的新Host/Core/runtime及隔离合成材料。真实UI完成识别核验材料预览、明确确认，Core exact authorize_dispatch 后读取专用随机不存在产品Vault ref，返回 `credential_unavailable`。按固定worker代码在 `adapter.complete`／SDK之前失败；Core内部授权不是外网调用，无search_query/retrieval，未做抓包，不宣称真实供应商验收。
+
+main01原FAIL保留：尾部NBSP被采集器误当ASCII空格；实际旧v3核验失败及普通保存v4已经完成。reopen01原FAIL保留：采集器误期待旧v3 `historical=false`，当前v4下正式合同为true。reopen02真实重开读回旧v3失败记录及当前v4全文/结构/元数据；0新增核验、保存、重试、转换或模型调用。原合成来源不变、source_consistent=true、正常退出与owned端口清理通过。内层compiled binding原值仍 `UNVERIFIED`，由父层精确Host/Core/runtime pins独立绑定，不提升为内层PASS。
+
+main01：`.project-local/runs/be268a2d33/document-check-missing-credential-native-2e705-20261024-01/artifacts/terminal-readback.json`（11307B，SHA-256 `f4403b3ec0062f826c1ad2bd91fe43e1272c66b428aa7352d0b79a5b55b679be`）。reopen01：`.project-local/runs/be268a2d33/document-check-missing-credential-reopen-2e705-20261024-01/artifacts/parent-reopen.json`（4185B，SHA-256 `3bf928fb7db8b595c4e466b139dcadecab3f4804b7af633f842a8d3a9ab6fd6c`）。reopen02：`.project-local/runs/be268a2d33/document-check-missing-credential-reopen-2e705-20261024-02/artifacts/terminal-readback.json`（16458B，SHA-256 `e77cb873e9bffc58e3f13b8d71a3ab0007464017fca385290e6031a2195b9c63`）。Root独立读回：`.project-local/runs/be268a2d33/document-check-missing-credential-reopen-2e705-20261024-02/artifacts/root-independent-readback.json`（829B，SHA-256 `810bdf6491e0f85fafded10fad3007d2746cbe4702a9da069b9a52063f92c07b`）。窄引用核验：`.project-local/runs/be268a2d33/missing-credential-authority-prep-20261024-01/artifacts/artifact-reference-readback.json`（2666B，SHA-256 `74989f818a7d55662be58d887a931e0e4f14e20d049c5a411d09c4fc186c5db4`）。
+
+这是同源状态连续分段的负路径、普通保存与重开组件资格，不是原FAIL改判、安装态、Green、CI、真实云或Owner验收；整体仍PARTIAL。
+
+
+### 2026-10-24 新2e组件安装资格部分通过／工具阻断收束（CL-06／J4／J6，PARTIAL）
+
+- 01真实b999安装0、五旧件备份通过，首件替换前因File.Replace空backup参数失败，0overlay、Host未启，原FAIL保留。02只修same-directory明确backup参数，实际五件overlay及19,742manifest全PASS；driver readiness前退出、Host未启，业务NOT_EXECUTED，未执行uninstall，随后精确stop0残留。旧成功guest使用app-local VCRUNTIME140 sidecar；02未记录driver退出码，缺依赖仍不能当本轮已证实根因。
+- 03复用成熟dependency.prepare同路径A/B及wrapper的输入已准备，但Sandbox ownership bootstrap出现Cancelled／null array，安装器／overlay未证，Host未启。PID37672按creation／exe／精确本run配置命令行二次确认后只停止此PID，identity消失、wsb0。原错误与精确停止证据保留；不再启动第四个VM。root核三终态引用、五旧preimage独立备份、五新hash记录与cleanup；见verification.installed_component_delta_2e705。
+- Green精确五件事务及独立ownership备份／回退已准备，原4和10合成测试／2项label窄检各保留，最终schema-only对齐未重复测试。root审阅bounded gate／写入／回退；实际gate保持PENDING，Green未更新、未启动、未读写真实数据／配置。旧5822稳定程序保留，最新2e源码／构建／原生负路径与安装态Host资格分列；真实云由Owner延后，不以选择模型阻塞首版，整体仍PARTIAL。见verification.green_five_member_preparation_2e705。

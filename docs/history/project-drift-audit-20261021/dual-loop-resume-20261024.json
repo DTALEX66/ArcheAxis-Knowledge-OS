@@ -1533,6 +1533,369 @@
       "host_sha256": "f49fe4702e7913bde6d4e3150d5ea5cb491b5147c457ef6258fe044c21615ae1",
       "scope": "One fresh frontend build and one incremental Host build; exact22dist members reused. Native real batch-history restore and status/diagnostic clicks: readable neutral summary, complete original error retained; SQL rows unchanged,0conversion/retry/model, normal exit0 and cleanup PASS.",
       "boundary": "0410865 Host + unchanged5822 Core component; synthetic preserved failure, no new conversion/retry/model; no installer/Green/whole-candidate/CI/Owner qualification."
+    },
+    "exact_0410_host_5822_core_component_binding": {
+      "status": "PASS_EXACT_COMPOSITE_COMPONENT_BINDING_NOT_INSTALLER",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current0410-component-candidate-20261024-01/artifacts/exact-component-candidate-binding.json",
+        "bytes": 3666158,
+        "sha256": "6941773c36c6ef117e0c8c3ab6dd3665d95b22ef8b9aaec00aa120ed1cc40b93"
+      },
+      "scope": "0410865 Host + 582267f3 Core/runtime; 19744 listed members verified in place, no runtime copy or rebuild. Later cloud source patch is not in these binaries.",
+      "boundary": "Separate composite component candidate; old whole5822 portable/installer/Green qualification unchanged. No installed or whole-loop promotion."
+    },
+    "scanned_pdf_ocr_current5822": {
+      "status": "PASS_CURRENT5822_SCANNED_PDF_OCR_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-scanned-pdf-ocr-20261024-01/artifacts/final-readback.json",
+        "bytes": 4277,
+        "sha256": "b29371f35a4f9381d4467e7f279e7f045d1024f982370510537e946b1fdd467a"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/current5822-scanned-pdf-ocr-20261024-01/artifacts/root-independent-readback.json",
+        "bytes": 1814,
+        "sha256": "73c76341f09871e8eca9939bc82d355c05d9f14ed1f8ca9f517b2c71aea11fa1"
+      },
+      "scope": "Existing authored two-page Chinese image PDF; actual current5822 Core and OCR workers, 2extractions/4pageOCR, text/4CURRENTanchors/original/reparse/cold readback PASS; no model.",
+      "boundary": "Printed synthetic sentinel only, no representative OCR accuracy/native/installed/fullJ1. Two owned Core processes terminated/reaped exit1 and ports closed, not graceful UI exit."
+    },
+    "mixed_native_j1_prefix_0410": {
+      "status": "FAIL_NATIVE_REVIEW_SAVE_NO_DISPATCH_OBSERVED",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-j1-native-0410-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 14516,
+        "sha256": "f5e5aa00aee93afddd9df651ffd7abc5271cb0d8196fce18bfdd2934a6d90428"
+      },
+      "scope": "One same-workspace native7-file folder batch, queued normal restart,6success/1failed, four Office/PDF content/structure/citation, text documentv2/knowledge/assessment/answer prefix passed; timed out on review save with no learning_review dispatch.",
+      "boundary": "Original FAIL preserved. Four formats read/cited in this workspace; text carrier alone traversed knowledge/learning. Failure root cause not proven, export/restore not reached."
+    },
+    "mixed_native_review_single_click_diagnostic03": {
+      "status": "PASS_SINGLE_REVIEW_DIAGNOSTIC_NOT_FULL_JOURNEY",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-review-diagnostic-0410-20261024-03/artifacts/terminal-readback.json",
+        "bytes": 5294,
+        "sha256": "ec60e7e3e8f2e1f567d05b7f53f0b2b54521e988497376e40ab0527c9abfb0a5"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/mixed-review-diagnostic-0410-20261024-03/artifacts/root-independent-readback.json",
+        "bytes": 2785,
+        "sha256": "e0a7094bb1d50567bdf948b84870bf4a818c1f62dee1fdca9b666a19464e4c99"
+      },
+      "scope": "Read-only clone of original failed workspace; same draft, one enabled trusted standard WebDriver click; one learning_review201/duplicate=false; exact assessment/answer/rating3/knowledge version and history0to1, SQL event/key1 each. Normal Host exit0 and resources drained.",
+      "previous_failures": [
+        {
+          "path": ".project-local/runs/be268a2d33/mixed-review-diagnostic-0410-20261024-01/artifacts/parent-diagnostic.json",
+          "bytes": 3877,
+          "sha256": "11034907e3443ddebcdb604a50c0fba4631924e6eb933a96f7f338e3459a97e5"
+        },
+        {
+          "path": ".project-local/runs/be268a2d33/mixed-review-diagnostic-0410-20261024-02/artifacts/parent-diagnostic.json",
+          "bytes": 3877,
+          "sha256": "9f20bcbde7e94476c4a677d2970133d92bc2b7f0c3cb3a30165bf7e18bae48a8"
+        }
+      ],
+      "boundary": "01 Unicode-XPath runner failure and02 asynchronous navigation-confirmation runner failure preserved. Original source workspace unchanged. This short diagnostic does not reclassify original full-chain FAIL."
+    },
+    "mixed_native_j1_export_restore_suffix02": {
+      "status": "PASS_NATIVE_MIXED_J1_SUFFIX_SEGMENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/mixed-j1-suffix-0410-20261024-02/artifacts/terminal-readback.json",
+        "bytes": 8986,
+        "sha256": "d4821711f2dc256b73607a2544b7c66f984ed8871303048354b6641140b56598"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/mixed-j1-suffix-0410-20261024-02/artifacts/root-independent-readback.json",
+        "bytes": 3218,
+        "sha256": "311b76de9cad0640b81ff46c3106dc4ccd8073881d904693cf7d3b7ed600fa15"
+      },
+      "previous_failure": {
+        "path": ".project-local/runs/be268a2d33/mixed-j1-suffix-0410-20261024-01/artifacts/parent-suffix.json",
+        "bytes": 3859,
+        "sha256": "ac60f05edc33f0f4c9ba44abd17649be15721492b44aefa01603dbf86fd4c929"
+      },
+      "scope": "Exact saved-review clone continuation: cold native reopen, real two-file UI export byte-equal to formal result, verified7-source backup and actual UI restore/reopen; workspaceID same and restoreEpoch changed. Seven CAS/jobs, four format bodies/output/loss/quality/anchors, docv3/knowledge/course/assessment/history1 exact. Three normal Host exits0, ports and owned descendants drained; zero new conversion/review/model.",
+      "boundary": "01 baseline mistakenly used earlier read-stagev2; original UI citation/save had legitimately advanced same document to v3 with unchanged body plus evidenceReference. 02 binds already saved v3 and retains full-DTO restore equality. Original prefix FAIL preserved, segmented same-lineage proof only, not one uninterrupted nativeJ1/new cloud build/installed/Owner. Postbackup marker404 NOT_EXECUTED."
+    },
+    "independent_answer_inventory_current5822": {
+      "status": "ONE_EXISTING_UNIQUE_ANSWER_NO_ADDITIONAL_INDEPENDENT_SAMPLES",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current5822-independent-answer-inventory-review-20261024.json",
+        "bytes": 6542,
+        "sha256": "e612feb9e65f79583f1027a6084afd0c2bb3086250c86984c613931e11f1a809"
+      },
+      "scope": "Read-only current5822 receipt inventory found one unique runtime.answer, already reviewed; eval/retest same lineage and changed context, no new inference.",
+      "boundary": "No additional independent samples or representative quality/model-improvement/semantic-dedup/conflict/applicability/Owner truth established."
+    },
+    "installed_overlay_preparation_0410": {
+      "status": "NO_SURVIVING_INSTALLED_ROOT_PREPARATION_ONLY",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/local-model-agent/installed-host-overlay-preparation-20261024.json",
+        "bytes": 4194,
+        "sha256": "599971a932b81e55ad67d3341ae72c8ee917337cd4ca2e59bdf5fc0aaddea884"
+      },
+      "scope": "Both previously qualified5822 disposable guest installations were uninstalled and VMs stopped; current official inventory empty. No Host overlay or guest launch attempted.",
+      "boundary": "Portable/cache is not an installed root. New installed qualification must use a real retained installation or one new owned offline guest; no fictitious backup/target."
+    },
+    "document_cloud_product_credential_reference_source": {
+      "status": "SOURCE_COMMITTED_PYTHON49_API8_DISPATCH6_LOCAL_PASS_HOST_UNIT_NOT_EXECUTED",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/document-check-credential-ref-qualification-20261024-corrected.json",
+        "bytes": 8356,
+        "sha256": "bdc483e2635ab2886a4a59b5cc0235ce64591eb8557475fdc17d577ed084351f"
+      },
+      "previous_receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/document-check-credential-ref-qualification-20261024.json",
+        "bytes": 5972,
+        "sha256": "d152987714aa383a1e5939ca852fef1ce9372e16112465162665dac2431eb41c"
+      },
+      "source_commit": "2e705fe4a57a1845416b94e806e8be3279262bf6",
+      "scope": "Existing DocumentCheck professional cloud consumer now resolves product Windows vault references, never ambient or raw config key. Core dispatch exact fields retain strict hash binding; Python launcher and native Host parser agree. SDK resolves only after Core model authorization; missing vault fails before SDK, not before authorization.",
+      "tests": "49 Python,8 API integration and6dispatch tests PASS; duplicate API rounds not accumulated. Synthetic vault/transport only. Original environment/dispatch-contract/fixture failures preserved. Host configuration test not run because direct Tauri test would copy large runtime.",
+      "boundary": "Real vault/provider/model not invoked; no real-cloud PASS. Source commit and Core build alone do not qualify refreshed worker/launcher/Host/runtime/installed/Green."
+    },
+    "credential_reference_core_build_2e705": {
+      "status": "PASS_CANONICAL_CORE_RELEASE_BUILD_LOCAL_MSVC",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-core-20261024-01/artifacts/execution.json",
+        "bytes": 1750,
+        "sha256": "778da0bcc6320dd70ca6fac898dde67d204286e6045e15931b80c20ff3319396"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-core-20261024-01/artifacts/root-independent-readback.json",
+        "bytes": 752,
+        "sha256": "8f622d1353b0973f857a5f9c4f61f6163d88db3503f35b5751203e5fe4e0ff9a"
+      },
+      "parent": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-core-launch-20261024-01/artifacts/core-launch-parent.json",
+        "bytes": 2424,
+        "sha256": "67e67fd7d05bb8dcbc6b0e4f237ab6508eb3389b41edfab67720bd30ac657139"
+      },
+      "source_commit": "2e705fe4a57a1845416b94e806e8be3279262bf6",
+      "artifact": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\build\\cargo\\release\\archeaxis-api.exe",
+        "bytes": 18789888,
+        "sha256": "fd620735e1931741b79e88c5cae7e6d63708e687c473047ce1f41bdb7d874f9a"
+      },
+      "scope": "26.97-second offline locked canonical release build in existing cargo target, local child-only MSVC initialization. Old f915 Core independently backed up; no new target/runtime copy.",
+      "boundary": "Build component only. At this record, no claim current runtime/Host/installation/Green consumes new fd620735 Core."
+    },
+    "credential_reference_runtime_host_component_2e705": {
+      "status": "PASS_INCREMENTAL_RUNTIME_CLOSURE_AND_HOST_COMPONENT_BUILD",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-host-20261024-01/artifacts/host-component-binding.json",
+        "bytes": 8292,
+        "sha256": "eb38ca27ff3293ff1d05b74acb8fd364ae0127f2e2231a42badd1fed2b826649"
+      },
+      "pins": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-host-20261024-01/artifacts/candidate-pins.json",
+        "bytes": 1106,
+        "sha256": "65402ad9571a94e302d72b96014a4c97f177a3acbaacf948864f53d44e2eb385"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/credential-ref-host-20261024-01/artifacts/root-independent-readback.json",
+        "bytes": 2853,
+        "sha256": "255f5338c26794a6142137032668133de60e48983c97d375de395ff8ab466cd6"
+      },
+      "source_commit": "2e705fe4a57a1845416b94e806e8be3279262bf6",
+      "scope": "Two existing rt/release roots backed up9small files before mutation, then replaced3runtime members+manifest; retained19739members exactly. Official28.268s Host build with resources[] avoids whole-runtime copy;22qualified0410 frontend bytes reused, no tsc/Vite. New Host6bb7de50/Corefd620735/manifest13d11c65,19744program members closure PASS.",
+      "boundary": "Component build with independently preserved Host/Core and rollback preimages. Formal whole5822 portable/installer/Green remain historical fixed identities. New native, installed, real-cloud and Owner qualifications separate."
+    },
+    "document_check_missing_credential_native_2e705": {
+      "status": "PASS_SEGMENTED_NATIVE_MISSING_CREDENTIAL_SAVE_AND_REOPEN",
+      "scope": "原生分段负路径组件资格；整体仍 PARTIAL。不是真实云供应商、安装态、Green、CI或Owner验收。",
+      "task_ids": [
+        "BE-P08",
+        "BE-P10",
+        "CL-06",
+        "J4"
+      ],
+      "compiled_commit": "2e705fe4a57a1845416b94e806e8be3279262bf6",
+      "candidate_pins": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\credential-ref-host-20261024-01\\artifacts\\candidate-pins.json",
+        "bytes": 1106,
+        "sha256": "65402ad9571a94e302d72b96014a4c97f177a3acbaacf948864f53d44e2eb385"
+      },
+      "component_binding": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\credential-ref-host-20261024-01\\artifacts\\host-component-binding.json",
+        "bytes": 8292,
+        "sha256": "eb38ca27ff3293ff1d05b74acb8fd364ae0127f2e2231a42badd1fed2b826649"
+      },
+      "inner_compiled_binding": {
+        "status": "UNVERIFIED",
+        "reason": "Candidate build binding not supplied; installation is qualified only by its parent verifier"
+      },
+      "main01": {
+        "status": "FAIL_PRESERVED",
+        "reason": "采集器把富文本尾部NBSP当ASCII空格；实际缺凭据失败及普通保存v4已发生。",
+        "terminal": {
+          "path": ".project-local/runs/be268a2d33/document-check-missing-credential-native-2e705-20261024-01/artifacts/terminal-readback.json",
+          "bytes": 11307,
+          "sha256": "f4403b3ec0062f826c1ad2bd91fe43e1272c66b428aa7352d0b79a5b55b679be"
+        },
+        "parent": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\document-check-missing-credential-native-2e705-20261024-01\\artifacts\\parent-missing-credential.json",
+          "bytes": 4178,
+          "sha256": "01b24f4c114297205c62f3cb45d612bc5865f92bc465c3a89c0bb03d6d367b69"
+        },
+        "native": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-d043264ff9f2\\tmp\\journey\\receipt.json",
+          "bytes": 53036,
+          "sha256": "538c336d6792d133e79490dc71964b3064abe4ca026ad0d11ddec059f58f6643"
+        },
+        "execution": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\document-check-missing-credential-native-2e705-20261024-01\\artifacts\\execution.json",
+          "bytes": 1720,
+          "sha256": "a777333b2ad0a590255037b6d7a248462718fc6e17ee9bdcb63440d496c16609"
+        }
+      },
+      "reopen01": {
+        "status": "FAIL_PRESERVED",
+        "reason": "采集器错误期待旧v3 historical=false；当前v4使其按正式合同为true。",
+        "parent": {
+          "path": ".project-local/runs/be268a2d33/document-check-missing-credential-reopen-2e705-20261024-01/artifacts/parent-reopen.json",
+          "bytes": 4185,
+          "sha256": "3bf928fb7db8b595c4e466b139dcadecab3f4804b7af633f842a8d3a9ab6fd6c"
+        }
+      },
+      "reopen02": {
+        "status": "PASS_SEGMENTED_NATIVE_MISSING_CREDENTIAL_SAVE_AND_REOPEN",
+        "terminal": {
+          "path": ".project-local/runs/be268a2d33/document-check-missing-credential-reopen-2e705-20261024-02/artifacts/terminal-readback.json",
+          "bytes": 16458,
+          "sha256": "e77cb873e9bffc58e3f13b8d71a3ab0007464017fca385290e6031a2195b9c63"
+        },
+        "parent": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\document-check-missing-credential-reopen-2e705-20261024-02\\artifacts\\parent-reopen.json",
+          "bytes": 4207,
+          "sha256": "340a50147ced8e4335b86886a274f1f0cc96b9fafca64fe617e05eb685162c25"
+        },
+        "native": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-fd392fe23a0b\\tmp\\journey\\receipt.json",
+          "bytes": 29279,
+          "sha256": "077cfc04a92529b18eafeab8aa03543926135a76069e09e7e961b10b6a35de24"
+        },
+        "execution": {
+          "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\document-check-missing-credential-reopen-2e705-20261024-02\\artifacts\\execution.json",
+          "bytes": 1719,
+          "sha256": "bb53e6179b68ac81580f672daf9805026b4abcb199f685ba4cb7d1f714d04adc"
+        },
+        "root_independent_readback": {
+          "path": ".project-local/runs/be268a2d33/document-check-missing-credential-reopen-2e705-20261024-02/artifacts/root-independent-readback.json",
+          "bytes": 829,
+          "sha256": "810bdf6491e0f85fafded10fad3007d2746cbe4702a9da069b9a52063f92c07b"
+        }
+      },
+      "document": {
+        "document_id": "doc_req_98ceedd293ebefdb7225ae1ac82123897cd78928e8c6c0cdc8e793e6bb677626",
+        "current_version": 4,
+        "current_content_sha256": "70d6a1e17a5e78283d61f13ee1186cf5ad921ff3c51b860c7d29b522fde91115",
+        "failed_check_version": 3,
+        "historical": true,
+        "reason": "credential_unavailable",
+        "attempt_id": "doccheck_063fe057c4cee7ebae28777a8f8a93d2",
+        "egress_sha256": "952252101aae9bc72ef5a7051af7e92710f64d56229ee788e0a5dd5ae8620bc2",
+        "ordinary_save_and_reopen": "PASS"
+      },
+      "execution_order": "合法识别材料 preview/confirm → Core exact authorize_dispatch → 产品专用随机不存在ref的Vault读取 → credential_unavailable；依固定worker代码在adapter.complete/SDK之前失败。Core已授权不等于已外发。",
+      "network_boundary": "无search_query、无retrieval；未做抓包，不能宣称抓包证明零外网或真实provider成功。",
+      "reopen_new_check_save_retry_model_calls": 0,
+      "database_counts": {
+        "jobs": 7,
+        "job_outputs": 18,
+        "documents": 1,
+        "document_versions": 4,
+        "learning_events": 1,
+        "machine_tasks": 1
+      },
+      "source_consistent": true,
+      "original_source_workspace_unchanged": true,
+      "cleanup": {
+        "host_shutdowns": [
+          {
+            "pid": 14164,
+            "created": 134372765756794451,
+            "ack": "CONFIRMED",
+            "exited": true,
+            "exit_code": 0,
+            "method": "product_exit_application_attached_observer"
+          }
+        ],
+        "owned_ports_released": true,
+        "remaining_same_creation_owned_hosts": []
+      },
+      "latest_owned_workspace": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-fd392fe23a0b\\tmp\\journey\\data",
+      "latest_database": {
+        "path": "D:\\All projects\\ArcheAxis-Knowledge-OS\\.project-local\\runs\\be268a2d33\\webdriver-fd392fe23a0b\\tmp\\journey\\data\\archeaxis.sqlite",
+        "bytes": 446464,
+        "sha256": "5cb08c56073e8ef56f1073f4e9f1398f7869890788a47cfb7a0249782a831147"
+      },
+      "artifact_readback": {
+        "path": ".project-local/runs/be268a2d33/missing-credential-authority-prep-20261024-01/artifacts/artifact-reference-readback.json",
+        "bytes": 2666,
+        "sha256": "74989f818a7d55662be58d887a931e0e4f14e20d049c5a411d09c4fc186c5db4"
+      },
+      "authority_recorded_at": "2026-10-24T01:14:37.421409+00:00"
+    },
+    "installed_component_delta_2e705": {
+      "status": "PARTIAL",
+      "candidate_commit": "2e705fe4a57a1845416b94e806e8be3279262bf6",
+      "evidence": [
+        {
+          "installer_exit": 0,
+          "overlay_members": 0,
+          "path": ".project-local\\runs\\be268a2d33\\current5822-installed-component-delta-20261024-01\\guest-output\\installed-component-delta-guest.json",
+          "result": "FAIL_TOOLING_NULL_REPLACE_BACKUP",
+          "sha256": "2a4a750d39748f902168494d360581adccfb087be8d4b06fcdff55b2356a4035",
+          "bytes": 1618
+        },
+        {
+          "full_manifest_members": 19742,
+          "full_manifest_status": "PASS",
+          "overlay_members": 5,
+          "result": "FAIL_TOOLING_BEFORE_HOST",
+          "path": ".project-local\\runs\\be268a2d33\\current5822-installed-component-delta-20261024-02\\artifacts\\installed-component-delta-terminal.json",
+          "host": "NOT_EXECUTED",
+          "sha256": "63a594dc8b1e93cb88bb4b5eab8109e9bd50d12ab24a24a2dab04887449becf5",
+          "installer_exit": 0,
+          "bytes": 8203
+        },
+        {
+          "path": ".project-local\\runs\\be268a2d33\\current5822-installed-component-delta-20261024-03\\artifacts\\installed-component-delta-terminal.json",
+          "remaining_sandboxes": 0,
+          "sha256": "d5c756f5060f95085bb43835b3e43fa7b1dbfe5bd2a3a9751df960709f1c8769",
+          "result": "FAIL_TOOLING_SANDBOX_OWNERSHIP_BOOTSTRAP",
+          "installer": "UNVERIFIED",
+          "exact_orphan_stop": "PASS",
+          "host": "NOT_EXECUTED",
+          "bytes": 2416
+        }
+      ],
+      "compiled_commit": "2e705fe4a57a1845416b94e806e8be3279262bf6",
+      "host_initial_readback": "NOT_EXECUTED",
+      "host_reopen_readback": "NOT_EXECUTED",
+      "credential_failure_preserved": "NOT_VERIFIED",
+      "scope": "Installed-component delta qualification only; not whole-installer or current Green qualification",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-component-delta-20261024-03/artifacts/installed-component-delta-terminal.json",
+        "bytes": 2416,
+        "sha256": "d5c756f5060f95085bb43835b3e43fa7b1dbfe5bd2a3a9751df960709f1c8769"
+      },
+      "independent_readback": {
+        "path": ".project-local/runs/be268a2d33/current5822-installed-component-delta-20261024-03/artifacts/root-independent-readback.json",
+        "bytes": 821,
+        "sha256": "32aced0ffd3445806983f4c665c389821319aecff312cb18c6e7532494695b0d"
+      },
+      "boundary": "Original three tooling failures preserved. Five installed replacement members and manifest PASS in02; no installed Host or business readback.03 bootstrap cancelled, exact orphan stopped. Green remains historical5822; source/build/native proofs do not promote installation. No fourth VM, model or paid calls."
+    },
+    "green_five_member_preparation_2e705": {
+      "status": "PREPARED_NOT_APPLIED_INSTALLED_BUSINESS_BLOCKED",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/credential-ref-build-prep-20261024-01/green-real-entry-final-preparation.json",
+        "bytes": 3656,
+        "sha256": "f392935cba2a257e44160ad5840d1642c2842533977526ade21a244a3375e3b9"
+      },
+      "scope": "Exact5 Green program transaction plus ownership, original4 and10 synthetic cases and2label checks separately preserved; latest schema-only alignment NOT_RETESTED. Root reviewed bounded write/rollback design; no Green program/data/config writes or startup.",
+      "boundary": "PENDING gate intentionally rejects current installed FAIL. Historical Green5822 unchanged; prep is not deployed product."
     }
   },
   "cleanup": {
@@ -1642,10 +2005,12 @@
     "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green current5822 program deployment and isolated native startup PASS; real-user-data launch and Owner acceptance not executed; no public release.",
     "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
     "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass.",
-    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; three-member native folder picker/queued-batch normal restart and separate API same-batch partial-work continuation now PASS; midupload/active-worker crash, full same-workspace native J1 and wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; OCR/media/light-format integration receipts retain older Core identities.",
+    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; three-member native folder picker/queued-batch normal restart and separate API same-batch partial-work continuation now PASS; same-lineage native mixed-folder/read/cite/learn/export/actual-restore path now covered by original-prefix plus saved-review diagnostic and suffix02, with original run FAIL retained; midupload/active-worker crash, new installed dual-side same-candidate and wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; Current5822 OCR component now PASS separately; media/light-format receipts retain their original older Core identities.",
     "UF09/BE-P10: traceable no-pending historical backup clone now passes correction/original-answer/submitter/basis native DOM equality on7dHost/Core5822. Old unrelated pending guard and FAIL stay correct and preserved. Full scrolling/visual and installed/current-candidate acceptance remain separate.",
     "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native03 exact XLSX material-binding component PASS separately in verification.reader_material_pin_native_7525_run03; installed/Green remain5822 and have not received this source fix.",
-    "0410865 readable-failure Host/native component PASS; full candidate/installer/Green remain5822. Real-provider inference deferred by Owner; representative quality/Owner acceptance remain unproven; no whole-loop completion inferred."
+    "0410865 readable-failure Host/native component PASS; full candidate/installer/Green remain5822. Real-provider inference deferred by Owner; representative quality/Owner acceptance remain unproven; no whole-loop completion inferred.",
+    "Cloud product credential-ref source and refreshed2e705fe4 Core/Host/worker/launcher runtime components PASS. Native, installed and Green qualification is recorded separately; real provider inference remains deferred by Owner, not a finite-first-release blocker.",
+    "Current2e installed run02 actual b999 install,5-member overlay and19742 full-manifest PASS; installed Host/readback NOT_EXECUTED due driver tooling.03 Sandbox bootstrap CANCELLED/ownership helper failed; exact orphan stopped,0VM. Green5update PENDING_NOT_APPLIED; old5822 remains. Do not repeat full installation or infer product failure/root cause from tooling failures; restore reliable same-owned-guest tool channel before next bounded installed Host readback."
   ],
   "receipts": {
     "qualified_build": {
@@ -2614,7 +2979,7 @@
     "explanation": "Required closure-machine and reader-inspector behavior already exists; glass changes equivalent, Avalonia superseded, ASTRYN optional scope frozen. Decision is usefulness-based, not missing merge authorization.",
     "boundary": "Committed branch HEAD95b matches readback; dirty source/evidence NOT_PUBLISHED. No new commit/push/merge/CI inferred."
   },
-  "source_after_current_candidate": "Product binaries remain compiled5822. Subsequent frontend correction-attribution source fix and simulated UI tests do not change existing candidate or installed qualification.",
+  "source_after_current_candidate": "Current2e705fe4 Core/Host and worker/launcher/runtime component closure built and pinned separately. Historical whole5822 portable/installer identities remain fixed; native/installed/Green qualifications are recorded by their own verification entries, not inferred from source or build.",
   "delivery_readback_20261024": {
     "code_checkpoint_sha": "d8b49aa0bba79414a91a14f695d08da160ba47fc",
     "remote_branch_sha": "95b463c12dbd40744b43039add69c48ceaeba94e",
@@ -2649,7 +3014,7 @@
     "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
     "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
   ],
-  "latest_observed_at": "2026-10-23T23:57:06.740639+00:00",
+  "latest_observed_at": "2026-10-24T01:15:24.511907+00:00",
   "owner_model_delivery_override": {
     "id": "OWNER-LOCAL-FIRST-USABLE-RELEASE-20261024",
     "date": "2026-10-24",
