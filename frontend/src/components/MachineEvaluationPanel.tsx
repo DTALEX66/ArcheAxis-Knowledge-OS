@@ -76,7 +76,7 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
     const epoch=++epochs.current.rubric;
     try{const doc=await coreCommand<DocumentDto>("document_version",{document_id:row.document_id,version});
       if(doc.document_id!==row.document_id || doc.version!==version || (version===row.version&&doc.content_sha256!==row.content_sha256))throw new Error("固定量规版本不符");
-      const body=rubricFrom(doc);if(alive.current&&epoch===epochs.current.rubric){setRubric({doc,body});setJudgments(body.criteria.map(c=>({criterion_id:c.criterion_id,outcome:"unmeasured",basis:""})));setSavedEvaluation("");setMessage("量规已固定到所选版本与 hash；后续修改不替换它。");}}
+      const body=rubricFrom(doc);if(alive.current&&epoch===epochs.current.rubric){setRubric({doc,body});setJudgments(body.criteria.map(c=>({criterion_id:c.criterion_id,outcome:"unmeasured",basis:""})));setSavedEvaluation("");setMessage("量规已固定到所选版本与指纹；后续修改不替换它。");}}
     catch{if(alive.current)setMessage("量规读取失败或结构不支持；现有评测保留。");}finally{end();}
   }
   async function openHistory(row:MachineDocumentSummaryDto,version=row.version) {
@@ -126,7 +126,7 @@ export function MachineEvaluationPanel({ taskId }: { taskId?: string }) {
     <fieldset disabled={busy||!!evaluationAttempt.current}><legend>持久化原答案</legend>
       <label>机器任务 ID<input value={taskInput} onChange={e=>setTaskInput(e.target.value)}/></label><button onClick={()=>void loadTask()}>读取原答案快照</button>
     </fieldset>
-    {snapshot&&<section aria-label="固定原答案"><p>{snapshot.task_id} · {snapshot.model_version}</p><p>{snapshot.question}</p><pre>{snapshot.original_answer}</pre><p>答案 hash：{snapshot.original_answer_sha256}</p><RawReceiptButton label="机器答案快照" payload={snapshot}/></section>}
+    {snapshot&&<section aria-label="固定原答案"><p>{snapshot.task_id} · {snapshot.model_version}</p><p>{snapshot.question}</p><pre>{snapshot.original_answer}</pre><p>答案指纹：{snapshot.original_answer_sha256}</p><RawReceiptButton label="机器答案快照" payload={snapshot}/></section>}
     <section aria-label="量规登记"><h3>新量规</h3><fieldset disabled={busy||!!rubricAttempt.current}><legend>人工定义准则</legend>
       <label>量规标题<input value={title} onChange={e=>setTitle(e.target.value)}/></label><label>量规用途<input value={purpose} onChange={e=>setPurpose(e.target.value)}/></label>
       {criteria.map((c,i)=><div key={c.criterion_id}><label>准则名称 {i+1}<input value={c.label} onChange={e=>setCriteria(old=>old.map((x,n)=>n===i?{...x,label:e.target.value}:x))}/></label><label>准则预期 {i+1}<textarea value={c.expectation} onChange={e=>setCriteria(old=>old.map((x,n)=>n===i?{...x,expectation:e.target.value}:x))}/></label></div>)}

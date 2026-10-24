@@ -75,6 +75,7 @@
     <span class="chip">Host 97baf29c</span>
     <span class="chip">审计时间 2026-10-24</span>
     <span class="chip">归档核验 2026-10-24</span>
+    <span class="chip">术语收敛 9b6c3597</span>
   </div>
 </header>
 
@@ -187,7 +188,7 @@
 
 <h2><span class="n">05</span>前端新手全流程对比</h2>
 <div class="grid g3">
-  <div class="card"><h3>当前 Host</h3><div class="mono">97baf29c…79cf</div><div class="small">47,375,872B，原生启动</div></div>
+  <div class="card"><h3>行为回执 Host</h3><div class="mono">97baf29c…79cf</div><div class="small">14/14、22/22 回执对应；术语修复后 Host 为 <span class="mono">9b6c3597</span></div></div>
   <div class="card"><h3>全量前端回归</h3><div class="big">2090 / 18</div><div class="small">18 项失败与改动前基线完全一致</div></div>
   <div class="card"><h3>原生走查</h3><div class="big good">22/22</div><div class="small">直接路由逐页渲染</div></div>
 </div>
@@ -197,14 +198,15 @@
     <tbody>
       <tr><td>首次启动草稿告警</td><td>空库即显示“草稿尚未确认全部保存”</td><td><span class="tag ok">已修</span> 仅真实草稿/blocked/saving 时显示</td><td class="mono">App.tsx</td></tr>
       <tr><td>阅读空状态</td><td>提示“新建笔记”但无按钮</td><td><span class="tag ok">已修</span> “新建原创笔记”“去知识库选择资料”</td><td class="mono">CanonicalLibrarySpace.tsx</td></tr>
-      <tr><td>导航重复</td><td>顶部菜单、Dock、启动台、页面轨道并存</td><td><span class="tag mid">部分完成</span> 侧栏分组折叠；“关闭其他视图”已加；诊断入口未完全收敛</td><td class="mono">SpaceRail / DockWorkspace</td></tr>
+      <tr><td>导航重复</td><td>顶部菜单、Dock、启动台、页面轨道并存</td><td><span class="tag ok">已修</span> 侧栏分组折叠；“关闭其他视图”；诊断统一为 App 级“状态与诊断”中心</td><td class="mono">SpaceRail / DockWorkspace / DiagnosticConsole</td></tr>
       <tr><td>禁用操作无原因</td><td>研究/学习/导入按钮不可用且无解释</td><td><span class="tag mid">部分完成</span> 三页已就地说明前置条件</td><td class="mono">Research / Learning / Intake</td></tr>
-      <tr><td>工程术语外露</td><td>04/14/15/21 出现 Core、CAS、IEEE754、NOT_EXECUTED</td><td><span class="tag mid">部分完成</span> 集合属性、机器评测、画布页等已改写；04/14/21 仍有残留</td><td class="mono">审计报告 P1</td></tr>
+      <tr><td>工程术语外露</td><td>04/14/15/21 出现 Core、CAS、IEEE754、NOT_EXECUTED</td><td><span class="tag ok">已修</span> 04/14/21 已改写为业务语言；最终 Host 原生三页命中禁用工程词 0</td><td class="mono">term-convergence-05 / 三页截图</td></tr>
       <tr><td>窄窗遮挡</td><td>来源/证据面板浮在正文右上</td><td><span class="tag ok">已修</span> 改为底部停靠，不再遮挡头部</td><td class="mono">页面 03 窄窗截图</td></tr>
       <tr><td>连续业务闭环</td><td>只证明页面可渲染</td><td><span class="tag ok">已补</span> 14/14 步：导入→阅读→保存→知识→学习→复习→退出→重开读回</td><td class="mono">journey-receipt 7ecba5ec</td></tr>
     </tbody>
   </table>
 </div>
+<div class="callout"><b>2026-10-24 术语收敛复核：</b>04／14／21 可见工程词已改写；最终 Host <span class="mono">9b6c3597</span> 以隔离数据根原生启动，WebView2 逐页读回三页，禁用词命中 0、预期中文文案全部出现、控制台错误 0；回执 <span class="mono">term-convergence-20261024-05/receipt.json</span> 与 3 张页面截图。</div>
 
 <h2><span class="n">06</span>外部库与绿色库对比</h2>
 <div class="grid g2">
@@ -245,16 +247,17 @@
     <h3>仍需处理</h3>
     <ul>
       <li><span class="tag ok">已关闭 P0</span> 历史引用索引已建立（<span class="mono">reference-resolution.json</span>）；不再把历史路径计为证据链断裂。</li>
-      <li><span class="tag mid">P1</span> 诊断入口仍分散在多个业务页；04/14/21 仍残留工程术语。</li>
+      <li><span class="tag ok">已关闭 P1</span> 诊断入口统一为 App 级“状态与诊断”中心；04/14/21 工程术语已改写，最终 Host 原生三页命中 0。</li>
+      <li><span class="tag mid">P1</span> 禁用操作的就地原因目前只覆盖研究/学习/导入三页，其余页面待补。</li>
       <li><span class="tag mid">P2</span> 28 条历史日志/草稿未保留，仅存在于历史文档；建议保持标注，不重建临时日志。</li>
       <li><span class="tag mid">P2</span> <span class="mono">cache</span> 1.63GB 可在接受离线重建成本后清理；<span class="mono">runs/archives/build</span> 不建议再动。</li>
     </ul>
   </div>
 </div>
-<div class="callout risk"><b>边界：</b>本次是前端切片与仓库治理审计，不是 Owner 验收，也不构成安装态资格、Green 程序替换、exact-SHA CI 或真实云推理结论。沙盒 VM（vmwp 13912 / vmmem 37160）仍阻塞安装态；安装、Green、CI 与 Owner 验收均未执行。</div>
+<div class="callout risk"><b>边界：</b>本次是前端切片与仓库治理审计，不是 Owner 验收，也不构成安装态资格、Green 程序替换、exact-SHA CI 或真实云推理结论。Windows Sandbox 当前无活动环境（<span class="mono">wsb list</span> 0），但 <span class="mono">vmwp</span> PID 13912 与 <span class="mono">vmmemWindowsSandbox</span> PID 37160 仍存活且非重启不可终止；本轮未新建 VM、未重装，安装态、Green、CI 与 Owner 验收均未重跑。</div>
 
 <div class="foot">
-  数据来源：现场 git 测量、文件系统测量、<span class="mono">reports/full-audit-20261024/reference-resolution.json</span>、<span class="mono">metrics.json</span>、retention/green/audit 回执、归档核验回执 <span class="mono">reference-recovery-20261024/receipt.json</span>、原生回执 <span class="mono">journey 7ecba5ec</span>、<span class="mono">walk b1736f4e</span>、<span class="mono">closeout 14956c20</span>、<span class="mono">visual acc83b0d</span>。历史数字来自唯一执行记录，不重复计入本次验证。
+  数据来源：现场 git 测量、文件系统测量、<span class="mono">reports/full-audit-20261024/reference-resolution.json</span>、<span class="mono">metrics.json</span>、retention/green/audit 回执、归档核验回执 <span class="mono">reference-recovery-20261024/receipt.json</span>、术语收敛回执 <span class="mono">term-convergence-20261024-05/receipt.json</span>、原生回执 <span class="mono">journey 7ecba5ec</span>、<span class="mono">walk b1736f4e</span>、<span class="mono">closeout 14956c20</span>、<span class="mono">visual acc83b0d</span>。历史数字来自唯一执行记录，不重复计入本次验证。
 </div>
 </div>
 </body>

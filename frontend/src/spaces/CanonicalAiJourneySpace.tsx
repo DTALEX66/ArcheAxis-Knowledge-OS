@@ -105,6 +105,6 @@ export function CanonicalAiJourneySpace({ initialConsumption, initialRetestConsu
     <AssetMachineSlots initial={initialAssetConsumption} onAnswer={setAssetAnswer} onRetest={setAssetRetest} blocked={blocked}/>
     {knowledgeId?<MachineAnswerPanel knowledgeId={knowledgeId} scoped contextGrant={answerPermission} retestContextGrant={retestPermission} assetScoped={!!assetAnswer} retestAssetScoped={!!assetRetest} assetContextGrant={assetAnswer?.current?assetAnswer.request:undefined} retestAssetContextGrant={assetRetest?.current?assetRetest.request:undefined} onTask={receiveTask} onCandidate={receiveCandidate}/>:<p>请先选择绑定真实知识的上下文对象；无绑定候选仍可在项目记忆页保存和阅读。</p>}
     <MachineEvaluationPanel taskId={latestTask}/>
-    <p>固定 rubric 与人工比较由正式评测对象记录；此页不自动打分、不宣称模型资格或人类掌握。</p>
+    <p>固定评测准则与人工比较由正式评测对象记录；此页不自动打分、不宣称模型资格或人类掌握。</p>
   </section>;
 }

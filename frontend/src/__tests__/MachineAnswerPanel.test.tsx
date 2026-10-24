@@ -71,13 +71,13 @@ describe("machine identity and history regressions",()=>{
  it("rejects the wrong original question and blocks UNKNOWN inference retry",async()=>{
   bridge.call.mockResolvedValue({...answer,question:"错问题"});render(<MachineAnswerPanel knowledgeId="k1"/>);
   const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"实际问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
-  expect(await screen.findByText(/状态 UNKNOWN。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
+  expect(await screen.findByText(/状态尚未确认。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
   expect(bridge.call).toHaveBeenCalledTimes(1);expect(screen.queryByRole("button",{name:"执行本地机器回答"})).not.toBeInTheDocument();expect(screen.getByRole("button",{name:"重试同一回答请求"})).toBeDisabled();await user.click(screen.getByRole("button",{name:"重试同一回答请求"}));expect(bridge.call).toHaveBeenCalledTimes(1);
  });
  it("rejects wrong task knowledge with matching answer text",async()=>{
   bridge.call.mockImplementation(async(op:string)=>op==="machine_answer"?answer:task({...answer,knowledge_id:"other"}));
   render(<MachineAnswerPanel knowledgeId="k1"/>);const user=userEvent.setup();await user.type(screen.getByLabelText("实际问题"),"实际问题");await user.click(screen.getByRole("button",{name:"执行本地机器回答"}));
-  expect(await screen.findByText(/状态 UNKNOWN。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
+  expect(await screen.findByText(/状态尚未确认。请读取历史核对/)).toBeInTheDocument();expect(screen.queryByLabelText("真实机器回答")).not.toBeInTheDocument();
  });
  it("restores a saved answer from paged Core history without inference",async()=>{
   const receipt={...task(answer),principal:"machine",recorded_at:"2026-10-10",method_version:null,tool_version:null,failure:null};

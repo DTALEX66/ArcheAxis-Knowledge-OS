@@ -1719,3 +1719,10 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 归档核验：实际打开 52 个 ZIP / 1,907 个成员、745 个归档目录文件、20 份 MANIFEST；恢复并逐哈希校验 `conversation-summary-20261010`（原 ZIP + 3 成员）、`dot-cloud-audit-20261011`（162 成员）、`installers-0.5.0-20261015`（2 安装包，Git blob `8fc22a40`），并实测 1 个共享压缩 recipe 重建（390,210,198B，SHA-256 匹配）。回执：`.project-local/runs/be268a2d33/reference-recovery-20261024/receipt.json`。截断容器 `AAOS_UI_前端更新任务包_20261009.zip` 沿用既有废弃标记，不计为新增断链。
 - 修正上一节表述：“39.8% 历史引用失效”是路径分类结果，不是当前证据链断裂；`DIRECTORY_AUTHORITY.yaml` 冲突已修订。报告与 `metrics.json` 已同步为“当前断点 0”，并新增 `reference-resolution.json` 逐条索引；`docs/history/record-archive-20261009/INDEX.md` 增加简短说明。
 - 未推送、未发布、未替换 Green；安装态仍被沙盒 VM 阻塞。
+
+### 2026-10-24 04／14／21 工程术语收敛与原生复核（UI-P／G01，PARTIAL）
+
+- 前端只改可见文案，不改业务逻辑、API、权限或布局：04 双链页把 Core／GraphRAG／NOT_EXECUTED 改为“本地知识库／图谱增强尚未接入”，关系类型、来源指纹、目标段落编号改为中文；14 AI 页把 Core／状态 UNKNOWN／UNVERIFIED／rubric 改为“本地知识库／尚未确认／尚未核实／评测准则”；21 画布页把 CAS／Source CAS／expected_version／NOT_EXECUTED 改为“本地原件／来源原件／原保存版本／尚未接入”。
+- 验证：定向测试 122 项 PASS（97 + 25）；`tsc --noEmit` PASS；Vite build PASS；Tauri 增量构建 PASS，最终 Host `9b6c3597c017271c44c8a0233ad7e5cd041a46175b787538a7c6ea07e16088b8`（47,375,872B）。
+- 原生复核：以隔离数据根启动最终 Host，真实 WebView2 CDP 逐页读取 04／14／21；可见文本命中禁用工程词 0，预期中文文案全部出现，控制台错误 0，生成 3 张页面截图。回执 `.project-local/runs/be268a2d33/term-convergence-20261024-05/receipt.json`（12,313B，SHA-256 `9772c9677fd02db27c6bceffbba176aabff57a08003232374ad7bc8599931951`）。失败尝试 -01～-04 保留（选择器、相对 URL、陈旧文案），不覆盖旧回执。
+- 边界：最终 Host 是源码一致的前端增量构建，不安装、不替换 Green、不做 exact-SHA CI 或 Owner 验收；行为回执 14/14、22/22 仍对应旧 Host `97baf29c`。未推送、未发布。
