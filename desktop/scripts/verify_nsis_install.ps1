@@ -208,7 +208,10 @@ function Get-ArcheAxisRegistryEntries {
 function Wait-ArcheAxisBackend {
     param([System.Diagnostics.Process]$Shell)
 
-    for ($attempt = 0; $attempt -lt 160; $attempt++) {
+    # A cold first launch on a loaded CI runner (WebView2 start plus a large bundled
+    # Python runtime) can exceed 40 s; the ceiling is raised so a slow start is not
+    # reported as a broken install, while a backend that never listens still fails.
+    for ($attempt = 0; $attempt -lt 320; $attempt++) {
         Start-Sleep -Milliseconds 250
         if ($Shell.HasExited) {
             throw "desktop shell exited before readiness with $($Shell.ExitCode)"

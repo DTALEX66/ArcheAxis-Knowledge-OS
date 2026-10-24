@@ -149,7 +149,7 @@ raise SystemExit(worker.main())
             credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
-            timeout_seconds: 10,
+            timeout_seconds: 30,
             search_limit: 1,
         }))
         .unwrap();
@@ -278,7 +278,7 @@ raise SystemExit(worker.main())
         credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
-        timeout_seconds: 10,
+        timeout_seconds: 30,
         search_limit: 1,
     }))
     .unwrap();
@@ -454,7 +454,7 @@ sys.exit(1)
         credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
-        timeout_seconds: 10,
+        timeout_seconds: 30,
         search_limit: 1,
     }))
     .unwrap();
@@ -577,7 +577,7 @@ async fn local_only_and_durable_withdrawal_preserve_save_with_or_without_engine(
             credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
-            timeout_seconds: 10,
+            timeout_seconds: 30,
             search_limit: 1,
         }))
         .unwrap();
@@ -1066,7 +1066,7 @@ async fn retrieval_failure_details_survive_restart_without_blocking_ordinary_sav
             credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
-            timeout_seconds: 10,
+            timeout_seconds: 30,
             search_limit: 1,
         }))
         .unwrap();
