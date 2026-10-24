@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FolderIngest } from "../components/FolderIngest";
+import { DiagnosticConsole } from "../components/DiagnosticConsole";
+import { resetDiagnostics } from "../presentation/diagnostics";
 import { ApiError, type JobAdmissionRefusal } from "../api/client";
 import { createHash, webcrypto } from "node:crypto";
 
@@ -78,6 +80,7 @@ async function fixture(operation: string, payload: Record<string,unknown>): Prom
 
 describe("folder ingest", () => {
   beforeEach(() => {
+    resetDiagnostics();
     vi.stubGlobal("crypto", webcrypto);
     bridge.call.mockReset(); bridge.open.mockReset(); statuses.clear(); requests.clear(); manifests.clear(); sources.clear(); origins.clear(); enqueueState="queued"; executionState="succeeded";
     bridge.call.mockImplementation(fixture);
@@ -395,6 +398,58 @@ describe("folder ingest", () => {
     const call=bridge.call.mock.calls.find(([op])=>op==="job_execute")!;
     expect(call[1].request_id).not.toBe("historical_request");
     expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("已成功 1");
+  });
+  // Shape and error text from folder-picker-native-7525-20261024-01 and
+  // current5822-folder-resume-existing-batch-20261024-04/failure_job.
+  // Only the job/request/attempt identities are rebound to this synthetic row.
+  function nativeDocxFailure(current: Status) {
+    return {schema:"archeaxis.worker-response/v1",type:"job_result",request_id:current.request_id,
+      job_id:current.job_id,attempt:current.attempt,protocol_minor:0,status:"failed",outputs:[],measurements:{},warnings:[],
+      error:{code:"AAK-WORKER-003",message:"File is not a zip file",retryable:false}};
+  }
+  async function runDocxFailure(change: (result: ReturnType<typeof nativeDocxFailure>) => void = () => {}) {
+    executionState="failed";
+    let raw="";
+    bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
+      const value=await fixture(op,p);
+      if(op==="job_execution_status" && (value as Status).state==="failed") {
+        const current=value as Status, result=nativeDocxFailure(current); change(result);
+        raw=JSON.stringify(result); return {...current,error:raw};
+      }
+      return value;
+    });
+    upload([picked("册/broken.docx")]);
+    fireEvent.click(await screen.findByRole("button",{name:"执行本批次转换"}));
+    await screen.findByText("失败待处理",{exact:true});
+    return {row:screen.getByText("broken.docx",{exact:true}).closest("tr")!,raw};
+  }
+  it("SIMULATED native bad-DOCX failure has a readable neutral summary while diagnostics retain the exact worker error",async()=>{
+    const {row,raw}=await runDocxFailure();
+    expect(row).toHaveTextContent("文档结构无法读取，请检查文件格式或文件是否损坏。");
+    expect(row).not.toHaveTextContent("archeaxis.worker-response/v1");
+    expect(row).not.toHaveTextContent("File is not a zip file");
+    expect(screen.getByLabelText("批次真实统计")).toHaveTextContent("失败待处理 1");
+    expect(view.container).not.toHaveTextContent("失败待重试");
+    // Worker retryable:false is not a substitute for Core's continuation grant.
+    expect(within(row).getByRole("button",{name:"重试失败项（新请求）"})).toBeEnabled();
+    const diagnostics=render(<DiagnosticConsole/>);
+    fireEvent.click(within(row).getByRole("button",{name:"查看诊断详情：此文件导入与转换详细信息"}));
+    await waitFor(()=>expect(diagnostics.container.querySelector("pre")).not.toBeNull());
+    expect(JSON.parse(diagnostics.container.querySelector("pre")!.textContent!).status.error).toBe(raw);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);
+  });
+  it.each(["schema","type","job_id","request_id","attempt","status"] as const)("SIMULATED mismatched embedded %s never attributes its failure reason to this row",async field=>{
+    const {row}=await runDocxFailure(result=>{Object.assign(result,{[field]:field==="attempt"?2:"unrelated"});});
+    expect(row).toHaveTextContent("转换未完成，请查看诊断详情核对原因。");
+    expect(row).not.toHaveTextContent("文档结构无法读取");
+    expect(row).not.toHaveTextContent("archeaxis.worker-response/v1");
+  });
+  it("SIMULATED unknown technical worker failure stays concise without implying a retry will fix it",async()=>{
+    const {row}=await runDocxFailure(result=>{result.error.message="worker stack {private_path: C:/example} "+"long diagnostic ".repeat(60);});
+    expect(row).toHaveTextContent("转换未完成，请查看诊断详情核对原因。");
+    expect(row).not.toHaveTextContent("private_path");
+    expect(row).not.toHaveTextContent("long diagnostic");
+    expect(row).not.toHaveTextContent("稍后重试");
   });
   it("retries only the failed sibling and retains a successful source without any new import", async () => {
     bridge.call.mockImplementation(async (op:string,p:Record<string,unknown>)=>{

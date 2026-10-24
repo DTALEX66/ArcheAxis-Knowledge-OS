@@ -57,7 +57,7 @@
 
 > 2026-10-06 的 AAOS-01 接手纠错属于该阶段历史。10/09 用户选中 UI 优先队列和 G01；旧 R6/M0/AAOS-01 整包顺序冻结，有效约束继承。V01 仍暂停，FT01–04 保留未来意图。新布局适用于所有主题；当时的 blueprint 默认已由后续 UI 方向覆盖，现行主题策略读活动指针 theme_policy，同一主题全局一致。
 
-当前交接见 [`docs/current/AAOS-AGENT-HANDOFF-CURRENT.md`](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)，本地/云端漂移与未发布范围见 [`docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md`](docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)。
+当前交接见 [`docs/current/AAOS-AGENT-HANDOFF-CURRENT.md`](docs/current/AAOS-AGENT-HANDOFF-CURRENT.md)；当前本地／云端接线、剩余资格与未发布边界，沿[活动指针](docs/current/AAOS-ACTIVE-EXECUTION.json)的 `current_execution.checkpoint` 和[唯一执行记录末段](docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md)核对。[10/09治理对齐记录](docs/history/repository-consolidation-20261019/current/AAOS-GOVERNANCE-ALIGNMENT-20261009.md)仅保留为历史来源。
 
 ## 7. 审计索引（可导航链：根入口 → 有效规则 → 来源 → 能力/任务 → 代码或证据 → 两端读回）
 

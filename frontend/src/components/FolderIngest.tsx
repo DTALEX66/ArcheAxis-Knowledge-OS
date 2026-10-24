@@ -10,6 +10,7 @@ import { conversionKindFor } from "../api/conversionKinds";
 import { confirmedImport, type ImportReceipt } from "../presentation/importReceipt";
 import { sha256 as contentSha256 } from "../presentation/exchangeProof";
 import { RawReceiptButton } from "./DiagnosticConsole";
+import { userErrorMessage } from "../presentation/labels";
 import type { BoundedJobCommand, JobStatus } from "./BoundedJobPanel";
 import { freezeFolderAttempt, folderCancelAck, folderExecutionAck, freshAttemptEligible, jobState, pollFolderAttempt, readFolderStatus, terminalJobState, type FolderAttempt, type JobState } from "../presentation/folderIngestExecution";
 
@@ -29,11 +30,37 @@ type Row = { key: string; batch_id: string; relative: string; bytes: number; sta
   attempt?: FolderAttempt; cancelPending?: boolean; executionRefused?: boolean; admissionProof?:JobAdmissionRefusal; capabilityBusy?:boolean };
 const LABEL: Record<RowState, string> = {
   queued:"已入队", pending:"已入队", running:"作业运行中", leased:"作业运行中", starting:"作业运行中",
-  succeeded:"已成功", failed:"失败待重试", cancelled:"已取消", rejected:"已拒绝",
+  succeeded:"已成功", failed:"失败待处理", cancelled:"已取消", rejected:"已拒绝",
   UNKNOWN:"结果 UNKNOWN，待核对", ORIGINAL_ONLY:"原件已保管，无转换通路", IMPORT_FAILED:"原件导入未确认",
   ENQUEUE_FAILED:"转换未入队", IDENTITY_CONFLICT:"作业身份冲突",
   "跳过：隐藏路径":"跳过：隐藏路径", "跳过：排除目录":"跳过：排除目录", "未导入：超过大小上限":"未导入：超过大小上限",
 };
+
+function folderFailureSummary(status: JobStatus): string {
+  const fallback = "转换未完成，请查看诊断详情核对原因。";
+  if (status.state !== "failed" || !status.error) return fallback;
+  const safeSummary = (message: unknown) => {
+    const summary = userErrorMessage(message);
+    return summary === userErrorMessage(null) ? fallback : summary;
+  };
+  const error = status.error.trim();
+  if (!error.startsWith("{")) return safeSummary(error);
+  try {
+    const result = JSON.parse(error);
+    // The outer status has already passed readFolderStatus's row/source checks.
+    // An embedded worker response must also belong to this exact failed attempt.
+    if (!result || result.schema !== "archeaxis.worker-response/v1" || result.type !== "job_result"
+      || result.status !== "failed" || result.job_id !== status.job_id
+      || !status.request_id || result.request_id !== status.request_id
+      || !Number.isSafeInteger(status.attempt) || Number(status.attempt) < 1 || result.attempt !== status.attempt
+      || !result.error || typeof result.error.code !== "string" || typeof result.error.message !== "string"
+      || typeof result.error.retryable !== "boolean") return fallback;
+    if (result.error.code === "AAK-WORKER-003" && result.error.message === "File is not a zip file") {
+      return "文档结构无法读取，请检查文件格式或文件是否损坏。";
+    }
+    return safeSummary(result.error.message);
+  } catch { return fallback; }
+}
 // Stable module-level finite port: no component render changes the command identity.
 const folderCommand: BoundedJobCommand = (operation, payload) => coreCommand(operation, payload);
 
@@ -211,7 +238,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
   function tally(list: Row[]) {
     const count = (...states: RowState[]) => list.filter(row => states.includes(row.state)).length;
     return `原件已保管 ${list.filter(row => !!row.source_id).length} · 已入队 ${count("queued", "pending")} · 运行中 ${count("running", "leased", "starting")}`
-      + ` · 已成功 ${count("succeeded")} · 失败待重试 ${count("failed")} · 已取消 ${count("cancelled")} · 已拒绝 ${count("rejected")}`
+      + ` · 已成功 ${count("succeeded")} · 失败待处理 ${count("failed")} · 已取消 ${count("cancelled")} · 已拒绝 ${count("rejected")}`
       + ` · 仅保管 ${count("ORIGINAL_ONLY")} · UNKNOWN ${count("UNKNOWN")} · 冲突 ${count("IDENTITY_CONFLICT")}`
       + ` · 未入队 ${count("ENQUEUE_FAILED")} · 原件导入未确认 ${count("IMPORT_FAILED")} · 跳过 ${count("跳过：隐藏路径", "跳过：排除目录", "未导入：超过大小上限")}`;
   }
@@ -291,7 +318,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
       void journal.clear(frozen.request_id).then(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{attempt:undefined,cancelPending:false,executionRefused:false,admissionProof:undefined});}).catch(()=>{if(mounted.current&&rowsRef.current.some(row=>row.key===key&&row.attempt?.request_id===frozen.request_id))patch(key,{detail:"终态已记录，但执行保全清理未确认；冻结身份保留，请再核对状态。"});});
     }
     const terminal = terminalJobState(status.state);
-    patch(key, { status, state: jobState(status.state), detail: terminal ? `转换终态 ${status.state}；原件保留，成功产物可按真实来源定位。${status.error ? ` ${status.error}` : ""}` : `转换仍为 ${status.state}；终态未确认。`,
+    patch(key, { status, state: jobState(status.state), detail: status.state === "failed" ? `原件已保留；${folderFailureSummary(status)}` : terminal ? `转换终态 ${status.state}；原件保留，成功产物可按真实来源定位。${status.error ? ` ${status.error}` : ""}` : `转换仍为 ${status.state}；终态未确认。`,
       ...(terminal && !journal.available ? { attempt: undefined, cancelPending: false, executionRefused: false, admissionProof:undefined, capabilityBusy:false } : {}) });
   }
   async function executeOne(key: string, mode: "queued" | "fresh" | "same", generation: number) {

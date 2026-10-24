@@ -26,9 +26,10 @@
     "authorization": "Owner subsequently resumed: 根据新的规划和闭环开始执行. Implement the selected usable-release loop and Stitch launchpad/material/icon corrections; optional expansion stays frozen; monitor remains paused",
     "development_state": "IN_PROGRESS_SOURCE_IMPLEMENTATION; qualification in sole execution record",
     "latest_visual_checkpoint": "docs/history/project-drift-audit-20261021/stitch-material-review-20261023.json",
-    "latest_closed_loop_checkpoint": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json",
+    "latest_closed_loop_checkpoint": "docs/history/project-drift-audit-20261021/dual-loop-resume-20261024.json",
     "automatic_backlog_expansion": false,
-    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md"
+    "progress_ref": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md",
+    "previous_closed_loop_checkpoint": "docs/history/project-drift-audit-20261021/cloud-execution-blocker-20261023.json"
   },
   "selected_at": "2026-10-09",
   "authorization": "Owner explicitly requested parallel handoff execution, new layout/architecture, palette preservation/uniformity, then G01 authority/index/description alignment; Owner explicitly prioritized G01; Owner requested comprehensive execution prioritizing governance and UI; Owner 2026-10-11 explicitly resumed complete core framework, common formats and shortest closed loop",
@@ -471,7 +472,7 @@
     "history": "Inherited F16 and frozen evidence retained; current decision supersedes professional native-format scope"
   },
   "continuation_context": {
-    "latest_owner_discussion_archive": "docs/history/owner-dialogue-20261022-desktop-launcher/README.md",
+    "latest_owner_discussion_archive": "docs/history/owner-dialogue-20261023-thread-handoff/README.md",
     "latest_design_correction_ref": "docs/history/owner-dialogue-20261022-desktop-launcher/DESIGN.md",
     "purpose": "换 Agent / 换会话先沿固定入口读回，不从旧摘要、私人记忆或默认安装位置推导当前事实",
     "read_order": [
@@ -861,7 +862,7 @@
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "post_build_delta": "SOURCE_UI_CORRECTION_ATTRIBUTION_FIX_AFTER5822; tests PASS; product candidate/installer unchanged, no new native or installed qualification inferred",
+    "post_build_delta": "POST5822_COMPONENTS: correction7d953Host/native-detail-DOM PASS; reader7525Host build and native03 successful-material-binding component PASS. Original failures preserved. Qualified full candidate/installer/Green remain5822; no new whole-package/installed/Owner qualification. See reader_material_pin_host_7525, correction_history_native_detail_backup06, reader_material_pin_native_7525_run03.",
     "native_additional": "CURRENT5822_NATIVE_HUMAN_AND_AI_ENGINEERING_CHAIN_PASS; ONE_SAMPLE_INDEPENDENT_AGENT_REVIEW_COMPLETE; REPRESENTATIVE_SEMANTIC_QUALITY_AND_OWNER_UNPROVEN; GROUPED_PRODUCT_PARTIAL",
     "cloud": "IMPLEMENTED_LOCAL_MOCK_PASS_REAL_PROVIDER_NOT_EXECUTED",
     "installer": "INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; lifecycle=PASS_LOCAL_INSTALLER_LIFECYCLE; OWNER_AND_CI_NOT_QUALIFIED; SAME_0.6.14_SCHEMA14_CROSS_BUILD_ROLLBACK_COMPONENT_PASS",
@@ -869,7 +870,7 @@
     "public_research": "HISTORICAL_REAL_THREE_SOURCE_ACQUISITION; CURRENT5822_ACTUAL_RESTORE_AND_COLD_READBACK_PASS; research draft remains unverified/not admitted",
     "native_ai_latest": "CURRENT5822_PARENT_PASS; exact native evidence in native_ai_current5822; authored engineering fixture, not Owner acceptance",
     "ai_governance_latest": "PASS8_ACTUAL_CORE_NEGATIVE_SYNTHETIC_REVIEW; SEMANTIC_TRUTH_AND_OWNER_NOT_PROVEN",
-    "common_formats_latest": "CURRENT5822_FOUR_FORMAT_RAW_JOB_ANCHOR_INTEGRATION_AND_EXPLICIT_SOURCE_BOUND_DOCUMENT_SAVE_EXPORT_RESTART_ACTUAL_RESTORE_COMPONENT_PASS; NATIVE_FORMAT_UI_AND_AUTO_PROJECTION_NOT_QUALIFIED; J1_PARTIAL",
+    "common_formats_latest": "CURRENT5822_FOUR_FORMAT_CORE_EXPORT_RESTORE_AND_NATIVE_READER_COMPONENTS_PASS; SAME_DB_HUMAN_KNOWLEDGE_LEARNING_RESTART_ACTUAL_RESTORE_API_SUBCHAIN_PASS_SEPARATELY; FULL_NATIVE_J1_AND_WIDER_FIDELITY_PARTIAL; DIRECTORY_BATCH_FOLLOWUPS_AS_RECORDED_IN_CURRENT_CHECKPOINT; NO_AUTO_PROJECTION_REQUIREMENT_INFERRED",
     "installed_business_latest": "CURRENT5822_INSTALLED_NATIVE_DOCUMENT_CONFLICT_RESTORE_RESTART_PASS; ORIGINAL_RUN01_FAIL_AND_OLD3407_VM_DISAPPEARANCE_PRESERVED",
     "historical_code_delivery_observation_at": "2026-10-23T20:21:20.557382+00:00",
     "delivery_receipt": ".project-local/artifacts/dual-loop-resume-20261023/delivery-latest-20261024.json",
@@ -1625,7 +1626,44 @@
         "bytes": 4149,
         "sha256": "9aef603ffa809cc639a692c8cc312ec9b4ce29af16b52751d0f90953c7b4d169"
       },
-      "checkpoint_key": "verification.reader_material_pin_native_7525"
+      "checkpoint_key": "verification.reader_material_pin_native_7525",
+      "current_followup": "verification.reader_material_pin_native_7525_run03; original PARTIAL/FAIL preserved"
+    },
+    "reader_material_pin_native_7525_run03": {
+      "status": "PASS_REAL_NATIVE_READER_SUCCESSFUL_MATERIAL_BINDING_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-03/artifacts/terminal-readback.json",
+        "bytes": 5856,
+        "sha256": "034402221f23f49ee16ca5135ecda62b3eab881071fbed58bc5886c778a0d897"
+      },
+      "checkpoint_key": "verification.reader_material_pin_native_7525_run03"
+    },
+    "native_folder_picker_batch_restart_7525": {
+      "status": "PASS_REAL_NATIVE_FOLDER_PICKER_DURABLE_BATCH_RESTART_COMPONENT",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/folder-picker-native-7525-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 10765,
+        "sha256": "c9f74619e5c9fa6c18afbc5e0acd174e11bf76c94a466147e9ae4b2c013af6a1"
+      },
+      "checkpoint_key": "verification.native_folder_picker_batch_restart_7525"
+    },
+    "folder_existing_batch_api_continuation_5822": {
+      "status": "PASS_EXISTING_BATCH_REOPEN_CONTINUATION_FAILURE_LOCATION",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-folder-resume-existing-batch-20261024-04/artifacts/existing-batch-resume-receipt.json",
+        "bytes": 21125,
+        "sha256": "7a76c227c266738c3b9144e89ff58f099d174383a92b9e6a714453c5a1f5198f"
+      },
+      "checkpoint_key": "verification.folder_existing_batch_api_continuation_5822"
+    },
+    "folder_failure_summary_source_fix": {
+      "status": "LOCAL_COMPONENT_TESTS_AND_TYPECHECK_PASS",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/folder-failure-summary-repair-20261024.json",
+        "bytes": 3813,
+        "sha256": "aa8cef7c74f7d0b3a54d276ebd80d7d1b2f4aaed7b67204441cb3af208649cc9"
+      },
+      "checkpoint_key": "verification.folder_failure_summary_source_fix"
     }
   }
 }

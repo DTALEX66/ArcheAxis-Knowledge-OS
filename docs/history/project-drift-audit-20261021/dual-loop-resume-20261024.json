@@ -1401,7 +1401,114 @@
       "compiled_host_commit": "7525ccb28c57d57a1ef579a95a71e105396ce607",
       "compiled_core_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
       "scope": "Real page16 selected XLSX, displayed old-success text matched, trusted question input and preview click returned200; saved request/context/plan material all pin successful job and transform2 instead of newer cancelled job. Root independently checked captured payload equality and unchanged jobs/job_outputs/machine_tasks rows. No new conversion/cancel/model call.",
-      "boundary": "Original01 route failure and02 collector KeyError remain FAIL. Collector assumed plan.material but actual plan.context.material/plan.request.material; latest-cancelled-status visibility assertion was not reached. Native component evidence is PARTIAL, not full journey PASS. Inner binding UNVERIFIED; parent explicitly pins7525Host and5822Core. No installed/Green/Owner acceptance."
+      "boundary": "Original01 route failure and02 collector KeyError remain FAIL. Collector assumed plan.material but actual plan.context.material/plan.request.material; latest-cancelled-status visibility assertion was not reached. Native component evidence is PARTIAL, not full journey PASS. Inner binding UNVERIFIED; parent explicitly pins7525Host and5822Core. No installed/Green/Owner acceptance.",
+      "current_followup": "verification.reader_material_pin_native_7525_run03; original PARTIAL/FAIL preserved"
+    },
+    "reader_material_pin_native_7525_run03": {
+      "status": "PASS_REAL_NATIVE_READER_SUCCESSFUL_MATERIAL_BINDING_COMPONENT",
+      "terminal": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-03/artifacts/terminal-readback.json",
+        "bytes": 5856,
+        "sha256": "034402221f23f49ee16ca5135ecda62b3eab881071fbed58bc5886c778a0d897"
+      },
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/reader-material-pin-native-7525-20261024-03/artifacts/root-independent-readback.json",
+        "bytes": 2887,
+        "sha256": "1fe66411f84d4354f394b7010ecef6165ff24fb6dd400c761a342cb815372af8"
+      },
+      "compiled_host_commit": "7525ccb28c57d57a1ef579a95a71e105396ce607",
+      "compiled_core_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_commit": "cc0b14e9a233388728ddb696483fc2ab0c3158fc",
+      "scope": "One XLSX native page16: trusted latest-status diagnostic click exposes exact newer cancelled job; original successful body matches; actual question preview200 request/context/plan pin old successful job and transform2. Jobs5/outputs12/machine_tasks0 unchanged. Normal Host exit0 and owned-resource cleanup.",
+      "boundary": "01 route FAIL and02 collector KeyError remain immutable; corrected collector03 is separate PASS. No new conversion/cancel/model call, no fullJ1/installed/Green/Owner qualification. Inner compiled binding UNVERIFIED; parent pins7525Host and5822Core."
+    },
+    "current_navigation_summary_repair": {
+      "status": "CURRENT_ROUTES_UPDATED_HISTORICAL_EVIDENCE_PRESERVED",
+      "review": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/current-navigation-drift-review-cc0b14e9-20261024.json",
+        "bytes": 9615,
+        "sha256": "4e92549dd36e88eadd0ad9b61f9bdef7c48a75caef4a12575414f27129379154"
+      },
+      "scope": "Latest closed-loop checkpoint/owner discussion archive, post-build component and common-format summaries plus AUTHORITY current-gap navigation. No old failure or archive rewritten; no product implementation implied."
+    },
+    "native_folder_picker_batch_restart_7525": {
+      "status": "PASS_REAL_NATIVE_FOLDER_PICKER_DURABLE_BATCH_RESTART_COMPONENT",
+      "terminal": {
+        "path": ".project-local/runs/be268a2d33/folder-picker-native-7525-20261024-01/artifacts/terminal-readback.json",
+        "bytes": 10765,
+        "sha256": "c9f74619e5c9fa6c18afbc5e0acd174e11bf76c94a466147e9ae4b2c013af6a1"
+      },
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/folder-picker-native-7525-20261024-01/artifacts/root-independent-readback.json",
+        "bytes": 3821,
+        "sha256": "7a18ee415bc68bfd234d733c38ad47963df815a90b232a117152dc8d2e9c81a2"
+      },
+      "compiled_host_commit": "7525ccb28c57d57a1ef579a95a71e105396ce607",
+      "compiled_core_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "execution_commit": "cc0b14e9a233388728ddb696483fc2ab0c3158fc",
+      "scope": "Real native page16 standard WebDriver directory file input produces trusted browser FileList/webkitRelativePath for3nested synthetic files. Product registers/imports/enqueues exact members; normal Host exit and sameDB restart; real batch history UI restores original queued batch without executing. Explicit batch execute yields text+MD success and invalidDOCX failed with per-file source/job/error DOM readback.2normal Host exit0/cleanup and0model.",
+      "boundary": "Three-file synthetic Windows component; OS chooser dialog, midupload or active-worker crash, fullJ1, export/restore, installed and Owner not inferred. Screenshot aggregate visible; exact per-file errors in live DOM, not full-layout qualification. Inner binding UNVERIFIED and parent explicit7525Host/5822Core pins retained. Inherited native reader_material_pin field name is merely a probe container; fresh folder fixture, no prior reader data clone."
+    },
+    "folder_existing_batch_api_continuation_5822": {
+      "status": "PASS_EXISTING_BATCH_REOPEN_CONTINUATION_FAILURE_LOCATION",
+      "receipt": {
+        "path": ".project-local/runs/be268a2d33/current5822-folder-resume-existing-batch-20261024-04/artifacts/existing-batch-resume-receipt.json",
+        "bytes": 21125,
+        "sha256": "7a76c227c266738c3b9144e89ff58f099d174383a92b9e6a714453c5a1f5198f"
+      },
+      "execution": {
+        "path": ".project-local/runs/be268a2d33/current5822-folder-resume-existing-batch-20261024-04/artifacts/execution.json",
+        "bytes": 1374,
+        "sha256": "d22c3c1bf9a5deb56816b959fdc34e2092b74df68201c8d9a1069fd34ba31cd0"
+      },
+      "root_readback": {
+        "path": ".project-local/runs/be268a2d33/current5822-folder-resume-existing-batch-20261024-04/artifacts/root-independent-readback.json",
+        "bytes": 3326,
+        "sha256": "83e0345953a73b9dcac48f8d4e233fb10869779d6f7941d537de221ece2380b9"
+      },
+      "compiled_core_commit": "582267f3a09a0e3c372147b1a54e28b895c44595",
+      "scope": "Reopen original run02 sameDB batch: TXT success, badDOCX failed, MD queued. Execute only queuedMD without imports/enqueues or retries. Further controlled stop/restart preserves all source/hash/job identities, text outputs and original exact DOCX failure.",
+      "original_failures": "01Python scope preparation failure;02collector incorrectly chose sorted first2 files as good, so actual invalidDOCX failure arrived early;03fresh workspace sorted-state assertion failure. All preserved;04 continued02 instead of rebuilding another batch.",
+      "boundary": "API and real worker; discovery was runner walk, not product picker (separate native_folder_picker_batch_restart_7525 proves picker scope). Stop helper exit1 is controlled termination, not normal product exit or crash recovery; no models or external requests."
+    },
+    "current_handoff_compaction": {
+      "status": "EXACT_HISTORY_PRESERVED_CURRENT_NAVIGATION_COMPACTED",
+      "mapping": "docs/history/project-drift-audit-20261021/current-handoff-compaction-20261024.json",
+      "archive": {
+        "path": "docs/history/project-drift-audit-20261021/current-handoff-before-compaction-20261024.md",
+        "bytes": 84979,
+        "sha256": "6adead1984f9d3c8c6532e17791d224b84cc24c991302946d991adb338141eef"
+      },
+      "current_path": "docs/current/AAOS-AGENT-HANDOFF-CURRENT.md",
+      "review": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/handoff-compaction-targeted-review-20261024.json",
+        "bytes": 11877,
+        "sha256": "a6c5c12efdf50393661bfac1dbb66f1c3866c18e46f2cd28e612384e686462f2"
+      },
+      "boundary": "Scoped tracked current references had0anchor bindings; external bookmarks unverified. Historical relative links retain original docs/current base. No contract or evidence deletion, no disk reclaim claim."
+    },
+    "folder_failure_summary_source_fix": {
+      "status": "LOCAL_COMPONENT_TESTS_AND_TYPECHECK_PASS",
+      "receipt": {
+        "path": ".project-local/artifacts/dual-loop-resume-20261023/folder-failure-summary-repair-20261024.json",
+        "bytes": 3813,
+        "sha256": "aa8cef7c74f7d0b3a54d276ebd80d7d1b2f4aaed7b67204441cb3af208649cc9"
+      },
+      "source_files": [
+        {
+          "path": "frontend/src/components/FolderIngest.tsx",
+          "bytes": 40485,
+          "sha256": "3ba033a0a2dea5f57367f33232a559d4f7a7fe4003bbc0d5ab7dea1d12427b4b"
+        },
+        {
+          "path": "frontend/src/__tests__/FolderIngest.test.tsx",
+          "bytes": 46081,
+          "sha256": "400ca0a6623ede6241ca907edc878c8cfb0f16229255d538ab57bd908fe518ad"
+        }
+      ],
+      "scope": "Actual native invalidDOCX failure exposed full worker JSON and misleading failed-pending-retry label. Minimal FolderIngest presentation fix: neutral failure label; protocol+job/request/attempt-bound readable error summary, complete untouched error stays in RawReceiptButton. Core continuation/retry grants unchanged.",
+      "tests": "57FolderIngest component tests PASS including8new actual-error-shape and embedded-identity negative cases; tsc PASS. Root read source/test diff and checked both source hashes and canonical execution receipts.",
+      "boundary": "Synthetic component tests with real failure shape; source cc0b14e9+recordedpatch. New source has not yet built or native/installed qualified; previous7525Host native directory/material proofs remain historical exact component qualifications."
     }
   },
   "cleanup": {
@@ -1511,9 +1618,10 @@
     "Supported schema13-to14 synthetic migration/business-data restore PASS. Exact old3407/current5822 same0.6.14/schema14 program rollback, same Document/CAS/versions1-5 and retained backups PASS; wider historical-release compatibility and schema downgrade are not qualified or newly selected requirements. Windows10 compatibility remains outside first-release windows-11-x64 hard gates. Green current5822 program deployment and isolated native startup PASS; real-user-data launch and Owner acceptance not executed; no public release.",
     "External raw-context system NOT_CONNECTED; MP4 ASR/frames are not visual understanding. Finite dual-side product remains PARTIAL; hosted CI not executed.",
     "Remote push was rejected before execution by approval policy; local public commits remain unpublished. No alternate channel or bypass.",
-    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; filesystem folder discovery/batch loss-resume and full native J1 plus wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; OCR/media/light-format integration receipts retain older Core identities.",
+    "CL-02/J1: current5822 four-format RawAsset/job-output/anchor integration plus explicitly saved real-source-bound Document/export/restart/actual-restore component chain PASS. Four-format native import/conversion/source-reader reopen now PASS; same-workspace four-format knowledge/learning/restart/actualrestore API subchain now PASS separately; three-member native folder picker/queued-batch normal restart and separate API same-batch partial-work continuation now PASS; midupload/active-worker crash, full same-workspace native J1 and wider semantic/visual fidelity still unqualified; no separate automatic binary-to-Document filling requirement is inferred; OCR/media/light-format integration receipts retain older Core identities.",
     "UF09/BE-P10: traceable no-pending historical backup clone now passes correction/original-answer/submitter/basis native DOM equality on7dHost/Core5822. Old unrelated pending guard and FAIL stay correct and preserved. Full scrolling/visual and installed/current-candidate acceptance remain separate.",
-    "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native outcome is exactly verification.reader_material_pin_native_7525; installed/Green remain5822 and have not received this source fix."
+    "Reader material identity/draft-preservation fix:86components/typecheck/frontend and7525Host build PASS; native03 exact XLSX material-binding component PASS separately in verification.reader_material_pin_native_7525_run03; installed/Green remain5822 and have not received this source fix.",
+    "Folder failure summary source fix:57component tests and tsc PASS; build/native/installed followup pending. Original7525Host folder/material qualifications do not prove this later display change."
   ],
   "receipts": {
     "qualified_build": {
@@ -2517,5 +2625,5 @@
     "Exact candidate identity dedup only; semantic duplicate detection, independent applicability/conflict truth and genuine human quality acceptance not proved. External raw-context system NOT_CONNECTED. MP4 ASR/frames not visual understanding. Whole dual-side selected product remains PARTIAL; CI not executed.",
     "Installed native document conflict: settings subgroup source fix and51 tests PASS, actual UI effect still UNVERIFIED after VM disappeared; VM cause undetermined. Prior failures retained. No fourth attempt or global service change."
   ],
-  "latest_observed_at": "2026-10-23T23:47:31.216129+00:00"
+  "latest_observed_at": "2026-10-23T23:57:06.740639+00:00"
 }

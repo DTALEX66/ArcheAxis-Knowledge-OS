@@ -1540,3 +1540,21 @@ Owner在完整20261023交接后明确继续有限首版，并要求按任务难�
 - 新合成工作区贯穿四格式batch清单／导入／真实转换／锚点检索／显式保存版本文档／人工知识接纳／学习review，再在同一DB重启核对、离线backup、创建唯一postbackup marker、停Core后实际restore、重启回读。4来源与CAS／文档v2／package／export／接纳知识／学习事件保全，workspaceID同一、restoreEpoch改变、marker404。02／04误将知识接纳前后PDF包视为全等的FAIL保留：root独立证实Office三格式全等，PDF只有与已接受候选精确绑定的一条新增锚点，正文／版本／原字节无变，不以动态时间解释。06在线writer占用时maintenance backup拒绝是保护证据；07离线序列PASS。helper停止Core的Windows exit1如实记录，非正常产品退出。见verification.same_workspace_human_api_subchain_5822；这是固定5822Core同库API＋离线维护子链，目录实际遍历／故障续做、完整native J1／安装／Owner仍未验，无模型／外网。
 - 阅读材料修复的真实原生run02已在page16选择XLSX，正文匹配旧成功输出，真实输入／点击预览返回200；捕获的请求及plan.context.material／plan.request.material全部绑定旧成功job与transform2，没有误用较新的cancelled job，root独立核对响应与三表完整行一致。01旧导航失败和02采集器错误读取plan.material产生的KeyError原FAIL均保留；最后取消状态页面可见断言未执行，故仍PARTIAL，不能提升完整旅程PASS。7525Host／5822Core、0新增转换／取消／模型、自有Host正常exit0和清理通过，见verification.reader_material_pin_native_7525。
 - 本段未推送、发布或更新Green，外部原始上下文NOT_CONNECTED，额度监控保持暂停。真实云、代表性质量、同候选余项、托管CI与Owner仍未完成；原失败、备份和证据不覆盖。
+
+
+### 2026-10-24 阅读材料原生完整断言与当前接续摘要修复（UF09／BE-P08／BE-P10／G01，整体PARTIAL）
+
+- 修正02采集器的plan字段读取后，以03独立短旅程复用相同cancelled fixture；真实界面诊断显示较新取消任务，旧成功正文严格匹配，实际输入／点击材料预览200且request／context／plan同绑定旧成功job与transform2。root独立核payload、三表全行和取消状态截图；0新增转换／取消／模型，正常Host exit0及自有资源清理通过。01／02原FAIL保留，03仅为单XLSX原生材料绑定组件PASS，7525Host／5822Core及inner UNVERIFIED由parent明确分层，非完整J1／安装／Green／Owner验收。见verification.reader_material_pin_native_7525_run03。
+- 窄核修复当前路由：latest闭环指向本轮checkpoint、旧云阻断指针留previous，latest Owner归档指向10/23完整双侧交接；post_build_delta及格式摘要不再掩盖后继原生组件证据。AUTHORITY当前缺口指向活动指针／唯一记录，10/09治理文只标历史；云生产已实现但真实provider未验、权限已恢复和历史失败均按原准确证据保留，不批量重写历史。见verification.current_navigation_summary_repair。
+
+
+### 2026-10-24 真实目录选择与批次续做、接手入口减负（UF02／BE-P02／CL-02／J1／G01，整体PARTIAL）
+
+- 正式page16使用标准WebDriver目录file input，浏览器真实trusted FileList／webkitRelativePath传入嵌套3件合成原件；产品逐项登记／导入／入队，首次0执行，正常退出同DB重开后真实历史按钮恢复原queued批次，明确执行得到TXT／MD成功、坏DOCX按relative_path和job_id失败并显示具体原因。2次正常exit0，自有资源清理、0模型，root独立核请求／三成员SQL／CAS及原hash。见verification.native_folder_picker_batch_restart_7525；这是7525Host／5822Core单批次组件，不代表OS目录对话框、中途上传或worker崩溃恢复、完整同库native J1、安装或Owner。
+- 另一固定5822Core API续段在原run02同DB继续唯一queued MD；没有重复导入、重跑成功TXT或重试坏DOCX，再受控停启后两成功一失败、原件／来源／版本与原错误一致。01准备失败、02／03采集器排序假设错误均保留；04只续原批次。目录发现来自runner walk，与上条正式UI选择器资格分开；Core停止helper exit1不写正常产品退出或crash恢复。见verification.folder_existing_batch_api_continuation_5822。
+- 当前交接84,979字节整份按原SHA／原字节归档，保留source commit／原路径／相对链接基准映射；LIVE入口只保留双侧目标路由、必要合同和路径／数据边界，历史证据与旧失败不改，当前路由不退役。见verification.current_handoff_compaction；减少接手重复读取，不宣称磁盘净减。
+
+
+### 2026-10-24 目录失败原因可读化（UF02／BE-P02／CL-02／J1，整体PARTIAL）
+
+- 实际原生坏DOCX回执暴露的完整worker JSON此前被拼进普通行，且所有失败写“失败待重试”；现改为中性“失败待处理”和可读简短原因。仅协议／job／request／attempt全部与已核本行相同才提取原因，未知或不匹配技术内容提示查看诊断；完整原status.error仍由已有RawReceiptButton保存，不改Core继续／重试准入。57项FolderIngest组件PASS（新增8项，含实际错误形状、6类身份错配和原始诊断逐字保全）及tsc PASS，root核源码／测试及执行hash。见verification.folder_failure_summary_source_fix；这是后继源码资格，尚未构建或原生／安装复验，不能借此前7525Host旅程当此改动PASS。
