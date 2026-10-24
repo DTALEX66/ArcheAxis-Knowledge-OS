@@ -1703,3 +1703,9 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 尝试对 `assets/astryn-full` 中与 `assets/astryn` 同相对路径、同大小同哈希的文件去重，干跑识别 137 文件/463,824,930B。执行后发现这些文件全部是 Git 跟踪文件：`git ls-files` 默认 `core.quotepath` 把中文路径转义，跟踪集合未匹配，导致误删。已用 `git checkout -- assets/astryn-full` 全部恢复，`git status` 无资产删除，**净删除 0**；`assets` 回到 987MB/354 文件。脚本未再执行；回执保留在 `runs/be268a2d33/asset-dedup-20261024-02/asset-dedup-applied.json` 并标注误删/恢复。
 - 复核：工作树仅 1 个；本地分支 3 个（`main` 8d367ba、`codex/sync-20261019` b4588d76、`trae/20261024` 当前）；无待合并的独有分支内容，未执行合并。跟踪路径 5,699 条 100% 有归属。
 - 当前体积：`.project-local` 约 34.2GB；Green 2.97GB；`assets` 987MB；`.venv` 906MB、`frontend` 290MB 为开发必需依赖，未删。未推送、未发布、未更新 Green。
+### 2026-10-24 全量审计与对比分析（G01／CL-08）
+
+- 现场测量：`.project-local` 31.26GB/205,032 文件（会话初 165.78GB/1,556,415，降 81.1%／86.8%）；Green 2.97GB/67,620 文件（3.90GB，降 23.8%）；仓库不含运行区 2.82GB/39,229 文件；Git 跟踪 5,699 文件/1,188MB；1 个工作树、3 个本地分支（trae 领先 main 29、领先 codex 7，无反向独有提交）；路径归属 5,699 条 100%。
+- 引用完整性：剔除 2,391 条叙述伪路径后，可解析 `.project-local` 引用 4,958 条，存在 2,986（60.2%），缺失 1,972（39.8%）；缺失按年代 history 1,789／current 24／other 159，按组件 runs 1,086、worktrees 141、candidates 129、build 128、task-runtime 113、archives 111。6 份关键回执哈希全部通过。当前缺口中 `current5822-installed-business-20261024-01/install-input/candidate-setup.exe` 已从保留的沙盒输入副本恢复（567,249,587B，`4661ce30…c3b3`），其余为历史阶段产物或叙述拼接。
+- 本轮清理：删除 `audits/` 下 0 引用目录与 `.project-local/g/ArcheAxis.Knowledge.Green-vui3-x64.zip`，共 20,699 文件/3,177,839,763B；`.project-local` 由 35.49GB 降至 31.26GB。`execution-resume-20261019`（49 文件/1MB）因只读残留未删，状态 DIR_REMAINS。Green 程序、runtime、data、backups、回滚副本与 pins 未动。
+- 报告：`reports/full-audit-20261024/full-audit-20261024.html`，数据 `metrics.json` 与 `reference-rot.json`。结论分层：体积与分支已收敛；历史引用失效 39.8% 是主要遗留；`DIRECTORY_AUTHORITY.yaml` 的 frontend/src-tauri legacy 分类与 SUP-022 冲突，仍未修订。未推送、未发布、未替换 Green；安装态被沙盒阻塞。
