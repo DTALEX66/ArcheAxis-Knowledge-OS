@@ -921,6 +921,18 @@
       "residue": "17 ACL-protected uv editable cache files; no elevation bypass",
       "offline_rebuild_cost": "Rust/uv dependency sync requires re-download"
     },
+    "latest_human_journey_20261024": {
+      "host_sha256": "b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb",
+      "status": "PASS_NOVICE_JOURNEY_14_OF_14",
+      "receipt": ".project-local/runs/be268a2d33/ui-novice-journey-20261024-17/artifacts/journey-receipt.json",
+      "receipt_sha256": "3d2fb4975950c173dcda89aa043950b2974b1afe72ad2180469d0951e52d6f83",
+      "steps": 14,
+      "screenshots": 11,
+      "first_exit_code": 0,
+      "second_exit_code": 0,
+      "model_calls": 0,
+      "scope": "HUMAN_J1_CURRENT_HOST_NOT_INSTALLED_NOT_OWNER_ACCEPTANCE"
+    },
     "historical_remote_exact_sha_observation": "LAST_API_REMOTE95B_LOCAL5822_DIFFER; no new remote mutation",
     "latest_qualified_candidate": ".project-local/runs/be268a2d33/current582267f3-portable-20261024-01/artifacts/星环便携候选",
     "qualified_source_patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

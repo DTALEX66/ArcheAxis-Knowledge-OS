@@ -1742,3 +1742,9 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 残留：`uv/sdists-v9/editable` 下 17 个受 ACL 保护的文件（含 1 个 editable wheel 拒绝删除）；未提权绕过，标为受保护残留。
 - 验证：Vite build PASS；`tests/test_path_conventions.py` 25 PASS。Rust／uv 增量依赖若离线需重新下载，属于已接受的重建成本。
 - 回执：`.project-local/runs/be268a2d33/cache-cleanup-20261024-01/cache-cleanup.json`（3,021B，SHA-256 `de53b84dd3f3bd6e712ef3bb2fa1635c2f0317b15f1fc8c6a32366261c8e4398`）。未提交缓存本体（`.project-local` 忽略），未推送、未发布。
+
+### 2026-10-24 当前 Host 人类侧 J1 闭环复跑（CL-02／CL-07／J1，PASS）
+
+- 在最终 Host `b645c65898057246456d02aea43bf0f9c3e9a42d20ef6daeefeba7ea7a07e3bb` 上用隔离数据根、合成 157B TXT、真实原生点击复跑新手连续流程：首次打开→进入导入→导入→打开阅读→建立版本化草稿→编辑保存→真实内容转换→形成知识候选→人工审核接受→建立学习问题→学习队列→作答/核对/难度→记录复习→正常退出（exit 0）→同一数据目录重开读回 v2 知识与学习项目→再次正常退出（exit 0）。
+- 结果 **14/14 PASS**，11 张截图，模型调用 0；回执 `.project-local/runs/be268a2d33/ui-novice-journey-20261024-17/artifacts/journey-receipt.json`（4,231B，SHA-256 `3d2fb4975950c173dcda89aa043950b2974b1afe72ad2180469d0951e52d6f83`）。该回执取代 journey-12 的旧 Host 行为身份，成为当前 Host 的人类 J1 证据。
+- 边界：这是人类侧 J1 当前候选行为证据，不是 AI 侧全链、安装态、Green、exact-SHA CI 或 Owner 验收；CL-03／CL-04／CL-05、J2／J3／J5／J6 仍按既有延期与阻塞分别记账。未推送、未发布。
