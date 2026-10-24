@@ -1346,6 +1346,7 @@ fn run_worker(
 pub struct DocumentCheckConfig {
     pub provider: String,
     pub model: String,
+    pub credential_ref: String,
     pub endpoint: Option<String>,
     pub max_tokens: u64,
     pub timeout_seconds: u64,
@@ -1360,6 +1361,11 @@ impl DocumentCheckConfig {
                 .bytes()
                 .all(|b| b.is_ascii_alphanumeric() || b == b'_')
             || self.model.len() > 256
+            || self.credential_ref.len() != 41
+            || !self.credential_ref.starts_with("aak_cred_")
+            || !self.credential_ref[9..]
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
             || !self.model.starts_with(&format!("{}/", self.provider))
             || self
                 .model

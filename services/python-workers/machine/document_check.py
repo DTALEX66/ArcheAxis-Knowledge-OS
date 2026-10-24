@@ -74,6 +74,47 @@ def sha(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
 
+def read_product_credential(reference: str) -> bytearray:
+    """Reuse the product-owned Windows vault reader; never accept raw key input."""
+    path = Path(__file__).with_name("material_cloud_worker.py")
+    spec = importlib.util.spec_from_file_location("document_check_product_vault", path)
+    if spec is None or spec.loader is None:
+        raise CheckExecutionError("credential_unavailable")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+        value = module.read_product_credential(reference)
+    except Exception:
+        raise CheckExecutionError("credential_unavailable") from None
+    if not isinstance(value, bytearray) or not 0 < len(value) <= 2560:
+        if isinstance(value, bytearray):
+            value[:] = b"\x00" * len(value)
+        raise CheckExecutionError("credential_unavailable")
+    return value
+
+
+def credential_api_key(reference: str) -> str:
+    """Decode one bounded vault secret for the SDK call and clear its byte buffer."""
+    secret: bytearray | None = None
+    try:
+        try:
+            secret = read_product_credential(reference)
+        except CheckExecutionError:
+            raise
+        except Exception:
+            raise CheckExecutionError("credential_unavailable") from None
+        if not isinstance(secret, bytearray) or not 0 < len(secret) <= 2560:
+            raise CheckExecutionError("credential_unavailable")
+        try:
+            return secret.decode("ascii")
+        except UnicodeDecodeError:
+            raise CheckExecutionError("credential_unavailable") from None
+    finally:
+        if isinstance(secret, bytearray):
+            secret[:] = b"\x00" * len(secret)
+
+
 def donor(name: str) -> ModuleType:
     root = Path(__file__).resolve().parents[2]
     path = root / "shared" / f"{name}.py"
@@ -376,6 +417,7 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(config, dict) or set(config) - {
             "provider",
             "model",
+            "credential_ref",
             "endpoint",
             "max_tokens",
             "timeout_seconds",
@@ -391,9 +433,12 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
             or not model.strip()
         ):
             raise CheckExecutionError("not_configured")
+        credential_ref = config.get("credential_ref")
         if len(provider) > 100 or len(model) > 256:
             raise CheckExecutionError("invalid_config")
-        # Never select or infer a provider/model. SDK credentials remain SDK-owned.
+        if not isinstance(credential_ref, str) or re.fullmatch(r"aak_cred_[a-f0-9]{32}", credential_ref) is None:
+            raise CheckExecutionError("credential_unavailable")
+        # Never select or infer a provider/model; credentials resolve only from the product vault.
         if not model.startswith(provider + "/"):
             raise CheckExecutionError("provider_model_mismatch")
         tokens = config.get("max_tokens")
@@ -517,12 +562,16 @@ def execute(req: dict[str, Any]) -> dict[str, Any]:
             authorize_dispatch("model", endpoint, {"prompt": prompt,
                                "images": pdf_images or ([image_data_url] if image_data_url else []),
                                "public_sources": list(_PUBLIC_SOURCES) if auxiliary_state == "available" else [],
-                               "auxiliary_state": auxiliary_state, "model": model, "max_tokens": tokens})
+                               "auxiliary_state": auxiliary_state, "model": model, "max_tokens": tokens,
+                               "credential_ref_sha256": sha(credential_ref.encode("ascii"))})
+            kwargs["api_key"] = credential_api_key(credential_ref)
             answer = adapter.complete(prompt, model=model, max_tokens=tokens, **kwargs)
         except CheckExecutionError:
             raise
         except Exception:
             raise CheckExecutionError("provider_call_failed") from None
+        finally:
+            kwargs.pop("api_key", None)
         raw = answer.content
         if not isinstance(raw, str):
             raise CheckExecutionError("invalid_model_response")

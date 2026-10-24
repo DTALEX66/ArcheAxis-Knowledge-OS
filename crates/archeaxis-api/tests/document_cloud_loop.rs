@@ -104,6 +104,7 @@ def donor(name):
         module.fetch=fetch
     return module
 worker.donor=donor
+worker.read_product_credential=lambda reference: bytearray(b'SIMULATED synthetic credential')
 original_dispatch=worker.authorize_dispatch
 def dispatch(kind,destination,material):
     if kind=='model' and {tamper}:
@@ -115,6 +116,7 @@ worker.authorize_dispatch=dispatch
 def completion(**kwargs):
     assert kwargs['num_retries']==0 and kwargs['api_base']=='https://fixture.invalid/v1'
     assert kwargs['model']=='fixture/explicit'
+    assert kwargs['api_key']=='SIMULATED synthetic credential'
     return {{'model':'SIMULATED-model','choices':[{{'message':{{'content':json.dumps({{'status':'uncertain','basis':'SIMULATED transport only'}})}},'finish_reason':'stop'}}],'usage':{{'total_tokens':3}}}}
 sys.modules['litellm']=SimpleNamespace(completion=completion)
 original_execute=worker.execute
@@ -144,6 +146,7 @@ raise SystemExit(worker.main())
         .with_document_check_config(Some(DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
+            credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
             timeout_seconds: 10,
@@ -226,6 +229,7 @@ def donor(name):
         module.fetch=fetch
     return module
 worker.donor=donor
+worker.read_product_credential=lambda reference: bytearray(b'SIMULATED synthetic credential')
 original_dispatch=worker.authorize_dispatch
 def dispatch(kind,destination,material):
     original_dispatch(kind,destination,material)
@@ -234,6 +238,7 @@ worker.authorize_dispatch=dispatch
 def completion(**kwargs):
     assert kwargs['num_retries']==0 and kwargs['api_base']=='https://fixture.invalid/v1'
     assert kwargs['model']=='fixture/explicit'
+    assert kwargs['api_key']=='SIMULATED synthetic credential'
     return {{'model':'SIMULATED-model','choices':[{{'message':{{'content':json.dumps({{'status':'uncertain','basis':'SIMULATED transport only'}})}},'finish_reason':'stop'}}],'usage':{{'total_tokens':3}}}}
 sys.modules['litellm']=SimpleNamespace(completion=completion)
 original_execute=worker.execute
@@ -270,6 +275,7 @@ raise SystemExit(worker.main())
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "fixture".into(),
         model: "fixture/explicit".into(),
+        credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 10,
@@ -445,6 +451,7 @@ sys.exit(1)
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "fixture".into(),
         model: "fixture/explicit".into(),
+        credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 10,
@@ -567,6 +574,7 @@ async fn local_only_and_durable_withdrawal_preserve_save_with_or_without_engine(
         .with_document_check_config(configured.then(|| DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
+            credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
             timeout_seconds: 10,
@@ -709,6 +717,7 @@ async fn malformed_flood_and_timeout_are_failed_and_explicitly_retryable() {
         .with_document_check_config(Some(DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
+            credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
             timeout_seconds: 1,
@@ -818,6 +827,7 @@ async fn invalid_owned_config_preserves_save_and_records_failed_attempt() {
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "invalid-provider".into(),
         model: "invalid-provider/explicit".into(),
+        credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 1,
@@ -884,6 +894,7 @@ async fn legitimate_material_failure_is_persisted_retryable_and_never_runs_worke
     .with_document_check_config(Some(DocumentCheckConfig {
         provider: "fixture".into(),
         model: "fixture/explicit".into(),
+        credential_ref: format!("aak_cred_{}", "a".repeat(32)),
         endpoint: Some("https://fixture.invalid/v1".into()),
         max_tokens: 128,
         timeout_seconds: 1,
@@ -1052,6 +1063,7 @@ async fn retrieval_failure_details_survive_restart_without_blocking_ordinary_sav
         .with_document_check_config(Some(DocumentCheckConfig {
             provider: "fixture".into(),
             model: "fixture/explicit".into(),
+            credential_ref: format!("aak_cred_{}", "a".repeat(32)),
             endpoint: Some("https://fixture.invalid/v1".into()),
             max_tokens: 128,
             timeout_seconds: 10,

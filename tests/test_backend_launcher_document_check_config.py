@@ -25,6 +25,7 @@ def test_missing_invalid_and_valid_config_do_not_choose_defaults(tmp_path):
     valid = {
         "provider": "fixture",
         "model": "fixture/exact-v1",
+        "credential_ref": "aak_cred_" + "a" * 32,
         "max_tokens": 128,
         "timeout_seconds": 10,
         "search_limit": 1,
@@ -40,6 +41,7 @@ def test_missing_invalid_and_valid_config_do_not_choose_defaults(tmp_path):
         dict(valid, endpoint="https://fixture.invalid/ bad"),
         dict(valid, endpoint="https://fixture.invalid/" + "a" * 2048),
         dict(valid, api_key="synthetic-forbidden"),
+        dict(valid, credential_ref="synthetic-raw-key"),
         dict(valid, model="default"),
         dict(valid, max_tokens=True),
         dict(valid, endpoint="https://user:secret@fixture.invalid/v1"),
