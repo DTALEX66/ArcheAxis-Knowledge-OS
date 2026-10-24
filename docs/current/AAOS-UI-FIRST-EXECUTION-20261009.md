@@ -1681,3 +1681,9 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 
 - 体积：删除 `.project-local/cache/npm`、`pip`、`pytest` 可重建缓存，446 文件／166,418,076B；`uv` 与 `cargo` 缓存保留（uv 曾有锁定文件，cargo 供离线构建）。回执 `volume-cleanup-20261024-09/cache-cleanup.json`（SHA-256 `37a55044…92e4`）。`.project-local` 实测约 56.7GB，其余 runs/candidates/build/archives 等证据与回滚产物未删。
 - 本地提交：`c0c50bee`（37 文件）提交前端 P0/P1、诊断入口与关闭其他视图、报告与 2026-10-24 TRAE 交接；显式排除 `scripts/probes/*` 既有脏文件、stat-only 的 project-drift 文档、`.trae-html-share-packages/` 与 `.trae/`。未推送、未合并、未发布、未更新 Green。
+### 2026-10-24 全量前端回归基线比对与最终原生走查（UF03／UF06／G01）
+
+- 全量前端测试 2108 项：2090 PASS／18 FAIL（6 个文件）。为区分回归与既有失败，临时 worktree `b4588d76`（本次改动前基线，node_modules 目录联接共享）运行同一 6 个文件，得到完全相同的 18 项失败：App.test 1、CandidateSavedGuard 1、CompactObjectNavigation 3、OsuiProductionContract 6、RecoveryShell 6、StyleRuleCoverage 1（`stitch-learning-queue-card` 规则缺口）。结论：这些失败为既有陈旧测试，不是本次改动引入；临时 worktree 及联接已删除，主工作树仍只 1 个。
+- 最终原生走查：当前 Host `97baf29c…79cf`、隔离数据根、默认窗口（无 `window/rect`）访问 22 页，全部 PASS，回执 `ui-final-walk-20261024-01/artifacts/flow-receipt.json`（`a5d629d7…c648`），8 张截图；无白边。
+- 远端只读核对：`git ls-remote --heads origin` 成功，远端为 `codex/sync-20261019` 95b463c、`codex/ui-polish-20261013` a69a55f、`main` 8d367ba；本地 `trae/20261024` bc8b2d35 未推送。按既有策略不重试 push，未合并、未发布。
+- 本轮未提交此记录前的工作树其余脏文件（`scripts/probes/*`、两个 stat-only project-drift 文档、`.trae-html-share-packages/`、`.trae/`）继续保留，不纳入提交。
