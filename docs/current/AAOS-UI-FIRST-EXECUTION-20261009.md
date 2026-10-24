@@ -1755,3 +1755,23 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 工程结果 `engineering_status=PASS`；链状态 `PARTIAL`：`owner_acceptance=NOT_EXECUTED`、`human_signoff=false`、回答/复测为 `EXECUTED_CANDIDATE_NOT_EVALUATED`，纠正为 authored intervention 而非独立错误；`compiled_source_binding=UNVERIFIED`（未提供 candidate build receipt）。
 - 回执 `.project-local/runs/be268a2d33/webdriver-69aef55d72a4/tmp/journey/receipt.json`（327,440B，SHA-256 `5e06d37f123b114fb9000fe5fe777982221911db175da1e341ff78b050ccbecd`）。限制：候选可执行文件未安装、程序化中文输入非物理 IME、单次工程运行、无人工签署。
 - 边界：真实本地模型工程链 PASS，不等于语义质量、独立评测、安装态、Green、CI 或 Owner 验收；真实云推理仍按 Owner 决定延后未执行。
+
+### 2026-10-24 闭环验收矩阵（当前 Host b645c658，目标非完成声明）
+
+| 维度 | 当前状态 | 依据／缺口 |
+| --- | --- | --- |
+| CL-01 核心架构 | PASS | Tauri/React + Rust Core 唯一写入 + 隔离 workers；本 Host 两轮原生链均通过 |
+| CL-02 常见多格式 | PARTIAL | 当前 J1 为 TXT；四格式等既有组件回执在旧 Host，逐格式矩阵未在当前 Host 全量重跑 |
+| CL-03 免费外部检索／比较 | PARTIAL | 历史真实三来源获取保留；当前外部检索通道未重新接通，研究草稿未接纳 |
+| CL-04 成熟知识库特色 | PARTIAL／延期 | 矩阵与延期清单保留，未宣称全面兼容 |
+| CL-05 开源池与轻量扩展 | PARTIAL | 能力中心启停 PASS；插件／技能／模板／MCP 全形态消费者未全验 |
+| CL-06 本地／云端模型 | LOCAL PASS；CLOUD PARTIAL | qwen3.5-4b 真实回答／纠正／复测 PASS；云端专业接口有边界，真实云推理延后未执行 |
+| CL-07 同产品全链路可靠 | PARTIAL | 当前 Host 人类 J1 14/14 + AI 工程链 PASS；无安装态、exact-SHA CI、Owner 验收 |
+| J1 多格式资料链 | PASS（TXT 段） | journey-17；混合格式／整文件夹失败定位仍按 CL-02 缺口 |
+| J2 外部研究链 | PARTIAL | 历史三来源与当前研究 UI 分段；真实检索→比较→接纳未在当前 Host 重跑 |
+| J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
+| J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | ai-loop-20261024；质量未独立评测，纠正为 authored intervention |
+| J5 扩展链 | PARTIAL | capability_toggle PASS；多形态真实消费者未全验 |
+| J6 安装与可靠性 | BLOCKED | 当前 Host 无对应安装包；沙盒残留受保护；未重装、未做安装态业务链 |
+
+结论：当前候选已在同一 Host 上打通“人类 J1 14/14 + AI 本地模型工程链”，但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环；CL-03／CL-04／CL-05、J2／J3／J5／J6 与 Owner 验收分别记账。
