@@ -1709,3 +1709,11 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 引用完整性：剔除 2,391 条叙述伪路径后，可解析 `.project-local` 引用 4,958 条，存在 2,986（60.2%），缺失 1,972（39.8%）；缺失按年代 history 1,789／current 24／other 159，按组件 runs 1,086、worktrees 141、candidates 129、build 128、task-runtime 113、archives 111。6 份关键回执哈希全部通过。当前缺口中 `current5822-installed-business-20261024-01/install-input/candidate-setup.exe` 已从保留的沙盒输入副本恢复（567,249,587B，`4661ce30…c3b3`），其余为历史阶段产物或叙述拼接。
 - 本轮清理：删除 `audits/` 下 0 引用目录与 `.project-local/g/ArcheAxis.Knowledge.Green-vui3-x64.zip`，共 20,699 文件/3,177,839,763B；`.project-local` 由 35.49GB 降至 31.26GB。`execution-resume-20261019`（49 文件/1MB）因只读残留未删，状态 DIR_REMAINS。Green 程序、runtime、data、backups、回滚副本与 pins 未动。
 - 报告：`reports/full-audit-20261024/full-audit-20261024.html`，数据 `metrics.json` 与 `reference-rot.json`。结论分层：体积与分支已收敛；历史引用失效 39.8% 是主要遗留；`DIRECTORY_AUTHORITY.yaml` 的 frontend/src-tauri legacy 分类与 SUP-022 冲突，仍未修订。未推送、未发布、未替换 Green；安装态被沙盒阻塞。
+
+### 2026-10-24 引用解析、归档核验与目录权威修订（G01／CL-08 补正）
+
+- 目录权威：`DIRECTORY_AUTHORITY.yaml` 已按 SUP-022 将 `frontend/**` 归入 `frontend-host`、`src-tauri/**` 归入 `tauri-host`，并从 legacy 强制规则移除；`scripts/check_path_conventions.py --measure` 显示 5,702 条跟踪路径 100% 有归属、0 unowned/ambiguous（提交本轮索引后 5,703）。
+- 引用解析：4,953 条可解析 `.project-local` 引用中 2,378 条存在、2,575 条历史缺失。历史缺失已全部分类：授权清理的临时运行目录 1,897、归档 ZIP 478、授权删除根 67、归档目录 56、共享压缩 recipe 39、Record 登记 10、历史日志/草稿未保留 28。current 文档仅 7 条历史切片（6 条已清理运行目录、1 条归档 ZIP），均已就地标注；**当前证据断点 0**，6/6 当前关键回执哈希通过。
+- 归档核验：实际打开 52 个 ZIP / 1,907 个成员、745 个归档目录文件、20 份 MANIFEST；恢复并逐哈希校验 `conversation-summary-20261010`（原 ZIP + 3 成员）、`dot-cloud-audit-20261011`（162 成员）、`installers-0.5.0-20261015`（2 安装包，Git blob `8fc22a40`），并实测 1 个共享压缩 recipe 重建（390,210,198B，SHA-256 匹配）。回执：`.project-local/runs/be268a2d33/reference-recovery-20261024/receipt.json`。截断容器 `AAOS_UI_前端更新任务包_20261009.zip` 沿用既有废弃标记，不计为新增断链。
+- 修正上一节表述：“39.8% 历史引用失效”是路径分类结果，不是当前证据链断裂；`DIRECTORY_AUTHORITY.yaml` 冲突已修订。报告与 `metrics.json` 已同步为“当前断点 0”，并新增 `reference-resolution.json` 逐条索引；`docs/history/record-archive-20261009/INDEX.md` 增加简短说明。
+- 未推送、未发布、未替换 Green；安装态仍被沙盒 VM 阻塞。

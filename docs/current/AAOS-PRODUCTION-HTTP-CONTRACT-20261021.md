@@ -337,7 +337,7 @@ The confirmed plan includes `retrieval_scope` (`public_search_results_only`, GET
 
 Current G4 contract updated on 2026-10-03; implementation: `crates/archeaxis-api/src/runtime/colearning.rs`.
 Current synthetic journey stages: **28**. Historical receipts below retain their tested counts.
-Current local readback (2026-10-03): **28/28 stages ran**, `chain_stages_verified: true`, `validation_errors: []`, `ok: true`, `evidence_level: SYNTHETIC`, `real_m0_verified: false`. Receipt: `.project-local/runs/2611ed9ca1/c754e3f67b64/artifacts/m0loop/169af82a95be4093b655bc6873611a71/m0-loop-receipt.json` under the common repository. This is a local dirty-tree run, not exact-SHA CI, a deployed Green, or a human acceptance receipt. The synthetic worker now exercises R8/R10/R11 and preserves a shared answer_id through correction and retest.
+Current local readback (2026-10-03): **28/28 stages ran**, `chain_stages_verified: true`, `validation_errors: []`, `ok: true`, `evidence_level: SYNTHETIC`, `real_m0_verified: false`. Receipt: `.project-local/runs/2611ed9ca1/c754e3f67b64/artifacts/m0loop/169af82a95be4093b655bc6873611a71/m0-loop-receipt.json` under the common repository. 2026-10-24 引用核验：该 2026-10-03 运行目录未保留，回执字节不可读取；此行只保留历史测试结论，不构成当前验收，也不是可点击的当前证据。 This is a local dirty-tree run, not exact-SHA CI, a deployed Green, or a human acceptance receipt. The synthetic worker now exercises R8/R10/R11 and preserves a shared answer_id through correction and retest.
 A successful model process leaves evaluation `unmeasured`; it does not prove answer correctness.
 
 | # | Method + path | Auth | Notes |

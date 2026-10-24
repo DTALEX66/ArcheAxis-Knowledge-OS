@@ -202,5 +202,7 @@
       "component": "worktrees",
       "doc": "D:/All projects/ArcheAxis-Knowledge-OS/docs/taskpacks/aaos-ui-first-20261009/OLD-TASK-DISPOSITION.json"
     }
-  ]
+  ],
+  "superseded_by": "reference-resolution.json",
+  "interpretation": "Raw unclassified scan. The missing count includes paths that are archived, recipe-restorable or removed by authorized retention, so it must not be read as an evidence-chain break. Use reference-resolution.json for the classified result."
 }
