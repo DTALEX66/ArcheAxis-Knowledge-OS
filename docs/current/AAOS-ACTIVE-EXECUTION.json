@@ -1173,14 +1173,14 @@
     "delivery_pr_203_20261024": {
       "status": "CI_PASS",
       "branch": "trae/20261024",
-      "head_sha": "9fd55897d4e4ae2ab7dd1a823cb082a4df2febe9",
-      "remote_branch_sha_readback": "9fd55897d4e4ae2ab7dd1a823cb082a4df2febe9",
+      "head_sha": "6823ceec6ee45f6a33b4f802e4f7fb9e5a23fe2e",
+      "remote_branch_sha_readback": "6823ceec6ee45f6a33b4f802e4f7fb9e5a23fe2e",
       "pr_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/203",
       "pr_state": "OPEN",
-      "ci_run_id": 40159430588,
+      "ci_run_id": 40163883126,
       "ci_workflow": "CI",
       "ci_event": "pull_request",
-      "ci_head_sha_observed": "9fd55897d4e4ae2ab7dd1a823cb082a4df2febe9",
+      "ci_head_sha_observed": "6823ceec6ee45f6a33b4f802e4f7fb9e5a23fe2e",
       "ci_state_at_observation": "completed",
       "ci_conclusion": "SUCCESS",
       "installer_lifecycle": "SUCCESS",
@@ -1191,13 +1191,15 @@
         {"run_id": 40136511918, "head_sha": "222bad6b0d47357b324b3c0023d36af24ee5e59d", "conclusion": "FAILURE", "gate": "test (3.12)", "cause": "AXR060 current-surface audit read a build stamp inside an artifact name as a repository commit; fixed by not citing that stamp"},
         {"run_id": 40137602012, "head_sha": "8c18ba73f5841e71e042f5c4ae6a50d805dc5476", "conclusion": "FAILURE", "gate": "installer-lifecycle", "cause": "conflict journey save click used a coordinate computed before a late layout shift; the pointer landed beside the control and the conflict panel never opened"},
         {"run_id": 40156452084, "head_sha": "47f6394b8a06f0c58efcf9912c9db51631afb7d1", "conclusion": "FAILURE", "gate": "test (3.12)", "cause": "desktop-fast lacked the ASR model fetch and --asr-model arguments desktop-build already used, and ASR worker tests still patched _model_dir after the worker moved to _resolve_model"},
-        {"run_id": 40158193119, "head_sha": "d26500c1d46a3821342760a7243aa35d0ff8250d", "conclusion": "FAILURE", "gate": "test (3.12)", "cause": "three follow-ups: AXR060 treated the 40-hex HuggingFace revision as a repository object, the minimal test environment lacks faster-whisper so the probe omitted its formats, and a declared ffmpeg reports kind=ffmpeg rather than decoder=pyav"}
+        {"run_id": 40158193119, "head_sha": "d26500c1d46a3821342760a7243aa35d0ff8250d", "conclusion": "FAILURE", "gate": "test (3.12)", "cause": "three follow-ups: AXR060 treated the 40-hex HuggingFace revision as a repository object, the minimal test environment lacks faster-whisper so the probe omitted its formats, and a declared ffmpeg reports kind=ffmpeg rather than decoder=pyav"},
+        {"run_id": 40161520819, "head_sha": "2dbee8e160dde0e0b00b8a59749cc341e05740d3", "conclusion": "FAILURE", "gate": "installer-lifecycle", "cause": "grouped installed journey asserted the learning queue before the post-restart learning surface mounted; reproduced twice on a documentation-only checkpoint, then fixed by a bounded wait that keeps the original assertions"}
       ],
       "code_checkpoints": [
         {"sha": "ad2d13540fbccd51874bb776dcd19fbce5c99634", "run_id": 40134459916, "conclusion": "SUCCESS"},
         {"sha": "1d81aa9057c7123b3dfe27bbc17a9cf121b7af86", "run_id": 40139923313, "conclusion": "SUCCESS"},
         {"sha": "a329c0dd53cd6c92486450bf49ab7a86a1ea2764", "run_id": 40147136804, "conclusion": "SUCCESS"},
-        {"sha": "9fd55897d4e4ae2ab7dd1a823cb082a4df2febe9", "run_id": 40159430588, "conclusion": "SUCCESS"}
+        {"sha": "9fd55897d4e4ae2ab7dd1a823cb082a4df2febe9", "run_id": 40159430588, "conclusion": "SUCCESS"},
+        {"sha": "6823ceec6ee45f6a33b4f802e4f7fb9e5a23fe2e", "run_id": 40163883126, "conclusion": "SUCCESS"}
       ],
       "local_evidence": "Browser gate PASS (13 viewports, 5 themes). The exact CI-built candidate Host 0a074727684ee418c6192c419574feaac5127a94c8ec42d979261fa628db5025 ran the grouped real qwen3.5-4b chain with authored correction/retest in an isolated portable root: engineering PASS, 290 actions, 5 normal exits, source_consistent=true; distill answered but quality NOT evaluated. A separate-agent single-sample review found the original refusal faithful and the retest lightly extrapolated; it is not independent quality or Owner acceptance. The 9fd55897 candidate bundles the pinned MIT faster-whisper-base model in runtime/models/asr and both desktop jobs fetch and verify the same donor; local isolated runs decoded and transcribed 8/8 media formats with PyAV, the pre-registered 8-item quality suite answered 8/8 with qwen3.5-4b and usage reported, the reader exposes fixed-version backlinks, and its transcript proof accepts only the engine-declared VAD pad while marking the overflow. Owner acceptance, installed AV native UI, cloud inference and cross-version upgrade remain separate and NOT_EXECUTED.",
       "documentation_followup": "This pointer update accompanies a metadata-only documentation commit pushed after the green code checkpoint; read that commit's own CI separately and do not transfer the code checkpoint conclusion to it silently.",
