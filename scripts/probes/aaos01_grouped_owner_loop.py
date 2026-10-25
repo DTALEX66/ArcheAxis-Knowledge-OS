@@ -432,6 +432,19 @@ const nodes=[...document.querySelectorAll('details')].filter(n=>n.getAttribute('
 const queues=[...document.querySelectorAll('ul[aria-label="复习队列"]')].filter(visible);
 return {page,count:nodes.length,open:nodes.length===1?nodes[0].open:null,
  summary:nodes.length===1&&visible(nodes[0].querySelector(':scope>summary')),visible_queues:queues.length};"""
+        # The page switch and the learning surface render in separate commits. Waiting for the
+        # expected page plus exactly one disclosure (or one visible queue) removes the race that
+        # let a correctly asserted surface fail because it had not mounted yet; the assertions
+        # below still reject a missing, hidden or ambiguous surface rather than relaxing them.
+        self.wait("const label=" + json.dumps(label) + ";" + r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const pages=[...document.querySelectorAll('[data-current-page-id]')];
+const nodes=[...document.querySelectorAll('details')].filter(n=>n.getAttribute('aria-label')===label&&visible(n));
+const queues=[...document.querySelectorAll('ul[aria-label="复习队列"]')].filter(visible);
+return pages.length===1&&["06","11","12"].includes(pages[0].getAttribute('data-current-page-id'))
+ &&(nodes.length===1||(label==='学习队列工具'&&queues.length===1));""")
         observed = self.js(script)
         assert observed["page"] in ("06", "11", "12"), "Learning disclosure belongs to another/hidden page"
         if kind == "queue" and observed["count"] == 0:
