@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { createHash, webcrypto } from "node:crypto";
 import { assertCoreDto } from "../api/generated/core-contract";
 import { CanonicalLibrarySpace } from "../spaces/CanonicalLibrarySpace";
+import { SpaceView } from "../spaces/SpaceView";
 import { ApiError } from "../api/client";
 
 const bridge = vi.hoisted(() => ({ call: vi.fn() }));
@@ -106,6 +107,23 @@ describe("canonical content sample", () => {
     body.focus();expect(body).toHaveFocus();details.focus();expect(details).toHaveFocus();
     expect(within(body).getByRole("textbox",{name:"文档草稿"})).toBe(editor);
     expect(bridge.call.mock.calls.some(([op])=>["document_draft","document_create","model_configuration_put"].includes(op))).toBe(false);
+  });
+  it("SIMULATED: page20 keeps the history reader and runtime footer reachable while reading an immutable version",async()=>{
+    render(<SpaceView spaceId="settings" uiPageId="20" initialDocumentId={doc.document_id} onInspect={vi.fn()} onNavigate={vi.fn()}/>);
+    const current=await screen.findByRole("heading",{name:"当前保存正文"});
+    const wrapper=screen.getByRole("region",{name:"历史与来源"}),reader=screen.getByRole("region",{name:"文档版本视图"});
+    expect(reader.parentElement).toBe(wrapper);
+    expect(wrapper.matches('.stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"])')).toBe(true);
+    const body=screen.getByRole("region",{name:"正文与原件滚动区"}),details=screen.getByRole("complementary",{name:"内容详情"});
+    expect(body).toContainElement(current);expect(body).toHaveTextContent(doc.text_projection);
+    expect(screen.queryByRole("textbox",{name:"文档草稿"})).not.toBeInTheDocument();
+    await userEvent.setup().click(screen.getByRole("button",{name:"只读查看历史版本"}));
+    expect(await screen.findByRole("region",{name:"历史版本详情"})).toHaveTextContent("历史版本 1");
+    expect(bridge.call).toHaveBeenCalledWith("document_version",{document_id:doc.document_id,version:1});
+    body.focus();expect(body).toHaveFocus();details.focus();expect(details).toHaveFocus();
+    const runtime=within(wrapper).getByText("当前运行身份与来源",{selector:"summary"});
+    runtime.focus();expect(runtime).toHaveFocus();expect(runtime.closest("details")?.parentElement).toBe(wrapper);
+    expect(bridge.call.mock.calls.some(([op])=>["document_draft","document_restore","document_create","model_configuration_put","material_question"].includes(op))).toBe(false);
   });
   it("SIMULATED: a source hash stays in diagnostics instead of the inspector version", async () => {
     const previous = bridge.call.getMockImplementation()!;

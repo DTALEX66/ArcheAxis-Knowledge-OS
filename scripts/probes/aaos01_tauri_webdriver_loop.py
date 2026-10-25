@@ -125,12 +125,18 @@ const visible=n=>!!n&&n.getClientRects().length>0&&
 const pages=[...document.querySelectorAll('[aria-label="当前页面"][data-current-page-id]')].filter(visible);
 const drawer=visible(document.querySelector('button[aria-label="打开产品导航"]'));
 const sidebar=visible(document.querySelector('.navigation-sidebar'));
-return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
- mode:drawer?'drawer':sidebar?'sidebar':null};
+const menu=visible(document.querySelector('nav.stitch-workspace-menu[aria-label="应用菜单"]'))&&visible(document.querySelector('nav.stitch-workspace-dock[aria-label="工作空间快捷导航"]'));
+const identity=[...document.querySelectorAll('.stitch-page-identity[data-current-page-id]')].filter(visible);
+return {page:identity.length===1?identity[0].dataset.currentPageId:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,
+ mode:menu?'menu':drawer?'drawer':sidebar?'sidebar':null};
 """)
     if observed["page"] == page:
         return
-    assert observed["mode"] in {"drawer", "sidebar"}, "No visible product navigation"
+    assert observed["mode"] in {"menu", "drawer", "sidebar"}, "No visible product navigation"
+    if observed["mode"] == "menu":
+        ui.accept_navigation_alert = accept_navigation_alert
+        ui.page(page, confirm_navigation=True)
+        return
     if observed["mode"] == "drawer":
         ui.click_selector('button[aria-label="打开产品导航"]', "css selector")
         scope = ".ui-navigation-drawer"
@@ -231,8 +237,8 @@ def xpath_literal(value: str) -> str:
 
 def library_object_navigation_scope(js, wait, ui_click):
     """Open the real product navigation drawer; DOM reads never activate hidden controls."""
-    observed = js("""const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[inert]');
-return {trigger:visible(document.querySelector('button[aria-label="打开产品导航"]'))};""")
+    observed = js("""const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]');
+return {trigger:visible(document.querySelector('button[aria-label="全部页面，打开产品导航"]'))||visible(document.querySelector('button[aria-label="打开产品导航"]'))};""")
     assert observed["trigger"], "Compact object navigation has no visible product navigation trigger"
     # Radix unmounts the previous drawer; never dispatch the trigger under a closing overlay.
     wait("return !document.querySelector('.ui-navigation-drawer')")
@@ -1609,7 +1615,11 @@ def main():
         session = result["sessionId"]
         assert request("GET", f"/session/{session}/window/handles"), "Actual WebDriver window missing"
         request("POST", f"/session/{session}/timeouts", {"script":30000})
-        wait("return !!document.querySelector('.app-shell[data-stitch-workspace] .stitch-page-identity[data-current-page-id]')&&!!document.querySelector('.stitch-workspace-menu button[aria-label=\"打开产品导航\"]')")
+        launch_navigation = load("launch_rendered_navigation", REPO / "scripts/probes/aaos01_grouped_owner_loop.py")
+        navigation_evidence = receipt.setdefault("navigation_entry", [])
+        launch_controls = launch_navigation.GroupedUI(js, wait, ui_element,
+            lambda element_id, action, body: trusted_grouped_element_command(request, session, element_id, action, body), navigation_evidence)
+        launch_navigation.prepare_rendered_navigation(launch_controls, navigation_evidence)
         wait("const brand=document.querySelector('.stitch-brand img, .stitch-brand svg'),r=brand?.getBoundingClientRect(),decoded=!brand||brand.tagName.toLowerCase()!=='img'||(brand.complete&&brand.naturalWidth>0&&brand.naturalHeight>0);const images=[...document.images].filter(n=>[...n.getClientRects()].some(r=>r.width>0&&r.height>0)&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';}));return !!r&&r.width>0&&r.height>0&&decoded&&images.every(n=>n.complete&&n.naturalWidth>0&&n.naturalHeight>0)")
         receipt.setdefault("brand_images", []).append(js("const brand=document.querySelector('.stitch-brand img, .stitch-brand svg'),r=brand.getBoundingClientRect();return {brand:{kind:brand.tagName.toLowerCase(),width:r.width,height:r.height},visibleImages:[...document.images].filter(n=>[...n.getClientRects()].some(r=>r.width>0&&r.height>0)&&!n.closest('[hidden],[aria-hidden=\"true\"],[inert]')&&Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';})).map(n=>({className:n.className,width:n.naturalWidth,height:n.naturalHeight}))}"))
         if args.grouped_common_owner_loop or args.installed_draft_conflict_loop or args.character_memory_loop or args.configuration_plan_loop or args.be10_handoff_reader_loop or material_mode:

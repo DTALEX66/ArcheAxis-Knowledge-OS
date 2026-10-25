@@ -367,12 +367,13 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
     def test_page_navigation_uses_current_stitch_menu_without_legacy_drawer(self):
         probe = load_probe()
         clicks, commands = [], []
-        ui = probe.GroupedUI(lambda script: "#page=01" if script == "return location.hash" else {"summaryFocused": True, "index": 0} if "summaryFocused:" in script else "document.activeElement===n" in script,
+        scope = 'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(1)'
+        ui = probe.GroupedUI(lambda script: {"page":"01","mode":"menu","scope":scope,"opened":False} if "const requested=" in script else "#page=01" if script == "return location.hash" else {"summaryFocused": True, "index": 0} if "summaryFocused:" in script else "document.activeElement===n" in script,
             lambda _: None, lambda _using, selector: selector, lambda *args: commands.append(args), [])
         with patch.object(ui, "click_selector", lambda *args: clicks.append(args)):
             ui.page("03")
         self.assertEqual(len(clicks), 1)
-        self.assertIn('.stitch-workspace-menu details:has(button[data-page-id="03"]) > summary', clicks[0][0])
+        self.assertEqual(scope + ' > summary', clicks[0][0])
         self.assertEqual(commands[-1][1:], ("value", {"text": "\ue007"}))
         self.assertIn('.stitch-workspace-menu', commands[-1][0])
 
@@ -437,7 +438,8 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
             actions.append("observe")
             if actions.count("observe") == 1:
                 raise Alert()
-        ui = probe.GroupedUI(lambda script: "#page=11" if script == "return location.hash" else {"summaryFocused": True, "index": 0} if "summaryFocused:" in script else True, wait, lambda selector, using: "element", lambda *args: actions.append("activate"), [], lambda: actions.append("confirm"))
+        scope = 'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(1)'
+        ui = probe.GroupedUI(lambda script: {"page":"11","mode":"menu","scope":scope,"opened":True} if "const requested=" in script else "#page=11" if script == "return location.hash" else {"summaryFocused": True, "index": 0} if "summaryFocused:" in script else True, wait, lambda selector, using: "element", lambda *args: actions.append("activate"), [], lambda: actions.append("confirm"))
         ui.page("12", confirm_navigation=True)
         self.assertEqual(actions, ["activate", "activate", "confirm", "observe", "confirm", "observe"])
 
@@ -466,7 +468,7 @@ console.log(JSON.stringify(window.__aaosNavPointerProbe.samples[0]));
     def test_trusted_pending_review_navigation_confirms_child_without_replaying_input(self):
         probe=load_probe();actions=[]
         def js(source):
-            return '#page=19' if source=='return location.hash' else {'summaryFocused': True, 'index': 0} if 'summaryFocused:' in source else 'document.activeElement===n' in source
+            return {'page':'19','mode':'menu','scope':'nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type(7)','opened':False} if 'const requested=' in source else '#page=19' if source=='return location.hash' else {'summaryFocused': True, 'index': 0} if 'summaryFocused:' in source else 'document.activeElement===n' in source
         ui=probe.GroupedUI(js,lambda source:None,lambda *args:'node',lambda *args:actions.append('child'),[],lambda:actions.append('confirm'))
         ui.find=lambda *args:'node'
         ui.click_selector=lambda *args:actions.append('parent')

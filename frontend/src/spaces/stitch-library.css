@@ -74,8 +74,13 @@
 .stitch-reader-details :is(.reader-material-tools,.reader-source-tools),.reader-batch-tools { min-width:0; overflow-wrap:anywhere; }
 /* Bound only an opened document, inside the existing desktop viewport. Empty
    readers and source intake keep their ordinary document flow. */
-.app-shell.cabin-shell[data-stitch-workspace] .space-view:has(> .stitch-reader-page[data-reader-layout="split"]) { height:100%; min-height:0; }
+.app-shell.cabin-shell[data-stitch-workspace] .space-view:has(> .stitch-reader-page[data-reader-layout="split"],> .stitch-history-page>.stitch-reader-page[data-reader-layout="split"]) { height:100%; min-height:0; }
 .stitch-reader-page[data-reader-layout="split"] { height:100%; min-height:0; overflow:hidden; }
+/* History adds a runtime footer around the same reader. Keep that footer in the
+   available height instead of leaving the nested reader's percentage unresolved. */
+.stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"]) { display:flex; flex-direction:column; height:100%; min-height:0; overflow:hidden; }
+.stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"])>.stitch-reader-page { flex:1 1 0; height:auto; }
+.stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"])>.stitch-runtime-details { flex:0 1 auto; max-height:25%; overflow:auto; box-sizing:border-box; }
 .stitch-reader-page[data-reader-layout="split"]>.reader-batch-tools { flex:0 1 auto; max-height:25%; overflow:auto; }
 .stitch-reader-page[data-reader-layout="split"]>.stitch-reader-workspace { flex:1 1 0; min-height:0; overflow:hidden; align-items:stretch; }
 .stitch-reader-page[data-reader-layout="split"] :is(.stitch-reader-spread,.stitch-reader-details) { height:100%; max-height:100%; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; box-sizing:border-box; }
@@ -86,6 +91,9 @@
 .stitch-reader-spread[data-original-open="true"]>article,.stitch-reader-spread[data-original-open="true"]>section { flex:1 1 340px; }
 @container content (max-width:960px) { .stitch-reader-workspace { grid-template-columns:minmax(0,1fr); } .stitch-reader-details { display:block; } }
 @container content (max-width:960px) {
+  .stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"]) { height:auto; min-height:100%; overflow:visible; }
+  .stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"])>.stitch-reader-page { flex:0 0 auto; min-height:0; }
+  .stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"])>.stitch-runtime-details { max-height:none; overflow:visible; }
   .stitch-reader-page[data-reader-layout="split"] { height:auto; min-height:100%; overflow:visible; }
   .stitch-reader-page[data-reader-layout="split"]>.reader-batch-tools { max-height:none; overflow:visible; }
   .stitch-reader-page[data-reader-layout="split"]>.stitch-reader-workspace { flex:0 0 auto; overflow:visible; }
@@ -103,6 +111,9 @@
 /* At the declared minimum window height the reading viewport must still show its floor.
    The duplicated page heading and the toolbar gaps are the least costly trims there. */
 @container console (max-height:520px) {
+  .stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"]) { height:auto; min-height:100%; overflow:visible; }
+  .stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"])>.stitch-reader-page { flex:0 0 auto; min-height:0; }
+  .stitch-history-page:has(> .stitch-reader-page[data-reader-layout="split"])>.stitch-runtime-details { max-height:none; overflow:visible; }
   .stitch-reader-heading { display:none; }
   .stitch-reader-page { gap:4px; }
   .stitch-reader-toolbar { gap:4px; }

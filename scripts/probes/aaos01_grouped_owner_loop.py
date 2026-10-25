@@ -388,6 +388,59 @@ def read_grant(read, purpose, knowledge_id, operation):
     return document
 
 
+VISIBLE_NAVIGATION_JS = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&
+ !n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ [...(function*(x){for(;x;x=x.parentElement)yield x;})(n)].every(x=>{
+ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility==='visible';});
+"""
+
+
+def product_navigation_observation(page_id=None):
+    if page_id is not None:
+        assert re.fullmatch(r"\d{2}", page_id), "Invalid page identity"
+    return VISIBLE_NAVIGATION_JS + "const requested=" + json.dumps(page_id) + r""";
+const current=[...document.querySelectorAll('.stitch-page-identity[data-current-page-id],[aria-label="当前页面"][data-current-page-id]')].filter(visible);
+const pages=[...new Set(current.map(n=>n.dataset.currentPageId).filter(id=>/^\d{2}$/.test(id??'')))];
+const menu=document.querySelector('nav.stitch-workspace-menu[aria-label="应用菜单"]');
+const dock=document.querySelector('nav.stitch-workspace-dock[aria-label="工作空间快捷导航"]');
+const allPages='button[aria-label="全部页面，打开产品导航"]';
+const legacy='button[aria-label="打开产品导航"]';
+let scope=null,opened=false;
+if(visible(menu)){
+ const groups=[...menu.querySelectorAll('.stitch-menus > details')];
+ const index=groups.findIndex(n=>visible(n.querySelector('summary'))&&[...n.querySelectorAll('button[data-page-id]')].some(b=>b.dataset.pageId===requested));
+ if(index>=0){scope='nav.stitch-workspace-menu[aria-label="应用菜单"] .stitch-menus > details:nth-of-type('+(index+1)+')';opened=groups[index].open;}
+}
+const mode=visible(menu)&&visible(dock)&&visible(document.querySelector(allPages))?'menu':visible(document.querySelector(legacy))?'drawer':visible(document.querySelector('.navigation-sidebar'))?'sidebar':null;
+return {page:pages.length===1?pages[0]:null,mode,scope,opened,
+ trigger:visible(document.querySelector(allPages))?allPages:visible(document.querySelector(legacy))?legacy:null};
+"""
+
+
+def prepare_rendered_navigation(ui, evidence):
+    """Pause the actual guide through trusted UI; do not mark any business step complete."""
+    ui.wait(r"""const shell=document.querySelector('.app-shell[data-stitch-workspace]');
+const page=shell?.querySelector('.stitch-page-identity[data-current-page-id]');
+const current=shell?.querySelector('nav[aria-label="应用菜单"] summary')&&shell?.querySelector('nav[aria-label="工作空间快捷导航"] button[data-page-id]')&&shell?.querySelector('button[aria-label="全部页面，打开产品导航"]');
+const legacy=shell?.querySelector('button[aria-label="打开产品导航"],.navigation-sidebar');
+return !!page&&/^\d{2}$/.test(page.dataset.currentPageId??'')&&!!(current||legacy);""")
+    guide = ui.js(VISIBLE_NAVIGATION_JS + r"""
+const guides=[...document.querySelectorAll('[role="dialog"].first-use-guide')].filter(visible);
+return {count:guides.length,title:guides[0]?.querySelector('h2')?.textContent.trim(),
+ buttons:guides.length===1?[...guides[0].querySelectorAll('button')].filter(b=>visible(b)&&!b.disabled&&b.textContent.trim()==='暂时跳过').length:0};""")
+    assert guide["count"] in {0, 1}, "Ambiguous first-use guide dialog"
+    if guide["count"]:
+        assert guide["title"] == "首次使用引导" and guide["buttons"] == 1, "First-use guide pause control missing or ambiguous"
+        ui.click_selector("//*[@role='dialog' and contains(concat(' ',normalize-space(@class),' '),' first-use-guide ')]//button[normalize-space(.)='暂时跳过']")
+        ui.wait(VISIBLE_NAVIGATION_JS + "return ![...document.querySelectorAll('[role=\"dialog\"].first-use-guide')].some(visible);")
+        evidence.append({"action": "first_use_guide_pause", "decision": "PAUSED_BY_RENDERED_UI", "business_completion": False, "guide_steps_marked_complete": False})
+    else:
+        evidence.append({"action": "first_use_guide_pause", "decision": "NOT_PRESENT", "business_completion": False})
+    ui.wait("const navigation=(()=>{" + product_navigation_observation() + "})();return !!navigation.page&&['menu','drawer','sidebar'].includes(navigation.mode);")
+    evidence.append({"action": "rendered_navigation_ready", **ui.js(product_navigation_observation())})
+
+
 class GroupedUI:
     """DOM evaluation is observation only; all interaction uses WebDriver commands."""
 
@@ -619,41 +672,52 @@ return {ready:false,reason:'No reachable scroll container',target:{x:px,y:py},cl
         )
 
     def page(self, page_id, confirm_navigation=False):
-        if self.js("return location.hash") == "#page=" + page_id:
-            return
         assert re.fullmatch(r"\d{2}", page_id), "Invalid page identity"
-        # Use the current Stitch application menu. The old navigation drawer
-        # became the launchpad and must not remain an implicit probe contract.
-        scope = f'.stitch-workspace-menu details:has(button[data-page-id="{page_id}"])'
-        opened = self.js("const n=document.querySelector(" + json.dumps(scope) + ");return !!n&&n.open;")
-        if not opened:
-            self.click_selector(scope + " > summary", "css selector")
+        navigation = self.js(product_navigation_observation(page_id))
+        if self.js("return location.hash") == "#page=" + page_id and navigation["page"] == page_id:
+            return
+        assert navigation["mode"] in {"menu", "drawer", "sidebar"}, "No visible product navigation"
+        menu = navigation["mode"] == "menu"
+        if menu:
+            scope = navigation["scope"]
+            assert scope, "Requested page has no rendered menu group"
+            if not navigation["opened"]:
+                self.click_selector(scope + " > summary", "css selector")
+        elif navigation["mode"] == "drawer":
+            self.click_selector(navigation["trigger"], "css selector")
+            scope = ".ui-navigation-drawer"
+        else:
+            scope = ".navigation-sidebar"
         selector = f'{scope} button[data-page-id="{page_id}"]'
         # Activate the exact focused navigation button using native WebDriver
         # keyboard input. Pointer activation remains separately qualified; do not
         # silently repeat a click that may have hit a moving layout neighbour.
         element = self.find(selector, "css selector")
-        focus = self.js("const n=document.querySelector(" + json.dumps(scope) + ");"
-            "return n?{summaryFocused:document.activeElement===n.querySelector('summary'),"
-            "index:[...n.querySelectorAll('button')].findIndex(b=>b.dataset.pageId===" + json.dumps(page_id) + ")}:null;")
-        assert focus and focus["summaryFocused"] and focus["index"] >= 0, "Navigation summary must own native focus"
-        summary = self.find(scope + " > summary", "css selector")
-        self.command(summary, "value", {"text": "\ue004" * (focus["index"] + 1)})
-        focused = self.js("const n=document.querySelector(" + json.dumps(selector) + ");"
-            "return !!n && document.activeElement===n && n.dataset.pageId===" + json.dumps(page_id) + ";")
-        assert focused, "Native Tab did not focus the exact navigation target"
-        self.evidence.append({"action": "native_tab_to_navigation", "page_id": page_id, "tabs": focus["index"] + 1})
+        if menu:
+            focus = self.js("const n=document.querySelector(" + json.dumps(scope) + ");"
+                "return n?{summaryFocused:document.activeElement===n.querySelector('summary'),"
+                "index:[...n.querySelectorAll('button')].findIndex(b=>b.dataset.pageId===" + json.dumps(page_id) + ")}:null;")
+            assert focus and focus["summaryFocused"] and focus["index"] >= 0, "Navigation summary must own native focus"
+            summary = self.find(scope + " > summary", "css selector")
+            self.command(summary, "value", {"text": "\ue004" * (focus["index"] + 1)})
+            focused = self.js("const n=document.querySelector(" + json.dumps(selector) + ");"
+                "return !!n && document.activeElement===n && n.dataset.pageId===" + json.dumps(page_id) + ";")
+            assert focused, "Native Tab did not focus the exact navigation target"
+            self.evidence.append({"action": "native_tab_to_navigation", "page_id": page_id, "tabs": focus["index"] + 1})
         try:
-            self.command(element, "value", {"text": "\ue007"})
+            if menu:
+                self.command(element, "value", {"text": "\ue007"})
+            else:
+                self.click_selector(selector, "css selector")
         except Exception as error:
             if not confirm_navigation or getattr(error,'value',{}).get('error')!='unexpected alert open':
                 raise
         if confirm_navigation:
             assert self.accept_navigation_alert is not None, 'Trusted navigation confirmation unavailable'
             self.accept_navigation_alert()
-        self.evidence.append({"action": "trusted_navigation_enter", "selector": selector})
+        self.evidence.append({"action": "trusted_navigation_enter" if menu else "trusted_legacy_navigation_click", "selector": selector})
         try:
-            observation = "return location.hash===" + json.dumps("#page=" + page_id)
+            observation = "return location.hash===" + json.dumps("#page=" + page_id) + "&&(()=>{" + product_navigation_observation(page_id) + "})().page===" + json.dumps(page_id)
             for attempt in range(3):
                 try:
                     self.wait(observation)
