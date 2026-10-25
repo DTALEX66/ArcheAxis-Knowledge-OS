@@ -15,6 +15,44 @@ import time
 ROUTE = "/api/v1/workspace/ui-state"
 READS = frozenset({"ui_state_read", "document_get", "document_version", "workspace_backups"})
 EDITOR = '[aria-label="版本化草稿编辑器"] [role="textbox"][aria-label="文档草稿"]'
+READER_DRAFT_OBSERVATION = r"""
+const visible=n=>!!n&&n.getClientRects().length>0&&!n.closest('[hidden],[aria-hidden="true"],[inert]')&&
+ Array.from((function*(x){for(;x;x=x.parentElement)yield x;})(n)).every(x=>{
+ const s=getComputedStyle(x);return s.display!=='none'&&s.visibility!=='hidden'&&s.visibility!=='collapse';});
+const pages=[...document.querySelectorAll('[data-current-page-id]')].filter(visible);
+const readers=[...document.querySelectorAll('section[aria-label="阅读与编辑文档视图"]')].filter(visible);
+const headings=readers.length===1?[...readers[0].querySelectorAll('.stitch-reader-heading h2')].filter(visible):[];
+const editors=readers.length===1?[...readers[0].querySelectorAll('[aria-label="版本化草稿编辑器"] [role="textbox"][aria-label="文档草稿"]')].filter(visible):[];
+return {page:pages.length===1?pages[0].getAttribute('data-current-page-id'):null,reader_count:readers.length,
+ heading_count:headings.length,title:headings.length===1?headings[0].textContent:null,
+ editor_count:editors.length,text:editors.length===1?editors[0].textContent:null};"""
+
+
+def wait_for_document_draft(js, document, expected_text, evidence, *, timeout=30):
+    """Observe exact authored identity/content twice; never change the document."""
+    record = {"action": "reader_document_hydration", "document_id": document["document_id"],
+              "expected_title": document["title"], "expected_text": expected_text,
+              "status": "IN_PROGRESS", "samples": 0, "first_sample": None,
+              "last_sample": None, "final_stable_sample": None}
+    evidence.append(record)
+    deadline = time.monotonic() + timeout
+    previous = None
+    while time.monotonic() < deadline:
+        sample = js(READER_DRAFT_OBSERVATION)
+        record["samples"] += 1
+        if record["first_sample"] is None:
+            record["first_sample"] = copy.deepcopy(sample)
+        record["last_sample"] = copy.deepcopy(sample)
+        matches = (isinstance(sample, dict) and sample.get("page") == "03" and
+                   sample.get("reader_count") == sample.get("heading_count") == sample.get("editor_count") == 1 and
+                   sample.get("title") == document["title"] and sample.get("text") == expected_text)
+        if matches and sample == previous:
+            record.update(status="PASS", final_stable_sample=copy.deepcopy(sample))
+            return sample
+        previous = copy.deepcopy(sample) if matches else None
+        time.sleep(0.15)
+    record["status"] = "FAIL"
+    raise TimeoutError("Visible target document and exact draft did not hydrate stably: " + document["document_id"])
 
 
 def basis(read):
@@ -188,11 +226,18 @@ def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, 
     recovered = poll(read, "ui_state_read", {}, lambda value: not value["recovery_requires_confirmation"])
     assert recovered["state"] == candidate["recovery_candidates"]
     assert_journal(recovered, fixture["drafts"], fixture["workspace_id"], candidate["restore_epoch"])
+    reader_observations = []
+    observation_evidence = getattr(ui, "evidence", [])
     def open_doc(doc):
         navigate("02")
         ui.click_selector('[aria-label="打开文档 ' + doc["title"] + '"]', "css selector")
         accept_navigation_alert()
-        wait("return !!document.querySelector('.stitch-page-identity[data-current-page-id=\"03\"]') && !!document.querySelector(" + json.dumps(EDITOR) + ")")
+        expected_text = fixture["drafts"][doc["document_id"]]["editor_json"]["content"][0]["content"][0]["text"]
+        # The route changes before document_get resolves. The old editor may still
+        # exist; bind both title and exact draft to the same visible reader.
+        observed = wait_for_document_draft(js, doc, expected_text, observation_evidence)
+        reader_observations.append(copy.deepcopy(observation_evidence[-1]))
+        return observed
     open_doc(a)
     # The restored draft and its reader banner settle after hydration. Require the
     # real save control to be enabled and its box stable before pointer input, so
@@ -227,8 +272,8 @@ def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, 
     assert_journal(read("ui_state_read"), remaining, fixture["workspace_id"], recovered["restore_epoch"])
     assert read("document_get", {"document_id": a["document_id"]}) == saved_a
     assert read("document_get", {"document_id": b["document_id"]}) == b
-    open_doc(b)
-    text = js("return document.querySelector(" + json.dumps(EDITOR) + ").textContent")
+    stable_b = open_doc(b)
+    text = stable_b["text"]
     assert text == remaining[b["document_id"]]["editor_json"]["content"][0]["content"][0]["text"]
     assert_journal(read("ui_state_read"), remaining, fixture["workspace_id"], recovered["restore_epoch"])
     assert read("document_get", {"document_id": b["document_id"]}) == b
@@ -239,6 +284,7 @@ def run_ui(fixture, *, ui, bridge, js, wait, navigate, accept_navigation_alert, 
             "installed_ui": "TRUSTED_WEBDRIVER_CONTROLS", "owner_acceptance": "NOT_EXECUTED",
             "source": fixture["source"], "host": host_identity, "saved_a": saved_a,
             "remaining_b": remaining, "restart_readback": True, "restart_receipt": restart_receipt,
+            "reader_observations": reader_observations,
             "final_source": final_source,
             "limits": ["No UI creation of the initialized drafts", "No physical IME qualification",
                        "No complete Owner nine-step qualification", "No permanent pre-merge draft archive",
