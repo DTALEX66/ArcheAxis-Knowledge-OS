@@ -1867,3 +1867,12 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 修复：`GroupedUI.click_revealed_selector` 在派发指针前对同一坐标复检目标命中，失配则重新执行受控滚动与命中测试（最多 3 次）；冲突旅程在点击前等待真实“保存草稿”按钮 enabled 且包围盒连续稳定。仍未使用 JS 点击、事件注入或放宽断言。
 - run 40139923313（head 1d81aa90）全部 required 作业 success：lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates；安装态 plain、conflict、grouped 三份旅程均通过（grouped `distill` 仍 `NOT_EXECUTED`）。
 - 边界：这是最终代码检查点的云端工程与门禁资格，不是 Owner 验收、合并、发布或 Green 替换；后续文档提交只作 metadata follow-up，单独读取其 CI，不改变本结论。
+
+### 2026-10-25 当前 exact 候选上的真实本地模型链（CL-06／J4／CL-07，工程 PASS；质量 PARTIAL）
+
+- 候选来源：run 40141937590 的 `release-candidate` 产物（`release-candidate.json` 记录 commit 65931ab，即 head 8125547d 的 PR 合并提交），解包为便携目录后仅以 `ARCHEAXIS_PORTABLE_ROOT` 指向隔离数据根；Host `0a074727684ee418c6192c419574feaac5127a94c8ec42d979261fa628db5025`（47,363,584B），未安装、未触碰用户库。
+- 驱动：本机 WebView2 155.0.4283.62 需匹配驱动，原本地 156 驱动被版本断言拒绝；从官方 `msedgedriver.microsoft.com/155.0.4283.62` 取得同版驱动后重跑。该驱动与 155 候选构建对应，CI 仍使用自己的原生工具回执。
+- 同候选真实模型：`--grouped-common-owner-loop --actual-model --grouped-authored-intervention --grouped-model qwen3.5-4b --grouped-max-tokens 2048`，`engineering_status=PASS`，290 个真实 UI 动作、5 次正常 Host 退出、`source_consistent=true`。阶段 import/read/anchor/claim/learn/practice/review/recover 均 PASS；`distill=EXECUTED_CANDIDATE_NOT_EVALUATED`。原答 159 输入／1177 输出 tokens，复测 177／1340；原答对“为何分离”缺少上下文依据时正确拒绝解释，工程自编澄清后复测给出分离理由；自编干预不是独立错误判定，质量仍 UNMEASURED。
+- 独立评审（限定）：另一 Agent 单样本审阅认为原答忠实、拒绝恰当、无编造；复测核心结论有澄清支持，但“keeping raw data unchanged / without altering the base source bytes”属轻度外推；评价者与干预方存在角色重叠，**不构成独立质量验收或 Owner 验收**。评审侧车 `.../webdriver-3135a46e977f/tmp/journey/independent-answer-review.json`，对应主回执 321,712B，SHA-256 `8de08ef0a9939df6ed92bf3f8802f524838cbee5ce38350c5f3454e70ea9c3fc`；截图 `grouped-learning-review.png` SHA-256 `8708778c9f3ecc6b1cd8be13ab3a612e8c8a7c72d72eb52521febea25cafe5aa`。
+- 探针合同修正：紧凑布局（console 高 ≤520）故意隐藏整个 `.stitch-reader-heading`，因此标题与同处其中的版本号在该档不可见；探针现在只在紧凑档接受隐藏，并用可见正文、诊断身份与 Core 回读补足对象核对。AI 页保留“实际问题”未保存草稿，离开到设置页必须走产品原生确认；探针改为显式接受该确认。两处都是测试合同，不是产品行为变更。
+- 边界：这是当前 CI 构建在本地隔离数据根上的真实模型工程链，不是安装态、云端推理、独立质量或 Owner 验收；跨版本升级/回退仍未执行（当前线上 0.6.11 属旧 Python 后端，不是同一 Rust 产品线）。CL-06 云端真实推理仍按 Owner 2026-10-24 决定标后续未执行，J4 质量仍 PARTIAL。
