@@ -66,3 +66,9 @@
 人物九静态图、现有状态切换与动效不等于Live2D、真实口型、全身动画或3D。材质审美、人物偏好、长页面信息密度、代表性OCR/ASR/答案质量与Owner实际使用评审仍未执行；工程检查不能替代。中文扫描识别未测，音视频仅合成英文。ASR权重为外置资源，本机可自动发现；换机需合规准备模型或使用正式stager的--asr-model及许可/哈希登记，当前未提供产品内ASR目录选择，缺组件的中文修复指引仍需改进。
 
 本轮保留原菜单退出、Canvas拒收、2048模型无正文与漏模块等失败回执。新文件Ruff通过；修改过的旧文件仍有HEAD已存在的Ruff发现，不宣称全库lint已通过。提交/托管CI/安装/Green程序更新及回滚证据将另在唯一执行记录与活动指针回读，不以本地PASS代替。
+
+## 本轮交付读回
+
+本地功能提交 `d4f72bf193b0b653bfc167a21818ae93af4afa5f` 已形成；正常push被当前自动审批拒绝（需要审批但AskForApproval=Never），未绕过。远端分支仍41e1848d…，本轮CI/安装/Green未执行；旧CI成功不用于新提交。Green Host仍da8dc768…。详细过程及后继路径只记唯一执行记录。
+
+可以通过 `.project-local/AAOS-UI-Preview-20261026.cmd` 打开已验证的本地候选，使用独立工作区与WebView配置；`--check`参数检查通过，未将其算成实际启动验收。最终1920 CSS首页截图 `native-overview-20261026-qualified-b3/artifacts/native-overview/baseline-1920-01.png`，全22页及引导截图同目录。当前可审阅本地实现，不能称现用Green已换新。

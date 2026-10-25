@@ -2007,3 +2007,11 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - Canvas6、轻量/OCR11格式及媒体3格式原包实测与新包共同19742成员/46实际关键文件严格映射，未冒充新包整组重跑（`closure-qualified-b2-backend-rebind-20261026-b2`）。新包无外置FFmpeg时正式worker自动PyAV，音轨+3帧有效；无ASR env可发现本机声明模型；缺权重真实Core拒绝且原件保留/无发布产物（`closure-qualified-b2-asr-default-discovery-20261026-b3`）。ASR仍外置依赖，中文OCR/ASR准确率、视频视觉语义及换机开箱即用未完成。
 - 兼容以正式Rust/UI链为准：历史legacy Obsidian共享DB的md-only/0选中/created_at等不能当当前正式链根因；Canvas file.subpath事实保全而目标解析/迁移未实现，Notion/Anytype数据库公式/权限、Zotero原生库同步与插件运行时未验收。186项是完整设计目录，非全部功能完成。
 - 本地后继证据完整后，沿已授予的正常commit/push及本轮完整CI推进；只在确切CI制品和隔离安装资格通过后更新指定Green程序，保留hash回滚与所有数据/未知目录。此检查点尚未提交/推送、获得本轮exact-SHA CI、安装、Green更新或Owner验收；后继交付结果在本节后追加，不回写旧失败。人工审美/代表性质量审核可延期，整体仍PARTIAL。
+
+#### 2026-10-26 正常交付被当前工具策略拒绝
+
+- 已审阅并显式暂存99个任务文件，凭证模式检查0命中、cached diff check通过；仅移除新增SVG末尾空白行，不改图形。正常本地提交 `d4f72bf193b0b653bfc167a21818ae93af4afa5f` 成功。原有两份历史审计、两份collection探针、未使用logo与私有交接未纳入，保留原位。
+- 正常 `git push origin HEAD:refs/heads/trae/20261024` 在进程启动前被自动审批拒绝：`approval required by policy, but AskForApproval is set to Never`。这是当前执行通道限制，不是Owner授权不足或代码/网络失败；未换工具、封装命令或其他上传通道绕过。随后只读ls-remote确认远端分支仍 `41e1848dca00f724db437c649c6445532221705a`、main仍 `8d367bac4a85bebfbb523503678ade0838faa73e`。PR203已附本chat，当前新提交未到远端；旧run40190206184的success不得用于本次资格。
+- 本轮托管CI、隔离安装与Green程序更新均未执行，不能写成完成。Green前后Host仍 `da8dc768925b86c018da558aac203fd07cba126c91d75d60368835355cadad06`；只读记录两个受保护数据库文件哈希，没有数据库/程序覆盖。阻塞回执 `.project-local/closure-delivery-blocker-20261026.json`。
+- 已准备可审阅的隔离本地预览 `.project-local/AAOS-UI-Preview-20261026.cmd`，`--check`通过；使用 `.project-local/ui-review-20261026` 及独立WebView目录，清除子进程外部backend/debug覆盖，不改变全局配置。实际候选已由上文真实原生流程资格化；未把启动器的参数检查冒充又一次启动验收。预览不使用现用Green数据库，候选身份仍fc579f83…。可直接查看已渲染截图及实现说明。
+- 后继先恢复支持审批的正常交付通道，核实本地head/远端refs再推送、读取对应CI制品/安装结果；不再次询问已授予的Owner授权，不用旧CI、旧安装或本地PASS替代本次交付。目标保持未完成；人工视觉/内容质量评审继续可延期，发布和真实数据覆盖仍未授权。

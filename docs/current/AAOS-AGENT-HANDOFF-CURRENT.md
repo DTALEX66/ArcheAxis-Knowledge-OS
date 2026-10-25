@@ -1,5 +1,11 @@
 # AAOS 当前接续导航：人类＋AI＋双侧连接
 
+## 2026-10-26 后继入口
+
+本地UI/产品链修复已形成提交d4f72bf1及可运行候选，正常push被当前自动审批拒绝（需要审批但AskForApproval=Never），未换通道绕过。远端分支仍41e1848d；当前CI、安装及Green更新未执行。已授予的Owner交付授权不需重复确认，须先恢复可审批的正常执行通道。
+
+先读活动指针 `current_execution.latest_ui_product_repair_20261026` 与[唯一执行记录](AAOS-UI-FIRST-EXECUTION-20261009.md)最后的2026-10-26检查点，再读[本轮实现说明](../../workspace/intake/20261026-product-loop-implementation.md)。本地独立预览入口为 `.project-local/AAOS-UI-Preview-20261026.cmd`，Green仍旧程序。不要把旧原生退出失败、旧人物素材状态或旧CI成功当成最新状态；失败和组件身份均在对应日期保留。
+
 Owner要求换TRAE Agent接续时，可完整读取[2026-10-24换会话汇总](../history/trae-agent-handoff-20261024/README.md)及[MANIFEST](../history/trae-agent-handoff-20261024/MANIFEST.json)：汇总已完成、安装阻塞、全部未完成、体积清理／审计与分支结论。它是冻结快照，不新增实时进度账本；接手仍按下方权威与现场重新核实，不能假定TRAE已自动加载规则或工具。
 
 本入口按 Owner 后继接手继续要求接续有限首版：人类知识／学习链、AI知识／学习链和两侧按权限复用同一来源／版本的知识与证据同时推进。先读[唯一闭环定义](../truth/CLOSED_LOOP_DEFINITION.md)，再读[活动指针](AAOS-ACTIVE-EXECUTION.json)的 `owner_scope_current`、`execution_control`、`continuation_context` 与 `active_progress`。不另建任务包、业务真值或进度账本，不重复已无变化的全审计。

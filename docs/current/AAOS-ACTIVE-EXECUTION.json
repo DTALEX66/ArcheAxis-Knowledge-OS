@@ -743,7 +743,7 @@
       }
     },
     "candidate_20261026": {
-      "state": "LOCAL_QUALIFIED_NOT_DEPLOYED",
+      "state": "NOT_DEPLOYED_DELIVERY_TOOL_REJECTED",
       "target_program_sha256_before": "da8dc768925b86c018da558aac203fd07cba126c91d75d60368835355cadad06",
       "qualification_ref": "#/current_execution/latest_ui_product_repair_20261026",
       "next": "Normal authorized delivery; require exact CI artifact, isolated installation, hash rollback and data preservation before program update"
@@ -2531,14 +2531,17 @@
       "checkpoint_key": "verification.installed_stop_same_handle_followup01"
     },
     "latest_ui_product_repair_20261026": {
-      "state": "LOCAL_QUALIFIED_CI_AND_GREEN_PENDING",
+      "state": "LOCAL_QUALIFIED_DELIVERY_TOOL_REJECTED",
       "progress": "docs/current/AAOS-UI-FIRST-EXECUTION-20261009.md#2026-10-26-并行ui与产品链修复本地资格通过托管ci及本轮green更新待执行",
       "implementation": "workspace/intake/20261026-product-loop-implementation.md",
       "build_receipt": ".project-local/runs/be268a2d33/f6854aba9850/artifacts/frontend-build.json",
       "source_patch_sha256": "77b583e07bc31d1f42f2e323a23a6530254d88287cae0936dbe06b204876ab8e",
       "host_sha256": "fc579f832799a3437bb7a0e090201fe57aa0c84b2539f6178d33f6e9f31ee376",
-      "whole_scope": "PARTIAL; local component/native qualification is not hosted CI, installed, Green or Owner acceptance",
-      "monitor": "PAUSED_UNCHANGED"
+      "whole_scope": "PARTIAL; current commit unpushed; current CI/installed/Green NOT_EXECUTED; human review deferred, not fabricated",
+      "monitor": "PAUSED_UNCHANGED",
+      "local_product_commit": "d4f72bf193b0b653bfc167a21818ae93af4afa5f",
+      "delivery": "Normal push rejected before process start: approval required by policy, AskForApproval Never; no alternate upload channel; remote branch remains 41e1848d",
+      "preview_launcher": ".project-local/AAOS-UI-Preview-20261026.cmd"
     }
   }
 }
