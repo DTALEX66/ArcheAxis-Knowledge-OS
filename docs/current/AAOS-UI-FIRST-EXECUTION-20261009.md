@@ -1937,4 +1937,13 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 运行时减法：从 `pyproject.toml`／`requirements.txt`／`uv.lock` 的**主依赖**移除 MarkItDown、NetworkX、APScheduler（仅 legacy `app/` 路径使用；workers/Core 不导入）。它们仍在 CI/legacy 组，测试覆盖不降级；`pandas`/`pdfminer` 作为 MarkItDown 传递依赖一并移出运行时，预计减少约 40MB 未压缩体积。历史账本不删除，避免破坏字节钉住的 OSS 表。
 - 打包断言：`desktop/scripts/assert_runtime_engines.py` 移除 MarkItDown，新增 RapidOCR，保证新回退引擎确实在安装载荷里。
 - 止损工具：新增 `scripts/ci/preflight_contracts.py`，在推送前串行检查 resource catalog、release manifest、requirements 同步、external-resources index、OSS reuse manifest、document authority；本轮已本地全绿。
-- 边界：这是新提交，exact-SHA CI 尚未读取；绿色代码检查点仍是 dd38cef2（run 40181953892）。Owner 验收、云端真实推理、跨版本升级/回退、CL-04/CL-05 与 J4 独立质量结论不变，总体 **PARTIAL**。
+- 边界：该切片已在 run 40186198987 全绿，绿色代码检查点更新为 39b627c4。Owner 验收、云端真实推理、跨版本升级/回退、CL-04/CL-05 与 J4 独立质量结论不变，总体 **PARTIAL**。
+
+### 2026-10-25 新绿色检查点与 Green 程序替换
+
+- run 40186198987（head 39b627c4）全部 required 作业 success：lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates 及其余 required 作业通过。该检查点包含 FTS 增量、OCR 回退、LZMA、运行时依赖减法与合同 preflight；绿色代码检查点更新为 39b627c4。
+- 安装器体积：新 release-candidate 的 NSIS 安装器 373,770,823 字节（旧 433,078,836），载荷解包 19,176 文件、1,000,504,488 字节。体积下降来自 LZMA 与 MarkItDown/NetworkX/APScheduler/pandas/pdfminer 移出运行时；`openpyxl`/`python-pptx`/`xlrd`/`rapidocr-onnxruntime` 已显式保留并随包。
+- Owner 2026-10-25 授权“绿色库的旧版本完全可以替换覆盖掉”。已按 exact run 40186198987 候选替换 `D:\All projects\ArcheAxis.Knowledge.Green-x64` 程序文件：旧 host `4f56908b…`／core `f91515b4…` → 新 host `5ef93664…`／core `11fa2544…`；程序回滚副本与数据库副本在 `backups\pre-39b627c4-20261025`（2,066,285,813 字节，数据库 SHA-256 `34f8cce5…` 保持不变）。
+- 隔离数据 smoke：以 `.project-local/runs/green-39b627c4/data` 运行新 Green `start-backend.py --smoke`，`system_version` 200、`workspaces_info` 200、`ok=true`；Core 仍按既有 terminate/wait 行为返回 1，不是启动失败。真实用户数据未启动、未迁移。
+- `release-identity.json` 已更新为 `candidate-1.0.0`（v0.6.14、stable、public=false、source commit 15036bc3、tree 06a6935c、run 40186198987），并写入 `green-deployment-receipt-39b627c4.json`。回执 `.project-local/runs/green-39b627c4/deploy-receipt.json`。
+- 边界：Green 仅完成程序替换与隔离 smoke；真实数据启动、Owner 验收、云端、跨版本升级/回退、公开 release 与 J4 独立质量仍分别 NOT_EXECUTED／DEFERRED。
