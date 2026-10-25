@@ -11,6 +11,8 @@ import { confirmedImport, type ImportReceipt } from "../presentation/importRecei
 import { sha256 as contentSha256 } from "../presentation/exchangeProof";
 import { RawReceiptButton } from "./DiagnosticConsole";
 import { userErrorMessage } from "../presentation/labels";
+import { conversionRecovery } from "../presentation/conversionRecovery";
+import { ConversionRecoveryNotice } from "./ConversionRecoveryNotice";
 import type { BoundedJobCommand, JobStatus } from "./BoundedJobPanel";
 import { freezeFolderAttempt, folderCancelAck, folderExecutionAck, freshAttemptEligible, jobState, pollFolderAttempt, readFolderStatus, terminalJobState, type FolderAttempt, type JobState } from "../presentation/folderIngestExecution";
 
@@ -39,6 +41,8 @@ const LABEL: Record<RowState, string> = {
 function folderFailureSummary(status: JobStatus): string {
   const fallback = "转换未完成，请查看诊断详情核对原因。";
   if (status.state !== "failed" || !status.error) return fallback;
+  const recovery = conversionRecovery(status);
+  if (recovery) return recovery.summary;
   const safeSummary = (message: unknown) => {
     const summary = userErrorMessage(message);
     return summary === userErrorMessage(null) ? fallback : summary;
@@ -451,7 +455,7 @@ export function FolderIngest({ onOpenSource, onSelectRelations }: { onOpenSource
     </div>{message ? <p role="status">{message}</p> : null}
     {rows.length ? <><p aria-label="批次真实统计">{tally(rows)}</p><p>表格可横向滚动查看操作列。</p><div className="folder-ingest-table-scroll" role="region" aria-label="批次明细与操作，可横向滚动" tabIndex={0}><table className="data-table"><thead><tr>{["文件夹内路径","字节","原件","转换结果","说明","操作"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(row => <tr key={row.key}>
       <td>{row.relative}</td><td>{row.bytes}</td><td>{row.source_id ? <span>原件已保存</span> : "原件未确认保管"}</td><td>{LABEL[row.state]}{row.cancelPending ? " · 取消待确认" : ""}</td>
-      <td>{row.detail}{row.source_id || row.job_id || row.attempt || row.status ? <RawReceiptButton label="此文件导入与转换详细信息" category="data" payload={{source_id:row.source_id,sha256:row.sha256,job_id:row.job_id,attempt:row.attempt,status:row.status}}/> : null}</td>
+      <td>{row.detail}<ConversionRecoveryNotice status={row.status}/>{row.source_id || row.job_id || row.attempt || row.status ? <RawReceiptButton label="此文件导入与转换详细信息" category="data" payload={{source_id:row.source_id,sha256:row.sha256,job_id:row.job_id,attempt:row.attempt,status:row.status}}/> : null}</td>
       <td><div>{row.job_id ? <button disabled={busy||capabilityBusy} onClick={() => void rowAction(row.key,"read")}>{row.attempt ? "核对冻结请求状态" : "读取转换状态"}</button> : null}
         {row.batch_id===batchId&&!row.source_id&&row.state==="IMPORT_FAILED"?<button disabled={busy||capabilityBusy} onClick={()=>void retryImport(row.key)}>同成员重试导入</button>:null}
         {row.batch_id===batchId&&row.source_id&&(!row.job_id||row.state==="ENQUEUE_FAILED")&&conversionKindFor(row.relative)?<button disabled={busy||capabilityBusy} onClick={()=>void enqueueRetained(row.key)}>核对并入队此成员</button>:null}

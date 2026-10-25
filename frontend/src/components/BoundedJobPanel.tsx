@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { SourcesListDto, SourceJobsDto } from "../api/generated/core-contract";
 import { FormatQualificationPanel } from "./FormatQualificationPanel";
 import { RawReceiptButton } from "./DiagnosticConsole";
+import { ConversionRecoveryNotice } from "./ConversionRecoveryNotice";
 
 /** Integration port: add these finite operations to generated Core/native contracts first. */
 export type BoundedJobOperation = "sources_list" | "source_jobs" | "jobs_get" | "job_execute" | "job_execution_status" | "job_execution_cancel" | "source_job_format_qualification";
@@ -180,6 +181,7 @@ export function BoundedJobPanel({ command, pollMs = 1000 }: { command: BoundedJo
     <button disabled={!jobId || busy} title={!jobId?"需要先执行或选择一项任务":undefined} onClick={() => void refresh()}>刷新实际状态</button>
     <button disabled={busy || !(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)} title={!(status?.state === "running" || pending) || !(attempt?.request_id || status?.request_id)?"当前没有可取消的请求":undefined} onClick={() => void cancel()}>请求取消</button>
     {cancelPending ? <p>取消待确认：继续轮询实际状态。</p> : null}
+    <ConversionRecoveryNotice status={status}/>
     {status && status.job_id === jobId && status.input_ref === sourceId ? <FormatQualificationPanel
       key={JSON.stringify([sourceId, sources.find(row => row.source_id === sourceId)?.source_revision, jobId, status.attempt, status.state])}
       command={command} identity={{sourceId, sourceRevision: sources.find(row => row.source_id === sourceId)?.source_revision ?? "", jobId, attempt: status.attempt, jobState: status.state}} error={status.error}/> : null}

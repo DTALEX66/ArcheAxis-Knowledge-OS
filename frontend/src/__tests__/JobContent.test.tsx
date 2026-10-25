@@ -8,11 +8,43 @@ import userEvent from "@testing-library/user-event";
 import { JobContent } from "../components/JobContent";
 import { conversionKindFor } from "../api/conversionKinds";
 import { describeSplit, splitProgressOf } from "../presentation/mediaEstimate";
+import { asrModelFailure } from "./fixtures/asrModelFailure";
 const bridge=vi.hoisted(()=>({call:vi.fn()}));vi.mock("../api/core",()=>({coreCommand:bridge.call}));
 function installFixture(fn:(op:string,payload:Record<string,unknown>)=>unknown){bridge.call.mockImplementation(jobContentCoreFixture(fn));}
 beforeEach(resetDiagnostics);
 describe("Core job content",()=>{
  beforeEach(()=>{bridge.call.mockReset();vi.stubGlobal("crypto",webcrypto);});
+ it("explains missing ASR after a real-shaped failed attempt, preserves diagnostics and allows the existing new conversion",async()=>{
+  let request="";let currentJob="";
+  installFixture(async(op,payload)=>{
+   if(op==="capabilities_list")return {};
+   if(op==="job_enqueue"){currentJob=String((payload.body as Record<string,unknown>).job_id);return {job_id:currentJob};}
+   if(op==="job_execute"){request=String(payload.request_id);return {};}
+   if(op==="jobs_get")return {state:"failed",error:JSON.stringify(asrModelFailure({job_id:currentJob,request_id:request,attempt:1}))};
+   return {};
+  });
+  render(<JobContent sourceId="src_asr_missing" name="speech.wav" sourceRevision={"a".repeat(64)}/>);
+  await userEvent.setup().click(screen.getByRole("button",{name:"执行真实语音转写"}));
+  const notice=await screen.findByRole("region",{name:"语音转写组件恢复指引"});
+  expect(notice).toHaveTextContent("缺少语音转写模型");
+  expect(notice).toHaveTextContent("原件已保留");
+  expect(notice).toHaveTextContent("当前界面没有语音模型目录选择器");
+  expect(notice).not.toHaveTextContent("C:/registered/asr");
+  const diagnostics=renderHook(useDiagnostics);
+  await userEvent.setup().click(screen.getByRole("button",{name:"查看语音组件诊断：语音转写模型缺失诊断"}));
+  expect(diagnostics.result.current.some(entry=>entry.label==="语音转写模型缺失诊断"&&JSON.stringify(entry.payload).includes("ASR model directory not found"))).toBe(true);
+  await waitFor(()=>expect(screen.getByRole("button",{name:"执行真实语音转写"})).toBeEnabled());
+  expect(screen.queryByLabelText("Core 提取正文")).not.toBeInTheDocument();
+  expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);
+  expect(bridge.call.mock.calls.some(([op])=>op==="job_output")).toBe(false);
+ });
+ it("reads a persisted missing-model failure without executing another conversion",async()=>{
+  const failed={job_id:"saved_asr",kind:"transcribe",input_ref:"src_asr_missing",state:"failed",attempt:1,error:JSON.stringify(asrModelFailure({job_id:"saved_asr",request_id:"persisted_saved_asr",attempt:1}))};
+  installFixture(async(op)=>op==="source_jobs"?{source_id:"src_asr_missing",jobs:[failed],jobs_capped:false}:{});
+  render(<JobContent sourceId="src_asr_missing" name="speech.wav" sourceRevision={"a".repeat(64)}/>);
+  expect(await screen.findByRole("region",{name:"语音转写组件恢复指引"})).toHaveTextContent("缺少语音转写模型");
+  expect(bridge.call.mock.calls.some(([op])=>["job_execute","job_enqueue"].includes(op))).toBe(false);
+ });
  it.each([["sample.png","image","执行真实内容转换"],["sample.zip","archive","清点容器与登记成员"],["sample.tar","archive","清点容器与登记成员"],["sample.canvas","canvas","执行真实内容转换"],["sample.srt","subtitles","执行真实内容转换"],["sample.xml","text","执行真实内容转换"],["sample.py","text","执行真实内容转换"],["sample.wav","media","执行媒体头信息探测"],["sample.mp4","media","执行媒体头信息探测"]])("routes existing %s worker without claiming unexecuted success",async(name,kind,label)=>{
   installFixture(async(op:string,payload:Record<string,unknown>)=>{
    if(op==="job_enqueue")return {job_id:(payload.body as Record<string,unknown>).job_id};

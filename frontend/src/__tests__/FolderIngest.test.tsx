@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { FolderIngest } from "../components/FolderIngest";
 import { DiagnosticConsole } from "../components/DiagnosticConsole";
 import { resetDiagnostics } from "../presentation/diagnostics";
+import { asrModelFailure } from "./fixtures/asrModelFailure";
 import { ApiError, type JobAdmissionRefusal } from "../api/client";
 import { createHash, webcrypto } from "node:crypto";
 
@@ -407,7 +408,7 @@ describe("folder ingest", () => {
       job_id:current.job_id,attempt:current.attempt,protocol_minor:0,status:"failed",outputs:[],measurements:{},warnings:[],
       error:{code:"AAK-WORKER-003",message:"File is not a zip file",retryable:false}};
   }
-  async function runDocxFailure(change: (result: ReturnType<typeof nativeDocxFailure>) => void = () => {}) {
+  async function runDocxFailure(change: (result: ReturnType<typeof nativeDocxFailure>) => void = () => {}, filename = "broken.docx") {
     executionState="failed";
     let raw="";
     bridge.call.mockImplementation(async(op:string,p:Record<string,unknown>)=>{
@@ -418,11 +419,27 @@ describe("folder ingest", () => {
       }
       return value;
     });
-    upload([picked("册/broken.docx")]);
+    upload([picked(`册/${filename}`)]);
     fireEvent.click(await screen.findByRole("button",{name:"执行本批次转换"}));
     await screen.findByText("失败待处理",{exact:true});
-    return {row:screen.getByText("broken.docx",{exact:true}).closest("tr")!,raw};
+    return {row:screen.getByText(filename,{exact:true}).closest("tr")!,raw};
   }
+  it("SIMULATED missing ASR component explains recovery, opens exact diagnostics and retains guarded retry",async()=>{
+    const {row,raw}=await runDocxFailure(result=>{result.error.message=asrModelFailure({job_id:"fixture",request_id:"fixture",attempt:1}).error.message;},"speech.wav");
+    expect(row).toHaveTextContent("缺少语音转写模型，本次转写未完成。");
+    expect(row).toHaveTextContent("原件已保留");
+    expect(row).toHaveTextContent("无需重新导入原件");
+    expect(row).toHaveTextContent("应用不会自动下载模型");
+    expect(row).not.toHaveTextContent("C:/registered/asr");
+    expect(within(row).getByRole("button",{name:"读取转换状态"})).toBeEnabled();
+    expect(within(row).getByRole("button",{name:"重试失败项（新请求）"})).toBeEnabled();
+    const diagnostics=render(<DiagnosticConsole/>);
+    fireEvent.click(within(row).getByRole("button",{name:"查看语音组件诊断：语音转写模型缺失诊断"}));
+    await waitFor(()=>expect(diagnostics.container.querySelector("pre")).not.toBeNull());
+    expect(JSON.parse(diagnostics.container.querySelector("pre")!.textContent!).error).toBe(raw);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="job_execute")).toHaveLength(1);
+    expect(bridge.call.mock.calls.filter(([op])=>op==="ingest_member_import")).toHaveLength(1);
+  });
   it("SIMULATED native bad-DOCX failure has a readable neutral summary while diagnostics retain the exact worker error",async()=>{
     const {row,raw}=await runDocxFailure();
     expect(row).toHaveTextContent("文档结构无法读取，请检查文件格式或文件是否损坏。");

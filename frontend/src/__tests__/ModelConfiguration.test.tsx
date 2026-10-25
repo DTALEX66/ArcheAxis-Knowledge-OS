@@ -9,6 +9,34 @@ const configuration={schema:"archeaxis.model-configuration/v1",workspace_id:"a".
 beforeEach(()=>{bridge.call.mockReset();});
 afterEach(()=>vi.unstubAllGlobals());
 
+it("opens the actual material DEEP binding without rewriting its old budget, then saves only the explicit budget edit",async()=>{
+ const initial={...configuration,profiles:{unrelated:profile,deep:{...profile,model:"deep-model",endpoint:"http://127.0.0.1:1234/v1/",max_tokens:2048}},bindings:[...configuration.bindings,{purpose:"material",lane:"deep",profile_id:"deep"},{purpose:"companion",lane:"deep",profile_id:"deep"}]};
+ bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:4});
+ const user=userEvent.setup();render(<ModelConfigurationPanel materialBudgetLane="deep"/>);
+ expect(await screen.findByLabelText("最大输出 token")).toHaveValue(2048);
+ expect(screen.getByText(/当前配置：deep；模型：deep-model；已保存预算：2048/)).toBeInTheDocument();
+ expect(screen.getByRole("button",{name:"保存材料输出预算"})).toBeDisabled();
+ expect(bridge.call.mock.calls.every(c=>c[0]==="model_configuration_get")).toBe(true);
+ await user.clear(screen.getByLabelText("最大输出 token"));await user.type(screen.getByLabelText("最大输出 token"),"4096");
+ expect(bridge.call.mock.calls.some(c=>c[0]==="model_configuration_put")).toBe(false);
+ await user.click(screen.getByRole("button",{name:"保存材料输出预算"}));await screen.findByText(/请回到材料问答点击/);
+ const write=bridge.call.mock.calls.find(c=>c[0]==="model_configuration_put")![1].body;
+ expect(write).toEqual({expected_revision:3,configuration:{...initial,profiles:{...initial.profiles,deep:{...initial.profiles.deep,max_tokens:4096}}}});
+ expect(bridge.call.mock.calls.every(c=>["model_configuration_get","model_configuration_put"].includes(c[0]))).toBe(true);
+});
+
+it("follows a changed material budget lane and ignores its stale read without creating an unbound profile",async()=>{
+ let oldRead!:(value:unknown)=>void;
+ const initial={...configuration,profiles:{fast:{...profile,max_tokens:1024}},bindings:[{purpose:"material",lane:"fast",profile_id:"fast"}]};
+ bridge.call.mockImplementationOnce(()=>new Promise(resolve=>{oldRead=resolve;})).mockResolvedValue(initial);
+ const view=render(<ModelConfigurationPanel materialBudgetLane="deep"/>);view.rerender(<ModelConfigurationPanel materialBudgetLane="fast"/>);
+ expect(await screen.findByLabelText("最大输出 token")).toHaveValue(1024);
+ oldRead({...initial,profiles:{deep:{...profile,max_tokens:2048}},bindings:[{purpose:"material",lane:"deep",profile_id:"deep"}]});
+ await waitFor(()=>expect(screen.getByText(/当前配置：fast/)).toBeInTheDocument());
+ view.rerender(<ModelConfigurationPanel materialBudgetLane="deep"/>);await screen.findByText(/当前材料通道尚未绑定有效模型/);
+ expect(screen.queryByLabelText("最大输出 token")).toBeNull();expect(bridge.call.mock.calls.every(c=>c[0]==="model_configuration_get")).toBe(true);
+});
+
 it("generates a two-model draft from live inventory and saves eight missing lanes through the original CAS",async()=>{
  const initial={...configuration,revision:0,profiles:{},bindings:[]};
  bridge.call.mockImplementation(async(op:string,p:any)=>op==="model_configuration_get"?initial:{...p.body.configuration,revision:1});
