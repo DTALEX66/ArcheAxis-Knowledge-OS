@@ -1847,9 +1847,9 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 | J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
 | J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | `webdriver-14c04460806a`；同一重建候选上完成回答、工程纠正、复测、恢复学习与恢复后授权拒绝；质量未独立评测 |
 | J5 扩展链 | PASS（按实际宣称形态；插件／技能／MCP 明确未实现，不计入宣称） | 内置引擎有真实任务消费者（`desktop-fast` 的 Office／PDF／OCR／语音／视频任务）；模板形态由 `crates/archeaxis-api/tests/template_lifecycle.rs` 在真实 Core HTTP/store 上完成能力中心发现→安装／启用／停用／更新／回退／卸载／重装→旧文档、知识、学习事件重启后仍可访问；UI 明示“插件、技能与 MCP 是接入形式；当前目录不提供未经实现的安装或执行操作”，未把它们列为已支持能力 |
-| J6 安装与可靠性 | PARTIAL（安装与当前安装态业务 PASS） | 当前重建安装器在无网络 Sandbox 完成安装→启动→数据库→卸载，并完成原生文档三路冲突/保存/恢复/Host 重启→卸载，installer/native/uninstaller 均 exit 0；未做跨版本升级/回滚、exact-SHA CI／Owner 验收；公共发布与真实数据覆盖未授权 |
+| J6 安装与可靠性 | PARTIAL（安装、当前安装态业务、安装器载荷媒体 UI PASS） | 当前重建安装器在无网络 Sandbox 完成安装→启动→数据库→卸载，并完成原生文档三路冲突/保存/恢复/Host 重启→卸载；同一绿色检查点的安装器载荷完成 AV 原生界面导入→播放器→转写→时间引用→重启回读；exact-SHA CI 已 PASS；未做跨版本升级/回滚与 Owner 验收；公共发布与真实数据覆盖未授权 |
 
-结论：当前源码族已在重建候选 Host `ca5fbfda` 上完成同一候选的 18 格式矩阵、原生人类 J1 14/14、公开研究→知识候选→学习整合链、AI 本地模型工程链与批量/检索/导出，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器（安装后 Host `eb268f29`）完成隔离安装、当前安装态业务与卸载；J5 已按实际宣称形态由真实 Core 模板生命周期测试与真实引擎任务消费者闭合，插件／技能／MCP 由产品界面明确标为未实现，不计入宣称。但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、安装态 AV 原生界面验收、J6 的跨版本升级/回滚。
+结论：当前源码族已在重建候选 Host `ca5fbfda` 上完成同一候选的 18 格式矩阵、原生人类 J1 14/14、公开研究→知识候选→学习整合链、AI 本地模型工程链与批量/检索/导出，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器（安装后 Host `eb268f29`）完成隔离安装、当前安装态业务与卸载；J5 已按实际宣称形态由真实 Core 模板生命周期测试与真实引擎任务消费者闭合，插件／技能／MCP 由产品界面明确标为未实现，不计入宣称。但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 Owner 验收、J6 的跨版本升级/回滚。
 
 ### 2026-10-25 Stitch 外壳门禁迁移与 exact-SHA CI（CI 全绿；Owner/发布未提升）
 
@@ -1893,4 +1893,8 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 浏览器门禁复跑：run 40165652378 的 `browser-smoke` 连续两次在 `.stitch-window-tools` 的“打开全局命令”上得到 `:focus-visible=false`。该控件位于工具条边界，原回退只按“Shift+Tab→Tab”一个方向寻找焦点；现改为两个方向各有界重试，仍要求真实 `:focus-visible` 与对比度 ≥3，不放宽断言。run 40167437800 的 `browser-smoke` 已通过，同一 run 的 `desktop-build` 也通过 `SemanticReadingLayout` 并进入 NSIS 构建；该次唯一失败是无关的 `public_research` 单元测试 PID 文件竞态。
 - Rust 门禁竞态：`cancellation_reaps_owned_process_and_rejects_late_output` 在 fixture 只创建 `research.pid`、尚未写入数字时读取并 `parse().unwrap()`，偶发 `ParseIntError { kind: Empty }`。修复为等待 PID 文件内容可解析后再使用，三个同类用例一起替换；断言不变。
 - 最终绿色检查点：run 40168290341（head 04b3aa2f）全部 required 作业 success：lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates；安装态 plain、conflict、grouped 三份旅程通过。该检查点同时包含 J5 模板生命周期真实 Core 测试、浏览器焦点双向重试与 PID 文件竞态修复。
-- 边界：以上属 PR 203 分支的工程资格，不是 Owner 验收、安装态 AV 原生界面验收、发布、Green 替换或跨版本升级/回退；J4 质量、CL-04/CL-05、云端真实推理仍为 PARTIAL／NOT_EXECUTED。
+- 安装候选下载：同一绿色检查点的 `release-candidate`（commit 4d1303be，installer SHA-256 `8aeac7a8…e146bf`、host `308ab36f…30bea0`、frontend `bbee79bd…cc0568`）经本机代理通道下载，三份产物哈希逐项匹配 `release-candidate.json`；安装器载荷中 `runtime/models/asr/faster-whisper-base/model.bin` 为 145,217,532 字节，SHA-256 `d01c3014…0a6a9`，与 `aaos-model.json` 和 `backend-runtime-manifest.json` 的 `asr_model.status=BUNDLED` 一致。
+- 安装器载荷媒体运行：用该载荷自带的 `runtime/python.exe` 与 `workers/media` 对离线 SAPI 语音执行 WAV 转写（4 个时间段、4 条原文、0 未定位、容差 400）与 MP4 视频作业（decode/asr succeeded、visual 因未授权说明而 failed、4 个时间段）；模型身份回执记录 `faster-whisper-base`、MIT、四个文件的逐项 SHA。回执 `.project-local/runs/installed-av-04b3aa2f/receipt.json`，SHA-256 `d9798b2c…de503c`。
+- 安装器载荷原生 AV 界面：以 Playwright 连接该载荷 Host 的 WebView2（Edg/155.0.4283.62）并驱动真实控件：导入 `speech.wav`（448,968 字节）→ 媒体播放器渲染 → 点击“整体执行”完成转写 → 4 个时间段与预期短语一致、0 未定位、损失回执含 VAD 说明 → 点击“引用时间段”得到“时间与转写回执关联已校验” → 关闭 Host 后在同一隔离数据根重启，重新打开来源仍读回持久化转写与播放器。回执 `.project-local/runs/installed-av-04b3aa2f/ui-receipt.json`，SHA-256 `c7f6668f…512b7b`；截图 `ui-imported/ui-source-open/ui-transcribed/ui-time-anchor/ui-restarted.png`。
+- 安装边界：本机没有再次运行 NSIS 安装，以免覆盖用户已有的 ArcheAxis 安装与工作区；使用的是同一安装器载荷解包目录。同一候选的 NSIS 安装→启动→卸载生命周期已由 run 40168290341 的 `installer-lifecycle` 证明。识别忠实度、云端推理与 Owner 人工验收仍分别记账。
+- 边界：以上属 PR 203 分支的工程资格，不是 Owner 验收、发布、Green 替换或跨版本升级/回退；J4 质量、CL-04/CL-05、云端真实推理仍为 PARTIAL／NOT_EXECUTED。
