@@ -1922,5 +1922,6 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 安装器：`src-tauri/tauri.conf.json` 的 NSIS `compression` 从 `zlib` 改为 Tauri 默认的 `lzma`。实际安装器体积与新载荷成员必须由新一轮 `desktop-build`／`installer-lifecycle` 产物读回，本地不伪造。
 - 许可披露：`THIRD_PARTY_NOTICES.md` 增加 PyMuPDF/MuPDF AGPL-3.0（或 Artifex 商业许可）条目及分发义务说明；`SUPPLY_CHAIN_LEDGER.json` 新增 A055，组件数 56、CURRENT 18。替换试点（pypdfium2 + pdfplumber）只登记在审计报告，未执行。
 - 环境登记：`config/environment/capability-requirements.yaml` 的 RapidOCR 用途与版本识别文本改为 `importlib.metadata.version`（该包没有 `__version__`），并注明中英回退边界。探针字段仍沿用既有 `version_attribute` 合同，字段级改造未在本切片执行。
+- 依赖哈希联动：`uv.lock`／`pyproject.toml` 变化同步更新 `app/release-manifest.json`（digest 新值，revision 8→9）、`docs/current/AAOS-RESOURCE-QUALIFICATION-20261010.json` 的 source_refs 与生成的 `frontend/src/api/generated/resource-catalog.ts`。`release-manifest` 35 项与资源目录 drift check 通过；否则 lint 会在 `generate_resource_catalog.py --check` 处以 `Qualification source drift: uv.lock` 失败。
 - 文档纠偏：`services/python-workers/README.md` 更新 OCR 引擎为“Tesseract / RapidOCR 回退”，并把扫描 PDF 逐页路线的“未接线”旧描述改为当前事实；广告/正文分离仍按后续 slice 保留。
 - 边界：本切片不改变 Owner 验收、云端真实推理、跨版本升级/回退、CL-04/CL-05 延期范围或 J4 独立质量结论，总体仍为 **PARTIAL**。新提交的 exact-SHA CI 由后续会话读取；在取得绿色结果前，代码检查点仍是 04b3aa2f（run 40168290341）。
