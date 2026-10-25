@@ -71,6 +71,34 @@ def _ffmpeg() -> str:
     return binary
 
 
+def _media_decode():
+    """The bundled PyAV decoder, loaded beside this worker (workers run as plain scripts)."""
+    path = Path(__file__).resolve().with_name("media_decode.py")
+    spec = importlib.util.spec_from_file_location("video_media_decode", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("media_decode.py is missing beside this worker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _decode_engine() -> dict:
+    """The decoder this run will use: a resolved ffmpeg binary, else the runtime's PyAV.
+
+    An installed product has no system ffmpeg; the runtime does ship PyAV (it is a
+    dependency of the ASR engine) with its own FFmpeg libraries, so a video can be decoded
+    without fetching or installing anything at run time.
+    """
+    try:
+        return {"kind": "ffmpeg", "binary": _ffmpeg()}
+    except RuntimeError as error:
+        module = _media_decode()
+        if module.available():
+            return {"kind": "pyav", **module.identity()}
+        raise RuntimeError(
+            "no decoder available: no ffmpeg binary resolved and PyAV is not installed") from error
+
+
 def probe() -> dict:
     # A probe reports whether the engine is available; it must not crash when it is not.
     # Resolution can also fail because the declaration itself cannot be read, and that is a
@@ -78,22 +106,30 @@ def probe() -> dict:
     # raised. The fail-closed reading belongs to extraction, where a wrong answer costs a
     # conversion rather than a diagnostic.
     try:
-        binary = _declared_path("ffmpeg") or shutil.which("ffmpeg")
+        engine = _decode_engine()
     except Exception as exc:  # noqa: BLE001 - a probe reports, it does not raise
         return {"capability": False, "reason": f"{type(exc).__name__}: {exc}",
                 "engine": ENGINE, "resolution_failed": True}
-    if not binary:
-        return {"capability": False, "reason": "ffmpeg not found", "engine": ENGINE}
+    if engine["kind"] == "pyav":
+        return {
+            "capability": True,
+            "engine": ENGINE,
+            "decoder": engine,
+            "formats": sorted(SUPPORTED),
+            "note": "audio WAV + sampled keyframes through the bundled PyAV decoder; "
+                    "ASR/OCR/VL are separate lanes",
+        }
     try:
         version = subprocess.run(
-            [binary, "-version"], capture_output=True, text=True, timeout=20
+            [engine["binary"], "-version"], capture_output=True, text=True, timeout=20
         ).stdout.splitlines()[0]
     except Exception:  # noqa: BLE001
         version = "unknown"
     return {
         "capability": True,
         "engine": ENGINE,
-        "ffmpeg": binary,
+        "decoder": {"kind": "ffmpeg", "binary": engine["binary"]},
+        "ffmpeg": engine["binary"],
         "version": version,
         "formats": sorted(SUPPORTED),
         "note": "audio WAV + sampled keyframes only; ASR/OCR/VL are separate lanes",
@@ -122,7 +158,10 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _probe_duration(binary: str, input_path: Path, timeout_s: float = 60) -> int:
+def _probe_duration(binary: str | None, input_path: Path, timeout_s: float = 60) -> int:
+    if not binary:
+        # No declared binary: the bundled decoder measures the container it will decode.
+        return _media_decode().duration_ms(str(input_path))
     probe = Path(binary).with_name("ffprobe.exe" if Path(binary).suffix.lower() == ".exe" else "ffprobe")
     if probe.is_file():
         result = subprocess.run(
@@ -198,7 +237,8 @@ def _asr_audio_path(path: Path) -> tuple[Path, Path | None]:
 
 
 def extract(input_path: Path, out_dir: Path, frame_interval_ms: int, max_frames: int, *, deadline: float | None = None, known_duration_ms: int | None = None) -> dict:
-    binary = _ffmpeg()
+    engine = _decode_engine()
+    binary = engine.get("binary")
     if not _long(input_path).is_file():
         raise ValueError(f"input video file not found: {input_path}")
     if input_path.suffix.lower() not in SUPPORTED:
@@ -207,24 +247,39 @@ def extract(input_path: Path, out_dir: Path, frame_interval_ms: int, max_frames:
 
     audio_wav = out_dir / "audio-16k-mono.wav"
     decode_errors = []
-    try:
-        audio_proc = subprocess.run(
-            [
-                binary, "-y", "-i", str(input_path),
-                "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le",
-                str(audio_wav),
-            ],
-            capture_output=True,
-            text=True,
-            errors="replace",
-            timeout=_remaining(deadline, 600),
-        )
-        audio_available = audio_proc.returncode == 0 and _long(audio_wav).is_file()
-        if not audio_available:
-            decode_errors.append({"stage": "audio", "reason": "audio_track_unavailable_or_decode_failed"})
-    except (subprocess.TimeoutExpired, TimeoutError):
-        audio_available = False
-        decode_errors.append({"stage": "audio", "reason": "audio_decode_timeout"})
+    if engine["kind"] == "ffmpeg":
+        try:
+            audio_proc = subprocess.run(
+                [
+                    binary, "-y", "-i", str(input_path),
+                    "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le",
+                    str(audio_wav),
+                ],
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=_remaining(deadline, 600),
+            )
+            audio_available = audio_proc.returncode == 0 and _long(audio_wav).is_file()
+            if not audio_available:
+                decode_errors.append({"stage": "audio", "reason": "audio_track_unavailable_or_decode_failed"})
+        except (subprocess.TimeoutExpired, TimeoutError):
+            audio_available = False
+            decode_errors.append({"stage": "audio", "reason": "audio_decode_timeout"})
+    else:
+        try:
+            _media_decode().extract_window(
+                str(input_path), str(audio_wav), 0, None, deadline=deadline)
+            audio_available = _long(audio_wav).is_file()
+            if not audio_available:
+                decode_errors.append({"stage": "audio", "reason": "audio_track_unavailable_or_decode_failed"})
+        except TimeoutError:
+            audio_available = False
+            decode_errors.append({"stage": "audio", "reason": "audio_decode_timeout"})
+        except Exception as exc:  # noqa: BLE001 - an undecodable track is reported, not guessed at
+            audio_available = False
+            decode_errors.append({"stage": "audio", "reason": "audio_track_unavailable_or_decode_failed",
+                                  "error_type": type(exc).__name__})
 
     duration_ms = known_duration_ms if known_duration_ms is not None else _probe_duration(binary, input_path, _remaining(deadline, 60))
 
@@ -241,24 +296,41 @@ def extract(input_path: Path, out_dir: Path, frame_interval_ms: int, max_frames:
     frames: list[dict] = []
     for frame_index, offset_ms in enumerate(timestamps_ms):
         frame_path = out_dir / f"frame-{frame_index:03d}-{offset_ms}ms.jpg"
-        try:
-            frame_proc = subprocess.run(
-                [
-                    binary, "-y", "-ss", f"{offset_ms / 1000:.3f}", "-i", str(input_path),
-                    "-frames:v", "1", "-q:v", "3", str(frame_path),
-                ],
-                capture_output=True,
-                text=True,
-                errors="replace",
-                timeout=_remaining(deadline, 120),
-            )
-        except (subprocess.TimeoutExpired, TimeoutError):
-            frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_timeout"})
-            continue
-        if frame_proc.returncode != 0 or not _long(frame_path).is_file():
-            frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_failed"})
-            continue
-        frames.append({"offset_ms": offset_ms, "sampling_seek_requested_ms": offset_ms, "actual_pts_ms": None, "timing_precision": "approximate", "path": str(frame_path), "sha256": _sha256(frame_path)})
+        if engine["kind"] == "ffmpeg":
+            try:
+                frame_proc = subprocess.run(
+                    [
+                        binary, "-y", "-ss", f"{offset_ms / 1000:.3f}", "-i", str(input_path),
+                        "-frames:v", "1", "-q:v", "3", str(frame_path),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=_remaining(deadline, 120),
+                )
+            except (subprocess.TimeoutExpired, TimeoutError):
+                frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_timeout"})
+                continue
+            if frame_proc.returncode != 0 or not _long(frame_path).is_file():
+                frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_failed"})
+                continue
+            actual_pts_ms, precision = None, "approximate"
+        else:
+            try:
+                grabbed = _media_decode().extract_frame(
+                    str(input_path), offset_ms, str(frame_path), deadline=deadline)
+            except TimeoutError:
+                frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_timeout"})
+                continue
+            except Exception as exc:  # noqa: BLE001
+                frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_failed",
+                                     "error_type": type(exc).__name__})
+                continue
+            if not _long(frame_path).is_file():
+                frame_errors.append({"sampling_seek_requested_ms": offset_ms, "reason": "frame_decode_failed"})
+                continue
+            actual_pts_ms, precision = grabbed["actual_pts_ms"], grabbed["timing_precision"]
+        frames.append({"offset_ms": offset_ms, "sampling_seek_requested_ms": offset_ms, "actual_pts_ms": actual_pts_ms, "timing_precision": precision, "path": str(frame_path), "sha256": _sha256(frame_path)})
 
     return {
         "engine": ENGINE,
@@ -274,6 +346,7 @@ def extract(input_path: Path, out_dir: Path, frame_interval_ms: int, max_frames:
             "params": {
                 "frame_interval_ms": frame_interval_ms,
                 "max_frames": max_frames,
+                "decoder": engine["kind"],
                 "ffmpeg": binary,
             },
             "loss_note": (
@@ -301,7 +374,7 @@ def extract_job(path: Path, out_dir: Path, model_path: str | None, language: str
     deadline = min(started + 270, request_deadline - 10) if request_deadline is not None else started + 270
     source_sha = _sha256(path)
     # Three uniformly spaced requests, not a claim of continuous understanding.
-    duration = _probe_duration(_ffmpeg(), path, _remaining(deadline, 60))
+    duration = _probe_duration(_decode_engine().get("binary"), path, _remaining(deadline, 60))
     if duration <= 0:
         raise ValueError("Decoded video duration is unavailable")
     interval = max(1, duration // 3)

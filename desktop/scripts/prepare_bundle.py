@@ -16,7 +16,57 @@ from scripts.runtime import dev as runtime_paths
 from scripts.runtime.build_timing import BuildTimings
 
 
-def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path) -> Path:
+def _load_tool_paths(repository: Path):
+    """The shared capability resolver, loaded by path (it is a worker-side module)."""
+    path = repository / "services" / "python-workers" / "tool_paths.py"
+    if not path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location("bundle_tool_paths", path)
+    if spec is None or spec.loader is None:
+        return None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def declared_asr_model(repository: Path) -> Path | None:
+    """The transcript model the capability declaration names on this host, or None.
+
+    Packaging copies an explicit donor. Resolving the declared one here is what makes the
+    canonical build ship a model without a second hardcoded path in the build script; a host
+    without it prints a named reason instead of producing a candidate that looks complete.
+    """
+    module = _load_tool_paths(repository)
+    if module is None:
+        print("asr model: tool_paths.py is missing; this candidate ships no transcript model",
+              file=sys.stderr)
+        return None
+    try:
+        resolved = module.tool_path("faster-whisper-base")
+    except Exception as exc:  # noqa: BLE001 - a build reports what it could not resolve
+        print(f"asr model: the declared donor did not resolve ({type(exc).__name__}: {exc}); "
+              "this candidate ships no transcript model", file=sys.stderr)
+        return None
+    return Path(resolved)
+
+
+def asr_model_name(donor: Path) -> str:
+    """The directory name the model is bundled under, from an HF cache layout when it has one.
+
+    A Hugging Face snapshot directory is named by commit sha; the model's own name is in the
+    cache entry above it. Using the sha as the bundled name would make the identity unreadable
+    and defeat the worker's preference order.
+    """
+    for part in reversed(donor.parts):
+        if part.startswith("models--"):
+            pieces = [piece for piece in part[len("models--"):].split("--") if piece]
+            if pieces:
+                return pieces[-1]
+    return donor.name
+
+
+def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path,
+                              asr_model: Path | None = None) -> Path:
     """Prepare locked Python, then delegate the complete layout to the authority."""
     repository = repository.resolve()
     destination = destination.resolve()
@@ -27,14 +77,18 @@ def prepare_backend_candidate(*, repository: Path, destination: Path, core: Path
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repository, text=True).strip()
     tree = subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], cwd=repository, text=True).strip()
     version = json.loads((repository / "frontend/package.json").read_text(encoding="utf-8"))["version"]
-    subprocess.run([
+    command = [
         sys.executable, "-B", str(repository / "scripts/release/stage_backend_runtime.py"),
         "--core", str(core.resolve()), "--runtime", str(staged_python.parent),
         "--workers", str(repository / "services/python-workers"),
         "--shared", str(repository / "shared/learning_scheduler.py"),
         "--out", str(destination), "--version", version,
         "--source-commit", commit, "--source-tree", tree,
-    ], cwd=repository, check=True)
+    ]
+    if asr_model is not None:
+        command += ["--asr-model", str(Path(asr_model).resolve()),
+                    "--asr-model-name", asr_model_name(Path(asr_model))]
+    subprocess.run(command, cwd=repository, check=True)
     clear_cached_bundle_resources(repository=repository)
     return destination / "runtime/python.exe"
 
@@ -261,6 +315,9 @@ def main() -> int:
                         help="workers tree to place beside the runtime")
     parser.add_argument("--candidate-root", type=Path,
                         help="candidate root holding the worker profile and launcher files")
+    parser.add_argument("--asr-model", type=Path,
+                        help="explicit transcript model directory to bundle inside runtime/models/asr; "
+                             "defaults to the model the capability declaration names")
     args = parser.parse_args()
     if args.workers is not None and args.core is None:
         parser.error("--workers requires --core")
@@ -272,7 +329,9 @@ def main() -> int:
     if args.backend_candidate:
         if args.core is None or args.repository is None or args.core_only:
             parser.error("--backend-candidate requires --repository and --core, without --core-only")
-        print(prepare_backend_candidate(repository=args.repository, destination=destination, core=args.core))
+        print(prepare_backend_candidate(
+            repository=args.repository, destination=destination, core=args.core,
+            asr_model=args.asr_model or declared_asr_model(args.repository.resolve())))
         return 0
     # Placing the Core beside an already-prepared runtime must not reinstall the runtime:
     # the install resolves and builds the whole locked dependency set, and a packaging step

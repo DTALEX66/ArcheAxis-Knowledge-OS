@@ -90,6 +90,43 @@ Magika is © Google LLC, licensed under the Apache License 2.0. The full
 license text is preserved alongside the model; inference code is
 `shared/file_detection.py` (pure Python, no magika pip dependency).
 
+## Bundled speech-to-text model and media decoder (2026-10-25)
+
+The packaged Windows candidate ships one transcript model inside its own runtime, so an
+installed machine can transcribe an MP4/MP3 without a model library, an environment variable
+or a first-run download. `scripts/release/stage_backend_runtime.py` copies an explicit donor
+directory to `runtime/models/asr/<name>/` (a `runtime/` bundle resource), records every file's
+SHA-256 in `backend-runtime-manifest.json`, and writes `aaos-model.json` beside the weights.
+`services/python-workers/media/worker_transcribe.py` discovers that directory before it
+consults any machine-level declaration; when no model is present it fails by name.
+
+| Component | Version | License | Bundled location |
+|---|---|---|---|
+| Systran `faster-whisper-base` CTranslate2 weights (`model.bin`, `config.json`, `tokenizer.json`, `vocabulary.txt`) | base (upstream snapshot `ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66`) | MIT per the upstream model card; the weights are not relicensed by this repository | `runtime/models/asr/faster-whisper-base/` |
+| faster-whisper (runtime code) | 1.2.1 | MIT | `runtime/Lib/site-packages/faster_whisper/` |
+| CTranslate2 (runtime code) | 4.8.1 | MIT | `runtime/Lib/site-packages/ctranslate2/` |
+| PyAV (bundled media decoder code) | 18.0.0 | BSD-3-Clause | `runtime/Lib/site-packages/av/` |
+| FFmpeg shared libraries inside the PyAV wheel (`avcodec`/`avformat`/`avutil`/`avfilter`/`avdevice` 8.1.2 and their codec libraries in `av.libs/`) | 8.1.2 | LGPL-2.1-or-later (`libmp3lame`, `libopus`, `libdav1d`, `libiconv` are their own licences; no GPL component is listed in the wheel's `av.libs`) | `runtime/Lib/site-packages/av.libs/` |
+
+Weights measured on this host before packaging (bytes / SHA-256): `model.bin` 145,217,532 /
+`d01c3014881c9c6f3133c182f3d2887eb6ca1c789a7538c5c007196857a0a6a9`; `tokenizer.json`
+2,203,239 / `fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab`;
+`vocabulary.txt` 459,861 / `34ce3fe1c5041027b3f8d42912270993f986dbc4bb34cf27f951e34a1e453913`;
+`config.json` 2,309 / `56a6d8110d311f19c8f0471e562832c7527f146b567275bfca59fcf7c184da9a`.
+The donor stays outside Git; only the built candidate carries a copy.
+
+The decoder is PyAV with the FFmpeg libraries it distributes. The project does **not** ship a
+system `ffmpeg.exe`: the only build available on this host is a GPLv3 full build (695 MB), which
+this repository may not redistribute, and an LGPL static build was not available offline. PyAV
+covers container demux and audio/video decode for the formats the media routes accept; a future
+LGPL `ffmpeg`/`ffprobe` pair can be added later as a declared app-local asset without changing
+the worker contract, which already prefers a resolved binary over the bundled decoder.
+
+Not bundled in this round: sherpa-onnx and the SenseVoice/segmentation/embedding ONNX assets
+(diarization lane), and a silero VAD ONNX (needed for anchors on SenseVoice output). The
+diarization worker already reports the exact missing artefacts by name.
+
+
 ## 2026-08-11 上游许可纠错与补充
 
 ## 2026-10-07 AAOS UI adapters

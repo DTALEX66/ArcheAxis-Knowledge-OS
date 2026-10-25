@@ -513,6 +513,21 @@ def _as_route_contract(result: dict, route_capability: str) -> dict:
     return {**result, "structure": anchors, "loss_receipt": receipt}
 
 
+def _pyav_decoder_available() -> bool:
+    """Whether the runtime ships its own decoder, used when no ffmpeg binary is declared.
+
+    The installed product has no system ffmpeg; PyAV is a dependency of the ASR engine and
+    carries FFmpeg libraries inside the runtime. Splitting a long recording is a decode, so
+    the same rule applies here as in the worker: a declared binary when there is one, the
+    runtime's own decoder otherwise. A caller-named binary is still refused.
+    """
+    try:
+        import av  # noqa: F401
+    except Exception:  # noqa: BLE001 - absence is the answer, not an error
+        return False
+    return True
+
+
 def declared_split(capability: str, parameters) -> dict | None:
     """The split this job asks for, or None.
 
@@ -550,8 +565,12 @@ def declared_split(capability: str, parameters) -> dict | None:
     # of `capability-requirements.yaml` rather than a second one in the Core.
     ffmpeg = _declared_tool_path("ffmpeg")
     if ffmpeg is None:
-        raise Rejected("no declared ffmpeg resolved for a split transcription")
-    return {"ffmpeg": str(ffmpeg).strip(), "staging": staging}
+        if not _pyav_decoder_available():
+            raise Rejected(
+                "no declared ffmpeg resolved for a split transcription and the runtime "
+                "decoder (PyAV) is not installed")
+        return {"ffmpeg": None, "decoder": "pyav", "staging": staging}
+    return {"ffmpeg": str(ffmpeg).strip(), "decoder": "ffmpeg", "staging": staging}
 
 
 def _run_route(route, source: Path, media_type: str, artifact_root: Path | None = None, deadline: float | None = None,

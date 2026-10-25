@@ -40,6 +40,21 @@ CAPABILITY = "media.transcribe"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_MODEL_DIR = PROJECT_ROOT.parent / "Model library" / "whisper" / "faster-whisper-large-v3-turbo"
 
+# The model a packaged product ships beside its own interpreter. `stage_backend_runtime.py`
+# copies it to `runtime/models/asr/<name>/`, which travels with the `runtime/` bundle
+# resource, so an installed machine needs no model library, no environment variable and no
+# download. Preference order is quality-first: a build that ships a larger model uses it,
+# and a build that ships only `base` uses that.
+BUNDLED_MODEL_RELATIVE = Path("runtime") / "models" / "asr"
+BUNDLED_MODEL_PREFERENCE = (
+    "faster-whisper-large-v3-turbo",
+    "faster-whisper-small",
+    "faster-whisper-base",
+    "faster-whisper-tiny",
+)
+MODEL_IDENTITY_FILE = "aaos-model.json"
+
+
 
 def _load_tool_paths():
     """The shared resolver, loaded from this worker's own tree.
@@ -102,48 +117,144 @@ def _root_derived_model_dir() -> Path | None:
     return None
 
 
-def _model_dir(path: str | None) -> Path:
-    # Precedence: explicit argument, operator override, declaration, root-derived
-    # sibling, then the layout-derived default.
+def _bundled_model_dirs() -> list[Path]:
+    """Model directories shipped with this runtime, best first.
+
+    The runtime root is derived from the worker's own file, so both layouts resolve: a staged
+    product (`<root>/workers/media/worker_transcribe.py` -> `<root>/runtime/models/asr`) and
+    the source tree (`services/python-workers/media/` -> an absent `services/runtime`).
+    """
+    root = Path(__file__).resolve().parents[2] / BUNDLED_MODEL_RELATIVE
+    if not root.is_dir():
+        return []
+    order = {name: index for index, name in enumerate(BUNDLED_MODEL_PREFERENCE)}
+    found = [path for path in root.iterdir()
+             if path.is_dir() and (path / "model.bin").is_file()]
+    return sorted(found, key=lambda path: (order.get(path.name, len(order)), path.name))
+
+
+def _model_identity(directory: Path) -> dict | None:
+    """The identity the packaging step wrote beside a bundled model, when one is there."""
+    record = directory / MODEL_IDENTITY_FILE
+    if not record.is_file():
+        return None
+    try:
+        document = json.loads(record.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return document if isinstance(document, dict) else None
+
+
+def _resolve_model(path: str | None) -> tuple[Path, str]:
+    """The model directory and where it came from.
+
+    Precedence: explicit argument, operator override, the model shipped in this product, the
+    declaration, the declared sibling library, then the layout-derived default. The bundled
+    model is tried before any machine-level declaration so an installed build does not depend
+    on a shared library that belongs to the build host.
+    """
     candidate: Path | None = Path(path) if path else None
+    source = "argument"
     if candidate is None:
         override = os.environ.get("ARCHEAXIS_ASR_MODEL_DIR", "").strip()
         if override:
             candidate = Path(override)
+            source = "override"
+    if candidate is None:
+        bundled = _bundled_model_dirs()
+        if bundled:
+            candidate = bundled[0]
+            source = "bundled"
     if candidate is None:
         declared_model = _declared_path("faster-whisper-large-v3-turbo")
         if declared_model:
             candidate = Path(declared_model)
+            source = "declaration"
     if candidate is None:
         candidate = _root_derived_model_dir()
+        source = "sibling_library"
     if candidate is None:
         candidate = DEFAULT_MODEL_DIR
+        source = "layout_default"
     if not candidate.is_dir():
-        raise ValueError(f"ASR model directory not found: {candidate} (set --model-dir)")
+        raise ValueError(
+            f"ASR model directory not found: {candidate} (set --model-dir; product-local "
+            f"location consulted: {Path(__file__).resolve().parents[2] / BUNDLED_MODEL_RELATIVE})")
     marker = candidate / "model.bin"
     if not marker.is_file():
         raise ValueError(f"ASR model directory has no model.bin: {candidate}")
-    return candidate
+    return candidate, source
+
+
+def _model_dir(path: str | None) -> Path:
+    return _resolve_model(path)[0]
 
 
 def probe(model_path: str | None) -> dict:
-    """Deterministic capability probe: dependency + model presence."""
+    """Deterministic capability probe: dependency + model presence + shipped identity."""
     try:
         import faster_whisper  # noqa: F401
     except ImportError:
         return {"capability": False, "reason": "faster-whisper not installed", "engine": ENGINE}
     try:
-        path = _model_dir(model_path)
+        path, source = _resolve_model(model_path)
     except ValueError as exc:
         return {"capability": False, "reason": str(exc), "engine": ENGINE}
+    identity = _model_identity(path)
     return {
         "capability": True,
         "engine": ENGINE,
         "model_dir": str(path),
         "model": path.name,
+        "model_source": source,
+        "model_identity": identity,
+        "decoder": _decoder_report(),
         "formats": ["wav", "mp3", "m4a", "flac"],
         "note": "probe checks dependency and model presence only; quality is measured per run (T07)",
     }
+
+
+def _media_decode():
+    """The bundled PyAV decoder, loaded beside this worker (workers run as plain scripts)."""
+    spec = importlib.util.spec_from_file_location(
+        "transcribe_media_decode", Path(__file__).resolve().with_name("media_decode.py"))
+    if spec is None or spec.loader is None:
+        raise RuntimeError("media_decode.py is missing beside this worker")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _decoder_report() -> dict:
+    """Which decoder this invocation would use, stated as a capability rather than a guess."""
+    declared = None
+    try:
+        declared = _declared_path("ffmpeg")
+    except Exception:  # noqa: BLE001 - a probe reports a resolution fault, it does not raise
+        declared = None
+    if declared and Path(declared).is_file():
+        return {"kind": "ffmpeg", "path": declared}
+    try:
+        return _media_decode().identity()
+    except Exception as exc:  # noqa: BLE001
+        return {"kind": "unavailable", "reason": f"{type(exc).__name__}: {exc}"}
+
+
+def _decode_engine(ffmpeg: str | None) -> dict:
+    """The decoder this run will actually use, or a named failure.
+
+    A declared binary always wins. When there is none - the installed product has no system
+    ffmpeg - the runtime's own PyAV decoder is used; it is the decoder `faster-whisper`
+    already depends on, so nothing is fetched or installed at run time.
+    """
+    if ffmpeg and Path(ffmpeg).is_file():
+        return {"kind": "ffmpeg", "binary": str(ffmpeg)}
+    module = _media_decode()
+    if module.available():
+        return {"kind": "pyav", **module.identity()}
+    raise ValueError(
+        f"no decoder available: declared ffmpeg does not exist ({ffmpeg!r}) and PyAV is not "
+        "installed in this runtime")
 
 
 def _segment_cues(model, path: str, language: str, word_timestamps: bool = False):
@@ -189,7 +300,7 @@ def extract(path: str, model_path: str | None, language: str, device: str,
             word_timestamps: bool = False) -> dict:
     from faster_whisper import WhisperModel
 
-    model_dir = _model_dir(model_path)
+    model_dir, model_source = _resolve_model(model_path)
     input_path = Path(path)
     if not input_path.is_file():
         raise ValueError(f"input media file not found: {input_path}")
@@ -235,6 +346,8 @@ def extract(path: str, model_path: str | None, language: str, device: str,
             "engine_version": ENGINE_VERSION,
             "params": {
                 "model": model_dir.name,
+                "model_source": model_source,
+                "model_identity": _model_identity(model_dir),
                 "language": language,
                 "device": device,
                 "compute_type": "int8",
@@ -263,17 +376,20 @@ def _window_module():
 
 
 def extract_windowed(path: str, model_path: str | None, language: str, device: str, plan: dict,
-                     ffmpeg: str, staging: str | None = None, work_dir: str | None = None,
+                     ffmpeg: str | None, staging: str | None = None, work_dir: str | None = None,
                      budget_ms: int | None = None,
                      word_timestamps: bool = False) -> dict:
     """Transcribe one bounded window of the recording, resuming windows already finished.
 
     The Core caps a job at 300 s, so the caller drives successive invocations. `window_transcribe`
     owns the plan arithmetic, the resume rules and the merge; this function owns the two things it
-    cannot: cutting the window with the declared ffmpeg binary and running the model on it. The
-    offsets come from the window's own start, so a citation always points into the recording.
+    cannot: cutting the window with a decoder and running the model on it. The offsets come from the
+    window's own start, so a citation always points into the recording.
+
+    The decoder is the declared ffmpeg binary when it exists, and the runtime's own PyAV decoder
+    when it does not - the installed product ships no system binary, and a window it cannot cut
+    would otherwise make every long recording untranscribable.
     """
-    import subprocess
     import tempfile
 
     from faster_whisper import WhisperModel
@@ -282,8 +398,7 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
     input_path = Path(path)
     if not input_path.is_file():
         raise ValueError(f"input media file not found: {input_path}")
-    if not Path(ffmpeg).is_file():
-        raise ValueError(f"declared ffmpeg path does not exist: {ffmpeg}")
+    engine = _decode_engine(ffmpeg)
 
     workspace = Path(work_dir) if work_dir else Path(tempfile.mkdtemp(prefix="archeaxis-window-"))
     workspace.mkdir(parents=True, exist_ok=True)
@@ -295,11 +410,20 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
         if not loaded:
             loaded.append(WhisperModel(str(_model_dir(model_path)), device=device, compute_type="int8"))
         target = workspace / f"window-{int(window['index']):04d}.wav"
-        command = windows.window_command(str(ffmpeg), str(input_path), int(window["start_ms"]),
-                                         int(window["end_ms"]), str(target))
-        finished = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
-        if finished.returncode != 0 or not target.is_file():
-            raise RuntimeError(f"ffmpeg failed for window {window['index']}: {finished.stderr[-200:]}")
+        if engine["kind"] == "ffmpeg":
+            import subprocess
+
+            command = windows.window_command(str(engine["binary"]), str(input_path),
+                                             int(window["start_ms"]), int(window["end_ms"]), str(target))
+            finished = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
+            if finished.returncode != 0 or not target.is_file():
+                raise RuntimeError(f"ffmpeg failed for window {window['index']}: {finished.stderr[-200:]}")
+            window_decode = {"kind": "ffmpeg"}
+        else:
+            window_decode = _media_decode().extract_window(
+                str(input_path), str(target), int(window["start_ms"]), int(window["end_ms"]))
+            if not target.is_file():
+                raise RuntimeError(f"decoder produced no audio for window {window['index']}")
         # The canonical whole-file receipt is produced for the window's own wav, so a window cannot
         # invent its own vocabulary: same engine, same loss receipt, same alignment rules.
         receipt = extract(str(target), model_path, language, device,
@@ -307,7 +431,7 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
         # Cues stay local to the window: merge_windows owns the offset onto the recording timeline,
         # and applying it here as well shifted every later window twice.
         return {"status": "succeeded", "cues": receipt["cues"], "text": receipt["text"],
-                "receipt": receipt}
+                "receipt": receipt, "window_decode": window_decode}
 
     merged = windows.run_windows(plan, per_window, staging, budget_ms)
     produced = next((item for item in merged["windows_detail"] if item.get("receipt")), None) if \
@@ -331,7 +455,8 @@ def extract_windowed(path: str, model_path: str | None, language: str, device: s
                  ("status", "windows_expected", "windows_present", "windows_missing", "windows_resumed", "note")},
         window_identity={"source": str(input_path),
                          "window_audio_ms": int(plan.get("window_audio_ms") or 0),
-                         "policy": plan.get("policy")},
+                         "policy": plan.get("policy"),
+                         "decoder": engine["kind"]},
     )
     return envelope
 
@@ -349,8 +474,9 @@ def _plan_module():
     return module
 
 
-def extract_split(path: str, model_path: str | None, language: str, device: str, ffmpeg: str,
-                  staging: str | None = None, remaining_ms: int | None = None,
+def extract_split(path: str, model_path: str | None, language: str, device: str,
+                  ffmpeg: str | None, staging: str | None = None,
+                  remaining_ms: int | None = None,
                   work_dir: str | None = None,
                   word_timestamps: bool = False) -> dict:
     """Transcribe a recording that cannot fit one job, by splitting it into bounded windows.
@@ -366,11 +492,14 @@ def extract_split(path: str, model_path: str | None, language: str, device: str,
     """
     windows = _window_module()
     planner = _plan_module()
-    if not Path(ffmpeg).is_file():
-        raise ValueError(f"declared ffmpeg path does not exist: {ffmpeg}")
+    engine = _decode_engine(ffmpeg)
     if not Path(path).is_file():
         raise ValueError(f"input media file not found: {path}")
-    duration_ms = windows.probe_duration_ms(str(ffmpeg), str(path))
+    if engine["kind"] == "ffmpeg":
+        duration_ms = windows.probe_duration_ms(str(engine["binary"]), str(path))
+    else:
+        # No declared binary: the runtime's own decoder measures the container it will decode.
+        duration_ms = _media_decode().duration_ms(str(path))
     plan = planner.plan_windows(duration_ms)
     # Opening the input, loading the model and writing the first window all happen outside the
     # per-window estimate, so that declared overhead is held back from the job's remaining time.
@@ -438,8 +567,9 @@ def main() -> int:
         print(json.dumps({"error": "usage: worker_transcribe.py <input-file> [options]"}))
         return 2
     if args.split:
-        if not args.ffmpeg:
-            print(json.dumps({"error": "--split requires --ffmpeg"}, ensure_ascii=False))
+        if not args.ffmpeg and not _media_decode().available():
+            print(json.dumps({"error": "--split requires --ffmpeg or the bundled PyAV decoder"},
+                             ensure_ascii=False))
             return 2
         try:
             out = extract_split(args.input, args.model_dir, args.language, args.device, args.ffmpeg,
@@ -450,8 +580,9 @@ def main() -> int:
         print(json.dumps(out, ensure_ascii=False))
         return 0
     if args.window_plan:
-        if not args.ffmpeg:
-            print(json.dumps({"error": "--window-plan requires --ffmpeg"}, ensure_ascii=False))
+        if not args.ffmpeg and not _media_decode().available():
+            print(json.dumps({"error": "--window-plan requires --ffmpeg or the bundled PyAV decoder"},
+                             ensure_ascii=False))
             return 2
         try:
             out = extract_windowed(args.input, args.model_dir, args.language, args.device,

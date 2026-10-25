@@ -132,8 +132,25 @@ class WindowParameterTests(unittest.TestCase):
 
     def test_a_split_without_a_declared_decoder_is_refused(self):
         self.transport._declared_tool_path = lambda name: None
+        self.transport._pyav_decoder_available = lambda: False
         with self.assertRaises(self.transport.Rejected):
             self.transport.execute(self.request(self.split()), self.staging)
+
+    def test_a_split_falls_back_to_the_bundled_decoder_and_names_no_binary(self):
+        """The installed product has no ffmpeg; the runtime's own decoder still carries the job.
+
+        Nothing from the request becomes a binary path: the fallback is a capability the runtime
+        ships, not a string the caller supplied.
+        """
+        log = self.staging / "pyav.jsonl"
+        os.environ["AAOS_WINDOW_FIXTURE_LOG"] = str(log)
+        self.addCleanup(lambda: os.environ.pop("AAOS_WINDOW_FIXTURE_LOG", None))
+        self.transport._declared_tool_path = lambda name: None
+        self.transport._pyav_decoder_available = lambda: True
+        self.transport.execute(self.request(self.split()), self.staging)
+        call = json.loads(log.read_text(encoding="utf-8").splitlines()[0])
+        self.assertEqual(call["kind"], "extract_split")
+        self.assertIsNone(call["ffmpeg"])
 
     def test_another_capability_still_refuses_any_parameter(self):
         with self.assertRaises(self.transport.Rejected):

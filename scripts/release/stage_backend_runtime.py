@@ -50,6 +50,15 @@ MANIFEST_SCHEMA = "archeaxis.backend-runtime/v1"
 TEXT_WORKER_RELATIVE = "workers/transport/text_ndjson.py"
 SCHEDULER_WORKER_RELATIVE = "workers/learning/worker_schedule.py"
 
+# The transcript model a candidate ships beside its own interpreter. It sits under `runtime/`
+# because that directory is already a declared bundle resource, so the model travels with the
+# interpreter instead of needing a second resource mapping, a machine-level model library or a
+# download on first use. `worker_transcribe.py` scans exactly this relative location.
+ASR_MODEL_ROOT = "runtime/models/asr"
+ASR_MODEL_IDENTITY = "aaos-model.json"
+ASR_MODEL_REQUIRED = ("model.bin", "config.json")
+ASR_MODEL_NAME = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
+
 # Capability -> worker scripts that implement it, in preference order, relative to
 # the staged root. Each of these workers advertises the capability itself and
 # refuses anything it did not advertise, so the Core can only dispatch a route that
@@ -218,6 +227,84 @@ def stage_app_local_vc_runtime(runtime: Path, root: Path) -> dict:
             "architecture": "x64", "source": "selected Python runtime",
             "members": observed, "install_locations": [".", "core/"],
             "maintenance": "Application publisher must update and redistribute these app-local files."}
+
+
+def asr_model_licence(name: str) -> dict:
+    """The licence identity asserted for a bundled transcript model.
+
+    Only a name whose upstream terms are known gets a licence claim. An unrecognised model is
+    recorded with `UNCONFIRMED` rather than inheriting another model's terms, so the notice and
+    the manifest cannot say "MIT" about weights nobody read a licence for.
+    """
+    if name.startswith("faster-whisper-"):
+        size = name[len("faster-whisper-"):]
+        return {
+            "code_license": "MIT",
+            "asset_license": f"MIT per the Systran/faster-whisper-{size} model card; the weights are "
+                             "not relicensed by this repository",
+            "source_url": f"https://huggingface.co/Systran/faster-whisper-{size}",
+            "evidence": "ASSERTED_FROM_MODEL_NAME",
+        }
+    return {
+        "code_license": "UNCONFIRMED",
+        "asset_license": "UNCONFIRMED",
+        "source_url": None,
+        "evidence": "NOT_READ",
+    }
+
+
+def stage_asr_model(model: Path, root: Path, name: str | None = None,
+                    license_override: str | None = None) -> dict:
+    """Copy a transcript model into the runtime and record the exact identity shipped.
+
+    The donor is an explicit directory - nothing is downloaded and nothing is searched for.
+    Files are copied byte for byte with their SHA-256, a real CTranslate2 layout is required
+    (`model.bin` and `config.json`), and a name that could escape the target directory is
+    refused. The identity record is written beside the weights so the worker can report which
+    model and which licence an installed product is actually running.
+    """
+    model = Path(os.path.abspath(model))
+    reject_reparse(model)
+    if not model.is_dir():
+        raise ValueError(f"ASR model donor is not a directory: {model}")
+    declared_name = (name or model.name).strip()
+    if not ASR_MODEL_NAME.fullmatch(declared_name):
+        raise ValueError(f"ASR model name is not a safe directory name: {declared_name!r}")
+    for required in ASR_MODEL_REQUIRED:
+        if not (model / required).is_file():
+            raise ValueError(f"ASR model donor has no {required}: {model}")
+    target = root / Path(ASR_MODEL_ROOT) / declared_name
+    if target.exists():
+        raise ValueError(f"refusing ASR model overwrite: {target}")
+    target.mkdir(parents=True)
+    files: dict[str, dict[str, object]] = {}
+    for source in sorted(model.iterdir()):
+        if not source.is_file():
+            # A CTranslate2 directory is flat; a nested tree is a different asset shape and is
+            # not copied silently as if it were one.
+            continue
+        reject_links_along(source)
+        destination = target / source.name
+        shutil.copy2(filesystem_path(source), filesystem_path(destination))
+        files[source.name] = {"bytes": destination.stat().st_size, "sha256": sha256(destination)}
+    licence = asr_model_licence(declared_name)
+    if license_override:
+        licence["asset_license"] = license_override
+        licence["evidence"] = "ASSERTED_BY_CALLER"
+    identity = {
+        "schema": "archeaxis.asr-model/v1",
+        "name": declared_name,
+        "engine": "faster-whisper",
+        "required_files": list(ASR_MODEL_REQUIRED),
+        "files": files,
+        "license": licence,
+        "donor_directory": str(model),
+        "bundled_location": f"{ASR_MODEL_ROOT}/{declared_name}",
+        "note": "copied from an explicit donor; no download and no search was performed",
+    }
+    (target / ASR_MODEL_IDENTITY).write_text(
+        json.dumps(identity, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    return {"status": "BUNDLED", **identity}
 
 
 def packager_identity() -> str:
@@ -634,6 +721,13 @@ def main() -> int:
     parser.add_argument("--packager-commit",
                         help="asserted tooling commit (recorded separately from detected Git identity)")
     parser.add_argument("--archive", type=Path, help="also write a zip beside the root")
+    parser.add_argument("--asr-model", type=Path,
+                        help=f"explicit transcript model directory copied to {ASR_MODEL_ROOT}/<name>; "
+                             "nothing is downloaded or searched for")
+    parser.add_argument("--asr-model-name",
+                        help="directory name under the ASR model root; defaults to the donor's own name")
+    parser.add_argument("--asr-model-license",
+                        help="licence text asserted for a donor whose upstream terms are not recognised by name")
     args = parser.parse_args()
     if bool(args.webview2_runtime) != bool(args.webview2_manifest):
         raise ValueError("fixed WebView2 requires both runtime and manifest")
@@ -648,7 +742,7 @@ def main() -> int:
 
     shared_donor = args.shared or args.workers.parent.parent / "shared" / "learning_scheduler.py"
     for candidate in (args.core, args.runtime, args.workers, shared_donor, args.out,
-                      args.dep_source, args.archive):
+                      args.dep_source, args.archive, args.asr_model):
         if candidate is not None:
             reject_reparse(candidate)
     # Preflight all recursive donors before producing even a partial output root.
@@ -688,6 +782,17 @@ def main() -> int:
                          args.webview2_manifest.absolute(), root) if args.webview2_runtime else None)
     copy_tree(args.workers, root / "workers")
     capability_manifest = stage_capability_manifest(root, args.external_root)
+    # The transcript model travels with the runtime, which is already a bundle resource: an
+    # installed machine needs no shared model library and no first-run download. When no donor
+    # is supplied the gap is recorded by name rather than left to be discovered at job time.
+    asr_model = (stage_asr_model(args.asr_model, root, args.asr_model_name, args.asr_model_license)
+                 if args.asr_model is not None else {
+                     "status": "MISSING",
+                     "bundled_location": ASR_MODEL_ROOT,
+                     "reason": "no --asr-model donor was supplied; this candidate ships no transcript "
+                               "model, so media.transcribe / media.video fail by name until one is "
+                               "bundled (nothing is downloaded at run time)",
+                 })
     (root / "data").mkdir()
 
     # The scheduler worker imports the repository's shared donor rather than carrying a
@@ -788,8 +893,17 @@ def main() -> int:
             {"component": "worker-profile", "path": "worker-profile.json",
              "sha256": files["worker-profile.json"]["sha256"], "install_location": ".",
              "protocol": PROFILE_SCHEMA, "version": "1"},
+            {"component": "asr-model",
+             "path": asr_model.get("bundled_location"),
+             "status": asr_model["status"],
+             "install_location": "runtime/",
+             "version": asr_model.get("name"),
+             "files": len(asr_model.get("files") or {}),
+             "license": asr_model.get("license"),
+             "note": asr_model.get("reason") or "shipped with the runtime; discovered by the transcribe worker"},
         ],
         "dependencies": dependencies,
+        "asr_model": asr_model,
         "capability_manifest": capability_manifest,
         "app_local_vc_runtime": app_local_vc,
         "app_local_webview2": app_local_webview2,

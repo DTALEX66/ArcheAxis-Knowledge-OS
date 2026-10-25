@@ -63,7 +63,7 @@
 # probe.reaches = 该探针通过所能证明的上限），索引记录实测；两者不符时测试必须红。
 # =============================================================================
 schema_version: "1.0"
-updated: "2026-10-18"
+updated: "2026-10-25"
 source_of_truth: "docs/environment/EXTERNAL_DEPENDENCIES.md"
 description: "ArcheAxis-Knowledge-OS 外置能力需求规范（机器可读清单，四处读取方共用的唯一绑定）"
 
@@ -558,7 +558,7 @@ capabilities:
         args: ["-version"]
         expect_pattern: "ffmpeg version .*[0-9]+\\.[0-9]+"
         reaches: VERSION_PROBED
-      fallback: "缺失即具名失败；媒体通道降级为不转码，不下载静态构建"
+      fallback: "缺失即具名失败；媒体通道降级为不转码，不下载静态构建。打包产品不等这一步：runtime 自带 PyAV（av + av.libs，BSD-3-Clause 包装 + LGPL FFmpeg 库），worker_video / worker_transcribe 在声明二进制不存在时用它解码，不下载、不安装任何东西"
       required_by: [conversion, media-pipeline]
       local_only: false
 
@@ -608,7 +608,7 @@ capabilities:
         module: faster_whisper
         version_attribute: "__version__"
         reaches: VERSION_PROBED
-      fallback: "导入失败即具名 NOT_VERIFIED；权重另见 models/faster-whisper-base 与 faster-whisper-large-v3-turbo"
+      fallback: "导入失败即具名 NOT_VERIFIED；权重优先取产品自带的 runtime/models/asr/<模型>（打包时由 --asr-model 显式复制并记录身份），其次 faster-whisper-base 与 faster-whisper-large-v3-turbo 声明；缺失时具名失败，绝不在运行时下载"
       required_by: [asr-pipeline, bakeoff]
       local_only: false
 
@@ -662,7 +662,7 @@ capabilities:
     - name: faster-whisper-base
       resource_id: ext.models.faster-whisper-base
       type: model
-      purpose: "Whisper base 模型（~150MB；运行时由 dev.py 将 HF 缓存路由到项目 `.project-local/runs/<run-id>/cache`）"
+      purpose: "打包产品默认转写的 Whisper base 权重（~139MB CTranslate2 目录：model.bin/config.json/tokenizer.json/vocabulary.txt）。产品内副本位于 runtime/models/asr/faster-whisper-base（随 runtime 资源安装并在 aaos-model.json 记录身份与许可）；本条目仍声明开发机 HF 缓存位置，作为打包供体与回退"
       version_range: "base"
       version_identification: "HF 缓存 snapshot 目录名（commit sha ebe41f70…）下的 model.bin 存在性"
       platform: windows-x64
