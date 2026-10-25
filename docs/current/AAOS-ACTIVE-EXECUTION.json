@@ -557,6 +557,10 @@
   "green_update_authorization": {
     "date": "2026-10-19",
     "owner_instruction": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64 安装版定义的路径是这里吗？可以覆盖的",
+    "owner_instruction_current": "绿色库的旧版本 完全可以替换覆盖掉，不要再沿用了",
+    "owner_instruction_current_date": "2026-10-25",
+    "current_scope": "Replace the Green program files with the qualified exact-SHA candidate after CI is green; preserve user data and a hash-identified rollback copy; do not overwrite real user databases or unknown directories",
+    "pending_execution": "NOT_EXECUTED; candidate and exact-SHA green qualification must be read back first",
     "target": "D:\\All projects\\ArcheAxis.Knowledge.Green-x64",
     "target_role": "Owner daily Green/portable deployment directory; distinct from CI isolated NSIS test installation",
     "operation": "Replace project-owned application program files with the qualified current candidate; preserve user data and a rollback copy",

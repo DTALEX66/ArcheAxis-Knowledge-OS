@@ -74,14 +74,14 @@ fn knowledge_writes_are_searchable_without_a_query_time_rebuild() {
     )
     .unwrap();
     assert_eq!(
-        search::search(&conn, "deletable", 10).unwrap().len(),
+        search::search(&conn, "delete", 10).unwrap().len(),
         1,
         "the delete fixture must be indexed before deletion"
     );
     conn.execute("DELETE FROM knowledge WHERE knowledge_id=?1", [&deletable])
         .unwrap();
     assert!(
-        search::search(&conn, "deletable", 10).unwrap().is_empty(),
+        search::search(&conn, "delete", 10).unwrap().is_empty(),
         "the delete trigger must remove the indexed row"
     );
 }

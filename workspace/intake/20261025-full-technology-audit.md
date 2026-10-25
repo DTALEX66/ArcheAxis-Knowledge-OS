@@ -329,3 +329,26 @@
 - Magika `standard_v3_3` 的参数量/体积与升级影响。
 - 各外部 API（Crossref/DataCite/Wikidata/arXiv/PubMed/Semantic Scholar）的当前免费额度、UA 要求与全文可获取性。
 - 18 项前端基线失败的具体用例与是否仍具产品意义（本次未重跑全量套件）。
+
+---
+
+## 10. CI 失败分类与可复用修复（2026-10-25 补记）
+
+最近几轮失败不是“开源方案不够”，而是本项目把**输入字节钉进了多层派生契约**；一次依赖变更会沿链触发校验，任何一层没同步都会以“CI 失败”出现。逐类如下：
+
+| 类别 | 典型报错 | 根因 | 可复用修复 |
+| --- | --- | --- | --- |
+| 锁文件派生哈希 | `Qualification source drift: uv.lock`；`release-manifest` digest 不符 | `uv.lock`／`pyproject.toml` 变了，但 `AAOS-RESOURCE-QUALIFICATION`、`app/release-manifest.json`、`resource-catalog.ts` 未同批重建 | 依赖变更必须与“锁文件→release-manifest→qualification→resource-catalog”同批重建；禁止拆成多个提交 |
+| 账本派生哈希 | `input-drift[docs/truth/SUPPLY_CHAIN_LEDGER.json]`；OSS manifest 输出 digest 不符 | `SUPPLY_CHAIN_LEDGER.json` 被 `OSS-REUSE-CROSSWALK-20261008.manifest.json` 字节钉住，改账本必须重建 701 行 OSS 表 | 功能切片不改账本；账本变更单独切片，重建表并更新 manifest 全部 inputs/outputs |
+| 运行依赖清单 | `requirements.txt` 与 `pyproject.toml` runtime deps 不一致 | 只改 `pyproject`，没同步 `requirements.txt` | 依赖变更同批改三处：`pyproject.toml`、`requirements.txt`、`uv.lock` |
+| 测试夹具假设 | `FOREIGN KEY constraint failed`；搜不到自己刚插入的行 | 测试删除了已被 review 事件引用的知识行；查询词与 body 不一致 | 测试用独立未 review 行验证删除；查询词必须与夹具正文一致 |
+| 异步 UI 竞态 | `Unable to find an element with the text: 跳过：排除目录` | 第一行已渲染，第二行尚未挂载就用了同步 `getByText` | 对异步新增行统一用 `findByText`，不要用第一行的完成信号推断第二行 |
+| 安装器/构建 | 体积、成员数、`installer-lifecycle` | 依赖增加或压缩方式改变 | 在 `desktop-build` 产物上读回真实体积与成员；不在本地伪造 |
+
+**可直接复用的工程做法**（不需要改产品架构）：
+
+1. 新增 `scripts/ci/preflight_contracts.py`：在推送前一次性运行上述派生检查（resource catalog、release manifest、external index、OSS manifest、requirements 同步），失败即停。
+2. 依赖变更采用“单提交闭环”：`pyproject.toml` + `requirements.txt` + `uv.lock` + 所有派生哈希一次提交，禁止“先合依赖、后补哈希”。
+3. 功能变更与依赖变更分开：功能切片不碰 `SUPPLY_CHAIN_LEDGER`、不改 `uv.lock`；需要时单独开“供应链重绑定”切片。
+4. 对异步 UI 断言统一使用 `findByText`/`waitFor`；对状态机测试避免删除被事件引用的实体。
+5. 失败日志保留并按上表归类，不把“本地通过”当成 exact-SHA 通过。
