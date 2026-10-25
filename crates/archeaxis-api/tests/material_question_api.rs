@@ -505,7 +505,9 @@ async fn async_fixture(dir: &std::path::Path) -> (Executor, Router, Value) {
     (executor, router, body)
 }
 async fn wait_started(dir: &std::path::Path) {
-    tokio::time::timeout(std::time::Duration::from_secs(3), async {
+    // Parallel Rust tests share the runner; a cold Python worker can take longer
+    // than three seconds to reach its first statement on a loaded machine.
+    tokio::time::timeout(std::time::Duration::from_secs(15), async {
         while !dir.join("async-started").exists() {
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }

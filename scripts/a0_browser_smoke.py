@@ -1111,6 +1111,13 @@ def check_status_accessibility(page) -> dict[str, object]:
         page.keyboard.press("Tab")
         control.focus()
         page.wait_for_timeout(200)
+        if not control.evaluate("el => el.matches(':focus-visible')"):
+            # A programmatic focus can occasionally consume the keyboard modality
+            # before the engine paints the ring. Traverse away and back through
+            # real keyboard input; the assertion below still requires the ring.
+            page.keyboard.press("Shift+Tab")
+            page.keyboard.press("Tab")
+            page.wait_for_timeout(100)
         style = control.evaluate("""el => {
           const s = getComputedStyle(el);
           const barLayers=[];
