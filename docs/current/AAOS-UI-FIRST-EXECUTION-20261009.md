@@ -1907,3 +1907,8 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - Owner 验收步骤（未执行）：①安装或便携启动；②导入音频（可用 `speech.wav`，448,968 字节）并确认播放器；③点“整体执行”得到 4 个时间段；④点“引用时间段”确认与转写回执关联；⑤关闭并以同一数据根重启，回读转写与播放器；⑥另抽查文档导入／阅读／检索引用、知识候选、学习复习、研究链与备份恢复。
 - 现有安装边界：本机线上 v0.6.11 属旧 Python 后端，与 0.6.14 Rust 不是同一产品线；用 setup.exe 覆盖安装属跨版本升级，仍为 NOT_EXECUTED，且会替换现有安装。建议先在产品内“创建一致备份”，或先以解包目录加 `ARCHEAXIS_PORTABLE_ROOT` 隔离数据根完成验收；不得以本次交接声称跨版本、发布或 Green 已通过。
 - 记账：识别忠实度独立核验、Owner 签字、云端真实推理、跨版本升级／回退分别为 NOT_EXECUTED／DEFERRED；总体仍为 **PARTIAL**。
+
+### 2026-10-25 交接提交自身的 CI（元数据，不提升资格）
+
+- run 40173001622（head 56909154，即上节交接提交）completed／success：gateplan、lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates 及其余 required 作业全部 success；migration-targeted、windows-runtime-smoke、py-compat、wheel-smoke、format-targeted 保持 skipped。该提交只含指针与执行记录新增，不改变 04b3aa2f 代码检查点，也不改变总体 PARTIAL。
+- 引用上述结论的指针更新提交自身的 CI 由后续会话按同一规则单独读取，不自动沿用本 run 或更早 run 的结论。
