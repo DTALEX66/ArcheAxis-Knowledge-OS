@@ -283,7 +283,7 @@ describe("folder ingest", () => {
   it("skips hidden and dependency paths without asking the Core", async () => {
     upload([picked("册/.env"), picked("册/node_modules/pkg/index.md"), picked("册/keep.md")]);
     expect(await screen.findByText("跳过：隐藏路径")).toBeInTheDocument();
-    expect(screen.getByText("跳过：排除目录")).toBeInTheDocument();
+    expect(await screen.findByText("跳过：排除目录")).toBeInTheDocument();
     const imported = bridge.call.mock.calls.filter(([operation]) => operation === "ingest_member_import");
     expect(imported).toHaveLength(1);
     expect(memberName(imported[0][1])).toBe("keep.md");

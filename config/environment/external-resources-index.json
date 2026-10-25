@@ -4,7 +4,7 @@
   "probed": true,
   "probe_workdir": "C:\\Users\\ALEX\\AppData\\Local\\Temp\\archeaxis-resource-probe",
   "manifest": "config/environment/capability-requirements.yaml",
-  "manifest_sha256": "711434e1bb7aa4243eeb9d33ede3795dc21420ca1a62ab5535e7b96c25ec9ac6",
+  "manifest_sha256": "40c60cf1fc5119a00081bac9334621084c46b3a49ec42c679d277cf699596580",
   "manifest_updated": "2026-10-25",
   "roots_declared_by": [
     "ARCHEAXIS_EXTERNAL_ROOT",

@@ -60,11 +60,28 @@ fn knowledge_writes_are_searchable_without_a_query_time_rebuild() {
         "the update trigger must refresh status"
     );
 
-    // Deletion removes the row from the index as well.
-    conn.execute("DELETE FROM knowledge WHERE knowledge_id=?1", [&later])
+    // Deletion removes the row from the index as well. The reviewed row above is not
+    // deleted: its review event references it, and the trigger test must not manufacture
+    // an FK violation that the product's own review path would also refuse.
+    let deletable = knowledge::create_knowledge(
+        &mut conn,
+        "OPINION",
+        "delete trigger row",
+        "accepted",
+        None,
+        None,
+        "human",
+    )
+    .unwrap();
+    assert_eq!(
+        search::search(&conn, "deletable", 10).unwrap().len(),
+        1,
+        "the delete fixture must be indexed before deletion"
+    );
+    conn.execute("DELETE FROM knowledge WHERE knowledge_id=?1", [&deletable])
         .unwrap();
     assert!(
-        search::search(&conn, "incremental", 10).unwrap().is_empty(),
+        search::search(&conn, "deletable", 10).unwrap().is_empty(),
         "the delete trigger must remove the indexed row"
     );
 }

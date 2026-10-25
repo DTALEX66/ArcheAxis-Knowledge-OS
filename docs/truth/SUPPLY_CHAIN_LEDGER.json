@@ -966,30 +966,11 @@
       },
       "decision": "Reuse a single standard SVG family through the existing AaosIcon contract; keep Radix controls, no new component framework, executable extension or remote icon/font request. Phosphor and Material Symbols remain research-only alternatives. Revert the scoped source/package/lock change together if rejected.",
       "upstream_note": "Full published LICENSE preserved byte-for-byte and referenced as a Vite URL asset; no global install or unrelated lock upgrade."
-    },
-    {
-      "id": "A055",
-      "name": "PyMuPDF / MuPDF",
-      "version": "1.28.2 (uv.lock; bundled runtime)",
-      "canonical_url": "https://github.com/pymupdf/PyMuPDF",
-      "capability": "pdf-extraction-and-rendering",
-      "code_license": "AGPL-3.0-or-later OR Artifex commercial",
-      "model_license": null,
-      "disposition": "CURRENT",
-      "qualification": ["source"],
-      "product_path": "services/python-workers/document/worker_pdf.py; runtime/Lib/site-packages/pymupdf/",
-      "evidence": {
-        "license_declaration": "https://pymupdf.readthedocs.io/en/latest/_sources/about.rst",
-        "observed": "2026-10-25",
-        "scope": "Source and bundled-payload presence verified; AGPL obligations and replacement options recorded in workspace/intake/20261025-full-technology-audit.md; no legal conclusion claimed"
-      },
-      "decision": "Keep for current PDF text/structure/table geometry and page rendering, disclose the AGPL component in THIRD_PARTY_NOTICES, and treat pypdfium2 + pdfplumber as a pilot replacement. Distribution must meet AGPL-3.0 or use a commercial licence.",
-      "upstream_note": "PyMuPDF and MuPDF are dual-licensed AGPL-3.0/commercial by Artifex; the project's MIT source licence does not relicense the bundled library."
     }
   ],
-  "component_count": 56,
+  "component_count": 55,
   "disposition_summary": {
-    "CURRENT": 18,
+    "CURRENT": 17,
     "ADOPT_PRODUCT_BASE": 0,
     "ADOPT": 13,
     "EVALUATE": 9,
