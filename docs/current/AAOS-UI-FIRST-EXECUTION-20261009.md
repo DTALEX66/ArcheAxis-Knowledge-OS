@@ -1846,10 +1846,10 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 | J2 外部研究链 | PARTIAL（通道＋候选 PASS） | 重建候选真实三通道检索、比较草稿、公开知识候选、关联个人资料、统一研究文档、重启/导出/恢复均 PASS；人类接纳未执行；公开内容保持未核实 |
 | J3 知识库特色链 | PARTIAL／延期 | 按 CL-04 矩阵，不宣称全面兼容 |
 | J4 模型链 | ENGINEERING PASS；QUALITY PARTIAL | `webdriver-14c04460806a`；同一重建候选上完成回答、工程纠正、复测、恢复学习与恢复后授权拒绝；质量未独立评测 |
-| J5 扩展链 | PARTIAL | capability_toggle PASS；多形态真实消费者未全验 |
+| J5 扩展链 | PASS（按实际宣称形态；插件／技能／MCP 明确未实现，不计入宣称） | 内置引擎有真实任务消费者（`desktop-fast` 的 Office／PDF／OCR／语音／视频任务）；模板形态由 `crates/archeaxis-api/tests/template_lifecycle.rs` 在真实 Core HTTP/store 上完成能力中心发现→安装／启用／停用／更新／回退／卸载／重装→旧文档、知识、学习事件重启后仍可访问；UI 明示“插件、技能与 MCP 是接入形式；当前目录不提供未经实现的安装或执行操作”，未把它们列为已支持能力 |
 | J6 安装与可靠性 | PARTIAL（安装与当前安装态业务 PASS） | 当前重建安装器在无网络 Sandbox 完成安装→启动→数据库→卸载，并完成原生文档三路冲突/保存/恢复/Host 重启→卸载，installer/native/uninstaller 均 exit 0；未做跨版本升级/回滚、exact-SHA CI／Owner 验收；公共发布与真实数据覆盖未授权 |
 
-结论：当前源码族已在重建候选 Host `ca5fbfda` 上完成同一候选的 18 格式矩阵、原生人类 J1 14/14、公开研究→知识候选→学习整合链、AI 本地模型工程链与批量/检索/导出，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器（安装后 Host `eb268f29`）完成隔离安装、当前安装态业务与卸载；但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、J5 多形态扩展、J6 的跨版本升级/回滚。
+结论：当前源码族已在重建候选 Host `ca5fbfda` 上完成同一候选的 18 格式矩阵、原生人类 J1 14/14、公开研究→知识候选→学习整合链、AI 本地模型工程链与批量/检索/导出，视频长路径产物缺陷已修复并在原失败深根复跑，当前重建安装器（安装后 Host `eb268f29`）完成隔离安装、当前安装态业务与卸载；J5 已按实际宣称形态由真实 Core 模板生命周期测试与真实引擎任务消费者闭合，插件／技能／MCP 由产品界面明确标为未实现，不计入宣称。但按唯一闭环定义仍为 **PARTIAL**，不得宣布完整闭环。剩余是：研究草稿的人类接纳、CL-04／CL-05 的延期范围、CL-06 云端真实推理未执行、CL-07 的 exact-SHA CI／Owner 验收、安装态 AV 原生界面验收、J6 的跨版本升级/回滚。
 
 ### 2026-10-25 Stitch 外壳门禁迁移与 exact-SHA CI（CI 全绿；Owner/发布未提升）
 
@@ -1889,4 +1889,6 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - CI 修复：47f6394b 的 `test (3.12)` 有 6 项失败：desktop-fast 未同步 `--asr-model`；ASR 测试仍 patch 已被 `_resolve_model` 取代的 `_model_dir`，CI 无模型时直接失败。已同步 CI 命令与期望，并把测试改为替换 `_resolve_model`。d26500c1 的 exact-SHA run 又暴露 3 项：当前执行记录把 HuggingFace 40 位 revision 当成仓库对象（AXR060 按规则拒绝）；最小测试环境没有 faster-whisper 时 probe 不声明格式；本机声明了 ffmpeg 时 decoder 报告用 `kind` 而不是 `decoder`。已分别改为短 revision 加源码指路、静态声明格式契约并在无引擎时跳过、同时接受两种真实解码器身份；聚焦测试与 AXR060 通过，待新一轮 exact-SHA run 确认。
 - exact-SHA：run 40159430588（head 9fd55897）全部 required 作业 success：lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates；非 required 作业 skipped 保持 skipped。desktop-fast 在带模型 runtime 上完成真实语音内容、时间定位、重解析与重启回读；desktop-build 产出的 release-candidate 记录同一 SHA 并携带 `runtime/models/asr/faster-whisper-base`。
 - 元数据 follow-up：run 40161520819（head 2dbee8e1，仅指针与执行记录）的 installer-lifecycle 连续两次在同一 grouped 步骤失败。回执与截图显示重启后学习页已显示“当前已读 1 项”和“刷新学习队列”，但 `<ul aria-label="复习队列">` 尚未挂载，旧探针在 DOM 就绪前立即断言 `No unambiguous visible learning queue`；产品代码与前一绿色检查点相同。修复为有界等待学习页与唯一队列（或折叠表面）出现后再执行原断言，断言本身未放宽。run 40163883126（head 6823ceec）全部 required 作业 success：lint、test (3.12)、browser-smoke、desktop-build、desktop-fast、rust-vnext、installer-lifecycle、a0-gates；安装态 plain、conflict、grouped 三份旅程均通过，grouped 的 `distill` 仍 `NOT_EXECUTED`。这是当前最新绿色代码检查点。
-- 边界：以上属 PR 203 分支的工程资格，不是 Owner 验收、安装态 AV 原生界面验收、发布、Green 替换或跨版本升级/回退；J4 质量、CL-04/CL-05、云端真实推理、J5 多形态仍为 PARTIAL／NOT_EXECUTED。
+- J5 证据：`crates/archeaxis-api/tests/template_lifecycle.rs` 通过真实 Core HTTP/store 完成能力中心发现、安装、启用、停用、更新、回退、卸载、重装与重启回读，并断言旧文档版本、知识对象和学习事件在模板生命周期后仍可访问；`desktop-fast` 的 Office／PDF／OCR／语音／视频任务提供内置引擎的真实消费者。能力中心同时明示插件、技能与 MCP 尚未实现安装或执行，因此不把它们当作已宣称能力。J5 按实际宣称形态记为 PASS；CL-05 的开源池延期范围不变。
+- 浏览器门禁复跑：run 40165652378 的 `browser-smoke` 连续两次在 `.stitch-window-tools` 的“打开全局命令”上得到 `:focus-visible=false`。该控件位于工具条边界，原回退只按“Shift+Tab→Tab”一个方向寻找焦点；现改为两个方向各有界重试，仍要求真实 `:focus-visible` 与对比度 ≥3，不放宽断言。同一 run 的 `desktop-build` 还有一项 `SemanticReadingLayout` 找不到“文档草稿”文本框，待复跑确认是否偶发。
+- 边界：以上属 PR 203 分支的工程资格，不是 Owner 验收、安装态 AV 原生界面验收、发布、Green 替换或跨版本升级/回退；J4 质量、CL-04/CL-05、云端真实推理仍为 PARTIAL／NOT_EXECUTED。

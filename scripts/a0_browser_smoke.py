@@ -1108,16 +1108,23 @@ def check_status_accessibility(page) -> dict[str, object]:
             continue
         # Re-establish keyboard modality: earlier pointer activity can leave a
         # programmatic focus without a :focus-visible ring on some engines.
-        page.keyboard.press("Tab")
-        control.focus()
-        page.wait_for_timeout(200)
-        if not control.evaluate("el => el.matches(':focus-visible')"):
-            # A programmatic focus can occasionally consume the keyboard modality
-            # before the engine paints the ring. Traverse away and back through
-            # real keyboard input; the assertion below still requires the ring.
-            page.keyboard.press("Shift+Tab")
+        # A programmatic focus can consume the keyboard modality before the engine
+        # paints the ring, and a bar-edge control can be reached from only one tab
+        # direction. Retry through real keyboard input in both directions; the
+        # assertion below still requires a real :focus-visible ring and contrast.
+        for attempt in range(2):
             page.keyboard.press("Tab")
-            page.wait_for_timeout(100)
+            control.focus()
+            page.wait_for_timeout(200)
+            if control.evaluate("el => el.matches(':focus-visible')"):
+                break
+            if attempt == 0:
+                page.keyboard.press("Tab")
+                page.keyboard.press("Shift+Tab")
+            else:
+                page.keyboard.press("Shift+Tab")
+                page.keyboard.press("Tab")
+            page.wait_for_timeout(150)
         style = control.evaluate("""el => {
           const s = getComputedStyle(el);
           const barLayers=[];
