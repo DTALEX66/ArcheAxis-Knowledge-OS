@@ -352,3 +352,62 @@
 3. 功能变更与依赖变更分开：功能切片不碰 `SUPPLY_CHAIN_LEDGER`、不改 `uv.lock`；需要时单独开“供应链重绑定”切片。
 4. 对异步 UI 断言统一使用 `findByText`/`waitFor`；对状态机测试避免删除被事件引用的实体。
 5. 失败日志保留并按上表归类，不把“本地通过”当成 exact-SHA 通过。
+
+---
+
+## 11. 吸收落地盘点（按“对产品是否还有用”判定）
+
+判定口径：不是“源码里有没有引用”，而是“当前正式产品链路（Rust Core、`services/python-workers`、`frontend`、`src-tauri`、安装器载荷）是否真的需要它”。历史登记不删除，但**不再进入当前运行时的依赖/载荷**。
+
+### 11.1 真正落地（保留）
+
+| 组件 | 当前消费者 | 结论 |
+| --- | --- | --- |
+| PDF.js | `frontend/src/components/PdfReader.tsx` | 保留 |
+| Tesseract / pytesseract | `worker_ocr.py`（Tesseract 可用时） | 保留 |
+| RapidOCR | `worker_ocr.py` 回退路径；本轮随包 | 保留，已落地 |
+| faster-whisper | `worker_transcribe.py` | 保留 |
+| sherpa-onnx | `worker_diarize.py` | 保留 |
+| Magika | `worker_detect.py` | 保留 |
+| PyMuPDF | `worker_pdf.py` | 保留（AGPL 已披露） |
+| Apache Tika + Zulu JRE | `worker_office.py` 的 `.ppt` 旁路 | 保留 |
+| xlrd / antiword | `worker_office.py` 的 `.xls` / `.doc` 旁路 | 保留 |
+| LiteLLM | `document_check.py` 的云端/文档核验适配 | 保留 |
+| py-fsrs | `worker_schedule.py` | 保留 |
+| JSON Canvas | `worker_canvas.py` | 保留 |
+| OpenAlex | `public_research.py` 的科研来源族 | 保留 |
+| pulldown-cmark / serde_yaml_ng / unicode-general-category | `crates/archeaxis-domain/src/document_tags.rs` | 保留 |
+| Lucide React | `AaosIcon.tsx` 等 | 保留 |
+| Chromium（Playwright） | `worker_webpage.py` 渲染通道 | 保留 |
+
+### 11.2 有用但当前未落地（立即或下一片落地）
+
+| 组件/能力 | 现状 | 判定 | 动作 |
+| --- | --- | --- | --- |
+| Trafilatura | 主依赖已存在；`worker_html.py` 仍用标准库解析 | 有用（正文/广告分离是研究链质量瓶颈） | **下一片接线**，保留依赖 |
+| Crossref REST | 只在生成的 UI 目录，没有 worker | 有用（DOI 元数据/科研来源） | **下一片接线** |
+| DataCite REST | 同上 | 有用（数据集 DOI） | **下一片接线** |
+| Wikidata | 同上 | 有用（实体/百科交叉核对） | **下一片接线** |
+| sqlite-vec | 主依赖保留；仅 legacy `app/memory/vector_db.py` 使用 | 有用（持久化向量索引） | **后续切片落地到 Core 检索** |
+| JiWER / RapidFuzz | 主依赖；当前 worker 未使用 | 小体积评估供体 | 保留，不占显著体积 |
+| Loguru / structlog / APScheduler | legacy `app/` 使用；当前 workers 未使用 | 体积小/兼容 legacy | APScheduler 已移出运行时；日志库保留 |
+
+### 11.3 已移出运行时（当前产品无用）
+
+| 组件 | 证据 | 动作 |
+| --- | --- | --- |
+| MarkItDown | 仅 `app/ingestion` legacy 与集成测试使用；vNext Office/PDF worker 不导入；其 `xlsx` extra 还拖入 pandas 33MB | 移出主依赖，保留在 CI/legacy 组；安装器不再携带 |
+| NetworkX | 仅 `app/memory/graph_db.py`、`shared/graph_rag.py` 等 legacy 路径；workers/Core 不导入 | 移出主依赖，保留在 CI 组 |
+| APScheduler | 仅 `app/core/scheduler.py` legacy；Core/workers 不导入 | 移出主依赖，保留在 CI 组 |
+| pandas / pdfminer | 仅由 MarkItDown 传递引入 | 随 MarkItDown 移出运行时，预计减少约 40MB 未压缩体积 |
+
+### 11.4 明确无用/替代已定（不进入运行时）
+
+PaddleOCR、EasyOCR、whisper.cpp、Silero VAD、Mozilla Readability、Crawlee Python、XYFlow、OpenTutor、LearningMAP、OpenMAIC、RAG-Anything、LightRAG、Graphiti、MemOS、WeKnora、Cognee：保留历史登记，不作为当前候选继续投入；其中 OCR/ASR/网页/图渲染已有选定实现。MinerU、Marker、PyMuPDF4LLM、tldraw、Firecrawl、H5P、Phoenix、SearXNG、Kùzu 继续按许可/架构理由拒绝或阻断。
+
+### 11.5 本轮实际动作
+
+- `pyproject.toml`／`requirements.txt`／`uv.lock`：从**运行时主依赖**移除 MarkItDown、NetworkX、APScheduler；CI/legacy 组仍保留，测试不降级。
+- `desktop/scripts/assert_runtime_engines.py`：不再断言 MarkItDown；新增 RapidOCR 断言，确保新回退引擎真的在载荷内。
+- 新增 `scripts/ci/preflight_contracts.py`，把上述派生链检查变成推送前可执行步骤。
+- 未删除历史账本行：`SUPPLY_CHAIN_LEDGER.json`／研究池是历史证据，删除会破坏字节钉住的 OSS 表；本轮删除的是**运行时无消费者依赖**，不是历史记录。

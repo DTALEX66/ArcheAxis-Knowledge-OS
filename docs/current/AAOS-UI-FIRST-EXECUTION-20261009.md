@@ -1928,3 +1928,13 @@ main01：`.project-local/runs/be268a2d33/document-check-missing-credential-nativ
 - 边界：本切片不改变 Owner 验收、云端真实推理、跨版本升级/回退、CL-04/CL-05 延期范围或 J4 独立质量结论，总体仍为 **PARTIAL**。新提交的 exact-SHA CI 由后续会话读取；在取得绿色结果前，代码检查点仍是 04b3aa2f（run 40168290341）。
 - Owner 2026-10-25 明确“绿色库的旧版本 完全可以替换覆盖掉，不要再沿用了”，已写入活动指针 `green_update_authorization`。实际替换仍以 exact-SHA 绿色候选、程序回滚副本和数据保全为前提；当前 `pending_execution=NOT_EXECUTED`，不以授权本身声称 Green 已替换。
 - CI 失败分类与可复用修复见[审计报告第 10 节](../../workspace/intake/20261025-full-technology-audit.md)。本轮各次失败日志保留；本地通过不等于 exact-SHA 通过。
+
+### 2026-10-25 吸收落地盘点与运行时减法（新提交 CI 待读）
+
+- 判定口径改为“当前正式产品链路是否真的需要”，不是“源码里有没有引用”。完整表见[审计报告第 11 节](../../workspace/intake/20261025-full-technology-audit.md)。
+- 已落地并保留：PDF.js、Tesseract、RapidOCR（本轮新增回退）、faster-whisper、sherpa-onnx、Magika、PyMuPDF、Tika/Zulu、xlrd/antiword、LiteLLM、py-fsrs、JSON Canvas、OpenAlex、pulldown-cmark/serde_yaml_ng/unicode-general-category、Lucide、Playwright Chromium。
+- 有用但未落地（下一片）：Trafilatura 正文抽取、Crossref/DataCite/Wikidata 元数据、sqlite-vec 持久化向量索引。本轮不把它们写成已接入。
+- 运行时减法：从 `pyproject.toml`／`requirements.txt`／`uv.lock` 的**主依赖**移除 MarkItDown、NetworkX、APScheduler（仅 legacy `app/` 路径使用；workers/Core 不导入）。它们仍在 CI/legacy 组，测试覆盖不降级；`pandas`/`pdfminer` 作为 MarkItDown 传递依赖一并移出运行时，预计减少约 40MB 未压缩体积。历史账本不删除，避免破坏字节钉住的 OSS 表。
+- 打包断言：`desktop/scripts/assert_runtime_engines.py` 移除 MarkItDown，新增 RapidOCR，保证新回退引擎确实在安装载荷里。
+- 止损工具：新增 `scripts/ci/preflight_contracts.py`，在推送前串行检查 resource catalog、release manifest、requirements 同步、external-resources index、OSS reuse manifest、document authority；本轮已本地全绿。
+- 边界：这是新提交，exact-SHA CI 尚未读取；绿色代码检查点仍是 dd38cef2（run 40181953892）。Owner 验收、云端真实推理、跨版本升级/回退、CL-04/CL-05 与 J4 独立质量结论不变，总体 **PARTIAL**。

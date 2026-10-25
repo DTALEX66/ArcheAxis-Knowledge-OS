@@ -24,9 +24,9 @@
   "dependency_lock": {
     "path": "uv.lock",
     "algorithm": "sha256",
-    "digest": "c8e49a1a033045b07ef6d338e5764b651c021c63d859224ba1f89933e5018ef3",
+    "digest": "f2057e2b608ae35ff9accb20739a241b56dd5f124994f9b61ef2b328b774e3ad",
     "format_version": 1,
-    "revision": 9
+    "revision": 10
   },
   "migrations": {
     "owners": [
