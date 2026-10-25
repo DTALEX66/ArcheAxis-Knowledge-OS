@@ -1173,14 +1173,14 @@
     "delivery_pr_203_20261024": {
       "status": "CI_PASS",
       "branch": "trae/20261024",
-      "head_sha": "1d81aa9057c7123b3dfe27bbc17a9cf121b7af86",
-      "remote_branch_sha_readback": "1d81aa9057c7123b3dfe27bbc17a9cf121b7af86",
+      "head_sha": "a329c0dd53cd6c92486450bf49ab7a86a1ea2764",
+      "remote_branch_sha_readback": "a329c0dd53cd6c92486450bf49ab7a86a1ea2764",
       "pr_url": "https://github.com/DTALEX66/ArcheAxis-Knowledge-OS/pull/203",
       "pr_state": "OPEN",
-      "ci_run_id": 40139923313,
+      "ci_run_id": 40147136804,
       "ci_workflow": "CI",
       "ci_event": "pull_request",
-      "ci_head_sha_observed": "1d81aa9057c7123b3dfe27bbc17a9cf121b7af86",
+      "ci_head_sha_observed": "a329c0dd53cd6c92486450bf49ab7a86a1ea2764",
       "ci_state_at_observation": "completed",
       "ci_conclusion": "SUCCESS",
       "installer_lifecycle": "SUCCESS",
@@ -1191,8 +1191,12 @@
         {"run_id": 40136511918, "head_sha": "222bad6b0d47357b324b3c0023d36af24ee5e59d", "conclusion": "FAILURE", "gate": "test (3.12)", "cause": "AXR060 current-surface audit read a build stamp inside an artifact name as a repository commit; fixed by not citing that stamp"},
         {"run_id": 40137602012, "head_sha": "8c18ba73f5841e71e042f5c4ae6a50d805dc5476", "conclusion": "FAILURE", "gate": "installer-lifecycle", "cause": "conflict journey save click used a coordinate computed before a late layout shift; the pointer landed beside the control and the conflict panel never opened"}
       ],
-      "code_checkpoint": {"sha": "ad2d13540fbccd51874bb776dcd19fbce5c99634", "run_id": 40134459916, "conclusion": "SUCCESS"},
-      "local_evidence": ".project-local/task-runtime/browser-smoke/canonical-browser-smoke.json PASS (13 viewports, 5 themes); a local grouped rerun completed all stages with review/recover PASS but source_consistent=false because a commit landed during that run, so it is not cited as qualification",
+      "code_checkpoints": [
+        {"sha": "ad2d13540fbccd51874bb776dcd19fbce5c99634", "run_id": 40134459916, "conclusion": "SUCCESS"},
+        {"sha": "1d81aa9057c7123b3dfe27bbc17a9cf121b7af86", "run_id": 40139923313, "conclusion": "SUCCESS"},
+        {"sha": "a329c0dd53cd6c92486450bf49ab7a86a1ea2764", "run_id": 40147136804, "conclusion": "SUCCESS"}
+      ],
+      "local_evidence": "Browser gate PASS (13 viewports, 5 themes). The exact CI-built candidate Host 0a074727684ee418c6192c419574feaac5127a94c8ec42d979261fa628db5025 ran the grouped real qwen3.5-4b chain with authored correction/retest in an isolated portable root: engineering PASS, 290 actions, 5 normal exits, source_consistent=true; distill answered but quality NOT evaluated. A separate-agent single-sample review found the original refusal faithful and the retest lightly extrapolated; it is not independent quality or Owner acceptance.",
       "documentation_followup": "This pointer update accompanies a metadata-only documentation commit pushed after the green code checkpoint; read that commit's own CI separately and do not transfer the code checkpoint conclusion to it silently.",
       "merge": "NOT_GRANTED_BY_THIS_POINTER",
       "release": "NOT_GRANTED",
