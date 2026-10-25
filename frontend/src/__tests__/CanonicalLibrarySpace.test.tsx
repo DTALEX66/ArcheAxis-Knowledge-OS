@@ -35,6 +35,7 @@ describe("canonical content sample", () => {
     expect(screen.getByText(/需要提取文字时，点“整理此来源为知识候选”/)).toHaveTextContent("草稿保存在本地知识库");
     expect(screen.getByRole("button",{name:"整理此来源为知识候选"})).toBeEnabled();
     expect(bridge.call.mock.calls.some(([op])=>op==="document_create"||op==="job_enqueue")).toBe(false);
+    expect(screen.getByRole("region",{name:"阅读与编辑文档视图"})).not.toHaveAttribute("data-reader-layout");
   });
   it("SIMULATED: an empty reader opens the actual import action without changing the URL directly", async () => {
     const previous=bridge.call.getMockImplementation()!,onImport=vi.fn();
@@ -93,6 +94,18 @@ describe("canonical content sample", () => {
         default: throw new Error(operation);
       }
     });
+  });
+  it("SIMULATED: an opened reader exposes separate keyboard focus regions without changing the saved document",async()=>{
+    render(<CanonicalLibrarySpace purpose="reader" initialDocumentId={doc.document_id}/>);
+    const editor=await screen.findByRole("textbox",{name:"文档草稿"});
+    expect(editor).toHaveTextContent("已保存笔记");
+    const reader=screen.getByRole("region",{name:"阅读与编辑文档视图"});
+    expect(reader).toHaveAttribute("data-reader-layout","split");
+    const body=screen.getByRole("region",{name:"正文与原件滚动区"}),details=screen.getByRole("complementary",{name:"内容详情"});
+    expect(body).toHaveAttribute("tabindex","0");expect(details).toHaveAttribute("tabindex","0");
+    body.focus();expect(body).toHaveFocus();details.focus();expect(details).toHaveFocus();
+    expect(within(body).getByRole("textbox",{name:"文档草稿"})).toBe(editor);
+    expect(bridge.call.mock.calls.some(([op])=>["document_draft","document_create","model_configuration_put"].includes(op))).toBe(false);
   });
   it("SIMULATED: a source hash stays in diagnostics instead of the inspector version", async () => {
     const previous = bridge.call.getMockImplementation()!;

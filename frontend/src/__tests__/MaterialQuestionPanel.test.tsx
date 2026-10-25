@@ -1,5 +1,6 @@
 import {afterEach,beforeEach,expect,it,vi} from "vitest";
-import {fireEvent,render,screen,waitFor,act} from "@testing-library/react";
+import {fireEvent,render,screen,waitFor,act,within} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {webcrypto} from "node:crypto";
 import {MaterialQuestionPanel} from "../components/MaterialQuestionPanel";
 const bridge=vi.hoisted(()=>({call:vi.fn(),configuration:{revision:0} as Record<string,unknown>}));vi.mock("../api/core",()=>({coreCommand:(op:string,p:unknown)=>op==="model_configuration_get"?Promise.resolve(bridge.configuration):bridge.call(op,p)}));
@@ -49,12 +50,17 @@ it.each([["fast",1024],["deep",2048]] as const)("SYNTHETIC recovers %s no-final-
  fireEvent.click(await screen.findByText("确认提问或查询原请求"));await screen.findByText(/模型在输出上限处停止/);
  const original=structuredClone(bridge.call.mock.calls.find(([op,p])=>op==="material_question"&&!p.body.preview)![1].body);
  fireEvent.click(screen.getByRole("button",{name:"调整材料模型输出预算"}));
+ const dialog=screen.getByRole("dialog",{name:"调整材料模型输出预算"});
+ expect(dialog).toHaveClass("material-budget-dialog");expect(within(dialog).getByRole("region",{name:"当前材料模型输出预算"})).toBeInTheDocument();
  expect(await screen.findByLabelText("最大输出 token")).toHaveValue(budget);
  expect(screen.getByText(new RegExp(`当前配置：chosen；模型：qwen3.5-4b；已保存预算：${budget}`))).toBeInTheDocument();
  expect(bridge.call.mock.calls.some(([op])=>op==="model_configuration_put")).toBe(false);
  fireEvent.change(screen.getByLabelText("最大输出 token"),{target:{value:"4096"}});fireEvent.click(screen.getByRole("button",{name:"保存材料输出预算"}));await screen.findByText(/请回到材料问答点击/);
  const saved=bridge.call.mock.calls.find(([op])=>op==="model_configuration_put")![1].body;
  expect(saved).toEqual({expected_revision:3,configuration:{...configuration,profiles:{...configuration.profiles,chosen:{...configuration.profiles.chosen,max_tokens:4096}}}});
+ fireEvent.click(within(dialog).getByRole("button",{name:"返回材料问答"}));
+ await waitFor(()=>expect(screen.queryByRole("dialog",{name:"调整材料模型输出预算"})).toBeNull());
+ await waitFor(()=>expect(screen.getByRole("button",{name:"调整材料模型输出预算"})).toHaveFocus());
  expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent(`最多 ${budget} token`);
  expect(screen.getByText("确认提问或查询原请求")).toBeDisabled();expect(screen.getByLabelText("材料问题")).toHaveValue("original question");
  expect(bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&!p.body.preview)).toHaveLength(1);
@@ -66,6 +72,24 @@ it.each([["fast",1024],["deep",2048]] as const)("SYNTHETIC recovers %s no-final-
  expect(bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&!p.body.preview)).toHaveLength(1);
  fireEvent.click(screen.getByText("确认提问或查询原请求"));await screen.findByText("SYNTHETIC recovered final answer");
  expect(bridge.call.mock.calls.filter(([op,p])=>op==="material_question"&&!p.body.preview)).toHaveLength(2);
+});
+
+it("SYNTHETIC Escape cancels an unsaved budget edit and returns focus without saving or repeating inference",async()=>{
+ const profile={endpoint:"http://127.0.0.1:1234/v1",protocol:"openai",model:"existing",credential_ref:null,max_tokens:2048,timeout_s:120};
+ bridge.configuration={schema:"archeaxis.model-configuration/v1",workspace_id:"a".repeat(32),restore_epoch:"initial",revision:1,profiles:{local:profile},bindings:[{purpose:"material",lane:"fast",profile_id:"local"}]};
+ const request={request_id:"real-shape-failed",material,selection:null,question:"old question",purpose:"understand",model:"existing",max_tokens:2048,timeout_s:120,preview:false,confirmed_plan_sha256:null};
+ bridge.call.mockImplementation(async(op,p)=>{expect(op).toBe("material_question_status");return p.body.request_id===null?{schema:"archeaxis.material-question-journal/v1",plans:[{request}]}:{schema:"archeaxis.material-answer/v1",request_id:request.request_id,outcome:"failed",reason_code:"material_no_final_answer",answer:null};});
+ const user=userEvent.setup();render(<MaterialQuestionPanel material={material} text="saved material"/>);
+ await user.click(screen.getByRole("button",{name:"恢复本版材料的上次提问"}));
+ const opener=await screen.findByRole("button",{name:"调整材料模型输出预算"});await user.click(opener);
+ const input=await screen.findByLabelText("最大输出 token");await user.clear(input);await user.type(input,"4096");
+ expect(screen.queryByRole("region",{name:"待确认请求"})).toBeNull();
+ await user.keyboard("{Escape}");await waitFor(()=>expect(screen.queryByRole("dialog",{name:"调整材料模型输出预算"})).toBeNull());
+ await waitFor(()=>expect(opener).toHaveFocus());expect(profile.max_tokens).toBe(2048);
+ expect(screen.getByRole("region",{name:"待确认请求"})).toHaveTextContent("最多 2048 token");
+ await user.click(opener);expect(await screen.findByLabelText("最大输出 token")).toHaveValue(2048);
+ await user.click(screen.getByRole("button",{name:"返回材料问答"}));
+ expect(bridge.call.mock.calls.every(([op])=>op==="material_question_status")).toBe(true);
 });
 it.each(["length","stop"])("explains a missing final answer with finish reason %s without retrying or exposing reasoning",async finishReason=>{
  bridge.call.mockImplementation(async(_op,p)=>p.body.preview

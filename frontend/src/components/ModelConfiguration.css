@@ -15,3 +15,10 @@
 .model-advanced { margin-top: 4px; border-top: 1px solid var(--ax-border); padding-top: 10px; }
 .model-advanced > summary { cursor: pointer; min-height: 32px; color: var(--ax-fg-secondary); font-size: 13px; }
 .model-advanced[open] > summary { color: var(--ax-accent); }
+.material-budget-dialog { width:min(640px,calc(100vw - 32px)); box-sizing:border-box; }
+.material-budget-dialog>.model-quick-start { margin:12px 0 16px; padding:0; border:0; background:transparent; justify-items:stretch; }
+.material-budget-dialog .model-quick-start h4 { margin:0; }
+.material-budget-dialog fieldset { display:grid; gap:12px; min-width:0; margin:0; padding:12px; border:1px solid var(--ax-border); border-radius:8px; }
+.material-budget-dialog label { display:grid; gap:6px; min-width:0; }
+.material-budget-dialog input { width:100%; min-width:0; box-sizing:border-box; }
+.material-budget-dialog button { min-height:36px; white-space:normal; overflow-wrap:anywhere; }

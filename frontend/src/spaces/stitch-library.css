@@ -72,11 +72,25 @@
 .stitch-reader-details .draft-restore label { display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
 .stitch-reader-details .draft-restore input { margin:0; min-height:34px; }
 .stitch-reader-details :is(.reader-material-tools,.reader-source-tools),.reader-batch-tools { min-width:0; overflow-wrap:anywhere; }
+/* Bound only an opened document, inside the existing desktop viewport. Empty
+   readers and source intake keep their ordinary document flow. */
+.app-shell.cabin-shell[data-stitch-workspace] .space-view:has(> .stitch-reader-page[data-reader-layout="split"]) { height:100%; min-height:0; }
+.stitch-reader-page[data-reader-layout="split"] { height:100%; min-height:0; overflow:hidden; }
+.stitch-reader-page[data-reader-layout="split"]>.reader-batch-tools { flex:0 1 auto; max-height:25%; overflow:auto; }
+.stitch-reader-page[data-reader-layout="split"]>.stitch-reader-workspace { flex:1 1 0; min-height:0; overflow:hidden; align-items:stretch; }
+.stitch-reader-page[data-reader-layout="split"] :is(.stitch-reader-spread,.stitch-reader-details) { height:100%; max-height:100%; min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; box-sizing:border-box; }
+.stitch-reader-spread:focus-visible,.stitch-reader-details:focus-visible { outline:2px solid var(--ax-focus-ring); outline-offset:-2px; }
 .stitch-reader-empty>p { margin:6px 0 12px; color:var(--ax-fg-secondary); }
 .stitch-reader-empty-actions { display:flex; flex-wrap:wrap; gap:10px; margin:4px 0 14px; }
 .stitch-reader-spread[data-original-open="true"] { display:flex; flex-wrap:wrap; }
 .stitch-reader-spread[data-original-open="true"]>article,.stitch-reader-spread[data-original-open="true"]>section { flex:1 1 340px; }
 @container content (max-width:960px) { .stitch-reader-workspace { grid-template-columns:minmax(0,1fr); } .stitch-reader-details { display:block; } }
+@container content (max-width:960px) {
+  .stitch-reader-page[data-reader-layout="split"] { height:auto; min-height:100%; overflow:visible; }
+  .stitch-reader-page[data-reader-layout="split"]>.reader-batch-tools { max-height:none; overflow:visible; }
+  .stitch-reader-page[data-reader-layout="split"]>.stitch-reader-workspace { flex:0 0 auto; overflow:visible; }
+  .stitch-reader-page[data-reader-layout="split"] :is(.stitch-reader-spread,.stitch-reader-details) { height:auto; max-height:none; overflow:visible; overscroll-behavior:auto; scrollbar-gutter:auto; }
+}
 @container content (max-width:680px) {
   .stitch-library-browser { grid-template-columns:minmax(0,1fr); }
   .stitch-library-quick-views { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -93,6 +107,10 @@
   .stitch-reader-page { gap:4px; }
   .stitch-reader-toolbar { gap:4px; }
   .stitch-reader-modes button { min-height:30px; padding:3px 8px; }
+  .stitch-reader-page[data-reader-layout="split"] { height:auto; min-height:100%; overflow:visible; }
+  .stitch-reader-page[data-reader-layout="split"]>.reader-batch-tools { max-height:none; overflow:visible; }
+  .stitch-reader-page[data-reader-layout="split"]>.stitch-reader-workspace { flex:0 0 auto; overflow:visible; }
+  .stitch-reader-page[data-reader-layout="split"] :is(.stitch-reader-spread,.stitch-reader-details) { height:auto; max-height:none; overflow:visible; overscroll-behavior:auto; scrollbar-gutter:auto; }
 }
 @media (forced-colors:active) { .stitch-document-kind,.stitch-library-primary,.stitch-reader-modes button[aria-pressed="true"],.stitch-library-quick-views button[aria-pressed="true"] { border-color:Highlight; } }
 
